@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.18 03:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import os.path
@@ -40,22 +40,18 @@ class Worker(BaseWorker):
     @Slot()
     def run(self):
         """Run worker."""
-        # from file
-        if self.transcribe:
-            self.handle_file()
-
-        # from microphone
-        else:
-            if self.advanced:
-                self.handle_advanced()
+        try:
+            if self.transcribe:
+                self.handle_file()  # from file
             else:
-                self.handle_simple()
-
-        self.on_destroy()
-
-    def on_destroy(self):
-        """Handle destroyed event."""
-        self.cleanup()
+                if self.advanced:
+                    self.handle_advanced() # from microphone
+                else:
+                    self.handle_simple() # from microphone
+        except Exception as e:
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def handle_file(self):
         """Handle file"""

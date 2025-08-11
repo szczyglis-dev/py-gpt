@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.28 00:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -28,59 +28,57 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        responses = []
-        msg = None
-        for item in self.cmds:
-            if self.is_stopped():
-                break
-            response = None
-            try:
-                if item["cmd"] == "get_ctx_list_in_date_range":
-                    response = self.cmd_get_ctx_list_in_date_range(item)
+        try:
+            responses = []
+            msg = None
+            for item in self.cmds:
+                if self.is_stopped():
+                    break
+                response = None
+                try:
+                    if item["cmd"] == "get_ctx_list_in_date_range":
+                        response = self.cmd_get_ctx_list_in_date_range(item)
 
-                elif item["cmd"] == "get_ctx_content_by_id":
-                    response = self.cmd_get_ctx_content_by_id(item)
+                    elif item["cmd"] == "get_ctx_content_by_id":
+                        response = self.cmd_get_ctx_content_by_id(item)
 
-                elif item["cmd"] == "get_day_note":
-                    response = self.cmd_get_day_note(item)
+                    elif item["cmd"] == "get_day_note":
+                        response = self.cmd_get_day_note(item)
 
-                elif item["cmd"] == "add_day_note":
-                    response = self.cmd_add_day_note(item)
+                    elif item["cmd"] == "add_day_note":
+                        response = self.cmd_add_day_note(item)
 
-                elif item["cmd"] == "update_day_note":
-                    response = self.cmd_update_day_note(item)
+                    elif item["cmd"] == "update_day_note":
+                        response = self.cmd_update_day_note(item)
 
-                elif item["cmd"] == "remove_day_note":
-                    response = self.cmd_remove_day_note(item)
+                    elif item["cmd"] == "remove_day_note":
+                        response = self.cmd_remove_day_note(item)
 
-                elif item["cmd"] == "count_ctx_in_date":
-                    response = self.cmd_count_ctx_in_date(item)
+                    elif item["cmd"] == "count_ctx_in_date":
+                        response = self.cmd_count_ctx_in_date(item)
 
-                if response:
-                    responses.append(response)
+                    if response:
+                        responses.append(response)
 
-            except Exception as e:
-                msg = "Error: {}".format(e)
-                responses.append(
-                    self.make_response(
-                        item,
-                        self.throw_error(e)
+                except Exception as e:
+                    msg = "Error: {}".format(e)
+                    responses.append(
+                        self.make_response(
+                            item,
+                            self.throw_error(e)
+                        )
                     )
-                )
 
-        # send response
-        if len(responses) > 0:
-            self.reply_more(responses)
+            if len(responses) > 0:
+                self.reply_more(responses) # send response
 
-        # update status
-        if msg is not None:
-            self.status(msg)
+            if msg is not None:
+                self.status(msg) # update status
 
-        self.on_destroy()
-
-    def on_destroy(self):
-        """Handle destroyed event."""
-        self.cleanup()
+        except Exception as e:
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def cmd_get_ctx_list_in_date_range(self, item: dict) -> dict:
         """

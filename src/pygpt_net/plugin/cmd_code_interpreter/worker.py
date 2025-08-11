@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -36,93 +36,80 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        responses = []
-
-        for item in self.cmds:
-            if self.is_stopped():
-                break
-            try:
-                response = None
-                if (item["cmd"] in self.plugin.allowed_cmds
-                        and (self.plugin.has_cmd(item["cmd"]) or 'force' in item)):
-
-                    if item["cmd"] == "code_execute_file":
-                        response = self.cmd_code_execute_file(item)
-
-                    elif item["cmd"] == "code_execute":
-                        response = self.cmd_code_execute(item)
-                        if "silent" in item:
-                            response = None
-
-                    elif item["cmd"] == "code_execute_all":
-                        response = self.cmd_code_execute_all(item)
-                        if "silent" in item:
-                            response = None
-
-                    elif item["cmd"] == "ipython_execute_new":
-                        response = self.cmd_ipython_execute_new(item)
-                        if "silent" in item:
-                            self.ctx.bag = response  # store tmp response
-                            response = None
-
-                    elif item["cmd"] == "ipython_execute":
-                        response = self.cmd_ipython_execute(item)
-                        if "silent" in item:
-                            self.ctx.bag = response  # store tmp response
-                            response = None
-
-                    elif item["cmd"] == "ipython_kernel_restart":
-                        response = self.cmd_ipython_kernel_restart(item)
-                        if "silent" in item:
-                            self.ctx.bag = response  # store tmp response
-                            response = None
-
-                    elif item["cmd"] == "get_python_output":
-                        response = self.cmd_get_python_output(item)
-
-                    elif item["cmd"] == "get_python_input":
-                        response = self.cmd_get_python_input(item)
-
-                    elif item["cmd"] == "clear_python_output":
-                        response = self.cmd_clear_python_output(item)
-
-                    elif item["cmd"] == "render_html_output":
-                        response = self.cmd_render_html_output(item)
-
-                    elif item["cmd"] == "get_html_output":
-                        response = self.cmd_get_html_output(item)
-
-                    if response:
-                        responses.append(response)
-
-            except Exception as e:
-                responses.append(
-                    self.make_response(
-                        item,
-                        self.throw_error(e)
-                    )
-                )
-
-        # send response
-        if len(responses) > 0:
-            self.reply_more(responses)
-
-        # cleanup
-        self.on_destroy()
-
-    def on_destroy(self):
-        """Handle destroyed event."""
-        # cleanup
         try:
-            self.signals.output.disconnect()
-            self.signals.output_begin.disconnect()
-            self.signals.output_end.disconnect()
-            self.signals.html_output.disconnect()
-            self.signals.ipython_output.disconnect()
-            self.signals.clear.disconnect()
+            responses = []
+            for item in self.cmds:
+                if self.is_stopped():
+                    break
+                try:
+                    response = None
+                    if (item["cmd"] in self.plugin.allowed_cmds
+                            and (self.plugin.has_cmd(item["cmd"]) or 'force' in item)):
+
+                        if item["cmd"] == "code_execute_file":
+                            response = self.cmd_code_execute_file(item)
+
+                        elif item["cmd"] == "code_execute":
+                            response = self.cmd_code_execute(item)
+                            if "silent" in item:
+                                response = None
+
+                        elif item["cmd"] == "code_execute_all":
+                            response = self.cmd_code_execute_all(item)
+                            if "silent" in item:
+                                response = None
+
+                        elif item["cmd"] == "ipython_execute_new":
+                            response = self.cmd_ipython_execute_new(item)
+                            if "silent" in item:
+                                self.ctx.bag = response  # store tmp response
+                                response = None
+
+                        elif item["cmd"] == "ipython_execute":
+                            response = self.cmd_ipython_execute(item)
+                            if "silent" in item:
+                                self.ctx.bag = response  # store tmp response
+                                response = None
+
+                        elif item["cmd"] == "ipython_kernel_restart":
+                            response = self.cmd_ipython_kernel_restart(item)
+                            if "silent" in item:
+                                self.ctx.bag = response  # store tmp response
+                                response = None
+
+                        elif item["cmd"] == "get_python_output":
+                            response = self.cmd_get_python_output(item)
+
+                        elif item["cmd"] == "get_python_input":
+                            response = self.cmd_get_python_input(item)
+
+                        elif item["cmd"] == "clear_python_output":
+                            response = self.cmd_clear_python_output(item)
+
+                        elif item["cmd"] == "render_html_output":
+                            response = self.cmd_render_html_output(item)
+
+                        elif item["cmd"] == "get_html_output":
+                            response = self.cmd_get_html_output(item)
+
+                        if response:
+                            responses.append(response)
+
+                except Exception as e:
+                    responses.append(
+                        self.make_response(
+                            item,
+                            self.throw_error(e)
+                        )
+                    )
+
+            if len(responses) > 0:
+                self.reply_more(responses)  # send response
+
         except Exception as e:
-            pass
-        self.cleanup()
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def cmd_ipython_execute_new(self, item: dict) -> dict:
         """

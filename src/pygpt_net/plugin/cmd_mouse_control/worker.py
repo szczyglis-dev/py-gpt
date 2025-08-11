@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import time
@@ -35,77 +35,80 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        responses = []
-        for item in self.cmds:
-            if self.is_stopped():
-                break
-            response = None
-            try:
-                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
-                    # get mouse position
-                    if item["cmd"] == "get_mouse_position":
-                        response = self.cmd_mouse_get_pos(item)
+        try:
+            responses = []
+            for item in self.cmds:
+                if self.is_stopped():
+                    break
+                response = None
+                try:
+                    if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
+                        # get mouse position
+                        if item["cmd"] == "get_mouse_position":
+                            response = self.cmd_mouse_get_pos(item)
 
-                    # set mouse position
-                    elif item["cmd"] == "mouse_move":
-                        if self.plugin.get_option_value("allow_mouse_move"):
-                            response = self.cmd_mouse_move(item)
+                        # set mouse position
+                        elif item["cmd"] == "mouse_move":
+                            if self.plugin.get_option_value("allow_mouse_move"):
+                                response = self.cmd_mouse_move(item)
 
-                    # drag mouse
-                    elif item["cmd"] == "mouse_drag":
-                        if self.plugin.get_option_value("allow_mouse_move"):
-                            response = self.cmd_mouse_drag(item)
+                        # drag mouse
+                        elif item["cmd"] == "mouse_drag":
+                            if self.plugin.get_option_value("allow_mouse_move"):
+                                response = self.cmd_mouse_drag(item)
 
-                    # mouse click
-                    elif item["cmd"] == "mouse_click":
-                        if self.plugin.get_option_value("allow_mouse_click"):
-                            response = self.cmd_mouse_click(item)
+                        # mouse click
+                        elif item["cmd"] == "mouse_click":
+                            if self.plugin.get_option_value("allow_mouse_click"):
+                                response = self.cmd_mouse_click(item)
 
-                    # mouse scroll
-                    elif item["cmd"] == "mouse_scroll":
-                        if self.plugin.get_option_value("allow_mouse_scroll"):
-                            response = self.cmd_mouse_scroll(item)
+                        # mouse scroll
+                        elif item["cmd"] == "mouse_scroll":
+                            if self.plugin.get_option_value("allow_mouse_scroll"):
+                                response = self.cmd_mouse_scroll(item)
 
-                    # screenshot
-                    elif item["cmd"] == "get_screenshot":
-                        if self.plugin.get_option_value("allow_screenshot"):
-                            response = self.cmd_make_screenshot(item)
+                        # screenshot
+                        elif item["cmd"] == "get_screenshot":
+                            if self.plugin.get_option_value("allow_screenshot"):
+                                response = self.cmd_make_screenshot(item)
 
-                    # keyboard key
-                    elif item["cmd"] == "keyboard_key":
-                        if self.plugin.get_option_value("allow_keyboard"):
-                            response = self.cmd_keyboard_key(item)
+                        # keyboard key
+                        elif item["cmd"] == "keyboard_key":
+                            if self.plugin.get_option_value("allow_keyboard"):
+                                response = self.cmd_keyboard_key(item)
 
-                    # keyboard key
-                    elif item["cmd"] == "keyboard_keys":
-                        if self.plugin.get_option_value("allow_keyboard"):
-                            response = self.cmd_keyboard_keys(item)
+                        # keyboard key
+                        elif item["cmd"] == "keyboard_keys":
+                            if self.plugin.get_option_value("allow_keyboard"):
+                                response = self.cmd_keyboard_keys(item)
 
-                    # keyboard type
-                    elif item["cmd"] == "keyboard_type":
-                        if self.plugin.get_option_value("allow_keyboard"):
-                            response = self.cmd_keyboard_type(item)
+                        # keyboard type
+                        elif item["cmd"] == "keyboard_type":
+                            if self.plugin.get_option_value("allow_keyboard"):
+                                response = self.cmd_keyboard_type(item)
 
-                    # wait
-                    elif item["cmd"] == "wait":
-                        response = self.cmd_wait(item)
+                        # wait
+                        elif item["cmd"] == "wait":
+                            response = self.cmd_wait(item)
 
-                    if response:
-                        responses.append(response)
+                        if response:
+                            responses.append(response)
 
-            except Exception as e:
-                responses.append(
-                    self.make_response(
-                        item,
-                        self.throw_error(e)
+                except Exception as e:
+                    responses.append(
+                        self.make_response(
+                            item,
+                            self.throw_error(e)
+                        )
                     )
-                )
 
-        # send response
-        if len(responses) > 0:
-            self.reply_more(responses)
+            if len(responses) > 0:
+                self.reply_more(responses) # send response
 
-        self.on_destroy()
+        except Exception as e:
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def on_destroy(self):
         """Handle destroyed event."""

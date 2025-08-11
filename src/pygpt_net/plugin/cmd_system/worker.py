@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.19 03:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -34,38 +34,37 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        responses = []
-        for item in self.cmds:
-            if self.is_stopped():
-                break
-            try:
-                response = None
-                if (item["cmd"] in self.plugin.allowed_cmds
-                        and (self.plugin.has_cmd(item["cmd"]) or 'force' in item)):
+        try:
+            responses = []
+            for item in self.cmds:
+                if self.is_stopped():
+                    break
+                try:
+                    response = None
+                    if (item["cmd"] in self.plugin.allowed_cmds
+                            and (self.plugin.has_cmd(item["cmd"]) or 'force' in item)):
 
-                    if item["cmd"] == "sys_exec":
-                        response = self.cmd_sys_exec(item)
+                        if item["cmd"] == "sys_exec":
+                            response = self.cmd_sys_exec(item)
 
-                    if response:
-                        responses.append(response)
+                        if response:
+                            responses.append(response)
 
-            except Exception as e:
-                responses.append(
-                    self.make_response(
-                        item,
-                        self.throw_error(e)
+                except Exception as e:
+                    responses.append(
+                        self.make_response(
+                            item,
+                            self.throw_error(e)
+                        )
                     )
-                )
 
-        # send response
-        if len(responses) > 0:
-            self.reply_more(responses)
+            if len(responses) > 0:
+                self.reply_more(responses) # send response
 
-        self.on_destroy()
-
-    def on_destroy(self):
-        """Handle destroyed event."""
-        self.cleanup()
+        except Exception as e:
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def cmd_sys_exec(self, item: dict) -> dict:
         """

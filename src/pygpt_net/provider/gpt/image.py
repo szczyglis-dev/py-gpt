@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 18:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import base64
@@ -123,10 +123,9 @@ class ImageSignals(QObject):
     error = Signal(object)  # error message
 
 
-class ImageWorker(QObject, QRunnable):
+class ImageWorker(QRunnable):
     def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.signals = ImageSignals()
         self.args = args
         self.kwargs = kwargs
@@ -311,4 +310,16 @@ class ImageWorker(QObject, QRunnable):
         except Exception as e:
             self.signals.error.emit(e)
             print(trans('img.status.error') + ": " + str(e))
-            return
+
+        finally:
+            self.cleanup()
+
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass

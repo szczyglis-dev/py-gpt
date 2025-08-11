@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import json
@@ -553,7 +553,7 @@ class WorkerSignals(QObject):
     cmd = Signal(object, object, str, str, str)  # when worker has command to handle
 
 
-class ExpertWorker(QObject, QRunnable):
+class ExpertWorker(QRunnable):
     """Worker for handling expert calls in a separate thread."""
     def __init__(
             self,
@@ -562,8 +562,7 @@ class ExpertWorker(QObject, QRunnable):
             expert_id: str,
             query: str
     ):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.window = window
         self.master_ctx = master_ctx
         self.expert_id = expert_id
@@ -816,25 +815,24 @@ class ExpertWorker(QObject, QRunnable):
             # input: something (no tool results here)
             # output: ... (call the master)
             self.signals.response.emit(reply_ctx, str(expert_id))  # emit response signal
+
         except Exception as e:
             self.window.core.debug.log(e)
             self.signals.error.emit(str(e))
+
         finally:
             self.signals.finished.emit()
-
-            # cleanup
-            self.window = None
-            self.master_ctx = None
-            self.expert_id = None
-            self.query = None
-            self.signals.finished.disconnect()  # disconnect finished signal
-            self.signals.response.disconnect()  # disconnect response signal
-            self.signals.error.disconnect()  # disconnect error signal
-            self.signals.event.disconnect()
-            self.signals.output.disconnect()
-            self.signals.lock_input.disconnect()
-            self.signals.cmd.disconnect()
-            self.deleteLater()  # delete worker instance
+            self.cleanup()
+            
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass
 
     def call_agent(
             self,

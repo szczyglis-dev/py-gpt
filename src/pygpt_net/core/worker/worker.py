@@ -6,30 +6,38 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 00:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QRunnable, Slot, QObject, Signal
 
 
-class Worker(QObject, QRunnable):
+class Worker(QRunnable):
     def __init__(self, fn, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.fn = fn
         self.args = args
         self.kwargs = kwargs
+        self.signals = WorkerSignals()
 
     @Slot()
     def run(self):
-        self.fn(*self.args, **self.kwargs)
-        self.cleanup()
+        try:
+            self.fn(*self.args, **self.kwargs)
+        except Exception as e:
+            pass
+        finally:
+            self.cleanup()
 
     def cleanup(self):
-        self.fn = None
-        self.args = None
-        self.kwargs = None
-        self.deleteLater()
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass
 
 
 class WorkerSignals(QObject):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -20,10 +20,10 @@ import locale
 
 from urllib.request import urlopen, Request
 
-from PySide6.QtCore import QObject, Signal, Slot, QRunnable, QTimer
+from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 from packaging.version import parse as parse_version, Version
 
-from pygpt_net.utils import trans, natsort
+from pygpt_net.utils import trans
 
 
 class Updater:
@@ -466,10 +466,9 @@ class UpdaterSignals(QObject):
     version_changed = Signal(str, str, str, str, str)
 
 
-class UpdaterWorker(QObject, QRunnable):
+class UpdaterWorker(QRunnable):
     def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.signals = UpdaterSignals()
         self.args = args
         self.kwargs = kwargs
@@ -479,10 +478,11 @@ class UpdaterWorker(QObject, QRunnable):
 
     @Slot()
     def run(self):
-        # if background check is not enabled, abort
-        if not self.window.core.config.get("updater.check.bg"):
-            return
         try:
+            # if background check is not enabled, abort
+            if not self.window.core.config.get("updater.check.bg"):
+                return
+
             # check
             parsed_prev_checked = None
             last_checked = self.window.core.config.get("updater.check.bg.last_version")
@@ -498,24 +498,22 @@ class UpdaterWorker(QObject, QRunnable):
                         build,
                         changelog,
                         download_windows,
-                        download_linux
+                        download_linux,
                     )
+
         except Exception as e:
             self.window.core.debug.log(e)
             print("Failed to check for updates")
 
         finally:
-            # cleanup
             self.cleanup()
 
     def cleanup(self):
-        """
-        Clean up worker
-        """
-        self.window = None
-        self.checker = None
-        self.signals.version_changed.disconnect()
+        """Cleanup resources after worker execution."""
+        sig = self.signals
         self.signals = None
-        self.args = None
-        self.kwargs = None
-        self.deleteLater()  # delete worker instance
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass

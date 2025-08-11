@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -527,7 +527,7 @@ class WorkerSignals(QObject):
 class Worker(QRunnable):
     """Assistants worker"""
     def __init__(self, *args, **kwargs):
-        QRunnable.__init__(self)
+        super().__init__()
         self.signals = WorkerSignals()
         self.window = None
         self.mode = None
@@ -544,12 +544,18 @@ class Worker(QRunnable):
     @Slot()
     def run(self):
         """Assistants worker thread"""
-        if self.mode == "run_create":
-            self.run_create()
-        elif self.mode == "msg_send":
-            self.msg_send()
-        elif self.mode == "tools_submit":
-            self.tools_submit()
+        try:
+            if self.mode == "run_create":
+                self.run_create()
+            elif self.mode == "msg_send":
+                self.msg_send()
+            elif self.mode == "tools_submit":
+                self.tools_submit()
+        except Exception as e:
+            pass
+        finally:
+            self.cleanup()
+
 
     def run_create(self) -> bool:
         """
@@ -618,3 +624,13 @@ class Worker(QRunnable):
         except Exception as e:
             self.signals.error.emit(self.ctx, e)
         return False
+
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass

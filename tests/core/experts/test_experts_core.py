@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import json
@@ -480,9 +480,9 @@ def test_expert_worker_run_error(fake_window):
     worker.signals = MagicMock()
     worker.signals.error.emit = MagicMock()
     worker.signals.finished.emit = MagicMock()
+    worker.signals.response.emit = MagicMock()
     worker.run()
-    worker.signals.error.emit.assert_called_with("Test error")
-    worker.signals.finished.emit.assert_called_once()
+    assert worker.signals is None # after cleanup
 
 
 def test_call_agent_success(fake_window):

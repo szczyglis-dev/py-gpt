@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import json
@@ -34,63 +34,62 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        responses = []
-        for item in self.cmds:
-            if self.is_stopped():
-                break
-            response = None
-            try:
-                if item["cmd"] == "web_search":
-                    response = self.cmd_web_urls(item)  # return URLs
+        try:
+            responses = []
+            for item in self.cmds:
+                if self.is_stopped():
+                    break
+                response = None
+                try:
+                    if item["cmd"] == "web_search":
+                        response = self.cmd_web_urls(item)  # return URLs
 
-                elif item["cmd"] == "web_url_open":
-                    response = self.cmd_web_url_open(item)
+                    elif item["cmd"] == "web_url_open":
+                        response = self.cmd_web_url_open(item)
 
-                elif item["cmd"] == "web_url_raw":
-                    response = self.cmd_web_url_raw(item)
+                    elif item["cmd"] == "web_url_raw":
+                        response = self.cmd_web_url_raw(item)
 
-                elif item["cmd"] == "web_urls":
-                    response = self.cmd_web_urls(item)
+                    elif item["cmd"] == "web_urls":
+                        response = self.cmd_web_urls(item)
 
-                elif item["cmd"] == "web_index":
-                    response = self.cmd_web_index(item)
+                    elif item["cmd"] == "web_index":
+                        response = self.cmd_web_index(item)
 
-                elif item["cmd"] == "web_index_query":
-                    response = self.cmd_web_index_query(item)
+                    elif item["cmd"] == "web_index_query":
+                        response = self.cmd_web_index_query(item)
 
-                elif item["cmd"] == "web_extract_links":
-                    response = self.cmd_web_extract_links(item)
+                    elif item["cmd"] == "web_extract_links":
+                        response = self.cmd_web_extract_links(item)
 
-                elif item["cmd"] == "web_extract_images":
-                    response = self.cmd_web_extract_images(item)
+                    elif item["cmd"] == "web_extract_images":
+                        response = self.cmd_web_extract_images(item)
 
-                elif item["cmd"] == "web_request":
-                    response = self.cmd_web_request(item)
+                    elif item["cmd"] == "web_request":
+                        response = self.cmd_web_request(item)
 
-                if response:
-                    responses.append(response)
+                    if response:
+                        responses.append(response)
 
-            except Exception as e:
-                responses.append(
-                    self.make_response(
-                        item,
-                        self.throw_error(e)
+                except Exception as e:
+                    responses.append(
+                        self.make_response(
+                            item,
+                            self.throw_error(e)
+                        )
                     )
-                )
 
-        # send response
-        if len(responses) > 0:
-            self.reply_more(responses)
+            if len(responses) > 0:
+                self.reply_more(responses) # send response
 
-        if self.msg is not None:
-            self.log(self.msg)
-            self.status(self.msg)
+            if self.msg is not None:
+                self.log(self.msg)
+                self.status(self.msg)
 
-        self.on_destroy()
-
-    def on_destroy(self):
-        """Handle destroyed event."""
-        self.cleanup()
+        except Exception as e:
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def cmd_web_search(self, item: dict) -> dict:
         """

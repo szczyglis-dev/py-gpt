@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import serial
@@ -34,49 +34,48 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        responses = []
-        for item in self.cmds:
-            if self.is_stopped():
-                break
-            response = None
-            try:
-                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
+        try:
+            responses = []
+            for item in self.cmds:
+                if self.is_stopped():
+                    break
+                response = None
+                try:
+                    if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
 
-                    # serial: send text command
-                    if item["cmd"] == "serial_send":
-                        response = self.cmd_serial_send(item)
+                        # serial: send text command
+                        if item["cmd"] == "serial_send":
+                            response = self.cmd_serial_send(item)
 
-                    # serial: send raw bytes command
-                    elif item["cmd"] == "serial_send_bytes":
-                        response = self.cmd_serial_send_bytes(item)
+                        # serial: send raw bytes command
+                        elif item["cmd"] == "serial_send_bytes":
+                            response = self.cmd_serial_send_bytes(item)
 
-                    # serial: read data from USB port
-                    elif item["cmd"] == "serial_read":
-                        response = self.cmd_serial_read(item)
+                        # serial: read data from USB port
+                        elif item["cmd"] == "serial_read":
+                            response = self.cmd_serial_read(item)
 
-                    if response:
-                        responses.append(response)
+                        if response:
+                            responses.append(response)
 
-            except Exception as e:
-                responses.append(
-                    self.make_response(
-                        item,
-                        self.throw_error(e)
+                except Exception as e:
+                    responses.append(
+                        self.make_response(
+                            item,
+                            self.throw_error(e)
+                        )
                     )
-                )
 
-        # send response
-        if len(responses) > 0:
-            self.reply_more(responses)
+            if len(responses) > 0:
+                self.reply_more(responses) # send response
 
-        if self.msg is not None:
-            self.status(self.msg)
+            if self.msg is not None:
+                self.status(self.msg)
 
-        self.on_destroy()
-
-    def on_destroy(self):
-        """Handle destroyed event."""
-        self.cleanup()
+        except Exception as e:
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def cmd_serial_send(self, item: dict) -> dict:
         """

@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot, QMetaObject, Qt
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
@@ -127,15 +127,14 @@ class BridgeWorker(QRunnable):
         self.cleanup()
 
     def cleanup(self):
-        self.window = None
-        self.context = None
-        self.extra = None
-        self.args = None
-        self.kwargs = None
-        try:
-            QMetaObject.invokeMethod(self.signals, "deleteLater", Qt.QueuedConnection)
-        except Exception:
-            pass
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass
 
     def handle_post_prompt_async(self):
         """Handle post prompt async event"""

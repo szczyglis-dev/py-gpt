@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -39,126 +39,125 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        responses = []
-        for item in self.cmds:
-            if self.is_stopped():
-                break
-            try:
-                response = None
-                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
+        try:
+            responses = []
+            for item in self.cmds:
+                if self.is_stopped():
+                    break
+                try:
+                    response = None
+                    if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
 
-                    # save file
-                    if item["cmd"] == "save_file":
-                        response = self.cmd_save_file(item)
+                        # save file
+                        if item["cmd"] == "save_file":
+                            response = self.cmd_save_file(item)
 
-                    # append to file
-                    elif item["cmd"] == "append_file":
-                        response = self.cmd_append_file(item)
+                        # append to file
+                        elif item["cmd"] == "append_file":
+                            response = self.cmd_append_file(item)
 
-                    # read file
-                    elif item["cmd"] == "read_file":
-                        response = self.cmd_read_file(item)
+                        # read file
+                        elif item["cmd"] == "read_file":
+                            response = self.cmd_read_file(item)
 
-                    # query file
-                    elif item["cmd"] == "query_file":
-                        response = self.cmd_query_file(item)
+                        # query file
+                        elif item["cmd"] == "query_file":
+                            response = self.cmd_query_file(item)
 
-                    # delete file
-                    elif item["cmd"] == "delete_file":
-                        response = self.cmd_delete_file(item)
+                        # delete file
+                        elif item["cmd"] == "delete_file":
+                            response = self.cmd_delete_file(item)
 
-                    # list files
-                    elif item["cmd"] == "list_dir":
-                        response = self.cmd_list_dir(item)
+                        # list files
+                        elif item["cmd"] == "list_dir":
+                            response = self.cmd_list_dir(item)
 
-                    # tree
-                    elif item["cmd"] == "tree":
-                        response = self.cmd_tree(item)
+                        # tree
+                        elif item["cmd"] == "tree":
+                            response = self.cmd_tree(item)
 
-                    # mkdir
-                    elif item["cmd"] == "mkdir":
-                        response = self.cmd_mkdir(item)
+                        # mkdir
+                        elif item["cmd"] == "mkdir":
+                            response = self.cmd_mkdir(item)
 
-                    # rmdir
-                    elif item["cmd"] == "rmdir":
-                        response = self.cmd_rmdir(item)
+                        # rmdir
+                        elif item["cmd"] == "rmdir":
+                            response = self.cmd_rmdir(item)
 
-                    # download
-                    elif item["cmd"] == "download_file":
-                        response = self.cmd_download_file(item)
+                        # download
+                        elif item["cmd"] == "download_file":
+                            response = self.cmd_download_file(item)
 
-                    # copy file
-                    elif item["cmd"] == "copy_file":
-                        response = self.cmd_copy_file(item)
+                        # copy file
+                        elif item["cmd"] == "copy_file":
+                            response = self.cmd_copy_file(item)
 
-                    # copy dir
-                    elif item["cmd"] == "copy_dir":
-                        response = self.cmd_copy_dir(item)
+                        # copy dir
+                        elif item["cmd"] == "copy_dir":
+                            response = self.cmd_copy_dir(item)
 
-                    # move
-                    elif item["cmd"] == "move":
-                        response = self.cmd_move(item)
+                        # move
+                        elif item["cmd"] == "move":
+                            response = self.cmd_move(item)
 
-                    # is dir
-                    elif item["cmd"] == "is_dir":
-                        response = self.cmd_is_dir(item)
+                        # is dir
+                        elif item["cmd"] == "is_dir":
+                            response = self.cmd_is_dir(item)
 
-                    # is file
-                    elif item["cmd"] == "is_file":
-                        response = self.cmd_is_file(item)
+                        # is file
+                        elif item["cmd"] == "is_file":
+                            response = self.cmd_is_file(item)
 
-                    # file exists
-                    elif item["cmd"] == "file_exists":
-                        response = self.cmd_file_exists(item)
+                        # file exists
+                        elif item["cmd"] == "file_exists":
+                            response = self.cmd_file_exists(item)
 
-                    # file size
-                    elif item["cmd"] == "file_size":
-                        response = self.cmd_file_size(item)
+                        # file size
+                        elif item["cmd"] == "file_size":
+                            response = self.cmd_file_size(item)
 
-                    # file info
-                    elif item["cmd"] == "file_info":
-                        response = self.cmd_file_info(item)
+                        # file info
+                        elif item["cmd"] == "file_info":
+                            response = self.cmd_file_info(item)
 
-                    # cwd
-                    elif item["cmd"] == "cwd":
-                        response = self.cmd_cwd(item)
+                        # cwd
+                        elif item["cmd"] == "cwd":
+                            response = self.cmd_cwd(item)
 
-                    # get file as attachment
-                    elif item["cmd"] == "send_file":
-                        response = self.cmd_send_file(item)
+                        # get file as attachment
+                        elif item["cmd"] == "send_file":
+                            response = self.cmd_send_file(item)
 
-                    # index file or directory
-                    elif item["cmd"] == "file_index":
-                        response = self.cmd_file_index(item)
+                        # index file or directory
+                        elif item["cmd"] == "file_index":
+                            response = self.cmd_file_index(item)
 
-                    # find file or directory
-                    elif item["cmd"] == "find":
-                        response = self.cmd_find(item)
+                        # find file or directory
+                        elif item["cmd"] == "find":
+                            response = self.cmd_find(item)
 
-                    # store response
-                    if response:
-                        responses.append(response)
+                        # store response
+                        if response:
+                            responses.append(response)
 
-            except Exception as e:
-                responses.append(
-                    self.make_response(
-                        item,
-                        self.throw_error(e)
+                except Exception as e:
+                    responses.append(
+                        self.make_response(
+                            item,
+                            self.throw_error(e)
+                        )
                     )
-                )
 
-        # send response
-        if len(responses) > 0:
-            self.reply_more(responses)
+            if len(responses) > 0:
+                self.reply_more(responses) # send response
 
-        if self.msg is not None:
-            self.status(self.msg)
+            if self.msg is not None:
+                self.status(self.msg)
 
-        self.on_destroy()
-
-    def on_destroy(self):
-        """Handle destroyed event."""
-        self.cleanup()
+        except Exception as e:
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def cmd_save_file(self, item: dict) -> dict:
         """

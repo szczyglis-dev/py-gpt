@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import os
@@ -187,11 +187,10 @@ class ImportWorkerSignals(QObject):
     log = Signal(str, str)  # mode, message
 
 
-class ImportWorker(QObject, QRunnable):
+class ImportWorker(QRunnable):
     """Import worker"""
     def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.signals = ImportWorkerSignals()
         self.window = None
         self.mode = "assistants"
@@ -219,8 +218,12 @@ class ImportWorker(QObject, QRunnable):
                 self.import_files()
             elif self.mode == "upload_files":
                 self.upload_files()
+
         except Exception as e:
             self.signals.error.emit(self.mode, e)
+
+        finally:
+            self.cleanup()
 
     def import_assistants(self, silent: bool = False) -> bool:
         """
@@ -256,7 +259,7 @@ class ImportWorker(QObject, QRunnable):
         """
         Import vector stores from API
 
-        :param silent: silent mode (no signals)
+        :param silent: silent mode (no signals emit)
         :return: result
         """
         try:
@@ -277,7 +280,7 @@ class ImportWorker(QObject, QRunnable):
         """
         Truncate all vector stores in API
 
-        :param silent: silent mode (no signals)
+        :param silent: silent mode (no signals emit)
         :return: result
         """
         try:
@@ -297,7 +300,7 @@ class ImportWorker(QObject, QRunnable):
         """
         Refresh all vector stores in API
 
-        :param silent: silent mode (no signals)
+        :param silent: silent mode (no signals emit)
         :return: result
         """
         try:
@@ -324,7 +327,7 @@ class ImportWorker(QObject, QRunnable):
         """
         Truncate files in API
 
-        :param silent: silent mode (no signals)
+        :param silent: silent mode (no signals emit)
         :return: result
         """
         try:
@@ -354,7 +357,7 @@ class ImportWorker(QObject, QRunnable):
         """
         Upload files to API
 
-        :param silent: silent mode (no signals)
+        :param silent: silent mode (no signals emit)
         :return: result
         """
         num = 0
@@ -393,7 +396,7 @@ class ImportWorker(QObject, QRunnable):
         """
         Import assistant files from API
 
-        :param silent: silent mode (no signals)
+        :param silent: silent mode (no signals emit)
         :return: result
         """
         try:
@@ -433,3 +436,13 @@ class ImportWorker(QObject, QRunnable):
         :param msg: message
         """
         self.signals.log.emit(self.mode, msg)
+
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass

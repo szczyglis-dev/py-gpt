@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -17,10 +17,9 @@ class IndexWorkerSignals(QObject):
     error = Signal(object)
 
 
-class IndexWorker(QObject, QRunnable):
+class IndexWorker(QRunnable):
     def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.signals = IndexWorkerSignals()
         self.window = None
         self.content = None
@@ -97,24 +96,23 @@ class IndexWorker(QObject, QRunnable):
                 errors,
                 self.silent,
             )
+
         except Exception as e:
             self.window.core.debug.error(e)
             self.signals.error.emit(e)
+
         finally:
-            if self.signals is not None:
-                self.signals.finished.disconnect()
-                self.signals.error.disconnect()
-            self.window = None
-            self.content = None
-            self.loader = None
-            self.params = None
-            self.config = None
-            self.replace = None
-            self.recursive = None
-            self.from_ts = 0
-            self.idx = None
-            self.type = None
-            self.deleteLater()
+            self.cleanup()
+
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass
 
     def log(self, msg: str):
         """

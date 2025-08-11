@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import json
@@ -33,43 +33,41 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        responses = []
-        msg = None
-        for item in self.cmds:
-            if self.is_stopped():
-                break
-            for my_cmd in self.plugin.get_option_value("cmds"):
+        try:
+            responses = []
+            msg = None
+            for item in self.cmds:
                 if self.is_stopped():
                     break
-                if my_cmd["name"] == item["cmd"]:
-                    try:
-                        response = self.handle_cmd(my_cmd, item)
-                        if response is False:
-                            continue
-                        responses.append(response)
+                for my_cmd in self.plugin.get_option_value("cmds"):
+                    if self.is_stopped():
+                        break
+                    if my_cmd["name"] == item["cmd"]:
+                        try:
+                            response = self.handle_cmd(my_cmd, item)
+                            if response is False:
+                                continue
+                            responses.append(response)
 
-                    except Exception as e:
-                        msg = "Error: {}".format(e)
-                        responses.append(
-                            self.make_response(
-                                item,
-                                self.throw_error(e)
+                        except Exception as e:
+                            msg = "Error: {}".format(e)
+                            responses.append(
+                                self.make_response(
+                                    item,
+                                    self.throw_error(e)
+                                )
                             )
-                        )
 
-        # send response
-        if len(responses) > 0:
-            self.reply_more(responses)
+            if len(responses) > 0:
+                self.reply_more(responses)  # send response
 
-        # update status
-        if msg is not None:
-            self.status(msg)
+            if msg is not None:
+                self.status(msg)  # update status
 
-        self.on_destroy()
-
-    def on_destroy(self):
-        """Handle destroyed event."""
-        self.cleanup()
+        except Exception as e:
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def handle_cmd(self, command: dict, item: dict) -> dict or bool:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 00:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -39,7 +39,7 @@ class WorkerSignals(QObject):
     switch = Signal(str)       # switch to profile (after reset)
 
 
-class WorkdirWorker(QObject, QRunnable):
+class WorkdirWorker(QRunnable):
     """Worker for handling workdir operations in a separate thread."""
     def __init__(
             self,
@@ -53,8 +53,7 @@ class WorkdirWorker(QObject, QRunnable):
             profile_new_name: Optional[str] = None,
             profile_new_path: Optional[str] = None,
     ):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.window = window
         self.action = action
         self.path = path
@@ -83,11 +82,24 @@ class WorkdirWorker(QObject, QRunnable):
                 self.worker_reset()
             else:
                 self.signals.error.emit(f"Unknown action: {self.action}")
+
         except Exception as e:
             self.window.core.debug.log(e)
             self.signals.error.emit(str(e))
+
         finally:
             self.signals.finished.emit()
+            self.cleanup()
+
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass
 
     def worker_delete_files(self):
         """Delete files and directories associated with the profile"""

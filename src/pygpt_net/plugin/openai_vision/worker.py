@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -29,53 +29,48 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        responses = []
-        for item in self.cmds:
-            if self.is_stopped():
-                break
-            response = None
-            try:
-                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
-
-                    if item["cmd"] == "camera_capture":
-                        response = self.cmd_camera_capture(item)
-
-                    elif item["cmd"] == "make_screenshot":
-                        response = self.cmd_make_screenshot(item)
-
-                    elif item["cmd"] == "analyze_image_attachment":
-                        response = self.cmd_analyze_image_attachment(item)
-
-                    elif item["cmd"] == "analyze_screenshot":
-                        response = self.cmd_analyze_screenshot(item)
-
-                    elif item["cmd"] == "analyze_camera_capture":
-                        response = self.cmd_analyze_camera_capture(item)
-
-                    if response:
-                        responses.append(response)
-
-            except Exception as e:
-                responses.append(
-                    self.make_response(
-                        item,
-                        self.throw_error(e)
-                    )
-                )
-
-        # send response
-        if len(responses) > 0:
-            self.reply_more(responses)
-
-        self.on_destroy()
-
-    def on_destroy(self):
-        """Handle destroyed event."""
         try:
-            self.signals.screenshot.disconnect()
+            responses = []
+            for item in self.cmds:
+                if self.is_stopped():
+                    break
+                response = None
+                try:
+                    if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
+
+                        if item["cmd"] == "camera_capture":
+                            response = self.cmd_camera_capture(item)
+
+                        elif item["cmd"] == "make_screenshot":
+                            response = self.cmd_make_screenshot(item)
+
+                        elif item["cmd"] == "analyze_image_attachment":
+                            response = self.cmd_analyze_image_attachment(item)
+
+                        elif item["cmd"] == "analyze_screenshot":
+                            response = self.cmd_analyze_screenshot(item)
+
+                        elif item["cmd"] == "analyze_camera_capture":
+                            response = self.cmd_analyze_camera_capture(item)
+
+                        if response:
+                            responses.append(response)
+
+                except Exception as e:
+                    responses.append(
+                        self.make_response(
+                            item,
+                            self.throw_error(e)
+                        )
+                    )
+
+            if len(responses) > 0:
+                self.reply_more(responses) # send response
+
         except Exception as e:
-            pass
-        self.cleanup()
+            self.error(e)
+        finally:
+            self.cleanup()
 
     def cmd_camera_capture(self, item: dict) -> dict:
         """

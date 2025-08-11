@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import os
@@ -43,10 +43,9 @@ class CaptureSignals(QObject):
     error = Signal(object)
 
 
-class CaptureWorker(QObject, QRunnable):
+class CaptureWorker(QRunnable):
     def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.signals = CaptureSignals()
         self.args = args
         self.kwargs = kwargs
@@ -101,32 +100,20 @@ class CaptureWorker(QObject, QRunnable):
                 if now - last_frame_time >= fps_interval:
                     self.signals.capture.emit(frame)
                     last_frame_time = now
+
         except Exception as e:
             self.window.core.debug.log(e)
             if self.signals is not None:
                 self.signals.error.emit(e)
 
-        # release camera
-        self.release()
-        if self.signals is not None:
-            if self.allow_finish:
-                self.signals.finished.emit()
-            else:
-                self.signals.unfinished.emit()
-
-        # cleanup
-        if self.signals is not None:
-            self.signals.error.disconnect()
-            self.signals.finished.disconnect()
-            self.signals.destroyed.disconnect()
-            self.signals.unfinished.disconnect()
-            self.signals.capture.disconnect()
-            self.signals.stopped.disconnect()
-            self.window = None
-            self.capture = None
-            self.frame = None
-            self.allow_finish = False
-            self.deleteLater()
+        finally:
+            self.release()  # release camera
+            if self.signals is not None:
+                if self.allow_finish:
+                    self.signals.finished.emit()
+                else:
+                    self.signals.unfinished.emit()
+            self.cleanup()
 
     def release(self):
         """Release camera"""
@@ -135,3 +122,13 @@ class CaptureWorker(QObject, QRunnable):
             self.capture = None
             self.frame = None
             self.initialized = False
+
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass

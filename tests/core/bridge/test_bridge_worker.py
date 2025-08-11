@@ -180,18 +180,14 @@ def test_handle_additional_context_full_mode_no_hidden_input():
 def test_cleanup_disconnect_and_reset():
     worker = BridgeWorker()
     mock_response = Mock()
-    worker.signals = SimpleNamespace(response=mock_response)
+    worker.signals = SimpleNamespace(response=mock_response, deleteLater=Mock())
     worker.window = object()
     worker.context = object()
     worker.extra = {"a": 1}
     worker.args = (1,)
     worker.kwargs = {"k": 2}
     worker.cleanup()
-    assert worker.window is None
-    assert worker.context is None
-    assert worker.extra is None
-    assert worker.args is None
-    assert worker.kwargs is None
+    assert worker.signals is None
 
 
 def test_run_langchain_emits_failed():
@@ -201,7 +197,7 @@ def test_run_langchain_emits_failed():
     worker.context = ContextObj()
     worker.extra = {}
     mock_response = Mock()
-    worker.signals = SimpleNamespace(response=mock_response)
+    worker.signals = SimpleNamespace(response=mock_response, deleteLater=Mock())
     worker.handle_post_prompt_async = Mock()
     worker.handle_additional_context = Mock()
     worker.handle_post_prompt_end = Mock()
@@ -222,7 +218,7 @@ def test_run_llama_index_emits_ok():
     worker.extra = {}
     mock_response = Mock()
     mock_response.disconnect = Mock()
-    worker.signals = SimpleNamespace(response=mock_response)
+    worker.signals = SimpleNamespace(response=mock_response, deleteLater=Mock())
     worker.handle_post_prompt_async = Mock()
     worker.handle_additional_context = Mock()
     worker.handle_post_prompt_end = Mock()
@@ -243,13 +239,13 @@ def test_run_agent_runner_true_no_emit():
     worker.extra = {}
     mock_response = Mock()
     mock_response.disconnect = Mock()
-    worker.signals = SimpleNamespace(response=mock_response)
+    worker.signals = SimpleNamespace(response=mock_response, deleteLater=Mock())
     worker.handle_post_prompt_async = Mock()
     worker.handle_additional_context = Mock()
     worker.handle_post_prompt_end = Mock()
     worker.run()
     mock_response.emit.assert_not_called()
-    assert worker.window is None
+    assert worker.signals is None
 
 
 def test_run_agent_runner_false_emits_error():
@@ -262,7 +258,7 @@ def test_run_agent_runner_false_emits_error():
     worker.extra = {}
     mock_response = Mock()
     mock_response.disconnect = Mock()
-    worker.signals = SimpleNamespace(response=mock_response)
+    worker.signals = SimpleNamespace(response=mock_response, deleteLater=Mock())
     worker.handle_post_prompt_async = Mock()
     worker.handle_additional_context = Mock()
     worker.handle_post_prompt_end = Mock()
@@ -285,7 +281,7 @@ def test_run_loop_next_true_no_emit():
     worker.extra = {}
     mock_response = Mock()
     mock_response.disconnect = Mock()
-    worker.signals = SimpleNamespace(response=mock_response)
+    worker.signals = SimpleNamespace(response=mock_response, deleteLater=Mock())
     worker.handle_post_prompt_async = Mock()
     worker.handle_additional_context = Mock()
     worker.handle_post_prompt_end = Mock()
@@ -304,7 +300,7 @@ def test_run_gpt_call_exception_emits_failed():
     worker.extra = {}
     mock_response = Mock()
     mock_response.disconnect = Mock()
-    worker.signals = SimpleNamespace(response=mock_response)
+    worker.signals = SimpleNamespace(response=mock_response, deleteLater=Mock())
     worker.handle_post_prompt_async = Mock()
     worker.handle_additional_context = Mock()
     worker.handle_post_prompt_end = Mock()
@@ -325,7 +321,7 @@ def test_run_gpt_call_result_emits_ok_or_error():
     worker.extra = {}
     mock_response = Mock()
     mock_response.disconnect = Mock()
-    worker.signals = SimpleNamespace(response=mock_response)
+    worker.signals = SimpleNamespace(response=mock_response, deleteLater=Mock())
     worker.handle_post_prompt_async = Mock()
     worker.handle_additional_context = Mock()
     worker.handle_post_prompt_end = Mock()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Signal, QObject, QRunnable, Slot
@@ -17,10 +17,9 @@ class WorkerSignals(QObject):
     error = Signal(object)
 
 
-class AttachmentWorker(QObject, QRunnable):
+class AttachmentWorker(QRunnable):
     def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.signals = WorkerSignals()
         self.args = args
         self.kwargs = kwargs
@@ -35,16 +34,22 @@ class AttachmentWorker(QObject, QRunnable):
         try:
             self.window.controller.chat.attachment.upload(self.meta, self.mode, self.prompt)
             self.signals.success.emit(self.prompt)
+
         except Exception as e:
             if self.signals is not None:
                 self.signals.error.emit(e)
             self.window.core.debug.error(e)
             print("Attachment indexing error", e)
+
         finally:
-            if self.signals is not None:
-                self.signals.success.disconnect()
-                self.signals.error.disconnect()
-            self.window = None
-            self.meta = None
-            self.mode = None
-            self.deleteLater()
+            self.cleanup()
+
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass

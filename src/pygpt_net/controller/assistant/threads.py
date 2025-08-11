@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 17:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 import json
@@ -613,11 +613,10 @@ class RunSignals(QObject):
     started = Signal()
 
 
-class RunWorker(QObject, QRunnable):
+class RunWorker(QRunnable):
     """Status check async worker"""
     def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super().__init__()
         self.signals = RunSignals()
         self.args = args
         self.kwargs = kwargs
@@ -662,14 +661,21 @@ class RunWorker(QObject, QRunnable):
 
             if self.signals.destroyed is not None:
                 self.signals.destroyed.emit()
+
         except Exception as e:
             self.window.core.debug.log(e)
             if self.signals.destroyed is not None:
                 self.signals.destroyed.emit()
+
         finally:
-            self.args = None
-            self.kwargs = None
-            self.window = None
-            self.ctx = None
-            self.signals = None
-            self.deleteLater()
+            self.cleanup()
+
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass

@@ -6,22 +6,26 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.08.11 14:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any, Dict, List
 
-from PySide6.QtCore import QObject, QRunnable
+from PySide6.QtCore import QRunnable
 from typing_extensions import deprecated
 
 from .plugin import BasePlugin
 from .signals import BaseSignals
 
 
-class BaseWorker(QObject, QRunnable):
-    def __init__(self, plugin: Optional[BasePlugin] = None, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+class BaseWorker(QRunnable):
+    def __init__(
+            self,
+            plugin: Optional[BasePlugin] = None,
+            *args,
+            **kwargs
+    ):
+        super().__init__()
         self.plugin = plugin
         self.window = None
         self.signals = BaseSignals()
@@ -31,16 +35,14 @@ class BaseWorker(QObject, QRunnable):
         self.ctx = None
 
     def cleanup(self):
-        """
-        Clean up worker
-        """
-        self.window = None
-        self.plugin = None
-        self.args = None
-        self.kwargs = None
-        self.cmds = None
-        self.ctx = None
-        self.deleteLater()  # delete worker instance
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass
 
     def debug(self, msg: str):
         """
