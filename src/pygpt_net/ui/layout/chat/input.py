@@ -266,7 +266,6 @@ class Input:
         """
         idx = self.window.ui.tabs['input'].currentIndex()
         if idx == 0:
-            print(self.window.controller.ui.splitter_output_size_input)
             self.window.ui.nodes['input'].setMinimumHeight(self.min_height_input)
             self.window.ui.tabs['input'].setMinimumHeight(self.min_height_input_tab)
             if (self.window.controller.ui.splitter_output_size_input
