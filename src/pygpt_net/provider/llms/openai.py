@@ -90,8 +90,8 @@ class OpenAILLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        from llama_index.llms.openai import OpenAI as LlamaOpenAI
-        from llama_index.llms.openai import OpenAIResponses as LlamaOpenAIResponses
+        from .llama_index.openai import OpenAI as LlamaOpenAI
+        from .llama_index.openai import OpenAIResponses as LlamaOpenAIResponses
         args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
