@@ -3200,6 +3200,8 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Max files to store`: Max files to store on disk for audio cache.
 
+- `Audio notify microphone listening start/stop`: enables audio "tick" notify when microphone listening started/ended.
+
 **Indexes / LlamaIndex**
 
 **General**
@@ -3270,7 +3272,7 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
 
-**Agents (LlamaIndex)**
+**Agents (LlamaIndex / OpenAI)**
 
 - `Max steps (per iteration)` - Max steps is one iteration before goal achieved
 
@@ -3279,6 +3281,8 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 - `Append and compare previous evaluation prompt in next evaluation` - If enabled, previous improvement prompt will be checked in next eval in loop, default: False
 
 - `Verbose` - enables verbose mode.
+
+- `Split response messages` - Split response messages to separated context items in OpenAI Agents mode. Stream mode only.
 
 **Autonomous (Legacy agents)**
 
@@ -3311,8 +3315,6 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 - `Use voice synthesis to describe events on the screen.`: enables audio description of on-screen events.
 
 - `Use audio output cache`: If enabled, all static audio outputs will be cached on the disk instead of being generated every time. Default: True.
-
-- `Audio notify microphone listening start/stop`: enables audio "tick" notify when microphone listening started/ended.
 
 - `Audio notify voice command execution`: enables audio "tick" notify when voice command is executed.
 

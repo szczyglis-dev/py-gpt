@@ -2286,7 +2286,7 @@
         "advanced": false
     },
     "access.microphone.notify": {
-        "section": "access",
+        "section": "audio",
         "type": "bool",
         "slider": false,
         "label": "settings.access.microphone.notify",
@@ -2295,7 +2295,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "options"
     },
     "access.audio.notify.execute": {
         "section": "access",
