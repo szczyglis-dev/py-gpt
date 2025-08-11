@@ -9,7 +9,7 @@
 # Updated Date: 2025.08.11 19:00:00                  #
 # ================================================== #
 
-from typing import Dict, Any, Tuple, Union
+from typing import Dict, Any, Tuple, Union, Optional
 
 from agents import (
     Agent as OpenAIAgent,
@@ -112,6 +112,7 @@ class Agent(BaseAgent):
             ctx: CtxItem = None,
             stream: bool = False,
             bridge: ConnectionContext = None,
+            use_partial_ctx: Optional[bool] = False,
     ) -> Tuple[CtxItem, str, Union[str, None]]:
         """
         Run agent (async)
@@ -123,6 +124,7 @@ class Agent(BaseAgent):
         :param ctx: Context item
         :param stream: Whether to stream output
         :param bridge: Connection context for agent operations
+        :param use_partial_ctx: Use partial ctx per cycle
         :return: Current ctx, final output, last response ID
         """
         response_id = None

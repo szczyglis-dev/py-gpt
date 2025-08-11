@@ -2236,6 +2236,13 @@ class Patch:
                 self.window.core.updater.patch_css('web-blocks.dark.css', True)  # force replace file
                 updated = True
 
+            # < 2.5.98
+            if old < parse_version("2.5.98"):
+                print("Migrating config from < 2.5.98...")
+                if "agent.openai.response.split" not in data:
+                    data["agent.openai.response.split"] = True
+                updated = True
+
         # update file
         migrated = False
         if updated:

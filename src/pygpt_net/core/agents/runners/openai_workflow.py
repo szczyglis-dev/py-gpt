@@ -126,6 +126,7 @@ class OpenAIWorkflow(BaseRunner):
             """
             # finish current stream
             ctx.stream = "\n"
+            ctx.extra["agent_output"] = True  # allow usage in history
             ctx.output = output  # set output to current context
             self.window.core.ctx.update_item(ctx)
             self.send_stream(ctx, signals, False)
@@ -135,6 +136,7 @@ class OpenAIWorkflow(BaseRunner):
             next_ctx = self.add_next_ctx(ctx)
             next_ctx.set_input(input)
             next_ctx.partial = True
+            next_ctx.extra["agent_output"] = True  # allow usage in history
             if finish:
                 next_ctx.extra["agent_finish"] = True
 
@@ -170,6 +172,9 @@ class OpenAIWorkflow(BaseRunner):
         }
         if previous_response_id:
             run_kwargs["previous_response_id"] = previous_response_id
+
+        # split response messages to separated context items
+        run_kwargs["use_partial_ctx"] = self.window.core.config.get("agent.openai.response.split", True)
 
         # run agent
         ctx, output, response_id = await run(**run_kwargs)

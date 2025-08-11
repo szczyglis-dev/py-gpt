@@ -61,6 +61,7 @@
   "agent.llama.verbose": false,
   "agent.mode": "chat",
   "agent.openai.provider": "openai_agent_base",
+  "agent.openai.response.split": true,
   "ai_name": "",
   "api_azure_version": "2023-07-01-preview",
   "api_azure_endpoint": "https://<your-resource-name>.openai.azure.com/",
