@@ -13,7 +13,7 @@ QComboBox::item:selected {{
   selection-color: #000;
 }}
 QComboBox::item:disabled {{
-  color: #d1d2d2;
+  color: #818282;
 }}
 QListView::item:selected:focus, 
 QComboBox::item:selected:focus,
