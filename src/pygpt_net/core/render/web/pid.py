@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.08.11 19:00:00                  #
 # ================================================== #
 
+import io
 from pygpt_net.utils import trans
 
 
@@ -21,17 +22,69 @@ class PidData:
         self.images_appended = []
         self.urls_appended = []
         self.files_appended = []
-        self.buffer = ""  # stream buffer
-        self.live_buffer = ""  # live stream buffer
+        self._buffer = io.StringIO()
+        self._live_buffer = io.StringIO()
+        self._html = io.StringIO()
+        self._document = io.StringIO()
         self.is_cmd = False
-        self.html = ""  # html buffer
-        self.document = ""
         self.initialized = False
-        self.loaded = False  # page loaded
-        self.item = None  # current item
-        self.use_buffer = False  # use html buffer
+        self.loaded = False
+        self.item = None
+        self.use_buffer = False
         self.name_user = trans("chat.name.user")
         self.name_bot = trans("chat.name.bot")
         self.last_time_called = 0
-        self.cooldown = 1 / 6  # max chunks to parse per second
-        self.throttling_min_chars = 5000  # min chunk chars to activate cooldown
+        self.cooldown = 1 / 6
+        self.throttling_min_chars = 5000
+
+    @property
+    def buffer(self) -> str:
+        return self._buffer.getvalue()
+
+    @buffer.setter
+    def buffer(self, value: str):
+        self._buffer = io.StringIO()
+        if value:
+            self._buffer.write(value)
+
+    def append_buffer(self, text: str):
+        self._buffer.write(text)
+
+    @property
+    def live_buffer(self) -> str:
+        return self._live_buffer.getvalue()
+
+    @live_buffer.setter
+    def live_buffer(self, value: str):
+        self._live_buffer = io.StringIO()
+        if value:
+            self._live_buffer.write(value)
+
+    def append_live_buffer(self, text: str):
+        self._live_buffer.write(text)
+
+    @property
+    def html(self) -> str:
+        return self._html.getvalue()
+
+    @html.setter
+    def html(self, value: str):
+        self._html = io.StringIO()
+        if value:
+            self._html.write(value)
+
+    def append_html(self, text: str):
+        self._html.write(text)
+
+    @property
+    def document(self) -> str:
+        return self._document.getvalue()
+
+    @document.setter
+    def document(self, value: str):
+        self._document = io.StringIO()
+        if value:
+            self._document.write(value)
+
+    def append_document(self, text: str):
+        self._document.write(text)

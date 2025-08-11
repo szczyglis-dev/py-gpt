@@ -3,11 +3,10 @@
 # ================================================== #
 # This file is a part of PYGPT package               #
 # Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt    #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.21 16:00:00                  #
-# ================================================== #
+# Updated Date: 2025.08.11 19:00:00                  #
 
 from datetime import datetime
 from typing import Optional, List
@@ -342,7 +341,7 @@ class Renderer(BaseRenderer):
             self.append_block(meta)
             self.append_chunk_start(meta, item)
 
-        self.pids[pid].buffer += raw_chunk
+        self.pids[pid].append_buffer(raw_chunk)
         self.append(meta, item, self.helpers.format_chunk(text_chunk), "")
 
     def append_block(

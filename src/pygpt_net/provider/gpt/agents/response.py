@@ -10,6 +10,7 @@
 # ================================================== #
 
 import base64
+import io
 from typing import Tuple
 
 from agents import HandoffOutputItem, ReasoningItem
@@ -35,7 +36,7 @@ class StreamHandler:
     ):
         self.window = window
         self.bridge = bridge
-        self.buffer = ""
+        self._buf = io.StringIO()
         self.begin = True
         self.response_id = None
         self.files = []
@@ -43,16 +44,23 @@ class StreamHandler:
         self.files_handled = False
         self.code_block = False
         if message:
-            self.buffer = message
+            self._buf.write(message)
             self.begin = False
+
+    @property
+    def buffer(self) -> str:
+        return self._buf.getvalue()
+
+    @buffer.setter
+    def buffer(self, value: str):
+        self._buf = io.StringIO()
+        if value:
+            self._buf.write(value)
 
     def reset(self):
         """Reset shared data"""
-        # self.buffer = ""
         self.response_id = None
-        # self.files = []
         self.finished = False
-        # self.files_handled = False
         self.code_block = False
 
     def new(self):
@@ -67,7 +75,15 @@ class StreamHandler:
 
         :param text: str - text to append
         """
-        self.buffer += text
+        self._buf.write(text)
+
+    def _emit(self, ctx: CtxItem, text: str, flush: bool, buffer: bool):
+        ctx.stream = text
+        if flush:
+            self.bridge.on_step(ctx, self.begin)
+        if buffer:
+            self._buf.write(text)
+        self.begin = False
 
     def handle(
             self,
@@ -85,94 +101,70 @@ class StreamHandler:
         :param buffer: bool - whether to buffer the output
         :return: Final output string, response ID
         """
-        img_path = self.window.core.image.gen_unique_path(ctx)
-        is_image = False
         if isinstance(event, ReasoningItem):
             print(
                 f"\033[33m{event.summary[0].text}\033[0m", end="", flush=True
             )
-        elif event.type == "raw_response_event" and isinstance(event.data, ResponseCreatedEvent):
-            self.response_id = event.data.response.id
-        elif event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
-            ctx.stream = event.data.delta
-            if self.code_block:
-                ctx.stream = "\n```\n" + ctx.stream
-                self.code_block = False
-            if flush:
-                self.bridge.on_step(ctx, self.begin)
-            if buffer:
-                self.buffer += ctx.stream
-            self.begin = False
-        elif event.type == "raw_response_event" and isinstance(event.data, ResponseOutputItemAddedEvent):
-            if event.data.item.type == "code_interpreter_call":
-                self.code_block = True
-                ctx.stream = "\n\n**Code interpreter**\n```python\n"
-                if flush:
-                    self.bridge.on_step(ctx, self.begin)
-                if buffer:
-                    self.buffer += ctx.stream
-                self.begin = False
-        elif event.type == "raw_response_event" and isinstance(event.data, ResponseOutputItemDoneEvent):
-            if event.data.item.type == "image_generation_call":
-                image_base64 = event.data.item.result
-                image_bytes = base64.b64decode(image_base64)
-                with open(img_path, "wb") as f:
-                    f.write(image_bytes)
-                is_image = True
-        elif event.type == "raw_response_event" and isinstance(event.data, ResponseCodeInterpreterCallCodeDeltaEvent):
-            ctx.stream = event.data.delta
-            if flush:
-                self.bridge.on_step(ctx, self.begin)
-            if buffer:
-                self.buffer += ctx.stream
-            self.begin = False
-        elif event.type == "raw_response_event" and isinstance(event.data, ResponseCompletedEvent):
-            for item in event.data.response.output:
-                if item.type == "message":
-                    for content in item.content:
-                        if content.annotations:
-                            for annotation in content.annotations:
-                                # url citation
-                                if annotation.type == "url_citation":
-                                    if ctx.urls is None:
-                                        ctx.urls = []
-                                    ctx.urls.append(annotation.url)
-                                # container file citation
-                                elif annotation.type == "container_file_citation":
-                                    container_id = annotation.container_id
-                                    file_id = annotation.file_id
-                                    self.files.append({
-                                        "container_id": container_id,
-                                        "file_id": file_id,
-                                    })
-                elif item.type == "code_interpreter_call":
-                    if self.code_block:
-                        ctx.stream = "\n```\n"
-                        self.code_block = False
-                    if flush:
-                        self.bridge.on_step(ctx, self.begin)
-                    if buffer:
-                        self.buffer += ctx.stream
-                    self.begin = False
+        elif event.type == "raw_response_event":
+            data = event.data
 
+            if isinstance(data, ResponseCreatedEvent):
+                self.response_id = data.response.id
 
-            self.finished = True
+            elif isinstance(data, ResponseTextDeltaEvent):
+                s = data.delta
+                if self.code_block:
+                    s = "\n```\n" + s
+                    self.code_block = False
+                self._emit(ctx, s, flush, buffer)
+
+            elif isinstance(data, ResponseOutputItemAddedEvent):
+                if data.item.type == "code_interpreter_call":
+                    self.code_block = True
+                    s = "\n\n**Code interpreter**\n```python\n"
+                    self._emit(ctx, s, flush, buffer)
+
+            elif isinstance(data, ResponseOutputItemDoneEvent):
+                if data.item.type == "image_generation_call":
+                    img_path = self.window.core.image.gen_unique_path(ctx)
+                    image_base64 = data.item.result
+                    image_bytes = base64.b64decode(image_base64)
+                    with open(img_path, "wb") as f:
+                        f.write(image_bytes)
+                    self.window.core.debug.info("[chat] Image generation call found")
+                    ctx.images = [img_path]
+
+            elif isinstance(data, ResponseCodeInterpreterCallCodeDeltaEvent):
+                self._emit(ctx, data.delta, flush, buffer)
+
+            elif isinstance(data, ResponseCompletedEvent):
+                response = data.response
+                for item in response.output:
+                    if item.type == "message":
+                        for content in item.content:
+                            if content.annotations:
+                                for annotation in content.annotations:
+                                    if annotation.type == "url_citation":
+                                        if ctx.urls is None:
+                                            ctx.urls = []
+                                        ctx.urls.append(annotation.url)
+                                    elif annotation.type == "container_file_citation":
+                                        self.files.append({
+                                            "container_id": annotation.container_id,
+                                            "file_id": annotation.file_id,
+                                        })
+                    elif item.type == "code_interpreter_call":
+                        if self.code_block:
+                            s = "\n```\n"
+                            self.code_block = False
+                            self._emit(ctx, s, flush, buffer)
+                self.finished = True
 
         elif event.type == "run_item_stream_event":
             if isinstance(event.item, HandoffOutputItem):
-                ctx.stream = f"\n\n**Handoff to: {event.item.target_agent.name}**\n\n"
-                if flush:
-                    self.bridge.on_step(ctx, self.begin)
-                if buffer:
-                    self.buffer += ctx.stream
-                self.begin = False
+                s = f"\n\n**Handoff to: {event.item.target_agent.name}**\n\n"
+                self._emit(ctx, s, flush, buffer)
 
-        # append images
-        if is_image:
-            self.window.core.debug.info("[chat] Image generation call found")
-            ctx.images = [img_path]  # save image path to ctx
-
-        # if files from container are found, download them and append to ctx
         if self.finished and not self.files_handled and self.files:
             self.files_handled = True
             self.window.core.debug.info("[chat] Container files found, downloading...")

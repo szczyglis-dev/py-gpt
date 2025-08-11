@@ -16,6 +16,8 @@ from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 import pytest
+
+from pygpt_net.core.render.web.pid import PidData
 from pygpt_net.core.render.web.renderer import Renderer
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 
@@ -349,7 +351,12 @@ class TestRenderer:
         ctx = DummyCtxItem()
         pid = DummyPid()
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(live_buffer="")}
+        pid_data = PidData(pid)
+        pid_data.loaded = False
+        pid_data.use_buffer = False
+        pid_data.html = ""
+        pid_data.live_buffer = ""
+        renderer.pids = {1: pid_data}
         renderer.is_debug = MagicMock(return_value=False)
         node = fake_window.core.ctx.output.get_current(meta)
         node.page().runJavaScript = MagicMock()
@@ -390,7 +397,11 @@ class TestRenderer:
         renderer.append(pid, "new html", flush=True)
         renderer.flush_output.assert_called_with(pid, "new html")
         assert renderer.pids[pid].html == ""
-        renderer.pids = {pid: MagicMock(loaded=False, use_buffer=False, html="buffer")}
+        pid_data = PidData(pid)
+        pid_data.loaded = False
+        pid_data.use_buffer = False
+        pid_data.html = "buffer"
+        renderer.pids = {pid: pid_data}
         renderer.append(pid, "more", flush=False)
         assert renderer.pids[pid].html == "buffermore"
 

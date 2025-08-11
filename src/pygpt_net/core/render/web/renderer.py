@@ -518,7 +518,7 @@ class Renderer(BaseRenderer):
 
         # buffer commited only on flush (less copies)
         # begin reset was already called in append_chunk gdy begin=True
-        p.buffer = (p.buffer or "") + raw_chunk
+        p.append_buffer(raw_chunk)
         buffer = p.buffer
 
         has_unclosed = has_unclosed_code_tag
@@ -720,7 +720,7 @@ class Renderer(BaseRenderer):
             p.live_buffer = ""  # reset buffer
             p.is_cmd = False  # reset command flag
             self.clear_live(meta, ctx)  # clear live output
-        p.live_buffer += raw_chunk
+        p.append_live_buffer(raw_chunk)
 
         # parse chunks
         to_append = p.live_buffer
@@ -808,7 +808,7 @@ class Renderer(BaseRenderer):
             p.html = ""
         else:
             if not flush:
-                p.html += html  # to buffer
+                p.append_html(html)  # to buffer
 
     def append_context_item(
             self,
