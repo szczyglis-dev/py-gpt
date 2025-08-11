@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.11 19:00:00                  #
 # ================================================== #
 
 import copy
 from typing import Optional, Any, Dict
+
+from PySide6.QtCore import QTimer
 
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
@@ -318,7 +320,7 @@ class Editor:
         # update ctx limit
         elif key.startswith('ctx.records.limit') and caller == "slider":
             self.window.core.config.set(key, value)
-            self.window.controller.ctx.update(True, False)
+            QTimer.singleShot(1000, lambda: self.window.controller.ctx.update(True, False))
 
         # update layout density
         elif key == "layout.density" and caller == "slider":
