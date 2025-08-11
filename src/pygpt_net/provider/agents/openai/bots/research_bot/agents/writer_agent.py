@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.11 19:00:00                  #
 # ================================================== #
 # Based on OpenAI examples: https://github.com/openai/openai-agents-python/blob/main/examples
 # Agent used to synthesize a final report from the individual summaries.
@@ -40,6 +40,9 @@ def get_writer_agent(
         "model": config["model"].id,
         "output_type": ReportData,
     }
+    if config.get("experts"):
+        kwargs["handoffs"] = config["experts"]
+
     tool_kwargs = append_tools(
         tools=tools,
         window=window,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.08.11 19:00:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -36,6 +36,8 @@ from pygpt_net.provider.gpt.agents.remote_tools import get_remote_tools, is_comp
 from pygpt_net.provider.gpt.agents.response import StreamHandler
 
 from ..base import BaseAgent
+from ...gpt.agents.experts import get_experts
+
 
 @dataclass
 class EvaluationFeedback:
@@ -82,7 +84,7 @@ class Agent(BaseAgent):
             "instructions": self.get_option(preset, "base", "prompt"),
             "model": model.id,
         }
-        if "handoffs" in kwargs:
+        if handoffs:
             agent_kwargs["handoffs"] = handoffs
 
         tool_kwargs = append_tools(
@@ -202,29 +204,16 @@ class Agent(BaseAgent):
         tools = agent_kwargs.get("function_tools", [])
         preset = context.preset
 
-        # prepare experts as agents
-        experts = []
-        uuids = preset.experts
-        for uuid in uuids:
-            expert = window.core.presets.get_by_uuid(uuid)
-            if expert:
-                experts.append(expert)
+        # add experts
+        experts = get_experts(
+            window=window,
+            preset=preset,
+            verbose=verbose,
+            tools=tools,
+        )
+        if experts:
+            agent_kwargs["handoffs"] = experts
 
-        expert_agents = []
-        for expert in experts:
-            model = window.core.models.get(expert.model)
-            expert_agent = self.get_expert(
-                window=window,
-                prompt=expert.prompt,
-                model=model,
-                preset=expert,
-                tools=tools,
-            )
-            expert_agents.append(expert_agent)
-            if verbose:
-                print(f"Adding expert: {expert.name} ({model.id})")
-
-        agent_kwargs["handoffs"] = expert_agents
         agent = self.get_agent(window, agent_kwargs)
 
         # get options

@@ -800,6 +800,8 @@ Below is a pattern for how different types of agents work. You can use these pat
 - Bot 2 receives the response from Bot 1 as input, provides an answer, and sends the response back to Bot 1 as its input. This cycle repeats.
 - The human can interrupt the loop at any time and update the entire discussion.
 
+**Tip**: Starting from version `2.5.97`, you can assign and use Experts in all of the agent types.
+
 **Limitations:**
 
 - When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.

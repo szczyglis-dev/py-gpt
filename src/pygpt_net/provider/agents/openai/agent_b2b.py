@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 01:00:00                  #
+# Updated Date: 2025.08.11 19:00:00                  #
 # ================================================== #
+
 import copy
 from typing import Dict, Any, Tuple, Union
 
@@ -34,6 +35,8 @@ from pygpt_net.provider.gpt.agents.remote_tools import append_tools
 from pygpt_net.provider.gpt.agents.response import StreamHandler
 
 from ..base import BaseAgent
+from ...gpt.agents.experts import get_experts
+
 
 class Agent(BaseAgent):
 
@@ -68,6 +71,7 @@ class Agent(BaseAgent):
         preset = context.preset
         model = kwargs.get("model", ModelItem())
         tools = kwargs.get("function_tools", [])
+        handoffs = kwargs.get("handoffs", [])
         id = kwargs.get("bot_id", 1)
         option_key = f"bot_{id}"
         kwargs = {
@@ -75,6 +79,9 @@ class Agent(BaseAgent):
             "instructions": self.get_option(preset, option_key, "prompt"),
             "model": model.id,
         }
+        if handoffs:
+            kwargs["handoffs"] = handoffs
+
         tool_kwargs = append_tools(
             tools=tools,
             window=window,
@@ -197,6 +204,17 @@ class Agent(BaseAgent):
         verbose = agent_kwargs.get("verbose", False)
         max_steps = agent_kwargs.get("max_iterations", 10)
         preset = agent_kwargs.get("preset", PresetItem())
+        tools = agent_kwargs.get("function_tools", [])
+
+        # add experts
+        experts = get_experts(
+            window=window,
+            preset=preset,
+            verbose=verbose,
+            tools=tools,
+        )
+        if experts:
+            agent_kwargs["handoffs"] = experts
 
         bot_1_kwargs = copy.deepcopy(agent_kwargs)
         bot_1_kwargs["bot_id"] = 1
