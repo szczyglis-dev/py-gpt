@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.96 (2025-08-10)
+
+- Fixed memory leaks.
+
 ## 2.5.95 (2025-08-09)
 
 - Added user info personalization in Config -> Personalization, where you can provide information about yourself to the model.
