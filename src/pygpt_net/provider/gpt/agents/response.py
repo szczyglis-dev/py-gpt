@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 03:00:00                  #
+# Updated Date: 2025.08.11 19:00:00                  #
 # ================================================== #
 
 import base64
@@ -47,12 +47,19 @@ class StreamHandler:
             self.begin = False
 
     def reset(self):
+        """Reset shared data"""
         # self.buffer = ""
         self.response_id = None
         # self.files = []
         self.finished = False
         # self.files_handled = False
         self.code_block = False
+
+    def new(self):
+        """Reset the stream handler for a new response in cycle"""
+        self.reset()
+        self.buffer = ""
+        self.begin = True
 
     def to_buffer(self, text: str):
         """
@@ -83,10 +90,7 @@ class StreamHandler:
         if isinstance(event, ReasoningItem):
             print(
                 f"\033[33m{event.summary[0].text}\033[0m", end="", flush=True
-            )  # Yellow for reasoning
-            #ctx.stream = event.summary[0].text
-            #self.on_step(ctx, self.begin)
-            #self.begin = False
+            )
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseCreatedEvent):
             self.response_id = event.data.response.id
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):

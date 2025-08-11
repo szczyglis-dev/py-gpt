@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.11 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -111,7 +111,8 @@ class OpenAIWorkflow(BaseRunner):
                 ctx: CtxItem,
                 input: str,
                 output: str,
-                response_id: str
+                response_id: str,
+                finish: bool = False
         ) -> CtxItem:
             """
             Callback for next context in cycle
@@ -120,24 +121,24 @@ class OpenAIWorkflow(BaseRunner):
             :param input: input text
             :param output: output text
             :param response_id: response id for OpenAI
+            :param finish: If
             :return: CtxItem - the next context item in the cycle
             """
             # finish current stream
             ctx.stream = "\n"
+            ctx.output = output  # set output to current context
+            self.window.core.ctx.update_item(ctx)
             self.send_stream(ctx, signals, False)
             self.end_stream(ctx, signals)
-
-            # send current response
-            # TODO: disable evaluation for now in chat response controller
-            response_ctx = self.make_response(ctx, input, output, response_id)
-            response_ctx.partial = True  # do not finish and evaluate yet
-            self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
 
             # create and return next context item
             next_ctx = self.add_next_ctx(ctx)
             next_ctx.set_input(input)
-            self.window.core.ctx.set_last_item(next_ctx)
-            self.window.core.ctx.add(next_ctx)
+            next_ctx.partial = True
+            if finish:
+                next_ctx.extra["agent_finish"] = True
+
+            self.send_response(next_ctx, signals, KernelEvent.APPEND_DATA)
             return next_ctx
 
         def on_error(error: Any):
@@ -173,11 +174,13 @@ class OpenAIWorkflow(BaseRunner):
         # run agent
         ctx, output, response_id = await run(**run_kwargs)
 
-        # prepare response
-        response_ctx = self.make_response(ctx, prompt, output, response_id)
+        if not ctx.partial:
+            response_ctx = self.make_response(ctx, prompt, output, response_id)
+            self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
+        else:
+            ctx.partial = False  # last part, not partial anymore
+            # already handled in next_ctx(), so do not return response
 
-        # send response
-        self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
         self.set_idle(signals)
         return True
 

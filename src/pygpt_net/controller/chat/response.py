@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.08.11 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -198,6 +198,12 @@ class Response:
 
             self.window.controller.chat.output.handle_end(ctx=prev_ctx,
                                                           mode=prev_ctx.mode)  # end previous context
+
+
+        # if next in agent cycle
+        if ctx.partial:
+            self.window.dispatch(AppEvent(AppEvent.CTX_END))  # app event
+            self.window.dispatch(RenderEvent(RenderEvent.RELOAD))  # reload chat window
 
         # handle current step
         ctx.current = False  # reset current state
