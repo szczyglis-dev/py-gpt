@@ -379,9 +379,9 @@ class Body:
                     if (replace) {
                         if (doHighlight) {
                             highlightCode(doMath);  // with or without math
-                        }
-                        scrollToBottom();
+                        }                        
                     }    
+                    scrollToBottom();
                 }
                 function replaceOutput(name_header, content) {
                     hideTips();
