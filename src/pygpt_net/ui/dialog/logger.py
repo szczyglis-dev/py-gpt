@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 12:00:00                  #
+# Updated Date: 2025.08.11 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout
 
 from pygpt_net.ui.widget.dialog.logger import LoggerDialog
+from pygpt_net.ui.widget.textarea.console import ConsoleInput
 from pygpt_net.ui.widget.textarea.editor import CodeEditor
 from pygpt_net.utils import trans
 
@@ -31,6 +32,16 @@ class Logger:
         self.window.logger.setReadOnly(True)
         self.window.logger.setProperty('class', 'text-editor')
 
+        self.window.console = ConsoleInput(self.window)
+
+        send_btn = QPushButton("Send")
+        send_btn.clicked.connect(self.window.core.debug.console.on_send)
+
+        console_layout = QHBoxLayout()
+        console_layout.addWidget(self.window.console)
+        console_layout.addWidget(send_btn)
+        console_layout.setContentsMargins(0, 0, 0, 0)
+
         self.window.ui.nodes['logger.btn.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
         self.window.ui.nodes['logger.btn.clear'].clicked.connect(
             lambda: self.window.controller.debug.clear_logger())
@@ -40,6 +51,7 @@ class Logger:
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.logger)
+        layout.addLayout(console_layout)
         layout.addLayout(bottom_layout)
 
         self.window.ui.dialog['logger'] = LoggerDialog(self.window)

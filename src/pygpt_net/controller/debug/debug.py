@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.20 23:00:00                  #
+# Updated Date: 2025.08.11 18:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -200,6 +200,7 @@ class Debug(QObject):
         """Open logger dialog"""
         self.window.ui.dialogs.open('logger', width=800, height=600)
         self.is_logger = True
+        self.window.console.setFocus()  # Set focus to console input
         self.update()
 
     def close_logger(self):

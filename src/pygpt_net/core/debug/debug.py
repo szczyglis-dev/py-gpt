@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.11 18:00:00                  #
 # ================================================== #
+
 import gc
 import os
 import sys
@@ -25,6 +26,8 @@ from PySide6.QtWidgets import QApplication
 from pygpt_net.config import Config
 from pygpt_net.core.types.console import Color
 
+from .console import Console
+
 class Debug:
     def __init__(self, window=None):
         """
@@ -33,6 +36,7 @@ class Debug:
         :param window: Window instance
         """
         self.window = window
+        self.console = Console(window)
         self.pause_idx = 1
 
     @staticmethod
@@ -335,64 +339,77 @@ class Debug:
         """
         self.window.controller.dialogs.debug.add(id, k, v)
 
-    def print_memory_usage(self, label=""):
+    def print_memory_usage(self, label="") -> str:
         """
         Print memory usage of the current process
 
         :param label: label for memory usage
+        :return: formatted memory usage string
         """
         process = psutil.Process(os.getpid())
         mem_mb = process.memory_info().rss / (1024 * 1024)
-        print(f"[{label}] Memory Usage: {mem_mb:.2f} MB")
+        data = f"Memory Usage: {mem_mb:.2f} MB"
+        print(f"[{label}] {data}")
+        return data
 
-    def mem(self, label: str = ""):
+    def mem(self, label: str = "") -> str:
         """
         Print memory usage and collect garbage
 
         :param label: label for memory usage
+        :return: formatted memory usage string
         """
-        from pympler import asizeof, summary, muppy  # pip install pympler
-
+        res = ""
         print("\n\n------------------------------------")
         print(f"{Color.BOLD}{label} Memory Usage{Color.ENDC}")
         print("------------------------------------")
 
         all_objects = len(gc.get_objects())
         unreachable_objects = gc.collect()
-        objs = muppy.get_objects()
-        # objs_by_type = muppy.filter(objs, Type=dict)
-        sum_by_type = summary.summarize(objs)
-        # sum_by_type = summary.summarize(objs_by_type)
-        summary.print_(sum_by_type)
-
-        self.print_memory_usage(label)
-
-        total_bytes = asizeof.asizeof(self.window.controller.chat.render.web_renderer.pids)
-        pids_total_mb = total_bytes / (1024 * 1024)
-        count_pids = len(self.window.controller.chat.render.web_renderer.pids)
-
-        total_bytes = asizeof.asizeof(self.window.core.ctx.meta)
-        meta_total_mb = total_bytes / (1024 * 1024)
-        count_meta = len(self.window.core.ctx.meta)
-
-        total_bytes = asizeof.asizeof(self.window.core.ctx.get_items())
-        ctx_total_mb = total_bytes / (1024 * 1024)
-        count_ctx = len(self.window.core.ctx.get_items())
 
         num_widgets = len(QApplication.allWidgets())
         num_threads = self.window.threadpool.activeThreadCount()
 
-        print(f"[GC] All: {all_objects}, Unreachable: {unreachable_objects}")
-        print(f"Pids: {pids_total_mb:.4f} MB ({count_pids})")
-        print(f"CtxMeta: {meta_total_mb:.4f} MB ({count_meta})")
-        print(f"CtxItems: {ctx_total_mb:.4f} MB ({count_ctx})")
-        print(f"Widgets: {num_widgets}")
-        print(f"Threadpool: {num_threads}")
+        stats = []
+        stats.append(f"[GC] All: {all_objects}, Unreachable: {unreachable_objects}")
 
-        """
-        all_objects = gc.get_objects()
-        print(f"[GC] Tracked: {len(all_objects)}")
-        """
+        res += self.print_memory_usage(label)
+
+        try:
+            from pympler import asizeof, summary, muppy  # pip install pympler
+            objs = muppy.get_objects()
+            # objs_by_type = muppy.filter(objs, Type=dict)
+            sum_by_type = summary.summarize(objs)
+            # sum_by_type = summary.summarize(objs_by_type)
+            summary.print_(sum_by_type)
+
+            total_bytes = asizeof.asizeof(self.window.controller.chat.render.web_renderer.pids)
+            pids_total_mb = total_bytes / (1024 * 1024)
+            count_pids = len(self.window.controller.chat.render.web_renderer.pids)
+
+            total_bytes = asizeof.asizeof(self.window.core.ctx.meta)
+            meta_total_mb = total_bytes / (1024 * 1024)
+            count_meta = len(self.window.core.ctx.meta)
+
+            total_bytes = asizeof.asizeof(self.window.core.ctx.get_items())
+            ctx_total_mb = total_bytes / (1024 * 1024)
+            count_ctx = len(self.window.core.ctx.get_items())
+
+            stats.append(f"Pids: {pids_total_mb:.4f} MB ({count_pids})")
+            stats.append(f"CtxMeta: {meta_total_mb:.4f} MB ({count_meta})")
+            stats.append(f"CtxItems: {ctx_total_mb:.4f} MB ({count_ctx})")
+
+        except ImportError:
+            err = "Pympler is not installed, skipping detailed memory report. Install it with 'pip install pympler'"
+            res += err
+            print(err)
+
+        stats.append(f"Widgets: {num_widgets}")
+        stats.append(f"Threadpool: {num_threads}")
+
+        res += "\n" + "\n".join(stats)
+        print("\n".join(stats))
+        return res
 
     def pause(self, *args):
         """

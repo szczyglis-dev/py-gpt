@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2025.08.11 18:00:00                  #
 # ================================================== #
 
 import os
@@ -59,6 +59,7 @@ def test_open_logger(mock_window):
     """Test open logger"""
     debug = Debug(mock_window)
     mock_window.ui.dialogs.open = MagicMock()
+    mock_window.console = MagicMock()
     debug.window.ui.dialogs = mock_window.ui.dialogs
 
     debug.open_logger()
