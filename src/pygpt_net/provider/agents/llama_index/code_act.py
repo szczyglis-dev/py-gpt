@@ -6,13 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
-
-# from llama_index.core.agent.workflow import CodeActAgent as Agent
-from .codeact_agent_custom import DEFAULT_CODE_ACT_PROMPT, CodeActAgent as Agent  # <-- custom version with tools
 
 from pygpt_net.core.types import (
     AGENT_MODE_WORKFLOW,
@@ -37,6 +34,10 @@ class CodeActAgent(BaseAgent):
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
+        # from llama_index.core.agent.workflow import CodeActAgent as Agent
+        from .codeact_agent_custom import DEFAULT_CODE_ACT_PROMPT, \
+            CodeActAgent as Agent  # <-- custom version with tools
+
         tools = kwargs.get("plugin_tools", {})
         specs = kwargs.get("plugin_specs", [])
         retriever_tool = kwargs.get("retriever_tools", None)

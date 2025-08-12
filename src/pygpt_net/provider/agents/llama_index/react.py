@@ -6,18 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
 
-from llama_index.core.agent import ReActAgent as Agent
-from llama_index.core.agent.react_multimodal.step import (
-    MultimodalReActAgentWorker,
-)
-
 from pygpt_net.core.types import (
-    MODE_VISION,
     AGENT_TYPE_LLAMA,
 )
 
@@ -43,6 +37,8 @@ class ReactAgent(BaseAgent):
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
+        from llama_index.core.agent import ReActAgent as Agent
+
         tools = kwargs.get("tools", [])
         verbose = kwargs.get("verbose", False)
         llm = kwargs.get("llm", None)
