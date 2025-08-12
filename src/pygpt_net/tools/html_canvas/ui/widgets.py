@@ -34,6 +34,10 @@ class ToolWidget:
         self.edit = None  # canvas edit
         self.btn_edit = None  # edit checkbox
 
+    def on_open(self):
+        """On open"""
+        pass
+
     def on_delete(self):
         """On delete"""
         if self.tool:
