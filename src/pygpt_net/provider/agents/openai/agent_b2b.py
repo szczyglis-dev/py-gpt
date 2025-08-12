@@ -254,6 +254,10 @@ class Agent(BaseAgent):
         }
         input_items: list[TResponseInputItem] = messages
 
+        # reverse history if needed
+        if use_partial_ctx:
+            input_items = self.reverse_history(input_items)
+
         if not stream:
             while True:
                 # -------- bot 1 --------
@@ -268,6 +272,7 @@ class Agent(BaseAgent):
                     **kwargs
                 )
                 response_id = result.last_response_id
+                output_1 = final_output
                 if verbose:
                     print("Final response:", result)
 
@@ -280,6 +285,15 @@ class Agent(BaseAgent):
                 # get and reverse items
                 input_items = result.to_input_list()
                 input_items = self.reverse_items(input_items, verbose=reverse_verbose)
+
+                if use_partial_ctx:
+                    ctx = bridge.on_next_ctx(
+                        ctx=ctx,
+                        input="",  # new ctx: input
+                        output=output_1,  # prev ctx: output
+                        response_id=response_id,
+                        stream=False,
+                    )
 
                 # -------- bot 2 --------
                 kwargs["input"] = input_items
@@ -289,6 +303,7 @@ class Agent(BaseAgent):
                     **kwargs
                 )
                 response_id = result.last_response_id
+                output_2 = final_output
                 if verbose:
                     print("Final response:", result)
 
@@ -300,13 +315,17 @@ class Agent(BaseAgent):
                 # get and reverse items
                 input_items = result.to_input_list()
                 input_items = self.reverse_items(input_items, verbose=reverse_verbose)
+
+                if use_partial_ctx:
+                    ctx = bridge.on_next_ctx(
+                        ctx=ctx,
+                        input="", # new ctx: input
+                        output=output_2,  # prev ctx: output
+                        response_id=response_id,
+                        stream=False,
+                    )
         else:
             handler = StreamHandler(window, bridge)
-
-            # reverse history if needed
-            if use_partial_ctx:
-                input_items = self.reverse_history(input_items)
-
             begin = True
             while True:
                 # -------- bot 1 --------
@@ -349,6 +368,7 @@ class Agent(BaseAgent):
                         input="",  # new ctx: input
                         output=output_1,  # prev ctx: output
                         response_id=response_id,
+                        stream=True,
                     )
                     handler.new()
                 else:
@@ -391,6 +411,7 @@ class Agent(BaseAgent):
                         input="", # new ctx: input
                         output=output_2,  # prev ctx: output
                         response_id=response_id,
+                        stream=True,
                     )
                     handler.new()
                 else:

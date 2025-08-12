@@ -238,10 +238,29 @@ class Agent(BaseAgent):
 
                 print(f"Evaluator score: {result.score}")
                 if result.score == "pass":
-                    print("Response is good enough, exiting.")
+                    if use_partial_ctx:
+                        ctx = bridge.on_next_ctx(
+                            ctx=ctx,
+                            input=result.feedback,  # new ctx: input
+                            output=final_output,  # prev ctx: output
+                            response_id=response_id,
+                            finish=True,
+                            stream=False,
+                        )
+                    else:
+                        print("Response is good enough, exiting.")
                     break
                 print("Re-running with feedback")
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})
+
+                if use_partial_ctx:
+                    ctx = bridge.on_next_ctx(
+                        ctx=ctx,
+                        input=result.feedback, # new ctx: input
+                        output=final_output,  # prev ctx: output
+                        response_id=response_id,
+                        stream=False,
+                    )
         else:
             handler = StreamHandler(window, bridge)
             while True:
@@ -278,6 +297,7 @@ class Agent(BaseAgent):
                             output=final_output,  # prev ctx: output
                             response_id=response_id,
                             finish=True,
+                            stream=True,
                         )
                     else:
                         ctx.stream = info
@@ -294,6 +314,7 @@ class Agent(BaseAgent):
                         input=result.feedback,  # new ctx: input
                         output=final_output,  # prev ctx: output
                         response_id=response_id,
+                        stream=True,
                     )
                     handler.new()
                 else:

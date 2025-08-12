@@ -112,7 +112,8 @@ class OpenAIWorkflow(BaseRunner):
                 input: str,
                 output: str,
                 response_id: str,
-                finish: bool = False
+                finish: bool = False,
+                stream: bool = True,
         ) -> CtxItem:
             """
             Callback for next context in cycle
@@ -122,6 +123,7 @@ class OpenAIWorkflow(BaseRunner):
             :param output: output text
             :param response_id: response id for OpenAI
             :param finish: If
+            :param stream: is streaming enabled
             :return: CtxItem - the next context item in the cycle
             """
             # finish current stream
@@ -129,8 +131,10 @@ class OpenAIWorkflow(BaseRunner):
             ctx.extra["agent_output"] = True  # allow usage in history
             ctx.output = output  # set output to current context
             self.window.core.ctx.update_item(ctx)
-            self.send_stream(ctx, signals, False)
-            self.end_stream(ctx, signals)
+
+            if stream:
+                self.send_stream(ctx, signals, False)
+                self.end_stream(ctx, signals)
 
             # create and return next context item
             next_ctx = self.add_next_ctx(ctx)

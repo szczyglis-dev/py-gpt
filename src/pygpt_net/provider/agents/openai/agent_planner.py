@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -338,10 +338,30 @@ class Agent(BaseAgent):
 
                 print(f"Evaluator score: {result.score}")
                 if result.score == "pass":
-                    print("Response is good enough, exiting.")
+                    if use_partial_ctx:
+                        ctx = bridge.on_next_ctx(
+                            ctx=ctx,
+                            input=result.feedback,  # new ctx: input
+                            output=final_output,  # prev ctx: output
+                            response_id=response_id,
+                            finish=True,
+                            stream=False,
+                        )
+                    else:
+                        print("Response is good enough, exiting.")
                     break
+
                 print("Re-running with feedback")
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})
+
+                if use_partial_ctx:
+                    ctx = bridge.on_next_ctx(
+                        ctx=ctx,
+                        input=result.feedback,  # new ctx: input
+                        output=final_output,  # prev ctx: output
+                        response_id=response_id,
+                        stream=False,
+                    )
         else:
             final_output = result.plan + "\n___\n"
             handler = StreamHandler(window, bridge, final_output)
@@ -379,6 +399,7 @@ class Agent(BaseAgent):
                             output=final_output,  # prev ctx: output
                             response_id=response_id,
                             finish=True,
+                            stream=True,
                         )
                     else:
                         ctx.stream = info
@@ -395,6 +416,7 @@ class Agent(BaseAgent):
                         input=result.feedback,  # new ctx: input
                         output=final_output,  # prev ctx: output
                         response_id=response_id,
+                        stream=True,
                     )
                     handler.new()
                 else:

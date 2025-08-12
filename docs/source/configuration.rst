@@ -307,7 +307,7 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Verbose`` - enables verbose mode.
 
-* ``Split response messages`` - Split response messages to separated context items in OpenAI Agents mode. Stream mode only.
+* ``Split response messages`` - Split response messages to separated context items in OpenAI Agents mode.
 
 settings.agent.openai.response.split = Split response messages
 settings.agent.openai.response.split.desc = Split re
