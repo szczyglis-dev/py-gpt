@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 import io
@@ -43,7 +43,8 @@ class PidData:
 
     @buffer.setter
     def buffer(self, value: str):
-        self._buffer = io.StringIO()
+        self._buffer.seek(0)
+        self._buffer.truncate(0)
         if value:
             self._buffer.write(value)
 
@@ -56,7 +57,8 @@ class PidData:
 
     @live_buffer.setter
     def live_buffer(self, value: str):
-        self._live_buffer = io.StringIO()
+        self._live_buffer.seek(0)
+        self._live_buffer.truncate(0)
         if value:
             self._live_buffer.write(value)
 
@@ -69,7 +71,8 @@ class PidData:
 
     @html.setter
     def html(self, value: str):
-        self._html = io.StringIO()
+        self._html.seek(0)
+        self._html.truncate(0)
         if value:
             self._html.write(value)
 
@@ -82,9 +85,26 @@ class PidData:
 
     @document.setter
     def document(self, value: str):
-        self._document = io.StringIO()
+        self._document.seek(0)
+        self._document.truncate(0)
         if value:
             self._document.write(value)
 
     def append_document(self, text: str):
         self._document.write(text)
+
+    def clear(self, all: bool = False):
+        """
+        Clear buffers and other data
+
+        :param all: If True, clear all data, otherwise only buffers
+        """
+        for buf in (self._html, self._document, self._buffer, self._live_buffer):
+            buf.seek(0)
+            buf.truncate(0)
+
+        if all:
+            self.item = None
+            self.images_appended.clear()
+            self.urls_appended.clear()
+            self.files_appended.clear()

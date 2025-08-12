@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 import html
@@ -293,10 +293,7 @@ class Renderer(BaseRenderer):
                 self.append_context_item(meta, p.item)
                 p.item = None
 
-        p.buffer = ""  # reset buffer
-        p.live_buffer = ""  # reset live buffer
-        p.html = ""  # reset html buffer
-
+        p.clear() # reset buffers
         try:
             self.get_output_node(meta).page().runJavaScript("endStream();")
         except Exception as e:
@@ -992,13 +989,9 @@ class Renderer(BaseRenderer):
         """
         p = self.pids.get(pid)
         self.parser.reset()
-        p.item = None
-        p.html = ""
+        p.clear(all=True)
         self.clear_nodes(pid)
         self.clear_chunks(pid)
-        p.images_appended.clear()
-        p.urls_appended.clear()
-        p.files_appended.clear()
         self.get_output_node_by_pid(pid).reset_current_content()
         self.reset_names_by_pid(pid)
         self.prev_chunk_replace = False
@@ -1392,6 +1385,7 @@ class Renderer(BaseRenderer):
             return
         p = self.pids[pid]
         html = self.body.get_html(pid)
+        p.clear(all=True)
         p.loaded = False
         p.document = html
         node = self.get_output_node_by_pid(pid)

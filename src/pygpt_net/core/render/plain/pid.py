@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 import io
@@ -29,7 +29,8 @@ class PidData:
 
     @buffer.setter
     def buffer(self, value: str):
-        self._buffer = io.StringIO()
+        self._buffer.seek(0)
+        self._buffer.truncate(0)
         if value:
             self._buffer.write(value)
 
