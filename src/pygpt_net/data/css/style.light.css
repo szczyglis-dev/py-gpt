@@ -229,3 +229,7 @@ QLineEdit {{
 QComboBox::item:checked {{
   font-weight: bold;
 }}
+
+QScrollBar:vertical {{
+  width: 6px;
+}}
