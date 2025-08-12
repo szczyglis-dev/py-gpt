@@ -148,10 +148,25 @@ class Body:
                         script.parentNode.replaceChild(element, script);
                       });
                 }
-                function scrollToBottom() {
-                    window.scrollTo(0, document.body.scrollHeight);
-                    prevScroll = document.body.scrollHeight;
-                    getScrollPosition();  // store using bridge
+                function isNearBottom(marginPx = 100) {
+                    const el = document.scrollingElement || document.documentElement;
+                    const distanceToBottom = el.scrollHeight - el.clientHeight - el.scrollTop;
+                    return distanceToBottom <= marginPx;
+                }
+                function scrollToBottom(live = false) {
+                    const el = document.scrollingElement || document.documentElement;
+                    const marginPx = 100;
+                    let behavior = 'instant';
+                    if (live == true) {
+                        behavior = 'instant'; // no smooth scroll for live updates
+                    } else {
+                        behavior = 'smooth'; // smooth scroll for normal updates, TODO: implement in Chromium
+                    }
+                    if (isNearBottom(marginPx) || live == false) {
+                        el.scrollTo({ top: el.scrollHeight, behavior });
+                    }
+                    prevScroll = el.scrollHeight;
+                    getScrollPosition(); // store using bridge
                 }
                 function appendToInput(content) {
                     const element = document.getElementById('_append_input_');
@@ -381,7 +396,7 @@ class Body:
                             highlightCode(doMath);  // with or without math
                         }                        
                     }    
-                    scrollToBottom();
+                    scrollToBottom(true);
                 }
                 function replaceOutput(name_header, content) {
                     hideTips();
