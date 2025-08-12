@@ -306,6 +306,7 @@ class Body:
                 function beginStream() {
                     hideTips();
                     clearOutput();
+                    scrollToBottom();
                 }
                 function endStream() {
                     clearOutput();
