@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -181,12 +181,11 @@ class OpenAIWorkflow(BaseRunner):
         # run agent
         ctx, output, response_id = await run(**run_kwargs)
 
-        if not ctx.partial:
+        if not ctx.partial or self.is_stopped():
             response_ctx = self.make_response(ctx, prompt, output, response_id)
             self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
         else:
             ctx.partial = False  # last part, not partial anymore
-            # already handled in next_ctx(), so do not return response
 
         self.set_idle(signals)
         return True
