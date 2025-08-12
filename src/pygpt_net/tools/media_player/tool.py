@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.08.12 15:00:00                  #
 # ================================================== #
 
 import datetime
@@ -36,9 +36,12 @@ class MediaPlayer(BaseTool):
         self.id = "player"
         self.opened = False
         self.dialog = None
+        self.initialized = False
 
-    def setup(self):
+    def lazy_setup(self):
         """Setup media player"""
+        if self.initialized:
+            return
         if self.window.core.config.has("video.player.path"):
             path = self.window.core.config.get("video.player.path")
             if path:
@@ -50,6 +53,11 @@ class MediaPlayer(BaseTool):
         if self.window.core.config.has("video.player.volume.mute"):
             self.window.video_player.set_muted(self.window.core.config.get("video.player.volume.mute"))
         self.window.video_player.update()  # update player volume, slider, etc.
+        self.initialized = True
+
+    def setup(self):
+        """Setup media player"""
+        pass
 
     def update(self):
         """Update menu"""
@@ -130,6 +138,7 @@ class MediaPlayer(BaseTool):
                 )
     def open(self):
         """Open player window"""
+        self.lazy_setup()
         self.window.ui.dialogs.open('video_player', width=800, height=600)
         self.window.video_player.force_resize()
         self.opened = True
