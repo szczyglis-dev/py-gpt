@@ -1,3 +1,12 @@
+2.6.0 (2025-08-13)
+
+- Added split responses to the OpenAI Agents in non-streaming mode.
+- Disabled auto-scroll when manually scrolled to the top.
+- Increased scrollbar width in the light theme.
+- Optimized the clearing of the streaming buffer.
+- Optimized imports.
+- Made CSS improvements.
+
 2.5.98 (2025-08-12)
 
 - Added support for GPT-5 in LlamaIndex/Chat with Files mode.

@@ -45,6 +45,7 @@ class FileExplorer(QWidget):
         self.treeView = QTreeView()
         self.treeView.setModel(self.model)
         self.treeView.setRootIndex(self.model.index(self.directory))
+        self.setProperty('class', 'file-explorer')
 
         header = QHBoxLayout()
 

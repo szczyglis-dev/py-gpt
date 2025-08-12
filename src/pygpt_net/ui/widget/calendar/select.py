@@ -90,6 +90,13 @@ class CalendarSelect(QCalendarWidget):
         :param rect: Rectangle
         :param date: Date
         """
+        theme = self.window.core.config.get("theme")
+        if theme.startswith('dark'):
+            counter_bg = QColor(40, 40, 40)
+            counter_font = QColor(255, 255, 255)
+        else:
+            counter_bg = QColor(240, 240, 240)
+            counter_font = QColor(0, 0, 0)
 
         super().paintCell(painter, rect, date)
 
@@ -112,9 +119,10 @@ class CalendarSelect(QCalendarWidget):
                 20,
             )
             painter.save()
-            painter.setBrush(QBrush(QColor(40, 40, 40)))
+            painter.setBrush(QBrush(counter_bg))
+            painter.setPen(Qt.NoPen)
             painter.drawRect(task_rect)
-            painter.setPen(QColor(255, 255, 255))
+            painter.setPen(counter_font)
             painter.setFont(QFont('Lato', self.font_size))
             painter.drawText(
                 task_rect,

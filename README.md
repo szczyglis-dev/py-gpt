@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.98** | build: **2025-08-12** | Python: **>=3.10, <3.14**
+Release: **2.6.0** | build: **2025-08-13** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4267,6 +4267,15 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.6.0 (2025-08-13)**
+
+- Added split responses to the OpenAI Agents in non-streaming mode.
+- Disabled auto-scroll when manually scrolled to the top.
+- Increased scrollbar width in the light theme.
+- Optimized the clearing of the streaming buffer.
+- Optimized imports.
+- Made CSS improvements.
+
 **2.5.98 (2025-08-12)**
 
 - Added support for GPT-5 in LlamaIndex/Chat with Files mode.
@@ -4297,150 +4306,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added a new agent mode in OpenAI Agents: Bot 2 Bot.
 - Fixed: Storing the last used context ID when empty.
 - Fixed: Reloading items when an agent run is stopped.
-
-**2.5.93 (2025-08-08)**
-
-- Added a new tool: Translate - in menu Tools - feature #123.
-
-**2.5.92 (2025-08-08)**
-
-- Added max files to store config option in Audio -> Cache.
-
-**2.5.91 (2025-08-08)**
-
-- Added GPT-5.
-- Added audio cache - #118.
-
-**2.5.90 (2025-08-07)**
-
-- Fix: Initialize context summary if a conversation starts with a tool call.
-- Fix: Store splitter positions even if the object is deleted from memory.
-- Update: CSS improvements.
-
-**2.5.89 (2025-08-07)**
-
-- Added audio output device selection in Config -> Audio - issue #117
-- Added audio input and output backend selections in Config -> Audio.
-
-**2.5.88 (2025-08-06)**
-
-- Optimized the process of unloading tabs from memory.
-- Reduced initial RAM usage on launch.
-- Added a handler for the SIGTERM signal.
-
-**2.5.87 (2025-08-05)**
-
-- Optimized memory cleanup.
-
-**2.5.86 (2025-08-04)**
-
-- Optimized CPU and memory usage.
-- OpenAI vector stores tool added to Tools menu.
-- Fixed schema parsing for tools in Agent (OpenAI) mode.
-- Fixed multi-threading when uploading to remote vector store.
-- Fixed Urls open in Snap.
-
-**2.5.85 (2025-08-02)**
-
-- Added importer for models from providers in Config -> Models -> Import... - #127
-- Fix: options save in models editor.
-
-**2.5.84 (2025-08-02)**
-
-- Added a new OpenAI agent mode: Evolve. You can find its description in the documentation under the section Modes -> Agent (OpenAI).
-
-**2.5.83 (2025-08-01)**
-
-- Improved streaming in Agent (OpenAI) mode.
-- Improved loading of default options in presets.
-- Added context summary event if the kernel stopped.
-- Implemented dynamic width for opened combo boxes.
-
-**2.5.82 (2025-08-01)**
-
-- Added a new OpenAI agents: researcher, planner, feedback.
-
-**2.5.81 (2025-07-31)**
-
-- Disabled remote tools by default in non-OpenAI providers in Agent (OpenAI) mode.
-- Removed unsupported models from Agent (OpenAI) mode.
-
-**2.5.80 (2025-07-30)**
-
-- Improved the stop command in Agent mode: added saving of current output on break.
-- Fixed the experts providers list in Agent (LlamaIndex): now only Llama providers are displayed.
-- Added max_turns configuration to Agent (OpenAI), shared with Agents -> Max steps configuration option value.
-
-**2.5.79 (2025-07-30)**
-
-- Added prevent text break on input send when the cursor is inside the text.
-- Fix: updating expert IDs on preset save.
-- Added notification if no agent is selected.
-- Disabled FFmpeg warnings.
-
-**2.5.78 (2025-07-30)**
-
-- Added support for Python 3.13.
-- Fixed history prepare in Agent (LlamaIndex) mode.
-
-**2.5.77 (2025-07-30)**
-
-- Fix: history prepare in Agent (OpenAI) mode.
-- Agent response evaluation splitted into two modes: by the percentage of task completion and by accuracy.
-
-**2.5.76 (2025-07-30)**
-
-- Added a new mode: Agent (OpenAI) and integrated `openai-agents` into the app (beta).
-
-**2.5.75 (2025-07-28)**
-
-- Fix: context append in LlamaIndex agents.
-
-**2.5.74 (2025-07-28)**
-
-- Fix: mouse buttons handling in Computer use mode.
-- Added double click handler.
-
-**2.5.73 (2025-07-28)**
-
-- Stream rendering optimization, reduced CPU usage.
-- Fix: < and > rendering in math formulas.
-- Fix: do not automatically add tools to the agent when the inline plugin is enabled but the Tools option is not enabled.
-- Fix: corrected saving of the last context element when the stream is interrupted.
-- Fix: unlock response regeneration after stopped event.
-
-**2.5.72 (2025-07-27)**
-
-- Improved stop command.
-
-**2.5.71 (2025-07-27)**
-
-- Added a new working mode: `Computer use` for autonomous navigation in the user's environment (beta; utilizes the `Computer use` remote tool and the model `computer-use-preview`).
-- Added a new remote tool: `Remote MCP` (with configuration in Settings -> Remote Tools).
-- Added a new remote tool: `File Search` (with configuration in Settings -> Remote Tools).
-- Added a new option `Always continue...` to Agent (autonomous) plugin settings.
-
-**2.5.70 (2025-07-26)**
-
-- Added separate config for Responses API for expert instances.
-- Added a new model: mistral-small3.1.
-
-**2.5.69 (2025-07-25)**
-
-- The Responses API and remote tools are now allowed in Agent (autonomous) and Expert modes. Default: disabled.
-- Added separate options in the configuration for enabling the Responses API in: Config -> Agents and Experts.
-- Improved expert and agents system prompt.
-
-**2.5.68 (2025-07-25)**
-
-- Added a separate configuration to enable or disable native function calls in both agent and expert modes.
-
-**2.5.67 (2025-07-25)**
-
-- Added native tool call functionality in Experts.
-- Enhanced the use of multiple tool calls in Experts.
-- Fixed the display of Expert names when responding.
-- Improved context history handling in Experts.
 
 # Credits and links
 
