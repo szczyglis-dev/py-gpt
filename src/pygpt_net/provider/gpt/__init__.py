@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 05:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -62,6 +62,7 @@ class Gpt:
         self.tools = Tools(window)
         self.vision = Vision(window)
         self.client = None
+        self.locked = False
 
     def get_client(
             self,
@@ -233,9 +234,12 @@ class Gpt:
         if context.request:
             context.stream = False
             context.mode = "chat"  # fake mode for redirect
-            result = self.call(context, extra)
+            self.locked = True
+            self.call(context, extra)
+            self.locked = False
             return context.ctx.output
 
+        self.locked = True
         ctx = context.ctx
         mode = context.mode
         prompt = context.prompt
@@ -291,7 +295,21 @@ class Gpt:
         except Exception as e:
             self.window.core.debug.log(e)
             print("Error in GPT quick call: " + str(e))
+        finally:
+            self.locked = False
 
     def stop(self):
-        """Stop OpenAI API"""
+        """On global event stop"""
         pass
+
+    def close(self):
+        """Close OpenAI client"""
+        if self.locked:
+            return
+        if self.client is not None:
+            try:
+                self.client.close()
+                self.client = None
+            except Exception as e:
+                self.window.core.debug.log(e)
+                print("Error closing GPT client:", e)

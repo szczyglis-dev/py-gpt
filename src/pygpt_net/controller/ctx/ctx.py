@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -21,7 +21,7 @@ from .common import Common
 from .summarizer import Summarizer
 from .extra import Extra
 
-from pygpt_net.utils import trans, mem_clean
+from pygpt_net.utils import trans
 
 
 class Ctx:
@@ -172,6 +172,7 @@ class Ctx:
         # update additional context attachments
         self.window.controller.chat.attachment.update()
         self.set_selected(id)
+        self.clean_memory()  # clean memory
 
     def select_on_list_only(self, id: int):
         """
@@ -250,6 +251,10 @@ class Ctx:
         """Create new ungrouped ctx"""
         self.group_id = None
         self.new()
+
+    def clean_memory(self):
+        """Clean memory"""
+        self.window.core.gpt.close()  # clear gpt client
 
     def new(
             self,
