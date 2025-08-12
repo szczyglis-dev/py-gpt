@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -92,6 +92,24 @@ class Agent(BaseAgent):
         )
         kwargs.update(tool_kwargs) # update kwargs with tools
         return OpenAIAgent(**kwargs)
+
+    def reverse_history(
+            self,
+            items: list[TResponseInputItem]
+    ):
+        """
+        Reverse the roles of items in the input list in history (assistant to user)
+
+        :param items: List of input items
+        :return: List of input items with reversed roles
+        """
+        counter = 1
+        for item in items:
+            if item.get("role") == "assistant":
+                if counter % 2 == 0:
+                    item["role"] = "user"
+                counter += 1
+        return items
 
     def reverse_items(
             self,
@@ -284,14 +302,10 @@ class Agent(BaseAgent):
                 input_items = self.reverse_items(input_items, verbose=reverse_verbose)
         else:
             handler = StreamHandler(window, bridge)
+
+            # reverse history if needed
             if use_partial_ctx:
-                # we must replace message roles at beginning, second bot will be user
-                msg_counter = 1
-                for item in input_items:
-                    if item.get("role") == "assistant":
-                        if msg_counter % 2 == 0:
-                            item["role"] = "user"
-                        msg_counter += 1
+                input_items = self.reverse_history(input_items)
 
             begin = True
             while True:

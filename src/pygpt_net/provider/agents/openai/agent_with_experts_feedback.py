@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -97,42 +97,6 @@ class Agent(BaseAgent):
         )
         agent_kwargs.update(tool_kwargs) # update kwargs with tools
         return OpenAIAgent(**agent_kwargs)
-
-    def get_expert(
-            self,
-            window,
-            prompt: str,
-            model: ModelItem,
-            preset: PresetItem = None,
-            tools: list = None,
-    ) -> OpenAIAgent:
-        """
-        Return Agent provider instance
-
-        :param window: window instance
-        :param prompt: Expert prompt
-        :param model: Model item
-        :param preset: Preset item
-        :param tools: List of function tools
-        :return: Agent provider instance
-        """
-        agent_name = preset.name if preset else "Agent"
-        kwargs = {
-            "name": agent_name,
-            "instructions": prompt,
-            "model": model.id,
-        }
-        tool_kwargs = append_tools(
-            tools=tools,
-            window=window,
-            model=model,
-            preset=preset,
-            allow_local_tools=True,
-            allow_remote_tools=True,
-            is_expert_call=True,
-        )
-        kwargs.update(tool_kwargs)  # update kwargs with tools
-        return OpenAIAgent(**kwargs)
 
     def get_evaluator(
             self,

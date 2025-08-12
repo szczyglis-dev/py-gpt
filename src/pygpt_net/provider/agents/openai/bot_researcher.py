@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.12 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple, Union, Optional
@@ -211,11 +211,7 @@ class Agent(BaseAgent):
         if model.provider == "openai":
             set_openai_env(window)
 
-        if not stream:
-            final_output = await bot.run(query)
-        else:
-            final_output = await bot.run(query)
-
+        final_output = await bot.run(query)
         return ctx, final_output, response_id
 
 
