@@ -233,3 +233,28 @@ QComboBox::item:checked {{
 QScrollBar:vertical {{
   width: 6px;
 }}
+QCalendarWidget QToolButton,
+QCalendarWidget QToolButton:hover {{
+    border: none;
+}}
+QCalendarWidget QAbstractItemView::item:selected:focus,
+QCalendarWidget QAbstractItemView::item:selected {{
+    background: #ffffd4;
+}}
+QCalendarWidget QAbstractItemView::item:hover {{
+    background: #f6f6f6;
+}}
+.file-explorer QTreeView,
+.file-explorer QHeaderView::section,
+.file-explorer QTreeView::branch,
+.file-explorer QTreeView::branch:open {{
+  background: #fff;
+}}
+.file-explorer QHeaderView::section {{
+  padding-top: 6px;
+  padding-bottom: 2px;
+  height: 20px;
+}}  
+QMenu::indicator {{
+    border: 1px solid gray;
+}}
