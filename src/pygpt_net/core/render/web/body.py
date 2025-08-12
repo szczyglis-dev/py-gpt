@@ -155,7 +155,7 @@ class Body:
                 }
                 function scrollToBottom(live = false) {
                     const el = document.scrollingElement || document.documentElement;
-                    const marginPx = 100;
+                    const marginPx = 300;
                     let behavior = 'instant';
                     if (live == true) {
                         behavior = 'instant'; // no smooth scroll for live updates
