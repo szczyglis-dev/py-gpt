@@ -35,7 +35,7 @@ class CodeActAgent(BaseAgent):
         :return: Agent provider instance
         """
         # from llama_index.core.agent.workflow import CodeActAgent as Agent
-        from .codeact_agent_custom import DEFAULT_CODE_ACT_PROMPT, \
+        from .workflow.codeact import DEFAULT_CODE_ACT_PROMPT, \
             CodeActAgent as Agent  # <-- custom version with tools
 
         tools = kwargs.get("plugin_tools", {})

@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2025.08.13 17:00:00                  #
+# ================================================== #
+
+# >>> Based on LlamaIndex CodeActAgent implementation, with custom plugin tool support <<<
+
 import asyncio
 import inspect
 import json
