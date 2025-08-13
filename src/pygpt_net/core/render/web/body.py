@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.13 16:00:00                  #
 # ================================================== #
 
 import os
@@ -880,56 +880,7 @@ class Body:
             </html>
             """
 
-    def __init__(self, window=None):
-        """
-        HTML Body
-
-        :param window: Window instance
-        """
-        self.window = window
-        self.highlight = SyntaxHighlight(window)
-        self._tip_keys = tuple(f"output.tips.{i}" for i in range(1, self.NUM_TIPS + 1))
-
-
-    def is_timestamp_enabled(self) -> bool:
-        """
-        Check if timestamp is enabled
-
-        :return: True if timestamp is enabled
-        """
-        return self.window.core.config.get('output_timestamp')
-
-    def prepare_styles(self) -> str:
-        """
-        Prepare CSS styles
-
-        :return: CSS styles
-        """
-        syntax_dark = [
-            "dracula",
-            "fruity",
-            "github-dark",
-            "gruvbox-dark",
-            "inkpot",
-            "material",
-            "monokai",
-            "native",
-            "nord",
-            "nord-darker",
-            "one-dark",
-            "paraiso-dark",
-            "rrt",
-            "solarized-dark",
-            "stata-dark",
-            "vim",
-            "zenburn",
-        ]
-        syntax_style = self.window.core.config.get("render.code_syntax")
-        if syntax_style is None or syntax_style == "":
-            syntax_style = "default"
-        fonts_path = os.path.join(self.window.core.config.get_app_path(), "data", "fonts").replace("\\", "/")
-        # loader
-        stylesheet = """
+    _SPINNER = """
         .lds-ring {
           /* change color here */
           color: #1c4c5b
@@ -974,38 +925,74 @@ class Body:
           }
         }
         """
-        stylesheet += self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
-        if syntax_style in syntax_dark:
-            stylesheet += "pre { color: #fff; }"
-        else:
-            stylesheet += "pre { color: #000; }"
 
-        return stylesheet + " " + self.highlight.get_style_defs()
+    def __init__(self, window=None):
+        """
+        HTML Body
 
-    def prepare_action_icons(
-            self,
-            ctx: CtxItem
-    ) -> str:
+        :param window: Window instance
+        """
+        self.window = window
+        self.highlight = SyntaxHighlight(window)
+        self._tip_keys = tuple(f"output.tips.{i}" for i in range(1, self.NUM_TIPS + 1))
+        self._syntax_dark = (
+            "dracula",
+            "fruity",
+            "github-dark",
+            "gruvbox-dark",
+            "inkpot",
+            "material",
+            "monokai",
+            "native",
+            "nord",
+            "nord-darker",
+            "one-dark",
+            "paraiso-dark",
+            "rrt",
+            "solarized-dark",
+            "stata-dark",
+            "vim",
+            "zenburn",
+        )
+
+
+    def is_timestamp_enabled(self) -> bool:
+        """
+        Check if timestamp is enabled
+
+        :return: True if timestamp is enabled
+        """
+        return self.window.core.config.get('output_timestamp')
+
+    def prepare_styles(self) -> str:
+        """
+        Prepare CSS styles
+
+        :return: CSS styles
+        """
+        cfg = self.window.core.config
+        fonts_path = os.path.join(cfg.get_app_path(), "data", "fonts").replace("\\", "/")
+        syntax_style = self.window.core.config.get("render.code_syntax") or "default"
+
+        theme_css = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
+        parts = [self._SPINNER, theme_css]
+        parts.append("pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }")
+        parts.append(self.highlight.get_style_defs())  # highlight style
+        return "\n".join(parts)
+
+    def prepare_action_icons(self, ctx: CtxItem) -> str:
         """
         Append action icons
 
         :param ctx: context item
         :return: HTML code
         """
-        html = ""
-        show_edit = True
-        # show_edit = self.window.core.config.get('ctx.edit_icons')
-        icons_html = "".join(self.get_action_icons(ctx, all=show_edit))
-        if icons_html != "":
-            extra = "<div class=\"action-icons\" data-id=\"{}\">{}</div>".format(ctx.id, icons_html)
-            html += extra
-        return html
+        icons_html = "".join(self.get_action_icons(ctx, all=True))
+        if icons_html:
+            return f'<div class="action-icons" data-id="{ctx.id}">{icons_html}</div>'
+        return ""
 
-    def get_action_icons(
-            self,
-            ctx: CtxItem,
-            all: bool = False
-    ) -> List[str]:
+    def get_action_icons(self, ctx: CtxItem, all: bool = False) -> List[str]:
         """
         Get action icons for context item
 
@@ -1013,58 +1000,41 @@ class Body:
         :param all: True to show all icons
         :return: list of icons
         """
-        icons = []
+        icons: List[str] = []
+        if ctx.output:
+            cid = ctx.id
+            t = trans
 
-        # audio read
-        if ctx.output is not None and ctx.output != "":
+            # audio read
             icons.append(
-                '<a href="extra-audio-read:{}" class="action-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
-                    ctx.id,
-                    ctx.id,
-                    self.get_icon("volume", trans("ctx.extra.audio"), ctx)
-                )
+                f'<a href="extra-audio-read:{cid}" class="action-icon" data-id="{cid}" role="button">'
+                f'<span class="cmd">{self.get_icon("volume", t("ctx.extra.audio"), ctx)}</span></a>'
             )
             # copy ctx
             icons.append(
-                '<a href="extra-copy:{}" class="action-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
-                    ctx.id,
-                    ctx.id,
-                    self.get_icon("copy", trans("ctx.extra.copy"), ctx)
-                )
+                f'<a href="extra-copy:{cid}" class="action-icon" data-id="{cid}" role="button">'
+                f'<span class="cmd">{self.get_icon("copy", t("ctx.extra.copy"), ctx)}</span></a>'
             )
             # regen link
             icons.append(
-                '<a href="extra-replay:{}" class="action-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
-                    ctx.id,
-                    ctx.id,
-                    self.get_icon("reload", trans("ctx.extra.reply"), ctx)
-                )
+                f'<a href="extra-replay:{cid}" class="action-icon" data-id="{cid}" role="button">'
+                f'<span class="cmd">{self.get_icon("reload", t("ctx.extra.reply"), ctx)}</span></a>'
             )
             # edit link
             icons.append(
-                '<a href="extra-edit:{}" class="action-icon edit-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
-                    ctx.id,
-                    ctx.id,
-                    self.get_icon("edit", trans("ctx.extra.edit"), ctx)
-                )
+                f'<a href="extra-edit:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button">'
+                f'<span class="cmd">{self.get_icon("edit", t("ctx.extra.edit"), ctx)}</span></a>'
             )
             # delete link
             icons.append(
-                '<a href="extra-delete:{}" class="action-icon edit-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
-                    ctx.id,
-                    ctx.id,
-                    self.get_icon("delete", trans("ctx.extra.delete"), ctx)
-                )
+                f'<a href="extra-delete:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button">'
+                f'<span class="cmd">{self.get_icon("delete", t("ctx.extra.delete"), ctx)}</span></a>'
             )
-
             # join link
-            if not self.window.core.ctx.is_first_item(ctx.id):
+            if not self.window.core.ctx.is_first_item(cid):
                 icons.append(
-                    '<a href="extra-join:{}" class="action-icon edit-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
-                        ctx.id,
-                        ctx.id,
-                        self.get_icon("playlist_add", trans("ctx.extra.join"), ctx)
-                    )
+                    f'<a href="extra-join:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button">'
+                    f'<span class="cmd">{self.get_icon("playlist_add", t("ctx.extra.join"), ctx)}</span></a>'
                 )
         return icons
 
@@ -1082,9 +1052,11 @@ class Body:
         :param item: context item
         :return: icon HTML
         """
-        icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", icon + ".svg")
-        return '<img src="file://{}" class="action-img" title="{}" alt="{}" data-id="{}">'.format(
-            icon, title, title, item.id)
+        app_path = self.window.core.config.get_app_path()
+        icon_path = os.path.join(app_path, "data", "icons", f"{icon}.svg")
+        return (
+            f'<img src="file://{icon_path}" class="action-img" title="{title}" alt="{title}" data-id="{item.id}">'
+        )
 
     def get_image_html(
             self,
@@ -1100,18 +1072,16 @@ class Body:
         :param num_all: number of all images
         :return: HTML code
         """
-        num_str = ""
-        if num is not None and num_all is not None and num_all > 1:
-            num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
         basename = os.path.basename(path)
-        return """<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url}"><img src="{path}" class="image"></a></div>
-        <a href="{url}" class="title">{title}</a></div></div>""". \
-            format(prefix=trans('chat.prefix.img'),
-                   url=url,
-                   title=basename,
-                   path=path,
-                   num=num_str)
+        return (
+            f'<div class="extra-src-img-box" title="{url}">'
+            f'<div class="img-outer"><div class="img-wrapper">'
+            f'<a href="{url}"><img src="{path}" class="image"></a>'
+            f'</div>'
+            f'<a href="{url}" class="title">{basename}</a>'
+            f'</div></div>'
+        )
 
     def get_url_html(
             self,
@@ -1127,19 +1097,11 @@ class Body:
         :param num_all: number of all URLs
         :return: HTML code
         """
-        icon_path = os.path.join(
-            self.window.core.config.get_app_path(),
-            "data", "icons", "language.svg"
-        )
-        icon = '<img src="file://{}" class="extra-src-icon">'.format(icon_path)
-        num_str = ""
-        if num is not None and num_all is not None and num_all > 1:
-            num_str = " [{}]".format(num)
-        return """{icon}<a href="{url}" title="{url}">{url}</a> <small>{num}</small>""". \
-            format(url=url,
-                   num=num_str,
-                   icon=icon,
-            )
+        app_path = self.window.core.config.get_app_path()
+        icon_path = os.path.join(app_path, "data", "icons", "language.svg").replace("\\", "/")
+        icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
+        num_str = f" [{num}]" if (num is not None and num_all is not None and num_all > 1) else ""
+        return f'{icon}<a href="{url}" title="{url}">{url}</a> <small>{num_str}</small>'
 
     def get_docs_html(self, docs: List[Dict]) -> str:
         """
@@ -1148,45 +1110,34 @@ class Body:
         :param docs: list of document metadata
         :return: HTML code
         """
-        html = ""
-        html_sources = ""
+        html_parts: List[str] = []
+        src_parts: List[str] = []
         num = 1
-        max = 3
+        limit = 3
+
         try:
             for item in docs:
                 for uuid, doc_json in item.items():
-                    """
-                    Example doc (file metadata):
-                    {'a2c7af6d-3c34-4c28-bf2d-6161e7fb525e': {
-                        'file_path': '/home/user/.config/pygpt-net/data/my_cars.txt',
-                        'file_name': '/home/user/.config/pygpt-net/data/my_cars.txt', 'file_type': 'text/plain',
-                        'file_size': 28, 'creation_date': '2024-03-03', 'last_modified_date': '2024-03-03',
-                        'last_accessed_date': '2024-03-03'}}
-                    """
-                    doc_parts = []
-                    for key in doc_json:
-                        doc_parts.append("<b>{}:</b> {}".format(key, doc_json[key]))
-                    html_sources += "<p><small>[{}] {}: {}</small></p>".format(num, uuid, ", ".join(doc_parts))
+                    entries = ", ".join(f"<b>{k}:</b> {doc_json[k]}" for k in doc_json)
+                    src_parts.append(f"<p><small>[{num}] {uuid}: {entries}</small></p>")
                     num += 1
-                if num >= max:
+                    if num >= limit:
+                        break
+                if num >= limit:
                     break
-        except Exception as e:
+        except Exception:
             pass
 
-        icon_path = os.path.join(
-            self.window.core.config.get_app_path(),
-            "data", "icons", "db.svg"
-        )
-        icon = '<img src="file://{}" class="extra-src-icon">'.format(icon_path)
-        if html_sources != "":
-            html += "<p>{icon}<small><b>{prefix}:</b></small></p>".format(
-                prefix=trans('chat.prefix.doc'),
-                icon=icon,
-            )
-            html += "<div class=\"cmd\">"
-            html += "<p>" + html_sources + "</p>"
-            html += "</div> "
-        return html
+        if src_parts:
+            app_path = self.window.core.config.get_app_path()
+            icon_path = os.path.join(app_path, "data", "icons", "db.svg").replace("\\", "/")
+            icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
+            html_parts.append(f'<p>{icon}<small><b>{trans("chat.prefix.doc")}:</b></small></p>')
+            html_parts.append('<div class="cmd">')
+            html_parts.append(f"<p>{''.join(src_parts)}</p>")
+            html_parts.append("</div> ")
+
+        return "".join(html_parts)
 
     def get_file_html(
             self,
@@ -1202,21 +1153,12 @@ class Body:
         :param num_all: number of all files
         :return: HTML code
         """
-        icon_path = os.path.join(
-            self.window.core.config.get_app_path(),
-            "data", "icons", "attachments.svg"
-        )
-        icon = '<img src="file://{}" class="extra-src-icon">'.format(icon_path)
-        num_str = ""
-        if num is not None and num_all is not None and num_all > 1:
-            num_str = " [{}]".format(num)
+        app_path = self.window.core.config.get_app_path()
+        icon_path = os.path.join(app_path, "data", "icons", "attachments.svg").replace("\\", "/")
+        icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
+        num_str = f" [{num}]" if (num is not None and num_all is not None and num_all > 1) else ""
         url, path = self.window.core.filesystem.extract_local_url(url)
-        return """{icon} <b>{num}</b> <a href="{url}">{path}</a>""". \
-            format(url=url,
-                   path=path,
-                   num=num_str,
-                   icon=icon,
-            )
+        return f'{icon} <b>{num_str}</b> <a href="{url}">{path}</a>'
 
     def prepare_tool_extra(self, ctx: CtxItem) -> str:
         """
@@ -1225,40 +1167,43 @@ class Body:
         :param ctx: context item
         :return: HTML code
         """
-        html = ""
-        if ctx.extra is not None and ctx.extra != "":
-            html += "<div class=\"msg-extra\">"
+        extra = ctx.extra
+        if not extra:
+            return ""
 
-            # single tool
-            if "plugin" in ctx.extra:
+        parts: List[str] = ['<div class="msg-extra">']
+
+        # single tool
+        if "plugin" in extra:
+            event = Event(Event.TOOL_OUTPUT_RENDER, {
+                'tool': extra["plugin"],
+                'html': '',
+                'multiple': False,
+                'content': extra,  # tool output
+            })
+            event.ctx = ctx
+            self.window.dispatch(event, all=True)  # handle by plugins
+            if event.data['html']:
+                parts.append(f'<div class="tool-output-block">{event.data["html"]}</div>')
+
+        # multiple tools, list
+        elif "tool_output" in extra and isinstance(extra["tool_output"], list):
+            for tool in extra["tool_output"]:
+                if "plugin" not in tool:
+                    continue
                 event = Event(Event.TOOL_OUTPUT_RENDER, {
-                    'tool': ctx.extra["plugin"],
+                    'tool': tool["plugin"],
                     'html': '',
-                    'multiple': False,
-                    'content': ctx.extra,  # tool output
+                    'multiple': True,
+                    'content': tool,  # tool output[]
                 })
                 event.ctx = ctx
-                self.window.dispatch(event, all=True)  # handle by plugins
+                self.window.dispatch(event, all=True)
                 if event.data['html']:
-                    html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
+                    parts.append(f'<div class="tool-output-block">{event.data["html"]}</div>')
 
-            # multiple tools, list
-            elif "tool_output" in ctx.extra and isinstance(ctx.extra["tool_output"], list):
-                for key, tool in enumerate(ctx.extra["tool_output"]):
-                    if "plugin" not in tool:
-                        continue
-                    event = Event(Event.TOOL_OUTPUT_RENDER, {
-                        'tool': tool["plugin"],
-                        'html': '',
-                        'multiple': True,
-                        'content': tool,  # tool output[]
-                    })
-                    event.ctx = ctx
-                    self.window.dispatch(event, all=True)
-                    if event.data['html']:
-                        html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
-            html += "</div>"
-        return html
+        parts.append("</div>")
+        return "".join(parts)
 
     def get_all_tips(self) -> str:
         """
