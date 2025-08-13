@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import html
@@ -523,10 +523,12 @@ class Renderer(BaseRenderer):
         html = self.parser.parse(parse_buffer)
 
         code_endings = ("</code></pre></div>", "</code></pre></div><br/>", "</code></pre></div><br>")
+        list_endings = ("</ul>", "</ol>", "</li>")
         is_code_block = html.endswith(code_endings)
+        is_list_block = html.endswith(list_endings)
 
         newline_in_chunk = "\n" in raw_chunk
-        is_newline = newline_in_chunk or buffer.endswith("\n") or is_code_block
+        is_newline = newline_in_chunk or buffer.endswith("\n") or is_code_block or is_list_block
 
         force_replace = self.prev_chunk_newline
         self.prev_chunk_newline = newline_in_chunk
