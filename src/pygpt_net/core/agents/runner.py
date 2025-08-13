@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import asyncio
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 
@@ -31,6 +31,8 @@ from .runners.llama_workflow import LlamaWorkflow
 from .runners.openai_workflow import OpenAIWorkflow
 from .runners.helpers import Helpers
 from .runners.loop import Loop
+from ...item.ctx import CtxItem
+
 
 class Runner:
     def __init__(self, window=None):
@@ -177,6 +179,118 @@ class Runner:
             self.window.core.debug.error(e)
             self.last_error = e
             return False
+
+    def call_once(
+            self,
+            context: BridgeContext,
+            extra: Dict[str, Any],
+            signals: BridgeSignals
+    ) -> Union[CtxItem, bool, None]:
+        """
+        Call an agent once (quick call to the agent)
+
+        :param context: BridgeContext
+        :param extra: extra data
+        :param signals: BridgeSignals
+        :return: CtxItem if success, True if stopped, None on error
+        """
+        if self.window.controller.kernel.stopped():
+            return True  # abort if stopped
+
+        agent_id = extra.get("agent_provider", "openai")
+        verbose = self.window.core.config.get("agent.llama.verbose", False)
+
+        try:
+            # prepare input ctx
+            ctx = context.ctx
+            ctx.extra["agent_input"] = True  # mark as user input
+            ctx.extra["agent_output"] = True  # mark as user input
+            ctx.agent_call = True  # disables reply from plugin commands
+            prompt = context.prompt
+
+            # prepare agent
+            model = context.model
+            vector_store_idx = extra.get("agent_idx", None)
+            system_prompt = context.system_prompt
+            max_steps = self.window.core.config.get("agent.llama.steps", 10)
+            is_cmd = self.window.core.command.is_cmd(inline=False)
+            llm = self.window.core.idx.llm.get(model, stream=False)
+            workdir = self.window.core.config.get_workdir_prefix()
+
+            # tools
+            self.window.core.agents.tools.context = context
+            self.window.core.agents.tools.agent_idx = vector_store_idx
+
+            if "agent_tools" in extra:
+                tools = extra["agent_tools"]  # use tools from extra if provided
+            else:
+                tools = self.window.core.agents.tools.prepare(context, extra, force=True)
+
+            if "agent_history" in extra:
+                history = extra["agent_history"]
+            else:
+                history = self.window.core.agents.memory.prepare(context)
+
+            # disable tools if cmd is not enabled
+            if not is_cmd:
+                tools = []
+
+            # append system prompt
+            if agent_id not in [
+                "openai_agent_base",  # openai-agents
+                "openai_agent_experts",  # openai-agents
+                "openai_assistant",  # llama-index
+                "code_act",  # llama-index
+                "react_workflow",  # llama-index
+            ]:
+                if system_prompt:
+                    msg = ChatMessage(
+                        role=MessageRole.SYSTEM,
+                        content=system_prompt,
+                    )
+                    history.insert(0, msg)
+
+            agent_kwargs = {
+                "context": context,
+                "tools": tools,
+                "llm": llm,
+                "model": model,
+                "chat_history": history,
+                "max_iterations": max_steps,
+                "verbose": verbose,
+                "system_prompt": system_prompt,
+                "are_commands": is_cmd,
+                "workdir": workdir,
+                "preset": context.preset if context else None,
+            }
+
+            if self.window.core.agents.provider.has(agent_id):
+                provider = self.window.core.agents.provider.get(agent_id)
+                agent = provider.get_agent(self.window, agent_kwargs)
+                if verbose:
+                    print("Using Agent: " + str(agent_id) + ", model: " + str(model.id))
+            else:
+                raise Exception("Agent not found: " + str(agent_id))
+
+            # run agent and return result
+            mode = provider.get_mode()
+            kwargs = {
+                "agent": agent,
+                "ctx": ctx,
+                "prompt": prompt,
+                "signals": signals,
+                "verbose": verbose,
+                "history": history,
+                "llm": llm,
+            }
+            # TODO: add support for other modes
+            if mode == AGENT_MODE_WORKFLOW:
+                return asyncio.run(self.llama_workflow.run_once(**kwargs))
+
+        except Exception as e:
+            self.window.core.debug.error(e)
+            self.last_error = e
+            return None
 
     def get_error(self) -> Optional[Exception]:
         """

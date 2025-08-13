@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.13 17:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -241,11 +241,16 @@ class Editor:
         # load and apply options to config dialog
         self.window.controller.config.load_options("model", options)
 
-    def save(self, persist: bool = True):
+    def save(
+            self,
+            persist: bool = True,
+            force: bool = False
+    ):
         """
         Save models editor
 
         :param persist: persist to file and close dialog
+        :param force: force save without validation
         """
         options = copy.deepcopy(self.get_options())  # copy options
         data_dict = {}
@@ -278,7 +283,8 @@ class Editor:
                 self.window.ui.dialogs.alert(
                     "JSON decoding error in 'extra' field. Please check the syntax:\n\n{}".format(error)
                 )
-                return # if JSON is invalid, do not save
+                if not force:
+                    return # if JSON is invalid, do not save
 
         # update current model
         if self.current in self.window.core.models.items:

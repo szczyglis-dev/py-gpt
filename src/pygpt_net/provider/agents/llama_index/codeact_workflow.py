@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -24,7 +24,7 @@ class CodeActAgent(BaseAgent):
         self.id = "code_act"
         self.type = AGENT_TYPE_LLAMA
         self.mode = AGENT_MODE_WORKFLOW
-        self.name = "CodeAct (Workflow)"
+        self.name = "CodeAct"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

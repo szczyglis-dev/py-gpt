@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -164,6 +164,7 @@ class Response:
         :param context: BridgeContext
         :param extra: Extra data
         """
+        global_mode = self.window.core.config.get('mode', MODE_AGENT_LLAMA)
         ctx = context.ctx
         if self.window.controller.kernel.stopped():
             output = ctx.output
@@ -266,6 +267,9 @@ class Response:
         self.window.dispatch(event)
 
         # if continue reasoning
+        if global_mode not in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
+            return  # no agent mode, nothing to do
+
         if ctx.extra is None or (type(ctx.extra) == dict and "agent_finish" not in ctx.extra):
             self.window.update_status(trans("status.agent.reasoning"))
             self.window.controller.chat.common.lock_input()  # lock input, re-enable stop button

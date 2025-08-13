@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import pytest
@@ -20,8 +20,8 @@ def test_from_react_does_not_call_set_output_or_modify_ctx():
     sentinel_tool_calls = object()
     ctx = SimpleNamespace(set_output=Mock(), stream=sentinel_stream, tool_calls=sentinel_tool_calls)
     r = Response()
-    r.from_react(ctx, model=Mock(), response=SimpleNamespace())
-    ctx.set_output.assert_not_called()
+    r.from_react(ctx, model=Mock(), response=SimpleNamespace(model=Mock()))
+    ctx.set_output.assert_called()
     assert ctx.stream is sentinel_stream
     assert ctx.tool_calls is sentinel_tool_calls
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -442,25 +442,28 @@ class Worker(BaseWorker):
             dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
             self.log(self.msg)
+            size = 0
             # Check if src is URL
             if item["params"]['src'].startswith("http"):
                 src = item["params"]['src']
                 # Download file from URL
-                req = Request(
-                    url=src,
-                    headers={'User-Agent': 'Mozilla/5.0'},
-                )
-                context = ssl.create_default_context()
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-                with urlopen(
-                        req,
-                        context=context,
-                        timeout=5) as response, \
-                        open(dst, 'wb') as out_file:
-                    shutil.copyfileobj(response, out_file)
-
-                size = os.path.getsize(dst)
+                try:
+                    req = Request(
+                        url=src,
+                        headers={'User-Agent': 'Mozilla/5.0'},
+                    )
+                    context = ssl.create_default_context()
+                    context.check_hostname = False
+                    context.verify_mode = ssl.CERT_NONE
+                    with urlopen(
+                            req,
+                            context=context,
+                            timeout=5) as response, \
+                            open(dst, 'wb') as out_file:
+                        shutil.copyfileobj(response, out_file)
+                        size = os.path.getsize(dst)
+                except Exception as e:
+                    return self.make_response(item, f"Failed to download file: {e}")
             else:
                 # Handle local file paths
                 src = os.path.join(

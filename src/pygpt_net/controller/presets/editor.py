@@ -172,12 +172,22 @@ class Editor:
                 "label": "preset.agent_provider",
                 "description": "preset.agent_provider.desc",
                 "use": "agent_provider_llama",
+                "extra": {
+                    "urls": {
+                        "Help": "https://pygpt.readthedocs.io/en/latest/modes.html#agent-llamaindex"
+                    },
+                }
             },
             "agent_provider_openai": {
                 "type": "combo",
                 "label": "preset.agent_provider",
                 "description": "preset.agent_provider.desc",
                 "use": "agent_provider_openai",
+                "extra": {
+                    "urls": {
+                        "Help": "https://pygpt.readthedocs.io/en/latest/modes.html#agent-openai"
+                    },
+                }
             },
             "assistant_id": {
                 "type": "text",

@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
-import asyncio
+
 import json
 from typing import Optional, Dict, Any, List
 
@@ -338,7 +338,7 @@ class Chat:
                         tools=tools,
                         ctx=ctx,
                         query=query,
-                        history=history,
+                        history=context.history,
                         llm=llm,
                         index=index,
                         system_prompt=system_prompt,
@@ -377,7 +377,7 @@ class Chat:
                         tools=tools,
                         ctx=ctx,
                         query=query,
-                        history=history,
+                        history=context.history,
                         llm=llm,
                         index=index,
                         system_prompt=system_prompt,
@@ -490,7 +490,7 @@ class Chat:
             chat_mode: str = MODE_CHAT,
             verbose: bool = False,
 
-    ) -> bool:
+    ) -> str:
         """
         Call agent with tools and index
 
@@ -507,7 +507,6 @@ class Chat:
         :param verbose: Verbose mode, default is False
         :return: True if success, False otherwise
         """
-        index_tool = None
         if index:
             query_engine = index.as_query_engine(
                 llm=llm,
@@ -522,35 +521,26 @@ class Chat:
             )
             tools.append(index_tool)
 
-        workdir = self.window.core.config.get_user_dir('data')
-        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
-            workdir = "/data"
-
-        kwargs = {
-            "context": context,
-            "tools": tools,
-            "retriever_tool": index_tool,
-            "llm": llm,
-            "chat_history": history,
-            "max_iterations": 0,
-            "verbose": verbose,
-            "system_prompt": system_prompt,
-            "are_commands": True,
-            "workdir": workdir,
+        bridge_context = BridgeContext(
+            ctx=ctx,
+            model=context.model,
+            history=history,
+            prompt=query,
+            stream=False,
+        )
+        extra = {
+            "agent_provider": "react",  # use React workflow provider
+            "agent_tools": tools,
         }
-        provider = self.window.core.agents.provider.get("react_workflow")
-        agent = provider.get_agent(self.window, kwargs)
-
-        kwargs = {
-            "agent": agent,
-            "ctx": ctx,
-            "prompt": query,
-            "signals": signals,
-            "verbose": verbose,
-            "history": history,
-            "llm": llm,
-        }
-        return asyncio.run(self.window.core.agents.runner.llama_workflow.run(**kwargs))
+        response_ctx = self.window.core.agents.runner.call_once(
+            context=bridge_context,
+            extra=extra,
+            signals=None,
+        )
+        if response_ctx:
+            return str(response_ctx.output)
+        else:
+            return "No response from agent."
 
     def is_stream_allowed(self) -> bool:
         """

@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import copy
 import re
-import weakref
+import time
 from typing import Optional, Tuple
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -82,6 +82,7 @@ class Helpers:
         # ctx.attachments = from_ctx.attachments # copy from parent if appended from plugins
         # ctx.files = from_ctx.files  # copy from parent if appended from plugins
         ctx.extra = from_ctx.extra.copy()  # copy extra data
+        ctx.output_timestamp = int(time.time())  # set output timestamp
         return ctx
 
     def send_stream(

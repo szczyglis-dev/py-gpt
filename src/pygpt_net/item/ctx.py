@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -282,6 +282,7 @@ class CtxItem:
             "meta": self.meta.to_dict() if type(self.meta) == CtxMeta else self.meta,
         }
         if dump:
+            data["live_output"] = self.live_output
             data["hidden"] = self.hidden
             data["sub_calls"] = self.sub_calls
             data["sub_call"] = self.sub_call

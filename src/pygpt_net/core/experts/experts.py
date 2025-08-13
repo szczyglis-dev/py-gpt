@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import json
 from typing import Dict, List, Optional
 
 from PySide6.QtCore import QRunnable, QObject, Signal, Slot
-from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from llama_index.core.tools import QueryEngineTool
 
 from pygpt_net.core.types import (
@@ -858,29 +857,24 @@ class ExpertWorker(QRunnable):
         :return: True if success, False otherwise
         """
         history = self.window.core.agents.memory.prepare(context)
-        if system_prompt:
-            msg = ChatMessage(
-                role=MessageRole.SYSTEM,
-                content=system_prompt
-            )
-            history.insert(0, msg)
-        kwargs = {
-            "context": context,
-            "tools": tools,
-            "llm": llm,
-            "chat_history": history,
-            "max_iterations": 30,
-            "verbose": verbose,
-            "system_prompt": system_prompt,
-            "are_commands": self.window.core.config.get("cmd"),
-        }
-        provider = self.window.core.agents.provider.get("planner")
-        agent = provider.get_agent(self.window, kwargs)
-        response_ctx = self.window.core.agents.runner.llama_plan.run_once(
-            agent=agent,
+        bridge_context = BridgeContext(
             ctx=ctx,
+            system_prompt=system_prompt,
+            model=context.model,
             prompt=query,
-            verbose=verbose,
+            stream=False,
+            is_expert_call=True,  # mark as expert call
+        )
+        extra = {
+            "agent_provider": "react",  # use react workflow provider
+            "agent_idx": context.idx,  # index to use
+            "agent_tools": tools,  # tools to use
+            "agent_history": history,  # already prepared history
+        }
+        response_ctx = self.window.core.agents.runner.call_once(
+            context=bridge_context,
+            extra=extra,
+            signals=None,
         )
         if response_ctx:
             return str(response_ctx.output)

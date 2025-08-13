@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 01:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import os
@@ -72,12 +72,14 @@ from pygpt_net.plugin.agent import Plugin as AgentPlugin
 from pygpt_net.plugin.mailer import Plugin as MailerPlugin
 
 # agents (Llama-index)
-from pygpt_net.provider.agents.llama_index.openai import OpenAIAgent
-from pygpt_net.provider.agents.llama_index.openai_assistant import OpenAIAssistantAgent
-from pygpt_net.provider.agents.llama_index.planner import PlannerAgent
-from pygpt_net.provider.agents.llama_index.react import ReactAgent
+# from pygpt_net.provider.agents.llama_index.legacy.openai import OpenAIAgent
+from pygpt_net.provider.agents.llama_index.legacy.openai_assistant import OpenAIAssistantAgent
+# from pygpt_net.provider.agents.llama_index.legacy.planner import PlannerAgent
+from pygpt_net.provider.agents.llama_index.planner_workflow import PlannerAgent as PlannerWorkflowAgent
+from pygpt_net.provider.agents.llama_index.openai_workflow import OpenAIAgent as OpenAIWorkflowAgent
+# from pygpt_net.provider.agents.llama_index.legacy.react import ReactAgent
 from pygpt_net.provider.agents.llama_index.react_workflow import ReactWorkflowAgent
-from pygpt_net.provider.agents.llama_index.code_act import CodeActAgent
+from pygpt_net.provider.agents.llama_index.codeact_workflow import CodeActAgent
 from pygpt_net.provider.agents.openai.agent import Agent as OpenAIAgentsBase
 from pygpt_net.provider.agents.openai.agent_with_experts import Agent as OpenAIAgentsExperts
 from pygpt_net.provider.agents.openai.agent_with_experts_feedback import Agent as OpenAIAgentsExpertsFeedback
@@ -420,10 +422,12 @@ def run(**kwargs):
             launcher.add_vector_store(store)
 
     # register base agents
-    launcher.add_agent(OpenAIAgent())  # llama-index
+    # launcher.add_agent(OpenAIAgent())  # llama-index
+    launcher.add_agent(OpenAIWorkflowAgent())  # llama-index
     launcher.add_agent(OpenAIAssistantAgent())  # llama-index
-    launcher.add_agent(PlannerAgent())  # llama-index
-    launcher.add_agent(ReactAgent())  # llama-index
+    # launcher.add_agent(PlannerAgent())  # llama-index
+    launcher.add_agent(PlannerWorkflowAgent())  # llama-index
+    # launcher.add_agent(ReactAgent())  # llama-index
     launcher.add_agent(ReactWorkflowAgent())  # llama-index
     launcher.add_agent(CodeActAgent())  # llama-index
     launcher.add_agent(OpenAIAgentsBase())  # openai-agents

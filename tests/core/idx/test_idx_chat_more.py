@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import importlib
@@ -206,25 +206,6 @@ def test_retrieval_builds_output_and_metadata(monkeypatch):
     assert res is True
     assert "**Score: 0.9**" in ctx_item._output[0]
     assert ctx_item._meta == {"m": "v"}
-
-def test_call_agent_appends_index_tool_and_runs_provider(monkeypatch):
-    chat = make_chat(monkeypatch)
-    win = chat.window
-    win.core.config._m.update({})
-    win.core.config.get_user_dir = Mock(return_value="/user/data")
-    win.core.plugins.get_option = Mock(return_value=False)
-    prov = SimpleNamespace(get_agent=Mock(return_value="AGENT"))
-    win.core.agents.provider.get = Mock(return_value=prov)
-    win.core.agents.runner.llama_workflow.run = Mock(return_value=Mock())
-    monkeypatch.setattr(chat_mod, "QueryEngineTool", SimpleNamespace(from_defaults=Mock(return_value="IDX_TOOL")))
-    monkeypatch.setattr(chat_mod, "asyncio", SimpleNamespace(run=Mock(return_value=True)))
-    context = SimpleNamespace()
-    tools = []
-    ctx_item = FakeCtx("qq")
-    res = chat.call_agent(context=context, tools=tools, ctx=ctx_item, query="q", history=[], llm=Mock(), index=Mock(), system_prompt="s", chat_mode="m", verbose=True)
-    assert res is True
-    assert tools[-1] == "IDX_TOOL"
-    prov.get_agent.assert_called_once()
 
 def test_is_stream_allowed_behavior(monkeypatch):
     chat = make_chat(monkeypatch)

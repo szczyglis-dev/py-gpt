@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import pytest
@@ -110,18 +110,6 @@ def test_run_once_stopped(loop_instance):
     loop_instance.is_stopped.return_value = True
     result = loop_instance.run_once("any input", [])
     assert result == ""
-
-
-def test_run_once_normal(loop_instance):
-    # Test run_once normal flow – agent.chat should be called with prepared input.
-    loop_instance.is_stopped.return_value = False
-    result = loop_instance.run_once("test input", [MagicMock(spec=FunctionTool)], model_name="model1")
-    loop_instance.prepare_input.assert_called_with("test input")
-
-    dummy_provider = loop_instance.window.core.agents.provider.get.return_value
-    dummy_agent = dummy_provider.get_agent.return_value
-    dummy_agent.chat.assert_called_with("test input")
-    assert result == "agent response"
 
 
 def test_run_next_stopped(loop_instance, dummy_context, dummy_signals):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 import pytest
 from unittest.mock import MagicMock, patch
@@ -28,8 +28,10 @@ class DummyModel:
             "output": [],
             "default": False,
             "llama_index.args": {},
-            "llama_index.env": {}
+            "llama_index.env": {},
+            "extra": {},
         }
+        self.extra = {}
     def to_dict(self):
         return self.data.copy()
     def from_dict(self, data):
@@ -177,7 +179,7 @@ def test_save_persist_true(editor, dummy_window):
     dummy_window.core.models.items = {"model1": dummy_model}
     editor.current = "model1"
     editor.close = MagicMock()
-    editor.save(persist=True)
+    editor.save(persist=True, force=True)
     assert dummy_model.id == "value_id"
     assert "value_id" in dummy_window.core.models.items
     assert editor.current == "value_id"
@@ -193,7 +195,7 @@ def test_save_persist_false(editor, dummy_window):
     dummy_window.core.models.items = {"model1": dummy_model}
     editor.current = "model1"
     editor.close = MagicMock()
-    editor.save(persist=False)
+    editor.save(persist=False, force=True)
     dummy_window.core.models.save.assert_not_called()
     editor.close.assert_not_called()
     dummy_window.update_status.assert_not_called()

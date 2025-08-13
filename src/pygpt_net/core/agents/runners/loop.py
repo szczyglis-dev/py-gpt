@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -51,20 +51,28 @@ class Loop(BaseRunner):
         if self.is_stopped():
             return ""  # abort if stopped
 
-        verbose = self.window.core.config.get("agent.llama.verbose", False)
         model = self.window.core.models.get(model_name)
-        llm = self.window.core.idx.llm.get(model, stream=False)
-        kwargs = {
-            "context": BridgeContext(),
-            "tools": tools,
-            "llm": llm,
-            "chat_history": [],
-            "max_iterations": 10,
-            "verbose": verbose,
+        ctx = CtxItem()
+        bridge_context = BridgeContext(
+            ctx=ctx,
+            history=[],
+            model=model,
+            prompt=self.prepare_input(input),
+            stream=False,
+        )
+        extra = {
+            "agent_provider": "react",  # use React workflow provider
+            "agent_tools": tools,
         }
-        provider = self.window.core.agents.provider.get("react")
-        agent = provider.get_agent(self.window, kwargs)
-        return agent.chat(self.prepare_input(input))
+        response_ctx = self.window.core.agents.runner.call_once(
+            context=bridge_context,
+            extra=extra,
+            signals=None,
+        )
+        if response_ctx:
+            return str(response_ctx.output)
+        else:
+            return "No response from evaluator."
 
     def run_next(
             self,

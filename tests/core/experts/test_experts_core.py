@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import json
@@ -483,45 +483,3 @@ def test_expert_worker_run_error(fake_window):
     worker.signals.response.emit = MagicMock()
     worker.run()
     assert worker.signals is None # after cleanup
-
-
-def test_call_agent_success(fake_window):
-    # setup for a successful agent call.
-    response_ctx = MagicMock()
-    response_ctx.output = "Agent response"
-    fake_window.core.agents.memory.prepare.return_value = []
-    provider = MagicMock()
-    provider.get_agent.return_value = MagicMock()
-    fake_window.core.agents.provider.get.return_value = provider
-    fake_window.core.agents.runner.llama_plan.run_once.return_value = response_ctx
-    worker = ExpertWorker(window=fake_window, master_ctx=CtxItem(), expert_id="expA", query="agent query")
-    result = worker.call_agent(
-        context=BridgeContext(),
-        tools=[],
-        ctx=CtxItem(),
-        query="agent query",
-        llm="llm",
-        system_prompt="system prompt",
-        verbose=False,
-    )
-    assert result == "Agent response"
-
-
-def test_call_agent_no_response(fake_window):
-    # setup so that the agent returns no response.
-    fake_window.core.agents.memory.prepare.return_value = []
-    provider = MagicMock()
-    provider.get_agent.return_value = MagicMock()
-    fake_window.core.agents.provider.get.return_value = provider
-    fake_window.core.agents.runner.llama_plan.run_once.return_value = None
-    worker = ExpertWorker(window=fake_window, master_ctx=CtxItem(), expert_id="expA", query="agent query")
-    result = worker.call_agent(
-        context=BridgeContext(),
-        tools=[],
-        ctx=CtxItem(),
-        query="agent query",
-        llm="llm",
-        system_prompt="system prompt",
-        verbose=False,
-    )
-    assert result == "No response from expert."

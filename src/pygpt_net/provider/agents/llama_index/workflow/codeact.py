@@ -5,7 +5,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.13 17:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 # >>> Based on LlamaIndex CodeActAgent implementation, with custom plugin tool support <<<
@@ -35,6 +35,9 @@ from llama_index.core.objects import ObjectRetriever
 from llama_index.core.prompts import BasePromptTemplate, PromptTemplate
 from llama_index.core.tools import BaseTool, FunctionTool
 from llama_index.core.workflow import Context
+from workflows.errors import WorkflowCancelledByUser
+
+from pygpt_net.provider.agents.llama_index.workflow.events import StepEvent
 
 DEFAULT_CODE_ACT_PROMPT = """You are a helpful AI assistant that can write and execute Python code to solve problems.
 In addition to executing code using the <execute> tags, you have access to a unified plugin tool via the function tool(cmd, **params). 
@@ -119,6 +122,7 @@ class CodeActAgent(BaseWorkflowAgent):
     _plugin_tools: Dict[str, Callable] = PrivateAttr(default_factory=dict)
     _plugin_specs: Optional[List] = PrivateAttr(default_factory=list)
     _plugin_tool_fn: Union[Callable, Awaitable] = PrivateAttr(default=None)
+    _on_stop: Optional[Callable] = PrivateAttr(default=None)
 
     def __init__(
         self,
@@ -134,6 +138,7 @@ class CodeActAgent(BaseWorkflowAgent):
         can_handoff_to: Optional[List[str]] = None,
         llm: Optional[LLM] = None,
         code_act_system_prompt: Union[str, BasePromptTemplate] = DEFAULT_CODE_ACT_PROMPT,
+        on_stop: Optional[Callable] = None,
     ):
         tools = tools or []
         tools.append(FunctionTool.from_defaults(plugin_tool_fn, name=PLUGIN_TOOL_NAME))
@@ -142,6 +147,7 @@ class CodeActAgent(BaseWorkflowAgent):
         object.__setattr__(self, "_plugin_tools", plugin_tools or {})
         object.__setattr__(self, "_plugin_tool_fn", plugin_tool_fn)
         object.__setattr__(self, "_plugin_specs", plugin_specs or [])
+        object.__setattr__(self, "_on_stop", on_stop)
 
         if self._plugin_tools and self._plugin_specs:
             available_commands = "\n".join(self._plugin_specs)
@@ -187,9 +193,26 @@ class CodeActAgent(BaseWorkflowAgent):
             code_execute_fn=code_execute_fn,
         )
 
+    def _stopped(self) -> bool:
+        """
+        Check if the workflow has been stopped.
+
+        :return: True if the workflow is stopped, False otherwise.
+        """
+        if self._on_stop:
+            try:
+                return self._on_stop()
+            except Exception:
+                return False
+        return False
+
     def _get_tool_fns(self, tools: Sequence[BaseTool]) -> List[Callable]:
         """
         Get the tool functions while validating that they are valid for CodeActAgent.
+
+        :param tools: A sequence of BaseTool instances.
+        :return: A list of callable functions from the tools.
+        :raises ValueError: If a tool requires context or is not a FunctionTool.
         """
         callables = []
         for tool in tools:
@@ -212,6 +235,14 @@ class CodeActAgent(BaseWorkflowAgent):
     def _extract_code_from_response(self, response_text: str) -> Optional[str]:
         """
         Extract code from the LLM response using XML-style <execute> tags.
+
+        Expected format:
+        <execute>
+        print('Hello, World!')
+        </execute>
+
+        :param response_text: The text response from the LLM.
+        :return: The extracted code as a string, or None if no code is found.
         """
         execute_pattern = r"<execute>(.*?)</execute>"
         execute_matches = re.findall(execute_pattern, response_text, re.DOTALL)
@@ -222,10 +253,14 @@ class CodeActAgent(BaseWorkflowAgent):
     def _extract_plugin_tool_calls(self, response_text: str) -> List[Dict]:
         """
         Extract plugin tool calls from the LLM response.
+
         Expected format (JSON inside XML-style <tool> tags):
         <tool>
         { "cmd": "tool_name", "params": {"arg": "value"} }
         </tool>
+
+        :param response_text: The text response from the LLM.
+        :return: A list of dictionaries representing the plugin tool calls.
         """
         pattern = r"<tool>(.*?)</tool>"
         matches = re.findall(pattern, response_text, re.DOTALL)
@@ -239,9 +274,48 @@ class CodeActAgent(BaseWorkflowAgent):
                 continue
         return plugin_calls
 
+    def _emit_step_event(
+            self,
+            ctx: Context,
+            name: str,
+            index: Optional[int] = None,
+            total: Optional[int] = None,
+            meta: Optional[dict] = None,
+    ) -> None:
+        """
+        Emits a step event to the context stream.
+
+        :param ctx: The context to write the event to.
+        :param name: The name of the step (e.g., "make_plan", "execute_plan", "subtask").
+        :param index: The index of the step (optional).
+        :param total: The total number of steps (optional).
+        :param meta: Additional metadata for the step (optional).
+        """
+        try:
+            ctx.write_event_to_stream(
+                StepEvent(name=name, index=index, total=total, meta=meta or {})
+            )
+        except Exception:
+            # Fallback for older versions of AgentStream
+            try:
+                ctx.write_event_to_stream(
+                    AgentStream(
+                        delta="",
+                        response="",
+                        current_agent_name="PlannerWorkflow",
+                        tool_calls=[],
+                        raw={"StepEvent": {"name": name, "index": index, "total": total, "meta": meta or {}}}
+                    )
+                )
+            except Exception:
+                pass
+
     def _get_tool_descriptions(self, tools: Sequence[BaseTool]) -> str:
         """
         Generate tool descriptions for the system prompt using tool metadata.
+
+        :param tools: A sequence of BaseTool instances.
+        :return: A string containing the formatted tool descriptions.
         """
         tool_descriptions = []
         tool_fns = self._get_tool_fns(tools)
@@ -265,11 +339,20 @@ class CodeActAgent(BaseWorkflowAgent):
     ) -> AgentOutput:
         """
         Takes a step in the agent's workflow, executing code and calling tools as needed.
+
+        :param ctx: The context for the agent's execution.
+        :param llm_input: The input messages for the LLM.
+        :param tools: The tools available for the agent to use.
+        :param memory: The memory object to store and retrieve messages.
+        :return: An AgentOutput object containing the response and any tool calls made.
+        :raises ValueError: If code_execute_fn is not provided or if an unknown tool name is encountered.
         """
         if not self.code_execute_fn:
             raise ValueError("code_execute_fn must be provided for CodeActAgent")
 
-        scratchpad: List[ChatMessage] = await ctx.get(self.scratchpad_key, default=[])
+        # self._emit_step_event(ctx, name="step", meta={"query": str(llm_input)})
+
+        scratchpad: List[ChatMessage] = await ctx.store.get(self.scratchpad_key, default=[])
         current_llm_input = [*llm_input, *scratchpad]
         tool_descriptions = self._get_tool_descriptions(tools)
         system_prompt = self.code_act_system_prompt.format(tool_descriptions=tool_descriptions)
@@ -299,6 +382,11 @@ class CodeActAgent(BaseWorkflowAgent):
         full_response_text = ""
 
         async for last_chat_response in response:
+
+            # stop callback
+            if self._stopped():
+                raise WorkflowCancelledByUser("Workflow was stopped by user.")
+
             delta = last_chat_response.delta or ""
             full_response_text += delta
             raw = (
@@ -343,7 +431,7 @@ class CodeActAgent(BaseWorkflowAgent):
 
         message = ChatMessage(role="assistant", content=full_response_text)
         scratchpad.append(message)
-        await ctx.set(self.scratchpad_key, scratchpad)
+        await ctx.store.set(self.scratchpad_key, scratchpad)
 
         raw = (
             last_chat_response.raw.model_dump()
@@ -359,12 +447,20 @@ class CodeActAgent(BaseWorkflowAgent):
         )
 
     async def handle_tool_call_results(
-        self, ctx: Context, results: List[ToolCallResult], memory: BaseMemory
+        self,
+        ctx: Context,
+        results: List[ToolCallResult],
+        memory: BaseMemory
     ) -> None:
         """
         Handles the results of tool calls made by the agent.
+
+        :param ctx: The context for the agent's execution.
+        :param results: The results of the tool calls made.
+        :param memory: The memory object to store and retrieve messages.
+        :raises ValueError: If an unknown tool name is encountered.
         """
-        scratchpad: List[ChatMessage] = await ctx.get(self.scratchpad_key, default=[])
+        scratchpad: List[ChatMessage] = await ctx.store.get(self.scratchpad_key, default=[])
 
         for tool_call_result in results:
             if tool_call_result.tool_name == EXECUTE_TOOL_NAME:
@@ -388,15 +484,23 @@ class CodeActAgent(BaseWorkflowAgent):
             else:
                 raise ValueError(f"Unknown tool name: {tool_call_result.tool_name}")
 
-        await ctx.set(self.scratchpad_key, scratchpad)
+        await ctx.store.set(self.scratchpad_key, scratchpad)
 
     async def finalize(
-        self, ctx: Context, output: AgentOutput, memory: BaseMemory
+        self,
+        ctx: Context,
+        output: AgentOutput,
+        memory: BaseMemory
     ) -> AgentOutput:
         """
         Finalizes the agent's workflow, clearing the scratchpad and returning the output.
+
+        :param ctx: The context for the agent's execution.
+        :param output: The output from the agent's workflow.
+        :param memory: The memory object to store and retrieve messages.
+        :return: The final output of the agent's workflow.
         """
-        scratchpad: List[ChatMessage] = await ctx.get(self.scratchpad_key, default=[])
+        scratchpad: List[ChatMessage] = await ctx.store.get(self.scratchpad_key, default=[])
         await memory.aput_messages(scratchpad)
-        await ctx.set(self.scratchpad_key, [])
+        await ctx.store.set(self.scratchpad_key, [])
         return output

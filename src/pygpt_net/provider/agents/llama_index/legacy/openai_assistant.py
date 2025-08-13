@@ -17,7 +17,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.bridge.context import BridgeContext
 
-from ..base import BaseAgent
+from ...base import BaseAgent
 
 
 class OpenAIAssistantAgent(BaseAgent):
@@ -26,7 +26,7 @@ class OpenAIAssistantAgent(BaseAgent):
         self.id = "openai_assistant"
         self.type = AGENT_TYPE_LLAMA
         self.mode = AGENT_MODE_ASSISTANT
-        self.name = "OpenAI Assistant"
+        self.name = "OpenAI Assistant (Legacy)"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

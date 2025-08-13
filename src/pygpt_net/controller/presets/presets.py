@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.14 01:00:00                  #
 # ================================================== #
 
 import re
 from typing import Optional, List, Dict
 
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QTextEdit
 
@@ -529,7 +530,7 @@ class Presets:
             if preset_id is not None and preset_id != "":
                 if preset_id in self.window.core.presets.items:
                     self.window.core.presets.enable(preset_id)
-                    self.refresh()
+                    QTimer.singleShot(100, self.refresh)  # delay refresh
 
     def disable(self, idx: Optional[int] = None):
         """
@@ -543,7 +544,7 @@ class Presets:
             if preset_id is not None and preset_id != "":
                 if preset_id in self.window.core.presets.items:
                     self.window.core.presets.disable(preset_id)
-                    self.refresh()
+                    QTimer.singleShot(100, self.refresh)  # delay refresh
 
     def clear(self, force: bool = False):
         """
