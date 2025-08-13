@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.08.13 17:00:00                  #
 # ================================================== #
 
 import copy
+import json
 from typing import Optional, Any
 
 from pygpt_net.core.events import Event
@@ -107,7 +108,14 @@ class Editor:
                 "description": "model.llama_index.env.desc",
                 "advanced": True,
             },
+            "extra_json": {
+                "type": "textarea",
+                "label": "model.extra",
+                "description": "model.extra.desc",
+                "advanced": True,
+            },
         }
+        self.custom_fields = ["extra_json"]
 
     def get_options(self):
         """
@@ -220,8 +228,12 @@ class Editor:
             model = self.window.core.models.items[self.current]
             data_dict = model.to_dict()
             for key in options:
-                value = data_dict[key]
-                options[key]["value"] = value
+                if key in data_dict:
+                    value = data_dict[key]
+                    options[key]["value"] = value
+
+            # custom fields
+            options["extra_json"]["value"] = json.dumps(model.extra, indent=4) if model.extra else ""
 
         if self.current is not None and self.current in self.window.core.models.items:
             self.set_tab_by_id(self.current)
@@ -237,13 +249,36 @@ class Editor:
         """
         options = copy.deepcopy(self.get_options())  # copy options
         data_dict = {}
+
+        # base fields
         for key in options:
+            if key in self.custom_fields:
+                continue
             value = self.window.controller.config.get_value(
                 parent_id="model",
                 key=key,
                 option=options[key],
             )
             data_dict[key] = value
+
+        # custom fields
+        if "extra_json" in options:
+            extra_json = self.window.controller.config.get_value(
+                parent_id="model",
+                key="extra_json",
+                option=options["extra_json"],
+            )
+            try:
+                if extra_json:
+                    decoded = json.loads(extra_json)
+                    data_dict["extra"] = decoded
+                else:
+                    data_dict["extra"] = {}
+            except json.JSONDecodeError as error:
+                self.window.ui.dialogs.alert(
+                    "JSON decoding error in 'extra' field. Please check the syntax:\n\n{}".format(error)
+                )
+                return # if JSON is invalid, do not save
 
         # update current model
         if self.current in self.window.core.models.items:
