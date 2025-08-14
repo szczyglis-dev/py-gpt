@@ -1,8 +1,8 @@
 # CHANGELOG
 
-## 2.6.2 (2025-08-14)
+## 2.6.2 (2025-08-15)
 
-- Added plugins (beta): Google, Facebook, X/Twitter, Telegram, Slack.
+- Added plugins (beta): Google, Facebook, X/Twitter, Telegram, Slack, GitHub, Bitbucket.
 
 ## 2.6.1 (2025-08-14)
 

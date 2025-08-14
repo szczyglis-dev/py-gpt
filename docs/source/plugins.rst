@@ -36,6 +36,8 @@ The following plugins are currently available, and model can use them instantly:
 * ``Slack`` - Handle users, conversations, messages, and files on Slack.
 * ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
 * ``X/Twitter`` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
+* ``GitHub`` - Access GitHub API to manage repositories, issues, and pull requests.
+* ``Bitbucket`` - Access Bitbucket API to manage repositories, issues, and pull requests.
 
 
 Creating Your Own Plugins
@@ -1475,3 +1477,50 @@ X/Twitter
 * Remove a tweet from your bookmarks.
 * Upload media files such as images or videos for tweeting.
 * Set alternative text for uploaded media for accessibility.
+
+
+GitHub
+-------
+
+* Retrieve details about your GitHub profile.
+* Get information about a specific GitHub user.
+* List repositories for a user or organization.
+* Retrieve details about a specific repository.
+* Create a new repository.
+* Delete an existing repository.
+* Retrieve the contents of a file in a repository.
+* Upload or update a file in a repository.
+* Delete a file from a repository.
+* List issues in a repository.
+* Create a new issue in a repository.
+* Add a comment to an existing issue.
+* Close an existing issue.
+* List pull requests in a repository.
+* Create a new pull request.
+* Merge an existing pull request.
+* Search for repositories based on a query.
+* Search for issues based on a query.
+* Search for code based on a query.
+
+
+Bitbucket
+---------
+
+* Retrieve details about the authenticated user.
+* Get information about a specific user.
+* List available workspaces.
+* List repositories in a workspace.
+* Get details about a specific repository.
+* Create a new repository.
+* Delete an existing repository.
+* Retrieve contents of a file in a repository.
+* Upload a file to a repository.
+* Delete a file from a repository.
+* List issues in a repository.
+* Create a new issue.
+* Comment on an existing issue.
+* Update details of an issue.
+* List pull requests in a repository.
+* Create a new pull request.
+* Merge an existing pull request.
+* Search for repositories.
