@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.1 (2025-08-14)
+
+- LlamaIndex Agents refactored to Workflows.
+
 ## 2.6.0 (2025-08-13)
 
 - Added split responses to the OpenAI Agents in non-streaming mode.
