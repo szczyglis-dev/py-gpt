@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.2 (2025-08-14)
+
+- Added plugins (beta): Google, Facebook, X/Twitter, Telegram, Slack.
+
 ## 2.6.1 (2025-08-14)
 
 - LlamaIndex Agents refactored to Workflows.
