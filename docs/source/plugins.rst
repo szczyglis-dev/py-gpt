@@ -31,6 +31,11 @@ The following plugins are currently available, and model can use them instantly:
 * ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 * ``Voice Control (inline)`` - provides voice control command execution within a conversation.
 * ``Mailer`` - Provides the ability to send, receive and read emails.
+* ``Google`` - Access Gmail, Drive, Calendar, Contacts, YouTube, Keep for managing emails, files, events, notes, video info, and contacts.
+* ``Facebook`` - Manage user info, pages, posts, and photos on Facebook pages.
+* ``Slack`` - Handle users, conversations, messages, and files on Slack.
+* ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
+* ``X/Twitter`` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
 
 
 Creating Your Own Plugins
@@ -1382,3 +1387,91 @@ Voice Control (inline)
 The plugin provides voice control command execution within a conversation.
 
 See the ``Accessibility`` section for more details.
+
+
+Google (Gmail, Drive, Calendar, Contacts, YT, Keep)
+---------------------------------------------------
+
+* Listing recent emails from Gmail.
+* Listing all emails from Gmail.
+* Searching emails in Gmail.
+* Retrieving email details by ID in Gmail.
+* Sending an email via Gmail.
+* Listing recent calendar events.
+* Listing today's calendar events.
+* Listing tomorrow's calendar events.
+* Listing all calendar events.
+* Retrieving calendar events by a specific date.
+* Adding a new event to the calendar.
+* Deleting an event from the calendar.
+* Listing notes from Google Keep.
+* Adding a new note to Google Keep.
+* Listing files from Google Drive.
+* Finding a file in Google Drive by its path.
+* Downloading a file from Google Drive.
+* Uploading a file to Google Drive.
+* Retrieving information about a YouTube video.
+* Retrieving the transcript of a YouTube video.
+* Listing contacts from Google Contacts.
+* Adding a new contact to Google Contacts.
+
+
+Facebook
+---------
+
+* Retrieving basic information about the authenticated user.
+* Listing all Facebook pages the user has access to.
+* Setting a specified Facebook page as the default.
+* Retrieving a list of posts from a Facebook page.
+* Creating a new post on a Facebook page.
+* Deleting a post from a Facebook page.
+* Uploading a photo to a Facebook page.
+
+
+Slack
+------
+
+* Retrieving a list of users.
+* Listing all conversations.
+* Accessing conversation history.
+* Retrieving conversation replies.
+* Opening a conversation.
+* Posting a message in a chat.
+* Deleting a chat message.
+* Uploading files to Slack.
+
+Telegram
+----------
+
+* Sending text messages to a chat or channel.
+* Sending photos with an optional caption to a chat or channel.
+* Sending documents or files to a chat or channel.
+* Retrieving information about a specific chat or channel.
+* Polling for updates in bot mode.
+* Downloading files using a file identifier.
+* Listing contacts in user mode.
+* Listing recent dialogs or chats in user mode.
+* Retrieving recent messages from a specific chat or channel in user mode.
+
+
+X/Twitter
+----------
+
+* Retrieve user details by providing their username.
+* Fetch user information using their unique ID.
+* Access recent tweets from a specific user.
+* Search for recent tweets using specific keywords or hashtags.
+* Create a new tweet and post it on the platform.
+* Remove an existing tweet from your profile.
+* Reply to a specific tweet with a new comment.
+* Quote a tweet while adding your own comments or thoughts.
+* Like a tweet to show appreciation or support.
+* Remove a like from a previously liked tweet.
+* Retweet a tweet to share it with your followers.
+* Undo a retweet to remove it from your profile.
+* Hide a specific reply to a tweet.
+* List all bookmarked tweets for easy access.
+* Add a tweet to your bookmarks for later reference.
+* Remove a tweet from your bookmarks.
+* Upload media files such as images or videos for tweeting.
+* Set alternative text for uploaded media for accessibility.
