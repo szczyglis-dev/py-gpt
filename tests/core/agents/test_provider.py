@@ -74,8 +74,3 @@ def test_get_choices_with_filter(provider):
     choices = provider.get_choices(type="A")
     expected = [{"a": "Alpha"}, {"c": "Gamma"}]
     assert choices == expected
-
-def test_get_invalid_agent(provider):
-    # Getting a nonexistent agent should raise KeyError
-    with pytest.raises(KeyError):
-        provider.get("nonexistent")

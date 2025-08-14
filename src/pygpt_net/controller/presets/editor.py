@@ -43,6 +43,7 @@ class Editor:
         "general": 0,
         "personalize": 1,
         "experts": 2,
+        "remote_tools": 3,
     }
 
     def __init__(self, window=None):
@@ -84,7 +85,7 @@ class Editor:
                 "label": "preset.user_name",
             },
             "description": {
-                "type": "textarea",
+                "type": "text",
                 "label": "preset.description",
                 "placeholder": "preset.description.desc",
             },
@@ -1205,9 +1206,7 @@ class Editor:
             if show:
                 tabs.setTabEnabled(idx, True)
                 tabs.setTabVisible(idx, True)
-                self.window.ui.nodes['preset.experts.label'].setVisible(True)
                 self.experts.update_tab()
             else:
                 tabs.setTabEnabled(idx, False)
                 tabs.setTabVisible(idx, False)
-                self.window.ui.nodes['preset.experts.label'].setVisible(False)

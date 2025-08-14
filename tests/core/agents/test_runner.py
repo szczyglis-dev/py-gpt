@@ -64,7 +64,7 @@ def dummy_context():
         prompt="dummy prompt",
         model=SimpleNamespace(id="dummy_model"),
         system_prompt="dummy system prompt",
-        preset="dummy preset"
+        preset=MagicMock(),
     )
 
 # Fixture for signals
@@ -91,6 +91,7 @@ def test_call_stopped(dummy_window, dummy_context, dummy_signals):
 def test_agent_not_found(dummy_window, dummy_context, dummy_signals):
     dummy_window.controller.kernel.stopped.return_value = False
     dummy_window.core.agents.provider.has.return_value = False
+    dummy_window.core.agents.provider.get.return_value = MagicMock()
     runner = Runner(dummy_window)
     result = runner.call(dummy_context, extra={"agent_provider": "non_existent"}, signals=dummy_signals)
     assert result is False

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.08.14 13:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -108,7 +108,7 @@ class OpenAIAssistantAgent(BaseAgent):
                     "assistant_id": {
                         "type": "text",
                         "label": "Assistant ID",
-                        "description": "OpenAI Assistant ID",
+                        "description": "OpenAI Assistant ID, asst_abcd1234...",
                         "default": "",
                     },
                 }

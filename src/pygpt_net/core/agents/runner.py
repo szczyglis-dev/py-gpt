@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 03:00:00                  #
+# Updated Date: 2025.08.14 13:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -24,6 +24,8 @@ from pygpt_net.core.types import (
     AGENT_MODE_OPENAI,
 )
 
+from pygpt_net.item.ctx import CtxItem
+
 from .runners.llama_assistant import LlamaAssistant
 from .runners.llama_plan import LlamaPlan
 from .runners.llama_steps import LlamaSteps
@@ -31,10 +33,13 @@ from .runners.llama_workflow import LlamaWorkflow
 from .runners.openai_workflow import OpenAIWorkflow
 from .runners.helpers import Helpers
 from .runners.loop import Loop
-from ...item.ctx import CtxItem
-
 
 class Runner:
+
+    APPEND_SYSTEM_PROMPT_TO_MSG = [
+        "react",  # llama-index
+    ]
+
     def __init__(self, window=None):
         """
         Agent runner
@@ -52,9 +57,6 @@ class Runner:
         self.llama_steps = LlamaSteps(window)
         self.llama_workflow = LlamaWorkflow(window)
         self.openai_workflow = OpenAIWorkflow(window)
-        self.APPEND_SYSTEM_PROMPT_TO_MSG = [
-            "react",  # llama-index
-        ]
 
     def call(
             self,
@@ -85,14 +87,19 @@ class Runner:
 
             # prepare agent
             model = context.model
-            vector_store_idx = extra.get("agent_idx", None)            
+            vector_store_idx = extra.get("agent_idx", None)
             system_prompt = context.system_prompt
+            preset = context.preset
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_stream = self.window.core.config.get("stream", False)
             is_cmd = self.window.core.command.is_cmd(inline=False)
             history = self.window.core.agents.memory.prepare(context)
             llm = self.window.core.idx.llm.get(model, stream=False)
             workdir = self.window.core.config.get_workdir_prefix()
+
+            # vector store idx from preset
+            if preset:
+                vector_store_idx = preset.idx
 
             # tools
             self.window.core.agents.tools.context = context
@@ -174,6 +181,7 @@ class Runner:
                 return asyncio.run(self.openai_workflow.run(**kwargs))
 
         except Exception as e:
+            print("Error in agent runner:", e)
             self.window.core.debug.error(e)
             self.last_error = e
             return False

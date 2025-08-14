@@ -156,6 +156,7 @@ class Preset(BaseConfigDialog):
         rows_mode.addLayout(rows_mode_middle)
         rows_mode.addLayout(rows_mode_right)
         rows_mode.setAlignment(Qt.AlignTop)
+        rows_mode.setContentsMargins(0, 0, 0, 0)
         rows_mode.addStretch(1)
 
         # modes
@@ -184,24 +185,8 @@ class Preset(BaseConfigDialog):
         # experts
         self.window.ui.nodes['preset.editor.experts'] = ExpertsEditor(self.window)
 
-        # agents - llama index
-        agent_keys = [
-            "idx",
-            # "assistant_id",
-        ]
-        agent_layout = QVBoxLayout()
-        agent_layout.setContentsMargins(0, 0, 0, 0)
-        for key in agent_keys:
-            widget = QWidget()
-            widget.setLayout(options[key])
-            agent_layout.addWidget(widget)
-        agent_layout.addStretch()
-        self.window.ui.nodes['preset.editor.agent_llama'] = QWidget()
-        self.window.ui.nodes['preset.editor.agent_llama'].setLayout(agent_layout)
-        self.window.ui.nodes['preset.editor.agent_llama'].setContentsMargins(20, 0, 0, 30)
 
         # desc and prompt
-
         self.window.ui.nodes['preset.editor.description'] = QWidget()
         self.window.ui.nodes['preset.editor.description'].setLayout(options['description'])
         self.window.ui.nodes['preset.editor.description'].setContentsMargins(0, 5, 0, 5)
@@ -236,6 +221,7 @@ class Preset(BaseConfigDialog):
             "temperature",
             "agent_provider",
             "agent_provider_openai",
+            "idx",
             "remote_tools",
         ]
         personalize_keys = [
@@ -249,6 +235,18 @@ class Preset(BaseConfigDialog):
             self.window.ui.nodes['preset.editor.' + key].setLayout(options[key])
             self.window.ui.nodes['preset.editor.' + key].setContentsMargins(0, 0, 0, 0)
             rows.addWidget(self.window.ui.nodes['preset.editor.' + key])
+
+        # remote tools
+        self.window.ui.nodes['preset.editor.remote_tools'] = QWidget()
+        self.window.ui.nodes['preset.editor.remote_tools'].setLayout(options['remote_tools'])
+        self.window.ui.nodes['preset.editor.remote_tools'].setContentsMargins(0, 0, 0, 0)
+
+        rows_remote_tools = QVBoxLayout()
+        rows_remote_tools.addWidget(self.window.ui.nodes['preset.editor.remote_tools'])
+        rows_remote_tools.addStretch(1)
+
+        widget_remote_tools = QWidget()
+        widget_remote_tools.setLayout(rows_remote_tools)
 
         # personalize
         personalize_rows = QVBoxLayout()
@@ -269,28 +267,24 @@ class Preset(BaseConfigDialog):
         personalize_rows.addStretch(1)
         personalize_rows.addWidget(warn_label)
 
-        self.window.ui.nodes['preset.editor.remote_tools'].setMinimumHeight(140)
-
         rows.setContentsMargins(0, 0, 0, 0)
         rows.addStretch(1)
         rows.setAlignment(Qt.AlignTop)
+
         widget_base = QWidget()
         widget_base.setLayout(rows)
         widget_base.setMinimumWidth(300)
 
         func_tip_layout = QVBoxLayout()
-        func_tip_layout.addWidget(self.window.ui.nodes['preset.tool.function.label.all'])
-        func_tip_layout.addWidget(self.window.ui.nodes['preset.tool.function.label.assistant'])
-        func_tip_layout.addWidget(self.window.ui.nodes['preset.tool.function.label.agent_llama'])
         func_tip_layout.setContentsMargins(0, 0, 0, 0)
         func_tip_widget = QWidget()
         func_tip_widget.setLayout(func_tip_layout)
 
         func_rows = QVBoxLayout()
         func_rows.addWidget(self.window.ui.nodes['preset.editor.functions'])
-        func_rows.addWidget(self.window.ui.nodes['preset.editor.agent_llama'])
         # func_rows.addStretch()
         func_rows.addWidget(func_tip_widget)
+        self.window.ui.nodes['preset.editor.functions'].setVisible(False)
 
         func_rows.setContentsMargins(0, 0, 0, 0)
         func_widget = QWidget()
@@ -327,6 +321,7 @@ class Preset(BaseConfigDialog):
         self.window.ui.tabs['preset.editor.tabs'].addTab(self.window.ui.splitters['editor.presets'], trans("preset.tab.general"))
         self.window.ui.tabs['preset.editor.tabs'].addTab(widget_personalize, trans("preset.tab.personalize"))
         self.window.ui.tabs['preset.editor.tabs'].addTab(widget_experts, trans("preset.tab.experts"))
+        self.window.ui.tabs['preset.editor.tabs'].addTab(widget_remote_tools, trans("preset.tab.remote_tools"))
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.tabs['preset.editor.tabs'])

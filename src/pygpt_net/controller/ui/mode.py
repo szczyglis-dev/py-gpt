@@ -76,10 +76,10 @@ class Mode:
         # presets: experts
         if mode == MODE_EXPERT:
             self.window.ui.nodes['preset.editor.description'].setVisible(True)
-            self.window.ui.nodes['preset.editor.remote_tools'].setVisible(True)
+            self.window.controller.presets.editor.toggle_tab("remote_tools", True)
         else:
+            self.window.controller.presets.editor.toggle_tab("remote_tools", False)
             self.window.ui.nodes['preset.editor.description'].setVisible(False)
-            self.window.ui.nodes['preset.editor.remote_tools'].setVisible(False)
 
         if mode == MODE_COMPLETION:
             self.window.ui.nodes['preset.editor.user_name'].setVisible(True)
@@ -95,57 +95,39 @@ class Mode:
         if mode == MODE_AGENT:
             self.window.controller.presets.editor.toggle_tab("experts", True)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
-            self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
+            self.window.ui.nodes['preset.editor.idx'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
-            self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent"))
             # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent"))
-            self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
-            self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
-            self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
         elif mode == MODE_AGENT_LLAMA:
             self.window.controller.presets.editor.toggle_tab("experts", False)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
-            self.window.ui.nodes['preset.editor.agent_llama'].setVisible(True)
+            self.window.ui.nodes['preset.editor.idx'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(True)
-            self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
             # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent_llama"))
-            self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
-            self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
-            self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
         elif mode == MODE_AGENT_OPENAI:
             self.window.controller.presets.editor.toggle_tab("experts", True)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
-            self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
+            self.window.ui.nodes['preset.editor.idx'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
-            self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
             # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent_llama"))
-            self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
-            self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
-            self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
         else:
+            if mode == MODE_EXPERT:
+                self.window.ui.nodes['preset.editor.idx'].setVisible(True)
+            else:
+                self.window.ui.nodes['preset.editor.idx'].setVisible(False)
             self.window.controller.presets.editor.toggle_tab("experts", False)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
-            self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
+            self.window.ui.nodes['preset.editor.idx'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
-            self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(True)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
             # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt"))
-            self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
-            self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
-
-            if mode == MODE_ASSISTANT:
-                self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(True)
-                self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
-            else:
-                self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
-                self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
 
         # presets: clear
         """
@@ -220,7 +202,7 @@ class Mode:
 
         # attachments
         show = self.are_attachments(mode)
-        self.window.ui.tabs['input'].setTabVisible(1, show)  # attachments
+        self.window.ui.tabs['input'].setTabVisible(1, show)
 
         # uploaded files
         if mode == MODE_ASSISTANT:

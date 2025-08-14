@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.14 13:00:00                  #
 # ================================================== #
 
 import json
@@ -577,7 +577,7 @@ class ExpertWorker(QRunnable):
         try:
             # get or create children (slave) meta
             slave = self.window.core.ctx.get_or_create_slave_meta(master_ctx, expert_id)
-            expert = self.window.core.experts.get_expert(expert_id)
+            expert = self.window.core.experts.get_expert(expert_id)  # preset
             reply = True
             hidden = False
             internal = False
@@ -604,7 +604,7 @@ class ExpertWorker(QRunnable):
             stream_mode = self.window.core.config.get('stream')
             verbose = self.window.core.config.get('agent.llama.verbose')
             use_agent = self.window.core.config.get('experts.use_agent', False)
-            db_idx = self.window.controller.idx.current_idx  # get idx from agent config
+            db_idx = expert.idx  # get idx from expert preset
 
             mode = MODE_EXPERT  # force expert mode, mode will change in bridge
 
