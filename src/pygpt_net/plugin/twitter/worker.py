@@ -421,7 +421,7 @@ class Worker(BaseWorker):
                 finally:
                     event.set()
 
-        # bind here; if fails -> jasny komunikat
+        # bind here; if fails
         try:
             httpd = http.server.HTTPServer((host, port), Handler)
         except PermissionError:
