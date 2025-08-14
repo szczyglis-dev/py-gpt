@@ -285,7 +285,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         This method is called when the application is closing.
         """
         if self.is_closing:
-            print("Application is already closing.")
+            print("Application is already closing...")
             return
         self.is_closing = True
         print("Closing...")
@@ -301,6 +301,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.calendar.save_all()
         print("Saving drawing...")
         self.controller.painter.save_all()
+        print("Saving plugins config...")
+        self.controller.plugins.save_all()
         print("Saving tools...")
         self.tools.on_exit()
         print("Saving layout state...")

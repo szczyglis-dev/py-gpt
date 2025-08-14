@@ -55,7 +55,7 @@ class Config(BaseConfig):
             type="text",
             value="https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/youtube.readonly",
             label="Scopes",
-            description="Space-separated OAuth2 scopes. To use native Keep, add: https://www.googleapis.com/auth/keep or https://www.googleapis.com/auth/keep.readonly.",
+            description="Space-separated OAuth scopes. To use native Keep, add: https://www.googleapis.com/auth/keep and https://www.googleapis.com/auth/keep.readonly.",
         )
         plugin.add_option(
             "impersonate_user",

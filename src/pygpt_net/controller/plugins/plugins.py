@@ -458,6 +458,31 @@ class Plugins:
         self.settings.setup()
         self.update()
 
+    def save_all(self):
+        """Save plugin settings"""
+        for id in self.window.core.plugins.plugins.keys():
+            plugin = self.window.core.plugins.plugins[id]
+            options = plugin.setup()  # get plugin options
+
+            # add plugin to global config data if not exists
+            if id not in self.window.core.config.get('plugins'):
+                self.window.core.config.data['plugins'][id] = {}
+
+            # update config with current values
+            for key in options:
+                self.window.core.config.data['plugins'][id][key] = self.window.core.plugins.plugins[id].options[key]['value']
+
+            # remove key from config if plugin option not exists
+            for key in list(self.window.core.config.data['plugins'].keys()):
+                if key not in self.window.core.plugins.plugins:
+                    self.window.core.config.data['plugins'].pop(key)
+
+        # save preset
+        self.window.controller.plugins.presets.save_current()
+
+        # save config
+        self.window.core.config.save()
+
     def log(self, data: Any):
         """
         Log data to debug
