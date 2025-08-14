@@ -70,6 +70,11 @@ from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
 from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.agent import Plugin as AgentPlugin
 from pygpt_net.plugin.mailer import Plugin as MailerPlugin
+from pygpt_net.plugin.google import Plugin as GooglePlugin
+from pygpt_net.plugin.twitter import Plugin as TwitterPlugin
+from pygpt_net.plugin.facebook import Plugin as FacebookPlugin
+from pygpt_net.plugin.telegram import Plugin as TelegramPlugin
+from pygpt_net.plugin.slack import Plugin as SlackPlugin
 
 # agents (Llama-index)
 # from pygpt_net.provider.agents.llama_index.legacy.openai import OpenAIAgent
@@ -380,6 +385,11 @@ def run(**kwargs):
     launcher.add_plugin(IdxLlamaIndexPlugin())
     launcher.add_plugin(MailerPlugin())
     launcher.add_plugin(CrontabPlugin())
+    launcher.add_plugin(GooglePlugin())
+    launcher.add_plugin(TwitterPlugin())
+    launcher.add_plugin(FacebookPlugin())
+    launcher.add_plugin(TelegramPlugin())
+    launcher.add_plugin(SlackPlugin())
 
     # register custom plugins
     plugins = kwargs.get('plugins', None)

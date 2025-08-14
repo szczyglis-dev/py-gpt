@@ -99,7 +99,6 @@ class Mode:
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent"))
-            # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent"))
         elif mode == MODE_AGENT_LLAMA:
             self.window.controller.presets.editor.toggle_tab("experts", False)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
@@ -107,7 +106,6 @@ class Mode:
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(True)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
-            # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent_llama"))
         elif mode == MODE_AGENT_OPENAI:
             self.window.controller.presets.editor.toggle_tab("experts", True)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
@@ -115,36 +113,18 @@ class Mode:
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
-            # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent_llama"))
         else:
             if mode == MODE_EXPERT:
                 self.window.ui.nodes['preset.editor.idx'].setVisible(True)
             else:
                 self.window.ui.nodes['preset.editor.idx'].setVisible(False)
+
             self.window.controller.presets.editor.toggle_tab("experts", False)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
             self.window.ui.nodes['preset.editor.idx'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(True)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
-            # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt"))
-
-        # presets: clear
-        """
-        self.window.ui.nodes['preset.clear'].setVisible(False)
-        if mode in [MODE_IMAGE, MODE_ASSISTANT]:
-            self.window.ui.nodes['preset.clear'].setVisible(False)
-        else:
-            self.window.ui.nodes['preset.clear'].setVisible(True)
-        """
-
-        # presets: use
-        """
-        if mode == MODE_IMAGE:
-            self.window.ui.nodes['preset.use'].setVisible(True)
-        else:
-            self.window.ui.nodes['preset.use'].setVisible(False)
-        """
 
         # img options
         if mode == MODE_IMAGE:
@@ -164,14 +144,6 @@ class Mode:
         else:
             self.window.ui.nodes['agent_llama.options'].setVisible(False)
 
-        """
-        # agent llama sys prompt
-        if mode in [MODE_AGENT_LLAMA]:
-            self.window.ui.nodes['preset.prompt'].setVisible(False)
-        else:
-            self.window.ui.nodes['preset.prompt'].setVisible(True)
-        """
-
         # assistants list
         if mode == MODE_ASSISTANT:
             self.window.ui.nodes['assistants.widget'].setVisible(True)
@@ -180,10 +152,8 @@ class Mode:
 
         # indexes list
         if mode == MODE_LLAMA_INDEX:
-            # self.window.ui.nodes['indexes.widget'].setVisible(True)
             self.window.ui.nodes['idx.options'].setVisible(True)
         else:
-            # self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['idx.options'].setVisible(False)
 
         # stream mode
@@ -197,7 +167,6 @@ class Mode:
         show = self.is_vision(mode)
         self.window.ui.menu['menu.video'].menuAction().setVisible(show)
         self.window.ui.nodes['icon.video.capture'].setVisible(show)
-        # self.window.ui.nodes['vision.capture.options'].setVisible(show)
         self.window.ui.nodes['attachments.capture_clear'].setVisible(show)
 
         # attachments

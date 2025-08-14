@@ -230,6 +230,27 @@ class BasePlugin(QObject):
                 return float(value)
             return self.options[name]["value"]
 
+    def set_option_value(
+            self,
+            name: str,
+            value: Any
+    ):
+        """
+        Set option value
+
+        :param name: option name
+        :param value: option value
+        """
+        if self.has_option(name):
+            if self.options[name]["type"] == "bool":
+                value = bool(value)
+            elif self.options[name]["type"] == "int":
+                value = int(value)
+            elif self.options[name]["type"] == "float":
+                value = float(value)
+            self.options[name]["value"] = value
+            self.refresh_option(name)
+
     def attach(self, window):
         """
         Attach window to plugin

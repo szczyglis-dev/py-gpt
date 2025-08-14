@@ -197,25 +197,6 @@ class Editor:
                     },
                 }
             },
-            "assistant_id": {
-                "type": "text",
-                "label": "preset.assistant_id",
-                "description": "preset.assistant_id.desc",
-            },
-            "tool.function": {
-                "type": "dict",
-                "label": "preset.tool.function",
-                "keys": {
-                    'name': 'text',
-                    'params': 'textarea',
-                    'desc': 'textarea',
-                },
-                "extra": {
-                    "urls": {
-                        "Help": "https://platform.openai.com/docs/guides/function-calling",
-                    },
-                },
-            },
         }
         self.hidden_by_mode = {  # hidden fields by mode
             MODE_CHAT: ["idx"],
@@ -275,15 +256,6 @@ class Editor:
         self.window.ui.add_hook("update.preset.prompt", self.hook_update)
         self.window.ui.add_hook("update.preset.agent_provider", self.hook_update)
         self.window.ui.add_hook("update.preset.agent_provider_openai", self.hook_update)
-
-        # register functions dictionary
-        parent = "preset"
-        key = "tool.function"
-        self.window.ui.dialogs.register_dictionary(
-            key,
-            parent,
-            self.get_option(key),
-        )
 
     def toggle_extra_options(self):
         """
@@ -795,24 +767,6 @@ class Editor:
         # setup avatar config
         self.update_avatar_config(data)
 
-        # restore functions
-        if data.has_functions():
-            functions = data.get_functions()
-            values = []
-            for function in functions:
-                values.append(
-                    {
-                        "name": function['name'],
-                        "params": function['params'],
-                        "desc": function['desc'],
-                    }
-                )
-            self.window.ui.config[self.id]['tool.function'].items = values
-            self.window.ui.config[self.id]['tool.function'].model.updateData(values)
-        else:
-            self.window.ui.config[self.id]['tool.function'].items = []
-            self.window.ui.config[self.id]['tool.function'].model.updateData([])
-
         # set focus to name field
         current_model = self.window.core.config.get('model')
         # set current model in combo box as selected
@@ -1002,36 +956,6 @@ class Editor:
         preset.tools = {
             'function': [],  # functions are assigned separately (below)
         }
-
-        # assign functions tool
-        values = self.window.controller.config.get_value(
-            parent_id=self.id,
-            key='tool.function',
-            option=self.options['tool.function'],
-        )
-        functions = []
-        for function in values:
-            name = function['name']
-            params = function['params']
-            desc = function['desc']
-            if name is None or name == "":
-                continue
-            if params is None or params == "":
-                params = '{"type": "object", "properties": {}}'  # default empty JSON params
-            if desc is None:
-                desc = ""
-            functions.append(
-                {
-                    "name": name,
-                    "params": params,
-                    "desc": desc,
-                }
-            )
-
-        if len(functions) > 0:
-            preset.tools['function'] = functions
-        else:
-            preset.tools['function'] = []
 
         # extra options
         self.append_extra_options(preset)

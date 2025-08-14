@@ -72,18 +72,17 @@ class Preset(BaseConfigDialog):
         fields = self.window.controller.presets.editor.get_options()
 
         # build settings widgets
-        widgets = self.build_widgets(self.id, fields)  # from base config dialog
+        widgets = self.build_widgets(self.id, fields, excluded=["tool.function"])  # from base config dialog
 
         # apply settings widgets
         for key in widgets:
             self.window.ui.config[self.id][key] = widgets[key]
 
-        # btn: add function
-        self.window.ui.config[self.id]['tool.function'].add_btn.setText(trans('assistant.func.add'))
-
         # apply widgets to layouts
         options = {}
         for key in widgets:
+            if key == "tool.function":
+                continue
             if fields[key]["type"] in ['text', 'int', 'float']:
                 # if key != "prompt":  # built separately
                 options[key] = self.add_option(widgets[key], fields[key])
@@ -97,7 +96,6 @@ class Preset(BaseConfigDialog):
                     widgets[key].setMinimumHeight(100)
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'bool':
-                # widgets[key].setMaximumHeight(38)
                 options[key] = self.add_raw_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'dict':
                 options[key] = self.add_row_option(widgets[key], fields[key])
@@ -105,8 +103,6 @@ class Preset(BaseConfigDialog):
                 options[key] = self.add_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'bool_list':
                 options[key] = self.add_row_option(widgets[key], fields[key])
-
-        self.window.ui.nodes['preset.tool.function.label'].setVisible(False)  # hide label
 
         rows = QVBoxLayout()
 
@@ -163,48 +159,24 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.editor.modes'] = QWidget()
         self.window.ui.nodes['preset.editor.modes'].setLayout(rows_mode)
         self.window.ui.nodes['preset.editor.modes'].setContentsMargins(0, 0, 0, 0)
-       # self.window.ui.nodes['preset.editor.modes'].setMaximumWidth(300)
-
-        # functions label
-        self.window.ui.nodes['preset.tool.function.label.all'] = HelpLabel(
-            trans("preset.tool.function.tip.all"))
-        self.window.ui.nodes['preset.tool.function.label.all'].setAlignment(Qt.AlignCenter)
-
-        self.window.ui.nodes['preset.tool.function.label.assistant'] = HelpLabel(
-            trans("preset.tool.function.tip.assistant"))
-        self.window.ui.nodes['preset.tool.function.label.assistant'].setAlignment(Qt.AlignCenter)
-
-        self.window.ui.nodes['preset.tool.function.label.agent_llama'] = HelpLabel(
-            trans("preset.tool.function.tip.agent_llama"))
-        self.window.ui.nodes['preset.tool.function.label.agent_llama'].setAlignment(Qt.AlignCenter)
-
-        # functions
-        self.window.ui.nodes['preset.editor.functions'] = QWidget()
-        self.window.ui.nodes['preset.editor.functions'].setLayout(options["tool.function"])
 
         # experts
         self.window.ui.nodes['preset.editor.experts'] = ExpertsEditor(self.window)
-
 
         # desc and prompt
         self.window.ui.nodes['preset.editor.description'] = QWidget()
         self.window.ui.nodes['preset.editor.description'].setLayout(options['description'])
         self.window.ui.nodes['preset.editor.description'].setContentsMargins(0, 5, 0, 5)
-        ''''        
-        self.window.ui.nodes['preset.editor.remote_tools'] = QWidget()
-        self.window.ui.nodes['preset.editor.remote_tools'].setLayout(options['remote_tools'])
-        self.window.ui.nodes['preset.editor.remote_tools'].setContentsMargins(0, 0, 0, 0)
-        '''
 
         # prompt + extra options
         prompt_layout = QVBoxLayout()
         prompt_layout.addWidget(widgets['prompt'])
         prompt_layout.setContentsMargins(0, 10, 0, 10)
+
         footer_layout = self.prepare_extra_config(prompt_layout)
 
         prompt_layout = QVBoxLayout()
         prompt_layout.setContentsMargins(0, 0, 0, 0)
-        # prompt_layout.addWidget(self.window.ui.nodes['preset.editor.remote_tools'])
         prompt_layout.addWidget(self.window.ui.nodes['preset.editor.description'])
         prompt_layout.addLayout(footer_layout)
 
@@ -222,7 +194,6 @@ class Preset(BaseConfigDialog):
             "agent_provider",
             "agent_provider_openai",
             "idx",
-            "remote_tools",
         ]
         personalize_keys = [
             "ai_name",
@@ -275,27 +246,10 @@ class Preset(BaseConfigDialog):
         widget_base.setLayout(rows)
         widget_base.setMinimumWidth(300)
 
-        func_tip_layout = QVBoxLayout()
-        func_tip_layout.setContentsMargins(0, 0, 0, 0)
-        func_tip_widget = QWidget()
-        func_tip_widget.setLayout(func_tip_layout)
-
-        func_rows = QVBoxLayout()
-        func_rows.addWidget(self.window.ui.nodes['preset.editor.functions'])
-        # func_rows.addStretch()
-        func_rows.addWidget(func_tip_widget)
-        self.window.ui.nodes['preset.editor.functions'].setVisible(False)
-
-        func_rows.setContentsMargins(0, 0, 0, 0)
-        func_widget = QWidget()
-        func_widget.setLayout(func_rows)
-        # func_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        # self.window.ui.nodes['preset.editor.functions'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.window.ui.nodes['preset.editor.experts'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         main = QHBoxLayout()
         main.addWidget(widget_base)
-        main.addWidget(func_widget)
         main.addWidget(self.window.ui.nodes['preset.editor.modes'])
 
         widget_main = QWidget()
@@ -306,7 +260,6 @@ class Preset(BaseConfigDialog):
         self.window.ui.splitters['editor.presets'].addWidget(widget_prompt)
         self.window.ui.splitters['editor.presets'].setStretchFactor(0, 1)
         self.window.ui.splitters['editor.presets'].setStretchFactor(1, 2)
-        # self.window.ui.splitters['editor.presets'].setChildrenCollapsible(False)
 
         widget_personalize = QWidget()
         widget_personalize.setLayout(personalize_rows)

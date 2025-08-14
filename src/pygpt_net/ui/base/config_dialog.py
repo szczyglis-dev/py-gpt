@@ -42,9 +42,13 @@ class BaseConfigDialog:
         :return: settings widgets
         """
         widgets = {}
+        kwargs = kwargs if kwargs is not None else {}
 
         for key in options:
             option = options[key]
+
+            if "excluded" in kwargs and kwargs['excluded'] is not None and key in kwargs['excluded']:
+                continue
 
             # create widget by option type
             if option['type'] == 'text' or option['type'] == 'int' or option['type'] == 'float':
