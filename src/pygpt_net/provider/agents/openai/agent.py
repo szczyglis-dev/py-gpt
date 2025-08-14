@@ -179,6 +179,7 @@ class Agent(BaseAgent):
                 handler = StreamHandler(window, bridge)
                 async for event in result.stream_events():
                     if bridge.stopped():
+                        result.cancel()
                         bridge.on_stop(ctx)
                         break
                     final_output, response_id = handler.handle(event, ctx)

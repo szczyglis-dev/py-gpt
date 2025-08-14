@@ -348,6 +348,7 @@ class Agent(BaseAgent):
                     handler.to_buffer(title)
                 async for event in result.stream_events():
                     if bridge.stopped():
+                        result.cancel()
                         bridge.on_stop(ctx)
                         break
                     final_output, response_id = handler.handle(event, ctx)
@@ -391,6 +392,7 @@ class Agent(BaseAgent):
                     handler.to_buffer(title)
                 async for event in result.stream_events():
                     if bridge.stopped():
+                        result.cancel()
                         bridge.on_stop(ctx)
                         break
                     final_output, response_id = handler.handle(event, ctx)
