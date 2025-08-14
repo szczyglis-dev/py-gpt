@@ -48,7 +48,8 @@ class Provider:
         :param id: agent id
         :return: agent provider
         """
-        return self.agents[id]
+        if id in self.agents:
+            return self.agents[id]
 
     def all(self) -> Dict[str, BaseAgent]:
         """

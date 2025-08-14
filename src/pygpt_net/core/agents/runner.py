@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.14 03:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -52,6 +52,9 @@ class Runner:
         self.llama_steps = LlamaSteps(window)
         self.llama_workflow = LlamaWorkflow(window)
         self.openai_workflow = OpenAIWorkflow(window)
+        self.APPEND_SYSTEM_PROMPT_TO_MSG = [
+            "react",  # llama-index
+        ]
 
     def call(
             self,
@@ -109,12 +112,7 @@ class Runner:
                 tools = []
             
             # append system prompt
-            if agent_id not in [
-                "openai_agent_base",  # openai-agents
-                "openai_agent_experts",  # openai-agents
-                "openai_assistant", # llama-index
-                "code_act", # llama-index
-            ]:
+            if agent_id in self.APPEND_SYSTEM_PROMPT_TO_MSG:
                 if system_prompt:
                     msg = ChatMessage(
                         role=MessageRole.SYSTEM,
@@ -236,13 +234,7 @@ class Runner:
                 tools = []
 
             # append system prompt
-            if agent_id not in [
-                "openai_agent_base",  # openai-agents
-                "openai_agent_experts",  # openai-agents
-                "openai_assistant",  # llama-index
-                "code_act",  # llama-index
-                "react_workflow",  # llama-index
-            ]:
+            if agent_id in self.APPEND_SYSTEM_PROMPT_TO_MSG:
                 if system_prompt:
                     msg = ChatMessage(
                         role=MessageRole.SYSTEM,

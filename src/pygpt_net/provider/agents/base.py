@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.14 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple
@@ -85,6 +85,9 @@ class BaseAgent:
         :param key: Option key
         :return: Option value
         """
+        if preset is None:
+            print("No preset provided, returning default option value")
+            return None
         extra = preset.extra
         if not isinstance(extra, dict) or self.id not in extra:
             return self.get_default(section, key)

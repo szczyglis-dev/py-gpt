@@ -73,16 +73,17 @@ class ExpertsEditor(QWidget):
         self.window.ui.nodes["preset.experts.selected"].clicked.disconnect()
 
         available_layout = QVBoxLayout()
-        available_layout.addWidget(self.window.ui.nodes["preset.experts.available.label"])
         available_layout.addWidget(self.window.ui.nodes["preset.experts.available"])
+        available_layout.addWidget(self.window.ui.nodes["preset.experts.available.label"])
 
         selected_layout = QVBoxLayout()
-        selected_layout.addWidget(self.window.ui.nodes["preset.experts.selected.label"])
         selected_layout.addWidget(self.window.ui.nodes["preset.experts.selected"])
+        selected_layout.addWidget(self.window.ui.nodes["preset.experts.selected.label"])
 
         layout.addLayout(available_layout)
         layout.addLayout(arrows_layout)
         layout.addLayout(selected_layout)
+        layout.setContentsMargins(0, 0, 0, 0)
         return layout
 
     def update_available(self, data):

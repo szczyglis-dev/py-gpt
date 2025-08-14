@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.14 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -26,7 +26,7 @@ class OpenAIAgent(BaseAgent):
         self.id = "openai"
         self.type = AGENT_TYPE_LLAMA
         self.mode = AGENT_MODE_WORKFLOW
-        self.name = "OpenAI"
+        self.name = "FunctionAgent"  # previous name: OpenAI
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.14 03:00:00                  #
 # ================================================== #
 
 from typing import List, Optional, Callable
@@ -91,6 +91,9 @@ Remaining Sub-Tasks:
 Overall Task: {task}
 """
 
+DEFAULT_EXECUTE_PROMPT = """\
+You execute the given sub-task using the tools. Return concise outputs.
+"""
 
 class QueryEvent(StartEvent):
     query: str
@@ -136,7 +139,7 @@ class PlannerWorkflow(Workflow):
             description="Executes planner sub-tasks using available tools.",
             tools=tools,
             llm=llm,
-            system_prompt=system_prompt or "You execute the given sub-task using the tools. Return concise outputs.",
+            system_prompt=system_prompt or DEFAULT_EXECUTE_PROMPT,
             max_steps=max_steps,
         )
 

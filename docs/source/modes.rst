@@ -294,12 +294,16 @@ Agent (LlamaIndex)
 
 Mode that allows the use of agents offered by ``LlamaIndex``.
 
-Includes built-in agents:
+Includes built-in agents (Workflow):
 
-* OpenAI
+* FunctionAgent
 * ReAct
 * Structured Planner (sub-tasks)
 * CodeAct (connected to Code Interpreter plugin)
+
+Includes built-in agents (Legacy):
+
+* OpenAI Assistants
 
 In the future, the list of built-in agents will be expanded.
 

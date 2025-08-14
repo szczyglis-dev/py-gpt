@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.14 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
     AGENT_TYPE_LLAMA,
     AGENT_MODE_WORKFLOW,
@@ -18,6 +19,11 @@ from pygpt_net.core.types import (
 from llama_index.core.llms.llm import LLM
 from llama_index.core.tools.types import BaseTool
 
+from .workflow.planner import (
+    DEFAULT_INITIAL_PLAN_PROMPT,
+    DEFAULT_PLAN_REFINE_PROMPT,
+    DEFAULT_EXECUTE_PROMPT
+)
 from ..base import BaseAgent
 
 class PlannerAgent(BaseAgent):
@@ -38,16 +44,72 @@ class PlannerAgent(BaseAgent):
         """
         from .workflow.planner import PlannerWorkflow
 
+        context = kwargs.get("context", BridgeContext())
+        preset = context.preset
         tools: List[BaseTool] = kwargs.get("tools", []) or []
         llm: LLM = kwargs.get("llm", None)
         verbose: bool = kwargs.get("verbose", False)
-        system_prompt: str = kwargs.get("system_prompt", None)
         max_steps: int = kwargs.get("max_steps", 12)
+
+        # get prompts from options or use defaults
+        prompt_step = self.get_option(preset, "step", "prompt")
+        prompt_plan_initial = self.get_option(preset, "plan", "prompt")
+        prompt_plan_refine = self.get_option(preset, "plan_refine", "prompt")
+        if not prompt_step:
+            prompt_step = DEFAULT_EXECUTE_PROMPT
+        if not prompt_plan_initial:
+            prompt_plan_initial = DEFAULT_INITIAL_PLAN_PROMPT
+        if not prompt_plan_refine:
+            prompt_plan_refine = DEFAULT_PLAN_REFINE_PROMPT
 
         return PlannerWorkflow(
             tools=tools,
             llm=llm,
-            system_prompt=system_prompt,
             verbose=verbose,
             max_steps=max_steps,
+            system_prompt=prompt_step,
+            initial_plan_prompt= prompt_plan_initial,
+            plan_refine_prompt= prompt_plan_refine,
         )
+
+    def get_options(self) -> Dict[str, Any]:
+        """
+        Return Agent options
+
+        :return: dict of options
+        """
+        return {
+            "step": {
+                "label": "Execute prompt",
+                "options": {
+                    "prompt": {
+                        "type": "textarea",
+                        "label": "Prompt",
+                        "description": "Steps execute prompt",
+                        "default": DEFAULT_EXECUTE_PROMPT,
+                    },
+                }
+            },
+            "plan": {
+                "label": "Planner (initial))",
+                "options": {
+                    "prompt": {
+                        "type": "textarea",
+                        "label": "Prompt",
+                        "description": "Initial plan prompt",
+                        "default": DEFAULT_INITIAL_PLAN_PROMPT,
+                    },
+                }
+            },
+            "plan_refine": {
+                "label": "Planner (refine)",
+                "options": {
+                    "prompt": {
+                        "type": "textarea",
+                        "label": "Prompt",
+                        "description": "Plan refine prompt",
+                        "default": DEFAULT_PLAN_REFINE_PROMPT,
+                    },
+                }
+            },
+        }

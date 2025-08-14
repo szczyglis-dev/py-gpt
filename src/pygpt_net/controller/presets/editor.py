@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 19:00:00                  #
+# Updated Date: 2025.08.14 03:00:00                  #
 # ================================================== #
 
 import datetime
@@ -265,6 +265,7 @@ class Editor:
 
         # add hooks for config update in real-time
         self.window.ui.add_hook("update.preset.prompt", self.hook_update)
+        self.window.ui.add_hook("update.preset.agent_provider", self.hook_update)
         self.window.ui.add_hook("update.preset.agent_provider_openai", self.hook_update)
 
         # register functions dictionary
@@ -285,7 +286,7 @@ class Editor:
         if not self.tab_options_idx:
             return
         mode = self.window.core.config.get('mode')
-        if mode != MODE_AGENT_OPENAI:
+        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
             # show base prompt
             self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
             # hide all tabs
@@ -313,12 +314,21 @@ class Editor:
             # show base prompt
             self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
             return
+
         mode = self.window.core.config.get('mode')
-        if mode == MODE_AGENT_OPENAI:
+        key_agent = ""
+
+        if mode in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
+            # get current provider
+            if mode == MODE_AGENT_LLAMA:
+                key_agent = "agent_provider"
+            elif mode == MODE_AGENT_OPENAI:
+                key_agent = "agent_provider_openai"
+
             current_provider = self.window.controller.config.get_value(
                 parent_id=self.id,
-                key="agent_provider_openai",
-                option=self.options["agent_provider_openai"],
+                key=key_agent,
+                option=self.options[key_agent],
             )
             if current_provider is None or current_provider == "":
                 # show base prompt
@@ -354,22 +364,38 @@ class Editor:
 
         :param preset: preset item
         """
-        if preset.agent_provider_openai is None or preset.agent_provider_openai == "":
+        mode = self.window.core.config.get('mode')
+        id = None
+        if mode == MODE_AGENT_OPENAI:
+            if preset.agent_provider_openai is None or preset.agent_provider_openai == "":
+                return
+            id = preset.agent_provider_openai
+        elif mode == MODE_AGENT_LLAMA:
+            if preset.agent_provider is None or preset.agent_provider == "":
+                return
+            id = preset.agent_provider
+        else:
             return
 
         # update options in UI
-        id = preset.agent_provider_openai
         agent = self.window.core.agents.provider.get(id)
         if not agent:
             return
         if not preset.extra or id not in preset.extra:
             return
+
         data_dict = preset.extra[id]
         option_tabs = agent.get_options()
         for option_tab_id in data_dict:
-            option_key = "agent." + preset.agent_provider_openai + "." + option_tab_id
+            parent_key = ""
+            if mode == MODE_AGENT_OPENAI:
+                parent_key = preset.agent_provider_openai
+            elif mode == MODE_AGENT_LLAMA:
+                parent_key = preset.agent_provider
+            option_key = "agent." + parent_key + "." + option_tab_id
             if option_key not in self.window.ui.config:
                 continue
+
             extra_options = option_tabs.get(option_tab_id, {}).get('options', {})
             for key in extra_options:
                 value = data_dict[option_tab_id].get(key, None)
@@ -400,7 +426,7 @@ class Editor:
         if not self.tab_options_idx:
             return
         mode = self.window.core.config.get('mode')
-        if mode != MODE_AGENT_OPENAI:
+        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
             return
 
         # load defaults for all tabs
@@ -437,13 +463,18 @@ class Editor:
             return
 
         mode = self.window.core.config.get('mode')
-        if mode != MODE_AGENT_OPENAI:
+        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
             return
 
         preset = self.window.core.presets.get_by_uuid(self.current)
         if not preset:
             return
-        current_provider_id = preset.agent_provider_openai if preset else None
+
+        current_provider_id = None
+        if mode == MODE_AGENT_OPENAI:
+            current_provider_id = preset.agent_provider_openai if preset else None
+        elif mode == MODE_AGENT_LLAMA:
+            current_provider_id = preset.agent_provider if preset else None
 
         # load defaults for all tabs
         for id in self.tab_options_idx:
@@ -485,10 +516,18 @@ class Editor:
         :param id: preset id
         :param preset: preset item
         """
+        mode = self.window.core.config.get('mode')
         exclude_ids = [
             "__prompt__",
         ]
-        id = preset.agent_provider_openai
+        id = None
+        if mode == MODE_AGENT_OPENAI:
+            id = preset.agent_provider_openai
+        elif mode == MODE_AGENT_LLAMA:
+            id = preset.agent_provider
+        else:
+            return
+
         options = {}
         agent = self.window.core.agents.provider.get(id)
         if not agent:
@@ -578,14 +617,20 @@ class Editor:
         :return: None
         """
         mode = self.window.core.config.get('mode')
-        if mode != MODE_AGENT_OPENAI:
+        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
             return
+
+        parent_key = ""
+        if mode == MODE_AGENT_OPENAI:
+            parent_key = "agent_provider_openai"
+        elif mode == MODE_AGENT_LLAMA:
+            parent_key = "agent_provider"
 
         # get current provider
         current_provider = self.window.controller.config.get_value(
             parent_id=self.id,
-            key="agent_provider_openai",
-            option=self.options["agent_provider_openai"],
+            key=parent_key,
+            option=self.options[parent_key],
         )
         if current_provider is None or current_provider == "":
             return
@@ -634,7 +679,7 @@ class Editor:
                 self.window.controller.presets.from_global()  # update current preset
 
         # show/hide extra options
-        elif key == "agent_provider_openai":
+        elif key in ["agent_provider_openai", "agent_provider"]:
             self.toggle_extra_options_by_provider()
             self.append_default_prompt()
             self.load_extra_defaults_current()

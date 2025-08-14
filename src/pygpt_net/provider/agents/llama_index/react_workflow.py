@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.08.14 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -36,7 +36,6 @@ class ReactWorkflowAgent(BaseAgent):
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
-
         from llama_index.core.agent.workflow import ReActAgent as Agent
 
         tools = kwargs.get("tools", [])
@@ -44,6 +43,7 @@ class ReactWorkflowAgent(BaseAgent):
         llm = kwargs.get("llm", None)
         chat_history = kwargs.get("chat_history", [])
         max_iterations = kwargs.get("max_iterations", 10)
+        system_prompt = kwargs.get("system_prompt", None)
 
         """
         # TODO: multimodal support
@@ -62,10 +62,12 @@ class ReactWorkflowAgent(BaseAgent):
             )
             return step_engine.as_agent()
         """
+        # system prompt for ReAct agent is added to messages
         return Agent(
             tools=tools,
             llm=llm,
             chat_history=chat_history,
             max_iterations=max_iterations,
+            system_prompt=system_prompt,
             verbose=verbose,
         )
