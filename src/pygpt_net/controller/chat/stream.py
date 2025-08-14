@@ -77,6 +77,21 @@ class StreamWorker(QRunnable):
             if generator is not None:
                 for chunk in generator:
                     if ctrl.kernel.stopped():
+                        if hasattr(generator, 'close'):
+                            try:
+                                generator.close()
+                            except Exception:
+                                pass
+                        elif hasattr(generator, 'cancel'):
+                            try:
+                                generator.cancel()
+                            except Exception:
+                                pass
+                        elif hasattr(generator, 'stop'):
+                            try:
+                                generator.stop()
+                            except Exception:
+                                pass
                         ctx.msg_id = None
                         stopped = True
                         break
@@ -239,7 +254,6 @@ class StreamWorker(QRunnable):
                         elif etype == "response.image_generation_call.partial_image":
                             image_base64 = chunk.partial_image_b64
                             image_bytes = base64.b64decode(image_base64)
-                            # prosty i bezpieczny overwrite (jak w oryginale)
                             with open(img_path, "wb") as f:
                                 f.write(image_bytes)
                             is_image = True
@@ -249,7 +263,6 @@ class StreamWorker(QRunnable):
                             ctx.msg_id = str(chunk.response.id)
                             core.ctx.update_item(ctx)
 
-                        # end/error etype – nic nie robimy
                         elif etype in {"response.done", "response.failed", "error"}:
                             pass
 
@@ -407,6 +420,14 @@ class Stream:
     ):
         """
         Asynchronous append of stream worker to the thread.
+
+        :param ctx: Context item
+        :param mode: Mode of operation (e.g., MODE_ASSISTANT)
+        :param is_response: Whether this is a response stream
+        :param reply: Reply identifier
+        :param internal: Whether this is an internal stream
+        :param context: Optional BridgeContext for additional context
+        :param extra: Additional data to pass to the stream
         """
         self.ctx = ctx
         self.mode = mode
@@ -430,6 +451,8 @@ class Stream:
     def handleEnd(self, ctx: CtxItem):
         """
         Slot for handling end of stream
+
+        :param ctx: Context item
         """
         self.window.controller.ui.update_tokens()
 
@@ -457,9 +480,19 @@ class Stream:
         self.worker = None
 
     def handleEvent(self, event):
+        """
+        Slot for handling stream events
+
+        :param event: RenderEvent
+        """
         self.window.dispatch(event)
 
     def handleError(self, error):
+        """
+        Slot for handling stream errors
+
+        :param error: Exception or error message
+        """
         self.window.core.debug.log(error)
         if self.is_response:
             if not isinstance(self.extra, dict):
@@ -475,4 +508,9 @@ class Stream:
             )
 
     def log(self, data: object):
+        """
+        Log data to the debug console
+
+        :param data: object to log
+        """
         self.window.core.debug.info(data)
