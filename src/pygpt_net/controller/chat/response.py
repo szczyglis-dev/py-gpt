@@ -171,8 +171,9 @@ class Response:
             if output and has_unclosed_code_tag(output):
                 ctx.output += "\n```"
             ctx.msg_id = None
-            self.window.core.ctx.add(ctx)  # store context to prevent current output from being lost
-            self.window.controller.ctx.prepare_name(ctx)  # summarize if not yet
+            if ctx.id is None:
+                self.window.core.ctx.add(ctx)  # store context to prevent current output from being lost
+                self.window.controller.ctx.prepare_name(ctx)  # summarize if not yet
 
             # finish render
             self.window.dispatch(AppEvent(AppEvent.CTX_END))  # app event
@@ -228,7 +229,8 @@ class Response:
         }
         event = RenderEvent(RenderEvent.INPUT_APPEND, data)
         self.window.dispatch(event)
-        self.window.core.ctx.add(ctx)
+        if ctx.id is None:
+            self.window.core.ctx.add(ctx)
         self.window.controller.ctx.update(
             reload=True,
             all=False,
