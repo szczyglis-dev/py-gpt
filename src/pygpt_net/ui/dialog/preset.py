@@ -168,9 +168,11 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.tool.function.label.all'] = HelpLabel(
             trans("preset.tool.function.tip.all"))
         self.window.ui.nodes['preset.tool.function.label.all'].setAlignment(Qt.AlignCenter)
+
         self.window.ui.nodes['preset.tool.function.label.assistant'] = HelpLabel(
             trans("preset.tool.function.tip.assistant"))
         self.window.ui.nodes['preset.tool.function.label.assistant'].setAlignment(Qt.AlignCenter)
+
         self.window.ui.nodes['preset.tool.function.label.agent_llama'] = HelpLabel(
             trans("preset.tool.function.tip.agent_llama"))
         self.window.ui.nodes['preset.tool.function.label.agent_llama'].setAlignment(Qt.AlignCenter)
@@ -185,7 +187,7 @@ class Preset(BaseConfigDialog):
         # agents - llama index
         agent_keys = [
             "idx",
-            "assistant_id",
+            # "assistant_id",
         ]
         agent_layout = QVBoxLayout()
         agent_layout.setContentsMargins(0, 0, 0, 0)
@@ -343,8 +345,9 @@ class Preset(BaseConfigDialog):
         prompt_layout.setContentsMargins(0, 10, 0, 10)
         prompt_widget = QWidget()
         prompt_widget.setLayout(prompt_layout)
-        self.window.ui.tabs['preset.editor.extra'] = QTabWidget()
+
         self.window.ui.nodes['preset.editor.extra'] = {}
+        self.window.ui.tabs['preset.editor.extra'] = QTabWidget()
         self.window.ui.tabs['preset.editor.extra'].addTab(
             prompt_widget,
             trans("preset.prompt"),
