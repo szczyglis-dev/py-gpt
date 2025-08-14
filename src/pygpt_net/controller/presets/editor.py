@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 03:00:00                  #
+# Updated Date: 2025.08.14 13:00:00                  #
 # ================================================== #
 
 import datetime
@@ -38,6 +38,13 @@ from pygpt_net.utils import trans
 from .experts import Experts
 
 class Editor:
+
+    TAB_IDX = {
+        "general": 0,
+        "personalize": 1,
+        "experts": 2,
+    }
+
     def __init__(self, window=None):
         """
         Presets editor controller
@@ -778,6 +785,7 @@ class Editor:
         # load extra options
         self.load_extra_options(data)
 
+        # toggle extra options
         self.toggle_extra_options()
 
         # update experts list, after ID loaded
@@ -1183,3 +1191,23 @@ class Editor:
             option=self.options["ai_avatar"],
             value="",
         )
+
+    def toggle_tab(self, name: str, show: bool = True):
+        """
+        Show experts tab
+
+        :param name: name of the tab
+        :param show: Show or hide experts tab
+        """
+        tabs = self.window.ui.tabs['preset.editor.tabs']
+        idx = self.TAB_IDX[name]
+        if tabs is not None:
+            if show:
+                tabs.setTabEnabled(idx, True)
+                tabs.setTabVisible(idx, True)
+                self.window.ui.nodes['preset.experts.label'].setVisible(True)
+                self.experts.update_tab()
+            else:
+                tabs.setTabEnabled(idx, False)
+                tabs.setTabVisible(idx, False)
+                self.window.ui.nodes['preset.experts.label'].setVisible(False)

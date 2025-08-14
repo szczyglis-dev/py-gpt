@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 19:00:00                  #
+# Updated Date: 2025.08.14 13:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -288,16 +288,15 @@ class Preset(BaseConfigDialog):
 
         func_rows = QVBoxLayout()
         func_rows.addWidget(self.window.ui.nodes['preset.editor.functions'])
-        func_rows.addWidget(self.window.ui.nodes['preset.editor.experts'])
         func_rows.addWidget(self.window.ui.nodes['preset.editor.agent_llama'])
-        #func_rows.addStretch()
+        # func_rows.addStretch()
         func_rows.addWidget(func_tip_widget)
 
         func_rows.setContentsMargins(0, 0, 0, 0)
         func_widget = QWidget()
         func_widget.setLayout(func_rows)
-        #func_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        #self.window.ui.nodes['preset.editor.functions'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # func_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # self.window.ui.nodes['preset.editor.functions'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.window.ui.nodes['preset.editor.experts'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         main = QHBoxLayout()
@@ -313,17 +312,24 @@ class Preset(BaseConfigDialog):
         self.window.ui.splitters['editor.presets'].addWidget(widget_prompt)
         self.window.ui.splitters['editor.presets'].setStretchFactor(0, 1)
         self.window.ui.splitters['editor.presets'].setStretchFactor(1, 2)
-        #self.window.ui.splitters['editor.presets'].setChildrenCollapsible(False)
+        # self.window.ui.splitters['editor.presets'].setChildrenCollapsible(False)
 
         widget_personalize = QWidget()
         widget_personalize.setLayout(personalize_rows)
 
-        tabs = QTabWidget()
-        tabs.addTab(self.window.ui.splitters['editor.presets'], trans("preset.tab.general"))
-        tabs.addTab(widget_personalize, trans("preset.tab.personalize"))
+        experts_rows = QVBoxLayout()
+        experts_rows.addWidget(self.window.ui.nodes['preset.editor.experts'])
+
+        widget_experts = QWidget()
+        widget_experts.setLayout(experts_rows)
+
+        self.window.ui.tabs['preset.editor.tabs'] = QTabWidget()
+        self.window.ui.tabs['preset.editor.tabs'].addTab(self.window.ui.splitters['editor.presets'], trans("preset.tab.general"))
+        self.window.ui.tabs['preset.editor.tabs'].addTab(widget_personalize, trans("preset.tab.personalize"))
+        self.window.ui.tabs['preset.editor.tabs'].addTab(widget_experts, trans("preset.tab.experts"))
 
         layout = QVBoxLayout()
-        layout.addWidget(tabs)
+        layout.addWidget(self.window.ui.tabs['preset.editor.tabs'])
         layout.addLayout(footer)
 
         self.window.ui.dialog['editor.' + self.dialog_id] = EditorDialog(self.window, self.dialog_id)

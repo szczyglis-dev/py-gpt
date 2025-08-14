@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.14 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
     MODE_EXPERT,
 )
+from pygpt_net.utils import trans
+
 
 class Experts:
     def __init__(self, window=None):
@@ -73,6 +75,8 @@ class Experts:
         else:
             # clear selected list if no agent is selected
             self.window.ui.nodes['preset.editor.experts'].update_selected({})
+
+        self.update_tab()
 
     def change_available(self):
         """Change selected expert"""
@@ -156,4 +160,19 @@ class Experts:
             return
         self.window.core.presets.remove_expert(agent_uuid, expert_uuid)
         self.update_list()
+
+    def update_tab(self):
+        """Update experts tab label with number of experts"""
+        num = 0
+        agent_uuid = self.get_current_agent_id()
+        if agent_uuid:
+            agent = self.window.core.presets.get_by_uuid(agent_uuid)
+            if agent:
+                num = len(agent.experts)
+        tabs = self.window.ui.tabs['preset.editor.tabs']
+        idx = self.window.controller.presets.editor.TAB_IDX["experts"]
+        if num == 0:
+            tabs.setTabText(idx, trans("preset.tab.experts"))
+        else:
+            tabs.setTabText(idx, trans("preset.tab.experts") + f" ({num})")
 

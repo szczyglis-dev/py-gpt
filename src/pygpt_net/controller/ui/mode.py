@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 19:00:00                  #
+# Updated Date: 2025.08.14 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -93,48 +93,48 @@ class Mode:
 
         # presets: editor
         if mode == MODE_AGENT:
+            self.window.controller.presets.editor.toggle_tab("experts", True)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
-            self.window.ui.nodes['preset.editor.experts'].setVisible(True)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent"))
             # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent"))
             self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
         elif mode == MODE_AGENT_LLAMA:
+            self.window.controller.presets.editor.toggle_tab("experts", False)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(True)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
-            self.window.ui.nodes['preset.editor.experts'].setVisible(False)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
             # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent_llama"))
             self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
         elif mode == MODE_AGENT_OPENAI:
+            self.window.controller.presets.editor.toggle_tab("experts", True)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
-            self.window.ui.nodes['preset.editor.experts'].setVisible(True)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
             # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent_llama"))
             self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
         else:
+            self.window.controller.presets.editor.toggle_tab("experts", False)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(True)
-            self.window.ui.nodes['preset.editor.experts'].setVisible(False)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
             # self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt"))
             self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
