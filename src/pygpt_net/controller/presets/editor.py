@@ -594,6 +594,7 @@ class Editor:
                         checkboxLayout.addLayout(opt_layout)
                     else:
                         layout.addLayout(opt_layout)
+                layout.addStretch(1)
                 layout.addLayout(checkboxLayout)
 
                 # as tab
@@ -954,16 +955,9 @@ class Editor:
         # sort by name
         self.window.core.presets.sort_by_name()
 
-        # switch to editing preset, if new
-        if is_new:
-            self.window.controller.presets.set(mode, id)
-            self.window.controller.presets.select_model()
-        else:
-            # switch to model if current preset
-            current_preset = self.window.core.config.get('preset')
-            if current_preset is not None and current_preset == id:
-                self.window.controller.presets.set(mode, current_preset)
-                self.window.controller.presets.select_model()
+        # switch to editing preset on save
+        self.window.controller.presets.set(mode, id)
+        self.window.controller.presets.select_model()
 
         # update presets list
         no_scroll = False
