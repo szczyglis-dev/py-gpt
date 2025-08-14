@@ -81,7 +81,7 @@ class QueryEvent(StartEvent):
 
 
 class FinalEvent(StopEvent):
-    result: str = ""
+    pass
 
 
 def _safe_tool_name(t: BaseTool) -> str:
