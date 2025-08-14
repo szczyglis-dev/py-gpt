@@ -66,6 +66,7 @@ def make_window():
 
 class DummyCtx:
     def __init__(self):
+        self.id = None
         self.current = True
         self.output = ""
         self.msg_id = "mid"
