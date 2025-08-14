@@ -1,4 +1,13 @@
-# worker.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2025.08.15 00:00:00                  #
+# ================================================== #
 
 from __future__ import annotations
 
@@ -11,7 +20,7 @@ import random
 import socket
 import threading
 import time
-import webbrowser
+
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode, urlparse, parse_qs
 
@@ -358,7 +367,7 @@ class Worker(BaseWorker):
 
         try:
             if bool(self.plugin.get_option_value("oauth_open_browser") or True):
-                webbrowser.open(auth_url)
+                self.plugin.open_url(auth_url)
         except Exception:
             pass
 
@@ -388,7 +397,7 @@ class Worker(BaseWorker):
 
         if bool(self.plugin.get_option_value("oauth_open_browser") or True):
             try:
-                webbrowser.open(auth_url)
+                self.plugin.open_url(auth_url)
             except Exception:
                 pass
 
@@ -413,7 +422,7 @@ class Worker(BaseWorker):
         auth_url = self._build_auth_url(state, effective_redirect)
         if bool(self.plugin.get_option_value("oauth_open_browser") or True):
             try:
-                webbrowser.open(auth_url)
+                self.plugin.open_url(auth_url)
             except Exception:
                 pass
         return self.make_response(item, {"authorize_url": auth_url, "redirect_uri": effective_redirect, "state": state})
