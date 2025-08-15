@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -244,6 +244,19 @@ class Ctx:
         """Clean memory"""
         self.window.core.gpt.close()  # clear gpt client
 
+    def new_in_group(
+            self,
+            group_id: Optional[int] = None,
+            force: bool = False
+    ):
+        """
+        Create new ctx in group
+
+        :param group_id: group ID
+        :param force: force context creation
+        """
+        QTimer.singleShot(10, lambda: self.new(force, group_id))
+
     def new(
             self,
             force: bool = False,
@@ -330,6 +343,7 @@ class Ctx:
         self.window.ui.contexts.ctx_list.update(
             'ctx.list',
             self.window.core.ctx.get_meta(reload),
+            expand=False,
         )
 
     def refresh(self, restore_model: bool = True):
@@ -948,7 +962,10 @@ class Ctx:
         self.window.core.ctx.update_meta_group_id(meta_id, group_id)
         self.group_id = group_id
         if update:
-            self.update(no_scroll=True)
+            QTimer.singleShot(
+                100,
+                lambda: self.update()
+            )
 
     def remove_from_group(self, meta_id):
         """
@@ -958,7 +975,10 @@ class Ctx:
         """
         self.window.core.ctx.update_meta_group_id(meta_id, None)
         self.group_id = None
-        self.update(no_scroll=True)
+        QTimer.singleShot(
+            100,
+            lambda: self.update(no_scroll=True)
+        )
 
     def new_group(
             self,
@@ -1001,7 +1021,7 @@ class Ctx:
                 "Group '{}' created.".format(name)
             )
             self.window.ui.dialog['create'].close()
-            self.select_group(id)
+            # self.select_group(id)
             self.group_id = id
 
     def rename_group(
