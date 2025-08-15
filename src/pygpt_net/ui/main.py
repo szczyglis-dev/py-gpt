@@ -6,13 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
-import copy
 import os
 
-from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory
 from PySide6.QtGui import QShortcut, QKeySequence
 from qasync import QApplication
@@ -75,7 +73,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.handle_engine_args()
 
         # setup thread pool
-        self.threadpool = QThreadPool()
+        self.threadpool = QThreadPool.globalInstance()
 
         # setup controller
         self.controller = Controller(self)
@@ -114,8 +112,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # disable/enable logging web engine context
         if not render_debug:
-            log = QLoggingCategory("qt.webenginecontext")
-            log.setFilterRules("*.info=false")
+            QLoggingCategory.setFilterRules("*.info=false")
         else:
             os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --log-level=0"
 
@@ -208,13 +205,16 @@ class MainWindow(QMainWindow, QtStyleTools):
     def post_setup(self):
         """Called after setup"""
         self.controller.layout.post_setup()
-        self.timer = QTimer()
+        self.timer = QTimer(self)
+        self.timer.setTimerType(Qt.PreciseTimer)
         self.timer.timeout.connect(self.update)
         self.timer.start(self.timer_interval)
-        self.post_timer = QTimer()
+        self.post_timer = QTimer(self)
+        self.post_timer.setTimerType(Qt.VeryCoarseTimer)
         self.post_timer.timeout.connect(self.post_update)
         self.post_timer.start(self.post_timer_interval)
-        self.update_timer = QTimer()
+        self.update_timer = QTimer(self)
+        self.update_timer.setTimerType(Qt.VeryCoarseTimer)
         self.update_timer.timeout.connect(self.core.updater.run_check)
         self.update_timer.start(self.update_timer_interval)
         self.logger_message.connect(self.controller.debug.handle_log)
@@ -232,10 +232,12 @@ class MainWindow(QMainWindow, QtStyleTools):
         if self.is_post_update:
             return
         self.is_post_update = True
-        self.controller.debug.on_post_update()
-        self.controller.plugins.on_post_update()
-        self.tools.on_post_update()
-        self.is_post_update = False
+        try:
+            self.controller.debug.on_post_update()
+            self.controller.plugins.on_post_update()
+            self.tools.on_post_update()
+        finally:
+            self.is_post_update = False
 
     @Slot(str)
     def update_status(self, message: str = ""):
@@ -253,6 +255,8 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param state: state
         """
+        if state == self.state:
+            return
         self.state = state
         self.ui.tray.set_icon(state)
 
@@ -308,9 +312,18 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Saving layout state...")
         self.controller.layout.save()
         print("Stopping timers...")
-        self.timer.stop()
-        self.post_timer.stop()
-        self.update_timer.stop()
+        if self.timer is not None:
+            self.timer.stop()
+            self.timer.deleteLater()
+            self.timer = None
+        if self.post_timer is not None:
+            self.post_timer.stop()
+            self.post_timer.deleteLater()
+            self.post_timer = None
+        if self.update_timer is not None:
+            self.update_timer.stop()
+            self.update_timer.deleteLater()
+            self.update_timer = None
         print("Saving config...")
         self.core.config.save()
         print("Saving presets...")
@@ -355,7 +368,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def restore(self):
         """Restore window"""
-        if self.prevState == Qt.WindowMaximized or self.windowState() == Qt.WindowMaximized:
+        if self.prevState == Qt.WindowMaximized or self.isMaximized():
             self.showMaximized()
         else:
             self.showNormal()
@@ -370,18 +383,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         # unregister existing shortcuts
         if hasattr(self, 'shortcuts'):
             for shortcut in self.shortcuts:
-                # disconnect signals
-                shortcut.activated.disconnect()
-                # disable the shortcut to prevent it from handling events
                 shortcut.setEnabled(False)
-                # remove the parent to break the QObject tree
-                shortcut.setParent(None)
-                # schedule the shortcut for deletion
                 shortcut.deleteLater()
-            # clear the list of shortcuts
             self.shortcuts.clear()
-            # process events to delete shortcuts immediately
-            QtWidgets.QApplication.processEvents()
         else:
             self.shortcuts = []
 
@@ -391,10 +395,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         escape_shortcut.activated.connect(self.controller.access.on_escape)
         self.shortcuts.append(escape_shortcut)
 
-        config = copy.deepcopy(self.core.config.get("access.shortcuts"))
+        config = self.core.config.get("access.shortcuts")
         if config is None:
             return
-            
+
         for shortcut_conf in config:
             key = shortcut_conf.get('key', '')
             key_modifier = shortcut_conf.get('key_modifier', '')

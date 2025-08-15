@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -150,7 +150,7 @@ class ContextList(BaseList):
             if hasattr(item, 'isFolder') and item.isFolder:
                 menu = QMenu(self)
                 a_new = menu.addAction(self._icons['add'], trans('action.ctx.new'))
-                a_new.triggered.connect(functools.partial(self.window.controller.ctx.new, force=False, group_id=id_value))
+                a_new.triggered.connect(functools.partial(self.window.controller.ctx.new_in_group, force=False, group_id=id_value))
                 a_rename = menu.addAction(self._icons['edit'], trans('action.rename'))
                 a_rename.triggered.connect(functools.partial(self.window.controller.ctx.rename_group, id_value))
                 a_delete = menu.addAction(self._icons['delete'], trans('action.group.delete.only'))

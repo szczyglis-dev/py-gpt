@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
 from typing import Optional
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, QSignalBlocker
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.tabs.tab import Tab
@@ -30,31 +30,27 @@ class Common:
         self.window = window
         self.summarizer = Summarizer(window)
 
+    def _update_ctx_no_scroll(self):
+        self.window.controller.ctx.update(no_scroll=True)
+
     def update_label_by_current(self):
         """Update ctx label from current ctx"""
         mode = self.window.core.ctx.get_mode()
-
-        # if no ctx mode then use current mode
         if mode is None:
             mode = self.window.core.config.get('mode')
 
         label = trans('mode.' + mode)
 
-        # append assistant name to ctx name label
         if mode == 'assistant':
-            id = self.window.core.ctx.get_assistant()
-            assistant = self.window.core.assistants.get_by_id(id)
+            assistants = self.window.core.assistants
+            assistant_id = self.window.core.ctx.get_assistant()
+            assistant = assistants.get_by_id(assistant_id) if assistant_id is not None else None
+            if assistant is None:
+                assistant_id = self.window.core.config.get('assistant')
+                assistant = assistants.get_by_id(assistant_id)
             if assistant is not None:
-                # get ctx assistant
-                label += ' (' + assistant.name + ')'
-            else:
-                # get current assistant
-                id = self.window.core.config.get('assistant')
-                assistant = self.window.core.assistants.get_by_id(id)
-                if assistant is not None:
-                    label += ' (' + assistant.name + ')'
+                label = f'{label} ({assistant.name})'
 
-        # update ctx label
         self.window.controller.ui.update_ctx_label(label)
 
     def update_label(
@@ -74,9 +70,7 @@ class Common:
         if mode == 'assistant' and assistant_id is not None:
             assistant = self.window.core.assistants.get_by_id(assistant_id)
             if assistant is not None:
-                label += ' (' + assistant.name + ')'
-
-        # update ctx label
+                label = f'{label} ({assistant.name})'
         self.window.controller.ui.update_ctx_label(label)
 
     def duplicate(self, meta_id: int):
@@ -87,11 +81,9 @@ class Common:
         """
         new_id = self.window.core.ctx.duplicate(meta_id)
         if new_id is not None:
-            self.window.core.attachments.context.duplicate(meta_id, new_id)  # copy attachments
-            self.window.update_status(
-                "Context duplicated, new ctx id: {}".format(new_id)
-            )
-            QTimer.singleShot(100, lambda:  self.window.controller.ctx.update(no_scroll=True))
+            self.window.core.attachments.context.duplicate(meta_id, new_id)
+            self.window.update_status(f"Context duplicated, new ctx id: {new_id}")
+            QTimer.singleShot(100, self._update_ctx_no_scroll)
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""
@@ -103,34 +95,42 @@ class Common:
 
         :param meta: CtxMeta instance
         """
-        data_id = None
-        title = None
-        if meta:
-            data_id = meta.id
-            title = meta.name
+        data_id = meta.id if meta else None
+        title = meta.name if meta else None
         self.window.controller.ui.tabs.focus_by_type(Tab.TAB_CHAT, data_id=data_id, title=title, meta=meta)
 
     def restore_display_filter(self):
         """Restore display filter"""
-        self.window.ui.nodes['filter.ctx.radio.all'].setChecked(False)
-        self.window.ui.nodes['filter.ctx.radio.pinned'].setChecked(False)
-        self.window.ui.nodes['filter.ctx.radio.indexed'].setChecked(False)
+        nodes = self.window.ui.nodes
+        all_radio = nodes['filter.ctx.radio.all']
+        pinned_radio = nodes['filter.ctx.radio.pinned']
+        indexed_radio = nodes['filter.ctx.radio.indexed']
+
+        try:
+            b1 = QSignalBlocker(all_radio)
+            b2 = QSignalBlocker(pinned_radio)
+            b3 = QSignalBlocker(indexed_radio)
+        except:
+            pass
+
+        all_radio.setChecked(False)
+        pinned_radio.setChecked(False)
+        indexed_radio.setChecked(False)
 
         if self.window.core.config.has('ctx.records.filter'):
-            filter = self.window.core.config.get('ctx.records.filter')
-            self.toggle_display_filter(filter)
+            filter_value = self.window.core.config.get('ctx.records.filter')
+            self.toggle_display_filter(filter_value)
 
-            if filter == 'pinned':
-                self.window.ui.nodes['filter.ctx.radio.pinned'].setChecked(True)
-            elif filter == 'indexed':
-                self.window.ui.nodes['filter.ctx.radio.indexed'].setChecked(True)
+            if filter_value == 'pinned':
+                pinned_radio.setChecked(True)
+            elif filter_value == 'indexed':
+                indexed_radio.setChecked(True)
             else:
-                self.window.ui.nodes['filter.ctx.radio.all'].setChecked(True)
+                all_radio.setChecked(True)
         else:
-            self.window.ui.nodes['filter.ctx.radio.all'].setChecked(True)
+            all_radio.setChecked(True)
             self.toggle_display_filter('all')
 
-        # restore filters labels
         self.restore_filters_labels()
 
     def restore_filters_labels(self):
@@ -146,17 +146,16 @@ class Common:
 
         :param filter: Filter
         """
-        filters = {}
         if filter == 'pinned':
-            filters['is_important'] = {
-                "mode": "=",
-                "value": 1,
+            filters = {
+                'is_important': {"mode": "=", "value": 1}
             }
         elif filter == 'indexed':
-            filters['indexed_ts'] = {
-                "mode": ">",
-                "value": 0,
+            filters = {
+                'indexed_ts': {"mode": ">", "value": 0}
             }
+        else:
+            filters = {}
 
         self.window.core.config.set("ctx.records.filter", filter)
         self.window.core.ctx.clear_tmp_meta()
@@ -169,7 +168,7 @@ class Common:
 
         :param id: context list idx
         """
-        value = "@" + str(id)
+        value = f"@{id}"
         self.window.controller.chat.common.append_to_input(value, separator=" ")
         QApplication.clipboard().setText(value)
 

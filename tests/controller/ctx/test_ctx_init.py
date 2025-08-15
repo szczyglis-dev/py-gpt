@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -176,7 +176,7 @@ def test_update_list(mock_window):
     mock_window.core.ctx.get_meta = MagicMock(return_value=meta)
 
     ctx.update_list()
-    mock_window.ui.contexts.ctx_list.update.assert_called_once_with('ctx.list', meta)
+    mock_window.ui.contexts.ctx_list.update.assert_called_once_with('ctx.list', meta, expand=False)
 
 
 def test_refresh(mock_window):

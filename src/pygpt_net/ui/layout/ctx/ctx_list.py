@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -73,12 +73,13 @@ class CtxList:
         """
         return QStandardItemModel(0, 1, parent)
 
-    def update(self, id, data):
+    def update(self, id, data, expand: bool = True):
         """
         Update ctx list
 
         :param id: ID of the list
         :param data: Data to update
+        :param expand: Whether to expand groups
         """
         node = self.window.ui.nodes[id]
         node.backup_selection()
@@ -90,12 +91,12 @@ class CtxList:
                 model.clear()
                 if self.window.core.config.get("ctx.records.folders.top"):
                     self.update_items_pinned(id, data)
-                    self.update_groups(id, data)
+                    self.update_groups(id, data, expand=expand)
                     self.update_items(id, data)
                 else:
                     self.update_items_pinned(id, data)
                     self.update_items(id, data)
-                    self.update_groups(id, data)
+                    self.update_groups(id, data, expand=expand)
             finally:
                 node.setUpdatesEnabled(True)
 
@@ -153,12 +154,13 @@ class CtxList:
                 model.appendRow(item)
                 i += 1
 
-    def update_groups(self, id, data):
+    def update_groups(self, id, data, expand: bool = True):
         """
         Update groups
 
         :param id: ID of the list
         :param data: Data to update
+        :param expand: Whether to expand groups
         """
         model = self.window.ui.models[id]
         groups = self.window.core.ctx.get_groups()
@@ -224,8 +226,10 @@ class CtxList:
 
             desired = group.id in node.expanded_items
             idx = group_item.index()
-            if node.isExpanded(idx) != desired:
+            if node.isExpanded(idx) != desired and expand:
                 node.setExpanded(idx, desired)
+            else:
+                node.setExpanded(idx, False)
 
     def count_in_group(self, group_id: int, data: dict) -> int:
         """
