@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.3** | build: **2025-08-15* | Python: **>=3.10, <3.14**
+Release: **2.6.4** | build: **2025-08-15** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4407,6 +4407,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.4 (2025-08-15)**
+
+- Fix: tool execution in OpenAI Agents.
+- Optimizations.
 
 **2.6.3 (2025-08-15)**
 

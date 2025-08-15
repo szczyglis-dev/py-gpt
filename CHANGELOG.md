@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.4 (2025-08-15)
+
+- Fix: tool execution in OpenAI Agents.
+- Optimizations.
+
 ## 2.6.3 (2025-08-15)
 
 - Optimized streaming and CPU usage.
