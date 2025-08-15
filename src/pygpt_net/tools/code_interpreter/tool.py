@@ -146,7 +146,6 @@ class CodeInterpreter(BaseTool):
 
     def on_reload(self):
         """On app profile reload"""
-        self.setup()
         self.reload_view()
 
     def reload_view(self):

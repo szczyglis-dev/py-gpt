@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 00:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
 import os
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, QTimer
 from PySide6.QtGui import QAction
 
 from pygpt_net.utils import trans
@@ -84,7 +84,7 @@ class Profile:
             self.window.controller.settings.workdir.update(
                 path,
                 force=True,
-                profile_name= profile['name']
+                profile_name=profile['name']
             )  # self.after_update() is called in update worker on success
         else:
             self.after_update(profile['name'])
@@ -224,7 +224,8 @@ class Profile:
             uuid = self.window.core.config.profile.add(name, path)
             self.window.update_status(trans("dialog.profile.status.created"))
             if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
-                self.switch(uuid, force=True)
+                QTimer.singleShot(100, lambda: self.after_create(uuid))
+                return
 
         elif mode == 'edit':
             # update profile
@@ -280,6 +281,17 @@ class Profile:
                 # self.switch(uuid, force=True)
 
         # close dialog and update list
+        self.window.ui.dialogs.close('profile.item')
+        self.update_menu()
+        self.update_list()
+
+    def after_create(self, uuid: str):
+        """
+        After profile creation
+
+        :param uuid: profile UUID
+        """
+        self.switch(uuid, force=True)
         self.window.ui.dialogs.close('profile.item')
         self.update_menu()
         self.update_list()
