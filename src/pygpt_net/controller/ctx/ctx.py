@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -49,31 +49,29 @@ class Ctx:
         self.common.restore_display_filter()  # load filters first
 
         # load ctx list
-        self.window.core.ctx.load_meta()
+        core = self.window.core
+        core.ctx.load_meta()
 
         # if no context yet then create one
-        if self.window.core.ctx.count_meta() == 0:
+        if core.ctx.count_meta() == 0:
             self.new()
         else:
-            # get last ctx from config
-            id = self.window.core.config.get('ctx')
-            if id is not None and self.window.core.ctx.has(id):
-                self.window.core.ctx.set_current(id)
+            id = core.config.get('ctx')
+            if id is not None and core.ctx.has(id):
+                core.ctx.set_current(id)
             else:
-                # if no ctx then get first ctx
-                self.window.core.ctx.set_current(self.window.core.ctx.get_first())
+                core.ctx.set_current(core.ctx.get_first())
 
         # restore search string if exists
         if self.window.core.config.has("ctx.search.string"):
             string = self.window.core.config.get("ctx.search.string")
-            if string is not None and string != "":
+            if string:
                 self.window.ui.nodes['ctx.search'].setText(string)
                 self.search_string_change(string)
                 # check if current selected ctx is still valid
                 if self.window.core.ctx.get_current() is not None:
                     if not self.window.core.ctx.has(self.window.core.ctx.get_current()):
                         self.search_string_clear()
-                        # ^ clear search and reload ctx list to prevent creating new ctx
 
         self.window.ui.nodes['ctx.list'].collapseAll()  # collapse all items at start
         self.restore_expanded_groups()  # restore expanded groups
@@ -81,7 +79,6 @@ class Ctx:
 
         # focus input after loading
         QTimer.singleShot(100, self.window.controller.chat.common.focus_input)
-
 
     def update_mode_in_current(self):
         """Update current ctx mode"""
@@ -91,7 +88,6 @@ class Ctx:
         if id is not None:
             meta = self.window.core.ctx.get_meta_by_id(id)
             if meta:
-                # update mode in current ctx
                 self.window.core.ctx.mode = mode
                 self.window.core.ctx.model = model
                 self.window.core.ctx.last_mode = mode
@@ -117,33 +113,27 @@ class Ctx:
         :param select: select current ctx
         :param no_scroll: do not scroll to selected item
         """
-        # reload ctx list items
         if reload:
             self.update_list(True)
 
-        # select current ctx on list
         if select:
-            if no_scroll:  # store scroll position
-                self.window.ui.nodes['ctx.list'].store_scroll_position()
+            nodes = self.window.ui.nodes
+            if no_scroll:
+                nodes['ctx.list'].store_scroll_position()
             self.select_by_current()
-            if no_scroll:  # restore scroll position
-                self.window.ui.nodes['ctx.list'].restore_scroll_position()
+            if no_scroll:
+                nodes['ctx.list'].restore_scroll_position()
 
-        # update all
         if all:
             self.window.controller.ui.update()
 
-        # append ctx and thread id (assistants API) to config
         id = self.window.core.ctx.get_current()
         if id is not None:
             self.window.core.config.set('ctx', id)
             self.window.core.config.set('assistant_thread', self.window.core.ctx.get_thread())
             self.window.core.config.save()
 
-        # update calendar ctx list
         self.window.controller.calendar.update(all=False)
-
-        # update additional context attachments
         self.window.controller.chat.attachment.update()
 
     def select(
@@ -164,12 +154,10 @@ class Ctx:
             self.load(id)
             self.window.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
         else:
-            # only update current group if defined
             if meta is not None:
                 self.set_group(meta.group_id)
 
         self.common.focus_chat(meta)
-        # update additional context attachments
         self.window.controller.chat.attachment.update()
         self.set_selected(id)
         self.clean_memory()  # clean memory
@@ -180,12 +168,13 @@ class Ctx:
 
         :param id: context meta id
         """
-        self.window.core.ctx.select(id, restore_model=True)
-        self.window.core.ctx.set_current(id)
+        ctx = self.window.core.ctx
+        ctx.select(id, restore_model=True)
+        ctx.set_current(id)
         self.update_list(True)
         self.select_by_current()
         self.reload_config(all=False)
-        self.update()
+        self.update(reload=False, all=True, select=False)
         self.set_selected(id)
 
     def select_by_idx(self, idx: int):
@@ -202,7 +191,6 @@ class Ctx:
 
         :param id: context index
         """
-        # lock if generating response is in progress
         if self.context_change_locked():
             return
 
@@ -267,18 +255,15 @@ class Ctx:
         :param force: force context creation
         :param group_id: group ID
         """
-        # lock if generating response is in progress
         if not force and self.context_change_locked():
             return
 
-        # use currently selected group if not defined
         if group_id is None:
             if self.group_id is not None and self.group_id > 0:
                 group_id = self.group_id
         else:
             self.group_id = group_id
 
-        # check if group exists
         if group_id is not None and not self.window.core.ctx.has_group(group_id):
             group_id = None
             self.group_id = None
@@ -289,11 +274,10 @@ class Ctx:
 
         self.fresh_output(meta)  # render reset
 
-        if not force:  # only if real click on new context button
+        if not force:
             self.window.controller.chat.common.unlock_input()
             self.window.controller.chat.common.focus_input()
 
-        # update context label
         mode = self.window.core.ctx.get_mode()
         assistant_id = None
         if mode == 'assistant':
@@ -303,17 +287,11 @@ class Ctx:
         self.common.update_label(mode, assistant_id)
         self.common.focus_chat(meta)
 
-        # update tab title
         if meta is not None:
             self.window.controller.ui.tabs.update_title_current(meta.name)
 
-        # app event
         self.window.dispatch(AppEvent(AppEvent.CTX_CREATED))
-
-        # switch to new context if non-chat tab
         self.select(meta.id)
-
-        # self.window.core.debug.mem("NEW")  # debug memory usage
         return meta
 
     def add(self, ctx: CtxItem):
@@ -367,7 +345,6 @@ class Ctx:
 
     def refresh_output(self):
         """Refresh output"""
-        # append ctx to output
         data = {
             "meta": self.window.core.ctx.get_current_meta(),
             "items": self.window.core.ctx.get_items(),
@@ -391,33 +368,26 @@ class Ctx:
         :param select_idx: select index on list after loading
         :param new_tab: open in new tab
         """
-        # if new_tab is True then first open new tab
         if new_tab:
             col_idx = self.window.controller.ui.tabs.column_idx
-            self.window.controller.ui.tabs.create_new_on_tab = False  # disable create new ctx on tab create
+            self.window.controller.ui.tabs.create_new_on_tab = False
             self.window.controller.ui.tabs.new_tab(col_idx)
 
-        # select ctx by id
-        self.window.core.ctx.clear_thread()  # reset thread id
+        self.window.core.ctx.clear_thread()
         self.window.core.ctx.select(id, restore_model=restore_model)
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is not None:
-            self.set_group(meta.group_id)  # set current group if defined
+            self.set_group(meta.group_id)
 
-        # reset appended data / prepare new ctx
         if meta is not None:
-            self.fresh_output(meta)  # render reset
+            self.fresh_output(meta)
 
         self.reload_config()
-
-        # reload ctx list and select current ctx on list, without reloading all
         self.update(reload=False, all=True)
 
-        # update tab title
         if meta is not None:
             self.window.controller.ui.tabs.on_load_ctx(meta)
 
-        # if select by Open on list
         if select_idx is not None:
             self.select(id)
             self.window.ui.nodes['ctx.list'].select_by_idx(select_idx)
@@ -431,12 +401,10 @@ class Ctx:
 
         :param id: context ID
         """
-        # select ctx by id
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is not None:
-            self.set_group(meta.group_id)  # set current group if defined
+            self.set_group(meta.group_id)
 
-        # reset appended data / prepare new ctx
         if meta is not None:
             data = {
                 "meta": meta,
@@ -445,11 +413,8 @@ class Ctx:
             self.window.dispatch(event)
 
         self.reload_config()
-
-        # reload ctx list and select current ctx on list, without reloading all
         self.update(reload=False, all=True)
 
-        # update tab title
         if meta is not None:
             self.window.controller.ui.tabs.on_load_ctx(meta)
 
@@ -459,65 +424,51 @@ class Ctx:
 
         :param all: reload all
         """
-        # get current settings stored in ctx
-        thread = self.window.core.ctx.get_thread()
-        mode = self.window.core.ctx.get_mode()
-        model = self.window.core.ctx.get_model()
-        assistant_id = self.window.core.ctx.get_assistant()
-        preset = self.window.core.ctx.get_preset()
+        ctx = self.window.core.ctx
+        ctrl = self.window.controller
 
-        # restore thread from ctx
+        thread = ctx.get_thread()
+        mode = ctx.get_mode()
+        model = ctx.get_model()
+        assistant_id = ctx.get_assistant()
+        preset = ctx.get_preset()
+
         self.window.core.config.set('assistant_thread', thread)
 
         if all:
-            # clear before output and append ctx to output
             self.refresh_output()
 
-        # switch mode to ctx mode
         if mode is not None:
-            self.window.controller.mode.set(mode)  # preset reset here
+            ctrl.mode.set(mode)
 
-            # switch preset to ctx preset
             if preset is not None:
-                self.window.controller.presets.set(mode, preset)
-                self.window.controller.presets.refresh()  # update presets only
+                ctrl.presets.set(mode, preset)
+                ctrl.presets.refresh()
 
-            # if ctx mode == assistant then switch assistant to ctx assistant
             if mode == 'assistant':
-                # if assistant defined then select it
                 if assistant_id is not None:
-                    self.window.controller.assistant.select_by_id(assistant_id)
+                    ctrl.assistant.select_by_id(assistant_id)
                 else:
-                    # if empty ctx assistant then get assistant from current selected
                     assistant_id = self.window.core.config.get('assistant')
-                self.window.controller.assistant.files.update()  # always update assistant files
+                ctrl.assistant.files.update()
 
-            # switch model to ctx model if model is defined in ctx and model is available for this mode
             if model is not None and self.window.core.models.has_model(mode, model):
-                self.window.controller.model.set(mode, model)
+                ctrl.model.set(mode, model)
 
-        # update current ctx label in UI
         self.common.update_label(mode, assistant_id)
 
     def update_ctx(self):
         """Update current ctx mode if allowed"""
         mode = self.window.core.config.get('mode')
-
         id = None
-        # update ctx mode only if current ctx is allowed for this mode
-        if self.window.core.ctx.is_allowed_for_mode(mode, False):  # do not check assistant match
+        if self.window.core.ctx.is_allowed_for_mode(mode, False):
             self.window.core.ctx.update()
-
-            # update current context label
             if mode == 'assistant':
                 if self.window.core.ctx.get_assistant() is not None:
-                    # get assistant id from ctx if defined in ctx
                     id = self.window.core.ctx.get_assistant()
                 else:
-                    # or get assistant id from current selected assistant
                     id = self.window.core.config.get('assistant')
 
-        # update ctx label
         self.common.update_label(mode, id)
 
     def delete(
@@ -539,28 +490,24 @@ class Ctx:
             )
             return
 
-        # delete data from indexes if exists
         try:
             self.delete_meta_from_idx(id)
         except Exception as e:
             self.window.core.debug.log(e)
             print("Error deleting ctx data from indexes", e)
 
-        # delete ctx items from db
         items = self.window.core.ctx.all()
-        self.window.core.history.remove_items(items)  # remove txt history items
+        self.window.core.history.remove_items(items)
         self.window.core.attachments.context.delete_by_meta_id(id)
-        self.window.core.ctx.remove(id)  # remove ctx from db
-        self.remove_selected(id)  # remove from selected list
+        self.window.core.ctx.remove(id)
+        self.remove_selected(id)
 
-        # reset current if current ctx deleted
         if self.window.core.ctx.get_current() == id:
             self.window.core.ctx.clear_current()
             event = RenderEvent(RenderEvent.CLEAR_OUTPUT)
             self.window.dispatch(event)
         self.update(no_scroll=True)
 
-        # update tab title
         self.window.controller.ui.tabs.update_title_current("...")
 
     def delete_meta_from_idx(self, id: int):
@@ -573,7 +520,6 @@ class Ctx:
         if meta is None:
             return
 
-        # check if ctx is indexed
         if meta.indexed is not None and meta.indexed > 0:
             for store_id in list(meta.indexes):
                 for idx in list(meta.indexes[store_id]):
@@ -615,14 +561,12 @@ class Ctx:
             )
             return
 
-        # truncate index db if exists
         try:
             self.window.core.idx.ctx.truncate()
         except Exception as e:
             self.window.core.debug.log(e)
             print("Error truncating ctx index db", e)
 
-        # truncate ctx and history
         self.group_id = None
         self.unselect()
         self.window.core.ctx.truncate()
@@ -646,14 +590,12 @@ class Ctx:
             )
             return
 
-        # truncate index db if exists
         try:
             self.window.core.idx.ctx.truncate()
         except Exception as e:
             self.window.core.debug.log(e)
             print("Error truncating ctx index db", e)
 
-        # truncate ctx and history
         self.group_id = None
         self.unselect()
         self.window.core.ctx.truncate()
@@ -728,7 +670,10 @@ class Ctx:
         if meta is not None:
             meta.label = label_id
             self.window.core.ctx.save(id)
-            self.update(no_scroll=True)
+            QTimer.singleShot(
+                100,
+                lambda: self.update(no_scroll=True)
+            )
 
     def update_name(
             self,
@@ -758,7 +703,6 @@ class Ctx:
         else:
             self.update(reload=True, all=False, no_scroll=True)
 
-        # update tab title
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is not None:
             if id == self.window.core.ctx.get_current():
@@ -786,12 +730,9 @@ class Ctx:
 
     def selection_change(self):
         """Select ctx on list change"""
-        # TODO: implement this
-        # idx = self.window.ui.nodes['ctx.list'].currentIndex().row()
-        # self.select(idx)
         selected_idx = self.window.ui.nodes['ctx.list'].currentIndex()
         if selected_idx.isValid():
-            id = self.window.core.ctx.get_id_by_idx(selected_idx.row())
+            _ = self.window.core.ctx.get_id_by_idx(selected_idx.row())
         self.window.ui.nodes['ctx.list'].lockSelection()
 
     def search_string_change(self, text: str):
@@ -808,7 +749,7 @@ class Ctx:
     def search_string_clear(self):
         """Search string clear"""
         self.window.ui.nodes['ctx.search'].clear()
-        self.search_string_change("")  # clear search
+        self.search_string_change("")
 
     def append_search_string(self, text: str):
         """
@@ -817,7 +758,7 @@ class Ctx:
         :param text: search string
         """
         self.window.ui.nodes['ctx.search'].setText(text)
-        self.search_string_change(text)  # make search
+        self.search_string_change(text)
 
     def label_filters_changed(self, labels: List[int]):
         """
@@ -837,7 +778,6 @@ class Ctx:
         :param ctx: CtxItem
         :param force: force update
         """
-        # if ctx is not initialized yet then summarize
         if not self.window.core.ctx.is_initialized() or force:
             self.summarizer.summarize(
                 self.window.core.ctx.get_current(),
@@ -859,9 +799,10 @@ class Ctx:
         :param id: ctx meta ID
         """
         index = self.get_child_index_by_id(id)
-        self.window.ui.nodes['ctx.list'].unlocked = True  # tmp allow change if locked (enable)
-        self.window.ui.nodes['ctx.list'].setCurrentIndex(index)
-        self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
+        nodes = self.window.ui.nodes
+        nodes['ctx.list'].unlocked = True
+        nodes['ctx.list'].setCurrentIndex(index)
+        nodes['ctx.list'].unlocked = False
 
     def find_index_by_id(
             self,
@@ -875,10 +816,11 @@ class Ctx:
         :param id: int
         :return: QModelIndex
         """
+        finder = self.find_index_by_id
         if hasattr(item, 'id') and item.id == id:
             return item.index()
         for row in range(item.rowCount()):
-            found_index = self.find_index_by_id(item.child(row), id)
+            found_index = finder(item.child(row), id)
             if found_index.isValid():
                 return found_index
         return QModelIndex()
@@ -895,10 +837,11 @@ class Ctx:
         :param id: int
         :return: QModelIndex
         """
+        finder = self.find_parent_index_by_id
         if hasattr(item, 'id') and hasattr(item, 'isFolder') and item.isFolder and item.id == id:
             return item.index()
         for row in range(item.rowCount()):
-            found_index = self.find_parent_index_by_id(item.child(row), id)
+            found_index = finder(item.child(row), id)
             if found_index.isValid():
                 return found_index
         return QModelIndex()
@@ -929,7 +872,6 @@ class Ctx:
         model = self.window.ui.models['ctx.list']
         parent_index = self.get_parent_index_by_id(parent_id)
         if not parent_index.isValid():
-            # no parent found
             return QModelIndex()
 
         parent_item = model.itemFromIndex(parent_index)
@@ -972,10 +914,8 @@ class Ctx:
         """
         Store expanded groups in ctx list
         """
-        expanded = []
-        for group_id in self.window.ui.nodes['ctx.list'].expanded_items:
-            expanded.append(group_id)
-        self.window.core.config.set('ctx.list.expanded', expanded)
+        items = self.window.ui.nodes['ctx.list'].expanded_items
+        self.window.core.config.set('ctx.list.expanded', list(items))
         self.window.core.config.save()
 
     def restore_expanded_groups(self):
@@ -984,8 +924,9 @@ class Ctx:
         """
         expanded = self.window.core.config.get('ctx.list.expanded')
         if expanded is not None:
+            nodes = self.window.ui.nodes
             for group_id in expanded:
-                self.window.ui.nodes['ctx.list'].expand_group(group_id)
+                nodes['ctx.list'].expand_group(group_id)
 
     def save_all(self):
         """Save visible ctx list items"""
@@ -1060,8 +1001,6 @@ class Ctx:
                 "Group '{}' created.".format(name)
             )
             self.window.ui.dialog['create'].close()
-
-            # select new group
             self.select_group(id)
             self.group_id = id
 
@@ -1132,9 +1071,10 @@ class Ctx:
         """
         self.group_id = id
         index = self.get_parent_index_by_id(id)
-        self.window.ui.nodes['ctx.list'].unlocked = True  # tmp allow change if locked (enable)
-        self.window.ui.nodes['ctx.list'].setCurrentIndex(index)
-        self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
+        nodes = self.window.ui.nodes
+        nodes['ctx.list'].unlocked = True
+        nodes['ctx.list'].setCurrentIndex(index)
+        nodes['ctx.list'].unlocked = False
 
     def delete_group(
             self,
@@ -1205,6 +1145,7 @@ class Ctx:
         """
         if id not in self.selected:
             self.selected.append(id)
+
     def remove_selected(self, id: int):
         """
         Remove selection ID from selected list
@@ -1234,8 +1175,7 @@ class Ctx:
 
     def clear_selected(self):
         """Clear selected list"""
-        self.selected = []
-
+        self.selected.clear()
 
     def fresh_output(self, meta: CtxMeta):
         """
@@ -1243,7 +1183,6 @@ class Ctx:
 
         :param meta: CtxItem
         """
-        # render reset
         data = {
             "meta": meta,
         }

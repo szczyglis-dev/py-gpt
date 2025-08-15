@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 import os
@@ -70,6 +70,7 @@ def test_handle_cmd_syntax(mock_window):
 
 def test_handle_cmd_execute_web_search(mock_window):
     """Test handle event: cmd.execute"""
+    mock_window.threadpool = MagicMock()
     plugin = Plugin(window=mock_window)
     provider = MagicMock()
     provider.name = "Google Custom Search"
@@ -104,6 +105,7 @@ def test_handle_cmd_execute_web_search(mock_window):
 
 def test_handle_cmd_execute_web_url_open(mock_window):
     """Test handle event: cmd.execute"""
+    mock_window.threadpool = MagicMock()
     plugin = Plugin(window=mock_window)
     provider = MagicMock()
     provider.name = "Google Custom Search"

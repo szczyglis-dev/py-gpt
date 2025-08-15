@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -32,10 +32,9 @@ class Settings:
     def setup(self):
         """Set up plugin settings"""
         idx = None
-        # restore previous selected or restored tab on dialog create
         if 'plugin.settings' in self.window.ui.tabs:
             idx = self.window.ui.tabs['plugin.settings'].currentIndex()
-        self.window.plugin_settings.setup(idx)  # widget dialog Plugins
+        self.window.plugin_settings.setup(idx)
 
     def toggle_editor(self):
         """Toggle plugin settings dialog"""
@@ -49,14 +48,15 @@ class Settings:
         if not self.config_initialized:
             self.setup()
             self.config_initialized = True
-        if not self.config_dialog:
-            self.init()
-            self.window.ui.dialogs.open(
-                'plugin_settings',
-                width=self.width,
-                height=self.height
-            )
-            self.config_dialog = True
+        if self.config_dialog:
+            return
+        self.init()
+        self.window.ui.dialogs.open(
+            'plugin_settings',
+            width=self.width,
+            height=self.height
+        )
+        self.config_dialog = True
 
     def open_plugin(self, id: str):
         """
@@ -69,20 +69,14 @@ class Settings:
 
     def init(self):
         """Initialize plugin settings options"""
-        # select the first plugin on list if no plugin selected yet
-        if self.current_plugin is None:
-            if len(self.window.core.plugins.plugins) > 0:
-                self.current_plugin = list(self.window.core.plugins.plugins.keys())[0]
-
-        # assign plugins options to config dialog fields
-        for id in self.window.core.plugins.plugins.keys():
-            plugin = self.window.core.plugins.plugins[id]
-            options = plugin.setup()  # get plugin options
-
-            # load and apply options to config dialog
-            self.window.controller.config.load_options('plugin.' + id, options)
-
-        self.window.controller.layout.restore_plugin_settings()  # restore previous selected plugin tab
+        plugins = self.window.core.plugins.plugins
+        if self.current_plugin is None and plugins:
+            self.current_plugin = next(iter(plugins))
+        cfg = self.window.controller.config
+        for pid, plugin in plugins.items():
+            options = plugin.setup()
+            cfg.load_options(f'plugin.{pid}', options)
+        self.window.controller.layout.restore_plugin_settings()
 
     def refresh_option(self, id: str, key: str):
         """
@@ -91,57 +85,55 @@ class Settings:
         :param id: plugin id
         :param key: option key
         """
-        if id not in self.window.core.plugins.plugins:
+        plugins = self.window.core.plugins.plugins
+        plugin = plugins.get(id)
+        if not plugin:
             return
-        if key not in self.window.core.plugins.plugins[id].options:
+        options = plugin.options
+        if key not in options:
             return
-        option = self.window.core.plugins.plugins[id].options[key]  # get option
-        self.window.controller.config.placeholder.apply(option)  # update keys in option
-        items = option["keys"] if "keys" in option else {}
+        option = options[key]
+        self.window.controller.config.placeholder.apply(option)
+        items = option.get("keys", {})
         self.window.controller.config.update_list(
             option=option,
-            parent_id='plugin.' + id,
+            parent_id=f'plugin.{id}',
             key=key,
             items=items,
         )
 
     def save(self):
         """Save plugin settings"""
-        for id in self.window.core.plugins.plugins.keys():
-            plugin = self.window.core.plugins.plugins[id]
-            options = plugin.setup()  # get plugin options
+        window = self.window
+        plugins = window.core.plugins.plugins
+        controller_cfg = window.controller.config
+        config_data = window.core.config.data
+        plugins_cfg = config_data.setdefault('plugins', {})
 
-            # add plugin to global config data if not exists
-            if id not in self.window.core.config.get('plugins'):
-                self.window.core.config.data['plugins'][id] = {}
-
-            # update config with new values
-            for key in options:
-                value = self.window.controller.config.get_value(
-                    parent_id='plugin.' + id, 
-                    key=key, 
-                    option=options[key],
+        for pid, plugin in plugins.items():
+            options = plugin.setup()
+            dst = plugins_cfg.setdefault(pid, {})
+            for key, opt in options.items():
+                value = controller_cfg.get_value(
+                    parent_id=f'plugin.{pid}',
+                    key=key,
+                    option=opt,
                 )
-                self.window.core.plugins.plugins[id].options[key]['value'] = value
-                self.window.core.config.data['plugins'][id][key] = value
+                plugin.options[key]['value'] = value
+                dst[key] = value
 
-            # remove key from config if plugin option not exists
-            for key in list(self.window.core.config.data['plugins'].keys()):
-                if key not in self.window.core.plugins.plugins:
-                    self.window.core.config.data['plugins'].pop(key)
+        stale = set(plugins_cfg.keys()) - set(plugins.keys())
+        for pid in stale:
+            plugins_cfg.pop(pid, None)
 
-        # save preset
-        self.window.controller.plugins.presets.save_current()
-
-        # save config
-        self.window.core.config.save()
+        window.controller.plugins.presets.save_current()
+        window.core.config.save()
         self.close()
-        self.window.update_status(trans('info.settings.saved'))
+        window.update_status(trans('info.settings.saved'))
 
-        # dispatch on update event
         event = Event(Event.PLUGIN_SETTINGS_CHANGED)
-        self.window.dispatch(event)
-        self.window.controller.ui.update_tokens()  # update tokens (if cmd syntax changed)
+        window.dispatch(event)
+        window.controller.ui.update_tokens()
 
     def close(self):
         """Close plugin settings dialog"""
@@ -157,15 +149,12 @@ class Settings:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                type='plugin.settings.defaults.user', 
+                type='plugin.settings.defaults.user',
                 id=-1,
                 msg=trans('dialog.plugin.settings.defaults.user.confirm'),
             )
             return
-
-        # reload settings window
         self.init()
-        # self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.user.result'))
 
     def load_defaults_app(self, force: bool = False):
         """
@@ -180,11 +169,7 @@ class Settings:
                 msg=trans('dialog.plugin.settings.defaults.app.confirm'),
             )
             return
-
-        # restore default options
         self.window.core.plugins.restore_options(self.current_plugin)
-
-        # reload settings window
         self.init()
         self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.app.result'))
 

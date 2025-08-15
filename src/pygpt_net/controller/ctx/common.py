@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from typing import Optional
 
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.tabs.tab import Tab
@@ -90,7 +91,7 @@ class Common:
             self.window.update_status(
                 "Context duplicated, new ctx id: {}".format(new_id)
             )
-            self.window.controller.ctx.update(no_scroll=True)
+            QTimer.singleShot(100, lambda:  self.window.controller.ctx.update(no_scroll=True))
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""

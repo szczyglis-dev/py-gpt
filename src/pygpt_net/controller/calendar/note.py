@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 import datetime
@@ -32,29 +32,47 @@ class Note:
         """Setup calendar notes"""
         self.counters_all = self.window.core.config.get("ctx.counters.all", True)
 
+    def _adjacent_months(self, year: int, month: int):
+        if month == 1:
+            py, pm = year - 1, 12
+        else:
+            py, pm = year, month - 1
+        if month == 12:
+            ny, nm = year + 1, 1
+        else:
+            ny, nm = year, month + 1
+        return (py, pm), (ny, nm)
+
     def update(self):
         """Update on content change"""
-        year = self.window.controller.calendar.selected_year
-        month = self.window.controller.calendar.selected_month
-        day = self.window.controller.calendar.selected_day
+        ctrl_cal = self.window.controller.calendar
+        year = ctrl_cal.selected_year
+        month = ctrl_cal.selected_month
+        day = ctrl_cal.selected_day
 
         if year is None or month is None or day is None:
             return
 
-        content = self.window.ui.calendar['note'].toPlainText()
-        note = self.window.core.calendar.get_by_date(year, month, day)
+        ui_note = self.window.ui.calendar['note']
+        content = ui_note.toPlainText()
+        cal = self.window.core.calendar
+        note = cal.get_by_date(year, month, day)
 
-        # update or create note
+        changed = False
         if note is None:
-            if content.strip() != "":
+            if content.strip():
                 note = self.create(year, month, day)
                 note.content = content
-                self.window.core.calendar.add(note)
+                cal.add(note)
+                changed = True
         else:
-            note.content = content
-            self.window.core.calendar.update(note)
+            if note.content != content:
+                note.content = content
+                cal.update(note)
+                changed = True
 
-        self.refresh_num(year, month)  # update note cells when note is changed
+        if changed:
+            self.refresh_num(year, month)
 
     def update_content(
             self,
@@ -69,13 +87,12 @@ class Note:
         :param month: month
         :param day: day
         """
+        ui_note = self.window.ui.calendar['note']
         note = self.window.core.calendar.get_by_date(year, month, day)
-        if note is None:
-            self.window.ui.calendar['note'].setPlainText("")
-            self.window.ui.calendar['note'].on_update()
-        else:
-            self.window.ui.calendar['note'].setPlainText(note.content)
-            self.window.ui.calendar['note'].on_update()
+        new_text = "" if note is None else note.content
+        if ui_note.toPlainText() != new_text:
+            ui_note.setPlainText(new_text)
+        ui_note.on_update()
 
     def update_label(
             self,
@@ -90,15 +107,13 @@ class Note:
         :param month: month
         :param day: day
         """
-        suffix = datetime.datetime(year, month, day).strftime("%Y-%m-%d")
-        self.window.ui.calendar['note.label'].setText(trans('calendar.note.label') + " (" + suffix + ")")
+        suffix = f"{year:04d}-{month:02d}-{day:02d}"
+        self.window.ui.calendar['note.label'].setText(f"{trans('calendar.note.label')} ({suffix})")
 
     def update_current(self):
         """Update label to current selected date"""
-        year = self.window.ui.calendar['select'].currentYear
-        month = self.window.ui.calendar['select'].currentMonth
-        day = self.window.ui.calendar['select'].currentDay
-        self.update_label(year, month, day)
+        select = self.window.ui.calendar['select']
+        self.update_label(select.currentYear, select.currentMonth, select.currentDay)
 
     def update_status(
             self,
@@ -115,16 +130,22 @@ class Note:
         :param month: month
         :param day: day
         """
-        note = self.window.core.calendar.get_by_date(year, month, day)
+        cal = self.window.core.calendar
+        note = cal.get_by_date(year, month, day)
+        changed = False
         if note is None:
             note = self.create(year, month, day)
             note.status = status
-            self.window.core.calendar.add(note)
+            cal.add(note)
+            changed = True
         else:
-            note.status = status
-            self.window.core.calendar.update(note)
+            if note.status != status:
+                note.status = status
+                cal.update(note)
+                changed = True
 
-        self.refresh_num(year, month)  # update note cells when note is changed
+        if changed:
+            self.refresh_num(year, month)
 
     def get_counts_around_month(
             self,
@@ -138,27 +159,12 @@ class Note:
         :param month: month
         :return: combined counters
         """
-        current_month_start = datetime.datetime(year, month, 1)
-        last_month_start = (current_month_start - datetime.timedelta(days=1)).replace(day=1)
-
-        if month == 12:
-            next_month_start = datetime.datetime(year + 1, 1, 1)
-        else:
-            next_month_start = datetime.datetime(year, month + 1, 1)
-
-        current = self.get_ctx_counters(
-            year,
-            month,
-        )
-        last = self.get_ctx_counters(
-            last_month_start.year,
-            last_month_start.month,
-        )
-        next = self.get_ctx_counters(
-            next_month_start.year,
-            next_month_start.month,
-        )
-        return {**last, **current, **next}  # combine counters
+        (ly, lm), (ny, nm) = self._adjacent_months(year, month)
+        result: Dict[str, int] = {}
+        result.update(self.get_ctx_counters(ly, lm))
+        result.update(self.get_ctx_counters(year, month))
+        result.update(self.get_ctx_counters(ny, nm))
+        return result
 
     def get_labels_counts_around_month(
             self,
@@ -172,27 +178,12 @@ class Note:
         :param month: month
         :return: combined counters
         """
-        current_month_start = datetime.datetime(year, month, 1)
-        last_month_start = (current_month_start - datetime.timedelta(days=1)).replace(day=1)
-
-        if month == 12:
-            next_month_start = datetime.datetime(year + 1, 1, 1)
-        else:
-            next_month_start = datetime.datetime(year, month + 1, 1)
-
-        current = self.get_ctx_labels_counters(
-            year,
-            month,
-        )
-        last = self.get_ctx_labels_counters(
-            last_month_start.year,
-            last_month_start.month,
-        )
-        next = self.get_ctx_labels_counters(
-            next_month_start.year,
-            next_month_start.month,
-        )
-        return {**last, **current, **next}  # combine counters
+        (ly, lm), (ny, nm) = self._adjacent_months(year, month)
+        result: Dict[str, Dict[int, int]] = {}
+        result.update(self.get_ctx_labels_counters(ly, lm))
+        result.update(self.get_ctx_labels_counters(year, month))
+        result.update(self.get_ctx_labels_counters(ny, nm))
+        return result
 
     def get_ctx_counters(
             self,
@@ -206,18 +197,17 @@ class Note:
         :param month: month
         :return: ctx counters
         """
-        # default values (no filters)
-        search_string = None
-        search_content = False
-        filters = None
+        ctx = self.window.core.ctx
+        if self.counters_all:
+            search_string = None
+            search_content = False
+            filters = None
+        else:
+            search_string = ctx.get_search_string()
+            search_content = ctx.is_search_content()
+            filters = ctx.get_parsed_filters()
 
-        # + filters
-        if not self.counters_all:
-            search_string = self.window.core.ctx.get_search_string()
-            search_content = self.window.core.ctx.is_search_content()
-            filters = self.window.core.ctx.get_parsed_filters()
-
-        return self.window.core.ctx.provider.get_ctx_count_by_day(
+        return ctx.provider.get_ctx_count_by_day(
             year=year,
             month=month,
             day=None,
@@ -238,18 +228,17 @@ class Note:
         :param month: month
         :return: ctx counters
         """
-        # default values (no filters)
-        search_string = None
-        search_content = False
-        filters = None
+        ctx = self.window.core.ctx
+        if self.counters_all:
+            search_string = None
+            search_content = False
+            filters = None
+        else:
+            search_string = ctx.get_search_string()
+            search_content = ctx.is_search_content()
+            filters = ctx.get_parsed_filters()
 
-        # + filters
-        if not self.counters_all:
-            search_string = self.window.core.ctx.get_search_string()
-            search_content = self.window.core.ctx.is_search_content()
-            filters = self.window.core.ctx.get_parsed_filters()
-
-        return self.window.core.ctx.provider.get_ctx_labels_count_by_day(
+        return ctx.provider.get_ctx_labels_count_by_day(
             year=year,
             month=month,
             day=None,
@@ -305,26 +294,13 @@ class Note:
         :param month: month
         :return: combined notes existence
         """
-        current_month_start = datetime.datetime(year, month, 1)
-        last_month_start = (current_month_start - datetime.timedelta(days=1)).replace(day=1)
-        if month == 12:
-            next_month_start = datetime.datetime(year + 1, 1, 1)
-        else:
-            next_month_start = datetime.datetime(year, month + 1, 1)
-
-        current = self.window.core.calendar.get_notes_existence_by_day(
-            year,
-            month,
-        )
-        last = self.window.core.calendar.get_notes_existence_by_day(
-            last_month_start.year,
-            last_month_start.month,
-        )
-        next = self.window.core.calendar.get_notes_existence_by_day(
-            next_month_start.year,
-            next_month_start.month,
-        )
-        return {**last, **current, **next}  # combine notes existence
+        (ly, lm), (ny, nm) = self._adjacent_months(year, month)
+        cal = self.window.core.calendar
+        result: Dict[str, Dict[int, int]] = {}
+        result.update(cal.get_notes_existence_by_day(ly, lm))
+        result.update(cal.get_notes_existence_by_day(year, month))
+        result.update(cal.get_notes_existence_by_day(ny, nm))
+        return result
 
     def refresh_num(self, year: int, month: int):
         """
@@ -342,6 +318,8 @@ class Note:
 
         :param state: state
         """
+        if self.counters_all == state:
+            return
         self.counters_all = state
         self.window.core.config.set("ctx.counters.all", state)
         self.window.core.config.save()
@@ -355,17 +333,14 @@ class Note:
         """
         dt = ""  # TODO: add to config append date/time
         # dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ":\n--------------------------\n"
-        prev_text = self.window.ui.calendar['note'].toPlainText()
-        if prev_text != "":
-            prev_text += "\n\n"
-        new_text = prev_text + dt + text.strip()
-        self.window.ui.calendar['note'].setText(new_text)
-        self.update()
-
-        # move cursor to end
-        cursor = self.window.ui.calendar['note'].textCursor()
+        editor = self.window.ui.calendar['note']
+        cursor = editor.textCursor()
         cursor.movePosition(QTextCursor.End)
-        self.window.ui.calendar['note'].setTextCursor(cursor)
+        if not editor.document().isEmpty():
+            cursor.insertText("\n\n")
+        cursor.insertText(dt + text.strip())
+        editor.setTextCursor(cursor)
+        self.update()
 
     def clear_note(self):
         """Clear note"""

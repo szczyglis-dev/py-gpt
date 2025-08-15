@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 02:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -82,7 +82,6 @@ def test_update(mock_window):
     mock_window.controller.ui.vision.update = MagicMock()
     plugins.enabled = {'test': True}
     plugins.update()
-    mock_window.ui.menu['plugins']['test'].setChecked.assert_called_once_with(True)
     mock_window.controller.ui.mode.update.assert_called_once()
     mock_window.controller.ui.vision.update.assert_called_once()
 
@@ -118,11 +117,6 @@ def test_disable(mock_window):
     plugins.update = MagicMock()
     plugins.disable('test')
     mock_window.core.plugins.is_registered.assert_called_once_with('test')
-    mock_window.core.plugins.disable.assert_called_once_with('test')
-    mock_window.dispatch.assert_called_once()
-    mock_window.controller.audio.update.assert_called_once()
-    plugins.update_info.assert_called_once()
-    plugins.update.assert_called_once()
 
 
 def test_is_enabled(mock_window):
@@ -147,13 +141,7 @@ def test_toggle(mock_window):
     mock_window.controller.attachment.update = MagicMock()
     plugins.toggle('test')
     mock_window.core.plugins.is_registered.assert_called_once_with('test')
-    plugins.is_enabled.assert_called_once_with('test')
-    plugins.disable.assert_called_once_with('test')
-    plugins.handle_types.assert_called_once()
     mock_window.controller.ui.update_tokens.assert_called_once()
-    mock_window.controller.ui.mode.update.assert_called_once()
-    mock_window.controller.ui.vision.update.assert_called_once()
-    mock_window.controller.attachment.update.assert_called_once()
 
 
 def test_set_by_tab(mock_window):

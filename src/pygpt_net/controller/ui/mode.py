@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
 # This file is a part of PYGPT package               #
@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 13:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -121,7 +121,6 @@ class Mode:
 
             self.window.controller.presets.editor.toggle_tab("experts", False)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
-            self.window.ui.nodes['preset.editor.idx'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(True)
             self.window.ui.tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))

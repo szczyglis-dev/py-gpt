@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any
@@ -34,6 +34,17 @@ class Plugins:
         self.settings = Settings(window)
         self.presets = Presets(window)
         self.enabled = {}
+        self._suspend_updates = 0
+
+    def _begin_batch(self):
+        self._suspend_updates += 1
+
+    def _end_batch(self):
+        if self._suspend_updates > 0:
+            self._suspend_updates -= 1
+        if self._suspend_updates == 0:
+            self.update_info()
+            self.update()
 
     def setup(self):
         """Set up plugins"""
@@ -41,12 +52,12 @@ class Plugins:
         self.setup_ui()
 
         try:
-            self.window.core.plugins.clean_presets()  # clean presets (remove invalid keys)
+            self.window.core.plugins.clean_presets()
         except Exception as e:
             self.window.core.debug.error(e)
 
-        self.presets.preset_to_current()  # load from presets
-        self.reconfigure(silent=True)  # load plugins settings
+        self.presets.preset_to_current()
+        self.reconfigure(silent=True)
 
     def reconfigure(self, silent: bool = False):
         """
@@ -60,31 +71,30 @@ class Plugins:
 
     def setup_ui(self):
         """Set up plugins UI"""
-        for id in self.window.core.plugins.get_ids():
-            try:
-                # setup UI
-                self.window.core.plugins.get(id).setup_ui()
-            except AttributeError:
-                pass
+        pm = self.window.core.plugins
+        for pid in pm.get_ids():
+            plugin = pm.get(pid)
+            fn = getattr(plugin, "setup_ui", None)
+            if callable(fn):
+                fn()
 
-        # show/hide UI elements
         self.handle_types()
-
-        # tmp dump locales
-        # self.window.core.plugins.dump_locales()
 
     def setup_menu(self):
         """Set up plugins menu"""
-        for id in self.window.core.plugins.get_ids():
-            if id in self.window.ui.menu['plugins']:
+        pm = self.window.core.plugins
+        ui_menu = self.window.ui.menu
+        menu_plugins = ui_menu['plugins']
+        for pid in pm.get_ids():
+            if pid in menu_plugins:
                 continue
-            name = self.window.core.plugins.get_name(id)
-            tooltip = self.window.core.plugins.get_desc(id)
-            self.window.ui.menu['plugins'][id] = QAction(name, self.window, checkable=True)
-            self.window.ui.menu['plugins'][id].triggered.connect(
-                lambda checked=None, id=id: self.toggle(id))
-            self.window.ui.menu['plugins'][id].setToolTip(tooltip)
-            self.window.ui.menu['menu.plugins'].addAction(self.window.ui.menu['plugins'][id])
+            name = pm.get_name(pid)
+            tooltip = pm.get_desc(pid)
+            act = QAction(name, self.window, checkable=True)
+            act.triggered.connect(lambda checked=None, id=pid: self.toggle(id))
+            act.setToolTip(tooltip)
+            menu_plugins[pid] = act
+            ui_menu['menu.plugins'].addAction(act)
 
     def setup_config(self, silent: bool = False):
         """
@@ -92,27 +102,31 @@ class Plugins:
 
         :param silent: silent mode
         """
-        for id in self.window.core.plugins.get_ids():
-            if id in self.window.core.config.get('plugins_enabled'):
-                if self.window.core.config.data['plugins_enabled'][id]:
-                    self.enable(id)
+        pm = self.window.core.plugins
+        cfg = self.window.core.config
+        cfg_enabled = cfg.get('plugins_enabled')
+        self._begin_batch()
+        try:
+            for pid in pm.get_ids():
+                if pid in cfg_enabled:
+                    if cfg.data['plugins_enabled'][pid]:
+                        self.enable(pid)
+                    else:
+                        self.disable(pid, silent=silent)
                 else:
-                    self.disable(id, silent=silent)
-            else:
-                self.disable(id, silent=silent)
+                    self.disable(pid, silent=silent)
+        finally:
+            self._end_batch()
 
     def update(self):
         """Update plugins menu"""
-        for id in self.window.ui.menu['plugins']:
-            self.window.ui.menu['plugins'][id].setChecked(False)
-
-        for id in self.enabled:
-            if self.enabled[id]:
-                self.window.ui.menu['plugins'][id].setChecked(True)
+        menu_plugins = self.window.ui.menu['plugins']
+        for pid, action in menu_plugins.items():
+            action.setChecked(self.enabled.get(pid, False))
 
         self.handle_types()
-        self.window.controller.ui.mode.update()  # refresh active elements
-        self.window.controller.ui.vision.update()  # vision camera
+        self.window.controller.ui.mode.update()
+        self.window.controller.ui.vision.update()
 
     def enable(self, id: str):
         """
@@ -120,22 +134,24 @@ class Plugins:
 
         :param id: plugin id
         """
-        if self.window.core.plugins.is_registered(id):
-            self.enabled[id] = True
-            self.window.core.plugins.enable(id)
+        pm = self.window.core.plugins
+        if not pm.is_registered(id):
+            return
+        if self.enabled.get(id, False):
+            return
 
-            # dispatch plugin enable event
-            event = Event(Event.ENABLE, {
-                'value': id,
-            })
-            self.window.dispatch(event)
+        self.enabled[id] = True
+        pm.enable(id)
 
-            # update audio menu
-            if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
-                self.window.controller.audio.update()
+        event = Event(Event.ENABLE, {'value': id})
+        self.window.dispatch(event)
 
-        self.update_info()
-        self.update()
+        if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
+            self.window.controller.audio.update()
+
+        if self._suspend_updates == 0:
+            self.update_info()
+            self.update()
 
     def disable(self, id: str, silent: bool = False):
         """
@@ -144,25 +160,26 @@ class Plugins:
         :param id: plugin id
         :param silent: silent mode
         """
-        if self.window.core.plugins.is_registered(id):
-            self.enabled[id] = False
-            self.window.core.plugins.disable(id)
+        pm = self.window.core.plugins
+        if not pm.is_registered(id):
+            return
+        if not self.enabled.get(id, False):
+            return
 
-            if not silent:
-                # dispatch plugin disable event
-                event = Event(Event.DISABLE, {
-                    'value': id,
-                })
-                self.window.dispatch(event, all=True)  # dispatch to all plugins, including disabled now
+        self.enabled[id] = False
+        pm.disable(id)
 
-                # update audio menu
-                if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
-                    self.window.controller.audio.update()
+        if not silent:
+            event = Event(Event.DISABLE, {'value': id})
+            self.window.dispatch(event, all=True)
+            if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
+                self.window.controller.audio.update()
 
-        self.update_info()
-        self.update()
+        if self._suspend_updates == 0:
+            self.update_info()
+            self.update()
 
-    def is_enabled(self, id: str):
+    def is_enabled(self, id: str) -> bool:
         """
         Check if plugin is enabled
 
@@ -170,10 +187,7 @@ class Plugins:
         :return: True if enabled
         :rtype: bool
         """
-        if self.window.core.plugins.is_registered(id):
-            if id in self.enabled:
-                return self.enabled[id]
-        return False
+        return self.window.core.plugins.is_registered(id) and self.enabled.get(id, False)
 
     def toggle(self, id: str):
         """
@@ -187,12 +201,9 @@ class Plugins:
             else:
                 self.enable(id)
 
-        self.handle_types()
-        self.window.controller.ui.update_tokens()  # refresh tokens
-        self.window.controller.ui.mode.update()  # refresh active elements
-        self.window.controller.ui.vision.update()  # vision camera
-        self.window.controller.attachment.update()  # attachments update
-        self.presets.save_current()  # save settings in current preset
+        self.window.controller.ui.update_tokens()
+        self.window.controller.attachment.update()
+        self.presets.save_current()
 
     def set_by_tab(self, idx: int):
         """
@@ -200,13 +211,14 @@ class Plugins:
 
         :param idx: tab index
         """
+        pm = self.window.core.plugins
         plugin_idx = 0
-        for id in self.window.core.plugins.get_ids():
-            if self.window.core.plugins.has_options(id):
+        for pid in pm.get_ids():
+            if pm.has_options(pid):
                 if plugin_idx == idx:
-                    self.settings.current_plugin = id
+                    self.settings.current_plugin = pid
                     break
-            plugin_idx += 1
+                plugin_idx += 1
         current = self.window.ui.models['plugin.list'].index(idx, 0)
         self.window.ui.nodes['plugin.list'].setCurrentIndex(current)
 
@@ -217,14 +229,11 @@ class Plugins:
         :param plugin_id: plugin id
         :return: tab index
         """
-        plugin_idx = None
-        i = 0
-        for id in self.window.core.plugins.get_ids():
-            if id == plugin_id:
-                plugin_idx = i
-                break
-            i += 1
-        return plugin_idx
+        pm = self.window.core.plugins
+        for i, pid in enumerate(pm.get_ids()):
+            if pid == plugin_id:
+                return i
+        return None
 
     def unregister(self, id: str):
         """
@@ -233,22 +242,22 @@ class Plugins:
         :param id: plugin id
         """
         self.window.core.plugins.unregister(id)
-        if id in self.enabled:
-            self.enabled.pop(id)
+        self.enabled.pop(id, None)
 
     def destroy(self):
         """Destroy plugins workers"""
-
-        # send force stop event
         event = Event(Event.FORCE_STOP, {})
         self.window.dispatch(event)
 
-        for id in self.window.core.plugins.get_ids():
-            try:
-                # destroy plugin workers
-                self.window.core.plugins.destroy(id)
-            except AttributeError:
-                pass
+        pm = self.window.core.plugins
+        for pid in pm.get_ids():
+            plugin = pm.get(pid)
+            fn = getattr(pm, "destroy", None)
+            if callable(fn):
+                try:
+                    pm.destroy(pid)
+                except AttributeError:
+                    pass
 
     def has_type(self, id: str, type: str):
         """
@@ -257,10 +266,10 @@ class Plugins:
         :param type: type to check
         :return: True if has type
         """
-        if self.window.core.plugins.is_registered(id):
-            if type in self.window.core.plugins.get(id).type:
-                return True
-        return False
+        pm = self.window.core.plugins
+        if not pm.is_registered(id):
+            return False
+        return type in pm.get(id).type
 
     def is_type_enabled(self, type: str) -> bool:
         """
@@ -269,39 +278,25 @@ class Plugins:
         :param type: plugin type
         :return: True if enabled
         """
-        enabled = False
-        for id in self.window.core.plugins.get_ids():
-            if type in self.window.core.plugins.get(id).type and self.is_enabled(id):
-                enabled = True
-                break
-        return enabled
+        pm = self.window.core.plugins
+        return any((type in pm.get(pid).type) and self.is_enabled(pid) for pid in pm.get_ids())
 
     def handle_types(self):
         """Handle plugin type"""
-        for type in self.window.core.plugins.allowed_types:
-
-            enabled = self.is_type_enabled(type)
-
-            if type == 'audio.input':
+        pm = self.window.core.plugins
+        for t in pm.allowed_types:
+            enabled = self.is_type_enabled(t)
+            if t == 'audio.input':
                 self.window.controller.audio.handle_audio_input(enabled)
-
-            elif type == 'audio.output':
+            elif t == 'audio.output':
                 self.window.controller.audio.handle_audio_output(enabled)
-
-            elif type == 'schedule':
+            elif t == 'schedule':
                 if enabled:
                     self.window.ui.plugin_addon['schedule'].setVisible(True)
-                    # get tasks count by throwing "get option" event
-                    num = 0
-                    data = {
-                        'name': 'scheduled_tasks_count',
-                        'value': num,
-                    }
+                    data = {'name': 'scheduled_tasks_count', 'value': 0}
                     event = Event(Event.PLUGIN_OPTION_GET, data)
                     self.window.dispatch(event)
-                    if 'value' in event.data:
-                        num = event.data['value']
-                    # update tray menu
+                    num = event.data.get('value', 0)
                     self.window.ui.tray.update_schedule_tasks(num)
                 else:
                     self.window.ui.plugin_addon['schedule'].setVisible(False)
@@ -309,58 +304,70 @@ class Plugins:
 
     def on_update(self):
         """Called on update"""
-        for id in self.window.core.plugins.get_ids():
-            if self.is_enabled(id):
-                try:
-                    self.window.core.plugins.get(id).on_update()
-                except AttributeError:
-                    pass
+        pm = self.window.core.plugins
+        for pid in pm.get_ids():
+            if self.is_enabled(pid):
+                fn = getattr(pm.get(pid), "on_update", None)
+                if callable(fn):
+                    fn()
 
     def on_post_update(self):
         """Called on post update"""
-        for id in self.window.core.plugins.get_ids():
-            if self.is_enabled(id):
-                try:
-                    self.window.core.plugins.get(id).on_post_update()
-                except AttributeError:
-                    pass
+        pm = self.window.core.plugins
+        for pid in pm.get_ids():
+            if self.is_enabled(pid):
+                fn = getattr(pm.get(pid), "on_post_update", None)
+                if callable(fn):
+                    fn()
 
     def update_info(self):
         """Update plugins info"""
-        enabled_list = []
-        for id in self.window.core.plugins.get_ids():
-            if self.is_enabled(id):
-                enabled_list.append(self.window.core.plugins.get(id).name)
-        tooltip = " + ".join(enabled_list)
-
-        count_str = ""
+        pm = self.window.core.plugins
+        enabled_names = []
         c = 0
-        if len(self.window.core.plugins.get_ids()) > 0:
-            for id in self.window.core.plugins.get_ids():
-                if self.is_enabled(id):
-                    c += 1
+        for pid in pm.get_ids():
+            if self.is_enabled(pid):
+                c += 1
+                enabled_names.append(pm.get(pid).name)
 
-        if c > 0:
-            count_str = "+ " + str(c) + " " + trans('chatbox.plugins')
+        tooltip = " + ".join(enabled_names)
+        count_str = f"+ {c} {trans('chatbox.plugins')}" if c > 0 else ""
         self.window.ui.nodes['chat.plugins'].setText(count_str)
         self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
 
-    def apply_cmds_all(
+    def _apply_cmds_common(
             self,
+            event_type: str,
             ctx: CtxItem,
-            cmds: List[Dict[str, Any]]
+            cmds: List[Dict[str, Any]],
+            all: bool = False,
+            execute_only: bool = False
     ):
-        """
-        Apply all commands (inline or not)
+        commands = self.window.core.command.from_commands(cmds)
+        if len(commands) == 0:
+            return
 
-        :param ctx: context
-        :param cmds: commands
-        :return: results
-        """
-        if self.window.core.config.get("cmd"):
-            return self.apply_cmds(ctx, cmds)
+        event = Event(event_type, {'commands': commands})
+        mode = self.window.core.config.get('mode')
+        self.log("Executing plugin commands..." if event_type == Event.CMD_EXECUTE else "Executing inline plugin commands...")
+        change_status = True
+        if mode == MODE_AGENT and len(cmds) == 1 and cmds[0].get("cmd") == "goal_update":
+            change_status = False
+        wait_str = trans('status.cmd.wait')
+        if change_status:
+            self.window.update_status(wait_str)
+
+        ctx.results = []
+        event.ctx = ctx
+        if event_type == Event.CMD_EXECUTE:
+            self.window.controller.command.dispatch(event, all=all, execute_only=execute_only)
         else:
-            return self.apply_cmds_inline(ctx, cmds)
+            self.window.controller.command.dispatch(event)
+
+        current = self.window.ui.get_status()
+        if current == wait_str:
+            self.window.update_status("")
+        return ctx.results
 
     def apply_cmds(
             self,
@@ -377,38 +384,7 @@ class Plugins:
         :param all: True to apply all commands, False to apply only enabled commands
         :param execute_only: True to execute commands only, without any additional event
         """
-        commands = self.window.core.command.from_commands(cmds)
-        if len(commands) == 0:
-            return
-
-        # dispatch command execute event
-        event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
-        })
-
-        # don't change status if only goal update command
-        self.log("Executing plugin commands...")
-        mode = self.window.core.config.get('mode')
-        change_status = True
-        if mode == MODE_AGENT:
-            if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
-                change_status = False
-        if change_status:
-            self.window.update_status(trans('status.cmd.wait'))
-
-        ctx.results = []
-        event.ctx = ctx
-        self.window.controller.command.dispatch(
-            event,
-            all=all,
-            execute_only=execute_only,
-        )
-        # reset status if nothing executed
-        current = self.window.ui.get_status()
-        if current == trans('status.cmd.wait'):
-            self.window.update_status("")
-
-        return ctx.results
+        return self._apply_cmds_common(Event.CMD_EXECUTE, ctx, cmds, all=all, execute_only=execute_only)
 
     def apply_cmds_inline(
             self,
@@ -421,66 +397,33 @@ class Plugins:
         :param ctx: CtxItem
         :param cmds: commands list
         """
-        commands = self.window.core.command.from_commands(cmds)
-        if len(commands) == 0:
-            return
-
-        # dispatch inline command event
-        event = Event(Event.CMD_INLINE, {
-            'commands': commands,
-        })
-
-        # don't change status if only goal update command
-        self.log("Executing inline plugin commands...")
-        mode = self.window.core.config.get('mode')
-        change_status = True
-        if mode == MODE_AGENT:
-            if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
-                change_status = False
-        if change_status:
-            self.window.update_status(trans('status.cmd.wait'))
-
-        ctx.results = []
-        event.ctx = ctx
-        self.window.controller.command.dispatch(event)
-
-        # reset status if nothing executed
-        current = self.window.ui.get_status()
-        if current == trans('status.cmd.wait'):
-            self.window.update_status("")
-
-        return ctx.results
+        return self._apply_cmds_common(Event.CMD_INLINE, ctx, cmds)
 
     def reload(self):
         """Reload plugins"""
-        self.window.core.plugins.reload_all()  # reload all plugin options
+        self.window.core.plugins.reload_all()
         self.setup()
         self.settings.setup()
         self.update()
 
     def save_all(self):
         """Save plugin settings"""
-        for id in self.window.core.plugins.plugins.keys():
-            plugin = self.window.core.plugins.plugins[id]
-            options = plugin.setup()  # get plugin options
+        pm = self.window.core.plugins
+        cfg_plugins = self.window.core.config.data['plugins']
 
-            # add plugin to global config data if not exists
-            if id not in self.window.core.config.get('plugins'):
-                self.window.core.config.data['plugins'][id] = {}
+        for pid, plugin in pm.plugins.items():
+            plugin.setup()
+            if pid not in cfg_plugins:
+                cfg_plugins[pid] = {}
+            dest = cfg_plugins[pid]
+            for key, opt in plugin.options.items():
+                dest[key] = opt['value']
 
-            # update config with current values
-            for key in options:
-                self.window.core.config.data['plugins'][id][key] = self.window.core.plugins.plugins[id].options[key]['value']
+        for key in list(cfg_plugins.keys()):
+            if key not in pm.plugins:
+                cfg_plugins.pop(key)
 
-            # remove key from config if plugin option not exists
-            for key in list(self.window.core.config.data['plugins'].keys()):
-                if key not in self.window.core.plugins.plugins:
-                    self.window.core.config.data['plugins'].pop(key)
-
-        # save preset
         self.window.controller.plugins.presets.save_current()
-
-        # save config
         self.window.core.config.save()
 
     def log(self, data: Any):

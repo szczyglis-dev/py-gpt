@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
 # This file is a part of PYGPT package               #
@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -45,6 +45,11 @@ class UI:
         self.splitter_output_size_input = None
         self.splitter_output_size_files = None
 
+        self._last_ctx_string = None
+        self._last_input_string = None
+        self._last_chat_model = None
+        self._last_chat_label = None
+
     def setup(self):
         """Setup UI"""
         self.update_font_size()
@@ -53,23 +58,11 @@ class UI:
 
     def update(self):
         """Update all elements"""
-
-        # update mode, models and presets list
         self.update_toolbox()
-
-        # update chat label
         self.update_chat_label()
-
-        # show / hide widgets
         self.mode.update()
-
-        # update token counters
         self.update_tokens()
-
-        # update vision
         self.vision.update()
-
-        # agent status
         self.window.controller.agent.legacy.update()
 
     def get_colors(self) -> dict:
@@ -100,9 +93,10 @@ class UI:
                 env = "mac"
             else:
                 env = "linux"
-        index = self.window.ui.nodes["computer_env"].findData(env)
-        if index != -1:
-            self.window.ui.nodes["computer_env"].setCurrentIndex(index)
+        node = self.window.ui.nodes["computer_env"]
+        index = node.findData(env)
+        if index != -1 and node.currentIndex() != index:
+            node.setCurrentIndex(index)
 
     def on_computer_env_changed(self, env: str):
         """
@@ -110,16 +104,19 @@ class UI:
 
         :param env: selected environment
         """
-        self.window.core.config.set("remote_tools.computer_use.env", env)
-        self.window.core.config.save()
+        cfg = self.window.core.config
+        if cfg.get("remote_tools.computer_use.env") != env:
+            cfg.set("remote_tools.computer_use.env", env)
+            cfg.save()
 
     def update_toolbox(self):
         """Update toolbox"""
-        self.window.controller.mode.update_mode()
-        self.window.controller.model.update()
-        self.window.controller.presets.refresh()
-        self.window.controller.assistant.refresh()
-        self.window.controller.idx.refresh()
+        ctrl = self.window.controller
+        ctrl.mode.update_mode()
+        ctrl.model.update()
+        ctrl.presets.refresh()
+        ctrl.assistant.refresh()
+        ctrl.idx.refresh()
 
     def format_tokens(self, num: int) -> str:
         """
@@ -130,41 +127,31 @@ class UI:
         num = int(num)
         if num >= 1_000_000:
             return f"{num // 1_000_000}M"
-        elif num >= 1_000:
+        if num >= 1_000:
             return f"{num // 1_000}k"
-        else:
-            return str(num)
+        return str(num)
 
     def update_tokens(self):
         """Update tokens counter in real-time"""
-        prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
+        ui_nodes = self.window.ui.nodes
+        prompt = ui_nodes['input'].toPlainText().strip()
         input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
             sum_tokens, max_current, threshold = self.window.core.tokens.get_current(prompt)
         attachments_tokens = self.window.controller.chat.attachment.get_current_tokens()
         sum_tokens += attachments_tokens
 
-        # ctx tokens
-        ctx_string = "{} / {} - {} {}".format(
-            ctx_len,
-            ctx_len_all,
-            ctx_tokens,
-            trans('ctx.tokens')
-        )
-        self.window.ui.nodes['prompt.context'].setText(ctx_string)
+        ctx_string = f"{ctx_len} / {ctx_len_all} - {ctx_tokens} {trans('ctx.tokens')}"
+        if ctx_string != self._last_ctx_string:
+            ui_nodes['prompt.context'].setText(ctx_string)
+            self._last_ctx_string = ctx_string
 
         parsed_sum = self.format_tokens(sum_tokens)
         parsed_max_current = self.format_tokens(max_current)
 
-        input_string = "{} + {} + {} + {} + {} = {} / {}".format(
-            input_tokens,
-            system_tokens,
-            ctx_tokens,
-            extra_tokens,
-            attachments_tokens,
-            parsed_sum,
-            parsed_max_current
-        )
-        self.window.ui.nodes['input.counter'].setText(input_string)
+        input_string = f"{input_tokens} + {system_tokens} + {ctx_tokens} + {extra_tokens} + {attachments_tokens} = {parsed_sum} / {parsed_max_current}"
+        if input_string != self._last_input_string:
+            ui_nodes['input.counter'].setText(input_string)
+            self._last_input_string = input_string
 
     def store_state(self):
         """Store UI state"""
@@ -177,11 +164,10 @@ class UI:
     def update_chat_label(self):
         """Update chat label"""
         model = self.window.core.config.get('model')
-        if model is None or model == "":
-            model_str = ""
-        else:
-            model_str = str(model)
-        self.window.ui.nodes['chat.model'].setText(model_str)
+        model_str = "" if not model else str(model)
+        if model_str != self._last_chat_model:
+            self.window.ui.nodes['chat.model'].setText(model_str)
+            self._last_chat_model = model_str
 
     def update_ctx_label(self, label: Optional[str] = None):
         """
@@ -193,19 +179,24 @@ class UI:
         allowed = self.window.core.ctx.is_allowed_for_mode(mode)
         if label is None:
             label = ''
-
-        # add (+) if allowed appending data to this context
         if allowed:
             label += ' (+)'
-        self.window.ui.nodes['chat.label'].setText(str(label))
+        label_str = str(label)
+        if label_str != self._last_chat_label:
+            self.window.ui.nodes['chat.label'].setText(label_str)
+            self._last_chat_label = label_str
 
     def show_global_stop(self):
         """Show global stop button"""
-        self.window.ui.nodes['global.stop'].setVisible(True)
+        node = self.window.ui.nodes['global.stop']
+        if not node.isVisible():
+            node.setVisible(True)
 
     def hide_global_stop(self):
         """Hide global stop button"""
-        self.window.ui.nodes['global.stop'].setVisible(False)
+        node = self.window.ui.nodes['global.stop']
+        if node.isVisible():
+            node.setVisible(False)
 
     def on_global_stop(self):
         """Global stop button action"""

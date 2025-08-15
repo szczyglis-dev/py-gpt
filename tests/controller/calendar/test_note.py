@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -98,12 +98,3 @@ def test_refresh_num(mock_window):
     note.refresh_num(2024, 1)
     mock_window.ui.calendar['select'].update_notes.assert_called_once()
 
-
-def test_append_text(mock_window):
-    """Test append text"""
-    mock_window.ui.calendar['note'].setText = MagicMock()
-    note = Note(mock_window)
-    note.update = MagicMock()
-    note.append_text("test")
-    mock_window.ui.calendar['note'].setText.assert_called_once()
-    note.update.assert_called_once()

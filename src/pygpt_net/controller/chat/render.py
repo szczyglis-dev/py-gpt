@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -36,6 +36,7 @@ class Render:
         self.web_renderer = WebRenderer(window)
         self.engine = None
         self.scroll = 0
+        self.renderer = None
 
     def setup(self):
         """Setup render"""
@@ -86,7 +87,7 @@ class Render:
         elif name == RenderEvent.STREAM_BEGIN:
             self.stream_begin(meta, ctx)
         elif name == RenderEvent.STREAM_APPEND:
-            self.append_chunk(meta, ctx, chunk, begin)
+            self.instance().append_chunk(meta, ctx, chunk, begin)
         elif name == RenderEvent.STREAM_NEXT:
             self.next_chunk(meta, ctx)
         elif name == RenderEvent.STREAM_END:
@@ -179,7 +180,6 @@ class Render:
         :param begin: if it is the beginning of the stream
         """
         self.instance().append_live(meta, ctx, text_chunk, begin)
-        self.update()
 
     def clear_live(self, meta: CtxMeta, ctx: CtxItem):
         """
@@ -413,7 +413,6 @@ class Render:
         :param begin: if it is the beginning of the stream
         """
         self.instance().append_chunk(meta, ctx, text_chunk, begin)
-        self.update()
 
     def next_chunk(
             self,
@@ -551,8 +550,8 @@ class Render:
 
     def update(self):
         """On update - active"""
-        for pin in self.window.ui.nodes['output']:
-            self.window.ui.nodes['output'][pin].on_update()
+        for pid in self.window.ui.nodes['output']:
+            self.window.ui.nodes['output'][pid].on_update()
 
     def clear(self, meta: CtxMeta):
         """
@@ -658,7 +657,7 @@ class Render:
                     pass
         else:
             self.window.ui.nodes['output.timestamp'].setVisible(False)
-            self.window.controller.ctx.refresh()  # TODO: move to on_switch
+
             self.window.controller.theme.markdown.update(force=True)
             for pid in self.window.ui.nodes['output']:
                 try:
@@ -668,12 +667,26 @@ class Render:
                 except Exception as e:
                     pass
 
+        # cache renderer instance
+        if self.window.core.config.get('render.plain'):
+            self.renderer = self.plaintext_renderer
+        else:
+            if self.engine == "web":
+                self.renderer = self.web_renderer
+            else:
+                self.renderer = self.markdown_renderer
+
+        self.window.controller.ctx.refresh()
+
     def instance(self) -> BaseRenderer:
         """
         Get instance of current renderer
 
         :return: Renderer instance
         """
+        if self.renderer:
+            return self.renderer  # return cached renderer instance
+
         # get selected renderer
         if self.window.core.config.get('render.plain'):
             return self.plaintext_renderer

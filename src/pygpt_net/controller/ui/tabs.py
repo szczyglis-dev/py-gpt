@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
 # This file is a part of PYGPT package               #
@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 23:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -43,17 +43,19 @@ class Tabs:
 
     def setup(self):
         """Setup tabs"""
-        self.window.core.tabs.load()
-        self.window.controller.notepad.load()
+        w = self.window
+        w.core.tabs.load()
+        w.controller.notepad.load()
         self.setup_options()
         self.initialized = True
 
     def setup_options(self):
         """Setup options"""
-        state = self.window.core.config.get("layout.split", False)
-        self.window.ui.nodes['layout.split'].setChecked(state)
+        w = self.window
+        state = w.core.config.get("layout.split", False)
+        w.ui.nodes['layout.split'].setChecked(state)
         if not state:
-            self.window.ui.splitters['columns'].setSizes([1, 0])
+            w.ui.splitters['columns'].setSizes([1, 0])
 
     def debug(self):
         """Debug tabs if enabled"""
@@ -103,15 +105,15 @@ class Tabs:
         :param idx: Tab index
         :param column_idx: Column index
         """
-        self.appended = True  # lock reload in previous tab
-        self.column_idx = column_idx  # switch to column
+        self.appended = True
+        self.column_idx = column_idx
         tab = self.window.core.tabs.append(
             type=type,
             idx=idx,
             column_idx=column_idx,
             tool_id=tool_id
         )
-        self.switch_tab_by_idx(tab.idx, column_idx)  # switch to new tab
+        self.switch_tab_by_idx(tab.idx, column_idx)
         self.debug()
 
     def reload_titles(self):
@@ -138,16 +140,21 @@ class Tabs:
 
     def reload_after(self):
         """Reload tabs after"""
-        for pid in self.window.ui.nodes['output']:
-            try:
-                if self.window.core.config.get("render.plain") is True:
-                    self.window.ui.nodes['output_plain'][pid].setVisible(True)
-                    self.window.ui.nodes['output'][pid].setVisible(False)
-                else:
-                    self.window.ui.nodes['output_plain'][pid].setVisible(False)
-                    self.window.ui.nodes['output'][pid].setVisible(True)
-            except Exception as e:
-                pass
+        w = self.window
+        plain = w.core.config.get("render.plain") is True
+        outputs = w.ui.nodes['output']
+        outputs_plain = w.ui.nodes['output_plain']
+        for pid in outputs:
+            out_plain = outputs_plain.get(pid)
+            out = outputs.get(pid)
+            if out_plain is None or out is None:
+                continue
+            if plain:
+                out_plain.setVisible(True)
+                out.setVisible(False)
+            else:
+                out_plain.setVisible(False)
+                out.setVisible(True)
         self.debug()
 
     def on_tab_changed(
@@ -161,7 +168,11 @@ class Tabs:
         :param idx: tab index
         :param column_idx: column index
         """
-        tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
+        w = self.window
+        core = w.core
+        tabs_core = core.tabs
+
+        tab = tabs_core.get_tab_by_index(idx, column_idx)
         if tab is None:
             self.appended = False
             return
@@ -171,9 +182,9 @@ class Tabs:
             if tab.type == Tab.TAB_CHAT:
                 self.current = idx
                 if self.create_new_on_tab:
-                    meta = self.window.controller.ctx.new()  # new context
+                    meta = w.controller.ctx.new()
                     if meta is not None:
-                        self.window.controller.ctx.load(meta.id)  # reload
+                        w.controller.ctx.load(meta.id)
                 self.create_new_on_tab = True
 
         prev_tab = self.current
@@ -181,33 +192,31 @@ class Tabs:
 
         self.current = idx
         self.column_idx = column_idx
-        self.window.controller.ui.mode.update()
-        self.window.controller.ui.vision.update()
+        w.controller.ui.mode.update()
+        w.controller.ui.vision.update()
 
-        # check type
         if tab.type == Tab.TAB_NOTEPAD:
-            self.window.controller.notepad.opened_once = True
-            self.window.controller.notepad.on_open(idx, column_idx)
+            w.controller.notepad.opened_once = True
+            w.controller.notepad.on_open(idx, column_idx)
         elif tab.type == Tab.TAB_CHAT:
-            # get meta for selected tab, if not loaded yet then append meta here
             meta_id = tab.data_id
             if meta_id is None:
-                meta_id = self.window.core.ctx.output.prepare_meta(tab)
-            meta = self.window.core.ctx.get_meta_by_id(meta_id)
+                meta_id = core.ctx.output.prepare_meta(tab)
+            meta = core.ctx.get_meta_by_id(meta_id)
             if meta is not None:
-                self.window.controller.ctx.load(meta.id)  # reload renderer
+                w.controller.ctx.load(meta.id)
         elif tab.type == Tab.TAB_TOOL_PAINTER:
-            if self.window.core.config.get('vision.capture.enabled'):
-                self.window.controller.camera.enable_capture()
+            if core.config.get('vision.capture.enabled'):
+                w.controller.camera.enable_capture()
         elif tab.type == Tab.TAB_TOOL_CALENDAR:
-            self.window.controller.calendar.update()
-            self.window.controller.calendar.update_ctx_counters()
+            w.controller.calendar.update()
+            w.controller.calendar.update_ctx_counters()
 
         if prev_tab != idx or prev_column != column_idx:
-            self.window.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
+            w.dispatch(AppEvent(AppEvent.TAB_SELECTED))
 
         self.on_changed()
-        self.window.controller.ui.update()
+        w.controller.ui.update()
         self.update_current()
         self.debug()
 
@@ -251,7 +260,6 @@ class Tabs:
         :return: tab type
         """
         tab = self.window.core.tabs.get_tab_by_index(self.get_current_idx(), self.column_idx)
-
         if tab is None:
             return None
         return tab.type
@@ -324,22 +332,20 @@ class Tabs:
         """Column changed event"""
         if self.locked:
             return
-        tabs = self.window.ui.layout.get_tabs_by_idx(self.column_idx)
+        layout = self.window.ui.layout
+        tabs = layout.get_tabs_by_idx(self.column_idx)
         tabs.set_active(True)
 
-        if self.column_idx == 0:
-            second_tabs = self.window.ui.layout.get_tabs_by_idx(1)
-        else:
-            second_tabs = self.window.ui.layout.get_tabs_by_idx(0)
+        second_tabs = layout.get_tabs_by_idx(1 if self.column_idx == 0 else 0)
         second_tabs.set_active(False)
+
         idx = tabs.currentIndex()
         self.current = idx
         tab = self.window.core.tabs.get_tab_by_index(self.current, self.column_idx)
         if tab is None:
             return
 
-        # redraw second tab if not loaded yet
-        if tab.type == Tab.TAB_CHAT and self.column_idx == 1 and not tab.loaded:
+        if tab.type == Tab.TAB_CHAT and self.column_idx == 1 and not getattr(tab, "loaded", False):
             meta = self.window.core.ctx.get_meta_by_id(tab.data_id)
             if meta is not None:
                 self.window.controller.ctx.load(meta.id)
@@ -416,14 +422,14 @@ class Tabs:
             return
 
         previous_current = self.current
-        idx_after = None  # <--- next tab index after close to switch to
+        idx_after = None
         if previous_current != idx and self.column_idx == column_idx:
             idx_after = previous_current
             if idx_after > idx:
-                idx_after -= 1  # if current is after closed tab, idx will be shifted
+                idx_after -= 1
 
         if idx_after is None:
-            idx_after = self.get_after_close_idx(idx)  # find next tab index after close
+            idx_after = self.get_after_close_idx(idx)
 
         self.window.core.tabs.remove_tab_by_idx(idx, column_idx)
         if idx_after is not None:
@@ -496,21 +502,21 @@ class Tabs:
         """Switch to next tab"""
         tabs = self.window.ui.layout.get_active_tabs()
         current = tabs.currentIndex()
-        all = len(tabs.children())
-        next = current + 1
-        if next >= all:
-            next = 0
-        self.switch_tab_by_idx(next)
+        total = tabs.count()
+        nxt = current + 1
+        if nxt >= total:
+            nxt = 0
+        self.switch_tab_by_idx(nxt)
 
     def prev_tab(self):
         """Switch to previous tab"""
         tabs = self.window.ui.layout.get_active_tabs()
         current = tabs.currentIndex()
-        all = len(tabs.children())
-        prev = current - 1
-        if prev < 0:
-            prev = all - 1
-        self.switch_tab_by_idx(prev)
+        total = tabs.count()
+        prv = current - 1
+        if prv < 0:
+            prv = total - 1
+        self.switch_tab_by_idx(prv)
 
     def switch_tab(self, type: int):
         """
@@ -560,14 +566,13 @@ class Tabs:
         if tab.type in self.window.core.tabs.titles:
             title = trans(self.window.core.tabs.titles[tab.type])
 
-        # if more than 1 with this type then attach position info
         num = self.window.core.tabs.count_by_type(tab.type)
         if num > 1:
             order = self.window.core.tabs.get_order_by_idx_and_type(tab.idx, tab.type)
             if order != -1:
-                title += " #" + str(order)
+                title += f" #{order}"
         if tab.tooltip is not None and tab.tooltip != "":
-            title += " - " + tab.tooltip
+            title += f" - {tab.tooltip}"
         return title
 
     def update_tooltip(self, tooltip: str):
@@ -591,11 +596,9 @@ class Tabs:
         :param idx: tab idx
         :param column_idx: column idx
         """
-        # get tab
         tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
         if tab is None:
             return
-        # set dialog and show
         self.window.ui.dialog['rename'].id = 'tab'
         self.window.ui.dialog['rename'].input.setText(tab.title)
         self.window.ui.dialog['rename'].current = idx
@@ -638,14 +641,13 @@ class Tabs:
         :param idx: tab idx
         :param title: new title
         """
-        # check if current tab is chat
         if self.get_current_type() != Tab.TAB_CHAT:
             return
         tabs = self.window.ui.layout.get_active_tabs()
         tooltip = title
         tabs.setTabToolTip(idx, tooltip)
         if len(title) > self.TAB_CHAT_MAX_CHARS:
-            title = title[:self.TAB_CHAT_MAX_CHARS] + '...'  # truncate to max 8 chars
+            title = title[:self.TAB_CHAT_MAX_CHARS] + '...'
         self.window.core.tabs.update_title(idx, title, tooltip)
         self.debug()
 
@@ -663,7 +665,6 @@ class Tabs:
 
         :param meta: context meta
         """
-        # get current tab
         tab = self.get_current_tab()
         if tab is not None and tab.type == Tab.TAB_CHAT:
             tab.data_id = meta.id
@@ -686,7 +687,6 @@ class Tabs:
 
         :param column_idx: column index
         """
-        # append at the end of column
         idx = self.window.core.tabs.get_max_idx_by_column(column_idx)
         if idx == -1:
             idx = 0
@@ -703,14 +703,8 @@ class Tabs:
         if not data:
             self.switch_tab_by_idx(0, 0)
             return
-
-        # reverse order, second column is first
-        data = dict(reversed(list(data.items())))
-        for col_idx in data:
-            tab_idx = data[col_idx]
+        for col_idx, tab_idx in reversed(list(data.items())):
             self.switch_tab_by_idx(int(tab_idx), int(col_idx))
-
-        # set default column to 0
         self.column_idx = 0
         self.on_column_changed()
         self.debug()
@@ -732,10 +726,8 @@ class Tabs:
         tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
         self.window.core.tabs.move_tab(tab, new_column_idx)
         self.locked = False
-        # switch to new column
         self.column_idx = new_column_idx
         self.on_column_changed()
-        # switch to new tab
         self.switch_tab_by_idx(tab.idx, new_column_idx)
         self.debug()
 
@@ -835,10 +827,8 @@ class Tabs:
         """Switch to first chat tab"""
         if self.is_current_by_type(Tab.TAB_CHAT):
             return
-        # abort if active tab is chat
         if self.get_current_type() == Tab.TAB_CHAT:
             return
-        # find first chat tab
         for col in self.col:
             pid = self.col[col]
             tab = self.window.core.tabs.get_tab_by_pid(pid)
@@ -861,10 +851,7 @@ class Tabs:
         :param title: new tab name (optional, for chat tab)
         :param meta: context meta (optional, for chat tab)
         """
-        # try to focus tab
         if self.get_current_type() != type:
-
-            # find the closest tab in current column (on left side)
             current = self.get_current_tab()
             exists = False
             if current:
@@ -876,11 +863,9 @@ class Tabs:
             if exists:
                 tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
             else:
-                # if not exists in current col, then find first idx in any column
                 tab = self.window.core.tabs.get_first_by_type(type)
 
             if tab:
-                # if tab is found in current column, switch to it
                 tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
                 if tabs:
                     idx = tab.idx
@@ -897,20 +882,16 @@ class Tabs:
                         self.on_column_focus(tab.column_idx)
                     tabs.setCurrentIndex(idx)
             else:
-                # if not found in current column, then check in second column
                 second_column_idx = 1 if self.column_idx == 0 else 0
-                # get current tab from second column
                 tabs = self.window.ui.layout.get_tabs_by_idx(second_column_idx)
                 second_tabs_idx = tabs.currentIndex()
                 second_tab = self.window.core.tabs.get_tab_by_index(second_tabs_idx, second_column_idx)
                 if second_tab is not None and second_tab.type == type:
-                    # switch to second column
                     self.on_column_focus(second_column_idx)
                     tabs.setCurrentIndex(second_tabs_idx)
                     if meta:
                         QTimer.singleShot(100, lambda: self.window.controller.ctx.load(meta.id))
 
-            # if second and split screen disabled, then enable it
             if tab and tab.column_idx == 1:
                 if not self.is_split_screen_enabled():
                     self.enable_split_screen(update_switch=True)
@@ -924,7 +905,6 @@ class Tabs:
         :return: True if split screen is enabled, False otherwise
         """
         return self.window.core.config.get("layout.split", False)
-
 
     def on_split_screen_changed(self, state: bool):
         """
@@ -960,7 +940,6 @@ class Tabs:
         Disable split screen mode
         """
         self.window.ui.splitters['columns'].setSizes([1, 0])
-        # switch to first column
         self.column_idx = 0
         self.on_column_changed()
         self.window.core.config.set("layout.split", False)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -42,43 +42,49 @@ class BaseConfigDialog:
         :return: settings widgets
         """
         widgets = {}
-        kwargs = kwargs if kwargs is not None else {}
+        excluded = kwargs.get('excluded')
+        stretch = kwargs.get('stretch', False)
+        placeholder_apply = self.window.controller.config.placeholder.apply
 
-        for key in options:
-            option = options[key]
-
-            if "excluded" in kwargs and kwargs['excluded'] is not None and key in kwargs['excluded']:
+        for key, option in options.items():
+            if excluded and key in excluded:
                 continue
 
-            # create widget by option type
-            if option['type'] == 'text' or option['type'] == 'int' or option['type'] == 'float':
-                if 'slider' in option and option['slider'] and (option['type'] == 'int' or option['type'] == 'float'):
-                    widgets[key] = OptionSlider(self.window, id, key, option)  # slider + text input
+            t = option.get('type')
+            if t in ('text', 'int', 'float'):
+                slider = option.get('slider', False)
+                secret = option.get('secret', False)
+                if slider and t in ('int', 'float'):
+                    widgets[key] = OptionSlider(self.window, id, key, option)
                 else:
-                    if 'secret' in option and option['secret']:
-                        widgets[key] = PasswordInput(self.window, id, key, option)  # password input
-                    else:
-                        widgets[key] = OptionInput(self.window, id, key, option)  # text input
+                    widgets[key] = PasswordInput(self.window, id, key, option) if secret else OptionInput(self.window, id, key, option)
 
-            elif option['type'] == 'textarea':
-                widgets[key] = OptionTextarea(self.window, id, key, option)  # textarea
-                widgets[key].setMinimumHeight(150)
-                if kwargs.get('stretch', False):
-                    widgets[key].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            elif option['type'] == 'bool':
-                widgets[key] = OptionCheckbox(self.window, id, key, option)  # checkbox
-            elif option['type'] == 'bool_list':
-                self.window.controller.config.placeholder.apply(option)
-                widgets[key] = OptionCheckboxList(self.window, id, key, option)  # checkbox list
-            elif option['type'] == 'dict':
-                self.window.controller.config.placeholder.apply(option)
-                widgets[key] = OptionDict(self.window, id, key, option)  # dictionary
-                widgets[key].setMinimumHeight(200)
-                widgets[key].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            elif option['type'] == 'combo':
-                self.window.controller.config.placeholder.apply(option)
-                widgets[key] = OptionCombo(self.window, id, key, option)  # combobox
-                widgets[key].fit_to_content()
+            elif t == 'textarea':
+                w = OptionTextarea(self.window, id, key, option)
+                w.setMinimumHeight(150)
+                if stretch:
+                    w.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+                widgets[key] = w
+
+            elif t == 'bool':
+                widgets[key] = OptionCheckbox(self.window, id, key, option)
+
+            elif t == 'bool_list':
+                placeholder_apply(option)
+                widgets[key] = OptionCheckboxList(self.window, id, key, option)
+
+            elif t == 'dict':
+                placeholder_apply(option)
+                w = OptionDict(self.window, id, key, option)
+                w.setMinimumHeight(200)
+                w.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+                widgets[key] = w
+
+            elif t == 'combo':
+                placeholder_apply(option)
+                w = OptionCombo(self.window, id, key, option)
+                w.fit_to_content()
+                widgets[key] = w
 
         return widgets
 
@@ -91,43 +97,36 @@ class BaseConfigDialog:
         :return: Option layout
         """
         label = option['label']
-        desc = None
-        if "description" in option:
-            desc = option['description']
-        extra = {}
-        if 'extra' in option:
-            extra = option['extra']
+        desc = option.get('description')
+        extra = option.get('extra') or {}
         label_key = label + '.label'
+        nodes = self.window.ui.nodes
 
-        # label
-        if 'bold' in extra and extra['bold']:
-            self.window.ui.nodes[label_key] = TitleLabel(trans(label))
+        if extra.get('bold'):
+            nodes[label_key] = TitleLabel(trans(label))
         else:
-            self.window.ui.nodes[label_key] = QLabel(trans(label))
-        self.window.ui.nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
-        self.window.ui.nodes[label_key].setMinimumWidth(120)
-        self.window.ui.nodes[label_key].setWordWrap(True)
+            nodes[label_key] = QLabel(trans(label))
+        nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        nodes[label_key].setMinimumWidth(120)
+        nodes[label_key].setWordWrap(True)
 
-        # description
         desc_key = None
         if desc is not None:
             desc_key = label + '.desc'
-            self.window.ui.nodes[desc_key] = self.add_description(desc)
+            nodes[desc_key] = self.add_description(desc)
 
-        # set resizable if textarea
-        if option['type'] == 'textarea':
+        if option.get('type') == 'textarea':
             widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         layout = QHBoxLayout()
-        layout.addWidget(self.window.ui.nodes[label_key])
+        layout.addWidget(nodes[label_key])
         layout.addWidget(widget)
         layout.setStretch(0, 1)
 
-        # add description if exists
         if desc is not None:
             rows = QVBoxLayout()
             rows.addLayout(layout)
-            rows.addWidget(self.window.ui.nodes[desc_key])
+            rows.addWidget(nodes[desc_key])
             rows.setContentsMargins(0, 0, 0, 0)
             return rows
 
@@ -144,41 +143,34 @@ class BaseConfigDialog:
         """
         label = option['label']
         label_key = label + '.label'
-        desc = None
-        if "description" in option:
-            desc = option['description']
-        extra = {}
-        if 'extra' in option:
-            extra = option['extra']
+        desc = option.get('description')
+        extra = option.get('extra') or {}
+        nodes = self.window.ui.nodes
 
-        # label
-        if extra is not None and 'bold' in extra and extra['bold']:
-            self.window.ui.nodes[label_key] = TitleLabel(trans(label))
+        if extra.get('bold'):
+            nodes[label_key] = TitleLabel(trans(label))
         else:
-            self.window.ui.nodes[label_key] = QLabel(trans(label))
-        self.window.ui.nodes[label_key].setMinimumHeight(30)
-        self.window.ui.nodes[label_key].setWordWrap(True)
+            nodes[label_key] = QLabel(trans(label))
+        nodes[label_key].setMinimumHeight(30)
+        nodes[label_key].setWordWrap(True)
 
-        # description
         desc_key = None
         if desc is not None:
             desc_key = label + '.desc'
-            self.window.ui.nodes[desc_key] = self.add_description(desc)
+            nodes[desc_key] = self.add_description(desc)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes[label_key])
+        layout.addWidget(nodes[label_key])
         layout.addWidget(widget)
 
         if desc is not None:
-            layout.addWidget(self.window.ui.nodes[desc_key])
+            layout.addWidget(nodes[desc_key])
 
-        # append URLs
-        if 'urls' in extra \
-                and extra['urls'] is not None \
-                and len(extra['urls']) > 0:
-            urls_widget = self.add_urls(extra['urls'])
+        urls = extra.get('urls')
+        if urls:
+            urls_widget = self.add_urls(urls)
             layout.addWidget(urls_widget)
-            
+
         return layout
 
     def add_raw_option(self, widget: QWidget, option: dict) -> QHBoxLayout:
@@ -190,33 +182,27 @@ class BaseConfigDialog:
         :return: QHBoxLayout
         """
         label = option['label']
-        desc = None
-        if "description" in option:
-            desc = option['description']
-        extra = {}
-        if 'extra' in option:
-            extra = option['extra']
+        desc = option.get('description')
+        extra = option.get('extra') or {}
+        nodes = self.window.ui.nodes
+
         layout = QHBoxLayout()
         layout.addWidget(widget)
 
-        # description
         desc_key = None
         if desc is not None:
             desc_key = label + '.desc'
-            self.window.ui.nodes[desc_key] = self.add_description(desc)
+            nodes[desc_key] = self.add_description(desc)
 
-        # append URLs
-        if 'urls' in extra \
-                and extra['urls'] is not None \
-                and len(extra['urls']) > 0:
-            urls_widget = self.add_urls(extra['urls'])
+        urls = extra.get('urls')
+        if urls:
+            urls_widget = self.add_urls(urls)
             layout.addWidget(urls_widget)
 
-        # add description if exists
         if desc is not None:
             rows = QVBoxLayout()
             rows.addLayout(layout)
-            rows.addWidget(self.window.ui.nodes[desc_key])
+            rows.addWidget(nodes[desc_key])
             rows.setContentsMargins(0, 0, 0, 0)
             return rows
 
@@ -245,17 +231,13 @@ class BaseConfigDialog:
         """
         layout = QVBoxLayout()
         if isinstance(urls, dict):
-            for name in urls:
-                url = urls[name]
-                label = UrlLabel(name, url)
-                layout.addWidget(label)
+            for name, url in urls.items():
+                layout.addWidget(UrlLabel(name, url))
         elif isinstance(urls, list):
             for url in urls:
-                label = UrlLabel("", url)
-                layout.addWidget(label)
+                layout.addWidget(UrlLabel("", url))
         elif isinstance(urls, str):
-            label = UrlLabel("", urls)
-            layout.addWidget(label)
+            layout.addWidget(UrlLabel("", urls))
         layout.setAlignment(align)
 
         widget = QWidget()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 01:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 import os
@@ -34,18 +34,11 @@ class Theme:
 
     def setup(self):
         """Setup theme"""
-        # load markdown CSS
         self.markdown.load()
-
-        # setup menus
         self.menu.setup_list()
         self.menu.setup_density()
         self.menu.setup_syntax()
-
-        # show or hide tooltips
         self.common.toggle_tooltips()
-
-        # apply current theme to nodes
         self.reload(force=False)
 
     def toggle(
@@ -59,33 +52,32 @@ class Theme:
         :param name: theme name
         :param force: force theme change (manual trigger)
         """
-        if force:
-            self.window.controller.ui.store_state()  # store state before theme change
+        window = self.window
+        core = window.core
+        controller = window.controller
 
-        self.window.core.config.set('theme', name)
-        self.window.core.config.save()
+        if force:
+            controller.ui.store_state()
+
+        core.config.set('theme', name)
+        core.config.save()
         self.nodes.apply_all()
 
-        is_custom = False
-        custom_themes = self.window.controller.theme.common.get_custom_themes_list()
-        if name in custom_themes:
-            is_custom = True
+        custom_themes = controller.theme.common.get_custom_themes_list()
+        is_custom = name in custom_themes
 
         self.apply(
-            name + '.xml',
+            f'{name}.xml',
             self.common.get_extra_css(name),
             is_custom=is_custom,
-        )  # style.css = additional custom stylesheet
+        )
 
-        # apply markdown CSS
         self.markdown.update(force=False)
-
-        # update themes menu
         self.menu.update_list()
         self.menu.update_syntax()
 
         if force:
-            self.window.controller.ui.restore_state()  # restore state after theme change
+            controller.ui.restore_state()
 
     def toggle_style(self, name: str):
         """
@@ -93,8 +85,9 @@ class Theme:
 
         :param name: web style name
         """
-        self.window.core.config.set('theme.style', name)
-        self.window.core.config.save()
+        core = self.window.core
+        core.config.set('theme.style', name)
+        core.config.save()
         event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
         self.window.dispatch(event)
         self.reload()
@@ -110,30 +103,29 @@ class Theme:
         :param name: option name
         :param value: option value
         """
+        window = self.window
+        core = window.core
+        cfg = core.config
+
         if name == 'layout.tooltips':
-            if self.window.core.config.get(name):
-                state = False
-            else:
-                state = True
-            self.window.core.config.set(name, state)
-            self.window.controller.config.checkbox.apply('config', 'layout.tooltips', {'value': state})
+            state = not bool(cfg.get(name))
+            cfg.set(name, state)
+            window.controller.config.checkbox.apply('config', 'layout.tooltips', {'value': state})
             self.common.toggle_tooltips()
         elif name == 'layout.density':
-            value = int(value)
-            self.window.core.config.set(name, value)
-            self.window.controller.config.slider.apply('config', 'layout.density', {'value': value})
+            val = int(value)
+            cfg.set(name, val)
+            window.controller.config.slider.apply('config', 'layout.density', {'value': val})
             self.reload()
             self.menu.update_density()
         elif name == 'render.blocks':
-            if self.window.core.config.get(name):
-                state = False
-            else:
-                state = True
-            self.window.core.config.set(name, state)
+            state = not bool(cfg.get(name))
+            cfg.set(name, state)
             event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-            self.window.dispatch(event)
+            window.dispatch(event)
             self.reload()
-        self.window.core.config.save()
+
+        cfg.save()
         self.nodes.apply_all()
 
     def toggle_syntax(
@@ -147,8 +139,9 @@ class Theme:
         :param name: syntax style name
         :param update_menu: update menu
         """
-        self.window.core.config.set("render.code_syntax", name)
-        self.window.core.config.save()
+        core = self.window.core
+        core.config.set("render.code_syntax", name)
+        core.config.save()
         event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
         self.window.dispatch(event)
         if update_menu:
@@ -194,59 +187,57 @@ class Theme:
         :param custom: additional stylesheet filename (e.g. style.css)
         :param is_custom: is custom base theme
         """
-        inverse = False
-        theme_name = theme.split('.')[0]  # get theme name without extension
-        if theme.startswith('light'):
-            inverse = True
+        window = self.window
+        core = window.core
+        cfg = core.config
+
+        base_name = os.path.splitext(os.path.basename(theme))[0]
+        is_light = base_name.startswith('light')
         extra = {
-            'density_scale': self.window.core.config.get('layout.density'),
+            'density_scale': cfg.get('layout.density'),
             'pyside6': True,
         }
 
-        if is_custom:  # load from app path
-            theme = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes', theme)
+        if is_custom:
+            theme = os.path.join(cfg.get_app_path(), 'data', 'themes', theme)
 
-        self.window.apply_stylesheet(self.window, theme, invert_secondary=inverse, extra=extra)
+        window.apply_stylesheet(window, theme, invert_secondary=is_light, extra=extra)
 
-        # append custom stylesheets
-        content = ''
-        stylesheet = self.window.styleSheet()  # get current stylesheet
+        content_parts = []
         if custom is not None:
-            paths = []
-            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom))
-            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', custom))
+            app_css = os.path.join(cfg.get_app_path(), 'data', 'css', custom)
+            user_css = os.path.join(cfg.get_user_path(), 'css', custom)
 
-            for path in paths:
-                if os.path.exists(path):
-                    with open(path) as file:
-                        content += file.read()
+            if os.path.exists(app_css):
+                with open(app_css, 'r', encoding='utf-8') as file:
+                    content_parts.append(file.read())
+            if os.path.exists(user_css):
+                with open(user_css, 'r', encoding='utf-8') as file:
+                    content_parts.append(file.read())
 
-            # Windows checkbox button + radio button fix (if no SVG support)
-            # when missing DLLs in PySide6, VC++ redistributable required
-            if self.window.core.platforms.is_windows() and not self.window.core.config.is_compiled():
-                content += self.common.get_windows_fix()
+            if core.platforms.is_windows() and not cfg.is_compiled():
+                content_parts.append(self.common.get_windows_fix())
 
         if is_custom:
-            path = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes', theme_name + '.css')
-            if os.path.exists(path):
-                with open(path) as file:
-                    content += file.read()
+            theme_css = os.path.join(cfg.get_app_path(), 'data', 'themes', f'{base_name}.css')
+            if os.path.exists(theme_css):
+                with open(theme_css, 'r', encoding='utf-8') as file:
+                    content_parts.append(file.read())
 
-        # windows fixes
-        if self.window.core.platforms.is_windows():
-            if theme.startswith('light'):
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', 'fix_windows.light.css')
-            else:
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', 'fix_windows.dark.css')
+        if core.platforms.is_windows():
+            fix_css = 'fix_windows.light.css' if is_light else 'fix_windows.dark.css'
+            path = os.path.join(cfg.get_app_path(), 'data', 'css', fix_css)
             if os.path.exists(path):
-                with open(path) as file:
-                    content += file.read()
+                with open(path, 'r', encoding='utf-8') as file:
+                    content_parts.append(file.read())
 
         if custom is not None or is_custom:
-            try:
-                self.window.setStyleSheet(stylesheet + content.format(**os.environ))  # apply stylesheet
-            except KeyError as e:
-                pass  # ignore missing env variables
+            if content_parts:
+                try:
+                    stylesheet = window.styleSheet()
+                    window.setStyleSheet(stylesheet + ''.join(content_parts).format(**os.environ))
+                except KeyError:
+                    pass
 
     def style(self, element: str) -> str:
         """

@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
-
-from functools import partial
 
 from PySide6.QtCore import QPoint, QItemSelectionModel
 from PySide6.QtGui import QAction, QIcon, Qt
@@ -24,6 +22,13 @@ import pygpt_net.icons_rc
 
 
 class PresetList(BaseList):
+    _ICO_EDIT = QIcon(":/icons/edit.svg")
+    _ICO_COPY = QIcon(":/icons/copy.svg")
+    _ICO_UNDO = QIcon(":/icons/undo.svg")
+    _ICO_DELETE = QIcon(":/icons/delete.svg")
+    _ICO_CHECK = QIcon(":/icons/check.svg")
+    _ICO_CLOSE = QIcon(":/icons/close.svg")
+
     def __init__(self, window=None, id=None):
         """
         Presets select menu
@@ -42,8 +47,10 @@ class PresetList(BaseList):
         self.restore_after_ctx_menu = True
 
     def click(self, val):
-        self.window.controller.presets.select(val.row())
-        self.selection = self.selectionModel().selection()
+        row = val.row()
+        if row >= 0:
+            self.window.controller.presets.select(row)
+            self.selection = self.selectionModel().selection()
 
     def dblclick(self, val):
         """
@@ -51,7 +58,9 @@ class PresetList(BaseList):
 
         :param val: double click event
         """
-        self.window.controller.presets.editor.edit(val.row())
+        row = val.row()
+        if row >= 0:
+            self.window.controller.presets.editor.edit(row)
 
     def show_context_menu(self, pos: QPoint):
         """
@@ -61,61 +70,50 @@ class PresetList(BaseList):
         """
         global_pos = self.viewport().mapToGlobal(pos)
         mode = self.window.core.config.get('mode')
-        item = self.indexAt(pos)
-        idx = item.row()
+        index = self.indexAt(pos)
+        idx = index.row()
 
         preset = None
-        preset_id = self.window.core.presets.get_by_idx(idx, mode)
-        if preset_id is not None and preset_id != "":
-            if preset_id in self.window.core.presets.items:
-                preset = self.window.core.presets.items[preset_id]
+        if idx >= 0:
+            preset_id = self.window.core.presets.get_by_idx(idx, mode)
+            if preset_id:
+                preset = self.window.core.presets.items.get(preset_id)
 
-        def ignore_trigger(func, item, *args, **kwargs):
-            func(item)
-
-        actions = {}
-
-        actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('preset.action.edit'), self)
-        actions['edit'].triggered.connect(partial(ignore_trigger, self.action_edit, item))
-
-        actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('preset.action.duplicate'), self)
-        actions['duplicate'].triggered.connect(partial(ignore_trigger, self.action_duplicate, item))
-
-        if self.window.controller.presets.is_current(idx):
-            actions['restore'] = QAction(QIcon(":/icons/undo.svg"), trans('dialog.editor.btn.defaults'), self)
-            actions['restore'].triggered.connect(partial(ignore_trigger, self.action_restore, item))
-        else:
-            actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('preset.action.delete'), self)
-            actions['delete'].triggered.connect(partial(ignore_trigger, self.action_delete, item))
-
-        menu = QMenu(self)
-        menu.addAction(actions['edit'])
-
-        if mode == MODE_EXPERT:
-            if not preset.filename.startswith("current."):
-                if not preset.enabled:
-                    actions['enable'] = QAction(QIcon(":/icons/check.svg"), trans('preset.action.enable'), self)
-                    actions['enable'].triggered.connect(
-                        partial(ignore_trigger, self.action_enable, item))
-                    menu.addAction(actions['enable'])
-                else:
-                    actions['disable'] = QAction(QIcon(":/icons/close.svg"), trans('preset.action.disable'), self)
-                    actions['disable'].triggered.connect(
-                        partial(ignore_trigger, self.action_disable, item))
-                    menu.addAction(actions['disable'])
-
-        if self.window.controller.presets.is_current(idx):
-            actions['edit'].setEnabled(False)
-            menu.addAction(actions['restore'])
-            menu.addAction(actions['duplicate'])
-        else:
-            menu.addAction(actions['duplicate'])
-            menu.addAction(actions['delete'])
+        is_current = idx >= 0 and self.window.controller.presets.is_current(idx)
 
         if idx >= 0:
-            #self.window.controller.presets.select(idx)
+            menu = QMenu(self)
+
+            edit_act = QAction(self._ICO_EDIT, trans('preset.action.edit'), menu)
+            edit_act.triggered.connect(lambda checked=False, it=index: self.action_edit(it))
+            menu.addAction(edit_act)
+
+            if mode == MODE_EXPERT and preset and not preset.filename.startswith("current."):
+                if not preset.enabled:
+                    enable_act = QAction(self._ICO_CHECK, trans('preset.action.enable'), menu)
+                    enable_act.triggered.connect(lambda checked=False, it=index: self.action_enable(it))
+                    menu.addAction(enable_act)
+                else:
+                    disable_act = QAction(self._ICO_CLOSE, trans('preset.action.disable'), menu)
+                    disable_act.triggered.connect(lambda checked=False, it=index: self.action_disable(it))
+                    menu.addAction(disable_act)
+
+            duplicate_act = QAction(self._ICO_COPY, trans('preset.action.duplicate'), menu)
+            duplicate_act.triggered.connect(lambda checked=False, it=index: self.action_duplicate(it))
+
+            if is_current:
+                edit_act.setEnabled(False)
+                restore_act = QAction(self._ICO_UNDO, trans('dialog.editor.btn.defaults'), menu)
+                restore_act.triggered.connect(lambda checked=False, it=index: self.action_restore(it))
+                menu.addAction(restore_act)
+                menu.addAction(duplicate_act)
+            else:
+                delete_act = QAction(self._ICO_DELETE, trans('preset.action.delete'), menu)
+                delete_act.triggered.connect(lambda checked=False, it=index: self.action_delete(it))
+                menu.addAction(duplicate_act)
+                menu.addAction(delete_act)
+
             self.selection = self.selectionModel().selection()
-            # self.window.controller.mode.select(self.id, item.row())
             menu.exec_(global_pos)
 
         # store previous scroll position
@@ -124,10 +122,11 @@ class PresetList(BaseList):
         # restore selection if it was backed up
         if self.restore_after_ctx_menu:
             if self._backup_selection is not None:
-                self.selectionModel().clearSelection()
-                for idx in self._backup_selection:
-                    self.selectionModel().select(
-                        idx, QItemSelectionModel.Select | QItemSelectionModel.Rows
+                sel_model = self.selectionModel()
+                sel_model.clearSelection()
+                for i in self._backup_selection:
+                    sel_model.select(
+                        i, QItemSelectionModel.Select | QItemSelectionModel.Rows
                     )
                 self._backup_selection = None
 
@@ -176,7 +175,6 @@ class PresetList(BaseList):
         """
         self.window.controller.presets.restore()
 
-
     def action_enable(self, item):
         """
         Enable action handler
@@ -186,7 +184,6 @@ class PresetList(BaseList):
         idx = item.row()
         if idx >= 0:
             self.window.controller.presets.enable(idx)
-
 
     def action_disable(self, item):
         """
@@ -207,9 +204,10 @@ class PresetList(BaseList):
         elif event.button() == Qt.RightButton:
             index = self.indexAt(event.pos())
             if index.isValid():
-                self._backup_selection = list(self.selectionModel().selectedIndexes())
-                self.selectionModel().clearSelection()
-                self.selectionModel().select(
+                sel_model = self.selectionModel()
+                self._backup_selection = list(sel_model.selectedIndexes())
+                sel_model.clearSelection()
+                sel_model.select(
                     index, QItemSelectionModel.Select | QItemSelectionModel.Rows
                 )
             event.accept()

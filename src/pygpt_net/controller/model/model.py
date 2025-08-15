@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 02:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -29,57 +29,55 @@ class Model:
         self.editor = Editor(window)
         self.importer = Importer(window)
 
+    def _ensure_current_model_map(self):
+        return self.window.core.config.data.setdefault('current_model', {})
+
     def select(self, model: str):
         """
         Select model
 
         :param model: model ID
         """
-        # check if model change is not locked
         if self.change_locked():
             return
 
-        mode = self.window.core.config.get('mode')
-        self.window.core.config.set('model', model)
-        if 'current_model' not in self.window.core.config.data:
-            self.window.core.config.data['current_model'] = {}
-        self.window.core.config.data['current_model'][mode] = model
+        w = self.window
+        cfg = w.core.config
+        mode = cfg.get('mode')
+        cfg.set('model', model)
+        self._ensure_current_model_map()[mode] = model
 
-        event = Event(Event.MODEL_SELECT, {
-            'value': model,
-        })
-        self.window.dispatch(event)
+        w.dispatch(Event(Event.MODEL_SELECT, {'value': model}))
+        w.controller.ui.update()
+        w.dispatch(AppEvent(AppEvent.MODEL_SELECTED))
 
-        # update all layout
-        self.window.controller.ui.update()
-        self.window.dispatch(AppEvent(AppEvent.MODEL_SELECTED))  # app event
-
-        # update model in preset
-        preset = self.window.core.config.get('preset')
+        preset = cfg.get('preset')
         if preset and preset != "*":
-            preset_data = self.window.core.presets.get_by_id(mode, preset)
+            preset_data = w.core.presets.get_by_id(mode, preset)
             if preset_data:
                 preset_data.model = model
-                self.window.core.presets.save(preset)
+                w.core.presets.save(preset)
 
-        # update model in current ctx meta
-        self.window.core.ctx.model = model
-        self.window.core.ctx.last_model = model
-        self.window.core.ctx.update_model_in_current(model)
+        ctx = w.core.ctx
+        ctx.model = model
+        ctx.last_model = model
+        ctx.update_model_in_current(model)
 
     def next(self):
         """Select next model"""
-        mode = self.window.core.config.get('mode')
-        model = self.window.core.config.get('model')
-        next = self.window.core.models.get_next(model, mode)
-        self.select(next)
+        w = self.window
+        mode = w.core.config.get('mode')
+        model = w.core.config.get('model')
+        next_model = w.core.models.get_next(model, mode)
+        self.select(next_model)
 
     def prev(self):
         """Select previous model"""
-        mode = self.window.core.config.get('mode')
-        model = self.window.core.config.get('model')
-        prev = self.window.core.models.get_prev(model, mode)
-        self.select(prev)
+        w = self.window
+        mode = w.core.config.get('mode')
+        model = w.core.config.get('model')
+        prev_model = w.core.models.get_prev(model, mode)
+        self.select(prev_model)
 
     def set(self, mode: str, model: str):
         """
@@ -88,10 +86,9 @@ class Model:
         :param mode: mode name
         :param model: model name
         """
-        self.window.core.config.set('model', model)
-        if 'current_model' not in self.window.core.config.data:
-            self.window.core.config.data['current_model'] = {}
-        self.window.core.config.data['current_model'][mode] = model
+        w = self.window
+        w.core.config.set('model', model)
+        self._ensure_current_model_map()[mode] = model
 
     def set_by_idx(self, mode: str, idx: int):
         """
@@ -100,16 +97,11 @@ class Model:
         :param mode: mode name
         :param idx: model index
         """
-        model = self.window.core.models.get_by_idx(idx, mode)
-        self.window.core.config.set('model', model)
-        if 'current_model' not in self.window.core.config.data:
-            self.window.core.config.data['current_model'] = {}
-        self.window.core.config.data['current_model'][mode] = model
-
-        event = Event(Event.MODEL_SELECT, {
-            'value': model,
-        })
-        self.window.dispatch(event)
+        w = self.window
+        model = w.core.models.get_by_idx(idx, mode)
+        w.core.config.set('model', model)
+        self._ensure_current_model_map()[mode] = model
+        w.dispatch(Event(Event.MODEL_SELECT, {'value': model}))
 
     def select_on_list(self, model: str):
         """
@@ -121,28 +113,29 @@ class Model:
 
     def select_current(self):
         """Select current model on list"""
-        mode = self.window.core.config.get('mode')
-        model = self.window.core.config.get('model')
-        items = self.window.core.models.get_by_mode(mode)
+        w = self.window
+        mode = w.core.config.get('mode')
+        model = w.core.config.get('model')
+        items = w.core.models.get_by_mode(mode)
         if model in items:
             self.select_on_list(model)
 
     def select_default(self):
         """Set default model"""
-        model = self.window.core.config.get('model')
+        w = self.window
+        model = w.core.config.get('model')
         if model is None or model == "":
-            mode = self.window.core.config.get('mode')
-
-            # set previous selected model
-            current_models = self.window.core.config.get('current_model')
-            if mode in current_models and \
-                    current_models[mode] is not None and \
-                    current_models[mode] != "" and \
-                    current_models[mode] in self.window.core.models.get_by_mode(mode):
-                self.window.core.config.set('model', current_models[mode])
+            mode = w.core.config.get('mode')
+            current_models = w.core.config.get('current_model') or {}
+            mode_items = w.core.models.get_by_mode(mode)
+            if (
+                mode in current_models
+                and current_models[mode]
+                and current_models[mode] in mode_items
+            ):
+                w.core.config.set('model', current_models[mode])
             else:
-                # or set default model
-                self.window.core.config.set('model', self.window.core.models.get_default(mode))
+                w.core.config.set('model', w.core.models.get_default(mode))
 
     def switch_inline(
             self,
@@ -158,7 +151,7 @@ class Model:
         """
         event = Event(Event.MODEL_BEFORE, {
             'mode': mode,
-            'model': model,  # model instance
+            'model': model,
         })
         self.window.dispatch(event)
         tmp_model = event.data['model']
@@ -168,21 +161,28 @@ class Model:
 
     def init_list(self):
         """Init models list"""
-        mode = self.window.core.config.get('mode')
-        items = {}
-        data = self.window.core.models.get_by_mode(mode)
-        for k in data:
-            items[k] = data[k].name
+        w = self.window
+        mode = w.core.config.get('mode')
+        data = w.core.models.get_by_mode(mode)
 
-        providers = self.window.core.llm.get_choices()
+        items_by_provider = {}
+        for k, item in data.items():
+            p = item.provider
+            d = items_by_provider.get(p)
+            if d is None:
+                d = {}
+                items_by_provider[p] = d
+            d[k] = item.name
+
+        providers = w.core.llm.get_choices()
         sorted_items = {}
-        for provider in providers.keys():
-            provider_items = {k: v for k, v in items.items() if data[k].provider == provider}
+        for provider, label in providers.items():
+            provider_items = items_by_provider.get(provider)
             if provider_items:
-                sorted_items[f"separator::{provider}"] = providers[provider]
+                sorted_items[f"separator::{provider}"] = label
                 sorted_items.update(provider_items)
 
-        self.window.ui.nodes["prompt.model"].set_keys(sorted_items)
+        w.ui.nodes["prompt.model"].set_keys(sorted_items)
 
     def reload(self):
         """Reload models"""

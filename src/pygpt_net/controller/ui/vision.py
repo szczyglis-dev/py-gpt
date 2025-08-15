@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
 # This file is a part of PYGPT package               #
@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -31,7 +31,7 @@ class Vision:
         """
         self.window = window
 
-    def has_vision(self):
+    def has_vision(self) -> bool:
         """
         Check if vision is available
 
@@ -44,30 +44,34 @@ class Vision:
             return True
         if self.window.controller.plugins.is_type_enabled('vision'):
             return True
-        if self.is_vision_model() and mode in [
+        if self.is_vision_model() and mode in (
             MODE_CHAT,
             MODE_LLAMA_INDEX,
             MODE_AGENT,
             MODE_AGENT_OPENAI,
             MODE_RESEARCH,
             MODE_EXPERT,
-        ]:
+        ):
             return True
         return False
 
-    def update(self):
+    def update(self) -> None:
         """Update vision options"""
-        if self.window.controller.painter.is_active():
-            self.window.controller.camera.setup()
-            self.window.controller.camera.show_camera()
+        ctrl = self.window.controller
+        camera = ctrl.camera
+
+        if ctrl.painter.is_active():
+            camera.setup()
+            camera.show_camera()
+            return
+
+        if self.has_vision():
+            camera.setup()
+            camera.show_camera()
+            ctrl.chat.vision.show_inline()
         else:
-            if self.has_vision():
-                self.window.controller.camera.setup()
-                self.window.controller.camera.show_camera()
-                self.window.controller.chat.vision.show_inline()
-            else:
-                self.window.controller.camera.hide_camera()
-                self.window.controller.chat.vision.hide_inline()
+            camera.hide_camera()
+            ctrl.chat.vision.hide_inline()
 
     def is_vision_model(self) -> bool:
         """
@@ -76,10 +80,7 @@ class Vision:
         :return: True if vision model
         """
         model_id = self.window.core.config.get("model")
-        if model_id is not None:
-            if self.window.core.models.has(model_id):
-                model = self.window.core.models.get(model_id)
-                if model.is_image_input():
-                    return True
-        return False
-
+        if not model_id:
+            return False
+        models = self.window.core.models
+        return models.has(model_id) and models.get(model_id).is_image_input()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
@@ -24,18 +24,21 @@ class Mode:
         self.window = window
         self.locked = False
 
+    @staticmethod
+    def _normalize_mode(mode: str) -> str:
+        if mode == "langchain":
+            print("Langchain mode is deprecated from v2.5.20 and no longer supported. "
+                  "Please use LlamaIndex or Chat mode instead.")
+            return "chat"
+        return mode
+
     def select(self, mode: str):
         """
         Select mode by id
 
         :param mode
         """
-        # --- deprecated from v2.5.20 ---
-        if mode == "langchain":
-            print("Langchain mode is deprecated from v2.5.20 and no longer supported. "
-                            "Please use LlamaIndex or Chat mode instead.")
-            mode = "chat"
-        # --- end of deprecated ---
+        mode = self._normalize_mode(mode)
 
         # check if mode change is not locked
         if self.change_locked() or mode is None:
@@ -45,11 +48,13 @@ class Mode:
         event = Event(Event.MODE_SELECT, {
             'value': mode,
         })
-        self.window.dispatch(event)
-        self.window.controller.attachment.update()
-        self.window.controller.chat.attachment.update()
-        self.window.controller.chat.audio.update()
-        self.window.dispatch(AppEvent(AppEvent.MODE_SELECTED))  # app event
+        w = self.window
+        w.dispatch(event)
+        c = w.controller
+        c.attachment.update()
+        c.chat.attachment.update()
+        c.chat.audio.update()
+        w.dispatch(AppEvent(AppEvent.MODE_SELECTED))  # app event
 
     def set(self, mode: str):
         """
@@ -57,49 +62,49 @@ class Mode:
 
         :param mode: mode name
         """
-        # --- deprecated from v2.5.20 ---
-        if mode == "langchain":
-            print("Langchain mode is deprecated from v2.5.20 and no longer supported. "
-                  "Please use LlamaIndex or Chat mode instead.")
-            mode = "chat"
-        # --- end of deprecated ---
+        mode = self._normalize_mode(mode)
 
         self.locked = True
-        # if ctx loaded with assistant ID assigned then switch to assistant from ctx
-        if mode == "assistant":
-            self.window.controller.presets.select_default()
-            if self.window.core.ctx.get_current() is not None \
-                    and self.window.core.ctx.get_assistant() is not None:
-                self.window.controller.assistant.select_by_id(
-                    self.window.core.ctx.get_assistant()
-                )
-            else:
-                self.window.controller.assistant.select_current()
+        w = self.window
+        c = w.controller
+        core = w.core
+        cfg = core.config
+        try:
+            if mode == "assistant":
+                c.presets.select_default()
+                core_ctx = core.ctx
+                current = core_ctx.get_current()
+                assistant_id = core_ctx.get_assistant()
+                if current is not None and assistant_id is not None:
+                    c.assistant.select_by_id(assistant_id)
+                else:
+                    c.assistant.select_current()
 
-        self.window.core.config.set('mode', mode)
+            cfg.set('mode', mode)
 
-        # reset model and preset at start
-        self.window.core.config.set('model', "")
-        self.window.core.config.set('preset', "")
+            # reset model and preset at start
+            cfg.set('model', "")
+            cfg.set('preset', "")
 
-        # update
-        self.window.controller.attachment.update()
-        self.window.controller.ctx.update_ctx()
+            # update
+            c.attachment.update()
+            c.ctx.update_ctx()
 
-        # update toolbox, mode, presets, model, assistant and rest of the UI
-        self.window.controller.ui.update()
+            # update toolbox, mode, presets, model, assistant and rest of the UI
+            c.ui.update()
 
-        # update model list
-        self.window.controller.model.init_list()
-        self.window.controller.model.select_current()
+            # update model list
+            c.model.init_list()
+            c.model.select_current()
 
-        # set status: ready
-        self.window.update_status(trans('status.started'))
+            # set status: ready
+            w.update_status(trans('status.started'))
 
-        # if assistant mode then update ctx label
-        if mode == "assistant":
-            self.window.controller.ctx.common.update_label_by_current()
-        self.locked = False
+            # if assistant mode then update ctx label
+            if mode == "assistant":
+                c.ctx.common.update_label_by_current()
+        finally:
+            self.locked = False
 
     def select_on_list(self, mode: str):
         """
@@ -107,21 +112,13 @@ class Mode:
 
         :param mode: mode name
         """
-        # --- deprecated from v2.5.20 ---
-        if mode == "langchain":
-            print("Langchain mode is deprecated from v2.5.20 and no longer supported. "
-                  "Please use LlamaIndex or Chat mode instead.")
-            mode = "chat"
-        # --- end of deprecated ---
-
+        mode = self._normalize_mode(mode)
         self.window.ui.nodes["prompt.mode"].set_value(mode)
 
     def init_list(self):
         """Init modes list"""
-        items = {}
         data = self.window.core.modes.get_all()
-        for k in data:
-            items[k] = trans(data[k].label)
+        items = {k: trans(v.label) for k, v in data.items()}
         self.window.ui.nodes["prompt.mode"].set_keys(items)
 
     def select_current(self):
@@ -132,16 +129,18 @@ class Mode:
 
     def select_default(self):
         """Set default mode"""
-        mode = self.window.core.config.get('mode')
+        cfg = self.window.core.config
+        mode = cfg.get('mode')
         if mode is None or mode == "":
-            self.window.core.config.set('mode', self.window.core.modes.get_default())
+            cfg.set('mode', self.window.core.modes.get_default())
 
     def default_all(self):
         """Set default mode, model and preset"""
+        c = self.window.controller
         self.select_default()
-        self.window.controller.model.select_default()
-        self.window.controller.presets.select_default()
-        self.window.controller.assistant.select_default()
+        c.model.select_default()
+        c.presets.select_default()
+        c.assistant.select_default()
 
     def update_temperature(self, temperature: float = None):
         """
@@ -151,13 +150,14 @@ class Mode:
         :type temperature: float or None
         """
         if temperature is None:
-            if self.window.core.config.get('preset') is None or self.window.core.config.get('preset') == "":
+            cfg = self.window.core.config
+            preset_id = cfg.get('preset')
+            if preset_id is None or preset_id == "":
                 temperature = 1.0  # default temperature
             else:
-                id = self.window.core.config.get('preset')
-                if id in self.window.core.presets.items:
-                    temperature = float(self.window.core.presets.items[id].temperature or 1.0)
-        option = self.window.controller.settings.editor.get_options()["temperature"]
+                items = self.window.core.presets.items
+                if preset_id in items:
+                    temperature = float(items[preset_id].temperature or 1.0)
         '''
         self.window.controller.config.slider.on_update("global", "current_temperature", option, temperature,
                                                        hooks=False)  # disable hooks to prevent circular update
@@ -178,11 +178,13 @@ class Mode:
             return  # accept call only from slider (has already validated min/max)
 
         temperature = value / 100
-        self.window.core.config.set("temperature", temperature)
-        preset_id = self.window.core.config.get('preset')
+        cfg = self.window.core.config
+        cfg.set("temperature", temperature)
+        preset_id = cfg.get('preset')
         if preset_id is not None and preset_id != "":
-            if preset_id in self.window.core.presets.items:
-                preset = self.window.core.presets.items[preset_id]
+            items = self.window.core.presets.items
+            if preset_id in items:
+                preset = items[preset_id]
                 preset.temperature = temperature
                 self.window.core.presets.save(preset_id)
 
@@ -215,21 +217,22 @@ class Mode:
 
     def reset_current(self):
         """Reset current setup"""
-        self.window.core.config.set('prompt', None)
-        self.window.core.config.set('ai_name', None)
-        self.window.core.config.set('user_name', None)
+        cfg = self.window.core.config
+        cfg.set('prompt', None)
+        cfg.set('ai_name', None)
+        cfg.set('user_name', None)
 
     def next(self):
         """Select next mode"""
         mode = self.window.core.config.get('mode')
-        next = self.window.core.modes.get_next(mode)
-        self.select(next)
+        nxt = self.window.core.modes.get_next(mode)
+        self.select(nxt)
 
     def prev(self):
         """Select previous mode"""
         mode = self.window.core.config.get('mode')
-        prev = self.window.core.modes.get_prev(mode)
-        self.select(prev)
+        prv = self.window.core.modes.get_prev(mode)
+        self.select(prv)
 
     def change_locked(self) -> bool:
         """
@@ -238,4 +241,4 @@ class Mode:
         :return: True if locked
         :rtype: bool
         """
-        return self.window.controller.chat.input.generating
+        return bool(self.window.controller.chat.input.generating)

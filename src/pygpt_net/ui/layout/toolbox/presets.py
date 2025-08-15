@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 13:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -42,9 +42,6 @@ class Presets:
         """
         presets = self.setup_presets()
 
-        self.window.ui.models['preset.presets'] = self.create_model(self.window)
-        self.window.ui.nodes['preset.presets'].setModel(self.window.ui.models['preset.presets'])
-
         self.window.ui.nodes['presets.widget'] = QWidget()
         self.window.ui.nodes['presets.widget'].setLayout(presets)
         self.window.ui.nodes['presets.widget'].setMinimumHeight(180)
@@ -77,9 +74,6 @@ class Presets:
         header.addWidget(self.window.ui.nodes['preset.presets.new'], alignment=Qt.AlignRight)
         header.setContentsMargins(5, 0, 0, 0)
 
-        header_widget = QWidget()
-        header_widget.setLayout(header)
-
         self.window.ui.nodes[self.id] = PresetList(self.window, self.id)
         self.window.ui.nodes[self.id].selection_locked = self.window.controller.presets.preset_change_locked
         self.window.ui.nodes[self.id].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -89,7 +83,7 @@ class Presets:
 
         layout = QVBoxLayout()
         layout.addStretch()
-        layout.addWidget(header_widget)
+        layout.addLayout(header)
         layout.addWidget(self.window.ui.nodes[self.id], 1)
         layout.addWidget(self.window.ui.nodes['tip.toolbox.presets'])
         layout.setContentsMargins(2, 5, 5, 5)
@@ -114,36 +108,42 @@ class Presets:
         :param data: Data to update
         """
         mode = self.window.core.config.get('mode')
-        self.window.ui.nodes[self.id].backup_selection()
-        old_model = self.window.ui.models[self.id]
-        if old_model is not None:
-            old_model.clear()
-            old_model.deleteLater()
+        view = self.window.ui.nodes[self.id]
+        model = self.window.ui.models[self.id]
 
-        new_model = self.create_model(self.window)
-        self.window.ui.models[self.id] = new_model
-        self.window.ui.nodes[self.id].setModel(new_model)
+        view.backup_selection()
 
-        i = 0
-        for key in data:
-            new_model.insertRow(i)
+        if model is None:
+            model = self.create_model(self.window)
+            self.window.ui.models[self.id] = model
+            view.setModel(model)
 
-            name = data[key].name
-            if mode == MODE_EXPERT and not key.startswith("current.") and data[key].enabled:
-                name = "[x] " + name
-            elif mode == MODE_AGENT:
-                num_experts = self.window.core.experts.count_experts(key)
-                if num_experts > 0:
-                    name = f"{name} ({num_experts} experts)"
+        blocker = QtCore.QSignalBlocker(model)
 
-            prompt = str(data[key].prompt)
-            if len(prompt) > 80:
-                prompt = prompt[:80] + '...'
-            tooltip = prompt
+        rc = model.rowCount()
+        if rc:
+            model.removeRows(0, rc)
 
-            index = new_model.index(i, 0)
-            new_model.setData(index, tooltip, QtCore.Qt.ToolTipRole)
-            new_model.setData(index, name)
-            i += 1
+        count = len(data)
+        if count:
+            model.setRowCount(count)
+            count_experts = self.window.core.experts.count_experts
+            for i, (key, item) in enumerate(data.items()):
+                name = item.name
+                if mode == MODE_EXPERT and not key.startswith("current.") and item.enabled:
+                    name = "[x] " + name
+                elif mode == MODE_AGENT:
+                    num_experts = count_experts(key)
+                    if num_experts > 0:
+                        name = f"{name} ({num_experts} experts)"
 
-        self.window.ui.nodes[self.id].restore_selection()
+                prompt = str(item.prompt)
+                tooltip = prompt if len(prompt) <= 80 else prompt[:80] + '...'
+
+                index = model.index(i, 0)
+                model.setData(index, name, QtCore.Qt.DisplayRole)
+                model.setData(index, tooltip, QtCore.Qt.ToolTipRole)
+
+        del blocker
+
+        view.restore_selection()

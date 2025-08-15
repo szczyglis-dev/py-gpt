@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
-import copy
-from typing import Dict
+from copy import deepcopy
+from typing import Dict, Optional
 from uuid import uuid4
 
 from PySide6.QtGui import QAction
@@ -30,10 +30,11 @@ class Presets:
         self.dialog = False
         self.width = 500
         self.height = 500
+        self._sep_action = None
 
     def setup(self):
         """Set up plugin presets"""
-        self.window.plugin_presets.setup()  # widget dialog
+        self.window.plugin_presets.setup()
 
     def new(self):
         """New preset dialog"""
@@ -63,8 +64,6 @@ class Presets:
         self.current_to_preset(id)
         self.window.ui.dialog['create'].close()
         self.update_list()
-        self.update_menu()
-
         self.toggle(id)
 
     def open(self):
@@ -100,6 +99,8 @@ class Presets:
         :param idx: preset index
         """
         id = self.get_id_by_idx(idx)
+        if id is None:
+            return
         self.rename(id)
 
     def rename(self, id: str):
@@ -113,7 +114,6 @@ class Presets:
         if id in presets:
             name = presets[id]['name']
 
-        # set dialog and show
         self.window.ui.dialog['rename'].id = 'plugin.preset'
         self.window.ui.dialog['rename'].input.setText(name)
         self.window.ui.dialog['rename'].current = id
@@ -148,7 +148,6 @@ class Presets:
             del presets[id]
         self.store(presets)
 
-        # remove current preset if exists
         current = self.window.core.config.get('preset.plugins')
         if current == id:
             self.window.core.config.set('preset.plugins', '')
@@ -166,15 +165,16 @@ class Presets:
         self.window.core.plugins.replace_presets(presets)
         self.window.core.plugins.save_presets()
 
-    def get_id_by_idx(self, idx: int) -> str:
+    def get_id_by_idx(self, idx: int) -> Optional[str]:
         """
         Get preset id by index
 
         :param idx: preset index
         """
         presets = self.get_presets()
-        if len(presets) > idx:
+        if 0 <= idx < len(presets):
             return list(presets.keys())[idx]
+        return None
 
     def select_by_idx(self, idx: int):
         """
@@ -183,8 +183,9 @@ class Presets:
         :param idx: preset index
         """
         id = self.get_id_by_idx(idx)
+        if id is None:
+            return
         self.toggle(id)
-        self.update_menu()
 
     def delete_by_idx(
             self,
@@ -205,6 +206,8 @@ class Presets:
             )
             return
         id = self.get_id_by_idx(idx)
+        if id is None:
+            return
         self.delete(id)
 
     def duplicate(self, id: str):
@@ -214,7 +217,7 @@ class Presets:
         :param id: preset ID
         """
         presets = self.get_presets()
-        duplicate = copy.deepcopy(presets[id])
+        duplicate = deepcopy(presets[id])
         new_id = str(uuid4())
         duplicate['name'] = duplicate['name'] + " - copy"
         presets[new_id] = duplicate
@@ -229,6 +232,8 @@ class Presets:
         :param idx: preset index
         """
         id = self.get_id_by_idx(idx)
+        if id is None:
+            return
         self.duplicate(id)
 
     def reset(self, id: str):
@@ -265,6 +270,8 @@ class Presets:
             )
             return
         id = self.get_id_by_idx(idx)
+        if id is None:
+            return
         self.reset(id)
 
     def get_preset(self, id: str) -> Dict:
@@ -285,13 +292,10 @@ class Presets:
         :return: presets dict
         """
         presets = self.window.core.plugins.get_presets()
-        if not isinstance(presets, dict):
-            presets = {}
-            return presets
-
-        # sort by name
+        if not isinstance(presets, dict) or not presets:
+            return {}
         try:
-            return dict(sorted(presets.items(), key=lambda item: item[1]['name']))
+            return dict(sorted(presets.items(), key=lambda item: item[1].get('name', '')))
         except Exception as e:
             self.window.core.debug.log("Error while sorting presets")
             self.window.core.debug.error(e)
@@ -305,42 +309,41 @@ class Presets:
     def update_menu(self):
         """Update presets menu"""
         presets = self.get_presets()
+        menu_store = self.window.ui.menu
+        menu = menu_store['menu.plugins.presets']
 
-        # clear presets
-        for id in self.window.ui.menu['plugins_presets']:
-            self.window.ui.menu['menu.plugins.presets'].removeAction(self.window.ui.menu['plugins_presets'][id])
+        old_actions = list(menu_store['plugins_presets'].values())
+        for act in old_actions:
+            menu.removeAction(act)
+            act.deleteLater()
+        menu_store['plugins_presets'].clear()
 
-        # remove separator if exists
-        if len(self.window.ui.menu['menu.plugins.presets'].actions()) > 2:
-            self.window.ui.menu['menu.plugins.presets'].actions()[-1].deleteLater()
+        if self._sep_action is not None:
+            menu.removeAction(self._sep_action)
+            self._sep_action.deleteLater()
+            self._sep_action = None
 
-        # add separator
         if len(presets) > 0:
-            self.window.ui.menu['menu.plugins.presets'].addSeparator()
+            self._sep_action = menu.addSeparator()
 
-        # add presets
-        for id in presets:
-            preset = presets[id]
-            self.window.ui.menu['plugins_presets'][id] = QAction(preset['name'], self.window, checkable=True)
-            self.window.ui.menu['plugins_presets'][id].triggered.connect(
-                lambda checked=None,
-                       id=id: self.window.controller.plugins.presets.toggle(id))
-            self.window.ui.menu['plugins_presets'][id].setMenuRole(QAction.MenuRole.NoRole)
-            self.window.ui.menu['menu.plugins.presets'].addAction(self.window.ui.menu['plugins_presets'][id])
+        for id, preset in presets.items():
+            action = QAction(preset['name'], menu, checkable=True)
+            action.triggered.connect(lambda checked=False, id=id: self.window.controller.plugins.presets.toggle(id))
+            action.setMenuRole(QAction.MenuRole.NoRole)
+            menu.addAction(action)
+            menu_store['plugins_presets'][id] = action
 
-        # update current preset
         self.update()
 
     def update(self):
         """Update presets menu"""
-        # clear
-        for preset in self.window.ui.menu['plugins_presets']:
-            self.window.ui.menu['plugins_presets'][preset].setChecked(False)
+        presets_menu = self.window.ui.menu['plugins_presets']
+        for preset in presets_menu:
+            presets_menu[preset].setChecked(False)
 
-        # set checked current preset
         preset = self.window.core.config.get('preset.plugins')
-        if preset in self.window.ui.menu['plugins_presets']:
-            self.window.ui.menu['plugins_presets'][preset].setChecked(True)
+        if preset in presets_menu:
+            presets_menu[preset].setChecked(True)
 
     def toggle(self, id: str):
         """
@@ -350,13 +353,11 @@ class Presets:
         """
         self.window.core.config.set('preset.plugins', id)
         self.window.core.config.save()
-        self.update_menu()
+        self.update()
 
-        # load preset to current settings
         self.preset_to_current()
-        self.window.controller.plugins.reconfigure()  # reconfigure plugins
+        self.window.controller.plugins.reconfigure()
 
-        # update status
         preset = self.get_preset(id)
         if preset:
             self.window.update_status("Preset loaded: " + preset['name'])
@@ -383,12 +384,10 @@ class Presets:
         if id:
             preset = self.get_preset(id)
             if preset:
-                self.window.core.config.set('plugins_enabled', copy.deepcopy(preset['enabled']))
-                self.window.core.config.set('plugins', copy.deepcopy(preset['config']))
+                self.window.core.config.set('plugins_enabled', deepcopy(preset['enabled']))
+                self.window.core.config.set('plugins', deepcopy(preset['config']))
                 self.window.core.config.save()
-                self.window.core.plugins.apply_all_options()  # apply restored config
-
-                # if settings dialog opened then reinitialize
+                self.window.core.plugins.apply_all_options()
                 if self.window.controller.plugins.settings.config_dialog:
                     self.window.controller.plugins.settings.init()
 
@@ -400,8 +399,8 @@ class Presets:
         """
         presets = self.get_presets()
         if preset_id in presets:
-            presets[preset_id]['enabled'] = copy.deepcopy(self.window.core.config.get('plugins_enabled'))
-            presets[preset_id]['config'] = copy.deepcopy(self.window.core.config.get('plugins'))
+            presets[preset_id]['enabled'] = deepcopy(self.window.core.config.get('plugins_enabled'))
+            presets[preset_id]['config'] = deepcopy(self.window.core.config.get('plugins'))
             self.store(presets)
         self.update_list()
         self.update_menu()

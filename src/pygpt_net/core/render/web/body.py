@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.13 16:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 import os
@@ -63,14 +63,20 @@ class Body:
     _HTML_P3 = """;
                 let tips_hidden = false;
 
+                let els = {};
+                let highlightScheduled = false;
+                let pendingHighlightRoot = null;
+                let pendingHighlightMath = false;
+                let scrollScheduled = false;
+
                 history.scrollRestoration = "manual";
                 document.addEventListener('keydown', function(event) {
                     if (event.ctrlKey && event.key === 'f') {
-                        window.location.href = 'bridge://open_find:' + pid; // send to bridge
+                        window.location.href = 'bridge://open_find:' + pid;
                         event.preventDefault();
                     }
                     if (event.key === 'Escape') {
-                        window.location.href = 'bridge://escape'; // send to bridge
+                        window.location.href = 'bridge://escape';
                         event.preventDefault();
                     }
                 });
@@ -84,42 +90,71 @@ class Body:
                         bridge.log(text);
                     }
                 }
-                function prepare() {        
-                    collapsed_idx = [];  // clear collapsed code
-                    hideTips();
+                function initDomRefs() {
+                    els.container = document.getElementById('container');
+                    els.nodes = document.getElementById('_nodes_');
+                    els.appendInput = document.getElementById('_append_input_');
+                    els.appendOutputBefore = document.getElementById('_append_output_before_');
+                    els.appendOutput = document.getElementById('_append_output_');
+                    els.appendLive = document.getElementById('_append_live_');
+                    els.footer = document.getElementById('_footer_');
+                    els.loader = document.getElementById('_loader_');
+                    els.tips = document.getElementById('tips');
                 }
-                function sanitize(content) {
-                    return content.replace(/&amp;lt;/g, '&lt;').replace(/&amp;gt;/g, '&gt;');
+                function scheduleHighlight(root, withMath = true) {
+                    const scope = root && root.nodeType === 1 ? root : document;
+                    if (!pendingHighlightRoot || pendingHighlightRoot === document) {
+                        pendingHighlightRoot = scope;
+                    } else if (!pendingHighlightRoot.contains(scope)) {
+                        pendingHighlightRoot = document;
+                    }
+                    if (withMath) pendingHighlightMath = true;
+                    if (highlightScheduled) return;
+                    highlightScheduled = true;
+                    requestAnimationFrame(function() {
+                        try {
+                            highlightCodeInternal(pendingHighlightRoot || document, pendingHighlightMath);
+                        } finally {
+                            highlightScheduled = false;
+                            pendingHighlightRoot = null;
+                            pendingHighlightMath = false;
+                        }
+                    });
                 }
-                function highlightCode(withMath = true) {
-                    document.querySelectorAll('pre code').forEach(el => {
-                        if (!el.classList.contains('hljs')) hljs.highlightElement(el);
+                function highlightCodeInternal(root, withMath) {
+                    (root || document).querySelectorAll('pre code:not(.hljs)').forEach(el => {
+                        hljs.highlightElement(el);
                     });
                     if (withMath) {
-                        renderMath();
-                    }  
-                    restoreCollapsedCode();   
+                        renderMath(root);
+                    }
+                    restoreCollapsedCode(root);
+                }
+                function highlightCode(withMath = true, root = null) {
+                    scheduleHighlight(root || document, withMath);
                 }
                 function hideTips() {
                     if (tips_hidden) return;
-                    document.getElementById('tips').style.display = 'none';
+                    const t = els.tips || document.getElementById('tips');
+                    if (t) t.style.display = 'none';
                     tips_hidden = true;
                 }
                 function showTips() {
                     if (tips_hidden) return;
                     if (tips.length === 0) return;
-                    document.getElementById('tips').style.display = 'block';
+                    const t = els.tips || document.getElementById('tips');
+                    if (t) t.style.display = 'block';
                     tips_hidden = false;
-                }    
+                }
                 function cycleTips() {
                     if (tips_hidden) return;
                     if (tips.length === 0) return;
-                    let tipContainer = document.getElementById('tips');
+                    let tipContainer = els.tips || document.getElementById('tips');
                     let currentTip = 0;
                     function showNextTip() {
                         if (tips_hidden) return;
                         tipContainer.innerHTML = tips[currentTip];
-                        tipContainer.classList.add('visible');    
+                        tipContainer.classList.add('visible');
                         setTimeout(function() {
                             if (tips_hidden) return;
                             tipContainer.classList.remove('visible');
@@ -131,9 +166,10 @@ class Body:
                     }
                     showNextTip();
                 }
-                function renderMath() {
-                      const scripts = document.querySelectorAll('script[type^="math/tex"]');
-                      scripts.forEach(function(script) {
+                function renderMath(root) {
+                    const scope = root || document;
+                    const scripts = scope.querySelectorAll('script[type^="math/tex"]');
+                    scripts.forEach(function(script) {
                         const displayMode = script.type.indexOf('mode=display') > -1;
                         const mathContent = script.textContent || script.innerText;
                         const element = document.createElement(displayMode ? 'div' : 'span');
@@ -145,7 +181,8 @@ class Body:
                         } catch (err) {
                           element.textContent = mathContent;
                         }
-                        script.parentNode.replaceChild(element, script);
+                        const parent = script.parentNode;
+                        if (parent) parent.replaceChild(element, script);
                       });
                 }
                 function isNearBottom(marginPx = 100) {
@@ -153,32 +190,53 @@ class Body:
                     const distanceToBottom = el.scrollHeight - el.clientHeight - el.scrollTop;
                     return distanceToBottom <= marginPx;
                 }
+                function scheduleScroll(live = false) {
+                    if (scrollScheduled) return;
+                    scrollScheduled = true;
+                    requestAnimationFrame(function() {
+                        scrollScheduled = false;
+                        scrollToBottom(live);
+                    });
+                }
                 function scrollToBottom(live = false) {
                     const el = document.scrollingElement || document.documentElement;
                     const marginPx = 300;
                     let behavior = 'instant';
                     if (live == true) {
-                        behavior = 'instant'; // no smooth scroll for live updates
+                        behavior = 'instant';
                     } else {
-                        behavior = 'smooth'; // smooth scroll for normal updates, TODO: implement in Chromium
+                        behavior = 'smooth';
                     }
                     if (isNearBottom(marginPx) || live == false) {
                         el.scrollTo({ top: el.scrollHeight, behavior });
                     }
                     prevScroll = el.scrollHeight;
-                    getScrollPosition(); // store using bridge
+                    getScrollPosition();
+                }
+                function sanitize(content) {
+                    return content.replace(/&amp;lt;/g, '&lt;').replace(/&amp;gt;/g, '&gt;');
                 }
                 function appendToInput(content) {
-                    const element = document.getElementById('_append_input_');
+                    const element = els.appendInput || document.getElementById('_append_input_');
                     if (element) {
                         element.insertAdjacentHTML('beforeend', sanitize(content));
+                        highlightCode(true, element);
+                        scheduleScroll();
                     }
-                    highlightCode();
-                    scrollToBottom();
+                }
+                function getStreamContainer() {
+                    if (domOutputStream && document.body.contains(domOutputStream)) {
+                        return domOutputStream;
+                    }
+                    let element = els.appendOutput || document.getElementById('_append_output_');
+                    if (element) {
+                        domOutputStream = element;
+                    }
+                    return element;
                 }
                 function appendToOutput(bot_name, content) {
                     hideTips();
-                    const element = document.getElementById('_append_output_');
+                    const element = getStreamContainer();
                     if (element) {
                         let box = element.querySelector('.msg-box');
                         let msg;
@@ -200,21 +258,21 @@ class Body:
                         }
                         if (msg) {
                             msg.insertAdjacentHTML('beforeend', sanitize(content));
+                            highlightCode(true, msg);
+                            scheduleScroll();
                         }
                     }
-                    highlightCode();
-                    scrollToBottom();
                 }
                 function appendNode(content) {
                     clearStreamBefore();
                     prevScroll = 0;
-                    const element = document.getElementById('_nodes_');
+                    const element = els.nodes || document.getElementById('_nodes_');
                     if (element) {
                         element.classList.remove('empty_list');
                         element.insertAdjacentHTML('beforeend', sanitize(content));
+                        highlightCode(true, element);
+                        scheduleScroll();
                     }
-                    highlightCode();
-                    scrollToBottom();
                 }
                 function appendExtra(id, content) {
                     hideTips();
@@ -224,10 +282,10 @@ class Body:
                         const extra = element.querySelector('.msg-extra');
                         if (extra) {
                             extra.insertAdjacentHTML('beforeend', sanitize(content));
+                            highlightCode(true, extra);
+                            scheduleScroll();
                         }
                     }
-                    highlightCode();
-                    scrollToBottom();
                 }
                 function removeNode(id) {
                     prevScroll = 0;
@@ -240,14 +298,14 @@ class Body:
                         element.remove();
                     }
                     highlightCode();
-                    scrollToBottom();
+                    scheduleScroll();
                 }
                 function removeNodesFromId(id) {
                     prevScroll = 0;
-                    const container = document.getElementById('_nodes_');
+                    const container = els.nodes || document.getElementById('_nodes_');
                     if (container) {
                         const elements = container.querySelectorAll('.msg-box');
-                        remove = false;
+                        let remove = false;
                         elements.forEach(function(element) {
                             if (element.id.endsWith('-' + id)) {
                                 remove = true;
@@ -256,29 +314,16 @@ class Body:
                                 element.remove();
                             }
                         });
+                        highlightCode(true, container);
+                        scheduleScroll();
                     }
-                    highlightCode();
-                    scrollToBottom();
                 }
-                function getStreamContainer() {
-                    let element;
-                    if (domOutputStream) {
-                        element = domOutputStream;
-                    } else {            
-                        element = document.getElementById('_append_output_');
-                        if (element) {
-                            domOutputStream = element;
-                        }
-                    }  
-                    return element;
-                }        
                 function clearStream() {
                     hideTips();
                     domLastParagraphBlock = null;
                     domLastCodeBlock = null;
                     domOutputStream = null;
                     const element = getStreamContainer();
-                    let msg;
                     if (element) {
                         let box = element.querySelector('.msg-box');
                         let msg;
@@ -286,27 +331,22 @@ class Body:
                             box = document.createElement('div');
                             box.classList.add('msg-box');
                             box.classList.add('msg-bot');
-                            const name = document.createElement('div');
-                            name.classList.add('name-header');
-                            name.classList.add('name-bot');
-                            name.textContent = bot_name;
                             msg = document.createElement('div');
                             msg.classList.add('msg');
-                            box.appendChild(name);
                             box.appendChild(msg);
                             element.appendChild(box);
                         } else {
                             msg = box.querySelector('.msg');
                         }
                         if (msg) {
-                            msg.innerHTML = ''; // clear previous content
+                            msg.replaceChildren();
                         }
                     }
                 }
                 function beginStream() {
                     hideTips();
                     clearOutput();
-                    scrollToBottom();
+                    scheduleScroll();
                 }
                 function endStream() {
                     clearOutput();
@@ -314,18 +354,19 @@ class Body:
                 function appendStream(name_header, content, chunk, replace = false, is_code_block = false) {
                     hideTips();
                     const element = getStreamContainer();
-                    doHighlight = true;
-                    doMath = true;
+                    let doHighlight = true;
+                    let doMath = true;
                     let msg;
                     if (element) {
                         let box = element.querySelector('.msg-box');
-                        let msg;
                         if (!box) {
                             box = document.createElement('div');
                             box.classList.add('msg-box');
                             box.classList.add('msg-bot');
                             if (name_header != '') {
                                 const name = document.createElement('div');
+                                name.classList.add('name-header');
+                                name.classList.add('name-bot');
                                 name.innerHTML = name_header;
                                 box.appendChild(name);
                             }
@@ -339,33 +380,30 @@ class Body:
                         if (msg) {
                             if (replace) {
                                 msg.innerHTML = sanitize(content);
-                                domLastCodeBlock = null; // reset last code block
-                                domLastParagraphBlock = null; // reset last paragraph block
+                                domLastCodeBlock = null;
+                                domLastParagraphBlock = null;
                             } else {
                                 if (is_code_block) {
                                     let lastCodeBlock;
                                     if (domLastCodeBlock) {
                                         lastCodeBlock = domLastCodeBlock;
                                     } else {
-                                        // find last code block in the message
                                         const msgBlocks = msg.querySelectorAll('pre');
                                         if (msgBlocks.length > 0) {
                                             lastCodeBlock = msgBlocks[msgBlocks.length - 1].querySelector('code');
                                         }
                                     }
                                     if (lastCodeBlock) {
-                                        // append to last code block
                                         lastCodeBlock.insertAdjacentHTML('beforeend', chunk);
                                         domLastCodeBlock = lastCodeBlock;
                                         doHighlight = false;
                                     } else {
-                                        // if no code block, append chunk as normal text
-                                        msg.insertAdjacentHTML('beforeend', chunk); // append chunk
-                                        domLastCodeBlock = null; // reset last code block
+                                        msg.insertAdjacentHTML('beforeend', chunk);
+                                        domLastCodeBlock = null;
                                     }
-                                    doMath = false; // disable math rendering for code blocks
+                                    doMath = false;
                                 } else {
-                                    domLastCodeBlock = null; // reset last code block
+                                    domLastCodeBlock = null;
                                     if (msg.innerHTML.trim().endsWith('</p>')) {
                                         let lastParagraphBlock;
                                         if (domLastParagraphBlock) {
@@ -377,15 +415,15 @@ class Body:
                                             }
                                         }
                                         if (lastParagraphBlock) {
-                                            domLastParagraphBlock = lastParagraphBlock; // store last paragraph block
-                                            lastParagraphBlock.insertAdjacentHTML('beforeend', chunk); // append to last paragraph
+                                            domLastParagraphBlock = lastParagraphBlock;
+                                            lastParagraphBlock.insertAdjacentHTML('beforeend', chunk);
                                         } else {
-                                            domLastParagraphBlock = null; // reset last paragraph block
-                                            msg.insertAdjacentHTML('beforeend', chunk); // append chunk
-                                        }                                        
+                                            domLastParagraphBlock = null;
+                                            msg.insertAdjacentHTML('beforeend', chunk);
+                                        }
                                     } else {
-                                        domLastParagraphBlock = null; // reset last paragraph block
-                                        msg.insertAdjacentHTML('beforeend', chunk); // append chunk
+                                        domLastParagraphBlock = null;
+                                        msg.insertAdjacentHTML('beforeend', chunk);
                                     }
                                     doHighlight = false;
                                 }
@@ -394,10 +432,10 @@ class Body:
                     }
                     if (replace) {
                         if (doHighlight) {
-                            highlightCode(doMath);  // with or without math
-                        }                        
-                    }    
-                    scrollToBottom(true);
+                            highlightCode(doMath, msg);
+                        }
+                    }
+                    scheduleScroll(true);
                 }
                 function replaceOutput(name_header, content) {
                     hideTips();
@@ -411,6 +449,8 @@ class Body:
                             box.classList.add('msg-bot');
                             if (name_header != '') {
                                 const name = document.createElement('div');
+                                name.classList.add('name-header');
+                                name.classList.add('name-bot');
                                 name.innerHTML = name_header;
                                 box.appendChild(name);
                             }
@@ -423,61 +463,32 @@ class Body:
                         }
                         if (msg) {
                             msg.innerHTML = sanitize(content);
+                            highlightCode(true, msg);
+                            scheduleScroll();
                         }
                     }
-                    highlightCode();
-                    scrollToBottom();
                 }
                 function nextStream() {
                     hideTips();
-                    // Clear the current stream output and copy it to the before output
-                    // 1. copy current output from _append_output_ to _append_output_before_
-                    // 2. clear _append_output_
-                    const element = document.getElementById('_append_output_');
-                    const elementBefore = document.getElementById('_append_output_before_');
+                    const element = els.appendOutput || document.getElementById('_append_output_');
+                    const elementBefore = els.appendOutputBefore || document.getElementById('_append_output_before_');
                     if (element && elementBefore) {
-                        elementBefore.insertAdjacentHTML('beforeend', element.innerHTML);
-                        element.innerHTML = ''; // clear current output
-                        domLastCodeBlock = null; // reset last code block
-                        domLastParagraphBlock = null; // reset last paragraph block
-                        scrollToBottom();
+                        const frag = document.createDocumentFragment();
+                        while (element.firstChild) {
+                            frag.appendChild(element.firstChild);
+                        }
+                        elementBefore.appendChild(frag);
+                        domLastCodeBlock = null;
+                        domLastParagraphBlock = null;
+                        scheduleScroll();
                     }
                 }
                 function clearStreamBefore() {
                     hideTips();
-                    const element = document.getElementById('_append_output_before_');
+                    const element = els.appendOutputBefore || document.getElementById('_append_output_before_');
                     if (element) {
                         element.replaceChildren();
                     }
-                }
-                function replaceOutput(bot_name, content) {     
-                    hideTips();   
-                    const element = getStreamContainer();
-                    if (element) {
-                        let box = element.querySelector('.msg-box');
-                        let msg;
-                        if (!box) {
-                            box = document.createElement('div');
-                            box.classList.add('msg-box');
-                            box.classList.add('msg-bot');
-                            const name = document.createElement('div');
-                            name.classList.add('name-header');
-                            name.classList.add('name-bot');
-                            name.textContent = bot_name;
-                            msg = document.createElement('div');
-                            msg.classList.add('msg');
-                            box.appendChild(name);
-                            box.appendChild(msg);
-                            element.appendChild(box);
-                        } else {
-                            msg = box.querySelector('.msg');
-                        }
-                        if (msg) {
-                            msg.innerHTML = sanitize(content);
-                        }
-                    }
-                    highlightCode();
-                    scrollToBottom();
                 }
                 function appendToolOutput(content) {
                     hideToolOutputLoader();
@@ -511,24 +522,15 @@ class Body:
                         const last = elements[elements.length - 1];
                         const contentEl = last.querySelector('.content');
                         if (contentEl) {
-                            contentEl.innerHTML = '';
+                            contentEl.replaceChildren();
                         }
                     }
                 }
                 function showToolOutputLoader() {
-                    return; // disabled
-                    const elements = document.querySelectorAll('.msg-bot');
-                    if (elements.length > 0) {
-                        const last = elements[elements.length - 1];
-                        const contentEl = last.querySelector('.spinner');
-                        if (contentEl) {
-                            contentEl.style.display = 'inline-block';
-                        }
-                    }
+                    return;
                 }
                 function hideToolOutputLoader() {
                     const elements = document.querySelectorAll('.msg-bot');
-                    // hide all loaders
                     if (elements.length > 0) {
                         elements.forEach(function(element) {
                             const contentEl = element.querySelector('.spinner');
@@ -577,19 +579,19 @@ class Body:
                     }
                 }
                 function replaceLive(content) {
-                    const element = document.getElementById('_append_live_');
+                    const element = els.appendLive || document.getElementById('_append_live_');
                     if (element) {
                         if (element.classList.contains('hidden')) {
                             element.classList.remove('hidden');
                             element.classList.add('visible');
                         }
                         element.innerHTML = sanitize(content);
+                        highlightCode(true, element);
+                        scheduleScroll();
                     }
-                    highlightCode();
-                    scrollToBottom();
                 }
                 function updateFooter(content) {
-                    const element = document.getElementById('_footer_');
+                    const element = els.footer || document.getElementById('_footer_');
                     if (element) {
                         element.innerHTML = content;
                     }
@@ -597,39 +599,38 @@ class Body:
                 function clearNodes() {
                     prevScroll = 0;
                     clearStreamBefore();
-                    const element = document.getElementById('_nodes_');
+                    const element = els.nodes || document.getElementById('_nodes_');
                     if (element) {
-                        element.innerHTML = '';
+                        element.replaceChildren();
                         element.classList.add('empty_list');
                     }
                 }
                 function clearInput() {
-                    const element = document.getElementById('_append_input_');
+                    const element = els.appendInput || document.getElementById('_append_input_');
                     if (element) {
-                        element.innerHTML = '';
+                        element.replaceChildren();
                     }
                 }
                 function clearOutput() {
                     clearStreamBefore();
                     domLastCodeBlock = null;
                     domLastParagraphBlock = null;
-                    const element = document.getElementById('_append_output_');
+                    const element = els.appendOutput || document.getElementById('_append_output_');
                     if (element) {
                         element.replaceChildren();
                     }
                 }
                 function clearLive() {
-                    const element = document.getElementById('_append_live_');
+                    const element = els.appendLive || document.getElementById('_append_live_');
                     if (element) {
                         if (element.classList.contains('visible')) {
                             element.classList.remove('visible');
                             element.classList.add('hidden');
-                            // timeout to clear content
                             setTimeout(function() {
-                                element.innerHTML = '';
+                                element.replaceChildren();
                             }, 1000);
                         } else {
-                            element.innerHTML = '';
+                            element.replaceChildren();
                         }
                     }
                 }
@@ -670,24 +671,25 @@ class Body:
                     }
                 }
                 function updateCSS(styles) {
-                    const style = document.createElement('style');
-                    style.innerHTML = styles;
-                    const oldStyle = document.querySelector('style');
-                    if (oldStyle) {
-                        oldStyle.remove();
+                    let style = document.getElementById('app-style');
+                    if (!style) {
+                        style = document.createElement('style');
+                        style.id = 'app-style';
+                        document.head.appendChild(style);
                     }
-                    document.head.appendChild(style);
+                    style.textContent = styles;
                 }
-                function restoreCollapsedCode() {
-                    const codeWrappers = document.querySelectorAll('.code-wrapper');
+                function restoreCollapsedCode(root) {
+                    const scope = root || document;
+                    const codeWrappers = scope.querySelectorAll('.code-wrapper');
                     codeWrappers.forEach(function(wrapper) {
                         const index = wrapper.getAttribute('data-index');
                         const localeCollapse = wrapper.getAttribute('data-locale-collapse');
                         const localeExpand = wrapper.getAttribute('data-locale-expand');
-                        const source = wrapper.querySelector('code');                
+                        const source = wrapper.querySelector('code');
                         if (source && collapsed_idx.includes(index)) {
                             source.style.display = 'none';
-                            const collapseBtn = wrapper.querySelector('.code-header-collapse');                    
+                            const collapseBtn = wrapper.querySelector('.code-header-collapse');
                             if (collapseBtn) {
                                 const collapseSpan = collapseBtn.querySelector('span');
                                 if (collapseSpan) {
@@ -734,10 +736,10 @@ class Body:
                 function setScrollPosition(pos) {
                     window.scrollTo(0, pos);
                     prevScroll = parseInt(pos);
-                }  
+                }
                 function showLoading() {
                     hideTips();
-                    const el = document.getElementById('_loader_');
+                    const el = els.loader || document.getElementById('_loader_');
                     if (el) {
                         if (el.classList.contains('hidden')) {
                             el.classList.remove('hidden');
@@ -746,7 +748,7 @@ class Body:
                     }
                 }
                 function hideLoading() {
-                    const el = document.getElementById('_loader_');
+                    const el = els.loader || document.getElementById('_loader_');
                     if (el) {
                         if (el.classList.contains('visible')) {
                             el.classList.remove('visible');
@@ -755,7 +757,8 @@ class Body:
                     }
                 }
                 document.addEventListener('DOMContentLoaded', function() {
-                    const container = document.getElementById('container');
+                    initDomRefs();
+                    const container = els.container;
                     function addClassToMsg(id, className) {
                         const msgElement = document.getElementById('msg-bot-' + id);
                         if (msgElement) {
@@ -773,7 +776,7 @@ class Body:
                             const id = event.target.getAttribute('data-id');
                             addClassToMsg(id, 'msg-highlight');
                         }
-                    });        
+                    });
                     container.addEventListener('mouseout', function(event) {
                         if (event.target.classList.contains('action-img')) {
                             const id = event.target.getAttribute('data-id');
@@ -781,7 +784,6 @@ class Body:
                         }
                     });
                     container.addEventListener('click', function(event) {
-                        // btn copy
                         const copyButton = event.target.closest('.code-header-copy');
                         if (copyButton) {
                             event.preventDefault();
@@ -799,9 +801,8 @@ class Body:
                                         copySpan.textContent = localeCopy;
                                     }, 1000);
                                 }
-                            }                        
-                        }            
-                        // btn run
+                            }
+                        }
                         const runButton = event.target.closest('.code-header-run');
                         if (runButton) {
                             event.preventDefault();
@@ -810,9 +811,8 @@ class Body:
                             if (source) {
                                 const text = source.textContent || source.innerText;
                                 bridgeRunCode(text);
-                            }                        
-                        }    
-                        // btn preview
+                            }
+                        }
                         const previewButton = event.target.closest('.code-header-preview');
                         if (previewButton) {
                             event.preventDefault();
@@ -821,9 +821,8 @@ class Body:
                             if (source) {
                                 const text = source.textContent || source.innerText;
                                 bridgePreviewCode(text);
-                            }                        
+                            }
                         }
-                        // btn collapse
                         const collapseButton = event.target.closest('.code-header-collapse');
                         if (collapseButton) {
                             event.preventDefault();
@@ -868,7 +867,7 @@ class Body:
                 <div id="_nodes_" class="nodes empty_list"></div>
                 <div id="_append_input_" class="append_input"></div>
                 <div id="_append_output_before_" class="append_output"></div>
-                <div id="_append_output_" class="append_output"></div>            
+                <div id="_append_output_" class="append_output"></div>
                 <div id="_append_live_" class="append_live hidden"></div>
                 <div id="_footer_" class="footer"></div>
                 <div id="_loader_" class="loader-global hidden">
@@ -977,7 +976,7 @@ class Body:
         theme_css = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
         parts = [self._SPINNER, theme_css]
         parts.append("pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }")
-        parts.append(self.highlight.get_style_defs())  # highlight style
+        parts.append(self.highlight.get_style_defs())
         return "\n".join(parts)
 
     def prepare_action_icons(self, ctx: CtxItem) -> str:
@@ -1005,32 +1004,26 @@ class Body:
             cid = ctx.id
             t = trans
 
-            # audio read
             icons.append(
                 f'<a href="extra-audio-read:{cid}" class="action-icon" data-id="{cid}" role="button">'
                 f'<span class="cmd">{self.get_icon("volume", t("ctx.extra.audio"), ctx)}</span></a>'
             )
-            # copy ctx
             icons.append(
                 f'<a href="extra-copy:{cid}" class="action-icon" data-id="{cid}" role="button">'
                 f'<span class="cmd">{self.get_icon("copy", t("ctx.extra.copy"), ctx)}</span></a>'
             )
-            # regen link
             icons.append(
                 f'<a href="extra-replay:{cid}" class="action-icon" data-id="{cid}" role="button">'
                 f'<span class="cmd">{self.get_icon("reload", t("ctx.extra.reply"), ctx)}</span></a>'
             )
-            # edit link
             icons.append(
                 f'<a href="extra-edit:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button">'
                 f'<span class="cmd">{self.get_icon("edit", t("ctx.extra.edit"), ctx)}</span></a>'
             )
-            # delete link
             icons.append(
                 f'<a href="extra-delete:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button">'
                 f'<span class="cmd">{self.get_icon("delete", t("ctx.extra.delete"), ctx)}</span></a>'
             )
-            # join link
             if not self.window.core.ctx.is_first_item(cid):
                 icons.append(
                     f'<a href="extra-join:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button">'
@@ -1173,20 +1166,18 @@ class Body:
 
         parts: List[str] = ['<div class="msg-extra">']
 
-        # single tool
         if "plugin" in extra:
             event = Event(Event.TOOL_OUTPUT_RENDER, {
                 'tool': extra["plugin"],
                 'html': '',
                 'multiple': False,
-                'content': extra,  # tool output
+                'content': extra,
             })
             event.ctx = ctx
-            self.window.dispatch(event, all=True)  # handle by plugins
+            self.window.dispatch(event, all=True)
             if event.data['html']:
                 parts.append(f'<div class="tool-output-block">{event.data["html"]}</div>')
 
-        # multiple tools, list
         elif "tool_output" in extra and isinstance(extra["tool_output"], list):
             for tool in extra["tool_output"]:
                 if "plugin" not in tool:
@@ -1195,7 +1186,7 @@ class Body:
                     'tool': tool["plugin"],
                     'html': '',
                     'multiple': True,
-                    'content': tool,  # tool output[]
+                    'content': tool,
                 })
                 event.ctx = ctx
                 self.window.dispatch(event, all=True)
@@ -1237,11 +1228,11 @@ class Body:
         if self.is_timestamp_enabled():
             classes.append("display-timestamp")
         classes_str = f' class="{" ".join(classes)}"' if classes else ""
-        styles_css = self.prepare_styles()  # CSS string
-        tips_json = self.get_all_tips()  # JSON string
+        styles_css = self.prepare_styles()
+        tips_json = self.get_all_tips()
 
         return ''.join((
-           self. _HTML_P0,
+            self._HTML_P0,
             styles_css,
             self._HTML_P1,
             str(pid),

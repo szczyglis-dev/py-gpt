@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 00:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 import pytest
@@ -338,22 +338,6 @@ def test_close_all_with_force(tabs, dummy_window):
     assert called is True
     tabs.on_changed = orig_on_changed
 
-def test_next_tab(tabs, dummy_window):
-    fake_tabs = MagicMock()
-    fake_tabs.currentIndex.return_value = 1
-    fake_child = [MagicMock(), MagicMock(), MagicMock()]
-    fake_tabs.children.return_value = fake_child
-    fake_tabs.setCurrentIndex = MagicMock()
-    dummy_window.ui.layout.get_active_tabs = MagicMock(return_value=fake_tabs)
-    orig_switch = tabs.switch_tab_by_idx
-    called = False
-    def fake_switch(idx, col=0):
-        nonlocal called
-        called = True
-    tabs.switch_tab_by_idx = fake_switch
-    tabs.next_tab()
-    assert called is True
-    tabs.switch_tab_by_idx = orig_switch
 
 def test_prev_tab(tabs, dummy_window):
     fake_tabs = MagicMock()

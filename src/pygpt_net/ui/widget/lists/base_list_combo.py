@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
+from PySide6.QtCore import QSignalBlocker
 
 from pygpt_net.ui.widget.option.combo import SeparatorComboBox, NoScrollCombo
 
@@ -32,8 +33,10 @@ class BaseListCombo(QWidget):
         self.combo.currentIndexChanged.connect(self.on_combo_change)
         self.initialized = False
         self.locked = False
+        self._data_index_map = {}
+        self._keys_cache = None
+        self._keys_cache_id = 0
 
-        # add items
         self.update()
 
         self.layout = QHBoxLayout()
@@ -45,20 +48,53 @@ class BaseListCombo(QWidget):
 
     def update(self):
         """Prepare items"""
-        self.combo.clear()  # Clear combo before updating with new items
-        if isinstance(self.keys, list):
-            for item in self.keys:
-                if isinstance(item, dict):
-                    for key, value in item.items():
-                        self.combo.addItem(value, key)
-                else:
-                    self.combo.addItem(item, item)
-        elif isinstance(self.keys, dict):
-            for key, value in self.keys.items():
-                if key.startswith("separator::"):
-                    self.combo.addSeparator(value)
-                else:
-                    self.combo.addItem(value, key)
+        combo = self.combo
+        blocker = QSignalBlocker(combo)
+        combo.setUpdatesEnabled(False)
+        try:
+            combo.clear()
+            self._data_index_map = {}
+            idx = 0
+            keys = self.keys
+            add_item = combo.addItem
+            if isinstance(keys, list):
+                for item in keys:
+                    if isinstance(item, dict):
+                        for key, value in item.items():
+                            add_item(value, key)
+                            if key not in self._data_index_map:
+                                self._data_index_map[key] = idx
+                            idx += 1
+                    else:
+                        add_item(item, item)
+                        if item not in self._data_index_map:
+                            self._data_index_map[item] = idx
+                        idx += 1
+            elif isinstance(keys, dict):
+                add_sep = combo.addSeparator
+                for key, value in keys.items():
+                    if isinstance(key, str) and key.startswith("separator::"):
+                        add_sep(value)
+                        idx += 1
+                    else:
+                        add_item(value, key)
+                        if key not in self._data_index_map:
+                            self._data_index_map[key] = idx
+                        idx += 1
+            cache = set()
+            if isinstance(keys, list):
+                for item in keys:
+                    if isinstance(item, dict):
+                        cache.update(item.keys())
+                    else:
+                        cache.add(item)
+            elif isinstance(keys, dict):
+                cache.update(keys.keys())
+            self._keys_cache = cache
+            self._keys_cache_id = id(keys)
+        finally:
+            combo.setUpdatesEnabled(True)
+            del blocker
 
     def set_value(self, value):
         """
@@ -67,10 +103,21 @@ class BaseListCombo(QWidget):
         :param value: value
         """
         self.locked = True
-        index = self.combo.findData(value)
-        if index != -1:
-            self.combo.setCurrentIndex(index)
-        self.locked = False
+        combo = self.combo
+        blocker = QSignalBlocker(combo)
+        try:
+            index = self._data_index_map.get(value, -1)
+            if index == -1:
+                index = combo.findData(value)
+                if index != -1 and value not in self._data_index_map:
+                    self._data_index_map[value] = index
+            if index != -1:
+                if index != combo.currentIndex():
+                    combo.setCurrentIndex(index)
+                self.current_id = value
+        finally:
+            del blocker
+            self.locked = False
 
     def get_value(self):
         """
@@ -87,17 +134,20 @@ class BaseListCombo(QWidget):
         :param name: key name
         :return:
         """
-        if isinstance(self.keys, list):
-            for key in self.keys:
-                if isinstance(key, dict):
-                    if name in key:
-                        return True
-                elif name == key:
-                    return True
-        elif isinstance(self.keys, dict):
-            if name in self.keys:
-                return True
-        return False
+        keys = self.keys
+        if self._keys_cache is None or self._keys_cache_id != id(keys):
+            cache = set()
+            if isinstance(keys, list):
+                for item in keys:
+                    if isinstance(item, dict):
+                        cache.update(item.keys())
+                    else:
+                        cache.add(item)
+            elif isinstance(keys, dict):
+                cache.update(keys.keys())
+            self._keys_cache = cache
+            self._keys_cache_id = id(keys)
+        return name in self._keys_cache
 
     def set_keys(self, keys):
         """
@@ -107,7 +157,9 @@ class BaseListCombo(QWidget):
         """
         self.locked = True
         self.keys = keys
-        self.update()  # Auto-clear handled in update
+        self._keys_cache = None
+        self._keys_cache_id = 0
+        self.update()
         self.locked = False
 
     def on_combo_change(self, index):
@@ -118,7 +170,7 @@ class BaseListCombo(QWidget):
         """
         if not self.initialized or self.locked:
             return
-        self.current_id = self.combo.itemData(index)
+        self.current_id = self.combo.itemData(index) if index >= 0 else None
 
     def fit_to_content(self):
         """Fit to content"""

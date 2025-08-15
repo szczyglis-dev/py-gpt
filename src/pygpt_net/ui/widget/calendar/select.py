@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
 
 from typing import Tuple
@@ -27,28 +27,40 @@ class CalendarSelect(QCalendarWidget):
 
         :param window: main window
         """
-        super(CalendarSelect, self).__init__(window)
+        super().__init__(window)
         self.window = window
         self.currentYear = QDate.currentDate().year()
         self.currentMonth = QDate.currentDate().month()
         self.currentDay = QDate.currentDate().day()
         self.font_size = 8
         self.counters = {
-            'ctx': {},  # num of ctx in date
-            'notes': {},  # num of notes in date
+            'ctx': {},
+            'notes': {},
         }
         self.labels = {}
         self.setGridVisible(True)
-        self.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)  # disable num of weeks display
+        self.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
         self.currentPageChanged.connect(self.page_changed)
         self.clicked[QDate].connect(self.on_day_clicked)
 
-        # context menu
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.open_context_menu)
         self.setProperty('class', 'calendar')
         self.tab = None
         self.installEventFilter(self)
+
+        self._font_small = QFont('Lato', self.font_size)
+        self._pen_today = QPen(QColor(0, 0, 0))
+        self._pen_today.setWidth(2)
+        self._pen_label = QPen(QColor(0, 0, 0))
+        self._pen_label.setWidth(1)
+        self._default_status_bg = QColor(100, 100, 100)
+        self._default_status_font = QColor(255, 255, 255)
+        self._theme_cached = None
+        self._counter_bg = QColor(240, 240, 240)
+        self._counter_font = QColor(0, 0, 0)
+        self._today = QDate.currentDate()
+        self._update_theme_cache()
 
     def set_tab(self, tab: Tab):
         """
@@ -82,6 +94,17 @@ class CalendarSelect(QCalendarWidget):
         self.currentMonth = month
         self.window.controller.calendar.on_page_changed(year, month)
 
+    def _update_theme_cache(self):
+        theme = self.window.core.config.get("theme")
+        if theme != self._theme_cached:
+            self._theme_cached = theme
+            if isinstance(theme, str) and theme.startswith('dark'):
+                self._counter_bg = QColor(40, 40, 40)
+                self._counter_font = QColor(255, 255, 255)
+            else:
+                self._counter_bg = QColor(240, 240, 240)
+                self._counter_font = QColor(0, 0, 0)
+
     def paintCell(self, painter, rect, date: QDate):
         """
         On painting cell
@@ -90,27 +113,21 @@ class CalendarSelect(QCalendarWidget):
         :param rect: Rectangle
         :param date: Date
         """
-        theme = self.window.core.config.get("theme")
-        if theme.startswith('dark'):
-            counter_bg = QColor(40, 40, 40)
-            counter_font = QColor(255, 255, 255)
-        else:
-            counter_bg = QColor(240, 240, 240)
-            counter_font = QColor(0, 0, 0)
+        self._update_theme_cache()
+        cd = QDate.currentDate()
+        if cd != self._today:
+            self._today = cd
 
         super().paintCell(painter, rect, date)
 
-        # current date
-        if date == QDate.currentDate():
+        if date == self._today:
             painter.save()
-            pen = QPen(QColor(0, 0, 0))
-            pen.setWidth(2)
-            painter.setPen(pen)
+            painter.setPen(self._pen_today)
             painter.drawRect(rect)
             painter.restore()
 
-        # ctx counter
-        if date in self.counters['ctx']:
+        ctx_count = self.counters['ctx'].get(date)
+        if ctx_count is not None:
             padding = 2
             task_rect = QRect(
                 rect.right() - padding - 20,
@@ -119,61 +136,65 @@ class CalendarSelect(QCalendarWidget):
                 20,
             )
             painter.save()
-            painter.setBrush(QBrush(counter_bg))
-            painter.setPen(Qt.NoPen)
-            painter.drawRect(task_rect)
-            painter.setPen(counter_font)
-            painter.setFont(QFont('Lato', self.font_size))
+            painter.fillRect(task_rect, self._counter_bg)
+            painter.setPen(self._counter_font)
+            painter.setFont(self._font_small)
             painter.drawText(
                 task_rect,
                 Qt.AlignCenter,
-                str(self.counters['ctx'][date]),
+                str(ctx_count),
             )
             painter.restore()
 
-        # notes counter
-        if date in self.counters['notes']:
-            day_notes = self.counters['notes'][date]
-            for status, count in day_notes.items():
-                padding = 2
-                task_rect = QRect(
-                    rect.left() + padding,
-                    rect.bottom() - padding - 20,
-                    20,
-                    20,
-                )
-                painter.save()
-                bg_color, font_color = self.get_color_for_status(status)
-                painter.setBrush(QBrush(bg_color))
-                painter.drawRect(task_rect)
+        notes = self.counters['notes'].get(date)
+        if notes:
+            colors_map = self.window.controller.ui.get_colors()
+            padding = 2
+            task_rect = QRect(
+                rect.left() + padding,
+                rect.bottom() - padding - 20,
+                20,
+                20,
+            )
+            painter.save()
+            for status, count in notes.items():
+                info = colors_map.get(status)
+                if info:
+                    bg_color, font_color = info['color'], info['font']
+                else:
+                    bg_color, font_color = self._default_status_bg, self._default_status_font
+                painter.fillRect(task_rect, bg_color)
                 painter.setPen(font_color)
-                painter.setFont(QFont('Lato', self.font_size))
+                painter.setFont(self._font_small)
                 painter.drawText(
                     task_rect,
                     Qt.AlignCenter,
                     "!",
-                )  # str(count)
-                painter.restore()
+                )
+            painter.restore()
 
-        if date in self.labels:
-            # draw little square with color if label exists in date
+        day_labels = self.labels.get(date)
+        if day_labels:
+            colors_map = self.window.controller.ui.get_colors()
+            painter.save()
+            painter.setPen(self._pen_label)
             prev_left = rect.left()
-            for label_id in self.labels[date]:
-                colors = self.window.controller.ui.get_colors()
-                color = colors[label_id]['color']
-                painter.save()
-                pen = QPen(QColor(0, 0, 0))
-                pen.setWidth(1)
-                painter.setPen(pen)
+            top = rect.top() + 2
+            x = prev_left + 2
+            for label_id in day_labels:
+                info = colors_map.get(label_id)
+                if not info:
+                    continue
+                color = info['color']
                 painter.setBrush(QBrush(color))
                 painter.drawRect(
-                    prev_left + 2,
-                    rect.top() + 2,
+                    x,
+                    top,
                     5,
                     5,
                 )
-                painter.restore()
-                prev_left += 7
+                x += 7
+            painter.restore()
 
     def get_color_for_status(self, status: int) -> Tuple[QColor, QColor]:
         """
@@ -183,10 +204,10 @@ class CalendarSelect(QCalendarWidget):
         :return: color, font color
         """
         colors = self.window.controller.ui.get_colors()
-        if status in colors:
-            return colors[status]['color'], colors[status]['font']
-        else:
-            return QColor(100, 100, 100), QColor(255, 255, 255)
+        info = colors.get(status)
+        if info:
+            return info['color'], info['font']
+        return self._default_status_bg, self._default_status_font
 
     def on_day_clicked(self, date: QDate):
         """
@@ -201,9 +222,6 @@ class CalendarSelect(QCalendarWidget):
         self.currentMonth = month
         self.currentDay = day
         self.window.controller.calendar.on_day_select(year, month, day)
-
-        # check if date has ctx TODO: think about better solution
-        # if date in self.counters['ctx']:
         self.window.controller.calendar.on_ctx_select(year, month, day)
 
         if self.tab is not None:
@@ -231,7 +249,7 @@ class CalendarSelect(QCalendarWidget):
             QDate.fromString(date_str, 'yyyy-MM-dd'): count for date_str, count in counters.items()
         }
         self.labels = {
-            QDate.fromString(date_str, 'yyyy-MM-dd'): labels for date_str, labels in labels.items()
+            QDate.fromString(date_str, 'yyyy-MM-dd'): lab for date_str, lab in labels.items()
         }
         self.updateCells()
 
@@ -260,8 +278,7 @@ class CalendarSelect(QCalendarWidget):
         action.setIcon(QIcon(":/icons/history.svg"))
         action.triggered.connect(lambda: self.execute_action(selected_date))
         context_menu.addAction(action)
-        
-        # set label menu
+
         set_label_menu = context_menu.addMenu(trans('calendar.day.label'))
         for status_id, status_info in colors.items():
             name = trans('calendar.day.' + status_info['label'])
@@ -273,7 +290,7 @@ class CalendarSelect(QCalendarWidget):
             icon = QIcon(pixmap)
             status_action = QAction(icon, name, self)
             status_action.triggered.connect(
-                lambda checked=False, s_id=status_id: self.set_label_for_day(selected_date, s_id)
+                lambda checked=False, s_id=status_id, date=selected_date: self.set_label_for_day(date, s_id)
             )
             set_label_menu.addAction(status_action)
 
@@ -315,4 +332,3 @@ class CalendarSelect(QCalendarWidget):
             date.month(),
             date.day(),
         )
-

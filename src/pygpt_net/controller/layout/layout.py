@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2025.08.15 03:00:00                  #
 # ================================================== #
-
-import os
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QRect
@@ -59,157 +57,202 @@ class Layout:
 
     def text_nodes_restore(self):
         """Restore nodes text"""
-        if not self.window.core.config.has('layout.text_nodes'):
+        config = self.window.core.config
+        if not config.has('layout.text_nodes'):
             return
-        data = self.window.core.config.get('layout.text_nodes')
-        for id in self.window.ui.nodes:
-            if id in data:
-                try:
-                    self.window.ui.nodes[id].setText(data[id])
-                except Exception as e:
-                    print("Error while restoring field state: " + str(e))
-                    self.window.core.debug.log(e)
+        data = config.get('layout.text_nodes')
+        nodes = self.window.ui.nodes
+        for node_id, value in data.items():
+            widget = nodes.get(node_id)
+            if widget is None:
+                continue
+            try:
+                widget.setText(value)
+            except Exception as e:
+                print("Error while restoring field state: " + str(e))
+                self.window.core.debug.log(e)
 
     def text_nodes_save(self):
         """Save nodes text"""
+        ui_nodes = self.window.ui.nodes
         data = {}
-        for id in self.text_nodes:
-            data[id] = self.window.ui.nodes[id].toPlainText()
+        for node_id in self.text_nodes:
+            widget = ui_nodes.get(node_id)
+            if widget is None:
+                continue
+            data[node_id] = widget.toPlainText()
         self.window.core.config.set('layout.text_nodes', data)
 
     def tabs_save(self):
         """Save tabs state"""
+        tabs = self.window.ui.tabs
         data = {}
-        for tab in self.window.ui.tabs:
-            if not isinstance(self.window.ui.tabs[tab], dict):
-                data[tab] = self.window.ui.tabs[tab].currentIndex()
+        for name, widget in tabs.items():
+            if not isinstance(widget, dict):
+                try:
+                    data[name] = widget.currentIndex()
+                except Exception:
+                    pass
         self.window.core.config.set('layout.tabs', data)
 
     def groups_save(self):
         """Save groups state"""
+        groups = self.window.ui.groups
         data = {}
-        for id in self.window.ui.groups:
-            data[id] = self.window.ui.groups[id].box.isChecked()
+        for gid, group in groups.items():
+            data[gid] = group.box.isChecked()
         self.window.core.config.set('layout.groups', data)
 
     def tabs_restore(self):
         """Restore tabs state"""
-        if not self.window.core.config.has('layout.tabs'):
+        config = self.window.core.config
+        if not config.has('layout.tabs'):
             return
-        data = self.window.core.config.get('layout.tabs')
-        for tab in self.window.ui.tabs:
-            if tab in data:
-                try:
-                    self.window.ui.tabs[tab].setCurrentIndex(data[tab])
-                except Exception as e:
-                    print("Error while restoring tab state: " + str(e))
-                    self.window.core.debug.log(e)
+        data = config.get('layout.tabs')
+        tabs = self.window.ui.tabs
+        for name, index in data.items():
+            widget = tabs.get(name)
+            if widget is None:
+                continue
+            try:
+                if getattr(widget, "currentIndex", None) is not None and widget.currentIndex() != index:
+                    widget.setCurrentIndex(index)
+            except Exception as e:
+                print("Error while restoring tab state: " + str(e))
+                self.window.core.debug.log(e)
 
     def splitters_save(self):
         """Save splitters state"""
         data = {}
+        ui_splitters = self.window.ui.splitters
         for splitter in self.splitters:
-            # do not save main splitter state if notepad was not opened yet
             if splitter == "calendar" and not self.window.controller.notepad.opened_once:
                 continue
+            splitter_widget = ui_splitters.get(splitter)
+            if splitter_widget is None:
+                continue
             try:
-                if splitter in self.window.ui.splitters:
-                    data[splitter] = self.window.ui.splitters[splitter].sizes()
-            except Exception as e:
+                data[splitter] = splitter_widget.sizes()
+            except Exception:
                 pass
         self.window.core.config.set('layout.splitters', data)
 
     def splitters_restore(self):
         """Restore splitters state"""
-        if not self.window.core.config.has('layout.splitters'):
+        config = self.window.core.config
+        if not config.has('layout.splitters'):
             return
-        data = self.window.core.config.get('layout.splitters')
-        for splitter in self.splitters:
-            if splitter in data:
-                try:
-                    if splitter in self.window.ui.splitters:
-                        self.window.ui.splitters[splitter].setSizes(data[splitter])
-                except Exception as e:
-                    print("Error while restoring splitter state: " + str(e))
-                    self.window.core.debug.log(e)
+        data = config.get('layout.splitters')
+        ui_splitters = self.window.ui.splitters
+        for splitter, sizes in data.items():
+            splitter_widget = ui_splitters.get(splitter)
+            if splitter_widget is None:
+                continue
+            try:
+                current = splitter_widget.sizes()
+                if current != sizes:
+                    splitter_widget.setSizes(sizes)
+            except Exception as e:
+                print("Error while restoring splitter state: " + str(e))
+                self.window.core.debug.log(e)
 
     def groups_restore(self):
         """Restore groups state"""
-        if not self.window.core.config.has('layout.groups'):
+        config = self.window.core.config
+        if not config.has('layout.groups'):
             return
-        data = self.window.core.config.get('layout.groups')
-        for id in self.window.ui.groups:
-            if id in data:
-                try:
-                    self.window.ui.groups[id].collapse(data[id])
-                except Exception as e:
-                    print("Error while restoring group state: " + str(e))
-                    self.window.core.debug.log(e)
+        data = config.get('layout.groups')
+        groups = self.window.ui.groups
+        for gid, state in data.items():
+            group = groups.get(gid)
+            if group is None:
+                continue
+            try:
+                if group.box.isChecked() != state:
+                    group.collapse(state)
+            except Exception as e:
+                print("Error while restoring group state: " + str(e))
+                self.window.core.debug.log(e)
 
     def scroll_save(self):
         """Save scroll state"""
         data = {}
-        if hasattr(self.window.ui.nodes['output'], 'verticalScrollBar'):
-            data['output'] = self.window.ui.nodes['output'].verticalScrollBar().value()
+        nodes = self.window.ui.nodes
+        output = nodes.get('output')
+        if output is not None and hasattr(output, 'verticalScrollBar'):
+            data['output'] = output.verticalScrollBar().value()
 
-        # notepads
-        for id in self.window.ui.notepad:
+        for nid, notepad in self.window.ui.notepad.items():
             try:
-                scroll_id = "notepad." + str(id)
-                data[scroll_id] = self.window.ui.notepad[id].textarea.verticalScrollBar().value()
-            except Exception as e:
+                scroll_id = f"notepad.{nid}"
+                data[scroll_id] = notepad.textarea.verticalScrollBar().value()
+            except Exception:
                 pass
         self.window.core.config.set('layout.scroll', data)
 
     def scroll_restore(self):
         """Restore scroll state"""
-        if not self.window.core.config.has('layout.scroll'):
+        config = self.window.core.config
+        if not config.has('layout.scroll'):
             return
-        data = self.window.core.config.get('layout.scroll')
-        for scroll_id in data:
-            # notepads
+        data = config.get('layout.scroll')
+        notepads = self.window.ui.notepad
+        for scroll_id, value in data.items():
             if scroll_id.startswith("notepad."):
-                id = int(scroll_id.replace("notepad.", ""))
-                if id in self.window.ui.notepad:
-                    try:
-                        self.window.ui.notepad[id].textarea.verticalScrollBar().setValue(data[scroll_id])
-                    except Exception as e:
-                        print("Error while restoring scroll state: " + str(e))
-                        self.window.core.debug.log(e)
+                try:
+                    nid = int(scroll_id.replace("notepad.", ""))
+                except Exception:
+                    continue
+                npad = notepads.get(nid)
+                if npad is None:
+                    continue
+                try:
+                    sb = npad.textarea.verticalScrollBar()
+                    if sb.value() != value:
+                        sb.setValue(value)
+                except Exception as e:
+                    print("Error while restoring scroll state: " + str(e))
+                    self.window.core.debug.log(e)
         if 'output' in data:
             try:
-                if hasattr(self.window.ui.nodes['output'], 'verticalScrollBar'):
-                    self.window.ui.nodes['output'].verticalScrollBar().setValue(data['output'])
+                output = self.window.ui.nodes.get('output')
+                if output is not None and hasattr(output, 'verticalScrollBar'):
+                    sb = output.verticalScrollBar()
+                    if sb.value() != data['output']:
+                        sb.setValue(data['output'])
             except Exception as e:
                 print("Error while restoring scroll state: " + str(e))
                 self.window.core.debug.log(e)
 
     def state_restore(self):
         """Restore window state"""
-        if not self.window.core.config.has('layout.window'):
+        config = self.window.core.config
+        if not config.has('layout.window'):
             return
-        data = self.window.core.config.get('layout.window')
+        data = config.get('layout.window')
         try:
             screen = QApplication.primaryScreen()
+            if screen is None:
+                return
             available_geometry = screen.availableGeometry()
 
-            if 'geometry' in data:
-                geometry_data = data['geometry']
-                x, y, width, height = (geometry_data['x'],
-                                       geometry_data['y'],
-                                       geometry_data['width'],
-                                       geometry_data['height'])
+            geometry_data = data.get('geometry')
+            if geometry_data:
+                x = geometry_data.get('x', 0)
+                y = geometry_data.get('y', 0)
+                width = geometry_data.get('width', self.window.width())
+                height = geometry_data.get('height', self.window.height())
 
                 window_rect = QRect(x, y, width, height)
                 adjusted_rect = available_geometry.intersected(window_rect)
 
                 if not available_geometry.contains(window_rect):
-                    adjusted_rect.adjust(0, 0, -20, -20)  # Adjust to fit within the screen
+                    adjusted_rect.adjust(0, 0, -20, -20)
 
                 self.window.move(adjusted_rect.x(), adjusted_rect.y())
                 self.window.resize(adjusted_rect.width(), adjusted_rect.height())
 
-            if 'maximized' in data and data['maximized']:
+            if data.get('maximized'):
                 self.window.showMaximized()
         except Exception as e:
             print("Error while restoring window state: " + str(e))
@@ -217,47 +260,62 @@ class Layout:
     def state_save(self):
         """Save window state"""
         data = {}
-        geometry_data = {}
         geometry = self.window.geometry()
-        geometry_data['x'] = geometry.x()
-        geometry_data['y'] = geometry.y()
-        geometry_data['width'] = geometry.width()
-        geometry_data['height'] = geometry.height()
-        data['geometry'] = geometry_data
+        data['geometry'] = {
+            'x': geometry.x(),
+            'y': geometry.y(),
+            'width': geometry.width(),
+            'height': geometry.height(),
+        }
         data['maximized'] = self.window.isMaximized()
         self.window.core.config.set('layout.window', data)
 
         # ------------------
 
         # output zoom save (Chromium, web engine only)
-        if hasattr(self.window.ui.nodes['output'], 'get_zoom_value'):
-            self.window.core.config.set('zoom', self.window.ui.nodes['output'].get_zoom_value())
+        output = self.window.ui.nodes.get('output')
+        if output is not None and hasattr(output, 'get_zoom_value'):
+            self.window.core.config.set('zoom', output.get_zoom_value())
 
     def restore_plugin_settings(self):
         """Restore groups state"""
-        if not self.window.core.config.has('layout.groups'):
+        config = self.window.core.config
+        if not config.has('layout.groups'):
             return
-        data = self.window.core.config.get('layout.groups')
-        for id in self.window.ui.groups:
-            if id in data and id.startswith('plugin.settings.'):
-                try:
-                    self.window.ui.groups[id].collapse(data[id])
-                except Exception as e:
-                    print("Error while restoring group state: " + str(e))
-                    self.window.core.debug.log(e)
+        data = config.get('layout.groups')
+        groups = self.window.ui.groups
+        for gid, state in data.items():
+            if not gid.startswith('plugin.settings.'):
+                continue
+            group = groups.get(gid)
+            if group is None:
+                continue
+            try:
+                if group.box.isChecked() != state:
+                    group.collapse(state)
+            except Exception as e:
+                print("Error while restoring group state: " + str(e))
+                self.window.core.debug.log(e)
 
     def restore_settings(self):
         """Restore groups state"""
-        if not self.window.core.config.has('layout.groups'):
+        config = self.window.core.config
+        if not config.has('layout.groups'):
             return
-        data = self.window.core.config.get('layout.groups')
-        for id in self.window.ui.groups:
-            if id in data and id.startswith('settings.advanced.'):
-                try:
-                    self.window.ui.groups[id].collapse(data[id])
-                except Exception as e:
-                    print("Error while restoring group state: " + str(e))
-                    self.window.core.debug.log(e)
+        data = config.get('layout.groups')
+        groups = self.window.ui.groups
+        for gid, state in data.items():
+            if not gid.startswith('settings.advanced.'):
+                continue
+            group = groups.get(gid)
+            if group is None:
+                continue
+            try:
+                if group.box.isChecked() != state:
+                    group.collapse(state)
+            except Exception as e:
+                print("Error while restoring group state: " + str(e))
+                self.window.core.debug.log(e)
 
     def restore_default_css(self, force: bool = False):
         """
