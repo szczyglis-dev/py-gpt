@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.2** | build: **2025-08-15* | Python: **>=3.10, <3.14**
+Release: **2.6.3** | build: **2025-08-15* | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4407,6 +4407,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.3 (2025-08-14)**
+
+- Optimized streaming and CPU usage.
+- Fixed crash on set label color and ctx duplicate.
 
 **2.6.2 (2025-08-14)**
 
