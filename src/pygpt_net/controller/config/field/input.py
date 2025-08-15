@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict, Optional, Union
@@ -36,30 +36,45 @@ class Input:
         """
         if "value" not in option:
             return
-        value = option["value"]
 
-        # type
-        if "type" in option and option["type"] == "int":
+        ui = self.window.ui
+        parent = ui.config.get(parent_id)
+        if not parent:
+            return
+        widget = parent.get(key)
+        if widget is None:
+            return
+
+        value = option["value"]
+        typ = option.get("type")
+
+        if typ == "int":
             try:
                 value = round(int(value), 0)
-            except Exception:
+            except (ValueError, TypeError):
                 value = 0
-        elif "type" in option and option["type"] == "float":
+        elif typ == "float":
             try:
                 value = float(value)
-            except Exception:
+            except (ValueError, TypeError):
                 value = 0.0
 
-        # min/max
-        if "type" in option and (option["type"] == "int" or option["type"] == "float"):
-            if value is not None:
-                if "min" in option and (option["min"] is not None and value < option["min"]):
-                    value = option["min"]
-                elif "max" in option and (option["max"] is not None and value > option["max"]):
-                    value = option["max"]
+        if typ in ("int", "float") and value is not None:
+            minv = option.get("min")
+            maxv = option.get("max")
+            if minv is not None and value < minv:
+                value = minv
+            elif maxv is not None and value > maxv:
+                value = maxv
 
-        if parent_id in self.window.ui.config and key in self.window.ui.config[parent_id]:
-            self.window.ui.config[parent_id][key].setText("{}".format(value))
+        new_text = str(value)
+        curr_val = None
+        if hasattr(widget, 'text'):
+            curr_val = widget.text()
+        elif hasattr(widget, 'toPlainText'):
+            curr_val = widget.toPlainText()
+        if curr_val != new_text:
+            widget.setText(new_text)
 
     def on_update(
             self,
@@ -68,7 +83,7 @@ class Input:
             option: Dict[str, Any],
             value: Any,
             hooks: bool = True,
-            only_hook = False,
+            only_hook: bool = False,
     ):
         """
         On update event handler
@@ -84,11 +99,11 @@ class Input:
         if not only_hook:
             self.apply(parent_id, key, option)
 
-        # on update hooks
         if hooks:
-            hook_name = "update.{}.{}".format(parent_id, key)
-            if self.window.ui.has_hook(hook_name):
-                hook = self.window.ui.get_hook(hook_name)
+            ui = self.window.ui
+            hook_name = f"update.{parent_id}.{key}"
+            if ui.has_hook(hook_name):
+                hook = ui.get_hook(hook_name)
                 try:
                     hook(key, value, "input")
                 except Exception as e:
@@ -108,17 +123,20 @@ class Input:
         :param option: Option data
         :return: Value
         """
-        value = None
-        if option["type"] == "int":
+        typ = option["type"]
+        widget = self.window.ui.config[parent_id][key]
+        text = widget.text()
+
+        if typ == "int":
             try:
-                value = int(self.window.ui.config[parent_id][key].text())
-            except Exception:
-                value = 0
-        elif option["type"] == "float":
+                return int(text)
+            except (ValueError, TypeError):
+                return 0
+        elif typ == "float":
             try:
-                value = float(self.window.ui.config[parent_id][key].text())
-            except Exception:
-                value = 0.0
-        elif option["type"] == "text":
-            value = self.window.ui.config[parent_id][key].text()
-        return value
+                return float(text)
+            except (ValueError, TypeError):
+                return 0.0
+        elif typ == "text":
+            return text
+        return None

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict
@@ -26,7 +26,7 @@ class Checkbox:
             parent_id: str,
             key: str,
             option: Dict[str, Any]
-    ):
+    ) -> None:
         """
         Apply value to checkbox
 
@@ -39,17 +39,19 @@ class Checkbox:
         value = option["value"]
         if value is None:
             value = False
-        if key in self.window.ui.config[parent_id]:
-            self.window.ui.config[parent_id][key].box.setChecked(bool(value))
+        cfg_parent = self.window.ui.config[parent_id]
+        row = cfg_parent.get(key)
+        if row is not None:
+            row.box.setChecked(bool(value))
 
     def on_update(
             self,
             parent_id: str,
             key: str,
-            option: dict,
+            option: Dict[str, Any],
             value: Any,
             hooks: bool = True
-    ):
+    ) -> None:
         """
         Event: on update checkbox value
 
@@ -59,11 +61,11 @@ class Checkbox:
         :param value: Option value
         :param hooks: Run hooks
         """
-        # on update hooks
         if hooks:
-            hook_name = "update.{}.{}".format(parent_id, key)
-            if self.window.ui.has_hook(hook_name):
-                hook = self.window.ui.get_hook(hook_name)
+            ui = self.window.ui
+            hook_name = f"update.{parent_id}.{key}"
+            if ui.has_hook(hook_name):
+                hook = ui.get_hook(hook_name)
                 try:
                     hook(key, value, 'checkbox')
                 except Exception as e:
@@ -83,6 +85,8 @@ class Checkbox:
         :param option: Option data dict
         :return: Option value
         """
-        if key not in self.window.ui.config[parent_id]:
+        cfg_parent = self.window.ui.config[parent_id]
+        row = cfg_parent.get(key)
+        if row is None:
             return False
-        return self.window.ui.config[parent_id][key].box.isChecked()
+        return row.box.isChecked()

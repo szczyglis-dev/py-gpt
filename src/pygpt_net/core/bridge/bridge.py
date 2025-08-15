@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import time
@@ -39,10 +39,10 @@ class Bridge:
         self.last_call = None  # last API call time, for throttling
         self.last_context = None  # last context
         self.last_context_quick = None  # last context for quick call
-        self.sync_modes = [
+        self.sync_modes = (
             MODE_ASSISTANT,
             MODE_EXPERT,
-        ]
+        )
         self.worker = None
 
     def request(
@@ -59,7 +59,7 @@ class Bridge:
         if self.window.controller.kernel.stopped():
             return False
 
-        allowed_model_change = [MODE_VISION]
+        allowed_model_change = MODE_VISION
         is_virtual = False
         force_sync = False
 
@@ -81,7 +81,7 @@ class Bridge:
         context.parent_mode = base_mode  # store base mode
 
         # get agent or expert internal sub-mode
-        if base_mode in [MODE_AGENT, MODE_EXPERT]:
+        if base_mode in (MODE_AGENT, MODE_EXPERT):
             is_virtual = True
             sub_mode = None  # inline switch to sub-mode, because agent is a virtual mode only
             if base_mode == MODE_AGENT:

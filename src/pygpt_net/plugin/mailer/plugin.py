@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.15 04:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.plugin import BasePlugin
@@ -15,10 +15,6 @@ from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
 from .runner import Runner
-from .worker import Worker
-
-from pygpt_net.utils import trans
-
 
 class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
@@ -88,6 +84,8 @@ class Plugin(BasePlugin):
         :param cmds: commands dict
         :param silent: silent mode
         """
+        from .worker import Worker
+
         is_cmd = False
         force = False
         my_commands = []

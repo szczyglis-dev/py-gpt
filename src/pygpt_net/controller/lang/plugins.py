@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 00:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -27,71 +27,80 @@ class Plugins:
         # plugins: info
         self.window.controller.plugins.update_info()
 
-        # reload all domains (plugin locale files)
-        ids = self.window.core.plugins.plugins.keys()
-        for id in ids:
-            plugin = self.window.core.plugins.plugins[id]
+        plugins_dict = self.window.core.plugins.plugins
+        plugin_ids = tuple(plugins_dict.keys())
+        win = self.window
+        ui = win.ui
+        ui_nodes = ui.nodes
+        ui_tabs = ui.tabs
+        settings_tab = ui_tabs['plugin.settings']
+        ui_menu_plugins = ui.menu.get('plugins', {})
+        ui_config = ui.config
+        ctrl_plugins = win.controller.plugins
+
+        for plugin_id in plugin_ids:
+            plugin = plugins_dict[plugin_id]
             if not plugin.use_locale:
                 continue
-            domain = 'plugin.{}'.format(id)
+            domain = f'plugin.{plugin_id}'
             trans('', True, domain)
 
-        # apply to plugin settings
-        for id in ids:
-            plugin = self.window.core.plugins.plugins[id]
+        for plugin_id in plugin_ids:
+            plugin = plugins_dict[plugin_id]
             if not plugin.use_locale:
                 continue
-            domain = 'plugin.{}'.format(id)
+            domain = f'plugin.{plugin_id}'
 
-            # set name, translate if localization is enabled
             name_txt = trans('plugin.name', False, domain)
 
-            # set description, translate if localization is enabled
-            desc_key = 'plugin.settings.' + id + '.desc'
-            desc_txt = trans('plugin.description', False, domain)
-            if desc_key in self.window.ui.nodes:
-                self.window.ui.nodes[desc_key].setText(desc_txt)
+            plugin_settings_desc_key = f'plugin.settings.{plugin_id}.desc'
+            if plugin_settings_desc_key in ui_nodes:
+                desc_txt = trans('plugin.description', False, domain)
+                ui_nodes[plugin_settings_desc_key].setText(desc_txt)
 
-            # update tab name
-            tab_idx = self.window.controller.plugins.get_tab_idx(id)
-            # update tab name
+            tab_idx = ctrl_plugins.get_tab_idx(plugin_id)
             if tab_idx is not None:
-                self.window.ui.tabs['plugin.settings'].setTabText(tab_idx, name_txt)
+                settings_tab.setTabText(tab_idx, name_txt)
 
-            if id in self.window.ui.menu['plugins']:
-                self.window.ui.menu['plugins'][id].setText(name_txt)
+            if plugin_id in ui_menu_plugins:
+                ui_menu_plugins[plugin_id].setText(name_txt)
 
             options = plugin.setup()
-            option_ids = options.keys()
-            for option_id in option_ids:
-                # prepare element nodes keys
-                label_key = 'plugin.' + id + '.' + option_id + '.label'
-                desc_key = 'plugin.' + id + '.' + option_id + '.desc'
+            if not options:
+                continue
 
-                # update options label, description and tooltip
-                label_str = trans(option_id + '.label', False, domain)
-                desc_str = trans(option_id + '.description', False, domain)
-                tooltip_str = trans(option_id + '.tooltip', False, domain)
+            cfg_domain = ui_config.get(domain)
+            for option_id, option in options.items():
+                label_key = f'plugin.{plugin_id}.{option_id}.label'
+                desc_key = f'plugin.{plugin_id}.{option_id}.desc'
 
-                if tooltip_str == option_id + '.tooltip':
-                    tooltip_str = desc_str
-                if label_key in self.window.ui.nodes:
-                    self.window.ui.nodes[label_key].setText(label_str)
-                if desc_key in self.window.ui.nodes:
-                    self.window.ui.nodes[desc_key].setText(desc_str)
-                    self.window.ui.nodes[desc_key].setToolTip(tooltip_str)
+                is_bool = option.get('type') == 'bool'
+                need_label = (label_key in ui_nodes) or (is_bool and cfg_domain and option_id in cfg_domain)
+                need_desc = desc_key in ui_nodes
 
-                if options[option_id]['type'] == 'bool':
-                    # update checkbox label
-                    if domain in self.window.ui.config and option_id in self.window.ui.config[domain]:
-                        try:
-                            if hasattr(self.window.ui.config[domain][option_id], 'setText'):
-                                self.window.ui.config[domain][option_id].setText(label_str)
-                            self.window.ui.config[domain][option_id].box.setText(label_str)
-                        except Exception as e:
-                            pass
+                label_str = None
+                if need_label:
+                    label_str = trans(f'{option_id}.label', False, domain)
 
-        # update settings dialog list
-        idx = self.window.ui.tabs['plugin.settings'].currentIndex()
-        self.window.plugin_settings.update_list('plugin.list', self.window.core.plugins.plugins)
-        self.window.controller.plugins.set_by_tab(idx)
+                if need_desc:
+                    desc_str = trans(f'{option_id}.description', False, domain)
+                    tooltip_str = trans(f'{option_id}.tooltip', False, domain)
+                    if tooltip_str == f'{option_id}.tooltip':
+                        tooltip_str = desc_str
+                    ui_nodes[desc_key].setText(desc_str)
+                    ui_nodes[desc_key].setToolTip(tooltip_str)
+
+                if label_key in ui_nodes and label_str is not None:
+                    ui_nodes[label_key].setText(label_str)
+
+                if is_bool and cfg_domain and option_id in cfg_domain and label_str is not None:
+                    widget = cfg_domain[option_id]
+                    if hasattr(widget, 'setText'):
+                        widget.setText(label_str)
+                    box = getattr(widget, 'box', None)
+                    if box and hasattr(box, 'setText'):
+                        box.setText(label_str)
+
+        idx = settings_tab.currentIndex()
+        win.plugin_settings.update_list('plugin.list', plugins_dict)
+        ctrl_plugins.set_by_tab(idx)

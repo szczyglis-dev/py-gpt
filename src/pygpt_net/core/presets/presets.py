@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 19:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -35,6 +35,22 @@ from pygpt_net.provider.core.preset.json_file import JsonFileProvider
 
 
 class Presets:
+    _MODE_TO_ATTR = {
+        MODE_CHAT: "chat",
+        MODE_COMPLETION: "completion",
+        MODE_IMAGE: "img",
+        MODE_VISION: "vision",
+        MODE_LANGCHAIN: "langchain",
+        MODE_ASSISTANT: "assistant",
+        MODE_LLAMA_INDEX: "llama_index",
+        MODE_AGENT: "agent",
+        MODE_AGENT_LLAMA: "agent_llama",
+        MODE_AGENT_OPENAI: "agent_openai",
+        MODE_EXPERT: "expert",
+        MODE_RESEARCH: "research",
+        MODE_COMPUTER: "computer",
+        MODE_AUDIO: "audio",
+    }
 
     def __init__(self, window=None):
         """
@@ -44,7 +60,7 @@ class Presets:
         """
         self.window = window
         self.provider = JsonFileProvider(window)
-        self.items = {}
+        self.items: Dict[str, PresetItem] = {}
 
     def install(self):
         """Install provider data"""
@@ -70,114 +86,34 @@ class Presets:
 
     def append_current(self):
         """Append current presets"""
-        # create empty presets
-        curr_chat = self.build()
-        curr_completion = self.build()
-        curr_img = self.build()
-        curr_vision = self.build()
-        curr_langchain = self.build()
-        curr_assistant = self.build()
-        curr_llama = self.build()
-        curr_agent = self.build()
-        curr_agent_llama = self.build()
-        curr_agent_openai = self.build()
-        curr_expert = self.build()
-        curr_audio = self.build()
-        curr_computer = self.build()
-
-        # prepare ids
-        id_chat = 'current.chat'
-        id_completion = 'current.completion'
-        id_img = 'current.img'
-        id_vision = 'current.vision'
-        id_langchain = 'current.langchain'
-        id_assistant = 'current.assistant'
-        id_llama = 'current.llama_index'
-        id_agent = 'current.agent'
-        id_agent_llama = 'current.agent_llama'
-        id_agent_openai = 'current.agent_openai'
-        id_expert = 'current.expert'
-        id_audio = 'current.audio'
-        id_computer = 'current.computer'
-
-        # set default initial prompt for chat mode
-        curr_chat.prompt = self.window.core.prompt.get('default')
-
-        # get data from presets if exists
-        if id_chat in self.items:
-            curr_chat = self.items[id_chat]
-        if id_completion in self.items:
-            curr_completion = self.items[id_completion]
-        if id_img in self.items:
-            curr_img = self.items[id_img]
-        if id_vision in self.items:
-            curr_vision = self.items[id_vision]
-        if id_langchain in self.items:
-            curr_langchain = self.items[id_langchain]
-        if id_assistant in self.items:
-            curr_assistant = self.items[id_assistant]
-        if id_llama in self.items:
-            curr_llama = self.items[id_llama]
-        if id_agent in self.items:
-            curr_agent = self.items[id_agent]
-        if id_agent_llama in self.items:
-            curr_agent_llama = self.items[id_agent_llama]
-        if id_agent_openai in self.items:
-            curr_agent_openai = self.items[id_agent_openai]
-        if id_expert in self.items:
-            curr_expert = self.items[id_expert]
-        if id_audio in self.items:
-            curr_audio = self.items[id_audio]
-        if id_computer in self.items:
-            curr_computer = self.items[id_computer]
-
-        # allow usage in specific mode
-        curr_chat.chat = True
-        curr_completion.completion = True
-        curr_img.img = True
-        curr_vision.vision = True
-        curr_langchain.langchain = True
-        curr_assistant.assistant = True
-        curr_llama.llama_index = True
-        curr_agent.agent = True
-        curr_agent_llama.agent_llama = True
-        curr_agent_openai.agent_openai = True
-        curr_expert.expert = True
-        curr_audio.audio = True
-        curr_computer.computer = True
-
-        # always apply default name
-        curr_chat.name = '*'
-        curr_completion.name = '*'
-        curr_img.name = '*'
-        curr_vision.name = '*'
-        curr_langchain.name = '*'
-        curr_assistant.name = '*'
-        curr_llama.name = '*'
-        curr_agent.name = '*'
-        curr_agent_llama.name = '*'
-        curr_agent_openai.name = '*'
-        curr_expert.name = '*'
-        curr_audio.name = '*'
-        curr_computer.name = '*'
-
-        # append at first position
-        self.items = {
-            id_chat: curr_chat,
-            id_completion: curr_completion,
-            id_img: curr_img,
-            id_vision: curr_vision,
-            id_langchain: curr_langchain,
-            id_assistant: curr_assistant,
-            id_llama: curr_llama,
-            id_agent: curr_agent,
-            id_agent_llama: curr_agent_llama,
-            id_agent_openai: curr_agent_openai,
-            id_expert: curr_expert,
-            id_audio: curr_audio,
-            id_computer: curr_computer,
-            **self.items
-        }
+        items = self.items
+        ids = [
+            ("current.chat", "chat"),
+            ("current.completion", "completion"),
+            ("current.img", "img"),
+            ("current.vision", "vision"),
+            ("current.langchain", "langchain"),
+            ("current.assistant", "assistant"),
+            ("current.llama_index", "llama_index"),
+            ("current.agent", "agent"),
+            ("current.agent_llama", "agent_llama"),
+            ("current.agent_openai", "agent_openai"),
+            ("current.expert", "expert"),
+            ("current.audio", "audio"),
+            ("current.computer", "computer"),
+        ]
+        front = {}
+        for pid, attr in ids:
+            if pid in items:
+                obj = items[pid]
+            else:
+                obj = self.build()
+                if pid == "current.chat":
+                    obj.prompt = self.window.core.prompt.get("default")
+            setattr(obj, attr, True)
+            obj.name = "*"
+            front[pid] = obj
+        self.items = {**front, **items}
 
     def exists(self, id: str) -> bool:
         """
@@ -186,9 +122,7 @@ class Presets:
         :param id: preset id
         :return: True if exists
         """
-        if id in self.items:
-            return True
-        return False
+        return id in self.items
 
     def exists_uuid(self, uuid: str) -> bool:
         """
@@ -197,10 +131,7 @@ class Presets:
         :param uuid: preset uuid
         :return: True if exists
         """
-        for id in self.items:
-            if self.items[id].uuid == uuid:
-                return True
-        return False
+        return any(item.uuid == uuid for item in self.items.values())
 
     def enable(self, id: str):
         """
@@ -266,10 +197,11 @@ class Presets:
         :param id : preset id
         :return: True if exists
         """
-        presets = self.get_by_mode(mode)
-        if id in presets:
-            return True
-        return False
+        item = self.items.get(id)
+        if not item:
+            return False
+        attr = self._MODE_TO_ATTR.get(mode)
+        return bool(attr and getattr(item, attr, False))
 
     def get_by_idx(self, idx: int, mode: str) -> str:
         """
@@ -279,8 +211,16 @@ class Presets:
         :param mode: mode
         :return: preset id
         """
-        presets = self.get_by_mode(mode)
-        return list(presets.keys())[idx]
+        attr = self._MODE_TO_ATTR.get(mode)
+        if not attr:
+            raise IndexError(idx)
+        i = 0
+        for key, item in self.items.items():
+            if getattr(item, attr, False):
+                if i == idx:
+                    return key
+                i += 1
+        raise IndexError(idx)
 
     def get_by_id(self, mode: str, id: str) -> Optional[PresetItem]:
         """
@@ -290,10 +230,13 @@ class Presets:
         :param id: preset id
         :return: preset item
         """
-        presets = self.get_by_mode(mode)
-        if id in presets:
-            return presets[id]
-        return None
+        item = self.items.get(id)
+        if not item:
+            return None
+        attr = self._MODE_TO_ATTR.get(mode)
+        if not attr:
+            return None
+        return item if getattr(item, attr, False) else None
 
     def get(self, id: str) -> Optional[PresetItem]:
         """
@@ -302,9 +245,7 @@ class Presets:
         :param id: preset ID
         :return: preset item
         """
-        if id in self.items:
-            return self.items[id]
-        return None
+        return self.items.get(id)
 
     def get_by_uuid(self, uuid: str) -> Optional[PresetItem]:
         """
@@ -313,10 +254,7 @@ class Presets:
         :param uuid: preset UUID
         :return: preset item
         """
-        for id in self.items:
-            if self.items[id].uuid == uuid:
-                return self.items[id]
-        return None
+        return next((item for item in self.items.values() if item.uuid == uuid), None)
 
     def get_by_mode(self, mode: str) -> Dict[str, PresetItem]:
         """
@@ -325,24 +263,10 @@ class Presets:
         :param mode: mode name
         :return: presets dict for mode
         """
-        presets = {}
-        for id in self.items:
-            if (mode == MODE_CHAT and self.items[id].chat) \
-                    or (mode == MODE_COMPLETION and self.items[id].completion) \
-                    or (mode == MODE_IMAGE and self.items[id].img) \
-                    or (mode == MODE_VISION and self.items[id].vision) \
-                    or (mode == MODE_LANGCHAIN and self.items[id].langchain) \
-                    or (mode == MODE_ASSISTANT and self.items[id].assistant) \
-                    or (mode == MODE_LLAMA_INDEX and self.items[id].llama_index) \
-                    or (mode == MODE_AGENT and self.items[id].agent) \
-                    or (mode == MODE_AGENT_LLAMA and self.items[id].agent_llama) \
-                    or (mode == MODE_AGENT_OPENAI and self.items[id].agent_openai) \
-                    or (mode == MODE_EXPERT and self.items[id].expert) \
-                    or (mode == MODE_RESEARCH and self.items[id].research) \
-                    or (mode == MODE_COMPUTER and self.items[id].computer) \
-                    or (mode == MODE_AUDIO and self.items[id].audio):
-                presets[id] = self.items[id]
-        return presets
+        attr = self._MODE_TO_ATTR.get(mode)
+        if not attr:
+            return {}
+        return {id: item for id, item in self.items.items() if getattr(item, attr, False)}
 
     def get_idx_by_id(self, mode: str, id: str) -> int:
         """
@@ -352,12 +276,15 @@ class Presets:
         :param id: preset id
         :return: preset idx
         """
-        presets = self.get_by_mode(mode)
+        attr = self._MODE_TO_ATTR.get(mode)
+        if not attr:
+            return 0
         i = 0
-        for key in presets:
-            if key == id:
-                return i
-            i += 1
+        for key, item in self.items.items():
+            if getattr(item, attr, False):
+                if key == id:
+                    return i
+                i += 1
         return 0
 
     def get_default(self, mode: str) -> Optional[str]:
@@ -367,10 +294,13 @@ class Presets:
         :param mode: mode name
         :return: default prompt name
         """
-        presets = self.get_by_mode(mode)
-        if len(presets) == 0:
+        attr = self._MODE_TO_ATTR.get(mode)
+        if not attr:
             return None
-        return list(presets.keys())[0]
+        for key, item in self.items.items():
+            if getattr(item, attr, False):
+                return key
+        return None
 
     def get_duplicate_name(self, id: str) -> Tuple[str, str]:
         """
@@ -400,7 +330,7 @@ class Presets:
         self.items[id] = copy.deepcopy(self.items[prev_id])
         self.items[id].name = name
         self.items[id].filename = id
-        self.items[id].uuid = str(uuid.uuid4())  # generate new uuid
+        self.items[id].uuid = str(uuid.uuid4())
         self.sort_by_name()
         return id
 
@@ -420,7 +350,6 @@ class Presets:
 
         if remove_file:
             self.provider.remove(id)
-            # self.load_presets()
 
     def sort_by_name(self):
         """Sort presets by name"""
@@ -479,10 +408,8 @@ class Presets:
     def load(self):
         """Load presets templates"""
         self.items = self.provider.load()
-        self.patch_empty()  # patch empty UUIDs and filenames
-        self.patch_duplicated()  # patch duplicated UUIDs
-
-        # sort presets
+        self.patch_empty()
+        self.patch_duplicated()
         self.sort_by_name()
         self.append_current()
 
@@ -538,12 +465,12 @@ class Presets:
     def patch_empty(self):
         """Patch UUIDs for all presets"""
         patched = False
-        for id in self.items:
-            if self.items[id].uuid is None:
-                self.items[id].uuid = str(uuid.uuid4())
+        for key, item in self.items.items():
+            if item.uuid is None:
+                item.uuid = str(uuid.uuid4())
                 patched = True
-            if self.items[id].filename is None or self.items[id].filename == "":
-                self.items[id].filename = id
+            if item.filename is None or item.filename == "":
+                item.filename = key
                 patched = True
         if patched:
             self.save_all()
@@ -551,11 +478,11 @@ class Presets:
     def patch_duplicated(self):
         """Patch UUIDs for all presets"""
         patched = False
-        uuids = []
-        for id in self.items:
-            if self.items[id].uuid in uuids:
-                self.items[id].uuid = str(uuid.uuid4())
+        uuids = set()
+        for item in self.items.values():
+            if item.uuid in uuids:
+                item.uuid = str(uuid.uuid4())
                 patched = True
-            uuids.append(self.items[id].uuid)
+            uuids.add(item.uuid)
         if patched:
             self.save_all()

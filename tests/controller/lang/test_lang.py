@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 16:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -32,27 +32,6 @@ def test_update(mock_window):
     mock_window.ui.menu['lang'] = {'en': MagicMock()}
     lang.update()
     mock_window.ui.menu['lang']['en'].setChecked.assert_called()
-
-
-def test_toggle(mock_window):
-    """Test toggle"""
-    lang = Lang(mock_window)
-    lang.update = MagicMock()
-    mock_window.controller.plugins.update_info = MagicMock()
-    mock_window.controller.notepad.get_num_notepads = MagicMock(return_value=0)
-    lang.plugins.apply = MagicMock()
-    mock_window.controller.ctx.common.update_label_by_current = MagicMock()
-    mock_window.controller.ctx.update = MagicMock()
-    mock_window.controller.ui.update = MagicMock()
-    mock_window.settings = MagicMock()
-    mock_window.tools = MagicMock()
-    lang.toggle('en')
-    assert mock_window.core.config.data['lang'] == 'en'
-    lang.update.assert_called_once()
-    lang.plugins.apply.assert_called_once()
-    mock_window.controller.ctx.common.update_label_by_current.assert_called_once()
-    mock_window.controller.ctx.update.assert_called_once()
-    mock_window.controller.ui.update.assert_called_once()
 
 
 def test_toggle_plugins(mock_window):

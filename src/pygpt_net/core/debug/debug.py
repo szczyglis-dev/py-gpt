@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 18:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import gc
@@ -38,6 +38,7 @@ class Debug:
         self.window = window
         self.console = Console(window)
         self.pause_idx = 1
+        self._process = psutil.Process(os.getpid())
 
     @staticmethod
     def init(level: int = logging.ERROR):
@@ -46,13 +47,13 @@ class Debug:
 
         :param level: log level (default: ERROR)
         """
-        if not Config.prepare_workdir():
-            os.makedirs(Config.prepare_workdir())
+        workdir = Config.prepare_workdir()
+        Path(workdir).mkdir(parents=True, exist_ok=True)
 
         logging.basicConfig(
             level=level,
             format='%(asctime)s - %(levelname)s - %(message)s',
-            filename=str(Path(os.path.join(Config.prepare_workdir(), 'app.log'))),
+            filename=str(Path(workdir) / 'app.log'),
             filemode='a',
             encoding='utf-8',
         )
@@ -66,11 +67,13 @@ class Debug:
             :param tb: traceback
             """
             logger = logging.getLogger()
-            if not hasattr(logging, '_is_handling_exception'):
-                logging._is_handling_exception = True
-                logger.error("Uncaught exception:", exc_info=(exc_type, value, tb))
-                traceback.print_exception(exc_type, value, tb)
-                del logging._is_handling_exception  # remove flag when done
+            if not getattr(handle_exception, "_handling", False):
+                handle_exception._handling = True
+                try:
+                    logger.error("Uncaught exception:", exc_info=(exc_type, value, tb))
+                    traceback.print_exception(exc_type, value, tb)
+                finally:
+                    handle_exception._handling = False
             else:
                 traceback.print_exception(exc_type, value, tb)
 
@@ -84,7 +87,7 @@ class Debug:
         for handler in logger.handlers[:]:
             logger.removeHandler(handler)
             handler.close()
-        file_handler = logging.FileHandler(filename=Path(path), mode='a', encoding='utf-8')
+        file_handler = logging.FileHandler(filename=str(Path(path)), mode='a', encoding='utf-8')
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         file_handler.setFormatter(formatter)
         file_handler.setLevel(level)
@@ -124,16 +127,13 @@ class Debug:
         :param id: log level id
         :return: log level name
         """
-        if id == logging.ERROR:
-            return "error"
-        elif id == logging.WARNING:
-            return "warning"
-        elif id == logging.INFO:
-            return "info"
-        elif id == logging.DEBUG:
-            return "debug"
-        else:
-            return "unknown"
+        mapping = {
+            logging.ERROR: "error",
+            logging.WARNING: "warning",
+            logging.INFO: "info",
+            logging.DEBUG: "debug",
+        }
+        return mapping.get(id, "unknown")
 
     def info(self, message: Any = None, console: bool = True):
         """
@@ -200,43 +200,36 @@ class Debug:
             return
 
         logger = logging.getLogger()
+        enabled = self.has_level(level)
 
         try:
-            # string message
             if isinstance(message, str):
-                if self.has_level(level):
+                if enabled:
                     logger.log(level, message)
                     if console:
                         print(message)
-
-            # exception
             elif isinstance(message, Exception):
                 is_sys, data = self.parse_exception(message)
-                msg = "Exception: {}".format(str(message))
+                msg = f"Exception: {message}"
                 if not is_sys:
-                    msg += "\n{}".format(data)
+                    msg += f"\n{data}"
                 logger.log(level, msg, exc_info=is_sys)
-                if self.has_level(level) and console and data:
+                if enabled and console and data:
                     print(data)
-
-            # other messages
             else:
-                if self.has_level(level):
+                if enabled:
                     logger.log(level, message)
                     if console:
                         print(message)
-        except Exception as e:
+        except Exception:
             pass
 
         try:
-            # send to logger window
-            if self.has_level(level) and self.window is not None:
-                # append thread ID
-                thread_suffix = ""
-                if not threading.current_thread() is threading.main_thread():
-                    thread_suffix = " [THREAD: {}]".format(threading.current_thread().ident)
+            if enabled and self.window is not None:
+                t = threading.current_thread()
+                thread_suffix = "" if t is threading.main_thread() else f" [THREAD: {t.ident}]"
                 self.window.logger_message.emit(str(message) + thread_suffix)
-        except Exception as e:
+        except Exception:
             pass
 
     def parse_exception(self, e: Any = None, limit: int = 4) -> Tuple[bool, str]:
@@ -249,9 +242,9 @@ class Debug:
         """
         is_sys = False
         type_name = ""
-        etype, value, tb = sys.exc_info()  # from sys by default
+        etype, value, tb = sys.exc_info()
         if etype is None and e is not None:
-            tb = e.__traceback__  # from exception
+            tb = e.__traceback__
             type_name = type(e).__name__
             value = str(e)
         else:
@@ -259,7 +252,6 @@ class Debug:
                 is_sys = True
                 type_name = etype.__name__
 
-        # traceback
         traceback_details = traceback.extract_tb(tb)
         if len(traceback_details) >= limit:
             last_calls = traceback_details[-limit:]
@@ -269,7 +261,6 @@ class Debug:
         if last_calls:
             formatted_traceback = "".join(traceback.format_list(last_calls))
 
-        # parse data
         data = ""
         if type_name:
             data += "Type: {}".format(type_name)
@@ -299,7 +290,7 @@ class Debug:
         :param level: logging level
         :return: True if enabled
         """
-        return level >= logging.getLogger().getEffectiveLevel()
+        return logging.getLogger().isEnabledFor(level)
 
     def enabled(self) -> bool:
         """
@@ -346,8 +337,7 @@ class Debug:
         :param label: label for memory usage
         :return: formatted memory usage string
         """
-        process = psutil.Process(os.getpid())
-        mem_mb = process.memory_info().rss / (1024 * 1024)
+        mem_mb = self._process.memory_info().rss / (1024 * 1024)
         data = f"Memory Usage: {mem_mb:.2f} MB"
         print(f"[{label}] {data}")
         return data
@@ -376,24 +366,25 @@ class Debug:
         res += self.print_memory_usage(label)
 
         try:
-            from pympler import asizeof, summary, muppy  # pip install pympler
+            from pympler import asizeof, summary, muppy
             objs = muppy.get_objects()
-            # objs_by_type = muppy.filter(objs, Type=dict)
             sum_by_type = summary.summarize(objs)
-            # sum_by_type = summary.summarize(objs_by_type)
             summary.print_(sum_by_type)
 
-            total_bytes = asizeof.asizeof(self.window.controller.chat.render.web_renderer.pids)
+            pids = self.window.controller.chat.render.web_renderer.pids
+            total_bytes = asizeof.asizeof(pids)
             pids_total_mb = total_bytes / (1024 * 1024)
-            count_pids = len(self.window.controller.chat.render.web_renderer.pids)
+            count_pids = len(pids)
 
-            total_bytes = asizeof.asizeof(self.window.core.ctx.meta)
+            meta = self.window.core.ctx.meta
+            total_bytes = asizeof.asizeof(meta)
             meta_total_mb = total_bytes / (1024 * 1024)
-            count_meta = len(self.window.core.ctx.meta)
+            count_meta = len(meta)
 
-            total_bytes = asizeof.asizeof(self.window.core.ctx.get_items())
+            ctx_items = self.window.core.ctx.get_items()
+            total_bytes = asizeof.asizeof(ctx_items)
             ctx_total_mb = total_bytes / (1024 * 1024)
-            count_ctx = len(self.window.core.ctx.get_items())
+            count_ctx = len(ctx_items)
 
             stats.append(f"Pids: {pids_total_mb:.4f} MB ({count_pids})")
             stats.append(f"CtxMeta: {meta_total_mb:.4f} MB ({count_meta})")
@@ -420,14 +411,13 @@ class Debug:
         :param args: objects to dump
         """
         dt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        thread_info = "[MAIN THREAD]" if threading.current_thread() is threading.main_thread() \
-            else f"[THREAD: {threading.current_thread().ident}]"
+        t = threading.current_thread()
+        thread_info = "[MAIN THREAD]" if t is threading.main_thread() else f"[THREAD: {t.ident}]"
         print(f"\n{Color.FAIL}{Color.BOLD}<DEBUG: PAUSED> #{self.pause_idx} {dt}{Color.ENDC}")
         print(f"\n{Color.BOLD}{thread_info}{Color.ENDC}")
         print("------------------------------>")
         self.pause_idx += 1
 
-        # dump args
         for index, arg in enumerate(args):
             print(f"\n{Color.BOLD}Dump {index + 1}:{Color.ENDC}")
             print(f"{Color.BOLD}Type: {type(arg)}{Color.ENDC}")

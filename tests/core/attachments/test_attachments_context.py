@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.30 04:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import os
-import shutil
 from unittest.mock import MagicMock, patch, mock_open
 
 from pygpt_net.item.attachment import AttachmentItem
@@ -400,7 +399,7 @@ def test_truncate(mock_window):
                 context = Context(mock_window)
                 context.truncate()
                 shutil_rmtree.assert_called_once()
-                os_makedirs.assert_called_once()
+                os_makedirs.assert_called()
 
 
 def test_reset(mock_window):

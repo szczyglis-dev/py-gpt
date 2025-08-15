@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -56,10 +56,12 @@ def test_append_current(mock_window):
 def test_has(mock_window):
     """Test has"""
     presets = Presets(mock_window)
+    itm = PresetItem()
+    itm.chat = True
     items = {
-        'test': PresetItem(),
+        'test': itm,
     }
-    presets.get_by_mode = MagicMock(return_value=items)
+    presets.items = items
     assert presets.has('chat', 'test') is True
     assert presets.has('chat', 'aaa') is False
 
@@ -67,10 +69,12 @@ def test_has(mock_window):
 def test_get_by_idx(mock_window):
     """Test get_by_idx"""
     presets = Presets(mock_window)
+    itm = PresetItem()
+    itm.chat = True
     items = {
-        'test': PresetItem(),
+        'test': itm,
     }
-    presets.get_by_mode = MagicMock(return_value=items)
+    presets.items = items
     assert presets.get_by_idx(0, 'chat') == 'test'
 
 

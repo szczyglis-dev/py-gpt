@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 00:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -23,48 +23,49 @@ class Settings:
 
     def apply(self):
         """Apply locale to settings dialog"""
-        # load settings options if not loaded yet
         if not self.window.controller.settings.editor.initialized:
             self.window.controller.settings.editor.load_config_options(False)
 
-        # update settings options labels
-        for id in self.window.controller.settings.editor.options:
-            option = self.window.controller.settings.editor.options[id]
-            option_label = 'settings.{}.label'.format(id)  # TODO: check
-            trans_key = '{}'.format(option['label'])
+        w = self.window
+        tr = trans
+        ctrl_settings = w.controller.settings
+        editor = ctrl_settings.editor
+        options = editor.options
+        ui = w.ui
+        ui_nodes = ui.nodes
+        ui_tabs = ui.tabs
+        ui_config = ui.config['config']
 
-            # label
-            if option['type'] == 'bool':
-                if id in self.window.ui.config['config']:
-                    if hasattr(self.window.ui.config['config'][id], 'setText'):
-                        self.window.ui.config['config'][id].setText(trans(trans_key))
-                    self.window.ui.config['config'][id].box.setText(trans(trans_key))
+        for opt_id, option in options.items():
+            t_label = tr(option['label'])
+            if option.get('type') == 'bool':
+                if opt_id in ui_config:
+                    widget = ui_config[opt_id]
+                    if hasattr(widget, 'setText'):
+                        widget.setText(t_label)
+                    widget.box.setText(t_label)
             else:
-                if option_label in self.window.ui.nodes:
-                    self.window.ui.nodes[option_label].setText(trans(trans_key))
+                node_key = f'settings.{opt_id}.label'
+                node = ui_nodes.get(node_key)
+                if node is not None:
+                    node.setText(t_label)
 
-            # description
-            if 'description' in option \
-                    and option['description'] is not None \
-                    and option['description'].strip() != "":
-                option_desc = 'settings.{}.desc'.format(id)
-                if option_desc in self.window.ui.nodes:
-                    trans_desc_key = '{}'.format(option['description'])
-                    self.window.ui.nodes[option_desc].setText(trans(trans_desc_key))
-                option_desc = option["description"]
-                if option_desc in self.window.ui.nodes:
-                    trans_desc_key = '{}'.format(option['description'])
-                    self.window.ui.nodes[option_desc].setText(trans(trans_desc_key))
+            if 'description' in option and option['description'] is not None and option['description'].strip() != "":
+                desc = option['description']
+                t_desc = tr(desc)
+                node_key1 = f'settings.{opt_id}.desc'
+                node1 = ui_nodes.get(node_key1)
+                if node1 is not None:
+                    node1.setText(t_desc)
+                node2 = ui_nodes.get(desc)
+                if node2 is not None:
+                    node2.setText(t_desc)
 
-        # update sections tabs
-        sections = self.window.core.settings.get_sections()
-        i = 0
-        for section_id in sections.keys():
-            key = 'settings.section.' + section_id
-            self.window.ui.tabs['settings.section'].setTabText(i, trans(key))
-            i += 1
+        sections = w.core.settings.get_sections()
+        tabs = ui_tabs['settings.section']
+        for i, section_id in enumerate(sections.keys()):
+            tabs.setTabText(i, tr(f'settings.section.{section_id}'))
 
-        # update sections list
-        idx = self.window.ui.tabs['settings.section'].currentIndex()
-        self.window.settings.refresh_list()
-        self.window.controller.settings.set_by_tab(idx)
+        idx = tabs.currentIndex()
+        w.settings.refresh_list()
+        ctrl_settings.set_by_tab(idx)

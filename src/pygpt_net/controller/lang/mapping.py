@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -24,76 +24,61 @@ class Mapping:
         self.window = window
         self.mapping = {}
 
+    def _apply_map(self, items, targets, getter_name: str, setter_name: str):
+        t = trans
+        get = getattr
+        for k, key in items.items():
+            w = targets.get(k)
+            if w is None:
+                continue
+            try:
+                v = t(key)
+                getter = get(w, getter_name, None)
+                setter = get(w, setter_name, None)
+                if setter is None:
+                    continue
+                if getter:
+                    try:
+                        if getter() == v:
+                            continue
+                    except Exception:
+                        pass
+                setter(v)
+            except Exception:
+                pass
+
     def apply(self):
         """Apply mapped keys"""
-
-        # load locale mapping
-        if len(self.mapping) == 0:
+        if not self.mapping:
             self.mapping = self.get_mapping()
 
-        # nodes labels
-        for k in self.mapping['nodes']:
-            if k in self.window.ui.nodes:
-                try:
-                    self.window.ui.nodes[k].setText(trans(self.mapping['nodes'][k]))
-                except:
-                    pass
+        ui = self.window.ui
+        m = self.mapping
 
-        # menu title
-        for k in self.mapping['menu.title']:
-            if k in self.window.ui.menu:
-                try:
-                    self.window.ui.menu[k].setTitle(trans(self.mapping['menu.title'][k]))
-                except:
-                    pass
+        self._apply_map(m['nodes'], ui.nodes, 'text', 'setText')
+        self._apply_map(m['menu.title'], ui.menu, 'title', 'setTitle')
+        self._apply_map(m['menu.text'], ui.menu, 'text', 'setText')
+        self._apply_map(m['menu.tooltip'], ui.menu, 'toolTip', 'setToolTip')
+        self._apply_map(m['dialog.title'], ui.dialog, 'windowTitle', 'setWindowTitle')
+        self._apply_map(m['tooltip'], ui.nodes, 'toolTip', 'setToolTip')
+        self._apply_map(m['placeholder'], ui.nodes, 'placeholderText', 'setPlaceholderText')
 
-        # menu text
-        for k in self.mapping['menu.text']:
-            if k in self.window.ui.menu:
+        tab_tools = self.window.controller.tools.get_tab_tools()
+        t = trans
+        for k, v in tab_tools.items():
+            w = ui.menu.get(k)
+            if w is None:
+                continue
+            try:
+                val = t("output.tab." + v[0])
                 try:
-                    self.window.ui.menu[k].setText(trans(self.mapping['menu.text'][k]))
-                except:
+                    if hasattr(w, 'text') and w.text() == val:
+                        continue
+                except Exception:
                     pass
-
-        # menu tooltip
-        for k in self.mapping['menu.tooltip']:
-            if k in self.window.ui.menu:
-                try:
-                    self.window.ui.menu[k].setToolTip(trans(self.mapping['menu.tooltip'][k]))
-                except:
-                    pass
-
-        # dialog title
-        for k in self.mapping['dialog.title']:
-            if k in self.window.ui.dialog:
-                try:
-                    self.window.ui.dialog[k].setWindowTitle(trans(self.mapping['dialog.title'][k]))
-                except:
-                    pass
-
-        # tooltip
-        for k in self.mapping['tooltip']:
-            if k in self.window.ui.nodes:
-                try:
-                    self.window.ui.nodes[k].setToolTip(trans(self.mapping['tooltip'][k]))
-                except:
-                    pass
-
-        # placeholder
-        for k in self.mapping['placeholder']:
-            if k in self.window.ui.nodes:
-                try:
-                    self.window.ui.nodes[k].setPlaceholderText(trans(self.mapping['placeholder'][k]))
-                except:
-                    pass
-
-        # menu tab tools
-        for k in self.window.controller.tools.get_tab_tools():
-            if k in self.window.ui.menu:
-                try:
-                    self.window.ui.menu[k].setText(trans("output.tab." + self.window.controller.tools.get_tab_tools()[k][0]))
-                except:
-                    pass
+                w.setText(val)
+            except Exception:
+                pass
 
     def get_mapping(self) -> Dict[str, Dict[str, str]]:
         """
@@ -132,8 +117,6 @@ class Mapping:
         nodes['preset.presets.label'] = 'toolbox.presets.label'
         nodes['preset.agents.label'] = 'toolbox.agents.label'
         nodes['preset.experts.label'] = 'toolbox.experts.label'
-        # nodes['preset.presets.new'] = 'preset.new'
-        # nodes['preset.clear'] = 'preset.clear'
         nodes['preset.use'] = 'preset.use'
         nodes['cmd.enabled'] = 'cmd.enabled'
         nodes['toolbox.prompt.label'] = 'toolbox.prompt'
@@ -146,7 +129,6 @@ class Mapping:
         nodes["agent.auto_stop"] = "toolbox.agent.auto_stop.label"
         nodes["agent.continue"] = "toolbox.agent.continue.label"
         nodes['layout.split'] = "layout.split"
-        # nodes["indexes.new"] = "idx.new"
 
         # input
         nodes['input.label'] = 'input.label'
@@ -171,7 +153,6 @@ class Mapping:
 
         # assistants
         nodes['assistants.label'] = 'toolbox.assistants.label'
-        # nodes['assistants.new'] = 'assistant.new'
         nodes['assistants.import'] = 'assistant.import'
         nodes['assistant.btn.save'] = 'dialog.assistant.btn.save'
         nodes['assistant.btn.close'] = 'dialog.assistant.btn.close'
@@ -190,13 +171,7 @@ class Mapping:
         nodes['assistant.store.btn.close'] = 'dialog.assistant.store.btn.close'
         nodes['assistant.store.hide_thread'] = 'assistant.store.hide_threads'
 
-        # nodes['assistant.id_tip'] = 'assistant.new.id_tip'
-        # nodes['assistant.api.tip'] = 'assistant.api.tip'
-
         # vision
-        # nodes['vision.capture.enable'] = 'vision.capture.enable'
-        # nodes['vision.capture.auto'] = 'vision.capture.auto'
-        # nodes['vision.capture.label'] = 'vision.capture.options.title'
         nodes['inline.vision'] = 'inline.vision'
 
         # dialog: plugin settings
@@ -241,7 +216,7 @@ class Mapping:
 
         # extra settings
         nodes["idx.api.warning"] = "settings.llama.extra.api.warning"
-        nodes["idx.db.settings.legend"] = "settings.llama.extra.btn.idx_head"
+        nodes["idx.db.settings.legend.head"] = "settings.llama.extra.btn.idx_head"
 
         # start
         nodes['start.title'] = 'dialog.start.title.text'
@@ -290,7 +265,6 @@ class Mapping:
         nodes['dialog.find.btn.clear'] = 'dialog.find.btn.clear'
         nodes['dialog.find.btn.find_prev'] = 'dialog.find.btn.find_prev'
         nodes['dialog.find.btn.find_next'] = 'dialog.find.btn.find_next'
-        nodes['dialog.find.btn.find_prev'] = 'dialog.find.btn.find_prev'
 
         # dialog: profile
         nodes['dialog.profile.item.btn.dismiss'] = 'dialog.profile.item.btn.dismiss'
@@ -316,10 +290,9 @@ class Mapping:
         nodes['tip.toolbox.presets'] = 'tip.toolbox.presets'
         nodes['tip.toolbox.prompt'] = 'tip.toolbox.prompt'
         nodes['tip.toolbox.assistants'] = 'tip.toolbox.assistants'
-        # nodes['tip.toolbox.indexes'] = 'tip.toolbox.indexes'
         nodes['tip.toolbox.ctx'] = 'tip.toolbox.ctx'
         nodes['tip.toolbox.mode'] = 'tip.toolbox.mode'
-        nodes['plugin.settings.cmd.footer'] = 'cmd.tip'  # plugin settings cmd footer
+        nodes['plugin.settings.cmd.footer'] = 'cmd.tip'
 
         # tool: indexer
         nodes['tool.indexer.idx.label'] = 'tool.indexer.idx'
@@ -344,7 +317,6 @@ class Mapping:
         nodes['tool.indexer.ctx.header.tip'] = 'tool.indexer.tab.ctx.tip'
         nodes['tool.indexer.browse.header.tip'] = 'tool.indexer.tab.browse.tip'
 
-        # menu title
         menu_title = {}
         menu_title['menu.app'] = 'menu.file'
         menu_title['menu.config'] = 'menu.config'
@@ -368,7 +340,6 @@ class Mapping:
         menu_title['menu.tools'] = 'menu.tools'
         menu_title['menu.donate'] = 'menu.info.donate'
 
-        # menu text
         menu_text = {}
         menu_text['app.ctx.new'] = 'menu.file.new'
         menu_text['app.ctx.group.new'] = 'menu.file.group.new'
@@ -408,8 +379,8 @@ class Mapping:
         menu_text['video.capture'] = 'menu.video.capture'
         menu_text['video.capture.auto'] = 'menu.video.capture.auto'
 
-        # debug menu
-        if 'menu.debug' in self.window.ui.menu:
+        ui_menu = self.window.ui.menu
+        if 'menu.debug' in ui_menu:
             menu_text['debug.config'] = 'menu.debug.config'
             menu_text['debug.context'] = 'menu.debug.context'
             menu_text['debug.presets'] = 'menu.debug.presets'
@@ -424,7 +395,6 @@ class Mapping:
             menu_text['debug.logger'] = 'menu.debug.logger'
             menu_text['debug.app.log'] = 'menu.debug.app.log'
 
-        # dialog titles
         dialog_title = {}
         dialog_title['info.about'] = 'dialog.about.title'
         dialog_title['info.changelog'] = 'dialog.changelog.title'
@@ -445,13 +415,10 @@ class Mapping:
         dialog_title['profile.item'] = 'dialog.profile.item.editor'
         dialog_title['tool.indexer'] = 'tool.indexer.title'
 
-        # tooltips
         tooltips = {}
         tooltips['prompt.context'] = 'tip.tokens.ctx'
         tooltips['input.counter'] = 'tip.tokens.input'
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
-        # tooltips['vision.capture.enable'] = 'vision.capture.enable.tooltip'
-        # tooltips['vision.capture.auto'] = 'vision.capture.auto.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'
         tooltips['icon.video.capture'] = 'icon.video.capture'
         tooltips['icon.audio.output'] = 'icon.audio.output'
@@ -459,17 +426,14 @@ class Mapping:
         tooltips['assistant.store.btn.refresh_status'] = 'dialog.assistant.store.btn.refresh_status'
         tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
 
-        # menu tooltips
         menu_tooltips = {}
         menu_tooltips['video.capture'] = 'vision.capture.enable.tooltip'
         menu_tooltips['video.capture.auto'] = 'vision.capture.auto.tooltip'
 
-        # placeholders
         placeholders = {}
         placeholders['ctx.search'] = 'ctx.list.search.placeholder'
         placeholders['interpreter.input'] = 'interpreter.input.placeholder'
 
-        # mapping
         mapping = {}
         mapping['nodes'] = nodes
         mapping['menu.title'] = menu_title
@@ -479,10 +443,8 @@ class Mapping:
         mapping['tooltip'] = tooltips
         mapping['placeholder'] = placeholders
 
-        # tools
         tool_mappings = self.window.tools.get_lang_mappings()
-        for type in tool_mappings:
-            for k in tool_mappings[type]:
-                mapping[type][k] = tool_mappings[type][k]
+        for t, d in tool_mappings.items():
+            mapping.setdefault(t, {}).update(d)
 
         return mapping

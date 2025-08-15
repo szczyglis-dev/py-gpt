@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict, List
@@ -37,19 +37,24 @@ class CheckboxList:
         if "value" not in option:
             return
         value = option["value"]
-        exploded_list = value.split(",") if isinstance(value, str) else []
-        if key not in self.window.ui.config[parent_id]:
-            self.window.ui.config[parent_id][key] = {}
-        for item in self.window.ui.config[parent_id][key].boxes:
-            if self.window.ui.config[parent_id][key].boxes[item] is not None:
-                self.window.ui.config[parent_id][key].boxes[item].setChecked(False)
-        for item in exploded_list:
-            item = item.strip()
-            if item not in self.window.ui.config[parent_id][key].boxes:
+        selection = {s.strip() for s in value.split(",")} if isinstance(value, str) else set()
+        selection.discard("")
+
+        ui = self.window.ui
+        cfg_parent = ui.config.get(parent_id)
+        if not cfg_parent:
+            return
+        entry = cfg_parent.get(key)
+        if entry is None or not hasattr(entry, "boxes"):
+            return
+        boxes = entry.boxes
+
+        for name, cb in boxes.items():
+            if cb is None:
                 continue
-            if self.window.ui.config[parent_id][key].boxes[item] is None:
-                continue
-            self.window.ui.config[parent_id][key].boxes[item].setChecked(True)
+            desired = name in selection
+            if cb.isChecked() != desired:
+                cb.setChecked(desired)
 
     def on_update(
             self,
@@ -70,15 +75,16 @@ class CheckboxList:
         :param subkey: Subkey for specific checkbox
         :param hooks: Run hooks
         """
-        # on update hooks
         if hooks:
-            hook_name = "update.{}.{}".format(parent_id, key)
-            if self.window.ui.has_hook(hook_name):
-                hook = self.window.ui.get_hook(hook_name)
-                try:
-                    hook(key, value, 'bool_list')
-                except Exception as e:
-                    self.window.core.debug.log(e)
+            ui = self.window.ui
+            hook_name = f"update.{parent_id}.{key}"
+            if ui.has_hook(hook_name):
+                hook = ui.get_hook(hook_name)
+                if hook:
+                    try:
+                        hook(key, value, 'bool_list')
+                    except Exception as e:
+                        self.window.core.debug.log(e)
 
     def get_value(
             self,
@@ -94,16 +100,15 @@ class CheckboxList:
         :param option: Option data dict
         :return: Option value
         """
-        if key not in self.window.ui.config[parent_id]:
+        ui = self.window.ui
+        cfg_parent = ui.config.get(parent_id)
+        if not cfg_parent:
             return ""
-        imploded_list = []
-        for item in self.window.ui.config[parent_id][key].boxes:
-            if self.window.ui.config[parent_id][key].boxes[item] is None:
-                continue
-            if self.window.ui.config[parent_id][key].boxes[item].isChecked():
-                imploded_list.append(item)
-        return ",".join(imploded_list)
-
+        entry = cfg_parent.get(key)
+        if entry is None or not hasattr(entry, "boxes"):
+            return ""
+        boxes = entry.boxes
+        return ",".join(name for name, cb in boxes.items() if cb is not None and cb.isChecked())
 
     def update_list(
             self,

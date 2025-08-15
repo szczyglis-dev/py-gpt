@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -36,24 +36,21 @@ class Cmd:
         :param key: Option key
         :param option: Option data
         """
-        if "value" not in option or option["value"] is None:
-            option["value"] = {
-                "enabled": False,
-                "instruction": "",
-                "params": [],
-            }
-        if "params" not in option["value"]:
-            option["value"]["params"] = []
-        if "enabled" not in option["value"]:
-            option["value"]["enabled"] = False
-        if "instruction" not in option["value"]:
-            option["value"]["instruction"] = ""
+        v = option.get("value")
+        if not isinstance(v, dict):
+            v = {"enabled": False, "instruction": "", "params": []}
+            option["value"] = v
+        else:
+            v.setdefault("enabled", False)
+            v.setdefault("instruction", "")
+            v.setdefault("params", [])
 
-        params = list(option["value"]["params"])
-        self.window.ui.config[parent_id][key].params.items = params  # replace model data list
-        self.window.ui.config[parent_id][key].params.model.updateData(params)  # update model data
-        self.window.ui.config[parent_id][key].enabled.box.setChecked(option["value"]["enabled"])
-        self.window.ui.config[parent_id][key].instruction.setText(str(option["value"]["instruction"]))
+        params = list(v["params"])
+        cfg = self.window.ui.config[parent_id][key]
+        cfg.params.items = params
+        cfg.params.model.updateData(params)
+        cfg.enabled.box.setChecked(v["enabled"])
+        cfg.instruction.setText(str(v["instruction"]))
 
     def apply_row(
             self,
@@ -70,10 +67,10 @@ class Cmd:
         :param values: dictionary data values
         :param idx: row index
         """
-        # remove .params suffix
         if key.endswith(".params"):
-            key = key.replace(".params", "")
-        self.window.ui.config[parent_id][key].params.update_item(idx, values["params"])
+            key = key[:-7]
+        params_cfg = self.window.ui.config[parent_id][key].params
+        params_cfg.update_item(idx, values["params"])
 
     def get_value(
             self,
@@ -89,12 +86,12 @@ class Cmd:
         :param option: Option data
         :return: list with dictionary values
         """
-        data = {
-            "enabled": self.window.ui.config[parent_id][key].enabled.box.isChecked(),
-            "instruction": self.window.ui.config[parent_id][key].instruction.toPlainText(),
-            "params": self.window.ui.config[parent_id][key].params.model.items,
+        cfg = self.window.ui.config[parent_id][key]
+        return {
+            "enabled": cfg.enabled.box.isChecked(),
+            "instruction": cfg.instruction.toPlainText(),
+            "params": cfg.params.model.items,
         }
-        return data
 
     def to_options(
             self,
@@ -108,37 +105,34 @@ class Cmd:
         :param option: dictionary items option
         :return: options dict
         """
-        # option type: dict
-        if option["type"] == "dict":
-            if "keys" not in option:
-                return {}
-            options = {}
-            for key in option["keys"]:
-                item = option["keys"][key]
-                if isinstance(item, str):
-                    item = {
-                        "label": parent_id + '.' + key,
-                        "type": item,  # field type is provided as value in this case
-                    }
-                options[key] = item
-                if "label" not in options[key]:
-                    options[key]["label"] = key
-                    options[key]["label"] = parent_id + "." + options[key]["label"]
-            return options
+        ty = option.get("type")
 
-        # option type: cmd
-        elif option["type"] == "cmd":
-            if "params_keys" not in option:  # keys are stored in "params_keys" in cmd type
+        if ty == "dict":
+            keys_map = option.get("keys")
+            if not keys_map:
                 return {}
-            options = {}
-            for key in option["params_keys"]:
-                item = option["params_keys"][key]
+            opts = {}
+            prefix = f"{parent_id}."
+            for k, item in keys_map.items():
                 if isinstance(item, str):
-                    item = {
-                        "label": 'dictionary.cmd.param.' + key,
-                        "type": item,  # field type is provided as value in this case
-                    }
-                options[key] = item
-                if "label" not in options[key]:
-                    options[key]["label"] = 'dictionary.cmd.param.' + key
-            return options
+                    opts[k] = {"label": f"{prefix}{k}", "type": item}
+                else:
+                    opts[k] = item
+                    if "label" not in item:
+                        item["label"] = f"{prefix}{k}"
+            return opts
+
+        elif ty == "cmd":
+            params_map = option.get("params_keys")
+            if not params_map:
+                return {}
+            opts = {}
+            prefix = "dictionary.cmd.param."
+            for k, item in params_map.items():
+                if isinstance(item, str):
+                    opts[k] = {"label": f"{prefix}{k}", "type": item}
+                else:
+                    opts[k] = item
+                    if "label" not in item:
+                        item["label"] = f"{prefix}{k}"
+            return opts

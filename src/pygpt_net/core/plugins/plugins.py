@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -36,18 +36,18 @@ class Plugins:
             'vision',
             'schedule'
         ]
-        self.plugins = {}
-        self.presets = {}  # presets config
+        self.plugins: Dict[str, BasePlugin] = {}
+        self.presets: Dict[str, Any] = {}  # presets config
         self.provider = JsonFileProvider(window)
 
-    def is_registered(self, id: str) -> bool:
+    def is_registered(self, plugin_id: str) -> bool:
         """
         Check if plugin is registered
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         :return: True if registered
         """
-        return id in self.plugins
+        return plugin_id in self.plugins
 
     def all(self) -> Dict[str, BasePlugin]:
         """
@@ -65,28 +65,28 @@ class Plugins:
         """
         return list(self.plugins.keys())
 
-    def get(self, id: str) -> Optional[BasePlugin]:
+    def get(self, plugin_id: str) -> Optional[BasePlugin]:
         """
         Get plugin by id
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         :return: plugin instance
         """
-        if self.is_registered(id):
-            return self.plugins[id]
-        return None
+        return self.plugins.get(plugin_id)
 
-    def get_option(self, id: str, key: str) -> Any:
+    def get_option(self, plugin_id: str, key: str) -> Any:
         """
         Get plugin option
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         :param key: option key
         :return: option value
         """
-        if self.is_registered(id):
-            if key in self.plugins[id].options:
-                return self.plugins[id].options[key]['value']
+        plugin = self.plugins.get(plugin_id)
+        if plugin and hasattr(plugin, 'options'):
+            opt = plugin.options.get(key)
+            if opt is not None:
+                return opt.get('value')
         return None
 
     def register(self, plugin: BasePlugin):
@@ -96,184 +96,183 @@ class Plugins:
         :param plugin: plugin instance
         """
         plugin.attach(self.window)
-        id = plugin.id
-        self.plugins[id] = plugin
+        plugin_id = plugin.id
+        self.plugins[plugin_id] = plugin
 
-        # make copy of options
         if hasattr(plugin, 'options'):
-            self.plugins[id].initial_options = copy.deepcopy(plugin.options)
+            self.plugins[plugin_id].initial_options = copy.deepcopy(plugin.options)
 
         try:
             removed = False
-            plugins = self.window.core.config.get('plugins')
-            if id in list(plugins.keys()):
-                for key in list(plugins[id].keys()):
-                    if key in self.plugins[id].options:
-                        self.plugins[id].options[key]['value'] = plugins[id][key]
+            cfg = self.window.core.config
+            plugins_cfg = cfg.get('plugins')
+            if plugin_id in plugins_cfg:
+                p_cfg = plugins_cfg[plugin_id]
+                for key in list(p_cfg):
+                    if hasattr(self.plugins[plugin_id], 'options') and key in self.plugins[plugin_id].options:
+                        self.plugins[plugin_id].options[key]['value'] = p_cfg[key]
                     else:
                         removed = True
-                        del plugins[id][key]
+                        del p_cfg[key]
 
-            # remove invalid options
             if removed:
-                self.window.core.config.save()
+                cfg.save()
 
-            # register options (configure dict editors, etc.)
-            self.register_options(id, self.plugins[id].options)
-            # print("Loaded plugin: {}".format(plugin.name))
+            self.register_options(plugin_id, self.plugins[plugin_id].options if hasattr(self.plugins[plugin_id], 'options') else {})
         except Exception as e:
             self.window.core.debug.log(e)
-            print('Error while loading plugin options: {}'.format(id))
+            print('Error while loading plugin options: {}'.format(plugin_id))
 
     def apply_all_options(self):
         """Apply all options to plugins"""
         removed = False
         user_config = self.window.core.config.get('plugins')
-        for id in self.plugins:
-            if hasattr(self.plugins[id], 'initial_options'):
-                self.plugins[id].options = copy.deepcopy(self.plugins[id].initial_options)  # copy
-            if id in user_config:
-                for key in user_config[id]:
-                    if key in self.plugins[id].options:
-                        self.plugins[id].options[key]['value'] = user_config[id][key]
+        for plugin_id, plugin in self.plugins.items():
+            if hasattr(plugin, 'initial_options'):
+                plugin.options = copy.deepcopy(plugin.initial_options)
+            if plugin_id in user_config:
+                ucfg = user_config[plugin_id]
+                for key in list(ucfg):
+                    if hasattr(plugin, 'options') and key in plugin.options:
+                        plugin.options[key]['value'] = ucfg[key]
                     else:
                         print("removed")
                         removed = True
-                        del user_config[id][key]
+                        del ucfg[key]
         if removed:
             self.window.core.config.save()
 
-    def register_options(self, id: str, options: Dict[str, dict]):
+    def register_options(self, plugin_id: str, options: Dict[str, dict]):
         """
         Register plugin options
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         :param options: options dict
         """
-        dict_types = ["dict", "cmd"]
-        for key in options:
-            option = options[key]
-            if 'type' in option and option['type'] in dict_types:
-                key_name = key
-                if option['type'] == "cmd":
-                    key_name = key + ".params"
-                parent = "plugin." + id
-                option['label'] = key_name  # option name
+        dict_types = ("dict", "cmd")
+        for key, option in options.items():
+            if option.get('type') in dict_types:
+                key_name = f"{key}.params" if option['type'] == "cmd" else key
+                parent = f"plugin.{plugin_id}"
+                option['label'] = key_name
                 self.window.ui.dialogs.register_dictionary(key_name, parent, option)
 
-    def unregister(self, id: str):
+    def unregister(self, plugin_id: str):
         """
         Unregister plugin
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         """
-        if self.is_registered(id):
-            self.plugins.pop(id)
+        self.plugins.pop(plugin_id, None)
 
-    def enable(self, id: str):
+    def enable(self, plugin_id: str):
         """
         Enable plugin by ID
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         """
-        if self.is_registered(id):
-            self.plugins[id].enabled = True
-            self.window.core.config.data['plugins_enabled'][id] = True
-            self.window.core.config.save()
+        plugin = self.plugins.get(plugin_id)
+        if plugin:
+            plugin.enabled = True
+            cfg = self.window.core.config
+            cfg.data['plugins_enabled'][plugin_id] = True
+            cfg.save()
 
-    def disable(self, id: str):
+    def disable(self, plugin_id: str):
         """
         Disable plugin by ID
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         """
-        if self.is_registered(id):
-            self.plugins[id].enabled = False
-            self.window.core.config.data['plugins_enabled'][id] = False
-            self.window.core.config.save()
+        plugin = self.plugins.get(plugin_id)
+        if plugin:
+            plugin.enabled = False
+            cfg = self.window.core.config
+            cfg.data['plugins_enabled'][plugin_id] = False
+            cfg.save()
 
-    def destroy(self, id: str):
+    def destroy(self, plugin_id: str):
         """
         Destroy plugin workers (send stop signal)
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         """
-        if self.is_registered(id):
-            self.plugins[id].destroy()
+        plugin = self.plugins.get(plugin_id)
+        if plugin:
+            if hasattr(plugin, 'destroy'):
+                plugin.destroy()
 
-    def has_options(self, id: str) -> bool:
+    def has_options(self, plugin_id: str) -> bool:
         """
         Check if plugin has options
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         :return: True if has options
         """
-        if self.is_registered(id):
-            return hasattr(self.plugins[id], 'options') and len(self.plugins[id].options) > 0
-        return False
+        plugin = self.plugins.get(plugin_id)
+        return bool(plugin and hasattr(plugin, 'options') and len(plugin.options) > 0)
 
-    def restore_options(self, id: str, all: bool = False):
+    def restore_options(self, plugin_id: str, all: bool = False):
         """
         Restore options to initial values
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         :param all: restore all options (including persisted)
         """
-        options = []
-        values = {}
-        if not all:
-            for key in self.plugins[id].options:
-                if 'persist' in self.plugins[id].options[key] and self.plugins[id].options[key]['persist']:
-                    options.append(key)
+        plugin = self.plugins.get(plugin_id)
+        if not plugin:
+            return
+
+        options_to_preserve: List[str] = []
+        values: Dict[str, Any] = {}
+
+        if not all and hasattr(plugin, 'options'):
+            for key, opt in plugin.options.items():
+                if 'persist' in opt and opt['persist']:
+                    options_to_preserve.append(key)
+            for key in options_to_preserve:
+                values[key] = plugin.options[key]['value']
+
+        if hasattr(plugin, 'initial_options'):
+            plugin.options = copy.deepcopy(plugin.initial_options)
 
         if not all:
-            # store persisted values
-            for key in options:
-                values[key] = self.plugins[id].options[key]['value']
+            for key in options_to_preserve:
+                plugin.options[key]['value'] = values[key]
 
-        # restore initial values
-        if id in self.plugins:
-            if hasattr(self.plugins[id], 'initial_options'):
-                self.plugins[id].options = copy.deepcopy(self.plugins[id].initial_options)  # copy
-
-        if not all:
-            # restore persisted values
-            for key in options:
-                self.plugins[id].options[key]['value'] = values[key]
-
-    def get_name(self, id: str) -> str:
+    def get_name(self, plugin_id: str) -> str:
         """
         Get plugin name (translated)
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         :return: plugin name
         """
-        plugin = self.get(id)
+        plugin = self.get(plugin_id)
         default = plugin.name
-        trans_key = 'plugin.' + id
+        trans_key = f'plugin.{plugin_id}'
         name = trans(trans_key)
         if name == trans_key:
             name = default
         if plugin.use_locale:
-            domain = 'plugin.{}'.format(id)
+            domain = f'plugin.{plugin_id}'
             name = trans('plugin.name', domain=domain)
         return name
 
-    def get_desc(self, id: str) -> str:
+    def get_desc(self, plugin_id: str) -> str:
         """
         Get description (translated)
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         :return: plugin description
         """
-        plugin = self.get(id)
+        plugin = self.get(plugin_id)
         default = plugin.description
-        trans_key = 'plugin.' + id + '.description'
+        trans_key = f'plugin.{plugin_id}.description'
         tooltip = trans(trans_key)
         if tooltip == trans_key:
             tooltip = default
         if plugin.use_locale:
-            domain = 'plugin.{}'.format(id)
+            domain = f'plugin.{plugin_id}'
             tooltip = trans('plugin.description', domain=domain)
         return tooltip
 
@@ -288,9 +287,9 @@ class Plugins:
         options['plugin.name'] = plugin.name
         options['plugin.description'] = plugin.description
 
-        sorted_keys = sorted(plugin.options.keys())
-        for key in sorted_keys:
-            option = plugin.options[key]
+        plugin_options = getattr(plugin, 'options', {})
+        for key in sorted(plugin_options.keys()):
+            option = plugin_options[key]
             if 'label' in option:
                 option_key = key + '.label'
                 options[option_key] = option['label']
@@ -301,41 +300,39 @@ class Plugins:
                 option_key = key + '.tooltip'
                 options[option_key] = option['tooltip']
 
-        # dump options to .ini file:
         ini = configparser.ConfigParser()
         ini['LOCALE'] = options
 
-        # save with utf-8 encoding
         with io.open(path, mode="w", encoding="utf-8") as f:
             ini.write(f)
 
-    def has_preset(self, id: str) -> bool:
+    def has_preset(self, preset_id: str) -> bool:
         """
         Check if preset exists
 
-        :param id: preset id
+        :param preset_id: preset id
         :return: True if preset exists
         """
-        return id in self.presets
+        return preset_id in self.presets
 
-    def get_preset(self, id: str) -> Dict[str, Any]:
+    def get_preset(self, preset_id: str) -> Dict[str, Any]:
         """
         Get preset by id
 
-        :param id: preset id
+        :param preset_id: preset id
         :return: preset dict
         """
-        if self.has_preset(id):
-            return self.presets[id]
+        if self.has_preset(preset_id):
+            return self.presets[preset_id]
 
-    def set_preset(self, id: str, preset: Dict[str, Any]):
+    def set_preset(self, preset_id: str, preset: Dict[str, Any]):
         """
         Set config value
 
-        :param id: id
+        :param preset_id: id
         :param preset: preset
         """
-        self.presets[id] = preset
+        self.presets[preset_id] = preset
 
     def replace_presets(self, presets: Dict[str, Any]):
         """
@@ -357,11 +354,7 @@ class Plugins:
         """
         return self.presets
 
-    def reset_options(
-            self,
-            plugin_id: str,
-            keys: List[str]
-    ):
+    def reset_options(self, plugin_id: str, keys: List[str]):
         """
         Reset plugin options
 
@@ -370,9 +363,9 @@ class Plugins:
         """
         updated = False
         user_config = self.window.core.config.get('plugins')
-        if plugin_id in list(user_config.keys()):
+        if plugin_id in user_config:
             for key in keys:
-                if key in list(user_config[plugin_id].keys()):
+                if key in user_config[plugin_id]:
                     del user_config[plugin_id][key]
                 self.remove_preset_values(plugin_id, key)
                 updated = True
@@ -384,14 +377,13 @@ class Plugins:
     def reload_all(self):
         """Reload all plugins"""
         if self.presets is None or len(self.presets) == 0:
-            self.reset_all()  # if presets then it will be reloaded on presets load
+            self.reset_all()
 
     def reset_all(self):
         """Reset all options to initial values if presets"""
-        # restore plugin options to initial values
-        for id in list(self.plugins.keys()):
-            self.restore_options(id, all=True)  # all = with persisted values
-        self.apply_all_options()  # reload from config
+        for plugin_id in self.plugins:
+            self.restore_options(plugin_id, all=True)
+        self.apply_all_options()
 
     def clean_presets(self):
         """Remove invalid options from presets"""
@@ -400,23 +392,19 @@ class Plugins:
 
         removed = False
         if self.presets is not None:
-            for id in self.presets:
-                preset = self.presets[id]
-                for config_preset in preset["config"]:
-                    for key in list(preset["config"][config_preset]):
-                        if config_preset in self.plugins:
+            for _preset_id, preset in self.presets.items():
+                preset_config = preset["config"]
+                for config_preset, cfg_values in preset_config.items():
+                    if config_preset in self.plugins:
+                        for key in list(cfg_values):
                             if key not in self.plugins[config_preset].options:
                                 removed = True
-                                preset["config"][config_preset].pop(key)
+                                cfg_values.pop(key)
         if removed:
             self.save_presets()
             print("[FIX] Removed invalid keys from plugin presets.")
 
-    def remove_preset_values(
-            self,
-            plugin_id: str,
-            key: str
-    ):
+    def remove_preset_values(self, plugin_id: str, key: str):
         """
         Update preset value
 
@@ -429,22 +417,16 @@ class Plugins:
 
         if self.presets is None:
             return
-        for id in self.presets:
-            preset = self.presets[id]
-            for config_preset in preset["config"]:
-                if config_preset == plugin_id:
-                    if key in preset["config"][config_preset]:
-                        preset["config"][config_preset].pop(key)
-                        updated = True
+
+        for _preset_id, preset in self.presets.items():
+            preset_config = preset["config"]
+            if plugin_id in preset_config and key in preset_config[plugin_id]:
+                preset_config[plugin_id].pop(key)
+                updated = True
         if updated:
             self.save_presets()
 
-    def update_preset_values(
-            self,
-            plugin_id: str,
-            key: str,
-            value: Any
-    ):
+    def update_preset_values(self, plugin_id: str, key: str, value: Any):
         """
         Update preset value
 
@@ -458,41 +440,36 @@ class Plugins:
 
         if self.presets is None:
             return
-        for id in self.presets:
-            preset = self.presets[id]
-            for config_preset in preset["config"]:
-                if config_preset == plugin_id:
-                    if key in preset["config"][config_preset]:
-                        preset["config"][config_preset][key] = value
-                        updated = True
+
+        for _preset_id, preset in self.presets.items():
+            preset_config = preset["config"]
+            if plugin_id in preset_config and key in preset_config[plugin_id]:
+                preset_config[plugin_id][key] = value
+                updated = True
         if updated:
             self.save_presets()
-
 
     def save_presets(self):
         """Save presets"""
         self.provider.save(self.presets)
 
-    def dump_locale_by_id(self, id: str, path: str):
+    def dump_locale_by_id(self, plugin_id: str, path: str):
         """
         Dump locale by id
 
-        :param id: plugin id
+        :param plugin_id: plugin id
         :param path: path to locale file
         """
-        if id in self.plugins:
-            self.dump_locale(self.plugins[id], path)
+        plugin = self.plugins.get(plugin_id)
+        if plugin:
+            self.dump_locale(plugin, path)
 
     def dump_locales(self):
         """Dump all locales"""
         langs = ['en', 'pl']
-        for id in self.plugins:
-            domain = 'plugin.' + id
+        base_path = os.path.join(self.window.core.config.get_app_path(), 'data', 'locale')
+        for plugin_id, plugin in self.plugins.items():
+            domain = f'plugin.{plugin_id}'
             for lang in langs:
-                path = os.path.join(
-                    self.window.core.config.get_app_path(),
-                    'data',
-                    'locale',
-                    domain + '.' + lang + '.ini'
-                )
-                self.dump_locale(self.plugins[id], str(path))
+                path = os.path.join(base_path, f'{domain}.{lang}.ini')
+                self.dump_locale(plugin, path)

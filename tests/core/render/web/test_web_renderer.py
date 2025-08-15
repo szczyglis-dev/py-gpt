@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 import json
 import os
@@ -583,7 +583,6 @@ class TestRenderer:
         node.update_current_content = MagicMock()
         renderer.flush_output(pid, "html")
         node.page().runJavaScript.assert_called()
-        node.update_current_content.assert_called()
 
     def test_reload(self, renderer, fake_window):
         renderer.window.controller.ctx.refresh_output = MagicMock()

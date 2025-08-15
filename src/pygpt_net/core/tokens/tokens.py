@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Tuple, List
+from functools import lru_cache
 
 import tiktoken
 
@@ -49,41 +50,60 @@ CHAT_MODES = [
 ]
 
 class Tokens:
-    def __init__(self, window=None):
-        """
-        Tokens core
+    _default_encoding = "cl100k_base"
+    _const_cache = {}
 
-        :param window: Window instance
-        """
+    def __init__(self, window=None):
         self.window = window
+
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _encoding_name_for_model(model: str | None) -> str:
+        if model:
+            try:
+                return tiktoken.encoding_for_model(model).name
+            except KeyError:
+                return Tokens._default_encoding
+            except ValueError:
+                return Tokens._default_encoding
+        return Tokens._default_encoding
+
+    @staticmethod
+    @lru_cache(maxsize=64)
+    def _get_encoding(encoding_name: str):
+        try:
+            return tiktoken.get_encoding(encoding_name)
+        except Exception:
+            return tiktoken.get_encoding(Tokens._default_encoding)
+
+    @classmethod
+    def _const_tokens(cls, text: str, model: str = "gpt-4") -> int:
+        enc_name = cls._encoding_name_for_model(model)
+        key = (enc_name, text)
+        cached = cls._const_cache.get(key)
+        if cached is not None:
+            return cached
+        try:
+            enc = cls._get_encoding(enc_name)
+            val = len(enc.encode(text))
+        except Exception:
+            val = 0
+        cls._const_cache[key] = val
+        return val
 
     @staticmethod
     def from_str(
             string: str,
             model: str = "gpt-4"
     ) -> int:
-        """
-        Return number of tokens from string
-
-        :param string: string
-        :param model: model name
-        :return: number of tokens
-        """
-        if string is None or string == "":
+        if not string:
             return 0
-
-        default = "cl100k_base"
         try:
             try:
-                if model is not None and model != "":
-                    encoding = tiktoken.encoding_for_model(model)
-                else:
-                    encoding = tiktoken.get_encoding(default)
-            except KeyError:
-                encoding = tiktoken.get_encoding(default)
+                enc_name = Tokens._encoding_name_for_model(model)
+                encoding = Tokens._get_encoding(enc_name)
             except ValueError:
                 return 0
-
             try:
                 return len(encoding.encode(str(string)))
             except Exception as e:
@@ -95,12 +115,6 @@ class Tokens:
 
     @staticmethod
     def get_extra(model: str = "gpt-4") -> int:
-        """
-        Return number of extra tokens
-
-        :param model: model name
-        :return: number of tokens
-        """
         return 3
 
     @staticmethod
@@ -109,27 +123,16 @@ class Tokens:
             name: str,
             model: str = "gpt-4"
     ) -> int:
-        """
-        Return number of tokens from prompt
-
-        :param text: prompt text
-        :param name: input name
-        :param model: model name
-        :return: number of tokens
-        """
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
-
         try:
             num += Tokens.from_str(text, model)
         except Exception as e:
             print("Tokens calc exception", e)
-
-        if name is not None and name != "":
+        if name:
             num += per_message + per_name
         else:
             num += per_message
-
         return num
 
     @staticmethod
@@ -137,55 +140,37 @@ class Tokens:
             text: str,
             model: str = "gpt-4"
     ) -> int:
-        """
-        Return number of tokens from text, without any extra tokens
-
-        :param text: text
-        :param model: model name
-        :return: number of tokens
-        """
-        model, per_message, per_name = Tokens.get_config(model)
-        num = 0
-
-        if text is None or text == "":
+        if not text:
             return 0
-
         try:
-            num += Tokens.from_str(text, model)
+            return Tokens.from_str(text, model)
         except Exception as e:
             print("Tokens calc exception", e)
-
-        return num
+            return 0
 
     @staticmethod
     def from_messages(
             messages: List[dict],
             model: str = "gpt-4"
     ) -> int:
-        """
-        Return number of tokens from messages list
-
-        :param messages: messages
-        :param model: model name
-        :return: number of tokens
-        """
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
+        f = Tokens.from_str
         for message in messages:
             num += per_message
             for key, value in message.items():
-                # text message
                 if isinstance(value, str):
-                    num += Tokens.from_str(value)
+                    num += f(value)
                     if key == "name":
                         num += per_name
-                # multimodal message
                 elif key == "content" and isinstance(value, list):
                     for part in value:
-                        if "type" in part and "text" in part:
-                            if part["type"] == "text":
-                                num += Tokens.from_str(part["text"])
-        num += 3  # every reply is primed with <|start|>assistant<|message|>
+                        t = part.get("type")
+                        if t == "text":
+                            tv = part.get("text")
+                            if tv:
+                                num += f(tv)
+        num += 3
         return num
 
     @staticmethod
@@ -193,19 +178,13 @@ class Tokens:
             messages: List,
             model: str = "gpt-4"
     ) -> int:
-        """
-        Return number of tokens from prompt
-
-        :param messages: messages
-        :param model: model name
-        :return: number of tokens
-        """
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
+        f = Tokens.from_str
         for message in messages:
             num += per_message
-            num += Tokens.from_str(message.content)
-        num += 3  # every reply is primed with <|start|>assistant<|message|>
+            num += f(message.content)
+        num += 3
         return num
 
     @staticmethod
@@ -214,21 +193,14 @@ class Tokens:
             messages: List[ChatMessageLlama],
             model: str = "gpt-4"
     ) -> int:
-        """
-        Return number of tokens from prompt
-
-        :param query: query
-        :param messages: messages
-        :param model: model name
-        :return: number of tokens
-        """
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
-        num += Tokens.from_str(query)
+        f = Tokens.from_str
+        num += f(query)
         for message in messages:
             num += per_message
-            num += Tokens.from_str(message.content)
-        num += 3  # every reply is primed with <|start|>assistant<|message|>
+            num += f(message.content)
+        num += 3
         return num
 
     @staticmethod
@@ -237,94 +209,56 @@ class Tokens:
             mode: str = MODE_CHAT,
             model: str = "gpt-4"
     ) -> int:
-        """
-        Return number of tokens from context ctx
-
-        :param ctx: CtxItem
-        :param mode: mode
-        :param model: model ID
-        :return: number of tokens
-        """
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
-
+        f = Tokens.from_str
         if mode in CHAT_MODES:
-            # input message
             try:
-                num += Tokens.from_str(str(ctx.final_input), model)
+                num += f(str(ctx.final_input), model)
             except Exception as e:
                 print("Tokens calc exception", e)
-
-            # output message
             try:
-                num += Tokens.from_str(str(ctx.final_output), model)
+                num += f(str(ctx.final_output), model)
             except Exception as e:
                 print("Tokens calc exception", e)
-
-            # + fixed tokens
-            num += per_message * 2  # input + output
-            num += per_name * 2  # input + output
+            num += per_message * 2
+            num += per_name * 2
             try:
-                num += Tokens.from_str("system", model) * 2  # input + output
+                num += Tokens._const_tokens("system", model) * 2
             except Exception as e:
                 print("Tokens calc exception", e)
-
-            # input name
-            if ctx.input_name is not None and ctx.input_name != "":
-                name = ctx.input_name
-            else:
-                name = "user"
+            name = ctx.input_name if ctx.input_name else "user"
             try:
-                num += Tokens.from_str(name, model)
+                num += f(name, model)
             except Exception as e:
                 print("Tokens calc exception", e)
-
-            # output name
-            if ctx.output_name is not None and ctx.output_name != "":
-                name = ctx.output_name
-            else:
-                name = "assistant"
+            name = ctx.output_name if ctx.output_name else "assistant"
             try:
-                num += Tokens.from_str(name, model)
+                num += f(name, model)
             except Exception as e:
                 print("Tokens calc exception", e)
-
-        # build tmp message if completion mode
         elif mode == MODE_COMPLETION:
-            message = ""
-            # if with names
-            if ctx.input_name is not None \
-                    and ctx.output_name is not None \
-                    and ctx.input_name != "" \
-                    and ctx.output_name != "":
-                if ctx.final_input is not None and ctx.final_input != "":
-                    message += "\n" + ctx.input_name + ": " + ctx.final_input
-                if ctx.final_output is not None and ctx.final_output != "":
-                    message += "\n" + ctx.output_name + ": " + ctx.final_output
-            # if without names
+            parts = []
+            if ctx.input_name and ctx.output_name:
+                if ctx.final_input:
+                    parts.append("\n" + ctx.input_name + ": " + ctx.final_input)
+                if ctx.final_output:
+                    parts.append("\n" + ctx.output_name + ": " + ctx.final_output)
             else:
-                if ctx.final_input is not None and ctx.final_input != "":
-                    message += "\n" + ctx.final_input
-                if ctx.final_output is not None and ctx.final_output != "":
-                    message += "\n" + ctx.final_output
+                if ctx.final_input:
+                    parts.append("\n" + ctx.final_input)
+                if ctx.final_output:
+                    parts.append("\n" + ctx.final_output)
             try:
-                num += Tokens.from_str(message, model)
+                num += f("".join(parts), model)
             except Exception as e:
                 print("Tokens calc exception", e)
-
         return num
 
     def get_current(
             self,
             input_prompt: str
     ) -> Tuple[int, int, int, int, int, int, int, int, int]:
-        """
-        Return current number of used tokens
-
-        :param input_prompt: input prompt
-        :return: A tuple of (input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
-               sum_tokens, max_current, threshold)
-        """
         model = self.window.core.config.get('model')
         model_id = ""
         model_data = self.window.core.models.get(model)
@@ -341,64 +275,45 @@ class Tokens:
         extra_tokens = self.get_extra(model)
 
         if mode in CHAT_MODES:
-            # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)  # add addons
-
-            if system_prompt is not None and system_prompt != "":
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)
+            if system_prompt:
                 system_tokens = self.from_prompt(system_prompt, "", model_id)
-                system_tokens += self.from_text("system", model_id)
-
-            # input prompt
-            if input_prompt is not None and input_prompt != "":
+                system_tokens += Tokens._const_tokens("system", model_id)
+            if input_prompt:
                 input_tokens = self.from_prompt(input_prompt, "", model_id)
-                input_tokens += self.from_text("user", model_id)
+                input_tokens += Tokens._const_tokens("user", model_id)
         elif mode == MODE_COMPLETION:
-            # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)  # add addons
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)
             system_tokens = self.from_text(system_prompt, model_id)
-
-            # input prompt
-            if input_prompt is not None and input_prompt != "":
-                message = ""
-                if user_name is not None \
-                        and ai_name is not None \
-                        and user_name != "" \
-                        and ai_name != "":
-                    message += "\n" + user_name + ": " + str(input_prompt)
-                    message += "\n" + ai_name + ":"
+            if input_prompt:
+                if user_name and ai_name:
+                    message = "\n" + user_name + ": " + str(input_prompt) + "\n" + ai_name + ":"
                 else:
-                    message += "\n" + str(input_prompt)
+                    message = "\n" + str(input_prompt)
                 input_tokens = self.from_text(message, model_id)
-                extra_tokens = 0  # no extra tokens in completion mode
+                extra_tokens = 0
 
-        # TMP system prompt (for debug purposes)
         self.window.core.ctx.current_sys_prompt = system_prompt
 
-        # used tokens
         used_tokens = system_tokens + input_tokens
 
-        # check model max allowed ctx tokens
         max_current = max_total_tokens
         model_ctx = self.window.core.models.get_num_ctx(model)
         if max_current > model_ctx:
             max_current = model_ctx
 
-        # context threshold (reserved for output)
         threshold = self.window.core.config.get('context_threshold')
         max_to_check = max_current - threshold
 
-        # context tokens
         ctx_len_all = self.window.core.ctx.count_items()
         ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(model_id, mode, used_tokens, max_to_check)
 
-        # empty ctx tokens if context is not used
         if not self.window.core.config.get('use_context'):
             ctx_tokens = 0
             ctx_len = 0
 
-        # sum of input tokens
         sum_tokens = system_tokens + input_tokens + ctx_tokens + extra_tokens
 
         return input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
@@ -409,39 +324,25 @@ class Tokens:
             system_prompt: str,
             input_prompt: str
     ) -> int:
-        """
-        Count per-user used tokens
-
-        :param system_prompt: system prompt
-        :param input_prompt: input prompt
-        :return: used tokens
-        """
         model = self.window.core.config.get('model')
         model_id = self.window.core.models.get_id(model)
         mode = self.window.core.config.get('mode')
         tokens = 0
         if mode in [MODE_CHAT, MODE_VISION, MODE_AUDIO, MODE_RESEARCH]:
-            tokens += self.from_prompt(system_prompt, "", model_id)  # system prompt
+            tokens += self.from_prompt(system_prompt, "", model_id)
             tokens += self.from_text("system", model_id)
-            tokens += self.from_prompt(input_prompt, "", model_id)  # input prompt
+            tokens += self.from_prompt(input_prompt, "", model_id)
             tokens += self.from_text("user", model_id)
         else:
-            # rest of modes
-            tokens += self.from_text(system_prompt, model_id)  # system prompt
-            tokens += self.from_text(input_prompt, model_id)  # input prompt
-        tokens += self.window.core.config.get('context_threshold')  # context threshold (reserved for output)
-        tokens += self.get_extra(model_id)  # extra tokens (required for output)
+            tokens += self.from_text(system_prompt, model_id)
+            tokens += self.from_text(input_prompt, model_id)
+        tokens += self.window.core.config.get('context_threshold')
+        tokens += self.get_extra(model_id)
         return tokens
 
     @staticmethod
     def get_config(model: str) -> Tuple[str, int, int]:
-        """
-        Return tokens config values
-
-        :param model: model ID
-        :return: model, per_message, per_name
-        """
-        per_message = 4  # message follows <|start|>{role/name}\n{content}<|end|>\n
+        per_message = 4
         per_name = -1
 
         if model is not None:
@@ -456,8 +357,8 @@ class Tokens:
                 per_message = 3
                 per_name = 1
             elif model == "gpt-3.5-turbo-0301":
-                per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
-                per_name = -1  # if there's a name, the role is omitted
+                per_message = 4
+                per_name = -1
             elif "gpt-3.5-turbo" in model:
                 return Tokens.get_config(model="gpt-3.5-turbo-0613")
             elif "gpt-4" in model:

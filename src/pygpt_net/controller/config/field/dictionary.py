@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -37,11 +37,15 @@ class Dictionary:
         :param key: Option key
         :param option: Option data
         """
-        if "value" not in option or option["value"] is None:
+        if option.get("value") is None:
             option["value"] = []
-        values = list(option["value"])
-        self.window.ui.config[parent_id][key].items = values  # replace model data list
-        self.window.ui.config[parent_id][key].model.updateData(values)  # update model data
+            values = []
+        else:
+            v = option["value"]
+            values = v.copy() if isinstance(v, list) else list(v)
+        cfg_item = self.window.ui.config[parent_id][key]
+        cfg_item.items = values
+        cfg_item.model.updateData(values)
 
     def apply_row(
             self,
@@ -58,9 +62,8 @@ class Dictionary:
         :param values: dictionary data values
         :param idx: row index
         """
-        # if cmd type, remove .params suffix
         if key.endswith(".params"):
-            key = key.replace(".params", "")
+            key = key[:-7]
         self.window.ui.config[parent_id][key].update_item(idx, values)
 
     def get_value(
@@ -103,15 +106,13 @@ class Dictionary:
             )
             return
 
-        # delete item
         if parent_object is not None:
             parent_object.delete_item_execute(id)
-
-            # on update hooks
             if hooks:
-                hook_name = "update.{}.{}".format(parent_object, id)
-                if self.window.ui.has_hook(hook_name):
-                    hook = self.window.ui.get_hook(hook_name)
+                hook_name = f"update.{parent_object}.{id}"
+                ui = self.window.ui
+                if ui.has_hook(hook_name):
+                    hook = ui.get_hook(hook_name)
                     try:
                         hook(id, {}, "dictionary")
                     except Exception as e:
@@ -129,20 +130,21 @@ class Dictionary:
         :param option: dictionary items option
         :return: options dict
         """
-        if "keys" not in option:
+        keys = option.get("keys")
+        if not keys:
             return {}
-        options = {}
-        for key in option["keys"]:
-            item = option["keys"][key]
+        options: Dict[str, Any] = {}
+        prefix = f"{parent_id}."
+        for key, item in keys.items():
             if isinstance(item, str):
                 item = {
-                    "label": parent_id + '.' + key,
-                    "type": item,  # field type is provided as value in this case
+                    "label": f"{prefix}{key}",
+                    "type": item,
                 }
+            else:
+                if "label" not in item:
+                    item["label"] = f"{prefix}{key}"
             options[key] = item
-            if "label" not in options[key]:
-                options[key]["label"] = key
-                options[key]["label"] = parent_id + "." + options[key]["label"]
         return options
 
     def append_editor(
@@ -158,15 +160,12 @@ class Dictionary:
         :param option: Option dict
         :param data: Option data
         """
-        parent_id = "dictionary." + id
+        parent_id = f"dictionary.{id}"
         sub_options = self.to_options(id, option)
-        for key in sub_options:
-            sub_option = sub_options[key]
-            if key in data:
-                sub_option["value"] = data[key]
-            else:
-                sub_option["value"] = ""
-            self.window.controller.config.apply(
+        apply_fn = self.window.controller.config.apply
+        for key, sub_option in sub_options.items():
+            sub_option["value"] = data.get(key, "")
+            apply_fn(
                 parent_id=parent_id,
                 key=key,
                 option=sub_option,
@@ -187,35 +186,29 @@ class Dictionary:
         :param fields: Fields dict
         :param hooks: run hooks
         """
-        values = {}
-        dict_id = parent + "." + option_key
-        dialog_id = "dictionary." + parent + "." + option_key  # dictionary parent ID
-        idx = self.window.ui.dialog["editor." + dialog_id].idx  # editing record idx is stored in dialog idx
-        for key in fields:
-            value = self.window.controller.config.get_value(
-                parent_id="dictionary." + dict_id,
+        values: Dict[str, Any] = {}
+        dict_id = f"{parent}.{option_key}"
+        dialog_id = f"dictionary.{dict_id}"
+        dialog_key = f"editor.{dialog_id}"
+        ui = self.window.ui
+        idx = ui.dialog[dialog_key].idx
+        get_value_fn = self.window.controller.config.get_value
+        fields_parent_id = f"dictionary.{dict_id}"
+        for key, field in fields.items():
+            values[key] = get_value_fn(
+                parent_id=fields_parent_id,
                 key=key,
-                option=fields[key],
+                option=field,
             )
-            values[key] = value
 
-        # update values in dictionary item on list in parent
-        self.apply_row(
-            parent,
-            option_key,
-            values,
-            idx,
-        )
+        self.apply_row(parent, option_key, values, idx)
+        ui.dialog[dialog_key].close()
 
-        # close dialog
-        self.window.ui.dialog['editor.' + dialog_id].close()
-
-        # on update hooks
         if hooks:
-            hook_name = "update.{}.{}".format(parent, option_key)
-            if self.window.ui.has_hook(hook_name):
-                hook = self.window.ui.get_hook(hook_name)
+            hook_name = f"update.{parent}.{option_key}"
+            if ui.has_hook(hook_name):
+                hook = ui.get_hook(hook_name)
                 try:
-                    hook(option_key, [values], "dictionary")  # value must be list here
+                    hook(option_key, [values], "dictionary")
                 except Exception as e:
                     self.window.core.debug.log(e)

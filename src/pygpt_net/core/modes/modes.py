@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Dict, List
@@ -41,7 +41,7 @@ class Modes:
         self.window = window
         self.provider = JsonFileProvider(window)
         self.initialized = False
-        self.all = [
+        self.all = (
             MODE_AGENT,
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
@@ -56,7 +56,7 @@ class Modes:
             MODE_VISION,
             MODE_RESEARCH,
             MODE_COMPUTER,
-        ]
+        )
         self.items = {}
 
     def get_by_idx(self, idx) -> str:
@@ -66,8 +66,8 @@ class Modes:
         :param idx: index of mode
         :return: mode name
         """
-        modes = self.get_all()
-        return list(modes.keys())[idx]
+        keys = tuple(self.items)
+        return keys[idx]
 
     def get_idx_by_name(self, name) -> int:
         """
@@ -76,8 +76,8 @@ class Modes:
         :param name: mode name
         :return: mode index
         """
-        modes = self.get_all()
-        return list(modes.keys()).index(name)
+        keys = tuple(self.items)
+        return keys.index(name)
 
     def get_all(self) -> Dict[str, List[str]]:
         """
@@ -93,9 +93,7 @@ class Modes:
 
         :return: default mode name
         """
-        for id in self.items:
-            if self.items[id].default:
-                return id
+        return next((k for k, v in self.items.items() if v.default), None)
 
     def get_next(self, mode: str) -> str:
         """
@@ -104,12 +102,9 @@ class Modes:
         :param mode: current mode
         :return: next mode
         """
-        modes = self.get_all()
-        keys = list(modes.keys())
+        keys = tuple(self.items)
         idx = keys.index(mode)
-        if idx + 1 < len(keys):
-            return keys[idx + 1]
-        return keys[0]
+        return keys[(idx + 1) % len(keys)]
 
     def get_prev(self, mode: str) -> str:
         """
@@ -118,12 +113,9 @@ class Modes:
         :param mode: current mode
         :return: previous mode
         """
-        modes = self.get_all()
-        keys = list(modes.keys())
+        keys = tuple(self.items)
         idx = keys.index(mode)
-        if idx - 1 >= 0:
-            return keys[idx - 1]
-        return keys[-1]
+        return keys[(idx - 1) % len(keys)]
 
     def load(self):
         """Load modes"""

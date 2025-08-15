@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -17,7 +17,6 @@ from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
-from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -93,6 +92,8 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param cmds: commands dict
         """
+        from .worker import Worker
+
         is_cmd = False
         my_commands = []
         for item in cmds:
@@ -128,6 +129,8 @@ class Plugin(BasePlugin):
         :param item: command item to execute
         :return:
         """
+        from .worker import Worker
+
         item["params"]["no_screenshot"] = True  # do not take screenshot for single command call
         worker = Worker()
         worker.from_defaults(self)

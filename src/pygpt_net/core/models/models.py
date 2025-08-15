@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 19:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -72,47 +72,37 @@ class Models:
         """
         base_items = self.get_base()
         updated = False
-        added_keys = []
 
-        # check for missing keys
-        for key in base_items:
+        for key, base in base_items.items():
             if key not in self.items:
-                self.items[key] = copy.deepcopy(base_items[key])
+                self.items[key] = copy.deepcopy(base)
                 updated = True
 
-        # check for missing models ids
-        for key in base_items:
-            model_id = base_items[key].id
-            old_exists = False
-            for old_key in self.items:
-                if self.items[old_key].id == model_id:
-                    old_exists = True
-                    break
-            if not old_exists and key not in added_keys:
-                self.items[key] = copy.deepcopy(base_items[key])
-                added_keys.append(key)
+        existing_ids = {it.id for it in self.items.values()}
+        for key, base in base_items.items():
+            if base.id not in existing_ids:
+                self.items[key] = copy.deepcopy(base)
+                existing_ids.add(base.id)
                 updated = True
 
-        # update multimodal options
-        for key in self.items:
-            if key in base_items:
-                if base_items[key].input != self.items[key].input:
-                    self.items[key].input = base_items[key].input
-                    updated = True
-                if base_items[key].output != self.items[key].output:
-                    self.items[key].output = base_items[key].output
-                    updated = True
+        for key, base in base_items.items():
+            item = self.items.get(key)
+            if not item:
+                continue
+            if base.input != item.input:
+                item.input = base.input
+                updated = True
+            if base.output != item.output:
+                item.output = base.output
+                updated = True
 
-        # update empty multimodal options
-        for key in self.items:
-            if isinstance(self.items[key].input, list):
-                if len(self.items[key].input) == 0:
-                    self.items[key].input = ["text"]
-                    updated = True
-            if isinstance(self.items[key].output, list):
-                if len(self.items[key].output) == 0:
-                    self.items[key].output = ["text"]
-                    updated = True
+        for item in self.items.values():
+            if isinstance(item.input, list) and not item.input:
+                item.input = ["text"]
+                updated = True
+            if isinstance(item.output, list) and not item.output:
+                item.output = ["text"]
+                updated = True
 
         if updated:
             self.save()
@@ -126,8 +116,7 @@ class Models:
         :param key: model name
         :return: model config object
         """
-        if key in self.items:
-            return self.items[key]
+        return self.items.get(key)
 
     def get_ids(self) -> List[str]:
         """
@@ -167,9 +156,7 @@ class Models:
         :param mode: mode name
         :return: True if model is allowed for mode
         """
-        if model in self.items:
-            return mode in self.items[model].mode
-        return False
+        return model in self.items and mode in self.items[model].mode
 
     def get_id(
             self,
@@ -181,8 +168,8 @@ class Models:
         :param key: model key
         :return: model id
         """
-        if key in self.items:
-            return self.items[key].id
+        item = self.items.get(key)
+        return item.id if item else None
 
     def get_by_idx(
             self,
@@ -209,11 +196,7 @@ class Models:
         :param mode: mode name
         :return: models dict for mode
         """
-        items = {}
-        for key in self.items:
-            if mode in self.items[key].mode:
-                items[key] = self.items[key]
-        return items
+        return {k: v for k, v in self.items.items() if mode in v.mode}
 
     def get_next(
             self,
@@ -259,10 +242,17 @@ class Models:
 
         :return: new model id
         """
-        id = "model-000"
-        while id in self.items:
-            id = "model-" + str(int(id.split("-")[1]) + 1).zfill(3)
-        return id
+        prefix = "model-"
+        used = set()
+        for k in self.items.keys():
+            if isinstance(k, str) and k.startswith(prefix):
+                suffix = k[len(prefix):]
+                if suffix.isdigit():
+                    used.add(int(suffix))
+        n = 0
+        while n in used:
+            n += 1
+        return f"{prefix}{n:03d}"
 
     def get_multimodal_list(self) -> List[str]:
         """
@@ -336,8 +326,8 @@ class Models:
         :param model: model name
         :return: True if model exists for mode
         """
-        items = self.get_by_mode(mode)
-        return model in items
+        item = self.items.get(model)
+        return bool(item and mode in item.mode)
 
     def get_default(self, mode: str) -> Optional[str]:
         """
@@ -346,13 +336,10 @@ class Models:
         :param mode: mode name
         :return: default model name
         """
-        models = {}
         items = self.get_by_mode(mode)
-        for k in items:
-            models[k] = items[k]
-        if len(models) == 0:
+        if not items:
             return None
-        return list(models.keys())[0]
+        return next(iter(items))
 
     def get_tokens(self, model: str) -> int:
         """
@@ -385,12 +372,10 @@ class Models:
 
         :param model: model name
         """
-        # restore all models
         if model is None:
             self.load_base()
             return
 
-        # restore single model
         items = self.provider.load_base()
         if model in items:
             self.items[model] = items[model]
@@ -435,34 +420,24 @@ class Models:
         :return: mode (supported)
         """
         prev_mode = mode
-        # if OpenAI API model and not llama_index mode, switch to Chat mode
-        if model.is_supported(MODE_CHAT) and mode != MODE_LLAMA_INDEX:  # do not switch if llama_index mode!
+        if model.is_supported(MODE_CHAT) and mode != MODE_LLAMA_INDEX:
             if prev_mode != MODE_CHAT:
                 self.window.core.debug.info(
                     "WARNING: Switching to chat mode (model not supported in: {})".format(prev_mode))
             return MODE_CHAT
 
-        # Research / Perplexity
         if model.is_supported(MODE_RESEARCH):
             if prev_mode != MODE_RESEARCH:
                 self.window.core.debug.info(
                     "WARNING: Switching to research mode (model not supported in: {})".format(mode))
             mode = MODE_RESEARCH
 
-        # Llama Index / Chat with Files
         elif model.is_supported(MODE_LLAMA_INDEX):
             if prev_mode != MODE_LLAMA_INDEX:
                 self.window.core.debug.info(
                     "WARNING: Switching to llama_index mode (model not supported in: {})".format(mode))
             mode = MODE_LLAMA_INDEX
 
-        # LangChain
-        """
-        elif model.is_supported(MODE_LANGCHAIN):
-            self.window.core.debug.info(
-                "WARNING: Switching to langchain mode (model not supported in: {})".format(mode))
-            mode = MODE_LANGCHAIN
-        """
         return mode
 
     def prepare_client_args(
@@ -477,65 +452,55 @@ class Models:
         :param model: ModelItem
         :return: client arguments dict
         """
+        cfg = self.window.core.config
         args = {
-            "api_key": self.window.core.config.get('api_key'),
-            "organization": self.window.core.config.get('organization_key'),
+            "api_key": cfg.get('api_key'),
+            "organization": cfg.get('organization_key'),
         }
-        # api endpoint
-        if self.window.core.config.has('api_endpoint'):
-            endpoint = self.window.core.config.get('api_endpoint')
+
+        if cfg.has('api_endpoint'):
+            endpoint = cfg.get('api_endpoint')
             if endpoint:
                 args["base_url"] = endpoint
-        # proxy
-        if self.window.core.config.has('api_proxy'):
-            proxy = self.window.core.config.get('api_proxy')
+
+        if cfg.has('api_proxy'):
+            proxy = cfg.get('api_proxy')
             if proxy:
                 transport = SyncProxyTransport.from_url(proxy)
-                args["http_client"] = DefaultHttpxClient(
-                    transport=transport,
-                )
+                args["http_client"] = DefaultHttpxClient(transport=transport)
 
-        # research mode endpoint - Perplexity
         if model is not None:
-            # xAI / grok
             if model.provider == "x_ai":
-                args["api_key"] = self.window.core.config.get('api_key_xai', "")
-                args["base_url"] = self.window.core.config.get('api_endpoint_xai', "")
+                args["api_key"] = cfg.get('api_key_xai', "")
+                args["base_url"] = cfg.get('api_endpoint_xai', "")
                 self.window.core.debug.info("[api] Using client: xAI")
-            # Perplexity
             elif model.provider == "perplexity":
-                args["api_key"] = self.window.core.config.get('api_key_perplexity', "")
-                args["base_url"] = self.window.core.config.get('api_endpoint_perplexity', "")
+                args["api_key"] = cfg.get('api_key_perplexity', "")
+                args["base_url"] = cfg.get('api_endpoint_perplexity', "")
                 self.window.core.debug.info("[api] Using client: Perplexity")
-            # Google
             elif model.provider == "google":
-                args["api_key"] = self.window.core.config.get('api_key_google', "")
-                args["base_url"] = self.window.core.config.get('api_endpoint_google', "")
+                args["api_key"] = cfg.get('api_key_google', "")
+                args["base_url"] = cfg.get('api_endpoint_google', "")
                 self.window.core.debug.info("[api] Using client: Google")
-            # Anthropic
             elif model.provider == "anthropic":
-                args["api_key"] = self.window.core.config.get('api_key_anthropic', "")
-                args["base_url"] = self.window.core.config.get('api_endpoint_anthropic', "")
+                args["api_key"] = cfg.get('api_key_anthropic', "")
+                args["base_url"] = cfg.get('api_endpoint_anthropic', "")
                 self.window.core.debug.info("[api] Using client: Anthropic")
-            # Deepseek
             elif model.provider == "deepseek_api":
-                args["api_key"] = self.window.core.config.get('api_key_deepseek', "")
-                args["base_url"] = self.window.core.config.get('api_endpoint_deepseek', "")
+                args["api_key"] = cfg.get('api_key_deepseek', "")
+                args["base_url"] = cfg.get('api_endpoint_deepseek', "")
                 self.window.core.debug.info("[api] Using client: Deepseek API")
-            # Mistral AI
             elif model.provider == "mistral_ai":
-                args["api_key"] = self.window.core.config.get('api_key_mistral', "")
-                args["base_url"] = self.window.core.config.get('api_endpoint_mistral', "")
+                args["api_key"] = cfg.get('api_key_mistral', "")
+                args["base_url"] = cfg.get('api_endpoint_mistral', "")
                 self.window.core.debug.info("[api] Using client: Mistral AI API")
-            # HuggingFace Router
             elif model.provider == "huggingface_router":
-                args["api_key"] = self.window.core.config.get('api_key_hugging_face', "")
-                args["base_url"] = self.window.core.config.get('api_endpoint_hugging_face', "")
+                args["api_key"] = cfg.get('api_key_hugging_face', "")
+                args["base_url"] = cfg.get('api_endpoint_hugging_face', "")
                 self.window.core.debug.info("[api] Using client: HuggingFace Router API")
             else:
                 self.window.core.debug.info("[api] Using client: OpenAI (default)")
 
-            # do not include organization for non-OpenAI providers
             if model.provider != "openai":
                 if "organization" in args:
                     del args["organization"]
@@ -554,12 +519,9 @@ class Models:
         if mode == MODE_LLAMA_INDEX:
             if model.provider == "google":
                 stream = self.window.core.config.get('stream', False)
-                use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
+                use_react = self.window.core.config.get("llama.idx.react", False)
                 if stream:
-                    if use_react:
-                        return True
-                    else:
-                        return False
+                    return bool(use_react)
         if model.tool_calls:
             return True
         return False

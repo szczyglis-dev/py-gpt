@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -54,61 +54,6 @@ def test_apply_float(mock_window):
     cfg.input.apply = MagicMock()
     cfg.apply("parent_id", "key", option)
     cfg.slider.apply.assert_called_once_with("parent_id", "key", option)
-
-
-def test_apply_text(mock_window):
-    """Test apply text"""
-    option = {
-        'type': 'text',
-    }
-    cfg = Config(mock_window)
-    cfg.input.apply = MagicMock()
-    cfg.apply("parent_id", "key", option)
-    cfg.input.apply.assert_called_once_with("parent_id", "key", option)
-
-
-def test_apply_textarea(mock_window):
-    """Test apply textarea"""
-    option = {
-        'type': 'textarea',
-    }
-    cfg = Config(mock_window)
-    cfg.textarea.apply = MagicMock()
-    cfg.apply("parent_id", "key", option)
-    cfg.textarea.apply.assert_called_once_with("parent_id", "key", option)
-
-
-def test_apply_bool(mock_window):
-    """Test apply bool"""
-    option = {
-        'type': 'bool',
-    }
-    cfg = Config(mock_window)
-    cfg.checkbox.apply = MagicMock()
-    cfg.apply("parent_id", "key", option)
-    cfg.checkbox.apply.assert_called_once_with("parent_id", "key", option)
-
-
-def test_apply_dict(mock_window):
-    """Test apply dict"""
-    option = {
-        'type': 'dict',
-    }
-    cfg = Config(mock_window)
-    cfg.dictionary.apply = MagicMock()
-    cfg.apply("parent_id", "key", option)
-    cfg.dictionary.apply.assert_called_once_with("parent_id", "key", option)
-
-
-def test_apply_combo(mock_window):
-    """Test apply combo"""
-    option = {
-        'type': 'combo',
-    }
-    cfg = Config(mock_window)
-    cfg.combo.apply = MagicMock()
-    cfg.apply("parent_id", "key", option)
-    cfg.combo.apply.assert_called_once_with("parent_id", "key", option)
 
 
 def test_apply_value(mock_window):

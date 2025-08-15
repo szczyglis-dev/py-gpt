@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -100,12 +100,11 @@ class CtxItem:
 
         :return: input text
         """
-        content = None
-        if self.input is not None:
-            content = self.input
-            if self.hidden_input:
-                content += "\n\n" + self.hidden_input
-        return content
+        if self.input is None:
+            return None
+        if self.hidden_input:
+            return self.input + "\n\n" + self.hidden_input
+        return self.input
 
     @property
     def final_output(self) -> str:
@@ -114,12 +113,11 @@ class CtxItem:
 
         :return: output text
         """
-        content = None
-        if self.output is not None:
-            content = self.output
-            if self.hidden_output:
-                content += "\n\n" + self.hidden_output
-        return content
+        if self.output is None:
+            return None
+        if self.hidden_output:
+            return self.output + "\n\n" + self.hidden_output
+        return self.output
 
     def clear_reply(self):
         """Clear current reply output"""
@@ -129,19 +127,22 @@ class CtxItem:
 
     def from_previous(self):
         """Copy data from previous context reply to current context"""
-        if self.prev_ctx is not None:
-            if self.prev_ctx.urls:
-                self.urls = copy.deepcopy(self.prev_ctx.urls)
-            if self.prev_ctx.images:
-                self.images = copy.deepcopy(self.prev_ctx.images)
-            if self.prev_ctx.images_before:
-                self.images = copy.deepcopy(self.prev_ctx.images_before)
-            if self.prev_ctx.files_before:
-                self.files = copy.deepcopy(self.prev_ctx.files_before)
-            if self.prev_ctx.attachments_before:
-                self.attachments = copy.deepcopy(self.prev_ctx.attachments_before)
-            if self.prev_ctx.urls_before:
-                self.urls = copy.deepcopy(self.prev_ctx.urls_before)
+        p = self.prev_ctx
+        if not p:
+            return
+        dp = copy.deepcopy
+        if p.urls or p.urls_before:
+            src = p.urls_before if p.urls_before else p.urls
+            if src:
+                self.urls = dp(src)
+        if p.images or p.images_before:
+            src = p.images_before if p.images_before else p.images
+            if src:
+                self.images = dp(src)
+        if p.files_before:
+            self.files = dp(p.files_before)
+        if p.attachments_before:
+            self.attachments = dp(p.attachments_before)
 
     def has_commands(self) -> bool:
         """
@@ -149,7 +150,7 @@ class CtxItem:
 
         :return: True if commands are present
         """
-        return len(self.cmds) > 0 or len(self.tool_calls) > 0
+        return bool(self.cmds or self.tool_calls)
 
     def audio_read_allowed(self) -> bool:
         """
@@ -157,10 +158,12 @@ class CtxItem:
 
         :return: True if audio read allowed
         """
-        allowed = True
-        if self.has_commands() or '<tool>{"cmd":' in self.output:
-            allowed = False
-        return allowed
+        if self.has_commands():
+            return False
+        out = self.output
+        if isinstance(out, str) and '<tool>{"cmd":' in out:
+            return False
+        return True
 
     def add_doc_meta(self, meta: dict):
         """
@@ -305,56 +308,57 @@ class CtxItem:
 
         :param data: dict
         """
-        self.id = data.get("id", None)
-        self.meta = data.get("meta", None)
-        self.meta_id = data.get("meta_id", None)
-        self.external_id = data.get("external_id", None)
-        self.stream = data.get("stream", None)
-        self.cmds = data.get("cmds", [])
-        self.results = data.get("results", [])
-        self.urls = data.get("urls", [])
-        self.urls_before = data.get("urls_before", [])
-        self.images = data.get("images", [])
-        self.images_before = data.get("images_before", [])
-        self.files = data.get("files", [])
-        self.files_before = data.get("files_before", [])
-        self.attachments = data.get("attachments", [])
-        self.attachments_before = data.get("attachments_before", [])
-        self.reply = data.get("reply", False)
-        self.input = data.get("input", None)
-        self.output = data.get("output", None)
-        self.mode = data.get("mode", None)
-        self.model = data.get("model", None)
-        self.thread = data.get("thread", None)
-        self.msg_id = data.get("msg_id", None)
-        self.run_id = data.get("run_id", None)
-        self.audio_id = data.get("audio_id", None)
-        self.audio_expires_ts = data.get("audio_expires_ts", None)
-        self.input_name = data.get("input_name", None)
-        self.output_name = data.get("output_name", None)
-        self.input_timestamp = data.get("input_timestamp", None)
-        self.output_timestamp = data.get("output_timestamp", None)
-        self.hidden_input = data.get("hidden_input", None)
-        self.hidden_output = data.get("hidden_output", None)
-        self.input_tokens = data.get("input_tokens", 0)
-        self.output_tokens = data.get("output_tokens", 0)
-        self.total_tokens = data.get("total_tokens", 0)
-        self.extra = data.get("extra", None)
-        self.extra_ctx = data.get("extra_ctx", False)
-        self.current = data.get("current", False)
-        self.internal = data.get("internal", False)
-        self.is_vision = data.get("is_vision", False)
-        self.idx = data.get("idx", 0)
-        self.first = data.get("first", False)
-        self.agent_call = data.get("agent_call", False)
-        self.tool_calls = data.get("tool_calls", [])
-        self.index_meta = data.get("index_meta", {})
-        self.doc_ids = data.get("doc_ids", [])
-        self.sub_calls = data.get("sub_calls", 0)
-        self.sub_call = data.get("sub_call", False)
-        self.sub_reply = data.get("sub_reply", False)
-        self.sub_tool_call = data.get("sub_tool_call", False)
-        self.hidden = data.get("hidden", False)
+        g = data.get
+        self.id = g("id", None)
+        self.meta = g("meta", None)
+        self.meta_id = g("meta_id", None)
+        self.external_id = g("external_id", None)
+        self.stream = g("stream", None)
+        self.cmds = g("cmds", [])
+        self.results = g("results", [])
+        self.urls = g("urls", [])
+        self.urls_before = g("urls_before", [])
+        self.images = g("images", [])
+        self.images_before = g("images_before", [])
+        self.files = g("files", [])
+        self.files_before = g("files_before", [])
+        self.attachments = g("attachments", [])
+        self.attachments_before = g("attachments_before", [])
+        self.reply = g("reply", False)
+        self.input = g("input", None)
+        self.output = g("output", None)
+        self.mode = g("mode", None)
+        self.model = g("model", None)
+        self.thread = g("thread", None)
+        self.msg_id = g("msg_id", None)
+        self.run_id = g("run_id", None)
+        self.audio_id = g("audio_id", None)
+        self.audio_expires_ts = g("audio_expires_ts", None)
+        self.input_name = g("input_name", None)
+        self.output_name = g("output_name", None)
+        self.input_timestamp = g("input_timestamp", None)
+        self.output_timestamp = g("output_timestamp", None)
+        self.hidden_input = g("hidden_input", None)
+        self.hidden_output = g("hidden_output", None)
+        self.input_tokens = g("input_tokens", 0)
+        self.output_tokens = g("output_tokens", 0)
+        self.total_tokens = g("total_tokens", 0)
+        self.extra = g("extra", None)
+        self.extra_ctx = g("extra_ctx", False)
+        self.current = g("current", False)
+        self.internal = g("internal", False)
+        self.is_vision = g("is_vision", False)
+        self.idx = g("idx", 0)
+        self.first = g("first", False)
+        self.agent_call = g("agent_call", False)
+        self.tool_calls = g("tool_calls", [])
+        self.index_meta = g("index_meta", {})
+        self.doc_ids = g("doc_ids", [])
+        self.sub_calls = g("sub_calls", 0)
+        self.sub_call = g("sub_call", False)
+        self.sub_reply = g("sub_reply", False)
+        self.sub_tool_call = g("sub_tool_call", False)
+        self.hidden = g("hidden", False)
 
 
     def dump(self, dump: bool = True) -> str:
@@ -366,14 +370,14 @@ class CtxItem:
         """
         try:
             return json.dumps(self.to_dict(dump), ensure_ascii=False, indent=2)
-        except Exception as e:
+        except Exception:
             pass
         return ""
 
     def print(self):
         """Print context item"""
         print("\n----------------------------")
-        print("[" + str(self.id) + "]")
+        print(f"[{self.id}]")
         print("Input:", self.input)
         print("Output:", self.output)
         print("Extra:", self.extra)
@@ -429,11 +433,10 @@ class CtxMeta:
 
         :return: True if additional context data is present
         """
-        if self.additional_ctx is not None and len(self.additional_ctx) > 0:
+        if self.additional_ctx:
             return True
-        if self.group:
-            if self.group.additional_ctx is not None and len(self.group.additional_ctx) > 0:
-                return True
+        if self.group and self.group.additional_ctx:
+            return True
         return False
 
     def get_additional_ctx(self) -> list:
@@ -442,12 +445,9 @@ class CtxMeta:
 
         :return: list
         """
-        if self.group:
-            if self.group.additional_ctx:
-                return self.group.additional_ctx
-        if self.additional_ctx:
-            return self.additional_ctx
-        return []
+        if self.group and self.group.additional_ctx:
+            return self.group.additional_ctx
+        return self.additional_ctx or []
 
     def reset_additional_ctx(self):
         """Delete additional context data"""
@@ -463,11 +463,13 @@ class CtxMeta:
         :param item: dict
         """
         if self.group:
-            if item in self.group.additional_ctx:
-                self.group.additional_ctx.remove(item)
+            lst = self.group.additional_ctx
+            if item in lst:
+                lst.remove(item)
         else:
-            if item in self.additional_ctx:
-                self.additional_ctx.remove(item)
+            lst = self.additional_ctx
+            if item in lst:
+                lst.remove(item)
 
     def get_attachment_names(self) -> list:
         """
@@ -527,35 +529,36 @@ class CtxMeta:
 
         :param data: dict
         """
-        self.id = data.get("id", None)
-        self.external_id = data.get("external_id", None)
-        self.uuid = data.get("uuid", None)
-        self.name = data.get("name", None)
-        self.date = data.get("date", None)
-        self.created = data.get("created", None)
-        self.updated = data.get("updated", None)
-        self.indexed = data.get("indexed", None)
-        self.mode = data.get("mode", None)
-        self.model = data.get("model", None)
-        self.last_mode = data.get("last_mode", None)
-        self.last_model = data.get("last_model", None)
-        self.thread = data.get("thread", None)
-        self.assistant = data.get("assistant", None)
-        self.preset = data.get("preset", None)
-        self.run = data.get("run", None)
-        self.status = data.get("status", None)
-        self.extra = data.get("extra", None)
-        self.initialized = data.get("initialized", False)
-        self.deleted = data.get("deleted", False)
-        self.important = data.get("important", False)
-        self.archived = data.get("archived", False)
-        self.label = data.get("label", 0)
-        self.indexes = data.get("indexes", {})
-        self.additional_ctx = data.get("additional_ctx", [])
-        self.group_id = data.get("group_id", None)
-        self.root_id = data.get("root_id", None)
-        self.parent_id = data.get("parent_id", None)
-        self.owner_uuid = data.get("owner_uuid", None)
+        g = data.get
+        self.id = g("id", None)
+        self.external_id = g("external_id", None)
+        self.uuid = g("uuid", None)
+        self.name = g("name", None)
+        self.date = g("date", None)
+        self.created = g("created", None)
+        self.updated = g("updated", None)
+        self.indexed = g("indexed", None)
+        self.mode = g("mode", None)
+        self.model = g("model", None)
+        self.last_mode = g("last_mode", None)
+        self.last_model = g("last_model", None)
+        self.thread = g("thread", None)
+        self.assistant = g("assistant", None)
+        self.preset = g("preset", None)
+        self.run = g("run", None)
+        self.status = g("status", None)
+        self.extra = g("extra", None)
+        self.initialized = g("initialized", False)
+        self.deleted = g("deleted", False)
+        self.important = g("important", False)
+        self.archived = g("archived", False)
+        self.label = g("label", 0)
+        self.indexes = g("indexes", {})
+        self.additional_ctx = g("additional_ctx", [])
+        self.group_id = g("group_id", None)
+        self.root_id = g("root_id", None)
+        self.parent_id = g("parent_id", None)
+        self.owner_uuid = g("owner_uuid", None)
 
     def get_pid(self):
         return 0
@@ -568,7 +571,7 @@ class CtxMeta:
         """
         try:
             return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
-        except Exception as e:
+        except Exception:
             pass
         return ""
 
@@ -600,9 +603,7 @@ class CtxGroup:
 
         :return: True if additional context data is present
         """
-        if self.additional_ctx is not None and len(self.additional_ctx) > 0:
-            return True
-        return False
+        return bool(self.additional_ctx)
 
     def get_additional_ctx(self) -> list:
         """
@@ -651,13 +652,14 @@ class CtxGroup:
 
         :param data: dict
         """
-        self.id = data.get("id", None)
-        self.uuid = data.get("uuid", None)
-        self.name = data.get("name", None)
-        self.items = data.get("items", [])
-        self.created = data.get("created", None)
-        self.updated = data.get("updated", None)
-        self.count = data.get("count", 0)
+        g = data.get
+        self.id = g("id", None)
+        self.uuid = g("uuid", None)
+        self.name = g("name", None)
+        self.items = g("items", [])
+        self.created = g("created", None)
+        self.updated = g("updated", None)
+        self.count = g("count", 0)
 
     def dump(self) -> str:
         """
@@ -667,7 +669,7 @@ class CtxGroup:
         """
         try:
             return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
-        except Exception as e:
+        except Exception:
             pass
         return ""
 

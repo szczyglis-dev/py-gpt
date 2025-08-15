@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 01:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -22,13 +22,32 @@ from pygpt_net.utils import trans
 
 
 class BasePlugin(QObject):
+    DEFAULT_OPTION = {
+        "value": None,
+        "label": "",
+        "description": "",
+        "tooltip": None,
+        "min": None,
+        "max": None,
+        "multiplier": 1,
+        "step": 1,
+        "slider": False,
+        "keys": None,
+        "advanced": False,
+        "secret": False,
+        "persist": False,
+        "urls": None,
+        "use": None,
+    }
+    _ALLOW_OUTPUT_KEYS = ("request", "result", "context")
+    _IGNORE_EXTRA_KEYS = ("request", "context")
+
     def __init__(self, *args, **kwargs):
         super(BasePlugin, self).__init__()
         self.window = kwargs.get('window', None)
         self.id = ""
         self.name = ""
-        self.type = []  # Types:
-        # audio.input, audio.output, image.input, image.output, schedule, text.input, text.output, vision
+        self.type = []
         self.description = ""
         self.prefix = "Plugin"
         self.urls = {}
@@ -63,24 +82,8 @@ class BasePlugin(QObject):
         :param kwargs: additional keyword arguments for option properties
         :return: added option config dict
         """
-        defaults = {
-            "value": None,
-            "label": "",
-            "description": "",
-            "tooltip": None,
-            "min": None,
-            "max": None,
-            "multiplier": 1,
-            "step": 1,
-            "slider": False,
-            "keys": None,
-            "advanced": False,
-            "secret": False,
-            "persist": False,
-            "urls": None,
-            "use": None,
-        }
-        option = {**defaults, **kwargs}
+        option = BasePlugin.DEFAULT_OPTION.copy()
+        option.update(kwargs)
         option['tooltip'] = option['tooltip'] or option['description']
         option["id"] = name
         option["type"] = type
@@ -100,25 +103,24 @@ class BasePlugin(QObject):
         :return: added option config dict
         """
         cmd_syntax = {
-            "instruction": "",  # instruction for model
-            "params": {},  # parameters
-            "enabled": True,  # enabled
+            "instruction": "",
+            "params": {},
+            "enabled": True,
         }
         if "instruction" in kwargs and isinstance(kwargs.get("instruction"), str):
             cmd_syntax["instruction"] = kwargs.get("instruction")
             kwargs.pop("instruction")
-        if "params" in kwargs and isinstance(kwargs.get("params"), list):
+        if "params" in kwargs and isinstance(kwargs.get("params"), (dict, list)):
             cmd_syntax["params"] = kwargs.get("params")
             kwargs.pop("params")
         if "enabled" in kwargs and isinstance(kwargs.get("enabled"), bool):
             cmd_syntax["enabled"] = kwargs.get("enabled")
             kwargs.pop("enabled")
 
-        name = "cmd." + cmd
+        name = f"cmd.{cmd}"
         kwargs["cmd"] = cmd
         kwargs["value"] = cmd_syntax
 
-        # static keys
         kwargs["params_keys"] = {
             "name": "text",
             "type": {
@@ -142,11 +144,7 @@ class BasePlugin(QObject):
         :param cmd: command name
         :return: True if exists
         """
-        key = "cmd." + cmd
-        if key in self.options:
-            if "value" in self.options[key] and "enabled" in self.options[key]["value"]:
-                return self.options[key]["value"]["enabled"]
-        return False
+        return bool(self.options.get(f"cmd.{cmd}", {}).get("value", {}).get("enabled", False))
 
     def cmd_allowed(
             self,
@@ -158,9 +156,7 @@ class BasePlugin(QObject):
         :param cmd: command name
         :return: True if allowed
         """
-        if cmd in self.allowed_cmds:
-            return True
-        return False
+        return cmd in self.allowed_cmds
 
     def cmd_exe(self) -> bool:
         """
@@ -180,11 +176,13 @@ class BasePlugin(QObject):
         :param cmd: command name
         :return: command dict
         """
-        key = "cmd." + cmd
-        if key in self.options:
-            data = copy.deepcopy(self.options[key]["value"]) # make copy to prevent changes in original data
+        key = f"cmd.{cmd}"
+        opt = self.options.get(key)
+        if opt:
+            data = copy.deepcopy(opt["value"])
             data = {"cmd": cmd, **data}
             return data
+        return None
 
     def has_option(
             self,
@@ -208,8 +206,7 @@ class BasePlugin(QObject):
         :param name: option name
         :return: option dict
         """
-        if self.has_option(name):
-            return self.options[name]
+        return self.options.get(name)
 
     def get_option_value(
             self,
@@ -221,15 +218,18 @@ class BasePlugin(QObject):
         :param name: option name
         :return: option value
         """
-        if self.has_option(name):
-            value = self.options[name]["value"]
-            if self.options[name]["type"] == "bool":
-                return bool(value)
-            elif self.options[name]["type"] == "int":
-                return int(value)
-            elif self.options[name]["type"] == "float":
-                return float(value)
-            return self.options[name]["value"]
+        opt = self.options.get(name)
+        if not opt:
+            return None
+        value = opt["value"]
+        t = opt["type"]
+        if t == "bool":
+            return bool(value)
+        elif t == "int":
+            return int(value)
+        elif t == "float":
+            return float(value)
+        return value
 
     def set_option_value(
             self,
@@ -242,15 +242,18 @@ class BasePlugin(QObject):
         :param name: option name
         :param value: option value
         """
-        if self.has_option(name):
-            if self.options[name]["type"] == "bool":
-                value = bool(value)
-            elif self.options[name]["type"] == "int":
-                value = int(value)
-            elif self.options[name]["type"] == "float":
-                value = float(value)
-            self.options[name]["value"] = value
-            self.refresh_option(name)
+        opt = self.options.get(name)
+        if not opt:
+            return
+        t = opt["type"]
+        if t == "bool":
+            value = bool(value)
+        elif t == "int":
+            value = int(value)
+        elif t == "float":
+            value = float(value)
+        opt["value"] = value
+        self.refresh_option(name)
 
     def attach(self, window):
         """
@@ -314,7 +317,7 @@ class BasePlugin(QObject):
         """
         if text is None:
             return ""
-        domain = 'plugin.{}'.format(self.id)
+        domain = f'plugin.{self.id}'
         return trans(text, False, domain)
 
     def error(self, err: Any):
@@ -325,7 +328,7 @@ class BasePlugin(QObject):
         """
         self.window.core.debug.log(err)
         msg = self.window.core.debug.parse_alert(err)
-        self.window.ui.dialogs.alert("{}: {}".format(self.name, msg))
+        self.window.ui.dialogs.alert(f"{self.name}: {msg}")
 
     def debug(self, data: Any, console: bool = True):
         """
@@ -365,10 +368,8 @@ class BasePlugin(QObject):
 
         :return: True if log is enabled
         """
-        if self.window.core.config.has("log.plugins") \
-                and self.window.core.config.get("log.plugins"):
-            return True
-        return False
+        cfg = self.window.core.config
+        return bool(cfg.has("log.plugins") and cfg.get("log.plugins"))
 
     def is_async(self, ctx: CtxItem) -> bool:
         """
@@ -387,12 +388,13 @@ class BasePlugin(QObject):
 
         :param msg: message to log
         """
-        msg = "[{}] {}".format(self.prefix, msg)
-        self.debug(msg, not self.is_log())
+        msg = f"[{self.prefix}] {msg}"
+        log_enabled = self.is_log()
+        self.debug(msg, not log_enabled)
         if self.is_threaded():
             return
         self.window.update_status(msg.replace("\n", " "))
-        if self.is_log():
+        if log_enabled:
             print(msg)
 
     def cmd_prepare(self, ctx: CtxItem, cmds: list):
@@ -402,7 +404,6 @@ class BasePlugin(QObject):
         :param ctx: CtxItem
         :param cmds: commands dict
         """
-        # set state: busy
         self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
             "id": "img",
         }))
@@ -421,15 +422,11 @@ class BasePlugin(QObject):
         :param ctx: context (CtxItem)
         :param extra_data: extra data
         """
-        # send response (reply)
         if ctx is not None:
             self.prepare_reply_ctx(response, ctx)
-            
             context = BridgeContext()
             context.ctx = ctx
-            extra = {}
-            if extra_data:
-                extra = extra_data
+            extra = extra_data if extra_data else {}
             extra["response_type"] = "single"
             event = KernelEvent(KernelEvent.REPLY_ADD, {
                 'context': context,
@@ -451,16 +448,13 @@ class BasePlugin(QObject):
         :param ctx: context (CtxItem)
         :param extra_data: extra data
         """
-        # send multiple responses (reply)
         for response in responses:
             if ctx is not None:
                 self.prepare_reply_ctx(response, ctx)
 
         context = BridgeContext()
         context.ctx = ctx
-        extra = {}
-        if extra_data:
-            extra = extra_data
+        extra = extra_data if extra_data else {}
         extra["response_type"] = "multiple"
         event = KernelEvent(KernelEvent.REPLY_ADD, {
             'context': context,
@@ -480,35 +474,26 @@ class BasePlugin(QObject):
         :param ctx: context (CtxItem)
         :return: response dict
         """
-        ignore_extra = ["request", "context"]
-        allow_output = ["request", "result", "context"]
-        clean_response = {}
-        for key in response:
-            if key in allow_output or key.startswith("agent_"):
-                clean_response[key] = response[key]
-
+        clean_response = {k: v for k, v in response.items() if k in self._ALLOW_OUTPUT_KEYS or k.startswith("agent_")}
         ctx.results.append(clean_response)
         ctx.reply = True
 
-        extras = {}
-        for key in response:
-            if key not in ignore_extra:
-                extras[key] = response[key]
+        extras = {k: v for k, v in response.items() if k not in self._IGNORE_EXTRA_KEYS}
 
-        # add extra data to context, into `tool_output` list
         if not isinstance(ctx.extra, dict):
             ctx.extra = {}
         if "tool_output" not in ctx.extra:
             ctx.extra["tool_output"] = []
-        ctx.extra["tool_output"].append(extras)  # allow more extra data
+        ctx.extra["tool_output"].append(extras)
 
         if "context" in response:
-            if self.window.core.config.get("ctx.use_extra"):
+            cfg = self.window.core.config
+            if cfg.get("ctx.use_extra"):
                 if ctx.extra_ctx is None:
                     ctx.extra_ctx = ""
                 if ctx.extra_ctx != "":
                     ctx.extra_ctx += "\n\n"
-                ctx.extra_ctx += str(response["context"])  # allow more context data
+                ctx.extra_ctx += str(response["context"])
                 response["result"] = "OK"
             else:
                 del response["context"]
@@ -562,7 +547,6 @@ class BasePlugin(QObject):
         :return: True if threaded
         """
         return self.window.controller.kernel.is_threaded()
-
 
     def open_url(self, url: str):
         """

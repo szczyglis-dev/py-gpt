@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
-
-import re
 
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent
 from PySide6.QtWebChannel import QWebChannel
@@ -101,7 +99,6 @@ class ChatWebOutput(QWebEngineView):
 
         self.setPage(new_page)
         self._teardown_page(old_page)
-       # self.setUpdatesEnabled(True)
 
         mem_clean()
 
@@ -232,12 +229,12 @@ class ChatWebOutput(QWebEngineView):
 
             # save as (all) - plain (lazy normalization only on click)
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (text)", self)
-            action.triggered.connect(lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.plain), 'txt'))
+            action.triggered.connect(self._save_as_text)
             menu.addAction(action)
 
             # save as (all) - html
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (html)", self)
-            action.triggered.connect(lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.html_content), 'html'))
+            action.triggered.connect(self._save_as_html)
             menu.addAction(action)
 
         action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
@@ -245,6 +242,21 @@ class ChatWebOutput(QWebEngineView):
         menu.addAction(action)
 
         menu.exec_(self.mapToGlobal(position))
+
+    @Slot()
+    def _save_as_text(self):
+        """
+        Save current content as text file
+        """
+        # TODO: normalize text (remove extra spaces, newlines, etc.)
+        self.page().toPlainText(lambda txt: self.signals.save_as.emit(txt, 'txt'))
+
+    @Slot()
+    def _save_as_html(self):
+        """
+        Save current content as HTML file
+        """
+        self.page().toHtml(lambda html: self.signals.save_as.emit(html, 'html'))
 
     def update_zoom(self):
         """Update zoom from config"""
@@ -274,14 +286,6 @@ class ChatWebOutput(QWebEngineView):
         """Reset current content"""
         self.plain = ""
         self.html_content = ""
-
-    def update_current_content(self):
-        """Update current content"""
-        p = self.page()
-        if not p:
-            return
-        p.runJavaScript("document.getElementById('container')?.outerHTML ?? ''", 0, self.set_plaintext)
-        p.runJavaScript("document.documentElement.innerHTML", 0, self.set_html_content)
 
     def on_page_loaded(self, success):
         """

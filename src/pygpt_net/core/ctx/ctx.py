@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 20:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -264,7 +264,7 @@ class Ctx:
 
         :param run: run ID
         """
-        self.preset = run
+        self.run = run
 
     def get_thread(self) -> str:
         """
@@ -393,18 +393,15 @@ class Ctx:
             ctx = self.meta[id]
             self.current = id
 
-            # reset
             self.thread = None
             self.mode = None
             self.assistant = None
 
-            # restore
             self.thread = ctx.thread
             self.mode = ctx.mode
             self.assistant = ctx.assistant
             self.preset = ctx.preset
 
-            # restore model if exists in current mode
             if restore_model:
                 if ctx.last_model is not None \
                         and self.window.core.models.has_model(self.mode, ctx.last_model):
@@ -425,7 +422,7 @@ class Ctx:
         :param group_id: group id
         :return: CtxMeta instance (new ctx meta)
         """
-        meta = self.create(group_id)  # create new ctx meta
+        meta = self.create(group_id)
         if meta is None:
             self.window.core.debug.log("Error creating new ctx")
             return
@@ -451,7 +448,7 @@ class Ctx:
 
         :return: created CtxMeta instance
         """
-        meta = CtxMeta()  # create ctx meta
+        meta = CtxMeta()
         meta.name = "{}".format(trans('ctx.new.prefix'))
         meta.date = datetime.datetime.now().strftime("%Y-%m-%d")
         meta.mode = self.window.core.config.get('mode')
@@ -489,15 +486,13 @@ class Ctx:
         :param item: CtxItem to append
         :param parent_id: parent id
         """
-        # custom parent
         if parent_id is not None:
             self.add_to_meta(item, parent_id)
             return
 
-        # to current
-        self.get_items().append(item)  # add CtxItem to context items
+        items = self.get_items()
+        items.append(item)
 
-        # append in provider
         if self.current is not None:
             if self.current not in self.meta:
                 self.load_tmp_meta(self.current)
@@ -505,7 +500,7 @@ class Ctx:
                 meta = self.meta[self.current]
                 result = self.provider.append_item(meta, item)
                 if not result:
-                    self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
+                    self.store()
 
     def add_to_meta(
             self,
@@ -551,10 +546,7 @@ class Ctx:
         """
         if self.current is None:
             return True
-        else:
-            if self.count_items() == 0:
-                return True
-        return False
+        return self.count_items() == 0
 
     def update(self):
         """
@@ -597,21 +589,17 @@ class Ctx:
         if self.current not in self.meta:
             return
 
-        # update current
-        self.assistant = self.window.core.config.get('assistant')  # update assistant
-        self.preset = self.window.core.config.get('preset')  # update preset
-        self.model = self.window.core.config.get('model')  # get current model
+        self.assistant = self.window.core.config.get('assistant')
+        self.preset = self.window.core.config.get('preset')
+        self.model = self.window.core.config.get('model')
 
-        # update current meta
         self.meta[self.current].last_mode = mode
         self.meta[self.current].last_model = self.model
         self.meta[self.current].preset = self.preset
 
-        # if assistant then update assistant
-        if mode == 'assistant':
+        if mode == MODE_ASSISTANT:
             self.meta[self.current].assistant = self.assistant
 
-        # save ctx
         self.save(self.current)
 
     def is_initialized(self) -> bool:
@@ -626,6 +614,7 @@ class Ctx:
             self.load_tmp_meta(self.current)
         if self.current in self.meta:
             return self.meta[self.current].initialized
+        return False
 
     def set_initialized(self):
         """Set ctx as initialized (name assigned)"""
@@ -644,9 +633,7 @@ class Ctx:
         :param id: ctx ID
         :return: True if exists, false otherwise
         """
-        if id in self.meta:
-            return True
-        return False
+        return id in self.meta
 
     def get(self, idx: int) -> CtxItem:
         """
@@ -665,10 +652,11 @@ class Ctx:
         :param id: item id
         :return: context item
         """
-        for item in self.get_items():
+        items = self.get_items()
+        for item in items:
             if item.id == id:
                 return item
-        return self.fetch_item_by_id(id)   # if no item found, try to fetch from DB
+        return self.fetch_item_by_id(id)
 
     def fetch_item_by_id(self, id: int) -> CtxItem:
         """
@@ -719,9 +707,9 @@ class Ctx:
         :param id: id
         :return: idx
         """
-        items = self.get_meta()
-        if id in items:
-            return list(items.keys()).index(id)
+        for i, key in enumerate(self.get_meta()):
+            if key == id:
+                return i
 
     def get_first(self) -> str:
         """
@@ -749,8 +737,9 @@ class Ctx:
 
         :return: last ctx item
         """
-        if self.count_items() > 0:
-            return self.get_items()[-1]
+        items = self.get_items()
+        if items:
+            return items[-1]
         return None
 
     def is_first_item(self, item_id: int) -> bool:
@@ -760,8 +749,9 @@ class Ctx:
         :param item_id: item id
         :return: True if first
         """
-        if self.count_items() > 0:
-            return self.get_items()[0].id == item_id
+        items = self.get_items()
+        if items:
+            return items[0].id == item_id
         return False
 
     def is_last_item(self, item_id: int) -> bool:
@@ -771,8 +761,9 @@ class Ctx:
         :param item_id: item id
         :return: True if last
         """
-        if self.count_items() > 0:
-            return self.get_items()[-1].id == item_id
+        items = self.get_items()
+        if items:
+            return items[-1].id == item_id
         return False
 
     def get_previous_item(self, item_id: int) -> Optional[CtxItem]:
@@ -782,15 +773,16 @@ class Ctx:
         :param item_id: item id
         :return: ctx item
         """
-        for i in range(self.count_items()):
-            if self.get_items()[i].id == item_id:
-                if i > 0:
-                    return self.get_items()[i - 1]
+        items = self.get_items()
+        prev = None
+        for it in items:
+            if it.id == item_id:
+                return prev
+            prev = it
         return None
 
     def prepare(self):
         """Prepare context for prompt"""
-        # if no contexts, create new one
         if self.count_meta() == 0:
             self.new()
 
@@ -808,10 +800,7 @@ class Ctx:
 
         :return: ctx meta count
         """
-        extra = 0
-        if self.tmp_meta is not None:
-            extra = 1  # prevent create new if tmp meta exists
-        return len(self.meta) + extra
+        return len(self.meta) + (1 if self.tmp_meta is not None else 0)
 
     def count_found_meta(self) -> int:
         """
@@ -852,9 +841,10 @@ class Ctx:
 
         :param id: ctx id
         """
-        for item in self.get_items():
+        items = self.get_items()
+        for i, item in enumerate(items):
             if item.id == id:
-                self.get_items().remove(item)
+                items.pop(i)
                 self.provider.remove_item(id)
                 break
 
@@ -869,17 +859,13 @@ class Ctx:
         :param meta_id: meta_id
         :param item_id: item_id
         """
-        items = self.get_items()
-        items = [item for item in items if item.id < item_id]
-        self.set_items(items)  # update items in container
+        items = [item for item in self.get_items() if item.id < item_id]
+        self.set_items(items)
         return self.provider.remove_items_from(meta_id, item_id)
 
     def truncate(self):
         """Delete all ctx"""
-        # empty ctx index
         self.meta = {}
-
-        # remove all ctx data in provider
         self.provider.truncate()
 
     def clear(self):
@@ -948,7 +934,7 @@ class Ctx:
                 preset_id,
             )
         if len(slaves) > 0:
-            return list(slaves.values())[0]
+            return next(iter(slaves.values()))
         slave = self.build()
 
         if master_ctx.meta is not None:
@@ -969,9 +955,8 @@ class Ctx:
         if self.current is None:
             return None
         idx = self.get_idx_by_id(self.current)
-        if idx is not None:
-            if idx > 0:
-                return self.get_id_by_idx(idx - 1)
+        if idx is not None and idx > 0:
+            return self.get_id_by_idx(idx - 1)
 
     def get_next(self) -> Optional[int]:
         """
@@ -982,9 +967,8 @@ class Ctx:
         if self.current is None:
             return None
         idx = self.get_idx_by_id(self.current)
-        if idx is not None:
-            if idx < self.count_meta() - 1:
-                return self.get_id_by_idx(idx + 1)
+        if idx is not None and idx < self.count_meta() - 1:
+            return self.get_id_by_idx(idx + 1)
 
     def get_last_meta(self) -> Optional[int]:
         """
@@ -1013,14 +997,15 @@ class Ctx:
         :return: ctx items count, ctx tokens count
         """
         i = 0
-        # loop on items from end to start
         tokens = used_tokens
         context_tokens = 0
+        from_ctx = self.window.core.tokens.from_ctx
         for item in reversed(history_items):
-            num = self.window.core.tokens.from_ctx(item, mode, model)  # get num tokens for input and output
-            tokens += num
-            if tokens > max_tokens > 0:
+            num = from_ctx(item, mode, model)
+            new_total = tokens + num
+            if max_tokens > 0 and new_total > max_tokens:
                 break
+            tokens = new_total
             context_tokens += num
             i += 1
 
@@ -1047,19 +1032,20 @@ class Ctx:
         :return: ctx items list
         """
         items = []
-        # loop on items from end to start
         tokens = used_tokens
         is_first = True
+        from_ctx = self.window.core.tokens.from_ctx
         for item in reversed(history_items):
             if is_first and ignore_first:
                 is_first = False
                 continue
-            tokens += self.window.core.tokens.from_ctx(item, mode, model)
-            if 0 < max_tokens < tokens:
+            cost = from_ctx(item, mode, model)
+            new_total = tokens + cost
+            if 0 < max_tokens < new_total:
                 break
+            tokens = new_total
             items.append(item)
 
-        # reverse items
         items.reverse()
         return items
 
@@ -1121,17 +1107,10 @@ class Ctx:
         :param ignore_first: ignore current item (provided by user)
         :return: ctx items list
         """
-        items = []
-        is_first = True
-        for item in reversed(self.get_items()):
-            if is_first and ignore_first:
-                is_first = False
-                continue
-            items.append(item)
-
-        # reverse items
-        items.reverse()
-        return items
+        items = self.get_items()
+        if ignore_first:
+            return items[:-1]
+        return items[:]
 
     def check(self, threshold: int, max_total: int):
         """
@@ -1169,15 +1148,13 @@ class Ctx:
 
         :return: last tokens
         """
-        last = self.get_last()
-        if last is not None:
-            return last.total_tokens
-        return 0
+        return self.get_total_tokens()
 
     def remove_last(self):
         """Remove last item"""
-        if self.count_items() > 0:
-            self.get_items().pop()
+        items = self.get_items()
+        if items:
+            items.pop()
 
     def duplicate(self, id: int) -> int:
         """
@@ -1198,8 +1175,9 @@ class Ctx:
 
     def remove_first(self):
         """Remove first item"""
-        if self.count_items() > 0:
-            self.get_items().pop(0)
+        items = self.get_items()
+        if items:
+            items.pop(0)
 
     def set_display_filters(self, filters: dict):
         """
@@ -1221,43 +1199,33 @@ class Ctx:
         :param check_assistant: True if check also current assistant
         :return: True if allowed for mode
         """
-        # always allow if lock_modes is disabled
         if not self.window.core.config.get('lock_modes'):
             return True
 
         if self.is_empty():
             return True
 
-        # always allow if no ctx
         if self.current is None or self.current == '' or not self.has(self.current):
             return True
 
         meta = self.get_meta_by_id(self.current)
 
-        # always allow if no last mode
         if meta.last_mode is None:
             return True
 
-        # get last used mode from ctx meta
         prev_mode = meta.last_mode
         if prev_mode not in self.allowed_modes[mode]:
-            # exception for assistant (if assistant exists in ctx then allow)
-            if mode == 'assistant':
+            if mode == MODE_ASSISTANT:
                 if meta.assistant is not None:
-                    # if the same assistant then allow
                     if meta.assistant == self.window.core.config.get('assistant'):
                         return True
                 else:
-                    return True  # if no assistant in ctx then allow
-            # if other mode, then always disallow
+                    return True
             return False
 
-        # check if the same assistant
-        if mode == 'assistant' and check_assistant:
-            # allow if no assistant yet in ctx
+        if mode == MODE_ASSISTANT and check_assistant:
             if meta.assistant is None:
                 return True
-            # disallow if different assistant
             if meta.assistant != self.window.core.config.get('assistant'):
                 return False
         return True
@@ -1269,9 +1237,7 @@ class Ctx:
         :return: True if labels not default
         """
         num_all = len(self.window.controller.ui.get_colors())
-        if len(self.filters_labels) < num_all:
-            return True
-        return False
+        return len(self.filters_labels) < num_all
 
     def load_meta(self):
         """Load ctx list from provider"""
@@ -1279,9 +1245,7 @@ class Ctx:
         if self.window.core.config.has('ctx.records.limit'):
             limit = int(self.window.core.config.get('ctx.records.limit') or 0)
 
-        # display: all
         if "is_important" not in self.filters and "indexed_ts" not in self.filters:
-            # pinned
             filters_pinned = self.get_parsed_filters()
             filters_pinned['is_important'] = {
                 "mode": "=",
@@ -1291,12 +1255,11 @@ class Ctx:
                 search_string=self.search_string,
                 order_by='updated_ts',
                 order_direction='DESC',
-                limit=0,  # no limit for pinned
+                limit=0,
                 filters=filters_pinned,
                 search_content=self.is_search_content(),
             )
 
-            # not-pinned
             filters = self.get_parsed_filters()
             meta_unpinned = self.provider.get_meta(
                 search_string=self.search_string,
@@ -1307,11 +1270,9 @@ class Ctx:
                 search_content=self.is_search_content(),
             )
 
-            # join both, pinned first
             self.meta = {**meta_pinned, **meta_unpinned}
 
         else:
-            # display: important or indexed
             filters = self.get_parsed_filters()
             self.meta = self.provider.get_meta(
                 search_string=self.search_string,
@@ -1340,16 +1301,14 @@ class Ctx:
             }
         )
         if len(meta) > 0:
-            self.tmp_meta = list(meta.values())[0]
+            self.tmp_meta = next(iter(meta.values()))
             if self.tmp_meta.id not in self.meta:
-                # append at first position
                 self.meta = {self.tmp_meta.id: self.tmp_meta, **self.meta}
 
     def clear_tmp_meta(self):
         """Clear tmp meta"""
         if self.tmp_meta is not None and self.current != self.tmp_meta.id:
             self.tmp_meta = None
-
 
     def get_parsed_filters(self) -> dict:
         """
@@ -1361,7 +1320,7 @@ class Ctx:
         if self.has_labels():
             filters['label'] = {
                 "mode": "IN",
-                "value": self.filters_labels,  # append label colors
+                "value": self.filters_labels,
             }
         return filters
 
@@ -1375,7 +1334,7 @@ class Ctx:
         items = self.provider.load(id)
         meta = self.get_meta_by_id(id)
         for item in items:
-            item.meta = meta  # append meta to each item
+            item.meta = meta
         return items
 
     def load_groups(self):
@@ -1389,9 +1348,7 @@ class Ctx:
         :param id: group id
         :return: True if exists
         """
-        if id in self.groups:
-            return True
-        return False
+        return id in self.groups
 
     def get_groups(self) -> Dict[int, CtxGroup]:
         """
@@ -1426,8 +1383,9 @@ class Ctx:
         """
         if self.current is None:
             return
-        if self.current in self.meta:
-            self.meta[self.current].last_model = model
+        meta = self.meta.get(self.current)
+        if meta is not None:
+            meta.last_model = model
             self.save(self.current)
 
     def remove_group(
@@ -1505,7 +1463,6 @@ class Ctx:
         items = self.provider.load(id)
         data = []
         for item in items:
-            # data.append("Me: " + str(item.input) + "\n" + "You: " + str(item.output) + "\n")
             data.append("Human: " + str(item.input) + "\n" + "Assistant: " + str(item.output) + "\n")
         return data
 
@@ -1544,9 +1501,7 @@ class Ctx:
 
         :return: True if enabled
         """
-        if self.window.core.config.get('ctx.search_content'):
-            return True
-        return False
+        return bool(self.window.core.config.get('ctx.search_content'))
 
     def save(self, id: int):
         """
@@ -1558,11 +1513,12 @@ class Ctx:
 
     def store(self):
         """Store current ctx"""
-        if self.current is not None:
-            if self.current not in self.meta:
-                self.load_tmp_meta(self.current)
-            if self.current in self.meta:
-                self.save(self.current)
+        cur = self.current
+        if cur is not None:
+            if cur not in self.meta:
+                self.load_tmp_meta(cur)
+            if cur in self.meta:
+                self.save(cur)
 
     def reset_meta(self, id: int):
         """
@@ -1583,23 +1539,15 @@ class Ctx:
         :return: CtxItem instance (previous)
         """
         prev_ctx = CtxItem()
-        prev_ctx.urls = copy.deepcopy(ctx.urls)
-        prev_ctx.urls_before = copy.deepcopy(ctx.urls_before)
-        prev_ctx.images = copy.deepcopy(ctx.images)
-        prev_ctx.images_before = copy.deepcopy(ctx.images_before)
-        prev_ctx.files = copy.deepcopy(ctx.files)
-        prev_ctx.files_before = copy.deepcopy(ctx.files_before)
-        prev_ctx.attachments = copy.deepcopy(ctx.attachments)
-        prev_ctx.attachments_before = copy.deepcopy(ctx.attachments_before)
-        prev_ctx.results = copy.deepcopy(ctx.results)
-        prev_ctx.index_meta = copy.deepcopy(ctx.index_meta)
-        prev_ctx.doc_ids = copy.deepcopy(ctx.doc_ids)
-        prev_ctx.input_name = copy.deepcopy(ctx.input_name)
-        prev_ctx.output_name = copy.deepcopy(ctx.output_name)
-
-        ctx.clear_reply()  # clear current reply result
+        for name in (
+            "urls", "urls_before", "images", "images_before", "files", "files_before",
+            "attachments", "attachments_before", "results", "index_meta", "doc_ids",
+            "input_name", "output_name"
+        ):
+            setattr(prev_ctx, name, copy.deepcopy(getattr(ctx, name)))
+        ctx.clear_reply()
         if len(ctx.cmds) == 0:
-            ctx.from_previous()  # get result from previous if exists
+            ctx.from_previous()
         return prev_ctx
 
     def dump(self, ctx: CtxItem) -> str:

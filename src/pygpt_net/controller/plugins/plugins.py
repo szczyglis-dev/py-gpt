@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any
@@ -385,6 +385,24 @@ class Plugins:
         :param execute_only: True to execute commands only, without any additional event
         """
         return self._apply_cmds_common(Event.CMD_EXECUTE, ctx, cmds, all=all, execute_only=execute_only)
+
+    def apply_cmds_all(
+            self,
+            ctx: CtxItem,
+            cmds: List[Dict[str, Any]]
+    ):
+        """
+        Apply all commands (inline or not)
+
+        :param ctx: context
+        :param cmds: commands
+        :return: results
+        """
+        if self.window.core.config.get("cmd"):
+            return self.apply_cmds(ctx, cmds)
+        else:
+            return self.apply_cmds_inline(ctx, cmds)
+
 
     def apply_cmds_inline(
             self,

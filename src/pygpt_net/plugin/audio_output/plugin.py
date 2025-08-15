@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 22:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -20,7 +20,6 @@ from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
-from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -159,6 +158,8 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param event: Event
         """
+        from .worker import Worker
+
         # check if provider is configured
         if not self.get_provider().is_configured():
             msg = self.get_provider().get_config_message()
@@ -233,6 +234,8 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param event: Event
         """
+        from .worker import Worker
+
         try:
             self.stop_audio()
 

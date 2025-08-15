@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict
@@ -38,12 +38,13 @@ class Combo:
         if "value" not in option:
             return
         value = option["value"]
-        if "idx" in option:  # by idx
-            self.window.ui.config[parent_id][key].combo.setCurrentIndex(option["idx"])
-        else: # by value
-            index = self.window.ui.config[parent_id][key].combo.findData(value)
+        combo = self.window.ui.config[parent_id][key].combo
+        if "idx" in option:
+            combo.setCurrentIndex(option["idx"])
+        else:
+            index = combo.findData(value)
             if index != -1:
-                self.window.ui.config[parent_id][key].combo.setCurrentIndex(index)
+                combo.setCurrentIndex(index)
 
     def on_update(
             self,
@@ -62,11 +63,11 @@ class Combo:
         :param value: Option value
         :param hooks: Run hooks
         """
-        # on update hooks
         if hooks:
-            hook_name = "update.{}.{}".format(parent_id, key)
-            if self.window.ui.has_hook(hook_name):
-                hook = self.window.ui.get_hook(hook_name)
+            ui = self.window.ui
+            hook_name = f"update.{parent_id}.{key}"
+            if ui.has_hook(hook_name):
+                hook = ui.get_hook(hook_name)
                 try:
                     hook(key, value, "combo")
                 except Exception as e:
@@ -88,10 +89,11 @@ class Combo:
         :param idx: return selected idx, not the value
         :return: Option text value or selected idx
         """
+        combo = self.window.ui.config[parent_id][key].combo
         if idx:
-            return self.window.ui.config[parent_id][key].combo.currentIndex()
+            return combo.currentIndex()
         else:
-            return self.window.ui.config[parent_id][key].combo.currentData()
+            return combo.currentData()
 
     def update_list(
             self,
@@ -106,7 +108,22 @@ class Combo:
         :param key: Option key
         :param items: Items dict
         """
-        self.window.ui.config[parent_id][key].combo.clear()
-        for item in items:
-            self.window.ui.config[parent_id][key].combo.addItem(items[item], item)
-        self.window.ui.config[parent_id][key].combo.setCurrentIndex(-1)
+        combo = self.window.ui.config[parent_id][key].combo
+        combo.setUpdatesEnabled(False)
+        try:
+            need_rebuild = True
+            if combo.count() == len(items):
+                i = 0
+                need_rebuild = False
+                for k, v in items.items():
+                    if combo.itemData(i) != k or combo.itemText(i) != v:
+                        need_rebuild = True
+                        break
+                    i += 1
+            if need_rebuild:
+                combo.clear()
+                for k, v in items.items():
+                    combo.addItem(v, k)
+            combo.setCurrentIndex(-1)
+        finally:
+            combo.setUpdatesEnabled(True)

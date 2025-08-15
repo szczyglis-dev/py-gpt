@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import json
@@ -183,7 +183,7 @@ def test_tool_call_to_cmd_and_tool_calls_to_cmds_and_pack_and_append(monkeypatch
     cmds = command.tool_calls_to_cmds([tc])
     assert cmds == [cmd]
     packed = command.pack_cmds(cmds)
-    assert "<tool>{\"cmd\": \"do\", \"params\": {\"x\": 1}}</tool>" in packed
+    assert "<tool>{\"cmd\":\"do\",\"params\":{\"x\":1}}</tool>" in packed
     ctx = SimpleNamespace(tool_calls=[tc], output=None)
     command.append_tool_calls(ctx)
     assert ctx.output is not None

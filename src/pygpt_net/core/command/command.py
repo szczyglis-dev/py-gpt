@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.28 00:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -28,6 +28,8 @@ from pygpt_net.item.model import ModelItem
 
 class Command:
     DESC_LIMIT = 1024
+    _RE_CMD_PRESENCE = re.compile(r'<tool>\s*{.*}\s*</tool>', re.DOTALL)
+    _RE_TOOL_BLOCKS = re.compile(r'<tool>(.*?)</tool>', re.DOTALL)
 
     def __init__(self, window=None):
         """
@@ -52,14 +54,15 @@ class Command:
         :return: prompt with appended syntax
         """
         prompt = data['prompt']
-        cmd_prompt = self.window.core.prompt.get('cmd')
+        core = self.window.core
+        cmd_prompt = core.prompt.get('cmd')
         extra = ""
         schema = self.extract_syntax(data['cmd'])
         if schema:
-            if self.window.core.config.get('mode') == MODE_ASSISTANT:
-                extra = self.window.core.prompt.get('cmd.extra.assistants')  # Assistants API env fix
+            if core.config.get('mode') == MODE_ASSISTANT:
+                extra = core.prompt.get('cmd.extra.assistants')
             else:
-                extra = self.window.core.prompt.get('cmd.extra')
+                extra = core.prompt.get('cmd.extra')
         if prompt.strip() != "":
             prompt += "\n\n"
         prompt += cmd_prompt.strip().replace("{extra}", extra).replace("{schema}", schema)
@@ -75,49 +78,39 @@ class Command:
         :param cmds: commands list
         :return: JSON string with commands usage syntax
         """
-        data = {}
-        cmds = copy.deepcopy(cmds)  # make copy to prevent changes in original data
-        self.window.core.ctx.current_cmd = copy.deepcopy(cmds)  # for debug purposes
+        data: Dict[str, Any] = {}
+        self.window.core.ctx.current_cmd = copy.deepcopy(cmds)
 
         for cmd in cmds:
             if "cmd" in cmd and "instruction" in cmd:
                 cmd_name = cmd["cmd"]
-                data[cmd_name] = {
-                    "help": cmd["instruction"],
-                }
+                data_cmd = {"help": cmd["instruction"]}
                 if "params" in cmd and len(cmd["params"]) > 0:
-                    data[cmd_name]["params"] = {}
+                    params_out: Dict[str, Any] = {}
                     for param in cmd["params"]:
                         try:
-                            if isinstance(param, dict):
-                                if "name" in param:
-                                    # assign param
-                                    key = param["name"]
-                                    del param["name"]
-                                    data[cmd_name]["params"][key] = param
-
-                                    # remove required, leave only optional
-                                    if "required" in data[cmd_name]["params"][key]:
-                                        if data[cmd_name]["params"][key]["required"] is False:
-                                            data[cmd_name]["params"][key]["optional"] = True
-                                        del data[cmd_name]["params"][key]["required"]
-
-                                    # remove type if str (default)
-                                    if ("type" in data[cmd_name]["params"][key]
-                                            and data[cmd_name]["params"][key]["type"] == "str"):
-                                        del data[cmd_name]["params"][key]["type"]
-
-                                    # remove description and move to help
-                                    if "description" in data[cmd_name]["params"][key]:
-                                        data[cmd_name]["params"][key]["help"] = data[cmd_name]["params"][key][
-                                            "description"]
-                                        del data[cmd_name]["params"][key]["description"]
-
-                        except Exception as e:
+                            if isinstance(param, dict) and "name" in param:
+                                key = param["name"]
+                                p = dict(param)
+                                p.pop("name", None)
+                                if "required" in p:
+                                    if p["required"] is False:
+                                        p["optional"] = True
+                                    p.pop("required", None)
+                                if p.get("type") == "str":
+                                    p.pop("type", None)
+                                if "description" in p:
+                                    p["help"] = p["description"]
+                                    p.pop("description", None)
+                                params_out[key] = p
+                        except Exception:
                             pass
+                    if params_out:
+                        data_cmd["params"] = params_out
+                data[cmd_name] = data_cmd
 
-        self.window.core.ctx.current_cmd_schema = data  # for debug
-        return json.dumps(data)  # pack, return JSON string without indent and formatting
+        self.window.core.ctx.current_cmd_schema = data
+        return json.dumps(data)
 
     def has_cmds(self, text: str) -> bool:
         """
@@ -128,8 +121,7 @@ class Command:
         """
         if text is None:
             return False
-        regex_cmd = r'<tool>\s*{.*}\s*</tool>'
-        return bool(re.search(regex_cmd, text))
+        return bool(self._RE_CMD_PRESENCE.search(text))
 
     def extract_cmds(self, text: str) -> List[Dict[str, Any]]:
         """
@@ -138,15 +130,14 @@ class Command:
         :param text: text to extract commands from
         :return: list of commands (dict)
         """
-        cmds = []
+        cmds: List[Dict[str, Any]] = []
         try:
-            chunks = re.findall(r'<tool>(.*?)</tool>', text, re.DOTALL)
+            chunks = self._RE_TOOL_BLOCKS.findall(text)
             for chunk in chunks:
-                cmd = self.extract_cmd(chunk)  # extract JSON string to dict
+                cmd = self.extract_cmd(chunk)
                 if cmd is not None:
-                    cmds.append(cmd)  # cmd = dict
-        except Exception as e:
-            # do nothing
+                    cmds.append(cmd)
+        except Exception:
             pass
         return cmds
 
@@ -161,11 +152,7 @@ class Command:
         chunk = chunk.strip()
         if chunk and chunk.startswith('{') and chunk.endswith('}'):
             try:
-                # syntax1: {"read_file": {"path": ["my_cars.txt"]}}
-                # syntax2: {"cmd": "read_file", "params": {"path": ["my_cars.txt"]}}
                 cmd = json.loads(chunk)
-
-                # if the first key is not "cmd", then try to convert from incorrect syntax into "cmd" syntax:
                 if "cmd" not in cmd:
                     if len(cmd) == 1:
                         for key in cmd:
@@ -179,8 +166,7 @@ class Command:
                                     "cmd": key,
                                     "params": cmd[key]
                                 }
-            except json.JSONDecodeError as e:
-                # do nothing
+            except json.JSONDecodeError:
                 pass
         return cmd
 
@@ -194,11 +180,7 @@ class Command:
         :param cmds: commands list
         :return parsed commands
         """
-        commands = []
-        for cmd in cmds:
-            if 'cmd' in cmd:
-                commands.append(cmd)
-        return commands
+        return [cmd for cmd in cmds if 'cmd' in cmd]
 
     def unpack_tool_calls(
             self,
@@ -290,10 +272,8 @@ class Command:
         ctx.tool_calls = tmp_calls
 
         if append_output:
-            # append tool calls to context output
             ctx.extra["tool_calls"] = ctx.tool_calls
             ctx.extra["tool_output"] = []
-
 
     def unpack_tool_calls_from_llama(
             self,
@@ -348,10 +328,7 @@ class Command:
         :param tool_calls: tool calls
         :return: commands
         """
-        cmds = []
-        for tool_call in tool_calls:
-            cmds.append(self.tool_call_to_cmd(tool_call))
-        return cmds
+        return [self.tool_call_to_cmd(tool_call) for tool_call in tool_calls]
 
     def pack_cmds(
             self,
@@ -363,10 +340,10 @@ class Command:
         :param cmds: commands
         :return: packed commands string
         """
-        packed = ""
-        for cmd in cmds:
-            packed += "<tool>" + json.dumps(cmd) + "</tool>"
-        return packed
+        return "".join(
+            "<tool>" + json.dumps(cmd, separators=(',', ':')) + "</tool>"
+            for cmd in cmds
+        )
 
     def append_tool_calls(self, ctx: CtxItem):
         """
@@ -374,8 +351,7 @@ class Command:
 
         :param ctx: context item
         """
-        cmds = self.tool_calls_to_cmds(ctx.tool_calls)
-        cmds_str = self.pack_cmds(cmds)
+        cmds_str = self.pack_cmds(self.tool_calls_to_cmds(ctx.tool_calls))
         if ctx.output is None:
             ctx.output = ""
         ctx.output += cmds_str
@@ -387,32 +363,22 @@ class Command:
         :param ctx: context item
         :return: list of tool calls outputs
         """
-        outputs = []
-        idx_outputs = {}
-        for tool_call in ctx.tool_calls:
-            call_id = tool_call["id"]
-            idx_outputs[call_id] = ""
+        idx_outputs = {tool_call["id"]: "" for tool_call in ctx.tool_calls}
         try:
-            responses = json.loads(ctx.input)  # response is JSON string in input
+            responses = json.loads(ctx.input)
+            last_by_name: Dict[str, Any] = {}
+            for response in responses:
+                req = response.get("request")
+                if isinstance(req, dict) and "cmd" in req:
+                    last_by_name[req["cmd"]] = response.get("result")
             for tool_call in ctx.tool_calls:
-                call_id = tool_call["id"]
-                for response in responses:
-                    if "request" in response:
-                        if "cmd" in response["request"]:
-                            func_name = response["request"]["cmd"]
-                            if tool_call["function"]["name"] == func_name:
-                                idx_outputs[call_id] = response["result"]
-
+                name = tool_call["function"]["name"]
+                if name in last_by_name:
+                    idx_outputs[tool_call["id"]] = last_by_name[name]
         except Exception as e:
             self.window.core.debug.log(e)
 
-        for id in idx_outputs:
-            data = {
-                "tool_call_id": id,
-                "output": idx_outputs[id],
-            }
-            outputs.append(data)
-
+        outputs = [{"tool_call_id": id_, "output": out} for id_, out in idx_outputs.items()]
         if not isinstance(ctx.extra, dict):
             ctx.extra = {}
         ctx.extra["tool_calls_outputs"] = outputs
@@ -436,7 +402,7 @@ class Command:
             func = self.as_native_functions(all=False, parent_id=parent_id)
         if func_user is None:
             func_user = []
-        return func + func_user  # merge both
+        return func + func_user
 
     def as_native_functions(
             self,
@@ -488,14 +454,14 @@ class Command:
             event = Event(Event.CMD_SYNTAX_INLINE, data)
             self.window.dispatch(event)
 
-        cmds = copy.deepcopy(data['cmd'])  # make copy to prevent changes in original plugins cmd
-        func_plugins = self.cmds_to_functions(cmds)  # plugin functions
+        cmds = copy.deepcopy(data['cmd'])
+        func_plugins = self.cmds_to_functions(cmds)
         if self.window.controller.agent.legacy.enabled():
-            func_agent = self.cmds_to_functions(self.window.controller.agent.legacy.get_functions())  # agent functions
+            func_agent = self.cmds_to_functions(self.window.controller.agent.legacy.get_functions())
         if (self.window.controller.agent.experts.enabled()
                 or self.window.controller.agent.legacy.enabled(check_inline=False)):
-            if parent_id is None:  # don't append expert call tool for experts
-                func_experts = self.cmds_to_functions(self.window.core.experts.get_functions())  # agent functions
+            if parent_id is None:
+                func_experts = self.cmds_to_functions(self.window.core.experts.get_functions())
         return func_plugins + func_agent + func_experts
 
     def cmds_to_functions(
@@ -509,17 +475,18 @@ class Command:
         :return: functions list
         """
         functions = []
+        limit = self.DESC_LIMIT
         for cmd in cmds:
             if "cmd" in cmd and "instruction" in cmd:
                 cmd_name = cmd["cmd"]
                 desc = cmd["instruction"]
-                if len(desc) > self.DESC_LIMIT:
-                    desc = desc[:self.DESC_LIMIT]  # limit description to 1024 characters
+                if len(desc) > limit:
+                    desc = desc[:limit]
                 functions.append(
                     {
                         "name": cmd_name,
                         "desc": desc,
-                        "params": json.dumps(self.extract_params(cmd), indent=4),
+                        "params": json.dumps(self.extract_params(cmd), separators=(',', ':')),
                     }
                 )
         return functions
@@ -541,84 +508,67 @@ class Command:
             "required": [],
             "additionalProperties": False,
         }
-        if "params" in cmd and len(cmd["params"]) > 0:
-            for param in cmd["params"]:
-                # add required params
-                if "required" in param and param["required"]:
+        params_list = cmd.get("params") or []
+        if params_list:
+            for param in params_list:
+                if isinstance(param, dict) and param.get("required"):
                     required.append(param["name"])
 
-            if len(required) > 0:
+            if required:
                 params["required"] = required
 
-            # extract params and convert to JSON schema format
-            for param in cmd["params"]:
+            type_map = {
+                "str": "string",
+                "enum": "string",
+                "text": "string",
+                "int": "integer",
+                "bool": "boolean",
+                "dict": "object",
+                "list": "array",
+            }
+
+            limit = self.DESC_LIMIT
+            for param in params_list:
                 try:
-                    if isinstance(param, dict):
-                        if "name" in param:
-                            key = param["name"]
-                            params["properties"][key] = {}
-                            params["properties"][key]["type"] = "string"
-                            params["properties"][key]["description"] = ""
-
-                            # add required fields
-                            if "type" in param:
-                                params["properties"][key]["type"] = param["type"]
-                            if "description" in param:
-                                desc = param["description"]
-                                if len(desc) > self.DESC_LIMIT:
-                                    desc = desc[:self.DESC_LIMIT]  # limit description to 1024 characters
-                                params["properties"][key]["description"] = desc
-
-                            # append enum if exists
-                            if "enum" in param:
-                                params["properties"][key]["description"] += ", enum: " + json.dumps(
-                                    param["enum"]) + ")"
-                                # get dict keys from param["enum"][key] as list:
-                                values = []
-                                if key in param["enum"]:
-                                    if isinstance(param["enum"][key], dict):  # check for sub-dicts
-                                        values = list(param["enum"][key].keys())
-                                        sub_values = []
-                                        for k in param["enum"][key]:
-                                            if isinstance(param["enum"][key][k], dict):
-                                                for v in list(param["enum"][key][k].keys()):
-                                                    if v not in sub_values:
-                                                        sub_values.append(v)
-                                            elif isinstance(param["enum"][key][k], list):
-                                                for v in param["enum"][key][k]:
-                                                    if v not in sub_values:
-                                                        sub_values.append(v)
-                                        if len(sub_values) > 0:
-                                            values = sub_values
-                                    elif isinstance(param["enum"][key], list):
-                                        values = param["enum"][key]
-
-                                    if values:
-                                        params["properties"][key]["enum"] = values
-
-                            # remove defaults and append to description
-                            if "default" in param:
-                                params["properties"][key]["description"] += ", default: " + str(
-                                    param["default"]) + ")"
-
-                            # convert internal types to supported by JSON schema
-                            if params["properties"][key]["type"] == "str":
-                                params["properties"][key]["type"] = "string"
-                            elif params["properties"][key]["type"] == "enum":
-                                params["properties"][key]["type"] = "string"
-                            elif params["properties"][key]["type"] == "text":
-                                params["properties"][key]["type"] = "string"
-                            elif params["properties"][key]["type"] == "int":
-                                params["properties"][key]["type"] = "integer"
-                            elif params["properties"][key]["type"] == "bool":
-                                params["properties"][key]["type"] = "boolean"
-                            elif params["properties"][key]["type"] == "dict":
-                                params["properties"][key]["type"] = "object"
-                            elif params["properties"][key]["type"] == "list":
-                                params["properties"][key]["type"] = "array"
-                                params["properties"][key]["items"] = {
-                                    "type": "string"
-                                }
+                    if isinstance(param, dict) and "name" in param:
+                        key = param["name"]
+                        prop: Dict[str, Any] = {}
+                        prop["type"] = param.get("type", "string")
+                        prop["description"] = ""
+                        if "type" in param and param["type"] in type_map:
+                            prop["type"] = type_map[param["type"]]
+                        if "description" in param:
+                            desc = param["description"]
+                            if len(desc) > limit:
+                                desc = desc[:limit]
+                            prop["description"] = desc
+                        if "enum" in param:
+                            prop["description"] += ", enum: " + json.dumps(param["enum"]) + ")"
+                            values = []
+                            enum_block = param["enum"].get(key) if isinstance(param["enum"], dict) else None
+                            if isinstance(enum_block, dict):
+                                values = list(enum_block.keys())
+                                sub_values = []
+                                for k in enum_block:
+                                    if isinstance(enum_block[k], dict):
+                                        for v in list(enum_block[k].keys()):
+                                            if v not in sub_values:
+                                                sub_values.append(v)
+                                    elif isinstance(enum_block[k], list):
+                                        for v in enum_block[k]:
+                                            if v not in sub_values:
+                                                sub_values.append(v)
+                                if sub_values:
+                                    values = sub_values
+                            elif isinstance(enum_block, list):
+                                values = enum_block
+                            if values:
+                                prop["enum"] = values
+                        if "default" in param:
+                            prop["description"] += ", default: " + str(param["default"]) + ")"
+                        if prop["type"] == "array":
+                            prop["items"] = {"type": "string"}
+                        params["properties"][key] = prop
                 except Exception as e:
                     print(e)
                     pass
@@ -638,12 +588,10 @@ class Command:
         ]
         mode = self.window.core.config.get('mode')
 
-        # force disabled for specific modes
         if mode in disabled_modes:
             return False
 
         if not force:
-            # check model
             model = self.window.core.config.get('model')
             if model:
                 model_data = self.window.core.models.get(model)
@@ -651,13 +599,11 @@ class Command:
                     if not self.window.core.models.is_tool_call_allowed(mode, model_data):
                         return False
 
-            # agents and experts
             if self.window.controller.agent.legacy.enabled():
                 return self.window.core.config.get('agent.func_call.native', False)
             if self.window.controller.agent.experts.enabled():
                 return self.window.core.config.get('experts.func_call.native', False)
 
-        # otherwise check config
         return self.window.core.config.get('func_call.native', False)
 
     def is_cmd(self, inline: bool = True) -> bool:
@@ -667,15 +613,10 @@ class Command:
         :param inline: check if inline plugin is enabled
         :return: True if command is enabled
         """
-        # check if cmd is enabled in config
-        if self.window.core.config.get('cmd'):
-            return True
-
-        # check if cmd inline plugin is enabled
-        if inline and self.window.controller.plugins.is_type_enabled("cmd.inline"):
-            return True
-
-        return False
+        return bool(
+            self.window.core.config.get('cmd')
+            or (inline and self.window.controller.plugins.is_type_enabled("cmd.inline"))
+        )
 
     def is_enabled(self, cmd: str) -> bool:
         """
@@ -684,38 +625,27 @@ class Command:
         :param cmd: command
         :return: True if command is enabled
         """
-        enabled_cmds = []
-        data = {
-            'prompt': "",
-            'silent': True,
-            'force': True,
-            'syntax': [],
-            'cmd': [],
-        }
-        event = Event(Event.CMD_SYNTAX, data)
-        self.window.dispatch(event)
-        if (event.data and "cmd" in event.data
-                and isinstance(event.data["cmd"], list)):
-            for item in event.data["cmd"]:
-                if "cmd" in item:
-                    enabled_cmds.append(item["cmd"])
-        data = {
-            'prompt': "",
-            'silent': True,
-            'force': True,
-            'syntax': [],
-            'cmd': [],
-        }
-        event = Event(Event.CMD_SYNTAX_INLINE, data)
-        self.window.dispatch(event)
-        if (event.data and "cmd" in event.data
-            and isinstance(event.data["cmd"], list)):
-            for item in event.data["cmd"]:
-                if "cmd" in item:
-                    enabled_cmds.append(item["cmd"])
-        if cmd in enabled_cmds:
-            return True
-        return False
+        enabled_cmds = set()
+
+        def collect(event_type):
+            data = {
+                'prompt': "",
+                'silent': True,
+                'force': True,
+                'syntax': [],
+                'cmd': [],
+            }
+            event = Event(event_type, data)
+            self.window.dispatch(event)
+            if event.data and "cmd" in event.data and isinstance(event.data["cmd"], list):
+                for item in event.data["cmd"]:
+                    if "cmd" in item:
+                        enabled_cmds.add(item["cmd"])
+
+        collect(Event.CMD_SYNTAX)
+        collect(Event.CMD_SYNTAX_INLINE)
+
+        return cmd in enabled_cmds
 
     def is_model_supports_tools(
             self,

@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 05:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
 
 from pygpt_net.core.types import (
-    MODE_AGENT_LLAMA,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     AGENT_TYPE_OPENAI,
@@ -29,6 +28,54 @@ class Placeholder:
         :param window: Window instance
         """
         self.window = window
+        self._apply_handlers = {
+            "presets": lambda p: self.get_presets(p),
+            "modes": lambda p: self.get_modes(p),
+            "models": lambda p: self.get_models(p),
+            "languages": lambda p: self.get_languages(),
+            "multimodal": lambda p: self.get_multimodal(p),
+            "langchain_providers": lambda p: self.get_langchain_providers(),
+            "llama_index_providers": lambda p: self.get_llama_index_providers(),
+            "llm_providers": lambda p: self.get_llm_providers(),
+            "embeddings_providers": lambda p: self.get_embeddings_providers(),
+            "llama_index_loaders": lambda p: self.get_llama_index_loaders(),
+            "llama_index_loaders_file": lambda p: self.get_llama_index_loaders(type="file"),
+            "llama_index_loaders_web": lambda p: self.get_llama_index_loaders(type="web"),
+            "llama_index_chat_modes": lambda p: self.get_llama_index_chat_modes(),
+            "vector_storage": lambda p: self.get_vector_storage(),
+            "var_types": lambda p: self.get_var_types(),
+            "agent_modes": lambda p: self.get_agent_modes(),
+            "agent_provider": lambda p: self.get_agent_providers(),
+            "agent_provider_llama": lambda p: self.get_agent_providers_llama(),
+            "agent_provider_openai": lambda p: self.get_agent_providers_openai(),
+            "remote_tools_openai": lambda p: self.get_remote_tools_openai(),
+            "syntax_styles": lambda p: self.get_syntax_styles(),
+            "styles": lambda p: self.get_styles(),
+            "idx": lambda p: self.get_idx(p),
+            "keys": lambda p: self.get_keys(),
+            "keys_modifiers": lambda p: self.get_modifiers(),
+            "access_actions": lambda p: self.get_access_actions(),
+            "speech_synthesis_actions": lambda p: self.get_speech_synthesis_actions(),
+            "voice_control_actions": lambda p: self.get_voice_control_actions(),
+            "audio_input_devices": lambda p: self.get_audio_input_devices(),
+            "audio_output_devices": lambda p: self.get_audio_output_devices(),
+            "audio_input_backend": lambda p: self.get_audio_input_backend(),
+            "audio_output_backend": lambda p: self.get_audio_output_backend(),
+            "audio_tts_whisper_voices": lambda p: self.get_audio_tts_whisper_voices(),
+        }
+
+    def _apply_combo_if_needed(self, item: Any):
+        if isinstance(item, dict) and item.get("type") == "combo":
+            use = item.get("use")
+            if use is not None:
+                params = item.get("use_params")
+                if not isinstance(params, dict):
+                    params = {}
+                item["keys"] = self.apply_by_id(use, params)
+
+    def _apply_suboptions(self, mapping: Dict[str, Any]):
+        for item in mapping.values():
+            self._apply_combo_if_needed(item)
 
     def apply(self, option: Dict[str, Any]):
         """
@@ -36,40 +83,18 @@ class Placeholder:
 
         :param option: Option dict
         """
-        if option['type'] == 'dict' and 'keys' in option:
-            for key in option['keys']:
-                item = option['keys'][key]
-                if type(item) is dict:
-                    if "type" in item:
-                        if item["type"] == "combo":
-                            if "use" in item and item["use"] is not None:
-                                params = {}
-                                if "use_params" in item and type(item["use_params"]) is dict:
-                                    params = item["use_params"]
-                                item["keys"] = self.apply_by_id(item["use"], params)
-        elif option['type'] == 'cmd' and 'params_keys' in option:
-            for key in option['params_keys']:
-                item = option['params_keys'][key]
-                if type(item) is dict:
-                    if "type" in item:
-                        if item["type"] == "combo":
-                            if "use" in item and item["use"] is not None:
-                                params = {}
-                                if "use_params" in item and type(item["use_params"]) is dict:
-                                    params = item["use_params"]
-                                item["keys"] = self.apply_by_id(item["use"], params)
-        elif option['type'] == 'combo':
-            if "use" in option and option["use"] is not None:
-                params = {}
-                if "use_params" in option and type(option["use_params"]) is dict:
-                    params = option["use_params"]
-                option["keys"] = self.apply_by_id(option["use"], params)
-        elif option['type'] == 'bool_list':
-            if "use" in option and option["use"] is not None:
-                params = {}
-                if "use_params" in option and type(option["use_params"]) is dict:
-                    params = option["use_params"]
-                option["keys"] = self.apply_by_id(option["use"], params)
+        t = option["type"]
+        if t == "dict" and "keys" in option:
+            self._apply_suboptions(option["keys"])
+        elif t == "cmd" and "params_keys" in option:
+            self._apply_suboptions(option["params_keys"])
+        elif t in ("combo", "bool_list"):
+            use = option.get("use")
+            if use is not None:
+                params = option.get("use_params")
+                if not isinstance(params, dict):
+                    params = {}
+                option["keys"] = self.apply_by_id(use, params)
 
     def apply_by_id(self, id: str, params: dict = None) -> List[Dict[str, str]]:
         """
@@ -80,74 +105,8 @@ class Placeholder:
         """
         if params is None:
             params = {}
-        if id == "presets":
-            return self.get_presets(params)
-        elif id == "modes":
-            return self.get_modes(params)
-        elif id == "models":
-            return self.get_models(params)
-        elif id == "languages":
-            return self.get_languages()
-        elif id == "multimodal":
-            return self.get_multimodal(params)
-        elif id == "langchain_providers":
-            return self.get_langchain_providers()
-        elif id == "llama_index_providers":
-            return self.get_llama_index_providers()
-        elif id == "llm_providers":
-            return self.get_llm_providers()
-        elif id == "embeddings_providers":
-            return self.get_embeddings_providers()
-        elif id == "llama_index_loaders":
-            return self.get_llama_index_loaders()
-        elif id == "llama_index_loaders_file":
-            return self.get_llama_index_loaders(type="file")
-        elif id == "llama_index_loaders_web":
-            return self.get_llama_index_loaders(type="web")
-        elif id == "llama_index_chat_modes":
-            return self.get_llama_index_chat_modes()
-        elif id == "vector_storage":
-            return self.get_vector_storage()
-        elif id == "var_types":
-            return self.get_var_types()
-        elif id == "agent_modes":
-            return self.get_agent_modes()
-        elif id == "agent_provider":
-            return self.get_agent_providers()
-        elif id == "agent_provider_llama":
-            return self.get_agent_providers_llama()
-        elif id == "agent_provider_openai":
-            return self.get_agent_providers_openai()
-        elif id == "remote_tools_openai":
-            return self.get_remote_tools_openai()
-        elif id == "syntax_styles":
-            return self.get_syntax_styles()
-        elif id == "styles":
-            return self.get_styles()
-        elif id == "idx":
-            return self.get_idx(params)
-        elif id == "keys":
-            return self.get_keys()
-        elif id == "keys_modifiers":
-            return self.get_modifiers()
-        elif id == "access_actions":
-            return self.get_access_actions()
-        elif id == "speech_synthesis_actions":
-            return self.get_speech_synthesis_actions()
-        elif id == "voice_control_actions":
-            return self.get_voice_control_actions()
-        elif id == "audio_input_devices":
-            return self.get_audio_input_devices()
-        elif id == "audio_output_devices":
-            return self.get_audio_output_devices()
-        elif id == "audio_input_backend":
-            return self.get_audio_input_backend()
-        elif id == "audio_output_backend":
-            return self.get_audio_output_backend()
-        elif id == "audio_tts_whisper_voices":
-            return self.get_audio_tts_whisper_voices()
-        else:
-            return []
+        handler = self._apply_handlers.get(id)
+        return handler(params) if handler else []
 
     def get_audio_tts_whisper_voices(self) -> List[Dict[str, str]]:
         """
@@ -156,10 +115,7 @@ class Placeholder:
         :return: placeholders list
         """
         voices = self.window.core.audio.whisper.get_voices()
-        data = []
-        for voice in voices:
-            data.append({voice: voice})
-        return data
+        return [{v: v} for v in voices]
 
     def get_audio_input_devices(self) -> List[Dict[str, str]]:
         """
@@ -168,10 +124,7 @@ class Placeholder:
         :return: placeholders list
         """
         devices = self.window.core.audio.get_input_devices()
-        data = []
-        for device in devices:
-            data.append({str(device[0]): device[1]})
-        return data
+        return [{str(did): name} for did, name in devices]
 
     def get_audio_output_devices(self) -> List[Dict[str, str]]:
         """
@@ -180,10 +133,7 @@ class Placeholder:
         :return: placeholders list
         """
         devices = self.window.core.audio.get_output_devices()
-        data = []
-        for device in devices:
-            data.append({str(device[0]): device[1]})
-        return data
+        return [{str(did): name} for did, name in devices]
 
     def get_audio_input_backend(self) -> List[Dict[str, str]]:
         """
@@ -192,10 +142,7 @@ class Placeholder:
         :return: placeholders list
         """
         items = self.window.core.audio.get_input_backends()
-        data = []
-        for item in items:
-            data.append({str(item[0]): item[1]})
-        return data
+        return [{str(i): name} for i, name in items]
 
     def get_audio_output_backend(self) -> List[Dict[str, str]]:
         """
@@ -204,10 +151,7 @@ class Placeholder:
         :return: placeholders list
         """
         items = self.window.core.audio.get_output_backends()
-        data = []
-        for item in items:
-            data.append({str(item[0]): item[1]})
-        return data
+        return [{str(i): name} for i, name in items]
 
     def get_langchain_providers(self) -> List[Dict[str, str]]:
         """
@@ -216,10 +160,7 @@ class Placeholder:
         :return: placeholders list
         """
         choices = self.window.core.llm.get_choices(MODE_LANGCHAIN)
-        data = []
-        for id in choices:
-            data.append({id: choices[id]})
-        return data
+        return [{k: v} for k, v in choices.items()]
 
     def get_llama_index_providers(self) -> List[Dict[str, str]]:
         """
@@ -228,10 +169,7 @@ class Placeholder:
         :return: placeholders list
         """
         choices = self.window.core.llm.get_choices(MODE_LLAMA_INDEX)
-        data = []
-        for id in choices:
-            data.append({id: choices[id]})
-        return data
+        return [{k: v} for k, v in choices.items()]
 
     def get_llm_providers(self) -> List[Dict[str, str]]:
         """
@@ -240,10 +178,7 @@ class Placeholder:
         :return: placeholders list
         """
         choices = self.window.core.llm.get_choices()
-        data = []
-        for id in choices:
-            data.append({id: choices[id]})
-        return data
+        return [{k: v} for k, v in choices.items()]
 
     def get_embeddings_providers(self) -> List[Dict[str, str]]:
         """
@@ -252,10 +187,7 @@ class Placeholder:
         :return: placeholders list
         """
         choices = self.window.core.llm.get_choices("embeddings")
-        data = []
-        for id in choices:
-            data.append({id: choices[id]})
-        return data
+        return [{k: v} for k, v in choices.items()]
 
     def get_agent_providers(self) -> List[Dict[str, str]]:
         """
@@ -313,16 +245,16 @@ class Placeholder:
         :return: placeholders list
         """
         data = []
-        choices = self.window.controller.idx.common.get_loaders_choices() # list
+        choices = self.window.controller.idx.common.get_loaders_choices()
         for choice in choices:
             if type == "all":
                 data.append(choice)
             elif type == "file":
-                key = list(choice.keys())[0]
+                key = next(iter(choice))
                 if key.startswith("file_"):
                     data.append(choice)
             elif type == "web":
-                key = list(choice.keys())[0]
+                key = next(iter(choice))
                 if key.startswith("web_"):
                     data.append(choice)
         return data
@@ -334,10 +266,7 @@ class Placeholder:
         :return: placeholders list
         """
         ids = self.window.core.idx.storage.get_ids()
-        data = []
-        for id in ids:
-            data.append({id: id})
-        return data
+        return [{i: i} for i in ids]
 
     def get_var_types(self) -> List[Dict[str, str]]:
         """
@@ -346,10 +275,7 @@ class Placeholder:
         :return: placeholders list
         """
         types = ["str", "int", "float", "bool", "dict", "list", "None"]
-        data = []
-        for type in types:
-            data.append({type: type})
-        return data
+        return [{t: t} for t in types]
 
     def get_presets(self, params: dict = None) -> List[Dict[str, str]]:
         """
@@ -361,12 +287,8 @@ class Placeholder:
         if params is None:
             params = {}
         presets = self.window.core.presets.get_all()
-        data = []
-        data.append({'_': '---'})
-        for id in presets:
-            if id.startswith("current."):  # ignore "current" preset
-                continue
-            data.append({id: id})  # TODO: name
+        data = [{'_': '---'}]
+        data.extend([{pid: pid} for pid in presets if not str(pid).startswith("current.")])
         return data
 
     def get_modes(self, params: dict = None) -> List[Dict[str, str]]:
@@ -379,11 +301,7 @@ class Placeholder:
         if params is None:
             params = {}
         modes = self.window.core.modes.get_all()
-        data = []
-        for id in modes:
-            name = trans("mode." + id)
-            data.append({id: name})
-        return data
+        return [{mid: trans("mode." + mid)} for mid in modes]
 
     def get_multimodal(self, params: dict = None) -> List[Dict[str, str]]:
         """
@@ -395,11 +313,7 @@ class Placeholder:
         if params is None:
             params = {}
         modes = self.window.core.models.get_multimodal_list()
-        data = []
-        for id in modes:
-            name = trans("multimodal." + id)
-            data.append({id: name})
-        return data
+        return [{mid: trans("multimodal." + mid)} for mid in modes]
 
     def get_models(self, params: dict = None) -> List[Dict[str, str]]:
         """
@@ -411,38 +325,29 @@ class Placeholder:
         if params is None:
             params = {}
         models = self.window.core.models.get_all()
-        data = []
-        items = {}
-        for id in models:
-            model = models[id]
+        items: Dict[str, str] = {}
+        for mid, model in models.items():
             allowed = True
-            if "mode" in params and type(params["mode"]) is list:
-                for mode in params["mode"]:
-                    if mode not in model.mode:
+            if isinstance(params.get("mode"), list):
+                for m in params["mode"]:
+                    if m not in model.mode:
                         allowed = False
                         break
-            if not allowed:
-                continue
-            items[id] = model.name
+            if allowed:
+                items[mid] = model.name
 
-        # sort by providers
+        data: List[Dict[str, str]] = []
         providers = self.window.core.llm.get_choices()
-        sorted_items = {}
-        if len(providers) == 0:
-            for id in items:
-                sorted_items[id] = items[id]
-            # sort by name
-            sorted_items = dict(sorted(sorted_items.items(), key=lambda item: item[1].lower()))
-        else:
-            for provider in providers.keys():
-                provider_items = {k: v for k, v in items.items() if models[k].provider == provider}
-                if provider_items:
-                    sorted_items[f"separator::{provider}"] = providers[provider]
-                    sorted_items.update(provider_items)
+        if not providers:
+            for mid, name in sorted(items.items(), key=lambda kv: kv[1].lower()):
+                data.append({mid: name})
+            return data
 
-        # make choices
-        for id in sorted_items:
-            data.append({id: sorted_items[id]})
+        for provider, provider_label in providers.items():
+            provider_items = [(k, v) for k, v in items.items() if models[k].provider == provider]
+            if provider_items:
+                data.append({f"separator::{provider}": provider_label})
+                data.extend([{k: v} for k, v in provider_items])
         return data
 
     def get_agent_modes(self) -> List[Dict[str, str]]:
@@ -452,11 +357,7 @@ class Placeholder:
         :return: Models placeholders list
         """
         modes = self.window.core.agents.legacy.get_allowed_modes()
-        data = []
-        for id in modes:
-            name = trans(f"mode.{id}")
-            data.append({id: name})
-        return data
+        return [{mid: trans(f"mode.{mid}")} for mid in modes]
 
     def get_languages(self) -> List[Dict[str, str]]:
         """
@@ -492,10 +393,7 @@ class Placeholder:
         """
         styles = self.window.controller.chat.render.web_renderer.body.highlight.get_styles()
         styles.sort()
-        data = []
-        for id in styles:
-            data.append({id: id})
-        return data
+        return [{sid: sid} for sid in styles]
 
     def get_styles(self) -> List[Dict[str, str]]:
         """
@@ -505,11 +403,7 @@ class Placeholder:
         """
         styles = self.window.controller.theme.common.get_styles_list()
         styles.sort()
-        data = []
-        for id in styles:
-            name = id
-            data.append({id: name})
-        return data
+        return [{sid: sid} for sid in styles]
 
     def get_keys(self) -> List[Dict[str, str]]:
         """
@@ -527,6 +421,11 @@ class Placeholder:
         """
         return self.window.core.access.shortcuts.get_modifiers_choices()
 
+    def _translate_sort_choices(self, choices: List[Dict[str, str]]) -> List[Dict[str, str]]:
+        items = [(k, trans(v)) for choice in choices for k, v in choice.items()]
+        items.sort(key=lambda x: x[1])
+        return [{k: v} for k, v in items]
+
     def get_access_actions(self) -> List[Dict[str, str]]:
         """
         Get access actions list
@@ -534,13 +433,7 @@ class Placeholder:
         :return: app actions list
         """
         choices = self.window.core.access.actions.get_access_choices()
-        translated_choices = []
-        for choice in choices:
-            for key, value in choice.items():
-                translated_choices.append({key: trans(value)})
-        # sort by translated values
-        translated_choices.sort(key=lambda x: list(x.values())[0])
-        return translated_choices
+        return self._translate_sort_choices(choices)
 
     def get_speech_synthesis_actions(self) -> List[Dict[str, str]]:
         """
@@ -549,13 +442,7 @@ class Placeholder:
         :return: app actions list
         """
         choices = self.window.core.access.actions.get_speech_synthesis_choices()
-        translated_choices = []
-        for choice in choices:
-            for key, value in choice.items():
-                translated_choices.append({key: trans(value)})
-        # sort by translated values
-        translated_choices.sort(key=lambda x: list(x.values())[0])
-        return translated_choices
+        return self._translate_sort_choices(choices)
 
     def get_voice_control_actions(self) -> List[Dict[str, str]]:
         """
@@ -564,12 +451,4 @@ class Placeholder:
         :return: app actions list
         """
         choices = self.window.core.access.actions.get_voice_control_choices()
-        translated_choices = []
-        for choice in choices:
-            for key, value in choice.items():
-                translated_choices.append({key: trans(value)})
-        # sort by translated values
-        translated_choices.sort(key=lambda x: list(x.values())[0])
-        return translated_choices
-
-
+        return self._translate_sort_choices(choices)

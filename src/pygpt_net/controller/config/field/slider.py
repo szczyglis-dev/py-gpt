@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 21:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Dict, Union
@@ -38,61 +38,61 @@ class Slider:
         """
         if "value" not in option:
             return
-        value = option["value"]
-        is_integer = False
-        multiplier = 1
 
-        if "type" in option and option["type"] == "int":
-            is_integer = True
-        if "multiplier" in option:
-            multiplier = option["multiplier"]
+        ui = self.window.ui
+        cfg_parent = ui.config.get(parent_id)
+        field = cfg_parent.get(key) if cfg_parent else None
+
+        is_integer = option.get("type") == "int"
+        multiplier = option.get("multiplier", 1)
+
+        value = option["value"]
 
         if type != "slider":
             if is_integer:
                 try:
-                    value = round(int(value), 0)
-                except Exception as e:
+                    value = round(int(float(value)), 0)
+                except Exception:
                     value = 0
             else:
                 try:
                     value = float(value)
-                except Exception as e:
+                except Exception:
                     value = 0.0
 
-            if "min" in option and value < option["min"]:
-                value = option["min"]
-            elif "max" in option and value > option["max"]:
-                value = option["max"]
+            min_v = option.get("min")
+            max_v = option.get("max")
+            if min_v is not None and value < min_v:
+                value = min_v
+            elif max_v is not None and value > max_v:
+                value = max_v
 
-            # update connected input field
-            if parent_id in self.window.ui.config and key in self.window.ui.config[parent_id]:
-                self.window.ui.config[parent_id][key].input.setText(str(value))
+            if field:
+                field.input.setText(str(value))
 
         slider_value = round(float(value) * multiplier, 0)
 
-        # from slider
         if type == "slider":
             input_value = value / multiplier
             if is_integer:
-                input_value = round(int(input_value), 0)
-            txt = "{}".format(input_value)
-            self.window.ui.config[parent_id][key].input.setText(txt)
-
-        # from input
+                try:
+                    input_value = round(int(float(input_value)), 0)
+                except Exception:
+                    input_value = 0
+            if field:
+                field.input.setText(str(input_value))
         elif type == "input":
-            if "min" in option and slider_value < option["min"] * multiplier:
-                slider_value = option["min"] * multiplier
-            elif "max" in option and slider_value > option["max"] * multiplier:
-                slider_value = option["max"] * multiplier
-
-            if parent_id in self.window.ui.config and key in self.window.ui.config[parent_id]:
-                self.window.ui.config[parent_id][key].slider.setValue(slider_value)
-
-        # from value
+            min_v = option.get("min")
+            max_v = option.get("max")
+            if min_v is not None and slider_value < min_v * multiplier:
+                slider_value = min_v * multiplier
+            elif max_v is not None and slider_value > max_v * multiplier:
+                slider_value = max_v * multiplier
+            if field:
+                field.slider.setValue(slider_value)
         else:
-            if parent_id in self.window.ui.config and key in self.window.ui.config[parent_id]:
-                self.window.ui.config[parent_id][key].input.setText(str(value))
-                self.window.ui.config[parent_id][key].slider.setValue(slider_value)
+            if field:
+                field.slider.setValue(slider_value)
 
     def on_update(
             self,
@@ -116,9 +116,8 @@ class Slider:
         option['value'] = value
         self.apply(parent_id, key, option, type)
 
-        # on update hooks
         if hooks:
-            hook_name = "update.{}.{}".format(parent_id, key)
+            hook_name = f"update.{parent_id}.{key}"
             if self.window.ui.has_hook(hook_name):
                 hook = self.window.ui.get_hook(hook_name)
                 try:
@@ -140,12 +139,8 @@ class Slider:
         :param option: Option data
         :return: Slider value (int or float)
         """
-        is_integer = False
-        multiplier = 1
-        if "type" in option and option["type"] == "int":
-            is_integer = True
-        if "multiplier" in option:
-            multiplier = option["multiplier"]
+        is_integer = option.get("type") == "int"
+        multiplier = option.get("multiplier", 1)
         value = self.window.ui.config[parent_id][key].slider.value()
         if is_integer:
             return round(int(value), 0)

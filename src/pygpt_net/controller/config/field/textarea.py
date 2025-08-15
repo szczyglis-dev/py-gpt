@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict
@@ -34,8 +34,23 @@ class Textarea:
         :param key: Option key
         :param option: Option data
         """
-        if key in self.window.ui.config[parent_id]:
-            self.window.ui.config[parent_id][key].setText("{}".format(option["value"]))
+        parent = self.window.ui.config[parent_id]
+        field = parent.get(key)
+        if field is None:
+            return
+        new_text = str(option["value"])
+        if hasattr(field, "toPlainText"):
+            current = field.toPlainText()
+        elif hasattr(field, "text"):
+            current = field.text()
+        else:
+            current = None
+        if current == new_text:
+            return
+        if hasattr(field, "setText"):
+            field.setText(new_text)
+        elif hasattr(field, "setPlainText"):
+            field.setPlainText(new_text)
 
     def on_update(
             self,
@@ -57,9 +72,8 @@ class Textarea:
         option["value"] = value
         self.apply(parent_id, key, option)
 
-        # on update hooks
         if hooks:
-            hook_name = "update.{}.{}".format(parent_id, key)
+            hook_name = f"update.{parent_id}.{key}"
             if self.window.ui.has_hook(hook_name):
                 hook = self.window.ui.get_hook(hook_name)
                 try:

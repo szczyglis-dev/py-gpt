@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict, List
@@ -40,6 +40,24 @@ class Config:
         self.slider = Slider(window)
         self.textarea = Textarea(window)
 
+        self._apply_map = {
+            'text': self.input.apply,
+            'textarea': self.textarea.apply,
+            'bool': self.checkbox.apply,
+            'bool_list': self.checkbox_list.apply,
+            'dict': self.dictionary.apply,
+            'combo': self.combo.apply,
+            'cmd': self.cmd.apply,
+        }
+        self._get_map = {
+            'text': self.input.get_value,
+            'textarea': self.textarea.get_value,
+            'bool': self.checkbox.get_value,
+            'bool_list': self.checkbox_list.get_value,
+            'dict': self.dictionary.get_value,
+            'cmd': self.cmd.get_value,
+        }
+
     def load_options(
             self,
             parent_id: str,
@@ -51,8 +69,7 @@ class Config:
         :param parent_id: Parent ID
         :param options: Options dict
         """
-        for key in options:
-            option = options[key]
+        for key, option in options.items():
             self.apply(parent_id, key, option)
 
     def apply(
@@ -68,25 +85,16 @@ class Config:
         :param key: Option key
         :param option: Option dict
         """
-        if option['type'] == 'int' or option['type'] == 'float':
-            if 'slider' in option and option['slider']:
+        t = option['type']
+        if t in ('int', 'float'):
+            if option.get('slider'):
                 self.slider.apply(parent_id, key, option)
             else:
                 self.input.apply(parent_id, key, option)
-        elif option['type'] == 'text':
-            self.input.apply(parent_id, key, option)
-        elif option['type'] == 'textarea':
-            self.textarea.apply(parent_id, key, option)
-        elif option['type'] == 'bool':
-            self.checkbox.apply(parent_id, key, option)
-        elif option['type'] == 'bool_list':
-            self.checkbox_list.apply(parent_id, key, option)
-        elif option['type'] == 'dict':
-            self.dictionary.apply(parent_id, key, option)
-        elif option['type'] == 'combo':
-            self.combo.apply(parent_id, key, option)
-        elif option['type'] == 'cmd':
-            self.cmd.apply(parent_id, key, option)
+            return
+        func = self._apply_map.get(t)
+        if func:
+            func(parent_id, key, option)
 
     def apply_value(
             self,
@@ -122,25 +130,16 @@ class Config:
         :param idx: return selected idx, not the value
         :return: Option value
         """
-        if option['type'] == 'int' or option['type'] == 'float':
-            if 'slider' in option and option['slider']:
+        t = option['type']
+        if t in ('int', 'float'):
+            if option.get('slider'):
                 return self.slider.get_value(parent_id, key, option)
-            else:
-                return self.input.get_value(parent_id, key, option)
-        elif option['type'] == 'text':
             return self.input.get_value(parent_id, key, option)
-        elif option['type'] == 'textarea':
-            return self.textarea.get_value(parent_id, key, option)
-        elif option['type'] == 'bool':
-            return self.checkbox.get_value(parent_id, key, option)
-        elif option['type'] == 'bool_list':
-            return self.checkbox_list.get_value(parent_id, key, option)
-        elif option['type'] == 'dict':
-            return self.dictionary.get_value(parent_id, key, option)
-        elif option['type'] == 'combo':
+        if t == 'combo':
             return self.combo.get_value(parent_id, key, option, idx)
-        elif option['type'] == 'cmd':
-            return self.cmd.get_value(parent_id, key, option)
+        func = self._get_map.get(t)
+        if func:
+            return func(parent_id, key, option)
 
     def update_list(
             self,
@@ -159,13 +158,11 @@ class Config:
         """
         if "type" not in option:
             return
-        if option['type'] == 'combo':
-            as_dict = {}
-            for item in items:
-                for k, v in item.items():
-                    as_dict[k] = v
+        t = option['type']
+        if t == 'combo':
+            as_dict = {k: v for d in items for k, v in d.items()}
             self.update_combo(parent_id, key, as_dict)
-        elif option['type'] == 'bool_list':
+        elif t == 'bool_list':
             self.update_bool_list(parent_id, key, items)
 
     def update_combo(

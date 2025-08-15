@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.29 23:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -51,31 +51,18 @@ class Plugin(BasePlugin):
         ctx = event.ctx
 
         if name == Event.POST_PROMPT_END:
-            silent = False
-            if 'silent' in data and data['silent']:
-                silent = True
-            data['value'] = self.on_system_prompt(
-                data['value'],
-                silent,
-            )
+            silent = bool(data.get('silent'))
+            data['value'] = self.on_system_prompt(data['value'], silent)
 
-        if name == Event.AGENT_PROMPT:
-            silent = False
-            if 'silent' in data and data['silent']:
-                silent = True
-            data['value'] = self.on_agent_prompt(
-                data['value'],
-                silent,
-            )
+        elif name == Event.AGENT_PROMPT:
+            silent = bool(data.get('silent'))
+            data['value'] = self.on_agent_prompt(data['value'], silent)
 
         elif name == Event.CMD_SYNTAX:
             self.cmd_syntax(data)
 
         elif name == Event.CMD_EXECUTE:
-            self.cmd(
-                ctx,
-                data['commands'],
-            )
+            self.cmd(ctx, data['commands'])
 
     def cmd_syntax(self, data: dict):
         """
@@ -83,9 +70,10 @@ class Plugin(BasePlugin):
 
         :param data: event data dict
         """
+        append = data['cmd'].append
         for option in self.allowed_cmds:
             if self.has_cmd(option):
-                data['cmd'].append(self.get_cmd(option))  # append command
+                append(self.get_cmd(option))  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -94,28 +82,25 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param cmds: commands dict
         """
-        is_cmd = False
-        my_commands = []
-        for item in cmds:
-            if item["cmd"] in self.allowed_cmds:
-                my_commands.append(item)
-                is_cmd = True
-
-        if not is_cmd:
+        my_commands = [item for item in cmds if item.get("cmd") in self.allowed_cmds]
+        if not my_commands:
             return
 
         response = None
+        now_str = None
+
         for item in my_commands:
             try:
-                if item["cmd"] in self.allowed_cmds and self.has_cmd(item["cmd"]):
-                    # get time
-                    if item["cmd"] == "get_time":
-                        time = datetime.now().strftime('%A, %Y-%m-%d %H:%M:%S')
+                cmd_name = item.get("cmd")
+                if cmd_name in self.allowed_cmds and self.has_cmd(cmd_name):
+                    if cmd_name == "get_time":
+                        if now_str is None:
+                            now_str = datetime.now().strftime('%A, %Y-%m-%d %H:%M:%S')
                         response = {
                             "request": {
-                                "cmd": item["cmd"]
+                                "cmd": cmd_name
                             },
-                            "result": time,
+                            "result": now_str,
                         }
             except Exception as e:
                 self.error(e)
@@ -131,18 +116,23 @@ class Plugin(BasePlugin):
         :param silent: silent mode (no logs)
         :return: updated prompt
         """
-        if self.get_option_value("hour") or self.get_option_value("date"):
-            if prompt.strip() != "":
+        get_opt = self.get_option_value
+        hour = get_opt("hour")
+        date = get_opt("date")
+
+        if hour or date:
+            if prompt and not prompt.isspace():
                 prompt += "\n\n"
-            if self.get_option_value("hour") and self.get_option_value("date"):
-                prompt += self.get_option_value("tpl").\
-                    format(time=datetime.now().strftime('%A, %Y-%m-%d %H:%M:%S'))
-            elif self.get_option_value("hour"):
-                prompt += self.get_option_value("tpl").\
-                    format(time=datetime.now().strftime('%H:%M:%S'))
-            elif self.get_option_value("date"):
-                prompt += self.get_option_value("tpl").\
-                    format(time=datetime.now().strftime('%A, %Y-%m-%d'))
+
+            tpl = get_opt("tpl")
+            now = datetime.now()
+
+            if hour and date:
+                prompt += tpl.format(time=now.strftime('%A, %Y-%m-%d %H:%M:%S'))
+            elif hour:
+                prompt += tpl.format(time=now.strftime('%H:%M:%S'))
+            elif date:
+                prompt += tpl.format(time=now.strftime('%A, %Y-%m-%d'))
         return prompt
 
     def on_agent_prompt(self, prompt: str, silent: bool = False) -> str:
@@ -153,16 +143,18 @@ class Plugin(BasePlugin):
         :param silent: silent mode (no logs)
         :return: updated prompt
         """
-        if self.get_option_value("hour") or self.get_option_value("date"):
-            if self.get_option_value("hour") and self.get_option_value("date"):
-                prompt = self.get_option_value("tpl").\
-                    format(time=datetime.now().strftime('%A, %Y-%m-%d %H:%M:%S')) + "\n\n" + prompt
-            elif self.get_option_value("hour"):
-                prompt = self.get_option_value("tpl").\
-                    format(time=datetime.now().strftime('%H:%M:%S') + "\n\n" + prompt)
-            elif self.get_option_value("date"):
-                prompt = self.get_option_value("tpl").\
-                    format(time=datetime.now().strftime('%A, %Y-%m-%d')) + "\n\n" + prompt
+        get_opt = self.get_option_value
+        hour = get_opt("hour")
+        date = get_opt("date")
+
+        if hour or date:
+            tpl = get_opt("tpl")
+            now = datetime.now()
+
+            if hour and date:
+                prompt = tpl.format(time=now.strftime('%A, %Y-%m-%d %H:%M:%S')) + "\n\n" + prompt
+            elif hour:
+                prompt = tpl.format(time=now.strftime('%H:%M:%S') + "\n\n" + prompt)
+            elif date:
+                prompt = tpl.format(time=now.strftime('%A, %Y-%m-%d')) + "\n\n" + prompt
         return prompt
-
-

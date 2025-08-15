@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 19:00:00                  #
+# Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
 import os
@@ -26,7 +26,6 @@ from .ipython import LocalKernel
 from .ipython import DockerKernel
 from .output import Output
 from .runner import Runner
-from .worker import Worker
 
 from pygpt_net.utils import trans
 
@@ -151,6 +150,8 @@ class Plugin(BasePlugin):
         :param cmds: commands dict
         :param silent: silent mode
         """
+        from .worker import Worker
+
         is_cmd = False
         force = False
         my_commands = []
