@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 2.6.3 (2025-08-14)
+## 2.6.3 (2025-08-15)
 
 - Optimized streaming and CPU usage.
 - Fixed crash on set label color and ctx duplicate.
