@@ -13,7 +13,6 @@ from .about import About
 from .audio import Audio
 from .config import Config
 from .debug import Debug
-from .donate import Donate
 from .file import File
 from .lang import Lang
 from .plugins import Plugins
@@ -34,7 +33,6 @@ class Menu:
         self.audio = Audio(window)
         self.config = Config(window)
         self.debug = Debug(window)
-        self.donate = Donate(window)
         self.file = File(window)
         self.lang = Lang(window)
         self.plugins = Plugins(window)
@@ -61,5 +59,3 @@ class Menu:
         show = self.window.core.config.get('debug')
         self.debug.setup()
         self.window.ui.menu['menu.debug'].menuAction().setVisible(show)
-
-        self.donate.setup()
