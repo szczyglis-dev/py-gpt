@@ -392,7 +392,7 @@ class Body:
                             if (replace) {
                                 msg.replaceChildren();
                                 if (content) {
-                                  msg.insertAdjacentHTML('afterbegin', content);
+                                  msg.insertAdjacentHTML('afterbegin', sanitize(content));
                                 }
                                 let doMath = true;
                                 if (!is_code_block) {
@@ -413,10 +413,10 @@ class Body:
                                         }
                                     }
                                     if (lastCodeBlock) {
-                                        lastCodeBlock.insertAdjacentHTML('beforeend', chunk);
+                                        lastCodeBlock.insertAdjacentHTML('beforeend', sanitize(chunk));
                                         domLastCodeBlock = lastCodeBlock;
                                     } else {
-                                        msg.insertAdjacentHTML('beforeend', chunk);
+                                        msg.insertAdjacentHTML('beforeend', sanitize(chunk));
                                         domLastCodeBlock = null;
                                     }
                                 } else {
