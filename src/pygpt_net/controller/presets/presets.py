@@ -522,6 +522,7 @@ class Presets:
                     self.refresh(no_scroll=True)
                     idx = w.core.presets.get_idx_by_id(mode, new_id)
                     self.editor.edit(idx)
+                    self.select(idx) # switch to the new preset
                     w.update_status(trans('status.preset.duplicated'))
 
     def enable(self, idx: Optional[int] = None):
