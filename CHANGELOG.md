@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.6.8 (2025-08-16)
+
+- Fixed: updated paragraph color on theme switch.
+- Added switching to duplicated preset after creation.
+- Reduced delay after selecting context.
+- Optimized rendering of mathematical formulas.
+
 ## 2.6.7 (2025-08-16)
 
 - Fix: missing entity sanitize.

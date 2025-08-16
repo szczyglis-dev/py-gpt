@@ -22,10 +22,6 @@ if platform.system() == 'Windows':
     # fix ffmpeg bug: [SWR] Output channel layout "" is invalid or unsupported.
     os.environ['QT_MEDIA_BACKEND'] = 'windows'
 
-elif platform.system() == 'Linux':
-    os.environ.setdefault("MALLOC_ARENA_MAX", "2")  # 2 arenas
-    os.environ.setdefault("MALLOC_TRIM_THRESHOLD_", "131072")  # 128 KiB
-
 # enable debug logging
 # os.environ["QT_LOGGING_RULES"] = "*.debug=true"
 # os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"

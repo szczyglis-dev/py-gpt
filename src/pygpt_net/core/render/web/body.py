@@ -1084,7 +1084,7 @@ class Body:
             f'<a href="{url}"><img src="{path}" class="image"></a>'
             f'</div>'
             f'<a href="{url}" class="title">{basename}</a>'
-            f'</div></div>'
+            f'</div></div><br/>'
         )
 
     def get_url_html(
