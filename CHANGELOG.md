@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.6 (2025-08-16)
+
+- Output rendering optimization.
+
 ## 2.6.5 (2025-08-16)
 
 - Fix: crash when creating a context in a new group.
