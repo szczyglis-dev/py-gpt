@@ -54,6 +54,20 @@ class About:
         self.window.ui.menu['info.license'] = QAction(QIcon(":/icons/info.svg"), trans("menu.info.license"),
                                                       self.window)
 
+        self.window.ui.menu['donate.coffee'] = QAction(QIcon(":/icons/favorite.svg"), "Buy me a coffee",
+                                                       self.window)
+        self.window.ui.menu['donate.coffee'].setMenuRole(QAction.MenuRole.NoRole)
+        self.window.ui.menu['donate.paypal'] = QAction(QIcon(":/icons/favorite.svg"), "PayPal",
+                                                       self.window)
+        self.window.ui.menu['donate.github'] = QAction(QIcon(":/icons/favorite.svg"), "GitHub Sponsors", self.window)
+
+        self.window.ui.menu['donate.coffee'].triggered.connect(
+            lambda: self.window.controller.dialogs.info.donate('coffee'))
+        self.window.ui.menu['donate.paypal'].triggered.connect(
+            lambda: self.window.controller.dialogs.info.donate('paypal'))
+        self.window.ui.menu['donate.github'].triggered.connect(
+            lambda: self.window.controller.dialogs.info.donate('github'))
+
         self.window.ui.menu['info.about'].triggered.connect(
             lambda: self.window.controller.dialogs.info.toggle('about'))
         self.window.ui.menu['info.changelog'].triggered.connect(
@@ -96,3 +110,8 @@ class About:
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.ms_store'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.discord'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.license'])
+
+        self.window.ui.menu['menu.donate'] = self.window.ui.menu['menu.about'].addMenu(trans("menu.info.donate"))
+        self.window.ui.menu['menu.donate'].addAction(self.window.ui.menu['donate.coffee'])
+        self.window.ui.menu['menu.donate'].addAction(self.window.ui.menu['donate.paypal'])
+        self.window.ui.menu['menu.donate'].addAction(self.window.ui.menu['donate.github'])
