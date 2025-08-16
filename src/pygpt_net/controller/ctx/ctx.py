@@ -78,7 +78,7 @@ class Ctx:
         self.select_by_current(focus=True)  # scroll to current ctx
 
         # focus input after loading
-        QTimer.singleShot(100, self.window.controller.chat.common.focus_input)
+        QTimer.singleShot(10, self.window.controller.chat.common.focus_input)
 
     def update_mode_in_current(self):
         """Update current ctx mode"""
@@ -103,7 +103,7 @@ class Ctx:
             reload: bool = True,
             all: bool = True,
             select: bool = True,
-            no_scroll: bool = False
+            no_scroll: bool = False,
     ):
         """
         Update ctx list
@@ -685,7 +685,7 @@ class Ctx:
             meta.label = label_id
             self.window.core.ctx.save(id)
             QTimer.singleShot(
-                100,
+                10,
                 lambda: self.update(no_scroll=True)
             )
 
@@ -963,7 +963,7 @@ class Ctx:
         self.group_id = group_id
         if update:
             QTimer.singleShot(
-                100,
+                10,
                 lambda: self.update()
             )
 
@@ -976,7 +976,7 @@ class Ctx:
         self.window.core.ctx.update_meta_group_id(meta_id, None)
         self.group_id = None
         QTimer.singleShot(
-            100,
+            10,
             lambda: self.update(no_scroll=True)
         )
 
