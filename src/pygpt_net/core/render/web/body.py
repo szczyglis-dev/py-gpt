@@ -395,7 +395,7 @@ class Body:
                                   msg.insertAdjacentHTML('afterbegin', sanitize(content));
                                 }
                                 let doMath = true;
-                                if (!is_code_block) {
+                                if (is_code_block) {
                                     doMath = false;
                                 }
                                 highlightCode(doMath, msg);
