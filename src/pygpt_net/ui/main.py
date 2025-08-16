@@ -11,7 +11,7 @@
 
 import os
 
-from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory
+from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory, QEventLoop
 from PySide6.QtGui import QShortcut, QKeySequence
 from qasync import QApplication
 from PySide6.QtWidgets import QMainWindow
@@ -22,6 +22,7 @@ from pygpt_net.container import Container
 from pygpt_net.controller import Controller
 from pygpt_net.tools import Tools
 from pygpt_net.ui import UI
+from pygpt_net.ui.widget.textarea.web import ChatWebOutput
 from pygpt_net.utils import get_app_meta
 
 
@@ -280,6 +281,17 @@ class MainWindow(QMainWindow, QtStyleTools):
             event.ignore()
             self.hide()
             return
+
+        for view in self.findChildren(ChatWebOutput):
+            try:
+                view.on_delete()
+            except Exception:
+                pass
+
+        for _ in range(6):
+            QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+            QApplication.processEvents(QEventLoop.AllEvents, 50)
+
         self.shutdown()
         event.accept()
 

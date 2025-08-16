@@ -14,7 +14,7 @@ from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenu
+from PySide6.QtWidgets import QMenu, QApplication
 
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
@@ -45,14 +45,18 @@ class ChatWebOutput(QWebEngineView):
         self.html_content = ""
         self.meta = None
         self.tab = None
-        self._glwidget = None
-        self._glwidget_filter_installed = False
         self.setProperty('class', 'layout-output-web')
 
+        self._glwidget = None
+        self._glwidget_filter_installed = False
         self._profile = self._create_profile(parent=self)
+
         self.setPage(CustomWebEnginePage(self.window, self, profile=self._profile))
 
     def _detach_gl_event_filter(self):
+        """
+        Detach OpenGL widget event filter if installed
+        """
         if self._glwidget and self._glwidget_filter_installed:
             try:
                 self._glwidget.removeEventFilter(self)
@@ -60,6 +64,26 @@ class ChatWebOutput(QWebEngineView):
                 pass
         self._glwidget = None
         self._glwidget_filter_installed = False
+
+    def _release_profile_after_page(self, page, profile):
+        """
+        Release profile after page is destroyed
+
+        :param page: QWebEnginePage - page to check
+        :param profile: QWebEngineProfile - profile to release
+        """
+        if not profile or profile is QWebEngineProfile.defaultProfile():
+            return
+        if page:
+            try:
+                page.destroyed.connect(profile.deleteLater)
+                return
+            except Exception:
+                pass
+        try:
+            profile.deleteLater()
+        except Exception:
+            pass
 
     def _teardown_page(self, page: QWebEnginePage):
         """
@@ -74,12 +98,14 @@ class ChatWebOutput(QWebEngineView):
             page.setWebChannel(None)
         except Exception:
             pass
+
         # bridge, channel, and signals have parent=page, so deleteLater of the page will clean them up
         page.deleteLater()
 
     def _create_profile(self, parent=None) -> QWebEngineProfile:
         """
         Create a new QWebEngineProfile with off-the-record settings
+
         :param parent: QWidget - parent widget
         :return: QWebEngineProfile - new profile instance
         """
@@ -157,14 +183,11 @@ class ChatWebOutput(QWebEngineView):
 
         if old_page:
             self._teardown_page(old_page)
-        if old_profile and old_profile is not QWebEngineProfile.defaultProfile():
-            if old_page:
-                old_page.destroyed.connect(old_profile.deleteLater)
-            else:
-                old_profile.deleteLater()
 
+        self._release_profile_after_page(old_page, old_profile)
         self._profile = new_profile
-        self._teardown_page(old_page)
+
+        QTimer.singleShot(0, lambda: QApplication.sendPostedEvents(None, QEvent.DeferredDelete))
         mem_clean()
 
     def on_delete(self):
@@ -180,14 +203,13 @@ class ChatWebOutput(QWebEngineView):
         self.tab = None
         self.meta = None
 
-        # remove the page along with the channel and Bridge
+        # remove the page and profile
         page = self.page()
+        prof = getattr(self, "_profile", None)
         if page:
             self._teardown_page(page)
 
-        prof = getattr(self, "_profile", None)
-        if prof and prof is not QWebEngineProfile.defaultProfile():
-            prof.deleteLater()
+        self._release_profile_after_page(page, prof)
 
         # safely unhook signals (may not have been hooked)
         for sig, slot in (
@@ -205,7 +227,13 @@ class ChatWebOutput(QWebEngineView):
         self.deleteLater()
 
     def eventFilter(self, source, event):
-        if (event.type() == QEvent.ChildAdded and source is self and event.child().isWidgetType()):
+        """
+        Event filter to handle child added events and mouse button presses
+
+        :param source: QWidget - source of the event
+        :param event: QEvent - event to filter
+        """
+        if event.type() == QEvent.ChildAdded and source is self and event.child().isWidgetType():
             self._detach_gl_event_filter()
             self._glwidget = event.child()
             try:
@@ -227,6 +255,8 @@ class ChatWebOutput(QWebEngineView):
     def on_focus(self, widget):
         """
         On widget clicked
+
+        :param widget: QWidget - widget that received focus
         """
         if self.tab is not None:
             self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
