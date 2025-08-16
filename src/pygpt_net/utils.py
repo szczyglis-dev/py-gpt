@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
 import json
 import os
 import re
 from datetime import datetime
+
+from PySide6.QtCore import QEvent, QCoreApplication
+
 from pygpt_net.core.locale import Locale
 
 locale = None
@@ -263,6 +266,10 @@ def mem_clean():
     ok = False
     try:
         gc.collect()
+    except Exception:
+        pass
+    try:
+        QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
     except Exception:
         pass
     try:

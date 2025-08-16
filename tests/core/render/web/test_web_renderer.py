@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 import json
 import os
@@ -589,16 +589,6 @@ class TestRenderer:
         renderer.reload()
         renderer.window.controller.ctx.refresh_output.assert_called()
 
-    def test_flush(self, renderer, fake_window):
-        pid = 1
-        renderer.pids = {pid: MagicMock(loaded=False)}
-        renderer.body.get_html = MagicMock(return_value="html")
-        node = fake_window.core.ctx.output.get_by_pid(pid)
-        node.setHtml = MagicMock()
-        renderer.flush(pid)
-        assert renderer.pids[pid].document == "html"
-        node.setHtml.assert_called_with("html", baseUrl="file://")
-
     def test_fresh(self, renderer, fake_window):
         meta = DummyCtxMeta()
         pid = 1
@@ -628,15 +618,6 @@ class TestRenderer:
         fake_window.ui.nodes = {'input': "input_node"}
         res = renderer.get_input_node()
         assert res == "input_node"
-
-    def test_get_document(self, renderer):
-        renderer.window.core.ctx.container.get_active_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(document="<html><br></html>")}
-        renderer.parser.to_plain_text = MagicMock(return_value="plain")
-        res = renderer.get_document(True)
-        assert res == "plain"
-        res = renderer.get_document(False)
-        assert res == "<html><br></html>"
 
     def test_remove_item(self, renderer, fake_window):
         meta = DummyCtxMeta()

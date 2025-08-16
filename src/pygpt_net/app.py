@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 00:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
 import os
@@ -22,8 +22,13 @@ if platform.system() == 'Windows':
     # fix ffmpeg bug: [SWR] Output channel layout "" is invalid or unsupported.
     os.environ['QT_MEDIA_BACKEND'] = 'windows'
 
+elif platform.system() == 'Linux':
+    os.environ.setdefault("MALLOC_ARENA_MAX", "2")  # 2 arenas
+    os.environ.setdefault("MALLOC_TRIM_THRESHOLD_", "131072")  # 128 KiB
+
 # enable debug logging
 # os.environ["QT_LOGGING_RULES"] = "*.debug=true"
+# os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
 
 _original_open = builtins.open
 

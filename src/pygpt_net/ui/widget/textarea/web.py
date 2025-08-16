@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent
+from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -49,19 +49,17 @@ class ChatWebOutput(QWebEngineView):
         self._glwidget_filter_installed = False
         self.setProperty('class', 'layout-output-web')
 
-        prof = self.page().profile()
-        try:
-            prof.setOffTheRecord(True)
-        except Exception:
-            pass
-        try:
-            prof.setHttpCacheType(QWebEngineProfile.NoCache)
-            prof.setHttpCacheMaximumSize(0)
-            prof.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
-        except Exception:
-            pass
+        self._profile = self._create_profile(parent=self)
+        self.setPage(CustomWebEnginePage(self.window, self, profile=self._profile))
 
-        self.setPage(CustomWebEnginePage(self.window, self, profile=prof))
+    def _detach_gl_event_filter(self):
+        if self._glwidget and self._glwidget_filter_installed:
+            try:
+                self._glwidget.removeEventFilter(self)
+            except Exception:
+                pass
+        self._glwidget = None
+        self._glwidget_filter_installed = False
 
     def _teardown_page(self, page: QWebEnginePage):
         """
@@ -71,15 +69,77 @@ class ChatWebOutput(QWebEngineView):
         """
         if not page:
             return
-
         try:
             # detach the channel from the page to break JS<->Python references
             page.setWebChannel(None)
         except Exception:
             pass
-
         # bridge, channel, and signals have parent=page, so deleteLater of the page will clean them up
         page.deleteLater()
+
+    def _create_profile(self, parent=None) -> QWebEngineProfile:
+        """
+        Create a new QWebEngineProfile with off-the-record settings
+        :param parent: QWidget - parent widget
+        :return: QWebEngineProfile - new profile instance
+        """
+        p = QWebEngineProfile(parent or self)
+        try:
+            p.setHttpCacheType(QWebEngineProfile.NoCache)
+            p.setHttpCacheMaximumSize(0)
+            p.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+        except Exception:
+            pass
+        return p
+
+    def hard_reset(self, focus_after=True):
+        """
+        Hard reset of the view, creating a new instance of ChatWebOutput
+
+        :param focus_after: bool - whether to focus the new view after reset
+        """
+        parent = self.parentWidget()
+        if parent is None or parent.layout() is None:
+            new_view = ChatWebOutput(self.window)
+            new_view.set_tab(self.tab)
+            new_view.set_meta(self.meta)
+            QTimer.singleShot(0, self.on_delete)
+            return new_view
+
+        layout = parent.layout()
+        idx = layout.indexOf(self)
+        if idx < 0:
+            idx = layout.count()
+
+        new_view = ChatWebOutput(self.window)
+        new_view.setProperty('class', self.property('class') or 'layout-output-web')
+        new_view.set_tab(self.tab)
+        new_view.set_meta(self.meta)
+
+        try:
+            z = self.get_zoom_value()
+            p = new_view.page()
+            if p:
+                p.setZoomFactor(z)
+        except Exception:
+            pass
+
+        layout.insertWidget(idx, new_view)
+        layout.removeWidget(self)
+        self.hide()
+
+        QTimer.singleShot(0, self.on_delete)
+        if focus_after:
+            try:
+                new_view.setFocus()
+            except Exception:
+                pass
+        try:
+            mem_clean()
+        except Exception:
+            pass
+
+        return new_view
 
     def resetPage(self):
         """Reset current page (clear memory)"""
@@ -87,23 +147,29 @@ class ChatWebOutput(QWebEngineView):
         self.plain = ""
         self.html_content = ""
 
-        try:
-            (self.page().profile() if self.page() else QWebEngineProfile.defaultProfile()).clearHttpCache()
-        except Exception:
-            pass
+        old_page = self.page()
+        old_profile = getattr(self, "_profile", None)
 
         self.setUpdatesEnabled(False)
-        old_page = self.page()
-        prof = old_page.profile() if old_page else QWebEngineProfile.defaultProfile()
-        new_page = CustomWebEnginePage(self.window, self, profile=prof)
-
+        new_profile = self._create_profile(parent=self)
+        new_page = CustomWebEnginePage(self.window, self, profile=new_profile)
         self.setPage(new_page)
-        self._teardown_page(old_page)
 
+        if old_page:
+            self._teardown_page(old_page)
+        if old_profile and old_profile is not QWebEngineProfile.defaultProfile():
+            if old_page:
+                old_page.destroyed.connect(old_profile.deleteLater)
+            else:
+                old_profile.deleteLater()
+
+        self._profile = new_profile
+        self._teardown_page(old_page)
         mem_clean()
 
     def on_delete(self):
         """Clean up on delete"""
+        self._detach_gl_event_filter()
         if self.finder:
             try:
                 self.finder.disconnect()
@@ -118,6 +184,10 @@ class ChatWebOutput(QWebEngineView):
         page = self.page()
         if page:
             self._teardown_page(page)
+
+        prof = getattr(self, "_profile", None)
+        if prof and prof is not QWebEngineProfile.defaultProfile():
+            prof.deleteLater()
 
         # safely unhook signals (may not have been hooked)
         for sig, slot in (
@@ -135,20 +205,22 @@ class ChatWebOutput(QWebEngineView):
         self.deleteLater()
 
     def eventFilter(self, source, event):
-        """
-        Focus event filter
-
-        :param source: source
-        :param event: event
-        """
-        if (event.type() == QEvent.ChildAdded and
-                source is self and
-                event.child().isWidgetType()):
+        if (event.type() == QEvent.ChildAdded and source is self and event.child().isWidgetType()):
+            self._detach_gl_event_filter()
             self._glwidget = event.child()
-            self._glwidget.installEventFilter(self)
-        elif (event.type() == event.Type.MouseButtonPress):
-            col_idx = self.tab.column_idx
-            self.window.controller.ui.tabs.on_column_focus(col_idx)
+            try:
+                self._glwidget.installEventFilter(self)
+                self._glwidget_filter_installed = True
+            except Exception:
+                self._glwidget = None
+                self._glwidget_filter_installed = False
+
+        elif event.type() == QEvent.Type.MouseButtonPress:
+            try:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+            except Exception:
+                pass
 
         return super().eventFilter(source, event)
 
@@ -404,6 +476,13 @@ class Bridge(QObject):
     def __init__(self, window, parent=None):
         super(Bridge, self).__init__(parent)
         self.window = window
+
+    chunk = Signal(str, str, str, bool, bool)  # name, buffer, chunk, replace, is_code
+    readyChanged = Signal(bool)
+
+    @Slot()
+    def js_ready(self):
+        self.readyChanged.emit(True)
 
     @Slot(str)
     def log(self, text: str):

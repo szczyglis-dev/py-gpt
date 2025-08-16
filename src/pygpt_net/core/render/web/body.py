@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.16 00:00:00                  #
 # ================================================== #
 
 import os
@@ -47,11 +47,10 @@ class Body:
                 let scrollTimeout = null;
                 let prevScroll = 0;
                 let bridge;
+                let streamQ = [];
+                let streamRAF = 0;
                 let pid = """
-    _HTML_P2 = """
-                new QWebChannel(qt.webChannelTransport, function (channel) {
-                    bridge = channel.objects.bridge;
-                });
+    _HTML_P2 = """                
                 let collapsed_idx = [];
                 let domOutputStream = document.getElementById('_append_output_');
                 let domOutput = document.getElementById('_output_');
@@ -68,6 +67,7 @@ class Body:
                 let pendingHighlightRoot = null;
                 let pendingHighlightMath = false;
                 let scrollScheduled = false;
+                const AMP_LT_GT = /&amp;(lt|gt);/g;
 
                 history.scrollRestoration = "manual";
                 document.addEventListener('keydown', function(event) {
@@ -213,7 +213,8 @@ class Body:
                     prevScroll = el.scrollHeight;
                 }
                 function sanitize(content) {
-                    return content.replace(/&amp;lt;/g, '&lt;').replace(/&amp;gt;/g, '&gt;');
+                    if (content.indexOf('&amp;') === -1) return content;
+                    return content.replace(AMP_LT_GT, '&$1;'); // &amp;lt; -> &lt;, &amp;gt; -> &gt;
                 }
                 function appendToInput(content) {
                     const element = els.appendInput || document.getElementById('_append_input_');
@@ -350,11 +351,22 @@ class Body:
                 function endStream() {
                     clearOutput();
                 }
+                function enqueueStream(name_header, content, chunk, replace = false, is_code_block = false) {
+                  streamQ.push({name_header, content, chunk, replace, is_code_block});
+                  if (!streamRAF) {
+                    streamRAF = requestAnimationFrame(drainStream);
+                  }
+                }                
+                function drainStream() {
+                  streamRAF = 0;
+                  while (streamQ.length) {
+                    const {name_header, content, chunk, replace, is_code_block} = streamQ.shift();
+                    appendStream(name_header, content, chunk, replace, is_code_block);
+                  }
+                }
                 function appendStream(name_header, content, chunk, replace = false, is_code_block = false) {
                     hideTips();
                     const element = getStreamContainer();
-                    let doHighlight = true;
-                    let doMath = true;
                     let msg;
                     if (element) {
                         let box = element.querySelector('.msg-box');
@@ -378,7 +390,15 @@ class Body:
                         }
                         if (msg) {
                             if (replace) {
-                                msg.innerHTML = sanitize(content);
+                                msg.replaceChildren();
+                                if (content) {
+                                  msg.insertAdjacentHTML('afterbegin', content);
+                                }
+                                let doMath = true;
+                                if (!is_code_block) {
+                                    doMath = false;
+                                }
+                                highlightCode(doMath, msg);
                                 domLastCodeBlock = null;
                                 domLastParagraphBlock = null;
                             } else {
@@ -395,43 +415,27 @@ class Body:
                                     if (lastCodeBlock) {
                                         lastCodeBlock.insertAdjacentHTML('beforeend', chunk);
                                         domLastCodeBlock = lastCodeBlock;
-                                        doHighlight = false;
                                     } else {
                                         msg.insertAdjacentHTML('beforeend', chunk);
                                         domLastCodeBlock = null;
                                     }
-                                    doMath = false;
                                 } else {
                                     domLastCodeBlock = null;
-                                    if (msg.innerHTML.trim().endsWith('</p>')) {
-                                        let lastParagraphBlock;
-                                        if (domLastParagraphBlock) {
-                                            lastParagraphBlock = domLastParagraphBlock;
-                                        } else {
-                                            const blocksParagraph = msg.querySelectorAll('p');
-                                            if (blocksParagraph.length > 0) {
-                                                lastParagraphBlock = blocksParagraph[blocksParagraph.length - 1];
-                                            }
-                                        }
-                                        if (lastParagraphBlock) {
-                                            domLastParagraphBlock = lastParagraphBlock;
-                                            lastParagraphBlock.insertAdjacentHTML('beforeend', chunk);
-                                        } else {
-                                            domLastParagraphBlock = null;
-                                            msg.insertAdjacentHTML('beforeend', chunk);
-                                        }
+                                    let p = (domLastParagraphBlock && msg.contains(domLastParagraphBlock))
+                                        ? domLastParagraphBlock
+                                        : (msg.lastElementChild && msg.lastElementChild.tagName === 'P'
+                                            ? msg.lastElementChild
+                                            : null);
+                                    if (p) {
+                                        p.insertAdjacentHTML('beforeend', sanitize(chunk));
+                                        domLastParagraphBlock = p;
                                     } else {
-                                        domLastParagraphBlock = null;
-                                        msg.insertAdjacentHTML('beforeend', chunk);
+                                        msg.insertAdjacentHTML('beforeend', sanitize(chunk));
+                                        const last = msg.lastElementChild;
+                                        domLastParagraphBlock = (last && last.tagName === 'P') ? last : null;
                                     }
-                                    doHighlight = false;
                                 }
                             }
-                        }
-                    }
-                    if (replace) {
-                        if (doHighlight) {
-                            highlightCode(doMath, msg);
                         }
                     }
                     scheduleScroll(true);
@@ -461,7 +465,8 @@ class Body:
                             msg = box.querySelector('.msg');
                         }
                         if (msg) {
-                            msg.innerHTML = sanitize(content);
+                            msg.replaceChildren();
+                            msg.insertAdjacentHTML('afterbegin', sanitize(content));
                             highlightCode(true, msg);
                             scheduleScroll();
                         }
@@ -756,6 +761,13 @@ class Body:
                     }
                 }
                 document.addEventListener('DOMContentLoaded', function() {
+                    new QWebChannel(qt.webChannelTransport, function (channel) {
+                        bridge = channel.objects.bridge;
+                        bridge.chunk.connect((name, html, chunk, replace, isCode) => {
+                            appendStream(name, html, chunk, replace, isCode);
+                        });
+                        if (bridge.js_ready) bridge.js_ready();
+                    });
                     initDomRefs();
                     const container = els.container;
                     function addClassToMsg(id, className) {
