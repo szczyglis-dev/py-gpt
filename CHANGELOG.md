@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.7 (2025-08-16)
+
+- Fix: missing entity sanitize.
+
 ## 2.6.6 (2025-08-16)
 
 - Output rendering optimization.
