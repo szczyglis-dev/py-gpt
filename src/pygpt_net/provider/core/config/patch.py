@@ -2250,6 +2250,18 @@ class Patch:
                 self.window.core.updater.patch_css('style.dark.css', True)  # calendar fix
                 updated = True
 
+            # < 2.6.8
+            if old < parse_version("2.6.8"):
+                print("Migrating config from < 2.6.8...")
+                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # p color
+                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # p color
+                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # p color
+                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # p color
+                self.window.core.updater.patch_css('style.light.css', True)  # tree
+                self.window.core.updater.patch_css('style.dark.css', True)  # tree
+                updated = True
+
+
         # update file
         migrated = False
         if updated:
