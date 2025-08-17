@@ -58,6 +58,9 @@ class RenderEvent(BaseEvent):
     ACTION_REGEN_SUBMIT = "render.action.regen.submit"
     ACTION_EDIT_SUBMIT = "render.action.edit.submit"
 
+    ITEM_DELETE_ID = "render.item.delete.id"
+    ITEM_DELETE_FROM_ID = "render.item.delete.from_id"
+
     STATE_IDLE = "render.state.idle"
     STATE_BUSY = "render.state.busy"
     STATE_ERROR = "render.state.error"

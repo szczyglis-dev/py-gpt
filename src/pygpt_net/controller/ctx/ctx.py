@@ -22,6 +22,7 @@ from .summarizer import Summarizer
 from .extra import Extra
 
 from pygpt_net.utils import trans
+from ...core.types import MODE_ASSISTANT
 
 
 class Ctx:
@@ -293,7 +294,7 @@ class Ctx:
 
         mode = self.window.core.ctx.get_mode()
         assistant_id = None
-        if mode == 'assistant':
+        if mode == MODE_ASSISTANT:
             assistant_id = self.window.core.config.get('assistant')
             self.window.controller.assistant.files.update()  # always update assistant files
 
@@ -462,7 +463,7 @@ class Ctx:
                 ctrl.presets.set(mode, preset)
                 ctrl.presets.refresh()
 
-            if mode == 'assistant':
+            if mode == MODE_ASSISTANT:
                 if assistant_id is not None:
                     ctrl.assistant.select_by_id(assistant_id)
                 else:
@@ -480,7 +481,7 @@ class Ctx:
         id = None
         if self.window.core.ctx.is_allowed_for_mode(mode, False):
             self.window.core.ctx.update()
-            if mode == 'assistant':
+            if mode == MODE_ASSISTANT:
                 if self.window.core.ctx.get_assistant() is not None:
                     id = self.window.core.ctx.get_assistant()
                 else:
@@ -560,9 +561,12 @@ class Ctx:
                 msg=trans('ctx.delete.item.confirm'),
             )
             return
+        item = self.window.core.ctx.get_item_by_id(id)
+        event = RenderEvent(RenderEvent.ITEM_DELETE_ID, {
+            "ctx": item,
+        })
         self.window.core.ctx.remove_item(id)
-        self.refresh()
-        self.update(no_scroll=True)
+        self.window.dispatch(event)
 
     def delete_history(self, force: bool = False):
         """

@@ -251,19 +251,19 @@ class BaseRenderer:
         """
         pass
 
-    def remove_item(self, id: int):
+    def remove_item(self, ctx: CtxItem):
         """
         Remove item from output
 
-        :param id: context item ID
+        :param ctx: context item
         """
         pass
 
-    def remove_items_from(self, id: int):
+    def remove_items_from(self, ctx: CtxItem):
         """
         Remove item from output
 
-        :param id: context item ID
+        :param ctx: context item
         """
         pass
 

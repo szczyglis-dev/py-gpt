@@ -166,6 +166,11 @@ class Render:
             meta = data.get("meta") or self.window.core.ctx.get_current_meta()
             self.on_state_changed(name, meta)
 
+        elif name == RenderEvent.ITEM_DELETE_ID:
+            self.remove_item(data.get("ctx"))
+        elif name == RenderEvent.ITEM_DELETE_FROM_ID:
+            self.remove_items_from(data.get("ctx"))
+
     def on_state_changed(self, state: str, meta: Optional[CtxMeta] = None) -> None:
         """
         Handle state change event
@@ -404,22 +409,22 @@ class Render:
         self.instance().on_disable_timestamp(live)
         self.update()
 
-    def remove_item(self, id: int) -> None:
+    def remove_item(self, ctx: CtxItem) -> None:
         """
         Remove item from output
 
-        :param id: context item ID
+        :param ctx: context item
         """
-        self.instance().remove_item(id)
+        self.instance().remove_item(ctx)
         self.update()
 
-    def remove_items_from(self, id: int) -> None:
+    def remove_items_from(self, ctx: CtxItem) -> None:
         """
         Remove item from output
 
-        :param id: context item ID
+        :param ctx: context item
         """
-        self.instance().remove_items_from(id)
+        self.instance().remove_items_from(ctx)
         self.update()
 
     def on_edit_submit(self, ctx: CtxItem) -> None:
