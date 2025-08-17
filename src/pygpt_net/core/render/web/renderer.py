@@ -510,6 +510,15 @@ class Renderer(BaseRenderer):
                 text_chunk = "".join(("\n", text_chunk))  # add newline to chunk
 
         self.prev_chunk_replace = replace_bool
+
+        # hide loading spinner if it is the beginning of the text
+        if begin:
+            try:
+                self.get_output_node(meta).page().runJavaScript("hideLoading();")
+            except Exception as e:
+                pass
+
+        # emit chunk to output node
         try:
             self.get_output_node(meta).page().bridge.chunk.emit(
                 name_header_str or "",
