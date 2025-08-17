@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -41,7 +41,7 @@ class Files:
         if len(attachments) > 0:
             ctx.attachments = attachments
             self.window.update_status(trans('status.sending'))
-            self.window.controller.chat.log("Uploaded attachments (Assistant): {}".format(len(attachments)))
+            self.window.controller.chat.log(f"Uploaded attachments (Assistant): {len(attachments)}")
         return attachments
 
     def upload(self, mode: str) -> Dict[str, AttachmentItem]:

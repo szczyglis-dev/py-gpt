@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -73,6 +73,7 @@ class Text:
         ai_name = event.data['value']
 
         # prepare mode, model, etc.
+        agent_provider = None  # agent provider (llama or openai)
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
@@ -93,11 +94,11 @@ class Text:
             agent_provider = self.window.core.config.get('agent.openai.provider')
 
         # o1 models: disable stream mode
-        if mode in [MODE_AGENT_LLAMA, MODE_AUDIO]:
+        if mode in (MODE_AGENT_LLAMA, MODE_AUDIO):
             stream_mode = False
-        if mode in [MODE_LLAMA_INDEX] and idx_mode == "retrieval":
+        if mode == MODE_LLAMA_INDEX and idx_mode == "retrieval":
             stream_mode = False
-        if mode in [MODE_LLAMA_INDEX]:
+        if mode == MODE_LLAMA_INDEX:
             if not self.window.core.idx.chat.is_stream_allowed():
                 stream_mode = False
 
@@ -156,7 +157,11 @@ class Text:
         self.window.dispatch(event)
 
         # agent or expert mode
-        sys_prompt = self.window.controller.agent.experts.append_prompts(mode, sys_prompt, parent_id)
+        sys_prompt = self.window.controller.agent.experts.append_prompts(
+            mode,
+            sys_prompt,
+            parent_id
+        )
 
         # on pre prompt event
         event = Event(Event.PRE_PROMPT, {
@@ -221,7 +226,7 @@ class Text:
             files = self.window.core.attachments.get_all(mode)
             num_files = len(files)
             if num_files > 0:
-                self.window.controller.chat.log("Attachments ({}): {}".format(mode, num_files))
+                self.window.controller.chat.log(f"Attachments ({mode}): {num_files}")
 
             # assistant
             assistant_id = self.window.core.config.get('assistant')
@@ -257,7 +262,7 @@ class Text:
                 'reply': reply,
                 'internal': internal,
             }
-            if mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
+            if mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
                 extra['agent_idx'] = agent_idx
                 extra['agent_provider'] = agent_provider
 
@@ -269,8 +274,8 @@ class Text:
             self.window.dispatch(event)
 
         except Exception as e:
-            self.window.controller.chat.log("Bridge call ERROR: {}".format(e))  # log
+            self.window.controller.chat.log(f"Bridge call ERROR: {e}")  # log
             self.window.controller.chat.handle_error(e)
-            print("Error when calling bridge: " + str(e))
+            print(f"Error when calling bridge: {e}")
 
         return ctx

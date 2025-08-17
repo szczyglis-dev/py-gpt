@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import os
@@ -148,7 +148,7 @@ class Input:
             except Exception as e:
                 self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
                     "id": "chat",
-                    "msg": "Error reading attachments: {}".format(str(e))
+                    "msg": f"Error reading attachments: {str(e)}"
                 }))
                 return
 
@@ -237,11 +237,11 @@ class Input:
         self.window.controller.assistant.threads.stop = False
         self.window.controller.kernel.resume()
 
-        self.log("Input prompt: {}".format(text))  # log
+        self.log(f"Input prompt: {text}")  # log
 
         # agent mode
         if mode == MODE_AGENT:
-            self.log("Agent: input before: {}".format(text))
+            self.log(f"Agent: input before: {text}")
             text = self.window.controller.agent.legacy.on_input_before(text)
 
         # event: before input

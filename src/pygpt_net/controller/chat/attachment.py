@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import os
@@ -128,7 +128,7 @@ class Attachment(QObject):
         attachments = self.window.core.attachments.get_all(mode, only_files=True)
 
         if self.is_verbose() and len(attachments) > 0:
-            print("\nUploading attachments...\nWork Mode: {}".format(mode))
+            print(f"\nUploading attachments...\nWork Mode: {mode}")
 
         for uuid in attachments:
             attachment = attachments[uuid]
@@ -175,7 +175,7 @@ class Attachment(QObject):
             return False
         if self.window.core.filesystem.packer.is_archive(attachment.path):
             if self.is_verbose():
-                print("Unpacking archive: {}".format(attachment.path))
+                print(f"Unpacking archive: {attachment.path}")
             tmp_path = self.window.core.filesystem.packer.unpack(attachment.path)
             if tmp_path:
                 for root, dirs, files in os.walk(tmp_path):
@@ -188,7 +188,7 @@ class Attachment(QObject):
                         path_relative = os.path.relpath(path, tmp_path)
                         if self.is_allowed(str(path)):
                             if self.is_verbose():
-                                print("Uploading unpacked from archive: {}".format(path_relative))
+                                print(f"Uploading unpacked from archive: {path_relative}")
                             item = self.window.core.attachments.context.upload(
                                 meta=meta,
                                 attachment=sub_attachment,
@@ -197,7 +197,7 @@ class Attachment(QObject):
                                 auto_index=auto_index,
                             )
                             if item:
-                                item["path"] = os.path.basename(attachment.path) + "/" + str(path_relative)
+                                item["path"] = f"{os.path.basename(attachment.path)}/{str(path_relative)}"
                                 item["size"] = os.path.getsize(path)
                                 self.append_to_meta(meta, item)
                                 uploaded = True
@@ -296,7 +296,7 @@ class Attachment(QObject):
         """
         if self.mode != self.MODE_DISABLED:
             if self.is_verbose():
-                print("\nPreparing additional context...\nContext Mode: {}".format(self.mode))
+                print(f"\nPreparing additional context...\nContext Mode: {self.mode}")
 
         self.window.core.attachments.context.reset()  # reset used files and urls
 
@@ -313,8 +313,8 @@ class Attachment(QObject):
 
         if content:
             if self.is_verbose():
-                print("\n--- Using additional context ---\n\n{}".format(content))
-            return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT(s): {}".format(content)
+                print(f"\n--- Using additional context ---\n\n{content}")
+            return f"====================================\nADDITIONAL CONTEXT FROM ATTACHMENT(s): {content}"
         return ""
 
     def update(self):
@@ -355,7 +355,7 @@ class Attachment(QObject):
             suffix = f' ({num_files})'
         self.window.ui.tabs['input'].setTabText(
             3,
-            trans('attachments_uploaded.tab') + suffix,
+            f"{trans('attachments_uploaded.tab')}{suffix}",
         )
         """
         if num_files > 0:
@@ -462,7 +462,7 @@ class Attachment(QObject):
             if "real_path" in item:
                 path = item["real_path"]
             if os.path.exists(path) and os.path.isfile(path):
-                print("Opening attachment: {}".format(path))
+                print(f"Opening attachment: {path}")
                 self.window.controller.files.open(path)
 
     def open_dir_src_by_idx(self, idx: int):
@@ -482,7 +482,7 @@ class Attachment(QObject):
                 path = item["real_path"]
             dir = os.path.dirname(path)
             if os.path.exists(dir) and os.path.isdir(dir):
-                print("Opening source directory: {}".format(dir))
+                print(f"Opening source directory: {dir}")
                 self.window.controller.files.open(dir)
 
     def open_dir_dest_by_idx(self, idx: int):
@@ -501,7 +501,7 @@ class Attachment(QObject):
             dir = os.path.join(root_dir, item["uuid"])
             if os.path.exists(dir) and os.path.isdir(dir):
                 self.window.controller.files.open(dir)
-                print("Opening destination directory: {}".format(dir))
+                print(f"Opening destination directory: {dir}")
 
     def has_file_by_idx(self, idx: int) -> bool:
         """
@@ -591,7 +591,7 @@ class Attachment(QObject):
         """
         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
             "id": "chat",
-            "msg": "Error reading attachments: {}".format(str(error))
+            "msg": f"Error reading attachments: {str(error)}"
         }))
 
     @Slot(str)

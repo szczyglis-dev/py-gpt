@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 01:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 from typing import List, Tuple
@@ -62,7 +62,8 @@ class Dispatcher:
                 debug.debug(f"[event] Before handle: {event}")
 
         if event.stop:
-            debug.info(f"[event] Skipping... (stopped): {event.name}")
+            if log_event:
+                debug.info(f"[event] Skipping... (stopped): {event.name}")
             return [], event
 
         handled = False
@@ -100,7 +101,8 @@ class Dispatcher:
         for pid in plugin_ids:
             if controller.plugins.is_enabled(pid) or all:
                 if event.stop:
-                    debug.info(f"[event] Skipping... (stopped):  {event.name}")
+                    if log_event:
+                        debug.info(f"[event] Skipping... (stopped):  {event.name}")
                     break
                 if log_event and debug.enabled():
                     debug.debug(f"[event] Apply [{event.name}] to plugin: {pid}")

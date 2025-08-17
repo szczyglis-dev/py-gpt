@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import json
@@ -45,9 +45,9 @@ class Command:
         :param all: True to dispatch to all plugins
         :param execute_only: True to dispatch only to plugins with execute event
         """
-        self.window.core.debug.info("Dispatch CMD event begin: " + event.name)
+        self.window.core.debug.info(f"Dispatch CMD event begin: {event.name}")
         if self.window.core.debug.enabled():
-            self.window.core.debug.debug("EVENT BEFORE: " + str(event))
+            self.window.core.debug.debug(f"EVENT BEFORE: {str(event)}")
 
         # begin reply stack
         if event.name in self.flush_events:
@@ -69,7 +69,7 @@ class Command:
                         self.stop = False  # unlock needed here
                     break
                 if self.window.core.debug.enabled():
-                    self.window.core.debug.debug("Apply [{}] to plugin: ".format(event.name) + id)
+                    self.window.core.debug.debug(f"Apply [{event.name}] to plugin: {id}")
 
                 self.window.stateChanged.emit(self.window.STATE_BUSY)
                 self.window.core.dispatcher.apply(id, event)
@@ -84,7 +84,7 @@ class Command:
 
         :param event: event object
         """
-        self.window.core.debug.info("Dispatch CMD event begin: " + event.name)
+        self.window.core.debug.info(f"Dispatch CMD event begin: {event.name}")
         if event.name in self.flush_events:
             self.window.controller.kernel.replies.clear()
         for id in self.window.core.plugins.get_ids():
@@ -156,7 +156,7 @@ class Command:
         if ctx is not None:
             self.window.core.debug.info("Reply...")
             if self.window.core.debug.enabled():
-                self.window.core.debug.debug("CTX REPLY: " + str(ctx))
+                self.window.core.debug.debug(f"CTX REPLY: {str(ctx)}")
 
             self.window.update_status("")  # Clear status
             if ctx.reply:

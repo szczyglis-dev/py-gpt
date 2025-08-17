@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -52,12 +52,12 @@ class Command:
             # check if commands are enabled, leave only enabled commands
             for cmd in list(cmds):
                 if "cmd" not in cmd:
-                    self.log("[cmd] Command without 'cmd' key: " + str(cmd))
+                    self.log(f"[cmd] Command without 'cmd' key: {cmd}")
                     cmds.remove(cmd)
                     continue
                 cmd_id = str(cmd["cmd"])
                 if not self.window.core.command.is_enabled(cmd_id) and not ctx.force_call:
-                    self.log("[cmd] Command not allowed: " + cmd_id)
+                    self.log(f"[cmd] Command not allowed: {cmd_id}")
                     cmds.remove(cmd)  # remove command from execution list
 
             # agent mode

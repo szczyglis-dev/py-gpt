@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -257,14 +257,14 @@ class Output:
                 self.log("Attachments cleared.")  # log
 
         if self.window.core.config.get("log.ctx"):
-            self.log("Context: END: {}".format(ctx))
+            self.log(f"Context: END: {ctx}")
         else:
             self.log("Context: END.")
 
         # agent mode
         if mode == MODE_AGENT:
             agent_iterations = int(self.window.core.config.get("agent.iterations"))
-            self.log("Agent: ctx end, iterations: {}".format(agent_iterations))
+            self.log(f"Agent: ctx end, iterations: {agent_iterations}")
             self.window.controller.agent.legacy.on_ctx_end(
                 ctx,
                 iterations=agent_iterations,

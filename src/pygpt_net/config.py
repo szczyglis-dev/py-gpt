@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -112,14 +112,14 @@ class Config:
         """
         path = os.path.join(Path.home(), '.config', Config.CONFIG_DIR)
         if "PYGPT_WORKDIR" in os.environ and os.environ["PYGPT_WORKDIR"] != "":
-            print("FORCE using workdir: {}".format(os.environ["PYGPT_WORKDIR"]))
+            print(f"FORCE using workdir: {os.environ['PYGPT_WORKDIR']}")
             if not os.path.isabs(os.environ["PYGPT_WORKDIR"]):
                 path = os.path.join(os.getcwd(), os.environ["PYGPT_WORKDIR"])
             else:
                 path = os.environ["PYGPT_WORKDIR"]
             if not os.path.exists(path):
-                print("Workdir path not exists: {}".format(path))
-                print("Creating workdir path: {}".format(path))
+                print(f"Workdir path not exists: {path}")
+                print(f"Creating workdir path: {path}")
                 os.makedirs(path, exist_ok=True)
         return path
 
@@ -147,7 +147,7 @@ class Config:
                 if os.path.exists(tmp_path):
                     path = Path(tmp_path)
                 else:
-                    print("CRITICAL: Workdir path not exists: {}".format(tmp_path))
+                    print(f"CRITICAL: Workdir path not exists: {tmp_path}")
         return str(path)
 
     def set_workdir(self, path: str, reload: bool = False):
@@ -181,7 +181,7 @@ class Config:
         :return: user dir
         """
         if dir not in self.dirs:
-            raise Exception('Unknown dir: {}'.format(dir))
+            raise Exception(f'Unknown dir: {dir}')
 
         dir_data_allowed = ("img", "capture", "upload")
 
@@ -244,7 +244,7 @@ class Config:
 
                 print("===================================================")
                 print(f" {Color.BOLD}PyGPT    {v}{Color.ENDC} build {build} ({os_name}, {architecture})")
-                print(" Author:  Marcin Szczyglinski")
+                print(" Author:  Marcin Szczygliński")
                 print(" GitHub:  https://github.com/szczyglis-dev/py-gpt")
                 print(" Website: https://pygpt.net")
                 print(" Email:   info@pygpt.net")
@@ -276,7 +276,7 @@ class Config:
             if self.window is not None:
                 self.window.core.debug.log(e)
             else:
-                print("Error loading version file: {}".format(e))
+                print(f"Error loading version file: {e}")
 
     def get_build(self) -> str:
         """
@@ -297,7 +297,7 @@ class Config:
             if self.window is not None:
                 self.window.core.debug.log(e)
             else:
-                print("Error loading version file: {}".format(e))
+                print(f"Error loading version file: {e}")
 
     def get_options(self) -> dict:
         """
@@ -541,9 +541,9 @@ class Config:
                 os.environ[item['name']] = value
                 list_loaded.append(item['name'])
             except Exception as e:
-                print("Error setting env var: {}".format(e))
+                print(f"Error setting env var: {e}")
         if list_loaded:
-            print("Setting environment vars: {}".format(", ".join(list_loaded)))
+            print(f"Setting environment vars: {', '.join(list_loaded)}")
 
     def save(self, filename: str = "config.json"):
         """

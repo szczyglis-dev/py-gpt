@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 18:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -147,7 +147,7 @@ class Debug(QObject):
         :param message: message
         :param source_id: source ID
         """
-        data = "[JS] Line " + str(line_number) + ": " + message
+        data = f"[JS] Line {line_number}: {message}"
         self.log(data, window=True)
 
     @Slot(object)

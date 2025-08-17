@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -251,9 +251,9 @@ class Response:
         try:
             self.window.controller.chat.output.handle(ctx, mode, stream)
         except Exception as e:
-            self.window.controller.chat.log("Output ERROR: {}".format(e))  # log
+            self.window.controller.chat.log(f"Output ERROR: {e}")  # log
             self.window.controller.chat.handle_error(e)
-            print("Error in append text: " + str(e))
+            print(f"Error in append text: {e}")
 
         # post-handle, execute cmd, etc.
         self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
@@ -314,10 +314,10 @@ class Response:
         :param extra: Extra data
         """
         err = extra.get("error") if "error" in extra else None
-        self.window.controller.chat.log("Output ERROR: {}".format(err))  # log
+        self.window.controller.chat.log(f"Output ERROR: {err}")  # log
         self.window.controller.chat.handle_error(err)
         self.window.controller.chat.common.unlock_input()  # unlock input
-        print("Error in sending text: " + str(err))
+        print(f"Error in sending text: {err}")
         # set state to: error
         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
             "id": "chat",

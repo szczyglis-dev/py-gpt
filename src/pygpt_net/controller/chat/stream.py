@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import base64
-import gc
 import io
 from typing import Optional, Literal
 
@@ -327,7 +326,7 @@ class StreamWorker(QRunnable):
 
                     else:
                         if chunk is not None:
-                            response = str(chunk)
+                            response = chunk if isinstance(chunk, str) else str(chunk)
 
                     if response is not None and response != "" and not stopped:
                         if begin and response == "":

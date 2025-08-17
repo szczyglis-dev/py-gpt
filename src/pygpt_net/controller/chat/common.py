@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 22:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.core.events import Event, AppEvent, RenderEvent
+from pygpt_net.core.types import MODE_ASSISTANT
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import trans
@@ -138,7 +139,7 @@ class Common:
         cur.movePosition(QTextCursor.End)
         text = str(text).strip()
         if prev_text.strip() != "":
-            text = separator + text
+            text = f"{separator}{text}"
         s = text
         while s:
             head, sep, s = s.partition("\n")  # Split line at LF
@@ -283,7 +284,7 @@ class Common:
         self.window.stateChanged.emit(self.window.STATE_IDLE)
 
         # remotely stop assistant
-        if mode == "assistant" and not exit:
+        if mode == MODE_ASSISTANT and not exit:
             try:
                 self.window.controller.assistant.run_stop()
             except Exception as e:
@@ -329,14 +330,14 @@ class Common:
                     if monit:
                         self.window.ui.nodes['start.api_key.provider'].setText(name)
                         self.window.controller.launcher.show_api_monit()
-                    self.window.update_status("Missing API KEY for provider: {}".format(name))
+                    self.window.update_status(f"Missing API KEY for provider: {name}")
                     return False
             else:
                 if api_key is None or api_key == '':
                     if monit:
                         self.window.ui.nodes['start.api_key.provider'].setText(name)
                         self.window.controller.launcher.show_api_monit()
-                    self.window.update_status("Missing API KEY for provider: {}".format(name))
+                    self.window.update_status(f"Missing API KEY for provider: {name}")
                     return False
         return True
 
@@ -450,7 +451,7 @@ class Common:
             )
             with open(file_name, 'w', encoding="utf-8") as f:
                 f.write(str(text).strip())
-            self.window.update_status(trans('status.saved') + ": " + os.path.basename(file_name))
+            self.window.update_status(f"{trans('status.saved')}: {os.path.basename(file_name)}")
 
     def show_response_tokens(self, ctx: CtxItem):
         """
@@ -462,11 +463,5 @@ class Common:
         if ctx.is_vision:
             extra_data = " (VISION)"
         self.window.update_status(
-            trans('status.tokens') + ": {} + {} = {}{}".
-            format(
-                ctx.input_tokens,
-                ctx.output_tokens,
-                ctx.total_tokens,
-                extra_data,
-            ))
-
+            f"{trans('status.tokens')}: {ctx.input_tokens} + {ctx.output_tokens} = {ctx.total_tokens}{extra_data}"
+        )
