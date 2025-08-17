@@ -1972,6 +1972,20 @@
         "advanced": false,
         "tab": "general"
     },
+    "agent.idx.auto_retrieve": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.idx.auto_retrieve",
+        "description": "settings.agent.idx.auto_retrieve.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
+    },
     "agent.mode": {
         "section": "agent",
         "type": "combo",

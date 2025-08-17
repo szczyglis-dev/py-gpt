@@ -2261,6 +2261,12 @@ class Patch:
                 self.window.core.updater.patch_css('style.dark.css', True)  # tree
                 updated = True
 
+            # < 2.6.10
+            if old < parse_version("2.6.10"):
+                print("Migrating config from < 2.6.10...")
+                if "agent.idx.auto_retrieve" not in data:
+                    data["agent.idx.auto_retrieve"] = True
+                updated = True
 
         # update file
         migrated = False

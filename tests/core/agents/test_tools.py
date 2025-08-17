@@ -87,7 +87,7 @@ def test_prepare_with_valid_agent_idx(tools_instance, fake_context):
     tools_list = tools_instance.prepare(fake_context, extra, verbose=False, force=False)
     names = [tool.metadata.name for tool in tools_list if hasattr(tool, "metadata")]
     assert "test_function" in names
-    assert "query_engine" in names
+    assert "rag_get_context" in names
 
 def test_get_plugin_functions(tools_instance, fake_ctx_item):
     tools_list = tools_instance.get_plugin_functions(fake_ctx_item, verbose=False, force=False)
@@ -103,40 +103,40 @@ def test_tool_exec_normal(tools_instance):
 def test_tool_exec_query_engine_missing_query(tools_instance):
     tools_instance.context = SimpleNamespace(model="test_model")
     tools_instance.agent_idx = "valid"
-    result = tools_instance.tool_exec("query_engine", {})
+    result = tools_instance.tool_exec("rag_get_context", {})
     assert result == "Query parameter is required for query_engine tool."
 
 def test_tool_exec_query_engine_context_none(tools_instance):
     tools_instance.context = None
     tools_instance.agent_idx = "valid"
-    result = tools_instance.tool_exec("query_engine", {"query": "search"})
+    result = tools_instance.tool_exec("rag_get_context", {"query": "search"})
     assert result == "Context is not set for query_engine tool."
 
 def test_tool_exec_query_engine_agent_idx_missing(tools_instance, fake_context):
     tools_instance.context = fake_context
     tools_instance.agent_idx = None
-    result = tools_instance.tool_exec("query_engine", {"query": "search"})
+    result = tools_instance.tool_exec("rag_get_context", {"query": "search"})
     assert result == "Agent index is not set for query_engine tool."
     tools_instance.agent_idx = "_"
-    result = tools_instance.tool_exec("query_engine", {"query": "search"})
+    result = tools_instance.tool_exec("rag_get_context", {"query": "search"})
     assert result == "Agent index is not set for query_engine tool."
 
 def test_tool_exec_query_engine_index_not_found(tools_instance, fake_context):
     tools_instance.context = fake_context
     tools_instance.agent_idx = "invalid"
-    result = tools_instance.tool_exec("query_engine", {"query": "search"})
+    result = tools_instance.tool_exec("rag_get_context", {"query": "search"})
     assert result == "Index not found for query_engine tool."
 
 def test_tool_exec_query_engine_success(tools_instance, fake_context):
     tools_instance.context = fake_context
     tools_instance.agent_idx = "valid"
-    result = tools_instance.tool_exec("query_engine", {"query": "search"})
+    result = tools_instance.tool_exec("rag_get_context", {"query": "search"})
     assert result == "fake query result"
 
 def test_get_plugin_specs(tools_instance, fake_context):
     tools_instance.agent_idx = "valid"
     specs = tools_instance.get_plugin_specs(fake_context, {})
-    assert any("query_engine" in spec for spec in specs)
+    assert any("rag_get_context" in spec for spec in specs)
     assert any("test_function" in spec for spec in specs)
 
 def test_last_tool_output_methods(tools_instance):

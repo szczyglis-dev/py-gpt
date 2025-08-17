@@ -3422,6 +3422,10 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 **General**
 
+- `Verbose` - enables verbose mode.
+
+- `Auto retrieve additional context from RAG`: Auto retrieve additional context from RAG at the beginning if the index is provided.
+
 - `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
 
 **Agents (LlamaIndex / OpenAI)**
@@ -3431,8 +3435,6 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 - `Max evaluation steps in loop` - Maximum evaluation steps to achieve the final result, set 0 to infinity
 
 - `Append and compare previous evaluation prompt in next evaluation` - If enabled, previous improvement prompt will be checked in next eval in loop, default: False
-
-- `Verbose` - enables verbose mode.
 
 - `Split response messages` - Split response messages to separated context items in OpenAI Agents mode.
 

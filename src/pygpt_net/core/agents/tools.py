@@ -25,6 +25,13 @@ from pygpt_net.item.ctx import CtxItem
 
 
 class Tools:
+
+    QUERY_ENGINE_TOOL_NAME = "rag_get_context"
+    QUERY_ENGINE_TOOL_DESCRIPTION = "Get additional context for provided question. Use this whenever you need additional context to provide an answer. "
+    QUERY_ENGINE_TOOL_SPEC = ("**"+QUERY_ENGINE_TOOL_NAME+"**: "
+                         + QUERY_ENGINE_TOOL_DESCRIPTION +
+                         "available params: {'query': {'type': 'string', 'description': 'query string'}}, required: [query]")
+
     def __init__(self, window=None):
         """
         Agent tools
@@ -63,25 +70,83 @@ class Tools:
         tools.extend(plugin_functions)
 
         # add query engine tool if idx is provided
+        query_engine_tools = self.get_retriever_tool(
+            context=context,
+            extra=extra,
+            verbose=verbose,
+        )
+        if query_engine_tools:
+            tools.extend(query_engine_tools)
+        return tools
+
+    def get_retriever_tool(
+            self,
+            context: BridgeContext,
+            extra: Dict[str, Any],
+            verbose: bool = False
+    ) -> List[BaseTool]:
+        """
+        Prepare tools for agent
+
+        :param context: BridgeContext
+        :param extra: extra data
+        :param verbose: verbose mode
+        :return: list of tools
+        """
+        tool = None
+
+        # add query engine tool if idx is provided
         idx = extra.get("agent_idx", None)
         if idx is not None and idx != "_":
             llm, embed_model = self.window.core.idx.llm.get_service_context(model=context.model)
             index = self.window.core.idx.storage.get(idx, llm, embed_model)  # get index
             if index is not None:
                 query_engine = index.as_query_engine(similarity_top_k=3)
-                query_engine_tools = [
+                tool = [
                     QueryEngineTool(
                         query_engine=query_engine,
                         metadata=ToolMetadata(
-                            name="query_engine",
-                            description=(
-                                "Provides additional context and access to the indexed documents."
-                            ),
+                            name=self.QUERY_ENGINE_TOOL_NAME,
+                            description=self.QUERY_ENGINE_TOOL_DESCRIPTION,
                         ),
                     ),
                 ]
-                tools.extend(query_engine_tools)
-        return tools
+        return tool
+
+    def get_openai_retriever_tool(
+            self,
+            idx: str,
+            verbose: bool = False
+    ) -> OpenAIFunctionTool:
+        """
+        Prepare OpenAI retriever tool for agent
+
+        :param idx: index name
+        :param verbose: verbose mode
+        :return: OpenAIFunctionTool instance
+        """
+        async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
+            name = run_ctx.tool_name
+            print("[Plugin] Tool call: " + name + " with args: " + str(args))
+            cmd = {
+                "cmd": name,
+                "params": json.loads(args)  # args should be a JSON string
+            }
+            return self.tool_exec(name, cmd["params"])
+
+        schema = {"type": "object", "properties": {
+            "query": {
+                "type": "string",
+                "description": "The query string to search in the index."
+            }
+        }, "additionalProperties": False}
+        description = self.QUERY_ENGINE_TOOL_DESCRIPTION + f" Index: {idx}"
+        return OpenAIFunctionTool(
+            name=self.QUERY_ENGINE_TOOL_NAME,
+            description=description,
+            params_json_schema=schema,
+            on_invoke_tool=run_function,
+        )
 
     def get_plugin_functions(
             self,
@@ -204,6 +269,11 @@ class Tools:
                 tools.append(tool)
             except Exception as e:
                 print(e)
+
+        # append query engine tool if idx is provided
+        if self.agent_idx is not None and self.agent_idx != "_":
+            tools.append(self.get_openai_retriever_tool(self.agent_idx))
+
         return tools
 
     def get_plugin_tools(
@@ -230,7 +300,6 @@ class Tools:
                     continue  # skip blacklisted commands
 
                 description = item['desc']
-                schema = json.loads(item['params'])  # from JSON to dict
 
                 def make_func(name, description):
                     def func(**kwargs):
@@ -255,9 +324,17 @@ class Tools:
                 print(e)
 
         # add query engine tool if idx is provided
-        if self.agent_idx is not None and self.agent_idx  != "_":
-            tools["query_engine"] = None  # placeholder for query engine tool
-
+        if self.agent_idx is not None and self.agent_idx != "_":
+            extra = {
+                "agent_idx": self.agent_idx,  # agent index for query engine tool
+            }
+            query_engine_tools = self.get_retriever_tool(
+                context=context,
+                extra=extra,
+                verbose=verbose,
+            )
+            if query_engine_tools:
+                tools["query_engine"] = query_engine_tools[0]  # add query engine tool
         return tools
 
 
@@ -281,9 +358,7 @@ class Tools:
 
         # add query engine tool spec if idx is provided
         if self.agent_idx is not None and self.agent_idx  != "_":
-            specs.append("**query_engine**: "
-                         "Provides additional context and access to the indexed documents, "
-                         "available params: {'query': {'type': 'string', 'description': 'query string'}}, required: [query]")
+            specs.append(self.QUERY_ENGINE_TOOL_SPEC)
 
         for func in functions:
             try:
@@ -292,8 +367,9 @@ class Tools:
                     continue  # skip blacklisted commands
                 description = func['desc']
                 schema = json.loads(func['params'])  # from JSON to dict
-                spec = "**{}**: {}, available params: {}, required: {}\n".format(name, description, schema.get("properties", {}), schema.get("required", []))
-                specs.append(spec)
+                specs.append(
+                    f"**{name}**: {description}, available params: {schema.get('properties', {})}, required: {schema.get('required', [])}\n"
+                )
             except Exception as e:
                 print(e)
         return specs
@@ -308,7 +384,7 @@ class Tools:
         """
         print("[Plugin] Tool call: " + cmd + " " + str(params))
         # special case for query engine tool
-        if cmd == "query_engine":
+        if cmd == self.QUERY_ENGINE_TOOL_NAME:
             if "query" not in params:
                 return "Query parameter is required for query_engine tool."
             if self.context is None:
@@ -339,41 +415,6 @@ class Tools:
             [cmd],  # commands
         )
         return response
-
-    def get_retriever_tool(
-            self,
-            context: BridgeContext,
-            extra: Dict[str, Any],
-            verbose: bool = False
-    ) -> List[BaseTool]:
-        """
-        Prepare tools for agent
-
-        :param context: BridgeContext
-        :param extra: extra data
-        :param verbose: verbose mode
-        :return: list of tools
-        """
-        tool = None
-        # add query engine tool if idx is provided
-        idx = extra.get("agent_idx", None)
-        if idx is not None and idx != "_":
-            llm, embed_model = self.window.core.idx.llm.get_service_context(model=context.model)
-            index = self.window.core.idx.storage.get(idx, llm, embed_model)  # get index
-            if index is not None:
-                query_engine = index.as_query_engine(similarity_top_k=3)
-                tool = [
-                    QueryEngineTool(
-                        query_engine=query_engine,
-                        metadata=ToolMetadata(
-                            name="query_engine",
-                            description=(
-                                "Provides additional context and access to the indexed documents."
-                            ),
-                        ),
-                    ),
-                ]
-        return tool
 
     def export_sources(
             self,

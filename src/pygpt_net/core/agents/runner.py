@@ -105,6 +105,25 @@ class Runner:
             self.window.core.agents.tools.context = context
             self.window.core.agents.tools.agent_idx = vector_store_idx
 
+            # --- ADDITIONAL CONTEXT ---
+            # append additional context from RAG if available
+            if vector_store_idx and self.window.core.config.get("agent.idx.auto_retrieve", False):
+                ad_context = self.window.core.idx.chat.query_retrieval(
+                    query=prompt,
+                    idx=vector_store_idx,
+                    model=context.model,
+                )
+                if ad_context:
+                    to_append = ""
+                    if ctx.hidden_input is None:
+                        ctx.hidden_input = ""
+                    if not ctx.hidden_input:  # may be not empty (appended before from attachments)
+                        to_append =  "ADDITIONAL CONTEXT:"
+                        ctx.hidden_input += to_append
+                    to_append += "\n" + ad_context
+                    ctx.hidden_input += to_append
+                    prompt += "\n\n" + to_append
+
             tools = self.window.core.agents.tools.prepare(context, extra, force=True)
             function_tools = self.window.core.agents.tools.get_function_tools(ctx, extra, force=True)
             plugin_tools = self.window.core.agents.tools.get_plugin_tools(context, extra, force=True)
