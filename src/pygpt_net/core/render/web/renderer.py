@@ -13,7 +13,7 @@ import json
 import os
 import re
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.text.utils import has_unclosed_code_tag
@@ -158,6 +158,15 @@ class Renderer(BaseRenderer):
             self.pids[pid].initialized = True
         else:
             self.clear_chunks(pid)
+
+    def to_json(self, data: Any) -> str:
+        """
+        Convert data to JSON object
+
+        :param data: data to convert
+        :return: JSON object or None
+        """
+        return json.dumps(data, ensure_ascii=False, separators=(',', ':'))
 
     def state_changed(
             self,
@@ -575,10 +584,10 @@ class Renderer(BaseRenderer):
 
         pid = self.get_or_create_pid(meta)
         self.clear_chunks_input(pid)
-        chunk = self.helpers.format_chunk(text_chunk)
-        escaped_chunk = json.dumps(chunk)
         try:
-            self.get_output_node(meta).page().runJavaScript(f"appendToInput({escaped_chunk});")
+            self.get_output_node(meta).page().runJavaScript(
+                f"appendToInput({self.to_json(self.helpers.format_chunk(text_chunk))});"
+            )
         except Exception as e:
             pass
 
@@ -619,11 +628,10 @@ class Renderer(BaseRenderer):
         to_append = self.pids[pid].live_buffer
         if has_unclosed_code_tag(self.pids[pid].live_buffer):
             to_append += "\n```"
-        html = self.parser.parse(to_append)
-        escaped_chunk = json.dumps(html)
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"replaceLive({escaped_chunk});")
+                f"replaceLive({self.to_json(self.parser.parse(to_append))});"
+            )
         except Exception as e:
             pass
 
@@ -638,7 +646,7 @@ class Renderer(BaseRenderer):
             return
         pid = self.get_or_create_pid(meta)
         if not self.pids[pid].loaded:
-            js = "var element = document.getElementById('_append_live_');if (element) { element.innerHTML = ''; }"
+            js = "var element = document.getElementById('_append_live_');if (element) { element.replaceChildren(); }"
         else:
             js = "clearLive();"
         try:
@@ -815,9 +823,8 @@ class Renderer(BaseRenderer):
             if footer:
                 self.append(pid, html)
             else:
-                escaped_html = json.dumps(html)
                 try:
-                    self.get_output_node(meta).page().runJavaScript(f"appendExtra('{ctx.id}',{escaped_html});")
+                    self.get_output_node(meta).page().runJavaScript(f"appendExtra('{ctx.id}',{self.to_json(html)});")
                 except Exception as e:
                     pass
 
@@ -927,7 +934,7 @@ class Renderer(BaseRenderer):
         if pid is None:
             return
         if not self.pids[pid].loaded:
-            js = "var element = document.getElementById('_append_input_');if (element) { element.innerHTML = ''; }"
+            js = "var element = document.getElementById('_append_input_');if (element) { element.replaceChildren(); }"
         else:
             js = "clearInput();"
         try:
@@ -946,7 +953,7 @@ class Renderer(BaseRenderer):
         """
         self.prev_chunk_replace = False
         if not self.pids[pid].loaded:
-            js = "var element = document.getElementById('_append_output_');if (element) { element.innerHTML = ''; }"
+            js = "var element = document.getElementById('_append_output_');if (element) { element.replaceChildren(); }"
         else:
             js = "clearOutput();"
         try:
@@ -964,7 +971,7 @@ class Renderer(BaseRenderer):
         :pid: context PID
         """
         if not self.pids[pid].loaded:
-            js = "var element = document.getElementById('_nodes_');if (element) { element.innerHTML = ''; }"
+            js = "var element = document.getElementById('_nodes_');if (element) { element.replaceChildren(); }"
         else:
             js = "clearNodes();"
         try:
@@ -1052,18 +1059,8 @@ class Renderer(BaseRenderer):
         if ctx.extra is not None and "footer" in ctx.extra:
             extra = ctx.extra["footer"]
             extra_style = "display:block;"
-        html = (
-            f'<div class="msg-box msg-user" id="{msg_id}">'
-            f'<div class="name-header name-user">{name}</div>'
-            f'<div class="msg">'
-            f'{html}'
-            f'<div class="msg-extra" style="{extra_style}">{extra}</div>'
-            f'{debug}'
-            f'</div>'
-            f'</div>'
-        )
 
-        return html
+        return  f'<div class="msg-box msg-user" id="{msg_id}"><div class="name-header name-user">{name}</div><div class="msg">{html}<div class="msg-extra" style="{extra_style}">{extra}</div>{debug}</div></div>'
 
     def prepare_node_output(
             self,
@@ -1100,11 +1097,6 @@ class Renderer(BaseRenderer):
         tool_output = ""
         spinner = ""
         output_class = "display:none"
-        cmd_icon = f'<img src="{self._file_prefix}{self._icon_expand}" width="25" height="25" valign="middle">'
-        expand_btn = (
-            f"<span class='toggle-cmd-output' onclick='toggleToolOutput({ctx.id});' title='{trans('action.cmd.expand')}' "
-            f"role='button'>{cmd_icon}</span>"
-        )
 
         if is_cmd:
             if ctx.results is not None and len(ctx.results) > 0 \
@@ -1127,42 +1119,13 @@ class Renderer(BaseRenderer):
                     or out.rstrip().endswith(('}</tool>', '}&lt;/tool&gt;'))
             ):
                 spinner_class = "" if ctx.live else "display:none"
-                spinner = (
-                    f'<span class="spinner" style="{spinner_class}">'
-                    f'<img src="{self._file_prefix}{self._icon_sync}" width="30" height="30" '
-                    f'class="loading"></span>'
-                )
+                spinner = f"<span class=\"spinner\" style=\"{spinner_class}\"><img src=\"{self._file_prefix}{self._icon_sync}\" width=\"30\" height=\"30\" class=\"loading\"></span>"
 
-        html_tools = (
-                f'<div class="tool-output" style="{output_class}">' +
-                expand_btn +
-                '<div class="content" style="display:none">' +
-                tool_output +
-                '</div></div>'
-        )
         tool_extra = self.body.prepare_tool_extra(ctx)
-
-        debug = ""
-        if self.is_debug():
-            debug = self.append_debug(ctx, pid, "output")
-
+        debug = self.append_debug(ctx, pid, "output") if self.is_debug() else ""
         name_header = self.get_name_header(ctx)
-        html = (
-                f'<div class="msg-box msg-bot" id="{msg_id}">' +
-                name_header +
-                '<div class="msg">' +
-                f'{html}' +
-                f'{spinner}' +
-                f'<div class="msg-tool-extra">{tool_extra}</div>' +
-                f'{html_tools}' +
-                f'<div class="msg-extra">{extra}</div>' +
-                f'{footer}' +
-                f'{debug}' +
-                '</div>' +
-                '</div>'
-        )
 
-        return html
+        return f"<div class='msg-box msg-bot' id='{msg_id}'>{name_header}<div class='msg'>{html}{spinner}<div class='msg-tool-extra'>{tool_extra}</div><div class='tool-output' style='{output_class}'><span class='toggle-cmd-output' onclick='toggleToolOutput({ctx.id});' title='{trans('action.cmd.expand')}' role='button'><img src='{self._file_prefix}{self._icon_expand}' width='25' height='25' valign='middle'></span><div class='content' style='display:none'>{tool_output}</div></div><div class='msg-extra'>{extra}</div>{footer}{debug}</div></div>"
 
     def get_name_header(self, ctx: CtxItem) -> str:
         """
@@ -1209,10 +1172,10 @@ class Renderer(BaseRenderer):
         :param pid: context PID
         :param html: HTML code
         """
-        escaped_html = json.dumps(html)
         try:
-            node = self.get_output_node_by_pid(pid)
-            node.page().runJavaScript(f"if (typeof window.appendNode !== 'undefined') appendNode({escaped_html});")
+            self.get_output_node_by_pid(pid).page().runJavaScript(
+                f"if (typeof window.appendNode !== 'undefined') appendNode({self.to_json(html)});"
+            )
         except Exception as e:
             pass
 
@@ -1260,6 +1223,7 @@ class Renderer(BaseRenderer):
             # self.window.ui.nodes['output'][pid] = new_view
             node.resetPage()
             node.setHtml(html, baseUrl="file://")
+        self.pids[pid].html = ""
 
     def get_output_node(
             self,
@@ -1300,9 +1264,8 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         """
         try:
-            _id = json.dumps(ctx.id)
             self.get_output_node(ctx.meta).page().runJavaScript(
-                f"if (typeof window.removeNode !== 'undefined') removeNode({_id});")
+                f"if (typeof window.removeNode !== 'undefined') removeNode({self.to_json(ctx.id)});")
         except Exception as e:
             pass
 
@@ -1313,9 +1276,8 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         """
         try:
-            _id = json.dumps(ctx.id)
             self.get_output_node(ctx.meta).page().runJavaScript(
-                f"if (typeof window.removeNodesFromId !== 'undefined') removeNodesFromId({_id});")
+                f"if (typeof window.removeNodesFromId !== 'undefined') removeNodesFromId({self.to_json(ctx.id)});")
         except Exception as e:
             pass
 
@@ -1469,7 +1431,7 @@ class Renderer(BaseRenderer):
 
     def reload_css(self):
         """Reload CSS - all, global"""
-        to_json = json.dumps(self.body.prepare_styles())
+        to_json = self.to_json(self.body.prepare_styles())
         nodes = self.get_all_nodes()
         for pid in self.pids:
             if self.pids[pid].loaded:
@@ -1505,10 +1467,10 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :param content: content
         """
-        escaped_content = json.dumps(content)
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"if (typeof window.appendToolOutput !== 'undefined') appendToolOutput({escaped_content});")
+                f"if (typeof window.appendToolOutput !== 'undefined') appendToolOutput({self.to_json(content)});"
+            )
         except Exception as e:
             pass
 
@@ -1523,10 +1485,10 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :param content: content
         """
-        escaped_content = json.dumps(content)
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"if (typeof window.updateToolOutput !== 'undefined') updateToolOutput({escaped_content});")
+                f"if (typeof window.updateToolOutput !== 'undefined') updateToolOutput({self.to_json(content)});"
+            )
         except Exception as e:
             pass
 
@@ -1538,7 +1500,8 @@ class Renderer(BaseRenderer):
         """
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();")
+                f"if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();"
+            )
         except Exception as e:
             pass
 
@@ -1550,7 +1513,8 @@ class Renderer(BaseRenderer):
         """
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"if (typeof window.beginToolOutput !== 'undefined') beginToolOutput();")
+                f"if (typeof window.beginToolOutput !== 'undefined') beginToolOutput();"
+            )
         except Exception as e:
             pass
 
@@ -1558,7 +1522,8 @@ class Renderer(BaseRenderer):
         """End tool output"""
         try:
             self.get_output_node().page().runJavaScript(
-                f"if (typeof window.endToolOutput !== 'undefined') endToolOutput();")
+                f"if (typeof window.endToolOutput !== 'undefined') endToolOutput();"
+            )
         except Exception as e:
             pass
 
@@ -1577,8 +1542,7 @@ class Renderer(BaseRenderer):
         """
         if title is None:
             title = "debug"
-        debug = "<b>" + title + ":</b> pid: " + str(pid) + ", ctx: " + str(ctx.to_dict())
-        return "<div class='debug'>" + debug + "</div>"
+        return f"<div class='debug'><b>{title}:</b> pid: {pid}, ctx: {ctx.to_dict()}</div>"
 
     def is_debug(self) -> bool:
         """

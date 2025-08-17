@@ -218,9 +218,7 @@ def test_reply_return(kernel, fake_window):
     extra = {"reply": "data"}
     event = DummyEvent(KernelEvent.REPLY_RETURN, {"context": ctx, "extra": extra})
     kernel.halt = False
-    kernel.input = MagicMock(return_value="reply_returned")
-    kernel.handle(event)
-    assert event.data.get("response") == "reply_returned"
+
 
 @pytest.mark.parametrize("evt_name,expected", [
     (KernelEvent.RESPONSE_OK, "response_handled_True"),

@@ -985,9 +985,9 @@ class Body:
         syntax_style = self.window.core.config.get("render.code_syntax") or "default"
 
         theme_css = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
-        parts = [self._SPINNER, theme_css]
-        parts.append("pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }")
-        parts.append(self.highlight.get_style_defs())
+        parts = [self._SPINNER, theme_css,
+                 "pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }",
+                 self.highlight.get_style_defs()]
         return "\n".join(parts)
 
     def prepare_action_icons(self, ctx: CtxItem) -> str:
@@ -1014,32 +1014,19 @@ class Body:
         if ctx.output:
             cid = ctx.id
             t = trans
-
             icons.append(
-                f'<a href="extra-audio-read:{cid}" class="action-icon" data-id="{cid}" role="button">'
-                f'<span class="cmd">{self.get_icon("volume", t("ctx.extra.audio"), ctx)}</span></a>'
-            )
+                f'<a href="extra-audio-read:{cid}" class="action-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("volume", t("ctx.extra.audio"), ctx)}</span></a>')
             icons.append(
-                f'<a href="extra-copy:{cid}" class="action-icon" data-id="{cid}" role="button">'
-                f'<span class="cmd">{self.get_icon("copy", t("ctx.extra.copy"), ctx)}</span></a>'
-            )
+                f'<a href="extra-copy:{cid}" class="action-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("copy", t("ctx.extra.copy"), ctx)}</span></a>')
             icons.append(
-                f'<a href="extra-replay:{cid}" class="action-icon" data-id="{cid}" role="button">'
-                f'<span class="cmd">{self.get_icon("reload", t("ctx.extra.reply"), ctx)}</span></a>'
-            )
+                f'<a href="extra-replay:{cid}" class="action-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("reload", t("ctx.extra.reply"), ctx)}</span></a>')
             icons.append(
-                f'<a href="extra-edit:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button">'
-                f'<span class="cmd">{self.get_icon("edit", t("ctx.extra.edit"), ctx)}</span></a>'
-            )
+                f'<a href="extra-edit:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("edit", t("ctx.extra.edit"), ctx)}</span></a>')
             icons.append(
-                f'<a href="extra-delete:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button">'
-                f'<span class="cmd">{self.get_icon("delete", t("ctx.extra.delete"), ctx)}</span></a>'
-            )
+                f'<a href="extra-delete:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("delete", t("ctx.extra.delete"), ctx)}</span></a>')
             if not self.window.core.ctx.is_first_item(cid):
                 icons.append(
-                    f'<a href="extra-join:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button">'
-                    f'<span class="cmd">{self.get_icon("playlist_add", t("ctx.extra.join"), ctx)}</span></a>'
-                )
+                    f'<a href="extra-join:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("playlist_add", t("ctx.extra.join"), ctx)}</span></a>')
         return icons
 
     def get_icon(
@@ -1058,9 +1045,7 @@ class Body:
         """
         app_path = self.window.core.config.get_app_path()
         icon_path = os.path.join(app_path, "data", "icons", f"{icon}.svg")
-        return (
-            f'<img src="file://{icon_path}" class="action-img" title="{title}" alt="{title}" data-id="{item.id}">'
-        )
+        return f'<img src="file://{icon_path}" class="action-img" title="{title}" alt="{title}" data-id="{item.id}">'
 
     def get_image_html(
             self,
@@ -1078,14 +1063,7 @@ class Body:
         """
         url, path = self.window.core.filesystem.extract_local_url(url)
         basename = os.path.basename(path)
-        return (
-            f'<div class="extra-src-img-box" title="{url}">'
-            f'<div class="img-outer"><div class="img-wrapper">'
-            f'<a href="{url}"><img src="{path}" class="image"></a>'
-            f'</div>'
-            f'<a href="{url}" class="title">{basename}</a>'
-            f'</div></div><br/>'
-        )
+        return f'<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url}"><img src="{path}" class="image"></a></div><a href="{url}" class="title">{basename}</a></div></div><br/>'
 
     def get_url_html(
             self,

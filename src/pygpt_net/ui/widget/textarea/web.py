@@ -54,9 +54,7 @@ class ChatWebOutput(QWebEngineView):
         self.setPage(CustomWebEnginePage(self.window, self, profile=self._profile))
 
     def _detach_gl_event_filter(self):
-        """
-        Detach OpenGL widget event filter if installed
-        """
+        """Detach OpenGL widget event filter if installed"""
         if self._glwidget and self._glwidget_filter_installed:
             try:
                 self._glwidget.removeEventFilter(self)
@@ -95,8 +93,9 @@ class ChatWebOutput(QWebEngineView):
             return
         try:
             # detach the channel from the page to break JS<->Python references
+            page.cleanup()
             page.setWebChannel(None)
-        except Exception:
+        except Exception as e:
             pass
 
         # bridge, channel, and signals have parent=page, so deleteLater of the page will clean them up
@@ -500,6 +499,39 @@ class CustomWebEnginePage(QWebEnginePage):
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
         self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
 
+    def cleanup(self):
+        """Cleanup method to release resources"""
+        try:
+            self.findTextFinished.disconnect()
+            self.zoomFactorChanged.disconnect()
+            self.selectionChanged.disconnect()
+        except Exception:
+            pass
+
+        if self.bridge:
+            try:
+                self.bridge.cleanup()
+            except Exception:
+                pass
+            self.bridge = None
+
+        if self.channel:
+            try:
+                self.channel.unregisterObject("bridge")
+            except Exception:
+                pass
+            self.channel = None
+
+        if self.signals:
+            try:
+                self.signals.deleteLater()
+            except Exception:
+                pass
+            self.signals = None
+
+        # delete the page object
+        self.deleteLater()
+
 
 class Bridge(QObject):
     """Bridge between Python and JavaScript"""
@@ -533,6 +565,17 @@ class Bridge(QObject):
     @Slot(int)
     def update_scroll_position(self, pos: int):
         self.window.controller.chat.render.scroll = pos
+
+    def cleanup(self):
+        """Cleanup method to release resources"""
+        if self.window:
+            try:
+                self.window = None
+            except Exception:
+                pass
+
+        # delete the bridge object
+        self.deleteLater()
 
 
 class WebEngineSignals(QObject):
