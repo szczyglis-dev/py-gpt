@@ -60,7 +60,7 @@ def dummy_window():
 @pytest.fixture
 def dummy_context():
     return SimpleNamespace(
-        ctx=SimpleNamespace(extra={}),
+        ctx=SimpleNamespace(extra={}, hidden_input=""),
         prompt="dummy prompt",
         model=SimpleNamespace(id="dummy_model"),
         system_prompt="dummy system prompt",
