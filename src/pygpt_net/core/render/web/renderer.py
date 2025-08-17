@@ -492,7 +492,7 @@ class Renderer(BaseRenderer):
         else:
             buffer_to_parse = buffer
 
-        html = self.parser.parse(buffer_to_parse, reset=begin)
+        html = self.parser.parse(buffer_to_parse)
         del buffer_to_parse
         is_code_block = html.endswith(self.ENDINGS_CODE)
         is_list = html.endswith(self.ENDINGS_LIST)
@@ -635,6 +635,7 @@ class Renderer(BaseRenderer):
         to_append = self.pids[pid].live_buffer
         if has_unclosed_code_tag(self.pids[pid].live_buffer):
             to_append += "\n```"
+        print(to_append)
         try:
             self.get_output_node(meta).page().runJavaScript(
                 f"""replaceLive({self.to_json(
@@ -643,7 +644,8 @@ class Renderer(BaseRenderer):
                     )
                 )});"""
             )
-        except Exception:
+        except Exception as e:
+            print(e)
             pass
 
     def clear_live(self, meta: CtxMeta, ctx: CtxItem):
