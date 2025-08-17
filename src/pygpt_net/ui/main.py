@@ -261,7 +261,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.state = state
         self.ui.tray.set_icon(state)
 
-    @Slot(object)
+    @Slot(object, bool)
     def dispatch(self, event: BaseEvent, all: bool = False):
         """
         Dispatch App event
