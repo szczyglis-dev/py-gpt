@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QDialog, QMainWindow
 
 from pygpt_net.core.events import BaseEvent, ControlEvent, AppEvent
 
@@ -77,3 +80,47 @@ class Access:
 
         # stop generating if active
         self.window.controller.kernel.stop()
+
+        # close top dialog if any
+        self.close_top_dialog_if_any()
+
+    def close_top_dialog_if_any(self) -> bool:
+        """Close top dialog if any"""
+        app = QApplication.instance()
+
+        try:
+            w = app.activeModalWidget()
+            if w:
+                top = w.window()
+                if top and (top.windowFlags() & (Qt.Dialog | Qt.Sheet | Qt.Tool | Qt.Popup)):
+                    top.close()
+                    return True
+        except Exception:
+            pass
+
+        try:
+            w = app.activeWindow()
+            if w:
+                top = w.window()
+                if isinstance(top, QMainWindow):
+                    pass
+                else:
+                    if top and (top.windowFlags() & (Qt.Dialog | Qt.Sheet | Qt.Tool | Qt.Popup)):
+                        top.close()
+                        return True
+        except Exception:
+            pass
+
+        try:
+            for top in reversed(QApplication.topLevelWidgets()):
+                if not top.isVisible():
+                    continue
+                if isinstance(top, QMainWindow):
+                    continue
+                if top.windowFlags() & (Qt.Dialog | Qt.Sheet | Qt.Tool | Qt.Popup):
+                    top.close()
+                    return True
+        except Exception:
+            pass
+
+        return False
