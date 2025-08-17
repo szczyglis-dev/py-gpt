@@ -1,0 +1,54 @@
+{
+    "uuid": "a424e13a-b3c2-4cc7-81b5-f74821f47ec3",
+    "name": "Supervisor + worker",
+    "ai_name": "",
+    "ai_avatar": "",
+    "ai_personalize": false,
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "agent_openai": true,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "computer": false,
+    "temperature": 1.0,
+    "filename": "agent_openai_supervisor",
+    "model": "gpt-4o",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "supervisor",
+    "agent_provider_openai": "openai_agent_supervisor",
+    "assistant_id": "",
+    "enabled": true,
+    "description": "",
+    "remote_tools": "",
+    "extra": {
+        "openai_agent_supervisor": {
+            "supervisor": {
+                "prompt": "\n    You are the \u201cSupervisor\u201d (orchestrator). You never use tools directly except the tool that runs the Worker.\n    Process:\n    - Decompose the user's task into actionable instructions for the Worker.\n    - Do NOT pass your conversation history to the Worker. Pass ONLY a concise, self-contained instruction.\n    - After each Worker result, evaluate against a clear Definition of Done (DoD). If not met, call the Worker again with a refined instruction.\n    - Ask the user only if absolutely necessary. If you must, STOP and output a single JSON with:\n    {\"action\":\"ask_user\",\"question\":\"...\",\"reasoning\":\"...\"}\n    - When done, output a single JSON:\n    {\"action\":\"final\",\"final_answer\":\"...\",\"reasoning\":\"...\"}\n    - Otherwise, to run the Worker, call the run_worker tool with a short instruction.\n    Respond in the user's language. Keep outputs short and precise.\n    "
+            },
+            "worker": {
+                "model": "gpt-4o",
+                "prompt": "\n    You are the \u201cWorker\u201d. You execute Supervisor instructions strictly, using your tools.\n    - Keep your own memory across calls (Worker session).\n    - Return a concise result with key evidence/extracts from tools when applicable.\n    - Do not ask the user questions directly; if instruction is underspecified, clearly state what is missing.\n    Respond in the user's language.\n    ",
+                "allow_local_tools": true,
+                "allow_remote_tools": true
+            }
+        }
+    },
+    "__meta__": {
+        "version": "2.6.8",
+        "app.version": "2.6.8",
+        "updated_at": "2025-08-17T03:03:45"
+    }
+}

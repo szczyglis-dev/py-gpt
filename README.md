@@ -683,6 +683,7 @@ Includes built-in agents (Workflow):
 - ReAct
 - Structured Planner (sub-tasks)
 - CodeAct (connected to Code Interpreter plugin)
+- Supervisor + worker
 
 Includes built-in agents (Legacy):
 
@@ -739,6 +740,7 @@ In this mode, you can use pre-configured Experts in Expert mode presets - they w
 - `Simple agent` - a single agent.
 - `Evolve` - in each generation (cycle), the best response from a given parent agent is selected; in the next generation, the cycle repeats.
 - `B2B` - bot-to-bot communication, involving two bots interacting with each other while keeping a human in the loop.
+- `Supervisor + Worker` - one agent (supervisor) acts as a bridge between the user and the second agent (worker). The user provides a query to the supervisor, who then sends instructions to the worker until the task is completed by the worker.
 
 More types will be available in the future.
 
@@ -751,6 +753,7 @@ There are also predefined presets added as examples:
 - `Simple agent`
 - `Writer with Feedback`
 - `2 bots`
+- `Supervisor + worker`
 
 In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
 
@@ -803,6 +806,14 @@ Below is a pattern for how different types of agents work. You can use these pat
 - Bot 1 generates a response and sends it to Bot 2.
 - Bot 2 receives the response from Bot 1 as input, provides an answer, and sends the response back to Bot 1 as its input. This cycle repeats.
 - The human can interrupt the loop at any time and update the entire discussion.
+
+**Supervisor + Worker**
+
+- A human provides a query to the Supervisor.
+- The Supervisor prepares instructions for the Worker and sends them to the Worker.
+- The Worker completes the task and returns the result to the Supervisor.
+- If the task is completed, the Supervisor returns the result to the user. If not, the Supervisor sends another instruction to the Worker to complete the task or asks the user if there are any questions.
+- The cycle repeats until the task is completed.
 
 **Tip**: Starting from version `2.5.97`, you can assign and use Experts in all of the agent types.
 

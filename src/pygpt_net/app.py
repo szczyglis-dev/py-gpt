@@ -88,6 +88,7 @@ from pygpt_net.provider.agents.llama_index.openai_workflow import OpenAIAgent as
 # from pygpt_net.provider.agents.llama_index.legacy.react import ReactAgent
 from pygpt_net.provider.agents.llama_index.react_workflow import ReactWorkflowAgent
 from pygpt_net.provider.agents.llama_index.codeact_workflow import CodeActAgent
+from pygpt_net.provider.agents.llama_index.supervisor_workflow import SupervisorAgent as LlamaSupervisorAgent
 from pygpt_net.provider.agents.openai.agent import Agent as OpenAIAgentsBase
 from pygpt_net.provider.agents.openai.agent_with_experts import Agent as OpenAIAgentsExperts
 from pygpt_net.provider.agents.openai.agent_with_experts_feedback import Agent as OpenAIAgentsExpertsFeedback
@@ -96,6 +97,7 @@ from pygpt_net.provider.agents.openai.bot_researcher import Agent as OpenAIAgent
 from pygpt_net.provider.agents.openai.agent_planner import Agent as OpenAIAgentPlanner
 from pygpt_net.provider.agents.openai.evolve import Agent as OpenAIAgentsEvolve
 from pygpt_net.provider.agents.openai.agent_b2b import Agent as OpenAIAgentsB2B
+from pygpt_net.provider.agents.openai.supervisor import Agent as OpenAIAgentSupervisor
 
 # LLM wrapper providers (langchain, llama-index, embeddings)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
@@ -445,6 +447,7 @@ def run(**kwargs):
     # launcher.add_agent(ReactAgent())  # llama-index
     launcher.add_agent(ReactWorkflowAgent())  # llama-index
     launcher.add_agent(CodeActAgent())  # llama-index
+    launcher.add_agent(LlamaSupervisorAgent())  # llama-index
     launcher.add_agent(OpenAIAgentsBase())  # openai-agents
     launcher.add_agent(OpenAIAgentsExperts())  # openai-agents
     launcher.add_agent(OpenAIAgentFeedback())  # openai-agents
@@ -453,6 +456,7 @@ def run(**kwargs):
     launcher.add_agent(OpenAIAgentsExpertsFeedback())  # openai-agents
     launcher.add_agent(OpenAIAgentsEvolve())  # openai-agents
     launcher.add_agent(OpenAIAgentsB2B())  # openai-agents
+    launcher.add_agent(OpenAIAgentSupervisor())  # openai-agents
 
     # register custom agents
     agents = kwargs.get('agents', None)

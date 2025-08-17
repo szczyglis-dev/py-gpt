@@ -1,0 +1,52 @@
+{
+    "uuid": "f5dd895c-3be8-4a73-aac9-7a20845e57b2",
+    "name": "Supervisor + worker",
+    "ai_name": "",
+    "ai_avatar": "",
+    "ai_personalize": false,
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": true,
+    "agent_openai": false,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "computer": false,
+    "temperature": 1.0,
+    "filename": "agent_supervisor",
+    "model": "gpt-4o",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "supervisor",
+    "agent_provider_openai": "openai_agent_supervisor",
+    "assistant_id": "",
+    "enabled": true,
+    "description": "",
+    "remote_tools": "",
+    "extra": {
+        "supervisor": {
+            "supervisor": {
+                "prompt": "\nYou are the \u201cSupervisor\u201d \u2013 the main orchestrator. Do not use tools directly.\nYour tasks:\n- Break down the user's task into steps and create precise instructions for the \u201cWorker\u201d agent.\n- Do not pass your history/memory to the Worker. Only pass minimal, self-sufficient instructions.\n- After each Worker response, assess progress towards the Definition of Done (DoD). If not met \u2013 generate a better instruction.\n- Ask the user only when absolutely necessary. Then stop and return the question.\n- When the task is complete \u2013 return the final answer to the user.\nAlways return only ONE JSON object:\n{\n  \"action\": \"task\" | \"final\" | \"ask_user\",\n  \"instruction\": \"<Worker's instruction or ''>\",\n  \"final_answer\": \"<final answer or ''>\",\n  \"question\": \"<user question or ''>\",\n  \"reasoning\": \"<brief reasoning and quality control>\",\n  \"done_criteria\": \"<list/text of DoD criteria>\"\n}\nEnsure proper JSON (no comments, no trailing commas). Respond in the user's language.\n"
+            },
+            "worker": {
+                "model": "gpt-4o",
+                "prompt": "\nYou are the \u201cWorker\u201d \u2013 executor of the Supervisor's instructions. You have your own memory and tools.\n- Execute the Supervisor's instructions precisely and concisely.\n- Use the available tools and return a brief result + relevant data/reasoning.\n- Maintain the working context in your memory (only Worker).\n- Return plain text (not JSON) unless instructed otherwise by the Supervisor.\n- Respond in the user's language.\n"
+            }
+        }
+    },
+    "__meta__": {
+        "version": "2.6.8",
+        "app.version": "2.6.8",
+        "updated_at": "2025-08-17T03:03:21"
+    }
+}

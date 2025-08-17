@@ -39,6 +39,7 @@ class Patch:
         is_evolve = False
         is_b2b = False
         is_workflow = False
+        is_supervisor = False
 
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
@@ -240,6 +241,23 @@ class Patch:
                         data.agent_provider = "react"
                         updated = True
                         save = True
+
+                # < 2.6.9
+                if old < parse_version("2.6.9"):
+                    if 'agent_openai_supervisor' not in self.window.core.presets.items and not is_supervisor:
+                        print("Migrating preset file from < 2.6.9...")
+                        files = [
+                            'agent_openai_supervisor.json',
+                            'agent_supervisor.json',
+                        ]
+                        for file in files:
+                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
+                                               'presets', file)
+                            shutil.copyfile(src, dst)
+                            print("Patched file: {}.".format(dst))
+                        updated = True
+                        is_supervisor = True  # prevent multiple copies
 
             # update file
             if updated:
