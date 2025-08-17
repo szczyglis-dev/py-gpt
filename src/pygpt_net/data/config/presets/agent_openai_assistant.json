@@ -21,7 +21,7 @@
         "function": []
     },
     "experts": [],
-    "idx": "base",
+    "idx": "_",
     "agent_provider": "openai_assistant",
     "assistant_id": "",
     "enabled": true,
