@@ -31,7 +31,8 @@ class Common:
         self.summarizer = Summarizer(window)
 
     def _update_ctx_no_scroll(self):
-        self.window.controller.ctx.update(no_scroll=True)
+        """Update ctx list without scroll"""
+        self.window.controller.ctx.update_and_restore()
 
     def update_label_by_current(self):
         """Update ctx label from current ctx"""
@@ -83,7 +84,7 @@ class Common:
         if new_id is not None:
             self.window.core.attachments.context.duplicate(meta_id, new_id)
             self.window.update_status(f"Context duplicated, new ctx id: {new_id}")
-            QTimer.singleShot(100, self._update_ctx_no_scroll)
+            QTimer.singleShot(10, self._update_ctx_no_scroll)
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""
@@ -97,7 +98,12 @@ class Common:
         """
         data_id = meta.id if meta else None
         title = meta.name if meta else None
-        self.window.controller.ui.tabs.focus_by_type(Tab.TAB_CHAT, data_id=data_id, title=title, meta=meta)
+        self.window.controller.ui.tabs.focus_by_type(
+            Tab.TAB_CHAT,
+            data_id=data_id,
+            title=title,
+            meta=meta
+        )
 
     def restore_display_filter(self):
         """Restore display filter"""

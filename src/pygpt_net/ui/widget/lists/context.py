@@ -197,7 +197,7 @@ class ContextList(BaseList):
                     icon = self._color_icon(status_info['color'])
                     status_action = set_label_menu.addAction(icon, name)
                     status_action.triggered.connect(
-                        functools.partial(self.window.controller.ctx.set_label, ctx_id, status_id)
+                        functools.partial(self.action_set_label, ctx_id, status_id)
                     )
 
                 idx_menu = QMenu(trans('action.idx'), self)
@@ -386,6 +386,15 @@ class ContextList(BaseList):
         """
         self.restore_after_ctx_menu = False
         self.window.controller.ctx.common.reset(id)
+
+    def action_set_label(self, id: int, label: int):
+        """
+        Set label action handler
+
+        :param id: context id
+        :param label: label id
+        """
+        self.window.controller.ctx.set_label(id, label)
 
     def selectionCommand(self, index, event=None):
         """
