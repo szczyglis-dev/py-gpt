@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import gc
@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any, Tuple
 
 import psutil
+from PySide6.QtCore import QObject
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.config import Config
@@ -397,6 +398,10 @@ class Debug:
 
         stats.append(f"Widgets: {num_widgets}")
         stats.append(f"Threadpool: {num_threads}")
+
+        # count all QObjects in app
+        qobjects = sum(1 for obj in QApplication.allWidgets() if isinstance(obj, QObject))
+        stats.append(f"QObjects: {qobjects}")
 
         res += "\n" + "\n".join(stats)
         print("\n".join(stats))
