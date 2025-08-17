@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import json
@@ -31,6 +31,7 @@ from pygpt_net.core.events import RenderEvent
 
 
 class Renderer(BaseRenderer):
+
     NODE_INPUT = 0
     NODE_OUTPUT = 1
     ENDINGS_CODE = (
@@ -43,6 +44,7 @@ class Renderer(BaseRenderer):
         "</ol>",
         "</li>"
     )
+    RE_AMP_LT_GT = re.compile(r'&amp;(lt|gt);')
 
     def __init__(self, window=None):
         super(Renderer, self).__init__(window)
@@ -82,7 +84,7 @@ class Renderer(BaseRenderer):
         self.parser.reset()
         try:
             node.page().runJavaScript("if (typeof window.prepare !== 'undefined') prepare();")
-        except Exception as e:
+        except Exception:
             pass
 
     def on_page_loaded(
@@ -279,7 +281,7 @@ class Renderer(BaseRenderer):
         self.prev_chunk_replace = False
         try:
             self.get_output_node(meta).page().runJavaScript("beginStream();")
-        except Exception as e:
+        except Exception:
             pass
 
     def stream_end(
@@ -304,7 +306,7 @@ class Renderer(BaseRenderer):
         self.pids[pid].clear()
         try:
             self.get_output_node(meta).page().runJavaScript("endStream();")
-        except Exception as e:
+        except Exception:
             pass
 
     def append_context(
@@ -490,7 +492,8 @@ class Renderer(BaseRenderer):
         else:
             buffer_to_parse = buffer
 
-        html = self.parser.parse(buffer_to_parse)
+        html = self.parser.parse(buffer_to_parse, reset=begin)
+        del buffer_to_parse
         is_code_block = html.endswith(self.ENDINGS_CODE)
         is_list = html.endswith(self.ENDINGS_LIST)
         is_newline = ("\n" in text_chunk) or buffer.endswith("\n") or is_code_block
@@ -502,14 +505,14 @@ class Renderer(BaseRenderer):
         else:
             self.prev_chunk_newline = False
 
-        replace_bool = False
+        replace = False
         if is_newline or force_replace or is_list:
-            replace_bool = True
+            replace = True
             if is_code_block:
                 # don't replace if it is a code block
                 if "\n" not in text_chunk:
                     # if there is no newline in raw_chunk, then don't replace
-                    replace_bool = False
+                    replace = False
 
         if not is_code_block:
             text_chunk = text_chunk.replace("\n", "<br/>")
@@ -518,25 +521,25 @@ class Renderer(BaseRenderer):
                 # if previous chunk was replaced and current is code block, then add \n to chunk
                 text_chunk = "".join(("\n", text_chunk))  # add newline to chunk
 
-        self.prev_chunk_replace = replace_bool
+        self.prev_chunk_replace = replace
 
         # hide loading spinner if it is the beginning of the text
         if begin:
             try:
                 self.get_output_node(meta).page().runJavaScript("hideLoading();")
-            except Exception as e:
+            except Exception:
                 pass
 
         # emit chunk to output node
         try:
             self.get_output_node(meta).page().bridge.chunk.emit(
                 name_header_str or "",
-                html if replace_bool else "",
-                text_chunk if not replace_bool else "",
-                bool(replace_bool),
+                self.sanitize_html(html) if replace else "",
+                self.sanitize_html(text_chunk) if not replace else "",
+                bool(replace),
                 bool(is_code_block),
             )
-        except Exception as e:
+        except Exception:
             pass
 
     def next_chunk(
@@ -559,7 +562,7 @@ class Renderer(BaseRenderer):
         try:
             self.get_output_node(meta).page().runJavaScript(
                 "nextStream();")
-        except Exception as e:
+        except Exception:
             pass
 
     def append_chunk_input(
@@ -586,9 +589,13 @@ class Renderer(BaseRenderer):
         self.clear_chunks_input(pid)
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"appendToInput({self.to_json(self.helpers.format_chunk(text_chunk))});"
+                f"""appendToInput({self.to_json(
+                    self.sanitize_html(
+                        self.helpers.format_chunk(text_chunk)
+                    )
+                )});"""
             )
-        except Exception as e:
+        except Exception:
             pass
 
     def append_live(
@@ -630,9 +637,13 @@ class Renderer(BaseRenderer):
             to_append += "\n```"
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"replaceLive({self.to_json(self.parser.parse(to_append))});"
+                f"""replaceLive({self.to_json(
+                    self.sanitize_html(
+                        self.parser.parse(to_append)
+                    )
+                )});"""
             )
-        except Exception as e:
+        except Exception:
             pass
 
     def clear_live(self, meta: CtxMeta, ctx: CtxItem):
@@ -651,7 +662,7 @@ class Renderer(BaseRenderer):
             js = "clearLive();"
         try:
             self.get_output_node_by_pid(pid).page().runJavaScript(js)
-        except Exception as e:
+        except Exception:
             pass
 
     def append_node(
@@ -824,7 +835,11 @@ class Renderer(BaseRenderer):
                 self.append(pid, html)
             else:
                 try:
-                    self.get_output_node(meta).page().runJavaScript(f"appendExtra('{ctx.id}',{self.to_json(html)});")
+                    self.get_output_node(meta).page().runJavaScript(
+                        f"""appendExtra('{ctx.id}',{self.to_json(
+                            self.sanitize_html(html)
+                        )});"""
+                    )
                 except Exception as e:
                     pass
 
@@ -939,7 +954,7 @@ class Renderer(BaseRenderer):
             js = "clearInput();"
         try:
             self.get_output_node_by_pid(pid).page().runJavaScript(js)
-        except Exception as e:
+        except Exception:
             pass
 
     def clear_chunks_output(
@@ -958,7 +973,7 @@ class Renderer(BaseRenderer):
             js = "clearOutput();"
         try:
             self.get_output_node_by_pid(pid).page().runJavaScript(js)
-        except Exception as e:
+        except Exception:
             pass
 
     def clear_nodes(
@@ -976,7 +991,7 @@ class Renderer(BaseRenderer):
             js = "clearNodes();"
         try:
             self.get_output_node_by_pid(pid).page().runJavaScript(js)
-        except Exception as e:
+        except Exception:
             pass
 
     def prepare_node(
@@ -1174,9 +1189,11 @@ class Renderer(BaseRenderer):
         """
         try:
             self.get_output_node_by_pid(pid).page().runJavaScript(
-                f"if (typeof window.appendNode !== 'undefined') appendNode({self.to_json(html)});"
+                f"""if (typeof window.appendNode !== 'undefined') appendNode({self.to_json(
+                    self.sanitize_html(html)
+                )});"""
             )
-        except Exception as e:
+        except Exception:
             pass
 
     def reload(self):
@@ -1266,7 +1283,7 @@ class Renderer(BaseRenderer):
         try:
             self.get_output_node(ctx.meta).page().runJavaScript(
                 f"if (typeof window.removeNode !== 'undefined') removeNode({self.to_json(ctx.id)});")
-        except Exception as e:
+        except Exception:
             pass
 
     def remove_items_from(self, ctx: CtxItem):
@@ -1278,7 +1295,7 @@ class Renderer(BaseRenderer):
         try:
             self.get_output_node(ctx.meta).page().runJavaScript(
                 f"if (typeof window.removeNodesFromId !== 'undefined') removeNodesFromId({self.to_json(ctx.id)});")
-        except Exception as e:
+        except Exception:
             pass
 
     def reset_names(self, meta: CtxMeta):
@@ -1329,7 +1346,7 @@ class Renderer(BaseRenderer):
             nodes = self.get_all_nodes()
             for node in nodes:
                 node.page().runJavaScript("if (typeof window.enableEditIcons !== 'undefined') enableEditIcons();")
-        except Exception as e:
+        except Exception:
             pass
 
     def on_disable_edit(self, live: bool = True):
@@ -1344,7 +1361,7 @@ class Renderer(BaseRenderer):
             nodes = self.get_all_nodes()
             for node in nodes:
                 node.page().runJavaScript("if (typeof window.disableEditIcons !== 'undefined') disableEditIcons();")
-        except Exception as e:
+        except Exception:
             pass
 
     def on_enable_timestamp(self, live: bool = True):
@@ -1359,7 +1376,7 @@ class Renderer(BaseRenderer):
             nodes = self.get_all_nodes()
             for node in nodes:
                 node.page().runJavaScript("if (typeof window.enableTimestamp !== 'undefined') enableTimestamp();")
-        except Exception as e:
+        except Exception:
             pass
 
     def on_disable_timestamp(self, live: bool = True):
@@ -1374,7 +1391,7 @@ class Renderer(BaseRenderer):
             nodes = self.get_all_nodes()
             for node in nodes:
                 node.page().runJavaScript("if (typeof window.disableTimestamp !== 'undefined') disableTimestamp();")
-        except Exception as e:
+        except Exception:
             pass
 
     def update_names(
@@ -1469,9 +1486,11 @@ class Renderer(BaseRenderer):
         """
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"if (typeof window.appendToolOutput !== 'undefined') appendToolOutput({self.to_json(content)});"
+                f"""if (typeof window.appendToolOutput !== 'undefined') appendToolOutput({self.to_json(
+                    self.sanitize_html(content)
+                )});"""
             )
-        except Exception as e:
+        except Exception:
             pass
 
     def tool_output_update(
@@ -1487,9 +1506,11 @@ class Renderer(BaseRenderer):
         """
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"if (typeof window.updateToolOutput !== 'undefined') updateToolOutput({self.to_json(content)});"
+                f"""if (typeof window.updateToolOutput !== 'undefined') updateToolOutput({self.to_json(
+                    self.sanitize_html(content)
+                )});"""
             )
-        except Exception as e:
+        except Exception:
             pass
 
     def tool_output_clear(self, meta: CtxMeta):
@@ -1502,7 +1523,7 @@ class Renderer(BaseRenderer):
             self.get_output_node(meta).page().runJavaScript(
                 f"if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();"
             )
-        except Exception as e:
+        except Exception:
             pass
 
     def tool_output_begin(self, meta: CtxMeta):
@@ -1515,7 +1536,7 @@ class Renderer(BaseRenderer):
             self.get_output_node(meta).page().runJavaScript(
                 f"if (typeof window.beginToolOutput !== 'undefined') beginToolOutput();"
             )
-        except Exception as e:
+        except Exception:
             pass
 
     def tool_output_end(self):
@@ -1524,8 +1545,19 @@ class Renderer(BaseRenderer):
             self.get_output_node().page().runJavaScript(
                 f"if (typeof window.endToolOutput !== 'undefined') endToolOutput();"
             )
-        except Exception as e:
+        except Exception:
             pass
+
+    def sanitize_html(self, html: str) -> str:
+        """
+        Sanitize HTML to prevent XSS attacks
+
+        :param html: HTML string to sanitize
+        :return: sanitized HTML string
+        """
+        if not html:
+            return ""
+        return self.RE_AMP_LT_GT.sub(r'&\1;', html)
 
     def append_debug(
             self,

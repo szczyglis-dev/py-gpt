@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import os
@@ -76,10 +76,10 @@ class Parser:
                 self.md.parser.blockprocessors.deregister('code')
 
     def reset(self):
-        """
-        Reset parser
-        """
+        """Reset parser"""
         self.block_idx = 1
+        if self.md is not None:
+            self.md.reset()
 
     def get_code_blocks(self):
         """
@@ -99,11 +99,12 @@ class Parser:
         # Replace sandbox paths with file paths
         return text.replace("](sandbox:", "](file://") if "](sandbox:" in text else text
 
-    def parse(self, text: str) -> str:
+    def parse(self, text: str, reset: bool = True) -> str:
         """
         Parse markdown text
 
         :param text: markdown text
+        :param reset: reset parser state
         :return: html formatted text
         """
         self.init()
@@ -114,7 +115,9 @@ class Parser:
 
             text = self.prepare_paths(text)
             html = self.md.convert(text)
-            self.md.reset()
+
+            if reset:
+                self.md.reset()
 
             soup = self._make_soup(html)
             self.strip_whitespace_lists(soup)
@@ -124,6 +127,8 @@ class Parser:
 
             result = str(soup)
             soup.decompose()
+            del soup
+
             return result
         except Exception:
             return text

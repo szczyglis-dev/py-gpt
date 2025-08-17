@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer
@@ -311,7 +311,7 @@ class ChatWebOutput(QWebEngineView):
 
             # audio read (get text only on click, don't copy immediately)
             action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
-            action.triggered.connect(lambda: self.signals.audio_read.emit(self.get_selected_text()))
+            action.triggered.connect(self._read_selected_text)
             menu.addAction(action)
 
             # copy to
@@ -320,7 +320,7 @@ class ChatWebOutput(QWebEngineView):
 
             # save as (selected) - get selection at the moment of click
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
-            action.triggered.connect(lambda: self.signals.save_as.emit(self.get_selected_text(), 'txt'))
+            action.triggered.connect(self._save_selected_txt)
             menu.addAction(action)
         else:
             # select all
@@ -343,6 +343,20 @@ class ChatWebOutput(QWebEngineView):
         menu.addAction(action)
 
         menu.exec_(self.mapToGlobal(position))
+
+    @Slot()
+    def _save_selected_txt(self):
+        """Save selected content as text file"""
+        self.signals.save_as.emit(self.get_selected_text(), 'txt')
+
+    @Slot()
+    def _read_selected_text(self):
+        """
+        Read selected text using text-to-speech
+        """
+        selected_text = self.get_selected_text()
+        if selected_text:
+            self.signals.audio_read.emit(selected_text)
 
     @Slot()
     def _save_as_text(self):

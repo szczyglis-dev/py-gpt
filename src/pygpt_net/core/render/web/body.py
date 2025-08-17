@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
 import os
@@ -41,9 +41,10 @@ class Body:
                 <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
                 <script type="text/javascript" src="qrc:///js/highlight.min.js"></script>
                 <script type="text/javascript" src="qrc:///js/katex.min.js"></script>
-                <script type="text/javascript" src="qrc:///js/auto-render.min.js"></script>
                 <script>
-
+                
+                const DEBUG_MODE = false;
+                
                 let scrollTimeout = null;
                 let prevScroll = 0;
                 let bridge;
@@ -67,7 +68,6 @@ class Body:
                 let pendingHighlightRoot = null;
                 let pendingHighlightMath = false;
                 let scrollScheduled = false;
-                const AMP_LT_GT = /&amp;(lt|gt);/g;
 
                 history.scrollRestoration = "manual";
                 document.addEventListener('keydown', function(event) {
@@ -128,9 +128,11 @@ class Body:
                     if (withMath) {
                         renderMath(root);
                     }
+                    if (DEBUG_MODE) log("execute highlight");
                     restoreCollapsedCode(root);
                 }
                 function highlightCode(withMath = true, root = null) {
+                     if (DEBUG_MODE) log("queue highlight, withMath: " + withMath);
                     scheduleHighlight(root || document, withMath);
                 }
                 function hideTips() {
@@ -162,11 +164,12 @@ class Body:
                                 currentTip = (currentTip + 1) % tips.length;
                                 showNextTip();
                             }, 1000);
-                        }, 10000);
+                        }, 15000);
                     }
                     showNextTip();
                 }
                 function renderMath(root) {
+                    if (DEBUG_MODE) log("execute math");
                     const scope = root || document;
                     const scripts = scope.querySelectorAll('script[type^="math/tex"]');
                     scripts.forEach(function(script) {
@@ -212,14 +215,10 @@ class Body:
                     }
                     prevScroll = el.scrollHeight;
                 }
-                function sanitize(content) {
-                    if (content.indexOf('&amp;') === -1) return content;
-                    return content.replace(AMP_LT_GT, '&$1;'); // &amp;lt; -> &lt;, &amp;gt; -> &gt;
-                }
                 function appendToInput(content) {
                     const element = els.appendInput || document.getElementById('_append_input_');
                     if (element) {
-                        element.insertAdjacentHTML('beforeend', sanitize(content));
+                        element.insertAdjacentHTML('beforeend', content);
                         highlightCode(true, element);
                         scheduleScroll();
                     }
@@ -234,42 +233,16 @@ class Body:
                     }
                     return element;
                 }
-                function appendToOutput(bot_name, content) {
-                    hideTips();
-                    const element = getStreamContainer();
-                    if (element) {
-                        let box = element.querySelector('.msg-box');
-                        let msg;
-                        if (!box) {
-                            box = document.createElement('div');
-                            box.classList.add('msg-box');
-                            box.classList.add('msg-bot');
-                            var name = document.createElement('div');
-                            name.classList.add('name-header');
-                            name.classList.add('name-bot');
-                            name.textContent = bot_name;
-                            msg = document.createElement('div');
-                            msg.classList.add('msg');
-                            box.appendChild(name);
-                            box.appendChild(msg);
-                            element.appendChild(box);
-                        } else {
-                            msg = box.querySelector('.msg');
-                        }
-                        if (msg) {
-                            msg.insertAdjacentHTML('beforeend', sanitize(content));
-                            highlightCode(true, msg);
-                            scheduleScroll();
-                        }
-                    }
-                }
                 function appendNode(content) {
+                    if (DEBUG_MODE) {
+                        log("APPEND NODE: {" + content + "}");
+                    }
                     clearStreamBefore();
                     prevScroll = 0;
                     const element = els.nodes || document.getElementById('_nodes_');
                     if (element) {
                         element.classList.remove('empty_list');
-                        element.insertAdjacentHTML('beforeend', sanitize(content));
+                        element.insertAdjacentHTML('beforeend', content);
                         highlightCode(true, element);
                         scheduleScroll();
                     }
@@ -281,7 +254,7 @@ class Body:
                     if (element) {
                         const extra = element.querySelector('.msg-extra');
                         if (extra) {
-                            extra.insertAdjacentHTML('beforeend', sanitize(content));
+                            extra.insertAdjacentHTML('beforeend', content);
                             highlightCode(true, extra);
                             scheduleScroll();
                         }
@@ -320,6 +293,9 @@ class Body:
                 }
                 function clearStream() {
                     hideTips();
+                    if (DEBUG_MODE) {
+                        log("STREAM CLEAR");
+                    }
                     domLastParagraphBlock = null;
                     domLastCodeBlock = null;
                     domOutputStream = null;
@@ -345,10 +321,16 @@ class Body:
                 }
                 function beginStream() {
                     hideTips();
+                    if (DEBUG_MODE) {
+                        log("STREAM BEGIN");
+                    }
                     clearOutput();
                     scheduleScroll();
                 }
                 function endStream() {
+                    if (DEBUG_MODE) {
+                        log("STREAM END");
+                    }
                     clearOutput();
                 }
                 function enqueueStream(name_header, content, chunk, replace = false, is_code_block = false) {
@@ -366,6 +348,9 @@ class Body:
                 }
                 function appendStream(name_header, content, chunk, replace = false, is_code_block = false) {
                     hideTips();
+                    if (DEBUG_MODE) {
+                        log("APPEND CHUNK: {" + chunk + "}, CONTENT: {"+content+"}, replace: " + replace + ", is_code_block: " + is_code_block);
+                    }
                     const element = getStreamContainer();
                     let msg;
                     if (element) {
@@ -392,7 +377,7 @@ class Body:
                             if (replace) {
                                 msg.replaceChildren();
                                 if (content) {
-                                  msg.insertAdjacentHTML('afterbegin', sanitize(content));
+                                  msg.insertAdjacentHTML('afterbegin', content);
                                 }
                                 let doMath = true;
                                 if (is_code_block) {
@@ -413,10 +398,10 @@ class Body:
                                         }
                                     }
                                     if (lastCodeBlock) {
-                                        lastCodeBlock.insertAdjacentHTML('beforeend', sanitize(chunk));
+                                        lastCodeBlock.insertAdjacentHTML('beforeend', chunk);
                                         domLastCodeBlock = lastCodeBlock;
                                     } else {
-                                        msg.insertAdjacentHTML('beforeend', sanitize(chunk));
+                                        msg.insertAdjacentHTML('beforeend', chunk);
                                         domLastCodeBlock = null;
                                     }
                                 } else {
@@ -427,10 +412,10 @@ class Body:
                                             ? msg.lastElementChild
                                             : null);
                                     if (p) {
-                                        p.insertAdjacentHTML('beforeend', sanitize(chunk));
+                                        p.insertAdjacentHTML('beforeend', chunk);
                                         domLastParagraphBlock = p;
                                     } else {
-                                        msg.insertAdjacentHTML('beforeend', sanitize(chunk));
+                                        msg.insertAdjacentHTML('beforeend', chunk);
                                         const last = msg.lastElementChild;
                                         domLastParagraphBlock = (last && last.tagName === 'P') ? last : null;
                                     }
@@ -439,38 +424,6 @@ class Body:
                         }
                     }
                     scheduleScroll(true);
-                }
-                function replaceOutput(name_header, content) {
-                    hideTips();
-                    const element = getStreamContainer();
-                    if (element) {
-                        let box = element.querySelector('.msg-box');
-                        let msg;
-                        if (!box) {
-                            box = document.createElement('div');
-                            box.classList.add('msg-box');
-                            box.classList.add('msg-bot');
-                            if (name_header != '') {
-                                const name = document.createElement('div');
-                                name.classList.add('name-header');
-                                name.classList.add('name-bot');
-                                name.innerHTML = name_header;
-                                box.appendChild(name);
-                            }
-                            msg = document.createElement('div');
-                            msg.classList.add('msg');
-                            box.appendChild(msg);
-                            element.appendChild(box);
-                        } else {
-                            msg = box.querySelector('.msg');
-                        }
-                        if (msg) {
-                            msg.replaceChildren();
-                            msg.insertAdjacentHTML('afterbegin', sanitize(content));
-                            highlightCode(true, msg);
-                            scheduleScroll();
-                        }
-                    }
                 }
                 function nextStream() {
                     hideTips();
@@ -502,7 +455,7 @@ class Body:
                         const last = elements[elements.length - 1];
                         const contentEl = last.querySelector('.content');
                         if (contentEl) {
-                            contentEl.insertAdjacentHTML('beforeend', sanitize(content));
+                            contentEl.insertAdjacentHTML('beforeend', content);
                         }
                     }
                 }
@@ -514,7 +467,7 @@ class Body:
                         const last = elements[elements.length - 1];
                         const contentEl = last.querySelector('.content');
                         if (contentEl) {
-                            contentEl.innerHTML = sanitize(content);
+                            contentEl.innerHTML = content;
                         }
                     }
                 }
@@ -589,7 +542,7 @@ class Body:
                             element.classList.remove('hidden');
                             element.classList.add('visible');
                         }
-                        element.innerHTML = sanitize(content);
+                        element.innerHTML = content;
                         highlightCode(true, element);
                         scheduleScroll();
                     }
@@ -869,7 +822,7 @@ class Body:
                         }
                     });
                 });
-                setTimeout(cycleTips, 20000);
+                setTimeout(cycleTips, 60000);  // after 60 seconds
                 </script>
             </head>
             <body """
