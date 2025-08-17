@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.9** | build: **2025-08-17** | Python: **>=3.10, <3.14**
+Release: **2.6.10** | build: **2025-08-17** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4459,6 +4459,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.10 (2025-08-17)**
+
+- Enhanced the handling of the context list.
+- Integrated RAG into OpenAI Agents.
+- Enhanced RAG management in Agents.
+- Added an option: Config -> Agents -> General -> Auto-retrieve additional context from RAG.
+- Included Google Docs, Maps, and Colab in the Google plugin.
 
 **2.6.9 (2025-08-17)**
 
