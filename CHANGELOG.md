@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.9 (2025-08-17)
+
+- Added two new agents for LlamaIndex and OpenAI: Supervisor and Worker (beta).
+
 ## 2.6.8 (2025-08-16)
 
 - Fixed: updated paragraph color on theme switch.
