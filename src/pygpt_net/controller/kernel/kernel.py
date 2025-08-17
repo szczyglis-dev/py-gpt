@@ -31,7 +31,7 @@ from .reply import Reply
 from .stack import Stack
 
 
-class Kernel(QObject):
+class Kernel:
 
     STATE_IDLE = "idle"
     STATE_BUSY = "busy"
@@ -81,7 +81,6 @@ class Kernel(QObject):
 
         :param window: The window context to which the kernel will be bound.
         """
-        super(Kernel, self).__init__(window)
         self.window = window
         self.replies = Reply(window)
         self.stack = Stack(window)
