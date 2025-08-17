@@ -17,6 +17,8 @@ import io
 import json
 import os
 import re
+
+from uuid import uuid4
 from email.message import EmailMessage
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -32,7 +34,7 @@ from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 # Google libs
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload, MediaIoBaseUpload
 from google.oauth2.credentials import Credentials
 from google.oauth2.service_account import Credentials as ServiceAccountCredentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -48,6 +50,11 @@ try:
     import gkeepapi  # unofficial Keep fallback
 except Exception:
     gkeepapi = None
+
+try:
+    import requests  # for Google Maps REST
+except Exception:
+    requests = None
 
 
 class WorkerSignals(BaseSignals):
@@ -72,12 +79,13 @@ class Worker(BaseWorker):
         "https://www.googleapis.com/auth/keep",
         "https://www.googleapis.com/auth/keep.readonly",
     ]
+    DOCS_SCOPES = ["https://www.googleapis.com/auth/documents"]
 
     ALL_SCOPES = sorted(
-        set(GMAIL_SCOPES + CAL_SCOPES + DRIVE_SCOPES + PEOPLE_SCOPES + YT_SCOPES)
+        set(GMAIL_SCOPES + CAL_SCOPES + DRIVE_SCOPES + PEOPLE_SCOPES + YT_SCOPES + DOCS_SCOPES)
     )
     ALL_SCOPES_WITH_KEEP = sorted(
-        set(GMAIL_SCOPES + CAL_SCOPES + DRIVE_SCOPES + PEOPLE_SCOPES + YT_SCOPES + KEEP_SCOPES)
+        set(GMAIL_SCOPES + CAL_SCOPES + DRIVE_SCOPES + PEOPLE_SCOPES + YT_SCOPES + DOCS_SCOPES + KEEP_SCOPES)
     )
 
     def __init__(self, *args, **kwargs):
@@ -158,6 +166,56 @@ class Worker(BaseWorker):
                             response = self.cmd_contacts_list(item)
                         elif item["cmd"] == "contacts_add":
                             response = self.cmd_contacts_add(item)
+
+                        # Google Docs
+                        elif item["cmd"] == "docs_create":
+                            response = self.cmd_docs_create(item)
+                        elif item["cmd"] == "docs_get":
+                            response = self.cmd_docs_get(item)
+                        elif item["cmd"] == "docs_list":
+                            response = self.cmd_docs_list(item)
+                        elif item["cmd"] == "docs_append_text":
+                            response = self.cmd_docs_append_text(item)
+                        elif item["cmd"] == "docs_replace_text":
+                            response = self.cmd_docs_replace_text(item)
+                        elif item["cmd"] == "docs_insert_heading":
+                            response = self.cmd_docs_insert_heading(item)
+                        elif item["cmd"] == "docs_export":
+                            response = self.cmd_docs_export(item)
+                        elif item["cmd"] == "docs_copy_from_template":
+                            response = self.cmd_docs_copy_from_template(item)
+
+                        # Google Maps
+                        elif item["cmd"] == "maps_geocode":
+                            response = self.cmd_maps_geocode(item)
+                        elif item["cmd"] == "maps_reverse_geocode":
+                            response = self.cmd_maps_reverse_geocode(item)
+                        elif item["cmd"] == "maps_directions":
+                            response = self.cmd_maps_directions(item)
+                        elif item["cmd"] == "maps_distance_matrix":
+                            response = self.cmd_maps_distance_matrix(item)
+                        elif item["cmd"] == "maps_places_textsearch":
+                            response = self.cmd_maps_places_textsearch(item)
+                        elif item["cmd"] == "maps_places_nearby":
+                            response = self.cmd_maps_places_nearby(item)
+                        elif item["cmd"] == "maps_static_map":
+                            response = self.cmd_maps_static_map(item)
+
+                        # Google Colab
+                        elif item["cmd"] == "colab_list_notebooks":
+                            response = self.cmd_colab_list_notebooks(item)
+                        elif item["cmd"] == "colab_create_notebook":
+                            response = self.cmd_colab_create_notebook(item)
+                        elif item["cmd"] == "colab_add_code_cell":
+                            response = self.cmd_colab_add_code_cell(item)
+                        elif item["cmd"] == "colab_add_markdown_cell":
+                            response = self.cmd_colab_add_markdown_cell(item)
+                        elif item["cmd"] == "colab_get_link":
+                            response = self.cmd_colab_get_link(item)
+                        elif item["cmd"] == "colab_rename":
+                            response = self.cmd_colab_rename(item)
+                        elif item["cmd"] == "colab_duplicate":
+                            response = self.cmd_colab_duplicate(item)
 
                         if response:
                             responses.append(response)
@@ -797,6 +855,524 @@ class Worker(BaseWorker):
         svc = self._service("people", "v1", scopes=self.PEOPLE_SCOPES)
         created = svc.people().createContact(body=body).execute()
         return self.make_response(item, created)
+
+    # -------------- Google Docs --------------
+
+    def _docs_service(self):
+        return self._service("docs", "v1", scopes=self.DOCS_SCOPES)
+
+    def _docs_end_index(self, doc: Dict[str, Any]) -> int:
+        content = (doc.get("body") or {}).get("content") or []
+        if not content:
+            return 1
+        return content[-1].get("endIndex", 1)
+
+    def _docs_extract_text(self, doc: Dict[str, Any]) -> str:
+        # Extract plain text from document structure
+        out = []
+        for elem in (doc.get("body") or {}).get("content", []):
+            para = (elem.get("paragraph") or {})
+            for run in (para.get("elements") or []):
+                tr = run.get("textRun")
+                if tr and "content" in tr:
+                    out.append(tr["content"])
+        return "".join(out)
+
+    def _drive_meta(self, svc, file_id: str, fields: str = "id, name, mimeType, parents"):
+        return svc.files().get(fileId=file_id, fields=fields).execute()
+
+    def _resolve_drive_id(self, svc, file_id: Optional[str], path: Optional[str]) -> Optional[str]:
+        if file_id:
+            return file_id
+        if path:
+            node = self._drive_find_by_path(svc, path)
+            if node:
+                return node["id"]
+        return None
+
+    def cmd_docs_create(self, item: dict) -> dict:
+        p = item.get("params", {})
+        title = p.get("title") or "Untitled"
+        svc = self._docs_service()
+        doc = svc.documents().create(body={"title": title}).execute()
+        doc_id = doc.get("documentId")
+        link = f"https://docs.google.com/document/d/{doc_id}/edit"
+        return self.make_response(item, {"documentId": doc_id, "title": title, "link": link})
+
+    def cmd_docs_get(self, item: dict) -> dict:
+        p = item.get("params", {})
+        doc_id = p.get("document_id")
+        if not doc_id and p.get("path"):
+            dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+            doc_id = self._resolve_drive_id(dsvc, None, p.get("path"))
+        if not doc_id:
+            return self.make_response(item, "Param 'document_id' or 'path' required")
+        svc = self._docs_service()
+        doc = svc.documents().get(documentId=doc_id).execute()
+        text = self._docs_extract_text(doc)
+        return self.make_response(item, {"document": doc, "text": text})
+
+    def cmd_docs_list(self, item: dict) -> dict:
+        p = item.get("params", {})
+        q_extra = p.get("q")
+        q = "mimeType = 'application/vnd.google-apps.document' and trashed=false"
+        if q_extra:
+            # simple name filter
+            name = q_extra.replace("'", "\\'")
+            q += f" and name contains '{name}'"
+        page_size = int(p.get("page_size", 100))
+        svc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+        res = svc.files().list(q=q, pageSize=page_size, fields="files(id,name,parents,modifiedTime)").execute()
+        return self.make_response(item, res.get("files", []))
+
+    def cmd_docs_append_text(self, item: dict) -> dict:
+        p = item.get("params", {})
+        doc_id = p.get("document_id")
+        text = p.get("text") or ""
+        newline = bool(p.get("newline", True))
+        if not (doc_id or p.get("path")):
+            return self.make_response(item, "Param 'document_id' or 'path' required")
+        if not text:
+            return self.make_response(item, "Param 'text' required")
+        if not doc_id and p.get("path"):
+            dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+            doc_id = self._resolve_drive_id(dsvc, None, p.get("path"))
+        svc = self._docs_service()
+        doc = svc.documents().get(documentId=doc_id).execute()
+        end_idx = self._docs_end_index(doc)
+        ins_text = (("\n" if newline else "") + text)
+        reqs = [{"insertText": {"location": {"index": end_idx - 1}, "text": ins_text}}]
+        updated = svc.documents().batchUpdate(documentId=doc_id, body={"requests": reqs}).execute()
+        return self.make_response(item,
+                                  {"documentId": doc_id, "status": "OK", "updates": updated.get("replies", [])})
+
+    def cmd_docs_replace_text(self, item: dict) -> dict:
+        p = item.get("params", {})
+        doc_id = p.get("document_id")
+        if not doc_id and p.get("path"):
+            dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+            doc_id = self._resolve_drive_id(dsvc, None, p.get("path"))
+        find = p.get("find")
+        replace = p.get("replace", "")
+        match_case = bool(p.get("matchCase", False))
+        if not (doc_id and find):
+            return self.make_response(item, "Params 'document_id' (or 'path') and 'find' required")
+        svc = self._docs_service()
+        reqs = [{
+            "replaceAllText": {
+                "containsText": {"text": find, "matchCase": match_case},
+                "replaceText": replace
+            }
+        }]
+        out = svc.documents().batchUpdate(documentId=doc_id, body={"requests": reqs}).execute()
+        return self.make_response(item, {"documentId": doc_id, "status": "OK", "updates": out.get("replies", [])})
+
+    def cmd_docs_insert_heading(self, item: dict) -> dict:
+        p = item.get("params", {})
+        doc_id = p.get("document_id")
+        if not doc_id and p.get("path"):
+            dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+            doc_id = self._resolve_drive_id(dsvc, None, p.get("path"))
+        text = p.get("text") or ""
+        level = int(p.get("level", 1))
+        level = min(max(level, 1), 6)
+        if not (doc_id and text):
+            return self.make_response(item, "Params 'document_id' (or 'path') and 'text' required")
+        svc = self._docs_service()
+        doc = svc.documents().get(documentId=doc_id).execute()
+        start = self._docs_end_index(doc) - 1
+        ins = text + "\n"
+        reqs = [
+            {"insertText": {"location": {"index": start}, "text": ins}},
+            {"updateParagraphStyle": {
+                "range": {"startIndex": start, "endIndex": start + len(ins)},
+                "paragraphStyle": {"namedStyleType": f"HEADING_{level}"},
+                "fields": "namedStyleType"
+            }},
+        ]
+        out = svc.documents().batchUpdate(documentId=doc_id, body={"requests": reqs}).execute()
+        return self.make_response(item, {"documentId": doc_id, "status": "OK", "updates": out.get("replies", [])})
+
+    def cmd_docs_export(self, item: dict) -> dict:
+        p = item.get("params", {})
+        doc_id = p.get("document_id")
+        if not doc_id and p.get("path"):
+            dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+            doc_id = self._resolve_drive_id(dsvc, None, p.get("path"))
+        mime = p.get("mime") or "application/pdf"
+        out_path = self.prepare_path(p.get("out") or "")
+        if not doc_id:
+            return self.make_response(item, "Param 'document_id' or 'path' required")
+        dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+        meta = dsvc.files().get(fileId=doc_id, fields="id, name").execute()
+        target = out_path or self.prepare_path(meta["name"] + (".pdf" if mime == "application/pdf" else ""))
+        fh = io.FileIO(target, "wb")
+        try:
+            req = dsvc.files().export_media(fileId=doc_id, mimeType=mime)
+            downloader = MediaIoBaseDownload(fh, req)
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+        finally:
+            fh.close()
+        return self.make_response(item, {"path": target, "id": meta["id"], "name": meta["name"]})
+
+    def cmd_docs_copy_from_template(self, item: dict) -> dict:
+        p = item.get("params", {})
+        template_id = p.get("template_id")
+        new_title = p.get("title") or "Copy"
+        if not template_id and p.get("template_path"):
+            dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+            template_id = self._resolve_drive_id(dsvc, None, p.get("template_path"))
+        if not template_id:
+            return self.make_response(item, "Param 'template_id' or 'template_path' required")
+        dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+        copied = dsvc.files().copy(fileId=template_id, body={"name": new_title}).execute()
+        link = f"https://docs.google.com/document/d/{copied['id']}/edit"
+        return self.make_response(item, {"id": copied["id"], "name": copied["name"], "link": link})
+
+    # -------------- Google Maps (REST, API key) --------------
+
+    def _maps_key(self) -> Optional[str]:
+        return self.plugin.get_option_value("google_maps_api_key") or self.plugin.get_option_value("maps_api_key")
+
+    def _check_requests(self):
+        if requests is None:
+            raise RuntimeError("Python 'requests' not installed - required for Google Maps calls.")
+
+    def cmd_maps_geocode(self, item: dict) -> dict:
+        self._check_requests()
+        p = item.get("params", {})
+        key = self._maps_key()
+        if not key:
+            return self.make_response(item, "Missing 'google_maps_api_key' in plugin options")
+        address = p.get("address")
+        if not address:
+            return self.make_response(item, "Param 'address' required")
+        params = {"address": address, "key": key}
+        if p.get("language"):
+            params["language"] = p["language"]
+        if p.get("region"):
+            params["region"] = p["region"]
+        r = requests.get("https://maps.googleapis.com/maps/api/geocode/json", params=params, timeout=20)
+        data = r.json()
+        return self.make_response(item, data)
+
+    def cmd_maps_reverse_geocode(self, item: dict) -> dict:
+        self._check_requests()
+        p = item.get("params", {})
+        key = self._maps_key()
+        if not key:
+            return self.make_response(item, "Missing 'google_maps_api_key'")
+        lat = p.get("lat")
+        lng = p.get("lng")
+        if not (lat and lng):
+            return self.make_response(item, "Params 'lat' and 'lng' required")
+        params = {"latlng": f"{lat},{lng}", "key": key}
+        if p.get("language"):
+            params["language"] = p["language"]
+        r = requests.get("https://maps.googleapis.com/maps/api/geocode/json", params=params, timeout=20)
+        return self.make_response(item, r.json())
+
+    def cmd_maps_directions(self, item: dict) -> dict:
+        self._check_requests()
+        p = item.get("params", {})
+        key = self._maps_key()
+        if not key:
+            return self.make_response(item, "Missing 'google_maps_api_key'")
+        origin = p.get("origin")
+        destination = p.get("destination")
+        if not (origin and destination):
+            return self.make_response(item, "Params 'origin' and 'destination' required")
+        params = {
+            "origin": origin,
+            "destination": destination,
+            "mode": p.get("mode", "driving"),
+            "key": key,
+        }
+        if p.get("waypoints"):
+            if isinstance(p["waypoints"], list):
+                params["waypoints"] = "|".join(p["waypoints"])
+            else:
+                params["waypoints"] = str(p["waypoints"])
+        if p.get("departure_time"):
+            params["departure_time"] = p["departure_time"]  # 'now' or epoch seconds
+        r = requests.get("https://maps.googleapis.com/maps/api/directions/json", params=params, timeout=30)
+        return self.make_response(item, r.json())
+
+    def cmd_maps_distance_matrix(self, item: dict) -> dict:
+        self._check_requests()
+        p = item.get("params", {})
+        key = self._maps_key()
+        if not key:
+            return self.make_response(item, "Missing 'google_maps_api_key'")
+        origins = p.get("origins")
+        destinations = p.get("destinations")
+        if not (origins and destinations):
+            return self.make_response(item, "Params 'origins' and 'destinations' required")
+        if isinstance(origins, list):
+            origins = "|".join(origins)
+        if isinstance(destinations, list):
+            destinations = "|".join(destinations)
+        params = {
+            "origins": origins,
+            "destinations": destinations,
+            "mode": p.get("mode", "driving"),
+            "key": key,
+        }
+        r = requests.get("https://maps.googleapis.com/maps/api/distancematrix/json", params=params, timeout=20)
+        return self.make_response(item, r.json())
+
+    def cmd_maps_places_textsearch(self, item: dict) -> dict:
+        self._check_requests()
+        p = item.get("params", {})
+        key = self._maps_key()
+        if not key:
+            return self.make_response(item, "Missing 'google_maps_api_key'")
+        query = p.get("query")
+        if not query:
+            return self.make_response(item, "Param 'query' required")
+        params = {"query": query, "key": key}
+        if p.get("location"):
+            params["location"] = p["location"]  # "lat,lng"
+        if p.get("radius"):
+            params["radius"] = int(p["radius"])
+        if p.get("type"):
+            params["type"] = p["type"]
+        if p.get("opennow") is not None:
+            params["opennow"] = "true" if p.get("opennow") else "false"
+        r = requests.get("https://maps.googleapis.com/maps/api/place/textsearch/json", params=params, timeout=20)
+        return self.make_response(item, r.json())
+
+    def cmd_maps_places_nearby(self, item: dict) -> dict:
+        self._check_requests()
+        p = item.get("params", {})
+        key = self._maps_key()
+        if not key:
+            return self.make_response(item, "Missing 'google_maps_api_key'")
+        location = p.get("location")
+        radius = p.get("radius")
+        if not (location and radius):
+            return self.make_response(item, "Params 'location' (lat,lng) and 'radius' required")
+        params = {"location": location, "radius": int(radius), "key": key}
+        if p.get("keyword"):
+            params["keyword"] = p["keyword"]
+        if p.get("type"):
+            params["type"] = p["type"]
+        r = requests.get("https://maps.googleapis.com/maps/api/place/nearbysearch/json", params=params, timeout=20)
+        return self.make_response(item, r.json())
+
+    def cmd_maps_static_map(self, item: dict) -> dict:
+        self._check_requests()
+        p = item.get("params", {})
+        key = self._maps_key()
+        if not key:
+            return self.make_response(item, "Missing 'google_maps_api_key'")
+        center = p.get("center")
+        zoom = p.get("zoom", 13)
+        size = p.get("size", "600x400")
+        markers = p.get("markers")  # list of "lat,lng" or dict spec
+        maptype = p.get("maptype", "roadmap")
+        out_path = self.prepare_path(p.get("out") or "static_map.png")
+        params = {"key": key, "zoom": zoom, "size": size, "maptype": maptype}
+        if center:
+            params["center"] = center
+        if markers:
+            if isinstance(markers, list):
+                for m in markers:
+                    params.setdefault("markers", [])
+                # requests will encode list as repeated params
+            params["markers"] = markers if isinstance(markers, list) else [markers]
+        r = requests.get("https://maps.googleapis.com/maps/api/staticmap", params=params, timeout=20)
+        if r.status_code != 200 or r.headers.get("Content-Type", "").startswith("application/json"):
+            try:
+                return self.make_response(item, r.json())
+            except Exception:
+                return self.make_response(item, f"Static map error: HTTP {r.status_code}")
+        with open(out_path, "wb") as f:
+            f.write(r.content)
+        return self.make_response(item, {"path": out_path, "bytes": len(r.content)})
+
+    # -------------- Google Colab (via Drive + ipynb JSON) --------------
+
+    def _colab_nb_template(self, first_md: Optional[str] = None, first_code: Optional[str] = None) -> Dict[
+        str, Any]:
+        md_cell = None
+        code_cell = None
+        if first_md:
+            md_cell = {
+                "cell_type": "markdown",
+                "metadata": {"id": str(uuid4())},
+                "source": [first_md if first_md.endswith("\n") else first_md + "\n"],
+            }
+        if first_code:
+            code_cell = {
+                "cell_type": "code",
+                "metadata": {"id": str(uuid4())},
+                "source": [s if s.endswith("\n") else s + "\n" for s in first_code.splitlines()],
+                "outputs": [],
+                "execution_count": None,
+            }
+        cells = []
+        if md_cell:
+            cells.append(md_cell)
+        if code_cell:
+            cells.append(code_cell)
+        if not cells:
+            cells = [{
+                "cell_type": "markdown",
+                "metadata": {"id": str(uuid4())},
+                "source": ["# New notebook\n"],
+            }]
+        return {
+            "nbformat": 4,
+            "nbformat_minor": 5,
+            "metadata": {"colab": {"provenance": []}},
+            "cells": cells,
+        }
+
+    def _colab_download_nb(self, dsvc, file_id: str) -> Dict[str, Any]:
+        req = dsvc.files().get_media(fileId=file_id)
+        buf = io.BytesIO()
+        downloader = MediaIoBaseDownload(buf, req)
+        done = False
+        while not done:
+            status, done = downloader.next_chunk()
+        buf.seek(0)
+        return json.loads(buf.read().decode("utf-8"))
+
+    def _colab_upload_nb(self, dsvc, file_id: str, nb: Dict[str, Any]) -> Dict[str, Any]:
+        data = json.dumps(nb, ensure_ascii=False).encode("utf-8")
+        media = MediaIoBaseUpload(io.BytesIO(data), mimetype="application/json", resumable=False)
+        return dsvc.files().update(fileId=file_id, media_body=media, fields="id, name, mimeType").execute()
+
+    def _ensure_parent_id(self, dsvc, remote_parent_path: Optional[str]) -> Optional[str]:
+        if not remote_parent_path:
+            return None
+        node = self._drive_find_by_path(dsvc, remote_parent_path)
+        if not node:
+            return None
+        return node["id"]
+
+    def cmd_colab_list_notebooks(self, item: dict) -> dict:
+        p = item.get("params", {})
+        page_size = int(p.get("page_size", 100))
+        q = "trashed=false and (mimeType='application/vnd.google.colaboratory' or name contains '.ipynb')"
+        if p.get("q"):
+            name = p["q"].replace("'", "\\'")
+            q += f" and name contains '{name}'"
+        dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+        res = dsvc.files().list(q=q, pageSize=page_size,
+                                fields="files(id,name,mimeType,parents,modifiedTime)").execute()
+        return self.make_response(item, res.get("files", []))
+
+    def cmd_colab_create_notebook(self, item: dict) -> dict:
+        p = item.get("params", {})
+        name = p.get("name") or "notebook.ipynb"
+        if not name.endswith(".ipynb"):
+            name += ".ipynb"
+        first_md = p.get("markdown")
+        first_code = p.get("code")
+        dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+        parents = []
+        parent_path = p.get("remote_parent_path")
+        if parent_path:
+            pid = self._ensure_parent_id(dsvc, parent_path)
+            if not pid:
+                return self.make_response(item, f"Remote parent path not found: {parent_path}")
+            parents = [pid]
+        nb = self._colab_nb_template(first_md, first_code)
+        media = MediaIoBaseUpload(io.BytesIO(json.dumps(nb).encode("utf-8")), mimetype="application/json")
+        body = {"name": name}
+        if parents:
+            body["parents"] = parents
+        created = dsvc.files().create(body=body, media_body=media, fields="id, name, mimeType, parents").execute()
+        link = f"https://colab.research.google.com/drive/{created['id']}"
+        return self.make_response(item, {"id": created["id"], "name": created["name"], "link": link})
+
+    def _colab_add_cell_common(self, item: dict, cell_type: str) -> dict:
+        p = item.get("params", {})
+        file_id = p.get("file_id")
+        dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+        if not file_id and p.get("path"):
+            file_id = self._resolve_drive_id(dsvc, None, p.get("path"))
+        if not file_id:
+            return self.make_response(item, "Param 'file_id' or 'path' required")
+        nb = self._colab_download_nb(dsvc, file_id)
+        pos = p.get("position")
+        if cell_type == "code":
+            source = p.get("code") or ""
+            cell = {
+                "cell_type": "code",
+                "metadata": {"id": str(uuid4())},
+                "source": [s if s.endswith("\n") else s + "\n" for s in source.splitlines()],
+                "outputs": [],
+                "execution_count": None,
+            }
+        else:
+            source = p.get("markdown") or ""
+            cell = {
+                "cell_type": "markdown",
+                "metadata": {"id": str(uuid4())},
+                "source": [source if source.endswith("\n") else source + "\n"],
+            }
+        if isinstance(pos, int) and 0 <= pos <= len(nb["cells"]):
+            nb["cells"].insert(pos, cell)
+        else:
+            nb["cells"].append(cell)
+        updated = self._colab_upload_nb(dsvc, file_id, nb)
+        return self.make_response(item, {"id": updated["id"], "cells": len(nb["cells"])})
+
+    def cmd_colab_add_code_cell(self, item: dict) -> dict:
+        return self._colab_add_cell_common(item, "code")
+
+    def cmd_colab_add_markdown_cell(self, item: dict) -> dict:
+        return self._colab_add_cell_common(item, "markdown")
+
+    def cmd_colab_get_link(self, item: dict) -> dict:
+        p = item.get("params", {})
+        file_id = p.get("file_id")
+        if not file_id and p.get("path"):
+            dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+            file_id = self._resolve_drive_id(dsvc, None, p.get("path"))
+        if not file_id:
+            return self.make_response(item, "Param 'file_id' or 'path' required")
+        link = f"https://colab.research.google.com/drive/{file_id}"
+        return self.make_response(item, {"file_id": file_id, "link": link})
+
+    def cmd_colab_rename(self, item: dict) -> dict:
+        p = item.get("params", {})
+        new_name = p.get("name")
+        if not new_name:
+            return self.make_response(item, "Param 'name' required")
+        file_id = p.get("file_id")
+        dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+        if not file_id and p.get("path"):
+            file_id = self._resolve_drive_id(dsvc, None, p.get("path"))
+        if not file_id:
+            return self.make_response(item, "Param 'file_id' or 'path' required")
+        updated = dsvc.files().update(fileId=file_id, body={"name": new_name}, fields="id,name").execute()
+        return self.make_response(item, updated)
+
+    def cmd_colab_duplicate(self, item: dict) -> dict:
+        p = item.get("params", {})
+        file_id = p.get("file_id")
+        dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
+        if not file_id and p.get("path"):
+            file_id = self._resolve_drive_id(dsvc, None, p.get("path"))
+        if not file_id:
+            return self.make_response(item, "Param 'file_id' or 'path' required")
+        name = p.get("name") or "Copy.ipynb"
+        body = {"name": name}
+        parent_path = p.get("remote_parent_path")
+        if parent_path:
+            pid = self._ensure_parent_id(dsvc, parent_path)
+            if not pid:
+                return self.make_response(item, f"Remote parent path not found: {parent_path}")
+            body["parents"] = [pid]
+        copied = dsvc.files().copy(fileId=file_id, body=body, fields="id,name,parents").execute()
+        link = f"https://colab.research.google.com/drive/{copied['id']}"
+        return self.make_response(item, {"id": copied["id"], "name": copied["name"], "link": link})
 
     def prepare_path(self, path: str) -> str:
         """

@@ -31,7 +31,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 * ``Voice Control (inline)`` - provides voice control command execution within a conversation.
 * ``Mailer`` - Provides the ability to send, receive and read emails.
-* ``Google`` - Access Gmail, Drive, Calendar, Contacts, YouTube, Keep for managing emails, files, events, notes, video info, and contacts.
+* ``Google`` - Access Gmail, Drive, Docs, Maps, Calendar, Contacts, Colab, YouTube, Keep - for managing emails, files, events, notes, video info, and contacts.
 * ``Facebook`` - Manage user info, pages, posts, and photos on Facebook pages.
 * ``Slack`` - Handle users, conversations, messages, and files on Slack.
 * ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
@@ -1391,31 +1391,88 @@ The plugin provides voice control command execution within a conversation.
 See the ``Accessibility`` section for more details.
 
 
-Google (Gmail, Drive, Calendar, Contacts, YT, Keep)
----------------------------------------------------
+Google (Gmail, Drive, Calendar, Contacts, YT, Keep, Docs, Maps, Colab)
+======================================================================
 
-* Listing recent emails from Gmail.
-* Listing all emails from Gmail.
-* Searching emails in Gmail.
-* Retrieving email details by ID in Gmail.
-* Sending an email via Gmail.
-* Listing recent calendar events.
-* Listing today's calendar events.
-* Listing tomorrow's calendar events.
-* Listing all calendar events.
-* Retrieving calendar events by a specific date.
-* Adding a new event to the calendar.
-* Deleting an event from the calendar.
-* Listing notes from Google Keep.
-* Adding a new note to Google Keep.
-* Listing files from Google Drive.
-* Finding a file in Google Drive by its path.
-* Downloading a file from Google Drive.
-* Uploading a file to Google Drive.
-* Retrieving information about a YouTube video.
-* Retrieving the transcript of a YouTube video.
-* Listing contacts from Google Contacts.
-* Adding a new contact to Google Contacts.
+**Gmail**
+---------
+
+- Listing recent emails from Gmail.
+- Listing all emails from Gmail.
+- Searching emails in Gmail.
+- Retrieving email details by ID in Gmail.
+- Sending an email via Gmail.
+
+**Google Calendar**
+-------------------
+
+- Listing recent calendar events.
+- Listing today's calendar events.
+- Listing tomorrow's calendar events.
+- Listing all calendar events.
+- Retrieving calendar events by a specific date.
+- Adding a new event to the calendar.
+- Deleting an event from the calendar.
+
+**Google Keep**
+---------------
+
+- Listing notes from Google Keep.
+- Adding a new note to Google Keep.
+
+**Google Drive**
+----------------
+
+- Listing files from Google Drive.
+- Finding a file in Google Drive by its path.
+- Downloading a file from Google Drive.
+- Uploading a file to Google Drive.
+
+**YouTube**
+-----------
+
+- Retrieving information about a YouTube video.
+- Retrieving the transcript of a YouTube video.
+
+**Google Contacts**
+-------------------
+
+- Listing contacts from Google Contacts.
+- Adding a new contact to Google Contacts.
+
+**Google Docs**
+---------------
+
+- Creating a new document.
+- Retrieving a document.
+- Listing documents.
+- Appending text to a document.
+- Replacing text in a document.
+- Inserting a heading in a document.
+- Exporting a document.
+- Copying from a template.
+
+**Google Maps**
+---------------
+
+- Geocoding an address.
+- Reverse geocoding coordinates.
+- Getting directions between locations.
+- Using the distance matrix.
+- Text search for places.
+- Finding nearby places.
+- Generating static map images.
+
+**Google Colab**
+----------------
+
+- Listing notebooks.
+- Creating a new notebook.
+- Adding a code cell.
+- Adding a markdown cell.
+- Getting a link to a notebook.
+- Renaming a notebook.
+- Duplicating a notebook.
 
 
 Facebook

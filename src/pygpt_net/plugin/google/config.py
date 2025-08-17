@@ -53,7 +53,7 @@ class Config(BaseConfig):
         plugin.add_option(
             "oauth_scopes",
             type="text",
-            value="https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/youtube.readonly",
+            value="https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/documents",
             label="Scopes",
             description="Space-separated OAuth scopes. To use native Keep, add: https://www.googleapis.com/auth/keep and https://www.googleapis.com/auth/keep.readonly.",
         )
@@ -110,6 +110,23 @@ class Config(BaseConfig):
             secret=True,
         )
 
+        # Google Maps API keys
+        plugin.add_option(
+            "google_maps_api_key",
+            type="text",
+            value="",
+            label="Google Maps API Key",
+            description="Used for Geocoding, Directions, Distance Matrix, Places, Static Maps.",
+            secret=True,
+        )
+        plugin.add_option(
+            "maps_api_key",
+            type="text",
+            value="",
+            label="Maps API Key (alias)",
+            description="Alias for google_maps_api_key (backward compatibility).",
+            secret=True,
+        )
 
         # Gmail
         plugin.add_cmd(
@@ -364,4 +381,292 @@ class Config(BaseConfig):
             enabled=True,
             description="Contacts: add",
             tab="contacts",
+        )
+
+        # Google Docs
+        plugin.add_cmd(
+            "docs_create",
+            instruction="Create Google Doc",
+            params=[
+                {"name": "title", "type": "str", "required": False, "description": "Document title (default Untitled)"},
+            ],
+            enabled=True,
+            description="Docs: create document",
+            tab="docs",
+        )
+        plugin.add_cmd(
+            "docs_get",
+            instruction="Get Google Doc (structure + plain text)",
+            params=[
+                {"name": "document_id", "type": "str", "required": False, "description": "Document ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+            ],
+            enabled=True,
+            description="Docs: get document",
+            tab="docs",
+        )
+        plugin.add_cmd(
+            "docs_list",
+            instruction="List Google Docs",
+            params=[
+                {"name": "q", "type": "str", "required": False, "description": "Name contains"},
+                {"name": "page_size", "type": "int", "required": False, "description": "Default 100"},
+            ],
+            enabled=True,
+            description="Docs: list documents",
+            tab="docs",
+        )
+        plugin.add_cmd(
+            "docs_append_text",
+            instruction="Append text to Google Doc",
+            params=[
+                {"name": "document_id", "type": "str", "required": False, "description": "Document ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+                {"name": "text", "type": "str", "required": True, "description": "Text to append"},
+                {"name": "newline", "type": "bool", "required": False, "description": "Prepend newline (default True)"},
+            ],
+            enabled=True,
+            description="Docs: append text",
+            tab="docs",
+        )
+        plugin.add_cmd(
+            "docs_replace_text",
+            instruction="Replace all text occurrences in Google Doc",
+            params=[
+                {"name": "document_id", "type": "str", "required": False, "description": "Document ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+                {"name": "find", "type": "str", "required": True, "description": "Find pattern (literal)"},
+                {"name": "replace", "type": "str", "required": False, "description": "Replacement (can be empty)"},
+                {"name": "matchCase", "type": "bool", "required": False, "description": "Match case"},
+            ],
+            enabled=True,
+            description="Docs: replace text",
+            tab="docs",
+        )
+        plugin.add_cmd(
+            "docs_insert_heading",
+            instruction="Insert heading at end of Google Doc",
+            params=[
+                {"name": "document_id", "type": "str", "required": False, "description": "Document ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+                {"name": "text", "type": "str", "required": True, "description": "Heading text"},
+                {"name": "level", "type": "int", "required": False, "description": "Heading level 1..6"},
+            ],
+            enabled=True,
+            description="Docs: insert heading",
+            tab="docs",
+        )
+        plugin.add_cmd(
+            "docs_export",
+            instruction="Export Google Doc to file",
+            params=[
+                {"name": "document_id", "type": "str", "required": False, "description": "Document ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+                {"name": "mime", "type": "str", "required": False, "description": "application/pdf, text/plain, docx"},
+                {"name": "out", "type": "str", "required": False, "description": "Local output path"},
+            ],
+            enabled=True,
+            description="Docs: export document",
+            tab="docs",
+        )
+        plugin.add_cmd(
+            "docs_copy_from_template",
+            instruction="Make a copy of template Google Doc",
+            params=[
+                {"name": "template_id", "type": "str", "required": False, "description": "Template Doc ID"},
+                {"name": "template_path", "type": "str", "required": False, "description": "Template Drive path"},
+                {"name": "title", "type": "str", "required": False, "description": "New document title"},
+            ],
+            enabled=True,
+            description="Docs: copy from template",
+            tab="docs",
+        )
+
+        # Google Maps
+        plugin.add_cmd(
+            "maps_geocode",
+            instruction="Geocode an address",
+            params=[
+                {"name": "address", "type": "str", "required": True, "description": "Address to geocode"},
+                {"name": "language", "type": "str", "required": False, "description": "Response language"},
+                {"name": "region", "type": "str", "required": False, "description": "Region bias, e.g. 'pl'"},
+            ],
+            enabled=True,
+            description="Maps: geocode",
+            tab="maps",
+        )
+        plugin.add_cmd(
+            "maps_reverse_geocode",
+            instruction="Reverse geocode coordinates",
+            params=[
+                {"name": "lat", "type": "str", "required": True, "description": "Latitude"},
+                {"name": "lng", "type": "str", "required": True, "description": "Longitude"},
+                {"name": "language", "type": "str", "required": False, "description": "Response language"},
+            ],
+            enabled=True,
+            description="Maps: reverse geocode",
+            tab="maps",
+        )
+        plugin.add_cmd(
+            "maps_directions",
+            instruction="Get directions between origin and destination",
+            params=[
+                {"name": "origin", "type": "str", "required": True, "description": "Origin (address or 'lat,lng')"},
+                {"name": "destination", "type": "str", "required": True,
+                 "description": "Destination (address or 'lat,lng')"},
+                {"name": "mode", "type": "str", "required": False, "description": "driving|walking|bicycling|transit"},
+                {"name": "departure_time", "type": "str", "required": False, "description": "'now' or epoch seconds"},
+                {"name": "waypoints", "type": "list", "required": False, "description": "List of waypoints"},
+            ],
+            enabled=True,
+            description="Maps: directions",
+            tab="maps",
+        )
+        plugin.add_cmd(
+            "maps_distance_matrix",
+            instruction="Distance Matrix for origins and destinations",
+            params=[
+                {"name": "origins", "type": "list", "required": True, "description": "List of origins"},
+                {"name": "destinations", "type": "list", "required": True, "description": "List of destinations"},
+                {"name": "mode", "type": "str", "required": False, "description": "driving|walking|bicycling|transit"},
+            ],
+            enabled=True,
+            description="Maps: distance matrix",
+            tab="maps",
+        )
+        plugin.add_cmd(
+            "maps_places_textsearch",
+            instruction="Places Text Search",
+            params=[
+                {"name": "query", "type": "str", "required": True, "description": "Free-form query, e.g. 'coffee'"},
+                {"name": "location", "type": "str", "required": False, "description": "Bias 'lat,lng'"},
+                {"name": "radius", "type": "int", "required": False, "description": "Radius in meters"},
+                {"name": "type", "type": "str", "required": False, "description": "Place type"},
+                {"name": "opennow", "type": "bool", "required": False, "description": "Open now filter"},
+            ],
+            enabled=True,
+            description="Maps: places text search",
+            tab="maps",
+        )
+        plugin.add_cmd(
+            "maps_places_nearby",
+            instruction="Nearby Places",
+            params=[
+                {"name": "location", "type": "str", "required": True, "description": "'lat,lng'"},
+                {"name": "radius", "type": "int", "required": True, "description": "Radius in meters"},
+                {"name": "keyword", "type": "str", "required": False, "description": "Keyword"},
+                {"name": "type", "type": "str", "required": False, "description": "Place type"},
+            ],
+            enabled=True,
+            description="Maps: places nearby",
+            tab="maps",
+        )
+        plugin.add_cmd(
+            "maps_static_map",
+            instruction="Generate Static Map image",
+            params=[
+                {"name": "center", "type": "str", "required": False,
+                 "description": "Center 'lat,lng' (optional if markers)"},
+                {"name": "zoom", "type": "int", "required": False, "description": "Zoom level (default 13)"},
+                {"name": "size", "type": "str", "required": False, "description": "WxH, e.g. 600x400"},
+                {"name": "markers", "type": "list", "required": False, "description": "List of 'lat,lng'"},
+                {"name": "maptype", "type": "str", "required": False,
+                 "description": "roadmap|satellite|terrain|hybrid"},
+                {"name": "out", "type": "str", "required": False, "description": "Local output path (png)"},
+            ],
+            enabled=True,
+            description="Maps: static map",
+            tab="maps",
+        )
+
+        # Google Colab
+        plugin.add_cmd(
+            "colab_list_notebooks",
+            instruction="List Colab notebooks on Drive",
+            params=[
+                {"name": "q", "type": "str", "required": False, "description": "Name contains"},
+                {"name": "page_size", "type": "int", "required": False, "description": "Default 100"},
+            ],
+            enabled=True,
+            description="Colab: list notebooks",
+            tab="colab",
+        )
+        plugin.add_cmd(
+            "colab_create_notebook",
+            instruction="Create new Colab notebook",
+            params=[
+                {"name": "name", "type": "str", "required": True, "description": "Filename, e.g. notebook.ipynb"},
+                {"name": "remote_parent_path", "type": "str", "required": False,
+                 "description": "Target Drive folder path"},
+                {"name": "markdown", "type": "str", "required": False, "description": "Initial markdown cell"},
+                {"name": "code", "type": "str", "required": False, "description": "Initial code cell"},
+            ],
+            enabled=True,
+            description="Colab: create notebook",
+            tab="colab",
+        )
+        plugin.add_cmd(
+            "colab_add_code_cell",
+            instruction="Add code cell to notebook",
+            params=[
+                {"name": "file_id", "type": "str", "required": False, "description": "Notebook file ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+                {"name": "code", "type": "str", "required": True, "description": "Code source"},
+                {"name": "position", "type": "int", "required": False,
+                 "description": "Insert index (append if omitted)"},
+            ],
+            enabled=True,
+            description="Colab: add code cell",
+            tab="colab",
+        )
+        plugin.add_cmd(
+            "colab_add_markdown_cell",
+            instruction="Add markdown cell to notebook",
+            params=[
+                {"name": "file_id", "type": "str", "required": False, "description": "Notebook file ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+                {"name": "markdown", "type": "str", "required": True, "description": "Markdown source"},
+                {"name": "position", "type": "int", "required": False,
+                 "description": "Insert index (append if omitted)"},
+            ],
+            enabled=True,
+            description="Colab: add markdown cell",
+            tab="colab",
+        )
+        plugin.add_cmd(
+            "colab_get_link",
+            instruction="Get Colab edit link",
+            params=[
+                {"name": "file_id", "type": "str", "required": False, "description": "Notebook file ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+            ],
+            enabled=True,
+            description="Colab: get link",
+            tab="colab",
+        )
+        plugin.add_cmd(
+            "colab_rename",
+            instruction="Rename notebook",
+            params=[
+                {"name": "file_id", "type": "str", "required": False, "description": "Notebook file ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+                {"name": "name", "type": "str", "required": True, "description": "New filename"},
+            ],
+            enabled=True,
+            description="Colab: rename notebook",
+            tab="colab",
+        )
+        plugin.add_cmd(
+            "colab_duplicate",
+            instruction="Duplicate notebook",
+            params=[
+                {"name": "file_id", "type": "str", "required": False, "description": "Notebook file ID"},
+                {"name": "path", "type": "str", "required": False, "description": "Drive path (alternative)"},
+                {"name": "name", "type": "str", "required": False, "description": "New name (default Copy.ipynb)"},
+                {"name": "remote_parent_path", "type": "str", "required": False,
+                 "description": "Target Drive folder path"},
+            ],
+            enabled=True,
+            description="Colab: duplicate notebook",
+            tab="colab",
         )

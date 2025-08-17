@@ -2266,6 +2266,11 @@ class Patch:
                 print("Migrating config from < 2.6.10...")
                 if "agent.idx.auto_retrieve" not in data:
                     data["agent.idx.auto_retrieve"] = True
+                if 'google' in data['plugins'] \
+                        and 'oauth_scopes' in data['plugins']['google']:
+                    # add documents scope
+                    if "https://www.googleapis.com/auth/documents" not in data['plugins']['google']['oauth_scopes']:
+                        data['plugins']['google']['oauth_scopes'] += " https://www.googleapis.com/auth/documents"
                 updated = True
 
         # update file
