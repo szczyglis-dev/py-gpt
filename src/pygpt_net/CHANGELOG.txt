@@ -1,3 +1,9 @@
+2.6.11 (2025-08-18)
+
+- Added the ability to close the dialog window with the Esc key.
+- Made context item deletion without output refresh.
+- Optimizations.
+
 2.6.10 (2025-08-17)
 
 - Enhanced the handling of the context list.
