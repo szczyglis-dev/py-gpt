@@ -78,7 +78,7 @@ def test_style(mock_window):
     mock_window.core.config.data['font_size.input'] = 12
     mock_window.core.config.data['font_size.ctx'] = 12
     mock_window.core.config.data['font_size.toolbox'] = 12
-    assert theme.style('font.chat.output') == 'font-size: 12px;'
-    assert theme.style('font.chat.input') == 'font-size: 12px;'
+    assert theme.style('font.chat.output') == 'QTextEdit { font-size: 12px; }'
+    assert theme.style('font.chat.input') == 'QTextEdit { font-size: 12px; }'
     assert theme.style('font.ctx.list') == 'font-size: 12px;'
     assert theme.style('font.toolbox') == 'font-size: 12px;'
