@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 import os
@@ -25,6 +25,12 @@ if platform.system() == 'Windows':
 # enable debug logging
 # os.environ["QT_LOGGING_RULES"] = "*.debug=true"
 # os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
+    "--renderer-process-limit=1 "
+    "--process-per-site "
+    "--enable-precise-memory-info "
+    "--js-flags=--expose-gc"
+)
 
 _original_open = builtins.open
 
