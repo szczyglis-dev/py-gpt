@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 import base64
@@ -65,6 +65,7 @@ class StreamWorker(QRunnable):
         self.signals = WorkerSignals()
         self.ctx = ctx
         self.window = window
+        self.stream = None
 
     @Slot()
     def run(self):
@@ -90,8 +91,7 @@ class StreamWorker(QRunnable):
         force_func_call = False
         stopped = False
         chunk_type: ChunkType = "raw"
-        generator = ctx.stream
-        ctx.stream = None
+        generator = self.stream
 
         base_data = {
             "meta": ctx.meta,
@@ -363,6 +363,7 @@ class StreamWorker(QRunnable):
         finally:
             output = "".join(output_parts)
             output_parts.clear()
+            del output_parts
 
             if has_unclosed_code_tag(output):
                 output += "\n```"
@@ -374,10 +375,13 @@ class StreamWorker(QRunnable):
                     pass
 
             del generator
+            self.stream = None
 
             ctx.output = output
             ctx.set_tokens(ctx.input_tokens, output_tokens)
             core.ctx.update_item(ctx)
+
+            output = None
 
             if files and not stopped:
                 core.debug.info("[chat] Container files found, downloading...")
@@ -464,11 +468,13 @@ class Stream:
         self.extra = extra if extra is not None else {}
 
         worker = StreamWorker(ctx, self.window)
-        self.worker = worker
 
+        worker.stream = ctx.stream
         worker.signals.eventReady.connect(self.handleEvent)
         worker.signals.errorOccurred.connect(self.handleError)
         worker.signals.end.connect(self.handleEnd)
+        ctx.stream = None
+        self.worker = worker
 
         self.window.core.debug.info("[chat] Stream begin...")
         self.window.threadpool.start(worker)
