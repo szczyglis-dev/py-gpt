@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.13 (2025-08-19)
+
+- Fix: Do not load the index in experts if it is not provided.
+- Fix: Load remote images in the webview.
+- Optimize context items reload.
+
 ## 2.6.12 (2025-08-19)
 
 - Optimized web renderer memory cleanup.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.12** | build: **2025-08-19** | Python: **>=3.10, <3.14**
+Release: **2.6.13** | build: **2025-08-19** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4459,6 +4459,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.13 (2025-08-19)**
+
+- Fix: Do not load the index in experts if it is not provided.
+- Fix: Load remote images in the webview.
+- Optimize context items reload.
 
 **2.6.12 (2025-08-19)**
 
