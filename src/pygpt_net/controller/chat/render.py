@@ -655,3 +655,12 @@ class Render:
         :param text: Text to read  # TODO: move to another class
         """
         self.window.controller.audio.read_text(text)
+
+    def get_pid_data(self, pid: int) -> Optional[CtxItem]:
+        """
+        Get PID data
+
+        :param pid: PID
+        :return: CtxItem or None
+        """
+        return self.instance().get_pid_data(pid)

@@ -55,6 +55,14 @@ class BaseRenderer:
         """
         pass
 
+    def get_pid_data(self, pid: int):
+        """
+        Get PID data for given PID
+
+        :param pid: PID
+        """
+        pass
+
     def is_stream(self) -> bool:
         """
         Check if it is a stream

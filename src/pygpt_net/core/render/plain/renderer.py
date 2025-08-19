@@ -81,6 +81,15 @@ class Renderer(BaseRenderer):
         if pid is not None:
             self.pids[pid] = PidData(pid, meta)
 
+    def get_pid_data(self, pid: int):
+        """
+        Get PID data for given PID
+
+        :param pid: PID
+        """
+        if pid in self.pids:
+            return self.pids[pid]
+
     def begin(
             self,
             meta: CtxMeta,
