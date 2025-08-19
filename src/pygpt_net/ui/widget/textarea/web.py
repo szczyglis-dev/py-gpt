@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
+from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
@@ -21,6 +22,16 @@ from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.ui.widget.tabs.layout import FocusEventFilter
 from pygpt_net.utils import trans, mem_clean
+
+def make_shared_profile():
+    prof = QWebEngineProfile("app", None)
+    prof.setHttpCacheType(QWebEngineProfile.MemoryHttpCache)
+    prof.setHttpCacheMaximumSize(32 * 1024 * 1024)  # 32MB
+    prof.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+    prof.setSpellCheckEnabled(False)
+    return prof
+
+SHARED_PROFILE = None
 
 import pygpt_net.icons_rc
 
@@ -41,17 +52,20 @@ class ChatWebOutput(QWebEngineView):
         self.filter = FocusEventFilter(self, self.on_focus)
         self.installEventFilter(self)
 
-        self.plain = ""
-        self.html_content = ""
+        global SHARED_PROFILE
+        if not SHARED_PROFILE:
+            SHARED_PROFILE = make_shared_profile()
+
+        self.plain = None
+        self.html_content = None
         self.meta = None
         self.tab = None
         self.setProperty('class', 'layout-output-web')
 
         self._glwidget = None
         self._glwidget_filter_installed = False
-        self._profile = self._create_profile(parent=self)
 
-        self.setPage(CustomWebEnginePage(self.window, self, profile=self._profile))
+        self.setPage(CustomWebEnginePage(self.window, self, profile=SHARED_PROFILE))
 
     def _detach_gl_event_filter(self):
         """Detach OpenGL widget event filter if installed"""
@@ -113,6 +127,7 @@ class ChatWebOutput(QWebEngineView):
             p.setHttpCacheType(QWebEngineProfile.NoCache)
             p.setHttpCacheMaximumSize(0)
             p.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+            p.setSpellCheckEnabled(False)
         except Exception:
             pass
         return p
@@ -167,26 +182,22 @@ class ChatWebOutput(QWebEngineView):
         return new_view
 
     def resetPage(self):
-        """Reset current page (clear memory)"""
-        self.meta = None
-        self.plain = ""
-        self.html_content = ""
+        """Reset current page without creating a new one"""
+        self.plain = None
+        self.html_content = None
+        p = self.page()
+        if not p:
+            self.setPage(CustomWebEnginePage(self.window, self, profile=SHARED_PROFILE))
+            p = self.page()
 
-        old_page = self.page()
-        old_profile = getattr(self, "_profile", None)
-
-        self.setUpdatesEnabled(False)
-        new_profile = self._create_profile(parent=self)
-        new_page = CustomWebEnginePage(self.window, self, profile=new_profile)
-        self.setPage(new_page)
-
-        if old_page:
-            self._teardown_page(old_page)
-
-        self._release_profile_after_page(old_page, old_profile)
-        self._profile = new_profile
-
-        QTimer.singleShot(0, lambda: QApplication.sendPostedEvents(None, QEvent.DeferredDelete))
+        p.runJavaScript(
+            f"""clean();"""
+        )
+        p.profile().clearHttpCache()
+        try:
+            p.history().clear()
+        except Exception:
+            pass
         mem_clean()
 
     def on_delete(self):
@@ -207,8 +218,6 @@ class ChatWebOutput(QWebEngineView):
         prof = getattr(self, "_profile", None)
         if page:
             self._teardown_page(page)
-
-        self._release_profile_after_page(page, prof)
 
         # safely unhook signals (may not have been hooked)
         for sig, slot in (
@@ -511,6 +520,7 @@ class CustomWebEnginePage(QWebEnginePage):
         return super().acceptNavigationRequest(url, _type, isMainFrame)
 
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
+        # print("[JS CONSOLE] Line", line_number, ":", message)
         self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
 
     def cleanup(self):
