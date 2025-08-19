@@ -251,15 +251,13 @@ class Runner:
                 tools = extra["agent_tools"]  # use tools from extra if provided
             else:
                 tools = self.window.core.agents.tools.prepare(context, extra, force=True)
+                if not is_cmd:
+                    tools = []  # disable tools if cmd is not enabled, force agent tools
 
             if "agent_history" in extra:
                 history = extra["agent_history"]
             else:
                 history = self.window.core.agents.memory.prepare(context)
-
-            # disable tools if cmd is not enabled
-            if not is_cmd:
-                tools = []
 
             # append system prompt
             if agent_id in self.APPEND_SYSTEM_PROMPT_TO_MSG:

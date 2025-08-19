@@ -92,7 +92,7 @@ def test_get_final_response(evaluation):
         DummyCtxItem(output_value="Final response", extra={"agent_finish": True}),
     ]
     result = evaluation.get_final_response(history)
-    assert result == "Final response"
+    assert result == "Intermediate\n\nFinal response"
 
 def test_get_prompt_score(evaluation):
     history = [

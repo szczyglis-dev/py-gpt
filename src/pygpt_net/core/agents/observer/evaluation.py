@@ -132,17 +132,37 @@ class Evaluation:
         :param force_prev: force to use previous input
         :return: last user input
         """
-        input = ""
+        last_input = ""
         use_prev = self.window.core.config.get("agent.llama.append_eval", False)
         if force_prev:
             use_prev = True
         for ctx in history:
-            if ctx.extra is not None and "agent_input" in ctx.extra:
+            if self.is_input(ctx):  # ensure ctx is input
                 if not use_prev and "agent_evaluate" in ctx.extra:  # exclude evaluation inputs
                         continue
                 if ctx.input:
-                    input = ctx.input
-        return input
+                    last_input = ctx.input
+        return last_input
+
+    def is_input(self, ctx: CtxItem) -> bool:
+        """
+        Check if the context item is an input
+
+        :param ctx: context item
+        :return: True if input, False otherwise
+        """
+        return ctx.extra is not None and "agent_input" in ctx.extra
+
+    def is_output(self, ctx: CtxItem) -> bool:
+        """
+        Check if the context item is an output
+
+        :param ctx: context item
+        :return: True if output, False otherwise
+        """
+        return (ctx.extra is not None
+                and ("agent_output" in ctx.extra or "agent_finish" in ctx.extra)
+                and "agent_finish_evaluate" not in ctx.extra)
 
     def get_main_task(self, history: List[CtxItem]) -> str:
         """
@@ -151,10 +171,12 @@ class Evaluation:
         :param history: ctx items
         :return: main task
         """
-        first = history[0]
         task = ""
-        if first.extra is not None and "agent_input" in first.extra:
-            task = first.input
+        for ctx in history:
+            if self.is_input(ctx):
+                if ctx.input:
+                    task = ctx.input
+                    break
         return task
 
     def get_final_response(self, history: List[CtxItem]) -> str:
@@ -164,19 +186,28 @@ class Evaluation:
         :param history: ctx items
         :return: final response from agent
         """
-        output = ""
+        outputs = []
         for ctx in history:
-            if ctx.extra is not None and "agent_finish" in ctx.extra and "agent_finish_evaluate" not in ctx.extra:
+            if self.is_output(ctx):
                 if ctx.output:
-                    output = ctx.output
+                    outputs.append(ctx.output)
+
+            # if next input then clear outputs - use only output after last user input
+            if self.is_input(ctx):
+                outputs.clear()
 
         # feedback for OpenAI agents
-        if not output:
+        if len(outputs) == 0:
             for ctx in history:
-                if ctx.extra is not None and "agent_output" in ctx.extra and "agent_finish_evaluate" not in ctx.extra:
+                if self.is_output(ctx):
                     if ctx.output:
-                        output = ctx.output
-        return output
+                        outputs.append(ctx.output)
+
+                # if next input then clear outputs - use only output after last user input
+                if self.is_input(ctx):
+                    outputs.clear()
+
+        return "\n\n".join(outputs) if outputs else ""
 
     def get_prompt_score(self, history: List[CtxItem]) -> str:
         """
@@ -224,9 +255,7 @@ class Evaluation:
             return "OK. Feedback has been sent."
 
         tool = FunctionTool.from_defaults(fn=send_feedback)
-        tools = []
-        tools.append(tool)
-        return tools
+        return [tool]
 
     def handle_evaluation(
             self,
