@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -103,7 +103,7 @@ class CtxItem:
         if self.input is None:
             return None
         if self.hidden_input:
-            return self.input + "\n\n" + self.hidden_input
+            return "\n\n".join(self.input, self.hidden_input)
         return self.input
 
     @property
@@ -116,7 +116,7 @@ class CtxItem:
         if self.output is None:
             return None
         if self.hidden_output:
-            return self.output + "\n\n" + self.hidden_output
+            return "\n\n".join(self.output, self.hidden_output)
         return self.output
 
     def clear_reply(self):
