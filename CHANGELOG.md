@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.15 (2025-08-20)
+
+- Added: do not change the context menu font size in text editing.
+- Added: do not reload context items on tab change if already loaded.
+- Fixed: appending of names and avatars in the stream chunk.
+
 ## 2.6.14 (2025-08-19)
 
 - Fixed: Agent evaluation tool runs even if tools are disabled.
