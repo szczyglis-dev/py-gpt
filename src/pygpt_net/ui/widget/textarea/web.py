@@ -124,7 +124,6 @@ class ChatWebOutput(QWebEngineView):
         """
         p = QWebEngineProfile(parent or self)
         try:
-            p.setHttpCacheType(QWebEngineProfile.NoCache)
             p.setHttpCacheMaximumSize(0)
             p.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
             p.setSpellCheckEnabled(False)
@@ -193,7 +192,6 @@ class ChatWebOutput(QWebEngineView):
         p.runJavaScript(
             f"""clean();"""
         )
-        p.profile().clearHttpCache()
         try:
             p.history().clear()
         except Exception:
