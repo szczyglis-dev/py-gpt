@@ -1317,8 +1317,10 @@ class Renderer(BaseRenderer):
                     or out.startswith(('<tool>{"cmd"', '&lt;tool&gt;{"cmd"'))
                     or out.rstrip().endswith(('}</tool>', '}&lt;/tool&gt;'))
             ):
-                spinner_class = "" if ctx.live else "display:none"
-                spinner = f"<span class=\"spinner\" style=\"{spinner_class}\"><img src=\"{self._file_prefix}{self._icon_sync}\" width=\"30\" height=\"30\" class=\"loading\"></span>"
+                spinner_class = ""
+                spinner = ""
+                # spinner_class = "" if ctx.live else "display:none"
+                # spinner = f"<span class=\"spinner\" style=\"{spinner_class}\"><img src=\"{self._file_prefix}{self._icon_sync}\" width=\"30\" height=\"30\" class=\"loading\"></span>"
 
         tool_extra = self.body.prepare_tool_extra(ctx)
         debug = self.append_debug(ctx, pid, "output") if self.is_debug() else ""
