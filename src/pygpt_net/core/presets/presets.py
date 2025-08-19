@@ -213,14 +213,13 @@ class Presets:
         """
         attr = self._MODE_TO_ATTR.get(mode)
         if not attr:
-            raise IndexError(idx)
+            return
         i = 0
         for key, item in self.items.items():
             if getattr(item, attr, False):
                 if i == idx:
                     return key
                 i += 1
-        raise IndexError(idx)
 
     def get_by_id(self, mode: str, id: str) -> Optional[PresetItem]:
         """

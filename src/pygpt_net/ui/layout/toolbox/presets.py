@@ -118,8 +118,6 @@ class Presets:
             self.window.ui.models[self.id] = model
             view.setModel(model)
 
-        blocker = QtCore.QSignalBlocker(model)
-
         rc = model.rowCount()
         if rc:
             model.removeRows(0, rc)
@@ -143,7 +141,5 @@ class Presets:
                 index = model.index(i, 0)
                 model.setData(index, name, QtCore.Qt.DisplayRole)
                 model.setData(index, tooltip, QtCore.Qt.ToolTipRole)
-
-        del blocker
 
         view.restore_selection()

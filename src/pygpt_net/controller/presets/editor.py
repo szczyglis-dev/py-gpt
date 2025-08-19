@@ -900,7 +900,7 @@ class Editor:
         if not is_new:
             no_scroll = True
         self.window.core.presets.save(id)
-        self.window.controller.presets.refresh(no_scroll=no_scroll)
+        self.window.controller.presets.refresh()
 
         # close dialog
         if close:

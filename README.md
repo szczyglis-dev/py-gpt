@@ -4464,6 +4464,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Fix: Do not load the index in experts if it is not provided.
 - Fix: Load remote images in the webview.
+- Fix: Presets list refresh.
 - Optimize context items reload.
 
 **2.6.12 (2025-08-19)**
