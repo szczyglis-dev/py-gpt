@@ -11,7 +11,9 @@
 
 from typing import Any
 
-from pygpt_net.core.events import Event
+from PySide6.QtWidgets import QApplication
+
+from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.utils import trans
 
 
@@ -46,6 +48,10 @@ class Settings:
     def open(self):
         """Open plugin settings dialog"""
         if not self.config_initialized:
+            self.window.dispatch(KernelEvent(KernelEvent.STATUS, {
+                'status': trans("status.loading")
+            }))
+            QApplication.processEvents()
             self.setup()
             self.config_initialized = True
         if self.config_dialog:
@@ -56,6 +62,9 @@ class Settings:
             width=self.width,
             height=self.height
         )
+        self.window.dispatch(KernelEvent(KernelEvent.STATUS, {
+            'status': ""
+        }))
         self.config_dialog = True
 
     def open_plugin(self, id: str):
