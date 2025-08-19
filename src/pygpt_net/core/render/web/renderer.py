@@ -1819,60 +1819,62 @@ class Renderer(BaseRenderer):
             is_code_block: bool
     ):
         """
-        Queue chunk for throttled emit
+        Queue text chunk for throttled output
 
         :param pid: context PID
-        :param name: name of the chunk
-        :param html: HTML content of the chunk
-        :param text_chunk: raw text chunk
-        :param replace: whether to replace the current content
-        :param is_code_block: whether the chunk is a code block
+        :param name: name header string
+        :param html: HTML content to replace or append
+        :param text_chunk: text chunk to append
+        :param replace: True if the chunk should replace existing content
+        :param is_code_block: True if the chunk is a code block
         """
         thr = self._throttle_get(pid)
         if name:
             thr["name"] = name
+
         if replace:
             thr["op"] = 1
             thr["replace_html"] = html
             thr["append"].clear()
             thr["code"] = bool(is_code_block)
         else:
-            if thr["op"] != 1:
-                thr["op"] = 2
+            if thr["op"] == 1:
+                thr["replace_html"] = html
+                thr["code"] = bool(is_code_block)
+                return
+            thr["op"] = 2
             thr["append"].append(text_chunk)
             thr["code"] = bool(is_code_block)
 
     def _throttle_emit(self, pid: int, force: bool = False):
         """
-        Emit queued chunks if due
+        Emit throttled output to the node
 
         :param pid: context PID
-        :param force: force emit regardless of throttle interval
+        :param force: Force emit even if throttle interval has not passed
         """
         thr = self._throttle_get(pid)
         now = monotonic()
         if not force and (now - thr["last"] < self._throttle_interval):
             return
-        if thr["op"] == 1:
-            try:
-                node = self.get_output_node_by_pid(pid)
-                if node is not None:
-                    node.page().bridge.chunk.emit(
-                        thr["name"],
-                        self.sanitize_html(thr["replace_html"]),
-                        "",
-                        True,
-                        bool(thr["code"]),
-                    )
-            except Exception:
-                pass
-            thr["last"] = now
-            self._throttle_reset(pid)
-        elif thr["op"] == 2 and thr["append"]:
-            append_str = "".join(thr["append"])
-            try:
-                node = self.get_output_node_by_pid(pid)
-                if node is not None:
+
+        node = self.get_output_node_by_pid(pid)
+        if node is None:
+            return
+
+        try:
+            if thr["op"] == 1:
+                node.page().bridge.chunk.emit(
+                    thr["name"],
+                    self.sanitize_html(thr["replace_html"]),
+                    "",
+                    True,
+                    bool(thr["code"]),
+                )
+                thr["last"] = now
+
+                if thr["append"]:
+                    append_str = "".join(thr["append"])
                     node.page().bridge.chunk.emit(
                         thr["name"],
                         "",
@@ -1880,7 +1882,20 @@ class Renderer(BaseRenderer):
                         False,
                         bool(thr["code"]),
                     )
-            except Exception:
-                pass
-            thr["last"] = now
-            self._throttle_reset(pid)
+                    thr["last"] = now
+
+                self._throttle_reset(pid)
+
+            elif thr["op"] == 2 and thr["append"]:
+                append_str = "".join(thr["append"])
+                node.page().bridge.chunk.emit(
+                    thr["name"],
+                    "",
+                    self.sanitize_html(append_str),
+                    False,
+                    bool(thr["code"]),
+                )
+                thr["last"] = now
+                self._throttle_reset(pid)
+        except Exception:
+            pass
