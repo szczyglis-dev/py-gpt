@@ -151,6 +151,15 @@ class Renderer(BaseRenderer):
         if pid is not None:
             self.pids[pid] = PidData(pid, meta)
 
+    def get_pid_data(self, pid: int):
+        """
+        Get PID data for given PID
+
+        :param pid: PID
+        """
+        if pid in self.pids:
+            return self.pids[pid]
+
     def init(self, pid: Optional[int]):
         """
         Initialize renderer
@@ -653,7 +662,7 @@ class Renderer(BaseRenderer):
             return
 
         if begin:  # prepare name and avatar header only at the beginning to avoid unnecessary checks
-            pctx.header = self.get_name_header(ctx)
+            pctx.header = self.get_name_header(ctx, stream=True)
             self.update_names(meta, ctx)
 
         name_header_str = pctx.header
@@ -1328,11 +1337,12 @@ class Renderer(BaseRenderer):
 
         return f"<div class='msg-box msg-bot' id='{msg_id}'>{name_header}<div class='msg'>{html}{spinner}<div class='msg-tool-extra'>{tool_extra}</div><div class='tool-output' style='{output_class}'><span class='toggle-cmd-output' onclick='toggleToolOutput({ctx.id});' title='{trans('action.cmd.expand')}' role='button'><img src='{self._file_prefix}{self._icon_expand}' width='25' height='25' valign='middle'></span><div class='content' style='display:none'>{tool_output}</div></div><div class='msg-extra'>{extra}</div>{footer}{debug}</div></div>"
 
-    def get_name_header(self, ctx: CtxItem) -> str:
+    def get_name_header(self, ctx: CtxItem, stream: bool = False) -> str:
         """
         Get name header for the bot
 
         :param ctx: CtxItem instance
+        :param stream: True if it is a stream
         :return: HTML name header
         """
         meta = ctx.meta
@@ -1360,7 +1370,11 @@ class Renderer(BaseRenderer):
 
         if not output_name and not avatar_html:
             return ""
-        return f"<div class=\"name-header name-bot\">{avatar_html}{output_name}</div>"
+
+        if stream:
+            return f"{avatar_html}{output_name}"
+        else:
+            return f"<div class=\"name-header name-bot\">{avatar_html}{output_name}</div>"
 
     def flush_output(
             self,
