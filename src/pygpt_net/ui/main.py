@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 import os
@@ -115,7 +115,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         if not render_debug:
             QLoggingCategory.setFilterRules("*.info=false")
         else:
-            os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --log-level=0"
+            if "QTWEBENGINE_CHROMIUM_FLAGS" in os.environ:
+                os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] += " --enable-logging --log-level=0"
+            else:
+                os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --log-level=0"
 
         # OpenGL disable
         if self.core.config.get("render.open_gl") is False:
