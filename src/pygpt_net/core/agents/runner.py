@@ -237,6 +237,7 @@ class Runner:
             model = context.model
             vector_store_idx = extra.get("agent_idx", None)
             system_prompt = context.system_prompt
+            is_expert_call = context.is_expert_call
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_cmd = self.window.core.command.is_cmd(inline=False)
             llm = self.window.core.idx.llm.get(model, stream=False)
@@ -301,6 +302,7 @@ class Runner:
                 "verbose": verbose,
                 "history": history,
                 "llm": llm,
+                "is_expert_call": is_expert_call,
             }
             # TODO: add support for other modes
             if mode == AGENT_MODE_WORKFLOW:

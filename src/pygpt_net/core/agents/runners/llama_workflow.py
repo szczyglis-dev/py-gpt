@@ -106,6 +106,7 @@ class LlamaWorkflow(BaseRunner):
             verbose: bool = False,
             history: List[CtxItem] = None,
             llm: Any = None,
+            is_expert_call: bool = False,
     ) -> Union[CtxItem, None]:
         """
         Run agent workflow
@@ -117,6 +118,7 @@ class LlamaWorkflow(BaseRunner):
         :param verbose: verbose mode
         :param history: chat history
         :param llm: LLM instance
+        :param is_expert_call: if True, run as expert call
         :return: True if success
         """
         if self.is_stopped():
@@ -124,6 +126,9 @@ class LlamaWorkflow(BaseRunner):
 
         memory = self.window.core.idx.chat.get_memory_buffer(history, llm)
         agent_ctx = Context(agent)
+        flush = True
+        if is_expert_call:
+            flush = False
         try:
             ctx = await self.run_agent(
                 agent=agent,
@@ -134,6 +139,7 @@ class LlamaWorkflow(BaseRunner):
                 item_ctx=ctx,
                 signals=signals,
                 use_partials=False,  # use partials for streaming
+                flush=flush,  # flush output buffer to webview
             )
         except WorkflowCancelledByUser:
             print("\n\n[STOP] Workflow stopped by user.")
@@ -202,6 +208,7 @@ class LlamaWorkflow(BaseRunner):
             item_ctx: Optional[CtxItem] = None,
             signals: Optional[BridgeSignals] = None,
             use_partials: bool = True,
+            flush: bool = True,
     ):
         """
         Run agent workflow
@@ -215,6 +222,7 @@ class LlamaWorkflow(BaseRunner):
         :param item_ctx: Optional CtxItem for additional context
         :param signals: Optional BridgeSignals for communication
         :param use_partials: If True, use partial context items for streaming
+        :param flush: If True, flush the output buffer before starting
         :return: handler for the agent workflow
         """
         handler = agent.run(
@@ -237,7 +245,8 @@ class LlamaWorkflow(BaseRunner):
                 # persist current output on stop
                 item_ctx.output = item_ctx.live_output
                 self.window.core.ctx.update_item(item_ctx)
-                self.end_stream(item_ctx, signals)
+                if flush:
+                    self.end_stream(item_ctx, signals)
                 await handler.cancel_run()  # cancel, will raise WorkflowCancelledByUser
                 break
             if isinstance(event, ToolCallResult):
@@ -247,7 +256,7 @@ class LlamaWorkflow(BaseRunner):
                 formatted = "\n```output\n" + str(event.tool_output) + "\n```\n"
                 item_ctx.live_output += formatted
                 item_ctx.stream = formatted
-                if item_ctx.stream_agent_output:
+                if item_ctx.stream_agent_output and flush:
                     self.send_stream(item_ctx, signals, begin)
             elif isinstance(event, ToolCall):
                 if "code" in event.tool_kwargs:
@@ -257,7 +266,7 @@ class LlamaWorkflow(BaseRunner):
                     formatted = "\n```python\n" + str(event.tool_kwargs['code']) + "\n```\n"
                     item_ctx.live_output += formatted
                     item_ctx.stream = formatted
-                    if item_ctx.stream_agent_output:
+                    if item_ctx.stream_agent_output and flush:
                         self.send_stream(item_ctx, signals, begin)
             elif isinstance(event, StepEvent):
                 self.set_busy(signals)
@@ -278,7 +287,7 @@ class LlamaWorkflow(BaseRunner):
                 if event.delta:
                     item_ctx.live_output += event.delta
                     item_ctx.stream = event.delta
-                    if item_ctx.stream_agent_output:
+                    if item_ctx.stream_agent_output and flush:
                         self.send_stream(item_ctx, signals, begin)  # send stream to webview
                     begin = False
             elif isinstance(event, AgentOutput):

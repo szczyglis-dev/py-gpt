@@ -651,7 +651,7 @@ class ExpertWorker(QRunnable):
 
             # index to use
             use_index = False
-            if db_idx:
+            if db_idx and db_idx != '_':
                 use_index = True
             if use_index:
                 index, llm = self.window.core.idx.chat.get_index(db_idx, model_data, stream=False)
