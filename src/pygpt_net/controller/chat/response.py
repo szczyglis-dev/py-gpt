@@ -265,7 +265,12 @@ class Response:
         self.window.dispatch(event)  # show cmd waiting
         self.window.controller.chat.output.handle_end(ctx, mode)  # handle end.
 
-        event = RenderEvent(RenderEvent.RELOAD)
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+            "stream": self.window.core.config.get("stream", False),
+        }
+        event = RenderEvent(RenderEvent.END, data)
         self.window.dispatch(event)
 
         # if continue reasoning
