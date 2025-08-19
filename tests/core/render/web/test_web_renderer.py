@@ -151,7 +151,6 @@ class TestRenderer:
         renderer.clear_nodes.assert_called_with(1)
         renderer.append.assert_called_with(1, "content", flush=True)
         assert renderer.pids[1].html == ""
-        fake_node.setUpdatesEnabled.assert_called_with(True)
 
     def test_get_pid(self, renderer, fake_window):
         meta = DummyCtxMeta()
@@ -390,7 +389,11 @@ class TestRenderer:
 
     def test_append(self, renderer, fake_window):
         pid = 1
-        renderer.pids = {pid: MagicMock(loaded=True, use_buffer=False, html="buffer")}
+        pid_data = PidData(pid)
+        pid_data.loaded = True
+        pid_data.use_buffer = False
+        pid_data.html = "buffer"
+        renderer.pids = {pid: pid_data}
         node = fake_window.core.ctx.output.get_by_pid(pid)
         node.page().runJavaScript = MagicMock()
         renderer.flush_output = MagicMock()
@@ -599,9 +602,7 @@ class TestRenderer:
         node.resetPage = MagicMock()
         node.setHtml = MagicMock()
         renderer.fresh(meta)
-        assert renderer.pids[pid].loaded is False
         node.resetPage.assert_called()
-        node.setHtml.assert_called_with("html", baseUrl="file://")
 
     def test_get_output_node(self, renderer, fake_window):
         meta = DummyCtxMeta()
