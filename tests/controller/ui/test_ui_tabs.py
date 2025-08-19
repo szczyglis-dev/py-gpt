@@ -35,7 +35,8 @@ def dummy_window():
         calendar=controller_calendar,
         camera=controller_camera,
         audio=controller_audio,
-        dialogs=SimpleNamespace(debug=dialogs_debug)
+        dialogs=SimpleNamespace(debug=dialogs_debug),
+        chat=MagicMock()
     )
     ui_nodes = {"layout.split": MagicMock()}
     ui_splitters = {"columns": MagicMock()}
