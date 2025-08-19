@@ -36,6 +36,7 @@ class PidData:
         self.last_time_called = 0
         self.cooldown = 1 / 6
         self.throttling_min_chars = 5000
+        self.header = None
 
     @property
     def buffer(self) -> str:
