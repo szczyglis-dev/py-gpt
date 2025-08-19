@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 import gc
@@ -338,8 +338,17 @@ class Debug:
         :param label: label for memory usage
         :return: formatted memory usage string
         """
-        mem_mb = self._process.memory_info().rss / (1024 * 1024)
-        data = f"Memory Usage: {mem_mb:.2f} MB"
+        rss_mb = self._process.memory_info().rss / (1024 * 1024)
+        uss_mb = getattr(self._process.memory_full_info(), "uss", 0) / 1024 / 1024
+        data =  f"RSS={rss_mb:.0f} MB  USS={uss_mb:.0f} MB"
+
+        children_parts = []
+        for c in self._process.children(recursive=True):
+            children_parts.append(
+                f"{c.pid} {c.name()} {round(c.memory_info().rss / 1024 / 1024)} MB"
+            )
+        if children_parts:
+            data += "\n" + "\n".join(children_parts)
         print(f"[{label}] {data}")
         return data
 
