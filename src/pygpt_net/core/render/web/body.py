@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 import os
@@ -42,9 +42,7 @@ class Body:
                 <script type="text/javascript" src="qrc:///js/highlight.min.js"></script>
                 <script type="text/javascript" src="qrc:///js/katex.min.js"></script>
                 <script>
-                
                 const DEBUG_MODE = false;
-                
                 let scrollTimeout = null;
                 let prevScroll = 0;
                 let bridge;
@@ -68,6 +66,23 @@ class Body:
                 let pendingHighlightRoot = null;
                 let pendingHighlightMath = false;
                 let scrollScheduled = false;
+
+                // timers
+                let tipsTimers = [];
+
+                // clear previous references
+                function resetEphemeralDomRefs() {
+                    domLastCodeBlock = null;
+                    domLastParagraphBlock = null;
+                }
+                function dropIfDetached() {
+                    if (domLastCodeBlock && !domLastCodeBlock.isConnected) domLastCodeBlock = null;
+                    if (domLastParagraphBlock && !domLastParagraphBlock.isConnected) domLastParagraphBlock = null;
+                }
+                function stopTipsTimers() {
+                    tipsTimers.forEach(clearTimeout);
+                    tipsTimers = [];
+                }
 
                 history.scrollRestoration = "manual";
                 document.addEventListener('keydown', function(event) {
@@ -137,6 +152,7 @@ class Body:
                 }
                 function hideTips() {
                     if (tips_hidden) return;
+                    stopTipsTimers();
                     const t = els.tips || document.getElementById('tips');
                     if (t) t.style.display = 'none';
                     tips_hidden = true;
@@ -151,21 +167,23 @@ class Body:
                 function cycleTips() {
                     if (tips_hidden) return;
                     if (tips.length === 0) return;
-                    let tipContainer = els.tips || document.getElementById('tips');
                     let currentTip = 0;
                     function showNextTip() {
                         if (tips_hidden) return;
+                        const tipContainer = els.tips || document.getElementById('tips');
+                        if (!tipContainer) return;
                         tipContainer.innerHTML = tips[currentTip];
                         tipContainer.classList.add('visible');
-                        setTimeout(function() {
+                        tipsTimers.push(setTimeout(function() {
                             if (tips_hidden) return;
                             tipContainer.classList.remove('visible');
-                            setTimeout(function(){
+                            tipsTimers.push(setTimeout(function(){
                                 currentTip = (currentTip + 1) % tips.length;
                                 showNextTip();
-                            }, 1000);
-                        }, 15000);
+                            }, 1000));
+                        }, 15000));
                     }
+                    stopTipsTimers();
                     showNextTip();
                 }
                 function renderMath(root) {
@@ -224,7 +242,7 @@ class Body:
                     }
                 }
                 function getStreamContainer() {
-                    if (domOutputStream && document.body.contains(domOutputStream)) {
+                    if (domOutputStream && domOutputStream.isConnected) {
                         return domOutputStream;
                     }
                     let element = els.appendOutput || document.getElementById('_append_output_');
@@ -245,6 +263,24 @@ class Body:
                         element.insertAdjacentHTML('beforeend', content);
                         highlightCode(true, element);
                         scheduleScroll();
+                    }
+                }
+                function clean() {
+                    if (DEBUG_MODE) {
+                        log("-- CLEAN DOM --");
+                    }
+                    const el = els.nodes || document.getElementById('_nodes_');
+                    if (el) {
+                        el.replaceChildren();
+                    }
+                    resetEphemeralDomRefs();
+                    els = {};
+                    try {
+                        if (window.gc) {
+                            window.gc();
+                        }
+                    } catch (e) {
+                        // gc not available
                     }
                 }
                 function appendExtra(id, content) {
@@ -270,6 +306,7 @@ class Body:
                     if (element) {
                         element.remove();
                     }
+                    resetEphemeralDomRefs();
                     highlightCode();
                     scheduleScroll();
                 }
@@ -280,13 +317,14 @@ class Body:
                         const elements = container.querySelectorAll('.msg-box');
                         let remove = false;
                         elements.forEach(function(element) {
-                            if (element.id.endsWith('-' + id)) {
+                            if (element.id && element.id.endsWith('-' + id)) {
                                 remove = true;
                             }
                             if (remove) {
                                 element.remove();
                             }
                         });
+                        resetEphemeralDomRefs();
                         highlightCode(true, container);
                         scheduleScroll();
                     }
@@ -347,6 +385,7 @@ class Body:
                   }
                 }
                 function appendStream(name_header, content, chunk, replace = false, is_code_block = false) {
+                    dropIfDetached(); // clear references to detached elements
                     hideTips();
                     if (DEBUG_MODE) {
                         log("APPEND CHUNK: {" + chunk + "}, CONTENT: {"+content+"}, replace: " + replace + ", is_code_block: " + is_code_block);
@@ -561,6 +600,7 @@ class Body:
                         element.replaceChildren();
                         element.classList.add('empty_list');
                     }
+                    resetEphemeralDomRefs();
                 }
                 function clearInput() {
                     const element = els.appendInput || document.getElementById('_append_input_');
@@ -585,9 +625,11 @@ class Body:
                             element.classList.add('hidden');
                             setTimeout(function() {
                                 element.replaceChildren();
+                                resetEphemeralDomRefs();
                             }, 1000);
                         } else {
                             element.replaceChildren();
+                            resetEphemeralDomRefs();
                         }
                     }
                 }
