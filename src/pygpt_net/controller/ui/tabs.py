@@ -207,6 +207,8 @@ class Tabs:
                 pid_data = w.controller.chat.render.get_pid_data(tab.pid)
                 if not pid_data or not pid_data.loaded:
                     w.controller.ctx.load(meta.id)
+                else:
+                    w.controller.ctx.select_on_list_only(meta.id)
         elif tab.type == Tab.TAB_TOOL_PAINTER:
             if core.config.get('vision.capture.enabled'):
                 w.controller.camera.enable_capture()
