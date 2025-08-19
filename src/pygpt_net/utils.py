@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 import json
@@ -14,7 +14,8 @@ import os
 import re
 from datetime import datetime
 
-from PySide6.QtCore import QEvent, QCoreApplication
+from PySide6 import QtCore, QtGui
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.locale import Locale
 
@@ -268,19 +269,25 @@ def mem_clean():
         gc.collect()
     except Exception:
         pass
+        
     try:
-        QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+        QApplication.sendPostedEvents(None, QtCore.QEvent.DeferredDelete)
+        QApplication.processEvents(QtCore.QEventLoop.AllEvents, 50)
     except Exception:
         pass
+
+    try:
+        QtGui.QPixmapCache.clear()
+    except Exception:
+        pass
+    
     try:
         if sys.platform.startswith("linux"):
             import ctypes, ctypes.util
-            libc_path = ctypes.util.find_library("c") or "libc.so.6"
-            libc = ctypes.CDLL(libc_path, use_errno=True)
+            libc = ctypes.CDLL(ctypes.util.find_library("c") or "libc.so.6")
             if hasattr(libc, "malloc_trim"):
-                libc.malloc_trim.argtypes = [ctypes.c_size_t]
-                libc.malloc_trim.restype = ctypes.c_int
-                ok = bool(libc.malloc_trim(0))
+                libc.malloc_trim(0)
+                ok = True
         elif sys.platform == "win32":
             import ctypes, ctypes.wintypes
             kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
