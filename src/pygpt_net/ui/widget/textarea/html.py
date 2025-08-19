@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 21:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 import re
@@ -207,12 +207,7 @@ class HtmlOutput(QWebEngineView):
 
         :param success: True if loaded successfully
         """
-        if success:
-            event = RenderEvent(RenderEvent.ON_PAGE_LOAD, {
-                "meta": self.meta,
-                "tab": self.tab,
-            })
-            self.window.dispatch(event)
+        pass
 
     def get_selected_text(self) -> str:
         """
