@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -238,7 +238,7 @@ class Response:
         self.window.core.ctx.update_item(ctx)
 
         # update ctx meta
-        if mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI] and ctx.meta is not None:
+        if mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI) and ctx.meta is not None:
             self.window.core.ctx.replace(ctx.meta)
             self.window.core.ctx.save(ctx.meta.id)
             # update preset if exists
@@ -269,7 +269,7 @@ class Response:
         self.window.dispatch(event)
 
         # if continue reasoning
-        if global_mode not in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
+        if global_mode not in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
             return  # no agent mode, nothing to do
 
         if ctx.extra is None or (type(ctx.extra) == dict and "agent_finish" not in ctx.extra):
