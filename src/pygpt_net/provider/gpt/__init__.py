@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -63,6 +63,7 @@ class Gpt:
         self.vision = Vision(window)
         self.client = None
         self.locked = False
+        self.last_client_args = None  # last client args used, for debug purposes
 
     def get_client(
             self,
@@ -78,7 +79,15 @@ class Gpt:
         """
         # update client args by mode and model
         args = self.window.core.models.prepare_client_args(mode, model)
-        self.client = OpenAI(**args)
+        if self.client is None or self.last_client_args != args:
+            if self.client is not None:
+                try:
+                    self.client.close()  # close previous client if exists
+                except Exception as e:
+                    self.window.core.debug.log(e)
+                    print("Error closing previous GPT client:", e)
+            self.client = OpenAI(**args)
+        self.last_client_args = args
         return self.client
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:
@@ -308,8 +317,8 @@ class Gpt:
             return
         if self.client is not None:
             try:
-                self.client.close()
-                self.client = None
+                pass
+                # self.client.close()
             except Exception as e:
                 self.window.core.debug.log(e)
                 print("Error closing GPT client:", e)
