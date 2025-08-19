@@ -297,7 +297,7 @@ class TestRenderer:
         renderer.is_stream = MagicMock(return_value=False)
         renderer.append_node = MagicMock()
         renderer.append_input(meta, ctx, True, False)
-        renderer.append_node.assert_called_with(meta, ctx, "test input", renderer.NODE_INPUT)
+        renderer.append_node.assert_called_with(meta=meta, ctx=ctx, html="test input", type=renderer.NODE_INPUT)
 
     def test_append_output(self, renderer):
         meta = DummyCtxMeta()
