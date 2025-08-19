@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.12 (2025-08-19)
+
+- Optimized web renderer memory cleanup.
+
 ## 2.6.11 (2025-08-18)
 
 - Added the ability to close the dialog window with the Esc key.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.11** | build: **2025-08-18** | Python: **>=3.10, <3.14**
+Release: **2.6.12** | build: **2025-08-19** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4459,6 +4459,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.12 (2025-08-19)**
+
+- Optimized web renderer memory cleanup.
 
 **2.6.11 (2025-08-18)**
 
