@@ -76,12 +76,14 @@ class Plugins:
         self.window.ui.tabs['plugin.settings'] = QTabWidget()
         self.window.ui.tabs['plugin.settings.tabs'] = {}
 
+        sorted_ids = self.window.core.plugins.get_ids(sort=True)
+
         # build plugin settings tabs
-        for id in self.window.core.plugins.plugins:
+        for id in sorted_ids:
             content_tabs = {}
             scroll_tabs = {}
 
-            plugin = self.window.core.plugins.plugins[id]
+            plugin = self.window.core.plugins.get(id)
             parent_id = "plugin." + id
 
             # create plugin options entry if not exists
@@ -231,8 +233,8 @@ class Plugins:
         )
 
         data = {}
-        for plugin_id in self.window.core.plugins.plugins:
-            plugin = self.window.core.plugins.plugins[plugin_id]
+        for plugin_id in sorted_ids:
+            plugin = self.window.core.plugins.get(plugin_id)
             data[plugin_id] = plugin
 
         # plugins list

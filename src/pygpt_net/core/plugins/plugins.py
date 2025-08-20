@@ -57,13 +57,24 @@ class Plugins:
         """
         return self.plugins
 
-    def get_ids(self) -> List[str]:
+    def get_ids(self, sort: bool = False) -> List[str]:
         """
         Get all plugins ids
 
+        :param sort: if True, return sorted ids
         :return: plugins ids list
         """
+        if sort:
+            return self.get_sorted_ids()
         return list(self.plugins.keys())
+
+    def get_sorted_ids(self) -> List[str]:
+        """
+        Get all plugins ids sorted by name
+
+        :return: sorted plugins ids list
+        """
+        return sorted(self.plugins.keys(), key=lambda pid: self.get_name(pid).lower())
 
     def get(self, plugin_id: str) -> Optional[BasePlugin]:
         """

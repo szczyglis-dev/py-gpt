@@ -9,7 +9,7 @@
 # Updated Date: 2025.08.15 23:00:00                  #
 # ================================================== #
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from PySide6.QtGui import QAction
 
@@ -37,9 +37,11 @@ class Plugins:
         self._suspend_updates = 0
 
     def _begin_batch(self):
+        """Begin batch updates"""
         self._suspend_updates += 1
 
     def _end_batch(self):
+        """End batch updates"""
         if self._suspend_updates > 0:
             self._suspend_updates -= 1
         if self._suspend_updates == 0:
@@ -85,7 +87,7 @@ class Plugins:
         pm = self.window.core.plugins
         ui_menu = self.window.ui.menu
         menu_plugins = ui_menu['plugins']
-        for pid in pm.get_ids():
+        for pid in pm.get_ids(sort=True):
             if pid in menu_plugins:
                 continue
             name = pm.get_name(pid)
@@ -185,7 +187,6 @@ class Plugins:
 
         :param id: plugin id
         :return: True if enabled
-        :rtype: bool
         """
         return self.window.core.plugins.is_registered(id) and self.enabled.get(id, False)
 
@@ -213,7 +214,7 @@ class Plugins:
         """
         pm = self.window.core.plugins
         plugin_idx = 0
-        for pid in pm.get_ids():
+        for pid in pm.get_ids(sort=True):
             if pm.has_options(pid):
                 if plugin_idx == idx:
                     self.settings.current_plugin = pid
@@ -222,15 +223,15 @@ class Plugins:
         current = self.window.ui.models['plugin.list'].index(idx, 0)
         self.window.ui.nodes['plugin.list'].setCurrentIndex(current)
 
-    def get_tab_idx(self, plugin_id: str) -> int:
+    def get_tab_idx(self, plugin_id: str) -> Optional[int]:
         """
         Get plugin tab index
 
         :param plugin_id: plugin id
-        :return: tab index
+        :return: tab index or None if not found
         """
         pm = self.window.core.plugins
-        for i, pid in enumerate(pm.get_ids()):
+        for i, pid in enumerate(pm.get_ids(sort=True)):
             if pid == plugin_id:
                 return i
         return None
@@ -262,6 +263,7 @@ class Plugins:
     def has_type(self, id: str, type: str):
         """
         Check if plugin has type
+
         :param id: plugin ID
         :param type: type to check
         :return: True if has type
@@ -342,7 +344,19 @@ class Plugins:
             cmds: List[Dict[str, Any]],
             all: bool = False,
             execute_only: bool = False
-    ):
+    ) -> Optional[List[Any]]:
+        """
+        Common method to apply commands
+
+        This method is used for both inline and non-inline commands.
+
+        :param event_type: name of the event type, either Event.CMD_EXECUTE or Event.CMD_INLINE
+        :param ctx: CtxItem
+        :param cmds: commands list, each command is a dictionary with keys like "cmd", "args", etc.
+        :param all: True to apply all commands, False to apply only enabled commands
+        :param execute_only: True to execute commands only, without any additional event
+        :return: results: results of the command execution, if any (ctx.results)
+        """
         commands = self.window.core.command.from_commands(cmds)
         if len(commands) == 0:
             return
@@ -375,14 +389,15 @@ class Plugins:
             cmds: List[Dict[str, Any]],
             all: bool = False,
             execute_only: bool = False
-    ):
+    ) -> Optional[List[Any]]:
         """
-        Apply commands
+        Apply commands (CMD_EXECUTE event only)
 
         :param ctx: CtxItem
         :param cmds: commands list
         :param all: True to apply all commands, False to apply only enabled commands
         :param execute_only: True to execute commands only, without any additional event
+        :return: results: results of the command execution, if any (ctx.results)
         """
         return self._apply_cmds_common(Event.CMD_EXECUTE, ctx, cmds, all=all, execute_only=execute_only)
 
@@ -390,13 +405,13 @@ class Plugins:
             self,
             ctx: CtxItem,
             cmds: List[Dict[str, Any]]
-    ):
+    ) -> Optional[List[Any]]:
         """
         Apply all commands (inline or not)
 
-        :param ctx: context
-        :param cmds: commands
-        :return: results
+        :param ctx: CtxItem
+        :param cmds: commands list
+        :return: results: results of the command execution, if any (ctx.results)
         """
         if self.window.core.config.get("cmd"):
             return self.apply_cmds(ctx, cmds)
@@ -408,12 +423,13 @@ class Plugins:
             self,
             ctx: CtxItem,
             cmds: List[Dict[str, Any]]
-    ):
+    ) -> Optional[List[Any]]:
         """
         Apply inline commands
 
         :param ctx: CtxItem
         :param cmds: commands list
+        :return: results: results of the command execution, if any (ctx.results)
         """
         return self._apply_cmds_common(Event.CMD_INLINE, ctx, cmds)
 
