@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.08.20 20:00:00                  #
 # ================================================== #
 
 import os
@@ -224,6 +224,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.logger_message.connect(self.controller.debug.handle_log)
         self.ui.post_setup()
         self.tools.post_setup()
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        QTimer.singleShot(0, self.ui.on_show)
 
     def update(self):
         """Called on every update (real-time)"""

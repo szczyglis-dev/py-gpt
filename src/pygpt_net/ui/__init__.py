@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 03:00:00                  #
+# Updated Date: 2025.08.20 20:00:00                  #
 # ================================================== #
 
 import os
@@ -89,12 +89,6 @@ class UI:
         self.splitters['main'].addWidget(self.parts['chat'])  # chat box
         self.splitters['main'].addWidget(self.parts['toolbox'])  # toolbox
 
-        # FIRST RUN: initial sizes if not set yet
-        if not self.window.core.config.has("layout.splitters") \
-            or self.window.core.config.get("layout.splitters") == {}\
-            or self.window.core.config.get("license.accepted") == False:
-            self.set_initial_size()
-
         # menus
         self.menus.setup()
 
@@ -107,6 +101,14 @@ class UI:
         # set window title
         self.update_title()
 
+    def on_show(self):
+        """Called after MainWindow onShow() event"""
+        # FIRST RUN: initial sizes if not set yet
+        if not self.window.core.config.has("layout.splitters") \
+                or self.window.core.config.get("layout.splitters") == {} \
+                or self.window.core.config.get("license.accepted") == False:
+            self.set_initial_size()
+
     def set_initial_size(self):
         """Set default sizes"""
         def set_initial_splitter_height():
@@ -118,19 +120,19 @@ class UI:
                 self.window.ui.splitters['main.output'].setSizes([size_output, size_input])
             else:
                 QTimer.singleShot(0, set_initial_splitter_height)
-        QTimer.singleShot(0, set_initial_splitter_height)
+        QTimer.singleShot(10, set_initial_splitter_height)
 
         def set_initial_splitter_width():
             """Set initial splitter width"""
             total_width = self.window.ui.splitters['main'].size().width()
             if total_width > 0:
-                size_output = int(total_width * 0.7)
+                size_output = int(total_width * 0.75)
                 size_ctx = (total_width - size_output) / 2
                 size_toolbox = (total_width - size_output) / 2
                 self.window.ui.splitters['main'].setSizes([size_ctx, size_output, size_toolbox])
             else:
                 QTimer.singleShot(0, set_initial_splitter_width)
-        QTimer.singleShot(0, set_initial_splitter_width)
+        QTimer.singleShot(10, set_initial_splitter_width)
 
     def update_title(self):
         """Update window title"""

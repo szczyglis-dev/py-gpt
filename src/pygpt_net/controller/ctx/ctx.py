@@ -22,7 +22,7 @@ from .summarizer import Summarizer
 from .extra import Extra
 
 from pygpt_net.utils import trans
-from ...core.types import MODE_ASSISTANT
+from pygpt_net.core.types import MODE_ASSISTANT
 
 
 class Ctx:
@@ -79,7 +79,7 @@ class Ctx:
         self.select_by_current(focus=True)  # scroll to current ctx
 
         # focus input after loading
-        QTimer.singleShot(10, self.window.controller.chat.common.focus_input)
+        QTimer.singleShot(2000, self.window.controller.chat.common.focus_input)
 
     def update_mode_in_current(self):
         """Update current ctx mode"""
