@@ -109,6 +109,7 @@ class ToolDialog(BaseDialog):
 
         :param window: main window
         :param id: logger id
+        :param tool: Tool instance
         """
         super(ToolDialog, self).__init__(window, id)
         self.window = window
