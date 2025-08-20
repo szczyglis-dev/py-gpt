@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.6.15",
-    "app.version": "2.6.15",
+    "version": "2.6.16",
+    "app.version": "2.6.16",
     "updated_at": "2025-08-20T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -174,9 +174,9 @@
   "debug": false,
   "debug.render": false,
   "download.dir": "download",
-  "experts.func_call.native": true,
+  "experts.func_call.native": false,
   "experts.mode": "chat",
-  "experts.use_agent": false,
+  "experts.use_agent": true,
   "experts.api_use_responses": false,
   "experts.internal.api_use_responses": false,
   "font_size": 12,

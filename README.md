@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.15** | build: **2025-08-20** | Python: **>=3.10, <3.14**
+Release: **2.6.16** | build: **2025-08-20** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4459,6 +4459,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.16 (2025-08-20)**
+
+- Fixed: Attachment string joining.
+- Improved expert function calls.
+- Added sorting to the plugin list.
 
 **2.6.15 (2025-08-20)**
 

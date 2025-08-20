@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.16 (2025-08-20)
+
+- Fixed: Attachment string joining.
+- Improved expert function calls.
+- Added sorting to the plugin list.
+
 ## 2.6.15 (2025-08-20)
 
 - Added: do not change the context menu font size in text editing.
