@@ -13,6 +13,7 @@ import copy
 import datetime
 import json
 import time
+from typing import Optional
 
 
 class CtxItem:
@@ -94,7 +95,7 @@ class CtxItem:
 
 
     @property
-    def final_input(self) -> str:
+    def final_input(self) -> Optional[str]:
         """
         Final input
 
@@ -103,11 +104,11 @@ class CtxItem:
         if self.input is None:
             return None
         if self.hidden_input:
-            return "\n\n".join(self.input, self.hidden_input)
+            return "\n\n".join([self.input, self.hidden_input])
         return self.input
 
     @property
-    def final_output(self) -> str:
+    def final_output(self) -> Optional[str]:
         """
         Final output
 
@@ -116,7 +117,7 @@ class CtxItem:
         if self.output is None:
             return None
         if self.hidden_output:
-            return "\n\n".join(self.output, self.hidden_output)
+            return "\n\n".join([self.output, self.hidden_output])
         return self.output
 
     def clear_reply(self):
