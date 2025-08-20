@@ -240,8 +240,6 @@ class LlamaWorkflow(BaseRunner):
         item_ctx.output = ""  # empty to prevent render
         item_ctx.stream = ""  # for stream
 
-        print("RUN AGENT!!!!!!!!!!!!!!!!!!!!")
-
         async for event in handler.stream_events():
             if self.is_stopped():
                 # persist current output on stop
