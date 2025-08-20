@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.20 09:00:00                  #
 # ================================================== #
 
 import copy
@@ -574,11 +574,12 @@ class Command:
                     pass
         return params
 
-    def is_native_enabled(self, force: bool = False) -> bool:
+    def is_native_enabled(self, force: bool = False, model: str = None) -> bool:
         """
         Check if native tool calls are enabled
 
         :param force: force check, ignore config
+        :param model: model name (optional)
         :return: True if enabled
         """
         disabled_modes = [
@@ -592,7 +593,8 @@ class Command:
             return False
 
         if not force:
-            model = self.window.core.config.get('model')
+            if model is None:
+                model = self.window.core.config.get('model')  # get from globals
             if model:
                 model_data = self.window.core.models.get(model)
                 if model_data:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 13:00:00                  #
+# Updated Date: 2025.08.20 09:00:00                  #
 # ================================================== #
 
 import json
@@ -53,6 +53,7 @@ class Experts:
         self.allowed_cmds = ["expert_call"]
         self.worker = None
         self.last_expert_id = None  # last expert id used in call
+        self.last_idx = None  # last index used in call
         self.master_ctx = None  # master meta for expert calls
 
     def get_mode(self) -> str:
@@ -218,6 +219,28 @@ class Experts:
                 return {}
         return calls
 
+    def extract_tool_calls(self, ctx: CtxItem):
+        """
+        Extract tool calls from expert
+
+        :param ctx: context item
+        """
+        for call in ctx.tool_calls:
+            if (call["type"] == "function"
+                    and "function" in call
+                    and call["function"]["name"] == "get_context"):
+                ctx.force_call = True  # force call if get_context tool is used
+                ctx.cmds_before = [
+                    {
+                        "cmd": "get_context",
+                        "params": {
+                            "query": call["function"]["arguments"]["query"],
+                            "idx": self.last_idx,
+                        },
+                    }
+                ]
+                break
+
     def reply(self, ctx: CtxItem):
         """
         Re-send response from commands to master expert
@@ -360,6 +383,9 @@ class Experts:
                     ctx.extra = {}
                 ctx.extra["tool_calls"] = ctx.tool_calls
 
+        # if 'get_context' tool is used then force call, and append idx
+        self.extract_tool_calls(ctx)  # extract tool calls from ctx
+
         self.window.controller.chat.command.handle(ctx, internal=True)  # handle cmds sync
         if ctx.reply:
             self.window.update_status("")  # clear status
@@ -385,7 +411,6 @@ class Experts:
 
         # make copy of ctx for reply, and change input name to expert name
         reply_ctx = CtxItem()
-
         reply_ctx.from_dict(ctx.to_dict())
         reply_ctx.meta = master_ctx.meta
 
@@ -523,6 +548,25 @@ class Experts:
         ]
         return cmds
 
+    def get_retriever_tool(self) -> Dict[str, str]:
+        """
+        Get retriever tool for additional context retrieval
+
+        :return: retriever tool definition
+        """
+        return {
+            "cmd": "get_context",
+            "instruction": "get additional context for a given query",
+            "params": [
+                {
+                    "name": "query",
+                    "description": "query to retrieve additional context for",
+                    "required": True,
+                    "type": "str",
+                }
+            ]
+        }
+
     def has_calls(self, ctx: CtxItem) -> bool:
         """
         Check if context has expert calls
@@ -653,6 +697,9 @@ class ExpertWorker(QRunnable):
             use_index = False
             if db_idx and db_idx != '_':
                 use_index = True
+                self.window.core.experts.last_idx = db_idx  # store last index used in call
+            else:
+                self.window.core.experts.last_idx = None
             if use_index:
                 index, llm = self.window.core.idx.chat.get_index(db_idx, model_data, stream=False)
             else:
@@ -661,8 +708,6 @@ class ExpertWorker(QRunnable):
             history = self.window.core.ctx.all(
                 meta_id=slave.id
             )  # get history for slave ctx, not master ctx
-
-            # TODO: index query tool if no agent
 
             if use_agent:
                 # call the agent (planner) with tools and index
@@ -717,9 +762,16 @@ class ExpertWorker(QRunnable):
                     return
             else:
                 # native func call
-                if self.window.core.command.is_native_enabled():
+                if self.window.core.command.is_native_enabled(force=False, model=model):
+
+                    # get native functions, without expert_call here
                     functions = self.window.core.command.get_functions(master_ctx.id)
-                    # without expert_call here
+
+                    # append retrieval tool if index is selected
+                    if use_index:
+                        retriever_tool = self.window.core.experts.get_retriever_tool()
+                        func_list = self.window.core.command.cmds_to_functions([retriever_tool])
+                        functions.append(func_list[0])  # append only first function
 
                 # call bridge
                 bridge_context = BridgeContext(
@@ -787,7 +839,6 @@ class ExpertWorker(QRunnable):
 
             # make copy of ctx for reply, and change input name to expert name
             reply_ctx = CtxItem()
-
             reply_ctx.from_dict(ctx.to_dict())
             reply_ctx.meta = master_ctx.meta
 

@@ -174,7 +174,7 @@
   "debug": false,
   "debug.render": false,
   "download.dir": "download",
-  "experts.func_call.native": false,
+  "experts.func_call.native": true,
   "experts.mode": "chat",
   "experts.use_agent": false,
   "experts.api_use_responses": false,
