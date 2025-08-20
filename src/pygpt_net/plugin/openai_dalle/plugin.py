@@ -34,7 +34,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_dalle"
-        self.name = "DALL-E 3: Image generation"
+        self.name = "Image generation"
         self.description = "Integrates DALL-E 3 image generation with any chat"
         self.prefix = "DALL-E"
         self.type = [

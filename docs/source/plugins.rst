@@ -24,9 +24,9 @@ The following plugins are currently available, and model can use them instantly:
 * ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
 * ``Context history (calendar, inline)`` - provides access to context history database.
 * ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
-* ``DALL-E 3: Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``+ Tools`` option to be enabled.
+* ``Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``+ Tools`` option to be enabled.
 * ``Experts (inline)`` - allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
-* ``GPT-4 Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+* ``Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 * ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
 * ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 * ``Voice Control (inline)`` - provides voice control command execution within a conversation.
@@ -1255,8 +1255,8 @@ If enabled, then a new context will be created on every run of the job." *Defaul
 If enabled, then a tray notification will be shown on every run of the job. *Default:* `True`
 
 
-DALL-E 3: Image Generation (inline)
------------------------------------
+Image Generation (inline)
+-------------------------
 
 The plugin integrates ``DALL-E 3`` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as ``GPT-4``. The plugin does not require the ``+ Tools`` option to be enabled.
 
@@ -1274,8 +1274,8 @@ The plugin allows calling experts in any chat mode. This is the inline Experts (
 See the ``Work modes -> Experts`` section for more details.
 
 
-GPT-4 Vision (inline)
----------------------
+Vision (inline)
+----------------
 
 The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
 

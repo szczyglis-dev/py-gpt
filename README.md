@@ -414,7 +414,7 @@ Above where you type your messages, the interface shows you the number of tokens
 
 ![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_chat.png)
 
-**Vision:** If you want to send photos from your disk or images from your camera for analysis, and the selected model does not support Vision, you must enable the `GPT-4 Vision (inline)` plugin in the Plugins menu. This plugin allows you to send photos or images from your camera for analysis in any Chat mode.
+**Vision:** If you want to send photos from your disk or images from your camera for analysis, and the selected model does not support Vision, you must enable the `Vision (inline)` plugin in the Plugins menu. This plugin allows you to send photos or images from your camera for analysis in any Chat mode.
 
 ![v3_vision_plugins](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_plugins.png)
 
@@ -422,7 +422,7 @@ With this plugin, you can capture an image with your camera or attach an image a
 
 ![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_chat.png)
 
-**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin `DALL-E 3 (inline)` in the Plugins menu.
+**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin `Image generation (inline)` in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
@@ -580,9 +580,9 @@ and displaying the image onscreen. You can send raw prompt to `DALL-E` in `Image
 
 ![v3_img](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img.png)
 
-Image generation using DALL-E is available in every mode via plugin `DALL-E 3 Image Generation (inline)`. Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.
+Image generation using DALL-E is available in every mode via plugin `Image Generation (inline)`. Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.
 
-If you want to generate images (using DALL-E) directly in chat you must enable plugin **DALL-E 3 Inline** in the Plugins menu.
+If you want to generate images (using DALL-E) directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
@@ -620,7 +620,7 @@ This mode enables image analysis using the `gpt-4o`, `gpt-4-vision` and other vi
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online. 
 
-Vision is also integrated into any chat mode via plugin `GPT-4 Vision (inline)`. Just enable the plugin and use Vision in other work modes, such as Chat or Chat with Files.
+Vision is also integrated into any chat mode via plugin `Vision (inline)`. Just enable the plugin and use Vision in other work modes, such as Chat or Chat with Files.
 
 Vision mode also includes real-time video capture from camera. To capture image from camera and append it to chat just click on video at left side. You can also enable `Auto capture` - image will be captured and appended to chat message every time you send message.
 
@@ -1341,11 +1341,11 @@ as well as list and create directories.
 
 - `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
-- `DALL-E 3: Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the `+ Tools` option to be enabled.
+- `Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the `+ Tools` option to be enabled.
 
 - `Experts (inline)` - allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
 
-- `GPT-4 Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+- `Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
 - `Real Time` - automatically appends the current date and time to the system prompt, informing the model about current time.
 
@@ -2538,7 +2538,7 @@ If enabled, then a new context will be created on every run of the job. *Default
 If enabled, then a tray notification will be shown on every run of the job. *Default:* `True`
 
 
-## DALL-E 3: Image Generation (inline)
+## Image Generation (inline)
 
 The plugin integrates `DALL-E 3` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as `GPT-4`. The plugin does not require the `+ Tools` option to be enabled.
 
@@ -2554,7 +2554,7 @@ The plugin allows calling experts in any chat mode. This is the inline Experts (
 
 See the `Work modes -> Experts` section for more details.
 
-## GPT-4 Vision (inline)
+## Vision (inline)
 
 The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
 

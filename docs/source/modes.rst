@@ -18,7 +18,7 @@ Above where you type your messages, the interface shows you the number of tokens
 .. image:: images/v2_mode_chat.png
    :width: 800
 
-**Vision:** If you want to send photos from your disk or images from your camera for analysis, and the selected model does not support Vision, you must enable the ``GPT-4 Vision (inline)`` plugin in the Plugins menu. This plugin allows you to send photos or images from your camera for analysis in any Chat mode.
+**Vision:** If you want to send photos from your disk or images from your camera for analysis, and the selected model does not support Vision, you must enable the ``Vision (inline)`` plugin in the Plugins menu. This plugin allows you to send photos or images from your camera for analysis in any Chat mode.
 
 
 .. image:: images/v3_vision_plugins.png
@@ -30,7 +30,7 @@ With this plugin, you can capture an image with your camera or attach an image a
    :width: 800
 
 
-**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin ``DALL-E 3 (inline)`` in the Plugins menu. Plugin allows you to generate images in Chat mode:
+**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin ``Image generation (inline)`` in the Plugins menu. Plugin allows you to generate images in Chat mode:
 
 .. image:: images/v3_img_chat.png
    :width: 800
@@ -181,7 +181,7 @@ The older model version, ``DALL-E 2``, is also accessible. Generating images is 
 .. image:: images/v3_img.png
    :width: 800
 
-Image generation using DALL-E is available in every mode via plugin "DALL-E 3 Image Generation (inline)". Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.
+Image generation using DALL-E is available in every mode via plugin "Image Generation (inline)". Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.
 
 .. image:: images/v3_img_chat.png
    :width: 800
@@ -224,7 +224,7 @@ This mode enables image analysis using the ``gpt-4o``, ``gpt-4-vision`` and othe
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online.
 
-Vision is also integrated into any chat mode via plugin ``GPT-4 Vision (inline)``. Just enable the plugin and use Vision in other work modes, such as Chat or Chat with Files.
+Vision is also integrated into any chat mode via plugin ``Vision (inline)``. Just enable the plugin and use Vision in other work modes, such as Chat or Chat with Files.
 
 Vision mode also includes real-time video capture from camera. To capture image from camera and append it to chat just click on video at left side. You can also enable ``Auto capture`` - image will be captured and appended to chat message every time you send message.
 
