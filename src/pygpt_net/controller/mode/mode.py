@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.20 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
@@ -98,7 +98,8 @@ class Mode:
             c.model.select_current()
 
             # set status: ready
-            w.update_status(trans('status.started'))
+            if not c.reloading:
+                w.update_status(trans('status.started'))
 
             # if assistant mode then update ctx label
             if mode == "assistant":

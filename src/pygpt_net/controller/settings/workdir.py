@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2025.08.20 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -16,6 +16,7 @@ from typing import Optional
 from uuid import uuid4
 
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.utils import trans
 
@@ -32,7 +33,7 @@ class WorkerSignals(QObject):
     updateStatus = Signal(str)    # update status in dialog
     updateGlobalStatus = Signal(str)  # update global status
     alert = Signal(object)        # dialog alert
-    reload = Signal()             # on reload components (e.g. after workdir change)
+    after_migrate = Signal(bool, str, str, str)  # result, profile_name, current_path, new_path
     confirm = Signal(str, str, str)  # confirm dialog (action, path, message)
     restored = Signal(str)        # after restoring workdir
     updated = Signal(str)         # after updating workdir
@@ -68,12 +69,8 @@ class WorkdirWorker(QRunnable):
     @Slot()
     def run(self):
         try:
-            if self.action == "update":
-                self.worker_update()
-            elif self.action == "migrate":
+            if self.action == "migrate":
                 self.worker_migrate()
-            elif self.action == "restore":
-                self.worker_restore()
             elif self.action == "delete":
                 self.worker_delete_files()
             elif self.action == "duplicate":
@@ -116,7 +113,7 @@ class WorkdirWorker(QRunnable):
                 if not os.path.exists(path) or not os.path.isdir(path):
                     self.signals.alert.emit(trans("dialog.profile.alert.path.not_exists"))
                     return
-                print("Clearing workdir: ", path)
+                print(f"Clearing workdir: {path}")
                 self.window.core.filesystem.clear_workdir(
                     path,
                     remove_db=remove_db,
@@ -149,7 +146,7 @@ class WorkdirWorker(QRunnable):
         # copy files from workdir
         path_from = profile['workdir'].replace("%HOME%", str(Path.home()))
         path_to = new_path
-        print("Copying all files from {} to: {}".format(path_from, path_to))
+        print(f"Copying all files from {path_from} to: {path_to}")
         self.signals.updateGlobalStatus.emit("Copying files...")
         result = self.window.core.filesystem.copy_workdir(
             path_from,
@@ -175,7 +172,7 @@ class WorkdirWorker(QRunnable):
             profile = profiles[uuid]
             path = profile['workdir'].replace("%HOME%", str(Path.home()))
             if not os.path.exists(path) or not os.path.isdir(path):
-                self.signals.alert.emit("Directory not exists!")
+                self.signals.alert.emit(f"Directory not exists: {path}")
                 return
             print("Clearing workdir: ", path)
             self.window.core.db.close()
@@ -186,53 +183,7 @@ class WorkdirWorker(QRunnable):
             )
             if uuid == current:
                 self.signals.switch.emit(uuid)  # switch to profile
-            self.signals.updateGlobalStatus.emit("Profile cleared: " + profile['name'])
-
-    def worker_update(self):
-        """Switch working directory to the existing one"""
-        print("\n====================")
-        print("Changing workdir to: ", self.path)
-        print("====================\n")
-        current_path = self.window.core.config.get_user_path()
-        default_path = self.window.core.config.get_base_workdir()
-
-        if self.force:
-            self.signals.updateStatus.emit(trans("dialog.workdir.result.wait"))
-
-        lock_file = os.path.join(default_path, 'path.cfg')  # put "path.cfg"
-        lock_path = self.path.replace(str(Path.home()), "%HOME%")
-        if self.path == default_path:
-            lock_path = ""  # set empty if default dir
-        with open(lock_file, 'w', encoding='utf-8') as f:
-            f.write(lock_path)
-
-         # update path in current profile
-        self.window.core.config.profile.update_current_workdir(self.path)
-
-        # reload config
-        self.window.core.config.set_workdir(self.path, reload=True)
-        self.window.core.config.set('license.accepted', True)  # accept license to prevent show dialog again
-
-        # reload components
-        if self.force:
-            try:
-                self.signals.reload.emit()
-                success_msg = trans("dialog.workdir.result.success").format(path=self.path)
-                self.signals.updateStatus.emit(success_msg)
-                self.signals.alert.emit(success_msg)
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.signals.alert.emit(str(e))
-                print("Error reloading components: ", e)
-                self.worker_restore(custom_current=current_path)
-                self.window.controller.reloading = False  # unlock
-        else:
-            # always reload
-            self.signals.reload.emit()
-
-        # update profile after workdir change
-        if self.profile_name:
-            self.signals.updated.emit(self.profile_name)
+            self.signals.updateGlobalStatus.emit(f"Profile cleared: {profile['name']}")
 
     def worker_migrate(self):
         """Migrate working directory"""
@@ -267,7 +218,7 @@ class WorkdirWorker(QRunnable):
 
         self.signals.hideStatus.emit()
         self.window.controller.settings.workdir.busy = True
-        print("Migrating workdir from: ", current, " to: ", self.path)
+        print(f"Migrating workdir from: {current} to: {self.path}...")
 
         # check if path exists
         if not os.path.exists(self.path) or not os.path.isdir(self.path):
@@ -289,6 +240,8 @@ class WorkdirWorker(QRunnable):
             return
 
         # copy workdir
+        self.signals.updateGlobalStatus.emit(trans("dialog.workdir.result.wait"))
+        QApplication.processEvents()  # process events to update UI
         try:
             result = self.window.core.filesystem.copy_workdir(current, self.path)
         except Exception as e:
@@ -297,58 +250,8 @@ class WorkdirWorker(QRunnable):
             print("Error migrating workdir: ", e)
             result = False
 
-        if result:
-            try:
-                # remove old workdir
-                self.window.core.debug.info("Clearing old workdir: {}".format(current))
-                try:
-                    # allow errors here
-                    self.window.core.filesystem.clear_workdir(current)
-                except Exception as e:
-                    self.window.core.debug.log(e)
-                    print("Error clearing old workdir: ", e)
-
-                  # update workdir to new path
-                self.worker_update()
-                success_msg = trans("dialog.workdir.result.success").format(path=self.path)
-                print(success_msg)
-                self.signals.updateStatus.emit(success_msg)
-                self.signals.alert.emit(success_msg)
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.signals.alert.emit(str(e))
-                print("Error migrating workdir: ", e)
-                self.worker_restore(custom_current=current)
-                self.window.controller.reloading = False
-        else:
-            self.signals.updateStatus.emit(trans("dialog.workdir.result.failed"))
-            self.signals.alert.emit(trans("dialog.workdir.result.failed"))
-            self.worker_restore(custom_current=current)
-            self.window.controller.reloading = False
-
-        self.window.controller.settings.workdir.busy = False
-        self.window.core.debug.info("Finished migrating workdir from: {} to: {}".format(current, self.path))
-
-    def worker_restore(self, custom_current: str = None):
-        """
-        Restore default working directory
-
-        :param custom_current: custom current working directory (optional)
-        """
-        current = custom_current if custom_current is not None else self.current
-        print("Reverting workdir to: ", current)
-        self.window.core.config.set_workdir(current, reload=True)
-        default_path = self.window.core.config.get_base_workdir()
-        lock_file = os.path.join(default_path, 'path.cfg')
-        lock_path = current.replace(str(Path.home()), "%HOME%")
-        if current == default_path:
-            lock_path = ""
-        with open(lock_file, 'w', encoding='utf-8') as f:
-            f.write(lock_path)
-        self.signals.restored.emit(current)
-        self.signals.updateStatus.emit("Failed. Reverted to current workdir: {}".format(current))
-        self.signals.reload.emit()
-        self.window.core.config.profile.update_current_workdir(current)
+        # reload UI, config, etc.
+        self.signals.after_migrate.emit(result, self.profile_name, current, self.path)
 
 
 class Workdir:
@@ -361,7 +264,167 @@ class Workdir:
         self.window = window
         self.is_dialog = False
         self.busy = False
-        self.worker = None
+
+    def rollback(self, current: str = None):
+        """
+        Rollback to the previous working directory
+
+        :param current: current working directory (optional)
+        """
+        print(f"Reverting workdir to: {current}...")
+        self.window.core.config.set_workdir(current, reload=True)
+        default_path = self.window.core.config.get_base_workdir()
+        lock_file = os.path.join(default_path, 'path.cfg')
+        lock_path = current.replace(str(Path.home()), "%HOME%")
+        if current == default_path:
+            lock_path = ""
+        with open(lock_file, 'w', encoding='utf-8') as f:
+            f.write(lock_path)
+        self.window.ui.dialogs.workdir.set_path(current)
+        self.window.ui.dialogs.workdir.show_status(f"Failed. Reverted to previous workdir: {current}.")
+        self.window.controller.reload()
+        self.window.core.config.profile.update_current_workdir(current)
+
+    def update_workdir(
+            self,
+            force: bool = False,
+            path: str = None
+    ):
+        """
+        Update working directory
+
+        :param force: boolean indicating if update should be forced (confirm)
+        :param path: new working directory to set
+        """
+        print("\n====================")
+        print(f"Changing workdir to: {path}")
+        print("====================\n")
+        default_path = self.window.core.config.get_base_workdir()
+        if force:
+            self.window.ui.dialogs.workdir.show_status(trans("dialog.workdir.result.wait"))
+
+        lock_file = os.path.join(default_path, 'path.cfg')  # put "path.cfg"
+        lock_path = path.replace(str(Path.home()), "%HOME%")
+        if path == default_path:
+            lock_path = ""  # set empty if default dir
+        with open(lock_file, 'w', encoding='utf-8') as f:
+            f.write(lock_path)
+
+        # update path in current profile
+        self.window.core.config.profile.update_current_workdir(path)
+
+        # reload config
+        self.window.core.config.set_workdir(path, reload=True)
+        self.window.core.config.set('license.accepted', True)  # accept license to prevent show dialog again
+
+    @Slot(bool, str, str, str)
+    def do_update(
+            self,
+            force: bool,
+            profile_name: str,
+            current_path: str,
+            new_path: str
+    ) -> bool:
+        """
+        Update working directory
+
+        :param force: boolean indicating if update should be forced (confirm)
+        :param profile_name: profile name to update after workdir change
+        :param current_path: current working directory before update
+        :param new_path: new working directory to set
+        :return: boolean indicating if update was successful
+        """
+        self.update_workdir(
+            force=force,
+            path=new_path,
+        )
+        rollback = False
+        success = False
+        if force:
+            try:
+                self.window.ui.dialogs.workdir.show_status(trans("dialog.workdir.result.wait"))
+                self.window.controller.reload()
+                self.window.ui.dialogs.workdir.show_status(trans("dialog.workdir.result.wait"))
+                msg = trans("dialog.workdir.result.success").format(path=new_path)
+                self.window.ui.dialogs.workdir.show_status(msg)
+                self.window.ui.dialogs.alert(msg)
+                success = True
+            except Exception as e:
+                rollback = True
+                self.window.core.debug.log(e)
+                self.window.ui.dialogs.alert(str(e))
+                print("Error reloading components: ", e)
+                self.window.controller.reloading = False  # unlock
+        else:
+            self.window.controller.reload()  # reload only
+
+        if rollback:  # if failed
+            self.rollback(current=current_path)  # revert to previous workdir
+        else:
+            # update profile after workdir change
+            if profile_name:
+                self.window.controller.settings.profile.after_update(profile_name)
+        return success
+
+    @Slot(bool, str, str, str)
+    def do_migrate(
+            self,
+            result: bool,
+            profile_name: str,
+            current_path: str,
+            new_path: str
+    ) -> bool:
+        """
+        Handle migration result
+
+        :param result: boolean indicating if migration was successful
+        :param profile_name: profile name to update after migration
+        :param current_path: current working directory before migration
+        :param new_path: new working directory after migration
+        :return: boolean indicating if migration was successful
+        """
+        success = False
+        if result:
+            try:
+                # update workdir to new path
+                success = self.do_update(
+                    force=True,
+                    profile_name=profile_name,
+                    current_path=current_path,
+                    new_path=new_path,
+                )  # with rollback if failed
+
+                if not success:
+                    raise Exception("Migration failed, workdir not updated.")
+
+                msg = trans("dialog.workdir.result.success").format(path=new_path)
+                self.window.ui.dialogs.workdir.show_status(msg)
+                self.window.ui.dialogs.alert(msg)
+
+                # remove old workdir only if success
+                self.window.core.debug.info(f"Clearing old workdir: {current_path}...")
+                try:
+                    self.window.core.filesystem.clear_workdir(current_path)  # allow errors here
+                    self.window.core.debug.info(f"Old workdir cleared: {current_path}.")
+                except Exception as e:
+                    self.window.core.debug.log(e)
+                    print("Error clearing old workdir: ", e)
+
+            except Exception as e:
+                self.window.core.debug.log(e)
+                self.window.ui.dialogs.alert(str(e))
+                print("Error migrating workdir: ", e)
+                self.window.controller.reloading = False
+        else:
+            # if migration failed
+            self.window.ui.dialogs.workdir.show_status(trans("dialog.workdir.result.failed"))
+            self.window.ui.dialogs.alert(trans("dialog.workdir.result.failed"))
+            self.window.controller.reloading = False
+
+        self.window.controller.settings.workdir.busy = False
+        if success:
+            self.window.core.debug.info(f"Finished migrating workdir from: {current_path} to: {new_path}.")
+        return success
 
     def change(self):
         """Change working directory (open dialog)"""
@@ -402,7 +465,7 @@ class Workdir:
         :param profile_new_name: new profile name (optional, for duplicate action)
         :param profile_new_path: new profile path (optional, for duplicate action)
         """
-        self.worker = WorkdirWorker(
+        worker = WorkdirWorker(
             window=self.window,
             action=action,
             path=path,
@@ -415,21 +478,21 @@ class Workdir:
         )
 
         # connect signals
-        self.worker.signals.updateGlobalStatus.connect(self.window.update_status)
-        self.worker.signals.updateStatus.connect(self.window.ui.dialogs.workdir.show_status)
-        self.worker.signals.hideStatus.connect(self.window.ui.dialogs.workdir.hide_status)
-        self.worker.signals.alert.connect(self.window.ui.dialogs.alert)
-        self.worker.signals.reload.connect(self.window.controller.reload)
-        self.worker.signals.error.connect(lambda err: self.window.core.debug.log(f"Worker error: {err}"))
-        self.worker.signals.confirm.connect(self.window.ui.dialogs.confirm)
-        self.worker.signals.restored.connect(lambda current: self.window.ui.dialogs.workdir.set_path(current))
-        self.worker.signals.updated.connect(self.window.controller.settings.profile.after_update)
-        self.worker.signals.deleted.connect(self.window.controller.settings.profile.after_delete)
-        self.worker.signals.duplicated.connect(self.window.controller.settings.profile.after_duplicate)
-        self.worker.signals.switch.connect(self.window.controller.settings.profile.switch_current)
+        worker.signals.updateGlobalStatus.connect(self.window.update_status)
+        worker.signals.updateStatus.connect(self.window.ui.dialogs.workdir.show_status)
+        worker.signals.hideStatus.connect(self.window.ui.dialogs.workdir.hide_status)
+        worker.signals.alert.connect(self.window.ui.dialogs.alert)
+        worker.signals.error.connect(lambda err: self.window.core.debug.log(f"Worker error: {err}"))
+        worker.signals.confirm.connect(self.window.ui.dialogs.confirm)
+        worker.signals.restored.connect(lambda current: self.window.ui.dialogs.workdir.set_path(current))
+        worker.signals.updated.connect(self.window.controller.settings.profile.after_update)
+        worker.signals.deleted.connect(self.window.controller.settings.profile.after_delete)
+        worker.signals.duplicated.connect(self.window.controller.settings.profile.after_duplicate)
+        worker.signals.switch.connect(self.window.controller.settings.profile.switch_current)
+        worker.signals.after_migrate.connect(self.do_migrate)
 
         # start worker in thread pool
-        self.window.threadpool.start(self.worker)
+        self.window.threadpool.start(worker)
 
     def update(
             self,
@@ -444,11 +507,11 @@ class Workdir:
         :param force: force update (confirm)
         :param profile_name: profile name (optional, for future use)
         """
-        self.run_action(
-            action="update",
-            path=path,
+        self.do_update(
             force=force,
             profile_name=profile_name,
+            current_path=self.window.core.config.get_user_path(),
+            new_path=path,
         )
 
     def migrate(
@@ -477,10 +540,7 @@ class Workdir:
 
         :param current: current working directory
         """
-        self.run_action(
-            action="restore",
-            current=current,
-        )
+        self.rollback(current=current)
 
     def delete_files(
             self,

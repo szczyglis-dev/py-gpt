@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 12:00:00                  #
+# Updated Date: 2025.08.20 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QApplication
 
 from pygpt_net.ui.widget.dialog.workdir import WorkdirDialog
 from pygpt_net.ui.widget.option.input import DirectoryInput
@@ -72,6 +72,7 @@ class Workdir:
         """Prepare workdir change dialog"""
         size_needed = self.window.core.filesystem.get_directory_size(self.window.core.config.get_user_path())
         self.window.ui.nodes['workdir.change.info'].setText(trans("dialog.workdir.tip").format(size=size_needed))
+        QApplication.processEvents()
 
     def show_status(self, status: str):
         """
@@ -81,11 +82,13 @@ class Workdir:
         """
         self.window.ui.nodes['workdir.change.status'].setText(status)
         self.window.ui.nodes['workdir.change.status'].setVisible(True)
+        QApplication.processEvents()
 
     def hide_status(self):
         """Hide status message"""
         self.window.ui.nodes['workdir.change.status'].setText("")
         self.window.ui.nodes['workdir.change.status'].setVisible(False)
+        QApplication.processEvents()
 
     def change_directory(self):
         """Update working directory"""
@@ -96,6 +99,7 @@ class Workdir:
         current = self.window.core.config.get_user_path()
         self.path.value = current
         self.path.setText(current)
+        QApplication.processEvents()
 
     def set_path(self, path: str):
         """
@@ -106,3 +110,4 @@ class Workdir:
         self.path.setText(path)
         self.path.value = path
         self.path.update()
+        QApplication.processEvents()

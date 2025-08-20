@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.20 23:00:00                  #
 # ================================================== #
 
 import os
@@ -248,8 +248,14 @@ class Theme:
         """
         return self.common.get_style(element)
 
-    def reload_all(self):
-        """Reload all"""
-        self.setup()
-        self.update_style()
+    def reload_all(self, prev_theme: Optional[str] = None):
+        """
+        Reload all
+
+        :param prev_theme: previous theme name
+        """
+        current_theme = self.window.core.config.get('theme')
+        if not prev_theme or prev_theme != current_theme:
+            self.setup()
+            self.update_style()
         self.update_syntax()
