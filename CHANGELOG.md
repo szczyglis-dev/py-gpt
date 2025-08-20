@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.17 (2025-08-21)
+
+- Optimized profile switching.
+- Fixed: setting initial splitter size on first launch.
+- Added smoother view reload.
+
 ## 2.6.16 (2025-08-20)
 
 - Fixed: Attachment string joining.

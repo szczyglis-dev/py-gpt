@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.16** | build: **2025-08-20** | Python: **>=3.10, <3.14**
+Release: **2.6.17** | build: **2025-08-21** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3483,7 +3483,7 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
 
-- `Use native API function calls`: Use API function calls to run commands from plugins instead of using command prompts - Autonomous agent mode only, default: False
+- `Use native API function calls`: Use API function calls to run tools from plugins instead of using command prompts - Autonomous agent mode only, default: False
 
 - `Use Responses API in Agent mode`: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: False
 
@@ -3491,9 +3491,9 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, llama_index, etc.). Default: chat.
 
-- `Use agent for expert reasoning`: If enabled, the Planner agent will be used for expert calls and expert reasoning. Default: False
+- `Use agent for expert reasoning`: If enabled, the ReAct agent will be used for expert calls and expert reasoning. Default: True
 
-- `Use native API function calls`: Use API function calls to run commands from plugins instead of using command prompts - Experts only, default: False
+- `Use native API function calls`: Use API function calls to run tools from plugins instead of using command prompts - Experts only, default: False
 
 - `Use Responses API in Experts mode (master)`: Use Responses API instead of ChatCompletions API in Experts (master model). OpenAI models only. Default: False
 
@@ -4459,6 +4459,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.17 (2025-08-21)**
+
+- Optimized profile switching.
+- Fixed: setting initial splitter size on first launch.
+- Added smoother view reload.
 
 **2.6.16 (2025-08-20)**
 
