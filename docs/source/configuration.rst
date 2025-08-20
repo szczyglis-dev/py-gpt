@@ -328,7 +328,7 @@ settings.agent.openai.response.split.desc = Split re
 
 * ``Sub-mode for experts``: Sub-mode to use in Experts mode (chat, llama_index, etc.). Default: chat.
 
-* ``Use planner agent for expert reasoning``: If enabled, the Planner agent will be used for expert calls and expert reasoning. Default: False
+* ``Use agent for expert reasoning``: If enabled, the Planner agent will be used for expert calls and expert reasoning. Default: False
 
 * ``Use native API function calls``: Use API function calls to run commands from plugins instead of using command prompts - Experts only, default: False
 

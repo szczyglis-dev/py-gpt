@@ -662,6 +662,8 @@ class ExpertWorker(QRunnable):
                 meta_id=slave.id
             )  # get history for slave ctx, not master ctx
 
+            # TODO: index query tool if no agent
+
             if use_agent:
                 # call the agent (planner) with tools and index
                 ctx.agent_call = True  # directly return tool call response
@@ -766,15 +768,7 @@ class ExpertWorker(QRunnable):
             self.window.core.ctx.update_item(ctx)
 
             ctx.from_previous()  # append previous result if exists
-
-            # tmp switch meta for render purposes
-            ctx.meta = master_ctx.meta
-
-            if use_agent:
-                self.signals.output.emit(ctx, mode)  # emit output signal, only if final response from agent
-
             ctx.clear_reply()  # reset results
-            ctx.meta = slave  # restore before cmd execute
 
             if not use_agent:
                 ctx.sub_tool_call = True
