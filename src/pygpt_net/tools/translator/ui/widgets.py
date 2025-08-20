@@ -488,8 +488,7 @@ class TextareaField(QTextEdit):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            size_str = f"{self.value}px"
-            self.update_stylesheet(f"font-size: {size_str};")
+            self.update_stylesheet(f"QTextEdit {{ font-size: {self.value}px }};")
             event.accept()
         else:
             super(TextareaField, self).wheelEvent(event)
