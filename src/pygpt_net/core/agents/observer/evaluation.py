@@ -188,24 +188,13 @@ class Evaluation:
         """
         outputs = []
         for ctx in history:
-            if self.is_output(ctx):
-                if ctx.output:
-                    outputs.append(ctx.output)
-
             # if next input then clear outputs - use only output after last user input
             if self.is_input(ctx):
                 outputs.clear()
 
-        # feedback for OpenAI agents
-        if len(outputs) == 0:
-            for ctx in history:
-                if self.is_output(ctx):
-                    if ctx.output:
-                        outputs.append(ctx.output)
-
-                # if next input then clear outputs - use only output after last user input
-                if self.is_input(ctx):
-                    outputs.clear()
+            if self.is_output(ctx):
+                if ctx.output:
+                    outputs.append(ctx.output)
 
         return "\n\n".join(outputs) if outputs else ""
 
