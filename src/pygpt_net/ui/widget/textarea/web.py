@@ -9,27 +9,18 @@
 # Updated Date: 2025.08.19 07:00:00                  #
 # ================================================== #
 
-from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenu, QApplication
+from PySide6.QtWidgets import QMenu
 
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.ui.widget.tabs.layout import FocusEventFilter
 from pygpt_net.utils import trans, mem_clean
-
-def make_shared_profile():
-    prof = QWebEngineProfile("app", None)
-    prof.setHttpCacheType(QWebEngineProfile.MemoryHttpCache)
-    prof.setHttpCacheMaximumSize(32 * 1024 * 1024)  # 32MB
-    prof.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
-    prof.setSpellCheckEnabled(False)
-    return prof
 
 SHARED_PROFILE = None
 
@@ -51,21 +42,35 @@ class ChatWebOutput(QWebEngineView):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.filter = FocusEventFilter(self, self.on_focus)
         self.installEventFilter(self)
-
-        global SHARED_PROFILE
-        if not SHARED_PROFILE:
-            SHARED_PROFILE = make_shared_profile()
-
         self.plain = None
         self.html_content = None
         self.meta = None
         self.tab = None
         self.setProperty('class', 'layout-output-web')
 
+        # OpenGL widgets
         self._glwidget = None
         self._glwidget_filter_installed = False
 
-        self.setPage(CustomWebEnginePage(self.window, self, profile=SHARED_PROFILE))
+        # set the page with a shared profile
+        self.setUpdatesEnabled(False)  # disable updates until the page is set, re-enable in `on_page_loaded`
+        self.setPage(CustomWebEnginePage(self.window, self, profile=self._make_shared_profile()))
+
+    def _make_shared_profile(self) -> QWebEngineProfile:
+        """
+        Create a shared QWebEngineProfile
+
+        :return: QWebEngineProfile - shared profile instance
+        """
+        global SHARED_PROFILE
+        if not SHARED_PROFILE:
+            prof = QWebEngineProfile("app", None)
+            # prof.setHttpCacheType(QWebEngineProfile.MemoryHttpCache)
+            # prof.setHttpCacheMaximumSize(32 * 1024 * 1024)  # 32MB
+            prof.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+            prof.setSpellCheckEnabled(False)
+            SHARED_PROFILE = prof
+        return SHARED_PROFILE
 
     def _detach_gl_event_filter(self):
         """Detach OpenGL widget event filter if installed"""
@@ -421,6 +426,7 @@ class ChatWebOutput(QWebEngineView):
                 "tab": self.tab,
             })
             self.window.dispatch(event)
+            self.setUpdatesEnabled(True)
 
     def get_selected_text(self) -> str:
         p = self.page()
