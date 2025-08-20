@@ -258,11 +258,7 @@ class Editor:
         self.window.ui.add_hook("update.preset.agent_provider_openai", self.hook_update)
 
     def toggle_extra_options(self):
-        """
-        Toggle extra options in preset editor
-
-        :return: None
-        """
+        """Toggle extra options in preset editor"""
         if not self.tab_options_idx:
             return
         mode = self.window.core.config.get('mode')
@@ -285,11 +281,7 @@ class Editor:
             self.toggle_extra_options_by_provider()
 
     def toggle_extra_options_by_provider(self):
-        """
-        Toggle extra options in preset editor by provider
-
-        :return: None
-        """
+        """Toggle extra options in preset editor by provider"""
         if not self.tab_options_idx:
             # show base prompt
             self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
@@ -398,11 +390,7 @@ class Editor:
                     )
 
     def load_extra_defaults(self):
-        """
-        Load extra options defaults for preset editor
-
-        :return: None
-        """
+        """Load extra options defaults for preset editor"""
         if not self.tab_options_idx:
             return
         mode = self.window.core.config.get('mode')
@@ -431,11 +419,7 @@ class Editor:
                         )
 
     def load_extra_defaults_current(self):
-        """
-        Load extra options defaults on mode change
-
-        :return: None
-        """
+        """Load extra options defaults on mode change"""
         if not self.tab_options_idx:
             return
 
@@ -491,9 +475,8 @@ class Editor:
 
     def append_extra_options(self, preset: PresetItem):
         """
-        Get extra options for preset editor
+        Append extra options for preset editor
 
-        :param id: preset id
         :param preset: preset item
         """
         mode = self.window.core.config.get('mode')
@@ -536,9 +519,7 @@ class Editor:
         preset.extra[id] = data_dict
 
     def append_extra_config(self):
-        """
-        Build extra configuration for the preset editor dialog
-        """
+        """Build extra configuration for the preset editor dialog"""
         if self.built:
             return
 
@@ -592,11 +573,7 @@ class Editor:
         self.built = True
 
     def append_default_prompt(self):
-        """
-        Append default prompt to the preset editor
-
-        :return: None
-        """
+        """Append default prompt to the preset editor"""
         mode = self.window.core.config.get('mode')
         if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
             return
@@ -691,6 +668,7 @@ class Editor:
 
         if id is None:
             self.experts.update_list()
+            self.window.ui.config[self.id]['idx'].set_value("_")  # reset idx combo if new preset
 
         if id is not None and id != "":
             if id in self.window.core.presets.items:
@@ -769,6 +747,7 @@ class Editor:
 
         # set focus to name field
         current_model = self.window.core.config.get('model')
+
         # set current model in combo box as selected
         if id is None:
             self.window.ui.config[self.id]['model'].set_value(current_model)
@@ -784,7 +763,7 @@ class Editor:
             close: bool = True
     ):
         """
-        Save ore create preset
+        Save preset
 
         :param force: force overwrite file
         :param close: close dialog
@@ -900,7 +879,7 @@ class Editor:
         if not is_new:
             no_scroll = True
         self.window.core.presets.save(id)
-        self.window.controller.presets.refresh()
+        self.window.controller.presets.refresh(no_scroll=no_scroll)
 
         # close dialog
         if close:
