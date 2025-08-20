@@ -72,9 +72,12 @@ class Worker(BaseWorker):
         :return: response item
         """
         question = self.get_param(item, "query")
+        idx = None
+        if self.has_param(item, "idx"):
+            idx = self.get_param(item, "idx")
         self.status("Please wait... querying: {}...".format(question))
         # at first, try to get from retrieval
-        response = self.plugin.get_from_retrieval(question)
+        response = self.plugin.get_from_retrieval(question, idx=idx)  # get response from retrieval
         if response is not None and response != "":
             self.log("Found using retrieval...")
             context = "ADDITIONAL CONTEXT (response from DB):\n--------------------------------\n" + response
@@ -83,7 +86,7 @@ class Worker(BaseWorker):
             }
             return self.make_response(item, response, extra=extra)
 
-        content, doc_ids, metas = self.plugin.query(question)  # send question to Llama-index
+        content, doc_ids, metas = self.plugin.query(question, idx=idx)  # send question to Llama-index
         result = content
         context = "ADDITIONAL CONTEXT (response from DB):\n--------------------------------\n" + content
         if doc_ids:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.20 09:00:00                  #
 # ================================================== #
 
 import json
@@ -174,14 +174,16 @@ class Plugin(BasePlugin):
             prepared_question = response
         return prepared_question
 
-    def get_from_retrieval(self, query: str) -> str:
+    def get_from_retrieval(self, query: str, idx: str = None) -> str:
         """
         Get response from retrieval
 
         :param query: query
+        :param idx: index to query, if None then use default index
         :return: response
         """
-        idx = self.get_option_value("idx")
+        if idx is None:
+            idx = self.get_option_value("idx")
         indexes = idx.split(",")
         response = ""
         for index in indexes:
@@ -226,16 +228,18 @@ class Plugin(BasePlugin):
         prompt += "\nADDITIONAL CONTEXT: " + response
         return prompt
 
-    def query(self, question: str) -> Tuple[str, list, list]:
+    def query(self, question: str, idx: str = None) -> Tuple[str, list, list]:
         """
         Query Llama-index
 
         :param question: question
+        :param idx: index to query, if None then use default index
         :return: response, list of document ids, list of metadata
         """
         doc_ids = []
         metas = []
-        idx = self.get_option_value("idx")
+        if idx is None:
+            idx = self.get_option_value("idx")
         model = self.window.core.models.from_defaults()
 
         if self.get_option_value("model_query") is not None:
