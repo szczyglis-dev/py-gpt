@@ -6,7 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.21 00:00:00                  #
+# ================================================== #
 
 from datetime import datetime
 from typing import Optional, List
@@ -54,7 +55,7 @@ class Renderer(BaseRenderer):
     def get_pid(self, meta: CtxMeta):
         """
         Get PID for context meta
-        
+
         :param meta: context PID
         """
         return self.window.core.ctx.output.get_pid(meta)
@@ -62,7 +63,7 @@ class Renderer(BaseRenderer):
     def get_or_create_pid(self, meta: CtxMeta):
         """
         Get PID for context meta and create PID data (if not exists)
-        
+
         :param meta: context PID
         """
         if meta is not None:
@@ -74,7 +75,7 @@ class Renderer(BaseRenderer):
     def pid_create(self, pid, meta: CtxMeta):
         """
         Create PID data
-        
+
         :param pid: PID
         :param meta: context meta
         """
@@ -98,7 +99,7 @@ class Renderer(BaseRenderer):
     ):
         """
         Render begin
-        
+
         :param meta: context meta
         :param ctx: context item
         :param stream: True if it is a stream
@@ -113,7 +114,7 @@ class Renderer(BaseRenderer):
     ):
         """
         Render end
-            
+
         :param meta: context meta
         :param ctx: context item
         :param stream: True if it is a stream
@@ -128,7 +129,7 @@ class Renderer(BaseRenderer):
     ):
         """
         Render end extra
-        
+
         :param meta: context meta
         :param ctx: context item
         :param stream: True if it is a stream
@@ -203,12 +204,12 @@ class Renderer(BaseRenderer):
         if self.is_timestamp_enabled() and item.input_timestamp is not None:
             name = ""
             if item.input_name is not None and item.input_name != "":
-                name = item.input_name + " "
+                name = f"{item.input_name} "
             ts = datetime.fromtimestamp(item.input_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            text = '{}{} > {}'.format(name, hour, item.input)
+            text = f"{name}{hour} > {item.input}"
         else:
-            text = "> {}".format(item.input)
+            text = f"> {item.input}"
         self.append_raw(meta, item, text.strip())
         self.to_end(meta)
 
@@ -228,12 +229,12 @@ class Renderer(BaseRenderer):
         if self.is_timestamp_enabled() and item.output_timestamp is not None:
             name = ""
             if item.output_name is not None and item.output_name != "":
-                name = item.output_name + " "
+                name = f"{item.output_name} "
             ts = datetime.fromtimestamp(item.output_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            text = '{}{} {}'.format(name, hour, item.output)
+            text = f"{name}{hour} {item.output}"
         else:
-            text = "{}".format(item.output)
+            text = f"{item.output}"
         self.append_raw(meta, item, text.strip())
         self.to_end(meta)
 
@@ -298,7 +299,8 @@ class Renderer(BaseRenderer):
                 except Exception as e:
                     pass
             if urls_str:
-                self.append_raw(meta, item, "\n" + "\n".join(urls_str))
+                urls_joined = "\n".join(urls_str)
+                self.append_raw(meta, item, f"\n{urls_joined}")
 
         if self.window.core.config.get('ctx.sources'):
             if item.doc_ids is not None and len(item.doc_ids) > 0:
@@ -341,12 +343,12 @@ class Renderer(BaseRenderer):
             if self.is_timestamp_enabled() and item.output_timestamp is not None:
                 name = ""
                 if item.output_name is not None and item.output_name != "":
-                    name = item.output_name + " "
+                    name = f"{item.output_name} "
                 ts = datetime.fromtimestamp(item.output_timestamp)
                 hour = ts.strftime("%H:%M:%S")
-                text_chunk = "{}{}: ".format(name, hour) + text_chunk
+                text_chunk = f"{name}{hour}: {text_chunk}"
 
-            text_chunk = "\n" + text_chunk
+            text_chunk = f"\n{text_chunk}"
             self.append_block(meta)
             self.append_chunk_start(meta, item)
 
@@ -378,7 +380,7 @@ class Renderer(BaseRenderer):
     ):
         """
         Append and format raw text to output as plain text.
-        
+
         :param meta: context meta
         :param ctx: context item
         :param text: text to append
@@ -387,7 +389,7 @@ class Renderer(BaseRenderer):
         prev_text = node.toPlainText()
         if prev_text != "":
             prev_text += "\n\n"
-        new_text = prev_text + text.strip()
+        new_text = f"{prev_text}{text.strip()}"
         node.setPlainText(new_text)
         cur = node.textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
@@ -395,7 +397,7 @@ class Renderer(BaseRenderer):
     def append_chunk_start(self, meta: CtxMeta, ctx: CtxItem):
         """
         Append start of chunk to output
-        
+
         :param meta: context meta
         :param ctx: context item
         """
@@ -411,7 +413,7 @@ class Renderer(BaseRenderer):
     ):
         """
         Append context item to output
-        
+
         :param meta: context meta
         :param item: context item
         """
@@ -437,7 +439,7 @@ class Renderer(BaseRenderer):
         node = self.get_output_node(meta)
         cur = node.textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
-        s = str(text) + end
+        s = f"{str(text)}{end}"
         while s:
             head, sep, s = s.partition("\n")  # Split line at LF
             cur.insertText(head)
@@ -452,7 +454,7 @@ class Renderer(BaseRenderer):
     ) -> str:
         """
         Append timestamp to text
-        
+
         :param item: context item
         :param text: input text
         :return: Text with timestamp (if enabled)
@@ -462,7 +464,7 @@ class Renderer(BaseRenderer):
                 and item.input_timestamp is not None:
             ts = datetime.fromtimestamp(item.input_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            text = '{}: {}'.format(hour, text)
+            text = f"{hour}: {text}"
         return text
 
     def reset(self, meta: Optional[CtxMeta] = None):
@@ -518,7 +520,7 @@ class Renderer(BaseRenderer):
     ) -> ChatOutput:
         """
         Get output node for current context.
-        
+
         :param meta: context meta
         :return: output node
         """
