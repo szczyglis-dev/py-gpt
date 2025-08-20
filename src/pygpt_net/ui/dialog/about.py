@@ -114,18 +114,22 @@ class About:
         pixmap = QPixmap(path)
         logo_label.setPixmap(pixmap)
 
-        self.window.ui.nodes['dialog.about.btn.website'] = QPushButton(QIcon(":/icons/home.svg"), trans('about.btn.website'))
-        self.window.ui.nodes['dialog.about.btn.website'].clicked.connect(lambda: self.window.controller.dialogs.info.goto_website())
-        self.window.ui.nodes['dialog.about.btn.website'].setCursor(Qt.PointingHandCursor)
-        self.window.ui.nodes['dialog.about.btn.website'].setStyleSheet("font-size: 11px;")
+        btn_web = QPushButton(QIcon(":/icons/home.svg"), trans('about.btn.website'))
+        btn_web.clicked.connect(lambda: self.window.controller.dialogs.info.goto_website())
+        btn_web.setCursor(Qt.PointingHandCursor)
+        btn_web.setStyleSheet("font-size: 11px;")
+        self.window.ui.nodes['dialog.about.btn.website'] = btn_web
 
-        self.window.ui.nodes['dialog.about.btn.github'] = QPushButton(QIcon(":/icons/code.svg"), trans('about.btn.github'))
-        self.window.ui.nodes['dialog.about.btn.github'].clicked.connect(lambda: self.window.controller.dialogs.info.goto_github())
-        self.window.ui.nodes['dialog.about.btn.github'].setCursor(Qt.PointingHandCursor)
+        btn_git = QPushButton(QIcon(":/icons/code.svg"), trans('about.btn.github'))
+        btn_git.clicked.connect(lambda: self.window.controller.dialogs.info.goto_github())
+        btn_git.setCursor(Qt.PointingHandCursor)
+        self.window.ui.nodes['dialog.about.btn.github'] = btn_git
 
-        self.window.ui.nodes['dialog.about.btn.support'] = QPushButton(QIcon(":/icons/favorite.svg"), trans('about.btn.support'))
-        self.window.ui.nodes['dialog.about.btn.support'].clicked.connect(lambda: self.window.controller.dialogs.info.goto_donate())
-        self.window.ui.nodes['dialog.about.btn.support'].setCursor(Qt.PointingHandCursor)
+
+        btn_support = QPushButton(QIcon(":/icons/favorite.svg"), trans('about.btn.support'))
+        btn_support.clicked.connect(lambda: self.window.controller.dialogs.info.goto_donate())
+        btn_support.setCursor(Qt.PointingHandCursor)
+        self.window.ui.nodes['dialog.about.btn.support'] = btn_support
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.ui.nodes['dialog.about.btn.support'])
@@ -133,10 +137,13 @@ class About:
         buttons_layout.addWidget(self.window.ui.nodes['dialog.about.btn.github'])
 
         string = self.prepare_content()
-        self.window.ui.nodes['dialog.about.content'] = QLabel(string)
-        self.window.ui.nodes['dialog.about.content'].setTextInteractionFlags(Qt.TextSelectableByMouse)
-        self.window.ui.nodes['dialog.about.thanks'] = QLabel(trans('about.thanks'))
-        self.window.ui.nodes['dialog.about.thanks'].setAlignment(Qt.AlignCenter)
+        content = QLabel(string)
+        content.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.window.ui.nodes['dialog.about.content'] = content
+
+        thanks = QLabel(trans('about.thanks'))
+        thanks.setAlignment(Qt.AlignCenter)
+        self.window.ui.nodes['dialog.about.thanks'] = thanks
 
         title = QLabel("PyGPT")
         title.setContentsMargins(0, 0, 0, 0)
@@ -150,10 +157,11 @@ class About:
         )
         title.setAlignment(Qt.AlignCenter)
 
-        self.window.ui.nodes['dialog.about.thanks.content'] = QPlainTextEdit()
-        self.window.ui.nodes['dialog.about.thanks.content'].setReadOnly(True)
-        self.window.ui.nodes['dialog.about.thanks.content'].setPlainText("")
-        self.window.ui.nodes['dialog.about.thanks.content'].setStyleSheet("font-size: 11px;")
+        thanks_content = QPlainTextEdit()
+        thanks_content.setReadOnly(True)
+        thanks_content.setPlainText("")
+        thanks_content.setStyleSheet("font-size: 11px;")
+        self.window.ui.nodes['dialog.about.thanks.content'] = thanks_content
 
         layout = QVBoxLayout()
         layout.addWidget(logo_label)

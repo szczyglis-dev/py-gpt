@@ -11,6 +11,7 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QWidget, QFrame
+from PySide6.QtGui import QFont
 
 from pygpt_net.ui.widget.element.labels import TitleLabel, UrlLabel
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
@@ -57,7 +58,9 @@ class BaseConfigDialog:
                 if slider and t in ('int', 'float'):
                     widgets[key] = OptionSlider(self.window, id, key, option)
                 else:
-                    widgets[key] = PasswordInput(self.window, id, key, option) if secret else OptionInput(self.window, id, key, option)
+                    widgets[key] = PasswordInput(self.window, id, key, option) if secret else OptionInput(self.window,
+                                                                                                          id, key,
+                                                                                                          option)
 
             elif t == 'textarea':
                 w = OptionTextarea(self.window, id, key, option)
@@ -99,20 +102,21 @@ class BaseConfigDialog:
         label = option['label']
         desc = option.get('description')
         extra = option.get('extra') or {}
-        label_key = label + '.label'
+        label_key = f'{label}.label'
         nodes = self.window.ui.nodes
 
+        txt = trans(label)
         if extra.get('bold'):
-            nodes[label_key] = TitleLabel(trans(label))
+            nodes[label_key] = TitleLabel(txt)
         else:
-            nodes[label_key] = QLabel(trans(label))
+            nodes[label_key] = QLabel(txt)
         nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         nodes[label_key].setMinimumWidth(120)
         nodes[label_key].setWordWrap(True)
 
         desc_key = None
         if desc is not None:
-            desc_key = label + '.desc'
+            desc_key = f'{label}.desc'
             nodes[desc_key] = self.add_description(desc)
 
         if option.get('type') == 'textarea':
@@ -142,21 +146,22 @@ class BaseConfigDialog:
         :return: QHBoxLayout
         """
         label = option['label']
-        label_key = label + '.label'
+        label_key = f'{label}.label'
         desc = option.get('description')
         extra = option.get('extra') or {}
         nodes = self.window.ui.nodes
 
+        txt = trans(label)
         if extra.get('bold'):
-            nodes[label_key] = TitleLabel(trans(label))
+            nodes[label_key] = TitleLabel(txt)
         else:
-            nodes[label_key] = QLabel(trans(label))
+            nodes[label_key] = QLabel(txt)
         nodes[label_key].setMinimumHeight(30)
         nodes[label_key].setWordWrap(True)
 
         desc_key = None
         if desc is not None:
-            desc_key = label + '.desc'
+            desc_key = f'{label}.desc'
             nodes[desc_key] = self.add_description(desc)
 
         layout = QVBoxLayout()
@@ -191,7 +196,7 @@ class BaseConfigDialog:
 
         desc_key = None
         if desc is not None:
-            desc_key = label + '.desc'
+            desc_key = f'{label}.desc'
             nodes[desc_key] = self.add_description(desc)
 
         urls = extra.get('urls')

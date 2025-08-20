@@ -65,6 +65,7 @@ class Settings(BaseConfigDialog):
 
         # settings section tabs
         self.window.ui.tabs['settings.section'] = QTabWidget()
+        options_get = self.window.controller.settings.editor.get_options
 
         # build settings tabs
         for section_id in sections:
@@ -74,21 +75,26 @@ class Settings(BaseConfigDialog):
             first_tab = "general"
 
             # get settings options for section
-            fields = self.window.controller.settings.editor.get_options(section_id)
+            fields = options_get(section_id)
             is_general = False
-            for key in fields:
-                if 'tab' in fields[key]:
-                    tab = fields[key]['tab']
+
+            tab_by_key = {}
+            for key, field in fields.items():
+                if 'tab' in field:
+                    tab = field['tab']
                     if tab is not None:
                         if first_tab == "general":
                             first_tab = tab
-                        if tab.lower() == "general":
+                        if isinstance(tab, str) and tab.lower() == "general":
                             is_general = True
-                            break
                 else:
                     is_general = True
-                    break
 
+                tab_id = field['tab'] if field.get('tab') not in (None, "") else "general"
+                tab_by_key[key] = tab_id
+
+                if field.get('advanced'):
+                    advanced_keys.setdefault(tab_id, []).append(key)
 
             # extract tab ids, general is default
             tab_ids = self.extract_option_tabs(fields)
@@ -97,109 +103,85 @@ class Settings(BaseConfigDialog):
                 tab_ids += extra_tabs
             for tab_id in tab_ids:
                 content_tabs[tab_id] = QVBoxLayout()
-                scroll_tabs[tab_id] = QScrollArea()
-                scroll_tabs[tab_id].setWidgetResizable(True)
-
-            # prepare advanced options keys
-            for key in fields:
-                if 'advanced' in fields[key] and fields[key]['advanced']:
-                    tab_id = "general"
-                    if 'tab' in fields[key]:
-                        tab = fields[key]['tab']
-                        if tab is not None and tab != "":
-                            tab_id = tab
-                    if tab_id not in advanced_keys:
-                        advanced_keys[tab_id] = []
-                    advanced_keys[tab_id].append(key)
+                s = QScrollArea()
+                s.setWidgetResizable(True)
+                scroll_tabs[tab_id] = s
 
             # build settings widgets
             widgets = self.build_widgets(self.id, fields)
 
             # apply settings widgets
-            for key in widgets:
-                self.window.ui.config[self.id][key] = widgets[key]
+            self.window.ui.config[self.id].update(widgets)
 
             # apply widgets to layouts
             options = {}
-            for key in widgets:
-                if fields[key]["type"] == 'text' or fields[key]["type"] == 'int' or fields[key]["type"] == 'float':
-                    options[key] = self.add_option(widgets[key], fields[key])
-                elif fields[key]["type"] == 'textarea':
-                    options[key] = self.add_row_option(widgets[key], fields[key])
-                elif fields[key]["type"] == 'bool':
-                    options[key] = self.add_raw_option(widgets[key], fields[key])
-                elif fields[key]['type'] == 'dict':
-                    options[key] = self.add_row_option(widgets[key], fields[key])  # dict
-                    # register dict to editor:
-                    self.window.ui.dialogs.register_dictionary(
-                        key,
-                        parent="config",
-                        option=fields[key],
-                    )
-                elif fields[key]['type'] == 'combo':
-                    options[key] = self.add_option(widgets[key], fields[key])  # combobox
-                elif fields[key]['type'] == 'bool_list':
-                    options[key] = self.add_option(widgets[key], fields[key])  # bool list
+            add_option = self.add_option
+            add_row_option = self.add_row_option
+            add_raw_option = self.add_raw_option
+            register_dictionary = self.window.ui.dialogs.register_dictionary
 
-            #self.window.ui.nodes['settings.api_key.label'].setMinimumHeight(60)
+            for key, widget in widgets.items():
+                f = fields[key]
+                t = f['type']
+                if t in ('text', 'int', 'float', 'combo', 'bool_list'):
+                    options[key] = add_option(widget, f)
+                elif t in ('textarea', 'dict'):
+                    options[key] = add_row_option(widget, f)
+                    if t == 'dict':
+                        # register dict to editor:
+                        register_dictionary(
+                            key,
+                            parent="config",
+                            option=f,
+                        )
+                elif t == 'bool':
+                    options[key] = add_raw_option(widget, f)
+
+            # self.window.ui.nodes['settings.api_key.label'].setMinimumHeight(60)
 
             # append widgets options layouts to scroll area
-            for key in options:
-                option = options[key]
-                tab_id = "general"
-                if 'tab' in fields[key]:
-                    tab = fields[key]['tab']
-                    if tab is not None and tab != "":
-                        tab_id = tab
+            advanced_membership = {tid: set(keys) for tid, keys in advanced_keys.items()}
+            last_option_key = next(reversed(options)) if options else None
+
+            for key, option in options.items():
+                tab_id = tab_by_key.get(key, "general")
 
                 # hide advanced options
-                if tab_id in advanced_keys and key in advanced_keys[tab_id]:
+                if tab_id in advanced_membership and key in advanced_membership[tab_id]:
                     continue
 
-                content_tabs[tab_id].addLayout(option)  # add
+                content_tabs[tab_id].addLayout(option)
 
                 # append URLs
                 if 'urls' in fields[key]:
                     content_tabs[tab_id].addWidget(self.add_urls(fields[key]['urls']))
 
                 # check if not last option
-                if key != list(options.keys())[-1] or tab_id in advanced_keys:
+                if key != last_option_key or tab_id in advanced_keys:
                     content_tabs[tab_id].addWidget(self.add_line())
 
             # append advanced options at the end
             if len(advanced_keys) > 0:
                 groups = {}
-                for key in options:
-                    tab_id = "general"
-                    if 'tab' in fields[key]:
-                        tab = fields[key]['tab']
-                        if tab is not None and tab != "":
-                            tab_id = tab
-
-                    if tab_id not in advanced_keys:
-                        continue
-
-                    # ignore non-advanced options
-                    if key not in advanced_keys[tab_id]:
+                for tab_id, adv_list in advanced_keys.items():
+                    if not adv_list:
                         continue
 
                     group_id = 'settings.advanced.' + section_id + '.' + tab_id
+                    groups[tab_id] = CollapsedGroup(self.window, group_id, None, False, None)
+                    groups[tab_id].box.setText(trans('settings.advanced.collapse'))
 
-                    if tab_id not in groups:
-                        groups[tab_id] = CollapsedGroup(self.window, group_id, None, False, None)
-                        groups[tab_id].box.setText(trans('settings.advanced.collapse'))
-
-                    groups[tab_id].add_layout(options[key])  # add option to group
-
-                    # add line if not last option
-                    if key != advanced_keys[tab_id][-1]:
-                        groups[tab_id].add_widget(self.add_line())
+                    last_idx = len(adv_list) - 1
+                    for idx, key in enumerate(adv_list):
+                        groups[tab_id].add_layout(options[key])
+                        if idx != last_idx:
+                            groups[tab_id].add_widget(self.add_line())
 
                 # add advanced options group to scrolls
-                for tab_id in groups:
+                for tab_id, group in groups.items():
                     group_id = 'settings.advanced.' + section_id + '.' + tab_id
-                    content_tabs[tab_id].addWidget(groups[tab_id])
-                    self.window.ui.groups[group_id] = groups[tab_id]
+                    content_tabs[tab_id].addWidget(group)
+                    self.window.ui.groups[group_id] = group
 
             # add extra features buttons
             self.append_extra(content_tabs, section_id, options, fields)
@@ -214,10 +196,10 @@ class Settings(BaseConfigDialog):
                 tab_widget = QTabWidget()
 
                 # sort to make general tab first if exists
-                if "general" in content_tabs:
-                    content_tabs = {"general": content_tabs.pop("general")} | content_tabs
+                tab_order = (["general"] + [tid for tid in content_tabs if
+                                            tid != "general"]) if "general" in content_tabs else list(content_tabs)
 
-                for tab_id in content_tabs:
+                for tab_id in tab_order:
                     if tab_id == "general":
                         name_key = trans("settings.section.tab.general")
                     else:
@@ -315,21 +297,27 @@ class Settings(BaseConfigDialog):
         :return: list with keys
         """
         keys = []
+        seen = set()
         is_default = False
-        for key in options:
-            option = options[key]
+
+        for option in options.values():
             if 'tab' in option:
                 tab = option['tab']
                 if tab == "" or tab is None:
                     is_default = True
-                if tab not in keys:
-                    keys.append(tab)
+                try:
+                    if tab not in seen:
+                        seen.add(tab)
+                        keys.append(tab)
+                except TypeError:
+                    if tab not in keys:
+                        keys.append(tab)
             else:
                 is_default = True
 
-        # add default general tab if not exists
-        if len(keys) == 0 or (is_default and "general" not in keys):
+        if not keys or (is_default and "general" not in keys):
             keys.append("general")
+
         return keys
 
     def append_extra(self, content: dict, section_id: str, widgets: dict, options: dict):
