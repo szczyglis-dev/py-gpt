@@ -547,8 +547,6 @@ class Renderer(BaseRenderer):
         for node in self.get_all_nodes():
             try:
                 node.clear()
-                node.document().setDefaultStyleSheet("")
-                node.setStyleSheet("")
                 node.document().setMarkdown("")
                 node.document().setHtml("")
                 node.setPlainText("")
