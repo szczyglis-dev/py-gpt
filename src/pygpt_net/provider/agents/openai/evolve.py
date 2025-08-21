@@ -412,7 +412,7 @@ class Agent(BaseAgent):
                     handler.reset()
                     async for event in results[j].stream_events():
                         if bridge.stopped():
-                            result.cancel()
+                            results[j].cancel()
                             bridge.on_stop(ctx)
                             break
                         final_output, response_id = handler.handle(event, ctx, buffer=False)
