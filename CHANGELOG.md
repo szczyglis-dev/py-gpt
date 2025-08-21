@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.18 (2025-08-21)
+
+- Refactor and optimizations.
+- Fix: Evolve agent stop event calling.
+
 ## 2.6.17 (2025-08-21)
 
 - Optimized profile switching.
