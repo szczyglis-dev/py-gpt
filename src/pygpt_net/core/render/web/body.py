@@ -275,6 +275,7 @@ class Body:
                     }
                     resetEphemeralDomRefs();
                     els = {};
+                    /*
                     try {
                         if (window.gc) {
                             window.gc();
@@ -282,6 +283,7 @@ class Body:
                     } catch (e) {
                         // gc not available
                     }
+                    */
                 }
                 function appendExtra(id, content) {
                     hideTips();
