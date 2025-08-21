@@ -25,12 +25,14 @@ if platform.system() == 'Windows':
 # enable debug logging
 # os.environ["QT_LOGGING_RULES"] = "*.debug=true"
 # os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
+"""
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
     "--renderer-process-limit=1 "
     "--process-per-site "
     "--enable-precise-memory-info "
     "--js-flags=--expose-gc"
 )
+"""
 
 _original_open = builtins.open
 

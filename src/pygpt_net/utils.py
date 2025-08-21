@@ -263,6 +263,8 @@ def mem_clean():
     """
     Clean memory by removing unused variables
     """
+    return  # temporary disabled
+
     import sys, gc
     ok = False
     try:
