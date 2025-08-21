@@ -21,8 +21,8 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
-    QUERY_ENGINE_TOOL_NAME,
-    QUERY_ENGINE_TOOL_DESCRIPTION,
+    TOOL_QUERY_ENGINE_NAME,
+    TOOL_QUERY_ENGINE_DESCRIPTION,
 )
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.bridge.context import BridgeContext
@@ -483,8 +483,8 @@ class Chat:
             )
             index_tool = QueryEngineTool.from_defaults(
                 query_engine=query_engine,
-                name=QUERY_ENGINE_TOOL_NAME,
-                description=QUERY_ENGINE_TOOL_DESCRIPTION,
+                name=TOOL_QUERY_ENGINE_NAME,
+                description=TOOL_QUERY_ENGINE_DESCRIPTION,
                 return_direct=True,  # return direct response from index
             )
             tools.append(index_tool)

@@ -28,9 +28,9 @@ from pygpt_net.core.types import (
     TOOL_EXPERT_CALL_DESCRIPTION,
     TOOL_EXPERT_CALL_PARAM_ID_DESCRIPTION,
     TOOL_EXPERT_CALL_PARAM_QUERY_DESCRIPTION,
-    QUERY_ENGINE_TOOL_NAME,
-    QUERY_ENGINE_TOOL_DESCRIPTION,
-    QUERY_ENGINE_PARAM_DESCRIPTION,
+    TOOL_QUERY_ENGINE_NAME,
+    TOOL_QUERY_ENGINE_DESCRIPTION,
+    TOOL_QUERY_ENGINE_PARAM_QUERY_DESCRIPTION,
 )
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event, KernelEvent
@@ -233,11 +233,11 @@ class Experts:
         for call in ctx.tool_calls:
             if (call["type"] == "function"
                     and "function" in call
-                    and call["function"]["name"] == QUERY_ENGINE_TOOL_NAME):
+                    and call["function"]["name"] == TOOL_QUERY_ENGINE_NAME):
                 ctx.force_call = True  # force call if query engine tool is used
                 ctx.cmds_before = [
                     {
-                        "cmd": QUERY_ENGINE_TOOL_NAME,
+                        "cmd": TOOL_QUERY_ENGINE_NAME,
                         "params": {
                             "query": call["function"]["arguments"]["query"],
                             "idx": self.last_idx,
@@ -560,12 +560,12 @@ class Experts:
         :return: retriever tool definition
         """
         return {
-            "cmd": QUERY_ENGINE_TOOL_NAME,
-            "instruction": QUERY_ENGINE_TOOL_DESCRIPTION,
+            "cmd": TOOL_QUERY_ENGINE_NAME,
+            "instruction": TOOL_QUERY_ENGINE_DESCRIPTION,
             "params": [
                 {
                     "name": "query",
-                    "description": QUERY_ENGINE_PARAM_DESCRIPTION,
+                    "description": TOOL_QUERY_ENGINE_PARAM_QUERY_DESCRIPTION,
                     "required": True,
                     "type": "str",
                 }

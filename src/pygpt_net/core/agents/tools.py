@@ -22,9 +22,9 @@ from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, Tool
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event
 from pygpt_net.core.types import (
-    QUERY_ENGINE_TOOL_NAME,
-    QUERY_ENGINE_TOOL_DESCRIPTION,
-    QUERY_ENGINE_TOOL_SPEC,
+    TOOL_QUERY_ENGINE_NAME,
+    TOOL_QUERY_ENGINE_DESCRIPTION,
+    TOOL_QUERY_ENGINE_SPEC,
 )
 from pygpt_net.item.ctx import CtxItem
 
@@ -105,8 +105,8 @@ class Tools:
                     QueryEngineTool(
                         query_engine=query_engine,
                         metadata=ToolMetadata(
-                            name=QUERY_ENGINE_TOOL_NAME,
-                            description=QUERY_ENGINE_TOOL_DESCRIPTION,
+                            name=TOOL_QUERY_ENGINE_NAME,
+                            description=TOOL_QUERY_ENGINE_DESCRIPTION,
                         ),
                     ),
                 ]
@@ -139,9 +139,9 @@ class Tools:
                 "description": "The query string to search in the index."
             }
         }, "additionalProperties": False}
-        description = QUERY_ENGINE_TOOL_DESCRIPTION + f" Index: {idx}"
+        description = TOOL_QUERY_ENGINE_DESCRIPTION + f" Index: {idx}"
         return OpenAIFunctionTool(
-            name=QUERY_ENGINE_TOOL_NAME,
+            name=TOOL_QUERY_ENGINE_NAME,
             description=description,
             params_json_schema=schema,
             on_invoke_tool=run_function,
@@ -359,7 +359,7 @@ class Tools:
 
         # add query engine tool spec if idx is provided
         if self.window.core.idx.is_valid(self.agent_idx):
-            specs.append(QUERY_ENGINE_TOOL_SPEC)
+            specs.append(TOOL_QUERY_ENGINE_SPEC)
 
         for func in functions:
             try:
@@ -386,7 +386,7 @@ class Tools:
         print(f"[Plugin] Tool call: {cmd}, {params}")
 
         # special case for query engine tool
-        if cmd == QUERY_ENGINE_TOOL_NAME:
+        if cmd == TOOL_QUERY_ENGINE_NAME:
             if "query" not in params:
                 return "Query parameter is required for query_engine tool."
             if self.context is None:
