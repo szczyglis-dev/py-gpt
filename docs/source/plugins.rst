@@ -1398,84 +1398,75 @@ The plugin integrates with various Google services, enabling features such as em
 
 
 **Gmail**
----------
 
-- Listing recent emails from Gmail.
-- Listing all emails from Gmail.
-- Searching emails in Gmail.
-- Retrieving email details by ID in Gmail.
-- Sending an email via Gmail.
+* Listing recent emails from Gmail.
+* Listing all emails from Gmail.
+* Searching emails in Gmail.
+* Retrieving email details by ID in Gmail.
+* Sending an email via Gmail.
 
 **Google Calendar**
--------------------
 
-- Listing recent calendar events.
-- Listing today's calendar events.
-- Listing tomorrow's calendar events.
-- Listing all calendar events.
-- Retrieving calendar events by a specific date.
-- Adding a new event to the calendar.
-- Deleting an event from the calendar.
+* Listing recent calendar events.
+* Listing today's calendar events.
+* Listing tomorrow's calendar events.
+* Listing all calendar events.
+* Retrieving calendar events by a specific date.
+* Adding a new event to the calendar.
+* Deleting an event from the calendar.
 
 **Google Keep**
----------------
 
-- Listing notes from Google Keep.
-- Adding a new note to Google Keep.
+* Listing notes from Google Keep.
+* Adding a new note to Google Keep.
 
 **Google Drive**
-----------------
 
-- Listing files from Google Drive.
-- Finding a file in Google Drive by its path.
-- Downloading a file from Google Drive.
-- Uploading a file to Google Drive.
+* Listing files from Google Drive.
+* Finding a file in Google Drive by its path.
+* Downloading a file from Google Drive.
+* Uploading a file to Google Drive.
 
 **YouTube**
------------
 
-- Retrieving information about a YouTube video.
-- Retrieving the transcript of a YouTube video.
+* Retrieving information about a YouTube video.
+* Retrieving the transcript of a YouTube video.
 
 **Google Contacts**
--------------------
 
-- Listing contacts from Google Contacts.
-- Adding a new contact to Google Contacts.
+* Listing contacts from Google Contacts.
+* Adding a new contact to Google Contacts.
 
 **Google Docs**
----------------
 
-- Creating a new document.
-- Retrieving a document.
-- Listing documents.
-- Appending text to a document.
-- Replacing text in a document.
-- Inserting a heading in a document.
-- Exporting a document.
-- Copying from a template.
+* Creating a new document.
+* Retrieving a document.
+* Listing documents.
+* Appending text to a document.
+* Replacing text in a document.
+* Inserting a heading in a document.
+* Exporting a document.
+* Copying from a template.
 
 **Google Maps**
----------------
 
-- Geocoding an address.
-- Reverse geocoding coordinates.
-- Getting directions between locations.
-- Using the distance matrix.
-- Text search for places.
-- Finding nearby places.
-- Generating static map images.
+* Geocoding an address.
+* Reverse geocoding coordinates.
+* Getting directions between locations.
+* Using the distance matrix.
+* Text search for places.
+* Finding nearby places.
+* Generating static map images.
 
 **Google Colab**
-----------------
 
-- Listing notebooks.
-- Creating a new notebook.
-- Adding a code cell.
-- Adding a markdown cell.
-- Getting a link to a notebook.
-- Renaming a notebook.
-- Duplicating a notebook.
+* Listing notebooks.
+* Creating a new notebook.
+* Adding a code cell.
+* Adding a markdown cell.
+* Getting a link to a notebook.
+* Renaming a notebook.
+* Duplicating a notebook.
 
 **Options**
 
