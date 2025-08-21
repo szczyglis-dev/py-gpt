@@ -226,14 +226,17 @@ class Response:
         })
         self.window.dispatch(event)
 
+        # CTX OUTPUT INFO:
+        # - ctx.output may be empty here if stream in OpenAI agents
+        # - ctx.live_output may be used against output in LlamaIndex agents
         if ctx.id is None:
             self.window.core.ctx.add(ctx)
-
-        self.window.core.ctx.update_item(ctx)
+        else:
+            self.window.core.ctx.update_item(ctx)
 
         # update ctx meta
         if mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI) and ctx.meta is not None:
-            self.window.core.ctx.replace(ctx.meta)
+            self.window.core.ctx.replace(ctx.meta)  # update meta in items
             self.window.core.ctx.save(ctx.meta.id)
 
             # update preset if exists
