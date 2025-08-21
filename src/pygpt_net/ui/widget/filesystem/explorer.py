@@ -178,8 +178,8 @@ class FileExplorer(QWidget):
         if len(idx_list) > 0:
             for idx in idx_list:
                 id = idx['id']
-                name = idx['name'] + " (" + idx['id'] + ")"
-                action = menu.addAction("IDX: " + name)
+                name = f"{idx['name']} ({idx['id']})"
+                action = menu.addAction(f"IDX: {name}")
                 action.triggered.connect(
                     lambda checked=False,
                            id=id: self.window.controller.idx.indexer.index_all_files(id)
@@ -198,8 +198,8 @@ class FileExplorer(QWidget):
         if len(idx_list) > 0:
             for idx in idx_list:
                 id = idx['id']
-                name = idx['name'] + " (" + idx['id'] + ")"
-                action = menu.addAction("IDX: " + name)
+                name = f"{idx['name']} ({idx['id']})"
+                action = menu.addAction(f"IDX: {name}")
                 action.triggered.connect(
                     lambda checked=False,
                            id=id: self.window.controller.idx.indexer.clear(id)
@@ -395,8 +395,8 @@ class FileExplorer(QWidget):
                     if len(idx_list) > 0:
                         for idx in idx_list:
                             id = idx['id']
-                            name = idx['name'] + " (" + idx['id'] + ")"
-                            action = QAction(QIcon(":/icons/db.svg"), "IDX: " + name, self)
+                            name = f"{idx['name']} ({idx['id']})"
+                            action = QAction(QIcon(":/icons/db.svg"), f"IDX: {name}", self)
                             action.triggered.connect(
                                 lambda checked=False,
                                        id=id,
@@ -558,9 +558,7 @@ class IndexedFileSystemModel(QFileSystemModel):
                         dt = ts.strftime("%H:%M")
                     else:
                         dt = ts.strftime("%Y-%m-%d %H:%M")
-                    content = ''
-                    content += dt
-                    content += ' (' + ",".join(status['indexed_in']) + ')'
+                    content = f"{dt} ({','.join(status['indexed_in'])})"
                 else:
                     content = '-'  # if file not indexed
                 return content

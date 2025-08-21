@@ -204,7 +204,6 @@ class Response:
         # if next in agent cycle
         if ctx.partial:
             self.window.dispatch(AppEvent(AppEvent.CTX_END))  # app event
-            self.window.dispatch(RenderEvent(RenderEvent.RELOAD))  # reload chat window
 
         # handle current step
         ctx.current = False  # reset current state
@@ -229,10 +228,7 @@ class Response:
 
         if ctx.id is None:
             self.window.core.ctx.add(ctx)
-        self.window.controller.ctx.update(
-            reload=True,
-            all=False,
-        )
+
         self.window.core.ctx.update_item(ctx)
 
         # update ctx meta
@@ -256,11 +252,6 @@ class Response:
 
         # post-handle, execute cmd, etc.
         self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
-
-        event = RenderEvent(RenderEvent.TOOL_BEGIN, {
-            "meta": ctx.meta,
-        })
-        self.window.dispatch(event)  # show cmd waiting
         self.window.controller.chat.output.handle_end(ctx, mode)  # handle end.
 
         event = RenderEvent(RenderEvent.END, {
@@ -274,11 +265,13 @@ class Response:
         if global_mode not in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
             return  # no agent mode, nothing to do
 
-        if ctx.extra is None or (type(ctx.extra) == dict and "agent_finish" not in ctx.extra):
+        # not agent final response
+        if ctx.extra is None or (isinstance(ctx.extra, dict) and "agent_finish" not in ctx.extra):
             self.window.update_status(trans("status.agent.reasoning"))
             self.window.controller.chat.common.lock_input()  # lock input, re-enable stop button
 
-        if ctx.extra is not None and (type(ctx.extra) == dict and "agent_finish" in ctx.extra):
+        # agent final response
+        if ctx.extra is not None and (isinstance(ctx.extra, dict) and "agent_finish" in ctx.extra):
             self.window.controller.agent.llama.on_finish(ctx)  # evaluate response and continue if needed
 
     def end(
