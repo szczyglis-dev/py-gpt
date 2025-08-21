@@ -422,7 +422,7 @@ class Renderer(BaseRenderer):
         self.init(pid)
 
         if clear:
-            self.reset(meta)
+            self.reset(meta, clear_nodes=False)  # nodes will be cleared later, in flush_output()
 
         self.pids[pid].use_buffer = True
         self.pids[pid].html = ""
@@ -482,7 +482,8 @@ class Renderer(BaseRenderer):
         if html_parts:
             self.append(
                 pid,
-                "".join(html_parts)
+                "".join(html_parts),
+                replace=True,
             )
 
         html_parts.clear()
@@ -495,6 +496,7 @@ class Renderer(BaseRenderer):
                 pid,
                 self.pids[pid].html,
                 flush=True,
+                replace=True,
             )
         self.parser.reset()
 
@@ -894,7 +896,8 @@ class Renderer(BaseRenderer):
             self,
             pid,
             html: str,
-            flush: bool = False
+            flush: bool = False,
+            replace: bool = False,
     ):
         """
         Append text to output
@@ -902,11 +905,12 @@ class Renderer(BaseRenderer):
         :param pid: ctx pid
         :param html: HTML code
         :param flush: True if flush only
+        :param replace: True if replace current content
         """
         if self.pids[pid].loaded and not self.pids[pid].use_buffer:
             self.clear_chunks(pid)
             if html:
-                self.flush_output(pid, html)
+                self.flush_output(pid, html, replace)
             self.pids[pid].clear()
         else:
             if not flush:
@@ -1064,33 +1068,37 @@ class Renderer(BaseRenderer):
 
     def reset(
             self,
-            meta: Optional[CtxMeta] = None
+            meta: Optional[CtxMeta] = None,
+            clear_nodes: bool = True
     ):
         """
         Reset
 
         :param meta: Context meta
+        :param clear_nodes: True if clear nodes
         """
         pid = self.get_pid(meta)
         if pid is not None and pid in self.pids:
-            self.reset_by_pid(pid)
+            self.reset_by_pid(pid, clear_nodes=clear_nodes)
         else:
             if meta is not None:
                 pid = self.get_or_create_pid(meta)
-                self.reset_by_pid(pid)
+                self.reset_by_pid(pid, clear_nodes=clear_nodes)
 
         self.clear_live(meta, CtxItem())
 
-    def reset_by_pid(self, pid: Optional[int]):
+    def reset_by_pid(self, pid: Optional[int], clear_nodes: bool = True):
         """
         Reset by PID
 
         :param pid: context PID
+        :param clear_nodes: True if clear nodes
         """
         self.parser.reset()
         self.pids[pid].item = None
         self.pids[pid].html = ""
-        self.clear_nodes(pid)
+        if clear_nodes:
+            self.clear_nodes(pid)
         self.clear_chunks(pid)
         self.pids[pid].images_appended = []
         self.pids[pid].urls_appended = []
@@ -1379,18 +1387,25 @@ class Renderer(BaseRenderer):
     def flush_output(
             self,
             pid: Optional[int],
-            html: str
+            html: str,
+            replace: bool = False
     ):
         """
         Flush output
 
         :param pid: context PID
         :param html: HTML code
+        :param replace: True if replace current content
         """
         try:
-            self.get_output_node_by_pid(pid).page().runJavaScript(
-                f"""if (typeof window.appendNode !== 'undefined') appendNode({self.to_json(self.sanitize_html(html))});"""
-            )
+            if replace:
+                self.get_output_node_by_pid(pid).page().runJavaScript(
+                    f"if (typeof window.replaceNodes !== 'undefined') replaceNodes({self.to_json(self.sanitize_html(html))});"
+                )
+            else:
+                self.get_output_node_by_pid(pid).page().runJavaScript(
+                    f"if (typeof window.appendNode !== 'undefined') appendNode({self.to_json(self.sanitize_html(html))});"
+                )
         except Exception:
             pass
         html = None

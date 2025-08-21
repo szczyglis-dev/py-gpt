@@ -283,7 +283,7 @@ class TestRenderer:
         renderer.append = MagicMock()
         renderer.pids = {1: MagicMock(use_buffer=True, html="buffer")}
         renderer.append_context(meta, [item1, item2], True)
-        renderer.reset.assert_called_with(meta)
+        renderer.reset.assert_called_with(meta, clear_nodes=False)
         assert renderer.pids[1].use_buffer is False
         #renderer.append.assert_called_with(1, "buffer", flush=True) # TODO: never called
 
@@ -398,7 +398,7 @@ class TestRenderer:
         node.page().runJavaScript = MagicMock()
         renderer.flush_output = MagicMock()
         renderer.append(pid, "new html", flush=True)
-        renderer.flush_output.assert_called_with(pid, "new html")
+        renderer.flush_output.assert_called_with(pid, "new html", False)
         assert renderer.pids[pid].html == ""
         pid_data = PidData(pid)
         pid_data.loaded = False
@@ -454,11 +454,11 @@ class TestRenderer:
         renderer.reset_by_pid = MagicMock()
         renderer.clear_live = MagicMock()
         renderer.reset(meta)
-        renderer.reset_by_pid.assert_called_with(1)
+        renderer.reset_by_pid.assert_called_with(1, clear_nodes=True)
         renderer.get_pid = MagicMock(return_value=None)
         renderer.get_or_create_pid = MagicMock(return_value=2)
         renderer.reset(meta)
-        renderer.reset_by_pid.assert_called_with(2)
+        renderer.reset_by_pid.assert_called_with(2, clear_nodes=True)
 
     def test_reset_by_pid(self, renderer, fake_window):
         pid = 1
