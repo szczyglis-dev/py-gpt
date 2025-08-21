@@ -254,11 +254,7 @@ class Response:
         self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
         self.window.controller.chat.output.handle_end(ctx, mode)  # handle end.
 
-        event = RenderEvent(RenderEvent.END, {
-            "meta": ctx.meta,
-            "ctx": ctx,
-            "stream": self.window.core.config.get("stream", False),
-        })
+        event = RenderEvent(RenderEvent.RELOAD)
         self.window.dispatch(event)
 
         # if continue reasoning

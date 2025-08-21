@@ -291,8 +291,8 @@ class Output:
 
         if mode != MODE_ASSISTANT:
             self.window.controller.kernel.stack.handle()  # handle reply
-            # event = RenderEvent(RenderEvent.RELOAD)
-            # self.window.dispatch(event)  # reload chat window
+            event = RenderEvent(RenderEvent.RELOAD)
+            self.window.dispatch(event)  # reload chat window
 
         mem_clean()
 
