@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.21 07:00:00                  #
 # ================================================== #
 
 import os
@@ -46,7 +46,7 @@ class Context:
             prev_message = None,
             allow_native_tool_calls: bool = False,
             attachments: Dict[str, AttachmentItem] = None,
-    ):
+    ) -> List[ChatMessage]:
         """
         Get messages from db
 
@@ -57,7 +57,7 @@ class Context:
         :param prev_message: previous message
         :param allow_native_tool_calls: allow native tool calls
         :param attachments: attachments
-        :return: Messages
+        :return: List of ChatMessage objects
         """
         messages = []
 
@@ -155,16 +155,12 @@ class Context:
 
         :param query: input query
         :param attachments: attachments
+        :return: ChatMessage object
         """
-        blocks = []
-        blocks.append(
-            TextBlock(text=query)
-        )
+        blocks = [TextBlock(text=query)]
 
         self.attachments = {}  # reset attachments, only current prompt
         self.urls = []
-
-        #https://pygpt.net/assets/img/img3.jpg?v=2024-11-28
 
         # extract URLs from prompt
         urls = self.extract_urls(query)
@@ -186,14 +182,12 @@ class Context:
                         )
                         self.attachments[id] = attachment.path
 
-        msg = ChatMessage(
+        return ChatMessage(
             role=MessageRole.USER,
             blocks=blocks,
         )
-        return msg
 
-
-
+        """
         urls.append(attachment.path)
         msg = ChatMessage(
             role=MessageRole.USER,
@@ -208,12 +202,14 @@ class Context:
                     image_documents=image_documents,
                 )
         return msg
+        """
 
     def add_system(self, prompt: str) -> ChatMessage:
         """
         Add system message to db
 
         :param prompt: system prompt
+        :return: ChatMessage object
         """
         return ChatMessage(
             role=MessageRole.SYSTEM,
@@ -224,7 +220,7 @@ class Context:
         """
         Append images content to context item
 
-        :param ctx: context
+        :param ctx: context item
         """
         images = self.get_attachments()  # dict -> key: id, value: path
         urls = self.get_urls()  # list

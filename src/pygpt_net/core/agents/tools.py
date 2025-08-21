@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.21 07:00:00                  #
 # ================================================== #
 
 import json
@@ -21,16 +21,15 @@ from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, Tool
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event
+from pygpt_net.core.types import (
+    QUERY_ENGINE_TOOL_NAME,
+    QUERY_ENGINE_TOOL_DESCRIPTION,
+    QUERY_ENGINE_TOOL_SPEC,
+)
 from pygpt_net.item.ctx import CtxItem
 
 
 class Tools:
-
-    QUERY_ENGINE_TOOL_NAME = "rag_get_context"
-    QUERY_ENGINE_TOOL_DESCRIPTION = "Get additional context for provided question. Use this whenever you need additional context to provide an answer. "
-    QUERY_ENGINE_TOOL_SPEC = ("**"+QUERY_ENGINE_TOOL_NAME+"**: "
-                         + QUERY_ENGINE_TOOL_DESCRIPTION +
-                         "available params: {'query': {'type': 'string', 'description': 'query string'}}, required: [query]")
 
     def __init__(self, window=None):
         """
@@ -97,7 +96,7 @@ class Tools:
 
         # add query engine tool if idx is provided
         idx = extra.get("agent_idx", None)
-        if idx is not None and idx != "_":
+        if self.window.core.idx.is_valid(idx):
             llm, embed_model = self.window.core.idx.llm.get_service_context(model=context.model)
             index = self.window.core.idx.storage.get(idx, llm, embed_model)  # get index
             if index is not None:
@@ -106,8 +105,8 @@ class Tools:
                     QueryEngineTool(
                         query_engine=query_engine,
                         metadata=ToolMetadata(
-                            name=self.QUERY_ENGINE_TOOL_NAME,
-                            description=self.QUERY_ENGINE_TOOL_DESCRIPTION,
+                            name=QUERY_ENGINE_TOOL_NAME,
+                            description=QUERY_ENGINE_TOOL_DESCRIPTION,
                         ),
                     ),
                 ]
@@ -127,7 +126,7 @@ class Tools:
         """
         async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
             name = run_ctx.tool_name
-            print("[Plugin] Tool call: " + name + " with args: " + str(args))
+            print(f"[Plugin] Tool call: {name} with args: {args}")
             cmd = {
                 "cmd": name,
                 "params": json.loads(args)  # args should be a JSON string
@@ -140,9 +139,9 @@ class Tools:
                 "description": "The query string to search in the index."
             }
         }, "additionalProperties": False}
-        description = self.QUERY_ENGINE_TOOL_DESCRIPTION + f" Index: {idx}"
+        description = QUERY_ENGINE_TOOL_DESCRIPTION + f" Index: {idx}"
         return OpenAIFunctionTool(
-            name=self.QUERY_ENGINE_TOOL_NAME,
+            name=QUERY_ENGINE_TOOL_NAME,
             description=description,
             params_json_schema=schema,
             on_invoke_tool=run_function,
@@ -153,14 +152,14 @@ class Tools:
             ctx: CtxItem,
             verbose: bool = False,
             force: bool = False
-    ) -> list:
+    ) -> List[BaseTool]:
         """
         Parse plugin functions
 
         :param ctx: CtxItem
         :param verbose: verbose mode
         :param force: force to get functions even if not needed
-        :return: List of functions
+        :return: List of BaseTool instances
         """
         tools = []
         functions = self.window.core.command.get_functions(force=force)
@@ -175,7 +174,7 @@ class Tools:
 
                 def make_func(name, description):
                     def func(**kwargs):
-                        self.log("[Plugin] Tool call: " + name + " " + str(kwargs))
+                        self.log(f"[Plugin] Tool call: {name} {kwargs}")
                         cmd = {
                             "cmd": name,
                             "params": kwargs,
@@ -202,7 +201,7 @@ class Tools:
                 )
                 tools.append(tool)
             except Exception as e:
-                print(e)
+                self.window.core.debug.log(e)
         return tools
 
     def get_function_tools(
@@ -210,7 +209,7 @@ class Tools:
             ctx: CtxItem,
             verbose: bool = False,
             force: bool = False
-    ) -> list:
+    ) -> List[OpenAIFunctionTool]:
         """
         Parse plugin functions and return as OpenAI FunctionTool instances
 
@@ -231,7 +230,7 @@ class Tools:
 
                 async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
                     name = run_ctx.tool_name
-                    print("[Plugin] Tool call: " + name + " with args: " + str(args))
+                    print(f"[Plugin] Tool call: {name} with args: {args}")
                     cmd = {
                         "cmd": name,
                         "params": json.loads(args)  # args should be a JSON string
@@ -268,10 +267,10 @@ class Tools:
                 )
                 tools.append(tool)
             except Exception as e:
-                print(e)
+                self.window.core.debug.log(e)
 
         # append query engine tool if idx is provided
-        if self.agent_idx is not None and self.agent_idx != "_":
+        if self.window.core.idx.is_valid(self.agent_idx):
             tools.append(self.get_openai_retriever_tool(self.agent_idx))
 
         return tools
@@ -282,7 +281,7 @@ class Tools:
             extra: Dict[str, Any],
             verbose: bool = False,
             force: bool = False
-    ) -> dict:
+    ) -> Dict[str, BaseTool]:
         """
         Parse plugin functions
 
@@ -290,6 +289,7 @@ class Tools:
         :param extra: extra data
         :param verbose: verbose mode
         :param force: force to get functions even if not needed
+        :return: Dictionary of tool names and BaseTool instances
         """
         tools = {}
         functions = self.window.core.command.get_functions(force=force)
@@ -303,7 +303,7 @@ class Tools:
 
                 def make_func(name, description):
                     def func(**kwargs):
-                        self.log("[Plugin] Tool call: " + name + " " + str(kwargs))
+                        self.log(f"[Plugin] Tool call: {name} {kwargs}")
                         cmd = {
                             "cmd": name,
                             "params": kwargs,
@@ -321,10 +321,10 @@ class Tools:
                 func = make_func(name, description)
                 tools[name] = func
             except Exception as e:
-                print(e)
+                self.window.core.debug.log(e)
 
         # add query engine tool if idx is provided
-        if self.agent_idx is not None and self.agent_idx != "_":
+        if self.window.core.idx.is_valid(self.agent_idx):
             extra = {
                 "agent_idx": self.agent_idx,  # agent index for query engine tool
             }
@@ -344,7 +344,7 @@ class Tools:
             extra: Dict[str, Any],
             verbose: bool = False,
             force: bool = False
-    ) -> list:
+    ) -> List[str]:
         """
         Parse plugin functions
 
@@ -352,13 +352,14 @@ class Tools:
         :param extra: extra data
         :param verbose: verbose mode
         :param force: force to get functions even if not needed
+        :return: List of tool specifications as strings
         """
         specs = []
         functions = self.window.core.command.get_functions(force=force)
 
         # add query engine tool spec if idx is provided
-        if self.agent_idx is not None and self.agent_idx  != "_":
-            specs.append(self.QUERY_ENGINE_TOOL_SPEC)
+        if self.window.core.idx.is_valid(self.agent_idx):
+            specs.append(QUERY_ENGINE_TOOL_SPEC)
 
         for func in functions:
             try:
@@ -371,7 +372,7 @@ class Tools:
                     f"**{name}**: {description}, available params: {schema.get('properties', {})}, required: {schema.get('required', [])}\n"
                 )
             except Exception as e:
-                print(e)
+                self.window.core.debug.log(e)
         return specs
 
     def tool_exec(self, cmd: str, params: Dict[str, Any]) -> str:
@@ -382,22 +383,23 @@ class Tools:
         :param params: command parameters
         :return: command output
         """
-        print("[Plugin] Tool call: " + cmd + " " + str(params))
+        print(f"[Plugin] Tool call: {cmd}, {params}")
+
         # special case for query engine tool
-        if cmd == self.QUERY_ENGINE_TOOL_NAME:
+        if cmd == QUERY_ENGINE_TOOL_NAME:
             if "query" not in params:
                 return "Query parameter is required for query_engine tool."
             if self.context is None:
                 return "Context is not set for query_engine tool."
-            if self.agent_idx is None or self.agent_idx == "_":
+            if not self.window.core.idx.is_valid(self.agent_idx):
                 return "Agent index is not set for query_engine tool."
             llm, embed_model = self.window.core.idx.llm.get_service_context(model=self.context.model)
             index = self.window.core.idx.storage.get(self.agent_idx, llm, embed_model)  # get index
             if index is not None:
                 query_engine = index.as_query_engine(similarity_top_k=3)
                 response = query_engine.query(params["query"])
-                print("[Plugin] Query engine response: " + str(response))
-                self.log("[Plugin] Query engine response: " + str(response))
+                print(f"[Plugin] Query engine response: {response}")
+                self.log(f"[Plugin] Query engine response: {response}")
                 return str(response)
             else:
                 return "Index not found for query_engine tool."
@@ -428,12 +430,13 @@ class Tools:
         """
         data = []
         for output in response.sources:
-            item = {}
-            item["ToolOutput"] = {
-                "content": str(output.content),
-                "tool_name": str(output.tool_name),
-                "raw_input": str(output.raw_input),
-                "raw_output": str(output.raw_output),
+            item = {
+                "ToolOutput": {
+                    "content": str(output.content),
+                    "tool_name": str(output.tool_name),
+                    "raw_input": str(output.raw_input),
+                    "raw_output": str(output.raw_output),
+                }
             }
             data.append(item)
         return data
@@ -498,6 +501,22 @@ class Tools:
                 self.window.core.filesystem.parser.extract_data_files(ctx, response) # img, files
             if clear:
                 self.clear_last_tool_output()  # clear after use
+
+    def set_idx(self, agent_idx: str):
+        """
+        Set agent index for query engine tool
+
+        :param agent_idx: agent index
+        """
+        self.agent_idx = agent_idx
+
+    def set_context(self, context: BridgeContext):
+        """
+        Set context for tool execution
+
+        :param context: BridgeContext instance
+        """
+        self.context = context
 
     def log(self, msg: str):
         """

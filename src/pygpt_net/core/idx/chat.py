@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.21 07:00:00                  #
 # ================================================== #
 
 import json
@@ -21,14 +21,16 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    QUERY_ENGINE_TOOL_NAME,
+    QUERY_ENGINE_TOOL_DESCRIPTION,
 )
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
+
 from .context import Context
 from .response import Response
-
 
 class Chat:
     def __init__(self, window=None, storage=None):
@@ -122,11 +124,7 @@ class Chat:
             raise Exception("Model config not provided")
 
         self.log("Query index...")
-        self.log("Idx: {}, query: {}, model: {}".format(
-            idx,
-            query,
-            model.id,
-        ))
+        self.log(f"Idx: {idx}, query: {query}, model: {model.id}")
 
         index, llm = self.get_index(idx, model, stream=stream)
         input_tokens = self.window.core.tokens.from_llama_messages(
@@ -137,7 +135,7 @@ class Chat:
         # query index
         tpl = self.get_custom_prompt(system_prompt)
         if tpl is not None:
-            self.log("Query index with custom prompt: {}...".format(system_prompt))
+            self.log(f"Query index with custom prompt: {system_prompt}...")
             response = index.as_query_engine(
                 llm=llm,
                 streaming=stream,
@@ -189,16 +187,13 @@ class Chat:
         verbose = self.window.core.config.get("log.llama", False)
 
         self.log("Retrieval...")
-        self.log("Idx: {}, retrieve only: {}".format(
-            idx,
-            query,
-        ))
+        self.log(f"Idx: {idx}, retrieve only: {query}")
 
         index, llm = self.get_index(idx, model, stream=stream)
         retriever = index.as_retriever()
         nodes = retriever.retrieve(query)
         outputs = []
-        self.log("Retrieved {} nodes...".format(len(nodes)))
+        self.log(f"Retrieved {len(nodes)} nodes...")
         for node in nodes:
             outputs.append({
                 "text": node.text,
@@ -207,7 +202,7 @@ class Chat:
         if outputs:
             response = ""
             for output in outputs:
-                response += "**Score: {}**\n\n{}".format(output["score"], output["text"])
+                response += f"**Score: {output['score']}**\n\n{output['text']}"
                 if output != outputs[-1]:
                     response += "\n\n-------\n\n"
             ctx.set_output(response)
@@ -248,7 +243,7 @@ class Chat:
         if disable_cmd:
             cmd_enabled = False
 
-        if idx is None or idx == "_":
+        if not self.window.core.idx.is_valid(idx):
             chat_mode = "simple"  # do not use query engine if no index
             use_index = False
 
@@ -271,29 +266,19 @@ class Chat:
 
         # -- log ---
         self.log("Chat with index...")
-        self.log("Idx: {idx}, "
-                 "chat_mode: {mode}, "
-                 "model: {model}, "
-                 "stream: {stream}, "
-                 "native tool calls: {tool_calls}, "
-                 "use react: {react}, "
-                 "use index: {use_index}, "
-                 "cmd enabled: {cmd_enabled}, "
-                 "num_attachments: {num_attachments}, "
-                 "additional ctx: {additional_ctx}, "
-                 "query: {query}".format(
-            idx=idx,
-            mode=chat_mode,
-            model=model.id,
-            stream=stream,
-            tool_calls=allow_native_tool_calls,
-            react=use_react,
-            use_index=use_index,
-            cmd_enabled=cmd_enabled,
-            num_attachments=len(context.attachments) if context.attachments else 0,
-            additional_ctx=additional_ctx,
-            query=query,
-        ))
+        self.log(
+            f"Idx: {idx}, "
+            f"chat_mode: {chat_mode}, "
+            f"model: {model.id}, "
+            f"stream: {stream}, "
+            f"native tool calls: {allow_native_tool_calls}, "
+            f"use react: {use_react}, "
+            f"use index: {use_index}, "
+            f"cmd enabled: {cmd_enabled}, "
+            f"num_attachments: {len(context.attachments) if context.attachments else 0}, "
+            f"additional ctx: {additional_ctx}, "
+            f"query: {query}"
+        )
 
         # use index only if idx is not empty, otherwise use only LLM
         index = None
@@ -424,35 +409,18 @@ class Chat:
                         messages=history,
                     )
 
-        # handle response
+        # handle response, append output to ctx, etc.
         if response:
-            # tools
-            if cmd_enabled:
-                if use_react:
-                    self.response.from_react(ctx, model, response) # TOOLS + REACT, non-stream
-                else:
-                    if stream:
-                        if use_index:
-                            self.response.from_index_stream(ctx, model, response) # INDEX + STREAM
-                        else:
-                            self.response.from_llm_stream(ctx, model, llm, response)  # LLM + STREAM
-                    else:
-                        if use_index:
-                            self.response.from_index(ctx, model, response) # TOOLS + INDEX
-                        else:
-                            self.response.from_llm(ctx, model, llm, response) # TOOLS + LLM
-            else:
-                # no tools
-                if stream:
-                    if use_index:
-                        self.response.from_index_stream(ctx, model, response) # INDEX + STREAM
-                    else:
-                        self.response.from_llm_stream(ctx, model, llm, response) # LLM + STREAM
-                else:
-                    if use_index:
-                        self.response.from_index(ctx, model, response) # INDEX
-                    else:
-                        self.response.from_llm(ctx, model, llm, response) # LLM
+            self.response.handle(
+                ctx=ctx,
+                model=model,
+                llm=llm,
+                response=response,
+                cmd_enabled=cmd_enabled,
+                use_react=use_react,
+                use_index=use_index,
+                stream=stream,
+            )
 
             # append attachment images to context
             self.context.append_images(ctx)
@@ -515,8 +483,8 @@ class Chat:
             )
             index_tool = QueryEngineTool.from_defaults(
                 query_engine=query_engine,
-                name="get_context",
-                description="Get additional context to answer the question.",
+                name=QUERY_ENGINE_TOOL_NAME,
+                description=QUERY_ENGINE_TOOL_DESCRIPTION,
                 return_direct=True,  # return direct response from index
             )
             tools.append(index_tool)
@@ -577,8 +545,8 @@ class Chat:
         llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
         tmp_id, index = self.storage.get_tmp(path, llm, embed_model)  # get or create tmp index
 
-        idx = "tmp:{}".format(path)  # tmp index id
-        self.log("Indexing to temporary in-memory index: {}...".format(idx))
+        idx = f"tmp:{path}"  # tmp index id
+        self.log(f"Indexing to temporary in-memory index: {idx}...")
 
         # index file to tmp index
         files, errors = self.window.core.idx.indexing.index_files(
@@ -591,7 +559,7 @@ class Chat:
         # query tmp index
         output = None
         if len(files) > 0:
-            self.log("Querying temporary in-memory index: {}...".format(idx))
+            self.log(f"Querying temporary in-memory index: {idx}...")
             response = index.as_query_engine(
                 llm=llm,
                 streaming=False,
@@ -601,9 +569,9 @@ class Chat:
                 output = response.response
 
         # clean tmp index
-        self.log("Removing temporary in-memory index: {} ({})...".format(idx, tmp_id))
+        self.log(f"Removing temporary in-memory index: {idx} ({tmp_id})...")
         self.storage.clean_tmp(tmp_id)  # clean memory
-        self.log("Returning response: {}".format(output))
+        self.log(f"Returning response: {output}")
         return output
 
     def query_web(
@@ -637,8 +605,8 @@ class Chat:
         llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
         tmp_id, index = self.storage.get_tmp(id, llm, embed_model)  # get or create tmp index
 
-        idx = "tmp:{}".format(id)  # tmp index id
-        self.log("Indexing to temporary in-memory index: {}...".format(idx))
+        idx = f"tmp:{id}"  # tmp index id
+        self.log(f"Indexing to temporary in-memory index: {idx}...")
 
         # index file to tmp index
         num, errors = self.window.core.idx.indexing.index_urls(
@@ -653,7 +621,7 @@ class Chat:
         # query tmp index
         output = None
         if num > 0:
-            self.log("Querying temporary in-memory index: {}...".format(idx))
+            self.log(f"Querying temporary in-memory index: {idx}...")
             response = index.as_query_engine(
                 llm=llm,
                 streaming=False,
@@ -663,9 +631,9 @@ class Chat:
                 output = response.response
 
         # clean tmp index
-        self.log("Removing temporary in-memory index: {} ({})...".format(idx, tmp_id))
+        self.log(f"Removing temporary in-memory index: {idx} ({tmp_id})...")
         self.storage.clean_tmp(tmp_id)  # clean memory
-        self.log("Returning response: {}...".format(output))
+        self.log(f"Returning response: {output}...")
         return output
 
     def query_attachment(
@@ -705,7 +673,7 @@ class Chat:
         if response:
             output = str(response)
             if verbose:
-                print("Found using retrieval, {} (score: {})".format(output, score))
+                print(f"Found using retrieval: {output} (score: {score})")
         else:
             if verbose:
                 print("Not found using retrieval, trying with query engine...")
@@ -814,7 +782,6 @@ class Chat:
         :param idx: idx name (id)
         :param model: model instance
         :param stream: stream mode
-        :return:
         """
         # check if index exists
         if not self.storage.exists(idx):
@@ -867,7 +834,7 @@ class Chat:
         :param msg: message
         """
         # disabled logging for thread safety
-        if self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
+        if self.window.core.config.get("mode") in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
             return
         is_log = False
         if self.window.core.config.has("log.llama") \
@@ -875,5 +842,5 @@ class Chat:
             is_log = True
         self.window.core.debug.info(msg, not is_log)
         if is_log:
-            print("[LLAMA-INDEX] {}".format(msg))
+            print(f"[LlamaIndex] {msg}")
         self.window.idx_logger_message.emit(msg)

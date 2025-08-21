@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.08.21 07:00:00                  #
 # ================================================== #
 
 import datetime
@@ -77,6 +77,17 @@ class Idx:
         if not self.initialized:
             self.load()
             self.initialized = True
+
+    def is_valid(self, idx: str = None) -> bool:
+        """
+        Check if index is valid
+
+        :param idx: index name
+        :return: True if index is valid
+        """
+        if idx and idx != "_":
+            return self.has(idx)
+        return False
 
     def get_current_store(self) -> str:
         """
@@ -166,7 +177,7 @@ class Idx:
             )  # store index
 
         if errors:
-            self.log("Error: " + str(errors))
+            self.log(f"Error: {errors}")
         return files, errors
 
     def index_db_by_meta_id(
@@ -202,7 +213,7 @@ class Idx:
             )  # store index
 
         if errors:
-            self.log("Error: " + str(errors))
+            self.log(f"Error: {errors}")
         return num, errors
 
     def index_db_from_updated_ts(
@@ -235,7 +246,7 @@ class Idx:
             )  # store index
 
         if errors:
-            self.log("Error: " + str(errors))
+            self.log(f"Error: {errors}")
         return num, errors
 
     def index_urls(
@@ -274,7 +285,7 @@ class Idx:
             )  # store index
 
         if errors:
-            self.log("Error: " + str(errors))
+            self.log(f"Error: {errors}")
         return n, errors
 
     def index_web(
@@ -320,7 +331,7 @@ class Idx:
             )  # store index
 
         if errors:
-            self.log("Error: " + str(errors))
+            self.log(f"Error: {errors}")
         return n, errors
 
     def get_idx_data(
@@ -478,7 +489,7 @@ class Idx:
         """
         self.llm.get_service_context(stream=False)  # init environment only (ENV API keys, etc.)
         if self.storage.remove_document(idx, doc_id):
-            self.log("Removed document from index: " + idx + " - " + doc_id)
+            self.log(f"Removed document from index: {idx} - {doc_id}")
 
     def remove_file(
             self,
@@ -592,5 +603,5 @@ class Idx:
             is_log = True
         self.window.core.debug.info(msg, not is_log)
         if is_log:
-            print("[LLAMA-INDEX] {}".format(msg))
+            print(f"[LlamaIndex] {msg}")
         self.window.idx_logger_message.emit(msg)

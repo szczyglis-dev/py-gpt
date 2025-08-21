@@ -96,7 +96,7 @@ def test_agent_not_found(dummy_window, dummy_context, dummy_signals):
     result = runner.call(dummy_context, extra={"agent_provider": "non_existent"}, signals=dummy_signals)
     assert result is False
     assert runner.get_error() is not None
-    dummy_window.core.debug.error.assert_called_once()
+    dummy_window.core.debug.log.assert_called_once()
 
 # Test runner using AGENT_MODE_PLAN
 def test_agent_plan(dummy_window, dummy_context, dummy_signals):

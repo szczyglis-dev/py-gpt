@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.21 07:00:00                  #
 # ================================================== #
 
 import datetime
@@ -53,7 +53,7 @@ class Indexing:
         # check if compiled version is allowed
         is_compiled = self.window.core.config.is_compiled() or self.window.core.platforms.is_snap()
         if not loader.allow_compiled and is_compiled:
-            self.window.core.idx.log("Loader not allowed in compiled version: " + loader.id)
+            self.window.core.idx.log(f"Loader not allowed in compiled version: {loader.id}" )
             return
 
         loader.attach_window(self.window)
@@ -67,7 +67,7 @@ class Indexing:
                 for ext in extensions:
                     self.loaders["file"][ext] = loader  # set reader instance, by file extension
             except ImportError as e:
-                msg = "Error while registering data loader: " + loader.id + " - " + str(e)
+                msg = f"Error while registering data loader: {loader.id} - {e}"
                 self.window.core.debug.log(msg)
                 self.window.core.debug.log(e)
 
@@ -101,7 +101,7 @@ class Indexing:
                             self.external_config[loader.id][key]["description"] = loader.init_args_desc[key]
 
             except ImportError as e:
-                msg = "Error while registering data loader: " + loader.id + " - " + str(e)
+                msg = f"Error while registering data loader: {loader.id} - {e}"
                 self.window.core.debug.log(msg)
                 self.window.core.debug.log(e)
 
@@ -305,7 +305,7 @@ class Indexing:
         """
         # TODO: if .zip then unpack here, and return path to /tmp
         if not silent:
-            self.window.core.idx.log("Reading documents from path: {}".format(path))
+            self.window.core.idx.log(f"Reading documents from path: {path}")
         if os.path.isdir(path):
             reader = SimpleDirectoryReader(
                 input_dir=path,
@@ -320,13 +320,13 @@ class Indexing:
             # check if not excluded extension
             if self.is_excluded(ext) and not force:
                 if not silent:
-                    self.window.core.idx.log("Ignoring excluded extension: {}".format(ext))
+                    self.window.core.idx.log(f"Ignoring excluded extension: {ext}")
                 return []
 
             # check if not excluded path
             if self.is_excluded_path(path) and not force:
                 if not silent:
-                    self.window.core.idx.log("Ignoring excluded path: {}".format(path))
+                    self.window.core.idx.log(f"Ignoring excluded path: {path}")
                 return []
 
             # check if archive (zip, tar)
@@ -337,7 +337,7 @@ class Indexing:
 
             if ext in self.loaders["file"]:
                 if not silent:
-                    self.window.core.idx.log("Using loader for: {}".format(ext))
+                    self.window.core.idx.log(f"Using loader for: {ext}")
                 reader = self.loaders["file"][ext].get()  # get data reader instance
 
                 # use custom loader method if available
@@ -347,7 +347,7 @@ class Indexing:
                     documents = reader.load_data(file=Path(path))
             else:
                 if not silent:
-                    self.window.core.idx.log("Using default SimpleDirectoryReader for: {}".format(ext))
+                    self.window.core.idx.log(f"Using default SimpleDirectoryReader for: {ext}")
                 reader = SimpleDirectoryReader(input_files=[path])
                 documents = reader.load_data()
 
@@ -424,8 +424,8 @@ class Indexing:
 
             # get unique external content identifier
             unique_id = self.data_providers[type].get_external_id(extra_args)
-            self.window.core.idx.log("Loading web documents from: {}".format(unique_id))
-            self.window.core.idx.log("Using web loader for type: {}".format(type))
+            self.window.core.idx.log(f"Loading web documents from: {unique_id}")
+            self.window.core.idx.log(f"Using web loader for type: {type}")
 
             args = self.data_providers[type].prepare_args(**extra_args)
 
@@ -509,10 +509,10 @@ class Indexing:
                     self.prepare_document(d)
                     self.index_document(index, d)
                     indexed[file] = d.id_  # add to index
-                    self.window.core.idx.log("Inserted document: {}, metadata: {}".format(d.id_, d.metadata))
+                    self.window.core.idx.log(f"Inserted document: {d.id_}, metadata: {d.metadata}")
             except Exception as e:
                 errors.append(str(e))
-                print("Error while indexing file: " + file)
+                print(f"Error while indexing file: {file}")
                 self.window.core.debug.log(e)
                 if self.stop_enabled():
                     break  # break loop if error
@@ -571,10 +571,10 @@ class Indexing:
                             self.prepare_document(d)
                             self.index_document(index, d)
                             indexed[file_path] = d.id_  # add to index
-                            self.window.core.idx.log("Inserted document: {}, metadata: {}".format(d.id_, d.metadata))
+                            self.window.core.idx.log(f"Inserted document: {d.id_}, metadata: {d.metadata}")
                     except Exception as e:
                         errors.append(str(e))
-                        print("Error while indexing file: " + file_path)
+                        print(f"Error while indexing file: {file_path}")
                         self.window.core.debug.log(e)
                         if self.stop_enabled():
                             is_break = True
@@ -607,10 +607,10 @@ class Indexing:
                     self.prepare_document(d)
                     self.index_document(index, d)
                     indexed[path] = d.id_  # add to index
-                    self.window.core.idx.log("Inserted document: {}, metadata: {}".format(d.id_, d.metadata))
+                    self.window.core.idx.log(f"Inserted document: {d.id_}, metadata: {d.metadata}")
             except Exception as e:
                 errors.append(str(e))
-                print("Error while indexing file: " + path)
+                print(f"Error while indexing file: {path}")
                 self.window.core.debug.log(e)
 
         return indexed, errors
@@ -748,11 +748,10 @@ class Indexing:
         try:
             # remove old document from index if indexing by ID only and not from timestamp
             if from_ts == 0:
-                self.window.core.idx.log("Indexing documents from database by meta id: {}".format(id))
+                self.window.core.idx.log(f"Indexing documents from database by meta id: {id}")
                 self.remove_old_meta_id(idx, id)
             elif from_ts > 0:
-                self.window.core.idx.log("Indexing documents from database by meta id: {} from timestamp: {}".
-                                         format(id, from_ts))
+                self.window.core.idx.log(f"Indexing documents from database by meta id: {id} from timestamp: {from_ts}")
 
             # get items from database
             documents = self.get_db_data_by_id(id, from_ts)
@@ -762,8 +761,7 @@ class Indexing:
 
                 self.index_document(index, d)
                 doc_id = d.id_
-                self.window.core.idx.log("Inserted ctx DB document: {} / {}, id: {}, metadata: {}".
-                                         format(n+1, len(documents), d.id_, d.metadata))
+                self.window.core.idx.log(f"Inserted ctx DB document: {n+1} / {len(documents)}, id: {d.id_}, metadata: {d.metadata}")
                 self.window.core.ctx.idx.set_meta_as_indexed(id, idx, doc_id)  # update ctx
                 n += 1
         except Exception as e:
@@ -785,7 +783,7 @@ class Indexing:
         :param from_ts: timestamp
         :return: number of indexed documents, errors
         """
-        self.window.core.idx.log("Indexing documents from database from timestamp: {}".format(from_ts))
+        self.window.core.idx.log(f"Indexing documents from database from timestamp: {from_ts}")
         errors = []
         n = 0
         ids = self.get_db_meta_ids_from_ts(from_ts)
@@ -825,7 +823,7 @@ class Indexing:
 
         # check if web loader for defined type exists
         if type not in self.loaders["web"]:
-            raise ValueError("No web loader for type: {}".format(type))
+            raise ValueError(f"No web loader for type: {type}")
 
         try:
             # remove old content from index if already indexed
@@ -851,8 +849,8 @@ class Indexing:
                 if not is_tmp:
                     self.remove_old_external(idx, unique_id, type)
 
-            self.window.core.idx.log("Loading web documents from: {}".format(unique_id))
-            self.window.core.idx.log("Using web loader for type: {}".format(type))
+            self.window.core.idx.log(f"Loading web documents from: {unique_id}")
+            self.window.core.idx.log(f"Using web loader for type: {type}")
 
             args = self.data_providers[type].prepare_args(**extra_args)
 
@@ -877,8 +875,7 @@ class Indexing:
                         idx=idx,
                         doc_id=doc_id,
                     )  # update external index
-                self.window.core.idx.log("Inserted web document: {} / {}, id: {}, metadata: {}".
-                                         format(n+1, len(documents), d.id_, d.metadata))
+                self.window.core.idx.log(f"Inserted web document: {n+1} / {len(documents)}, id: {d.id_}, metadata: {d.metadata}")
                 n += 1
         except Exception as e:
             errors.append(str(e))
@@ -910,7 +907,7 @@ class Indexing:
 
         # check if web loader for defined type exists
         if type not in self.loaders["web"]:
-            msg = "No web loader for type: {}".format(type)
+            msg = f"No web loader for type: {type}"
             errors.append(msg)
             self.window.core.debug.log(msg)
             return n, errors
@@ -953,7 +950,7 @@ class Indexing:
         if self.window.core.idx.ctx.exists(store, idx, id):
             doc_id = self.window.core.idx.ctx.get_doc_id(store, idx, id)
             if doc_id:
-                self.window.core.idx.log("Removing old document id: {}".format(doc_id))
+                self.window.core.idx.log(f"Removing old document id: {doc_id}")
                 try:
                     self.window.core.idx.storage.remove_document(
                         id=idx,
@@ -986,7 +983,7 @@ class Indexing:
         if self.window.core.idx.files.exists(store, idx, file_id):
             doc_id = self.window.core.idx.files.get_doc_id(store, idx, file_id)
             if doc_id:
-                self.window.core.idx.log("Removing old document id: {}".format(doc_id))
+                self.window.core.idx.log(f"Removing old document id: {doc_id}")
                 try:
                     self.window.core.idx.storage.remove_document(
                         id=idx,
@@ -1021,7 +1018,7 @@ class Indexing:
         if self.window.core.idx.external.exists(store, idx, content, type):
             doc_id = self.window.core.idx.external.get_doc_id(store, idx, content, type)
             if doc_id:
-                self.window.core.idx.log("Removing old document id: {}".format(doc_id))
+                self.window.core.idx.log(f"Removing old document id: {doc_id}")
                 try:
                     self.window.core.idx.storage.remove_document(
                         id=idx,
@@ -1080,8 +1077,8 @@ class Indexing:
             embed_model=embed_model,
         )  # get or create ctx index
 
-        idx = "tmp:{}".format(index_path)  # tmp index id
-        self.window.core.idx.log("Indexing to context attachment index: {}...".format(idx))
+        idx = f"tmp:{index_path}"  # tmp index id
+        self.window.core.idx.log(f"Indexing to context attachment index: {idx}...")
 
         doc_ids = []
         if documents is None:
@@ -1118,8 +1115,8 @@ class Indexing:
         llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
         index = self.window.core.idx.storage.get_ctx_idx(index_path, llm, embed_model)  # get or create ctx index
 
-        idx = "tmp:{}".format(index_path)  # tmp index id
-        self.window.core.idx.log("Indexing to context attachment index: {}...".format(idx))
+        idx = f"tmp:{index_path}"  # tmp index id
+        self.window.core.idx.log(f"Indexing to context attachment index: {idx}...")
 
         web_type = self.get_webtype(url)
         doc_ids = []
@@ -1153,7 +1150,7 @@ class Indexing:
                 if loader.is_supported_attachment(url):
                     type = id
                     break
-        print("Selected web data loader: {}".format(type))
+        print(f"Selected web data loader: {type}")
         return type
 
     def remove_attachment(
@@ -1188,7 +1185,7 @@ class Indexing:
             time_since_last_call = now - self.last_call
             if time_since_last_call < interval:
                 sleep_time = (interval - time_since_last_call).total_seconds()
-                self.window.core.idx.log("RPM limit: sleep for {} seconds".format(sleep_time))
+                self.window.core.idx.log(f"RPM limit: sleep for {sleep_time} seconds")
                 time.sleep(sleep_time)
         self.last_call = now
 

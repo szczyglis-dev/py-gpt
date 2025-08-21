@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2025.08.21 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -42,12 +42,7 @@ class IndexWorker(QRunnable):
 
             # log
             self.log("Indexing data...")
-            self.log("Idx: {}, type: {}, content: {}, from_ts: {}".format(
-                self.idx,
-                self.type,
-                self.content,
-                self.from_ts,
-            ))
+            self.log(f"Idx: {self.idx}, type: {self.type}, content: {self.content}, from_ts: {self.from_ts}")
 
             # execute indexing
             if self.type == "file":
@@ -126,5 +121,5 @@ class IndexWorker(QRunnable):
             is_log = True
         self.window.core.debug.info(msg, not is_log)
         if is_log:
-            print("[LLAMA-INDEX] {}".format(msg))
+            print(f"[LlamaIndex] {msg}")
         self.window.idx_logger_message.emit(msg)

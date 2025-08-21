@@ -13,7 +13,8 @@ import json
 import pytest
 from unittest.mock import MagicMock
 
-from pygpt_net.core.experts import Experts, ExpertWorker, WorkerSignals
+from pygpt_net.core.experts import Experts
+from pygpt_net.core.experts.worker import ExpertWorker, WorkerSignals
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.preset import PresetItem
