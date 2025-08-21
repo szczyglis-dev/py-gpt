@@ -35,6 +35,10 @@ class Summarizer:
         system_prompt = self.window.core.prompt.get('ctx.auto_summary.system')
         truncated_input = str(ctx.input)[:max_chars] + '...' if len(str(ctx.input)) > max_chars else str(ctx.input)
         truncated_output = str(ctx.output)[:max_chars] + '...' if len(str(ctx.output)) > max_chars else str(ctx.output)
+
+        if not truncated_input and (not truncated_output or truncated_output == "None"):
+            return ""
+
         if truncated_output and truncated_output != "None":
             text = (self.window.core.prompt.get('ctx.auto_summary.user').
                     replace("{input}", truncated_input).
