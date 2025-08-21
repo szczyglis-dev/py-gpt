@@ -50,7 +50,7 @@
   "agent.func_call.native": false,
   "agent.goal.notify": false,
   "agent.idx": "base",
-  "agent.idx.auto_retrieve": true,
+  "agent.idx.auto_retrieve": false,
   "agent.iterations": 3,
   "agent.llama.idx": "base",
   "agent.llama.loop.enabled": false,
