@@ -1084,7 +1084,7 @@ Set the local HTTP port; should be above 1024 and allowed in the app. *Default:*
 
 Choose a free local port if the preferred port is busy or forbidden.
 
-**Supported Commands**
+**Commands**
 
 - ``Auth: Begin OAuth2`` *fb_oauth_begin*
 
@@ -1350,46 +1350,46 @@ The plugin provides seamless integration with GitHub, allowing various operation
 
 - **Auth**
 
-  * ``gh_device_begin``: Begin OAuth Device Flow.
-  * ``gh_device_poll``: Poll for access token using device code.
-  * ``gh_set_pat``: Set Personal Access Token.
+  * ``gh_device_begin`` - Begin OAuth Device Flow.
+  * ``gh_device_poll`` - Poll for access token using device code.
+  * ``gh_set_pat`` - Set Personal Access Token.
 
 - **Users**
 
-  * ``gh_me``: Get authenticated user details.
-  * ``gh_user_get``: Retrieve user information by username.
+  * ``gh_me`` - Get authenticated user details.
+  * ``gh_user_get`` - Retrieve user information by username.
 
 - **Repositories**
 
-  * ``gh_repos_list``: List all repositories.
-  * ``gh_repo_get``: Get details for a specific repository.
-  * ``gh_repo_create``: Create a new repository.
-  * ``gh_repo_delete``: Delete an existing repository. (*Disabled by default*)
+  * ``gh_repos_list`` - List all repositories.
+  * ``gh_repo_get`` - Get details for a specific repository.
+  * ``gh_repo_create`` - Create a new repository.
+  * ``gh_repo_delete`` - Delete an existing repository. (*Disabled by default*)
 
 - **Contents**
 
-  * ``gh_contents_get``: Get file or directory contents.
-  * ``gh_file_put``: Create or update a file via Contents API.
-  * ``gh_file_delete``: Delete a file via Contents API.
+  * ``gh_contents_get`` - Get file or directory contents.
+  * ``gh_file_put`` - Create or update a file via Contents API.
+  * ``gh_file_delete`` - Delete a file via Contents API.
 
 - **Issues**
 
-  * ``gh_issues_list``: List issues in a repository.
-  * ``gh_issue_create``: Create a new issue.
-  * ``gh_issue_comment``: Comment on an issue.
-  * ``gh_issue_close``: Close an existing issue.
+  * ``gh_issues_list`` - List issues in a repository.
+  * ``gh_issue_create`` - Create a new issue.
+  * ``gh_issue_comment`` - Comment on an issue.
+  * ``gh_issue_close`` - Close an existing issue.
 
 - **Pull Requests**
 
-  * ``gh_pulls_list``: List all pull requests.
-  * ``gh_pull_create``: Create a new pull request.
-  * ``gh_pull_merge``: Merge an existing pull request.
+  * ``gh_pulls_list`` - List all pull requests.
+  * ``gh_pull_create`` - Create a new pull request.
+  * ``gh_pull_merge`` - Merge an existing pull request.
 
 - **Search**
 
-  * ``gh_search_repos``: Search for repositories.
-  * ``gh_search_issues``: Search for issues and pull requests.
-  * ``gh_search_code``: Search for code across repositories.
+  * ``gh_search_repos`` - Search for repositories.
+  * ``gh_search_issues`` - Search for issues and pull requests.
+  * ``gh_search_code`` - Search for code across repositories.
 
 
 Google (Gmail, Drive, Calendar, Contacts, YT, Keep, Docs, Maps, Colab)
@@ -1822,8 +1822,6 @@ Allows ``serial_send_bytes`` command execution. *Default:* `True`
 - ``Tool: Read data from USB port`` *cmd.serial_read*
 
 Allows ``serial_read`` command execution. *Default:* `True`
-
-
 
 
 Slack
