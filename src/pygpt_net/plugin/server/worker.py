@@ -216,7 +216,7 @@ class Worker(BaseWorker):
                     "server": srv.get("host"),
                     "login": srv.get("login"),
                     "password": srv.get("password"),
-                    "port": srv.get("port"),
+                    "port": int(srv.get("port", 0)),
                 }
                 break
         if not config:
