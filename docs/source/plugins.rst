@@ -6,38 +6,36 @@ Overview
 
 **PyGPT** can be enhanced with plugins to add new features.
 
-**Tip:** Plugins works best with GPT-4 models.
-
 The following plugins are currently available, and model can use them instantly:
 
+* ``API calls`` - plugin lets you connect the model to the external services using custom defined API calls.
 * ``Audio Input`` - provides speech recognition.
 * ``Audio Output`` - provides voice synthesis.
 * ``Autonomous Agent (inline)`` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
+* ``Bitbucket`` - Access Bitbucket API to manage repositories, issues, and pull requests.
 * ``Chat with files (LlamaIndex, inline)`` - plugin integrates LlamaIndex storage in any chat and provides additional knowledge into context (from indexed files).
-* ``API calls`` - plugin lets you connect the model to the external services using custom defined API calls.
 * ``Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means model can interface with any script, application, or code. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to model.
-* ``Custom Commands`` - allows you to create and execute custom commands on your system.
-* ``Files I/O`` - grants access to the local filesystem, enabling model to read and write files, as well as list and create directories.
-* ``System (OS)`` - provides access to the operating system and executes system commands.
-* ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
-* ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
-* ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
 * ``Context history (calendar, inline)`` - provides access to context history database.
 * ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
-* ``Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``+ Tools`` option to be enabled.
+* ``Custom Commands`` - allows you to create and execute custom commands on your system.
 * ``Experts (inline)`` - allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
-* ``Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
-* ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
-* ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
-* ``Voice Control (inline)`` - provides voice control command execution within a conversation.
-* ``Mailer`` - Provides the ability to send, receive and read emails.
-* ``Google`` - Access Gmail, Drive, Docs, Maps, Calendar, Contacts, Colab, YouTube, Keep - for managing emails, files, events, notes, video info, and contacts.
 * ``Facebook`` - Manage user info, pages, posts, and photos on Facebook pages.
-* ``Slack`` - Handle users, conversations, messages, and files on Slack.
-* ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
-* ``X/Twitter`` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
+* ``Files I/O`` - grants access to the local filesystem, enabling model to read and write files, as well as list and create directories.
 * ``GitHub`` - Access GitHub API to manage repositories, issues, and pull requests.
-* ``Bitbucket`` - Access Bitbucket API to manage repositories, issues, and pull requests.
+* ``Google`` - Access Gmail, Drive, Docs, Maps, Calendar, Contacts, Colab, YouTube, Keep - for managing emails, files, events, notes, video info, and contacts.
+* ``Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``+ Tools`` option to be enabled.
+* ``Mailer`` - Provides the ability to send, receive and read emails.
+* ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
+* ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
+* ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
+* ``Slack`` - Handle users, conversations, messages, and files on Slack.
+* ``System (OS)`` - provides access to the operating system and executes system commands.
+* ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+* ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
+* ``Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+* ``Voice Control (inline)`` - provides voice control command execution within a conversation.
+* ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
+* ``X/Twitter`` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
 
 
 Creating Your Own Plugins
@@ -56,6 +54,63 @@ PyGPT can be extended with:
 * custom web search engine providers
 
 See the section ``Extending PyGPT / Adding a custom plugin`` for more details.
+
+API calls
+----------
+
+**PyGPT** lets you connect the model to the external services using custom defined API calls.
+
+To activate this feature, turn on the ``API calls`` plugin found in the ``Plugins`` menu.
+
+In this plugin you can provide list of allowed API calls, their parameters and request types. The model will replace provided placeholders with required params and make API call to external service.
+
+- ``Your custom API calls`` *cmds*
+
+You can provide custom API calls on the list here.
+
+Params to specify for API call:
+
+* **Enabled** (True / False)
+* **Name:** unique API call name (ID)
+* **Instruction:** description for model when and how to use this API call
+* **GET params:** list, separated by comma, GET params to append to endpoint URL
+* **POST params:** list, separated by comma, POST params to send in POST request
+* **POST JSON:** provide the JSON object, template to send in POST JSON request, use ``%param%`` as POST param placeholders
+* **Headers:** provide the JSON object with dictionary of extra request headers, like Authorization, API keys, etc.
+* **Request type:** use GET for basic GET request, POST to send encoded POST params or POST_JSON to send JSON-encoded object as body
+* **Endpoint:** API endpoint URL, use ``{param}`` as GET param placeholders
+
+An example API call is provided with plugin by default, it calls the Wikipedia API:
+
+* Name: ``search_wiki``
+* Instructiom: ``send API call to Wikipedia to search pages by query``
+* GET params: ``query, limit``
+* Type: ``GET``
+* API endpoint: https://en.wikipedia.org/w/api.php?action=opensearch&limit={limit}&format=json&search={query}
+
+In the above example, every time you ask the model for query Wiki for provided query (e.g. ``Call the Wikipedia API for query: Nikola Tesla``) it will replace placeholders in provided API endpoint URL with a generated query and it will call prepared API endpoint URL, like below:
+
+https://en.wikipedia.org/w/api.php?action=opensearch&limit=5&format=json&search=Nikola%20Tesla
+
+You can specify type of request: ``GET``, ``POST`` and ``POST JSON``.
+
+In the ``POST`` request you can provide POST params, they will be encoded and send as POST data.
+
+In the ``POST JSON`` request you must provide JSON object template to be send, using ``%param%`` placeholders in the JSON object to be replaced with the model.
+
+You can also provide any required credentials, like Authorization headers, API keys, tokens, etc. using the ``headers`` field - you can provide a JSON object here with a dictionary ``key => value`` - provided JSON object will be converted to headers dictonary and send with the request.
+
+- ``Disable SSL verify`` *disable_ssl*
+
+Disables SSL verification when making requests. *Default:* `False`
+
+- ``Timeout`` *timeout*
+
+Connection timeout (seconds). *Default:* `5`
+
+- ``User agent`` *user_agent*
+
+User agent to use when making requests, default: ``Mozilla/5.0``. *Default:* `Mozilla/5.0`
 
 
 Audio Input
@@ -338,6 +393,178 @@ If enabled, this option reverses the roles (AI <> user) with each iteration. For
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
 
+BitBucket
+---------
+
+The BitBucket plugin allows for seamless integration with the Bitbucket Cloud API, offering functionalities to manage repositories, issues, and pull requests. This plugin provides highly configurable options for authentication, cached convenience, and manages HTTP requests efficiently.
+
+
+* Retrieve details about the authenticated user.
+* Get information about a specific user.
+* List available workspaces.
+* List repositories in a workspace.
+* Get details about a specific repository.
+* Create a new repository.
+* Delete an existing repository.
+* Retrieve contents of a file in a repository.
+* Upload a file to a repository.
+* Delete a file from a repository.
+* List issues in a repository.
+* Create a new issue.
+* Comment on an existing issue.
+* Update details of an issue.
+* List pull requests in a repository.
+* Create a new pull request.
+* Merge an existing pull request.
+* Search for repositories.
+
+**Options**
+
+- ``API base`` *api_base*
+
+  Define the base URL for the Bitbucket Cloud API. *Default:* `https://api.bitbucket.org/2.0`
+
+- ``HTTP timeout (s)`` *http_timeout*
+
+  Set the timeout for HTTP requests in seconds. *Default:* `30`
+
+**Auth options**
+
+- ``Auth mode`` *auth_mode*
+
+  Select the authentication mode. *Default:* `auto`
+
+  Available modes:
+  * auto
+  * basic
+  * bearer
+
+- ``Username`` *bb_username*
+
+  Provide your Bitbucket username (handle, not email).
+
+- ``App Password`` *bb_app_password*
+
+  Specify your Bitbucket App Password (Basic). This option is secret.
+
+- ``Bearer token`` *bb_access_token*
+
+  Enter the OAuth access token (Bearer). This option is secret.
+
+**Cached convenience**
+
+- ``(auto) User UUID`` *user_uuid*
+
+  Cached after using the `bb_me` command.
+
+- ``(auto) Username`` *username*
+
+  Cached after using the `bb_me` command.
+
+**Commands**
+
+*Auth Options*
+
+- ``bb_auth_set_mode``
+
+  Set the authentication mode: auto|basic|bearer.
+
+- ``bb_set_app_password``
+
+  Set App Password credentials including username and app password.
+
+- ``bb_set_bearer``
+
+  Set the Bearer authentication token.
+
+- ``bb_auth_check``
+
+  Run diagnostics to show authentication results for `/user`.
+
+*User Management*
+
+- ``bb_me``
+
+  Retrieve details for the authenticated user.
+
+- ``bb_user_get``
+
+  Fetch user information by username.
+
+- ``bb_workspaces_list``
+
+  List all accessible workspaces.
+
+*Repositories Management*
+
+- ``bb_repos_list``
+
+  Display a list of repositories.
+
+- ``bb_repo_get``
+
+  Fetch details of a specific repository.
+
+- ``bb_repo_create``
+
+  Create a new repository in a specified workspace.
+
+- ``bb_repo_delete``
+
+  Delete a repository (requires confirmation).
+
+*Contents Management*
+
+- ``bb_contents_get``
+
+  Retrieve file or directory contents from a repository.
+
+- ``bb_file_put``
+
+  Create or update a file in a repository.
+
+- ``bb_file_delete``
+
+  Delete specified files within a repository.
+
+*Issues Management*
+
+- ``bb_issues_list``
+
+  List issues in a repository.
+
+- ``bb_issue_create``
+
+  Create a new issue within a repository.
+
+- ``bb_issue_comment``
+
+  Add a comment to an existing issue.
+
+- ``bb_issue_update``
+
+  Update details of an existing issue.
+
+*Pull Requests Management*
+
+- ``bb_prs_list``
+
+  Display a list of pull requests.
+
+- ``bb_pr_create``
+
+  Create a new pull request.
+
+- ``bb_pr_merge``
+
+  Merge an existing pull request.
+
+*Search Functionality*
+
+- ``bb_search_repos``
+
+  Search repositories using Bitbucket Query Language (BBQL).
+
 
 Chat with files (LlamaIndex, inline)
 -------------------------------------
@@ -381,63 +608,6 @@ Model used for querying ``LlamaIndex``. *Default:* ``gpt-3.5-turbo``
 - ``Index name`` *idx*
 
 Indexes to use. If you want to use multiple indexes at once then separate them by comma. *Default:* `base`
-
-API calls
--------------------
-
-**PyGPT** lets you connect the model to the external services using custom defined API calls.
-
-To activate this feature, turn on the ``API calls`` plugin found in the ``Plugins`` menu.
-
-In this plugin you can provide list of allowed API calls, their parameters and request types. The model will replace provided placeholders with required params and make API call to external service.
-
-- ``Your custom API calls`` *cmds*
-
-You can provide custom API calls on the list here.
-
-Params to specify for API call:
-
-* **Enabled** (True / False)
-* **Name:** unique API call name (ID)
-* **Instruction:** description for model when and how to use this API call
-* **GET params:** list, separated by comma, GET params to append to endpoint URL
-* **POST params:** list, separated by comma, POST params to send in POST request
-* **POST JSON:** provide the JSON object, template to send in POST JSON request, use ``%param%`` as POST param placeholders
-* **Headers:** provide the JSON object with dictionary of extra request headers, like Authorization, API keys, etc.
-* **Request type:** use GET for basic GET request, POST to send encoded POST params or POST_JSON to send JSON-encoded object as body
-* **Endpoint:** API endpoint URL, use ``{param}`` as GET param placeholders
-
-An example API call is provided with plugin by default, it calls the Wikipedia API:
-
-* Name: ``search_wiki``
-* Instructiom: ``send API call to Wikipedia to search pages by query``
-* GET params: ``query, limit``
-* Type: ``GET``
-* API endpoint: https://en.wikipedia.org/w/api.php?action=opensearch&limit={limit}&format=json&search={query}
-
-In the above example, every time you ask the model for query Wiki for provided query (e.g. ``Call the Wikipedia API for query: Nikola Tesla``) it will replace placeholders in provided API endpoint URL with a generated query and it will call prepared API endpoint URL, like below:
-
-https://en.wikipedia.org/w/api.php?action=opensearch&limit=5&format=json&search=Nikola%20Tesla
-
-You can specify type of request: ``GET``, ``POST`` and ``POST JSON``.
-
-In the ``POST`` request you can provide POST params, they will be encoded and send as POST data.
-
-In the ``POST JSON`` request you must provide JSON object template to be send, using ``%param%`` placeholders in the JSON object to be replaced with the model.
-
-You can also provide any required credentials, like Authorization headers, API keys, tokens, etc. using the ``headers`` field - you can provide a JSON object here with a dictionary ``key => value`` - provided JSON object will be converted to headers dictonary and send with the request.
-
-- ``Disable SSL verify`` *disable_ssl*
-
-Disables SSL verification when making requests. *Default:* `False`
-
-- ``Timeout`` *timeout*
-
-Connection timeout (seconds). *Default:* `5`
-
-- ``User agent`` *user_agent*
-
-User agent to use when making requests, default: ``Mozilla/5.0``. *Default:* `Mozilla/5.0`
 
 
 Code Interpreter
@@ -605,6 +775,125 @@ Execute commands in sandbox (docker container). Docker must be installed and run
 
 Docker image to use for sandbox *Default:* ``python:3.8-alpine``
 
+Context history (calendar, inline)
+----------------------------------
+
+Provides access to context history database.
+Plugin also provides access to reading and creating day notes.
+
+Examples of use, you can ask e.g. for the following:
+
+* Give me today day note
+* Save a new note for today
+* Update my today note with...
+* Get the list of yesterday conversations
+* Get contents of conversation ID 123
+
+etc.
+
+You can also use ``@`` ID tags to automatically use summary of previous contexts in current discussion.
+To use context from previous discussion with specified ID use following syntax in your query:
+
+.. code-block:: ini
+
+   @123
+
+Where ``123`` is the ID of previous context (conversation) in database, example of use:
+
+.. code-block:: ini
+
+   Let's talk about discussion @123
+
+**Options**
+
+- ``Enable: using context @ ID tags`` *use_tags*
+
+When enabled, it allows to automatically retrieve context history using @ tags, e.g. use @123 in question to use summary of context with ID 123 as additional context. *Default:* `False`
+
+- ``Tool: get date range context list`` *cmd.get_ctx_list_in_date_range*
+
+Allows `get_ctx_list_in_date_range` command execution. If enabled, it allows getting the list of context history (previous conversations). *Default:* `True`
+
+- ``Tool: get context content by ID`` *cmd.get_ctx_content_by_id*
+
+Allows `get_ctx_content_by_id` command execution. If enabled, it allows getting summarized content of context with defined ID. *Default:* `True`
+
+- ``Tool: count contexts in date range`` *cmd.count_ctx_in_date*
+
+Allows `count_ctx_in_date` command execution. If enabled, it allows counting contexts in date range. *Default:* `True`
+
+- ``Tool: get day note`` *cmd.get_day_note*
+
+Allows `get_day_note` command execution. If enabled, it allows retrieving day note for specific date. *Default:* `True`
+
+- ``Tool: add day note`` *cmd.add_day_note*
+
+Allows `add_day_note` command execution. If enabled, it allows adding day note for specific date. *Default:* `True`
+
+- ``Tool: update day note`` *cmd.update_day_note*
+
+Allows `update_day_note` command execution. If enabled, it allows updating day note for specific date. *Default:* `True`
+
+- ``Tool: remove day note`` *cmd.remove_day_note*
+
+Allows `remove_day_note` command execution. If enabled, it allows removing day note for specific date. *Default:* `True`
+
+- ``Model`` *model_summarize*
+
+Model used for summarize. *Default:* `gpt-3.5-turbo`
+
+- ``Max summary tokens`` *summary_max_tokens*
+
+Max tokens in output when generating summary. *Default:* `1500`
+
+- ``Max contexts to retrieve`` *ctx_items_limit*
+
+Max items in context history list to retrieve in one query. 0 = no limit. *Default:* `30`
+
+- ``Per-context items content chunk size`` *chunk_size*
+
+Per-context content chunk size (max characters per chunk). *Default:* `100000 chars`
+
+**Options (advanced)**
+
+- ``Prompt: @ tags (system)`` *prompt_tag_system*
+
+Prompt for use @ tag (system).
+
+- ``Prompt: @ tags (summary)`` *prompt_tag_summary*
+
+Prompt for use @ tag (summary).
+
+
+Crontab / Task scheduler
+------------------------
+
+Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
+
+.. image:: images/v2_crontab.png
+   :width: 800
+
+**Options**
+
+- ``Your tasks`` *crontab*
+
+Add your cron-style tasks here. 
+They will be executed automatically at the times you specify in the cron-based job format. 
+If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
+
+Number of active tasks is always displayed in a tray dropdown menu:
+
+.. image:: images/v2_crontab_tray.png
+   :width: 400
+
+- ``Create a new context on job run`` *new_ctx*
+
+If enabled, then a new context will be created on every run of the job." *Default:* `True`
+
+- ``Show notification on job run`` *show_notify*
+
+If enabled, then a tray notification will be shown on every run of the job. *Default:* `True`
+
 
 Custom Commands
 ------------------------
@@ -673,6 +962,169 @@ With the setup above, every time you ask model to generate a song for you and sa
 
 .. image:: images/v2_custom_cmd_example.png
    :width: 800
+
+
+Experts (inline)
+-----------------
+
+The plugin allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
+
+See the ``Work modes -> Experts`` section for more details.
+
+Facebook
+--------
+
+The plugin integrates with Facebook's Graph API to enable various actions such as managing pages, posts, and media uploads. It uses OAuth2 for authentication and supports automatic token exchange processes. 
+
+* Retrieving basic information about the authenticated user.
+* Listing all Facebook pages the user has access to.
+* Setting a specified Facebook page as the default.
+* Retrieving a list of posts from a Facebook page.
+* Creating a new post on a Facebook page.
+* Deleting a post from a Facebook page.
+* Uploading a photo to a Facebook page.
+
+**Options**
+
+- ``Graph API Version`` *graph_version*
+
+Specify the API version. *Default:* `v21.0`
+
+- ``API Base`` *api_base*
+
+Base address for the Graph API. The version will be appended automatically.
+
+- ``Authorize Base`` *authorize_base*
+
+Base address for OAuth authorization. The version will be appended automatically.
+
+- ``HTTP Timeout (s)`` *http_timeout*
+
+Set the timeout for HTTP requests in seconds. *Default:* `30`
+
+**OAuth2 (PKCE) Settings**
+
+- ``App ID (client_id)`` *oauth2_client_id*
+
+Provide your Facebook App ID.
+
+- ``App Secret (optional)`` *oauth2_client_secret*
+
+Required for long-lived token exchange unless using PKCE. *Secret*
+
+- ``Confidential Client`` *oauth2_confidential*
+
+Use `client_secret` on exchange instead of `code_verifier`.
+
+- ``Redirect URI`` *oauth2_redirect_uri*
+
+Matches one of the valid OAuth Redirect URIs in your Meta App. 
+
+- ``Scopes`` *oauth2_scopes*
+
+Space-separated authorized permissions. 
+
+- ``User Access Token`` *oauth2_access_token*
+
+Stores user access token. *Secret*
+
+**Convenience Cache**
+
+- ``User ID`` *user_id*
+
+Cached after calling `fb_me` or OAuth exchange.
+
+- ``User Name`` *user_name*
+
+Cached after calling `fb_me` or OAuth exchange.
+
+- ``Default Page ID`` *fb_page_id*
+
+Selected via `fb_page_set_default`.
+
+- ``Default Page Name`` *fb_page_name*
+
+Selected via `fb_page_set_default`.
+
+- ``Default Page Access Token`` *fb_page_access_token*
+
+Cached with `fb_page_set_default` or on demand. *Secret*
+
+**OAuth UX Options**
+
+- ``Auto-start OAuth`` *oauth_auto_begin*
+
+Automatically begin PKCE flow when commands need a user token.
+
+- ``Open Browser Automatically`` *oauth_open_browser*
+
+Open authorization URL in the default web browser.
+
+- ``Use Local Server for OAuth`` *oauth_local_server*
+
+Start a local HTTP server to capture redirect.
+
+- ``OAuth Local Timeout (s)`` *oauth_local_timeout*
+
+Duration to wait for a redirect with code. *Default:* `180`
+
+- ``Success HTML`` *oauth_success_html*
+
+HTML displayed on successful local callback.
+
+- ``Fail HTML`` *oauth_fail_html*
+
+HTML displayed on callback error.
+
+- ``OAuth Local Port`` *oauth_local_port*
+
+Set the local HTTP port; should be above 1024 and allowed in the app. *Default:* `8732`
+
+- ``Allow Fallback Port`` *oauth_allow_port_fallback*
+
+Choose a free local port if the preferred port is busy or forbidden.
+
+**Supported Commands**
+
+- ``Auth: Begin OAuth2`` *fb_oauth_begin*
+
+Starts OAuth2 (PKCE) flow and returns the authorization URL.
+
+- ``Auth: Exchange Code`` *fb_oauth_exchange*
+
+Trades authorization code for a user access token.
+
+- ``Auth: Extend User Token`` *fb_token_extend*
+
+Exchanges a short-lived token for a long-lived token; requires app secret.
+
+- ``Users: Me`` *fb_me*
+
+Retrieves the authorized user's profile.
+
+- ``Pages: List`` *fb_pages_list*
+
+Lists pages the user manages with details like ID, name, and access token.
+
+- ``Pages: Set Default`` *fb_page_set_default*
+
+Caches name and access token for a default page.
+
+- ``Posts: List`` *fb_page_posts*
+
+Retrieves the page's feed (posts).
+
+- ``Posts: Create`` *fb_page_post_create*
+
+Publishes a post with optional text, links, and photos.
+
+- ``Posts: Delete`` *fb_page_post_delete*
+
+Removes a specified page post.
+
+- ``Media: Upload Photo`` *fb_page_photo_upload*
+
+Uploads a photo to a page from a local path or URL.
 
 
 Files I/O
@@ -809,586 +1261,130 @@ If enabled, every time file is read, it will be automatically indexed (persisten
 
 If enabled, file will be indexed without return its content on file read (persistent index). *Default:* `False`
 
+GitHub
+------
 
-System (OS)
------------
+The plugin provides seamless integration with GitHub, allowing various operations such as repository management, issue tracking, pull requests, and more through GitHub's API. This plugin requires authentication, which can be configured using a Personal Access Token (PAT) or OAuth Device Flow.
 
-The plugin provides access to the operating system and executes system commands.
-
-**Options:**
-
-**General**
-
-- ``Auto-append CWD to sys_exec`` *auto_cwd*
-
-Automatically append current working directory to ``sys_exec`` command. *Default:* ``True``
-
-- ``Tool: sys_exec`` *cmd.sys_exec*
-
-Allows ``sys_exec`` command execution. If enabled, provides system commands execution. *Default:* ``True``
-
-
-Mouse And Keyboard
--------------------
-
-Introduced in version: `2.4.4` (2024-11-09)
-
-**WARNING: Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**
-
-The plugin allows for controlling the mouse and keyboard by the model. With this plugin, you can send a task to the model, e.g., "open notepad, type something in it" or "open web browser, do search, find something."
-
-Plugin capabilities include:
-
-* Get mouse cursor position
-* Control mouse cursor position
-* Control mouse clicks
-* Control mouse scroll
-* Control the keyboard (pressing keys, typing text)
-* Making screenshots
-
-The ``+ Tools`` option must be enabled to use this plugin.
-
-**Options:**
-
-**General**
-
-- ``Prompt`` *prompt*
-
-Prompt used to instruct how to control the mouse and keyboard.
-
-- ``Enable: Allow mouse movement`` *allow_mouse_move*
-
-Allows mouse movement. *Default:* `True`
-
-- ``Enable: Allow mouse click`` *allow_mouse_click*
-
-Allows mouse click. *Default:* `True`
-
-- ``Enable: Allow mouse scroll`` *allow_mouse_scroll*
-
-Allows mouse scroll. *Default:* `True`
-
-- ``Enable: Allow keyboard key press`` *allow_keyboard*
-
-Allows keyboard typing. *Default:* `True`
-
-- ``Enable: Allow making screenshots`` *allow_screenshot*
-
-Allows making screenshots. *Default:* `True`
-
-- ``Tool: mouse_get_pos`` *cmd.mouse_get_pos*
-
-Allows ``mouse_get_pos`` command execution. *Default:* `True`
-
-- ``Tool: mouse_set_pos`` *cmd.mouse_set_pos*
-
-Allows ``mouse_set_pos`` command execution. *Default:* `True`
-
-- ``Tool: make_screenshot`` *cmd.make_screenshot*
-
-Allows ``make_screenshot`` command execution. *Default:* `True`
-
-- ``Tool: mouse_click`` *cmd.mouse_click*
-
-Allows ``mouse_click`` command execution. *Default:* `True`
-
-- ``Tool: mouse_move`` *cmd.mouse_move*
-
-Allows ``mouse_move`` command execution. *Default:* `True`
-
-- ``Tool: mouse_scroll`` *cmd.mouse_scroll*
-
-Allows ``mouse_scroll`` command execution. *Default:* `True`
-
-- ``Tool: keyboard_key`` *cmd.keyboard_key*
-
-Allows ``keyboard_key`` command execution. *Default:* `True`
-
-- ``Tool: keyboard_type`` *cmd.keyboard_type*
-
-Allows ``keyboard_type`` command execution. *Default:* `True`
-
-
-
-
-
-
-Web Search
------------
-
-**PyGPT** lets you connect model to the internet and carry out web searches in real time as you make queries.
-
-To activate this feature, turn on the ``Web Search`` plugin found in the ``Plugins`` menu.
-
-Web searches are provided by ``Google Custom Search Engine`` and ``Microsoft Bing`` APIs and can be extended with other search engine providers. 
+* Retrieve details about your GitHub profile.
+* Get information about a specific GitHub user.
+* List repositories for a user or organization.
+* Retrieve details about a specific repository.
+* Create a new repository.
+* Delete an existing repository.
+* Retrieve the contents of a file in a repository.
+* Upload or update a file in a repository.
+* Delete a file from a repository.
+* List issues in a repository.
+* Create a new issue in a repository.
+* Add a comment to an existing issue.
+* Close an existing issue.
+* List pull requests in a repository.
+* Create a new pull request.
+* Merge an existing pull request.
+* Search for repositories based on a query.
+* Search for issues based on a query.
+* Search for code based on a query.
 
 **Options**
 
-- `Provider` *provider*
+- ``API base`` *api_base*
 
-Choose the provider. *Default:* `Google`
+  Configure the base URL for GitHub's API. *Default:* `https://api.github.com`
 
-Available providers:
+- ``Web base`` *web_base*
 
-- Google
-- Microsoft Bing
+  Set the GitHub website base URL. *Default:* `https://github.com`
 
-**Google**
+- ``API version header`` *api_version*
 
-To use this provider, you need an API key, which you can obtain by registering an account at:
+  Specify the API version for requests. *Default:* `2022-11-28`
 
-https://developers.google.com/custom-search/v1/overview
+- ``HTTP timeout (s)`` *http_timeout*
 
-After registering an account, create a new project and select it from the list of available projects:
+  Define timeout for API requests in seconds. *Default:* `30`
 
-https://programmablesearchengine.google.com/controlpanel/all
+**OAuth Device Flow**
 
-After selecting your project, you need to enable the ``Whole Internet Search`` option in its settings. 
-Then, copy the following two items into **PyGPT**:
+- ``OAuth Client ID`` *oauth_client_id*
 
-* Api Key
-* CX ID
+  Set the Client ID from your GitHub OAuth App. Supports Device Flow. *Secret*
 
-These data must be configured in the appropriate fields in the ``Plugins / Settings...`` menu:
+- ``Scopes`` *oauth_scopes*
 
-.. image:: images/v2_plugin_google.png
-   :width: 600
+  List the space-separated OAuth scopes. *Default:* `repo read:org read:user user:email`
 
-**Options**
+- ``Open browser automatically`` *oauth_open_browser*
 
-- ``Google Custom Search API KEY`` *google_api_key*
+  Automatically open the verification URL in the default browser. *Default:* `True`
 
-You can obtain your own API key at https://developers.google.com/custom-search/v1/overview
+- ``Auto-start auth when required`` *oauth_auto_begin*
 
-- ``Google Custom Search CX ID`` *google_api_cx*
+  Start Device Flow automatically when a command requires a token. *Default:* `True`
 
-You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all - remember to enable "Search on ALL internet pages" option in project settings.
+**Tokens**
 
-**Microsoft Bing**
+- ``(auto) OAuth access token`` *gh_access_token*
 
-- ``Bing Search API KEY`` *bing_api_key*
+  Store OAuth access token for Device/Web. *Secret*
 
-You can obtain your own API key at https://www.microsoft.com/en-us/bing/apis/bing-web-search-api
+- ``PAT token (optional)`` *pat_token*
 
-- ``Bing Search API endpoint`` *bing_endpoint*
+  Provide a Personal Access Token (classic or fine-grained) for authentication. *Secret*
 
-API endpoint for Bing Search API, default: https://api.bing.microsoft.com/v7.0/search
+- ``Auth scheme`` *auth_scheme*
 
-**General options**
+  Choose the authentication scheme: `Bearer` or `Token` (use `Token` for PAT).
 
+**Convenience Cache**
 
-- ``Number of pages to search`` *num_pages*
+- ``(auto) User ID`` *user_id*
 
-Number of max pages to search per query. *Default:* `10`
+  Cache User ID after `gh_me` or authentication.
 
-- ``Max content characters`` *max_page_content_length*
+- ``(auto) Username`` *username*
 
-Max characters of page content to get (0 = unlimited). *Default:* `0`
+  Cache username after `gh_me` or authentication.
 
-- ``Per-page content chunk size`` *chunk_size*
+**Commands**
 
-Per-page content chunk size (max characters per chunk). *Default:* `20000`
+- **Auth**
+  - ``gh_device_begin``: Begin OAuth Device Flow.
+  - ``gh_device_poll``: Poll for access token using device code.
+  - ``gh_set_pat``: Set Personal Access Token.
 
-- ``Disable SSL verify`` *disable_ssl*
+- **Users**
+  - ``gh_me``: Get authenticated user details.
+  - ``gh_user_get``: Retrieve user information by username.
 
-Disables SSL verification when crawling web pages. *Default:* `False`
+- **Repositories**
+  - ``gh_repos_list``: List all repositories.
+  - ``gh_repo_get``: Get details for a specific repository.
+  - ``gh_repo_create``: Create a new repository.
+  - ``gh_repo_delete``: Delete an existing repository. (*Disabled by default*)
 
-- ``Use raw content (without summarization)`` *raw*
+- **Contents**
+  - ``gh_contents_get``: Get file or directory contents.
+  - ``gh_file_put``: Create or update a file via Contents API.
+  - ``gh_file_delete``: Delete a file via Contents API.
 
-Return raw content from web search instead of summarized content. Provides more data but consumes more tokens. *Default:* `True`
+- **Issues**
+  - ``gh_issues_list``: List issues in a repository.
+  - ``gh_issue_create``: Create a new issue.
+  - ``gh_issue_comment``: Comment on an issue.
+  - ``gh_issue_close``: Close an existing issue.
 
-- ``Timeout`` *timeout*
+- **Pull Requests**
+  - ``gh_pulls_list``: List all pull requests.
+  - ``gh_pull_create``: Create a new pull request.
+  - ``gh_pull_merge``: Merge an existing pull request.
 
-Connection timeout (seconds). *Default:* `5`
+- **Search**
+  - ``gh_search_repos``: Search for repositories.
+  - ``gh_search_issues``: Search for issues and pull requests.
+  - ``gh_search_code``: Search for code across repositories.
 
-- ``User agent`` *user_agent*
 
-User agent to use when making requests. *Default:* `Mozilla/5.0`.
-
-- ``Max result length`` *max_result_length*
-
-Max length of the summarized or raw result (characters). *Default:* `50000`
-
-- ``Max summary tokens`` *summary_max_tokens*
-
-Max tokens in output when generating summary. *Default:* `1500`
-
-- ``Tool: web_search`` *cmd.web_search*
-
-Allows `web_search` command execution. If enabled, model will be able to search the Web. *Default:* `True`
-
-- ``Tool: web_url_open`` *cmd.web_url_open*
-
-Allows `web_url_open` command execution. If enabled, model will be able to open specified URL and summarize content. *Default:* `True`
-
-- ``Tool: web_url_raw`` *cmd.web_url_raw*
-
-Allows `web_url_raw` command execution. If enabled, model will be able to open specified URL and get the raw content. *Default:* `True`
-
-- ``Tool: web_request`` *cmd.web_request*
-
-Allows `web_request` command execution. If enabled, model will be able to send any HTTP request to specified URL or API endpoint. *Default:* `True`
-
-- ``Tool: web_extract_links`` *cmd.web_extract_links*
-
-Allows `web_extract_links` command execution. If enabled, model will be able to open URL and get list of all links from it. *Default:* `True`
-
-- ``Tool: web_extract_images`` *cmd.web_extract_images*
-
-Allows `web_extract_images` command execution. If enabled, model will be able to open URL and get list of all images from it.. *Default:* `True`
-
-
-**Advanced**
-
-- ``Model used for web page summarize`` *summary_model*
-
-Model used for web page summarize. *Default:* `gpt-3.5-turbo-1106`
-
-- ``Summarize prompt`` *prompt_summarize*
-
-Prompt used for web search results summarize, use {query} as a placeholder for search query
-
-- ``Summarize prompt (URL open)`` *prompt_summarize_url*
-
-Prompt used for specified URL page summarize
-
-
-**Indexing**
-
-- ``Tool: web_index`` *cmd.web_index*
-
-Allows `web_index` command execution. If enabled, model will be able to index pages and external content using LlamaIndex (persistent index). *Default:* `True`
-
-- ``Tool: web_index_query`` *cmd.web_index_query*
-
-Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using LlamaIndex (in-memory index). *Default:* `True`
-
-- ``Auto-index all used URLs using LlamaIndex`` *auto_index*
-
-If enabled, every URL used by the model will be automatically indexed using LlamaIndex (persistent index). *Default:* `False`
-
-- ``Index to use`` *idx*
-
-ID of index to use for web page indexing (persistent index). *Default:* `base`
-
-
-
-Serial port / USB
----------------------------
-
-Provides commands for reading and sending data to USB ports.
-
-**Tip:** in Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
-
-You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
-
-.. image:: images/v2_serial.png
-   :width: 600
-
-Above is an example of co-operation with the following code uploaded to ``Arduino Uno`` and connected via USB:
-
-.. code-block:: cpp
-
-   // example.ino
-
-   void setup() {
-     Serial.begin(9600);
-   }
-
-   void loop() {
-     if (Serial.available() > 0) {
-       String input = Serial.readStringUntil('\n');
-       if (input.length() > 0) {
-         Serial.println("OK, response for: " + input);
-       }
-     }
-   }
-
-**Options**
-
-``USB port`` *serial_port*
-
-USB port name, e.g. /dev/ttyUSB0, /dev/ttyACM0, COM3, *Default:* ``/dev/ttyUSB0``
-
-- ``Connection speed (baudrate, bps)`` *serial_bps*
-
-Port connection speed, in bps. *Default:* ``9600``
-
-- ``Timeout`` *timeout*
-
-Timeout in seconds. *Default:* ``1``
-
-- ``Sleep`` *sleep*
-
-Sleep in seconds after connection. *Default:* ``2``
-
-- ``Tool: Send text commands to USB port`` *cmd.serial_send*
-
-Allows ``serial_send`` command execution". *Default:* `True`
-
-- ``Tool: Send raw bytes to USB port`` *cmd.serial_send_bytes*
-
-Allows ``serial_send_bytes`` command execution. *Default:* `True`
-
-- ``Tool: Read data from USB port`` *cmd.serial_read*
-
-Allows ``serial_read`` command execution. *Default:* `True`
-
-
-Context history (calendar, inline)
-----------------------------------
-
-Provides access to context history database.
-Plugin also provides access to reading and creating day notes.
-
-Examples of use, you can ask e.g. for the following:
-
-* Give me today day note
-* Save a new note for today
-* Update my today note with...
-* Get the list of yesterday conversations
-* Get contents of conversation ID 123
-
-etc.
-
-You can also use ``@`` ID tags to automatically use summary of previous contexts in current discussion.
-To use context from previous discussion with specified ID use following syntax in your query:
-
-.. code-block:: ini
-
-   @123
-
-Where ``123`` is the ID of previous context (conversation) in database, example of use:
-
-.. code-block:: ini
-
-   Let's talk about discussion @123
-
-**Options**
-
-- ``Enable: using context @ ID tags`` *use_tags*
-
-When enabled, it allows to automatically retrieve context history using @ tags, e.g. use @123 in question to use summary of context with ID 123 as additional context. *Default:* `False`
-
-- ``Tool: get date range context list`` *cmd.get_ctx_list_in_date_range*
-
-Allows `get_ctx_list_in_date_range` command execution. If enabled, it allows getting the list of context history (previous conversations). *Default:* `True`
-
-- ``Tool: get context content by ID`` *cmd.get_ctx_content_by_id*
-
-Allows `get_ctx_content_by_id` command execution. If enabled, it allows getting summarized content of context with defined ID. *Default:* `True`
-
-- ``Tool: count contexts in date range`` *cmd.count_ctx_in_date*
-
-Allows `count_ctx_in_date` command execution. If enabled, it allows counting contexts in date range. *Default:* `True`
-
-- ``Tool: get day note`` *cmd.get_day_note*
-
-Allows `get_day_note` command execution. If enabled, it allows retrieving day note for specific date. *Default:* `True`
-
-- ``Tool: add day note`` *cmd.add_day_note*
-
-Allows `add_day_note` command execution. If enabled, it allows adding day note for specific date. *Default:* `True`
-
-- ``Tool: update day note`` *cmd.update_day_note*
-
-Allows `update_day_note` command execution. If enabled, it allows updating day note for specific date. *Default:* `True`
-
-- ``Tool: remove day note`` *cmd.remove_day_note*
-
-Allows `remove_day_note` command execution. If enabled, it allows removing day note for specific date. *Default:* `True`
-
-- ``Model`` *model_summarize*
-
-Model used for summarize. *Default:* `gpt-3.5-turbo`
-
-- ``Max summary tokens`` *summary_max_tokens*
-
-Max tokens in output when generating summary. *Default:* `1500`
-
-- ``Max contexts to retrieve`` *ctx_items_limit*
-
-Max items in context history list to retrieve in one query. 0 = no limit. *Default:* `30`
-
-- ``Per-context items content chunk size`` *chunk_size*
-
-Per-context content chunk size (max characters per chunk). *Default:* `100000 chars`
-
-**Options (advanced)**
-
-- ``Prompt: @ tags (system)`` *prompt_tag_system*
-
-Prompt for use @ tag (system).
-
-- ``Prompt: @ tags (summary)`` *prompt_tag_summary*
-
-Prompt for use @ tag (summary).
-
-
-Crontab / Task scheduler
-------------------------
-
-Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
-
-.. image:: images/v2_crontab.png
-   :width: 800
-
-**Options**
-
-- ``Your tasks`` *crontab*
-
-Add your cron-style tasks here. 
-They will be executed automatically at the times you specify in the cron-based job format. 
-If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
-
-Number of active tasks is always displayed in a tray dropdown menu:
-
-.. image:: images/v2_crontab_tray.png
-   :width: 400
-
-- ``Create a new context on job run`` *new_ctx*
-
-If enabled, then a new context will be created on every run of the job." *Default:* `True`
-
-- ``Show notification on job run`` *show_notify*
-
-If enabled, then a tray notification will be shown on every run of the job. *Default:* `True`
-
-
-Image Generation (inline)
--------------------------
-
-The plugin integrates ``DALL-E 3`` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as ``GPT-4``. The plugin does not require the ``+ Tools`` option to be enabled.
-
-**Options**
-
-- ``Prompt`` *prompt*
-
-The prompt is used to generate a query for the ``DALL-E`` image generation model, which runs in the background.
-
-Experts (inline)
------------------
-
-The plugin allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
-
-See the ``Work modes -> Experts`` section for more details.
-
-
-Vision (inline)
-----------------
-
-The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
-
-**Tip:** When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
-
-**Options**
-
-- ``Model`` *model*
-
-The model used to temporarily provide vision capabilities. *Default:* `gpt-4-vision-preview`.
-
-- ``Prompt`` *prompt*
-
-The prompt used for vision mode. It will append or replace current system prompt when using vision model.
-
-- ``Replace prompt`` *replace_prompt*
-
-Replace whole system prompt with vision prompt against appending it to the current prompt. *Default:* `False`
-
-- ``Tool: capturing images from camera`` *cmd.camera_capture*
-
-Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `+ Tools` option must be enabled. *Default:* `False`
-
-- ``Tool: making screenshots`` *cmd.make_screenshot*
-
-Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `+ Tools` option must be enabled. *Default:* `False`
-
-Mailer
--------
-
-Enables the sending, receiving, and reading of emails from the inbox. Currently, only SMTP is supported. More options coming soon.
-
-**Options**
-
-- ``From (email)`` *from_email*
-
-From (email), e.g. me@domain.com
-
-- ``Tool: send_mail`` *cmd.send_mail*
-
-Allows ``send_mail`` command execution. If enabled, model will be able to sending emails.
-
-- ``Tool: receive_emails`` *cmd.receive_emails*
-
-Allows ``receive_emails`` command execution. If enabled, model will be able to receive emails from the server.
-
-- ``Tool: get_email_body`` *cmd.get_email_body*
-
-Allows ``get_email_body`` command execution. If enabled, model will be able to receive message body from the server.
-
-- ``SMTP Host`` *smtp_host*
-
-SMTP Host, e.g. smtp.domain.com
-
-- ``SMTP Port (Inbox)`` *smtp_port_inbox*
-
-SMTP Port, default: 995
-
-- ``SMTP Port (Outbox)`` *smtp_port_outbox*
-
-SMTP Port, default: 465
-
-- ``SMTP User`` *smtp_user*
-
-SMTP User, e.g. user@domain.com
-
-- ``SMTP Password`` *smtp_password*
-
-SMTP Password.
-
-
-Real Time
-----------
-
-This plugin automatically adds the current date and time to each system prompt you send. 
-You have the option to include just the date, just the time, or both.
-
-When enabled, it quietly enhances each system prompt with current time information before sending it to model.
-
-**Options**
-
-- ``Append time`` *hour*
-
-If enabled, it appends the current time to the system prompt. *Default:* `True`
-
-- ``Append date`` *date*
-
-If enabled, it appends the current date to the system prompt. *Default:* `True` 
-
-- ``Template`` *tpl*
-
-Template to append to the system prompt. The placeholder ``{time}`` will be replaced with the 
-current date and time in real-time. *Default:* `Current time is {time}.`
-
-
-System Prompt Extra (append)
------------------------------
-
-The plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
-
-**Options**
-
-- ``Prompts`` *prompts*
-
-List of extra prompts - prompts that will be appended to system prompt. 
-All active extra prompts defined on list will be appended to the system prompt in the order they are listed here.
-
-Voice Control (inline)
-----------------------
-
-The plugin provides voice control command execution within a conversation.
-
-See the ``Accessibility`` section for more details.
 
 
 Google (Gmail, Drive, Calendar, Contacts, YT, Keep, Docs, Maps, Colab)
@@ -1547,160 +1543,229 @@ The plugin integrates with various Google services, enabling features such as em
 - Google Colab: Manage Colab notebooks on Google Drive, supporting creating, renaming, duplicating, and listing operations.
 
 
-Facebook
---------
+Image Generation (inline)
+-------------------------
 
-The plugin integrates with Facebook's Graph API to enable various actions such as managing pages, posts, and media uploads. It uses OAuth2 for authentication and supports automatic token exchange processes. 
-
-* Retrieving basic information about the authenticated user.
-* Listing all Facebook pages the user has access to.
-* Setting a specified Facebook page as the default.
-* Retrieving a list of posts from a Facebook page.
-* Creating a new post on a Facebook page.
-* Deleting a post from a Facebook page.
-* Uploading a photo to a Facebook page.
+The plugin integrates ``DALL-E 3`` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as ``GPT-4``. The plugin does not require the ``+ Tools`` option to be enabled.
 
 **Options**
 
-- ``Graph API Version`` *graph_version*
+- ``Prompt`` *prompt*
 
-Specify the API version. *Default:* `v21.0`
+The prompt is used to generate a query for the ``DALL-E`` image generation model, which runs in the background.
 
-- ``API Base`` *api_base*
 
-Base address for the Graph API. The version will be appended automatically.
+Mailer
+-------
 
-- ``Authorize Base`` *authorize_base*
+Enables the sending, receiving, and reading of emails from the inbox. Currently, only SMTP is supported. More options coming soon.
 
-Base address for OAuth authorization. The version will be appended automatically.
+**Options**
 
-- ``HTTP Timeout (s)`` *http_timeout*
+- ``From (email)`` *from_email*
 
-Set the timeout for HTTP requests in seconds. *Default:* `30`
+From (email), e.g. me@domain.com
 
-**OAuth2 (PKCE) Settings**
+- ``Tool: send_mail`` *cmd.send_mail*
 
-- ``App ID (client_id)`` *oauth2_client_id*
+Allows ``send_mail`` command execution. If enabled, model will be able to sending emails.
 
-Provide your Facebook App ID.
+- ``Tool: receive_emails`` *cmd.receive_emails*
 
-- ``App Secret (optional)`` *oauth2_client_secret*
+Allows ``receive_emails`` command execution. If enabled, model will be able to receive emails from the server.
 
-Required for long-lived token exchange unless using PKCE. *Secret*
+- ``Tool: get_email_body`` *cmd.get_email_body*
 
-- ``Confidential Client`` *oauth2_confidential*
+Allows ``get_email_body`` command execution. If enabled, model will be able to receive message body from the server.
 
-Use `client_secret` on exchange instead of `code_verifier`.
+- ``SMTP Host`` *smtp_host*
 
-- ``Redirect URI`` *oauth2_redirect_uri*
+SMTP Host, e.g. smtp.domain.com
 
-Matches one of the valid OAuth Redirect URIs in your Meta App. 
+- ``SMTP Port (Inbox)`` *smtp_port_inbox*
 
-- ``Scopes`` *oauth2_scopes*
+SMTP Port, default: 995
 
-Space-separated authorized permissions. 
+- ``SMTP Port (Outbox)`` *smtp_port_outbox*
 
-- ``User Access Token`` *oauth2_access_token*
+SMTP Port, default: 465
 
-Stores user access token. *Secret*
+- ``SMTP User`` *smtp_user*
 
-**Convenience Cache**
+SMTP User, e.g. user@domain.com
 
-- ``User ID`` *user_id*
+- ``SMTP Password`` *smtp_password*
 
-Cached after calling `fb_me` or OAuth exchange.
+SMTP Password.
 
-- ``User Name`` *user_name*
 
-Cached after calling `fb_me` or OAuth exchange.
+Mouse And Keyboard
+-------------------
 
-- ``Default Page ID`` *fb_page_id*
+Introduced in version: `2.4.4` (2024-11-09)
 
-Selected via `fb_page_set_default`.
+**WARNING: Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**
 
-- ``Default Page Name`` *fb_page_name*
+The plugin allows for controlling the mouse and keyboard by the model. With this plugin, you can send a task to the model, e.g., "open notepad, type something in it" or "open web browser, do search, find something."
 
-Selected via `fb_page_set_default`.
+Plugin capabilities include:
 
-- ``Default Page Access Token`` *fb_page_access_token*
+* Get mouse cursor position
+* Control mouse cursor position
+* Control mouse clicks
+* Control mouse scroll
+* Control the keyboard (pressing keys, typing text)
+* Making screenshots
 
-Cached with `fb_page_set_default` or on demand. *Secret*
+The ``+ Tools`` option must be enabled to use this plugin.
 
-**OAuth UX Options**
+**Options:**
 
-- ``Auto-start OAuth`` *oauth_auto_begin*
+**General**
 
-Automatically begin PKCE flow when commands need a user token.
+- ``Prompt`` *prompt*
 
-- ``Open Browser Automatically`` *oauth_open_browser*
+Prompt used to instruct how to control the mouse and keyboard.
 
-Open authorization URL in the default web browser.
+- ``Enable: Allow mouse movement`` *allow_mouse_move*
 
-- ``Use Local Server for OAuth`` *oauth_local_server*
+Allows mouse movement. *Default:* `True`
 
-Start a local HTTP server to capture redirect.
+- ``Enable: Allow mouse click`` *allow_mouse_click*
 
-- ``OAuth Local Timeout (s)`` *oauth_local_timeout*
+Allows mouse click. *Default:* `True`
 
-Duration to wait for a redirect with code. *Default:* `180`
+- ``Enable: Allow mouse scroll`` *allow_mouse_scroll*
 
-- ``Success HTML`` *oauth_success_html*
+Allows mouse scroll. *Default:* `True`
 
-HTML displayed on successful local callback.
+- ``Enable: Allow keyboard key press`` *allow_keyboard*
 
-- ``Fail HTML`` *oauth_fail_html*
+Allows keyboard typing. *Default:* `True`
 
-HTML displayed on callback error.
+- ``Enable: Allow making screenshots`` *allow_screenshot*
 
-- ``OAuth Local Port`` *oauth_local_port*
+Allows making screenshots. *Default:* `True`
 
-Set the local HTTP port; should be above 1024 and allowed in the app. *Default:* `8732`
+- ``Tool: mouse_get_pos`` *cmd.mouse_get_pos*
 
-- ``Allow Fallback Port`` *oauth_allow_port_fallback*
+Allows ``mouse_get_pos`` command execution. *Default:* `True`
 
-Choose a free local port if the preferred port is busy or forbidden.
+- ``Tool: mouse_set_pos`` *cmd.mouse_set_pos*
 
-**Supported Commands**
+Allows ``mouse_set_pos`` command execution. *Default:* `True`
 
-- ``Auth: Begin OAuth2`` *fb_oauth_begin*
+- ``Tool: make_screenshot`` *cmd.make_screenshot*
 
-Starts OAuth2 (PKCE) flow and returns the authorization URL.
+Allows ``make_screenshot`` command execution. *Default:* `True`
 
-- ``Auth: Exchange Code`` *fb_oauth_exchange*
+- ``Tool: mouse_click`` *cmd.mouse_click*
 
-Trades authorization code for a user access token.
+Allows ``mouse_click`` command execution. *Default:* `True`
 
-- ``Auth: Extend User Token`` *fb_token_extend*
+- ``Tool: mouse_move`` *cmd.mouse_move*
 
-Exchanges a short-lived token for a long-lived token; requires app secret.
+Allows ``mouse_move`` command execution. *Default:* `True`
 
-- ``Users: Me`` *fb_me*
+- ``Tool: mouse_scroll`` *cmd.mouse_scroll*
 
-Retrieves the authorized user's profile.
+Allows ``mouse_scroll`` command execution. *Default:* `True`
 
-- ``Pages: List`` *fb_pages_list*
+- ``Tool: keyboard_key`` *cmd.keyboard_key*
 
-Lists pages the user manages with details like ID, name, and access token.
+Allows ``keyboard_key`` command execution. *Default:* `True`
 
-- ``Pages: Set Default`` *fb_page_set_default*
+- ``Tool: keyboard_type`` *cmd.keyboard_type*
 
-Caches name and access token for a default page.
+Allows ``keyboard_type`` command execution. *Default:* `True`
 
-- ``Posts: List`` *fb_page_posts*
 
-Retrieves the page's feed (posts).
+Real Time
+----------
 
-- ``Posts: Create`` *fb_page_post_create*
+This plugin automatically adds the current date and time to each system prompt you send. 
+You have the option to include just the date, just the time, or both.
 
-Publishes a post with optional text, links, and photos.
+When enabled, it quietly enhances each system prompt with current time information before sending it to model.
 
-- ``Posts: Delete`` *fb_page_post_delete*
+**Options**
 
-Removes a specified page post.
+- ``Append time`` *hour*
 
-- ``Media: Upload Photo`` *fb_page_photo_upload*
+If enabled, it appends the current time to the system prompt. *Default:* `True`
 
-Uploads a photo to a page from a local path or URL.
+- ``Append date`` *date*
+
+If enabled, it appends the current date to the system prompt. *Default:* `True` 
+
+- ``Template`` *tpl*
+
+Template to append to the system prompt. The placeholder ``{time}`` will be replaced with the 
+current date and time in real-time. *Default:* `Current time is {time}.`
+
+
+Serial port / USB
+---------------------------
+
+Provides commands for reading and sending data to USB ports.
+
+**Tip:** in Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
+
+You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
+
+.. image:: images/v2_serial.png
+   :width: 600
+
+Above is an example of co-operation with the following code uploaded to ``Arduino Uno`` and connected via USB:
+
+.. code-block:: cpp
+
+   // example.ino
+
+   void setup() {
+     Serial.begin(9600);
+   }
+
+   void loop() {
+     if (Serial.available() > 0) {
+       String input = Serial.readStringUntil('\n');
+       if (input.length() > 0) {
+         Serial.println("OK, response for: " + input);
+       }
+     }
+   }
+
+**Options**
+
+``USB port`` *serial_port*
+
+USB port name, e.g. /dev/ttyUSB0, /dev/ttyACM0, COM3, *Default:* ``/dev/ttyUSB0``
+
+- ``Connection speed (baudrate, bps)`` *serial_bps*
+
+Port connection speed, in bps. *Default:* ``9600``
+
+- ``Timeout`` *timeout*
+
+Timeout in seconds. *Default:* ``1``
+
+- ``Sleep`` *sleep*
+
+Sleep in seconds after connection. *Default:* ``2``
+
+- ``Tool: Send text commands to USB port`` *cmd.serial_send*
+
+Allows ``serial_send`` command execution". *Default:* `True`
+
+- ``Tool: Send raw bytes to USB port`` *cmd.serial_send_bytes*
+
+Allows ``serial_send_bytes`` command execution. *Default:* `True`
+
+- ``Tool: Read data from USB port`` *cmd.serial_read*
+
+Allows ``serial_read`` command execution. *Default:* `True`
+
+
 
 
 Slack
@@ -1868,6 +1933,40 @@ Delete a message from a channel or DM.
 Upload a file via external flow and share in Slack.
 
 
+System Prompt Extra (append)
+-----------------------------
+
+The plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+
+**Options**
+
+- ``Prompts`` *prompts*
+
+List of extra prompts - prompts that will be appended to system prompt. 
+All active extra prompts defined on list will be appended to the system prompt in the order they are listed here.
+
+
+System (OS)
+-----------
+
+The plugin provides access to the operating system and executes system commands.
+
+**Options:**
+
+**General**
+
+- ``Auto-append CWD to sys_exec`` *auto_cwd*
+
+Automatically append current working directory to ``sys_exec`` command. *Default:* ``True``
+
+- ``Tool: sys_exec`` *cmd.sys_exec*
+
+Allows ``sys_exec`` command execution. If enabled, provides system commands execution. *Default:* ``True``
+
+
+
+
+
 Telegram
 ---------
 
@@ -2017,6 +2116,203 @@ The plugin enables integration with Telegram for both bots and user accounts thr
 - ``tg_messages_get``
 
   Get recent messages from a chat in user mode.
+
+
+Vision (inline)
+----------------
+
+The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
+
+**Tip:** When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
+
+**Options**
+
+- ``Model`` *model*
+
+The model used to temporarily provide vision capabilities. *Default:* `gpt-4-vision-preview`.
+
+- ``Prompt`` *prompt*
+
+The prompt used for vision mode. It will append or replace current system prompt when using vision model.
+
+- ``Replace prompt`` *replace_prompt*
+
+Replace whole system prompt with vision prompt against appending it to the current prompt. *Default:* `False`
+
+- ``Tool: capturing images from camera`` *cmd.camera_capture*
+
+Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `+ Tools` option must be enabled. *Default:* `False`
+
+- ``Tool: making screenshots`` *cmd.make_screenshot*
+
+Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `+ Tools` option must be enabled. *Default:* `False`
+
+
+Voice Control (inline)
+----------------------
+
+The plugin provides voice control command execution within a conversation.
+
+See the ``Accessibility`` section for more details.
+
+
+Web Search
+-----------
+
+**PyGPT** lets you connect model to the internet and carry out web searches in real time as you make queries.
+
+To activate this feature, turn on the ``Web Search`` plugin found in the ``Plugins`` menu.
+
+Web searches are provided by ``Google Custom Search Engine`` and ``Microsoft Bing`` APIs and can be extended with other search engine providers. 
+
+**Options**
+
+- `Provider` *provider*
+
+Choose the provider. *Default:* `Google`
+
+Available providers:
+
+- Google
+- Microsoft Bing
+
+**Google**
+
+To use this provider, you need an API key, which you can obtain by registering an account at:
+
+https://developers.google.com/custom-search/v1/overview
+
+After registering an account, create a new project and select it from the list of available projects:
+
+https://programmablesearchengine.google.com/controlpanel/all
+
+After selecting your project, you need to enable the ``Whole Internet Search`` option in its settings. 
+Then, copy the following two items into **PyGPT**:
+
+* Api Key
+* CX ID
+
+These data must be configured in the appropriate fields in the ``Plugins / Settings...`` menu:
+
+.. image:: images/v2_plugin_google.png
+   :width: 600
+
+**Options**
+
+- ``Google Custom Search API KEY`` *google_api_key*
+
+You can obtain your own API key at https://developers.google.com/custom-search/v1/overview
+
+- ``Google Custom Search CX ID`` *google_api_cx*
+
+You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all - remember to enable "Search on ALL internet pages" option in project settings.
+
+**Microsoft Bing**
+
+- ``Bing Search API KEY`` *bing_api_key*
+
+You can obtain your own API key at https://www.microsoft.com/en-us/bing/apis/bing-web-search-api
+
+- ``Bing Search API endpoint`` *bing_endpoint*
+
+API endpoint for Bing Search API, default: https://api.bing.microsoft.com/v7.0/search
+
+**General options**
+
+
+- ``Number of pages to search`` *num_pages*
+
+Number of max pages to search per query. *Default:* `10`
+
+- ``Max content characters`` *max_page_content_length*
+
+Max characters of page content to get (0 = unlimited). *Default:* `0`
+
+- ``Per-page content chunk size`` *chunk_size*
+
+Per-page content chunk size (max characters per chunk). *Default:* `20000`
+
+- ``Disable SSL verify`` *disable_ssl*
+
+Disables SSL verification when crawling web pages. *Default:* `False`
+
+- ``Use raw content (without summarization)`` *raw*
+
+Return raw content from web search instead of summarized content. Provides more data but consumes more tokens. *Default:* `True`
+
+- ``Timeout`` *timeout*
+
+Connection timeout (seconds). *Default:* `5`
+
+- ``User agent`` *user_agent*
+
+User agent to use when making requests. *Default:* `Mozilla/5.0`.
+
+- ``Max result length`` *max_result_length*
+
+Max length of the summarized or raw result (characters). *Default:* `50000`
+
+- ``Max summary tokens`` *summary_max_tokens*
+
+Max tokens in output when generating summary. *Default:* `1500`
+
+- ``Tool: web_search`` *cmd.web_search*
+
+Allows `web_search` command execution. If enabled, model will be able to search the Web. *Default:* `True`
+
+- ``Tool: web_url_open`` *cmd.web_url_open*
+
+Allows `web_url_open` command execution. If enabled, model will be able to open specified URL and summarize content. *Default:* `True`
+
+- ``Tool: web_url_raw`` *cmd.web_url_raw*
+
+Allows `web_url_raw` command execution. If enabled, model will be able to open specified URL and get the raw content. *Default:* `True`
+
+- ``Tool: web_request`` *cmd.web_request*
+
+Allows `web_request` command execution. If enabled, model will be able to send any HTTP request to specified URL or API endpoint. *Default:* `True`
+
+- ``Tool: web_extract_links`` *cmd.web_extract_links*
+
+Allows `web_extract_links` command execution. If enabled, model will be able to open URL and get list of all links from it. *Default:* `True`
+
+- ``Tool: web_extract_images`` *cmd.web_extract_images*
+
+Allows `web_extract_images` command execution. If enabled, model will be able to open URL and get list of all images from it.. *Default:* `True`
+
+
+**Advanced**
+
+- ``Model used for web page summarize`` *summary_model*
+
+Model used for web page summarize. *Default:* `gpt-3.5-turbo-1106`
+
+- ``Summarize prompt`` *prompt_summarize*
+
+Prompt used for web search results summarize, use {query} as a placeholder for search query
+
+- ``Summarize prompt (URL open)`` *prompt_summarize_url*
+
+Prompt used for specified URL page summarize
+
+
+**Indexing**
+
+- ``Tool: web_index`` *cmd.web_index*
+
+Allows `web_index` command execution. If enabled, model will be able to index pages and external content using LlamaIndex (persistent index). *Default:* `True`
+
+- ``Tool: web_index_query`` *cmd.web_index_query*
+
+Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using LlamaIndex (in-memory index). *Default:* `True`
+
+- ``Auto-index all used URLs using LlamaIndex`` *auto_index*
+
+If enabled, every URL used by the model will be automatically indexed using LlamaIndex (persistent index). *Default:* `False`
+
+- ``Index to use`` *idx*
+
+ID of index to use for web page indexing (persistent index). *Default:* `base`
 
 
 X/Twitter
@@ -2251,298 +2547,3 @@ The X/Twitter plugin integrates with the X platform, allowing for comprehensive 
 
   Attach alt text to uploaded media.
 
-GitHub
-------
-
-The plugin provides seamless integration with GitHub, allowing various operations such as repository management, issue tracking, pull requests, and more through GitHub's API. This plugin requires authentication, which can be configured using a Personal Access Token (PAT) or OAuth Device Flow.
-
-* Retrieve details about your GitHub profile.
-* Get information about a specific GitHub user.
-* List repositories for a user or organization.
-* Retrieve details about a specific repository.
-* Create a new repository.
-* Delete an existing repository.
-* Retrieve the contents of a file in a repository.
-* Upload or update a file in a repository.
-* Delete a file from a repository.
-* List issues in a repository.
-* Create a new issue in a repository.
-* Add a comment to an existing issue.
-* Close an existing issue.
-* List pull requests in a repository.
-* Create a new pull request.
-* Merge an existing pull request.
-* Search for repositories based on a query.
-* Search for issues based on a query.
-* Search for code based on a query.
-
-**Options**
-
-- ``API base`` *api_base*
-
-  Configure the base URL for GitHub's API. *Default:* `https://api.github.com`
-
-- ``Web base`` *web_base*
-
-  Set the GitHub website base URL. *Default:* `https://github.com`
-
-- ``API version header`` *api_version*
-
-  Specify the API version for requests. *Default:* `2022-11-28`
-
-- ``HTTP timeout (s)`` *http_timeout*
-
-  Define timeout for API requests in seconds. *Default:* `30`
-
-**OAuth Device Flow**
-
-- ``OAuth Client ID`` *oauth_client_id*
-
-  Set the Client ID from your GitHub OAuth App. Supports Device Flow. *Secret*
-
-- ``Scopes`` *oauth_scopes*
-
-  List the space-separated OAuth scopes. *Default:* `repo read:org read:user user:email`
-
-- ``Open browser automatically`` *oauth_open_browser*
-
-  Automatically open the verification URL in the default browser. *Default:* `True`
-
-- ``Auto-start auth when required`` *oauth_auto_begin*
-
-  Start Device Flow automatically when a command requires a token. *Default:* `True`
-
-**Tokens**
-
-- ``(auto) OAuth access token`` *gh_access_token*
-
-  Store OAuth access token for Device/Web. *Secret*
-
-- ``PAT token (optional)`` *pat_token*
-
-  Provide a Personal Access Token (classic or fine-grained) for authentication. *Secret*
-
-- ``Auth scheme`` *auth_scheme*
-
-  Choose the authentication scheme: `Bearer` or `Token` (use `Token` for PAT).
-
-**Convenience Cache**
-
-- ``(auto) User ID`` *user_id*
-
-  Cache User ID after `gh_me` or authentication.
-
-- ``(auto) Username`` *username*
-
-  Cache username after `gh_me` or authentication.
-
-**Commands**
-
-- **Auth**
-  - ``gh_device_begin``: Begin OAuth Device Flow.
-  - ``gh_device_poll``: Poll for access token using device code.
-  - ``gh_set_pat``: Set Personal Access Token.
-
-- **Users**
-  - ``gh_me``: Get authenticated user details.
-  - ``gh_user_get``: Retrieve user information by username.
-
-- **Repositories**
-  - ``gh_repos_list``: List all repositories.
-  - ``gh_repo_get``: Get details for a specific repository.
-  - ``gh_repo_create``: Create a new repository.
-  - ``gh_repo_delete``: Delete an existing repository. (*Disabled by default*)
-
-- **Contents**
-  - ``gh_contents_get``: Get file or directory contents.
-  - ``gh_file_put``: Create or update a file via Contents API.
-  - ``gh_file_delete``: Delete a file via Contents API.
-
-- **Issues**
-  - ``gh_issues_list``: List issues in a repository.
-  - ``gh_issue_create``: Create a new issue.
-  - ``gh_issue_comment``: Comment on an issue.
-  - ``gh_issue_close``: Close an existing issue.
-
-- **Pull Requests**
-  - ``gh_pulls_list``: List all pull requests.
-  - ``gh_pull_create``: Create a new pull request.
-  - ``gh_pull_merge``: Merge an existing pull request.
-
-- **Search**
-  - ``gh_search_repos``: Search for repositories.
-  - ``gh_search_issues``: Search for issues and pull requests.
-  - ``gh_search_code``: Search for code across repositories.
-
-
-BitBucket
----------
-
-The BitBucket plugin allows for seamless integration with the Bitbucket Cloud API, offering functionalities to manage repositories, issues, and pull requests. This plugin provides highly configurable options for authentication, cached convenience, and manages HTTP requests efficiently.
-
-
-* Retrieve details about the authenticated user.
-* Get information about a specific user.
-* List available workspaces.
-* List repositories in a workspace.
-* Get details about a specific repository.
-* Create a new repository.
-* Delete an existing repository.
-* Retrieve contents of a file in a repository.
-* Upload a file to a repository.
-* Delete a file from a repository.
-* List issues in a repository.
-* Create a new issue.
-* Comment on an existing issue.
-* Update details of an issue.
-* List pull requests in a repository.
-* Create a new pull request.
-* Merge an existing pull request.
-* Search for repositories.
-
-**Options**
-
-- ``API base`` *api_base*
-
-  Define the base URL for the Bitbucket Cloud API. *Default:* `https://api.bitbucket.org/2.0`
-
-- ``HTTP timeout (s)`` *http_timeout*
-
-  Set the timeout for HTTP requests in seconds. *Default:* `30`
-
-**Auth options**
-
-- ``Auth mode`` *auth_mode*
-
-  Select the authentication mode. *Default:* `auto`
-
-  Available modes:
-  * auto
-  * basic
-  * bearer
-
-- ``Username`` *bb_username*
-
-  Provide your Bitbucket username (handle, not email).
-
-- ``App Password`` *bb_app_password*
-
-  Specify your Bitbucket App Password (Basic). This option is secret.
-
-- ``Bearer token`` *bb_access_token*
-
-  Enter the OAuth access token (Bearer). This option is secret.
-
-**Cached convenience**
-
-- ``(auto) User UUID`` *user_uuid*
-
-  Cached after using the `bb_me` command.
-
-- ``(auto) Username`` *username*
-
-  Cached after using the `bb_me` command.
-
-**Commands**
-
-*Auth Options*
-
-- ``bb_auth_set_mode``
-
-  Set the authentication mode: auto|basic|bearer.
-
-- ``bb_set_app_password``
-
-  Set App Password credentials including username and app password.
-
-- ``bb_set_bearer``
-
-  Set the Bearer authentication token.
-
-- ``bb_auth_check``
-
-  Run diagnostics to show authentication results for `/user`.
-
-*User Management*
-
-- ``bb_me``
-
-  Retrieve details for the authenticated user.
-
-- ``bb_user_get``
-
-  Fetch user information by username.
-
-- ``bb_workspaces_list``
-
-  List all accessible workspaces.
-
-*Repositories Management*
-
-- ``bb_repos_list``
-
-  Display a list of repositories.
-
-- ``bb_repo_get``
-
-  Fetch details of a specific repository.
-
-- ``bb_repo_create``
-
-  Create a new repository in a specified workspace.
-
-- ``bb_repo_delete``
-
-  Delete a repository (requires confirmation).
-
-*Contents Management*
-
-- ``bb_contents_get``
-
-  Retrieve file or directory contents from a repository.
-
-- ``bb_file_put``
-
-  Create or update a file in a repository.
-
-- ``bb_file_delete``
-
-  Delete specified files within a repository.
-
-*Issues Management*
-
-- ``bb_issues_list``
-
-  List issues in a repository.
-
-- ``bb_issue_create``
-
-  Create a new issue within a repository.
-
-- ``bb_issue_comment``
-
-  Add a comment to an existing issue.
-
-- ``bb_issue_update``
-
-  Update details of an existing issue.
-
-*Pull Requests Management*
-
-- ``bb_prs_list``
-
-  Display a list of pull requests.
-
-- ``bb_pr_create``
-
-  Create a new pull request.
-
-- ``bb_pr_merge``
-
-  Merge an existing pull request.
-
-*Search Functionality*
-
-- ``bb_search_repos``
-
-  Search repositories using Bitbucket Query Language (BBQL).
