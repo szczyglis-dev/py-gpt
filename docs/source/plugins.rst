@@ -1531,74 +1531,74 @@ The plugin integrates with various Google services, enabling features such as em
 
 - **Gmail**
 
-  * ``gmail_list_recent``: List n newest Gmail messages.
-  * ``gmail_list_all``: List all Gmail messages (paginated).
-  * ``gmail_search``: Search Gmail.
-  * ``gmail_get_by_id``: Get Gmail message by ID.
-  * ``gmail_send``: Send Gmail message.
+  * ``gmail_list_recent`` - List n newest Gmail messages.
+  * ``gmail_list_all`` - List all Gmail messages (paginated).
+  * ``gmail_search`` - Search Gmail.
+  * ``gmail_get_by_id`` - Get Gmail message by ID.
+  * ``gmail_send`` - Send Gmail message.
 
 - **Calendar**
 
-  * ``calendar_events_recent``: Upcoming events (from now).
-  * ``calendar_events_today``: Events for today (UTC day bounds).
-  * ``calendar_events_tomorrow``: Events for tomorrow (UTC day bounds).
-  * ``calendar_events_all``: All events in range.
-  * ``calendar_events_by_date``: Events for date or date range.
-  * ``calendar_add_event``: Add calendar event.
-  * ``calendar_delete_event``: Delete event by ID.
+  * ``calendar_events_recent`` - Upcoming events (from now).
+  * ``calendar_events_today`` - Events for today (UTC day bounds).
+  * ``calendar_events_tomorrow`` - Events for tomorrow (UTC day bounds).
+  * ``calendar_events_all`` - All events in range.
+  * ``calendar_events_by_date`` - Events for date or date range.
+  * ``calendar_add_event`` - Add calendar event.
+  * ``calendar_delete_event`` - Delete event by ID.
 
 - **Keep**
 
-  * ``keep_list_notes``: List notes (Keep).
-  * ``keep_add_note``: Add note (Keep).
+  * ``keep_list_notes`` - List notes (Keep).
+  * ``keep_add_note`` - Add note (Keep).
 
 - **Drive**
 
-  * ``drive_list_files``: List Drive files.
-  * ``drive_find_by_path``: Find Drive file by path.
-  * ``drive_download_file``: Download Drive file.
-  * ``drive_upload_file``: Upload local file to Drive.
+  * ``drive_list_files`` - List Drive files.
+  * ``drive_find_by_path`` - Find Drive file by path.
+  * ``drive_download_file`` - Download Drive file.
+  * ``drive_upload_file`` - Upload local file to Drive.
 
 - **YouTube**
 
-  * ``youtube_video_info``: Get YouTube video info.
-  * ``youtube_transcript``: Get YouTube transcript.
+  * ``youtube_video_info`` - Get YouTube video info.
+  * ``youtube_transcript`` - Get YouTube transcript.
 
 - **Contacts**
 
-  * ``contacts_list``: List contacts.
-  * ``contacts_add``: Add new contact.
+  * ``contacts_list`` - List contacts.
+  * ``contacts_add`` - Add new contact.
 
 - **Google Docs**
 
-  * ``docs_create``: Create Google Doc.
-  * ``docs_get``: Get Google Doc (structure + plain text).
-  * ``docs_list``: List Google Docs.
-  * ``docs_append_text``: Append text to Google Doc.
-  * ``docs_replace_text``: Replace all text occurrences in Google Doc.
-  * ``docs_insert_heading``: Insert heading at end of Google Doc.
-  * ``docs_export``: Export Google Doc to file.
-  * ``docs_copy_from_template``: Make a copy of template Google Doc.
+  * ``docs_create`` - Create Google Doc.
+  * ``docs_get`` - Get Google Doc (structure + plain text).
+  * ``docs_list`` - List Google Docs.
+  * ``docs_append_text`` - Append text to Google Doc.
+  * ``docs_replace_text`` - Replace all text occurrences in Google Doc.
+  * ``docs_insert_heading`` - Insert heading at end of Google Doc.
+  * ``docs_export`` - Export Google Doc to file.
+  * ``docs_copy_from_template`` - Make a copy of template Google Doc.
 
 - **Google Maps**
 
-  * ``maps_geocode``: Geocode an address.
-  * ``maps_reverse_geocode``: Reverse geocode coordinates.
-  * ``maps_directions``: Get directions between origin and destination.
-  * ``maps_distance_matrix``: Distance Matrix for origins and destinations.
-  * ``maps_places_textsearch``: Places Text Search.
-  * ``maps_places_nearby``: Nearby Places.
-  * ``maps_static_map``: Generate Static Map image.
+  * ``maps_geocode`` - Geocode an address.
+  * ``maps_reverse_geocode`` - Reverse geocode coordinates.
+  * ``maps_directions`` - Get directions between origin and destination.
+  * ``maps_distance_matrix`` - Distance Matrix for origins and destinations.
+  * ``maps_places_textsearch`` - Places Text Search.
+  * ``maps_places_nearby`` - Nearby Places.
+  * ``maps_static_map`` - Generate Static Map image.
 
 - **Google Colab**
 
-  * ``colab_list_notebooks``: List Colab notebooks on Drive.
-  * ``colab_create_notebook``: Create new Colab notebook.
-  * ``colab_add_code_cell``: Add code cell to notebook.
-  * ``colab_add_markdown_cell``: Add markdown cell to notebook.
-  * ``colab_get_link``: Get Colab edit link.
-  * ``colab_rename``: Rename notebook.
-  * ``colab_duplicate``: Duplicate notebook.
+  * ``colab_list_notebooks`` - List Colab notebooks on Drive.
+  * ``colab_create_notebook`` - Create new Colab notebook.
+  * ``colab_add_code_cell`` - Add code cell to notebook.
+  * ``colab_add_markdown_cell`` - Add markdown cell to notebook.
+  * ``colab_get_link`` - Get Colab edit link.
+  * ``colab_rename`` - Rename notebook.
+  * ``colab_duplicate`` - Duplicate notebook.
 
 
 Image Generation (inline)
