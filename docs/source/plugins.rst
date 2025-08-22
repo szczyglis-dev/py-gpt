@@ -1028,7 +1028,7 @@ Space-separated authorized permissions.
 
 Stores user access token. *Secret*
 
-**Convenience Cache**
+**Cache**
 
 - ``User ID`` *user_id*
 
@@ -1336,7 +1336,7 @@ The plugin provides seamless integration with GitHub, allowing various operation
 
   Choose the authentication scheme: `Bearer` or `Token` (use `Token` for PAT).
 
-**Convenience Cache**
+**Cache**
 
 - ``(auto) User ID`` *user_id*
 
@@ -1390,8 +1390,6 @@ The plugin provides seamless integration with GitHub, allowing various operation
   * ``gh_search_repos``: Search for repositories.
   * ``gh_search_issues``: Search for issues and pull requests.
   * ``gh_search_code``: Search for code across repositories.
-
-
 
 
 Google (Gmail, Drive, Calendar, Contacts, YT, Keep, Docs, Maps, Colab)
@@ -1529,25 +1527,78 @@ The plugin integrates with various Google services, enabling features such as em
 
   Alias for `google_maps_api_key` for backward compatibility. *Secret:* Yes
 
-**Integration Commands**
+**Commands**
 
-- Gmail: Manage your emails by listing recent messages, searching Gmail, sending and receiving emails through specific commands.
+- **Gmail**
 
-- Calendar: Access your Google Calendar to retrieve events or manage them by adding or deleting entries.
+  * ``gmail_list_recent``: List n newest Gmail messages.
+  * ``gmail_list_all``: List all Gmail messages (paginated).
+  * ``gmail_search``: Search Gmail.
+  * ``gmail_get_by_id``: Get Gmail message by ID.
+  * ``gmail_send``: Send Gmail message.
 
-- Keep: List or add notes using Google Keep, utilizing either official or unofficial methods as per the settings.
+- **Calendar**
 
-- Drive: Perform file operations on Google Drive, including listing files, uploading, downloading, or finding files by path.
+  * ``calendar_events_recent``: Upcoming events (from now).
+  * ``calendar_events_today``: Events for today (UTC day bounds).
+  * ``calendar_events_tomorrow``: Events for tomorrow (UTC day bounds).
+  * ``calendar_events_all``: All events in range.
+  * ``calendar_events_by_date``: Events for date or date range.
+  * ``calendar_add_event``: Add calendar event.
+  * ``calendar_delete_event``: Delete event by ID.
 
-- YouTube: Retrieve video information and transcripts, with the option to use unofficial transcripts if enabled.
+- **Keep**
 
-- Contacts: List or add contacts within your Google account, defining specific fields for detailed contact management.
+  * ``keep_list_notes``: List notes (Keep).
+  * ``keep_add_note``: Add note (Keep).
 
-- Google Docs: Create, retrieve, or manipulate Google Docs, supporting various document operations.
+- **Drive**
 
-- Google Maps: Utilize services like Geocoding addresses, fetching directions, and conducting place-related searches with provided APIs.
+  * ``drive_list_files``: List Drive files.
+  * ``drive_find_by_path``: Find Drive file by path.
+  * ``drive_download_file``: Download Drive file.
+  * ``drive_upload_file``: Upload local file to Drive.
 
-- Google Colab: Manage Colab notebooks on Google Drive, supporting creating, renaming, duplicating, and listing operations.
+- **YouTube**
+
+  * ``youtube_video_info``: Get YouTube video info.
+  * ``youtube_transcript``: Get YouTube transcript.
+
+- **Contacts**
+
+  * ``contacts_list``: List contacts.
+  * ``contacts_add``: Add new contact.
+
+- **Google Docs**
+
+  * ``docs_create``: Create Google Doc.
+  * ``docs_get``: Get Google Doc (structure + plain text).
+  * ``docs_list``: List Google Docs.
+  * ``docs_append_text``: Append text to Google Doc.
+  * ``docs_replace_text``: Replace all text occurrences in Google Doc.
+  * ``docs_insert_heading``: Insert heading at end of Google Doc.
+  * ``docs_export``: Export Google Doc to file.
+  * ``docs_copy_from_template``: Make a copy of template Google Doc.
+
+- **Google Maps**
+
+  * ``maps_geocode``: Geocode an address.
+  * ``maps_reverse_geocode``: Reverse geocode coordinates.
+  * ``maps_directions``: Get directions between origin and destination.
+  * ``maps_distance_matrix``: Distance Matrix for origins and destinations.
+  * ``maps_places_textsearch``: Places Text Search.
+  * ``maps_places_nearby``: Nearby Places.
+  * ``maps_static_map``: Generate Static Map image.
+
+- **Google Colab**
+
+  * ``colab_list_notebooks``: List Colab notebooks on Drive.
+  * ``colab_create_notebook``: Create new Colab notebook.
+  * ``colab_add_code_cell``: Add code cell to notebook.
+  * ``colab_add_markdown_cell``: Add markdown cell to notebook.
+  * ``colab_get_link``: Get Colab edit link.
+  * ``colab_rename``: Rename notebook.
+  * ``colab_duplicate``: Duplicate notebook.
 
 
 Image Generation (inline)
@@ -1744,7 +1795,7 @@ Above is an example of co-operation with the following code uploaded to ``Arduin
 
 **Options**
 
-``USB port`` *serial_port*
+- ``USB port`` *serial_port*
 
 USB port name, e.g. /dev/ttyUSB0, /dev/ttyACM0, COM3, *Default:* ``/dev/ttyUSB0``
 
@@ -1969,9 +2020,6 @@ Automatically append current working directory to ``sys_exec`` command. *Default
 - ``Tool: sys_exec`` *cmd.sys_exec*
 
 Allows ``sys_exec`` command execution. If enabled, provides system commands execution. *Default:* ``True``
-
-
-
 
 
 Telegram
@@ -2225,7 +2273,6 @@ You can obtain your own API key at https://www.microsoft.com/en-us/bing/apis/bin
 API endpoint for Bing Search API, default: https://api.bing.microsoft.com/v7.0/search
 
 **General options**
-
 
 - ``Number of pages to search`` *num_pages*
 
