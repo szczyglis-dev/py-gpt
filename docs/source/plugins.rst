@@ -28,6 +28,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
 * ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
 * ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
+* ``Server (SSH/FTP)`` - Connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more.
 * ``Slack`` - Handle users, conversations, messages, and files on Slack.
 * ``System (OS)`` - provides access to the operating system and executes system commands.
 * ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
@@ -1763,7 +1764,7 @@ current date and time in real-time. *Default:* `Current time is {time}.`
 
 
 Serial port / USB
----------------------------
+------------------
 
 Provides commands for reading and sending data to USB ports.
 
@@ -1822,6 +1823,128 @@ Allows ``serial_send_bytes`` command execution. *Default:* `True`
 - ``Tool: Read data from USB port`` *cmd.serial_read*
 
 Allows ``serial_read`` command execution. *Default:* `True`
+
+
+Server (SSH/FTP)
+----------------
+
+The Server plugin provides integration for remote server management via SSH, SFTP, and FTP protocols. This plugin allows executing commands, transferring files, and managing directories on remote servers through a user-friendly interface.
+
+The plugin can be configured with various options to customize connectivity and feature access.
+
+**Options**
+
+- ``Servers`` *servers*
+
+Define server configurations with credentials and server details. The model does not access credentials, only names and ports.
+
+  - ``enabled``: Enable or disable server configuration
+  - ``name``: Name of the server.  <<< visible for the model
+  - ``host``: Hostname of the server.
+  - ``login``: Login username.
+  - ``password``: Password for the connection (hidden).
+  - ``port``: Connection port (SSH by default).  <<< visible for the model
+  - ``desc``: Description of the server configuration.
+
+- ``Network timeout (s)`` *net_timeout*
+
+Set the timeout for network operations. *Default:* `30`
+
+- ``Prefer system ssh/scp/sftp`` *prefer_system_ssh*
+
+Choose whether to use native ssh/scp/sftp binaries and system keys. *Default:* `False`
+
+- ``ssh binary`` *ssh_binary*
+
+Specify the path to the ssh binary. *Default:* `"ssh"`
+
+- ``scp binary`` *scp_binary*
+
+Specify the path to the scp binary. *Default:* `"scp"`
+
+- ``sftp binary`` *sftp_binary*
+
+Specify the path to the sftp binary. *Default:* `"sftp"`
+
+- ``Extra ssh options`` *ssh_options*
+
+Add extra options to be appended to ssh/scp commands. *Default:* `""`
+
+- ``Paramiko: Auto add host keys`` *ssh_auto_add_hostkey*
+
+Enable automatic addition of host keys for Paramiko SSHClient. *Default:* `True`
+
+- **FTP/FTPS**
+
+  * ``FTP TLS default`` *ftp_use_tls_default*
+
+    Choose whether to use FTP over TLS (explicit) by default. *Default:* `False`
+
+  * ``FTP passive mode`` *ftp_passive_default*
+
+    Set the default FTP mode to passive. *Default:* `True`
+
+- **Telnet**
+
+  * ``Telnet: login prompt`` *telnet_login_prompt*
+
+    Expected prompt for username during Telnet login. *Default:* `"login:"`
+
+  * ``Telnet: password prompt`` *telnet_password_prompt*
+
+    Expected prompt for password input during Telnet login. *Default:* `"Password:"`
+
+  * ``Telnet: shell prompt`` *telnet_prompt*
+
+    Define the prompt used to delimit command output in Telnet. *Default:* `"$ "`
+
+- **SMTP**
+
+  * ``SMTP STARTTLS default`` *smtp_use_tls_default*
+
+    Enable STARTTLS by default for SMTP connections. *Default:* `True`
+
+  * ``SMTP SSL default`` *smtp_use_ssl_default*
+
+    Enable SMTP over SSL by default. *Default:* `False`
+
+  * ``Default From address`` *smtp_from_default*
+
+    Default address used if 'from_addr' not provided in smtp_send command. *Default:* `""`
+
+**Commands**
+
+- ``srv_exec``
+
+  Execute remote shell command via SSH or Telnet.
+
+- ``srv_ls``
+
+  List remote directory contents using SFTP/FTP or SSH.
+
+- ``srv_get``
+
+  Download files from remote servers to local directories.
+
+- ``srv_put``
+
+  Upload local files to remote servers.
+
+- ``srv_rm``
+
+  Remove remote files or empty directories (non-recursive).
+
+- ``srv_mkdir``
+
+  Create directories on remote servers.
+
+- ``srv_stat``
+
+  Retrieve information about remote files, such as type, size, and last modification time.
+
+- ``smtp_send``
+
+  Send emails via SMTP, using the server configurations provided.
 
 
 Slack

@@ -240,7 +240,7 @@ cachetools==5.5.2 ; python_version >= "3.10" and python_version < "3.14" \
 certifi==2025.6.15 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:2e0c7ce7cb5d8f8634ca55d2ba7e6ec2689a2fd6537d8dec1296a477a4910057 \
     --hash=sha256:d747aa5a8b9bbbb1bb8c22bb13e22bd1f18e9796defa16bab421f7f7a317323b
-cffi==1.17.1 ; python_version >= "3.10" and python_version < "3.14" and (implementation_name == "pypy" or platform_python_implementation != "PyPy" or os_name == "nt") \
+cffi==1.17.1 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:045d61c734659cc045141be4bae381a41d89b741f795af1dd018bfb532fd0df8 \
     --hash=sha256:0984a4925a435b1da406122d4d7968dd861c1385afe3b45ba82b750f229811e2 \
     --hash=sha256:0e2b1fac190ae3ebfe37b979cc1ce69c81f4e4fe5746bb401dca63a9062cdaf1 \
@@ -937,6 +937,9 @@ importlib-metadata==8.7.0 ; python_version >= "3.10" and python_version < "3.14"
 importlib-resources==6.5.2 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:185f87adef5bcc288449d98fb4fba07cea78bc036455dd44c5fc4a2fe78fed2c \
     --hash=sha256:789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec
+invoke==2.2.0 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:6ea924cc53d4f78e3d98bc436b08069a03077e6f85ad1ddaa8a116d7dad15820 \
+    --hash=sha256:ee6cbb101af1a859c7fe84f2a264c059020b0cb7fe3535f9424300ab568f6bd5
 ipykernel==6.29.5 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:afdb66ba5aa354b09b91379bac28ae4afebbb30e8b39510c9690afb7a10421b5 \
     --hash=sha256:f093a22c4a40f8828f8e330a9c297cb93dcab13bd9678ded6de8e5cf81c56215
@@ -1902,6 +1905,9 @@ pandas==2.2.3 ; python_version >= "3.10" and python_version < "3.14" \
 pandocfilters==1.5.1 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:002b4a555ee4ebc03f8b66307e287fa492e4a77b4ea14d3f934328297bb4939e \
     --hash=sha256:93be382804a9cdb0a7267585f157e5d1731bbe5545a85b268d6f5fe6232de2bc
+paramiko==4.0.0 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:0e20e00ac666503bf0b4eda3b6d833465a2b7aff2e2b3d79a8bba5ef144ee3b9 \
+    --hash=sha256:6a25f07b380cc9c9a88d2b920ad37167ac4667f8d9886ccebd8f90f654b5d69f
 parso==0.8.4 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:a418670a20291dacd2dddc80c377c5c3791378ee1e8d12bffc35420643d43f18 \
     --hash=sha256:eb3a7b58240fb99099a345571deecc0f9540ea5f4dd2fe14c2a99d6b281ab92d
@@ -2172,7 +2178,7 @@ pyaudio==0.2.14 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:f745109634a7c19fa4d6b8b7d6967c3123d988c9ade0cd35d4295ee1acdb53e9
 pyautogui==0.9.54 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:dd1d29e8fd118941cb193f74df57e5c6ff8e9253b99c7b04f39cfc69f3ae04b2
-pycparser==2.22 ; python_version >= "3.10" and python_version < "3.14" and (implementation_name == "pypy" or platform_python_implementation != "PyPy" or os_name == "nt") \
+pycparser==2.22 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6 \
     --hash=sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc
 pycryptodomex==3.23.0 ; python_version >= "3.10" and python_version < "3.14" \
@@ -2406,6 +2412,17 @@ pyjwt[crypto]==2.9.0 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:7e1e5b56cc735432a7369cbfa0efe50fa113ebecdc04ae6922deba8b84582d0c
 pymsgbox==1.0.9 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:2194227de8bff7a3d6da541848705a155dcbb2a06ee120d9f280a1d7f51263ff
+pynacl==1.5.0 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:06b8f6fa7f5de8d5d2f7573fe8c863c051225a27b61e6860fd047b1775807858 \
+    --hash=sha256:0c84947a22519e013607c9be43706dd42513f9e6ae5d39d3613ca1e142fba44d \
+    --hash=sha256:20f42270d27e1b6a29f54032090b972d97f0a1b0948cc52392041ef7831fee93 \
+    --hash=sha256:401002a4aaa07c9414132aaed7f6836ff98f59277a234704ff66878c2ee4a0d1 \
+    --hash=sha256:52cb72a79269189d4e0dc537556f4740f7f0a9ec41c1322598799b0bdad4ef92 \
+    --hash=sha256:61f642bf2378713e2c2e1de73444a3778e5f0a38be6fee0fe532fe30060282ff \
+    --hash=sha256:8ac7448f09ab85811607bdd21ec2464495ac8b7c66d146bf545b0f08fb9220ba \
+    --hash=sha256:a36d4a9dda1f19ce6e03c9a784a2921a4b726b02e1c736600ca9c22029474394 \
+    --hash=sha256:a422368fc821589c228f4c49438a368831cb5bbc0eab5ebe1d7fac9dded6567b \
+    --hash=sha256:e46dae94e34b085175f8abb3b0aaa7da40767865ac82c928eeb9e57e1ea8a543
 pynput==1.8.1 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:42dfcf27404459ca16ca889c8fb8ffe42a9fe54f722fd1a3e130728e59e768d2 \
     --hash=sha256:70d7c8373ee98911004a7c938742242840a5628c004573d84ba849d4601df81e

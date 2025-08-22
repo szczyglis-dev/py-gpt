@@ -1347,6 +1347,8 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
 
+- `Server (SSH/FTP)` - Connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more.
+
 - `Slack` - Handle users, conversations, messages, and files on Slack.
 
 - `System Prompt Extra (append)` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
@@ -1694,6 +1696,14 @@ Provides commands for reading and sending data to USB ports.
 You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#serial-port-usb
+
+## Server (SSH/FTP)
+
+The Server plugin provides integration for remote server management via SSH, SFTP, and FTP protocols. This plugin allows executing commands, transferring files, and managing directories on remote servers.
+
+For security reasons, the model will not see any credentials, only the server name and port fields (see the docs)
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#server-ssh-ftp
 
 ## Slack
 
