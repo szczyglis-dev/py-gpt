@@ -2150,6 +2150,8 @@ ptyprocess==0.7.0 ; sys_platform != "win32" and sys_platform != "emscripten" and
 pure-eval==0.2.3 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:1db8e35b67b3d218d818ae653e27f06c3aa420901fa7b081ca98cbedc874e0d0 \
     --hash=sha256:5f4e983f40564c576c7c8635ae88db5956bb2229d7e9237d03b3c0b0190eaf42
+pyaes==1.6.1 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:02c1b1405c38d3c370b085fb952dd8bea3fadcee6411ad99f312cc129c536d8f
 pyasn1-modules==0.4.2 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:29253a9207ce32b64c3ac6600edc75368f98473906e8fd1043bd6b5b1de2c14a \
     --hash=sha256:677091de870a80aae844b1ca6134f54652fa2c8c5a52aa396440ac3106e941e6
@@ -3126,6 +3128,9 @@ sympy==1.14.0 ; python_version >= "3.10" and python_version < "3.14" \
 tabulate==0.9.0 ; python_version >= "3.10" and python_version <= "3.13" \
     --hash=sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c \
     --hash=sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f
+telethon==1.40.0 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:146fd4cb2a7afa66bc67f9c2167756096a37b930f65711a3e7399ec9874dcfa7 \
+    --hash=sha256:40e83326877a2e68b754d4b6d0d1ca5ac924110045b039e02660f2d67add97db
 tenacity==8.5.0 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:8bc6c0c8a09b31e6cad13c47afbed1a567518250a9a171418582ed8d9c20ca78 \
     --hash=sha256:b594c2a5945830c267ce6b79a166228323ed52718f30302c1359836112346687
