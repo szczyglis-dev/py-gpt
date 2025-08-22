@@ -393,10 +393,10 @@ If enabled, this option reverses the roles (AI <> user) with each iteration. For
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
 
-BitBucket
+Bitbucket
 ---------
 
-The BitBucket plugin allows for seamless integration with the Bitbucket Cloud API, offering functionalities to manage repositories, issues, and pull requests. This plugin provides highly configurable options for authentication, cached convenience, and manages HTTP requests efficiently.
+The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud API, offering functionalities to manage repositories, issues, and pull requests. This plugin provides highly configurable options for authentication, cached convenience, and manages HTTP requests efficiently.
 
 
 * Retrieve details about the authenticated user.

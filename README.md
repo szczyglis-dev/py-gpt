@@ -1403,7 +1403,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#autonomous-ag
 
 ## Bitbucket
 
-The BitBucket plugin allows for seamless integration with the Bitbucket Cloud API, offering functionalities to manage repositories, issues, and pull requests. This plugin provides highly configurable options for authentication, cached convenience, and manages HTTP requests efficiently.
+The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud API, offering functionalities to manage repositories, issues, and pull requests. This plugin provides highly configurable options for authentication, cached convenience, and manages HTTP requests efficiently.
 
 - Retrieve details about the authenticated user.
 - Get information about a specific user.
