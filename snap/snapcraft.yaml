@@ -97,7 +97,7 @@ apps:
     - gsettings
     - desktop
     - desktop-legacy
-    #- wayland
+    - wayland
     - x11
     - opengl
     - unity7

@@ -1,111 +1,127 @@
 # -*- mode: python ; coding: utf-8 -*-
 import sys
 
-from PyInstaller.utils.hooks import collect_data_files
+from PyInstaller.utils.hooks import (
+    collect_data_files,
+    collect_submodules,
+    collect_dynamic_libs,
+)
 
 block_cipher = None
 
-
-a = Analysis(
-    ['src\\pygpt_net\\app.py'],
-    pathex=[
-        'src\\',
-        'src\\pygpt_net\\'
-    ],
-    binaries=[],
-    datas=collect_data_files('opentelemetry.sdk', 'pinecode', 'onnxruntime', 'opentelemetry') + collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql']) + [  # chromadb, pinecode hack
-        ('src\\pygpt_net\\data\\config\\presets\\*', 'data\\config\\presets'),
-        ('src\\pygpt_net\\data\\config\\config.json', 'data\\config'),
-        ('src\\pygpt_net\\data\\config\\models.json', 'data\\config'),
-        ('src\\pygpt_net\\data\\config\\modes.json', 'data\\config'),
-        ('src\\pygpt_net\\data\\config\\settings.json', 'data\\config'),
-        ('src\\pygpt_net\\data\\config\\settings_section.json', 'data\\config'),
-        ('src\\pygpt_net\\data\\icons\\*', 'data\\icons'),
-        ('src\\pygpt_net\\data\\icons\\chat\\*', 'data\\icons\\chat'),
-        ('src\\pygpt_net\\data\\locale\\*', 'data\\locale'),
-        ('src\\pygpt_net\\data\\audio\\*', 'data\\audio'),
-        ('src\\pygpt_net\\data\\css\\*', 'data\\css'),
-        ('src\\pygpt_net\\data\\themes\\*', 'data\\themes'),
-        ('src\\pygpt_net\\data\\fonts\\Lato\\*', 'data\\fonts\\Lato'),
-        ('src\\pygpt_net\\data\\fonts\\SpaceMono\\*', 'data\\fonts\\SpaceMono'),
-        ('src\\pygpt_net\\data\\fonts\\MonaspaceArgon\\*', 'data\\fonts\\MonaspaceArgon'),
-        ('src\\pygpt_net\\data\\fonts\\MonaspaceKrypton\\*', 'data\\fonts\\MonaspaceKrypton'),
-        ('src\\pygpt_net\\data\\fonts\\MonaspaceNeon\\*', 'data\\fonts\\MonaspaceNeon'),
-        ('src\\pygpt_net\\data\\fonts\\MonaspaceRadon\\*', 'data\\fonts\\MonaspaceRadon'),
-        ('src\\pygpt_net\\data\\fonts\\MonaspaceXenon\\*', 'data\\fonts\\MonaspaceXenon'),
-        ('src\\pygpt_net\\data\\js\\highlight\\styles\\*', 'data\\js\\highlight\\styles'),
-        ('src\\pygpt_net\\data\\prompts.csv', 'data'),
-        ('src\\pygpt_net\\data\\languages.csv', 'data'),
-        ('src\\pygpt_net\\data\\logo.png', 'data'),
-        ('src\\pygpt_net\\data\\icon.ico', 'data'),
-        ('src\\pygpt_net\\data\\icon_web.ico', 'data'),
-        ('src\\pygpt_net\\data\\icon_tray_idle.ico', 'data'),
-        ('src\\pygpt_net\\data\\icon_tray_busy.ico', 'data'),
-        ('src\\pygpt_net\\data\\icon_tray_error.ico', 'data'),
-        ('src\\pygpt_net\\CHANGELOG.txt', '.'),
-        ('src\\pygpt_net\\LICENSE', '.'),
-        ('src\\pygpt_net\\data\\icon.png', '.'),
-        ('src\\pygpt_net\\data\\icon.ico', '.'),
-        ('src\\pygpt_net\\data\\icon_web.png', '.'),
-        ('src\\pygpt_net\\data\\icon_web.ico', '.'),
-        ('src\\pygpt_net\\data\\win32\\USER-LICENSE.rtf', '.'),
-        ('src\\pygpt_net\\data\\win32\\README.rtf', '.'),
-        ('src\\pygpt_net\\data\\win32\\banner.bmp', '.'),
-        ('src\\pygpt_net\\data\\win32\\banner_welcome.bmp', '.'),
-        ('README.md', '.'),
-        ('src\\pygpt_net\\__init__.py', '.'),
-        ('venv\\Lib\\site-packages\\onnxruntime\\*', 'onnxruntime\\'),  # onnxruntime
-        ('venv\\Lib\\site-packages\\onnxruntime\\capi\\*', 'onnxruntime\\capi\\'),  # onnxruntime
-        ('venv\\Lib\\site-packages\\llama_index\\legacy\\VERSION', 'llama_index\\legacy\\'),  # llama-index hack
-        ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\corpora\\stopwords\\*', 'llama_index\\legacy\\_static\\nltk_cache\\corpora\\stopwords\\'),  # llama-index hack
-        ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\*', 'llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\'),  # llama-index hack
-        ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\*', 'llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\'),  # llama-index hack
-        ('venv\\Lib\\site-packages\\llama_index\\core\\_static\\nltk_cache\\corpora\\stopwords\\*', 'llama_index\\core\\_static\\nltk_cache\\corpora\\stopwords\\'),  # llama-index hack
-        ('venv\\Lib\\site-packages\\llama_index\\core\\agent\\react\\templates\\*', 'llama_index\\core\\agent\\react\\templates\\'),  # llama-index agents hack
-        ('venv\\Lib\\site-packages\\opentelemetry_sdk-1.34.1.dist-info\\*', 'opentelemetry_sdk-1.34.1.dist-info'), # chromadb hack
-        ('venv\\Lib\\site-packages\\pinecone\\__version__', 'pinecone'),  # pinecode hack
-    ],
-    hiddenimports=[
-    'chromadb.api.segment', 
-    'chromadb.db.impl', 
-    'chromadb.db.impl.sqlite', 
+hiddenimports = [
+    'chromadb.api.segment',
+    'chromadb.db.impl',
+    'chromadb.db.impl.sqlite',
     'chromadb.utils.embedding_functions',
-    'chromadb.migrations', 
+    'chromadb.migrations',
     'chromadb.migrations.sysdb',
-    'chromadb.migrations.embeddings_queue', 
-    'chromadb.segment.impl.manager', 
-    'chromadb.segment.impl.manager.local', 
-    'chromadb.segment.impl.metadata', 
-    'chromadb.segment.impl.metadata.sqlite', 
-    'chromadb.segment.impl.vector', 
-    'chromadb.segment.impl.vector.batch', 
-    'chromadb.segment.impl.vector.brute_force_index', 
-    'chromadb.segment.impl.vector.hnsw_params', 
-    'chromadb.segment.impl.vector.local_hnsw', 
+    'chromadb.migrations.embeddings_queue',
+    'chromadb.segment.impl.manager',
+    'chromadb.segment.impl.manager.local',
+    'chromadb.segment.impl.metadata',
+    'chromadb.segment.impl.metadata.sqlite',
+    'chromadb.segment.impl.vector',
+    'chromadb.segment.impl.vector.batch',
+    'chromadb.segment.impl.vector.brute_force_index',
+    'chromadb.segment.impl.vector.hnsw_params',
+    'chromadb.segment.impl.vector.local_hnsw',
     'chromadb.segment.impl.vector.local_persistent_hnsw',
-    'chromadb.telemetry.posthog', 
+    'chromadb.telemetry.posthog',
     'chromadb.telemetry.product.posthog',
     'httpx',
-    'httpx-socks',
-    'pinecode',
+    'httpx_socks',
+    'pinecone',
     'opentelemetry',
     'opentelemetry.sdk',
     'opentelemetry.context.contextvars_context',
     'onnxruntime',
     'tokenizers',
     'transformers',
-    'tiktoken_ext', 
+    'tiktoken_ext',
     'tiktoken_ext.openai_public',
     'pydub',
     'pywin32',
-    'pywin32-ctypes',
-    'pywintypes',
+    'pywin32_ctypes',
     'tweepy',
     'ipykernel',
     'IPython.core.display',
     'IPython.core.interactiveshell',
-    'jupyter_client'],
-    collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db', 'httpx', 'httpx-socks', 'nbconvert', 'onnxruntime',  'pywin32', 'pywin32-ctypes', 'pywintypes', 'win32'],
+    'jupyter_client',
+]
+for pkg in [
+    'chromadb', 'chromadb.migrations', 'chromadb.telemetry',
+    'chromadb.api', 'chromadb.db',
+    'httpx', 'httpx_socks', 'nbconvert',
+    'onnxruntime', 'win32com',
+]:
+    try:
+        hiddenimports += collect_submodules(pkg)
+    except Exception:
+        pass
+
+datas = []
+datas += collect_data_files('opentelemetry.sdk')
+datas += collect_data_files('opentelemetry')
+datas += collect_data_files('pinecone')
+datas += collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql'])
+datas += [
+    (r'src\pygpt_net\data\config\presets\*', r'data\config\presets'),
+    (r'src\pygpt_net\data\config\config.json', r'data\config'),
+    (r'src\pygpt_net\data\config\models.json', r'data\config'),
+    (r'src\pygpt_net\data\config\modes.json', r'data\config'),
+    (r'src\pygpt_net\data\config\settings.json', r'data\config'),
+    (r'src\pygpt_net\data\config\settings_section.json', r'data\config'),
+    (r'src\pygpt_net\data\icons\*', r'data\icons'),
+    (r'src\pygpt_net\data\icons\chat\*', r'data\icons\chat'),
+    (r'src\pygpt_net\data\locale\*', r'data\locale'),
+    (r'src\pygpt_net\data\audio\*', r'data\audio'),
+    (r'src\pygpt_net\data\css\*', r'data\css'),
+    (r'src\pygpt_net\data\themes\*', r'data\themes'),
+    (r'src\pygpt_net\data\fonts\Lato\*', r'data\fonts\Lato'),
+    (r'src\pygpt_net\data\fonts\SpaceMono\*', r'data\fonts\SpaceMono'),
+    (r'src\pygpt_net\data\fonts\MonaspaceArgon\*', r'data\fonts\MonaspaceArgon'),
+    (r'src\pygpt_net\data\fonts\MonaspaceKrypton\*', r'data\fonts\MonaspaceKrypton'),
+    (r'src\pygpt_net\data\fonts\MonaspaceNeon\*', r'data\fonts\MonaspaceNeon'),
+    (r'src\pygpt_net\data\fonts\MonaspaceRadon\*', r'data\fonts\MonaspaceRadon'),
+    (r'src\pygpt_net\data\fonts\MonaspaceXenon\*', r'data\fonts\MonaspaceXenon'),
+    (r'src\pygpt_net\data\js\highlight\styles\*', r'data\js\highlight\styles'),
+    (r'src\pygpt_net\data\prompts.csv', r'data'),
+    (r'src\pygpt_net\data\languages.csv', r'data'),
+    (r'src\pygpt_net\data\logo.png', r'data'),
+    (r'src\pygpt_net\data\icon.ico', r'data'),
+    (r'src\pygpt_net\data\icon_web.ico', r'data'),
+    (r'src\pygpt_net\data\icon_tray_idle.ico', r'data'),
+    (r'src\pygpt_net\data\icon_tray_busy.ico', r'data'),
+    (r'src\pygpt_net\data\icon_tray_error.ico', r'data'),
+    (r'src\pygpt_net\CHANGELOG.txt', r'.'),
+    (r'src\pygpt_net\LICENSE', r'.'),
+    (r'src\pygpt_net\data\icon.png', r'.'),
+    (r'src\pygpt_net\data\icon.ico', r'.'),
+    (r'src\pygpt_net\data\icon_web.png', r'.'),
+    (r'src\pygpt_net\data\icon_web.ico', r'.'),
+    (r'src\pygpt_net\data\win32\USER-LICENSE.rtf', r'.'),
+    (r'src\pygpt_net\data\win32\README.rtf', r'.'),
+    (r'src\pygpt_net\data\win32\banner.bmp', r'.'),
+    (r'src\pygpt_net\data\win32\banner_welcome.bmp', r'.'),
+    (r'README.md', r'.'),
+    (r'src\pygpt_net\__init__.py', r'.'),
+    (r'venv\Lib\site-packages\llama_index\legacy\VERSION', r'llama_index\legacy'),
+    (r'venv\Lib\site-packages\llama_index\legacy\_static\nltk_cache\corpora\stopwords\*', r'llama_index\legacy\_static\nltk_cache\corpora\stopwords'),
+    (r'venv\Lib\site-packages\llama_index\legacy\_static\nltk_cache\tokenizers\punkt\*', r'llama_index\legacy\_static\nltk_cache\tokenizers\punkt'),
+    (r'venv\Lib\site-packages\llama_index\legacy\_static\nltk_cache\tokenizers\punkt\PY3\*', r'llama_index\legacy\_static\nltk_cache\tokenizers\punkt\PY3'),
+    (r'venv\Lib\site-packages\llama_index\core\_static\nltk_cache\corpora\stopwords\*', r'llama_index\core\_static\nltk_cache\corpora\stopwords'),
+    (r'venv\Lib\site-packages\llama_index\core\agent\react\templates\*', r'llama_index\core\agent\react\templates'),
+    (r'venv\Lib\site-packages\opentelemetry_sdk-1.34.1.dist-info\*', r'opentelemetry_sdk-1.34.1.dist-info'),
+    (r'venv\Lib\site-packages\pinecone\__version__', r'pinecone'),
+]
+
+a = Analysis(
+    [r'src\pygpt_net\app.py'],
+    pathex=[r'src', r'src\pygpt_net'],
+    binaries=[],
+    datas=datas,
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -138,7 +154,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='src\\pygpt_net\\data\\icon.ico',
+    icon=r'src\pygpt_net\data\icon.ico',
     version='version.rc'
 )
 coll = COLLECT(

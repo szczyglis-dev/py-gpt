@@ -3432,6 +3432,7 @@ may consume additional tokens that are not displayed in the main window.
 **2.6.20 (2025-08-22)**
 
 - Added a new plugin: Server (FTP/SSH) - connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more (beta).
+- Added support for Wayland in Snap/compiled versions.
 
 **2.6.19 (2025-08-22)**
 
