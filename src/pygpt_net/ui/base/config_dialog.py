@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.22 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -91,6 +91,20 @@ class BaseConfigDialog:
 
         return widgets
 
+    def trans_or_not(self, label: str):
+        """
+        Translate label or return it as is if translation is not available
+
+        :param label: Label to translate
+        :return: Translated label or original if not found
+        """
+        txt = trans(label)
+        if txt == label:
+            if txt.startswith("dictionary."):
+                # get only last part after the dot
+                txt = txt.split('.')[-1].capitalize()
+        return txt
+
     def add_option(self, widget: QWidget, option: dict) -> QHBoxLayout:
         """
         Add option
@@ -105,7 +119,7 @@ class BaseConfigDialog:
         label_key = f'{label}.label'
         nodes = self.window.ui.nodes
 
-        txt = trans(label)
+        txt = self.trans_or_not(label)
         if extra.get('bold'):
             nodes[label_key] = TitleLabel(txt)
         else:
@@ -151,7 +165,7 @@ class BaseConfigDialog:
         extra = option.get('extra') or {}
         nodes = self.window.ui.nodes
 
-        txt = trans(label)
+        txt = self.trans_or_not(label)
         if extra.get('bold'):
             nodes[label_key] = TitleLabel(txt)
         else:

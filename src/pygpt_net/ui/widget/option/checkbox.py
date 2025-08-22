@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.08.22 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QIcon
@@ -50,7 +50,7 @@ class OptionCheckbox(QWidget):
         if self.option is not None:
             if "label" in self.option and self.option["label"] is not None \
                     and self.option["label"] != "":
-                self.title = trans(self.option["label"])
+                self.title = self.trans_or_not(self.option["label"])
             if "value" in self.option:
                 self.value = self.option["value"]
             if "real_time" in self.option:
@@ -89,6 +89,20 @@ class OptionCheckbox(QWidget):
         #self.layout.addWidget(self.box)
 
         #self.setLayout(self.layout)
+
+    def trans_or_not(self, label: str):
+        """
+        Translate label or return it as is if translation is not available
+
+        :param label: Label to translate
+        :return: Translated label or original if not found
+        """
+        txt = trans(label)
+        if txt == label:
+            if txt.startswith("dictionary."):
+                # get only last part after the dot
+                txt = txt.split('.')[-1].capitalize()
+        return txt
 
     def setIcon(self, icon: str):
         """
