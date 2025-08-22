@@ -1828,7 +1828,7 @@ Allows ``serial_read`` command execution. *Default:* `True`
 Server (SSH/FTP)
 ----------------
 
-The Server plugin provides integration for remote server management via SSH, SFTP, and FTP protocols. This plugin allows executing commands, transferring files, and managing directories on remote servers through a user-friendly interface.
+The Server plugin provides integration for remote server management via SSH, SFTP, and FTP protocols. This plugin allows executing commands, transferring files, and managing directories on remote servers.
 
 The plugin can be configured with various options to customize connectivity and feature access.
 
@@ -1836,15 +1836,15 @@ The plugin can be configured with various options to customize connectivity and 
 
 - ``Servers`` *servers*
 
-Define server configurations with credentials and server details. The model does not access credentials, only names and ports.
+Define server configurations with credentials and server details. **The model does not access credentials, only names and ports.**
 
-  - ``enabled``: Enable or disable server configuration
-  - ``name``: Name of the server.  <<< visible for the model
-  - ``host``: Hostname of the server.
-  - ``login``: Login username.
-  - ``password``: Password for the connection (hidden).
-  - ``port``: Connection port (SSH by default).  <<< visible for the model
-  - ``desc``: Description of the server configuration.
+  - ``enabled`` - Enable or disable server configuration
+  - ``name`` - Name of the server. **(visible for the model)**
+  - ``host`` - Hostname of the server.
+  - ``login`` - Login username.
+  - ``password`` - Password for the connection (hidden).
+  - ``port`` - Connection port (SSH by default). **(visible for the model)**
+  - ``desc`` - Description of the server configuration.
 
 - ``Network timeout (s)`` *net_timeout*
 
