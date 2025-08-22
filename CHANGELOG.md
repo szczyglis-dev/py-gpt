@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.20 (2025-08-22)
+
+- Added a new plugin: Server (FTP/SSH) - connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more (beta).
+
 ## 2.6.19 (2025-08-22)
 
 - Fixed: added prevention for summarizing an empty context.
