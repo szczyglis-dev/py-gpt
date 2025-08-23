@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
+
 import os
 from typing import Optional, List
 
@@ -33,16 +34,19 @@ class Image:
             self,
             text: str,
             prev_ctx: Optional[CtxItem] = None,
-            parent_id: Optional[int] = None,
     ) -> CtxItem:
         """
         Send prompt for image generate
 
         :param text: prompt for image generation
         :param prev_ctx: previous ctx item
-        :param parent_id: parent ctx id
         :return: ctx item
         """
+        core = self.window.core
+        controller = self.window.controller
+        update_status = self.window.update_status
+        dispatch = self.window.dispatch
+
         num = int(self.window.ui.config['global']['img_variants'].input.text() or 1)
         if num < 1:
             num = 1
@@ -50,79 +54,72 @@ class Image:
             num = 4
 
         # force 1 image if dall-e-3 model is used
-        mode = self.window.core.config.get('mode')
-        model = self.window.core.config.get('model')
-        model_data = self.window.core.models.get(model)
+        mode = core.config.get('mode')
+        model = core.config.get('model')
+        model_data = core.models.get(model)
         if model_data.id == 'dall-e-3' or model_data.id == 'gpt-image-1':
             num = 1
 
-        self.window.update_status(trans('status.sending'))
+        update_status(trans('status.sending'))
 
         # create ctx item
         ctx = CtxItem()
         ctx.current = True  # mark as current context item
-        ctx.meta = self.window.core.ctx.get_current_meta()  # CtxMeta (owner object)
-        ctx.set_input(text, self.window.core.config.get('user_name'))
+        ctx.meta = core.ctx.get_current_meta()  # CtxMeta (owner object)
+        ctx.set_input(text, core.config.get('user_name'))
         ctx.prev_ctx = prev_ctx  # store previous context item
         ctx.live = True
 
         # event: context before
         event = Event(Event.CTX_BEFORE)
         event.ctx = ctx
-        self.window.dispatch(event)
+        dispatch(event)
 
         # add ctx to DB
-        self.window.core.ctx.add(ctx)
+        core.ctx.add(ctx)
 
         # render: begin
-        data = {
+        dispatch(RenderEvent(RenderEvent.STREAM_BEGIN, {
             "meta": ctx.meta,
             "ctx": ctx,
             "stream": False,
-        }
-        event = RenderEvent(RenderEvent.STREAM_BEGIN, data)
-        self.window.dispatch(event)
+        }))
 
-        # append input to chat
-        data = {
+        # render: append input
+        dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
             "meta": ctx.meta,
             "ctx": ctx,
-        }
-        event = RenderEvent(RenderEvent.INPUT_APPEND, data)
-        self.window.dispatch(event)
+        }))
 
         # handle ctx name (generate title from summary if not initialized)
-        if self.window.core.config.get('ctx.auto_summary'):
-            self.window.controller.ctx.prepare_name(ctx)
+        if core.config.get('ctx.auto_summary'):
+            controller.ctx.prepare_name(ctx)
 
         # get attachments
-        files = self.window.core.attachments.get_all(mode)
+        files = core.attachments.get_all(mode)
         num_files = len(files)
         if num_files > 0:
-            self.window.controller.chat.log("Attachments ({}): {}".format(mode, num_files))
+            controller.chat.log(f"Attachments ({mode}): {num_files}")
 
         # generate image
-        bridge_context = BridgeContext(
+        context = BridgeContext(
             ctx=ctx,
             mode=MODE_IMAGE,
             model=model_data,  # model instance
             prompt=text,
             attachments=files,
         )
-        extra = {
-            "num": num,
-        }
         try:
-            event = KernelEvent(KernelEvent.REQUEST, {
-                'context': bridge_context,
-                'extra': extra,
-            })
-            self.window.dispatch(event)
+            dispatch(KernelEvent(KernelEvent.REQUEST, {
+                'context': context,
+                'extra': {
+                    "num": num,
+                },
+            }))
         except Exception as e:
-            self.window.core.debug.log(e)
+            core.debug.log(e)
             self.window.ui.dialogs.alert(e)
-            self.window.update_status(trans('status.error'))
-
+            update_status(trans('status.error'))
         return ctx
 
     @Slot(object, list, str)
@@ -139,37 +136,39 @@ class Image:
         :param paths: list with paths to downloaded images
         :param prompt: prompt used to generate images
         """
-        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+        core = self.window.core
+        dispatch = self.window.dispatch
+
+        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "img",
         }))
         string = ""
         i = 1
         for path in paths:
             basename = os.path.basename(path)
-            string += "[{}]({})".format(basename, path) + "\n"
+            string += f"[{basename}]({path})\n"
             i += 1
 
-        if not self.window.core.config.get('img_raw'):
-            string += "\nPrompt: "
-            string += prompt
+        if not core.config.get('img_raw'):
+            string += f"\nPrompt: {prompt}"
 
-        local_urls = self.window.core.filesystem.make_local_list(paths)
+        local_urls = core.filesystem.make_local_list(paths)
         ctx.images = local_urls  # save images paths
         ctx.set_output(string.strip())
 
         # event: after context
         event = Event(Event.CTX_AFTER)
         event.ctx = ctx
-        self.window.dispatch(event)
+        dispatch(event)
 
         # store last mode (in text mode this is handled in send_text)
-        mode = self.window.core.config.get('mode')
-        self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
-        self.window.core.ctx.store()  # save current ctx to DB
+        mode = core.config.get('mode')
+        core.ctx.post_update(mode)  # post update context, store last mode, etc.
+        core.ctx.store()  # save current ctx to DB
         self.window.update_status(trans('status.img.generated'))
 
         # update ctx in DB
-        self.window.core.ctx.update_item(ctx)
+        core.ctx.update_item(ctx)
 
         self.window.controller.chat.common.unlock_input()  # unlock input
 
@@ -187,19 +186,23 @@ class Image:
         :param paths: list with paths to downloaded images
         :param prompt: prompt used to generate images
         """
-        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+        core = self.window.core
+        controller = self.window.controller
+        dispatch = self.window.dispatch
+
+        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "img",
         }))
         string = ""
         i = 1
         for path in paths:
-            string += "{}) `{}`".format(i, path) + "\n"
+            string += f"{i}) `{path}`\n"
             i += 1
 
-        local_urls = self.window.core.filesystem.make_local_list(paths)
+        local_urls = core.filesystem.make_local_list(paths)
         ctx.images = local_urls  # save images paths in ctx item here
         
-        self.window.core.ctx.update_item(ctx)  # update in DB
+        core.ctx.update_item(ctx)  # update in DB
         self.window.update_status(trans('status.img.generated'))  # update status
 
         # WARNING:
@@ -221,41 +224,28 @@ class Image:
                 "meta": ctx.meta,
                 "ctx": ctx,
             }
-            event = RenderEvent(RenderEvent.EXTRA_APPEND, data)
-            self.window.dispatch(event)  # show image first
-
-            event = RenderEvent(RenderEvent.EXTRA_END, data)
-            self.window.dispatch(event)  # end extra
+            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, data))  # show image first
+            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, data))  # end extra
 
             context = BridgeContext()
             context.ctx = ctx
-            extra = {
-                "flush": True,
-            }
-            event = KernelEvent(KernelEvent.REPLY_ADD, {
+            dispatch(KernelEvent(KernelEvent.REPLY_ADD, {
                 'context': context,
-                'extra': extra,
-            })
-            self.window.dispatch(event)
-            self.window.controller.chat.common.unlock_input()  # unlock input
-
-            event = RenderEvent(RenderEvent.TOOL_UPDATE, data)
-            self.window.dispatch(event)  # end of tool, hide spinner icon
+                'extra': {
+                    "flush": True,
+                },
+            }))
+            controller.chat.common.unlock_input()  # unlock input
+            dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))  # end of tool, hide spinner icon
             return
 
         # NOT internal-mode, user called, so append only img output to chat (show images now):
-
         data = {
             "meta": ctx.meta,
             "ctx": ctx,
         }
-        event = RenderEvent(RenderEvent.EXTRA_APPEND, data)
-        self.window.dispatch(event)  # show image first
+        dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, data))  # show image first
+        dispatch(RenderEvent(RenderEvent.EXTRA_END, data))  # end extra
 
-        event = RenderEvent(RenderEvent.EXTRA_END, data)
-        self.window.dispatch(event)  # end extra
-
-        self.window.controller.chat.common.unlock_input()  # unlock input
-
-        event = RenderEvent(RenderEvent.TOOL_UPDATE, data)
-        self.window.dispatch(event)  # end of tool, hide spinner icon
+        controller.chat.common.unlock_input()  # unlock input
+        dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))  # end of tool, hide spinner icon

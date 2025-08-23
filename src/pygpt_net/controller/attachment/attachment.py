@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import os
@@ -78,6 +78,22 @@ class Attachment:
 
         # update tokens counter (vision plugin, etc.)
         self.window.controller.ui.update_tokens()
+
+    def cleanup(self, ctx: CtxItem) -> bool:
+        """
+        Clear attachments list on ctx end
+
+        :param ctx: CtxItem
+        :return: True if cleared
+        """
+        auto_clear = self.window.core.config.get('attachments_send_clear')
+        if self.clear_allowed(ctx):
+            if auto_clear and not self.is_locked():
+                self.clear(force=True, auto=True)
+                self.update()
+                self.window.controller.chat.log("Attachments cleared.")  # log
+                return True
+        return False
 
     def update_tab(self, mode: str):
         """

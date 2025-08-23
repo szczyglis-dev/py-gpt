@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 from typing import List, Tuple
@@ -47,6 +47,9 @@ class Dispatcher:
         :param all: bool: If True, dispatch to all plugins regardless of their state.
         :return: Tuple[List[str], BaseEvent]: A tuple containing a list of affected plugin IDs and the event.
         """
+        if not isinstance(event, BaseEvent):
+            raise RuntimeError(f"Not an event object: {event}")
+
         if not isinstance(event, RenderEvent):
             event.call_id = self.call_id
 
@@ -68,6 +71,7 @@ class Dispatcher:
 
         handled = False
 
+        # kernel
         if isinstance(event, KernelEvent):
             kernel_auto = (KernelEvent.INIT, KernelEvent.RESTART, KernelEvent.STOP, KernelEvent.TERMINATE)
             if event.name not in kernel_auto:
@@ -78,6 +82,7 @@ class Dispatcher:
             if event.name not in kernel_auto:
                 handled = True
 
+        # render
         elif isinstance(event, RenderEvent):
             controller.chat.render.handle(event)
             if log_event:
@@ -85,11 +90,28 @@ class Dispatcher:
             self.call_id += 1
             handled = True
 
+        # tools
         wnd.tools.handle(event)
 
         if handled:
             return [], event
 
+        # agents
+        controller.agent.handle(event)
+
+        # ctx
+        controller.ctx.handle(event)
+
+        # model
+        controller.model.handle(event)
+
+        # idx
+        controller.idx.handle(event)
+
+        # ui
+        controller.ui.handle(event)
+
+        # access
         if isinstance(event, (ControlEvent, AppEvent)):
             controller.access.handle(event)
 
@@ -98,6 +120,7 @@ class Dispatcher:
         plugins_dict = plugins_mgr.plugins
         plugin_ids = tuple(plugins_dict.keys())
 
+        # plugins
         for pid in plugin_ids:
             if controller.plugins.is_enabled(pid) or all:
                 if event.stop:

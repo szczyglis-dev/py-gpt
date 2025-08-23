@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 00:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 import re
@@ -136,7 +136,7 @@ class Helpers:
         :return: formatted text
         """
         s = text
-        if self.window.core.config.get("llama.idx.chat.agent.render.all", False):
+        if self.window.core.config.get("agent.output.render.all", False):
             if "__agent_begin__" in s or "__agent_end__" in s:
                 s = s.replace("__agent_begin__", '<div class="msg-agent">').replace("__agent_end__", "</div>")
         return s.strip()

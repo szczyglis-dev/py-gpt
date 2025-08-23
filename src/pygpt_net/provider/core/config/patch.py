@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 19:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -2051,8 +2051,8 @@ class Patch:
             # < 2.5.61
             if old < parse_version("2.5.61"):
                 print("Migrating config from < 2.5.61..")
-                if "llama.idx.chat.agent.render.all" not in data:
-                    data["llama.idx.chat.agent.render.all"] = False
+                if "agent.output.render.all" not in data:
+                    data["agent.output.render.all"] = False
                 data["prompt.expert"] = self.window.core.config.get_base(
                     'prompt.expert')
                 if "experts.use_agent" not in data:
@@ -2271,6 +2271,13 @@ class Patch:
                     # add documents scope
                     if "https://www.googleapis.com/auth/documents" not in data['plugins']['google']['oauth_scopes']:
                         data['plugins']['google']['oauth_scopes'] += " https://www.googleapis.com/auth/documents"
+                updated = True
+
+            # < 2.6.21
+            if old < parse_version("2.6.21"):
+                print("Migrating config from < 2.6.21...")
+                if "agent.output.render.all" not in data:
+                    data["agent.output.render.all"] = True
                 updated = True
 
         # update file

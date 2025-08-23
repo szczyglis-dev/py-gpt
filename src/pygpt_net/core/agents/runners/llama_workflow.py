@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 import re
@@ -87,13 +87,14 @@ class LlamaWorkflow(BaseRunner):
             self.set_idle(signals)
             return False
 
+        use_current = False
         if ctx.partial:
+            use_current = True  # use current item as response if partial item (do not create new one)
             ctx.partial = False  # reset partial flag
 
-        response_ctx = self.make_response(ctx)
+        response_ctx = self.make_response(ctx, use_current=use_current)
         self.end_stream(response_ctx, signals)
         self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)  # send response
-
         self.set_idle(signals)
         return True
 
@@ -152,19 +153,24 @@ class LlamaWorkflow(BaseRunner):
             ctx.output = ctx.agent_final_response  # set output to current context
         else:
             ctx.output = ctx.live_output
-
         return ctx
 
     def make_response(
             self,
-            ctx: CtxItem
+            ctx: CtxItem,
+            use_current: bool = False
     ) -> CtxItem:
         """
         Create a response context item with the given input and output.
 
         :param ctx: CtxItem - the context item to use as a base
+        :param use_current: If True, use the current context item instead of creating a new one
         """
-        response_ctx = self.add_ctx(ctx, with_tool_outputs=True)
+        if use_current:
+            response_ctx = ctx  # use current context item
+        else:
+            response_ctx = self.add_ctx(ctx, with_tool_outputs=True)
+
         response_ctx.set_input("")
 
         prev_output = ctx.live_output
@@ -175,6 +181,9 @@ class LlamaWorkflow(BaseRunner):
         response_ctx.set_output(prev_output)  # append from stream
         response_ctx.extra["agent_output"] = True  # mark as output response
         response_ctx.extra["agent_finish"] = True  # mark as finished
+
+        if "agent_input" in response_ctx.extra:
+            del response_ctx.extra["agent_input"]  # remove agent input from extra
 
         if ctx.agent_final_response:  # only if not empty
             response_ctx.extra["output"] = ctx.agent_final_response
@@ -194,9 +203,12 @@ class LlamaWorkflow(BaseRunner):
         :param output: Output string
         :return: Filtered output string
         """
+        if output is None:
+            return ""
+
         # Remove <execute>...</execute> tags
         filtered_output = re.sub(r'<execute>.*?</execute>', '', output, flags=re.DOTALL)
-        return filtered_output
+        return filtered_output.strip()
 
     async def run_agent(
             self,

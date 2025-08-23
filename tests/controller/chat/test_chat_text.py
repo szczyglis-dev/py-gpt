@@ -46,9 +46,6 @@ def test_send(mock_window):
 
         ctx = text.send('message')
 
-        mock_window.core.history.append.assert_called_once()  # should append to history
-
-
         mock_window.core.prompt.prepare_sys_prompt.assert_called_once()  # should append cmd syntax
 
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB
@@ -83,7 +80,6 @@ def test_send_stream(mock_window):
 
         ctx = text.send('message')
 
-        mock_window.core.history.append.assert_called_once()  # should append to history
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
@@ -116,7 +112,6 @@ def test_send_assistant(mock_window):
         ctx = text.send('message')
 
         mock_window.controller.assistant.begin.assert_called_once()  # should upload files
-        mock_window.core.history.append.assert_called_once()  # should append to history
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input

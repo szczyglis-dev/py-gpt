@@ -6,19 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 20:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import datetime
 from typing import Optional
 
+from pygpt_net.core.events import BaseEvent, Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 from .common import Common
 from .indexer import Indexer
 from .settings import Settings
-
 
 class Idx:
     def __init__(self, window=None):
@@ -55,6 +55,22 @@ class Idx:
         self.locked = True  # lock update from combo box on start
         self.update()
         self.locked = False
+
+    def handle(self, event: BaseEvent):
+        """
+        Handle events
+
+        :param event: BaseEvent: Event to handle
+        """
+        name = event.name
+
+        # on input begin, unlock experts and reset evaluation steps
+        if name == Event.CTX_END:
+            mode = event.data.get("mode", "")
+            if (mode not in self.window.controller.chat.input.no_ctx_idx_modes
+                    and not self.window.controller.agent.legacy.enabled()):
+                self.window.controller.idx.on_ctx_end(event.ctx, mode=mode)  # update ctx DB index
+                # disabled in agent mode here to prevent loops, handled in agent flow internally if agent mode
 
     def get_modes_keys(self) -> list:
         """
@@ -341,6 +357,14 @@ class Idx:
         :return: True if selected
         """
         return self.current_idx is not None and self.current_idx != "_"
+
+    def get_current(self) -> str:
+        """
+        Get current index name
+
+        :return: Current index name
+        """
+        return self.current_idx
 
     def is_stopped(self) -> bool:
         """

@@ -6,165 +6,178 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 19:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import json
 import uuid
 
-
 class PresetItem:
-
-
     def __init__(self):
-        self.uuid = None
-        self.name = "*"
-        self.ai_name = ""
-        self.ai_avatar = ""
-        self.ai_personalize = False
-        self.user_name = ""
-        self.prompt = ""
-        self.chat = False
-        self.completion = False
-        self.img = False
-        self.vision = False
-        self.langchain = False
-        self.assistant = False
-        self.llama_index = False
         self.agent = False
         self.agent_llama = False
         self.agent_openai = False
-        self.expert = False
-        self.audio = False
-        self.research = False
-        self.computer = False
-        self.temperature = 1.0
-        self.filename = None
-        self.model = None
-        self.version = None
-        self.experts = []  # agent mode
-        self.idx = None
         self.agent_provider = None
         self.agent_provider_openai = None
+        self.ai_avatar = ""
+        self.ai_name = ""
+        self.ai_personalize = False
+        self.assistant = False
         self.assistant_id = ""
+        self.audio = False
+        self.chat = False
+        self.completion = False
+        self.computer = False
         self.description = ""
         self.enabled = True
+        self.expert = False
+        self.experts = []  # agent mode
+        self.extra = {}
+        self.filename = None
+        self.img = False
+        self.idx = None
+        self.langchain = False
+        self.llama_index = False
+        self.model = None
+        self.name = "*"
+        self.prompt = ""
+        self.research = False
+        self.remote_tools = []
+        self.temperature = 1.0
         self.tools = {
             "function": [],
         }
-        self.remote_tools = []
-        self.extra = {}
+        self.uuid = None
+        self.user_name = ""
+        self.version = None
+        self.vision = False
 
     def get_id(self) -> str:
+        """
+        Get preset ID
+
+        :return: ID of the preset
+        """
         return self.filename
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """
+        Convert preset item to dict
+
+        :return: dict representation of the preset item
+        """
         return {
-            "uuid": str(self.uuid),
-            "name": self.name,
-            "ai_name": self.ai_name,
-            "ai_avatar": self.ai_avatar,
-            "ai_personalize": self.ai_personalize,
-            "user_name": self.user_name,
-            "prompt": self.prompt,
-            "chat": self.chat,
-            "completion": self.completion,
-            "img": self.img,
-            "vision": self.vision,
-            "langchain": self.langchain,
-            "assistant": self.assistant,
-            "llama_index": self.llama_index,
             "agent": self.agent,
             "agent_llama": self.agent_llama,
             "agent_openai": self.agent_openai,
-            "expert": self.expert,
-            "audio": self.audio,
-            "research": self.research,
-            "computer": self.computer,
-            "temperature": self.temperature,
-            "filename": self.filename,
-            "model": self.model,
-            "tool.function": self.tools["function"],
-            "experts": self.experts,
-            "idx": self.idx,
             "agent_provider": self.agent_provider,
             "agent_provider_openai": self.agent_provider_openai,
+            "ai_avatar": self.ai_avatar,
+            "ai_name": self.ai_name,
+            "ai_personalize": self.ai_personalize,
+            "assistant": self.assistant,
             "assistant_id": self.assistant_id,
-            "enabled": self.enabled,
+            "audio": self.audio,
+            "chat": self.chat,
+            "completion": self.completion,
+            "computer": self.computer,
             "description": self.description,
-            "remote_tools": self.remote_tools,
+            "enabled": self.enabled,
+            "expert": self.expert,
+            "experts": self.experts,
             "extra": self.extra,
+            "filename": self.filename,
+            "img": self.img,
+            "idx": self.idx,
+            "langchain": self.langchain,
+            "llama_index": self.llama_index,
+            "model": self.model,
+            "name": self.name,
+            "prompt": self.prompt,
+            "remote_tools": self.remote_tools,
+            "research": self.research,
+            "temperature": self.temperature,
+            "tool.function": self.tools["function"],
+            "user_name": self.user_name,
+            "uuid": str(self.uuid),
+            "version": self.version,
+            "vision": self.vision,
         }
 
-    def from_dict(self, data):
-        if "uuid" in data:
-            self.uuid = uuid.UUID(data["uuid"])
-        if "name" in data:
-            self.name = data["name"]
-        if "ai_name" in data:
-            self.ai_name = data["ai_name"]
-        if "ai_avatar" in data:
-            self.ai_avatar = data["ai_avatar"]
-        if "ai_personalize" in data:
-            self.ai_personalize = data["ai_personalize"]
-        if "user_name" in data:
-            self.user_name = data["user_name"]
-        if "prompt" in data:
-            self.prompt = data["prompt"]
-        if "chat" in data:
-            self.chat = data["chat"]
-        if "completion" in data:
-            self.completion = data["completion"]
-        if "img" in data:
-            self.img = data["img"]
-        if "vision" in data:
-            self.vision = data["vision"]
-        if "langchain" in data:
-            self.langchain = data["langchain"]
-        if "assistant" in data:
-            self.assistant = data["assistant"]
-        if "llama_index" in data:
-            self.llama_index = data["llama_index"]
+    def from_dict(self, data: dict):
+        """
+        Load data from dict
+
+        :param data: data dict
+        """
         if "agent" in data:
             self.agent = data["agent"]
         if "agent_llama" in data:
             self.agent_llama = data["agent_llama"]
         if "agent_openai" in data:
             self.agent_openai = data["agent_openai"]
-        if "expert" in data:
-            self.expert = data["expert"]
-        if "audio" in data:
-            self.audio = data["audio"]
-        if "research" in data:
-            self.research = data["research"]
-        if "computer" in data:
-            self.computer = data["computer"]
-        if "temperature" in data:
-            self.temperature = data["temperature"]
-        if "filename" in data:
-            self.filename = data["filename"]
-        if "model" in data:
-            self.model = data["model"]
-        if "tool.function" in data:
-            self.tools["function"] = data["tool.function"]
-        if "experts" in data:
-            self.experts = data["experts"]
-        if "idx" in data:
-            self.idx = data["idx"]
         if "agent_provider" in data:
             self.agent_provider = data["agent_provider"]
         if "agent_provider_openai" in data:
             self.agent_provider_openai = data["agent_provider_openai"]
+        if "ai_avatar" in data:
+            self.ai_avatar = data["ai_avatar"]
+        if "ai_name" in data:
+            self.ai_name = data["ai_name"]
+        if "ai_personalize" in data:
+            self.ai_personalize = data["ai_personalize"]
+        if "assistant" in data:
+            self.assistant = data["assistant"]
         if "assistant_id" in data:
             self.assistant_id = data["assistant_id"]
-        if "enabled" in data:
-            self.enabled = data["enabled"]
+        if "audio" in data:
+            self.audio = data["audio"]
+        if "chat" in data:
+            self.chat = data["chat"]
+        if "completion" in data:
+            self.completion = data["completion"]
+        if "computer" in data:
+            self.computer = data["computer"]
         if "description" in data:
             self.description = data["description"]
-        if "remote_tools" in data:
-            self.remote_tools = data["remote_tools"]
+        if "enabled" in data:
+            self.enabled = data["enabled"]
+        if "expert" in data:
+            self.expert = data["expert"]
+        if "experts" in data:
+            self.experts = data["experts"]
         if "extra" in data:
             self.extra = data["extra"]
+        if "filename" in data:
+            self.filename = data["filename"]
+        if "img" in data:
+            self.img = data["img"]
+        if "idx" in data:
+            self.idx = data["idx"]
+        if "langchain" in data:
+            self.langchain = data["langchain"]
+        if "llama_index" in data:
+            self.llama_index = data["llama_index"]
+        if "model" in data:
+            self.model = data["model"]
+        if "name" in data:
+            self.name = data["name"]
+        if "prompt" in data:
+            self.prompt = data["prompt"]
+        if "remote_tools" in data:
+            self.remote_tools = data["remote_tools"]
+        if "research" in data:
+            self.research = data["research"]
+        if "temperature" in data:
+            self.temperature = data["temperature"]
+        if "tool.function" in data:
+            self.tools["function"] = data["tool.function"]
+        if "user_name" in data:
+            self.user_name = data["user_name"]
+        if "uuid" in data:
+            self.uuid = uuid.UUID(data["uuid"])
+        if "vision" in data:
+            self.vision = data["vision"]
         return self
 
     def add_function(self, name: str, parameters: str, desc: str):
@@ -211,6 +224,10 @@ class PresetItem:
             pass
         return ""
 
-    def __str__(self):
-        """To string"""
+    def __str__(self) -> str:
+        """
+        To string
+
+        :return: serialized item
+        """
         return self.dump()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 import gc
@@ -415,6 +415,17 @@ class Debug:
         res += "\n" + "\n".join(stats)
         print("\n".join(stats))
         return res
+
+    def trace(self):
+        """
+        Print current stack trace
+
+        Prints the current stack trace and returns it as a string.
+        """
+        stack = traceback.format_stack()
+        formatted_trace = "".join(stack)
+        print(formatted_trace)
+        return formatted_trace
 
     def pause(self, *args):
         """

@@ -9,7 +9,11 @@
 # Updated Date: 2025.08.23 21:00:00                  #
 # ================================================== #
 
-MULTIMODAL_AUDIO = "audio"
-MULTIMODAL_IMAGE = "image"
-MULTIMODAL_TEXT = "text"
-MULTIMODAL_VIDEO = "video"
+TYPE_BOOL = "bool"
+TYPE_DICT = "dict"
+TYPE_ENUM = "enum"
+TYPE_FLOAT = "float"
+TYPE_INT = "int"
+TYPE_LIST = "list"
+TYPE_STR = "str"
+TYPE_TEXT = "text"

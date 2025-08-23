@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -67,7 +67,7 @@ class Editor:
         self.window.ui.add_hook("update.config.notepad.num", self.hook_update)
         self.window.ui.add_hook("update.config.render.code_syntax", self.hook_update)
         self.window.ui.add_hook("update.config.theme.style", self.hook_update)
-        self.window.ui.add_hook("update.config.llama.idx.chat.agent.render.all", self.hook_update)
+        self.window.ui.add_hook("update.config.agent.output.render.all", self.hook_update)
         self.window.ui.add_hook("update.config.audio.input.backend", self.hook_update)
         self.window.ui.add_hook("update.config.audio.output.backend", self.hook_update)
         # self.window.ui.add_hook("llama.idx.storage", self.hook_update)  # vector store update
@@ -204,7 +204,7 @@ class Editor:
         if self.config_changed('ctx.sources') or self.config_changed('ctx.audio'):
             self.window.controller.ctx.refresh()
 
-        if self.config_changed('llama.idx.chat.agent.render.all'):
+        if self.config_changed('agent.output.render.all'):
             self.window.controller.chat.render.reload()
 
         # update global shortcuts
@@ -294,7 +294,7 @@ class Editor:
             self.window.core.config.set(key, value)
             self.window.controller.ctx.update()
 
-        elif key == "llama.idx.chat.agent.render.all":
+        elif key == "agent.output.render.all":
             self.window.core.config.set(key, value)
             self.window.controller.chat.render.reload()
 

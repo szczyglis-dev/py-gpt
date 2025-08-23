@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.08.23 21:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -50,8 +50,8 @@ class KernelEvent(BaseEvent):
     # state
     STATE = "kernel.state"
     STATE_BUSY = "kernel.state.busy"
-    STATE_IDLE = "kernel.state.idle"
     STATE_ERROR = "kernel.state.error"
+    STATE_IDLE = "kernel.state.idle"
     STATUS = "kernel.status"
 
     LIVE_APPEND = "kernel.live.append"

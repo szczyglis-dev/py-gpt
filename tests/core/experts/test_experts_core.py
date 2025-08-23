@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import json
@@ -338,7 +338,7 @@ def test_handle_output(fake_window):
     experts = Experts(window=fake_window)
     ctx = CtxItem()
     experts.handle_output(ctx, "test_mode")
-    fake_window.controller.chat.output.handle.assert_called_with(ctx=ctx, mode="test_mode", stream_mode=False)
+    fake_window.controller.chat.output.handle.assert_called_with(ctx=ctx, mode="test_mode", stream=False)
 
 
 def test_handle_cmd(fake_window):
@@ -458,14 +458,14 @@ def test_has_calls(fake_window):
     # normal case: simulate that extract_calls returns a command.
     ctx.sub_reply = False
     ctx.reply = False
-    fake_experts = MagicMock()
-    fake_experts.extract_calls.return_value = {"expH": "Query H"}
-    fake_experts.exists.side_effect = lambda nid: True if nid == "expH" else False
-    fake_window.core.experts = fake_experts
+    experts.extract_calls = MagicMock()
+    experts.extract_calls.return_value = {"expH": "Query H"}
+    experts.exists = MagicMock()
+    experts.exists.side_effect = lambda nid: True if nid == "expH" else False
     result = experts.has_calls(ctx)
     assert result is True
     # when extract_calls returns empty, has_calls should return False.
-    fake_experts.extract_calls.return_value = {}
+    experts.extract_calls.return_value = {}
     result = experts.has_calls(ctx)
     assert result is False
 

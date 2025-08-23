@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.23 21:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -16,16 +16,16 @@ from .base import BaseEvent
 class AppEvent(BaseEvent):
     """Events dispatched by application"""
     APP_STARTED = "app.started"
+    CAMERA_CAPTURED = "camera.captured"
+    CAMERA_DISABLED = "camera.disabled"
+    CAMERA_ENABLED = "camera.enabled"
+    CTX_ATTACHMENTS_CLEAR = "ctx.attachments.clear"
     CTX_CREATED = "ctx.created"
     CTX_END = "ctx.end"
     CTX_SELECTED = "ctx.selected"
-    CTX_ATTACHMENTS_CLEAR = "ctx.attachments.clear"
-    CAMERA_ENABLED = "camera.enabled"
-    CAMERA_DISABLED = "camera.disabled"
-    CAMERA_CAPTURED = "camera.captured"
+    INPUT_CALL = "input.call"
     INPUT_ERROR = "input.error"
     INPUT_SENT = "input.sent"
-    INPUT_CALL = "input.call"
     INPUT_STOPPED = "input.stopped"
     INPUT_VOICE_LISTEN_STARTED = "input.voice.listen.started"
     INPUT_VOICE_LISTEN_STOPPED = "input.voice.listen.stopped"
@@ -33,10 +33,10 @@ class AppEvent(BaseEvent):
     MODEL_SELECTED = "model.selected"
     PRESET_SELECTED = "preset.selected"
     TAB_SELECTED = "tab.switch"
-    VOICE_CONTROL_TOGGLE = "voice.control.toggle"
     VOICE_CONTROL_STARTED = "voice.control.started"
     VOICE_CONTROL_STOPPED = "voice.control.stopped"
     VOICE_CONTROL_SENT = "voice.control.sent"
+    VOICE_CONTROL_TOGGLE = "voice.control.toggle"
     VOICE_CONTROL_UNRECOGNIZED = "voice.control.unrecognized"
 
     def __init__(

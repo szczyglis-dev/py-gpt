@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 import json
@@ -594,10 +594,10 @@ class Renderer(BaseRenderer):
         """
         output = ctx.output
         if isinstance(ctx.extra, dict) and ctx.extra.get("output"):
-            if self.window.core.config.get("llama.idx.chat.agent.render.all", False):
-                output = f"__agent_begin__{ctx.output}__agent_end__{ctx.extra['output']}"
+            if self.window.core.config.get("agent.output.render.all", False):
+                output = ctx.output  # full agent output
             else:
-                output = ctx.extra["output"]
+                output = ctx.extra["output"] # final output only
         else:
             if not output:
                 return

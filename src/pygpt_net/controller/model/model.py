@@ -6,17 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
+import os
 from typing import Optional
 
-from pygpt_net.core.events import Event, AppEvent
+from pygpt_net.core.events import Event, AppEvent, BaseEvent
+from pygpt_net.core.types import MODE_LLAMA_INDEX, MODE_CHAT
 from pygpt_net.item.model import ModelItem
+from pygpt_net.utils import trans
 
 from .editor import Editor
 from .importer import Importer
-
 
 class Model:
     def __init__(self, window=None):
@@ -31,6 +33,63 @@ class Model:
 
     def _ensure_current_model_map(self):
         return self.window.core.config.data.setdefault('current_model', {})
+
+    def handle(self, event: BaseEvent):
+        """
+        Handle events
+
+        :param event: BaseEvent: Event to handle
+        """
+        name = event.name
+        mode = self.window.core.config.get("mode")
+
+        # on input begin
+        if name == Event.INPUT_BEGIN:
+            force = event.data.get("force", False)
+            stop = event.data.get("stop", False)
+            if not force and not stop:
+                # check ollama model
+                model = self.window.core.config.get('model')
+                if model:
+                    model_data = self.window.core.models.get(model)
+                    if model_data is not None and model_data.is_ollama():
+                        if (mode == MODE_LLAMA_INDEX or
+                                (
+                                        mode == MODE_CHAT and not model_data.is_openai_supported() and model_data.is_ollama()
+                                )
+                        ):
+                            model_id = model_data.get_ollama_model()
+
+                            # load ENV vars first
+                            if ('env' in model_data.llama_index
+                                    and model_data.llama_index['env'] is not None):
+                                for item in model_data.llama_index['env']:
+                                    key = item.get('name', '').strip()
+                                    value = item.get('value', '').strip()
+                                    os.environ[key] = value
+                            status = self.window.core.models.ollama.check_model(model_id)
+                            is_installed = status.get('is_installed', False)
+                            is_model = status.get('is_model', False)
+                            if not is_installed:
+                                event.data["stop"] = True  # stop flow
+                                self.window.ui.dialogs.alert(trans("dialog.ollama.not_installed"))
+                                return
+                            if not is_model:
+                                event.data["stop"] = True  # stop flow
+                                self.window.ui.dialogs.alert(
+                                    trans("dialog.ollama.model_not_found").replace("{model}", model_id))
+                                return
+
+        # on input before
+        elif name == Event.INPUT_BEFORE:
+            # check API key, show monit if no API key for current provider
+            model = self.window.core.config.get('model')
+            if model:
+                model_data = self.window.core.models.get(model)
+                if not self.window.controller.chat.common.check_api_key(mode=mode, model=model_data, monit=False):
+                    self.window.controller.chat.common.check_api_key(mode=mode, model=model_data, monit=True)
+                    event.data["stop"] = True  # stop flow
+                    return
 
     def select(self, model: str):
         """

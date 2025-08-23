@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 import os
@@ -60,6 +60,7 @@ class Database:
             'output',
             'input_name',
             'output_name',
+            'extra',
             'input_ts',
             'output_ts',
             'mode',
@@ -74,7 +75,6 @@ class Database:
             'files_json',
             'attachments_json',
             'additional_ctx_json',
-            'extra',
             'hidden_input',
             'hidden_output',
             'input_tokens',

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 import json
 import os
@@ -43,7 +43,7 @@ def fake_window(fake_node):
     w.core.ctx.container.get_active_pid = MagicMock(return_value=1)
     w.core.config = MagicMock()
     def config_get(k, d=None):
-        mapping = {"debug.render": False, "llama.idx.chat.agent.render.all": False, "ctx.sources": False, "render.blocks": False}
+        mapping = {"debug.render": False, "agent.output.render.all": False, "ctx.sources": False, "render.blocks": False}
         return mapping.get(k, d)
     w.core.config.get = MagicMock(side_effect=config_get)
     w.core.config.get_app_path = MagicMock(return_value="/app/path")

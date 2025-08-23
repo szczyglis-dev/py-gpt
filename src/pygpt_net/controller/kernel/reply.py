@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import json
@@ -20,7 +20,7 @@ from pygpt_net.item.ctx import CtxItem
 class Reply:
     def __init__(self, window=None):
         """
-        Reply handler
+        Reply handler (response from plugins, tools, etc.)
 
         :param window: Window instance
         """
@@ -42,28 +42,33 @@ class Reply:
         :param extra: extra data
         :return: list of results
         """
-        flush = False
-        if "flush" in extra and extra["flush"]:
-            flush = True
+        flush = extra.get("flush", False) if isinstance(extra, dict) else False
         ctx = context.ctx
-        if ctx is not None:
-            self.run_post_response(ctx, extra)
-            self.last_result = ctx.results
-            if ctx.agent_call:
-                return ctx.results # abort if called in agent and return here, TODO: check if needed!!!!!
-            self.window.core.debug.info("Reply...")
-            if self.window.core.debug.enabled() and self.is_log():
-                self.window.core.debug.debug("CTX REPLY: " + str(ctx))
-            if ctx.reply:
-                if self.reply_idx >= ctx.pid:  # skip if reply already sent for this context
-                    # >>> this prevents multiple replies from the same ctx item <<<
-                    return []
-                self.reply_idx = ctx.pid 
-                self.append(ctx)
-            if flush or self.window.controller.kernel.async_allowed(ctx):
-                self.flush()
-            return ctx.results
-        return []
+        if ctx is None:
+            return []
+
+        core = self.window.core
+        self.last_result = ctx.results
+        self.on_post_response(ctx, extra)
+
+        if ctx.agent_call:
+            # TODO: clear() here?
+            return ctx.results # abort if called by agent, TODO: check if needed!!!!!
+
+        core.debug.info("Reply...")
+        if core.debug.enabled() and self.is_log():
+            core.debug.debug("CTX REPLY: " + str(ctx))
+
+        if ctx.reply:
+            if self.reply_idx >= ctx.pid:  # prevent multiple replies per ctx
+                return []
+            self.reply_idx = ctx.pid
+            self.append(ctx)
+
+        if flush or self.window.controller.kernel.async_allowed(ctx):
+            self.flush()
+
+        return ctx.results
 
     def append(self, ctx: CtxItem):
         """
@@ -73,76 +78,63 @@ class Reply:
         """
         self.window.core.debug.info("Reply stack (add)...")
         self.reply_stack.append(ctx.results)
-        ctx.results = []  # clear results
         self.reply_ctx = ctx
+        self.reply_ctx.results = []  # clear results
 
     def flush(self):
         """Flush reply stack"""
         if self.reply_ctx is None or len(self.reply_stack) == 0:
             return
 
-        self.window.core.debug.info("Reply stack (flush)...")
+        core = self.window.core
+        dispatch = self.window.dispatch
+        core.debug.info("Reply stack (flush)...")
+
         results = []
         for responses in self.reply_stack:
             for result in responses:
                 results.append(result)
 
         self.window.update_status("")  # clear status
-        if self.reply_ctx.internal:
-            if self.window.controller.agent.legacy.enabled():
-                self.window.controller.agent.legacy.add_run()
-                self.window.controller.agent.legacy.update()
+        self.window.controller.agent.on_reply(self.reply_ctx)  # handle reply in agent
 
         # prepare data to send as reply
         tool_data = json.dumps(results)
         if (len(self.reply_stack) < 2
                 and self.reply_ctx.extra_ctx
-                and self.window.core.config.get("ctx.use_extra")):
+                and core.config.get("ctx.use_extra")):
             tool_data = self.reply_ctx.extra_ctx  # if extra content is set, use it as data to send
 
-        prev_ctx = self.window.core.ctx.as_previous(self.reply_ctx)  # copy result to previous ctx and clear current ctx
-        self.window.core.ctx.update_item(self.reply_ctx)  # update context in db
+        prev_ctx = core.ctx.as_previous(self.reply_ctx)  # copy result to previous ctx and clear current ctx
+        core.ctx.update_item(self.reply_ctx)  # update context in db
         self.window.update_status('...')
 
-        # if response from sub call, from experts
-        parent_id = None
-        if self.reply_ctx.sub_call:
-            if self.reply_ctx.meta is not None:
-                parent_id = self.reply_ctx.meta.id  # slave meta id
-
         # tool output append
-        data = {
+        dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, {
             "meta": self.reply_ctx.meta,
             "tool_data": tool_data,
-        }
-        event = RenderEvent(RenderEvent.TOOL_UPDATE, data)
-        self.window.dispatch(event)
+        }))
         self.clear()
 
         # disable reply if LlamaIndex agent is used
-        mode = self.window.core.config.get("mode")
-        if mode == MODE_LLAMA_INDEX:
-            if self.window.core.config.get("llama.idx.react", False):
-                self.window.core.debug.info("Reply disabled for LlamaIndex ReAct agent")
-                return
+        mode = core.config.get("mode")
+        if mode == MODE_LLAMA_INDEX and core.config.get("llama.idx.react", False):
+            return
 
         # send reply
         context = BridgeContext()
         context.ctx = prev_ctx
         context.prompt = str(tool_data)
-        extra = {
-            "force": True,
-            "reply": True,
-            "internal": True,
-            "parent_id": parent_id,
-        }
-        event = KernelEvent(KernelEvent.REPLY_RETURN, {
+        dispatch(KernelEvent(KernelEvent.REPLY_RETURN, {
             'context': context,
-            'extra': extra,
-        })
-        self.window.dispatch(event)
+            'extra': {
+                "force": True,
+                "reply": True,
+                "internal": True,
+            },
+        }))
 
-    def run_post_response(
+    def on_post_response(
             self,
             ctx: CtxItem,
             extra_data: Optional[Dict[str, Any]] = None
@@ -157,8 +149,7 @@ class Reply:
             if (ctx is None or not ctx.agent_call) or not self.window.controller.kernel.is_threaded():
                 if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
                     if "file_explorer" in extra_data["post_update"]:
-                        # update file explorer view
-                        self.window.controller.files.update_explorer()
+                        self.window.controller.files.update_explorer()  # update file explorer view
 
     def clear(self):
         """Clear reply stack"""
@@ -172,8 +163,4 @@ class Reply:
 
         :return: true if can be logged
         """
-        is_log = False
-        if self.window.core.config.has("log.events") \
-                and self.window.core.config.get("log.events"):
-            is_log = True
-        return is_log
+        return self.window.core.config.get("log.events", False)

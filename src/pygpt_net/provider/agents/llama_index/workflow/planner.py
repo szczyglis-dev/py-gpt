@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 03:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 from typing import List, Optional, Callable
@@ -518,7 +518,7 @@ class PlannerWorkflow(Workflow):
             lines.append(
                 f"\n**===== Sub Task {i}: {st.name} =====**\n"
                 f"Expected output: {st.expected_output}\n"
-                f"Dependencies: {st.dependencies}\n"
+                f"Dependencies: {st.dependencies}\n\n"
             )
         await self._emit_text(ctx, "\n".join(lines))
         return PlanReady(plan=plan, query=ev.query)
@@ -556,7 +556,7 @@ class PlannerWorkflow(Workflow):
             header = (
                 f"\n\n**===== Sub Task {i}/{total}: {st.name} =====**\n"
                 f"Expected output: {st.expected_output}\n"
-                f"Dependencies: {st.dependencies}\n"
+                f"Dependencies: {st.dependencies}\n\n"
             )
 
             # stop callback

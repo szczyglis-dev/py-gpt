@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import json
@@ -226,75 +226,73 @@ class JsonFileProvider(BaseProvider):
         :param data: serialized item
         :param item: item to deserialize
         """
-        if MODE_CHAT in data:
-            item.chat = data[MODE_CHAT]
-        if MODE_COMPLETION in data:
-            item.completion = data[MODE_COMPLETION]
-        if MODE_IMAGE in data:
-            item.img = data[MODE_IMAGE]
-        if MODE_VISION in data:
-            item.vision = data[MODE_VISION]
-        # if MODE_LANGCHAIN in data:
-            # item.langchain = data[MODE_LANGCHAIN]
-        if MODE_ASSISTANT in data:
-            item.assistant = data[MODE_ASSISTANT]
-        if MODE_LLAMA_INDEX in data:
-            item.llama_index = data[MODE_LLAMA_INDEX]
         if MODE_AGENT in data:
             item.agent = data[MODE_AGENT]
         if MODE_AGENT_LLAMA in data:
             item.agent_llama = data[MODE_AGENT_LLAMA]
         if MODE_AGENT_OPENAI in data:
             item.agent_openai = data[MODE_AGENT_OPENAI]
-        if MODE_EXPERT in data:
-            item.expert = data[MODE_EXPERT]
+        if MODE_ASSISTANT in data:
+            item.assistant = data[MODE_ASSISTANT]
         if MODE_AUDIO in data:
             item.audio = data[MODE_AUDIO]
-        if MODE_RESEARCH in data:
-            item.research = data[MODE_RESEARCH]
+        if MODE_CHAT in data:
+            item.chat = data[MODE_CHAT]
+        if MODE_COMPLETION in data:
+            item.completion = data[MODE_COMPLETION]
         if MODE_COMPUTER in data:
             item.computer = data[MODE_COMPUTER]
+        if MODE_EXPERT in data:
+            item.expert = data[MODE_EXPERT]
+        if MODE_IMAGE in data:
+            item.img = data[MODE_IMAGE]
+        if MODE_LLAMA_INDEX in data:
+            item.llama_index = data[MODE_LLAMA_INDEX]
+        if MODE_RESEARCH in data:
+            item.research = data[MODE_RESEARCH]
+        if MODE_VISION in data:
+            item.vision = data[MODE_VISION]
 
-        if 'uuid' in data:
-            item.uuid = data['uuid']
-        if 'name' in data:
-            item.name = data['name']
-        if 'ai_name' in data:
-            item.ai_name = data['ai_name']
-        if 'ai_avatar' in data:
-            item.ai_avatar = data['ai_avatar']
-        if 'ai_personalize' in data:
-            item.ai_personalize = data['ai_personalize']
-        if 'user_name' in data:
-            item.user_name = data['user_name']
-        if 'prompt' in data:
-            item.prompt = data['prompt']
-        if 'temperature' in data:
-            item.temperature = data['temperature']
-        if 'filename' in data:
-            item.filename = data['filename']
-        if 'model' in data:
-            item.model = data['model']
-        if 'tools' in data:
-            item.tools = data['tools']
-        if 'experts' in data:
-            item.experts = data['experts']
-        if 'idx' in data:
-            item.idx = data['idx']
         if 'agent_provider' in data:
             item.agent_provider = data['agent_provider']
         if 'agent_provider_openai' in data:
             item.agent_provider_openai = data['agent_provider_openai']
+        if 'ai_avatar' in data:
+            item.ai_avatar = data['ai_avatar']
+        if 'ai_name' in data:
+            item.ai_name = data['ai_name']
+        if 'ai_personalize' in data:
+            item.ai_personalize = data['ai_personalize']
         if 'assistant_id' in data:
             item.assistant_id = data['assistant_id']
-        if 'enabled' in data:
-            item.enabled = data['enabled']
         if 'description' in data:
             item.description = data['description']
-        if 'remote_tools' in data:
-            item.remote_tools = data['remote_tools']
+        if 'enabled' in data:
+            item.enabled = data['enabled']
+        if 'experts' in data:
+            item.experts = data['experts']
         if 'extra' in data:
             item.extra = data['extra']
+        if 'filename' in data:
+            item.filename = data['filename']
+        if 'idx' in data:
+            item.idx = data['idx']
+        if 'model' in data:
+            item.model = data['model']
+        if 'name' in data:
+            item.name = data['name']
+        if 'prompt' in data:
+            item.prompt = data['prompt']
+        if 'remote_tools' in data:
+            item.remote_tools = data['remote_tools']
+        if 'temperature' in data:
+            item.temperature = data['temperature']
+        if 'tools' in data:
+            item.tools = data['tools']
+        if 'user_name' in data:
+            item.user_name = data['user_name']
+        if 'uuid' in data:
+            item.uuid = data['uuid']
 
         # get version
         if '__meta__' in data and 'version' in data['__meta__']:

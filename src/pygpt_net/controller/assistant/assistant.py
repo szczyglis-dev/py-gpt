@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -55,6 +55,23 @@ class Assistant:
             self.update_list()
         self.files.update_list()
         self.select_current()
+
+    def check(self) -> bool:
+        """
+        Check if assistants are loaded
+
+        :return: True if assistants are loaded
+        """
+        # check if assistant is selected
+        if self.window.core.config.get('assistant') is None \
+                or self.window.core.config.get('assistant') == "":
+            self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
+            return False
+        return True
+
+    def resume(self):
+        """Reset assistants state"""
+        self.threads.stop = False
 
     def update_list(self):
         """Update assistants list"""

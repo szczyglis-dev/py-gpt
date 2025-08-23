@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 07:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import json
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from PySide6.QtCore import Slot
 
@@ -114,16 +114,17 @@ class Experts:
         :return: experts dict
         """
         experts = {}
-        presets = self.window.core.presets.get_by_mode(MODE_EXPERT)
+        core = self.window.core
+        presets = core.presets.get_by_mode(MODE_EXPERT)
 
         # mode: agent
         if self.agent_enabled():
-            agents = self.window.core.presets.get_by_mode(MODE_AGENT)
-            agent = self.window.core.config.get('preset')
+            agents = core.presets.get_by_mode(MODE_AGENT)
+            agent = core.config.get('preset')
             if agent is not None:
                 if agent in agents:
                     for uuid in agents[agent].experts:
-                        expert = self.window.core.presets.get_by_uuid(uuid)
+                        expert = core.presets.get_by_uuid(uuid)
                         if expert is not None:
                             id = expert.filename
                             experts[id] = expert
@@ -137,12 +138,12 @@ class Experts:
                 experts[k] = presets[k]
         return experts
 
-    def get_expert_name_by_id(self, id: str) -> str:
+    def get_expert_name_by_id(self, id: str) -> Optional[str]:
         """
         Get expert name by id
 
         :param id: expert id
-        :return: expert name
+        :return: expert name or None if not found
         """
         experts = self.get_experts()
         if id in experts:
@@ -156,10 +157,11 @@ class Experts:
         :return: number of experts
         """
         i = 0
-        agents = self.window.core.presets.get_by_mode(MODE_AGENT)
+        core = self.window.core
+        agents = core.presets.get_by_mode(MODE_AGENT)
         if uuid in agents:
             for expert_uuid in agents[uuid].experts:
-                expert = self.window.core.presets.get_by_uuid(expert_uuid)
+                expert = core.presets.get_by_uuid(expert_uuid)
                 if expert is not None:
                     i += 1
         return i
@@ -189,15 +191,16 @@ class Experts:
         :param ctx: context item
         :return: dict with calls
         """
+        core = self.window.core
         ids = self.get_experts().keys()
         if not ids:  # abort if no experts
             return {}
-        cmds = self.window.core.command.extract_cmds(ctx.output)
+        cmds = core.command.extract_cmds(ctx.output)
         if len(cmds) > 0:
             ctx.cmds = cmds  # append commands to ctx
         else:  # abort if no cmds
             return {}
-        commands = self.window.core.command.from_commands(cmds)  # pack to execution list
+        commands = core.command.from_commands(cmds)  # pack to execution list
         is_cmd = False
         my_commands = []
         calls = {}
@@ -220,7 +223,7 @@ class Experts:
                     query = item["params"]["query"]
                     calls[id] = query
             except Exception as e:
-                self.window.core.debug.log(e)
+                core.debug.log(e)
                 return {}
         return calls
 
@@ -272,9 +275,6 @@ class Experts:
         reply_ctx.output_name = ""
         reply_ctx.sub_call = True  # this flag is not copied in to_dict
 
-        internal = False
-        if self.agent_enabled():  # hide in agent mode
-            internal = True
         if ctx.output.strip() != "":
             response = reply_ctx.output
         else:
@@ -290,16 +290,15 @@ class Experts:
         if ctx.sub_reply:
             reply_ctx.extra["sub_reply"] = True  # mark as sub-reply
             context.prompt = json.dumps(result, ensure_ascii=False, indent=2)  # to master
-        extra = {
-            "force": True,
-            "reply": True,
-            "internal": internal,
-        }
-        event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+
+        self.window.dispatch(KernelEvent(KernelEvent.INPUT_SYSTEM, {
             'context': context,
-            'extra': extra,
-        })
-        self.window.dispatch(event)
+            'extra': {
+                "force": True,
+                "reply": True,
+                "internal": self.agent_enabled(),
+            },
+        }))
 
     def call(
             self,
@@ -317,26 +316,27 @@ class Experts:
         if self.stopped():
             return
 
-        self.worker = ExpertWorker(
+        worker = ExpertWorker(
             window=self.window,
             master_ctx=master_ctx,
             expert_id=expert_id,
-            query=query
+            query=query,
         )
-        self.worker.signals.response.connect(self.handle_response)  # connect to finished signal
-        self.worker.signals.finished.connect(self.handle_finished)  # connect to finished signal
-        self.worker.signals.error.connect(self.handle_error)  # connect to error signal
-        self.worker.signals.event.connect(self.handle_event)  # connect to event signal
-        self.worker.signals.output.connect(self.handle_output)  # connect to output signal
-        self.worker.signals.lock_input.connect(self.handle_input_locked)  # connect to lock input signal
-        self.worker.signals.cmd.connect(self.handle_cmd)  # connect to cmd signal
+        worker.signals.response.connect(self.handle_response)  # connect to finished signal
+        worker.signals.finished.connect(self.handle_finished)  # connect to finished signal
+        worker.signals.error.connect(self.handle_error)  # connect to error signal
+        worker.signals.event.connect(self.handle_event)  # connect to event signal
+        worker.signals.output.connect(self.handle_output)  # connect to output signal
+        worker.signals.lock_input.connect(self.handle_input_locked)  # connect to lock input signal
+        worker.signals.cmd.connect(self.handle_cmd)  # connect to cmd signal
 
-        # start worker in thread pool
+        # start worker in threadpool
+        self.worker = worker
         self.last_expert_id = expert_id  # store last expert id
         self.master_ctx = master_ctx
-        expert_name = self.get_expert_name_by_id(expert_id)
+        name = self.get_expert_name_by_id(expert_id)
         event = KernelEvent(KernelEvent.STATE_BUSY, {
-            "msg": f"{trans('expert.wait.status')} ({expert_name})",
+            "msg": f"{trans('expert.wait.status')} ({name})",
         })
         self.window.dispatch(event)  # dispatch busy event
         self.window.threadpool.start(self.worker)
@@ -355,7 +355,7 @@ class Experts:
         self.window.controller.chat.output.handle(
             ctx=ctx,
             mode=mode,
-            stream_mode=False,
+            stream=False,
         )
 
     @Slot(CtxItem, CtxItem, str, str, str)
@@ -379,31 +379,33 @@ class Experts:
         if self.stopped():
             return
 
+        core = self.window.core
+        update_status = self.window.update_status
+
         # extract native tool calls if provided
         if ctx.tool_calls:
             # if not internal commands in a text body then append tool calls as commands (prevent double commands)
-            if not self.window.core.command.has_cmds(ctx.output):
-                self.window.core.command.append_tool_calls(ctx)  # append tool calls as commands
+            if not core.command.has_cmds(ctx.output):
+                core.command.append_tool_calls(ctx)  # append tool calls as commands
                 if not isinstance(ctx.extra, dict):
                     ctx.extra = {}
                 ctx.extra["tool_calls"] = ctx.tool_calls
 
         # if 'get_context' tool is used then force call, and append idx
         self.extract_tool_calls(ctx)  # extract tool calls from ctx
-
         self.window.controller.chat.command.handle(ctx, internal=True)  # handle cmds sync
-        if ctx.reply:
-            self.window.update_status("")  # clear status
 
+        if ctx.reply:
+            update_status("")  # clear status
             # prepare data to send as reply
             tool_data = json.dumps(ctx.results)
             # if "tool_output" in ctx.extra and ctx.extra["tool_output"]:
                # tool_data = str(ctx.extra["tool_output"])
 
-            self.window.core.ctx.update_item(ctx)  # update context in db
-            self.window.update_status('...')
+            core.ctx.update_item(ctx)  # update context in db
+            update_status('...')
             ctx.output = f"<tool>{ctx.cmds}</tool>"
-            self.window.core.ctx.update_item(ctx)  # update ctx in DB
+            core.ctx.update_item(ctx)  # update ctx in DB
             self.handle_finished()
             self.call(
                 master_ctx=self.master_ctx,
@@ -461,34 +463,29 @@ class Experts:
 
         :param error: error message
         """
+        dispatch = self.window.dispatch
+
         if self.stopped():
-            event = KernelEvent(KernelEvent.STATE_IDLE, {})
-            self.window.dispatch(event)  # dispatch idle event
+            dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
             return
 
         # handle error from worker
         context = BridgeContext()
         context.prompt = f"{trans('expert.wait.failed')}: {error}"
-        extra = {
-            "force": True,
-            "reply": False,
-            "internal": False,
-        }
-        # reply to master
-        event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+        dispatch(KernelEvent(KernelEvent.INPUT_SYSTEM, {
             'context': context,
-            'extra': extra,
-        })
-        self.window.dispatch(event)
-        event = KernelEvent(KernelEvent.STATE_IDLE, {})
-        self.window.dispatch(event)  # dispatch idle event
+            'extra': {
+                "force": True,
+                "reply": False,
+                "internal": False,
+            },
+        }))  # reply to master
+        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
 
     @Slot()
     def handle_finished(self):
         """Handle worker finished signal"""
-        event = KernelEvent(KernelEvent.STATE_IDLE, {})
-        self.window.dispatch(event)  # dispatch idle event
-
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
 
     @Slot(CtxItem, str)
     def handle_response(self, ctx: CtxItem, expert_id: str):
@@ -498,9 +495,10 @@ class Experts:
         :param ctx: CtxItem
         :param expert_id: expert id
         """
+        dispatch = self.window.dispatch
+
         if self.stopped():
-            event = KernelEvent(KernelEvent.STATE_IDLE, {})
-            self.window.dispatch(event)  # dispatch idle event
+            dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
             return
 
         # handle reply from worker
@@ -510,20 +508,17 @@ class Experts:
             "expert_id": expert_id,
             "result": str(ctx.output),
         }
+        # TODO: clear ctx.output here?
         context.prompt = json.dumps(result, ensure_ascii=False, indent=2)  # prepare prompt for reply
-        extra = {
-            "force": True,
-            "reply": True,
-            "internal": False,
-        }
-        # reply to master
-        event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+        dispatch(KernelEvent(KernelEvent.INPUT_SYSTEM, {
             'context': context,
-            'extra': extra,
-        })
-        self.window.dispatch(event)
-        event = KernelEvent(KernelEvent.STATE_IDLE, {})
-        self.window.dispatch(event)  # dispatch idle event
+            'extra': {
+                "force": True,
+                "reply": True,
+                "internal": False,
+            },
+        }))  # reply to master
+        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
 
     def get_functions(self) -> List[Dict[str, str]]:
         """
@@ -531,7 +526,7 @@ class Experts:
 
         :return: call the expert commands
         """
-        cmds = [
+        return [
             {
                 "cmd": TOOL_EXPERT_CALL_NAME,
                 "instruction": TOOL_EXPERT_CALL_DESCRIPTION,
@@ -551,7 +546,6 @@ class Experts:
                 ]
             }
         ]
-        return cmds
 
     def get_retriever_tool(self) -> Dict[str, str]:
         """
@@ -580,10 +574,10 @@ class Experts:
         :return: True if expert calls found
         """
         if not ctx.sub_reply and not ctx.reply:
-            mentions = self.window.core.experts.extract_calls(ctx)
+            mentions = self.extract_calls(ctx)
             if mentions:
                 for expert_id in mentions:
-                    if not self.window.core.experts.exists(expert_id):
+                    if not self.exists(expert_id):
                         continue
                     return True
         return False

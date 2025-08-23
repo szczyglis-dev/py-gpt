@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 22:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
-from typing import Optional, Any
+from typing import Any
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -31,79 +31,42 @@ class Experts:
         self.window = window
         self.is_stop = False
 
-    def stop(self):
-        """
-        Stop experts
-        """
-        self.is_stop = True
-
-    def stopped(self) -> bool:
-        """
-        Check if experts are stopped
-
-        :return: True if experts are stopped
-        """
-        return self.is_stop
-
-    def unlock(self):
-        """Unlock experts"""
-        self.is_stop = False
-
-    def enabled(self, check_inline = True) -> bool:
-        """
-        Check if experts are enabled
-
-         :param check_inline: check inline mode
-        :return: True if experts are enabled
-        """
-        modes = [MODE_EXPERT]
-        mode = self.window.core.config.get('mode')
-        if not check_inline:
-            if mode in modes:
-                return True
-            else:
-                return False
-        else:
-            if mode in modes or self.window.controller.plugins.is_type_enabled("expert"):
-                return True
-            else:
-                return False
-
     def append_prompts(
             self,
             mode: str,
             sys_prompt: str,
-            parent_id: Optional[str] = None
-    ):
+    ) -> str:
         """
         Append prompt to the window
 
         :param mode: Mode
         :param sys_prompt: Prompt text
-        :param parent_id: Parent ID
+        :return: Updated system prompt
         """
+        core = self.window.core
+        controller = self.window.controller
+
         # if agent enabled
-        if self.window.controller.agent.legacy.enabled():
+        if controller.agent.legacy.enabled():
             prev_prompt = sys_prompt
-            sys_prompt = self.window.core.prompt.get("agent.instruction")
+            sys_prompt = core.prompt.get("agent.instruction")
             if prev_prompt is not None and prev_prompt.strip() != "":
                 sys_prompt = sys_prompt + "\n\n" + prev_prompt  # append previous prompt
 
-        # expert or agent mode
-        if ((self.enabled() or self.window.controller.agent.legacy.enabled(check_inline=False))
-                and parent_id is None):  # master expert has special prompt
-            if self.window.controller.agent.legacy.enabled():  # if agent then leave agent prompt
-                sys_prompt += "\n\n" + self.window.core.experts.get_prompt()  # both, agent + experts
+        # if expert or agent mode
+        if self.enabled() or controller.agent.legacy.enabled(check_inline=False):  # master expert has special prompt
+            if controller.agent.legacy.enabled():  # if agent then leave agent prompt
+                sys_prompt += "\n\n" + core.experts.get_prompt()  # both, agent + experts
             else:
-                sys_prompt = self.window.core.experts.get_prompt()
+                sys_prompt = core.experts.get_prompt()
                 # mode = "chat"  # change mode to chat for expert
 
         # if global mode is agent
         if mode == MODE_AGENT:
-            sys_prompt = self.window.controller.agent.legacy.on_system_prompt(
+            sys_prompt = controller.agent.legacy.on_system_prompt(
                 sys_prompt,
                 append_prompt=None,  # sys prompt from preset is used here
-                auto_stop=self.window.core.config.get('agent.auto_stop'),
+                auto_stop=core.config.get('agent.auto_stop'),
             )
 
         return sys_prompt
@@ -113,59 +76,93 @@ class Experts:
         Handle mentions (calls) to experts
 
         :param ctx: CtxItem
+        :return: Number of calls made to experts
         """
-        stream_mode = self.window.core.config.get('stream')
+        core = self.window.core
+        controller = self.window.controller
+        dispatch = self.window.dispatch
+        log = self.log
+        stream = core.config.get('stream')
         num_calls = 0
 
         # extract expert mentions
-        if self.enabled() or self.window.controller.agent.legacy.enabled(check_inline=False):
+        if self.enabled() or controller.agent.legacy.enabled(check_inline=False):
             # re-send to master
             if ctx.sub_reply:
-                self.window.core.ctx.update_item(ctx)
-                self.window.core.experts.reply(ctx)
+                core.ctx.update_item(ctx)
+                core.experts.reply(ctx)
             else:
+                # abort if reply
+                if ctx.reply:
+                    return num_calls
+
                 # call experts
-                if not ctx.reply:
-                    mentions = self.window.core.experts.extract_calls(ctx)
-                    if mentions:
-                        num_calls = 0
-                        self.log("Calling experts...")
-                        data = {
-                            "meta": ctx.meta,
-                            "ctx": ctx,
-                            "stream": stream_mode,
-                        }
-                        event = RenderEvent(RenderEvent.END, data)
-                        self.window.dispatch(event)  # close previous render
-                        for expert_id in mentions:
-                            if not self.window.core.experts.exists(expert_id):
-                                self.log("Expert not found: " + expert_id)
-                                continue
-                            self.log("Calling: " + expert_id)
-                            ctx.sub_calls += 1
+                mentions = core.experts.extract_calls(ctx)
 
-                            # add to reply stack
-                            reply = ReplyContext()
-                            reply.type = ReplyContext.EXPERT_CALL
-                            reply.ctx = ctx
-                            reply.parent_id = expert_id
-                            reply.input = mentions[expert_id]
+                if mentions:
+                    log("Calling experts...")
+                    dispatch(RenderEvent(RenderEvent.END, {
+                        "meta": ctx.meta,
+                        "ctx": ctx,
+                        "stream": stream,
+                    }))  # close previous render
 
-                            # send to kernel
-                            context = BridgeContext()
-                            context.ctx = ctx
-                            context.reply_context = reply
-                            event = KernelEvent(KernelEvent.AGENT_CALL, {
-                                'context': context,
-                                'extra': {},
-                            })
-                            self.window.dispatch(event)
+                    for expert_id in mentions:
+                        if not core.experts.exists(expert_id):
+                            log(f"Expert not found: {expert_id}")
+                            continue
 
-                            num_calls += 1
-                        if num_calls > 0:
-                            return num_calls  # abort continue if expert call detected
+                        log(f"Calling: {expert_id}")
+                        ctx.sub_calls += 1
+
+                        # add to reply stack
+                        reply = ReplyContext()
+                        reply.type = ReplyContext.EXPERT_CALL
+                        reply.ctx = ctx
+                        reply.parent_id = expert_id
+                        reply.input = mentions[expert_id]
+
+                        # send to kernel
+                        context = BridgeContext()
+                        context.ctx = ctx
+                        context.reply_context = reply
+                        dispatch(KernelEvent(KernelEvent.AGENT_CALL, {
+                            'context': context,
+                            'extra': {},
+                        }))
+                        num_calls += 1
 
         return num_calls
+
+    def enabled(self, check_inline: bool = True) -> bool:
+        """
+        Check if experts are enabled
+
+        :param check_inline: check inline mode
+        :return: True if experts are enabled
+        """
+        modes = [MODE_EXPERT]
+        mode = self.window.core.config.get('mode')
+        if not check_inline:
+            return mode in modes
+        else:
+            return mode in modes or self.window.controller.plugins.is_type_enabled("expert")
+
+    def stopped(self) -> bool:
+        """
+        Check if experts are stopped
+
+        :return: True if experts are stopped
+        """
+        return self.is_stop
+
+    def stop(self):
+        """Stop experts"""
+        self.is_stop = True
+
+    def unlock(self):
+        """Unlock experts"""
+        self.is_stop = False
 
     def log(self, data: Any):
         """

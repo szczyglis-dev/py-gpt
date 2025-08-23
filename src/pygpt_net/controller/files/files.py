@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 18:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import datetime
@@ -496,6 +496,18 @@ class Files:
         if path.startswith("/") or path.startswith("\\"):
             path = path[1:]
         return path
+
+    def reset(self):
+        """Reset uploaded IDs"""
+        self.uploaded_ids = []
+
+    def get_ids(self) -> list:
+        """
+        Get uploaded files IDs
+
+        :return: uploaded files IDs
+        """
+        return self.uploaded_ids
 
     def reload(self):
         """Reload files"""

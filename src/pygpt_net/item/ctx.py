@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -18,81 +18,80 @@ from typing import Optional
 
 class CtxItem:
 
-    def __init__(self, mode=None):
+    def __init__(self, mode: Optional[str] = None):
         """
         Context item
 
-        :param mode: Mode (completion, chat, img, vision, langchain, assistant, llama_index, agent, expert)
+        :param mode: Mode
         """
-        self.id = None
-        self.meta = None  # CtxMeta object
-        self.meta_id = None
-        self.external_id = None
-        self.stream = None
-        self.cmds = []
-        self.cmds_before = []
-        self.results = []
-        self.urls = []
-        self.urls_before = []
-        self.images = []
-        self.images_before = []
-        self.files = []
-        self.files_before = []
+        self.additional_ctx = []
+        self.agent_call = False  # prevents plugin reply if True
+        self.agent_final_response = ""
+        self.async_disabled = False  # async disabled
         self.attachments = []
         self.attachments_before = []
-        self.additional_ctx = []
-        self.reply = False
-        self.input = None
-        self.output = None
-        self.mode = mode
-        self.model = None
-        self.thread = None
-        self.msg_id = None
-        self.run_id = None
-        self.input_name = None
-        self.output_name = None
-        self.input_timestamp = None
-        self.output_timestamp = None
-        self.hidden_input = None
-        self.hidden_output = None
-        self.input_tokens = 0
-        self.output_tokens = 0
-        self.total_tokens = 0
-        self.extra = {}
-        self.extra_ctx = None
-        self.current = False
-        self.internal = False
-        self.is_vision = False
-        self.is_audio = False
-        self.idx = 0
-        self.first = False
-        self.live = False  # True if is current flow (not loaded from DB)
-        self.agent_call = False # prevents plugin reply if True
-        self.agent_final_response = ""
-        self.use_agent_final_response = False  # use agent final response
-        self.stream_agent_output = True  # stream agent output in real-time
-        self.tool_calls = []  # API tool calls
-        self.index_meta = {}  # llama-index metadata ctx used
-        self.doc_ids = []  # document ids
-        self.prev_ctx = None  # previous context (reply output)
-        self.stopped = False  # run stopped
-        self.sub_calls = 0  # sub calls count
-        self.sub_call = False  # is sub call
-        self.sub_reply = False  # sub call reply
-        self.sub_tool_call = False  # sub tool call
-        self.hidden = False  # hidden context
-        self.use_responses_api = False  # use responses API format
-        self.pid = 0
+        self.audio_expires_ts = 0
         self.audio_id = None
         self.audio_output = None
-        self.audio_expires_ts = 0
-        self.response = None  # response object
-        self.async_disabled = False  # async disabled
         self.bag = None
-        self.live_output = ""
+        self.cmds = []
+        self.cmds_before = []
+        self.current = False
+        self.doc_ids = []  # document ids
+        self.external_id = None
+        self.extra = {}
+        self.extra_ctx = None
+        self.files = []
+        self.files_before = []
+        self.first = False
         self.force_call = False  # force call even if command is not present
+        self.hidden = False  # hidden context
+        self.hidden_input = None
+        self.hidden_output = None
+        self.id = None
+        self.idx = 0
+        self.images = []
+        self.images_before = []
+        self.index_meta = {}  # llama-index metadata ctx used
+        self.input = None
+        self.input_name = None
+        self.input_timestamp = None
+        self.input_tokens = 0
+        self.internal = False
+        self.is_audio = False
+        self.is_vision = False
+        self.live = False  # True if is current flow (not loaded from DB)
+        self.live_output = ""
+        self.meta = None  # CtxMeta object
+        self.meta_id = None
+        self.model = None
+        self.mode = mode
+        self.msg_id = None
+        self.output = None
+        self.output_name = None
+        self.output_timestamp = None
+        self.output_tokens = 0
         self.partial = False  # not final output, used in cycle next ctx, force wait for final output, do not eval, etc
-
+        self.pid = 0
+        self.prev_ctx = None  # previous context (reply output)
+        self.reply = False
+        self.response = None  # response object
+        self.results = []
+        self.run_id = None
+        self.stopped = False  # run stopped
+        self.stream = None
+        self.stream_agent_output = True  # stream agent output in real-time
+        self.sub_call = False  # is sub call
+        self.sub_calls = 0  # sub calls count
+        self.sub_reply = False  # sub call reply
+        self.sub_tool_call = False  # sub tool call
+        self.thread = None
+        self.tool_calls = []  # API tool calls
+        self.total_tokens = 0
+        self.urls = []
+        self.urls_before = []
+        self.use_agent_final_response = False  # use agent final response
+        self.use_responses_api = False  # use responses API format
 
     @property
     def final_input(self) -> Optional[str]:
@@ -127,23 +126,23 @@ class CtxItem:
             self.urls_before = []
 
     def from_previous(self):
-        """Copy data from previous context reply to current context"""
+        """Copy data from previous context item"""
         p = self.prev_ctx
         if not p:
             return
         dp = copy.deepcopy
-        if p.urls or p.urls_before:
-            src = p.urls_before if p.urls_before else p.urls
+        for name in ("urls", "images", "files", "attachments"):
+            src = getattr(p, f"{name}_before", None) or getattr(p, name, None)
             if src:
-                self.urls = dp(src)
-        if p.images or p.images_before:
-            src = p.images_before if p.images_before else p.images
-            if src:
-                self.images = dp(src)
-        if p.files_before:
-            self.files = dp(p.files_before)
-        if p.attachments_before:
-            self.attachments = dp(p.attachments_before)
+                setattr(self, name, dp(src))
+
+    def is_empty(self) -> bool:
+        """
+        Check if context item is empty
+
+        :return: True if context item is empty
+        """
+        return not self.final_output and not self.stream and not self.live_output
 
     def has_commands(self) -> bool:
         """
@@ -175,7 +174,7 @@ class CtxItem:
         self.index_meta = meta
         self.doc_ids.append(meta)
 
-    def set_input(self, input: str | None, name: str = None):
+    def set_input(self, input: Optional[str], name: Optional[str] = None):
         """
         Set input
 
@@ -186,7 +185,7 @@ class CtxItem:
         self.input_name = name
         self.input_timestamp = int(time.time())
 
-    def set_output(self, output: str | None, name: str = None):
+    def set_output(self, output: Optional[str], name: Optional[str] = None):
         """
         Set output
 
@@ -216,7 +215,12 @@ class CtxItem:
         self.output_tokens = output_tokens
         self.total_tokens = input_tokens + output_tokens
 
-    def get_pid(self):
+    def get_pid(self) -> int:
+        """
+        Get context item PID (process ID)
+
+        :return: int
+        """
         return 0
 
     def to_dict(self, dump: bool = False, format: bool = False) -> dict:
@@ -228,72 +232,71 @@ class CtxItem:
         :return: dict
         """
         data = {
-            "id": self.id,
-            "meta_id": self.meta_id,
-            "idx": self.idx,
-            "first": self.first,
-            "live": self.live,
-            "hidden": False,
-            "internal": self.internal,
-            "external_id": self.external_id,
-            # "stream": self.stream,  #  <-- do not dump stream response object
-            "reply": self.reply,
-            "current": self.current,
-            "stopped": self.stopped,
-            "is_audio": self.is_audio,
-            "is_vision": self.is_vision,
             "agent_call": self.agent_call,
-            "tool_calls": self.tool_calls,
-            "index_meta": self.index_meta,
-            "doc_ids": self.doc_ids,
-            "sub_calls": 0,
-            "sub_call": False,
-            "sub_reply": False,
-            "sub_tool_call": False,
-            "extra": self.extra,
-            "extra_ctx": self.extra_ctx,
-            "cmds": self.cmds,
-            "cmds_before": self.cmds_before,
-            "results": self.results,
-            "urls": self.urls,
-            "urls_before": self.urls_before,
-            "images": self.images,
-            "images_before": self.images_before,
-            "files": self.files,
-            "files_before": self.files_before,
             "attachments": self.attachments,
             "attachments_before": self.attachments_before,
-            "pid": self.pid,
+            "audio_expires_ts": self.audio_expires_ts,
+            "audio_id": self.audio_id,
+            "cmds": self.cmds,
+            "cmds_before": self.cmds_before,
+            "current": self.current,
+            "doc_ids": self.doc_ids,
+            "external_id": self.external_id,
+            "extra": self.extra,
+            "extra_ctx": self.extra_ctx,
+            "files": self.files,
+            "files_before": self.files_before,
+            "first": self.first,
+            "force_call": self.force_call,
+            "hidden": False,
+            "hidden_input": self.hidden_input,
+            "hidden_output": self.hidden_output,
+            "id": self.id,
+            "idx": self.idx,
+            "images": self.images,
+            "images_before": self.images_before,
+            "index_meta": self.index_meta,
+            "input": self.input,
+            "input_name": self.input_name,
+            "input_timestamp": self.input_timestamp,
+            "input_tokens": self.input_tokens,
+            "internal": self.internal,
+            "is_audio": self.is_audio,
+            "is_vision": self.is_vision,
+            "live": self.live,
+            "meta": self.meta.to_dict() if type(self.meta) == CtxMeta else self.meta,
+            "meta_id": self.meta_id,
             "mode": self.mode,
             "model": self.model,
-            "thread": self.thread,
             "msg_id": self.msg_id,
-            "run_id": self.run_id,
-            "audio_id": self.audio_id,
-            "audio_expires_ts": self.audio_expires_ts,
-            "input": self.input,
             "output": self.output,
-            'hidden_input': self.hidden_input,
-            'hidden_output': self.hidden_output,
-            "input_name": self.input_name,
             "output_name": self.output_name,
-            "input_timestamp": self.input_timestamp,
             "output_timestamp": self.output_timestamp,
-            "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
+            "pid": self.pid,
+            "reply": self.reply,
+            "results": self.results,
+            "run_id": self.run_id,
+            "stopped": self.stopped,
+            "sub_call": False,
+            "sub_calls": 0,
+            "sub_reply": False,
+            "sub_tool_call": False,
+            "thread": self.thread,
+            "tool_calls": self.tool_calls,
             "total_tokens": self.total_tokens,
-            "force_call": self.force_call,
-            "meta": self.meta.to_dict() if type(self.meta) == CtxMeta else self.meta,
+            "urls": self.urls,
+            "urls_before": self.urls_before,
         }
         if dump:
-            data["live_output"] = self.live_output
             data["hidden"] = self.hidden
+            data["live_output"] = self.live_output
             data["sub_calls"] = self.sub_calls
             data["sub_call"] = self.sub_call
             data["sub_reply"] = self.sub_reply
             data["sub_tool_call"] = self.sub_tool_call
 
-        return data
+        return dict(sorted(data.items(), key=lambda item: item[0]))  # sort by keys
 
     def to_debug(self):
         """
@@ -310,56 +313,56 @@ class CtxItem:
         :param data: dict
         """
         g = data.get
-        self.id = g("id", None)
-        self.meta = g("meta", None)
-        self.meta_id = g("meta_id", None)
-        self.external_id = g("external_id", None)
-        self.stream = g("stream", None)
-        self.cmds = g("cmds", [])
-        self.results = g("results", [])
-        self.urls = g("urls", [])
-        self.urls_before = g("urls_before", [])
-        self.images = g("images", [])
-        self.images_before = g("images_before", [])
-        self.files = g("files", [])
-        self.files_before = g("files_before", [])
+        self.agent_call = g("agent_call", False)
         self.attachments = g("attachments", [])
         self.attachments_before = g("attachments_before", [])
-        self.reply = g("reply", False)
-        self.input = g("input", None)
-        self.output = g("output", None)
-        self.mode = g("mode", None)
-        self.model = g("model", None)
-        self.thread = g("thread", None)
-        self.msg_id = g("msg_id", None)
-        self.run_id = g("run_id", None)
-        self.audio_id = g("audio_id", None)
         self.audio_expires_ts = g("audio_expires_ts", None)
-        self.input_name = g("input_name", None)
-        self.output_name = g("output_name", None)
-        self.input_timestamp = g("input_timestamp", None)
-        self.output_timestamp = g("output_timestamp", None)
-        self.hidden_input = g("hidden_input", None)
-        self.hidden_output = g("hidden_output", None)
-        self.input_tokens = g("input_tokens", 0)
-        self.output_tokens = g("output_tokens", 0)
-        self.total_tokens = g("total_tokens", 0)
+        self.audio_id = g("audio_id", None)
+        self.cmds = g("cmds", [])
+        self.current = g("current", False)
+        self.doc_ids = g("doc_ids", [])
+        self.external_id = g("external_id", None)
         self.extra = g("extra", None)
         self.extra_ctx = g("extra_ctx", False)
-        self.current = g("current", False)
+        self.files = g("files", [])
+        self.files_before = g("files_before", [])
+        self.first = g("first", False)
+        self.hidden = g("hidden", False)
+        self.hidden_input = g("hidden_input", None)
+        self.hidden_output = g("hidden_output", None)
+        self.id = g("id", None)
+        self.idx = g("idx", 0)
+        self.images = g("images", [])
+        self.images_before = g("images_before", [])
+        self.index_meta = g("index_meta", {})
+        self.input = g("input", None)
+        self.input_name = g("input_name", None)
+        self.input_timestamp = g("input_timestamp", None)
+        self.input_tokens = g("input_tokens", 0)
         self.internal = g("internal", False)
         self.is_vision = g("is_vision", False)
-        self.idx = g("idx", 0)
-        self.first = g("first", False)
-        self.agent_call = g("agent_call", False)
-        self.tool_calls = g("tool_calls", [])
-        self.index_meta = g("index_meta", {})
-        self.doc_ids = g("doc_ids", [])
-        self.sub_calls = g("sub_calls", 0)
+        self.meta = g("meta", None)
+        self.meta_id = g("meta_id", None)
+        self.model = g("model", None)
+        self.mode = g("mode", None)
+        self.msg_id = g("msg_id", None)
+        self.output = g("output", None)
+        self.output_name = g("output_name", None)
+        self.output_timestamp = g("output_timestamp", None)
+        self.output_tokens = g("output_tokens", 0)
+        self.results = g("results", [])
+        self.reply = g("reply", False)
+        self.run_id = g("run_id", None)
+        self.stream = g("stream", None)
         self.sub_call = g("sub_call", False)
+        self.sub_calls = g("sub_calls", 0)
         self.sub_reply = g("sub_reply", False)
         self.sub_tool_call = g("sub_tool_call", False)
-        self.hidden = g("hidden", False)
+        self.thread = g("thread", None)
+        self.tool_calls = g("tool_calls", [])
+        self.total_tokens = g("total_tokens", 0)
+        self.urls = g("urls", [])
+        self.urls_before = g("urls_before", [])
 
 
     def dump(self, dump: bool = True) -> str:
@@ -391,42 +394,42 @@ class CtxItem:
 
 class CtxMeta:
 
-    def __init__(self, id=None):
+    def __init__(self, id: Optional[int] = None):
         """
         Context meta data
 
         :param id: Context ID
         """
-        self.id = id
-        self.external_id = None
-        self.uuid = None
-        self.name = None
-        self.date = datetime.datetime.now().strftime("%Y-%m-%d")
-        self.created = int(time.time())
-        self.updated = int(time.time())
-        self.indexed = None
-        self.mode = None
-        self.model = None
-        self.last_mode = None
-        self.last_model = None
-        self.thread = None
-        self.assistant = None
-        self.preset = None
-        self.run = None
-        self.status = None
-        self.extra = None
-        self.initialized = False
-        self.deleted = False
-        self.important = False
+        self.additional_ctx = []  # additional context data
         self.archived = False
-        self.label = 0  # label color
-        self.indexes = {}  # indexes data
-        self.additional_ctx = [] # additional context data
+        self.assistant = None
+        self.created = int(time.time())
+        self.date = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.deleted = False
+        self.external_id = None
+        self.extra = None
         self.group = None  # parent group
         self.group_id = None
-        self.root_id = None
-        self.parent_id = None
+        self.id = id
+        self.important = False
+        self.indexed = None
+        self.indexes = {}  # indexes data
+        self.initialized = False
+        self.label = 0  # label color
+        self.last_mode = None
+        self.last_model = None
+        self.model = None
+        self.mode = None
+        self.name = None
         self.owner_uuid = None
+        self.parent_id = None
+        self.preset = None
+        self.root_id = None
+        self.run = None
+        self.status = None
+        self.thread = None
+        self.updated = int(time.time())
+        self.uuid = None
 
     def has_additional_ctx(self) -> bool:
         """
@@ -490,35 +493,35 @@ class CtxMeta:
         :return: dict
         """
         data = {
-            "id": self.id,
-            "external_id": self.external_id,
-            "uuid": self.uuid,
-            "name": self.name,
-            "date": self.date,
+            "additional_ctx": self.additional_ctx,
+            "archived": self.archived,
+            "assistant": self.assistant,
             "created": self.created,
-            "updated": self.updated,
+            "date": self.date,
+            "deleted": self.deleted,
+            "external_id": self.external_id,
+            "extra": self.extra,
+            "group_id": self.group_id,
+            "id": self.id,
+            "important": self.important,
             "indexed": self.indexed,
-            "mode": self.mode,
-            "model": self.model,
+            "indexes": self.indexes,
+            "initialized": self.initialized,
+            "label": self.label,
             "last_mode": self.last_mode,
             "last_model": self.last_model,
-            "thread": self.thread,
-            "assistant": self.assistant,
+            "mode": self.mode,
+            "model": self.model,
+            "name": self.name,
+            "owner_uuid": self.owner_uuid,
+            "parent_id": self.parent_id,
             "preset": self.preset,
+            "root_id": self.root_id,
             "run": self.run,
             "status": self.status,
-            "extra": self.extra,
-            "initialized": self.initialized,
-            "deleted": self.deleted,
-            "important": self.important,
-            "archived": self.archived,
-            "label": self.label,
-            "indexes": self.indexes,
-            "additional_ctx": self.additional_ctx,
-            "group_id": self.group_id,
-            "root_id": self.root_id,
-            "parent_id": self.parent_id,
-            "owner_uuid": self.owner_uuid,
+            "thread": self.thread,
+            "updated": self.updated,
+            "uuid": self.uuid,
         }
         if self.group:
             data["__group__"] = self.group.to_dict()
@@ -531,37 +534,42 @@ class CtxMeta:
         :param data: dict
         """
         g = data.get
-        self.id = g("id", None)
-        self.external_id = g("external_id", None)
-        self.uuid = g("uuid", None)
-        self.name = g("name", None)
-        self.date = g("date", None)
+        self.additional_ctx = g("additional_ctx", [])
+        self.archived = g("archived", False)
+        self.assistant = g("assistant", None)
         self.created = g("created", None)
-        self.updated = g("updated", None)
+        self.date = g("date", None)
+        self.deleted = g("deleted", False)
+        self.external_id = g("external_id", None)
+        self.extra = g("extra", None)
+        self.group_id = g("group_id", None)
+        self.id = g("id", None)
+        self.important = g("important", False)
         self.indexed = g("indexed", None)
-        self.mode = g("mode", None)
-        self.model = g("model", None)
+        self.indexes = g("indexes", {})
+        self.initialized = g("initialized", False)
+        self.label = g("label", 0)
         self.last_mode = g("last_mode", None)
         self.last_model = g("last_model", None)
-        self.thread = g("thread", None)
-        self.assistant = g("assistant", None)
+        self.mode = g("mode", None)
+        self.model = g("model", None)
+        self.name = g("name", None)
+        self.owner_uuid = g("owner_uuid", None)
+        self.parent_id = g("parent_id", None)
         self.preset = g("preset", None)
+        self.root_id = g("root_id", None)
         self.run = g("run", None)
         self.status = g("status", None)
-        self.extra = g("extra", None)
-        self.initialized = g("initialized", False)
-        self.deleted = g("deleted", False)
-        self.important = g("important", False)
-        self.archived = g("archived", False)
-        self.label = g("label", 0)
-        self.indexes = g("indexes", {})
-        self.additional_ctx = g("additional_ctx", [])
-        self.group_id = g("group_id", None)
-        self.root_id = g("root_id", None)
-        self.parent_id = g("parent_id", None)
-        self.owner_uuid = g("owner_uuid", None)
+        self.thread = g("thread", None)
+        self.updated = g("updated", None)
+        self.uuid = g("uuid", None)
 
-    def get_pid(self):
+    def get_pid(self) -> int:
+        """
+        Get context item PID (process ID)
+
+        :return: int
+        """
         return 0
 
     def dump(self) -> str:
@@ -576,27 +584,31 @@ class CtxMeta:
             pass
         return ""
 
-    def __str__(self):
-        """To string"""
+    def __str__(self) -> str:
+        """
+        To string
+
+        :return: JSON string
+        """
         return self.dump()
 
 class CtxGroup:
 
-    def __init__(self, id=None, name=None):
+    def __init__(self, id: Optional[int] = None, name: Optional[str] = None):
         """
         Context group
 
         :param id: Group ID
         :param name: Group name
         """
-        self.id = id
-        self.uuid = None
-        self.name = name
-        self.items = []
-        self.created = int(time.time())
-        self.updated = int(time.time())
         self.additional_ctx = []
         self.count = 0
+        self.created = int(time.time())
+        self.id = id
+        self.items = []
+        self.name = name
+        self.updated = int(time.time())
+        self.uuid = None
 
     def has_additional_ctx(self) -> bool:
         """
@@ -637,14 +649,14 @@ class CtxGroup:
         :return: dict
         """
         return {
-            "id": self.id,
-            "uuid": self.uuid,
-            "name": self.name,
-            "items": self.items,
             "additional_ctx": self.additional_ctx,
-            "created": self.created,
-            "updated": self.updated,
             "count": self.count,
+            "created": self.created,
+            "id": self.id,
+            "items": self.items,
+            "name": self.name,
+            "updated": self.updated,
+            "uuid": self.uuid,
         }
 
     def from_dict(self, data: dict):
@@ -654,13 +666,13 @@ class CtxGroup:
         :param data: dict
         """
         g = data.get
-        self.id = g("id", None)
-        self.uuid = g("uuid", None)
-        self.name = g("name", None)
-        self.items = g("items", [])
-        self.created = g("created", None)
-        self.updated = g("updated", None)
         self.count = g("count", 0)
+        self.created = g("created", None)
+        self.id = g("id", None)
+        self.items = g("items", [])
+        self.name = g("name", None)
+        self.updated = g("updated", None)
+        self.uuid = g("uuid", None)
 
     def dump(self) -> str:
         """
@@ -674,6 +686,10 @@ class CtxGroup:
             pass
         return ""
 
-    def __str__(self):
-        """To string"""
+    def __str__(self) -> str:
+        """
+        To string
+
+        :return: JSON string
+        """
         return self.dump()

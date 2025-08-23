@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -14,16 +14,19 @@ from typing import Optional, List
 from PySide6.QtCore import QModelIndex, QTimer
 from PySide6.QtGui import QStandardItem
 
-from pygpt_net.core.events import Event, AppEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.core.types import MODE_ASSISTANT
+from pygpt_net.core.events import (
+    Event,
+    AppEvent,
+    RenderEvent,
+    BaseEvent
+)
+from pygpt_net.utils import trans
 
 from .common import Common
 from .summarizer import Summarizer
 from .extra import Extra
-
-from pygpt_net.utils import trans
-from pygpt_net.core.types import MODE_ASSISTANT
-
 
 class Ctx:
     def __init__(self, window=None):
@@ -44,6 +47,55 @@ class Ctx:
         # current group ID
         self.group_id = None
         self.selected = []
+
+    def handle(self, event: BaseEvent):
+        """
+        Handle events
+
+        :param event: BaseEvent: Event to handle
+        """
+        name = event.name
+
+        # on input begin
+        if name == Event.INPUT_BEGIN:
+            force = event.data.get("force", False)
+            stop = event.data.get("stop", False)
+            if not force and not stop:
+                if self.extra.is_editing():
+                    event.data["stop"] = True  # stop flow
+                    self.extra.edit_submit()
+                    return
+
+        # on input before
+        elif name == Event.INPUT_BEFORE:
+            mode = event.data.get("mode")
+            text = event.data.get("value", "")
+            multimodal_ctx = event.data.get("multimodal_ctx", None)
+            # check if image captured from camera and attachment exists
+            camera_captured = (self.window.controller.ui.vision.has_vision()
+                               and self.window.controller.attachment.has(mode))
+
+            # allow empty text input only if multimodal data, otherwise abort
+            is_audio = multimodal_ctx is not None and multimodal_ctx.is_audio_input
+            if len(text.strip()) == 0 and (not camera_captured and not is_audio):
+                event.data["stop"] = True  # stop flow
+                event.data["silent"] = True  # silent stop (no errors)
+                return
+
+        # on input accept
+        elif name == Event.INPUT_ACCEPT:
+            mode = event.data.get("mode")
+            # prepare ctx, create new ctx meta if there is no ctx, or no ctx selected
+            if self.window.core.ctx.count_meta() == 0 or self.window.core.ctx.get_current() is None:
+                self.window.core.ctx.new()
+                self.update()
+                self.window.controller.chat.log("New context created...")  # log
+            else:
+                # check if current ctx is allowed for this mode - if not, then auto-create new ctx
+                self.handle_allowed(mode)
+
+            # update mode in ctx
+            self.update_mode_in_current()
 
     def setup(self):
         """Setup ctx"""
@@ -1151,6 +1203,34 @@ class Ctx:
             if self.group_id == id:
                 self.group_id = None
             self.update_and_restore()
+
+    def prepare_summary(self, ctx: CtxItem) -> bool:
+        """
+        Prepare context summary
+
+        :param ctx: CtxItem
+        :return: True if handled
+        """
+        if not ctx.meta or not ctx.meta.initialized:  # don't call if reply or internal mode
+            if self.window.core.config.get('ctx.auto_summary'):
+                self.window.controller.chat.log("Calling for prepare context name...")
+                self.prepare_name(ctx)  # async
+                return True
+        return False
+
+    def store_history(self, ctx: CtxItem, type: str) -> bool:
+        """
+        Store ctx in history if enabled
+
+        :param ctx: CtxItem
+        :param type: input|output
+        :return: Tru if stored
+        """
+        # store to history
+        if self.window.core.config.get('store_history'):
+            self.window.core.history.append(ctx, type)
+            return True
+        return False
 
     def reload(self):
         """Reload ctx"""

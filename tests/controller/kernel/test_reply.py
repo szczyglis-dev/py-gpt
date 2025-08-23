@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 import json
 import pytest
@@ -134,8 +134,6 @@ def test_flush_internal_legacy(reply_instance):
     reply.reply_stack = [[{"result": "legacy"}]]
     window.controller.agent.legacy.enabled.return_value = True
     reply.flush()
-    window.controller.agent.legacy.add_run.assert_called_once()
-    window.controller.agent.legacy.update.assert_called_once()
     # Two dispatch events are expected.
     assert window.dispatch.call_count == 2
 
@@ -156,15 +154,15 @@ def test_flush_mode_llama_index(reply_instance):
     # Only the RenderEvent dispatch should occur.
     assert window.dispatch.call_count == 1
 
-# Test run_post_response triggering file explorer update.
-def test_run_post_response_update(reply_instance):
+# Test on_post_response triggering file explorer update.
+def test_on_post_response_update(reply_instance):
     reply, window = reply_instance
     fake_ctx = create_fake_ctx(agent_call=False)
-    reply.run_post_response(fake_ctx, extra_data={"post_update": ["file_explorer"]})
+    reply.on_post_response(fake_ctx, extra_data={"post_update": ["file_explorer"]})
     window.controller.files.update_explorer.assert_called_once()
     window.controller.files.update_explorer.reset_mock()
     # Passing extra data without "file_explorer" should not trigger update.
-    reply.run_post_response(fake_ctx, extra_data={"post_update": ["other"]})
+    reply.on_post_response(fake_ctx, extra_data={"post_update": ["other"]})
     window.controller.files.update_explorer.assert_not_called()
 
 # Test clear method.

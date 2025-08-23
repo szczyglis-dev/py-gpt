@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import datetime
@@ -19,6 +19,7 @@ from PySide6.QtGui import QImage, QPixmap, Qt
 
 from pygpt_net.core.events import AppEvent, KernelEvent
 from pygpt_net.core.camera import CaptureWorker
+from pygpt_net.core.types import MODE_ASSISTANT
 from pygpt_net.utils import trans
 
 
@@ -145,12 +146,19 @@ class Camera(QObject):
 
         return result
 
-    def handle_auto_capture(self):
-        """Handle auto capture"""
-        if self.is_enabled():
-            if self.is_auto():
-                self.capture_frame(switch=False)
-                self.window.controller.chat.log("Captured frame from camera.")  # log
+    def handle_auto_capture(self, mode: str):
+        """
+        Handle auto capture
+
+        :param mode: current mode
+        """
+        if mode == MODE_ASSISTANT:
+            return  # abort in Assistants mode
+        if self.window.controller.ui.vision.has_vision():
+            if self.is_enabled():
+                if self.is_auto():
+                    self.capture_frame(switch=False)
+                    self.window.controller.chat.log("Captured frame from camera.")  # log
 
     def get_current_frame(self, flip_colors: bool = True):
         """

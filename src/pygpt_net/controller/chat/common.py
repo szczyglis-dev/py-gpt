@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 import os
@@ -14,7 +14,7 @@ import os
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog, QApplication
 
-from pygpt_net.core.events import Event, AppEvent, RenderEvent
+from pygpt_net.core.events import Event, AppEvent, RenderEvent, KernelEvent
 from pygpt_net.core.types import MODE_ASSISTANT
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
@@ -250,6 +250,21 @@ class Common:
             unlock = False
         return unlock
 
+    def auto_unlock(self, ctx: CtxItem) -> bool:
+        """
+        Auto unlock input after end
+
+        :param ctx: CtxItem
+        :return: True if unlocked
+        """
+        # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
+        # send btn will be unlocked in agent mode on stop
+        if self.can_unlock(ctx):
+            if not self.window.controller.kernel.stopped():
+                self.unlock_input()  # unlock input
+                return True
+        return False
+
     def stop(self, exit: bool = False):
         """
         Stop all
@@ -257,41 +272,42 @@ class Common:
         :param exit: True if called on app exit
         """
         QApplication.processEvents()
-        mode = self.window.core.config.get('mode')
-        event = Event(Event.FORCE_STOP, {
+
+        core = self.window.core
+        controller = self.window.controller
+        dispatch = self.window.dispatch
+        dispatch(Event(Event.FORCE_STOP, {
             "value": True,
-        })
-        self.window.dispatch(event)  # stop event
-        event = Event(Event.AUDIO_INPUT_TOGGLE, {
+        })) # stop event
+
+        controller.kernel.stack.clear()  # pause reply stack
+        controller.agent.experts.stop()
+        controller.agent.legacy.on_stop()
+        controller.assistant.threads.stop = True
+        controller.assistant.threads.reset()  # reset run and func calls
+        dispatch(Event(Event.AUDIO_INPUT_TOGGLE, {
             "value": False,
-        })
-        self.window.controller.kernel.stack.clear()  # pause reply stack
-        self.window.controller.agent.experts.stop()
-        self.window.controller.agent.legacy.on_stop()
-        self.window.controller.assistant.threads.stop = True
-        self.window.controller.assistant.threads.reset()  # reset run and func calls
-        self.window.dispatch(event)  # stop audio input
-        self.window.controller.kernel.halt = True
+        }))  # stop audio input
+        controller.kernel.halt = True
+        dispatch(RenderEvent(RenderEvent.TOOL_END))  # show waiting
 
-        event = RenderEvent(RenderEvent.TOOL_END)
-        self.window.dispatch(event)  # show waiting
-
-        self.window.core.gpt.stop()
+        core.gpt.stop()
         self.unlock_input()
 
-        self.window.controller.chat.input.generating = False
+        controller.chat.input.generating = False
         self.window.update_status(trans('status.stopped'))
-        self.window.stateChanged.emit(self.window.STATE_IDLE)
+        dispatch(KernelEvent(KernelEvent.STATE_IDLE))  # state: idle
 
         # remotely stop assistant
+        mode = core.config.get('mode')
         if mode == MODE_ASSISTANT and not exit:
             try:
-                self.window.controller.assistant.run_stop()
+                controller.assistant.run_stop()
             except Exception as e:
-                self.window.core.debug.log(e)
+                core.debug.log(e)
 
         if not exit:
-            self.window.dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
+            dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
 
     def check_api_key(
             self,
@@ -310,15 +326,16 @@ class Common:
         if model is None:
             return True
 
+        config = self.window.core.config
         provider_keys = {
-            "openai": self.window.core.config.get('api_key', None),
-            "azure_openai": self.window.core.config.get('api_key', None),
-            "anthropic": self.window.core.config.get('api_key_anthropic', None),
-            "google": self.window.core.config.get('api_key_google', None),
-            "x_ai": self.window.core.config.get('api_key_xai', None),
-            "perplexity": self.window.core.config.get('api_key_perplexity', None),
-            "deepseek_api": self.window.core.config.get('api_key_deepseek', None),
-            "mistral_ai": self.window.core.config.get('api_key_mistral', None),
+            "openai": config.get('api_key', None),
+            "azure_openai": config.get('api_key', None),
+            "anthropic": config.get('api_key_anthropic', None),
+            "google": config.get('api_key_google', None),
+            "x_ai": config.get('api_key_xai', None),
+            "perplexity": config.get('api_key_perplexity', None),
+            "deepseek_api": config.get('api_key_deepseek', None),
+            "mistral_ai": config.get('api_key_mistral', None),
         }
 
         if model.provider in provider_keys:

@@ -6,19 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 from typing import Optional
 
 from PySide6.QtGui import QColor
 
+from pygpt_net.core.events import BaseEvent, Event
 from pygpt_net.utils import trans
 
 from .mode import Mode
 from .tabs import Tabs
 from .vision import Vision
-
 
 class UI:
     def __init__(self, window=None):
@@ -64,6 +64,20 @@ class UI:
         self.update_tokens()
         self.vision.update()
         self.window.controller.agent.legacy.update()
+
+    def handle(self, event: BaseEvent):
+        """
+        Handle events
+
+        :param event: BaseEvent: Event to handle
+        """
+        name = event.name
+
+        # on input begin
+        if name == Event.INPUT_BEGIN:
+            self.tabs.switch_to_first_chat()  # switch to first active chat tab
+        elif name == Event.CTX_END:
+            self.update_tokens()  # update UI
 
     def get_colors(self) -> dict:
         """

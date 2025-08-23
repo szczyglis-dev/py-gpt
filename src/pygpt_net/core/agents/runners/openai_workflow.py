@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -69,7 +69,7 @@ class OpenAIWorkflow(BaseRunner):
         self.window.core.gpt.vision.append_images(ctx)  # append images to ctx if provided
         history = history + msg
 
-        # callbacks
+        # ------------ callbacks ----------------
         def on_step(
                 ctx: CtxItem,
                 begin: bool = False
@@ -136,6 +136,16 @@ class OpenAIWorkflow(BaseRunner):
                 self.send_stream(ctx, signals, False)
                 self.end_stream(ctx, signals)
 
+            # fix: prevent race condition with next context if feedback after response
+            if finish and input == output:
+                ctx.extra["agent_finish"] = True  # mark as finished and ready for evaluation
+                ctx.extra["agent_finish_evaluate"] = True  # mark as feedback response (ignored in loop evaluation)
+                if stream:
+                    self.send_stream(ctx, signals, False)
+                    self.end_stream(ctx, signals)
+                self.send_response(ctx, signals, KernelEvent.APPEND_DATA)
+                return ctx
+
             # create and return next context item
             next_ctx = self.add_next_ctx(ctx)
             next_ctx.set_input(input)
@@ -158,7 +168,8 @@ class OpenAIWorkflow(BaseRunner):
             self.set_idle(signals)
             self.set_error(error)
 
-        # callbacks
+        # ------------ / callbacks ----------------
+
         bridge = ConnectionContext(
             stopped=self.is_stopped,
             on_step=on_step,

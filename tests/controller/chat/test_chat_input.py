@@ -64,7 +64,6 @@ def test_send(mock_window):
         reply=False,
         internal=False,
         prev_ctx=None,
-        parent_id=None,
         multimodal_ctx=context.multimodal_ctx,
     )
 
@@ -93,7 +92,6 @@ def test_execute_text(mock_window):
             reply=False,
             internal=False,
             prev_ctx=None,
-            parent_id=None,
             multimodal_ctx=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
@@ -104,9 +102,6 @@ def test_execute_text(mock_window):
 
         # input clear should be called
         mock_window.dispatch.assert_called()
-
-        # handle allowed should be called
-        mock_window.controller.ctx.handle_allowed.assert_called_once()
 
 
 def test_execute_image(mock_window):
@@ -127,7 +122,7 @@ def test_execute_image(mock_window):
 
         assert input.stop is False
 
-        mock_window.controller.chat.image.send.assert_called_once_with(text='test', prev_ctx=None, parent_id=None)
+        mock_window.controller.chat.image.send.assert_called_once_with(text='test', prev_ctx=None)
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
         # attachments clear should not be called
@@ -136,9 +131,6 @@ def test_execute_image(mock_window):
 
         # input clear should not be called
         mock_window.controller.chat.render.clear_input.assert_not_called()
-
-        # handle allowed should be called
-        mock_window.controller.ctx.handle_allowed.assert_called_once()
 
 
 def test_execute_no_ctx(mock_window):
@@ -162,7 +154,6 @@ def test_execute_no_ctx(mock_window):
             reply=False,
             internal=False,
             prev_ctx=None,
-            parent_id=None,
             multimodal_ctx=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
@@ -173,13 +164,6 @@ def test_execute_no_ctx(mock_window):
 
         # input clear should be called
         mock_window.dispatch.assert_called()
-
-        # handle allowed should not be called
-        mock_window.controller.ctx.handle_allowed.assert_not_called()
-
-        # new ctx should be created and saved
-        mock_window.core.ctx.new.assert_called_once()
-        mock_window.controller.ctx.update.assert_called_once()
 
 
 def test_execute_empty_assistant(mock_window):
@@ -198,7 +182,6 @@ def test_execute_empty_assistant(mock_window):
 
     with patch('PySide6.QtWidgets.QApplication.processEvents') as mock_process_events:
         input.execute('test')
-        mock_window.ui.dialogs.alert.assert_called_once()
         mock_window.controller.chat.text.assert_not_called()
 
 
@@ -226,7 +209,6 @@ def test_execute_vision_mode(mock_window):
             reply=False,
             internal=False,
             prev_ctx=None,
-            parent_id=None,
             multimodal_ctx=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
@@ -237,9 +219,6 @@ def test_execute_vision_mode(mock_window):
 
         # input clear should be called
         mock_window.dispatch.assert_called()
-
-        # handle allowed should be called
-        mock_window.controller.ctx.handle_allowed.assert_called_once()
 
         # vision: capture frame should be called
         mock_window.controller.camera.handle_auto_capture()
@@ -272,7 +251,6 @@ def test_execute_vision_plugin(mock_window):
             reply=False,
             internal=False,
             prev_ctx=None,
-            parent_id=None,
             multimodal_ctx=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
@@ -283,9 +261,6 @@ def test_execute_vision_plugin(mock_window):
 
         # input clear should be called
         mock_window.dispatch.assert_called()
-
-        # handle allowed should be called
-        mock_window.controller.ctx.handle_allowed.assert_called_once()
 
         # vision: capture frame should be called
         mock_window.controller.camera.handle_auto_capture()

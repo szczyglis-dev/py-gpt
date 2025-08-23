@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
-import os
 from typing import Optional, Any, Dict
 
 from pygpt_net.core.bridge import BridgeContext
@@ -17,12 +16,8 @@ from pygpt_net.core.bridge.context import MultimodalContext
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.types import (
     MODE_AGENT,
-    MODE_AGENT_LLAMA,
-    MODE_AGENT_OPENAI,
-    MODE_LLAMA_INDEX,
     MODE_ASSISTANT,
     MODE_IMAGE,
-    MODE_CHAT,
 )
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -56,110 +51,51 @@ class Input:
 
         :param force: force send
         """
-        # self.window.core.debug.mem("BEGIN")  # debug memory usage
-
-        self.window.controller.agent.experts.unlock()  # unlock experts
-        self.window.controller.agent.llama.reset_eval_step()  # reset evaluation steps
-        self.window.controller.ui.tabs.switch_to_first_chat()  # switch to first active chat tab
+        dispatch = self.window.dispatch
+        mode = self.window.core.config.get('mode')
+        event = Event(Event.INPUT_BEGIN, {
+            'mode': mode,
+            'force': force,
+            'stop': False,
+        })
+        dispatch(event)
+        stop = event.data.get('stop', False)
 
         # get text from input
         text = self.window.ui.nodes['input'].toPlainText().strip()
-        mode = self.window.core.config.get('mode')
 
         if not force:
-            self.window.dispatch(AppEvent(AppEvent.INPUT_SENT))  # app event
-
-            # check if not in edit mode
-            if self.window.controller.ctx.extra.is_editing():
-                self.window.controller.ctx.extra.edit_submit()
+            dispatch(AppEvent(AppEvent.INPUT_SENT))  # app event
+            if stop:
                 return
-
-            # if agent mode: iterations check, show alert confirm if infinity loop
-            if self.window.controller.agent.common.is_infinity_loop(mode):
-                self.window.controller.agent.common.display_infinity_loop_confirm()
-                return
-
-            # check for agent is selected
-            if mode in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
-                preset = self.window.controller.presets.get_current()
-                if not preset or preset.name == "*":
-                    self.window.ui.dialogs.alert(
-                        trans("dialog.agent.not_selected"))
-                    return
-
-            # check ollama model
-            model = self.window.core.config.get('model')
-            if model:
-                model_data = self.window.core.models.get(model)
-                if model_data is not None and model_data.is_ollama():
-                    if (mode == MODE_LLAMA_INDEX or
-                            (mode == MODE_CHAT and not model_data.is_openai_supported() and model_data.is_ollama())):
-                        model_id = model_data.get_ollama_model()
-                        # load ENV vars first
-                        if ('env' in model_data.llama_index
-                                and model_data.llama_index['env'] is not None):
-                            for item in model_data.llama_index['env']:
-                                key = item.get('name', '').strip()
-                                value = item.get('value', '').strip()
-                                os.environ[key] = value
-                        status = self.window.core.models.ollama.check_model(model_id)
-                        is_installed = status.get('is_installed', False)
-                        is_model = status.get('is_model', False)
-                        if not is_installed:
-                            self.window.ui.dialogs.alert(trans("dialog.ollama.not_installed"))
-                            return
-                        if not is_model:
-                            self.window.ui.dialogs.alert(
-                                trans("dialog.ollama.model_not_found").replace("{model}", model_id))
-                            return
 
         # listen for stop command
         if self.generating \
                 and text is not None \
                 and text.lower().strip() in self.stop_commands:
             self.window.controller.kernel.stop()  # TODO: to chat main
-            self.window.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
+            dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
             return
-
-        # agent modes
-        if mode == MODE_AGENT:
-            self.window.controller.agent.legacy.on_user_send(text)  # begin Legacy (autonomous) agent flow
-        elif mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
-            self.window.controller.agent.llama.on_user_send(text)  # begin LlamaIndex adn OpenAI agent flow
 
         # event: user input send (manually)
         event = Event(Event.USER_SEND, {
+            'mode': mode,
             'value': text,
         })
-        self.window.dispatch(Event(Event.USER_SEND, {
-            'value': text,
-        }))
+        dispatch(event)
         text = event.data['value']
 
-        # handle attachments with additional context (not images here)
-        if mode != MODE_ASSISTANT and self.window.controller.chat.attachment.has(mode):
-            self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
-                "id": "chat",
-                "msg": "Reading attachments..."
-            }))
-            try:
-                self.window.controller.chat.attachment.handle(mode, text)
-                return  # return here, will be handled in signal
-            except Exception as e:
-                self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
-                    "id": "chat",
-                    "msg": f"Error reading attachments: {str(e)}"
-                }))
-                return
+        # if attachments, return here - send will be handled via signal after upload
+        if self.handle_attachment(mode, text):
+            return
 
-        # event: handle input
+        # kernel event: handle input
         context = BridgeContext()
         context.prompt = text
-        event = KernelEvent(KernelEvent.INPUT_USER, {
+        dispatch(KernelEvent(KernelEvent.INPUT_USER, {
             'context': context,
             'extra': {},
-        })
-        self.window.dispatch(event)
+        }))
 
     def send(
             self,
@@ -172,21 +108,13 @@ class Input:
         :param context: bridge context
         :param extra: extra data
         """
-        text = str(context.prompt)
-        prev_ctx = context.ctx
-        force = extra.get("force", False)
-        reply = extra.get("reply", False)
-        internal = extra.get("internal", False)
-        parent_id = extra.get("parent_id", None)
-        multimodal_ctx = context.multimodal_ctx
         self.execute(
-            text=text,
-            force=force,
-            reply=reply,
-            internal=internal,
-            prev_ctx=prev_ctx,
-            parent_id=parent_id,
-            multimodal_ctx=multimodal_ctx,
+            text=str(context.prompt),
+            force=extra.get("force", False),
+            reply=extra.get("reply", False),
+            internal=extra.get("internal", False),
+            prev_ctx=context.ctx,
+            multimodal_ctx=context.multimodal_ctx,
         )
 
     def execute(
@@ -196,7 +124,6 @@ class Input:
             reply: bool = False,
             internal: bool = False,
             prev_ctx: Optional[CtxItem] = None,
-            parent_id: Optional[int] = None,
             multimodal_ctx: Optional[MultimodalContext] = None,
     ):
         """
@@ -207,10 +134,14 @@ class Input:
         :param reply: reply mode (from plugins)
         :param internal: internal call
         :param prev_ctx: previous context (if reply)
-        :param parent_id: parent id (if expert)
         :param multimodal_ctx: multimodal context
         """
-        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+        core = self.window.core
+        controller = self.window.controller
+        dispatch = self.window.dispatch
+        log = controller.chat.log
+
+        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "chat",
         }))
 
@@ -218,106 +149,103 @@ class Input:
         if self.locked and not force and not internal:
             return
 
-        self.log("Begin.")
+        log("Begin.")
         self.generating = True  # set generating flag
 
-        mode = self.window.core.config.get('mode')
+        # check if assistant is selected
+        mode = core.config.get('mode')
         if mode == MODE_ASSISTANT:
-            # check if assistant is selected
-            if self.window.core.config.get('assistant') is None \
-                    or self.window.core.config.get('assistant') == "":
-                self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
+            if not controller.assistant.check():
                 self.generating = False  # unlock
                 return
-        elif self.window.controller.ui.vision.has_vision():
-            # handle auto capture
-            self.window.controller.camera.handle_auto_capture()
 
-        # unlock Assistants run thread if locked
-        self.window.controller.assistant.threads.stop = False
-        self.window.controller.kernel.resume()
+        # handle camera capture
+        controller.camera.handle_auto_capture(mode)
 
-        self.log(f"Input prompt: {text}")  # log
+        # unlock if locked
+        controller.assistant.resume()
+        controller.kernel.resume()
 
-        # agent mode
-        if mode == MODE_AGENT:
-            self.log(f"Agent: input before: {text}")
-            text = self.window.controller.agent.legacy.on_input_before(text)
+        log(f"Input prompt: {text}")  # log
 
-        # event: before input
+        # event: before input handle
         event = Event(Event.INPUT_BEFORE, {
-            'value': text,
             'mode': mode,
+            'value': text,
+            'multimodal_ctx': multimodal_ctx,
+            'stop': False,
+            'silent': False,  # silent mode (without error messages)
         })
-        self.window.dispatch(event)
+        dispatch(event)
         text = event.data['value']
+        stop = event.data.get('stop', False)
+        silent = event.data.get('silent', False)
 
-        # check if image captured from camera, # check if attachment exists
-        camera_captured = (self.window.controller.ui.vision.has_vision()
-                           and self.window.controller.attachment.has(mode))
-
-        # allow empty text input only if multimodal data, otherwise abort
-        is_audio = multimodal_ctx is not None and multimodal_ctx.is_audio_input
-        if len(text.strip()) == 0 and (not camera_captured and not is_audio):
-            self.generating = False  # unlock as not generating
-            return
-
-        # check API key, show monit if no API key for current provider
-        model = self.window.core.config.get('model')
-        if model:
-            model_data = self.window.core.models.get(model)
-            if not self.window.controller.chat.common.check_api_key(mode=mode, model=model_data, monit=False):
-                self.window.controller.chat.common.check_api_key(mode=mode, model=model_data, monit=True)
-                self.generating = False
-                self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+        if stop:  # abort via event
+            self.generating = False
+            if not silent:
+                dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
                     "id": "chat",
                 }))
-                return
+            return
 
         # set state to: busy
-        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+        dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
             "id": "chat",
             "msg": trans('status.sending'),
         }))
 
         # clear input field if clear-on-send is enabled
-        if self.window.core.config.get('send_clear') and not force and not internal:
-            self.window.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
+        if core.config.get('send_clear') and not force and not internal:
+            dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
 
-        # prepare ctx, create new ctx meta if there is no ctx, or no ctx selected
-        if self.window.core.ctx.count_meta() == 0 or self.window.core.ctx.get_current() is None:
-            self.window.core.ctx.new()
-            self.window.controller.ctx.update()
-            self.log("New context created...")  # log
-        else:
-            # check if current ctx is allowed for this mode - if not, then auto-create new ctx
-            self.window.controller.ctx.handle_allowed(mode)
-
-        # update mode in ctx
-        self.window.controller.ctx.update_mode_in_current()
+        # create ctx, handle allowed, etc.
+        dispatch(Event(Event.INPUT_ACCEPT, {
+            'value': text,
+            'multimodal_ctx': multimodal_ctx,
+            'mode': mode,
+        }))
 
         # send input to API
         if mode == MODE_IMAGE:
-            self.window.controller.chat.image.send(
+            controller.chat.image.send(
                 text=text,
                 prev_ctx=prev_ctx,
-                parent_id=parent_id,
-            )  # image mode
+            )  # image generation
         else:
-            # async
-            self.window.controller.chat.text.send(
+            controller.chat.text.send(
                 text=text,
                 reply=reply,
                 internal=internal,
                 prev_ctx=prev_ctx,
-                parent_id=parent_id,
                 multimodal_ctx=multimodal_ctx,
-            )  # text mode: OpenAI, Langchain, Llama, etc.
+            )  # text mode: OpenAI, LlamaIndex, etc.
 
-    def log(self, data: Any):
+    def handle_attachment(self, mode: str, text: str) -> bool:
         """
-        Log data to debug
+        Handle attachments with additional context (not images here)
 
-        :param data: Data to log
+        :param mode: Mode (e.g., MODE_ASSISTANT, MODE_CHAT)
+        :param text: Input text
+        :return: bool: True if attachments exists, False otherwise
         """
-        self.window.controller.chat.log(data)
+        controller = self.window.controller
+        dispatch = self.window.dispatch
+        exists = False
+
+        # handle attachments with additional context (not images here)
+        if mode != MODE_ASSISTANT and controller.chat.attachment.has(mode):
+            exists = True
+            dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+                "id": "chat",
+                "msg": "Reading attachments..."
+            }))
+            try:
+                controller.chat.attachment.handle(mode, text)
+            except Exception as e:
+                dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+                    "id": "chat",
+                    "msg": f"Error reading attachments: {e}"
+                }))
+
+        return exists

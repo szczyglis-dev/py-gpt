@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -94,7 +94,7 @@ class Chat:
         """
         upper_mode = mode.upper()
         if self.window.core.config.get("log.ctx"):
-            self.log(f"[ctx] {upper_mode}: {ctx.dump()}")  # log
+            self.log(f"[ctx] {upper_mode}: {ctx.dump()}")
         else:
             self.log(f"[ctx] {upper_mode}.")
 

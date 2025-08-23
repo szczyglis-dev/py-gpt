@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 from typing import Any
 
-from qasync import QApplication
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
@@ -44,14 +44,12 @@ class Stack:
         """
         Check if reply stack has any item
 
-        :return: True if has
+        :return: True if has items
         """
         return self.current is not None
 
     def clear(self):
-        """
-        Clear reply stack
-        """
+        """Clear reply stack"""
         self.current = None
         self.unlock()
 
@@ -71,35 +69,37 @@ class Stack:
                 context.parent_id,  # expert id
                 context.input,  # query
             )
+        # cmd execute
         elif context.type == ReplyContext.CMD_EXECUTE:
             self.window.controller.plugins.apply_cmds(
                 context.ctx,  # current ctx
                 context.cmds,  # commands
             )
+        # cmd execute (force)
         elif context.type == ReplyContext.CMD_EXECUTE_FORCE:
             self.window.controller.plugins.apply_cmds(
                 context.ctx,  # current ctx
                 context.cmds,  # commands
                 all=True,
             )
+        # cmd execute (inline)
         elif context.type == ReplyContext.CMD_EXECUTE_INLINE:
             self.window.controller.plugins.apply_cmds_inline(
                 context.ctx,  # current ctx
                 context.cmds,  # commands
             )
+        # agent continue
         elif context.type == ReplyContext.AGENT_CONTINUE:
             bridge_context = BridgeContext()
             bridge_context.ctx = context.ctx
-            bridge_context.prompt = context.input
-            extra = {
-                "force": True,
-                "internal": True,
-            }
-            event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+            bridge_context.prompt = context.input  # from reply context
+            self.window.dispatch(KernelEvent(KernelEvent.INPUT_SYSTEM, {
                 'context': bridge_context,
-                'extra': extra,
-            })
-            self.window.dispatch(event)
+                'extra': {
+                    "force": True,
+                    "internal": True,
+                },
+            }))
 
     def is_locked(self) -> bool:
         """
@@ -131,7 +131,7 @@ class Stack:
 
     def waiting(self) -> bool:
         """
-        Check if reply stack is waiting
+        Check if reply stack is waiting for processing
 
         :return: True if waiting
         """

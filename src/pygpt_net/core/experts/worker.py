@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 07:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 from typing import List, Optional
@@ -303,16 +303,6 @@ class ExpertWorker(QRunnable):
             self.signals.finished.emit()
             self.cleanup()
 
-    def cleanup(self):
-        """Cleanup resources after worker execution."""
-        sig = self.signals
-        self.signals = None
-        if sig is not None:
-            try:
-                sig.deleteLater()
-            except RuntimeError:
-                pass
-
     def call_agent(
             self,
             context: BridgeContext,
@@ -360,3 +350,13 @@ class ExpertWorker(QRunnable):
             return str(response_ctx.output)
         else:
             return "No response from expert."
+
+    def cleanup(self):
+        """Cleanup resources after worker execution."""
+        sig = self.signals
+        self.signals = None
+        if sig is not None:
+            try:
+                sig.deleteLater()
+            except RuntimeError:
+                pass

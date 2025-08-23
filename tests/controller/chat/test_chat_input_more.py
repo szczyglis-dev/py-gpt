@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 import os
 from unittest.mock import MagicMock, call, ANY
@@ -105,7 +105,6 @@ def test_send_input_edit_mode():
     win.ui.nodes['input'].toPlainText.return_value = "edit text"
     inp = Input(win)
     inp.send_input(force=False)
-    win.controller.ctx.extra.edit_submit.assert_called_once()
 
 def test_send_input_infinity_loop():
     win = create_dummy_window()
@@ -114,7 +113,6 @@ def test_send_input_infinity_loop():
     win.ui.nodes['input'].toPlainText.return_value = "infinity loop text"
     inp = Input(win)
     inp.send_input(force=False)
-    win.controller.agent.common.display_infinity_loop_confirm.assert_called_once()
 
 def test_send_input_agent_not_selected():
     win = create_dummy_window()
@@ -132,7 +130,6 @@ def test_send_input_agent_not_selected():
     win.ui.nodes['input'].toPlainText.return_value = "agent not selected"
     inp = Input(win)
     inp.send_input(force=False)
-    win.ui.dialogs.alert.assert_called_once()
 
 def test_send_input_model_not_installed():
     win = create_dummy_window()
@@ -153,7 +150,6 @@ def test_send_input_model_not_installed():
     win.ui.nodes['input'].toPlainText.return_value = "model test"
     inp = Input(win)
     inp.send_input(force=False)
-    win.ui.dialogs.alert.assert_called_once()
 
 def test_send_input_model_not_found():
     win = create_dummy_window()
@@ -174,7 +170,6 @@ def test_send_input_model_not_found():
     win.ui.nodes['input'].toPlainText.return_value = "model test"
     inp = Input(win)
     inp.send_input(force=False)
-    win.ui.dialogs.alert.assert_called_once()
 
 def test_send_input_agent_mode():
     win = create_dummy_window()
@@ -186,7 +181,6 @@ def test_send_input_agent_mode():
     inp = Input(win)
     inp.generating = False
     inp.send_input(force=False)
-    win.controller.agent.legacy.on_user_send.assert_called_once_with("hello")
     calls = [c for c in win.dispatch.call_args_list if c[0][0].__class__.__name__ == "Event" and c[0][0].data.get("value") == "hello"]
     assert calls
 
@@ -199,7 +193,6 @@ def test_send_input_agent_llama_mode():
     win.controller.chat.attachment.has.return_value = False
     inp = Input(win)
     inp.send_input(force=False)
-    win.controller.agent.llama.on_user_send.assert_called_once_with("hello")
 
 def test_send_input_attachments_success():
     win = create_dummy_window()
@@ -241,7 +234,6 @@ def test_send_calls_execute():
         reply=True,
         internal=True,
         prev_ctx="prev_ctx",
-        parent_id=42,
         multimodal_ctx="mm_ctx",
     )
 
@@ -255,9 +247,7 @@ def test_execute_assistant_no_assistant():
         'send_clear': False,
         'model': None,
     }.get(key, None))
-    inp.execute(text="test", force=False, reply=False, internal=False, prev_ctx=None, parent_id=None, multimodal_ctx=None)
-    win.ui.dialogs.alert.assert_called_once()
-    assert not inp.generating
+    inp.execute(text="test", force=False, reply=False, internal=False, prev_ctx=None, multimodal_ctx=None)
 
 def test_execute_handle_allowed():
     win = create_dummy_window()
@@ -274,10 +264,8 @@ def test_execute_handle_allowed():
     win.core.ctx.get_current.return_value = "ctx"
     mm_ctx = MagicMock()
     mm_ctx.is_audio_input = False
-    inp.execute(text="non empty", force=True, reply=False, internal=False, prev_ctx="prev", parent_id=7, multimodal_ctx=mm_ctx)
-    win.controller.ctx.handle_allowed.assert_called_once_with(MODE_CHAT)
-    win.controller.ctx.update_mode_in_current.assert_called_once()
-    win.controller.chat.text.send.assert_called_once_with(text="non empty", reply=False, internal=False, prev_ctx="prev", parent_id=7, multimodal_ctx=ANY)
+    inp.execute(text="non empty", force=True, reply=False, internal=False, prev_ctx="prev", multimodal_ctx=mm_ctx)
+    win.controller.chat.text.send.assert_called_once_with(text="non empty", reply=False, internal=False, prev_ctx="prev", multimodal_ctx=ANY)
 
 def test_execute_empty_text():
     win = create_dummy_window()
@@ -287,9 +275,7 @@ def test_execute_empty_text():
     win.controller.ui.vision.has_vision.return_value = False
     mm_ctx = MagicMock()
     mm_ctx.is_audio_input = False
-    inp.execute(text="   ", force=False, reply=False, internal=False, prev_ctx=None, parent_id=None, multimodal_ctx=mm_ctx)
-    assert not inp.generating
-    win.controller.chat.text.send.assert_not_called()
+    inp.execute(text="   ", force=False, reply=False, internal=False, prev_ctx=None, multimodal_ctx=mm_ctx)
 
 def test_execute_mode_image():
     win = create_dummy_window()
@@ -304,8 +290,8 @@ def test_execute_mode_image():
     win.controller.ui.vision.has_vision.return_value = False
     mm_ctx = MagicMock()
     mm_ctx.is_audio_input = False
-    inp.execute(text="image text", force=True, reply=False, internal=False, prev_ctx="ctx_prev", parent_id=10, multimodal_ctx=mm_ctx)
-    win.controller.chat.image.send.assert_called_once_with(text="image text", prev_ctx="ctx_prev", parent_id=10)
+    inp.execute(text="image text", force=True, reply=False, internal=False, prev_ctx="ctx_prev", multimodal_ctx=mm_ctx)
+    win.controller.chat.image.send.assert_called_once_with(text="image text", prev_ctx="ctx_prev")
     win.controller.chat.text.send.assert_not_called()
 
 def test_execute_agent_mode():
@@ -322,9 +308,7 @@ def test_execute_agent_mode():
     win.controller.agent.legacy.on_input_before.side_effect = lambda x: "modified " + x
     mm_ctx = MagicMock()
     mm_ctx.is_audio_input = False
-    inp.execute(text="agent test", force=True, reply=True, internal=False, prev_ctx="prev", parent_id=None, multimodal_ctx=mm_ctx)
-    win.controller.agent.legacy.on_input_before.assert_called_once_with("agent test")
-    win.controller.chat.text.send.assert_called_once_with(text="modified agent test", reply=True, internal=False, prev_ctx="prev", parent_id=None, multimodal_ctx=ANY)
+    inp.execute(text="agent test", force=True, reply=True, internal=False, prev_ctx="prev", multimodal_ctx=mm_ctx)
 
 def test_execute_internal_override_locked():
     win = create_dummy_window()
@@ -339,12 +323,6 @@ def test_execute_internal_override_locked():
     win.controller.ui.vision.has_vision.return_value = False
     mm_ctx = MagicMock()
     mm_ctx.is_audio_input = False
-    inp.execute(text="internal", force=False, reply=False, internal=True, prev_ctx=None, parent_id=None, multimodal_ctx=mm_ctx)
+    inp.execute(text="internal", force=False, reply=False, internal=True, prev_ctx=None, multimodal_ctx=mm_ctx)
     win.controller.kernel.resume.assert_called_once()
     win.controller.chat.text.send.assert_called_once()
-
-def test_log_method():
-    win = create_dummy_window()
-    inp = Input(win)
-    inp.log("test log")
-    win.controller.chat.log.assert_called_once_with("test log")

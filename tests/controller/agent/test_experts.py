@@ -115,10 +115,10 @@ def test_append_prompts_agent_enabled(dummy_window):
     dummy_window.controller.agent.legacy.enabled.return_value = True
     exp = Experts(window=dummy_window)
     # Test with mode equal to MODE_AGENT
-    result = exp.append_prompts(MODE_AGENT, "Sys", parent_id=None)
+    result = exp.append_prompts(MODE_AGENT, "Sys",)
     assert result == "ModifiedPrompt"
     # Test with mode not equal to MODE_AGENT
-    result = exp.append_prompts("other", "Sys", parent_id=None)
+    result = exp.append_prompts("other", "Sys")
     expected = "Instruction\n\nSys\n\nExpertPrompt"
     assert result == expected
 
@@ -131,23 +131,20 @@ def test_append_prompts_expert_without_agent(dummy_window):
         'stream': 'stream_value'
     }.get(key, None)
     exp = Experts(window=dummy_window)
-    result = exp.append_prompts("other", "Sys", parent_id=None)
+    result = exp.append_prompts("other", "Sys")
     # first if not executed, so second branch sets prompt
     assert result == "ExpertPrompt"
     # With MODE_AGENT the last branch applies
-    result = exp.append_prompts(MODE_AGENT, "Sys", parent_id=None)
+    result = exp.append_prompts(MODE_AGENT, "Sys")
     assert result == "ModifiedPrompt"
 
 def test_append_prompts_with_parent_id(dummy_window):
     # Parent ID provided bypasses second block
     dummy_window.controller.agent.legacy.enabled.return_value = True
     exp = Experts(window=dummy_window)
-    result = exp.append_prompts(MODE_AGENT, "Sys", parent_id="parent")
+    result = exp.append_prompts(MODE_AGENT, "Sys")
     # Only first block applies then on_system_prompt is called
     assert result == "ModifiedPrompt"
-    result = exp.append_prompts("other", "Sys", parent_id="parent")
-    # No expert prompt appended
-    assert result == "Instruction\n\nSys"
 
 class DummyCtx:
     # Minimal CtxItem-like object

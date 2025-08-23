@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 02:00:00                  #
+# Updated Date: 2025.08.23 15:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -24,7 +24,7 @@ def test_handle(mock_window):
     ctx = CtxItem()
     meta = CtxMeta()
     ctx.meta = meta
-    output.handle(ctx, 'chat', stream_mode=False)
+    output.handle(ctx, 'chat', stream=False)
 
     mock_window.dispatch.assert_called()  # should dispatch event: ctx.after
     output.handle_complete.assert_called_once_with(ctx)

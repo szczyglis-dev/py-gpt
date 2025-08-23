@@ -1629,20 +1629,6 @@
         "advanced": false,
         "tab": "chat"
     },    
-    "llama.idx.chat.agent.render.all": {
-        "section": "llama-index",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.llama.idx.chat.agent.render.all",
-        "description": "settings.llama.idx.chat.agent.render.all.desc",
-        "value": false,
-        "min": 0,
-        "max": 0,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false,
-        "tab": "chat"
-    },
     "llama.idx.chat.auto_retrieve": {
         "section": "llama-index",
         "type": "bool",
@@ -1978,6 +1964,20 @@
         "slider": false,
         "label": "settings.agent.idx.auto_retrieve",
         "description": "settings.agent.idx.auto_retrieve.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
+    },
+    "agent.output.render.all": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.output.render.all",
+        "description": "settings.agent.output.render.all.desc",
         "value": true,
         "min": 0,
         "max": 0,
