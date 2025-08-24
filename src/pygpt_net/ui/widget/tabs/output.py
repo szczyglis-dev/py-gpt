@@ -86,17 +86,17 @@ class AddButton(QPushButton):
 
         add_chat = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.chat'), menu)
         add_chat.triggered.connect(
-            lambda: self.tabs.add_tab(index, column_idx, Tab.TAB_CHAT)
+            lambda: self.tabs.add_tab(-2, column_idx, Tab.TAB_CHAT)
         )
         add_notepad = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.notepad'), menu)
         add_notepad.triggered.connect(
-            lambda: self.tabs.add_tab(index, column_idx, Tab.TAB_NOTEPAD)
+            lambda: self.tabs.add_tab(-2, column_idx, Tab.TAB_NOTEPAD)
         )
 
         menu.addAction(add_chat)
         menu.addAction(add_notepad)
 
-        self.window.controller.tools.append_tab_menu(self, menu, index, column_idx, self.tabs)
+        self.window.controller.tools.append_tab_menu(self, menu, -2, column_idx, self.tabs)
 
         return menu
 
@@ -371,6 +371,11 @@ class OutputTabs(QTabWidget):
         :param type: type
         :param tool_id: tool id
         """
+        if index == -2:  # new btn
+            index = self.window.core.tabs.get_max_idx_by_column(column_idx)
+            if index == -1:
+                index = 0
+                
         self.window.controller.ui.tabs.append(
             type=type,
             tool_id=tool_id,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 18:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import uuid
@@ -559,6 +559,19 @@ class Tabs:
                 tab.tooltip = tabs.tabToolTip(tab.idx)
                 tab.updated_at = datetime.now()
 
+    def insert_tab(self, tabs, tab: Tab) -> int:
+        """
+        Insert tab into the specified tab widget
+
+        :param tabs: Tabs instance
+        :param tab: Tab instance
+        :return: new index of the tab
+        """
+        if tab.new_idx is not None:
+            return tabs.insertTab(tab.new_idx, tab.child, tab.title)
+        else:
+            return tabs.addTab(tab.child, tab.title)
+
     def add_chat(self, tab: Tab):
         """
         Add chat tab
@@ -569,10 +582,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.core.ctx.container.get(tab)  # tab is already appended here
-        if tab.new_idx is not None:
-            tab.idx = tabs.insertTab(tab.new_idx, tab.child, tab.title)
-        else:
-            tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.idx = self.insert_tab(tabs, tab)
         tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
@@ -593,10 +603,7 @@ class Tabs:
             idx = tab.data_id  # restore prev idx
         tab.child, idx, data_id = self.window.controller.notepad.create(idx, tab)
         tab.data_id = data_id  # notepad idx in db, enumerated from 1
-        if tab.new_idx is not None:
-            tab.idx = tabs.insertTab(tab.new_idx, tab.child, tab.title)
-        else:
-            tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.idx = self.insert_tab(tabs, tab)
         tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
@@ -612,7 +619,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.ui.chat.output.explorer.setup()
-        tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.idx = self.insert_tab(tabs, tab)
         tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
@@ -629,7 +636,7 @@ class Tabs:
         tab.parent = column
         tab.child = self.window.ui.chat.output.painter.setup()
         tab.child.append(self.window.ui.painter)
-        tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.idx = self.insert_tab(tabs, tab)
         tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
@@ -645,7 +652,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.ui.chat.output.calendar.setup()
-        tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.idx = self.insert_tab(tabs, tab)
         tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
@@ -669,7 +676,7 @@ class Tabs:
         tab.title = trans(tool.tab_title)
         tab.parent = column
         tab.child = self.from_widget(widget)
-        tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.idx = self.insert_tab(tabs, tab)
         tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:

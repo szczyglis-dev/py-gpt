@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from typing import Dict, List
@@ -81,7 +81,7 @@ class Tools:
                 caller = parent
             action = QAction(QIcon(icon), title, parent)
             action.triggered.connect(
-                lambda idx=idx, column_idx=column_idx, id=id, caller=caller: caller.add_tab(idx, column_idx, Tab.TAB_TOOL, id)
+                lambda checked=False, idx=idx, column_idx=column_idx, id=id, caller=caller: caller.add_tab(idx, column_idx, Tab.TAB_TOOL, id)
             )
             submenu.addAction(action)
         return submenu
