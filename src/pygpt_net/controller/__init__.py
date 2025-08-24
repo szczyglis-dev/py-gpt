@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 23:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.access import Access
@@ -39,7 +39,7 @@ from pygpt_net.controller.settings import Settings
 from pygpt_net.controller.theme import Theme
 from pygpt_net.controller.tools import Tools
 from pygpt_net.controller.ui import UI
-from pygpt_net.utils import mem_clean
+from pygpt_net.utils import trans
 
 
 class Controller:
@@ -109,8 +109,6 @@ class Controller:
         self.camera.setup_ui()
         self.access.setup()
 
-
-
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
         self.settings.setup()
@@ -147,9 +145,7 @@ class Controller:
         """Reload components"""
         self.reloading = True  # lock
 
-        print("Reloading components... please wait...")
-
-        mem_clean()  # try to clean memory
+        print(trans("status.reloading.profile.begin"))
 
         prev_theme = self.window.core.config.get("theme")
 
@@ -183,4 +179,4 @@ class Controller:
 
         self.reloading = False  # unlock
 
-        print("[OK] Components reloaded successfully.")
+        print(trans("status.reloading.profile.end"))

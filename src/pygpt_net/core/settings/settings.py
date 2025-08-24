@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -15,7 +15,10 @@ import os
 import shutil
 from typing import Optional, Dict, Any, List
 
+from PySide6.QtWidgets import QApplication
+
 from pygpt_net.core.events import RenderEvent
+from pygpt_net.utils import trans
 
 
 class Settings:
@@ -116,7 +119,7 @@ class Settings:
         """Load defaults from file"""
         file = self.window.ui.dialog['config.editor'].file
         self.load_editor(file)
-        self.window.update_status("Restored from user file: {}".format(file))
+        self.window.update_status(f"Restored from user file: {file}")
 
     def load_default_editor_app(self):
         """Load defaults from file (app)"""
@@ -125,11 +128,11 @@ class Settings:
         if basename.endswith(".css"):
             path = str(os.path.join(self.window.core.config.get_app_path(), "data", "css", basename))
             self.load_editor(file, path)
-            self.window.update_status("Restored from app defaults: {}".format(basename))
+            self.window.update_status(f"Restored from app defaults: {basename}")
         elif basename.endswith(".json"):
             path = str(os.path.join(self.window.core.config.get_app_path(), "data", "config", basename))
             self.load_editor(file, path)
-            self.window.update_status("Restored from app defaults: {}".format(basename))
+            self.window.update_status(f"Restored from app defaults: {basename}")
 
     def load_editor(
             self,
@@ -151,13 +154,14 @@ class Settings:
             self.window.ui.paths['config'].setText(path)
 
         self.window.ui.dialog['config.editor'].file = file
+
         try:
             with open(path, 'r', encoding="utf-8") as f:
                 txt = f.read()
                 self.window.ui.editor['config'].setPlainText(txt)
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.update_status("Error loading file: {}".format(e))
+            self.window.update_status(f"Error loading file: {e}")
 
     def save_editor(self):
         """Save file to disk"""
@@ -170,8 +174,8 @@ class Settings:
             try:
                 json.loads(data)
             except Exception as e:
-                self.window.update_status("This is not a valid JSON: {}".format(e))
-                self.window.ui.dialogs.alert("This is not a valid JSON: {}".format(e))
+                self.window.update_status(f"This is not a valid JSON: {e}")
+                self.window.ui.dialogs.alert(f"This is not a valid JSON: {e}")
                 return
             path = os.path.join(self.window.core.config.get_user_path(), file)
         elif file.endswith('.css'):
@@ -189,22 +193,48 @@ class Settings:
             backup_path = os.path.join(self.window.core.config.get_user_path(), backup_file)
         if os.path.isfile(path):
             shutil.copyfile(path, backup_path)
-            self.window.update_status("Created backup file: {}".format(backup_file))
+            self.window.update_status(f"Created backup file: {backup_file}")
+
+        prev_content = None
+        if os.path.isfile(path):
+            try:
+                with open(path, 'r', encoding="utf-8") as f:
+                    prev_content = f.read()
+            except Exception as e:
+                pass
 
         # save changes to current file
         try:
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(data)
-            self.window.update_status("Saved file: {}".format(path))
-            self.window.ui.dialogs.alert("Saved file: {}".format(path))
+            self.window.update_status(f"Saved file: {path}")
+        except Exception as e:
+            self.window.core.debug.log(e)
+            self.window.update_status(f"Error saving file: {path}")
+            return  # abort if error
+
+        if prev_content == data:
+            self.window.update_status(f"Saved file: {path}")
+            self.window.ui.dialogs.alert(f"Saved file: {path}")
+            return  # no changes made, no need to reload
+
+        if file in ("config.json", "models.json") or file.endswith('.css'):
+            self.window.update_status(trans("status.reloading"))
+
+        QApplication.processEvents() # process events to update UI
+
+        try:
             if file == "config.json":
                 self.window.core.config.load_config()  # reload config
             elif file == "models.json":
                 self.window.core.models.load()  # reload models
             elif file.endswith('.css'):
-                event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-                self.window.dispatch(event)
+                self.window.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
                 self.window.controller.theme.reload(force=True)  # reload theme
+            self.window.update_status(f"Saved file: {path}")
+            self.window.ui.dialogs.alert(f"Saved file: {path}")
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.update_status("Error saving file: {}".format(path))
+            self.window.update_status(f"Error reloading saved file: {path}")
+
+
