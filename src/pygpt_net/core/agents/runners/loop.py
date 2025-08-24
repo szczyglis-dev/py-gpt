@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 03:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -136,6 +136,7 @@ class Loop(BaseRunner):
         self.set_status(signals, msg)
         if score < 0:
             self.send_response(ctx, signals, KernelEvent.APPEND_END)
+            self.set_idle(signals)
             return True
         good_score = self.window.core.config.get("agent.llama.loop.score", 75)
         if score >= good_score != 0:
@@ -145,6 +146,7 @@ class Loop(BaseRunner):
                 score=str(score)
             )
             self.send_response(ctx, signals, KernelEvent.APPEND_END, msg=msg)
+            self.set_idle(signals)
             return True
 
         # print("Instruction: " + instruction, "Score: " + str(score))

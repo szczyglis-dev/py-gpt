@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 07:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 import json
@@ -564,6 +564,9 @@ class CodeExecutor:
         :param code: Python code to execute
         :return: Output from the code execution
         """
+        if not self.window.core.command.is_cmd():
+            return "Tool execution is not enabled. Abort execution and ask user for tool enable."
+
         self.window.core.agents.tools.last_tool_output = None
         if code == "/restart":
             commands = [

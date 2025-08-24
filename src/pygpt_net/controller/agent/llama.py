@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -136,6 +136,7 @@ class Llama:
         # check max steps
         max_steps = int(self.window.core.config.get("agent.llama.max_eval"))
         if max_steps != 0 and self.get_eval_step() >= max_steps:
+            self.window.update_status(f"Stopped. Limit of max steps: {max_steps}")  # show info
             self.on_end()
             return  # abort if max steps reached
 

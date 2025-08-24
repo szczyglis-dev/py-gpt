@@ -188,6 +188,19 @@ class Response:
             dispatch(RenderEvent(RenderEvent.RELOAD))  # reload chat window
             return
 
+        prev_ctx = ctx.prev_ctx
+        if prev_ctx and prev_ctx.current:
+            prev_ctx.current = False  # reset previous context
+            core.ctx.update_item(prev_ctx)
+            prev_ctx.from_previous()  # append previous result if exists
+            controller.chat.output.handle(
+                ctx=prev_ctx,
+                mode=prev_ctx.mode,
+                stream=False,
+            )
+            controller.chat.output.post_handle(ctx=prev_ctx, mode=prev_ctx.mode, stream=False, reply=False, internal=False)
+            controller.chat.output.handle_end(ctx=prev_ctx, mode=prev_ctx.mode)  # end previous context
+
         stream = context.stream
 
         # if next in agent cycle
