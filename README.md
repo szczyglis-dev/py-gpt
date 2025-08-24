@@ -3432,6 +3432,8 @@ may consume additional tokens that are not displayed in the main window.
 - Ollama models are now available in OpenAI Agents mode.
 - Improved parsing of responses from Agents.
 - Fix: do not initialize index in Agents mode if not provided.
+- Fix: agent response evaluation steps limit.
+- Fix: do not execute code in agents if Tools are disabled.
 - Refactoring.
 
 **2.6.20 (2025-08-22)**
