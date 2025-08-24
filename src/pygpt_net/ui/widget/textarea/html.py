@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import re
@@ -15,15 +15,12 @@ from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtGui import QAction, QIcon, QKeySequence
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
-from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.utils import trans
-
-import pygpt_net.icons_rc
 
 
 class HtmlOutput(QWebEngineView):
@@ -142,7 +139,7 @@ class HtmlOutput(QWebEngineView):
             menu.addAction(action)
 
             # copy to
-            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, selected_text)
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(menu, selected_text)
             menu.addMenu(copy_to_menu)
 
             # save as (selected)

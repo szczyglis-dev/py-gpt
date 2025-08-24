@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 22:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
 from typing import Optional
 
-from qasync import QApplication
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event, BaseEvent

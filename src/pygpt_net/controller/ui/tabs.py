@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -134,8 +134,7 @@ class Tabs:
     def reload(self):
         """Reload tabs"""
         self.window.core.tabs.reload()
-        event = RenderEvent(RenderEvent.PREPARE)
-        self.window.dispatch(event)
+        self.window.dispatch(RenderEvent(RenderEvent.PREPARE))
         self.debug()
 
     def reload_after(self):

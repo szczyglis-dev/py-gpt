@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from typing import List
@@ -15,9 +15,9 @@ from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.textarea.output import ChatOutput
+from pygpt_net.item.ctx import CtxItem
 
 from .bag import Bag
-from ...item.ctx import CtxItem
 
 
 class Container:
@@ -28,8 +28,7 @@ class Container:
         :param window: Window
         """
         self.window = window
-        self.bags = {}
-        self.bags[0] = Bag(window)  # always create initial bag
+        self.bags = {0: Bag(window)}
 
     def get(self, tab: Tab) -> QWidget:
         """
@@ -92,14 +91,16 @@ class Container:
 
         :param tab: Tab
         """
-        if tab.pid in self.window.ui.nodes['output_plain']:
-            self.window.ui.nodes['output_plain'][tab.pid].on_delete()  # clean up
-            self.window.ui.nodes['output_plain'][tab.pid] = None
-            del self.window.ui.nodes['output_plain'][tab.pid]
-        if tab.pid in self.window.ui.nodes['output']:
-            self.window.ui.nodes['output'][tab.pid].on_delete()  # clean up
-            self.window.ui.nodes['output'][tab.pid] = None
-            del self.window.ui.nodes['output'][tab.pid]
+        nodes = self.window.ui.nodes
+
+        if tab.pid in nodes['output_plain']:
+            nodes['output_plain'][tab.pid].on_delete()  # clean up
+            nodes['output_plain'][tab.pid] = None
+            del nodes['output_plain'][tab.pid]
+        if tab.pid in nodes['output']:
+            nodes['output'][tab.pid].on_delete()  # clean up
+            nodes['output'][tab.pid] = None
+            del nodes['output'][tab.pid]
 
         self.window.controller.chat.render.remove_pid(tab.pid)  # remove pid data from renderer registry
         self.window.core.ctx.output.remove_pid(tab.pid)  # remove pid from ctx output mapping

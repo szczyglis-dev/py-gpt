@@ -6,27 +6,32 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 16:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor, QFontMetrics
+from PySide6.QtGui import QAction, QIcon, QKeySequence, QFontMetrics
 from PySide6.QtWidgets import QTextEdit
 
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.utils import trans
 
-import pygpt_net.icons_rc
-
 
 class BaseCodeEditor(QTextEdit):
+
+    _ICON_VOLUME = QIcon(":/icons/volume.svg")
+    _ICON_SAVE = QIcon(":/icons/save.svg")
+    _ICON_SEARCH = QIcon(":/icons/search.svg")
+    _ICON_CLOSE = QIcon(":/icons/close.svg")
+    _FIND_SEQ = QKeySequence("Ctrl+F")
+
     def __init__(self, window=None):
         """
         Base code editor
 
         :param window: main window
         """
-        super(BaseCodeEditor, self).__init__(window)
+        super().__init__(window)
         self.window = window
         self.finder = Finder(window, self)
         self.setReadOnly(True)
@@ -40,114 +45,89 @@ class BaseCodeEditor(QTextEdit):
         self.excluded_copy_to = []
         self.textChanged.connect(self.text_changed)
 
-        # tabulation
         metrics = QFontMetrics(self.font())
         space_width = metrics.horizontalAdvance(" ")
         self.setTabStopDistance(4 * space_width)
 
     def text_changed(self):
-        """On text changed"""
         self.finder.text_changed()
 
     def update_stylesheet(self, data: str):
-        """
-        Update stylesheet
-
-        :param data: stylesheet CSS
-        """
         self.setStyleSheet(self.default_stylesheet + data)
 
     def contextMenuEvent(self, event):
-        """
-        Context menu event
-
-        :param event: Event
-        """
         menu = self.createStandardContextMenu()
-        selected_text = self.textCursor().selectedText()
+        cursor = self.textCursor()
+        selected_text = cursor.selectedText()
 
         if selected_text:
-            # plain text
-            plain_text = self.textCursor().selection().toPlainText()
+            plain_text = cursor.selection().toPlainText()
 
-            # audio read
-            action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
+            action = QAction(self._ICON_VOLUME, trans('text.context_menu.audio.read'), menu)
             action.triggered.connect(self.audio_read_selection)
             menu.addAction(action)
 
-            # copy to
             copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(
-                self,
+                menu,
                 selected_text,
                 excluded=self.excluded_copy_to
             )
+            try:
+                copy_to_menu.setParent(menu)
+            except Exception:
+                pass
             menu.addMenu(copy_to_menu)
 
-            # save as (selected)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
+            action = QAction(self._ICON_SAVE, trans('action.save_selection_as'), menu)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(plain_text))
             menu.addAction(action)
         else:
-            # save as (all)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
+            action = QAction(self._ICON_SAVE, trans('action.save_as'), menu)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
-        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action = QAction(self._ICON_SEARCH, trans('text.context_menu.find'), menu)
         action.triggered.connect(self.find_open)
-        action.setShortcut(QKeySequence("Ctrl+F"))
+        action.setShortcut(self._FIND_SEQ)
         menu.addAction(action)
 
-        # clear
-        action = QAction(QIcon(":/icons/close.svg"), trans('action.clear'), self)
-        action.triggered.connect(
-            lambda: self.clear_content())
+        action = QAction(self._ICON_CLOSE, trans('action.clear'), menu)
+        action.triggered.connect(self.clear_content)
         menu.addAction(action)
 
-        menu.exec_(event.globalPos())
+        menu.exec(event.globalPos())
+        menu.deleteLater()
 
     def clear_content(self):
-        """Clear content"""
-        cursor = self.textCursor()
-        cursor.select(QTextCursor.Document)
-        cursor.removeSelectedText()
+        self.clear()
 
     def audio_read_selection(self):
-        """Read selected text (audio)"""
         self.window.controller.audio.read_text(self.textCursor().selectedText())
 
     def find_open(self):
-        """Open find dialog"""
         self.window.controller.finder.open(self.finder)
 
     def on_update(self):
-        """On content update"""
-        self.finder.clear()  # clear finder
+        self.finder.clear()
 
     def on_destroy(self):
-        """On destroy"""
-        self.window.controller.finder.unset(self.finder)  # unregister finder from memory
+        try:
+            self.textChanged.disconnect(self.text_changed)
+        except Exception:
+            pass
+        self.window.controller.finder.unset(self.finder)
 
     def keyPressEvent(self, e):
-        """
-        Key press event
-
-        :param e: Event
-        """
         if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
             self.find_open()
         else:
-            super(BaseCodeEditor, self).keyPressEvent(e)
+            super().keyPressEvent(e)
 
     def wheelEvent(self, event):
-        """
-        Wheel event: set font size
-
-        :param event: Event
-        """
         if event.modifiers() & Qt.ControlModifier:
+            prev = self.value
             if event.angleDelta().y() > 0:
                 if self.value < self.max_font_size:
                     self.value += 1
@@ -155,18 +135,14 @@ class BaseCodeEditor(QTextEdit):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            self.update_stylesheet(f"QTextEdit {{ font-size: {self.value}px }};")
+            if self.value != prev:
+                self.update_stylesheet(f"QTextEdit {{ font-size: {self.value}px }};")
             event.accept()
         else:
-            super(BaseCodeEditor, self).wheelEvent(event)
+            super().wheelEvent(event)
 
     def focusInEvent(self, e):
-        """
-        Focus in event
-
-        :param e: focus event
-        """
-        super(BaseCodeEditor, self).focusInEvent(e)
+        super().focusInEvent(e)
         self.window.controller.finder.focus_in(self.finder)
 
 
@@ -177,12 +153,4 @@ class CodeEditor(BaseCodeEditor):
 
         :param window: main window
         """
-        super(CodeEditor, self).__init__(window)
-        self.window = window
-        self.setReadOnly(True)
-        self.value = 12
-        self.max_font_size = 42
-        self.min_font_size = 8
-        self.setProperty('class', 'code-editor')
-        self.default_stylesheet = ""
-        self.setStyleSheet(self.default_stylesheet)
+        super().__init__(window)

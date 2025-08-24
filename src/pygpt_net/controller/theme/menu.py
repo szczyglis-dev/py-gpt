@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QActionGroup
 
 
 class Menu:
@@ -20,19 +20,65 @@ class Menu:
         :param window: Window instance
         """
         self.window = window
-        self.density_values = [-2, -1, 0, 1, 2]
+        self.density_values = (-2, -1, 0, 1, 2)
         self.loaded = False
         self.syntax_loaded = False
         self.density_loaded = False
 
+        self._style_group = None
+        self._theme_group = None
+        self._density_group = None
+        self._syntax_group = None
+
+    def _on_style_triggered(self, action):
+        """
+        Handle style change triggered by menu action
+
+        :param action: QAction instance
+        """
+        self.window.controller.theme.toggle_style(action.data())
+
+    def _on_theme_triggered(self, action):
+        """
+        Handle theme change triggered by menu action
+
+        :param action: QAction instance
+        """
+        self.window.controller.theme.toggle_theme_by_menu(action.data())
+
+    def _on_syntax_triggered(self, action):
+        """
+        Handle syntax highlight change triggered by menu action
+
+        :param action: QAction instance
+        """
+        self.window.controller.theme.toggle_syntax(action.data(), update_menu=True)
+
+    def _on_density_triggered(self, action):
+        """
+        Handle layout density change triggered by menu action
+
+        :param action: QAction instance
+        """
+        self.window.controller.theme.toggle_option_by_menu('layout.density', action.data())
+
     def setup_list(self):
         """Setup menu list"""
-        # setup themes list menu
         if self.loaded:
             return
 
-        # styles
-        styles = self.window.controller.theme.common.get_styles_list()
+        w = self.window
+        menu = w.ui.menu
+        common = w.controller.theme.common
+
+        if self._style_group is None:
+            self._style_group = QActionGroup(w)
+            self._style_group.setExclusive(True)
+            self._style_group.triggered.connect(self._on_style_triggered)
+
+        styles = common.get_styles_list()
+        menu_style_dict = menu['theme_style']
+        menu_style = menu['theme.style']
         for style in styles:
             style_id = style.lower()
             title = style.replace('_', ' ').title()
@@ -40,90 +86,141 @@ class Menu:
                 title = "ChatGPT"
             elif title == "Chatgpt Wide":
                 title = "ChatGPT (wide)"
-            self.window.ui.menu['theme_style'][style_id] = QAction(title, self.window, checkable=True)
-            self.window.ui.menu['theme_style'][style_id].triggered.connect(
-                lambda checked=None, style=style_id: self.window.controller.theme.toggle_style(style))
-            self.window.ui.menu['theme.style'].addAction(self.window.ui.menu['theme_style'][style_id])
+            act = QAction(title, w, checkable=True)
+            act.setData(style_id)
+            menu_style_dict[style_id] = act
+            self._style_group.addAction(act)
+            menu_style.addAction(act)
 
-        # color themes
-        themes = self.window.controller.theme.common.get_themes_list()
-        custom_themes = self.window.controller.theme.common.get_custom_themes_list()
-        themes += custom_themes
+        if self._theme_group is None:
+            self._theme_group = QActionGroup(w)
+            self._theme_group.setExclusive(True)
+            self._theme_group.triggered.connect(self._on_theme_triggered)
+
+        themes = common.get_themes_list()
+        themes += common.get_custom_themes_list()
         themes.sort()
-        for theme in themes:
-            name = self.window.controller.theme.common.translate(theme)
-            self.window.ui.menu['theme'][theme] = QAction(name, self.window, checkable=True)
-            self.window.ui.menu['theme'][theme].triggered.connect(
-                lambda checked=None, theme=theme: self.window.controller.theme.toggle(theme))
 
-            # append to dark or light menu
+        menu_theme_dict = menu['theme']
+        menu_dark = menu['theme.dark']
+        menu_light = menu['theme.light']
+        for theme in themes:
+            name = common.translate(theme)
+            act = QAction(name, w, checkable=True)
+            act.setData(theme)
+            menu_theme_dict[theme] = act
+            self._theme_group.addAction(act)
             if theme.startswith('dark'):
-                self.window.ui.menu['theme.dark'].addAction(self.window.ui.menu['theme'][theme])
+                menu_dark.addAction(act)
             elif theme.startswith('light'):
-                self.window.ui.menu['theme.light'].addAction(self.window.ui.menu['theme'][theme])
+                menu_light.addAction(act)
 
         self.loaded = True
 
     def setup_syntax(self):
         """Setup syntax menu"""
-        styles = self.window.controller.chat.render.web_renderer.body.highlight.get_styles()
+        w = self.window
+        menu = w.ui.menu
+
+        styles = w.controller.chat.render.web_renderer.body.highlight.get_styles()
         styles.sort()
-        # clear menu
-        for style in self.window.ui.menu['theme_syntax']:
-            self.window.ui.menu['theme.syntax'].removeAction(self.window.ui.menu['theme_syntax'][style])
-        # setup syntax menu
+
+        if self.syntax_loaded:
+            existing = sorted(menu['theme_syntax'].keys())
+            if existing == styles:
+                return
+
+        menu_syntax_dict = menu['theme_syntax']
+        menu_syntax = menu['theme.syntax']
+
+        for act in menu_syntax_dict.values():
+            menu_syntax.removeAction(act)
+            act.deleteLater()
+        menu_syntax_dict.clear()
+
+        if self._syntax_group is None:
+            self._syntax_group = QActionGroup(w)
+            self._syntax_group.setExclusive(True)
+            self._syntax_group.triggered.connect(self._on_syntax_triggered)
+
         for style in styles:
-            self.window.ui.menu['theme_syntax'][style] = QAction(style, self.window, checkable=True)
-            self.window.ui.menu['theme_syntax'][style].triggered.connect(
-                lambda checked=None, style=style: self.window.controller.theme.toggle_syntax(style, update_menu=True))
-            self.window.ui.menu['theme.syntax'].addAction(self.window.ui.menu['theme_syntax'][style])
+            act = QAction(style, w, checkable=True)
+            act.setData(style)
+            menu_syntax_dict[style] = act
+            self._syntax_group.addAction(act)
+            menu_syntax.addAction(act)
+
+        self.syntax_loaded = True
 
     def setup_density(self):
         """Setup menu list"""
         if self.density_loaded:
             return
-        # setup layout density menu
-        current_density = self.window.core.config.get('layout.density')
+
+        w = self.window
+        menu = w.ui.menu
+
+        if self._density_group is None:
+            self._density_group = QActionGroup(w)
+            self._density_group.setExclusive(True)
+            self._density_group.triggered.connect(self._on_density_triggered)
+
+        current_density = w.core.config.get('layout.density')
+        menu_density_dict = menu['theme.layout.density']
+        menu_density = menu['theme.density']
+
         for value in self.density_values:
             name = str(value)
             if value > 0:
                 name = '+' + name
-            self.window.ui.menu['theme.layout.density'][value] = QAction(name, self.window, checkable=True)
-            self.window.ui.menu['theme.layout.density'][value].triggered.connect(
-                lambda checked=None, value=value: self.window.controller.theme.toggle_option('layout.density', value))
-            self.window.ui.menu['theme.density'].addAction(self.window.ui.menu['theme.layout.density'][value])
+            act = QAction(name, w, checkable=True)
+            act.setData(value)
+            menu_density_dict[value] = act
+            self._density_group.addAction(act)
+            menu_density.addAction(act)
             if value == current_density:
-                self.window.ui.menu['theme.layout.density'][value].setChecked(True)
+                act.setChecked(True)
+
         self.density_loaded = True
 
     def update_density(self):
         """Update layout density menu"""
         current_density = self.window.core.config.get('layout.density')
-        for value in self.density_values:
-            self.window.ui.menu['theme.layout.density'][value].setChecked(False)
-            if value == current_density:
-                self.window.ui.menu['theme.layout.density'][value].setChecked(True)
+        items = self.window.ui.menu['theme.layout.density']
+        act = items.get(current_density)
+        if act is not None:
+            act.setChecked(True)
+        else:
+            for a in items.values():
+                a.setChecked(False)
 
     def update_list(self):
         """Update theme list menu"""
-        # styles
         current_style = self.window.core.config.get('theme.style')
-        for style in self.window.ui.menu['theme_style']:
-            self.window.ui.menu['theme_style'][style].setChecked(False)
-        if current_style in self.window.ui.menu['theme_style']:
-            self.window.ui.menu['theme_style'][current_style].setChecked(True)
+        style_items = self.window.ui.menu['theme_style']
+        act = style_items.get(current_style)
+        if act is not None:
+            act.setChecked(True)
+        else:
+            for a in style_items.values():
+                a.setChecked(False)
 
-        # color themes
         current_theme = self.window.core.config.get('theme')
-        for theme in self.window.ui.menu['theme']:
-            self.window.ui.menu['theme'][theme].setChecked(False)
-        if current_theme in self.window.ui.menu['theme']:
-            self.window.ui.menu['theme'][current_theme].setChecked(True)
+        theme_items = self.window.ui.menu['theme']
+        act = theme_items.get(current_theme)
+        if act is not None:
+            act.setChecked(True)
+        else:
+            for a in theme_items.values():
+                a.setChecked(False)
 
     def update_syntax(self):
         """Update code syntax highlight menu"""
         current = self.window.core.config.get('render.code_syntax')
-        for style in self.window.ui.menu['theme_syntax']:
-            self.window.ui.menu['theme_syntax'][style].setChecked(False)
-        if current in self.window.ui.menu['theme_syntax']:
-            self.window.ui.menu['theme_syntax'][current].setChecked(True)
+        items = self.window.ui.menu['theme_syntax']
+        act = items.get(current)
+        if act is not None:
+            act.setChecked(True)
+        else:
+            for a in items.values():
+                a.setChecked(False)

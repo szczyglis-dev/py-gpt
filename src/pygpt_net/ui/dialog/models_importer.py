@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 from PySide6 import QtCore
 from PySide6.QtGui import QIcon
@@ -14,10 +14,8 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QLabel
 
 from pygpt_net.ui.widget.lists.model_importer import ModelImporter
 from pygpt_net.ui.widget.dialog.model_importer import ModelImporterOllamaDialog
-from pygpt_net.ui.widget.option.combo import NoScrollCombo, OptionCombo
+from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.utils import trans
-
-import pygpt_net.icons_rc
 
 
 class ModelsImporter:

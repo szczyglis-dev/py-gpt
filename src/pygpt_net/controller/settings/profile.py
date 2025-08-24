@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 23:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
@@ -77,21 +77,18 @@ class Profile:
 
         if save_current:
             print("Saving all settings in current profile...")
-            self.window.controller.settings.save_all(force=True)  # save all current settings
-            # self.window.controller.layout.save()  # save layout state
+            self.window.controller.settings.save_all(force=True)
         self.window.core.config.profile.set_current(uuid)
 
-        # switch to profile workdir
         path = self.window.core.config.profile.get_current_workdir()
         if path and os.path.exists(path):
             self.window.controller.settings.workdir.update(
                 path,
                 force=True,
                 profile_name=profile['name']
-            )  # self.after_update() is called in update worker on success
+            )
         else:
             self.after_update(profile['name'])
-
 
     def after_update(
             self,
@@ -113,13 +110,11 @@ class Profile:
         """Select current profile on list"""
         current = self.window.core.config.profile.get_current()
         profiles = self.get_profiles()
-        idx = 0
-        for uuid in profiles:
+        for idx, uuid in enumerate(profiles):
             if uuid == current:
                 index = self.window.ui.models['profile.list'].index(idx, 0)
                 self.window.ui.nodes['profile.list'].setCurrentIndex(index)
                 break
-            idx += 1
 
     def get_profiles(self) -> Dict[str, Dict[str, Any]]:
         """
@@ -131,15 +126,16 @@ class Profile:
 
     def new(self):
         """New profile dialog"""
-        self.window.ui.nodes['dialog.profile.checkbox.switch'].setVisible(True)
-        self.window.ui.dialog['profile.item'].checkboxes.setVisible(False)
-        self.window.ui.dialog['profile.item'].id = 'profile'
-        self.window.ui.dialog['profile.item'].uuid = None
-        self.window.ui.dialog['profile.item'].mode = 'create'
-        self.window.ui.dialog['profile.item'].path = ""
-        self.window.ui.dialog['profile.item'].input.setText("")
-        self.window.ui.dialog['profile.item'].prepare()
-        self.window.ui.dialog['profile.item'].show()
+        ui = self.window.ui
+        ui.nodes['dialog.profile.checkbox.switch'].setVisible(True)
+        ui.dialog['profile.item'].checkboxes.setVisible(False)
+        ui.dialog['profile.item'].id = 'profile'
+        ui.dialog['profile.item'].uuid = None
+        ui.dialog['profile.item'].mode = 'create'
+        ui.dialog['profile.item'].path = ""
+        ui.dialog['profile.item'].input.setText("")
+        ui.dialog['profile.item'].prepare()
+        ui.dialog['profile.item'].show()
 
     def edit(self, uuid: str):
         """
@@ -147,19 +143,20 @@ class Profile:
 
         :param uuid: profile UUID
         """
-        self.window.ui.nodes['dialog.profile.checkbox.switch'].setVisible(False)
+        ui = self.window.ui
+        ui.nodes['dialog.profile.checkbox.switch'].setVisible(False)
         profile = self.window.core.config.profile.get(uuid)
-        self.window.ui.dialog['profile.item'].checkboxes.setVisible(False)
+        ui.dialog['profile.item'].checkboxes.setVisible(False)
         if profile is None:
-            self.window.ui.dialogs.alert("Profile not found!")
+            ui.dialogs.alert("Profile not found!")
             return
-        self.window.ui.dialog['profile.item'].id = 'profile'
-        self.window.ui.dialog['profile.item'].uuid = uuid
-        self.window.ui.dialog['profile.item'].mode = 'edit'
-        self.window.ui.dialog['profile.item'].path = profile['workdir'].replace("%HOME%", str(Path.home()))
-        self.window.ui.dialog['profile.item'].input.setText(profile['name'])
-        self.window.ui.dialog['profile.item'].prepare()
-        self.window.ui.dialog['profile.item'].show()
+        ui.dialog['profile.item'].id = 'profile'
+        ui.dialog['profile.item'].uuid = uuid
+        ui.dialog['profile.item'].mode = 'edit'
+        ui.dialog['profile.item'].path = profile['workdir'].replace("%HOME%", str(Path.home()))
+        ui.dialog['profile.item'].input.setText(profile['name'])
+        ui.dialog['profile.item'].prepare()
+        ui.dialog['profile.item'].show()
 
     def open(self, force: bool = False):
         """
@@ -207,84 +204,80 @@ class Profile:
         :param path: profile workdir path
         :param uuid: profile UUID (update and duplicate only)
         """
-        current = self.window.core.config.profile.get_current()
-        if name.strip() == "":
-            self.window.ui.dialogs.alert(trans("dialog.profile.alert.name.empty"))
+        ui = self.window.ui
+        fs = self.window.core.filesystem
+        cfg = self.window.core.config.profile
+        current = cfg.get_current()
+        name_stripped = name.strip()
+        path_stripped = path.strip()
+        if name_stripped == "":
+            ui.dialogs.alert(trans("dialog.profile.alert.name.empty"))
             return
-        if path.strip() == "":
-            self.window.ui.dialogs.alert(trans("dialog.profile.alert.path.empty"))
-            return
-        if not os.path.exists(path) or not os.path.isdir(path):
-            self.window.ui.dialogs.alert(trans("dialog.profile.alert.path.not_exists"))
+        if path_stripped == "":
+            ui.dialogs.alert(trans("dialog.profile.alert.path.empty"))
             return
 
-        if not self.window.core.filesystem.is_directory_empty(path):
-            if not self.window.core.filesystem.is_workdir_in_path(path):
-                self.window.ui.dialogs.alert(trans("dialog.profile.alert.duplicate.not_empty"))
+        p = Path(path_stripped)
+        if not p.is_dir():
+            ui.dialogs.alert(trans("dialog.profile.alert.path.not_exists"))
+            return
+
+        if not fs.is_directory_empty(path_stripped):
+            if not fs.is_workdir_in_path(path_stripped):
+                ui.dialogs.alert(trans("dialog.profile.alert.duplicate.not_empty"))
                 return
 
         if mode == 'create':
-            # create new profile
-            uuid = self.window.core.config.profile.add(name, path)
+            uuid = cfg.add(name_stripped, path_stripped)
             self.window.update_status(trans("dialog.profile.status.created"))
-            if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
+            if ui.nodes['dialog.profile.checkbox.switch'].isChecked():
                 QTimer.singleShot(100, lambda: self.after_create(uuid))
                 return
 
         elif mode == 'edit':
-            # update profile
-            profile = self.window.core.config.profile.get(uuid)
+            profile = cfg.get(uuid)
             old_path = profile['workdir'].replace("%HOME%", str(Path.home()))
-            self.window.core.config.profile.update_profile(uuid, name, path)
+            cfg.update_profile(uuid, name_stripped, path_stripped)
             self.window.update_status(trans("dialog.profile.status.updated"))
-
-            # if current profile and path was changed then reload:
             if uuid == current:
                 self.window.ui.update_title()
-                if old_path != path:
+                if old_path != path_stripped:
                     self.switch(uuid, force=True)
 
         elif mode == 'duplicate':
-            # duplicate profile (duplicate requires empty directory)
-            if not self.window.core.filesystem.is_directory_empty(path):
-                self.window.ui.dialogs.alert(trans("dialog.workdir.change.empty.alert"))
+            if not fs.is_directory_empty(path_stripped):
+                ui.dialogs.alert(trans("dialog.workdir.change.empty.alert"))
                 return
 
             profiles = self.get_profiles()
             if uuid not in profiles:
-                self.window.ui.dialogs.alert(trans("dialog.profile.alert.src.empty"))
+                ui.dialogs.alert(trans("dialog.profile.alert.src.empty"))
                 return
             profile = profiles[uuid]
 
-            # check if not same path
-            if profile['workdir'].replace("%HOME%", str(Path.home())) == path:
-                self.window.ui.dialogs.alert(trans("dialog.profile.alert.path.same"))
+            if profile['workdir'].replace("%HOME%", str(Path.home())) == path_stripped:
+                ui.dialogs.alert(trans("dialog.profile.alert.path.same"))
                 return
 
-            # check free space
             include_datadir = self.is_include_datadir()
             include_db = self.is_include_db()
             src_path = profile['workdir'].replace("%HOME%", str(Path.home()))
-            space_required = self.window.core.filesystem.get_directory_size(src_path, human_readable=False)
+            space_required = fs.get_directory_size(src_path, human_readable=False)
             if not include_datadir:
-                space_required -= self.window.core.filesystem.get_datadir_size(src_path, human_readable=False)
+                space_required -= fs.get_datadir_size(src_path, human_readable=False)
             if not include_db:
-                space_required -= self.window.core.filesystem.get_db_size(src_path, human_readable=False)
-            space_free = self.window.core.filesystem.get_free_disk_space(path, human_readable=False)
+                space_required -= fs.get_db_size(src_path, human_readable=False)
+            space_free = fs.get_free_disk_space(path_stripped, human_readable=False)
             if space_required > space_free:
-                self.window.ui.dialogs.alert(trans("dialog.workdir.result.no_free_space").format(
-                    required=self.window.core.filesystem.sizeof_fmt(space_required),
-                    free=self.window.core.filesystem.sizeof_fmt(space_free),
+                ui.dialogs.alert(trans("dialog.workdir.result.no_free_space").format(
+                    required=fs.sizeof_fmt(space_required),
+                    free=fs.sizeof_fmt(space_free),
                 ))
                 return
 
-            # make duplicate
-            self.duplicate(uuid, name, path)
+            self.duplicate(uuid, name_stripped, path_stripped)
             self.window.update_status(trans("dialog.profile.status.duplicated"))
-            # if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
-                # self.switch(uuid, force=True)
 
-        # close dialog and update list
         self.window.ui.dialogs.close('profile.item')
         self.update_menu()
         self.update_list()
@@ -362,7 +355,6 @@ class Profile:
         if uuid in profiles:
             profile = profiles[uuid]
             name = profile['name']
-            # remove profile
             if self.window.core.config.profile.remove(uuid):
                 self.window.update_status(trans("dialog.profile.status.removed") + ": " + name)
                 self.update_list()
@@ -397,18 +389,20 @@ class Profile:
         """
         uuid = self.get_id_by_idx(idx)
         profile = self.window.core.config.profile.get(uuid)
-        self.window.ui.dialog['profile.item'].checkboxes.setVisible(True)
+        dialog = self.window.ui.dialog['profile.item']
+        dialog.checkboxes.setVisible(True)
         if profile is None:
             self.window.ui.dialogs.alert("Profile not found!")
             return
         self.window.ui.nodes['dialog.profile.checkbox.switch'].setVisible(True)
-        self.window.ui.dialog['profile.item'].id = 'profile'
-        self.window.ui.dialog['profile.item'].uuid = uuid
-        self.window.ui.dialog['profile.item'].mode = 'duplicate'
-        self.window.ui.dialog['profile.item'].path = ""
-        self.window.ui.dialog['profile.item'].input.setText(profile['name'] + " - copy")
-        self.window.ui.dialog['profile.item'].prepare()
-        self.window.ui.dialog['profile.item'].show()
+
+        dialog.id = 'profile'
+        dialog.uuid = uuid
+        dialog.mode = 'duplicate'
+        dialog.path = ""
+        dialog.input.setText(profile['name'] + " - copy")
+        dialog.prepare()
+        dialog.show()
 
     def delete_all(self, uuid: str):
         """
@@ -514,61 +508,48 @@ class Profile:
         """Setup profile menu"""
         profiles = self.window.core.config.profile.get_all()
         current = self.window.core.config.profile.get_current()
-        for uuid in profiles:
-            if uuid not in self.window.ui.menu['config.profiles']:
-                profile = profiles[uuid]
+        ui_menu = self.window.ui.menu
+        suffix = trans("profile.current.suffix")
+        for uuid, profile in profiles.items():
+            if uuid not in ui_menu['config.profiles']:
                 name = profile['name']
-                checked = False
-                if uuid == current:
-                    name = name + " " + trans("profile.current.suffix")
-                    checked = True
-                self.window.ui.menu['config.profiles'][uuid] = QAction(
-                    name,
-                    self.window,
-                    checkable=True,
-                )
-                self.window.ui.menu['config.profiles'][uuid].setChecked(checked)
-                self.window.ui.menu['config.profiles'][uuid].triggered.connect(
-                    lambda checked=True, uuid=uuid: self.window.controller.settings.profile.switch(uuid))
-                self.window.ui.menu['config.profile'].addAction(self.window.ui.menu['config.profiles'][uuid])
+                checked = uuid == current
+                text = f"{name} {suffix}" if checked else name
+                action = QAction(text, self.window, checkable=True)
+                action.setChecked(checked)
+                action.triggered.connect(lambda checked=False, u=uuid: self.window.controller.settings.profile.switch(u))
+                ui_menu['config.profiles'][uuid] = action
+                ui_menu['config.profile'].addAction(action)
 
     def update_menu(self):
         """Update menu"""
         profiles = self.window.core.config.profile.get_all()
         current = self.window.core.config.profile.get_current()
-        for uuid in list(self.window.ui.menu['config.profiles'].keys()):
+        ui_menu = self.window.ui.menu
+        profile_actions = ui_menu['config.profiles']
+        suffix = trans("profile.current.suffix")
+
+        for uuid in list(profile_actions.keys()):
             if uuid in profiles:
                 name = profiles[uuid]['name']
-                checked = False
-                if uuid == current:
-                    name = name + " " + trans("profile.current.suffix")
-                    checked = True
-                self.window.ui.menu['config.profiles'][uuid].setText(name)
-                self.window.ui.menu['config.profiles'][uuid].setChecked(checked)
+                is_current = uuid == current
+                text = f"{name} {suffix}" if is_current else name
+                action = profile_actions[uuid]
+                action.setText(text)
+                action.setChecked(is_current)
 
-        # add new profiles
-        for uuid in list(profiles.keys()):
-            if uuid not in self.window.ui.menu['config.profiles']:
-                profile = profiles[uuid]
+        for uuid, profile in profiles.items():
+            if uuid not in profile_actions:
                 name = profile['name']
-                checked = False
-                if uuid == current:
-                    name = name + " " + trans("profile.current.suffix")
-                    checked = True
-                self.window.ui.menu['config.profiles'][uuid] = QAction(
-                    name,
-                    self.window,
-                    checkable=True,
-                )
-                self.window.ui.menu['config.profiles'][uuid].setChecked(checked)
-                self.window.ui.menu['config.profiles'][uuid].triggered.connect(
-                    lambda checked=True, uuid=uuid: self.window.controller.settings.profile.switch(uuid)
-                )
-                self.window.ui.menu['config.profile'].addAction(self.window.ui.menu['config.profiles'][uuid])
+                is_current = uuid == current
+                text = f"{name} {suffix}" if is_current else name
+                action = QAction(text, self.window, checkable=True)
+                action.setChecked(is_current)
+                action.triggered.connect(lambda checked=False, u=uuid: self.window.controller.settings.profile.switch(u))
+                profile_actions[uuid] = action
+                ui_menu['config.profile'].addAction(action)
 
-        # remove non-exist profiles
-        for uuid in list(self.window.ui.menu['config.profiles'].keys()):
+        for uuid in list(profile_actions.keys()):
             if uuid not in profiles:
-                self.window.ui.menu['config.profile'].removeAction(self.window.ui.menu['config.profiles'][uuid])
-                del self.window.ui.menu['config.profiles'][uuid]
-
+                ui_menu['config.profile'].removeAction(profile_actions[uuid])
+                del profile_actions[uuid]

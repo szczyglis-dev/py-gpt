@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -21,7 +21,6 @@ from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.element.button import ContextMenuButton
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class FileExplorer(QWidget):
@@ -45,6 +44,7 @@ class FileExplorer(QWidget):
         self.treeView = QTreeView()
         self.treeView.setModel(self.model)
         self.treeView.setRootIndex(self.model.index(self.directory))
+        self.treeView.setUniformRowHeights(True)
         self.setProperty('class', 'file-explorer')
 
         header = QHBoxLayout()
@@ -71,7 +71,6 @@ class FileExplorer(QWidget):
         self.btn_clear.setMaximumHeight(40)
         self.btn_clear.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        # btn with icon
         self.btn_tool = QPushButton(QIcon(":/icons/db.svg"), "")
         self.btn_tool.setMaximumHeight(40)
         self.btn_tool.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -104,7 +103,7 @@ class FileExplorer(QWidget):
 
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeView.customContextMenuRequested.connect(self.openContextMenu)
-        self.treeView.setColumnWidth(0, self.width() / 2)
+        self.treeView.setColumnWidth(0, int(self.width() / 2))
 
         self.header = self.treeView.header()
         self.header.setStretchLastSection(True)
@@ -121,6 +120,23 @@ class FileExplorer(QWidget):
        """)
         self.tab = None
         self.installEventFilter(self)
+
+        self._icons = {
+            'open': QIcon(":/icons/view.svg"),
+            'open_dir': QIcon(":/icons/folder_filled.svg"),
+            'download': QIcon(":/icons/download.svg"),
+            'rename': QIcon(":/icons/edit.svg"),
+            'duplicate': QIcon(":/icons/stack.svg"),
+            'touch': QIcon(":/icons/add.svg"),
+            'mkdir': QIcon(":/icons/add_folder.svg"),
+            'refresh': QIcon(":/icons/reload.svg"),
+            'upload': QIcon(":/icons/upload.svg"),
+            'delete': QIcon(":/icons/delete.svg"),
+            'attachment': QIcon(":/icons/attachment.svg"),
+            'copy': QIcon(":/icons/copy.svg"),
+            'read': QIcon(":/icons/view.svg"),
+            'db': QIcon(":/icons/db.svg"),
+        }
 
     def eventFilter(self, source, event):
         """
@@ -184,7 +200,7 @@ class FileExplorer(QWidget):
                     lambda checked=False,
                            id=id: self.window.controller.idx.indexer.index_all_files(id)
                 )
-        menu.exec_(parent.mapToGlobal(pos))
+        menu.exec(parent.mapToGlobal(pos))
 
     def clear_context_menu(self, parent, pos):
         """
@@ -204,15 +220,19 @@ class FileExplorer(QWidget):
                     lambda checked=False,
                            id=id: self.window.controller.idx.indexer.clear(id)
                 )
-        menu.exec_(parent.mapToGlobal(pos))
+        menu.exec(parent.mapToGlobal(pos))
 
     def adjustColumnWidths(self):
         """Adjust column widths"""
         total_width = self.treeView.width()
+        col_count = self.model.columnCount()
         first_column_width = int(total_width * self.column_proportion)
         self.treeView.setColumnWidth(0, first_column_width)
-        for column in range(1, self.model.columnCount()):
-            self.treeView.setColumnWidth(column, (total_width - first_column_width) // (self.model.columnCount() - 1))
+        if col_count > 1:
+            remaining = max(total_width - first_column_width, 0)
+            per_col = remaining // (col_count - 1) if col_count > 1 else 0
+            for column in range(1, col_count):
+                self.treeView.setColumnWidth(column, per_col)
 
     def resizeEvent(self, event: QResizeEvent):
         """
@@ -221,7 +241,8 @@ class FileExplorer(QWidget):
         :param event: Event object
         """
         super().resizeEvent(event)
-        self.adjustColumnWidths()
+        if event.oldSize().width() != event.size().width():
+            self.adjustColumnWidths()
 
     def openContextMenu(self, position):
         """
@@ -240,32 +261,27 @@ class FileExplorer(QWidget):
             if self.window.core.filesystem.actions.has_preview(path):
                 preview_actions = self.window.core.filesystem.actions.get_preview(self, path)
 
-            # open file
-            actions['open'] = QAction(QIcon(":/icons/view.svg"), trans('action.open'), self)
+            actions['open'] = QAction(self._icons['open'], trans('action.open'), self)
             actions['open'].triggered.connect(
                 lambda: self.action_open(path),
             )
 
-            # open in file manager
-            actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
+            actions['open_dir'] = QAction(self._icons['open_dir'], trans('action.open_dir'), self)
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(path),
             )
 
-            # download
-            actions['download'] = QAction(QIcon(":/icons/download.svg"), trans('action.download'), self)
+            actions['download'] = QAction(self._icons['download'], trans('action.download'), self)
             actions['download'].triggered.connect(
                 lambda: self.window.controller.files.download_local(path),
             )
 
-            # rename
-            actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
+            actions['rename'] = QAction(self._icons['rename'], trans('action.rename'), self)
             actions['rename'].triggered.connect(
                 lambda: self.action_rename(path),
             )
 
-            # duplicate
-            actions['duplicate'] = QAction(QIcon(":/icons/stack.svg"), trans('action.duplicate'), self)
+            actions['duplicate'] = QAction(self._icons['duplicate'], trans('action.duplicate'), self)
             actions['duplicate'].triggered.connect(
                 lambda: self.window.controller.files.duplicate_local(path, ""),
             )
@@ -275,37 +291,31 @@ class FileExplorer(QWidget):
             else:
                 parent = os.path.dirname(path)
 
-            # touch file
-            actions['touch'] = QAction(QIcon(":/icons/add.svg"), trans('action.touch'), self)
+            actions['touch'] = QAction(self._icons['touch'], trans('action.touch'), self)
             actions['touch'].triggered.connect(
                 lambda: self.window.controller.files.touch_file(parent),
             )
 
-            # make dir
-            actions['mkdir'] = QAction(QIcon(":/icons/add_folder.svg"), trans('action.mkdir'), self)
+            actions['mkdir'] = QAction(self._icons['mkdir'], trans('action.mkdir'), self)
             actions['mkdir'].triggered.connect(
                 lambda: self.action_make_dir(parent),
             )
 
-            # refresh
-            actions['refresh'] = QAction(QIcon(":/icons/reload.svg"), trans('action.refresh'), self)
+            actions['refresh'] = QAction(self._icons['refresh'], trans('action.refresh'), self)
             actions['refresh'].triggered.connect(
                 lambda: self.window.controller.files.update_explorer(),
             )
 
-            # upload to dir
-            actions['upload'] = QAction(QIcon(":/icons/upload.svg"), trans('action.upload'), self)
+            actions['upload'] = QAction(self._icons['upload'], trans('action.upload'), self)
             actions['upload'].triggered.connect(
                 lambda: self.window.controller.files.upload_local(parent),
             )
 
-            # delete
-            actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
+            actions['delete'] = QAction(self._icons['delete'], trans('action.delete'), self)
             actions['delete'].triggered.connect(
                 lambda: self.action_delete(path),
             )
 
-            # menu
             menu = QMenu(self)
             if preview_actions:
                 for action in preview_actions:
@@ -313,27 +323,22 @@ class FileExplorer(QWidget):
             menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
 
-            # use menu
             use_menu = QMenu(trans('action.use'), self)
 
-            # use
             if not os.path.isdir(path):
-                # use as attachment
                 actions['use_attachment'] = QAction(
-                    QIcon(":/icons/attachment.svg"),
+                    self._icons['attachment'],
                     trans('action.use.attachment'),
                     self,
                 )
                 actions['use_attachment'].triggered.connect(
                     lambda: self.window.controller.files.use_attachment(path),
                 )
-                # use by filetype
                 if self.window.core.filesystem.actions.has_use(path):
                     use_actions = self.window.core.filesystem.actions.get_use(self, path)
 
-            # copy work path
             actions['use_copy_work_path'] = QAction(
-                QIcon(":/icons/copy.svg"),
+                self._icons['copy'],
                 trans('action.use.copy_work_path'),
                 self,
             )
@@ -341,9 +346,8 @@ class FileExplorer(QWidget):
                 lambda: self.window.controller.files.copy_work_path(path),
             )
 
-            # copy sys path
             actions['use_copy_sys_path'] = QAction(
-                QIcon(":/icons/copy.svg"),
+                self._icons['copy'],
                 trans('action.use.copy_sys_path'),
                 self,
             )
@@ -351,52 +355,45 @@ class FileExplorer(QWidget):
                 lambda: self.window.controller.files.copy_sys_path(path),
             )
 
-            # use read cmd
-            actions['use_read_cmd'] = QAction(QIcon(":/icons/view.svg"), trans('action.use.read_cmd'), self)
+            actions['use_read_cmd'] = QAction(self._icons['read'], trans('action.use.read_cmd'), self)
             actions['use_read_cmd'].triggered.connect(
                 lambda: self.window.controller.files.make_read_cmd(path),
             )
 
-            # add actions to menu
             if not os.path.isdir(path):
                 use_menu.addAction(actions['use_attachment'])
 
-            # use by type
             if use_actions:
                 for action in use_actions:
                     use_menu.addAction(action)
 
-            # use common actions
             use_menu.addAction(actions['use_copy_work_path'])
             use_menu.addAction(actions['use_copy_sys_path'])
             use_menu.addAction(actions['use_read_cmd'])
             menu.addMenu(use_menu)
 
-            # remove from index
             file_id = self.window.core.idx.files.get_id(path)
             remove_actions = []
             for idx in self.index_data:
                 items = self.index_data[idx]
                 if file_id in items:
-                    action = QAction(QIcon(":/icons/delete.svg"), trans("action.idx.remove") + ": " + idx, self)
+                    action = QAction(self._icons['delete'], trans("action.idx.remove") + ": " + idx, self)
                     action.triggered.connect(
                         lambda checked=False,
                                idx=idx,
-                               file_id=file_id: self.action_idx_remove(file_id, idx)  # by file_id, not path
+                               file_id=file_id: self.action_idx_remove(file_id, idx)
                     )
                     remove_actions.append(action)
 
-            # add to index if allowed
             if self.window.core.idx.indexing.is_allowed(path):
                 idx_menu = QMenu(trans('action.idx'), self)
                 idx_list = self.window.core.config.get('llama.idx.list')
                 if len(idx_list) > 0 or len(remove_actions) > 0:
-                    # add
                     if len(idx_list) > 0:
                         for idx in idx_list:
                             id = idx['id']
                             name = f"{idx['name']} ({idx['id']})"
-                            action = QAction(QIcon(":/icons/db.svg"), f"IDX: {name}", self)
+                            action = QAction(self._icons['db'], f"IDX: {name}", self)
                             action.triggered.connect(
                                 lambda checked=False,
                                        id=id,
@@ -404,7 +401,6 @@ class FileExplorer(QWidget):
                             )
                             idx_menu.addAction(action)
 
-                # remove
                 if len(remove_actions) > 0:
                     idx_menu.addSeparator()
                     for action in remove_actions:
@@ -424,29 +420,24 @@ class FileExplorer(QWidget):
 
             menu.exec(QCursor.pos())
         else:
-            # no item selected
             actions = {}
 
-            # touch file
-            actions['touch'] = QAction(QIcon(":/icons/add.svg"), trans('action.touch'), self)
+            actions['touch'] = QAction(self._icons['touch'], trans('action.touch'), self)
             actions['touch'].triggered.connect(
                 lambda: self.window.controller.files.touch_file(self.directory),
             )
 
-            # open in file manager
-            actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
+            actions['open_dir'] = QAction(self._icons['open_dir'], trans('action.open_dir'), self)
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(self.directory),
             )
 
-            # make dir in dir
-            actions['mkdir'] = QAction(QIcon(":/icons/add_folder.svg"), trans('action.mkdir'), self)
+            actions['mkdir'] = QAction(self._icons['mkdir'], trans('action.mkdir'), self)
             actions['mkdir'].triggered.connect(
                 lambda: self.action_make_dir(self.directory),
             )
 
-            # upload in dir
-            actions['upload'] = QAction(QIcon(":/icons/upload.svg"), trans('action.upload'), self)
+            actions['upload'] = QAction(self._icons['upload'], trans('action.upload'), self)
             actions['upload'].triggered.connect(
                 lambda: self.window.controller.files.upload_local(),
             )
@@ -522,11 +513,13 @@ class IndexedFileSystemModel(QFileSystemModel):
         super().__init__(*args, **kwargs)
         self.window = window
         self.index_dict = index_dict
+        self._status_cache = {}
         self.directoryLoaded.connect(self.refresh_path)
 
     def refresh_path(self, path):
         index = self.index(path)
         if index.isValid():
+            self._status_cache.clear()
             self.dataChanged.emit(index, index)
 
     def columnCount(self, parent=QModelIndex()) -> int:
@@ -546,38 +539,35 @@ class IndexedFileSystemModel(QFileSystemModel):
         :param role: role
         :return: data
         """
-        # index status
-        if index.column() == self.columnCount() - 1:
+        last_col = self.columnCount() - 1
+        if index.column() == last_col:
             if role == Qt.DisplayRole:
                 file_path = self.filePath(index.siblingAtColumn(0))
-                status = self.get_index_status(file_path)   # get index status
+                status = self.get_index_status(file_path)
                 if status['indexed']:
-                    ts = datetime.datetime.fromtimestamp(status['last_index_at'])
-                    # check if today
-                    if ts.date() == datetime.date.today():
-                        dt = ts.strftime("%H:%M")
+                    ts = status['last_index_at']
+                    dt = datetime.datetime.fromtimestamp(ts)
+                    if dt.date() == datetime.date.today():
+                        ds = dt.strftime("%H:%M")
                     else:
-                        dt = ts.strftime("%Y-%m-%d %H:%M")
-                    content = f"{dt} ({','.join(status['indexed_in'])})"
+                        ds = dt.strftime("%Y-%m-%d %H:%M")
+                    content = f"{ds} ({','.join(status['indexed_in'])})"
                 else:
-                    content = '-'  # if file not indexed
+                    content = '-'
                 return content
-        # modified date
-        elif index.column() == self.columnCount() - 2:
+        elif index.column() == last_col - 1:
             if role == Qt.DisplayRole:
-                dt = self.lastModified(index)
-                data = dt.toString("yyyy-MM-dd HH:mm:ss")
-                ts = dt.toSecsSinceEpoch()
-                dt_from_ts = datetime.datetime.fromtimestamp(ts)
-                if dt_from_ts.date() == datetime.date.today():
-                    data = dt_from_ts.strftime("%H:%M")
+                dt_qt = self.lastModified(index)
+                ts = dt_qt.toSecsSinceEpoch()
+                dt_py = datetime.datetime.fromtimestamp(ts)
+                if dt_py.date() == datetime.date.today():
+                    data = dt_py.strftime("%H:%M")
                 else:
-                    data = dt_from_ts.strftime("%Y-%m-%d %H:%M")
+                    data = dt_py.strftime("%Y-%m-%d %H:%M")
                 file_path = self.filePath(index.siblingAtColumn(0))
-                status = self.get_index_status(file_path)  # get index status
+                status = self.get_index_status(file_path)
                 if status['indexed']:
-                    # if modified date is newer, mark file with *
-                    if 'last_index_at' in status and status['last_index_at'] < dt.toSecsSinceEpoch():
+                    if 'last_index_at' in status and status['last_index_at'] < ts:
                         data += '*'
                 return data
 
@@ -591,33 +581,31 @@ class IndexedFileSystemModel(QFileSystemModel):
         :return: file index status
         """
         file_id = self.window.core.idx.files.get_id(file_path)
+        cached = self._status_cache.get(file_id)
+        if cached is not None:
+            return cached
         indexed_in = []
         indexed_timestamps = {}
         last_index_at = 0
         for idx in self.index_dict:
             items = self.index_dict[idx]
             if file_id in items:
-                indexed_in.append(idx)  # append idx where file is indexed
-                indexed_timestamps[idx] = items[file_id]['indexed_ts']
-                if items[file_id]['indexed_ts'] > last_index_at:
-                    last_index_at = items[file_id]['indexed_ts']
-
-        # sort indexed_in by timestamp DESC
-        indexed_in = sorted(
-            indexed_in,
-            key=lambda x: indexed_timestamps[x],
-            reverse=True,
-        )
-        if len(indexed_in) > 0:
-            return {
+                indexed_in.append(idx)
+                ts = items[file_id]['indexed_ts']
+                indexed_timestamps[idx] = ts
+                if ts > last_index_at:
+                    last_index_at = ts
+        if indexed_in:
+            indexed_in.sort(key=lambda x: indexed_timestamps[x], reverse=True)
+            result = {
                 'indexed': True,
                 'indexed_in': indexed_in,
                 'last_index_at': last_index_at,
             }
         else:
-            return {
-                'indexed': False,
-            }
+            result = {'indexed': False}
+        self._status_cache[file_id] = result
+        return result
 
     def headerData(self, section, orientation, role=Qt.DisplayRole) -> str:
         """
@@ -648,10 +636,13 @@ class IndexedFileSystemModel(QFileSystemModel):
         :param idx_data: new index data dict
         """
         self.index_dict = idx_data
-        top_left_index = self.index(0, 0)
-        bottom_right_index = self.index(self.rowCount() - 1, self.columnCount() - 1)
+        self._status_cache.clear()
+        row_count = self.rowCount()
+        if row_count > 0:
+            top_left_index = self.index(0, 0)
+            bottom_right_index = self.index(row_count - 1, self.columnCount() - 1)
+            self.dataChanged.emit(top_left_index, bottom_right_index, [Qt.DisplayRole])
         path = self.rootPath()
-        self.dataChanged.emit(top_left_index, bottom_right_index, [Qt.DisplayRole])
         self.setRootPath("")
         self.setRootPath(path)
         self.layoutChanged.emit()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -32,20 +32,29 @@ class Status:
 
         :return: QHBoxLayout
         """
-        self.window.ui.nodes['status'] = QLabel(trans('status.started'))
-        self.window.ui.nodes['status.agent'] = HelpLabel("")
-        self.window.ui.nodes['status.agent'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.window.ui.nodes['global.stop'] = QPushButton("STOP")
-        self.window.ui.nodes['global.stop'].setVisible(False)
-        self.window.ui.nodes['global.stop'].clicked.connect(self.window.controller.ui.on_global_stop)
-        self.window.ui.nodes['anim.loading.status'] = Loader()
-        self.window.ui.nodes['anim.loading.status'].hide()
+        nodes = self.window.ui.nodes
+
+        nodes['status'] = QLabel(trans('status.started'))
+        nodes['status'].setParent(self.window)
+
+        nodes['status.agent'] = HelpLabel("")
+        nodes['status.agent'].setParent(self.window)
+        nodes['status.agent'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        nodes['global.stop'] = QPushButton("STOP")
+        nodes['global.stop'].setParent(self.window)
+        nodes['global.stop'].hide()
+        nodes['global.stop'].clicked.connect(self.window.controller.ui.on_global_stop)
+
+        nodes['anim.loading.status'] = Loader()
+        nodes['anim.loading.status'].setParent(self.window)
+        nodes['anim.loading.status'].hide()
 
         layout = QHBoxLayout()
-        layout.addWidget(self.window.ui.nodes['anim.loading.status'])
-        layout.addWidget(self.window.ui.nodes['status.agent'])
-        layout.addWidget(self.window.ui.nodes['status'])
-        layout.addWidget(self.window.ui.nodes['global.stop'])
+        layout.addWidget(nodes['anim.loading.status'])
+        layout.addWidget(nodes['status.agent'])
+        layout.addWidget(nodes['status'])
+        layout.addWidget(nodes['global.stop'])
         layout.setAlignment(Qt.AlignLeft)
 
         return layout

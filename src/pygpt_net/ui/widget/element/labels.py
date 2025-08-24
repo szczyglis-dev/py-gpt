@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 19:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QTimer, QRect, Signal, QUrl, QEvent
@@ -14,7 +14,6 @@ from PySide6.QtGui import QCursor, QAction, QIcon, QDesktopServices, QPainter, Q
 from PySide6.QtWidgets import QLabel, QLineEdit, QToolTip
 
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class HelpLabel(QLabel):

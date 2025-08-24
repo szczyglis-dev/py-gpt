@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QComboBox
+from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
 
 from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class ComputerEnv:
@@ -33,36 +32,46 @@ class ComputerEnv:
         :return: QWidget
         """
         layout = self.setup_env()
-        self.window.ui.nodes['env.widget'] = QWidget()
-        self.window.ui.nodes['env.widget'].setLayout(layout)
-        return self.window.ui.nodes['env.widget']
+        nodes = self.window.ui.nodes
+        widget = QWidget()
+        widget.setLayout(layout)
+        nodes['env.widget'] = widget
+        return widget
 
-    def setup_env(self) -> QVBoxLayout:
+    def _on_env_index_changed(self, index: int) -> None:
+        nodes = self.window.ui.nodes
+        cbox = nodes.get(self.id)
+        if cbox is None:
+            return
+        data = cbox.itemData(index)
+        self.window.controller.ui.on_computer_env_changed(data)
+
+    def setup_env(self) -> QHBoxLayout:
         """
         Setup list of environments
 
         :return: QVBoxLayout
         """
 
-        # label
-        self.window.ui.nodes['env.label'] = TitleLabel(trans("toolbox.env.label"))
+        nodes = self.window.ui.nodes
+        label = TitleLabel(trans("toolbox.env.label"))
+        nodes['env.label'] = label
 
-        # list
-        self.window.ui.nodes[self.id] = QComboBox()
-        self.window.ui.nodes[self.id].addItem("Browser", "browser")
-        self.window.ui.nodes[self.id].addItem("Windows", "windows")
-        self.window.ui.nodes[self.id].addItem("Linux", "linux")
-        self.window.ui.nodes[self.id].addItem("Mac", "mac")
-        self.window.ui.nodes[self.id].setMinimumWidth(40)
+        cbox = QComboBox()
+        for text, data in (
+            ("Browser", "browser"),
+            ("Windows", "windows"),
+            ("Linux", "linux"),
+            ("Mac", "mac"),
+        ):
+            cbox.addItem(text, data)
+        cbox.setMinimumWidth(40)
 
-        # on change signal
-        self.window.ui.nodes[self.id].currentIndexChanged.connect(
-            lambda index: self.window.controller.ui.on_computer_env_changed(
-                self.window.ui.nodes[self.id].itemData(index)))
+        cbox.currentIndexChanged.connect(self._on_env_index_changed)
+        nodes[self.id] = cbox
 
-        # rows
         layout = QHBoxLayout()
-        layout.addWidget(self.window.ui.nodes['env.label'], 0)  # label
-        layout.addWidget(self.window.ui.nodes[self.id], 1)  # combobox
+        layout.addWidget(label, 0)
+        layout.addWidget(cbox, 1)
         layout.setContentsMargins(2, 5, 5, 5)
         return layout

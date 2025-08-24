@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.07 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class Theme:
@@ -24,55 +23,55 @@ class Theme:
         :param window: Window instance
         """
         self.window = window
+        self._loaded = False
+
+    def _on_toggle_tooltips(self, checked=False):
+        self.window.controller.theme.toggle_option('layout.tooltips')
+
+    def _open_settings(self, checked=False):
+        self.window.controller.settings.open_section('layout')
 
     def setup(self):
         """Setup theme menu"""
-        self.window.ui.menu['theme'] = {}
-        self.window.ui.menu['theme_style'] = {}
-        self.window.ui.menu['theme_syntax'] = {}
-        self.window.ui.menu['theme.layout.density'] = {}
-        self.window.ui.menu['menu.theme'] = QMenu(trans("menu.theme"), self.window)
+        w = self.window
+        m = w.ui.menu
 
-        # styles
-        self.window.ui.menu['theme.style'] = QMenu(trans("menu.theme.style"), self.window)
+        if self._loaded:
+            act = m.get('theme.tooltips')
+            if isinstance(act, QAction):
+                act.setChecked(w.core.config.get('layout.tooltips'))
+            return
 
-        # color themes
-        self.window.ui.menu['theme.dark'] = QMenu(trans("menu.theme.dark"), self.window)
-        self.window.ui.menu['theme.light'] = QMenu(trans("menu.theme.light"), self.window)
-        self.window.ui.menu['theme.syntax'] = QMenu(trans("menu.theme.syntax"), self.window)
+        m['theme'] = {}
+        m['theme_style'] = {}
+        m['theme_syntax'] = {}
+        m['theme.layout.density'] = {}
+        m['menu.theme'] = QMenu(trans("menu.theme"), w)
 
-        # layout density
-        self.window.ui.menu['theme.density'] = QMenu(trans("menu.theme.density"), self.window)
+        m['theme.style'] = QMenu(trans("menu.theme.style"), w)
 
-        """
-        # blocks
-        self.window.ui.menu['theme.blocks'] = QAction(trans("menu.theme.blocks"), self.window, checkable=True)
-        self.window.ui.menu['theme.blocks'].triggered.connect(
-            lambda: self.window.controller.theme.toggle_option('render.blocks'))
-        self.window.ui.menu['theme.blocks'].setCheckable(True)
-        self.window.ui.menu['theme.blocks'].setChecked(self.window.core.config.get('render.blocks'))
-        """
+        m['theme.dark'] = QMenu(trans("menu.theme.dark"), w)
+        m['theme.light'] = QMenu(trans("menu.theme.light"), w)
+        m['theme.syntax'] = QMenu(trans("menu.theme.syntax"), w)
 
-        # tooltips
-        self.window.ui.menu['theme.tooltips'] = QAction(trans("menu.theme.tooltips"), self.window, checkable=True)
-        self.window.ui.menu['theme.tooltips'].triggered.connect(
-            lambda: self.window.controller.theme.toggle_option('layout.tooltips'))
-        self.window.ui.menu['theme.tooltips'].setCheckable(True)
-        self.window.ui.menu['theme.tooltips'].setChecked(self.window.core.config.get('layout.tooltips'))
+        m['theme.density'] = QMenu(trans("menu.theme.density"), w)
 
-        # settings
-        self.window.ui.menu['theme.settings'] = QAction(QIcon(":/icons/settings_filled.svg"),
-                                                        trans("menu.theme.settings"), self.window)
-        self.window.ui.menu['theme.settings'].setMenuRole(QAction.MenuRole.NoRole)
+        m['theme.tooltips'] = QAction(trans("menu.theme.tooltips"), w, checkable=True)
+        m['theme.tooltips'].triggered.connect(self._on_toggle_tooltips)
+        m['theme.tooltips'].setChecked(w.core.config.get('layout.tooltips'))
 
-        self.window.ui.menu['theme.settings'].triggered.connect(
-            lambda: self.window.controller.settings.open_section('layout'))
+        m['theme.settings'] = QAction(QIcon(":/icons/settings_filled.svg"),
+                                      trans("menu.theme.settings"), w)
+        m['theme.settings'].setMenuRole(QAction.MenuRole.NoRole)
+        m['theme.settings'].triggered.connect(self._open_settings)
 
-        self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.style'])
-        self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.dark'])
-        self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.light'])
-        self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.syntax'])
-        self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.density'])
-        # self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.blocks'])
-        self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.tooltips'])
-        self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.settings'])
+        menu_theme = m['menu.theme']
+        menu_theme.addMenu(m['theme.style'])
+        menu_theme.addMenu(m['theme.dark'])
+        menu_theme.addMenu(m['theme.light'])
+        menu_theme.addMenu(m['theme.syntax'])
+        menu_theme.addMenu(m['theme.density'])
+        menu_theme.addAction(m['theme.tooltips'])
+        menu_theme.addAction(m['theme.settings'])
+
+        self._loaded = True

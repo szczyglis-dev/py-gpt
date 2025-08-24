@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -17,10 +17,9 @@ from PySide6.QtWidgets import QTextEdit, QApplication, QVBoxLayout, QLabel, QChe
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.editor import BaseCodeEditor
+from pygpt_net.utils import trans
 
 from .html import HtmlOutput, CustomWebEnginePage
-from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class ToolWidget:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 18:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -25,65 +25,89 @@ class Audio:
 
     def setup(self):
         """Setup audio menu"""
-        self.window.ui.menu['audio.output'] = QAction(
-            trans("menu.audio.output"),
-            self.window,
-            checkable=True,
-        )
-        self.window.ui.menu['audio.input'] = QAction(
-            trans("menu.audio.input"),
-            self.window,
-            checkable=True,
-        )
-        self.window.ui.menu['audio.control.plugin'] = QAction(
-            trans("menu.audio.control.plugin"),
-            self.window,
-            checkable=True,
-        )
-        self.window.ui.menu['audio.control.global'] = QAction(
-            trans("menu.audio.control.global"),
-            self.window,
-            checkable=True,
-        )
-        self.window.ui.menu['audio.cache.clear'] = QAction(
-            QIcon(":/icons/delete.svg"),
-            trans("menu.audio.cache.clear"),
-            self.window,
-            checkable=False,
-        )
+        w = self.window
+        m = w.ui.menu
 
-        self.window.ui.menu['audio.stop'] = QAction(
-            QIcon(":/icons/mute.svg"),
-            trans("menu.audio.stop"),
-            self.window,
-            checkable=False,
-        )
+        title = trans("menu.audio")
+        txt_output = trans("menu.audio.output")
+        txt_input = trans("menu.audio.input")
+        txt_ctrl_plugin = trans("menu.audio.control.plugin")
+        txt_ctrl_global = trans("menu.audio.control.global")
+        txt_cache_clear = trans("menu.audio.cache.clear")
+        txt_stop = trans("menu.audio.stop")
 
-        self.window.ui.menu['audio.output'].triggered.connect(
-            lambda: self.window.controller.plugins.toggle('audio_output')
-        )
-        self.window.ui.menu['audio.input'].triggered.connect(
-            lambda: self.window.controller.plugins.toggle('audio_input')
-        )
-        self.window.ui.menu['audio.control.plugin'].triggered.connect(
-            lambda: self.window.controller.plugins.toggle('voice_control')
-        )
-        self.window.ui.menu['audio.control.global'].triggered.connect(
-            lambda: self.window.controller.access.voice.toggle_voice_control()
-        )
-        self.window.ui.menu['audio.cache.clear'].triggered.connect(
-            lambda: self.window.controller.audio.clear_cache()
-        )
-        self.window.ui.menu['audio.stop'].triggered.connect(
-            lambda: self.window.controller.audio.stop_audio()
-        )
+        icon_cache = QIcon(":/icons/delete.svg")
+        icon_stop = QIcon(":/icons/mute.svg")
 
-        self.window.ui.menu['menu.audio'] = self.window.menuBar().addMenu(trans("menu.audio"))
-        self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.input'])
-        self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.output'])
-        self.window.ui.menu['menu.audio'].addSeparator()
-        self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.control.plugin'])
-        self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.control.global'])
-        self.window.ui.menu['menu.audio'].addSeparator()
-        self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.cache.clear'])
-        self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.stop'])
+        plugins_toggle = w.controller.plugins.toggle
+        voice_toggle = w.controller.access.voice.toggle_voice_control
+        audio_clear = w.controller.audio.clear_cache
+        audio_stop = w.controller.audio.stop_audio
+
+        menu = m.get('menu.audio')
+        is_new_menu = menu is None
+        if is_new_menu:
+            menu = w.menuBar().addMenu(title)
+            m['menu.audio'] = menu
+        else:
+            menu.setTitle(title)
+
+        act_output = m.get('audio.output')
+        if act_output is None:
+            act_output = QAction(txt_output, w, checkable=True)
+            m['audio.output'] = act_output
+            act_output.triggered.connect(lambda _=False: plugins_toggle('audio_output'))
+        else:
+            act_output.setText(txt_output)
+
+        act_input = m.get('audio.input')
+        if act_input is None:
+            act_input = QAction(txt_input, w, checkable=True)
+            m['audio.input'] = act_input
+            act_input.triggered.connect(lambda _=False: plugins_toggle('audio_input'))
+        else:
+            act_input.setText(txt_input)
+
+        act_ctrl_plugin = m.get('audio.control.plugin')
+        if act_ctrl_plugin is None:
+            act_ctrl_plugin = QAction(txt_ctrl_plugin, w, checkable=True)
+            m['audio.control.plugin'] = act_ctrl_plugin
+            act_ctrl_plugin.triggered.connect(lambda _=False: plugins_toggle('voice_control'))
+        else:
+            act_ctrl_plugin.setText(txt_ctrl_plugin)
+
+        act_ctrl_global = m.get('audio.control.global')
+        if act_ctrl_global is None:
+            act_ctrl_global = QAction(txt_ctrl_global, w, checkable=True)
+            m['audio.control.global'] = act_ctrl_global
+            act_ctrl_global.triggered.connect(lambda _=False: voice_toggle())
+        else:
+            act_ctrl_global.setText(txt_ctrl_global)
+
+        act_cache_clear = m.get('audio.cache.clear')
+        if act_cache_clear is None:
+            act_cache_clear = QAction(icon_cache, txt_cache_clear, w, checkable=False)
+            m['audio.cache.clear'] = act_cache_clear
+            act_cache_clear.triggered.connect(lambda _=False: audio_clear())
+        else:
+            act_cache_clear.setText(txt_cache_clear)
+            act_cache_clear.setIcon(icon_cache)
+
+        act_stop = m.get('audio.stop')
+        if act_stop is None:
+            act_stop = QAction(icon_stop, txt_stop, w, checkable=False)
+            m['audio.stop'] = act_stop
+            act_stop.triggered.connect(lambda _=False: audio_stop())
+        else:
+            act_stop.setText(txt_stop)
+            act_stop.setIcon(icon_stop)
+
+        if is_new_menu:
+            menu.addAction(act_input)
+            menu.addAction(act_output)
+            menu.addSeparator()
+            menu.addAction(act_ctrl_plugin)
+            menu.addAction(act_ctrl_global)
+            menu.addSeparator()
+            menu.addAction(act_cache_clear)
+            menu.addAction(act_stop)

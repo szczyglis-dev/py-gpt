@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QMenu
@@ -14,10 +14,10 @@ from PySide6.QtGui import QAction, QIcon
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class ContextMenu:
+
     _ICON_INPUT = QIcon(":/icons/input.svg")
     _ICON_SCHEDULE = QIcon(":/icons/schedule.svg")
     _ICON_PASTE = QIcon(":/icons/paste.svg")
@@ -32,11 +32,16 @@ class ContextMenu:
         """
         self.window = window
 
-    def get_copy_to_menu(self, parent, selected_text: str = None, excluded: list = None) -> QMenu:
+    def get_copy_to_menu(
+            self,
+            parent,
+            selected_text: str = None,
+            excluded: list = None
+    ) -> QMenu:
         """
         Get copy to menu
 
-        :param parent: Parent widget
+        :param parent: Parent menu
         :param selected_text: Selected text
         :param excluded: Excluded items
         :return: Menu

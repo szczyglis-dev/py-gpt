@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 02:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from .about import About
@@ -56,6 +56,5 @@ class Menu:
         self.about.setup()
 
         # debug menu
-        show = self.window.core.config.get('debug')
         self.debug.setup()
-        self.window.ui.menu['menu.debug'].menuAction().setVisible(show)
+        self.window.ui.menu['menu.debug'].menuAction().setVisible(self.window.core.config.get('debug'))

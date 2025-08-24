@@ -6,14 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QCheckBox, QWidget, QVBoxLayout, QFrame
-
-import pygpt_net.icons_rc
 
 
 class CollapsedGroup(QWidget):
@@ -54,6 +52,9 @@ class CollapsedGroup(QWidget):
                 height: 0px;
             }
         """)
+
+        self._icon_collapse = QIcon(":/icons/collapse.svg")
+        self._icon_expand = QIcon(":/icons/expand.svg")
         self.update_icon(self.box.checkState())
 
         # options layout
@@ -78,9 +79,9 @@ class CollapsedGroup(QWidget):
         :param state:checkbox state
         """
         if state == Qt.Checked:
-            self.box.setIcon(QIcon(":/icons/collapse.svg"))
+            self.box.setIcon(self._icon_collapse)
         else:
-            self.box.setIcon(QIcon(":/icons/expand.svg"))
+            self.box.setIcon(self._icon_expand)
 
     def collapse(self, value):
         """

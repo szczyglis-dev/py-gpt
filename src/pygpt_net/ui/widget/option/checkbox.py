@@ -6,16 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.22 10:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget, QLabel
+from PySide6.QtWidgets import QHBoxLayout, QWidget, QLabel
 
 from pygpt_net.ui.widget.anims.toggles import AnimToggle
 from pygpt_net.utils import trans
-
-import pygpt_net.icons_rc
 
 class OptionCheckbox(QWidget):
     def __init__(

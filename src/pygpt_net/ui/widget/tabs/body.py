@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
+
 from typing import Any
 
 from PySide6.QtCore import QEvent
@@ -104,12 +105,13 @@ class TabBody(QTabWidget):
         :param source: source
         :param event: event
         """
-        if (event.type() == QEvent.ChildAdded and
+        t = event.type()
+        if (t == QEvent.ChildAdded and
                 source is self and
                 event.child().isWidgetType()):
             self._glwidget = event.child()
             self._glwidget.installEventFilter(self)
-        elif (event.type() == event.Type.MouseButtonPress):
+        elif t == event.Type.MouseButtonPress:
             # handle column focus
             if self.owner is not None:
                 col_idx = self.owner.column_idx

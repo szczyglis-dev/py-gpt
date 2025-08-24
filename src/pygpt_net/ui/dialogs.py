@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import threading
@@ -129,11 +129,12 @@ class Dialogs:
         :param msg: message to show
         :param parent_object: parent object
         """
-        self.window.ui.dialog['confirm'].type = type
-        self.window.ui.dialog['confirm'].id = id
-        self.window.ui.dialog['confirm'].message.setText(msg)
-        self.window.ui.dialog['confirm'].parent_object = parent_object
-        self.window.ui.dialog['confirm'].show()
+        confirm = self.window.ui.dialog.get('confirm')
+        confirm.type = type
+        confirm.id = id
+        confirm.message.setText(msg)
+        confirm.parent_object = parent_object
+        confirm.show()
 
     def alert(self, msg: any):
         """
@@ -159,9 +160,10 @@ class Dialogs:
         """
         if id not in self.window.ui.dialog:
             return
-        self.window.ui.dialog[id].resize(width, height)
-        self.window.ui.dialog[id].data_id = data_id
-        self.window.ui.dialog[id].show()
+        dialog = self.window.ui.dialog[id]
+        dialog.resize(width, height)
+        dialog.data_id = data_id
+        dialog.show()
 
     def open_dictionary_editor(
             self,
@@ -187,10 +189,11 @@ class Dialogs:
             print("Dialog not found: " + dialog_id)
             return
         self.window.controller.config.dictionary.append_editor(id, option, data)
-        self.window.ui.dialog[dialog_id].resize(width, height)
-        self.window.ui.dialog[dialog_id].data = data  # store editing data
-        self.window.ui.dialog[dialog_id].idx = idx  # store editing record idx
-        self.window.ui.dialog[dialog_id].show()
+        dialog = self.window.ui.dialog[dialog_id]
+        dialog.resize(width, height)
+        dialog.data = data  # store editing data
+        dialog.idx = idx  # store editing record idx
+        dialog.show()
 
     def register_dictionary(
             self,
@@ -205,8 +208,7 @@ class Dialogs:
         :param parent: parent id
         :param option: dictionary option keys
         """
-        dict_id = parent + "." + key
-        self.dictionary.register(dict_id, key, parent, option)
+        self.dictionary.register(f"{parent}.{key}", key, parent, option)
 
     def open(
             self,
@@ -223,18 +225,19 @@ class Dialogs:
         """
         if id not in self.window.ui.dialog:
             return
-        self.window.ui.dialog[id].resize(width, height)
-        self.window.ui.dialog[id].setSizeGripEnabled(True)
-        self.window.ui.dialog[id].setWindowFlags(
-            self.window.ui.dialog[id].windowFlags() | Qt.WindowMaximizeButtonHint
+        dialog = self.window.ui.dialog[id]
+        dialog.resize(width, height)
+        dialog.setSizeGripEnabled(True)
+        dialog.setWindowFlags(
+            dialog.windowFlags() | Qt.WindowMaximizeButtonHint
         )
-        qr = self.window.ui.dialog[id].frameGeometry()
+        qr = dialog.frameGeometry()
         cp = self.window.screen().availableGeometry().center()
         qr.moveCenter(cp)
-        self.window.ui.dialog[id].move(qr.topLeft())
-        self.window.ui.dialog[id].show()
-        self.window.ui.dialog[id].activateWindow()
-        self.window.ui.dialog[id].setFocus()
+        dialog.move(qr.topLeft())
+        dialog.show()
+        dialog.activateWindow()
+        dialog.setFocus()
 
     def open_instance(self,
             id: str,
@@ -256,14 +259,15 @@ class Dialogs:
             else:
                 print("Dialog not found: " + id)
                 return
-        self.window.ui.dialog[id].resize(width, height)
-        qr = self.window.ui.dialog[id].frameGeometry()
+        dialog = self.window.ui.dialog[id]
+        dialog.resize(width, height)
+        qr = dialog.frameGeometry()
         cp = self.window.screen().availableGeometry().center()
         qr.moveCenter(cp)
-        self.window.ui.dialog[id].move(qr.topLeft())
-        self.window.ui.dialog[id].show()
-        self.window.ui.dialog[id].activateWindow()
-        self.window.ui.dialog[id].setFocus()
+        dialog.move(qr.topLeft())
+        dialog.show()
+        dialog.activateWindow()
+        dialog.setFocus()
 
     def close(self, id: str):
         """

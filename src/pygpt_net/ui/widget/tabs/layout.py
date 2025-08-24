@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
+
+from typing import Optional
+import weakref
 
 from PySide6.QtCore import Qt, QObject, QEvent
 from PySide6.QtWidgets import QTabWidget, QWidget, QVBoxLayout, QSplitter, QSizePolicy
@@ -41,7 +44,8 @@ class OutputColumn(QWidget):
         :param widget: widget
         """
         self.window.controller.ui.tabs.on_column_focus(self.idx)
-        widget.setFocus()
+        if widget is not None and not widget.hasFocus():
+            widget.setFocus()
 
     def set_idx(self, idx: int):
         """
@@ -112,9 +116,9 @@ class OutputLayout(QWidget):
         :param pos: Position of the splitter
         :param index: Index of the widget that was moved
         """
-        widget = self.splitter.widget(1)
-        if widget:
-            current_width = widget.width()
+        if self.splitter.count() > 1:
+            sizes = self.splitter.sizes()
+            current_width = sizes[1] if len(sizes) > 1 else 0
             if current_width == 0:
                 if self._was_width_zero is not True:
                     self._was_width_zero = True
@@ -142,17 +146,15 @@ class OutputLayout(QWidget):
         column.set_idx(idx)
         self.columns.append(column)
 
-    def get_tabs_by_idx(self, idx: int) -> OutputTabs:
+    def get_tabs_by_idx(self, idx: int) -> Optional[OutputTabs]:
         """
         Get tabs by column index
 
         :param idx: int
         :return: OutputTabs
         """
-        for column in self.columns:
-            if column.idx == idx:
-                return column.tabs
-        return None
+        column = self.get_column_by_idx(idx)
+        return column.tabs if column is not None else None
 
     def get_active_tabs(self) -> OutputTabs:
         """
@@ -161,17 +163,21 @@ class OutputLayout(QWidget):
         :return: OutputTabs
         """
         current = self.window.controller.ui.tabs.get_current_column_idx()
-        for column in self.columns:
-            if column.idx == current:
-                return column.tabs
+        column = self.get_column_by_idx(current)
+        if column is not None:
+            return column.tabs
 
-    def get_column_by_idx(self, idx: int) -> OutputColumn:
+    def get_column_by_idx(self, idx: int) -> Optional[OutputColumn]:
         """
         Get column by index
 
         :param idx: int
         :return: OutputColumn
         """
+        if 0 <= idx < len(self.columns):
+            column = self.columns[idx]
+            if column.idx == idx:
+                return column
         for column in self.columns:
             if column.idx == idx:
                 return column
@@ -184,9 +190,8 @@ class OutputLayout(QWidget):
         :return: OutputColumn
         """
         current = self.window.controller.ui.tabs.get_current_column_idx()
-        for column in self.columns:
-            if column.idx == current:
-                return column
+        return self.get_column_by_idx(current)
+
 
 class FocusEventFilter(QObject):
     def __init__(self, column, callback):
@@ -196,9 +201,9 @@ class FocusEventFilter(QObject):
         :param column: parent column
         :param callback: callback
         """
-        super().__init__()
-        self.column = column
-        self.callback = callback
+        super().__init__(column)
+        self._column_ref = weakref.ref(column)
+        self._callback = weakref.WeakMethod(callback) if hasattr(callback, "__self__") and callback.__self__ is not None else callback
 
     def eventFilter(self, obj, event):
         """
@@ -207,9 +212,15 @@ class FocusEventFilter(QObject):
         :param obj: object
         :param event: event
         """
-        if event.type() == QEvent.MouseButtonPress or event.type() == QEvent.FocusIn:
-            widget = obj
-            if widget is not None:
-                self.callback(widget)
+        t = event.type()
+        if t in (QEvent.MouseButtonPress, QEvent.FocusIn):
+            col = self._column_ref()
+            if col is not None:
+                if isinstance(self._callback, weakref.WeakMethod):
+                    cb = self._callback()
+                else:
+                    cb = self._callback
+                if cb is not None:
+                    cb(obj)
             return False
         return False

@@ -6,18 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import datetime
+from collections import deque
 
 from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QImage, QPainter, QPen, QAction, QIcon, QKeySequence
+from PySide6.QtGui import QImage, QPainter, QPen, QAction, QIcon
 from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class PainterWidget(QWidget):
@@ -31,13 +31,50 @@ class PainterWidget(QWidget):
         self.brushColor = Qt.black
         self.lastPoint = QPoint()
         self.originalImage = None
-        self.undoStack = []
-        self.redoStack = []
         self.undoLimit = 10
+        self.undoStack = deque(maxlen=self.undoLimit)
+        self.redoStack = deque()
         self.setFocusPolicy(Qt.StrongFocus)
         self.setFocus()
         self.installEventFilter(self)
         self.tab = None
+        self._pen = QPen(self.brushColor, self.brushSize, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+        self.setAttribute(Qt.WA_OpaquePaintEvent, True)
+        self.setAttribute(Qt.WA_StaticContents, True)
+
+        self._act_undo = QAction(QIcon(":/icons/undo.svg"), trans('action.undo'), self)
+        self._act_undo.triggered.connect(self.undo)
+
+        self._act_redo = QAction(QIcon(":/icons/redo.svg"), trans('action.redo'), self)
+        self._act_redo.triggered.connect(self.redo)
+
+        self._act_copy = QAction(QIcon(":/icons/copy.svg"), trans('action.copy'), self)
+        self._act_copy.triggered.connect(self.handle_copy)
+
+        self._act_paste = QAction(QIcon(":/icons/paste.svg"), trans('action.paste'), self)
+        self._act_paste.triggered.connect(self.handle_paste)
+
+        self._act_open = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open'), self)
+        self._act_open.triggered.connect(self.action_open)
+
+        self._act_capture = QAction(QIcon(":/icons/fullscreen.svg"), trans('painter.btn.capture'), self)
+        self._act_capture.triggered.connect(self.action_capture)
+
+        self._act_save = QAction(QIcon(":/icons/save.svg"), trans('img.action.save'), self)
+        self._act_save.triggered.connect(self.action_save)
+
+        self._act_clear = QAction(QIcon(":/icons/close.svg"), trans('painter.btn.clear'), self)
+        self._act_clear.triggered.connect(self.action_clear)
+
+        self._ctx_menu = QMenu(self)
+        self._ctx_menu.addAction(self._act_undo)
+        self._ctx_menu.addAction(self._act_redo)
+        self._ctx_menu.addAction(self._act_open)
+        self._ctx_menu.addAction(self._act_capture)
+        self._ctx_menu.addAction(self._act_copy)
+        self._ctx_menu.addAction(self._act_paste)
+        self._ctx_menu.addAction(self._act_save)
+        self._ctx_menu.addAction(self._act_clear)
 
     def set_tab(self, tab: Tab):
         """
@@ -67,66 +104,14 @@ class PainterWidget(QWidget):
 
         :param event: Event
         """
-        actions = {}
-        actions['undo'] = QAction(QIcon(":/icons/undo.svg"), trans('action.undo'), self)
-        actions['undo'].triggered.connect(
-            lambda: self.undo())
-        if self.has_undo():
-            actions['undo'].setEnabled(True)
-        else:
-            actions['undo'].setEnabled(False)
+        self._act_undo.setEnabled(self.has_undo())
+        self._act_redo.setEnabled(self.has_redo())
 
-        actions['redo'] = QAction(QIcon(":/icons/redo.svg"), trans('action.redo'), self)
-        actions['redo'].triggered.connect(
-            lambda: self.redo())
-        if self.has_redo():
-            actions['redo'].setEnabled(True)
-        else:
-            actions['redo'].setEnabled(False)
-
-        actions['copy'] = QAction(QIcon(":/icons/copy.svg"),  trans('action.copy'), self)
-        actions['copy'].triggered.connect(
-            lambda: self.handle_copy()
-        )
-
-        is_paste = False
         clipboard = QApplication.clipboard()
         mime_data = clipboard.mimeData()
-        if mime_data.hasImage():
-            is_paste = True
+        self._act_paste.setEnabled(bool(mime_data.hasImage()))
 
-        actions['paste'] = QAction(QIcon(":/icons/paste.svg"), trans('action.paste'), self)
-        actions['paste'].triggered.connect(
-            lambda: self.handle_paste()
-        )
-        if is_paste:
-            actions['paste'].setEnabled(True)
-        else:
-            actions['paste'].setEnabled(False)
-
-        actions['open'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open'), self)
-        actions['open'].triggered.connect(
-            lambda: self.action_open())
-        actions['capture'] = QAction(QIcon(":/icons/fullscreen.svg"), trans('painter.btn.capture'), self)
-        actions['capture'].triggered.connect(
-            lambda: self.action_capture())
-        actions['save'] = QAction(QIcon(":/icons/save.svg"), trans('img.action.save'), self)
-        actions['save'].triggered.connect(
-            lambda: self.action_save())
-        actions['clear'] = QAction(QIcon(":/icons/close.svg"), trans('painter.btn.clear'), self)
-        actions['clear'].triggered.connect(
-            lambda: self.action_clear())
-
-        menu = QMenu(self)
-        menu.addAction(actions['undo'])
-        menu.addAction(actions['redo'])
-        menu.addAction(actions['open'])
-        menu.addAction(actions['capture'])
-        menu.addAction(actions['copy'])
-        menu.addAction(actions['paste'])
-        menu.addAction(actions['save'])
-        menu.addAction(actions['clear'])
-        menu.exec_(event.globalPos())
+        self._ctx_menu.exec(event.globalPos())
 
     def action_open(self):
         """Open the image"""
@@ -195,7 +180,6 @@ class PainterWidget(QWidget):
         if image.width() == self.width():
             new = image
         else:
-            # to fit the width
             if image.width() > image.height():
                 width = self.width()
                 height = (image.height() * self.width()) / image.width()
@@ -215,11 +199,8 @@ class PainterWidget(QWidget):
                     Qt.SmoothTransformation,
                 )
 
-        self.image = QImage(
-            self.width(),
-            self.height(),
-            QImage.Format_RGB32,
-        )
+        if self.image.size() != self.size():
+            self.image = QImage(self.size(), QImage.Format_RGB32)
         self.image.fill(Qt.white)
         painter = QPainter(self.image)
         painter.drawImage(0, 0, new)
@@ -229,22 +210,20 @@ class PainterWidget(QWidget):
 
     def saveForUndo(self):
         """Save current state for undo"""
-        if len(self.undoStack) >= self.undoLimit:
-            self.undoStack.pop(0)
-        self.undoStack.append(self.image.copy())
-        self.redoStack.clear()  # clear redo on new action
+        self.undoStack.append(QImage(self.image))
+        self.redoStack.clear()
 
     def undo(self):
         """Undo the last action"""
         if self.undoStack:
-            self.redoStack.append(self.image.copy())
+            self.redoStack.append(QImage(self.image))
             self.image = self.undoStack.pop()
             self.update()
 
     def redo(self):
         """Redo the last undo action"""
         if self.redoStack:
-            self.undoStack.append(self.image.copy())
+            self.undoStack.append(QImage(self.image))
             self.image = self.redoStack.pop()
             self.update()
 
@@ -263,6 +242,7 @@ class PainterWidget(QWidget):
         :param color: Color
         """
         self.brushColor = color
+        self._pen.setColor(color)
 
     def set_brush_size(self, size):
         """
@@ -271,6 +251,7 @@ class PainterWidget(QWidget):
         :param size: Brush size
         """
         self.brushSize = size
+        self._pen.setWidth(size)
 
     def clear_image(self):
         """Clear the image"""
@@ -289,16 +270,9 @@ class PainterWidget(QWidget):
             self.lastPoint = event.pos()
             self.saveForUndo()
             painter = QPainter(self.image)
-            painter.setPen(
-                QPen(
-                    self.brushColor,
-                    self.brushSize,
-                    Qt.SolidLine,
-                    Qt.RoundCap,
-                    Qt.RoundJoin,
-                )
-            )
+            painter.setPen(self._pen)
             painter.drawPoint(self.lastPoint)
+            painter.end()
             self.update()
 
     def mouseMoveEvent(self, event):
@@ -309,16 +283,9 @@ class PainterWidget(QWidget):
         """
         if (event.buttons() & Qt.LeftButton) and self.drawing:
             painter = QPainter(self.image)
-            painter.setPen(
-                QPen(
-                    self.brushColor,
-                    self.brushSize,
-                    Qt.SolidLine,
-                    Qt.RoundCap,
-                    Qt.RoundJoin,
-                )
-            )
+            painter.setPen(self._pen)
             painter.drawLine(self.lastPoint, event.pos())
+            painter.end()
             self.lastPoint = event.pos()
             self.update()
 
@@ -350,12 +317,13 @@ class PainterWidget(QWidget):
         """
         painter = QPainter(self)
         painter.drawImage(self.rect(), self.image, self.image.rect())
+        painter.end()
         self.originalImage = self.image
 
     def resizeEvent(self, event):
         """
         Update coords on resize
-        
+
         :param event: Event
         """
         if self.image.size() != self.size():
@@ -363,6 +331,7 @@ class PainterWidget(QWidget):
             new.fill(Qt.white)
             painter = QPainter(new)
             painter.drawImage(QPoint(0, 0), self.image)
+            painter.end()
             self.image = new
 
     def eventFilter(self, source, event):

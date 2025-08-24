@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 19:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
@@ -31,7 +31,6 @@ class Image:
         :return: QWidget
         :rtype: QWidget
         """
-        # img variants
         option = {
             "type": "int",
             "slider": True,
@@ -42,32 +41,30 @@ class Image:
             "value": 1,
             "multiplier": 1,
         }
-        self.window.ui.nodes['img_variants.label'] = QLabel(trans("toolbox.img_variants.label"))
-        self.window.ui.config['global']['img_variants'] = \
-            OptionSlider(self.window, 'global', 'img_variants', option)
 
-        # img raw
-        self.window.ui.config['global']['img_raw'] = QCheckBox(trans("img.raw"))
-        self.window.ui.config['global']['img_raw'].stateChanged.connect(
-            lambda:
-            self.window.controller.chat.common.img_toggle_raw(self.window.ui.config['global']['img_raw'].isChecked()))
+        ui = self.window.ui
+        conf_global = ui.config['global']
 
-        # label
-        label = QLabel(trans("toolbox.img_variants.label"))
+        container = QWidget()
+        ui.nodes['dalle.options'] = container
 
-        # options
+        label_text = trans("toolbox.img_variants.label")
+        ui.nodes['img_variants.label'] = QLabel(label_text, parent=container)
+
+        conf_global['img_variants'] = OptionSlider(self.window, 'global', 'img_variants', option)
+        conf_global['img_raw'] = QCheckBox(trans("img.raw"), parent=container)
+        conf_global['img_raw'].toggled.connect(self.window.controller.chat.common.img_toggle_raw)
+
         cols = QHBoxLayout()
-        cols.addWidget(self.window.ui.config['global']['img_raw'])
-        cols.addWidget(self.window.ui.config['global']['img_variants'])
+        cols.addWidget(conf_global['img_raw'])
+        cols.addWidget(conf_global['img_variants'])
 
-        # rows
         rows = QVBoxLayout()
-        rows.addWidget(label)
+        rows.addWidget(ui.nodes['img_variants.label'])
         rows.addLayout(cols)
         rows.setContentsMargins(2, 5, 5, 5)
 
-        self.window.ui.nodes['dalle.options'] = QWidget()
-        self.window.ui.nodes['dalle.options'].setLayout(rows)
-        self.window.ui.nodes['dalle.options'].setContentsMargins(2, 0, 0, 0)
+        container.setLayout(rows)
+        container.setContentsMargins(2, 0, 0, 0)
 
-        return self.window.ui.nodes['dalle.options']
+        return container

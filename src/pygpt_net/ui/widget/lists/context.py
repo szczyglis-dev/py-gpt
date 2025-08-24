@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,13 +14,11 @@ import functools
 
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtCore import Qt, QPoint, QItemSelectionModel
-from PySide6.QtGui import QAction, QIcon, QColor, QPixmap, QStandardItem
+from PySide6.QtGui import QIcon, QColor, QPixmap, QStandardItem
 from PySide6.QtWidgets import QMenu
-from overrides import overrides
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class ContextList(BaseList):

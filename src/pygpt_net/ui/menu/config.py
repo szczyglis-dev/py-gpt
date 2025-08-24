@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
@@ -15,7 +15,6 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 from .lang import Lang
 from .theme import Theme
@@ -34,137 +33,132 @@ class Config:
 
     def setup(self):
         """Setup config menu"""
-        self.window.ui.menu['config.settings'] = QAction(QIcon(":/icons/settings_filled.svg"),
-                                                         trans("menu.config.settings"), self.window)
-        self.window.ui.menu['config.settings'].setMenuRole(QAction.MenuRole.NoRole)
+        w = self.window
+        m = w.ui.menu
+        tr = trans
 
-        self.window.ui.menu['config.models'] = QMenu(trans("menu.config.models"), self.window)
+        icon_settings = QIcon(":/icons/settings_filled.svg")
+        icon_access = QIcon(":/icons/accessibility.svg")
+        icon_reload = QIcon(":/icons/reload.svg")
+        icon_edit = QIcon(":/icons/edit.svg")
+        icon_undo = QIcon(":/icons/undo.svg")
+        icon_add = QIcon(":/icons/add.svg")
+        icon_folder = QIcon(":/icons/folder_filled.svg")
+        icon_save = QIcon(":/icons/save.svg")
 
-        self.window.ui.menu['config.access'] = QAction(QIcon(":/icons/accessibility.svg"),
-                                                       trans("menu.config.access"), self.window)
-        self.window.ui.menu['config.access'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.settings'] = QAction(icon_settings, tr("menu.config.settings"), w)
+        m['config.settings'].setMenuRole(QAction.MenuRole.NoRole)
 
-        # models
-        self.window.ui.menu['config.models.edit'] = QAction(QIcon(":/icons/settings_filled.svg"),
-                                                       trans("menu.config.models.edit"), self.window)
-        self.window.ui.menu['config.models.edit'].triggered.connect(
-            lambda: self.window.controller.model.editor.toggle_editor())
-        self.window.ui.menu['config.models.import.provider'] = QAction(QIcon(":/icons/reload.svg"),
-                                                                     trans("menu.config.models.import.provider"),
-                                                                     self.window)
-        self.window.ui.menu['config.models.import.provider'].triggered.connect(
-            lambda: self.window.controller.model.importer.toggle_editor())
+        m['config.models'] = QMenu(tr("menu.config.models"), w)
 
-        self.window.ui.menu['config.models'].addAction(self.window.ui.menu['config.models.edit'])
-        self.window.ui.menu['config.models'].addAction(self.window.ui.menu['config.models.import.provider'])
+        m['config.access'] = QAction(icon_access, tr("menu.config.access"), w)
+        m['config.access'].setMenuRole(QAction.MenuRole.NoRole)
 
+        m['config.models.edit'] = QAction(icon_settings, tr("menu.config.models.edit"), w)
+        m['config.models.edit'].triggered.connect(
+            lambda: w.controller.model.editor.toggle_editor()
+        )
+        m['config.models.import.provider'] = QAction(icon_reload, tr("menu.config.models.import.provider"), w)
+        m['config.models.import.provider'].triggered.connect(
+            lambda: w.controller.model.importer.toggle_editor()
+        )
 
-        css_dir = os.path.join(self.window.core.config.path, 'css')
-        css_files = os.listdir(css_dir)
-        css_files = [f for f in css_files if not f.endswith('.backup')]  # remove .backup files
-        css_files = sorted(css_files)  # sort by name
+        m['config.models'].addAction(m['config.models.edit'])
+        m['config.models'].addAction(m['config.models.import.provider'])
 
-        json_files = []
-        json_files.append("attachments.json")
-        json_files.append("assistants.json")
-        json_files.append("config.json")
-        json_files.append("models.json")
-        json_files.append("plugin_presets.json")
+        css_dir = os.path.join(w.core.config.path, 'css')
+        css_files = sorted(f for f in os.listdir(css_dir) if not f.endswith('.backup'))
 
-        # -------------------------------------------- #
+        json_files = (
+            "attachments.json",
+            "assistants.json",
+            "config.json",
+            "models.json",
+            "plugin_presets.json",
+        )
 
-        # create submenu for css files
-        self.window.ui.menu['config.edit.css'] = QMenu(trans("menu.config.edit.css"), self.window)
+        m['config.edit.css'] = QMenu(tr("menu.config.edit.css"), w)
+        css_menu = m['config.edit.css']
 
         for css_file in css_files:
-            name = css_file.split("/")[-1]
-            self.window.ui.menu['config.edit.css.' + name] = QAction(QIcon(":/icons/edit.svg"),
-                                                                     name, self.window)
-            self.window.ui.menu['config.edit.css.' + name].triggered.connect(
-                lambda checked=True, file=css_file: self.window.controller.settings.toggle_file_editor(file))
-            self.window.ui.menu['config.edit.css'].addAction(self.window.ui.menu['config.edit.css.' + name])
+            name = os.path.basename(css_file)
+            key = 'config.edit.css.' + name
+            m[key] = QAction(icon_edit, name, w)
+            m[key].triggered.connect(
+                lambda checked=True, file=css_file: w.controller.settings.toggle_file_editor(file)
+            )
+            css_menu.addAction(m[key])
 
-        # restore css files
-        self.window.ui.menu['config.edit.css'].addSeparator()
-        self.window.ui.menu['config.edit.css.restore'] = QAction(QIcon(":/icons/undo.svg"),
-                                                                 trans('menu.config.edit.css.restore'), self.window)
-        self.window.ui.menu['config.edit.css.restore'].triggered.connect(
-            lambda checked=True: self.window.controller.layout.restore_default_css(force=False))
-        self.window.ui.menu['config.edit.css'].addAction(self.window.ui.menu['config.edit.css.restore'])
+        css_menu.addSeparator()
+        m['config.edit.css.restore'] = QAction(icon_undo, tr('menu.config.edit.css.restore'), w)
+        m['config.edit.css.restore'].triggered.connect(
+            lambda checked=True: w.controller.layout.restore_default_css(force=False)
+        )
+        css_menu.addAction(m['config.edit.css.restore'])
 
-        # -------------------------------------------- #
-
-        # create submenu for JSON files
-        self.window.ui.menu['config.edit.json'] = QMenu(trans("menu.config.edit.json"), self.window)
+        m['config.edit.json'] = QMenu(tr("menu.config.edit.json"), w)
+        json_menu = m['config.edit.json']
 
         for json_file in json_files:
             name = json_file
-            self.window.ui.menu['config.edit.json.' + name] = QAction(QIcon(":/icons/edit.svg"),
-                                                                      name, self.window)
-            self.window.ui.menu['config.edit.json.' + name].triggered.connect(
-                lambda checked=True, file=json_file: self.window.controller.settings.toggle_file_editor(file))
-            self.window.ui.menu['config.edit.json'].addAction(self.window.ui.menu['config.edit.json.' + name])
+            key = 'config.edit.json.' + name
+            m[key] = QAction(icon_edit, name, w)
+            m[key].triggered.connect(
+                lambda checked=True, file=json_file: w.controller.settings.toggle_file_editor(file)
+            )
+            json_menu.addAction(m[key])
 
-        # -------------------------------------------- #
+        m['config.profiles'] = {}
+        m['config.profile'] = QMenu(tr("menu.config.profile"), w)
 
-        # create submenu for profiles
-        self.window.ui.menu['config.profiles'] = {}
-        self.window.ui.menu['config.profile'] = QMenu(trans("menu.config.profile"), self.window)
+        m['config.profile.new'] = QAction(icon_add, tr("menu.config.profile.new"), w, checkable=False)
+        m['config.profile.new'].triggered.connect(
+            lambda: w.controller.settings.profile.new()
+        )
+        m['config.profile.new'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.profile'].addAction(m['config.profile.new'])
 
-        # add new
-        self.window.ui.menu['config.profile.new'] = QAction(
-            QIcon(":/icons/add.svg"), trans("menu.config.profile.new"), self.window, checkable=False)
-        self.window.ui.menu['config.profile.new'].triggered.connect(
-            lambda: self.window.controller.settings.profile.new())
-        self.window.ui.menu['config.profile.new'].setMenuRole(QAction.MenuRole.NoRole)
-        self.window.ui.menu['config.profile'].addAction(self.window.ui.menu['config.profile.new'])
+        m['config.profile.edit'] = QAction(icon_edit, tr("menu.config.profile.edit"), w, checkable=False)
+        m['config.profile.edit'].triggered.connect(
+            lambda: w.controller.settings.profile.toggle_editor()
+        )
+        m['config.profile.edit'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.profile'].addAction(m['config.profile.edit'])
+        m['config.profile'].addSeparator()
 
-        # edit
-        self.window.ui.menu['config.profile.edit'] = QAction(
-            QIcon(":/icons/edit.svg"), trans("menu.config.profile.edit"), self.window, checkable=False)
-        self.window.ui.menu['config.profile.edit'].triggered.connect(
-            lambda: self.window.controller.settings.profile.toggle_editor())
-        self.window.ui.menu['config.profile.edit'].setMenuRole(QAction.MenuRole.NoRole)
-        self.window.ui.menu['config.profile'].addAction(self.window.ui.menu['config.profile.edit'])
-        self.window.ui.menu['config.profile'].addSeparator()
+        m['config.open_dir'] = QAction(icon_folder, tr("menu.config.open_dir"), w)
+        m['config.change_dir'] = QAction(icon_settings, tr("menu.config.change_dir"), w)
+        m['config.save'] = QAction(icon_save, tr("menu.config.save"), w)
 
-        # -------------------------------------------- #
-
-        self.window.ui.menu['config.open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"),
-                                                         trans("menu.config.open_dir"), self.window)
-        self.window.ui.menu['config.change_dir'] = QAction(QIcon(":/icons/settings_filled.svg"),
-                                                         trans("menu.config.change_dir"), self.window)
-        self.window.ui.menu['config.save'] = QAction(QIcon(":/icons/save.svg"),
-                                                     trans("menu.config.save"), self.window)
-
-        self.window.ui.menu['config.settings'].triggered.connect(
-            lambda: self.window.controller.settings.toggle_editor('settings'))
-
-        self.window.ui.menu['config.access'].triggered.connect(
-            lambda: self.window.controller.settings.open_section('access'))
-
-        self.window.ui.menu['config.open_dir'].triggered.connect(
-            lambda: self.window.controller.settings.open_config_dir())
-
-        self.window.ui.menu['config.change_dir'].triggered.connect(
-            lambda: self.window.controller.settings.workdir.change())
-
-        self.window.ui.menu['config.save'].triggered.connect(
-            lambda: self.window.controller.settings.save_all())
+        m['config.settings'].triggered.connect(
+            lambda: w.controller.settings.toggle_editor('settings')
+        )
+        m['config.access'].triggered.connect(
+            lambda: w.controller.settings.open_section('access')
+        )
+        m['config.open_dir'].triggered.connect(
+            lambda: w.controller.settings.open_config_dir()
+        )
+        m['config.change_dir'].triggered.connect(
+            lambda: w.controller.settings.workdir.change()
+        )
+        m['config.save'].triggered.connect(
+            lambda: w.controller.settings.save_all()
+        )
 
         self.lang.setup()
         self.theme.setup()
 
-        self.window.ui.menu['menu.config'] = self.window.menuBar().addMenu(trans("menu.config"))
-        self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.settings'])
-        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.models'])
-        self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.access'])
-
-        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['menu.theme'])
-        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['menu.lang'])
-        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.edit.css'])
-        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.edit.json'])
-        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.profile'])
-        self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.open_dir'])
-        self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.change_dir'])
-        self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.save'])
+        m['menu.config'] = w.menuBar().addMenu(tr("menu.config"))
+        menu = m['menu.config']
+        menu.addAction(m['config.settings'])
+        menu.addMenu(m['config.models'])
+        menu.addAction(m['config.access'])
+        menu.addMenu(m['menu.theme'])
+        menu.addMenu(m['menu.lang'])
+        menu.addMenu(m['config.edit.css'])
+        menu.addMenu(m['config.edit.json'])
+        menu.addMenu(m['config.profile'])
+        menu.addAction(m['config.open_dir'])
+        menu.addAction(m['config.change_dir'])
+        menu.addAction(m['config.save'])

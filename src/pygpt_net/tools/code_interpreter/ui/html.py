@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import json
@@ -24,8 +24,6 @@ from pygpt_net.item.ctx import CtxMeta, CtxItem
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.tools.code_interpreter.body import Body
 from pygpt_net.utils import trans
-
-import pygpt_net.icons_rc
 
 class CodeBlock:
     def __init__(

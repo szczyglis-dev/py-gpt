@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 18:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
-from qasync import QApplication
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.utils import mem_clean
 

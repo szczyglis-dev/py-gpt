@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 18:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -18,8 +18,6 @@ from PySide6.QtWidgets import QMenuBar
 
 from pygpt_net.utils import trans
 from .base import BaseDialog
-
-import pygpt_net.icons_rc
 
 class EditorFileDialog(BaseDialog):
     def __init__(self, window=None, id="editor_file"):
@@ -47,17 +45,16 @@ class EditorFileDialog(BaseDialog):
 
         :param force: force update
         """
-        title = trans("untitled")
-        if self.file:
-            title = os.path.basename(self.file)
-        if self.is_changed():
+        file = self.file
+        changed = self.is_changed()
+        title = os.path.basename(file) if file else trans("untitled")
+        if changed:
             title += "*"
-        if self.file and os.path.exists(self.file):
-            file_size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(self.file))
-            title += " - {}".format(file_size)
-        if self.is_changed() or force:
-            time = datetime.datetime.now().strftime("%H:%M")
-            title += " (" + time + ")"
+        if file and os.path.exists(file):
+            file_size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(file))
+            title += f" - {file_size}"
+        if changed or force:
+            title += f" ({datetime.datetime.now().strftime('%H:%M')})"
         self.setWindowTitle(title)
 
     def is_changed(self) -> bool:
@@ -66,7 +63,7 @@ class EditorFileDialog(BaseDialog):
 
         :return: True if file was changed
         """
-        return str(self.window.ui.editor[self.id].toPlainText()) != str(self.base_content)
+        return self.window.ui.editor[self.id].toPlainText() != self.base_content
 
     def setup_menu(self) -> QMenuBar:
         """
@@ -74,48 +71,48 @@ class EditorFileDialog(BaseDialog):
 
         :return: menu bar
         """
-        self.menu_bar = QMenuBar()
+        self.menu_bar = QMenuBar(self)
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
         self.actions = {}
 
         # new
-        self.actions["new"] = QAction(QIcon(":/icons/add.svg"), trans("action.new"))
+        self.actions["new"] = QAction(QIcon(":/icons/add.svg"), trans("action.new"), self)
         self.actions["new"].triggered.connect(
             lambda: self.window.tools.get("editor").new()
         )
 
         # open
-        self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"))
+        self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"), self)
         self.actions["open"].triggered.connect(
             lambda: self.window.tools.get("editor").open_file(self.id, auto_close=True)
         )
 
         # open (new window)
-        self.actions["open_new"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open_new_window"))
+        self.actions["open_new"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open_new_window"), self)
         self.actions["open_new"].triggered.connect(
             lambda: self.window.tools.get("editor").open_file(self.id, auto_close=False)
         )
 
         # save
-        self.actions["save"] = QAction(QIcon(":/icons/save.svg"), trans("action.save"))
+        self.actions["save"] = QAction(QIcon(":/icons/save.svg"), trans("action.save"), self)
         self.actions["save"].triggered.connect(
             lambda: self.window.tools.get("editor").save(self.id)
         )
 
         # save as
-        self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"))
+        self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"), self)
         self.actions["save_as"].triggered.connect(
             lambda: self.window.tools.get("editor").save_as_file(self.id)
         )
 
         # clear
-        self.actions["clear"] = QAction(QIcon(":/icons/close.svg"), trans("action.clear"))
+        self.actions["clear"] = QAction(QIcon(":/icons/close.svg"), trans("action.clear"), self)
         self.actions["clear"].triggered.connect(
             lambda: self.window.tools.get("editor").clear(self.id)
         )
 
         # close
-        self.actions["exit"] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"))
+        self.actions["exit"] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"), self)
         self.actions["exit"].triggered.connect(
             lambda: self.window.tools.get("editor").close(self.id)
         )

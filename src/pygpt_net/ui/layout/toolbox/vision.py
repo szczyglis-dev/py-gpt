@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
@@ -29,33 +29,31 @@ class Vision:
 
         :return: QWidget
         """
-        # enable/disable
-        self.window.ui.nodes['vision.capture.enable'] = QCheckBox(trans("vision.capture.enable"))
-        self.window.ui.nodes['vision.capture.enable'].stateChanged.connect(
-            lambda: self.window.controller.camera.toggle(self.window.ui.nodes['vision.capture.enable'].isChecked()))
-        self.window.ui.nodes['vision.capture.enable'].setToolTip(trans('vision.capture.enable.tooltip'))
+        nodes = self.window.ui.nodes
+        camera = self.window.controller.camera
 
-        # auto
-        self.window.ui.nodes['vision.capture.auto'] = QCheckBox(trans("vision.capture.auto"))
-        self.window.ui.nodes['vision.capture.auto'].stateChanged.connect(
-            lambda: self.window.controller.camera.toggle_auto(self.window.ui.nodes['vision.capture.auto'].isChecked()))
-        self.window.ui.nodes['vision.capture.auto'].setToolTip(trans('vision.capture.auto.tooltip'))
+        nodes['vision.capture.options'] = QWidget()
+        options = nodes['vision.capture.options']
 
-        self.window.ui.nodes['vision.capture.label'] = QLabel(trans('vision.capture.options.title'))
+        nodes['vision.capture.enable'] = QCheckBox(trans("vision.capture.enable"), parent=options)
+        nodes['vision.capture.enable'].toggled.connect(camera.toggle)
+        nodes['vision.capture.enable'].setToolTip(trans('vision.capture.enable.tooltip'))
 
-        # checkbox options
+        nodes['vision.capture.auto'] = QCheckBox(trans("vision.capture.auto"), parent=options)
+        nodes['vision.capture.auto'].toggled.connect(camera.toggle_auto)
+        nodes['vision.capture.auto'].setToolTip(trans('vision.capture.auto.tooltip'))
+
+        nodes['vision.capture.label'] = QLabel(trans('vision.capture.options.title'), parent=options)
+
         cols = QHBoxLayout()
-        cols.addWidget(self.window.ui.nodes['vision.capture.enable'])
-        cols.addWidget(self.window.ui.nodes['vision.capture.auto'])
+        cols.addWidget(nodes['vision.capture.enable'])
+        cols.addWidget(nodes['vision.capture.auto'])
 
-        # rows
         rows = QVBoxLayout()
-        rows.addWidget(self.window.ui.nodes['vision.capture.label'])
+        rows.addWidget(nodes['vision.capture.label'])
         rows.addLayout(cols)
 
-        # widget
-        self.window.ui.nodes['vision.capture.options'] = QWidget()
-        self.window.ui.nodes['vision.capture.options'].setLayout(rows)
-        self.window.ui.nodes['vision.capture.options'].setContentsMargins(0, 0, 0, 0)
+        options.setLayout(rows)
+        options.setContentsMargins(0, 0, 0, 0)
 
-        return self.window.ui.nodes['vision.capture.options']
+        return options

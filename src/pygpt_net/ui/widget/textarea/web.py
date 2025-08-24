@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer
@@ -23,8 +23,6 @@ from pygpt_net.ui.widget.tabs.layout import FocusEventFilter
 from pygpt_net.utils import trans, mem_clean
 
 SHARED_PROFILE = None
-
-import pygpt_net.icons_rc
 
 class ChatWebOutput(QWebEngineView):
     def __init__(self, window=None):
@@ -327,7 +325,7 @@ class ChatWebOutput(QWebEngineView):
             menu.addAction(action)
 
             # copy to
-            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, self.get_selected_text())
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(menu, self.get_selected_text())
             menu.addMenu(copy_to_menu)
 
             # save as (selected) - get selection at the moment of click

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QObject, Signal
@@ -16,7 +16,6 @@ from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QTextEdit, QWidget, QSpl
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.option.combo import OptionCombo
 
-import pygpt_net.icons_rc
 from pygpt_net.ui.widget.textarea.search_input import SearchInput
 from pygpt_net.utils import trans
 
@@ -338,11 +337,11 @@ class TextareaField(QTextEdit):
 
         :param window: main window
         """
-        super(TextareaField, self).__init__(window)
+        super().__init__(window)
         self.window = window
         self.id = id  # assigned in setup
         self.setReadOnly(False)
-        self.acceptRichText = False  # disable rich text
+        self.setAcceptRichText(False)
         self.value = 12
         self.max_font_size = 42
         self.min_font_size = 8
@@ -352,6 +351,12 @@ class TextareaField(QTextEdit):
         self.tab = None
         self.finder = Finder(window, self)
         self.installEventFilter(self)
+
+        self._icon_volume = QIcon(":/icons/volume.svg")
+        self._icon_save = QIcon(":/icons/save.svg")
+        self._icon_search = QIcon(":/icons/search.svg")
+        self._icon_clear = QIcon(":/icons/clear.svg")
+        self._seq_find = QKeySequence("Ctrl+F")
 
         # tabulation
         metrics = QFontMetrics(self.font())
@@ -381,7 +386,6 @@ class TextareaField(QTextEdit):
         """
         return super().eventFilter(source, event)
 
-
     def contextMenuEvent(self, event):
         """
         Context menu event
@@ -389,13 +393,14 @@ class TextareaField(QTextEdit):
         :param event: Event
         """
         menu = self.createStandardContextMenu()
-        selected_text = self.textCursor().selectedText()
+        cursor = self.textCursor()
+        selected_text = cursor.selectedText()
         if selected_text:
             # plain text
-            plain_text = self.textCursor().selection().toPlainText()
+            plain_text = cursor.selection().toPlainText()
 
             # audio read
-            action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
+            action = QAction(self._icon_volume, trans('text.context_menu.audio.read'), menu)
             action.triggered.connect(self.audio_read_selection)
             menu.addAction(action)
 
@@ -405,31 +410,31 @@ class TextareaField(QTextEdit):
                 excluded = ["translator_left"]
             elif self.id == "right":
                 excluded = ["translator_right"]
-            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, selected_text, excluded=excluded)
-            menu.addMenu(copy_to_menu)
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(menu, selected_text, excluded=excluded)
+            if copy_to_menu is not None:
+                menu.addMenu(copy_to_menu)
 
             # save as (selected)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.chat.common.save_text(plain_text))
+            action = QAction(self._icon_save, trans('action.save_selection_as'), menu)
+            action.triggered.connect(lambda pt=plain_text: self.window.controller.chat.common.save_text(pt))
             menu.addAction(action)
         else:
             # save as (all)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
+            action = QAction(self._icon_save, trans('action.save_as'), menu)
+            action.triggered.connect(lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
-        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action = QAction(self._icon_search, trans('text.context_menu.find'), menu)
         action.triggered.connect(self.find_open)
-        action.setShortcut(QKeySequence("Ctrl+F"))
+        action.setShortcut(self._seq_find)
         menu.addAction(action)
 
-        action = QAction(QIcon(":/icons/clear.svg"), trans('translators.menu.file.clear'), self)
+        action = QAction(self._icon_clear, trans('translators.menu.file.clear'), menu)
         action.triggered.connect(self.action_clear)
         menu.addAction(action)
 
         menu.exec_(event.globalPos())
+        menu.deleteLater()
 
     def action_clear(self):
         """
@@ -462,9 +467,9 @@ class TextareaField(QTextEdit):
         """
         if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
             self.find_open()
-        else:
-            self.finder.clear(restore=True, to_end=False)
-            super(TextareaField, self).keyPressEvent(e)
+            return
+        self.finder.clear(restore=True, to_end=False)
+        super().keyPressEvent(e)
 
     def update_stylesheet(self, data: str):
         """
@@ -472,7 +477,9 @@ class TextareaField(QTextEdit):
 
         :param data: stylesheet CSS
         """
-        self.setStyleSheet(self.default_stylesheet + data)
+        combined = self.default_stylesheet + data
+        if combined != self.styleSheet():
+            self.setStyleSheet(combined)
 
     def wheelEvent(self, event):
         """
@@ -481,17 +488,14 @@ class TextareaField(QTextEdit):
         :param event: Event
         """
         if event.modifiers() & Qt.ControlModifier:
-            if event.angleDelta().y() > 0:
-                if self.value < self.max_font_size:
-                    self.value += 1
-            else:
-                if self.value > self.min_font_size:
-                    self.value -= 1
-
-            self.update_stylesheet(f"QTextEdit {{ font-size: {self.value}px }};")
+            delta = 1 if event.angleDelta().y() > 0 else -1
+            new_value = max(self.min_font_size, min(self.max_font_size, self.value + delta))
+            if new_value != self.value:
+                self.value = new_value
+                self.update_stylesheet(f"QTextEdit {{ font-size: {self.value}px }};")
             event.accept()
-        else:
-            super(TextareaField, self).wheelEvent(event)
+            return
+        super().wheelEvent(event)
 
     def focusInEvent(self, e):
         """
@@ -500,7 +504,7 @@ class TextareaField(QTextEdit):
         :param e: focus event
         """
         self.window.controller.finder.focus_in(self.finder)
-        super(TextareaField, self).focusInEvent(e)
+        super().focusInEvent(e)
 
     def focusOutEvent(self, e):
         """
@@ -508,7 +512,7 @@ class TextareaField(QTextEdit):
 
         :param e: focus event
         """
-        super(TextareaField, self).focusOutEvent(e)
+        super().focusOutEvent(e)
         self.window.controller.finder.focus_out(self.finder)
 
 

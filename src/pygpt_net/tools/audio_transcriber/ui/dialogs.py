@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -20,6 +20,7 @@ from pygpt_net.utils import trans
 
 
 class AudioTranscribe:
+
     def __init__(self, window=None):
         """
         Audio Transcribe dialog
@@ -31,30 +32,21 @@ class AudioTranscribe:
         self.file_menu = None
         self.actions = {}
 
-    def setup_menu(self) -> QMenuBar:
+    def setup_menu(self, parent=None) -> QMenuBar:
         """Setup audio transcriber dialog menu"""
-        self.menu_bar = QMenuBar()
+        self.menu_bar = QMenuBar(parent)
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
+        t = self.window.tools.get("transcriber")
 
-        # open
-        self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"))
-        self.actions["open"].triggered.connect(
-            lambda: self.window.tools.get("transcriber").open_file()
-        )
+        self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"), self.menu_bar)
+        self.actions["open"].triggered.connect(lambda checked=False, t=t: t.open_file())
 
-        # save as
-        self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"))
-        self.actions["save_as"].triggered.connect(
-            lambda: self.window.tools.get("transcriber").save_as_file()
-        )
+        self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"), self.menu_bar)
+        self.actions["save_as"].triggered.connect(lambda checked=False, t=t: t.save_as_file())
 
-        # exit
-        self.actions["exit"] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"))
-        self.actions["exit"].triggered.connect(
-            lambda: self.window.tools.get("transcriber").close()
-        )
+        self.actions["exit"] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"), self.menu_bar)
+        self.actions["exit"].triggered.connect(lambda checked=False, t=t: t.close())
 
-        # add actions
         self.file_menu.addAction(self.actions["open"])
         self.file_menu.addAction(self.actions["save_as"])
         self.file_menu.addAction(self.actions["exit"])
@@ -63,52 +55,50 @@ class AudioTranscribe:
     def setup(self):
         """Setup transcriber dialog"""
         id = 'audio.transcribe'
+        u = self.window.ui
+        t = self.window.tools.get("transcriber")
 
-        self.window.ui.editor[id] = CodeEditor(self.window)
-        self.window.ui.editor[id].setReadOnly(False)
-        self.window.ui.editor[id].setProperty('class', 'code-editor')
+        u.dialog['audio.transcribe'] = AudioTranscribeDialog(self.window)
+        dlg = u.dialog['audio.transcribe']
 
-        self.window.ui.nodes['audio.transcribe.convert_video'] = QCheckBox(trans("audio.transcribe.auto_convert"))
-        self.window.ui.nodes['audio.transcribe.convert_video'].setChecked(True)
-        self.window.ui.nodes['audio.transcribe.convert_video'].clicked.connect(
-            lambda: self.window.tools.get("transcriber").toggle_auto_convert()
-        )
+        u.editor[id] = CodeEditor(self.window)
+        u.editor[id].setReadOnly(False)
+        u.editor[id].setProperty('class', 'code-editor')
 
-        self.window.ui.nodes['audio.transcribe.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
-        self.window.ui.nodes['audio.transcribe.clear'].clicked.connect(
-            lambda: self.clear()
-        )
+        u.nodes['audio.transcribe.convert_video'] = QCheckBox(trans("audio.transcribe.auto_convert"))
+        u.nodes['audio.transcribe.convert_video'].setChecked(True)
+        u.nodes['audio.transcribe.convert_video'].clicked.connect(lambda checked=False, t=t: t.toggle_auto_convert())
 
-        self.window.ui.nodes['audio.transcribe.open'] = QPushButton(trans("audio.transcribe.open"))
-        self.window.ui.nodes['audio.transcribe.open'].clicked.connect(
-            lambda: self.window.tools.get("transcriber").open_file()
-        )
+        u.nodes['audio.transcribe.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
+        u.nodes['audio.transcribe.clear'].clicked.connect(self.clear)
+
+        u.nodes['audio.transcribe.open'] = QPushButton(trans("audio.transcribe.open"))
+        u.nodes['audio.transcribe.open'].clicked.connect(lambda checked=False, t=t: t.open_file())
 
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.ui.nodes['audio.transcribe.clear'])
-        bottom_layout.addWidget(self.window.ui.nodes['audio.transcribe.open'])
+        bottom_layout.addWidget(u.nodes['audio.transcribe.clear'])
+        bottom_layout.addWidget(u.nodes['audio.transcribe.open'])
 
-        self.window.ui.nodes['audio.transcribe.title'] = HelpLabel(trans("audio.transcribe.tip"))
-        self.window.ui.nodes['audio.transcribe.status'] = QLabel("...")
-        self.window.ui.nodes['audio.transcribe.status'].setAlignment(Qt.AlignCenter)
-        self.window.ui.nodes['audio.transcribe.status'].setWordWrap(True)
+        u.nodes['audio.transcribe.title'] = HelpLabel(trans("audio.transcribe.tip"))
+        u.nodes['audio.transcribe.status'] = QLabel("...")
+        u.nodes['audio.transcribe.status'].setAlignment(Qt.AlignCenter)
+        u.nodes['audio.transcribe.status'].setWordWrap(True)
 
         layout = QVBoxLayout()
-        layout.setMenuBar(self.setup_menu())
-        layout.addWidget(self.window.ui.editor[id])
-        layout.addWidget(self.window.ui.nodes['audio.transcribe.title'])
+        layout.setMenuBar(self.setup_menu(dlg))
+        layout.addWidget(u.editor[id])
+        layout.addWidget(u.nodes['audio.transcribe.title'])
         layout.addLayout(bottom_layout)
-        layout.addWidget(self.window.ui.nodes['audio.transcribe.convert_video'])
-        layout.addWidget(self.window.ui.nodes['audio.transcribe.status'])
+        layout.addWidget(u.nodes['audio.transcribe.convert_video'])
+        layout.addWidget(u.nodes['audio.transcribe.status'])
 
-        self.window.ui.dialog['audio.transcribe'] = AudioTranscribeDialog(self.window)
-        self.window.ui.dialog['audio.transcribe'].setLayout(layout)
-        self.window.ui.dialog['audio.transcribe'].setWindowTitle(trans("audio.transcribe.title"))
-
+        dlg.setLayout(layout)
+        dlg.setWindowTitle(trans("audio.transcribe.title"))
 
     def clear(self):
         """Clear transcribe dialog"""
         self.window.tools.get("transcriber").clear()
+
 
 class AudioTranscribeDialog(BaseDialog):
     def __init__(self, window=None, id=None):
@@ -139,7 +129,7 @@ class AudioTranscribeDialog(BaseDialog):
         """
         if event.key() == Qt.Key_Escape:
             self.cleanup()
-            self.close()  # close dialog when the Esc key is pressed.
+            self.close()
         else:
             super(AudioTranscribeDialog, self).keyPressEvent(event)
 

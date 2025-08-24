@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
@@ -19,8 +19,6 @@ from PySide6.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout,
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
-import pygpt_net.icons_rc
-
 class VideoPlayerWidget(QWidget):
     def __init__(self, window=None):
         super().__init__(window)
@@ -28,13 +26,14 @@ class VideoPlayerWidget(QWidget):
         self.player = None
         self.audio = None
         self.video = None
-        self._QMediaPlayer = None
-        self._QAudioOutput = None
-        self._QVideoWidget = None
         self.loaded = False
         self.path = None
         self.stopped = False
         self.seeking = False
+
+        self._QMediaPlayer = None
+        self._QAudioOutput = None
+        self._QVideoWidget = None
 
         self.update_timer = QTimer(self)
         self.update_timer.setInterval(200)

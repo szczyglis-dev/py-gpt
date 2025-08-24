@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.22 10:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
 import builtins
 import io
 import platform
+
+import pygpt_net.icons_rc
 
 # disable warnings
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"

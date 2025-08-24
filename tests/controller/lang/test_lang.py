@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -20,6 +20,7 @@ def test_setup(mock_window):
     lang = Lang(mock_window)
     mock_window.core.config.get_available_langs = MagicMock(return_value=[])
     lang.update = MagicMock()
+    lang._lang_group = MagicMock()
     lang.setup()
     lang.update.assert_called_once()
 

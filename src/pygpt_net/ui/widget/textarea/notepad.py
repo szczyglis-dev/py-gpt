@@ -6,18 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer
 from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor, QFontMetrics
-from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
+from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class NotepadWidget(QWidget):
@@ -83,6 +82,10 @@ class NotepadWidget(QWidget):
         self.deleteLater()
 
 class NotepadOutput(QTextEdit):
+    ICON_VOLUME = QIcon(":/icons/volume.svg")
+    ICON_SAVE = QIcon(":/icons/save.svg")
+    ICON_SEARCH = QIcon(":/icons/search.svg")
+
     def __init__(self, window=None):
         """
         Notepad output textarea
@@ -104,26 +107,34 @@ class NotepadOutput(QTextEdit):
         self.installEventFilter(self)
         self.setProperty('class', 'layout-notepad')
 
-        # tabulation
         metrics = QFontMetrics(self.font())
         space_width = metrics.horizontalAdvance(" ")
         self.setTabStopDistance(4 * space_width)
+
+        self._vscroll = self.verticalScrollBar()
+        self._vscroll.valueChanged.connect(self._on_scrollbar_value_changed)
+        self._restore_attempts = 0
 
     def on_delete(self):
         """On delete"""
         if self.finder:
             self.finder.disconnect()  # disconnect finder
             self.finder = None  # delete finder
+        try:
+            self._vscroll.valueChanged.disconnect(self._on_scrollbar_value_changed)
+        except Exception:
+            pass
         self.deleteLater()
 
     def showEvent(self, event):
         super().showEvent(event)
+        self._restore_attempts = 0
         QTimer.singleShot(0, self.restore_scroll_pos)
 
     def scroll_to_bottom(self):
         self.moveCursor(QTextCursor.End)
         self.ensureCursorVisible()
-        scroll_bar = self.verticalScrollBar()
+        scroll_bar = self._vscroll
         scroll_bar.setValue(scroll_bar.maximum())
 
     def eventFilter(self, source, event):
@@ -133,15 +144,10 @@ class NotepadOutput(QTextEdit):
         :param source: source
         :param event: event
         """
-        if event.type() == event.Type.FocusIn:
+        if event.type() == QEvent.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
-        elif source == self.verticalScrollBar():
-            if event.type() == QEvent.Wheel:
-                self.last_scroll_pos = self.verticalScrollBar().value()
-            elif event.type() in (QEvent.MouseButtonPress, QEvent.MouseButtonRelease):
-                self.last_scroll_pos = self.verticalScrollBar().value()
         return super().eventFilter(source, event)
 
     def set_tab(self, tab: Tab):
@@ -152,23 +158,33 @@ class NotepadOutput(QTextEdit):
         """
         self.tab = tab
 
+    def setText(self, text: str):
+        if self.toPlainText() == text:
+            return
+        self.setPlainText(text)
+
     def text_changed(self):
         """On text changed"""
         if not self.window.core.notepad.locked:
             self.window.controller.notepad.save(self.id)  # use notepad id
-        self.finder.text_changed()
-        self.last_scroll_pos = self.verticalScrollBar().value()
+        if self.finder is not None:
+            self.finder.text_changed()
+        self.last_scroll_pos = self._vscroll.value()
+
+    def _on_scrollbar_value_changed(self, value: int):
+        self.last_scroll_pos = value
 
     def restore_scroll_pos(self):
         if self.last_scroll_pos is None:
             return
-
-        scroll_bar = self.verticalScrollBar()
+        scroll_bar = self._vscroll
         current_max = scroll_bar.maximum()
         if self.last_scroll_pos > current_max:
-            self.updateGeometry()
-            QApplication.processEvents()
-            QTimer.singleShot(50, self.restore_scroll_pos)
+            if self._restore_attempts < 30:
+                self._restore_attempts += 1
+                QTimer.singleShot(16, self.restore_scroll_pos)
+            else:
+                scroll_bar.setValue(current_max)
         else:
             scroll_bar.setValue(self.last_scroll_pos)
 
@@ -179,34 +195,30 @@ class NotepadOutput(QTextEdit):
         :param event: Event
         """
         menu = self.createStandardContextMenu()
-        selected_text = self.textCursor().selectedText()
+        cursor = self.textCursor()
+        selected_text = cursor.selectedText()
         if selected_text:
-            # plain text
-            plain_text = self.textCursor().selection().toPlainText()
+            plain_text = cursor.selection().toPlainText()
 
-            # audio read
-            action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
+            action = QAction(self.ICON_VOLUME, trans('text.context_menu.audio.read'), self)
             action.triggered.connect(self.audio_read_selection)
             menu.addAction(action)
 
-            # copy to (without current notepad)
-            excluded_id = "notepad_id_{}".format(self.id)
-            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, selected_text, excluded=[excluded_id])
+            excluded_id = f"notepad_id_{self.id}"
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(menu, selected_text, excluded=[excluded_id])
             menu.addMenu(copy_to_menu)
 
-            # save as (selected)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
+            action = QAction(self.ICON_SAVE, trans('action.save_selection_as'), self)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(plain_text))
             menu.addAction(action)
         else:
-            # save as (all)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
+            action = QAction(self.ICON_SAVE, trans('action.save_as'), self)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
-        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action = QAction(self.ICON_SEARCH, trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
         action.setShortcut(QKeySequence("Ctrl+F"))
         menu.addAction(action)
@@ -246,28 +258,33 @@ class NotepadOutput(QTextEdit):
         :param event: Event
         """
         if event.modifiers() & Qt.ControlModifier:
-            if event.angleDelta().y() > 0:
+            delta = event.angleDelta().y()
+            if delta > 0:
                 if self.value < self.max_font_size:
                     self.value += 1
+                else:
+                    return
             else:
                 if self.value > self.min_font_size:
                     self.value -= 1
+                else:
+                    return
 
             self.window.core.config.data['font_size'] = self.value
             self.window.core.config.save()
             option = self.window.controller.settings.editor.get_option('font_size')
             option['value'] = self.value
             self.window.controller.config.apply(
-                parent_id='config', 
-                key='font_size', 
+                parent_id='config',
+                key='font_size',
                 option=option,
             )
             self.window.controller.ui.update_font_size()
             event.accept()
-            self.last_scroll_pos = self.verticalScrollBar().value()
+            self.last_scroll_pos = self._vscroll.value()
         else:
             super(NotepadOutput, self).wheelEvent(event)
-            self.last_scroll_pos = self.verticalScrollBar().value()
+            self.last_scroll_pos = self._vscroll.value()
 
     def focusInEvent(self, e):
         """
@@ -286,4 +303,3 @@ class NotepadOutput(QTextEdit):
         """
         super(NotepadOutput, self).focusOutEvent(e)
         self.window.controller.finder.focus_out(self.finder)
-

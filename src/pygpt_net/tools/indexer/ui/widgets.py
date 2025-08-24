@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -33,7 +33,6 @@ class IdxBrowseList(DatabaseList):
 
         :param parent: Parent
         """
-
         def copy_to_clipboard():
             index = parent.currentIndex()
             if index.isValid():
@@ -64,9 +63,8 @@ class IdxBrowser(DataBrowser):
         :return: Tables dictionary
         """
         data = self.window.tools.get("indexer").get_tables()
-        tables = {k: v for k, v in data.items() if k in [
+        return {k: v for k, v in data.items() if k in [
             "idx_ctx", "idx_file", "idx_external"]}
-        return tables
 
     @override
     def get_filters(self):

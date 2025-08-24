@@ -6,17 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
 from typing import Optional, Dict, List
 
-from qasync import QApplication
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
-from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 

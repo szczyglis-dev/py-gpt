@@ -6,20 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
+from functools import partial
 
-from PySide6.QtGui import QStandardItemModel, Qt, QIcon
+from PySide6.QtGui import QStandardItemModel, QIcon
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QWidget
 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.attachment import AttachmentList
 from pygpt_net.utils import trans
-
-import pygpt_net.icons_rc
 
 class Attachments:
     def __init__(self, window=None):
@@ -40,17 +40,16 @@ class Attachments:
         self.setup_attachments()
         self.setup_buttons()
 
-        empty_widget = QWidget()
-        self.window.ui.nodes['input.attachments.options.label'] = HelpLabel(trans("attachments.options.label"))
+        empty_widget = QWidget(self.window)
+        self.window.ui.nodes['input.attachments.options.label'] = HelpLabel(trans("attachments.options.label"), self.window)
 
-        # buttons layout
         buttons = QHBoxLayout()
-        buttons.addWidget(self.window.ui.nodes['attachments.btn.add'])
-        buttons.addWidget(self.window.ui.nodes['attachments.btn.add_url'])
-        buttons.addWidget(self.window.ui.nodes['attachments.btn.clear'])
+        nodes = self.window.ui.nodes
+        buttons.addWidget(nodes['attachments.btn.add'])
+        buttons.addWidget(nodes['attachments.btn.add_url'])
+        buttons.addWidget(nodes['attachments.btn.clear'])
         buttons.addWidget(empty_widget)
-        buttons.addWidget(self.window.ui.nodes['input.attachments.options.label'])
-
+        buttons.addWidget(nodes['input.attachments.options.label'])
         buttons.addWidget(self.setup_auto_index())
         buttons.addWidget(self.setup_send_clear())
         buttons.addWidget(self.setup_capture_clear())
@@ -58,14 +57,21 @@ class Attachments:
 
         self.window.ui.nodes['tip.input.attachments'] = HelpLabel(trans('tip.input.attachments'), self.window)
 
-        # layout
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['tip.input.attachments'])
         layout.addWidget(self.window.ui.nodes['attachments'])
-
         layout.addLayout(buttons)
 
         return layout
+
+    def _centered_container(self, child: QWidget) -> QWidget:
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addWidget(child)
+        widget = QWidget(self.window)
+        widget.setLayout(layout)
+        return widget
 
     def setup_send_clear(self) -> QWidget:
         """
@@ -73,15 +79,7 @@ class Attachments:
 
         :return: QWidget
         """
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.window.ui.nodes['attachments.send_clear'])
-
-        widget = QWidget()
-        widget.setLayout(layout)
-
-        return widget
+        return self._centered_container(self.window.ui.nodes['attachments.send_clear'])
 
     def setup_capture_clear(self) -> QWidget:
         """
@@ -89,15 +87,7 @@ class Attachments:
 
         :return: QWidget
         """
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.window.ui.nodes['attachments.capture_clear'])
-
-        widget = QWidget()
-        widget.setLayout(layout)
-
-        return widget
+        return self._centered_container(self.window.ui.nodes['attachments.capture_clear'])
 
     def setup_auto_index(self) -> QWidget:
         """
@@ -105,45 +95,34 @@ class Attachments:
 
         :return: QWidget
         """
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.window.ui.nodes['attachments.auto_index'])
-
-        widget = QWidget()
-        widget.setLayout(layout)
-
-        return widget
+        return self._centered_container(self.window.ui.nodes['attachments.auto_index'])
 
     def setup_buttons(self):
         """
         Setup buttons
         """
-        self.window.ui.nodes['attachments.btn.add'] = QPushButton(QIcon(":/icons/add.svg"), trans('attachments.btn.add'))
-        self.window.ui.nodes['attachments.btn.add_url'] = QPushButton(QIcon(":/icons/add.svg"), trans('attachments.btn.add_url'))
-        self.window.ui.nodes['attachments.btn.clear'] = QPushButton(QIcon(":/icons/close.svg"), trans('attachments.btn.clear'))
+        nodes = self.window.ui.nodes
+        ctrl = self.window.controller.attachment
 
-        self.window.ui.nodes['attachments.btn.add'].clicked.connect(
-            lambda: self.window.controller.attachment.open_add())
-        self.window.ui.nodes['attachments.btn.add_url'].clicked.connect(
-            lambda: self.window.controller.attachment.open_add_url())
-        self.window.ui.nodes['attachments.btn.clear'].clicked.connect(
-            lambda: self.window.controller.attachment.clear(remove_local=True))
+        icon_add = QIcon(":/icons/add.svg")
+        icon_close = QIcon(":/icons/close.svg")
 
-        self.window.ui.nodes['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'))
-        self.window.ui.nodes['attachments.send_clear'].stateChanged.connect(
-            lambda: self.window.controller.attachment.toggle_send_clear(
-                self.window.ui.nodes['attachments.send_clear'].isChecked()))
+        nodes['attachments.btn.add'] = QPushButton(icon_add, trans('attachments.btn.add'), self.window)
+        nodes['attachments.btn.add_url'] = QPushButton(icon_add, trans('attachments.btn.add_url'), self.window)
+        nodes['attachments.btn.clear'] = QPushButton(icon_close, trans('attachments.btn.clear'), self.window)
 
-        self.window.ui.nodes['attachments.capture_clear'] = QCheckBox(trans('attachments.capture_clear'))
-        self.window.ui.nodes['attachments.capture_clear'].stateChanged.connect(
-            lambda: self.window.controller.attachment.toggle_capture_clear(
-                self.window.ui.nodes['attachments.capture_clear'].isChecked()))
+        nodes['attachments.btn.add'].clicked.connect(ctrl.open_add)
+        nodes['attachments.btn.add_url'].clicked.connect(ctrl.open_add_url)
+        nodes['attachments.btn.clear'].clicked.connect(partial(ctrl.clear, remove_local=True))
 
-        self.window.ui.nodes['attachments.auto_index'] = QCheckBox(trans('attachments.auto_index'))
-        self.window.ui.nodes['attachments.auto_index'].stateChanged.connect(
-            lambda: self.window.controller.attachment.toggle_auto_index(
-                self.window.ui.nodes['attachments.auto_index'].isChecked()))
+        nodes['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'), self.window)
+        nodes['attachments.send_clear'].toggled.connect(ctrl.toggle_send_clear)
+
+        nodes['attachments.capture_clear'] = QCheckBox(trans('attachments.capture_clear'), self.window)
+        nodes['attachments.capture_clear'].toggled.connect(ctrl.toggle_capture_clear)
+
+        nodes['attachments.auto_index'] = QCheckBox(trans('attachments.auto_index'), self.window)
+        nodes['attachments.auto_index'].toggled.connect(ctrl.toggle_auto_index)
 
     def setup_attachments(self):
         """
@@ -161,11 +140,12 @@ class Attachments:
         :return: QStandardItemModel
         """
         model = QStandardItemModel(0, 4, parent)
-        model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
-        model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
-        model.setHeaderData(2, Qt.Horizontal, trans('attachments.header.size'))
-        model.setHeaderData(3, Qt.Horizontal, trans('attachments.header.ctx'))
-
+        model.setHorizontalHeaderLabels([
+            trans('attachments.header.name'),
+            trans('attachments.header.path'),
+            trans('attachments.header.size'),
+            trans('attachments.header.ctx'),
+        ])
         return model
 
     def update(self, data):
@@ -174,20 +154,28 @@ class Attachments:
 
         :param data: Data to update
         """
-        self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
-        i = 0
-        for id in data:
-            path = data[id].path
-            size = ""
-            if data[id].type == AttachmentItem.TYPE_FILE:
-                if path and os.path.exists(path):
-                    size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
-            ctx_str = ""
-            if data[id].ctx:
-                ctx_str = "YES"
-            self.window.ui.models[self.id].insertRow(i)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[id].name)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1),path)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2), size)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 3), ctx_str)
-            i += 1
+        model = self.window.ui.models[self.id]
+        rows = len(data)
+        model.setRowCount(rows)
+
+        exists = os.path.exists
+        getsize = os.path.getsize
+        sizeof_fmt = self.window.core.filesystem.sizeof_fmt
+
+        model.beginResetModel()
+        for i, (_, item) in enumerate(data.items()):
+            path = item.path
+            if item.type == AttachmentItem.TYPE_FILE and path and exists(path):
+                size = sizeof_fmt(getsize(path))
+            else:
+                size = ""
+            ctx_str = "YES" if item.ctx else ""
+
+            model.setData(model.index(i, 0), item.name)
+            model.setData(model.index(i, 1), path)
+            model.setData(model.index(i, 2), size)
+            model.setData(model.index(i, 3), ctx_str)
+        model.endResetModel()
+
+        if rows:
+            model.dataChanged.emit(model.index(0, 0), model.index(rows - 1, 3), [])

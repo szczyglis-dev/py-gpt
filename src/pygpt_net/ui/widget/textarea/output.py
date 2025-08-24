@@ -6,30 +6,34 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QEvent
 from PySide6.QtWidgets import QTextBrowser
 from PySide6.QtGui import QAction, QIcon, QTextOption, QKeySequence
 
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class ChatOutput(QTextBrowser):
+    ICON_VOLUME = QIcon(":/icons/volume.svg")
+    ICON_SAVE = QIcon(":/icons/save.svg")
+    ICON_SEARCH = QIcon(":/icons/search.svg")
+
     def __init__(self, window=None):
         """
         Chat output
 
         :param window: main window
         """
-        super(ChatOutput, self).__init__(window)
+        super().__init__(window)
         self.window = window
         self.finder = Finder(window, self)
         self.setReadOnly(True)
         self.setAcceptRichText(False)
+        self.setUndoRedoEnabled(False)
         self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
         self.value = self.window.core.config.get('font_size')
         self.max_font_size = 42
@@ -45,15 +49,14 @@ class ChatOutput(QTextBrowser):
     def on_delete(self):
         """Clean up on delete"""
         if self.finder:
-            self.finder.disconnect()  # disconnect finder
-            self.finder = None  # delete finder
+            self.finder.disconnect()
+            self.finder = None
 
-        self.tab = None  # clear tab reference
+        self.tab = None
         self.clear()
-
-        # disconnect signals
+        self.removeEventFilter(self)
         self.anchorClicked.disconnect(self.open_external_link)
-        self.deleteLater()  # delete widget
+        self.deleteLater()
 
     def eventFilter(self, source, event):
         """
@@ -62,7 +65,7 @@ class ChatOutput(QTextBrowser):
         :param source: source
         :param event: event
         """
-        if event.type() == event.Type.FocusIn:
+        if event.type() == QEvent.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
@@ -91,41 +94,42 @@ class ChatOutput(QTextBrowser):
         :param event: Event
         """
         menu = self.createStandardContextMenu()
-        selected_text = self.textCursor().selectedText()
+        cursor = self.textCursor()
+        has_selection = cursor.hasSelection()
 
-        if selected_text:
-            # plain text
-            plain_text = self.textCursor().selection().toPlainText()
+        if has_selection:
+            selected_text = cursor.selectedText()
 
-            # audio read
-            action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
+            action = QAction(self.ICON_VOLUME, trans('text.context_menu.audio.read'), self)
             action.triggered.connect(self.audio_read_selection)
             menu.addAction(action)
 
-            # copy to
-            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, selected_text)
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(menu, selected_text)
             menu.addMenu(copy_to_menu)
 
-            # save as (selected)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.chat.common.save_text(plain_text)
-            )
+            action = QAction(self.ICON_SAVE, trans('action.save_selection_as'), self)
+            action.triggered.connect(self._save_selected_text)
             menu.addAction(action)
         else:
-            # save as (all)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.chat.common.save_text(self.toPlainText())
-            )
+            action = QAction(self.ICON_SAVE, trans('action.save_as'), self)
+            action.triggered.connect(self._save_all_text)
             menu.addAction(action)
 
-        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action = QAction(self.ICON_SEARCH, trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
         action.setShortcut(QKeySequence("Ctrl+F"))
         menu.addAction(action)
 
-        menu.exec_(event.globalPos())
+        menu.exec(event.globalPos())
+        menu.deleteLater()
+
+    def _save_selected_text(self):
+        cursor = self.textCursor()
+        if cursor.hasSelection():
+            self.window.controller.chat.common.save_text(cursor.selection().toPlainText())
+
+    def _save_all_text(self):
+        self.window.controller.chat.common.save_text(self.toPlainText())
 
     def audio_read_selection(self):
         """Read selected text (audio)"""
@@ -138,7 +142,7 @@ class ChatOutput(QTextBrowser):
     def on_update(self):
         """On content update"""
         if self.finder:
-            self.finder.clear()  # clear finder
+            self.finder.clear()
 
     def keyPressEvent(self, e):
         """
@@ -147,9 +151,9 @@ class ChatOutput(QTextBrowser):
         :param e: Event
         """
         if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
-            self.find_open()  # open find dialog
-        else:
-            super(ChatOutput, self).keyPressEvent(e)
+            self.find_open()
+            return
+        super().keyPressEvent(e)
 
     def wheelEvent(self, event):
         """
@@ -158,26 +162,33 @@ class ChatOutput(QTextBrowser):
         :param event: Event
         """
         if event.modifiers() & Qt.ControlModifier:
-            if event.angleDelta().y() > 0:
-                if self.value < self.max_font_size:
-                    self.value += 1
+            dy = event.angleDelta().y()
+            if dy > 0:
+                new_value = min(self.value + 1, self.max_font_size)
+            elif dy < 0:
+                new_value = max(self.value - 1, self.min_font_size)
             else:
-                if self.value > self.min_font_size:
-                    self.value -= 1
+                event.accept()
+                return
 
-            self.window.core.config.data['font_size'] = self.value
-            self.window.core.config.save()
-            option = self.window.controller.settings.editor.get_option('font_size')
-            option['value'] = self.value
-            self.window.controller.config.apply(
-                parent_id='config', 
-                key='font_size', 
-                option=option,
-            )
-            self.window.controller.ui.update_font_size()
+            if new_value == self.value:
+                event.accept()
+                return
+
+            self.value = new_value
+
+            cfg = self.window.core.config
+            cfg.data['font_size'] = new_value
+            cfg.save()
+
+            ctrl = self.window.controller
+            option = ctrl.settings.editor.get_option('font_size')
+            option['value'] = new_value
+            ctrl.config.apply(parent_id='config', key='font_size', option=option)
+            ctrl.ui.update_font_size()
             event.accept()
         else:
-            super(ChatOutput, self).wheelEvent(event)
+            super().wheelEvent(event)
 
     def focusInEvent(self, e):
         """
@@ -185,5 +196,5 @@ class ChatOutput(QTextBrowser):
 
         :param e: focus event
         """
-        super(ChatOutput, self).focusInEvent(e)
+        super().focusInEvent(e)
         self.window.controller.finder.focus_in(self.finder)

@@ -6,15 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QLineEdit, QStyle
-from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QLineEdit
+from PySide6.QtCore import QTimer, Slot
 
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class CtxSearchInput(QLineEdit):
@@ -56,6 +55,7 @@ class CtxSearchInput(QLineEdit):
         self._search_timer.stop()  # stop the timer to prevent triggering the search action
         self.window.controller.ctx.search_string_clear()
 
+    @Slot(str)
     def on_text_changed(self, text):
         """
         On text changed
@@ -67,6 +67,7 @@ class CtxSearchInput(QLineEdit):
         # after a pause in typing
         self._search_timer.start()
 
+    @Slot()
     def _execute_search(self):
         """Invoke the search action after a specified delay."""
         search_text = self.text()

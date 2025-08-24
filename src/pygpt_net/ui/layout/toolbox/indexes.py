@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 22:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt, QIcon
@@ -17,7 +17,6 @@ from pygpt_net.ui.widget.lists.index import IndexList
 from pygpt_net.ui.widget.lists.index_combo import IndexCombo
 from pygpt_net.ui.widget.lists.llama_mode_combo import LlamaModeCombo
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class Indexes:
@@ -29,6 +28,8 @@ class Indexes:
         """
         self.window = window
         self.id = 'indexes'
+        self._settings_icon = QIcon(":/icons/settings.svg")
+        self._last_combo_signature = None
 
     def setup(self) -> QWidget:
         """
@@ -37,12 +38,13 @@ class Indexes:
         :return: QWidget
         """
         layout = self.setup_idx()
+        nodes = self.window.ui.nodes
 
-        self.window.ui.nodes['indexes.widget'] = QWidget()
-        self.window.ui.nodes['indexes.widget'].setLayout(layout)
-        self.window.ui.nodes['indexes.widget'].setMinimumHeight(150)
+        nodes['indexes.widget'] = QWidget()
+        nodes['indexes.widget'].setLayout(layout)
+        nodes['indexes.widget'].setMinimumHeight(150)
 
-        return self.window.ui.nodes['indexes.widget']
+        return nodes['indexes.widget']
 
     def setup_idx(self) -> QVBoxLayout:
         """
@@ -50,40 +52,31 @@ class Indexes:
 
         :return: QVBoxLayout
         """
-        # new
-        self.window.ui.nodes['indexes.new'] = QPushButton(QIcon(":/icons/settings.svg"), "")
-        self.window.ui.nodes['indexes.new'].clicked.connect(
-            lambda: self.window.controller.settings.open_section('llama-index'))
+        nodes = self.window.ui.nodes
+        nodes['indexes.new'] = QPushButton(self._settings_icon, "")
+        nodes['indexes.new'].clicked.connect(self._open_llama_index_settings)
 
-        # label
-        self.window.ui.nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
+        nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
 
-        # header
         header = QHBoxLayout()
-        header.addWidget(self.window.ui.nodes['indexes.label'])
+        header.addWidget(nodes['indexes.label'])
         header.addStretch(1)
-        header.addWidget(self.window.ui.nodes['indexes.new'], alignment=Qt.AlignRight)
+        header.addWidget(nodes['indexes.new'], alignment=Qt.AlignRight)
         header.setContentsMargins(5, 0, 0, 0)
-        header_widget = QWidget()
-        header_widget.setLayout(header)
 
-        # list
-        self.window.ui.nodes[self.id] = IndexList(self.window, self.id)
-        self.window.ui.nodes[self.id].selection_locked = self.window.controller.idx.change_locked
-        self.window.ui.nodes[self.id].setMinimumWidth(40)
+        nodes[self.id] = IndexList(self.window, self.id)
+        nodes[self.id].selection_locked = self.window.controller.idx.change_locked
+        nodes[self.id].setMinimumWidth(40)
 
-        self.window.ui.nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
+        nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
 
-        # rows
         layout = QVBoxLayout()
-        layout.addWidget(header_widget)
+        layout.addLayout(header)
         layout.addWidget(self.window.ui.nodes[self.id])
         layout.setContentsMargins(2, 5, 5, 5)
-        #layout.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
 
-        # model
         self.window.ui.models[self.id] = self.create_model(self.window)
-        self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
+        nodes[self.id].setModel(self.window.ui.models[self.id])
 
         return layout
 
@@ -94,100 +87,69 @@ class Indexes:
         :return: QWidget
         :rtype: QWidget
         """
-        # idx query only
-        """
-        self.window.ui.config['global']['llama.idx.raw'] = QCheckBox(trans("idx.query.raw"))
-        self.window.ui.config['global']['llama.idx.raw'].stateChanged.connect(
-            lambda: self.window.controller.idx.common.toggle_raw(
-                self.window.ui.config['global']['llama.idx.raw'].isChecked()
-            )
-        )
-        """
-
-        # label
-        # label = QLabel(trans("toolbox.llama_index.label"))
-
-        # add options
-        # cols = QHBoxLayout()
-        # cols.addWidget(self.window.ui.config['global']['llama.idx.raw'])
-
-        # indexes combo
+        nodes = self.window.ui.nodes
         option = {
             "name": "current_index",
             "label": "toolbox.llama_index.current_index",
             "keys": [],
             "value": None,
         }
-        self.window.ui.nodes['indexes.select'] = IndexCombo(
+        nodes['indexes.select'] = IndexCombo(
             self.window,
             'global',
             'current_index',
             option,
         )
-        self.window.ui.nodes['indexes.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        nodes['indexes.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        # mode select combo
         option = {
             "name": "llama.idx.mode",
             "label": "toolbox.llama_index.mode",
             "keys": self.window.controller.idx.get_modes_keys(),
             "value": "chat",
         }
-        self.window.ui.nodes['llama_index.mode.select'] = LlamaModeCombo(
+        nodes['llama_index.mode.select'] = LlamaModeCombo(
             self.window,
             'global',
             'llama.idx.mode',
             option,
         )
-        self.window.ui.nodes['indexes.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.window.ui.nodes['llama_index.mode.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        nodes['llama_index.mode.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        # tip
-        # self.window.ui.nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
+        nodes['indexes.new'] = QPushButton(self._settings_icon, "")
+        nodes['indexes.new'].clicked.connect(self._open_llama_index_settings)
 
-        # new
-        self.window.ui.nodes['indexes.new'] = QPushButton(QIcon(":/icons/settings.svg"), "")
-        self.window.ui.nodes['indexes.new'].clicked.connect(
-            lambda: self.window.controller.settings.open_section('llama-index'))
+        nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
+        nodes['llama_index.mode.label'] = TitleLabel(trans("toolbox.llama_index.mode.label"))
 
-        # labels
-        self.window.ui.nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
-        self.window.ui.nodes['llama_index.mode.label'] = TitleLabel(trans("toolbox.llama_index.mode.label"))
-
-        # idx select combo
         idx_layout = QHBoxLayout()
-        idx_layout.addWidget(self.window.ui.nodes['indexes.label'])
-        idx_layout.addWidget(self.window.ui.nodes['indexes.select'])
-        idx_layout.addWidget(self.window.ui.nodes['indexes.new'], alignment=Qt.AlignRight)
+        idx_layout.addWidget(nodes['indexes.label'])
+        idx_layout.addWidget(nodes['indexes.select'])
+        idx_layout.addWidget(nodes['indexes.new'], alignment=Qt.AlignRight)
         idx_layout.setContentsMargins(0, 0, 0, 10)
         idx_widget = QWidget()
         idx_widget.setLayout(idx_layout)
         idx_widget.setMinimumHeight(55)
         idx_widget.setMinimumWidth(275)
 
-        # mode select combo
         mode_layout = QHBoxLayout()
-        mode_layout.addWidget(self.window.ui.nodes['llama_index.mode.label'])
-        mode_layout.addWidget(self.window.ui.nodes['llama_index.mode.select'])
+        mode_layout.addWidget(nodes['llama_index.mode.label'])
+        mode_layout.addWidget(nodes['llama_index.mode.select'])
         mode_layout.setContentsMargins(0, 0, 0, 10)
         mode_widget = QWidget()
         mode_widget.setLayout(mode_layout)
         mode_widget.setMinimumHeight(55)
         mode_widget.setMinimumWidth(275)
 
-        # rows
         rows = QVBoxLayout()
-        # rows.addWidget(label)
         rows.addWidget(idx_widget)
         rows.addWidget(mode_widget)
-        # rows.addLayout(cols)  # raw option
-        # rows.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
 
-        self.window.ui.nodes['idx.options'] = QWidget()
-        self.window.ui.nodes['idx.options'].setLayout(rows)
-        self.window.ui.nodes['idx.options'].setContentsMargins(0, 0, 0, 0)
+        nodes['idx.options'] = QWidget()
+        nodes['idx.options'].setLayout(rows)
+        nodes['idx.options'].setContentsMargins(0, 0, 0, 0)
 
-        return self.window.ui.nodes['idx.options']
+        return nodes['idx.options']
 
     def create_model(self, parent) -> QStandardItemModel:
         """
@@ -204,19 +166,11 @@ class Indexes:
 
         :param data: Data to update
         """
-        # combo box
-        combo_keys = []
-        combo_keys.append({  # add empty
-            "-": "---"
-        })
-        for item in data:
-            name = item['name']
-            if name == "":
-                name = item['id']
-            combo_keys.append({
-                item['id']: name
-            })
-        self.window.ui.nodes['indexes.select'].set_keys(combo_keys)
+        combo_keys = [{"-": "---"}] + [{item['id']: (item['name'] or item['id'])} for item in data]
+        signature = tuple((item['id'], (item['name'] or item['id'])) for item in data)
+        if self._last_combo_signature != signature:
+            self.window.ui.nodes['indexes.select'].set_keys(combo_keys)
+            self._last_combo_signature = signature
         """
         # store previous selection
         self.window.ui.nodes[self.id].backup_selection()
@@ -234,3 +188,6 @@ class Indexes:
         # restore previous selection
         self.window.ui.nodes[self.id].restore_selection()
         """
+
+    def _open_llama_index_settings(self):
+        self.window.controller.settings.open_section('llama-index')

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,7 +14,7 @@ import os
 from typing import Any, List, Dict
 
 from PySide6.QtCore import Slot, QObject
-from qasync import QApplication
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.idx.worker import IndexWorker
 from pygpt_net.item.ctx import CtxMeta
@@ -83,7 +83,7 @@ class Indexer(QObject):
         """
         if not force:
             self.tmp_idx = idx  # store tmp index name (for confirmation)
-            content = trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn')
+            content = f"{trans('idx.confirm.db.content')}\n{trans('idx.token.warn')}"
             self.window.ui.dialogs.confirm(
                 type='idx.index.db',
                 id=meta_id,
@@ -92,18 +92,19 @@ class Indexer(QObject):
             return
 
         meta = self.window.core.ctx.get_meta_by_id(meta_id)
-        from_ts = meta.indexed
         self.window.update_status(trans('idx.status.indexing'))
 
-        self.worker = IndexWorker()
-        self.worker.window = self.window
-        self.worker.content = meta_id
-        self.worker.idx = idx
-        self.worker.type = "db_meta"
-        self.worker.from_ts = from_ts
-        self.worker.signals.finished.connect(self.handle_finished_db_meta)
-        self.worker.signals.error.connect(self.handle_error)
-        self.window.threadpool.start(self.worker)
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = meta_id
+        worker.idx = idx
+        worker.type = "db_meta"
+        worker.from_ts = meta.indexed
+        worker.signals.finished.connect(self.handle_finished_db_meta)
+        worker.signals.error.connect(self.handle_error)
+        self.window.threadpool.start(worker)
+        self.worker = worker
+
         self.window.controller.idx.on_idx_start()  # on start
 
     def index_ctx_current(
@@ -146,15 +147,16 @@ class Indexer(QObject):
         :param idx: index name
         :param sync: sync mode
         """
-        self.worker = IndexWorker()
-        self.worker.window = self.window
-        self.worker.content = meta.id
-        self.worker.idx = idx
-        self.worker.type = "db_meta"
-        self.worker.from_ts = meta.indexed
-        self.worker.silent = True
-        self.worker.signals.finished.connect(self.handle_finished_db_meta)
-        self.worker.signals.error.connect(self.handle_error)
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = meta.id
+        worker.idx = idx
+        worker.type = "db_meta"
+        worker.from_ts = meta.indexed
+        worker.silent = True
+        worker.signals.finished.connect(self.handle_finished_db_meta)
+        worker.signals.error.connect(self.handle_error)
+        self.worker = worker
 
         if sync:
             self.worker.run()
@@ -204,15 +206,17 @@ class Indexer(QObject):
             )
             return
 
-        self.worker = IndexWorker()
-        self.worker.window = self.window
-        self.worker.content = ts
-        self.worker.idx = idx
-        self.worker.type = "db_current"
-        self.worker.silent = silent
-        self.worker.signals.finished.connect(self.handle_finished_db_current)
-        self.worker.signals.error.connect(self.handle_error)
-        self.window.threadpool.start(self.worker)
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = ts
+        worker.idx = idx
+        worker.type = "db_current"
+        worker.silent = silent
+        worker.signals.finished.connect(self.handle_finished_db_current)
+        worker.signals.error.connect(self.handle_error)
+        self.window.threadpool.start(worker)
+        self.worker = worker
+
         self.window.controller.idx.on_idx_start()  # on start
 
     def index_path(
@@ -231,16 +235,19 @@ class Indexer(QObject):
         :param recursive: recursive indexing
         """
         self.window.update_status(trans('idx.status.indexing'))
-        self.worker = IndexWorker()
-        self.worker.window = self.window
-        self.worker.content = path
-        self.worker.idx = idx
-        self.worker.type = "file"
-        self.worker.replace = replace
-        self.worker.recursive = recursive
-        self.worker.signals.finished.connect(self.handle_finished_file)
-        self.worker.signals.error.connect(self.handle_error)
-        self.window.threadpool.start(self.worker)
+
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = path
+        worker.idx = idx
+        worker.type = "file"
+        worker.replace = replace
+        worker.recursive = recursive
+        worker.signals.finished.connect(self.handle_finished_file)
+        worker.signals.error.connect(self.handle_error)
+        self.window.threadpool.start(worker)
+        self.worker = worker
+
         self.window.controller.idx.on_idx_start()  # on start
 
     def index_paths(
@@ -259,17 +266,20 @@ class Indexer(QObject):
         :param recursive: recursive indexing
         """
         self.window.update_status(trans('idx.status.indexing'))
-        self.worker = IndexWorker()
-        self.worker.window = self.window
-        self.worker.content = paths
-        self.worker.idx = idx
-        self.worker.type = "files"
-        self.worker.replace = replace
-        self.worker.recursive = recursive
-        self.worker.silent = False
-        self.worker.signals.finished.connect(self.handle_finished_file)
-        self.worker.signals.error.connect(self.handle_error)
-        self.window.threadpool.start(self.worker)
+
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = paths
+        worker.idx = idx
+        worker.type = "files"
+        worker.replace = replace
+        worker.recursive = recursive
+        worker.silent = False
+        worker.signals.finished.connect(self.handle_finished_file)
+        worker.signals.error.connect(self.handle_error)
+        self.window.threadpool.start(worker)
+        self.worker = worker
+
         self.window.controller.idx.on_idx_start()  # on start
 
     def index_all_files(
@@ -393,19 +403,21 @@ class Indexer(QObject):
         :param config: loader config
         :param replace: replace index
         """
-        self.worker = IndexWorker()
-        self.worker.window = self.window
-        self.worker.content = None
-        self.worker.loader = loader
-        self.worker.params = params
-        self.worker.config = config
-        self.worker.replace = replace
-        self.worker.silent = False
-        self.worker.idx = idx
-        self.worker.type = "web"
-        self.worker.signals.finished.connect(self.handle_finished_web)
-        self.worker.signals.error.connect(self.handle_error)
-        self.window.threadpool.start(self.worker)
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = None
+        worker.loader = loader
+        worker.params = params
+        worker.config = config
+        worker.replace = replace
+        worker.silent = False
+        worker.idx = idx
+        worker.type = "web"
+        worker.signals.finished.connect(self.handle_finished_web)
+        worker.signals.error.connect(self.handle_error)
+        self.window.threadpool.start(worker)
+        self.worker = worker
+
         self.window.controller.idx.on_idx_start()  # on start
 
     def index_ctx_meta_remove(
@@ -444,8 +456,7 @@ class Indexer(QObject):
 
         :param idx: on list idx
         """
-        idx_name = self.window.core.idx.get_by_idx(idx)
-        self.clear(idx_name)
+        self.clear(self.window.core.idx.get_by_idx(idx))
 
     def truncate_by_idx(self, idx: int):
         """
@@ -453,8 +464,7 @@ class Indexer(QObject):
 
         :param idx: on list idx
         """
-        idx_name = self.window.core.idx.get_by_idx(idx)
-        self.clear(idx_name)
+        self.clear(self.window.core.idx.get_by_idx(idx))
 
     def clear(
             self,
@@ -496,7 +506,7 @@ class Indexer(QObject):
             else:
                 self.window.update_status(trans('idx.status.truncate.error'))
         except Exception as e:
-            print(e)
+            self.window.core.debug.log(e)
             self.window.update_status(e)
 
         self.window.tools.get("indexer").refresh()
@@ -544,7 +554,7 @@ class Indexer(QObject):
             else:
                 self.window.update_status(trans('idx.status.truncate.error'))
         except Exception as e:
-            print(e)
+            self.window.core.debug.log(e)
             self.window.update_status(e)
 
         self.window.tools.get("indexer").refresh()
@@ -559,7 +569,6 @@ class Indexer(QObject):
         self.window.ui.dialogs.alert(err)
         self.window.update_status(str(err))
         self.window.core.debug.log(err)
-        print(err)
         self.window.tools.get("indexer").refresh()
         self.window.controller.idx.on_idx_error()  # on error
 
@@ -580,7 +589,7 @@ class Indexer(QObject):
         :param silent: silent mode (no msg and status update)
         """
         if num > 0:
-            msg = trans('idx.status.success') + f" {num}"
+            msg = f"{trans('idx.status.success')}  {num}"
 
             # store last DB update timestamp
             self.window.core.config.set('llama.idx.db.index', idx)
@@ -620,7 +629,7 @@ class Indexer(QObject):
         :param silent: silent mode (no msg and status update)
         """
         if num > 0:
-            msg = trans('idx.status.success') + f" {num}"
+            msg = f"{trans('idx.status.success')}  {num}"
             self.update_idx_status(idx)
             self.window.controller.idx.after_index(idx)  # post-actions (update UI, etc.)
             if not silent:
@@ -654,7 +663,7 @@ class Indexer(QObject):
         """
         num = len(files)
         if num > 0:
-            msg = trans('idx.status.success') + f" {num}"
+            msg = f"{trans('idx.status.success')}  {num}"
             self.window.core.idx.append(idx, files)  # append files list to index
             self.update_idx_status(idx)
             self.window.controller.idx.after_index(idx)  # post-actions (update UI, etc.)
@@ -688,7 +697,7 @@ class Indexer(QObject):
         :param silent: silent mode (no msg and status update)
         """
         if num > 0:
-            msg = trans('idx.status.success') + f" {num}"
+            msg = f"{trans('idx.status.success')} {num}"
             if not silent:
                 self.window.update_status(msg)
                 self.window.ui.dialogs.alert(msg)

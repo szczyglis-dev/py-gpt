@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.16 00:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -20,7 +20,6 @@ from pygpt_net.ui.widget.element.button import NewCtxButton
 from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, SectionItem
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class CtxList:
@@ -32,6 +31,8 @@ class CtxList:
         """
         self.window = window
         self.search_input = SearchInput(window)
+        self._group_separators = False
+        self._pinned_separators = False
 
     def setup(self) -> QWidget:
         """
@@ -39,28 +40,40 @@ class CtxList:
 
         :return: QWidget
         """
-        id = 'ctx.list'
-        self.window.ui.nodes['ctx.new'] = NewCtxButton(trans('ctx.new'), self.window)
-        self.window.ui.nodes[id] = ContextList(self.window, id)
-        self.window.ui.nodes[id].selection_locked = self.window.controller.ctx.context_change_locked
-        self.window.ui.nodes['ctx.label'] = TitleLabel(trans("ctx.list.label"))
-        self.window.ui.nodes['ctx.new'].setContentsMargins(0,0,0,0)
+        ctx_id = 'ctx.list'
+        ui = self.window.ui
+        nodes = ui.nodes
+        models = ui.models
+
+        widget = QWidget()
+        widget.setContentsMargins(0, 0, 0, 0)
+
+        new_btn = NewCtxButton(trans('ctx.new'), self.window)
+        new_btn.setContentsMargins(0, 0, 0, 0)
+        nodes['ctx.new'] = new_btn
+
+        ctx_list = ContextList(self.window, ctx_id)
+        ctx_list.selection_locked = self.window.controller.ctx.context_change_locked
+        nodes[ctx_id] = ctx_list
+
+        nodes['ctx.label'] = TitleLabel(trans("ctx.list.label"))
         search_input = self.search_input.setup()
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes['ctx.new'])
-        layout.addWidget(search_input)
-        layout.addWidget(self.window.ui.nodes[id])
+        layout = QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(new_btn)
+        layout.addWidget(search_input)
+        layout.addWidget(ctx_list)
 
-        self.window.ui.models[id] = self.create_model(self.window)
-        self.window.ui.nodes[id].setModel(self.window.ui.models[id])
-        self.window.ui.nodes[id].selectionModel().selectionChanged.connect(
-            lambda: self.window.controller.ctx.selection_change()
-        )
-        widget = QWidget()
-        widget.setLayout(layout)
-        widget.setContentsMargins(0, 0, 0, 0)
+        model = self.create_model(self.window)
+        models[ctx_id] = model
+        ctx_list.setModel(model)
+
+        ctx = self.window.controller.ctx
+        ctx_list.selectionModel().selectionChanged.connect(lambda *_: ctx.selection_change())
+
+        self._group_separators = self.window.core.config.get("ctx.records.groups.separators")
+        self._pinned_separators = self.window.core.config.get("ctx.records.pinned.separators")
 
         return widget
 
@@ -83,6 +96,9 @@ class CtxList:
         """
         node = self.window.ui.nodes[id]
         node.backup_selection()
+
+        self._group_separators = self.window.core.config.get("ctx.records.groups.separators")
+        self._pinned_separators = self.window.core.config.get("ctx.records.pinned.separators")
 
         model = self.window.ui.models.get(id)
         if model is not None:
@@ -109,16 +125,12 @@ class CtxList:
         """
         i = 0
         last_dt_str = None
-        config = self.window.core.config
-        separators = config.get("ctx.records.separators")
-        pinned_separators = config.get("ctx.records.pinned.separators")
         model = self.window.ui.models[id]
-
         for meta_id, meta in data.items():
             gid = meta.group_id
             if (gid is None or gid == 0) and not meta.important:
                 item = self.build_item(meta_id, meta, is_group=False)
-                if separators and (not item.isPinned or pinned_separators):
+                if self._group_separators and (not item.isPinned or self._pinned_separators):
                     if i == 0 or last_dt_str != item.dt:
                         section = self.build_date_section(item.dt, group=False)
                         if section:
@@ -137,15 +149,12 @@ class CtxList:
         i = 0
         last_dt_str = None
         model = self.window.ui.models[id]
-        config = self.window.core.config
-        separators = config.get("ctx.records.separators")
-        pinned_separators = config.get("ctx.records.pinned.separators")
 
         for meta_id, meta in data.items():
             gid = meta.group_id
             if (gid is None or gid == 0) and meta.important:
                 item = self.build_item(meta_id, meta, is_group=False)
-                if separators and pinned_separators:
+                if self._group_separators and self._pinned_separators:
                     if i == 0 or last_dt_str != item.dt:
                         section = self.build_date_section(item.dt, group=False)
                         if section:
@@ -165,10 +174,6 @@ class CtxList:
         model = self.window.ui.models[id]
         groups = self.window.core.ctx.get_groups()
         search_string = self.window.core.ctx.get_search_string()
-        config = self.window.core.config
-        is_group_separators = config.get("ctx.records.groups.separators")
-        is_pinned_separators = config.get("ctx.records.pinned.separators")
-
         grouped = {}
         for meta_id, meta in data.items():
             gid = meta.group_id
@@ -213,7 +218,7 @@ class CtxList:
             i = 0
             for meta_id, meta in items_in_group:
                 item = self.build_item(meta_id, meta, is_group=True)
-                if is_group_separators and (not item.isPinned or is_pinned_separators):
+                if self._group_separators and (not item.isPinned or self._pinned_separators):
                     if i == 0 or last_dt_str != item.dt:
                         section = self.build_date_section(item.dt, group=True)
                         if section:
@@ -259,13 +264,7 @@ class CtxList:
         is_important = data.important
         is_attachment = data.has_additional_ctx()
         in_group = bool(data.group)
-
-        if is_group:
-            if self.window.core.config.get("ctx.records.groups.separators"):
-                append_dt = False
-        else:
-            if self.window.core.config.get("ctx.records.separators"):
-                append_dt = False
+        append_dt = False if (is_group and self._pinned_separators) or ((not is_group) and self._group_separators) else append_dt
 
         dt = self.convert_date(data.updated)
         date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")
@@ -274,15 +273,8 @@ class CtxList:
             title = title[:80] + '...'
         clean_title = title.replace("\n", "")
 
-        if append_dt:
-            name = f"{clean_title} ({dt})"
-        else:
-            name = clean_title
-
-        mode_str = ''
-        if data.last_mode is not None:
-            mode_str = f" ({trans('mode.' + data.last_mode)})"
-
+        name = f"{clean_title} ({dt})" if append_dt else clean_title
+        mode_str = f" ({trans('mode.' + data.last_mode)})" if data.last_mode is not None else ""
         tooltip_text = f"{date_time_str}: {data.name}{mode_str} #{id}"
 
         if is_attachment:
@@ -317,8 +309,7 @@ class CtxList:
         :param group: is group
         :return: SectionItem
         """
-        item = SectionItem(dt, group=group)
-        return item
+        return SectionItem(dt, group=group)
 
     def convert_date(self, timestamp: int) -> str:
         """

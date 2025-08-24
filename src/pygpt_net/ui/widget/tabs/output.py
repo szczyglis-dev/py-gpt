@@ -6,21 +6,38 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 07:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton
 from PySide6.QtCore import Qt, Slot
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QGuiApplication
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
+
+_ICON_CACHE = {}
+
+def icon(path: str) -> QIcon:
+    if QGuiApplication.instance() is None:
+        return QIcon()
+    cached = _ICON_CACHE.get(path)
+    if cached is None:
+        cached = QIcon(path)
+        _ICON_CACHE[path] = cached
+    return cached
+
+ICON_PATH_ADD = ':/icons/add.svg'
+ICON_PATH_EDIT = ':/icons/edit.svg'
+ICON_PATH_CLOSE = ':/icons/close.svg'
+ICON_PATH_RELOAD = ':/icons/reload.svg'
+ICON_PATH_FORWARD = ':/icons/forward'
+ICON_PATH_BACK = ':/icons/back'
 
 
 class AddButton(QPushButton):
     def __init__(self, window=None, column=None, tabs=None):
-        super(AddButton, self).__init__(QIcon(":/icons/add.svg"), "", window)
+        super(AddButton, self).__init__(icon(ICON_PATH_ADD), "", window)
         self.window = window
         self.column = column
         self.tabs = tabs
@@ -65,22 +82,20 @@ class AddButton(QPushButton):
         :return: menu
         """
         menu = QMenu(self)
+        menu.setAttribute(Qt.WA_DeleteOnClose, True)
 
-        actions = {}
-        actions['add_chat'] = QAction(QIcon(":/icons/add.svg"), trans('action.tab.add.chat'), self)
-        actions['add_chat'].triggered.connect(
+        add_chat = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.chat'), menu)
+        add_chat.triggered.connect(
             lambda: self.tabs.add_tab(index, column_idx, Tab.TAB_CHAT)
         )
-        actions['add_notepad'] = QAction(QIcon(":/icons/add.svg"), trans('action.tab.add.notepad'), self)
-        actions['add_notepad'].triggered.connect(
+        add_notepad = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.notepad'), menu)
+        add_notepad.triggered.connect(
             lambda: self.tabs.add_tab(index, column_idx, Tab.TAB_NOTEPAD)
         )
 
-        # add chat, add notepad
-        menu.addAction(actions['add_chat'])
-        menu.addAction(actions['add_notepad'])
+        menu.addAction(add_chat)
+        menu.addAction(add_notepad)
 
-        # add tools submenu
         self.window.controller.tools.append_tab_menu(self, menu, index, column_idx, self.tabs)
 
         return menu
@@ -113,21 +128,11 @@ class OutputTabs(QTabWidget):
         self.setCornerWidget(add_button, corner=Qt.TopRightCorner)
 
         # connect signals
-        self.currentChanged.connect(
-            lambda: self.window.controller.ui.tabs.on_tab_changed(self.currentIndex(), self.column.get_idx())
-        )
-        self.tabBarClicked.connect(
-            lambda: self.window.controller.ui.tabs.on_tab_clicked(self.currentIndex(), self.column.get_idx())
-        )
-        self.tabBarDoubleClicked.connect(
-            lambda: self.window.controller.ui.tabs.on_tab_dbl_clicked(self.currentIndex(), self.column.get_idx())
-        )
-        self.tabCloseRequested.connect(
-            lambda: self.window.controller.ui.tabs.on_tab_closed(self.currentIndex(), self.column.get_idx())
-        )
-        self.tabBar().tabMoved.connect(
-            lambda: self.window.controller.ui.tabs.on_tab_moved(self.currentIndex(), self.column.get_idx())
-        )
+        self.currentChanged.connect(self._on_current_changed)
+        self.tabBarClicked.connect(self._on_tabbar_clicked)
+        self.tabBarDoubleClicked.connect(self._on_tabbar_dbl_clicked)
+        self.tabCloseRequested.connect(self._on_tab_close_requested)
+        self.tabBar().tabMoved.connect(self._on_tab_moved)
 
     def get_column(self):
         """
@@ -177,44 +182,40 @@ class OutputTabs(QTabWidget):
         :return: menu
         """
         menu = QMenu(self)
+        menu.setAttribute(Qt.WA_DeleteOnClose, True)
 
-        actions = {}
-        actions['add_chat'] = QAction(QIcon(":/icons/add.svg"), trans('action.tab.add.chat'), self)
-        actions['add_chat'].triggered.connect(
+        add_chat = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.chat'), menu)
+        add_chat.triggered.connect(
             lambda: self.add_tab(index, column_idx, Tab.TAB_CHAT)
         )
-        actions['add_notepad'] = QAction(QIcon(":/icons/add.svg"), trans('action.tab.add.notepad'), self)
-        actions['add_notepad'].triggered.connect(
+        add_notepad = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.notepad'), menu)
+        add_notepad.triggered.connect(
             lambda: self.add_tab(index, column_idx, Tab.TAB_NOTEPAD)
         )
-        actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
-        actions['edit'].triggered.connect(
+        edit = QAction(icon(ICON_PATH_EDIT), trans('action.rename'), menu)
+        edit.triggered.connect(
             lambda: self.rename_tab(index, column_idx)
         )
-        actions['move_right'] = QAction(QIcon(":/icons/forward"), trans('action.tab.move.right'), self)
-        actions['move_right'].triggered.connect(
+        move_right = QAction(icon(ICON_PATH_FORWARD), trans('action.tab.move.right'), menu)
+        move_right.triggered.connect(
             lambda: self.window.controller.ui.tabs.move_tab(index, column_idx, 1)
         )
-        actions['move_left'] = QAction(QIcon(":/icons/back"), trans('action.tab.move.left'), self)
-        actions['move_left'].triggered.connect(
+        move_left = QAction(icon(ICON_PATH_BACK), trans('action.tab.move.left'), menu)
+        move_left.triggered.connect(
             lambda: self.window.controller.ui.tabs.move_tab(index, column_idx, 0)
         )
 
-        # add chat, add notepad
-        menu.addAction(actions['add_chat'])
-        menu.addAction(actions['add_notepad'])
+        menu.addAction(add_chat)
+        menu.addAction(add_notepad)
 
-        # add tools submenu
         self.window.controller.tools.append_tab_menu(self, menu, index, column_idx, self)
 
-        # rename tab
-        menu.addAction(actions['edit'])
+        menu.addAction(edit)
 
-        # move tab left, move tab right
         if column_idx != 0:
-            menu.addAction(actions['move_left'])
+            menu.addAction(move_left)
         if column_idx != 1:
-            menu.addAction(actions['move_right'])
+            menu.addAction(move_right)
 
         return menu
 
@@ -227,19 +228,18 @@ class OutputTabs(QTabWidget):
         :param global_pos: global position
         """
         context_menu = self.prepare_menu(index, column_idx)
-        actions = {}
-        actions['close'] = QAction(QIcon(":/icons/close.svg"), trans('action.tab.close'), self)
-        actions['close'].triggered.connect(
+        close_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close'), context_menu)
+        close_act.triggered.connect(
             lambda: self.close_tab(index, column_idx)
         )
-        actions['close_all'] = QAction(QIcon(":/icons/close.svg"), trans('action.tab.close_all.notepad'), self)
-        actions['close_all'].triggered.connect(
+        close_all_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close_all.notepad'), context_menu)
+        close_all_act.triggered.connect(
             lambda: self.close_all(Tab.TAB_NOTEPAD, column_idx)
         )
-        context_menu.addAction(actions['close'])
+        context_menu.addAction(close_act)
 
         if self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) > 1:
-            context_menu.addAction(actions['close_all'])
+            context_menu.addAction(close_all_act)
 
         context_menu.exec(global_pos)
 
@@ -252,20 +252,19 @@ class OutputTabs(QTabWidget):
         :param global_pos: global position
         """
         context_menu = self.prepare_menu(index, column_idx)
-        actions = {}
-        actions['close'] = QAction(QIcon(":/icons/close.svg"), trans('action.tab.close'), self)
-        actions['close'].triggered.connect(
+        close_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close'), context_menu)
+        close_act.triggered.connect(
             lambda: self.close_tab(index, column_idx)
         )
-        actions['close_all'] = QAction(QIcon(":/icons/close.svg"), trans('action.tab.close_all.chat'), self)
-        actions['close_all'].triggered.connect(
+        close_all_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close_all.chat'), context_menu)
+        close_all_act.triggered.connect(
             lambda: self.close_all(Tab.TAB_CHAT, column_idx)
         )
 
         # at least one chat tab must be open
         if self.window.core.tabs.count_by_type(Tab.TAB_CHAT) > 1:
-            context_menu.addAction(actions['close'])
-            context_menu.addAction(actions['close_all'])
+            context_menu.addAction(close_act)
+            context_menu.addAction(close_all_act)
 
         context_menu.exec(global_pos)
 
@@ -278,12 +277,11 @@ class OutputTabs(QTabWidget):
         :param global_pos: global position
         """
         context_menu = self.prepare_menu(index, column_idx)
-        actions = {}
-        actions['refresh'] = QAction(QIcon(":/icons/reload.svg"), trans('action.refresh'), self)
-        actions['refresh'].triggered.connect(
+        refresh = QAction(icon(ICON_PATH_RELOAD), trans('action.refresh'), context_menu)
+        refresh.triggered.connect(
             lambda: self.window.controller.files.update_explorer()
         )
-        context_menu.addAction(actions['refresh'])
+        context_menu.addAction(refresh)
         context_menu.exec(global_pos)
 
     def show_tool_menu(self, index: int, column_idx: int, global_pos):
@@ -295,12 +293,11 @@ class OutputTabs(QTabWidget):
         :param global_pos: global position
         """
         context_menu = self.prepare_menu(index, column_idx)
-        actions = {}
-        actions['close'] = QAction(QIcon(":/icons/close.svg"), trans('action.tab.close'), self)
-        actions['close'].triggered.connect(
+        close_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close'), context_menu)
+        close_act.triggered.connect(
             lambda: self.close_tab(index, column_idx)
         )
-        context_menu.addAction(actions['close'])
+        context_menu.addAction(close_act)
         context_menu.exec(global_pos)
 
     def show_default_menu(self, index: int, column_idx: int, global_pos):
@@ -313,6 +310,26 @@ class OutputTabs(QTabWidget):
         """
         context_menu = self.prepare_menu(index, column_idx)
         context_menu.exec(global_pos)
+
+    @Slot(int)
+    def _on_current_changed(self, _idx: int):
+        self.window.controller.ui.tabs.on_tab_changed(self.currentIndex(), self.column.get_idx())
+
+    @Slot(int)
+    def _on_tabbar_clicked(self, _idx: int):
+        self.window.controller.ui.tabs.on_tab_clicked(self.currentIndex(), self.column.get_idx())
+
+    @Slot(int)
+    def _on_tabbar_dbl_clicked(self, _idx: int):
+        self.window.controller.ui.tabs.on_tab_dbl_clicked(self.currentIndex(), self.column.get_idx())
+
+    @Slot(int)
+    def _on_tab_close_requested(self, _idx: int):
+        self.window.controller.ui.tabs.on_tab_closed(self.currentIndex(), self.column.get_idx())
+
+    @Slot(int, int)
+    def _on_tab_moved(self, _from: int, _to: int):
+        self.window.controller.ui.tabs.on_tab_moved(self.currentIndex(), self.column.get_idx())
 
     @Slot()
     def rename_tab(self, index: int, column_idx: int):

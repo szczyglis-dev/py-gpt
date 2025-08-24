@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QWidget, QCheckBox, QHBoxLayout, QLabel
-from PySide6.QtGui import QPainter, QPixmap
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QPainter, QPixmap, QIcon
+from PySide6.QtCore import Qt, QSize
 
 from pygpt_net.utils import trans
 
@@ -31,33 +31,36 @@ class ColorCheckbox(QWidget):
         layout.addWidget(self.window.ui.nodes['filter.ctx.label.colors'])
         layout.setContentsMargins(0, 0, 0, 0)
         labels = self.window.controller.ui.get_colors()
+        icon_size = 20
+        icon_qsize = QSize(icon_size, icon_size)
 
-        for id, status in labels.items():
-            self.boxes[id] = QCheckBox()
-            self.boxes[id].stateChanged.connect(
-                lambda state, idx=id: self.update_colors(state, idx)
-            )
-            pixmap = QPixmap(20, 20)
+        for color_id, status in labels.items():
+            cb = QCheckBox(self)
+            pixmap = QPixmap(icon_size, icon_size)
             pixmap.fill(Qt.transparent)
             painter = QPainter(pixmap)
             painter.setBrush(status['color'])
-            painter.drawRect(0, 0, 20, 20)
+            painter.drawRect(0, 0, icon_size, icon_size)
             painter.end()
 
-            self.boxes[id].setIcon(pixmap)
-            layout.addWidget(self.boxes[id])
+            cb.setIcon(QIcon(pixmap))
+            cb.setIconSize(icon_qsize)
+            cb.toggled.connect(lambda checked, idx=color_id: self.update_colors(checked, idx))
+            self.boxes[color_id] = cb
+            layout.addWidget(cb)
 
         layout.addStretch()
         self.setLayout(layout)
 
-    def update_colors(self, state: int, idx: int):
+    def update_colors(self, state, idx: int):
         """
         Update selected colors list
 
         :param state: checkbox state
         :param idx: color index
         """
-        if state == 2:
+        checked = state if isinstance(state, bool) else state == Qt.Checked
+        if checked:
             if idx not in self.selected:
                 self.selected.append(idx)
         else:
@@ -74,4 +77,9 @@ class ColorCheckbox(QWidget):
         """
         self.selected = selected
         for idx in selected:
-            self.boxes[idx].setChecked(True)
+            cb = self.boxes.get(idx)
+            if cb is not None:
+                prev = cb.blockSignals(True)
+                cb.setChecked(True)
+                cb.blockSignals(prev)
+        self.window.controller.ctx.label_filters_changed(self.selected)

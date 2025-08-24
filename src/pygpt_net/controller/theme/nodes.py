@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -28,24 +28,33 @@ class Nodes:
         :param key: UI node key
         :param type: stylesheet type
         """
-        if key not in self.window.ui.nodes:
+        nodes = self.window.ui.nodes
+        theme = self.window.controller.theme
+
+        if key not in nodes:
             return
 
         if type == 'font.toolbox':
-            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.toolbox'))
+            nodes[key].setStyleSheet(theme.style('font.toolbox'))
         elif type == 'font.chat.output':
-            for pid in self.window.ui.nodes[key]:
+            style_output = theme.style('font.chat.output')
+            for pid in nodes[key]:
                 try:
-                    self.window.ui.nodes[key][pid].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+                    nodes[key][pid].setStyleSheet(style_output)
                 except Exception as e:
                     pass
         elif type == 'font.chat.input':
-            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.chat.input'))
+            nodes[key].setStyleSheet(theme.style('font.chat.input'))
         elif type == 'font.ctx.list':
-            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.ctx.list'))
+            nodes[key].setStyleSheet(theme.style('font.ctx.list'))
 
     def apply_all(self):
         """Apply stylesheets to nodes"""
+        w = self.window
+        ui = w.ui
+        ctrl = w.controller
+        engine = ctrl.chat.render.get_engine()
+
         nodes = {
             'font.chat.input': [
                 'input',
@@ -90,58 +99,56 @@ class Nodes:
         }
 
         # apply to nodes
-        for type in nodes:
-            for key in nodes[type]:
-                if key == "output" and self.window.controller.chat.render.get_engine() != 'legacy':
+        apply_ref = self.apply
+        skip_output = engine != 'legacy'
+        for t, keys in nodes.items():
+            for k in keys:
+                if skip_output and k == "output":
                     continue
-                self.apply(key, type)
+                apply_ref(k, t)
 
         # apply to notepads
-        num_notepads = self.window.controller.notepad.get_num_notepads()
-        if num_notepads > 0:
-            for id in self.window.ui.notepad:
-                self.window.ui.notepad[id].textarea.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+        size = w.core.config.get('font_size')
+        style_output = ctrl.theme.style('font.chat.output')
+        if ui.notepad:
+            for np in ui.notepad.values():
+                ta = np.textarea
+                ta.setStyleSheet(style_output)
+                ta.value = size
 
         # apply to calendar
-        if 'note' in self.window.ui.calendar:
-            self.window.ui.calendar['note'].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
-
-        # update value
-        size = self.window.core.config.get('font_size')
-        if 'note' in self.window.ui.calendar:
-            self.window.ui.calendar['note'].value = size
-        if num_notepads > 0:
-            for id in range(1, num_notepads + 1):
-                if id in self.window.ui.notepad:
-                    self.window.ui.notepad[id].textarea.value = size
+        note = ui.calendar.get('note')
+        if note is not None:
+            note.setStyleSheet(style_output)
+            note.value = size
 
         # plain text/markdown
-        for pid in self.window.ui.nodes['output_plain']:
+        output_plain = ui.nodes.get('output_plain', {})
+        for obj in output_plain.values():
             try:
-                self.window.ui.nodes['output_plain'][pid].value = size
-                self.window.ui.nodes['output_plain'][pid].update()
-            except Exception as e:
+                obj.value = size
+                obj.update()
+            except Exception:
                 pass
 
         # ------------------------
 
         # zoom, (Chromium, web engine)
-        if self.window.controller.chat.render.get_engine() == 'web':
-            zoom = self.window.core.config.get('zoom')
-            for pid in self.window.ui.nodes['output']:
+        output_nodes = ui.nodes.get('output', {})
+        if engine == 'web':
+            zoom = w.core.config.get('zoom')
+            for obj in output_nodes.values():
                 try:
-                    self.window.ui.nodes['output'][pid].value = zoom
-                    self.window.ui.nodes['output'][pid].update_zoom()
-                except Exception as e:
+                    obj.value = zoom
+                    obj.update_zoom()
+                except Exception:
                     pass
-            event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-            self.window.dispatch(event)
+            w.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
 
         # font size, legacy (markdown)
-        elif self.window.controller.chat.render.get_engine() == 'legacy':
-            for pid in self.window.ui.nodes['output']:
-                self.window.ui.nodes['output'][pid].value = size
-                self.window.ui.nodes['output'][pid].update()
+        elif engine == 'legacy':
+            for obj in output_nodes.values():
+                obj.value = size
+                obj.update()
 
-        # update tools
-        self.window.tools.setup_theme()
+        w.tools.setup_theme()  # update tools

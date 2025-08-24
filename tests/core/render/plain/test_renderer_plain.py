@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -141,7 +141,7 @@ def test_append_raw(mock_window):
     item = CtxItem()
     meta = CtxMeta()
     render.append_raw(meta, item, "test")
-    render.get_output_node().setPlainText.assert_called_once()
+    render.get_output_node().setTextCursor.assert_called_once()
 
 
 def test_append_chunk_start(mock_window):

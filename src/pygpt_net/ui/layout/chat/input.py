@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.18 03:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
+
+from functools import partial
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, QWidget, \
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, QWidget, \
     QGridLayout
 
 from pygpt_net.ui.layout.chat.attachments import Attachments
@@ -25,7 +27,6 @@ from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.tabs.Input import InputTabs
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class Input:
@@ -58,30 +59,27 @@ class Input:
         files_uploaded = self.setup_attachments_uploaded()
         files_ctx = self.setup_attachments_ctx()
 
-        # tabs
         self.window.ui.tabs['input'] = InputTabs(self.window)
-        self.window.ui.tabs['input'].setMinimumHeight(self.min_height_input_tab)
-        self.window.ui.tabs['input'].addTab(input, trans('input.tab'))
-        self.window.ui.tabs['input'].addTab(files, trans('attachments.tab'))
-        self.window.ui.tabs['input'].addTab(files_uploaded, trans('attachments_uploaded.tab'))
-        self.window.ui.tabs['input'].addTab(files_ctx, trans('attachments_uploaded.tab'))
-        self.window.ui.tabs['input'].currentChanged.connect(self.update_min_height)  # update min height on tab change
+        tabs = self.window.ui.tabs['input']
+        tabs.setMinimumHeight(self.min_height_input_tab)
+        tabs.addTab(input, trans('input.tab'))
+        tabs.addTab(files, trans('attachments.tab'))
+        tabs.addTab(files_uploaded, trans('attachments_uploaded.tab'))
+        tabs.addTab(files_ctx, trans('attachments_uploaded.tab'))
+        tabs.currentChanged.connect(self.update_min_height)
 
-        self.window.ui.tabs['input'].setTabIcon(0, QIcon(":/icons/input.svg"))
-        self.window.ui.tabs['input'].setTabIcon(1, QIcon(":/icons/attachment.svg"))
-        self.window.ui.tabs['input'].setTabIcon(2, QIcon(":/icons/upload.svg"))
-        self.window.ui.tabs['input'].setTabIcon(3, QIcon(":/icons/upload.svg"))
-
-        # layout
-        layout = QVBoxLayout()
-        layout.addLayout(self.setup_header())
-        layout.addWidget(self.window.ui.tabs['input'])
-        layout.addLayout(self.setup_bottom())
-        layout.setContentsMargins(0, 0, 0, 5)
+        tabs.setTabIcon(0, QIcon(":/icons/input.svg"))
+        upload_icon = QIcon(":/icons/upload.svg")
+        tabs.setTabIcon(1, QIcon(":/icons/attachment.svg"))
+        tabs.setTabIcon(2, upload_icon)
+        tabs.setTabIcon(3, upload_icon)
 
         widget = QWidget()
-        widget.setLayout(layout)
-
+        layout = QVBoxLayout(widget)
+        layout.addLayout(self.setup_header())
+        layout.addWidget(tabs)
+        layout.addLayout(self.setup_bottom())
+        layout.setContentsMargins(0, 0, 0, 5)
         return widget
 
     def setup_input(self) -> QWidget:
@@ -90,16 +88,13 @@ class Input:
 
         :return: QWidget
         """
-        # input textarea
         self.window.ui.nodes['input'] = ChatInput(self.window)
         self.window.ui.nodes['input'].setMinimumHeight(self.min_height_input)
 
-        layout = QVBoxLayout()
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
         layout.addWidget(self.window.ui.nodes['input'])
         layout.setContentsMargins(0, 0, 0, 0)
-
-        widget = QWidget()
-        widget.setLayout(layout)
         return widget
 
     def setup_attachments(self) -> QWidget:
@@ -108,12 +103,10 @@ class Input:
 
         :return: QWidget
         """
-        layout = QVBoxLayout()
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
         layout.addLayout(self.attachments.setup())
         layout.setContentsMargins(0, 0, 0, 0)
-
-        widget = QWidget()
-        widget.setLayout(layout)
         widget.setMinimumHeight(self.min_height_files_tab)
         return widget
 
@@ -123,12 +116,10 @@ class Input:
 
         :return: QWidget
         """
-        layout = QVBoxLayout()
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
         layout.addLayout(self.attachments_uploaded.setup())
         layout.setContentsMargins(0, 0, 0, 0)
-
-        widget = QWidget()
-        widget.setLayout(layout)
         widget.setMinimumHeight(self.min_height_files_tab)
         return widget
 
@@ -138,12 +129,10 @@ class Input:
 
         :return: QWidget
         """
-        layout = QVBoxLayout()
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
         layout.addLayout(self.attachments_ctx.setup())
         layout.setContentsMargins(0, 0, 0, 0)
-
-        widget = QWidget()
-        widget.setLayout(layout)
         widget.setMinimumHeight(self.min_height_files_tab)
         return widget
 
@@ -184,7 +173,6 @@ class Input:
         layout.addWidget(self.window.ui.plugin_addon['audio.output.bar'], alignment=Qt.AlignCenter)
         layout.addLayout(self.setup_buttons())
         layout.setContentsMargins(2, 0, 2, 0)
-
         return layout
 
     def setup_buttons(self) -> QHBoxLayout:
@@ -193,87 +181,76 @@ class Input:
 
         :return: QHBoxLayout
         """
-        # send with: enter
-        self.window.ui.nodes['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
-        self.window.ui.nodes['input.send_enter'].clicked.connect(
-            lambda: self.window.controller.chat.common.toggle_send_shift(
-                1))
+        nodes = self.window.ui.nodes
+        controller = self.window.controller
 
-        # send with: shift + enter
-        self.window.ui.nodes['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
-        self.window.ui.nodes['input.send_shift_enter'].clicked.connect(
-            lambda: self.window.controller.chat.common.toggle_send_shift(
-                2))
+        nodes['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
+        nodes['input.send_enter'].toggled.connect(partial(self._on_send_mode_toggled, 1))
 
-        # send with: none
-        self.window.ui.nodes['input.send_none'] = QRadioButton(trans("input.radio.none"))
-        self.window.ui.nodes['input.send_none'].clicked.connect(
-            lambda: self.window.controller.chat.common.toggle_send_shift(
-                0))
+        nodes['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
+        nodes['input.send_shift_enter'].toggled.connect(partial(self._on_send_mode_toggled, 2))
 
-        # send clear
-        self.window.ui.nodes['input.send_clear'] = QCheckBox(trans('input.send_clear'))
-        self.window.ui.nodes['input.send_clear'].stateChanged.connect(
-            lambda: self.window.controller.chat.common.toggle_send_clear(
-                self.window.ui.nodes['input.send_clear'].isChecked()))
+        nodes['input.send_none'] = QRadioButton(trans("input.radio.none"))
+        nodes['input.send_none'].toggled.connect(partial(self._on_send_mode_toggled, 0))
 
-        # stream
-        self.window.ui.nodes['input.stream'] = QCheckBox(trans('input.stream'))
-        self.window.ui.nodes['input.stream'].stateChanged.connect(
-            lambda: self.window.controller.chat.common.toggle_stream(self.window.ui.nodes['input.stream'].isChecked()))
+        nodes['input.send_clear'] = QCheckBox(trans('input.send_clear'))
+        nodes['input.send_clear'].toggled.connect(controller.chat.common.toggle_send_clear)
 
-        # send button
-        self.window.ui.nodes['input.send_btn'] = QPushButton(trans("input.btn.send"))
-        self.window.ui.nodes['input.send_btn'].clicked.connect(
-            lambda: self.window.controller.chat.input.send_input())
+        nodes['input.stream'] = QCheckBox(trans('input.stream'))
+        nodes['input.stream'].toggled.connect(controller.chat.common.toggle_stream)
 
-        # stop button
-        self.window.ui.nodes['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
-        self.window.ui.nodes['input.stop_btn'].setVisible(False)
-        self.window.ui.nodes['input.stop_btn'].clicked.connect(
-            lambda: self.window.controller.kernel.stop())
+        nodes['input.send_btn'] = QPushButton(trans("input.btn.send"))
+        nodes['input.send_btn'].clicked.connect(controller.chat.input.send_input)
 
-        # update button
-        self.window.ui.nodes['input.update_btn'] = QPushButton(trans("input.btn.update"))
-        self.window.ui.nodes['input.update_btn'].setVisible(False)
-        self.window.ui.nodes['input.update_btn'].clicked.connect(
-            lambda: self.window.controller.ctx.extra.edit_submit())
+        nodes['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
+        nodes['input.stop_btn'].setVisible(False)
+        nodes['input.stop_btn'].clicked.connect(controller.kernel.stop)
 
-        # cancel button
-        self.window.ui.nodes['input.cancel_btn'] = QPushButton(trans("input.btn.cancel"))
-        self.window.ui.nodes['input.cancel_btn'].setVisible(False)
-        self.window.ui.nodes['input.cancel_btn'].clicked.connect(
-            lambda: self.window.controller.ctx.extra.edit_cancel())
+        nodes['input.update_btn'] = QPushButton(trans("input.btn.update"))
+        nodes['input.update_btn'].setVisible(False)
+        nodes['input.update_btn'].clicked.connect(controller.ctx.extra.edit_submit)
 
-        # layout
-        self.window.ui.nodes['ui.input.buttons'] = QHBoxLayout()
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stream'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_clear'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_enter'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_shift_enter'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_none'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_btn'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stop_btn'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.cancel_btn'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.update_btn'])
-        self.window.ui.nodes['ui.input.buttons'].setAlignment(Qt.AlignRight)
+        nodes['input.cancel_btn'] = QPushButton(trans("input.btn.cancel"))
+        nodes['input.cancel_btn'].setVisible(False)
+        nodes['input.cancel_btn'].clicked.connect(controller.ctx.extra.edit_cancel)
 
-        return self.window.ui.nodes['ui.input.buttons']
+        nodes['ui.input.buttons'] = QHBoxLayout()
+        nodes['ui.input.buttons'].addWidget(nodes['input.stream'])
+        nodes['ui.input.buttons'].addWidget(nodes['input.send_clear'])
+        nodes['ui.input.buttons'].addWidget(nodes['input.send_enter'])
+        nodes['ui.input.buttons'].addWidget(nodes['input.send_shift_enter'])
+        nodes['ui.input.buttons'].addWidget(nodes['input.send_none'])
+        nodes['ui.input.buttons'].addWidget(nodes['input.send_btn'])
+        nodes['ui.input.buttons'].addWidget(nodes['input.stop_btn'])
+        nodes['ui.input.buttons'].addWidget(nodes['input.cancel_btn'])
+        nodes['ui.input.buttons'].addWidget(nodes['input.update_btn'])
+        nodes['ui.input.buttons'].setAlignment(Qt.AlignRight)
+
+        return nodes['ui.input.buttons']
+
+    def _on_send_mode_toggled(self, mode: int, checked: bool):
+        if checked:
+            self.window.controller.chat.common.toggle_send_shift(mode)
 
     def update_min_height(self):
         """
         Update the minimum height of the input tab
         """
-        idx = self.window.ui.tabs['input'].currentIndex()
+        tabs = self.window.ui.tabs['input']
+        nodes = self.window.ui.nodes
+        splitters = self.window.ui.splitters
+        controller_ui = self.window.controller.ui
+
+        idx = tabs.currentIndex()
         if idx == 0:
-            self.window.ui.nodes['input'].setMinimumHeight(self.min_height_input)
-            self.window.ui.tabs['input'].setMinimumHeight(self.min_height_input_tab)
-            if (self.window.controller.ui.splitter_output_size_input
-                    and self.window.controller.ui.splitter_output_size_input != [0,0]):
-                self.window.ui.splitters['main.output'].setSizes(self.window.controller.ui.splitter_output_size_input)
+            nodes['input'].setMinimumHeight(self.min_height_input)
+            tabs.setMinimumHeight(self.min_height_input_tab)
+            sizes = controller_ui.splitter_output_size_input
+            if sizes and sizes != [0, 0]:
+                splitters['main.output'].setSizes(sizes)
         else:
-            if (self.window.controller.ui.splitter_output_size_files
-                    and self.window.controller.ui.splitter_output_size_input != [0,0]):
-                self.window.ui.splitters['main.output'].setSizes(self.window.controller.ui.splitter_output_size_files)
-            self.window.ui.nodes['input'].setMinimumHeight(self.min_height_files_tab)
-            self.window.ui.tabs['input'].setMinimumHeight(self.min_height_files_tab + 90)
+            sizes = controller_ui.splitter_output_size_files
+            if sizes and controller_ui.splitter_output_size_input != [0, 0]:
+                splitters['main.output'].setSizes(sizes)
+            nodes['input'].setMinimumHeight(self.min_height_files_tab)
+            tabs.setMinimumHeight(self.min_height_files_tab + 90)

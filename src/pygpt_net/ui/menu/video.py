@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -25,27 +25,22 @@ class Video:
 
     def setup(self):
         """Setup video menu"""
-        self.window.ui.menu['video.capture'] = QAction(
-            trans("menu.video.capture"),
-            self.window,
-            checkable=True,
-        )
-        self.window.ui.menu['video.capture'].setToolTip(trans('vision.capture.enable.tooltip'))
-        self.window.ui.menu['video.capture'].triggered.connect(
-            lambda: self.window.controller.camera.toggle(self.window.ui.menu['video.capture'].isChecked())
-        )
+        w = self.window
+        ui_menu = w.ui.menu
+        cam = w.controller.camera
 
-        self.window.ui.menu['video.capture.auto'] = QAction(
-            trans("menu.video.capture.auto"),
-            self.window,
-            checkable=True,
-        )
-        self.window.ui.menu['video.capture.auto'].setToolTip(trans('vision.capture.auto.tooltip'))
-        self.window.ui.menu['video.capture.auto'].triggered.connect(
-            lambda: self.window.controller.camera.toggle_auto(self.window.ui.menu['video.capture.auto'].isChecked())
-        )
+        capture = QAction(trans("menu.video.capture"), w, checkable=True)
+        capture.setToolTip(trans('vision.capture.enable.tooltip'))
+        capture.triggered.connect(cam.toggle)
 
-        self.window.ui.menu['menu.video'] = self.window.menuBar().addMenu(trans("menu.video"))
-        self.window.ui.menu['menu.video'].addAction(self.window.ui.menu['video.capture'])
-        self.window.ui.menu['menu.video'].addAction(self.window.ui.menu['video.capture.auto'])
-        self.window.ui.menu['menu.video'].setToolTipsVisible(True)
+        capture_auto = QAction(trans("menu.video.capture.auto"), w, checkable=True)
+        capture_auto.setToolTip(trans('vision.capture.auto.tooltip'))
+        capture_auto.triggered.connect(cam.toggle_auto)
+
+        menu_video = w.menuBar().addMenu(trans("menu.video"))
+        menu_video.addActions([capture, capture_auto])
+        menu_video.setToolTipsVisible(True)
+
+        ui_menu['video.capture'] = capture
+        ui_menu['video.capture.auto'] = capture_auto
+        ui_menu['menu.video'] = menu_video

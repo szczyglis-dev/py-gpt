@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -58,42 +58,45 @@ class BaseDialog(QDialog):
         if self.window is None or self.id is None:
             return False
 
-        if not self.window.core.config.has("layout.dialog.geometry.store") \
-                or not self.window.core.config.get("layout.dialog.geometry.store"):
+        config = self.window.core.config
+        if not config.has("layout.dialog.geometry.store") \
+                or not config.get("layout.dialog.geometry.store"):
             return False
 
         return True
 
     def save_geometry(self):
         """Save dialog geometry"""
+        config = self.window.core.config
         item = {
             "size": [self.size().width(), self.size().height()],
             "pos": [self.pos().x(), self.pos().y()]
         }
         if self.store_geometry_enabled():
-            data = self.window.core.config.get("layout.dialog.geometry", {})
+            data = config.get("layout.dialog.geometry", {})
         else:
-            data = self.window.core.config.get_session("layout.dialog.geometry", {})
+            data = config.get_session("layout.dialog.geometry", {})
 
         if not isinstance(data, dict):
             data = {}
         data[self.id] = item
 
         if self.store_geometry_enabled():
-            self.window.core.config.set("layout.dialog.geometry", data)
+            config.set("layout.dialog.geometry", data)
         else:
-            self.window.core.config.set_session("layout.dialog.geometry", data)
+            config.set_session("layout.dialog.geometry", data)
 
     def restore_geometry(self):
         """Restore dialog geometry"""
         # get available screen geometry
         screen = QApplication.primaryScreen()
         available_geometry = screen.availableGeometry()
+        config = self.window.core.config
 
         if self.store_geometry_enabled():
-            data = self.window.core.config.get("layout.dialog.geometry", {})
+            data = config.get("layout.dialog.geometry", {})
         else:
-            data = self.window.core.config.get_session("layout.dialog.geometry", {})
+            data = config.get_session("layout.dialog.geometry", {})
 
         if not isinstance(data, dict):
             data = {}

@@ -6,21 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QLabel, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QWidget
 
 from pygpt_net.ui.widget.element.button import SyncButton
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.uploaded import UploadedFileList
 from pygpt_net.utils import trans
-
-import pygpt_net.icons_rc
 
 class AttachmentsUploaded:
     def __init__(self, window=None):
@@ -39,16 +37,15 @@ class AttachmentsUploaded:
         :return: QVBoxLayout
         """
         self.setup_attachments()
-        empty_widget = QWidget()
+        empty_widget = QWidget(self.window)
 
-        self.window.ui.nodes['attachments_uploaded.sync.tip'] = HelpLabel(trans('attachments_uploaded.sync.tip'))
+        self.window.ui.nodes['attachments_uploaded.sync.tip'] = HelpLabel(trans('attachments_uploaded.sync.tip'), self.window)
         self.window.ui.nodes['attachments_uploaded.sync.tip'].setWordWrap(False)
         self.window.ui.nodes['attachments_uploaded.sync.tip'].setAlignment(Qt.AlignCenter)
 
         self.window.ui.nodes['tip.input.attachments.uploaded'] = HelpLabel(trans('tip.input.attachments.uploaded'),
                                                                            self.window)
 
-        # buttons layout
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.ui.nodes['attachments_uploaded.btn.sync'])
         buttons_layout.addWidget(self.window.ui.nodes['attachments_uploaded.btn.clear'])
@@ -56,8 +53,6 @@ class AttachmentsUploaded:
         buttons_layout.addWidget(self.window.ui.nodes['attachments_uploaded.sync.tip'])
         buttons_layout.addStretch()
 
-
-        # layout
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['tip.input.attachments.uploaded'])
         layout.addWidget(self.window.ui.nodes['attachments_uploaded'])
@@ -69,10 +64,8 @@ class AttachmentsUploaded:
         """
         Setup attachments uploaded list
         """
-        # attachments
         self.window.ui.nodes[self.id] = UploadedFileList(self.window)
 
-        # buttons
         self.window.ui.nodes['attachments_uploaded.btn.sync'] = SyncButton(trans('attachments_uploaded.btn.sync'), self.window)
         self.window.ui.nodes['attachments_uploaded.btn.clear'] = QPushButton(QIcon(":/icons/close.svg"), trans('attachments_uploaded.btn.clear'))
         self.window.ui.nodes['attachments_uploaded.btn.clear'].clicked.connect(
@@ -102,32 +95,36 @@ class AttachmentsUploaded:
 
         :param data: Data to update
         """
+        model = self.window.ui.models[self.id]
         store_names = self.window.core.assistants.store.get_names()
-        self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
-        i = 0
-        for id in data:
-            item = data[id]
-            size = "-"
-            path = item.path
+        thread_only_label = trans("assistant.store.thread_only")
+        fs = self.window.core.filesystem
 
-            # size
-            if item.size is not None:
-                size = self.window.core.filesystem.sizeof_fmt(item.size)
-            else:
-                if path and os.path.exists(path):
-                    size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
+        model.beginResetModel()
+        model.setRowCount(0)
+        count = len(data)
+        if count:
+            model.setRowCount(count)
+            for i, item in enumerate(data.values()):
+                path = item.path
+                if item.size is not None:
+                    size_str = fs.sizeof_fmt(item.size)
+                else:
+                    size_str = "-"
+                    if path:
+                        try:
+                            st = os.stat(path)
+                        except OSError:
+                            pass
+                        else:
+                            size_str = fs.sizeof_fmt(st.st_size)
 
-            # vector stores
-            if item.store_id is not None and item.store_id in store_names:
-                vector_store = store_names[item.store_id]
-            else:
-                vector_store = trans("assistant.store.thread_only")
+                store_name = store_names.get(item.store_id, thread_only_label)
 
-            self.window.ui.models[self.id].insertRow(i)
-            index = self.window.ui.models[self.id].index(i, 0)
-            self.window.ui.models[self.id].setData(index, "file_id: " + str(item.file_id), QtCore.Qt.ToolTipRole)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), item.name)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), path)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2), size)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 3), vector_store)
-            i += 1
+                idx0 = model.index(i, 0)
+                model.setData(idx0, item.name)
+                model.setData(idx0, f"file_id: {item.file_id}", QtCore.Qt.ToolTipRole)
+                model.setData(model.index(i, 1), path)
+                model.setData(model.index(i, 2), size_str)
+                model.setData(model.index(i, 3), store_name)
+        model.endResetModel()

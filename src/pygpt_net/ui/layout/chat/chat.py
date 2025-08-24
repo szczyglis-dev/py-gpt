@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QSplitter
 
 from pygpt_net.ui.layout.chat.input import Input
@@ -34,28 +34,34 @@ class ChatMain:
         :return: QSplitter
         :rtype: QSplitter
         """
-        input = self.input.setup()
-        output = self.output.setup()
+        input_widget = self.input.setup()
+        output_widget = self.output.setup()
 
-        # main vertical splitter
-        self.window.ui.splitters['main.output'] = QSplitter(Qt.Vertical)
-        self.window.ui.splitters['main.output'].addWidget(output)
-        self.window.ui.splitters['main.output'].addWidget(input)
-        self.window.ui.splitters['main.output'].setStretchFactor(0, 9)  # Output widget stretch factor
-        self.window.ui.splitters['main.output'].setStretchFactor(1, 1)  # Input widget stretch factor
-        self.window.ui.splitters['main.output'].splitterMoved.connect(self.on_splitter_moved)
-        self.window.controller.ui.splitter_output_size_input = self.window.ui.splitters['main.output'].sizes()
+        splitter = QSplitter(Qt.Vertical)
+        self.window.ui.splitters['main.output'] = splitter
+        splitter.addWidget(output_widget)
+        splitter.addWidget(input_widget)
+        splitter.setStretchFactor(0, 9)  # Output widget stretch factor
+        splitter.setStretchFactor(1, 1)  # Input widget stretch factor
+        splitter.splitterMoved.connect(self.on_splitter_moved)
+        self.window.controller.ui.splitter_output_size_input = splitter.sizes()
 
-        return self.window.ui.splitters['main.output']
+        return splitter
 
+    @Slot(int, int)
     def on_splitter_moved(self, pos, index):
         """
         Store the size of the output splitter when it is moved
         """
-        if "input" not in self.window.ui.tabs:
+        tabs = self.window.ui.tabs
+        if "input" not in tabs:
             return
-        idx = self.window.ui.tabs['input'].currentIndex()
+        splitter = self.window.ui.splitters.get('main.output')
+        if splitter is None:
+            return
+        idx = tabs['input'].currentIndex()
+        sizes = splitter.sizes()
         if idx != 0:
-            self.window.controller.ui.splitter_output_size_files = self.window.ui.splitters['main.output'].sizes()
+            self.window.controller.ui.splitter_output_size_files = sizes
         else:
-            self.window.controller.ui.splitter_output_size_input = self.window.ui.splitters['main.output'].sizes()
+            self.window.controller.ui.splitter_output_size_input = sizes

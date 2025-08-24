@@ -6,16 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
-from typing import Dict
 
 from PySide6.QtWidgets import QCheckBox, QWidget
 
 from pygpt_net.ui.base.flow_layout import FlowLayout
 from pygpt_net.utils import trans
-
-import pygpt_net.icons_rc
 
 class OptionCheckboxList(QWidget):
     def __init__(

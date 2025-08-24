@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget
@@ -25,6 +25,8 @@ class Mode:
         """
         self.window = window
         self.id = 'prompt.mode'
+        self._label_key = f'{self.id}.label'
+        self._label_trans_key = 'toolbox.mode.label'
 
     def setup(self) -> QWidget:
         """
@@ -42,17 +44,28 @@ class Mode:
 
         :return: QVBoxLayout
         """
-        label_key = self.id + '.label'
-        self.window.ui.nodes[self.id] = ModeCombo(self.window, self.id)
-        self.window.ui.nodes[label_key] = TitleLabel(trans("toolbox.mode.label"))
+        ui_nodes = self.window.ui.nodes
+
+        label = ui_nodes.get(self._label_key)
+        label_text = trans(self._label_trans_key)
+        if label is None:
+            label = TitleLabel(label_text)
+            ui_nodes[self._label_key] = label
+        else:
+            label.setText(label_text)
+
+        combo = ui_nodes.get(self.id)
+        if combo is None:
+            combo = ModeCombo(self.window, self.id)
+            ui_nodes[self.id] = combo
 
         header_layout = QVBoxLayout()
-        header_layout.addWidget(self.window.ui.nodes[label_key])
+        header_layout.addWidget(label)
         header_layout.setContentsMargins(5, 5, 0, 0)
 
         layout = QVBoxLayout()
         layout.addLayout(header_layout)
-        layout.addWidget(self.window.ui.nodes[self.id])
+        layout.addWidget(combo)
         layout.addStretch()
         layout.setContentsMargins(2, 5, 5, 5)
 

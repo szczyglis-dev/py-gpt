@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -358,6 +358,7 @@ class Ctx:
 
         self.window.dispatch(AppEvent(AppEvent.CTX_CREATED))
         self.select(meta.id)
+        QTimer.singleShot(1000, self.window.controller.chat.common.focus_input)
         return meta
 
     def add(self, ctx: CtxItem):

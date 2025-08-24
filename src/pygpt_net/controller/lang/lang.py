@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QActionGroup
 
 from pygpt_net.utils import trans, trans_reload
+
 from .custom import Custom
 from .mapping import Mapping
 from .plugins import Plugins
@@ -31,28 +32,48 @@ class Lang:
         self.plugins = Plugins(window)
         self.settings = Settings(window)
         self.loaded = False
+        self._lang_group = None
+
+    def _on_lang_triggered(self, action):
+        """
+        Handle language change triggered by menu action
+
+        :param action: QAction instance
+        """
+        self.window.controller.lang.toggle(action.data())
 
     def setup(self):
         """Setup language menu"""
-        # get files from locale directory
         if not self.loaded:
-            langs = self.window.core.config.get_available_langs()
+            w = self.window
+            menu = w.ui.menu
+            if self._lang_group is None:
+                self._lang_group = QActionGroup(w)
+                self._lang_group.setExclusive(True)
+                self._lang_group.triggered.connect(self._on_lang_triggered)
+
+            langs = w.core.config.get_available_langs()
+            menu_lang = menu['lang']
+            menu_root = menu['menu.lang']
             for lang in langs:
-                self.window.ui.menu['lang'][lang] = QAction(lang.upper(), self.window, checkable=True)
-                self.window.ui.menu['lang'][lang].triggered.connect(
-                    lambda checked=None,
-                           lang=lang: self.window.controller.lang.toggle(lang))
-                self.window.ui.menu['menu.lang'].addAction(self.window.ui.menu['lang'][lang])
+                act = QAction(lang.upper(), w, checkable=True)
+                act.setData(lang)
+                menu_lang[lang] = act
+                self._lang_group.addAction(act)
+                menu_root.addAction(act)
         self.loaded = True
         self.update()
 
     def update(self):
         """Update language menu"""
-        for lang in self.window.ui.menu['lang']:
-            self.window.ui.menu['lang'][lang].setChecked(False)
-        lang = self.window.core.config.get('lang')
-        if lang in self.window.ui.menu['lang']:
-            self.window.ui.menu['lang'][lang].setChecked(True)
+        menu_lang = self.window.ui.menu['lang']
+        current = self.window.core.config.get('lang')
+        act = menu_lang.get(current)
+        if act is not None:
+            act.setChecked(True)
+        else:
+            for a in menu_lang.values():
+                a.setChecked(False)
 
     def reload_config(self):
         """Reload language config"""
@@ -64,35 +85,32 @@ class Lang:
 
         :param id: language code to toggle
         """
-        self.window.core.config.set('lang', id)
-        self.window.core.config.save()
-        trans('', True)  # force reload locale
+        w = self.window
+        c = w.controller
+        conf = w.core.config
 
-        self.update()  # update menu
-        self.mapping.apply()  # nodes mapping
-        self.custom.apply()  # custom nodes
+        conf.set('lang', id)
+        conf.save()
+        trans('', True)
 
-        # tabs
-        self.window.controller.ui.tabs.reload_titles()
+        self.update()
+        self.mapping.apply()
+        self.custom.apply()
 
-        # calendar
-        self.window.controller.calendar.note.update_current()
-
-        # settings
+        c.ui.tabs.reload_titles()
+        c.calendar.note.update_current()
         self.settings.apply()
 
-        # plugins
         try:
             self.plugins.apply()
         except Exception as e:
             print("Error updating plugin locale", e)
-            self.window.core.debug.log(e)
+            w.core.debug.log(e)
 
-        # reload UI
-        self.window.controller.ctx.common.update_label_by_current()
-        self.window.controller.ctx.update(True, False)
-        self.window.controller.ui.update()  # update all (toolbox, etc.)
-        self.window.update_status('')  # clear status
+        w.controller.ctx.common.update_label_by_current()
+        w.controller.ctx.update(True, False)
+        w.controller.ui.update()
+        w.update_status('')
 
     def reload(self):
         """Reload language"""

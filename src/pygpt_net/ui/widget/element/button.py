@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QPushButton, QMenu
 
 from pygpt_net.utils import trans
@@ -22,13 +22,17 @@ class ContextMenuButton(QPushButton):
         self.action = action
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
+        btn = event.button()
+        if btn == Qt.LeftButton or btn == Qt.RightButton:
             self.action(self, event.pos())
         else:
             super().mousePressEvent(event)
 
 
 class NewCtxButton(QPushButton):
+    _icon_add = None
+    _icon_folder_filled = None
+
     def __init__(self, title: str = None, window=None):
         super().__init__(title)
         self.window = window
@@ -36,6 +40,12 @@ class NewCtxButton(QPushButton):
             lambda: self.window.controller.ctx.new()
         )
 
+    @classmethod
+    def _ensure_icons(cls):
+        if cls._icon_add is None:
+            cls._icon_add = QIcon(":/icons/add.svg")
+            cls._icon_folder_filled = QIcon(":/icons/folder_filled.svg")
+
     def mousePressEvent(self, event):
         if event.button() == Qt.RightButton:
             self.new_context_menu(self, event.pos())
@@ -49,32 +59,30 @@ class NewCtxButton(QPushButton):
         :param parent: parent widget
         :param pos: mouse  position
         """
+        type(self)._ensure_icons()
         group_id = self.window.controller.ctx.group_id
-        menu = QMenu(self)
-        actions = {}
-        actions['new'] = QAction(QIcon(":/icons/add.svg"), trans('action.ctx.new'), self)
-        actions['new'].triggered.connect(
-            lambda: self.window.controller.ctx.new_ungrouped()
-        )
+        menu = QMenu(parent)
         if group_id is not None and group_id > 0:
             group_name = self.window.controller.ctx.get_group_name(group_id)
-            actions['new_in_group'] = QAction(QIcon(":/icons/add.svg"), trans('action.ctx.new.in_group').format(group=group_name), self)
-            actions['new_in_group'].triggered.connect(
+            act_new_in_group = menu.addAction(type(self)._icon_add, trans('action.ctx.new.in_group').format(group=group_name))
+            act_new_in_group.triggered.connect(
                 lambda checked=False, id=group_id: self.window.controller.ctx.new(force=False, group_id=id)
             )
-        actions['new_group'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('menu.file.group.new'), self)
-        actions['new_group'].triggered.connect(
-            lambda: self.window.controller.ctx.new_group()
+        act_new = menu.addAction(type(self)._icon_add, trans('action.ctx.new'))
+        act_new.triggered.connect(
+            lambda checked=False: self.window.controller.ctx.new_ungrouped()
         )
-
-        if group_id is not None and group_id > 0:
-            menu.addAction(actions['new_in_group'])
-        menu.addAction(actions['new'])
-        menu.addAction(actions['new_group'])
+        act_new_group = menu.addAction(type(self)._icon_folder_filled, trans('menu.file.group.new'))
+        act_new_group.triggered.connect(
+            lambda checked=False: self.window.controller.ctx.new_group()
+        )
         menu.exec_(parent.mapToGlobal(pos))
+        menu.deleteLater()
 
 
 class SyncButton(QPushButton):
+    _icon_download = None
+
     def __init__(self, title: str = None, window=None):
         super().__init__(title)
         self.window = window
@@ -82,6 +90,11 @@ class SyncButton(QPushButton):
             lambda: self.window.controller.assistant.batch.import_files_current()
         )
 
+    @classmethod
+    def _ensure_icons(cls):
+        if cls._icon_download is None:
+            cls._icon_download = QIcon(":/icons/download.svg")
+
     def mousePressEvent(self, event):
         if event.button() == Qt.RightButton:
             self.new_context_menu(self, event.pos())
@@ -95,16 +108,15 @@ class SyncButton(QPushButton):
         :param parent: parent widget
         :param pos: mouse  position
         """
-        menu = QMenu(self)
-        actions = {}
-        actions['current'] = QAction(QIcon(":/icons/download.svg"), trans('attachments_uploaded.btn.sync.current'), self)
-        actions['current'].triggered.connect(
-            lambda: self.window.controller.assistant.batch.import_files_current()
+        type(self)._ensure_icons()
+        menu = QMenu(parent)
+        act_current = menu.addAction(type(self)._icon_download, trans('attachments_uploaded.btn.sync.current'))
+        act_current.triggered.connect(
+            lambda checked=False: self.window.controller.assistant.batch.import_files_current()
         )
-        actions['all'] = QAction(QIcon(":/icons/download.svg"), trans('attachments_uploaded.btn.sync.all'), self)
-        actions['all'].triggered.connect(
-            lambda: self.window.controller.assistant.batch.import_files()
+        act_all = menu.addAction(type(self)._icon_download, trans('attachments_uploaded.btn.sync.all'))
+        act_all.triggered.connect(
+            lambda checked=False: self.window.controller.assistant.batch.import_files()
         )
-        menu.addAction(actions['current'])
-        menu.addAction(actions['all'])
         menu.exec_(parent.mapToGlobal(pos))
+        menu.deleteLater()

@@ -6,15 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 20:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory, QEventLoop
 from PySide6.QtGui import QShortcut, QKeySequence
-from qasync import QApplication
-from PySide6.QtWidgets import QMainWindow
+from PySide6.QtWidgets import QMainWindow, QApplication
 from qt_material import QtStyleTools
 
 from pygpt_net.core.events import BaseEvent, KernelEvent, ControlEvent
@@ -24,7 +23,6 @@ from pygpt_net.tools import Tools
 from pygpt_net.ui import UI
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
 from pygpt_net.utils import get_app_meta
-
 
 class MainWindow(QMainWindow, QtStyleTools):
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -15,7 +15,6 @@ from PySide6.QtWidgets import QDialog, QPushButton, QHBoxLayout, QLabel, QVBoxLa
 
 from pygpt_net.utils import trans
 from .base import BaseDialog
-from ..element.labels import HelpLabel
 from ..option.input import DirectoryInput
 
 
@@ -27,7 +26,7 @@ class ProfileDialog(BaseDialog):
         :param window: main window
         :param id: settings id
         """
-        super(ProfileDialog, self).__init__(window, id)
+        super().__init__(window, id)
         self.window = window
         self.id = id
 
@@ -39,7 +38,7 @@ class ProfileDialog(BaseDialog):
         """
         self.window.controller.settings.profile.dialog = False
         self.window.controller.settings.profile.update_menu()
-        super(ProfileDialog, self).closeEvent(event)
+        super().closeEvent(event)
 
     def keyPressEvent(self, event):
         """
@@ -48,10 +47,9 @@ class ProfileDialog(BaseDialog):
         :param event: key press event
         """
         if event.key() == Qt.Key_Escape:
-            self.cleanup()
-            self.close()  # close dialog when the Esc key is pressed.
+            self.close()
         else:
-            super(ProfileDialog, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
     def cleanup(self):
         """
@@ -61,7 +59,6 @@ class ProfileDialog(BaseDialog):
         self.window.controller.settings.profile.update_menu()
 
 
-
 class ProfileEditDialog(QDialog):
     def __init__(self, window=None, id=None):
         """
@@ -69,7 +66,7 @@ class ProfileEditDialog(QDialog):
 
         :param window: main window
         """
-        super(ProfileEditDialog, self).__init__(window)
+        super().__init__(window)
         self.window = window
         self.id = id
         self.uuid = None
@@ -77,29 +74,25 @@ class ProfileEditDialog(QDialog):
         self.name = ""
         self.mode = "create"  # create | update
         self.input = ProfileNameInput(window, id)
+        self.input.setParent(self)
         self.input.setMinimumWidth(400)
 
-        self.window.ui.nodes['dialog.profile.item.btn.update'] = QPushButton(trans('dialog.profile.item.btn.update'))
-        self.window.ui.nodes['dialog.profile.item.btn.update'].clicked.connect(
-            lambda: self.window.controller.settings.profile.handle_update(
-                self.mode,
-                self.input.text(),
-                self.workdir.text(),
-                self.uuid,
-            )
-        )
+        nodes = self.window.ui.nodes
 
-        self.window.ui.nodes['dialog.profile.item.btn.dismiss'] = QPushButton(trans('dialog.profile.item.btn.dismiss'))
-        self.window.ui.nodes['dialog.profile.item.btn.dismiss'].clicked.connect(
-            lambda: self.window.controller.settings.profile.dismiss_update()
-        )
+        self.btn_update = QPushButton(trans('dialog.profile.item.btn.update'), self)
+        self.btn_update.clicked.connect(self._on_update_clicked)
+        nodes['dialog.profile.item.btn.update'] = self.btn_update
+
+        self.btn_dismiss = QPushButton(trans('dialog.profile.item.btn.dismiss'), self)
+        self.btn_dismiss.clicked.connect(self._on_dismiss_clicked)
+        nodes['dialog.profile.item.btn.dismiss'] = self.btn_dismiss
 
         bottom = QHBoxLayout()
-        bottom.addWidget(self.window.ui.nodes['dialog.profile.item.btn.dismiss'])
-        bottom.addWidget(self.window.ui.nodes['dialog.profile.item.btn.update'])
+        bottom.addWidget(nodes['dialog.profile.item.btn.dismiss'])
+        bottom.addWidget(nodes['dialog.profile.item.btn.update'])
 
-        self.window.ui.nodes['dialog.profile.name.label'] = QLabel(trans("dialog.profile.name.label"))
-        self.window.ui.nodes['dialog.profile.workdir.label'] = QLabel(trans("dialog.profile.workdir.label"))
+        nodes['dialog.profile.name.label'] = QLabel(trans("dialog.profile.name.label"), self)
+        nodes['dialog.profile.workdir.label'] = QLabel(trans("dialog.profile.workdir.label"), self)
 
         option = {
             'type': 'text',
@@ -107,42 +100,56 @@ class ProfileEditDialog(QDialog):
             'value': "",
         }
         self.workdir = DirectoryInput(self.window, 'profile', 'item', option)
+        self.workdir.setParent(self)
 
-        self.window.ui.nodes['dialog.profile.checkbox.switch'] = QCheckBox(trans("dialog.profile.checkbox.switch"))
-        self.window.ui.nodes['dialog.profile.checkbox.switch'].setChecked(True)
-        self.window.ui.nodes['dialog.profile.checkbox.db'] = QCheckBox(trans("dialog.profile.checkbox.include_db"))
-        self.window.ui.nodes['dialog.profile.checkbox.db'].setChecked(True)
-        self.window.ui.nodes['dialog.profile.checkbox.data'] = QCheckBox(trans("dialog.profile.checkbox.include_datadir"))
-        self.window.ui.nodes['dialog.profile.checkbox.data'].setChecked(True)
+        nodes['dialog.profile.checkbox.switch'] = QCheckBox(trans("dialog.profile.checkbox.switch"), self)
+        nodes['dialog.profile.checkbox.switch'].setChecked(True)
 
-        # checkboxes layout
+        self.checkboxes = QWidget(self)
         checkboxes_layout = QHBoxLayout()
         checkboxes_layout.setContentsMargins(0, 0, 0, 0)
-        checkboxes_layout.addWidget(self.window.ui.nodes['dialog.profile.checkbox.db'])
-        checkboxes_layout.addWidget(self.window.ui.nodes['dialog.profile.checkbox.data'])
-        self.checkboxes = QWidget()
+
+        nodes['dialog.profile.checkbox.db'] = QCheckBox(trans("dialog.profile.checkbox.include_db"), self.checkboxes)
+        nodes['dialog.profile.checkbox.db'].setChecked(True)
+        nodes['dialog.profile.checkbox.data'] = QCheckBox(trans("dialog.profile.checkbox.include_datadir"), self.checkboxes)
+        nodes['dialog.profile.checkbox.data'].setChecked(True)
+
+        checkboxes_layout.addWidget(nodes['dialog.profile.checkbox.db'])
+        checkboxes_layout.addWidget(nodes['dialog.profile.checkbox.data'])
         self.checkboxes.setLayout(checkboxes_layout)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes['dialog.profile.name.label'])
+        layout.addWidget(nodes['dialog.profile.name.label'])
         layout.addWidget(self.input)
-        layout.addWidget(self.window.ui.nodes['dialog.profile.workdir.label'])
+        layout.addWidget(nodes['dialog.profile.workdir.label'])
         layout.addWidget(self.workdir)
         layout.addWidget(self.checkboxes)
-        layout.addWidget(self.window.ui.nodes['dialog.profile.checkbox.switch'])
+        layout.addWidget(nodes['dialog.profile.checkbox.switch'])
         layout.addLayout(bottom)
 
         self.setLayout(layout)
 
+    def _on_update_clicked(self):
+        self.window.controller.settings.profile.handle_update(
+            self.mode,
+            self.input.text(),
+            self.workdir.text(),
+            self.uuid,
+        )
+
+    def _on_dismiss_clicked(self):
+        self.window.controller.settings.profile.dismiss_update()
+
     def prepare(self):
         """Prepare dialog before show"""
-        if self.mode == 'create':
-            self.window.ui.nodes['dialog.profile.item.btn.update'].setText(trans('dialog.profile.item.btn.create'))
-        elif self.mode == 'edit':
-            self.window.ui.nodes['dialog.profile.item.btn.update'].setText(trans("dialog.profile.item.btn.update"))
-        elif self.mode == 'duplicate':
-            self.window.ui.nodes['dialog.profile.item.btn.update'].setText(trans("dialog.profile.item.btn.duplicate"))
-
+        mapping = {
+            'create': 'dialog.profile.item.btn.create',
+            'edit': 'dialog.profile.item.btn.update',
+            'duplicate': 'dialog.profile.item.btn.duplicate',
+        }
+        key = mapping.get(self.mode)
+        if key:
+            self.window.ui.nodes['dialog.profile.item.btn.update'].setText(trans(key))
         self.workdir.setText(self.path)
 
 
@@ -154,8 +161,7 @@ class ProfileNameInput(QLineEdit):
         :param window: main window
         :param id: info window id
         """
-        super(ProfileNameInput, self).__init__(window)
-
+        super().__init__(window)
         self.window = window
         self.id = id
 
@@ -165,10 +171,8 @@ class ProfileNameInput(QLineEdit):
 
         :param event: key event
         """
-        super(ProfileNameInput, self).keyPressEvent(event)
-
-        # save on Enter
-        if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
+        super().keyPressEvent(event)
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
             self.window.controller.settings.profile.handle_update(
                 self.window.ui.dialog['profile.item'].mode,
                 self.window.ui.dialog['profile.item'].input.text(),

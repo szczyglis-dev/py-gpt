@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
@@ -31,49 +31,38 @@ class Agent:
 
         :return: QWidget
         """
-        # iterations
-        option = self.window.controller.agent.legacy.options["agent.iterations"]
-        self.window.ui.nodes['agent.iterations.label'] = QLabel(trans("toolbox.agent.iterations.label"))
-        self.window.ui.nodes['agent.iterations'] = \
-            OptionSlider(
-                self.window,
-                'global',
-                'agent.iterations',
-                option,
-            )
-        self.window.ui.config['global']['agent.iterations'] = self.window.ui.nodes['agent.iterations']
+        window = self.window
+        ui = window.ui
+        nodes = ui.nodes
+        cfg = ui.config['global']
+        common = window.controller.agent.common
 
-        # auto stop
-        self.window.ui.nodes['agent.auto_stop'] = ToggleLabel(trans("toolbox.agent.auto_stop.label"), parent=self.window)
-        self.window.ui.nodes['agent.auto_stop'].box.stateChanged.connect(
-            lambda:
-            self.window.controller.agent.common.toggle_auto_stop(
-                self.window.ui.config['global']['agent.auto_stop'].box.isChecked())
-        )
-        self.window.ui.config['global']['agent.auto_stop'] = self.window.ui.nodes['agent.auto_stop']
+        container = QWidget(window)
 
-        # continue more
-        self.window.ui.nodes['agent.continue'] = ToggleLabel(trans("toolbox.agent.continue.label"), parent=self.window)
-        self.window.ui.nodes['agent.continue'].box.stateChanged.connect(
-            lambda:
-            self.window.controller.agent.common.toggle_continue(
-                self.window.ui.config['global']['agent.continue'].box.isChecked())
-        )
-        self.window.ui.config['global']['agent.continue'] = self.window.ui.nodes['agent.continue']
+        option = window.controller.agent.legacy.options["agent.iterations"]
+        nodes['agent.iterations.label'] = QLabel(trans("toolbox.agent.iterations.label"), parent=container)
+        nodes['agent.iterations'] = OptionSlider(window, 'global', 'agent.iterations', option)
+        cfg['agent.iterations'] = nodes['agent.iterations']
 
-        # options
+        nodes['agent.auto_stop'] = ToggleLabel(trans("toolbox.agent.auto_stop.label"), parent=window)
+        nodes['agent.auto_stop'].box.toggled.connect(common.toggle_auto_stop)
+        cfg['agent.auto_stop'] = nodes['agent.auto_stop']
+
+        nodes['agent.continue'] = ToggleLabel(trans("toolbox.agent.continue.label"), parent=window)
+        nodes['agent.continue'].box.toggled.connect(common.toggle_continue)
+        cfg['agent.continue'] = nodes['agent.continue']
+
         cols = QHBoxLayout()
-        cols.addWidget(self.window.ui.config['global']['agent.auto_stop'])
-        cols.addWidget(self.window.ui.config['global']['agent.continue'])
+        cols.addWidget(cfg['agent.auto_stop'])
+        cols.addWidget(cfg['agent.continue'])
 
-        # rows
         rows = QVBoxLayout()
-        rows.addWidget(self.window.ui.nodes['agent.iterations.label'])
-        rows.addWidget(self.window.ui.config['global']['agent.iterations'])
+        rows.addWidget(nodes['agent.iterations.label'])
+        rows.addWidget(cfg['agent.iterations'])
         rows.addLayout(cols)
 
-        self.window.ui.nodes['agent.options'] = QWidget()
-        self.window.ui.nodes['agent.options'].setLayout(rows)
-        self.window.ui.nodes['agent.options'].setContentsMargins(0, 0, 0, 0)
+        nodes['agent.options'] = container
+        nodes['agent.options'].setLayout(rows)
+        nodes['agent.options'].setContentsMargins(0, 0, 0, 0)
 
-        return self.window.ui.nodes['agent.options']
+        return nodes['agent.options']

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -15,14 +15,11 @@ import shutil
 from typing import Dict
 
 from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 from pygpt_net.tools.base import BaseTool
 from pygpt_net.tools.media_player.ui.dialogs import VideoPlayer
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
 from pygpt_net.utils import trans
-
-import pygpt_net.icons_rc
 
 
 class MediaPlayer(BaseTool):

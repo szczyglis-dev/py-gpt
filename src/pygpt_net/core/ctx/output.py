@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -87,6 +87,9 @@ class Output:
     def is_mapped(self, meta: CtxMeta) -> bool:
         """
         Check if meta is mapped anywhere
+
+        :param meta: Meta
+        :return: True if mapped, False otherwise
         """
         self.init()
 
@@ -182,6 +185,8 @@ class Output:
     def is_empty(self) -> bool:
         """
         Check if mapping is empty for the active PID across columns
+
+        :return: True if empty, False otherwise
         """
         self.init()
 
@@ -211,9 +216,7 @@ class Output:
         return self.store(meta)
 
     def clear(self):
-        """
-        Clear mapping
-        """
+        """Clear mapping"""
         self.mapping.clear()
         self.last_pids.clear()
         self.last_pid = 0

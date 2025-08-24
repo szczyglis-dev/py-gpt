@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
 
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class About:
@@ -26,92 +25,73 @@ class About:
 
     def setup(self):
         """Setup about menu"""
-        self.window.ui.menu['info.about'] = QAction(QIcon(":/icons/info.svg"), trans("menu.info.about"),
-                                                    self.window)
-        self.window.ui.menu['info.about'].setMenuRole(QAction.MenuRole.NoRole)
-        self.window.ui.menu['info.changelog'] = QAction(QIcon(":/icons/history.svg"), trans("menu.info.changelog"),
-                                                        self.window)
-        self.window.ui.menu['info.updates'] = QAction(QIcon(":/icons/updater.svg"), trans("menu.info.updates"),
-                                                      self.window)
-        self.window.ui.menu['info.report'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.report"),
-                                                      self.window)
-        self.window.ui.menu['info.website'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.website"),
-                                                      self.window)
-        self.window.ui.menu['info.docs'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.docs"),
-                                                   self.window)
-        self.window.ui.menu['info.pypi'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.pypi"),
-                                                   self.window)
-        self.window.ui.menu['info.snap'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.snap"),
-                                                   self.window)
-        self.window.ui.menu['info.ms_store'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.ms_store"),
-                                                   self.window)
-        self.window.ui.menu['info.github'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.github"),
-                                                     self.window)
+        w = self.window
+        m = w.ui.menu
 
-        self.window.ui.menu['info.discord'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.discord"),
-                                                     self.window)
+        icon_info = QIcon(":/icons/info.svg")
+        icon_history = QIcon(":/icons/history.svg")
+        icon_updater = QIcon(":/icons/updater.svg")
+        icon_public = QIcon(":/icons/public_filled.svg")
+        icon_favorite = QIcon(":/icons/favorite.svg")
 
-        self.window.ui.menu['info.license'] = QAction(QIcon(":/icons/info.svg"), trans("menu.info.license"),
-                                                      self.window)
+        m['info.about'] = QAction(icon_info, trans("menu.info.about"), w)
+        m['info.about'].setMenuRole(QAction.MenuRole.NoRole)
+        m['info.changelog'] = QAction(icon_history, trans("menu.info.changelog"), w)
+        m['info.updates'] = QAction(icon_updater, trans("menu.info.updates"), w)
+        m['info.report'] = QAction(icon_public, trans("menu.info.report"), w)
+        m['info.website'] = QAction(icon_public, trans("menu.info.website"), w)
+        m['info.docs'] = QAction(icon_public, trans("menu.info.docs"), w)
+        m['info.pypi'] = QAction(icon_public, trans("menu.info.pypi"), w)
+        m['info.snap'] = QAction(icon_public, trans("menu.info.snap"), w)
+        m['info.ms_store'] = QAction(icon_public, trans("menu.info.ms_store"), w)
+        m['info.github'] = QAction(icon_public, trans("menu.info.github"), w)
+        m['info.discord'] = QAction(icon_public, trans("menu.info.discord"), w)
+        m['info.license'] = QAction(icon_info, trans("menu.info.license"), w)
 
-        self.window.ui.menu['donate.coffee'] = QAction(QIcon(":/icons/favorite.svg"), "Buy me a coffee",
-                                                       self.window)
-        self.window.ui.menu['donate.coffee'].setMenuRole(QAction.MenuRole.NoRole)
-        self.window.ui.menu['donate.paypal'] = QAction(QIcon(":/icons/favorite.svg"), "PayPal",
-                                                       self.window)
-        self.window.ui.menu['donate.github'] = QAction(QIcon(":/icons/favorite.svg"), "GitHub Sponsors", self.window)
+        m['donate.coffee'] = QAction(icon_favorite, "Buy me a coffee", w)
+        m['donate.coffee'].setMenuRole(QAction.MenuRole.NoRole)
+        m['donate.paypal'] = QAction(icon_favorite, "PayPal", w)
+        m['donate.github'] = QAction(icon_favorite, "GitHub Sponsors", w)
 
-        self.window.ui.menu['donate.coffee'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.donate('coffee'))
-        self.window.ui.menu['donate.paypal'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.donate('paypal'))
-        self.window.ui.menu['donate.github'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.donate('github'))
+        dlg_info = w.controller.dialogs.info
+        launcher = w.controller.launcher
 
-        self.window.ui.menu['info.about'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.toggle('about'))
-        self.window.ui.menu['info.changelog'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.toggle('changelog'))
-        self.window.ui.menu['info.updates'].triggered.connect(
-            lambda: self.window.controller.launcher.check_updates())
-        self.window.ui.menu['info.report'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.goto_report())
-        self.window.ui.menu['info.website'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.goto_website())
-        self.window.ui.menu['info.docs'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.goto_docs())
-        self.window.ui.menu['info.pypi'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.goto_pypi())
-        self.window.ui.menu['info.snap'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.goto_snap())
-        self.window.ui.menu['info.ms_store'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.goto_ms_store())
-        self.window.ui.menu['info.github'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.goto_github())
-        self.window.ui.menu['info.discord'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.goto_discord())
-        self.window.ui.menu['info.license'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.toggle(
-                'license',
-                width=500,
-                height=480,
-            ))
+        m['donate.coffee'].triggered.connect(lambda checked=False, i=dlg_info: i.donate('coffee'))
+        m['donate.paypal'].triggered.connect(lambda checked=False, i=dlg_info: i.donate('paypal'))
+        m['donate.github'].triggered.connect(lambda checked=False, i=dlg_info: i.donate('github'))
 
-        self.window.ui.menu['menu.about'] = self.window.menuBar().addMenu(trans("menu.info"))
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.about'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.changelog'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.updates'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.report'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.docs'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.website'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.github'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.pypi'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.snap'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.ms_store'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.discord'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.license'])
+        m['info.about'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('about'))
+        m['info.changelog'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('changelog'))
+        m['info.updates'].triggered.connect(lambda checked=False, l=launcher: l.check_updates())
+        m['info.report'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_report())
+        m['info.website'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_website())
+        m['info.docs'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_docs())
+        m['info.pypi'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_pypi())
+        m['info.snap'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_snap())
+        m['info.ms_store'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_ms_store())
+        m['info.github'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_github())
+        m['info.discord'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_discord())
+        m['info.license'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('license', width=500, height=480))
 
-        self.window.ui.menu['menu.donate'] = self.window.ui.menu['menu.about'].addMenu(trans("menu.info.donate"))
-        self.window.ui.menu['menu.donate'].addAction(self.window.ui.menu['donate.coffee'])
-        self.window.ui.menu['menu.donate'].addAction(self.window.ui.menu['donate.paypal'])
-        self.window.ui.menu['menu.donate'].addAction(self.window.ui.menu['donate.github'])
+        m['menu.about'] = w.menuBar().addMenu(trans("menu.info"))
+        m['menu.about'].addActions([
+            m['info.about'],
+            m['info.changelog'],
+            m['info.updates'],
+            m['info.report'],
+            m['info.docs'],
+            m['info.website'],
+            m['info.github'],
+            m['info.pypi'],
+            m['info.snap'],
+            m['info.ms_store'],
+            m['info.discord'],
+            m['info.license'],
+        ])
+
+        m['menu.donate'] = m['menu.about'].addMenu(trans("menu.info.donate"))
+        m['menu.donate'].addActions([
+            m['donate.coffee'],
+            m['donate.paypal'],
+            m['donate.github'],
+        ])

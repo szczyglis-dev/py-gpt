@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 
@@ -27,10 +27,7 @@ class Helpers:
         :param text: text to format
         :return: formatted text
         """
-        text = text.strip()
-        #text = text.replace("#~###~", "~###~")  # fix for #~###~ in text (previous versions)
-        #text = text.replace("# ~###~", "~###~")  # fix for # ~###~ in text (previous versions)
-        return text
+        return text.strip()
 
     def post_format_text(self, text: str) -> str:
         """

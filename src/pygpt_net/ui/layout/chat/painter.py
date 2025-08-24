@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QPushButton, QComboBox, QScrollArea
+from PySide6.QtCore import QSize
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
 from pygpt_net.ui.widget.element.labels import HelpLabel
@@ -26,6 +27,7 @@ class Painter:
         :param window: Window instance
         """
         self.window = window
+        self._initialized = False
 
     def init(self):
         """
@@ -33,47 +35,62 @@ class Painter:
 
         :return: QWidget
         """
-        self.window.ui.painter = PainterWidget(self.window)
+        ui = self.window.ui
+        nodes = ui.nodes
+        common = self.window.controller.painter.common
+
+        if getattr(ui, 'painter', None) is None:
+            ui.painter = PainterWidget(self.window)
 
         key = 'painter.btn.brush'
-        self.window.ui.nodes[key] = QRadioButton(trans('painter.mode.paint'))
-        self.window.ui.nodes[key].setChecked(True)
-        self.window.ui.nodes[key].toggled.connect(self.window.controller.painter.common.set_brush_mode)
+        if nodes.get(key) is None:
+            rb = QRadioButton(trans('painter.mode.paint'))
+            rb.setChecked(True)
+            rb.toggled.connect(self.window.controller.painter.common.set_brush_mode)
+            nodes[key] = rb
 
         key = 'painter.btn.erase'
-        self.window.ui.nodes[key] = QRadioButton(trans('painter.mode.erase'))
-        self.window.ui.nodes[key].toggled.connect(self.window.controller.painter.common.set_erase_mode)
+        if nodes.get(key) is None:
+            rb = QRadioButton(trans('painter.mode.erase'))
+            rb.toggled.connect(self.window.controller.painter.common.set_erase_mode)
+            nodes[key] = rb
 
         key = 'painter.select.brush.size'
-        sizes = self.window.controller.painter.common.get_sizes()
-        self.window.ui.nodes[key] = QComboBox()
-        self.window.ui.nodes[key].addItems(sizes)
-        self.window.ui.nodes[key].currentTextChanged.connect(
-            self.window.controller.painter.common.change_brush_size)
-        self.window.ui.nodes[key].setMinimumContentsLength(10)
-        self.window.ui.nodes[key].setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        if nodes.get(key) is None:
+            sizes = common.get_sizes()
+            cb = QComboBox()
+            cb.addItems(sizes)
+            cb.currentTextChanged.connect(common.change_brush_size)
+            cb.setMinimumContentsLength(10)
+            cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+            nodes[key] = cb
 
         key = 'painter.select.canvas.size'
-        canvas_sizes = self.window.controller.painter.common.get_canvas_sizes()
-        self.window.ui.nodes[key] = QComboBox()
-        self.window.ui.nodes[key].addItems(canvas_sizes)
-        self.window.ui.nodes[key].setMinimumContentsLength(20)
-        self.window.ui.nodes[key].setSizeAdjustPolicy(QComboBox.AdjustToContents)
-        self.window.ui.nodes[key].currentTextChanged.connect(
-            self.window.controller.painter.common.change_canvas_size)
+        if nodes.get(key) is None:
+            canvas_sizes = common.get_canvas_sizes()
+            cb = QComboBox()
+            cb.addItems(canvas_sizes)
+            cb.setMinimumContentsLength(20)
+            cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+            cb.currentTextChanged.connect(common.change_canvas_size)
+            nodes[key] = cb
 
         key = 'painter.select.brush.color'
-        self.window.ui.nodes[key] = QComboBox()
-        colors = self.window.controller.painter.common.get_colors()
-        for color_name, color_value in colors.items():
-            pixmap = QPixmap(100, 100)
-            pixmap.fill(color_value)
-            icon = QIcon(pixmap)
-            self.window.ui.nodes[key].addItem(icon, color_name, color_value)
-        self.window.ui.nodes[key].currentTextChanged.connect(
-            self.window.controller.painter.common.change_brush_color)
-        self.window.ui.nodes[key].setMinimumContentsLength(10)
-        self.window.ui.nodes[key].setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        if nodes.get(key) is None:
+            cb = QComboBox()
+            cb.setIconSize(QSize(16, 16))
+            colors = common.get_colors()
+            for color_name, color_value in colors.items():
+                pixmap = QPixmap(16, 16)
+                pixmap.fill(color_value)
+                icon = QIcon(pixmap)
+                cb.addItem(icon, color_name, color_value)
+            cb.currentTextChanged.connect(common.change_brush_color)
+            cb.setMinimumContentsLength(10)
+            cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+            nodes[key] = cb
+
+        self._initialized = True
 
     def setup(self) -> QWidget:
         """
@@ -81,7 +98,6 @@ class Painter:
 
         :return: QWidget
         """
-        # build tab body
         self.init()
         body = self.window.core.tabs.from_layout(self.setup_painter())
         body.append(self.window.ui.painter)
@@ -93,39 +109,51 @@ class Painter:
 
         :return: QVBoxLayout
         """
+        ui = self.window.ui
+        nodes = ui.nodes
+
         top = QHBoxLayout()
-        top.addWidget(self.window.ui.nodes['painter.btn.brush'])
-        top.addWidget(self.window.ui.nodes['painter.btn.erase'])
-        top.addWidget(self.window.ui.nodes['painter.select.brush.size'])
-        top.addWidget(self.window.ui.nodes['painter.select.brush.color'])
-        top.addWidget(self.window.ui.nodes['painter.select.canvas.size'])
+        top.addWidget(nodes['painter.btn.brush'])
+        top.addWidget(nodes['painter.btn.erase'])
+        top.addWidget(nodes['painter.select.brush.size'])
+        top.addWidget(nodes['painter.select.brush.color'])
+        top.addWidget(nodes['painter.select.canvas.size'])
         top.addStretch(1)
 
-        self.window.ui.nodes['painter.btn.capture'] = QPushButton(trans('painter.btn.capture'))
-        self.window.ui.nodes['painter.btn.capture'].clicked.connect(self.window.controller.painter.capture.use)
-        top.addWidget(self.window.ui.nodes['painter.btn.capture'])
+        if nodes.get('painter.btn.capture') is None:
+            btn = QPushButton(trans('painter.btn.capture'))
+            btn.clicked.connect(self.window.controller.painter.capture.use)
+            nodes['painter.btn.capture'] = btn
+        top.addWidget(nodes['painter.btn.capture'])
 
-        self.window.ui.nodes['painter.btn.camera.capture'] = QPushButton(trans('painter.btn.camera.capture'))
-        self.window.ui.nodes['painter.btn.camera.capture'].clicked.connect(self.window.controller.painter.capture.camera)
-        top.addWidget(self.window.ui.nodes['painter.btn.camera.capture'])
+        if nodes.get('painter.btn.camera.capture') is None:
+            btn = QPushButton(trans('painter.btn.camera.capture'))
+            btn.clicked.connect(self.window.controller.painter.capture.camera)
+            nodes['painter.btn.camera.capture'] = btn
+        top.addWidget(nodes['painter.btn.camera.capture'])
 
-        self.window.ui.nodes['painter.btn.clear'] = QPushButton(trans('painter.btn.clear'))
-        self.window.ui.nodes['painter.btn.clear'].clicked.connect(self.window.ui.painter.clear_image)
-        top.addWidget(self.window.ui.nodes['painter.btn.clear'])
+        if nodes.get('painter.btn.clear') is None:
+            btn = QPushButton(trans('painter.btn.clear'))
+            btn.clicked.connect(ui.painter.clear_image)
+            nodes['painter.btn.clear'] = btn
+        top.addWidget(nodes['painter.btn.clear'])
 
-        self.window.ui.painter_scroll = QScrollArea()
-        self.window.ui.painter_scroll.setWidget(self.window.ui.painter)
-        self.window.ui.painter_scroll.setWidgetResizable(True)
+        if getattr(ui, 'painter_scroll', None) is None:
+            ui.painter_scroll = QScrollArea()
+            ui.painter_scroll.setWidget(ui.painter)
+            ui.painter_scroll.setWidgetResizable(True)
+        else:
+            if ui.painter_scroll.widget() is not ui.painter:
+                ui.painter_scroll.setWidget(ui.painter)
+            ui.painter_scroll.setWidgetResizable(True)
 
-        self.window.ui.nodes['tip.output.tab.draw'] = HelpLabel(trans('tip.output.tab.draw'), self.window)
+        if nodes.get('tip.output.tab.draw') is None:
+            nodes['tip.output.tab.draw'] = HelpLabel(trans('tip.output.tab.draw'), self.window)
 
         layout = QVBoxLayout()
         layout.addLayout(top)
-        layout.addWidget( self.window.ui.painter_scroll)
-        layout.addWidget(self.window.ui.nodes['tip.output.tab.draw'])
+        layout.addWidget(ui.painter_scroll)
+        layout.addWidget(nodes['tip.output.tab.draw'])
         layout.setContentsMargins(0, 0, 0, 0)
 
         return layout
-
-
-

@@ -6,17 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 19:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu, QStyledItemDelegate, QComboBox, \
     QCheckBox, QHeaderView, QHBoxLayout
 
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
-
 
 class OptionDict(QWidget):
     def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
@@ -112,8 +110,7 @@ class OptionDict(QWidget):
         if index.isValid():
             idx = index.row()
             data = self.model.items[idx]
-            id = self.parent_id + "." + self.id  # dictionary id
-            self.window.ui.dialogs.open_dictionary_editor(id, self.option, data, idx)
+            self.window.ui.dialogs.open_dictionary_editor(f"{self.parent_id}.{self.id}", self.option, data, idx)
 
     def update_item(self, idx, data):
         """
@@ -194,20 +191,26 @@ class OptionDictItems(QTreeView):
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
 
-        # setup fields
+        self._icon_edit = QIcon(":/icons/edit.svg")
+        self._icon_delete = QIcon(":/icons/delete.svg")
+        self._act_edit_text = trans('action.edit')
+        self._act_delete_text = trans('action.delete')
+        self._bool_delegate = None
+
         keys = self.parent.keys
+        set_delegate_col = self.setItemDelegateForColumn
         idx = 0
         for key in keys:
             item = keys[key]
             if type(item) is dict:
-                if "type" in item:
-                    if item["type"] == "combo":
-                        handler = ComboBoxDelegate(self, item["keys"])
-                        self.setItemDelegateForColumn(idx, handler)
+                t = item.get("type")
+                if t == "combo":
+                    set_delegate_col(idx, ComboBoxDelegate(self, item["keys"]))
             elif type(item) is str:
                 if item == "bool":
-                    handler = CheckBoxDelegate(self)
-                    self.setItemDelegateForColumn(idx, handler)
+                    if self._bool_delegate is None:
+                        self._bool_delegate = CheckBoxDelegate(self)
+                    set_delegate_col(idx, self._bool_delegate)
                 elif item == "hidden":
                     continue
             idx += 1
@@ -218,22 +221,16 @@ class OptionDictItems(QTreeView):
 
         :param event: context menu event
         """
-        actions = {}
-        actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('action.edit'), self)
-        actions['edit'].triggered.connect(
-            lambda: self.parent.edit_item(event))
-        actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
-        actions['delete'].triggered.connect(
-            lambda: self.parent.delete_item(event))
-        menu = QMenu(self)
-        menu.addAction(actions['edit'])
-        menu.addAction(actions['delete'])
-
-        # get index of item
         item = self.indexAt(event.pos())
-        idx = item.row()
-        if idx >= 0:
-            menu.exec_(event.globalPos())
+        if not item.isValid():
+            return
+
+        menu = QMenu(self)
+        edit_action = menu.addAction(self._icon_edit, self._act_edit_text)
+        delete_action = menu.addAction(self._icon_delete, self._act_delete_text)
+        edit_action.triggered.connect(lambda: self.parent.edit_item(event))
+        delete_action.triggered.connect(lambda: self.parent.delete_item(event))
+        menu.exec_(event.globalPos())
 
 
 class OptionDictModel(QAbstractItemModel):

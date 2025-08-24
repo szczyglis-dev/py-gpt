@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -57,33 +57,4 @@ class VideoLabel(QLabel):
         """
         if event.button() == Qt.LeftButton:
             self.window.controller.camera.manual_capture()
-        elif event.button() == Qt.RightButton:
-            pass
-        elif event.button() == Qt.MiddleButton:
-            pass
-
-    def mouseDoubleClickEvent(self, event):
-        """
-        Mouse double click
-
-        :param event: mouse event
-        """
-        if event.button() == Qt.LeftButton:
-            pass
-        elif event.button() == Qt.RightButton:
-            pass
-        elif event.button() == Qt.MiddleButton:
-            pass
-
-    def mouseReleaseEvent(self, event):
-        """
-        Mouse release
-
-        :param event: mouse event
-        """
-        if event.button() == Qt.LeftButton:
-            pass
-        elif event.button() == Qt.RightButton:
-            pass
-        elif event.button() == Qt.MiddleButton:
-            pass
+        super(VideoLabel, self).mousePressEvent(event)

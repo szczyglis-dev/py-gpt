@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from typing import Optional, Tuple
@@ -20,8 +20,6 @@ from pygpt_net.ui.widget.tabs.body import TabBody
 from pygpt_net.ui.widget.textarea.notepad import NotepadWidget
 from pygpt_net.utils import trans
 
-import pygpt_net.icons_rc
-
 
 class Notepad:
     def __init__(self, window=None):
@@ -32,8 +30,7 @@ class Notepad:
         """
         self.window = window
         self.opened_once = False
-        self.opened_idx = []
-
+        self.opened_idx = set()
 
     def get_next_suffix(self) -> int:
         """
@@ -41,13 +38,16 @@ class Notepad:
 
         :return: next notepad suffix
         """
-        idx = self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD)
-        for tab in self.window.core.tabs.get_tabs_by_type(Tab.TAB_NOTEPAD):
+        tabs_core = self.window.core.tabs
+        tabs = tabs_core.get_tabs_by_type(Tab.TAB_NOTEPAD)
+        idx = tabs_core.count_by_type(Tab.TAB_NOTEPAD)
+        for tab in tabs:
+            title = tab.title or ""
             try:
-                num = int(tab.title.split(" ")[-1])
-                if num >= idx:
+                num = int(title.rsplit(" ", 1)[-1])
+                if num > idx:
                     idx = num
-            except ValueError:
+            except (ValueError, IndexError):
                 continue
         return idx + 1
 
@@ -58,12 +58,7 @@ class Notepad:
         :return: next available notepad index
         """
         tabs = self.window.core.tabs.get_tabs_by_type(Tab.TAB_NOTEPAD)
-        opened = False
-        for tab in tabs:
-            if tab.data_id == idx:
-                opened = True
-                break
-        return opened
+        return any(tab.data_id == idx for tab in tabs)
 
     def create(
             self,
@@ -77,27 +72,30 @@ class Notepad:
         :param tab: existing tab to use (optional)
         :return: notepad widget (TabBody)
         """
-        if idx is None:
-            idx = self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) + 1
-            suffix = self.get_next_suffix()
-        else:
-            suffix = self.get_next_suffix()
+        tabs_core = self.window.core.tabs
+        existing_tabs = tabs_core.get_tabs_by_type(Tab.TAB_NOTEPAD)
+        used_ids = {t.data_id for t in existing_tabs}
 
-        while self.is_opened(idx):
+        if idx is None:
+            idx = 1
+        while idx in used_ids:
             idx += 1
-            suffix = self.get_next_suffix()
+
+        suffix = self.get_next_suffix()
 
         data_id = idx
-        self.window.ui.notepad[data_id] = NotepadWidget(self.window)
-        self.window.ui.notepad[data_id].id = idx
-        self.window.ui.notepad[data_id].textarea.id = idx
-        title = trans('output.tab.notepad')
-        title += " " + str(suffix)
+        widget = NotepadWidget(self.window)
+        widget.id = idx
+        widget.textarea.id = idx
+        self.window.ui.notepad[data_id] = widget
+
+        title = trans('output.tab.notepad') + " " + str(suffix)
         if tab:
             if not tab.title:
                 tab.title = title
-        child = self.window.core.tabs.from_widget(self.window.ui.notepad[data_id])
-        child.on_delete = self.on_delete  # cleanup callback
+
+        child = tabs_core.from_widget(widget)
+        child.on_delete = self.on_delete
         return child, idx, data_id
 
     def on_delete(self, body: TabBody):
@@ -115,6 +113,8 @@ class Notepad:
         if idx in self.window.ui.notepad:
             self.window.ui.notepad[idx].on_delete()
             del self.window.ui.notepad[idx]
+        if idx in self.opened_idx:
+            self.opened_idx.discard(idx)
         self.update()
 
     def load(self):
@@ -130,9 +130,10 @@ class Notepad:
                     items[idx] = item
 
         if num_notepads > 0:
-            for idx in items:
-                if idx in self.window.ui.notepad:
-                    self.window.ui.notepad[idx].setText(items[idx].content)
+            for idx, item in items.items():
+                widget = self.window.ui.notepad.get(idx)
+                if widget is not None:
+                    widget.setText(item.content)
 
     def get_notepad_name(self, idx: int):
         """
@@ -159,17 +160,19 @@ class Notepad:
 
         :param idx: notepad idx
         """
-        item = self.window.core.notepad.get_by_id(idx)
+        core_notepad = self.window.core.notepad
+        item = core_notepad.get_by_id(idx)
         if item is None:
             item = NotepadItem()
             item.idx = idx
-            self.window.core.notepad.items[idx] = item
+            core_notepad.items[idx] = item
 
-        if idx in self.window.ui.notepad:
-            prev_content = item.content
-            item.content = self.window.ui.notepad[idx].toPlainText()
-            if prev_content != item.content:  # update only if content changed
-                self.window.core.notepad.update(item)
+        widget = self.window.ui.notepad.get(idx)
+        if widget is not None:
+            text = widget.toPlainText()
+            if item.content != text:
+                item.content = text
+                core_notepad.update(item)
             self.update()
 
     def save_all(self):
@@ -177,16 +180,18 @@ class Notepad:
         items = self.window.core.notepad.get_all()
         num_notepads = self.get_num_notepads()
         if num_notepads > 0:
-            tabs = self.window.core.tabs.get_tabs_by_type(Tab.TAB_NOTEPAD)
-            for tab in tabs:
+            ui_notepad = self.window.ui.notepad
+            for tab in self.window.core.tabs.get_tabs_by_type(Tab.TAB_NOTEPAD):
                 idx = tab.data_id
-                if idx in self.window.ui.notepad:
-                    if idx in items:
-                        prev_content = str(items[idx].content)
-                        items[idx].content = self.window.ui.notepad[idx].toPlainText()
-                        # update only if content changed
-                        if prev_content != items[idx].content:
-                            self.window.core.notepad.update(items[idx])
+                widget = ui_notepad.get(idx)
+                if widget is None:
+                    continue
+                if idx in items:
+                    prev_content = str(items[idx].content)
+                    text = widget.toPlainText()
+                    if prev_content != text:
+                        items[idx].content = text
+                        self.window.core.notepad.update(items[idx])
             self.update()
 
     def setup(self):
@@ -200,21 +205,19 @@ class Notepad:
         :param text: text to append
         :param idx: notepad idx
         """
-        if idx not in self.window.ui.notepad:
+        widget = self.window.ui.notepad.get(idx)
+        if widget is None:
             return
-        dt = ""  # TODO: add to config append date/time
-        # dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ":\n--------------------------\n"
-        prev_text = self.window.ui.notepad[idx].toPlainText()
-        if prev_text.strip() != "":
-            prev_text += "\n"
-        new_text = prev_text + dt + text.strip()
-        self.window.ui.notepad[idx].setText(new_text)
-        self.save(idx)
-
-        # move cursor to end
-        cursor = self.window.ui.notepad[idx].textarea.textCursor()
+        dt = ""
+        prev_text = widget.toPlainText()
+        need_nl = prev_text.strip() != ""
+        textarea = widget.textarea
+        cursor = textarea.textCursor()
         cursor.movePosition(QTextCursor.End)
-        self.window.ui.notepad[idx].textarea.setTextCursor(cursor)
+        to_insert = (("\n" if need_nl else "") + dt + text.strip())
+        cursor.insertText(to_insert)
+        textarea.setTextCursor(cursor)
+        self.save(idx)
 
     def get_num_notepads(self) -> int:
         """
@@ -230,8 +233,9 @@ class Notepad:
 
         :return: current notepad index
         """
+        tabs_ctrl = self.window.controller.ui.tabs
         if self.is_active():
-            tab = self.window.controller.ui.tabs.get_current_tab()
+            tab = tabs_ctrl.get_current_tab()
             if tab is not None:
                 return tab.data_id
         return 1
@@ -246,17 +250,14 @@ class Notepad:
 
     def open(self):
         """Open notepad"""
-        # if notepad disabled, do nothing
         if self.get_num_notepads() == 0:
             return
-
-        # switch to first notepad tab if current tab is not notepad
-        tabs = self.window.ui.layout.get_active_tabs()
         if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_NOTEPAD:
             idx = self.window.core.tabs.get_min_idx_by_type(Tab.TAB_NOTEPAD)
             if idx is not None:
+                tabs = self.window.ui.layout.get_active_tabs()
                 tabs.setCurrentIndex(idx)
-        self.window.activateWindow()  # focus
+        self.window.activateWindow()
 
     def update(self):
         """Update notepads UI"""
@@ -299,9 +300,8 @@ class Notepad:
         :return: current notepad text
         """
         idx = self.get_current_active()
-        if idx in self.window.ui.notepad:
-            return self.window.ui.notepad[idx].toPlainText()
-        return ""
+        widget = self.window.ui.notepad.get(idx)
+        return widget.toPlainText() if widget is not None else ""
 
     def get_notepad_text(self, idx: int) -> str:
         """
@@ -310,9 +310,8 @@ class Notepad:
         :param idx: notepad index
         :return: notepad text
         """
-        if idx in self.window.ui.notepad:
-            return self.window.ui.notepad[idx].toPlainText()
-        return ""
+        widget = self.window.ui.notepad.get(idx)
+        return widget.toPlainText() if widget is not None else ""
 
     def clear(self, idx: int) -> bool:
         """
@@ -320,8 +319,9 @@ class Notepad:
 
         :param idx: notepad idx
         """
-        if idx in self.window.ui.notepad:
-            self.window.ui.notepad[idx].textarea.clear()
+        widget = self.window.ui.notepad.get(idx)
+        if widget is not None:
+            widget.textarea.clear()
             self.save(idx)
             return True
         return False
@@ -342,10 +342,12 @@ class Notepad:
             return
         if tab.type == Tab.TAB_NOTEPAD:
             idx = tab.data_id
-            if idx in self.window.ui.notepad:
-                if idx not in self.opened_idx:
-                    QTimer.singleShot(0, self.window.ui.notepad[idx].scroll_to_bottom)
-                if not self.window.ui.notepad[idx].opened:
-                    self.window.ui.notepad[idx].opened = True
-                if idx not in self.opened_idx:
-                    self.opened_idx.append(idx)
+            widget = self.window.ui.notepad.get(idx)
+            if widget is None:
+                return
+            if idx not in self.opened_idx:
+                QTimer.singleShot(0, widget.scroll_to_bottom)
+            if not widget.opened:
+                widget.opened = True
+            if idx not in self.opened_idx:
+                self.opened_idx.add(idx)

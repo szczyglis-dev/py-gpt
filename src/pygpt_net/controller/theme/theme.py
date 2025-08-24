@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 23:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import os
 from typing import Any, Optional
 
+from PySide6.QtWidgets import QApplication
+
 from pygpt_net.core.events import RenderEvent
+from pygpt_net.utils import trans
 
 from .common import Common
 from .markdown import Markdown
@@ -40,6 +43,29 @@ class Theme:
         self.menu.setup_syntax()
         self.common.toggle_tooltips()
         self.reload(force=False)
+
+    def toggle_theme_by_menu(self, name):
+        """
+        Toggle theme by menu action
+
+        :param name: theme name
+        """
+        self.window.update_status(trans("status.loading"))
+        QApplication.processEvents()
+        self.toggle(name, force=True)
+        self.window.update_status("")
+
+    def toggle_option_by_menu(self, name: str, value: Any = None):
+        """
+        Toggle theme option by menu action
+
+        :param name: option name
+        :param value: option value
+        """
+        self.window.update_status(trans("status.loading"))
+        QApplication.processEvents()
+        self.toggle_option(name, value)
+        self.window.update_status("")
 
     def toggle(
             self,
@@ -85,6 +111,7 @@ class Theme:
 
         :param name: web style name
         """
+        QApplication.processEvents()
         core = self.window.core
         core.config.set('theme.style', name)
         core.config.save()
@@ -103,6 +130,7 @@ class Theme:
         :param name: option name
         :param value: option value
         """
+        QApplication.processEvents()
         window = self.window
         core = window.core
         cfg = core.config
@@ -149,8 +177,7 @@ class Theme:
 
     def update_style(self):
         """Update style"""
-        current = self.window.core.config.get('theme.style')
-        self.toggle_style(current)
+        self.toggle_style(self.window.core.config.get('theme.style'))
 
     def update_theme(self, force: bool = True):
         """
@@ -158,13 +185,11 @@ class Theme:
 
         :param force: force theme change (manual trigger)
         """
-        current = self.window.core.config.get('theme')
-        self.toggle(current, force=force)
+        self.toggle(self.window.core.config.get('theme'), force=force)
 
     def update_syntax(self):
         """Update syntax menu"""
-        current = self.window.core.config.get('render.code_syntax')
-        self.toggle_syntax(current, update_menu=True)
+        self.toggle_syntax(self.window.core.config.get('render.code_syntax'), update_menu=True)
 
     def reload(self, force: bool = True):
         """
@@ -254,8 +279,7 @@ class Theme:
 
         :param prev_theme: previous theme name
         """
-        current_theme = self.window.core.config.get('theme')
-        if not prev_theme or prev_theme != current_theme:
+        if not prev_theme or prev_theme != self.window.core.config.get('theme'):
             self.setup()
             self.update_style()
         self.update_syntax()

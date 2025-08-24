@@ -6,19 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPainter, QIcon
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget, QPushButton, QVBoxLayout
 
 from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
-from .bar import InputBar
 
-import pygpt_net.icons_rc
+from .bar import InputBar
 
 class VoiceControlButton(QWidget):
     def __init__(self, window=None):

@@ -6,15 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 
 from pygpt_net.ui.widget.textarea.editor import BaseCodeEditor
 from pygpt_net.utils import trans
-
-import pygpt_net.icons_rc
 
 class TextFileEditor(BaseCodeEditor):
     def __init__(self, window=None):
@@ -23,7 +21,7 @@ class TextFileEditor(BaseCodeEditor):
 
         :param window: main window
         """
-        super(TextFileEditor, self).__init__(window)
+        super().__init__(window)
         self.window = window
         self.setReadOnly(True)
         self.value = 12
@@ -33,6 +31,10 @@ class TextFileEditor(BaseCodeEditor):
         self.default_stylesheet = ""
         self.setStyleSheet(self.default_stylesheet)
 
+        self._icon_volume = QIcon(":/icons/volume.svg")
+        self._icon_save = QIcon(":/icons/save.svg")
+        self._icon_search = QIcon(":/icons/search.svg")
+
     def contextMenuEvent(self, event):
         """
         Context menu event
@@ -40,38 +42,35 @@ class TextFileEditor(BaseCodeEditor):
         :param event: Event
         """
         menu = self.createStandardContextMenu()
-        selected_text = self.textCursor().selectedText()
+        cursor = self.textCursor()
 
-        if selected_text:
-            # plain text
-            plain_text = self.textCursor().selection().toPlainText()
+        if cursor.hasSelection():
+            selected_text = cursor.selectedText()
+            plain_text = cursor.selection().toPlainText()
 
-            # audio read
-            action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
+            action = QAction(self._icon_volume, trans('text.context_menu.audio.read'), menu)
             action.triggered.connect(self.audio_read_selection)
             menu.addAction(action)
 
-            # copy to
-            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, selected_text)
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(menu, selected_text)
             menu.addMenu(copy_to_menu)
 
-            # save as (selected)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
+            action = QAction(self._icon_save, trans('action.save_as'), menu)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(plain_text)
             )
             menu.addAction(action)
         else:
-            # save as (all)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
+            action = QAction(self._icon_save, trans('action.save_as'), menu)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText())
             )
             menu.addAction(action)
 
-        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action = QAction(self._icon_search, trans('text.context_menu.find'), menu)
         action.triggered.connect(self.find_open)
-        action.setShortcut(QKeySequence("Ctrl+F"))
+        action.setShortcut(QKeySequence.StandardKey.Find)
         menu.addAction(action)
 
         menu.exec_(event.globalPos())
+        menu.deleteLater()

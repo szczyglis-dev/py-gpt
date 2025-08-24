@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -138,10 +138,9 @@ class Settings:
         window.controller.plugins.presets.save_current()
         window.core.config.save()
         self.close()
-        window.update_status(trans('info.settings.saved'))
 
-        event = Event(Event.PLUGIN_SETTINGS_CHANGED)
-        window.dispatch(event)
+        window.update_status(trans('info.settings.saved'))
+        window.dispatch(Event(Event.PLUGIN_SETTINGS_CHANGED))
         window.controller.ui.update_tokens()
 
     def close(self):

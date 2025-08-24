@@ -58,7 +58,7 @@ class Footer:
 
         # bottom
         option = dict(self.window.controller.settings.editor.get_options()["temperature"])
-        self.window.ui.nodes['temperature.label'] = QLabel(trans("toolbox.temperature.label"))
+        self.window.ui.nodes['temperature.label'] = QLabel(trans("toolbox.temperature.label"), self.window)
         self.window.ui.config['global']['current_temperature'] = \
             OptionSlider(self.window, 'global', 'current_temperature', option)
         self.window.ui.add_hook("update.global.current_temperature", self.window.controller.mode.hook_global_temperature)
@@ -68,7 +68,8 @@ class Footer:
         self.window.ui.nodes['voice.control.btn'].setVisible(False)
 
         # per mode options
-        rows = QVBoxLayout()
+        widget = QWidget(self.window)
+        rows = QVBoxLayout(widget)
         # rows.addWidget(self.window.ui.nodes['temperature.label'])
         # rows.addWidget(self.window.ui.config['global']['current_temperature'])
         rows.addWidget(self.agent.setup())
@@ -83,21 +84,20 @@ class Footer:
         self.window.ui.nodes['layout.split'] = ToggleLabel(trans('layout.split'), label_position="left",
                                                           icon=":/icons/split_screen.svg",
                                                           parent=self.window)
-        self.window.ui.nodes['layout.split'].box.stateChanged.connect(
-            lambda: self.window.controller.ui.tabs.toggle_split_screen(self.window.ui.nodes['layout.split'].box.isChecked())
+        self.window.ui.nodes['layout.split'].box.toggled.connect(
+            self.window.controller.ui.tabs.toggle_split_screen
         )
-        split_layout = QHBoxLayout()
+        split_widget = QWidget(widget)
+        split_layout = QHBoxLayout(split_widget)
 
-        split_layout.addWidget(QLabel(""))
+        split_layout.addWidget(QLabel("", split_widget))
         split_layout.addStretch(1)
         split_layout.addWidget(self.window.ui.nodes['layout.split'])
         split_layout.setContentsMargins(5, 0, 15, 0)
-        split_widget = QWidget()
-        split_widget.setLayout(split_layout)
         rows.addWidget(split_widget)
 
         # logo
-        logo_button = self.setup_logo()
+        # logo_button = self.setup_logo()
 
         # bottom (options and logo)
         # bottom = QHBoxLayout()
@@ -113,9 +113,6 @@ class Footer:
         # layout.addLayout(names_layout)
         # layout.addWidget(bottom_widget)
 
-        widget = QWidget()
-        widget.setLayout(rows)
-
         return widget
 
     def setup_name_input(self, id: str, title: str) -> QVBoxLayout:
@@ -127,7 +124,7 @@ class Footer:
         :return: QVBoxLayout
         """
         label_key = 'toolbox.' + id + '.label'
-        self.window.ui.nodes[label_key] = QLabel(title)
+        self.window.ui.nodes[label_key] = QLabel(title, self.window)
         self.window.ui.nodes[id] = NameInput(self.window, id)
 
         layout = QVBoxLayout()
@@ -144,11 +141,11 @@ class Footer:
         """
         path = os.path.abspath(os.path.join(self.window.core.config.get_app_path(), 'data', 'logo.png'))
 
-        button = QPushButton()
+        button = QPushButton(self.window)
         button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         button.setIcon(QIcon(path))
         button.setIconSize(QSize(100, 28))
         button.setFlat(True)
-        button.clicked.connect(lambda: self.window.controller.dialogs.info.goto_website())
+        button.clicked.connect(self.window.controller.dialogs.info.goto_website)
 
         return button

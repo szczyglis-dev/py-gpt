@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 00:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -178,11 +178,9 @@ class Renderer(BaseRenderer):
         if clear:
             self.clear_output(meta)
 
-        i = 0
-        for item in items:
+        for i, item in enumerate(items):
             item.idx = i
             self.append_context_item(meta, item)
-            i += 1
 
     def append_input(
             self,
@@ -251,20 +249,23 @@ class Renderer(BaseRenderer):
         :param item: context item
         :param footer: True if it is a footer
         """
-        appended = []
+        appended = set()
         pid = self.get_or_create_pid(meta)
 
         # images
         c = len(item.images)
         if c > 0:
             n = 1
+            pd = self.pids[pid]
+            already = set(pd.images_appended)
             for image in item.images:
-                if image in appended or image in self.pids[pid].images_appended:
+                if image in appended or image in already:
                     continue
                 try:
-                    appended.append(image)
+                    appended.add(image)
                     self.append_raw(meta, item, self.body.get_image_html(image, n, c))
-                    self.pids[pid].images_appended.append(image)
+                    pd.images_appended.append(image)
+                    already.add(image)
                     n += 1
                 except Exception as e:
                     pass
@@ -277,7 +278,7 @@ class Renderer(BaseRenderer):
                 if file in appended:
                     continue
                 try:
-                    appended.append(file)
+                    appended.add(file)
                     self.append_raw(meta, item, self.body.get_file_html(file, n, c))
                     n += 1
                 except Exception as e:
@@ -288,13 +289,16 @@ class Renderer(BaseRenderer):
         if c > 0:
             urls_str = []
             n = 1
+            pd = self.pids[pid]
+            already = set(pd.urls_appended)
             for url in item.urls:
-                if url in appended or url in self.pids[pid].urls_appended:
+                if url in appended or url in already:
                     continue
                 try:
-                    appended.append(url)
+                    appended.add(url)
                     urls_str.append(self.body.get_url_html(url, n, c))
-                    self.pids[pid].urls_appended.append(url)
+                    pd.urls_appended.append(url)
+                    already.add(url)
                     n += 1
                 except Exception as e:
                     pass
@@ -337,8 +341,9 @@ class Renderer(BaseRenderer):
         raw_chunk = str(text_chunk)
 
         if begin:
-            self.pids[pid].buffer = ""  # reset buffer
-            self.pids[pid].is_cmd = False  # reset command flag
+            pd = self.pids[pid]
+            pd.buffer = ""
+            pd.is_cmd = False
 
             if self.is_timestamp_enabled() and item.output_timestamp is not None:
                 name = ""
@@ -386,13 +391,12 @@ class Renderer(BaseRenderer):
         :param text: text to append
         """
         node = self.get_output_node(meta)
-        prev_text = node.toPlainText()
-        if prev_text != "":
-            prev_text += "\n\n"
-        new_text = f"{prev_text}{text.strip()}"
-        node.setPlainText(new_text)
-        cur = node.textCursor()  # Move cursor to end of text
+        cur = node.textCursor()
         cur.movePosition(QTextCursor.End)
+        if not node.document().isEmpty():
+            cur.insertText("\n\n")
+        cur.insertText(text.strip())
+        node.setTextCursor(cur)
 
     def append_chunk_start(self, meta: CtxMeta, ctx: CtxItem):
         """
@@ -437,14 +441,9 @@ class Renderer(BaseRenderer):
         :param end: end of the line character
         """
         node = self.get_output_node(meta)
-        cur = node.textCursor()  # Move cursor to end of text
+        cur = node.textCursor()
         cur.movePosition(QTextCursor.End)
-        s = f"{str(text)}{end}"
-        while s:
-            head, sep, s = s.partition("\n")  # Split line at LF
-            cur.insertText(head)
-            if sep:
-                cur.insertText("\n")
+        cur.insertText(f"{str(text)}{end}")
         node.setTextCursor(cur)
 
     def append_timestamp(
@@ -549,9 +548,6 @@ class Renderer(BaseRenderer):
         for node in self.get_all_nodes():
             try:
                 node.clear()
-                node.document().setMarkdown("")
-                node.document().setHtml("")
-                node.setPlainText("")
             except Exception as e:
                 pass
 
