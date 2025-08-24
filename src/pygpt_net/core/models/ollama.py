@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.09 21:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 
 import os
@@ -22,16 +22,25 @@ class Ollama:
         self.window = window
         self.available_models = []
 
+    def get_base_url(self) -> str:
+        """
+        Get Ollama API base URL
+
+        :return: Ollama API base URL
+        """
+        api_base = "http://localhost:11434"
+        if 'OLLAMA_API_BASE' in os.environ:
+            api_base = os.environ['OLLAMA_API_BASE']
+        return api_base
+
     def get_status(self) -> dict:
         """
         Check Ollama status
 
         :return: dict
         """
-        api_base = "http://localhost:11434"
-        if 'OLLAMA_API_BASE' in os.environ:
-            api_base = os.environ['OLLAMA_API_BASE']
-        self.window.core.idx.log("Using Ollama base URL: {}".format(api_base))
+        api_base = self.get_base_url()
+        self.window.core.idx.log(f"Using Ollama base URL: {api_base}")
 
         url = api_base + "/api/tags"
         try:

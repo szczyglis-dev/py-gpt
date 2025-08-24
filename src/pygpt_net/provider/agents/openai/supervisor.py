@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.17 02:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 
 import json
@@ -89,7 +89,7 @@ class Agent(BaseAgent):
         kwargs = {
             "name": agent_name,
             "instructions": self.get_option(preset, "supervisor", "prompt"),
-            "model": model.id,
+            "model": window.core.agents.provider.get_openai_model(model)
         }
         if worker_tool:
             kwargs["tools"] = [worker_tool]
@@ -114,7 +114,7 @@ class Agent(BaseAgent):
         kwargs = {
             "name": agent_name,
             "instructions": self.get_option(preset, "worker", "prompt"),
-            "model": model.id,
+            "model": window.core.agents.provider.get_openai_model(model)
         }
         if handoffs:
             kwargs["handoffs"] = handoffs
@@ -178,11 +178,7 @@ class Agent(BaseAgent):
             "input": messages,
             "max_turns": int(max_steps),
         }
-        if model.provider != "openai":
-            custom_provider = get_custom_model_provider(window, model)
-            kwargs["run_config"] = RunConfig(model_provider=custom_provider)
-        else:
-            set_openai_env(window)
+        if model.provider == "openai":
             if previous_response_id:
                 kwargs["previous_response_id"] = previous_response_id
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -15,7 +15,6 @@ from typing import Dict, Any, Tuple, Union, Optional
 from agents import (
     Agent as OpenAIAgent,
     Runner,
-    RunConfig,
     TResponseInputItem,
 )
 
@@ -30,7 +29,6 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.gpt.agents.client import get_custom_model_provider, set_openai_env
 from pygpt_net.provider.gpt.agents.remote_tools import append_tools
 from pygpt_net.provider.gpt.agents.response import StreamHandler
 
@@ -77,7 +75,7 @@ class Agent(BaseAgent):
         kwargs = {
             "name": "Bot {}".format(id),
             "instructions": self.get_option(preset, option_key, "prompt"),
-            "model": model.id,
+            "model": window.core.agents.provider.get_openai_model(model),
         }
         if handoffs:
             kwargs["handoffs"] = handoffs
@@ -182,13 +180,7 @@ class Agent(BaseAgent):
         :param kwargs: Additional keyword arguments for the model configuration
         :return: Prepared keyword arguments for the model
         """
-        if model.provider != "openai":
-            custom_provider = get_custom_model_provider(window, model)
-            kwargs["run_config"] = RunConfig(model_provider=custom_provider)
-        else:
-            if "run_config" in kwargs:
-                kwargs.pop("run_config")
-            set_openai_env(window)
+        if model.provider == "openai":
             if previous_response_id:
                 kwargs["previous_response_id"] = previous_response_id
         return kwargs
@@ -233,20 +225,23 @@ class Agent(BaseAgent):
             verbose=verbose,
             tools=tools,
         )
-        if experts:
-            agent_kwargs["handoffs"] = experts
 
         bot_1_kwargs = copy.deepcopy(agent_kwargs)
+        bot_2_kwargs = copy.deepcopy(agent_kwargs)
+
         bot_1_kwargs["bot_id"] = 1
-        bot_1 = self.get_agent(window, agent_kwargs)
+        if experts:
+            bot_1_kwargs["handoffs"] = experts
+        bot_1 = self.get_agent(window, bot_1_kwargs)
 
         model_2 = model
-        bot_2_kwargs = copy.deepcopy(agent_kwargs)
         model_name_2 = self.get_option(preset, "bot_2", "model")
         if model_name_2:
             model_2 = window.core.models.get(model_name_2)
             bot_2_kwargs["model"] = model_2
         bot_2_kwargs["bot_id"] = 2
+        if experts:
+            bot_2_kwargs["handoffs"] = experts
         bot_2 = self.get_agent(window, bot_2_kwargs)
 
         kwargs = {

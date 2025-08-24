@@ -3,7 +3,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 
 from agents import (
@@ -74,7 +74,7 @@ def get_expert(
     kwargs = {
         "name": agent_name,
         "instructions": prompt,
-        "model": model.id,
+        "model": window.core.agents.provider.get_openai_model(model),
     }
     tool_kwargs = append_tools(
         tools=tools,

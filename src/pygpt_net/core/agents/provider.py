@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
+import os
+from typing import List, Dict, Any
 
-from typing import List, Dict
-
+from pygpt_net.core.types import MODE_CHAT
+from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.agents.base import BaseAgent
 
 
@@ -94,3 +96,23 @@ class Provider:
         # sort by name
         choices.sort(key=lambda x: list(x.values())[0].lower())
         return choices
+
+    def get_openai_model(self, model: ModelItem) -> Any:
+        """
+        Get OpenAI model by model id
+
+        :param model: ModelItem
+        :return: OpenAI model provider
+        """
+        from openai import AsyncOpenAI
+        from agents import (
+            OpenAIChatCompletionsModel,
+        )
+        if model.provider == "openai":
+            return model.id
+        else:
+            args = self.window.core.models.prepare_client_args(MODE_CHAT, model)
+            return OpenAIChatCompletionsModel(
+                model=model.id,
+                openai_client=AsyncOpenAI(**args),
+            )

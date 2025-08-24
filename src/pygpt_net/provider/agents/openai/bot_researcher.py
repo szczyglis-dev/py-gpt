@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple, Union, Optional
@@ -89,7 +89,7 @@ class Agent(BaseAgent):
         kwargs = {
             "name": agent_name,
             "instructions": system_prompt,
-            "model": model.id,
+            "model": window.core.agents.provider.get_openai_model(model),
             "handoffs": handoffs,
         }
         tool_kwargs = append_tools(
@@ -154,18 +154,6 @@ class Agent(BaseAgent):
         model_search_kwargs = {}
         model_planner_kwargs = {}
 
-        if model.provider != "openai":
-            custom_provider = get_custom_model_provider(window, model)
-            model_kwargs["run_config"] = RunConfig(model_provider=custom_provider)
-
-        if model_search.provider != "openai":
-            custom_provider = get_custom_model_provider(window, model_search)
-            model_search_kwargs["run_config"] = RunConfig(model_provider=custom_provider)
-
-        if model_planner.provider != "openai":
-            custom_provider = get_custom_model_provider(window, model_planner)
-            model_planner_kwargs["run_config"] = RunConfig(model_provider=custom_provider)
-
         # get experts
         experts = get_experts(
             window=window,
@@ -183,7 +171,7 @@ class Agent(BaseAgent):
             stream=stream,
             planner_config={
                 "prompt": self.get_option(preset, "planner", "prompt"),
-                "model": model_planner,
+                "model": window.core.agents.provider.get_openai_model(model_planner),
                 "allow_local_tools": self.get_option(preset, "planner", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "planner", "allow_remote_tools"),
                 "run_kwargs": model_planner_kwargs,
@@ -191,7 +179,7 @@ class Agent(BaseAgent):
             },
             search_config={
                 "prompt": self.get_option(preset, "search", "prompt"),
-                "model": model_search,
+                "model": window.core.agents.provider.get_openai_model(model_search),
                 "allow_local_tools": self.get_option(preset, "search", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "search", "allow_remote_tools"),
                 "run_kwargs": model_search_kwargs,
@@ -199,7 +187,7 @@ class Agent(BaseAgent):
             },
             writer_config={
                 "prompt": prompt,
-                "model": model,
+                "model": window.core.agents.provider.get_openai_model(model),
                 "allow_local_tools": self.get_option(preset, "writer", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "writer", "allow_remote_tools"),
                 "run_kwargs": model_kwargs,

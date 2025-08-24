@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.24 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -475,6 +475,7 @@ class Importer:
                         MODE_LLAMA_INDEX,
                         MODE_AGENT,
                         MODE_AGENT_LLAMA,
+                        MODE_AGENT_OPENAI,
                         MODE_EXPERT,
                     ]
                     m.provider = 'ollama'

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple, Optional
@@ -14,8 +14,6 @@ from typing import Dict, Any, Tuple, Optional
 from agents import (
     Agent as OpenAIAgent,
     Runner,
-    RunConfig,
-    ModelSettings,
 )
 
 from pygpt_net.core.agents.bridge import ConnectionContext
@@ -28,14 +26,12 @@ from pygpt_net.core.types import (
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
-from pygpt_net.provider.gpt.agents.client import get_custom_model_provider, set_openai_env
-from pygpt_net.provider.gpt.agents.remote_tools import get_remote_tools, is_computer_tool, append_tools
+from pygpt_net.provider.gpt.agents.remote_tools import is_computer_tool, append_tools
 from pygpt_net.provider.gpt.agents.computer import Agent as ComputerAgent, LocalComputer
 from pygpt_net.provider.gpt.agents.response import StreamHandler
 
 from ..base import BaseAgent
 from ...gpt.agents.experts import get_experts
-
 
 class Agent(BaseAgent):
     def __init__(self, *args, **kwargs):
@@ -63,7 +59,7 @@ class Agent(BaseAgent):
         kwargs = {
             "name": agent_name,
             "instructions": system_prompt,
-            "model": model.id,
+            "model": window.core.agents.provider.get_openai_model(model),
         }
         if handoffs:
             kwargs["handoffs"] = handoffs
@@ -127,11 +123,7 @@ class Agent(BaseAgent):
             "input": messages,
             "max_turns": int(max_steps),
         }
-        if model.provider != "openai":
-            custom_provider = get_custom_model_provider(window, model)
-            kwargs["run_config"] = RunConfig(model_provider=custom_provider)
-        else:
-            set_openai_env(window)
+        if model.provider == "openai":
             if previous_response_id:
                 kwargs["previous_response_id"] = previous_response_id
 

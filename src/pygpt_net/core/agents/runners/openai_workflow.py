@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -58,6 +58,9 @@ class OpenAIWorkflow(BaseRunner):
         """
         if self.is_stopped():
             return True  # abort if stopped
+
+        if "llm" in agent_kwargs:
+            agent_kwargs["llm"] = None  # clear llm if provided, as it is not used in OpenAI workflow
 
         self.set_busy(signals)
 

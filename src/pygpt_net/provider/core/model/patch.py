@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 19:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -751,6 +751,16 @@ class Patch:
                     data["gpt-oss-120b-huggingface-router"] = base_data["gpt-oss-120b-huggingface-router"]
                 if "gpt-4.1-nano" not in data:
                     data["gpt-4.1-nano"] = base_data["gpt-4.1-nano"]
+                updated = True
+
+            # < 2.6.21 <-- add OpenAI Agents to Ollama
+            if old < parse_version("2.6.21"):
+                print("Migrating models from < 2.6.21...")
+                for id in data:
+                    model = data[id]
+                    if model.provider in ["ollama"]:
+                        if "agent_openai" not in model.mode:
+                            model.mode.append(MODE_AGENT_OPENAI)
                 updated = True
 
         # update file

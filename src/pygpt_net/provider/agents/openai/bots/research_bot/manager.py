@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 # Based on OpenAI examples: https://github.com/openai/openai-agents-python/blob/main/examples
 from __future__ import annotations
@@ -104,9 +104,6 @@ class ResearchManager:
         kwargs = {
             "input": messages,
         }
-        if self.planner_config["run_kwargs"]:
-            kwargs.update(self.planner_config["run_kwargs"])
-
         result = await Runner.run(
             agent,
             **kwargs
@@ -151,9 +148,6 @@ class ResearchManager:
         kwargs = {
             "input": input,
         }
-        if self.search_config["run_kwargs"]:
-            kwargs.update(self.search_config["run_kwargs"])
-
         try:
             result = await Runner.run(
                 agent,
@@ -182,9 +176,6 @@ class ResearchManager:
         kwargs = {
             "input": input,
         }
-        if self.writer_config["run_kwargs"]:
-            kwargs.update(self.writer_config["run_kwargs"])
-
         result = Runner.run_streamed(
             agent,
             **kwargs,

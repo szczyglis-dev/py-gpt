@@ -12,6 +12,7 @@
                 "chat",
                 "llama_index",
                 "agent_llama",
+                "agent_openai",
                 "agent",
                 "expert"
             ],
@@ -311,6 +312,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -492,6 +494,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -531,6 +534,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -570,6 +574,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -2567,6 +2572,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -2601,6 +2607,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -2635,6 +2642,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -2669,6 +2677,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -2703,6 +2712,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -2737,6 +2747,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -2771,6 +2782,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -3441,6 +3453,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -3475,6 +3488,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -3509,6 +3523,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
@@ -3543,6 +3558,7 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
+                "agent_openai",
                 "expert",
                 "chat"
             ],
