@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.plugin import BasePlugin
@@ -20,7 +20,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "twitter"
-        self.name = "Twitter/X"
+        self.name = "X/Twitter"
         self.description = "Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more."
         self.prefix = "API"
         self.order = 100
