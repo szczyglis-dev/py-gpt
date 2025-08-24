@@ -448,8 +448,6 @@ Below is a pattern for how different types of agents work. You can use these pat
 
 * When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
 
-* Ollama models are not supported in this mode.
-
 
 Agent (Autonomous)
 -------------------

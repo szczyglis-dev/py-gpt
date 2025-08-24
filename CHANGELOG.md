@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.21 (2025-08-24)
+
+- Ollama models are now available in OpenAI Agents mode.
+- Improved parsing of responses from Agents.
+- Refactoring.
+
 ## 2.6.20 (2025-08-22)
 
 - Added a new plugin: Server (FTP/SSH) - connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more (beta).

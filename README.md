@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.20** | build: **2025-08-22** | Python: **>=3.10, <3.14**
+Release: **2.6.21** | build: **2025-08-24** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -820,8 +820,6 @@ Below is a pattern for how different types of agents work. You can use these pat
 **Limitations:**
 
 - When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
-
-- Ollama models are not supported in this mode.
 
 ##  Agent (Autonomous) 
 
@@ -2380,8 +2378,6 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Use ReAct agent for Tool calls in Chat with Files mode`: Enable ReAct agent for tool calls in Chat with Files mode.
 
-- `Display full agent output in chat window`: If enabled, a real-time output from agent reasoning will be displayed with the response.
-
 - `Auto-retrieve additional context`: Enable automatic retrieve of additional context from vector store in every query.
 
 **Embeddings**
@@ -2435,6 +2431,8 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 - `Auto retrieve additional context from RAG`: Auto retrieve additional context from RAG at the beginning if the index is provided.
 
 - `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
+
+- `Display full agent output in chat window`: If enabled, a real-time output from agent reasoning will be displayed with the response.
 
 **Agents (LlamaIndex / OpenAI)**
 
@@ -3428,6 +3426,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.21 (2025-08-24)**
+
+- Ollama models are now available in OpenAI Agents mode.
+- Improved parsing of responses from Agents.
+- Refactoring.
 
 **2.6.20 (2025-08-22)**
 
