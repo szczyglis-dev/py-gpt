@@ -105,6 +105,7 @@ class Runner:
             # vector store idx from preset
             if preset:
                 vector_store_idx = preset.idx
+                extra["agent_idx"] = vector_store_idx
 
             # tools
             agent_tools = self.window.core.agents.tools
@@ -126,7 +127,9 @@ class Runner:
 
             # --- ADDITIONAL CONTEXT ---
             # append additional context from RAG if available
-            if vector_store_idx and self.window.core.config.get("agent.idx.auto_retrieve", True):
+            if (vector_store_idx
+                    and vector_store_idx != "_"
+                    and self.window.core.config.get("agent.idx.auto_retrieve", True)):
                 ad_context = self.window.core.idx.chat.query_retrieval(
                     query=prompt,
                     idx=vector_store_idx,

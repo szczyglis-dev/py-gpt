@@ -34,6 +34,7 @@ def get_search_agent(
     kwargs = {
         "name": "SearchAgent",
         "instructions": config["prompt"],
+        "model": window.core.agents.provider.get_openai_model(config["model"]),
     }
     kwargs.update(tool_kwargs)  # update kwargs with tools
 

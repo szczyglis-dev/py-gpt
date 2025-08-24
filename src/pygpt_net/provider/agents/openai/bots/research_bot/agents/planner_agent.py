@@ -46,7 +46,7 @@ def get_planner_agent(
     kwargs = {
         "name": "PlannerAgent",
         "instructions": config["prompt"],
-        "model": config["model"].id,
+        "model": window.core.agents.provider.get_openai_model(config["model"]),
         "output_type": WebSearchPlan,
     }
     tool_kwargs = append_tools(

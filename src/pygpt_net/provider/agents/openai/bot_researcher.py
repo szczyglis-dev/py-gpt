@@ -171,7 +171,7 @@ class Agent(BaseAgent):
             stream=stream,
             planner_config={
                 "prompt": self.get_option(preset, "planner", "prompt"),
-                "model": window.core.agents.provider.get_openai_model(model_planner),
+                "model": model_planner,
                 "allow_local_tools": self.get_option(preset, "planner", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "planner", "allow_remote_tools"),
                 "run_kwargs": model_planner_kwargs,
@@ -179,7 +179,7 @@ class Agent(BaseAgent):
             },
             search_config={
                 "prompt": self.get_option(preset, "search", "prompt"),
-                "model": window.core.agents.provider.get_openai_model(model_search),
+                "model": model_search,
                 "allow_local_tools": self.get_option(preset, "search", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "search", "allow_remote_tools"),
                 "run_kwargs": model_search_kwargs,
@@ -187,7 +187,7 @@ class Agent(BaseAgent):
             },
             writer_config={
                 "prompt": prompt,
-                "model": window.core.agents.provider.get_openai_model(model),
+                "model": model,
                 "allow_local_tools": self.get_option(preset, "writer", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "writer", "allow_remote_tools"),
                 "run_kwargs": model_kwargs,
@@ -195,10 +195,6 @@ class Agent(BaseAgent):
             },
             history=messages if messages else [],
         )
-
-        if model.provider == "openai":
-            set_openai_env(window)
-
         final_output = await bot.run(query)
         return ctx, final_output, response_id
 

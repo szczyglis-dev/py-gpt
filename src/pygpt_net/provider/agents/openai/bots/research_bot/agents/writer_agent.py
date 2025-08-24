@@ -37,7 +37,7 @@ def get_writer_agent(
     kwargs = {
         "name": "WriterAgent",
         "instructions": config["prompt"],
-        "model": config["model"].id,
+        "model": window.core.agents.provider.get_openai_model(config["model"]),
         "output_type": ReportData,
     }
     if config.get("experts"):
