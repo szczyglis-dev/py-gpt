@@ -169,7 +169,7 @@ pygpt
 
 ## Running from GitHub source code
 
-An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (`>=3.10`, `<3.13`). 
+An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (`>=3.10`, `<3.14`). 
 
 ### Install with pip
 
