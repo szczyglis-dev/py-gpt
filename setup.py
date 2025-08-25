@@ -1,11 +1,8 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.6.21'
-DESCRIPTION = 'Desktop AI Assistant powered by: OpenAI o1, o3, GPT-4o, GPT-4 Vision, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Grok, DeepSeek, Bielik, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, internet access, file handling, command execution and more.'
-LONG_DESCRIPTION = 'Package contains a gpt-4, gpt-4V, gpt-3.5, DALL-E 3, and Llama-index powered ' \
-                   'Desktop AI Assistant with chatbot, text completion, vision and image generation, internet ' \
-                   'access, chat with files and more - using OpenAI API and your own API Key. Includes context ' \
-                   'memory and history, editable presets, customizable UI and more.'
+VERSION = '2.6.22'
+DESCRIPTION = 'Desktop AI Assistant powered by: OpenAI GPT-5, GPT-4, o1, o3, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama.'
+LONG_DESCRIPTION = 'Desktop AI Assistant powered by: OpenAI GPT-5, GPT-4, o1, o3, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, internet access, file handling, command execution and more.'
 
 setup(
     name='pygpt-net',
@@ -45,9 +42,7 @@ setup(
         'data/js/highlight/es/languages/*'
     ]},
     url='https://github.com/szczyglis-dev/py-gpt',
-    keywords='py_gpt, py-gpt, pygpt, Pygpt, desktop, app, gpt, o1, gpt-4, gpt-4o, gpt-4v, gpt-3.5, tts, whisper, vision, '
-             'chatgpt, dall-e, chat, chatbot, assistant, text completion, image generation, ai, api, openai, api key, '
-             'langchain, llama-index, presets, ui, qt, pyside',
+    keywords='ai', 'api', 'api key', 'app', 'assistant', 'bielik', 'chat', 'chatbot', 'chatgpt', 'claude', 'dall-e', 'deepseek', 'desktop', 'gemini', 'gpt', 'gpt-3.5', 'gpt-4', 'gpt-4-vision', 'gpt-4o', 'gpt-5', 'gpt-oss', 'gpt3.5', 'gpt4', 'grok', 'langchain', 'llama-index', 'llama3', 'mistral', 'o1', 'o3', 'ollama', 'openai', 'presets', 'py-gpt', 'py_gpt', 'pygpt', 'pyside', 'qt', 'text completion', 'tts', 'ui', 'vision', 'whisper'
     install_requires=[
         'anthropic>=0.54.0,<1.0.0',
         'azure-core>=1.34.0,<2.0.0',

@@ -1,15 +1,14 @@
 [tool.poetry]
 name = "pygpt-net"
-version = "2.6.21"
-description = "Desktop AI Assistant powered by: OpenAI GPT-5, o1, o3, GPT-4, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, internet access, file handling, command execution and more."
+version = "2.6.22"
+description = "Desktop AI Assistant powered by: OpenAI GPT-5, GPT-4, o1, o3, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, internet access, file handling, command execution and more."
 authors = ["Marcin Szczyglinski <info@pygpt.net>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://pygpt.net"
 repository = "https://github.com/szczyglis-dev/py-gpt"
 documentation = "https://pygpt.readthedocs.io/"
-keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "o1", "o3", "gpt-5", "gpt", "gpt4", "gpt-4o", "gpt-4v", "gpt3.5", "gpt-4", "gpt-4-vision", "gpt-3.5", "llama3", "mistral", "gemini", "grok", "deepseek", "bielik", "claude", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
-    "chatbot", "assistant", "text completion", "image generation", "ai", "api", "openai", "api key", "langchain", "llama-index", "ollama", "presets", "ui", "qt", "pyside"]
+keywords = ["ai", "api", "api key", "app", "assistant", "bielik", "chat", "chatbot", "chatgpt", "claude", "dall-e", "deepseek", "desktop", "gemini", "gpt", "gpt-3.5", "gpt-4", "gpt-4-vision", "gpt-4o", "gpt-5", "gpt-oss", "gpt3.5", "gpt4", "grok", "langchain", "llama-index", "llama3", "mistral", "o1", "o3", "ollama", "openai", "presets", "py-gpt", "py_gpt", "pygpt", "pyside", "qt", "text completion", "tts", "ui", "vision", "whisper"]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.21** | build: **2025-08-24** | Python: **>=3.10, <3.14**
+Release: **2.6.22** | build: **2025-08-25** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -14,15 +14,15 @@ Release: **2.6.21** | build: **2025-08-24** | Python: **>=3.10, <3.14**
 
 ## Overview
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `gpt-5`, `o1`, `o3`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `LlamaIndex`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models via `Ollama` (like `Llama 3`,`Mistral`, `DeepSeek V3/R1` or `Bielik`), `Google Gemini`, `Anthropic Claude`, `Perplexity Sonar`, and `xAI Grok`.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `GPT-5`, `GPT-4`, `o1`, `o3` and more, through the `OpenAI API`. By utilizing `LlamaIndex`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models via `Ollama` (like `gpt-oss`, `Llama 3`,`Mistral`, `DeepSeek V3/R1` or `Bielik`), and other models like `Google Gemini`, `Anthropic Claude`, `Perplexity / Sonar`, and `xAI Grok`.
 
-This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `gpt-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
+This assistant offers multiple modes of operation such as chat, assistants, agents, completions, and image-related tasks like image generation and image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
 
 For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, `Google` and `Bing` enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
-**PyGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
+**PyGPT**'s functionality extends through plugin support, allowing for custom enhancements (with multiple plugins included). Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chat, text completion, assistant, vision, Chat with Files (via `LlamaIndex`), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
+Multiple operation modes are included, such as chat, text completion, assistant, agents, vision, Chat with Files (via `LlamaIndex`), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
 
 **Showcase** (mp4, version `2.5.65`, build `2025-07-24`):
 
@@ -43,7 +43,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 12 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Computer use, Agents and Autonomous Mode.
-- Supports multiple models: `gpt-5`, `o1`, `o3`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity Sonar`, `Bielik`, etc.
+- Supports multiple models like `OpenAI GPT-5`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `DeepSeek`, `gpt-oss`, `Llama 3`, `Mistral`, `Bielik`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
@@ -52,7 +52,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Speech synthesis via `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services.
 - Speech recognition via `OpenAI Whisper`, `Google` and `Microsoft Speech Recognition`.
 - Real-time video camera capture in Vision mode.
-- Image analysis via `GPT-4 Vision` and `GPT-4o`.
+- Image analysis via `GPT-5` and `GPT-4o`.
 - Integrated calendar, day notes and search in contexts by selected date.
 - Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
 - Custom commands creation and execution.
@@ -70,7 +70,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Fully configurable.
 - Themes support.
 - Real-time code syntax highlighting.
-- Plugins support.
+- Plugins support with built-in plugins like `Files I/O`, `Code Interpreter`, `Web Search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, and many more.
 - Built-in token usage calculation.
 - Possesses the potential to support future OpenAI models.
 - **Open source**; source code is available on `GitHub`.
@@ -3427,6 +3427,10 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.6.22 (2025-08-25)**
+
+- UI refactor and optimizations.
+
 **2.6.21 (2025-08-24)**
 
 - Ollama models are now available in OpenAI Agents mode.
@@ -3440,146 +3444,6 @@ may consume additional tokens that are not displayed in the main window.
 
 - Added a new plugin: Server (FTP/SSH) - connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more (beta).
 - Added support for Wayland in Snap/compiled versions.
-
-**2.6.19 (2025-08-22)**
-
-- Fixed: added prevention for summarizing an empty context.
-- Improved the speed of context item refreshing.
-
-**2.6.18 (2025-08-21)**
-
-- Refactor and optimizations.
-- Fix: Evolve agent stop event calling.
-
-**2.6.17 (2025-08-21)**
-
-- Optimized profile switching.
-- Fixed: setting initial splitter size on first launch.
-- Added smoother view reload.
-
-**2.6.16 (2025-08-20)**
-
-- Fixed: Attachment string joining.
-- Improved expert function calls.
-- Added sorting to the plugin list.
-
-**2.6.15 (2025-08-20)**
-
-- Added: do not change the context menu font size in text editing.
-- Added: do not reload context items on tab change if already loaded.
-- Fixed: appending of names and avatars in the stream chunk.
-
-**2.6.14 (2025-08-19)**
-
-- Fixed: Agent evaluation tool runs even if tools are disabled.
-- Extended agent response evaluation by providing the full context of the output.
-
-**2.6.13 (2025-08-19)**
-
-- Fix: Do not load the index in experts if it is not provided.
-- Fix: Load remote images in the webview.
-- Fix: Presets list refresh.
-- Optimize context items reload.
-
-**2.6.12 (2025-08-19)**
-
-- Optimized web renderer memory cleanup.
-
-**2.6.11 (2025-08-18)**
-
-- Added the ability to close the dialog window with the Esc key.
-- Made context item deletion without output refresh.
-- Optimizations.
-
-**2.6.10 (2025-08-17)**
-
-- Enhanced the handling of the context list.
-- Integrated RAG into OpenAI Agents.
-- Enhanced RAG management in Agents.
-- Added an option: Config -> Agents -> General -> Auto-retrieve additional context from RAG.
-- Included Google Docs, Maps, and Colab in the Google plugin.
-
-**2.6.9 (2025-08-17)**
-
-- Added two new agents for LlamaIndex and OpenAI: Supervisor and Worker (beta).
-
-**2.6.8 (2025-08-16)**
-
-- Fixed: updated paragraph color on theme switch.
-- Added switching to duplicated preset after creation.
-- Reduced delay after selecting context.
-- Optimized rendering of mathematical formulas.
-
-**2.6.7 (2025-08-16)**
-
-- Fix: missing entity sanitize.
-
-**2.6.6 (2025-08-16)**
-
-- Output rendering optimization.
-
-**2.6.5 (2025-08-16)**
-
-- Fix: crash when creating a context in a new group.
-- Fix: high CPU usage after switching profiles.
-
-**2.6.4 (2025-08-15)**
-
-- Fix: tool execution in OpenAI Agents.
-- Optimizations.
-
-**2.6.3 (2025-08-15)**
-
-- Optimized streaming and CPU usage.
-- Fixed crash on set label color and ctx duplicate.
-
-**2.6.2 (2025-08-15)**
-
-- Added plugins (beta): Google, Facebook, X/Twitter, Telegram, Slack, GitHub, Bitbucket.
-
-**2.6.1 (2025-08-14)**
-
-- LlamaIndex Agents refactored to Workflows.
-
-**2.6.0 (2025-08-13)**
-
-- Added split responses to the OpenAI Agents in non-streaming mode.
-- Disabled auto-scroll when manually scrolled to the top.
-- Increased scrollbar width in the light theme.
-- Optimized the clearing of the streaming buffer.
-- Optimized imports.
-- Made CSS improvements.
-
-**2.5.98 (2025-08-12)**
-
-- Added support for GPT-5 in LlamaIndex/Chat with Files mode.
-- Experts are now allowed in all OpenAI agent types.
-- Improved the output of OpenAI agents (separated context items).
-- Refactored memory cleanup for thread workers.
-- Optimized streaming.
-
-**2.5.97 (2025-08-11)**
-
-- Fix: attribute error in prev ctx.
-
-**2.5.96 (2025-08-10)**
-
-- Fixed memory leaks.
-
-**2.5.95 (2025-08-09)**
-
-- Added user info personalization in Config -> Personalization, where you can provide information about yourself to the model.
-- Added presets personalization with configurable AI names and avatars.
-- Added a search field in the Translator tool.
-- Fixed <> tags replacement in code blocks.
-
-**2.5.94 (2025-08-09)**
-
-- Added a new LLM provider: HuggingFace Router.
-- Introduced a new model: gpt-oss (OpenAI open-source model available in HuggingFace and Ollama).
-- Added a new agent mode in OpenAI Agents: Bot 2 Bot.
-- Fixed: Storing the last used context ID when empty.
-- Fixed: Reloading items when an agent run is stopped.
 
 # Credits and links
 

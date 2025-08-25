@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.22 (2025-08-25)
+
+- UI refactor and optimizations.
+
 ## 2.6.21 (2025-08-24)
 
 - Ollama models are now available in OpenAI Agents mode.
