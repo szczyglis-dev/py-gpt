@@ -2283,8 +2283,12 @@ class Patch:
             # < 2.6.23  -- fix: restore <p> color
             if old < parse_version("2.6.23"):
                 print("Migrating config from < 2.6.23...")
-                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)
+                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)
+                self.window.core.updater.patch_css('web-chatgpt.light.css', True)
+                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)                
+                self.window.core.updater.patch_css('web-blocks.dark.css', True)
+                self.window.core.updater.patch_css('web-blocks.light.css', True)
                 updated = True
 
         # update file

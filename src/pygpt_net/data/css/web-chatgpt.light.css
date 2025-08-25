@@ -29,6 +29,9 @@ a {{
 .msg-bot {{
     color: #000;
 }}
+.msg-bot p {{
+    color: #000;
+}}
 .cmd {{
     color: #4d4d4d;
     text-decoration: none;

@@ -21,12 +21,15 @@ a {{
     color: #3b7097 !important;
 }}
 .msg-user {{
-    color: #2c2c2c !important;
+    color: #2c2c2c;
 }}
 .msg-user p {{
-    color: #2c2c2c !important;
+    color: #2c2c2c;
 }}
 .msg-bot {{
+    color: #000;
+}}
+.msg-bot p {{
     color: #000;
 }}
 .msg-highlight {{
