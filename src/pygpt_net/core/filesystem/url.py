@@ -23,19 +23,12 @@ class Url:
 
     def handle(self,  url: QUrl):
         """
-        Handle URL
+        Handle URL, bridge action or local file
 
         :param url: url
         """
-        extra_schemes = [
-            'extra-audio-read',
-            'extra-code-copy',
-            'extra-copy',
-            'extra-delete',
-            'extra-edit',
-            'extra-join',
-            'extra-replay',
-        ]
+        if not url.toString().strip():
+            return
 
         # JS bridge
         if url.toString().startswith('bridge://open_find'):
@@ -50,8 +43,18 @@ class Url:
             pid = self.window.controller.ui.tabs.get_current_pid()
             if pid in self.window.ui.nodes['output']:
                 self.window.ui.nodes['output'][pid].on_focus_js()
+            return
 
         # -------------
+        extra_schemes = (
+            'extra-audio-read',
+            'extra-code-copy',
+            'extra-copy',
+            'extra-delete',
+            'extra-edit',
+            'extra-join',
+            'extra-replay'
+        )
 
         # local file
         if not url.scheme().startswith('http') and url.scheme() not in extra_schemes:

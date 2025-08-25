@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 17:00:00                  #
+# Updated Date: 2025.08.25 18:00:00                  #
 # ================================================== #
 
 import platform
 import os
+import sys
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtSvg import QSvgRenderer
@@ -87,7 +88,7 @@ class Platforms:
 
         :return: True if OS is Linux
         """
-        return self.get_os() == 'Linux'
+        return self.get_os() == 'Linux' or sys.platform.startswith("linux")
 
     def is_mac(self) -> bool:
         """
@@ -95,7 +96,7 @@ class Platforms:
 
         :return: True if OS is MacOS
         """
-        return self.get_os() == 'Darwin'
+        return self.get_os() == 'Darwin' or sys.platform == "darwin"
 
     def is_windows(self) -> bool:
         """
@@ -103,7 +104,7 @@ class Platforms:
 
         :return: True if OS is Windows
         """
-        return self.get_os() == 'Windows'
+        return self.get_os() == 'Windows' or sys.platform.startswith("win")
 
     def is_snap(self) -> bool:
         """

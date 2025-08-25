@@ -6,21 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.08.25 18:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 import shutil
 from typing import Optional
-
-from PySide6.QtCore import QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QFileDialog, QApplication
-from showinfm import show_in_file_manager
 from shutil import copy2
-import subprocess
 
+from PySide6.QtWidgets import QFileDialog, QApplication
+
+from pygpt_net.core.filesystem.opener import Opener
 from pygpt_net.utils import trans
 
 
@@ -60,12 +57,12 @@ class Files:
         try:
             shutil.rmtree(path)  # delete directory with all files
             self.window.update_status(
-                "[OK] Deleted directory: {}".format(os.path.basename(path))
+                f"[OK] Deleted directory: {os.path.basename(path)}"
             )
             self.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
-            print("Error deleting directory: {} - {}".format(path, e))
+            print(f"Error deleting directory: {path} - {e}")
 
     def touch_file(
             self,
@@ -93,12 +90,12 @@ class Files:
             filepath = os.path.join(path, name)
             open(filepath, 'a').close()
             self.window.update_status(
-                "[OK] Created file: {}".format(os.path.basename(filepath))
+                f"[OK] Created file: {filepath}"
             )
             self.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
-            print("Error creating file: {} - {}".format(path, e))
+            print(f"Error creating file: {path} - {e}")
 
     def delete(
             self,
@@ -130,12 +127,12 @@ class Files:
             try:
                 os.remove(path)
                 self.window.update_status(
-                    "[OK] Deleted file: {}".format(os.path.basename(path))
+                   f"[OK] Deleted file: {os.path.basename(path)}"
                 )
                 self.update_explorer()
             except Exception as e:
                 self.window.core.debug.log(e)
-                print("Error deleting file: {} - {}".format(path, e))
+                print(f"Error deleting file: {path} - {e}")
 
     def duplicate_local(
             self,
@@ -172,7 +169,7 @@ class Files:
 
             if os.path.exists(new_path):
                 self.window.update_status(
-                    "[ERROR] File already exists: {}".format(os.path.basename(new_path))
+                    f"[ERROR] File already exists: {os.path.basename(new_path)}"
                 )
                 return
 
@@ -181,12 +178,12 @@ class Files:
             else:
                 copy2(path, new_path)
             self.window.update_status(
-                "[OK] Duplicated file: {} -> {}".format(os.path.basename(path), name)
+                f"[OK] Duplicated file: {os.path.basename(path)} -> {name}"
             )
             self.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
-            print("Error duplicating file: {} - {}".format(path, e))
+            print(f"Error duplicating file: {path} - {e}")
 
     def download_local(self, path: str):
         """
@@ -211,11 +208,11 @@ class Files:
                     else:
                         shutil.copy2(path, files[0])
                     self.window.update_status(
-                        "[OK] Downloaded file: {}".format(os.path.basename(path))
+                        f"[OK] Downloaded file: {os.path.basename(path)}"
                     )
                 except Exception as e:
                     self.window.core.debug.log(e)
-                    print("Error downloading file: {} - {}".format(path, e))
+                    print(f"Error downloading file: {path} - {e}")
 
     def upload_local(
             self,
@@ -268,9 +265,9 @@ class Files:
                         num += 1
                     except Exception as e:
                         self.window.core.debug.log(e)
-                        print("Error copying file {}: {}".format(file_path, e))
+                        print(f"Error copying file {file_path}: {e}")
                 if num > 0:
-                    self.window.update_status("[OK] Uploaded: {} files.".format(num))
+                    self.window.update_status(f"[OK] Uploaded: {num} files.")
                     self.update_explorer()
 
     def rename(self, path: str):
@@ -299,12 +296,12 @@ class Files:
         new_path = os.path.join(os.path.dirname(path), name)
         if os.path.exists(new_path):
             self.window.update_status(
-                "[ERROR] File already exists: {}".format(os.path.basename(new_path))
+                f"[ERROR] File already exists: {os.path.basename(new_path)}"
             )
             return
         os.rename(path, new_path)
         self.window.update_status(
-            "[OK] Renamed: {} -> {}".format(os.path.basename(path), name)
+           f"[OK] Renamed: {os.path.basename(path)} -> {name}"
         )
         self.window.ui.dialog['rename'].close()
         self.update_explorer()
@@ -328,24 +325,8 @@ class Files:
 
         :param path: path to file or directory
         """
-        if os.path.isdir(path):
-            if not self.window.core.platforms.is_snap():
-                url = QUrl.fromLocalFile(path)
-                QDesktopServices.openUrl(url)
-            else:
-                url = QUrl.fromLocalFile(path)
-                if not QDesktopServices.openUrl(url):
-                    subprocess.run(['gio', 'open', path])
-        else:
-            if not self.window.core.platforms.is_snap():
-                path = self.window.core.filesystem.get_path(path)
-                url = QUrl.fromLocalFile(path)
-                QDesktopServices.openUrl(url)
-            else:
-                path = self.window.core.filesystem.get_path(path)
-                url = QUrl.fromLocalFile(path)
-                QDesktopServices.openUrl(url)
-                #subprocess.run(['gio', 'open', path])
+        path = self.window.core.filesystem.get_path(path)
+        Opener.open_path(path, reveal=False)
 
     def open_in_file_manager(
             self,
@@ -359,20 +340,8 @@ class Files:
         :param select: select file in file manager
         """
         path = self.window.core.filesystem.get_path(path)
-        if select:  # path to file: open containing directory
-            path = self.window.core.filesystem.get_path(
-                os.path.dirname(path)
-            )
-
         if os.path.exists(path):
-            if not self.window.core.platforms.is_snap():
-                url = self.window.core.filesystem.get_url(path)
-                QDesktopServices.openUrl(url)
-                # show_in_file_manager(path, select)
-            else:
-                url = QUrl.fromLocalFile(path)
-                if not QDesktopServices.openUrl(url):
-                    subprocess.run(['gio', 'open', path])
+            Opener.open_path(path, reveal=select)
 
     def make_dir_dialog(self, path: str):
         """
@@ -411,7 +380,7 @@ class Files:
             return
         os.makedirs(path_dir, exist_ok=True)
         self.window.update_status(
-            "[OK] Directory created: {}".format(name)
+            f"[OK] Directory created: {name}"
         )
         self.update_explorer()
 
@@ -473,9 +442,9 @@ class Files:
         :param path: path to file
         """
         if os.path.isdir(path):
-            cmd = "Please list files from directory: {}".format(self.strip_work_path(path))
+            cmd = f"Please list files from directory: {self.strip_work_path(path)}"
         else:
-            cmd = "Please read this file from current directory: {}".format(self.strip_work_path(path))
+            cmd = f"Please read this file from current directory: {self.strip_work_path(path)}"
         self.window.controller.chat.common.append_to_input(cmd)
 
     def make_ts_prefix(self) -> str:
