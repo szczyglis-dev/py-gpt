@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.25 18:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -19,7 +19,7 @@ from pygpt_net.ui.widget.tabs.output import OutputTabs
 
 
 class OutputColumn(QWidget):
-    def __init__(self, window=None):
+    def __init__(self, window=None, idx: Optional[int] = None):
         """
         Output column
 
@@ -28,6 +28,8 @@ class OutputColumn(QWidget):
         super(OutputColumn, self).__init__(window)
         self.window = window
         self.idx = -1
+        if idx is not None:
+            self.idx = idx
         self.tabs = OutputTabs(self.window, column=self)
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.tabs)
@@ -92,8 +94,8 @@ class OutputLayout(QWidget):
         self.columns = []
         self._was_width_zero = None
 
-        column1 = OutputColumn(self.window)
-        column2 = OutputColumn(self.window)
+        column1 = OutputColumn(self.window, idx=0)
+        column2 = OutputColumn(self.window, idx=1)
         self.add_column(column1)
         self.add_column(column2)
 
