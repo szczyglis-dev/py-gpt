@@ -84,7 +84,7 @@ def make_window(store=None):
     db = SimpleNamespace()
     db.get_db = Mock(return_value=None)
     models = SimpleNamespace()
-    models.from_defaults = Mock(return_value=SimpleNamespace())
+    models.from_defaults = Mock(return_value=SimpleNamespace(id="fake"))
     controller = SimpleNamespace()
     controller.idx = SimpleNamespace()
     controller.idx.is_stopped = Mock(return_value=False)

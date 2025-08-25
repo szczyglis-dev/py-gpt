@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.23** | build: **2025-08-25** | Python: **>=3.10, <3.14**
+Release: **2.6.24** | build: **2025-08-26** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3418,6 +3418,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.24 (2025-08-26)**
+
+- The same model is now used for both embedding and query in attachment indexing.
+- Translations have been added to Agents.
 
 **2.6.23 (2025-08-25)**
 

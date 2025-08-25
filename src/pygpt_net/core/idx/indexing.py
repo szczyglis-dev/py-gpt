@@ -1078,7 +1078,7 @@ class Indexing:
         )  # get or create ctx index
 
         idx = f"tmp:{index_path}"  # tmp index id
-        self.window.core.idx.log(f"Indexing to context attachment index: {idx}...")
+        self.window.core.idx.log(f"Indexing to context attachment index: {idx}... using model: {model.id}")
 
         doc_ids = []
         if documents is None:
