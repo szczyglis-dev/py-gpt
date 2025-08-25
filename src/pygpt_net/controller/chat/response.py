@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -264,14 +264,15 @@ class Response:
         if global_mode not in self.AGENT_MODES_ALLOWED:
             return  # no agent mode, nothing to do
 
+        # agent evaluation finish
+        if ctx.extra is not None and (isinstance(ctx.extra, dict) and "agent_eval_finish" in ctx.extra):
+            controller.agent.llama.on_end(ctx)
+            return
+
         # not agent final response
         if ctx.extra is None or (isinstance(ctx.extra, dict) and "agent_finish" not in ctx.extra):
             self.window.update_status(trans("status.agent.reasoning"))
             controller.chat.common.lock_input()  # lock input, re-enable stop button
-
-        if ctx.extra is not None and (isinstance(ctx.extra, dict) and "agent_eval_finish" in ctx.extra):
-            controller.agent.llama.on_end(ctx)
-            return
 
         # agent final response
         if ctx.extra is not None and (isinstance(ctx.extra, dict) and "agent_finish" in ctx.extra):
