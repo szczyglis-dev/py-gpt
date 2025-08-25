@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.25 03:00:00                  #
 # ================================================== #
 
 import os
@@ -35,6 +35,9 @@ class VideoPlayerWidget(QWidget):
         self._QAudioOutput = None
         self._QVideoWidget = None
 
+        self._waiting_position_set = False
+        self._last_position = -1
+
         self.update_timer = QTimer(self)
         self.update_timer.setInterval(200)
         self.update_timer.timeout.connect(self.update_ui)
@@ -47,11 +50,15 @@ class VideoPlayerWidget(QWidget):
         self._video_placeholder.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._video_placeholder.setMinimumSize(640, 480)
 
+        self._icon_play = self.style().standardIcon(QStyle.SP_MediaPlay)
+        self._icon_pause = self.style().standardIcon(QStyle.SP_MediaPause)
+        self._icon_stop = self.style().standardIcon(QStyle.SP_MediaStop)
+
         self.btn_play_pause = QPushButton()
         self.btn_play_pause.setEnabled(False)
 
         self.btn_stop = QPushButton()
-        self.btn_stop.setIcon(self.style().standardIcon(QStyle.SP_MediaStop))
+        self.btn_stop.setIcon(self._icon_stop)
         self.btn_stop.setEnabled(False)
 
         self.btn_mute = QPushButton()
@@ -148,6 +155,7 @@ class VideoPlayerWidget(QWidget):
         self.volume_slider.valueChanged.connect(self.adjust_volume)
         self.slider.sliderPressed.connect(self.on_slider_pressed)
         self.slider.sliderReleased.connect(self.on_slider_released)
+        self.slider.valueChanged.connect(self.on_slider_value_changed)
         self._video_placeholder.mousePressEvent = self.video_widget_clicked
         self.seeking = False
 
@@ -209,7 +217,7 @@ class VideoPlayerWidget(QWidget):
         self.stopped = True
         self.slider.setValue(0)
         self.label_time.setText(self.format_time(0))
-        self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+        self.btn_play_pause.setIcon(self._icon_play)
         self.update_timer.stop()
 
     def toggle_play_pause(self):
@@ -225,11 +233,13 @@ class VideoPlayerWidget(QWidget):
         if self.player and self.player.source():
             self.player.stop()
             self.player.setSource(QUrl())
-        self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+        self.btn_play_pause.setIcon(self._icon_play)
         self.update_timer.stop()
         self.slider.setValue(0)
         self.seeking = False
         self.loaded = False
+        self._waiting_position_set = False
+        self._last_position = -1
 
     def reset_player(self):
         """Reset player to default state"""
@@ -295,6 +305,7 @@ class VideoPlayerWidget(QWidget):
     def on_close(self):
         """Stop video"""
         self.reset()
+        self.autoplay_timer.stop()
 
     def toggle_fullscreen(self):
         """Toggle fullscreen"""
@@ -386,14 +397,20 @@ class VideoPlayerWidget(QWidget):
             return
         if self._QMediaPlayer and self.player.playbackState() == self._QMediaPlayer.PlayingState:
             self.player.pause()
-        self.player.positionChanged.connect(self.on_position_set)
+        self._waiting_position_set = True
         self.player.setPosition(position)
 
     def on_slider_pressed(self):
         """Slider pressed"""
         self.seeking = True
+        self._waiting_position_set = False
         if self.player:
             self.player.pause()
+
+    def on_slider_value_changed(self, value):
+        """Slider value changed"""
+        if self.seeking:
+            self.label_time.setText(self.format_time(value))
 
     def on_slider_released(self):
         """Slider released"""
@@ -401,7 +418,7 @@ class VideoPlayerWidget(QWidget):
             if self.player:
                 self.player.setPosition(self.slider.value())
                 self.update_audio()
-                self.player.play()
+                QTimer.singleShot(0, self.player.play)
             self.seeking = False
 
     def position_changed(self, position):
@@ -410,24 +427,14 @@ class VideoPlayerWidget(QWidget):
 
         :param position: position
         """
-        if not self.seeking:
-            self.slider.setValue(position)
-            self.label_time.setText(self.format_time(position))
-
-    def on_position_set(self, position):
-        """
-        On position set
-
-        :param position: position
-        """
-        if self.seeking and self.player:
-            try:
-                self.player.positionChanged.disconnect(self.on_position_set)
-            except Exception:
-                pass
+        if self._waiting_position_set and self.player:
+            self._waiting_position_set = False
             if self._QMediaPlayer and self.player.playbackState() == self._QMediaPlayer.PausedState:
                 QTimer.singleShot(100, self.player.play)
-            self.seeking = False
+        if not self.seeking:
+            self._last_position = position
+            self.slider.setValue(position)
+            self.label_time.setText(self.format_time(position))
 
     def update_label_path(self):
         """Update label path"""
@@ -439,32 +446,50 @@ class VideoPlayerWidget(QWidget):
     def update_play_pause_icon(self):
         """Update play/pause icon"""
         if self.player and self._QMediaPlayer and self.player.playbackState() == self._QMediaPlayer.PlayingState:
-            self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
-            self.update_timer.start()
+            self.btn_play_pause.setIcon(self._icon_pause)
+            if not self.update_timer.isActive():
+                self.update_timer.start()
         else:
-            self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
-            self.update_timer.stop()
+            self.btn_play_pause.setIcon(self._icon_play)
+            if self.update_timer.isActive():
+                self.update_timer.stop()
 
     def update_audio(self):
         """Re-assign audio"""
         if self.player and self.audio:
-            self.player.setAudioOutput(None)
-            self.player.setAudioOutput(self.audio)
+            try:
+                current = self.player.audioOutput()
+            except Exception:
+                current = None
+            if current is not self.audio:
+                self.player.setAudioOutput(self.audio)
 
     def update_mute_icon(self):
         """Update mute icon"""
         if self.audio:
-            self.btn_mute.setChecked(self.audio.isMuted())
+            muted = self.audio.isMuted()
+            if self.btn_mute.isChecked() != muted:
+                block = self.btn_mute.blockSignals(True)
+                self.btn_mute.setChecked(muted)
+                self.btn_mute.blockSignals(block)
 
     def update_volume_slider(self):
         """Update volume slider"""
         if self.audio:
-            self.volume_slider.setValue(int(self.audio.volume() * 100))
+            v = int(self.audio.volume() * 100)
+            if self.volume_slider.value() != v:
+                block = self.volume_slider.blockSignals(True)
+                self.volume_slider.setValue(v)
+                self.volume_slider.blockSignals(block)
 
     def update_ui(self):
         """Update UI"""
-        if self.player:
-            self.position_changed(self.player.position())
+        if self.player and not self.seeking:
+            pos = self.player.position()
+            if pos != self._last_position:
+                self._last_position = pos
+                self.slider.setValue(pos)
+                self.label_time.setText(self.format_time(pos))
 
     def format_time(self, ms):
         """
