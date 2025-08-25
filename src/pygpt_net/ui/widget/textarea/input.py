@@ -35,7 +35,7 @@ class ChatInput(QTextEdit):
         self.value = self.window.core.config.data['font_size.input']
         self.max_font_size = 42
         self.min_font_size = 8
-        self._text_top_padding = 10
+        self._text_top_padding = 12
         self.textChanged.connect(self.window.controller.ui.update_tokens)
         self.setProperty('class', 'layout-input')
 
@@ -195,12 +195,12 @@ class ChatInput(QTextEdit):
             return
         super().wheelEvent(event)
 
-    # --- Added: attachment button (top-left) ---------------------------------
+    # -------------------- Attachment button (top-left) --------------------
 
     def _init_attachment_button(self):
         """Create and place the '+' attachment button pinned in the top-left corner."""
         self._attach_margin = 6  # inner padding around the button
-        self._attach_offset_y = -6  # shift the button 2px up
+        self._attach_offset_y = -4  # shift the button 2px up
 
         self._attach_btn = QPushButton(self)
         self._attach_btn.setObjectName("chatInputAttachBtn")
