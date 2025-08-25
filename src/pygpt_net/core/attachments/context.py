@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -496,12 +496,12 @@ class Context:
         :param documents: list of documents (optional)
         :return: list of doc IDs
         """
-        model = None
+        model, model_item = self.get_selected_model("query")
         doc_ids = []
         if type == AttachmentItem.TYPE_FILE:
-            doc_ids = self.window.core.idx.indexing.index_attachment(source, idx_path, model, documents)
+            doc_ids = self.window.core.idx.indexing.index_attachment(source, idx_path, model_item, documents)
         elif type == AttachmentItem.TYPE_URL:
-            doc_ids = self.window.core.idx.indexing.index_attachment_web(source, idx_path, model, documents)
+            doc_ids = self.window.core.idx.indexing.index_attachment_web(source, idx_path, model_item, documents)
         if self.is_verbose():
             print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
         return doc_ids
