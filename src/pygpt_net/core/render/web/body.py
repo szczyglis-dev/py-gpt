@@ -881,7 +881,7 @@ class Body:
                         }
                     });
                 });
-                setTimeout(cycleTips, 60000);  // after 60 seconds
+                setTimeout(cycleTips, 10000);  // after 10 seconds
                 </script>
             </head>
             <body """
