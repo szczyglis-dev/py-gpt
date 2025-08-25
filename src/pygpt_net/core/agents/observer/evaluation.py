@@ -212,7 +212,7 @@ class Evaluation:
         return prompt.format(
             task=main_task,
             input=last_input,
-            output=final_response
+            output=final_response,
         )
 
     def get_prompt_complete(self, history: List[CtxItem]) -> str:
@@ -229,7 +229,7 @@ class Evaluation:
         return prompt.format(
             task=main_task,
             input=last_input,
-            output=final_response
+            output=final_response,
         )
 
     def get_tools(self) -> List[FunctionTool]:

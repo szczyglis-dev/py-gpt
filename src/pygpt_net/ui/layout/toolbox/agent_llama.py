@@ -40,7 +40,6 @@ class AgentLlama:
 
         container = QWidget(win)
 
-        nodes['agent.llama.loop.score.label'] = QLabel(trans("toolbox.agent.llama.loop.score.label"), parent=container)
         nodes['agent.llama.loop.score'] = OptionSlider(
             win,
             'global',
@@ -50,7 +49,7 @@ class AgentLlama:
         nodes['agent.llama.loop.score'].setToolTip(trans("toolbox.agent.llama.loop.score.tooltip"))
         config_global['agent.llama.loop.score'] = nodes['agent.llama.loop.score']
 
-        nodes['agent.llama.loop.mode.label'] = QLabel(trans("toolbox.agent.llama.loop.mode.label"), parent=container)
+        nodes['agent.llama.loop.mode.label'] = QLabel(trans("toolbox.agent.llama.loop.mode.label"), parent=win)
         nodes['agent.llama.loop.mode'] = OptionCombo(
             win,
             'global',
@@ -66,7 +65,7 @@ class AgentLlama:
         )
         config_global['agent.llama.loop.enabled'] = nodes['agent.llama.loop.enabled']
 
-        nodes['agent.llama.loop.label'] = QLabel(trans("toolbox.agent.llama.loop.label"), parent=container)
+        nodes['agent.llama.loop.label'] = QLabel(trans("toolbox.agent.llama.loop.label"), parent=win)
 
         cols = QHBoxLayout()
         cols.addWidget(config_global['agent.llama.loop.enabled'])

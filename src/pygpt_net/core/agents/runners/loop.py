@@ -145,6 +145,7 @@ class Loop(BaseRunner):
                 score_label=trans('eval.score'),
                 score=str(score)
             )
+            ctx.extra["agent_eval_finish"] = True
             self.send_response(ctx, signals, KernelEvent.APPEND_END, msg=msg)
             self.set_idle(signals)
             return True
