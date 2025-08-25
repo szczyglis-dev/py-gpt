@@ -104,6 +104,9 @@ class Llama:
 
     def on_end(self):
         """End of run"""
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+            "id": "agent",
+        }))
         self.eval_step = 0  # reset evaluation step
         if self.window.core.config.get("agent.goal.notify"):
             # show notification if enabled and mode is not llama_index

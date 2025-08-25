@@ -150,6 +150,7 @@ class Bridge:
         # async call
         self.window.core.debug.info("[bridge] Starting worker (async)...")
         self.window.threadpool.start(worker)
+        self.worker = worker
         return True
 
     def request_next(
@@ -177,6 +178,7 @@ class Bridge:
 
         # async call
         self.window.threadpool.start(worker)
+        self.worker = worker
         return True
 
     def call(

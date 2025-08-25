@@ -28,7 +28,7 @@ a:hover {{
     color: #fff !important;
 }}
 .msg-user p {{
-    color: #fff !important;
+    color: #fff;
 }}
 .msg-bot {{
     color: #fff;

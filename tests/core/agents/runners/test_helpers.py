@@ -21,6 +21,7 @@ class DummyCtx:
     def __init__(self):
         self.meta = MagicMock()
         self.meta.id = "test_meta_id"
+        self.extra = {}
 
     def set_input(self, text):
         pass

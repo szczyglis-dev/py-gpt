@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.22** | build: **2025-08-25** | Python: **>=3.10, <3.14**
+Release: **2.6.23** | build: **2025-08-25** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3419,6 +3419,14 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.6.23 (2025-08-25)**
+
+- Added an inline "Add a new chat" button to the right of the tabs.
+- Added an "Add Attachment" button in the input field.
+- Improved file open in the system's file manager
+- Fixed the restoration of input text color when changing themes from light to dark.
+- Fixed last eval step finish if 100% complete.
+- 
 **2.6.22 (2025-08-25)**
 
 - UI refactor and optimizations.

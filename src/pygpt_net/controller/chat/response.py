@@ -269,6 +269,10 @@ class Response:
             self.window.update_status(trans("status.agent.reasoning"))
             controller.chat.common.lock_input()  # lock input, re-enable stop button
 
+        if ctx.extra is not None and (isinstance(ctx.extra, dict) and "agent_eval_finish" in ctx.extra):
+            controller.agent.llama.on_end(ctx)
+            return
+
         # agent final response
         if ctx.extra is not None and (isinstance(ctx.extra, dict) and "agent_finish" in ctx.extra):
             controller.agent.llama.on_finish(ctx)  # evaluate response and continue if needed

@@ -1,3 +1,11 @@
+2.6.23 (2025-08-25)
+
+- Added an inline "Add a new chat" button to the right of the tabs.
+- Added an "Add Attachment" button in the input field.
+- Improved file open in the system's file manager
+- Fixed the restoration of input text color when changing themes from light to dark.
+- Fixed last eval step finish if 100% complete.
+
 2.6.22 (2025-08-25)
 
 - UI refactor and optimizations.
