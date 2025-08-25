@@ -434,7 +434,7 @@ class CodeInterpreter(BaseTool):
         self.window.controller.command.dispatch_only(event)
         self.signals.focus_input.emit()
         event = KernelEvent(KernelEvent.STATUS, {
-            'status': "[OK] Kernel restarted at " + strftime("%H:%M:%S") + ".",
+            'status': f"[OK] Kernel restarted at {strftime('%H:%M:%S')}.",
         })
         self.window.dispatch(event)
 
