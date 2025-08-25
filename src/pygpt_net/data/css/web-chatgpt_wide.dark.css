@@ -27,8 +27,14 @@ a:hover {{
     background: #303030;
     color: #fff !important;
 }}
+.msg-user p {{
+    color: #fff !important;
+}}
 .msg-bot {{
     color: #fff;
+}}
+.msg-bot p {{
+    color: #fff !important;
 }}
 .cmd {{
     color: #4d4d4d;
