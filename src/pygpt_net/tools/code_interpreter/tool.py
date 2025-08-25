@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
 import json
@@ -26,7 +26,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 from .ui.html import HtmlOutput, CodeBlock
 
-from .ui.widgets import PythonInput, PythonOutput, ToolWidget, ToolSignals
+from .ui.widgets import PythonInput, ToolWidget, ToolSignals
 
 
 class CodeInterpreter(BaseTool):
@@ -48,6 +48,7 @@ class CodeInterpreter(BaseTool):
         self.ipython = True
         self.auto_opened = False
         self.signals = ToolSignals()
+        self.max_history_size = 1000  # max history lines
 
         # interpreter data files in /data directory
         self.file_current = ".interpreter.current.py"
@@ -366,11 +367,13 @@ class CodeInterpreter(BaseTool):
 
     def save_history(self, input: str):
         """
-        Save input data
+        Save input data (history)
 
         :param input: Input data
         """
         path = self.get_path_input()
+        if self.max_history_size > 0 and isinstance(input, str):
+            input = ''.join(input.splitlines(True)[-self.max_history_size:])
         with open(path , "w", encoding="utf-8") as f:
             f.write(input)
 
