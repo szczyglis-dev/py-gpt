@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 03:00:00                  #
+# Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -19,6 +19,7 @@ from pygpt_net.core.types import (
 from llama_index.core.llms.llm import LLM
 from llama_index.core.tools.types import BaseTool
 
+from pygpt_net.utils import trans
 from .workflow.planner import (
     DEFAULT_INITIAL_PLAN_PROMPT,
     DEFAULT_PLAN_REFINE_PROMPT,
@@ -80,34 +81,34 @@ class PlannerAgent(BaseAgent):
         """
         return {
             "step": {
-                "label": "Execute prompt",
+                "label": trans("agent.planner.step.label"),
                 "options": {
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Steps execute prompt",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.planner.step.prompt.desc"),
                         "default": DEFAULT_EXECUTE_PROMPT,
                     },
                 }
             },
             "plan": {
-                "label": "Planner (initial))",
+                "label": trans("agent.planner.plan.label"),
                 "options": {
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Initial plan prompt",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.planner.plan.prompt.desc"),
                         "default": DEFAULT_INITIAL_PLAN_PROMPT,
                     },
                 }
             },
             "plan_refine": {
-                "label": "Planner (refine)",
+                "label": trans("agent.planner.refine.label"),
                 "options": {
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Plan refine prompt",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.planner.refine.prompt.desc"),
                         "default": DEFAULT_PLAN_REFINE_PROMPT,
                     },
                 }

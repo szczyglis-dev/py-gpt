@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 03:00:00                  #
+# Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -16,6 +16,7 @@ from pygpt_net.core.types import (
     AGENT_MODE_WORKFLOW,
     AGENT_TYPE_LLAMA,
 )
+from pygpt_net.utils import trans
 
 from .workflow.codeact import DEFAULT_CODE_ACT_PROMPT
 from ..base import BaseAgent
@@ -71,23 +72,23 @@ class CodeActAgent(BaseAgent):
         """
         return {
             "base": {
-                "label": "Base prompt",
+                "label": trans("agent.coder.base.label"),
                 "options": {
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Code execute prompt (initial)",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.coder.base.prompt.desc"),
                         "default": DEFAULT_CODE_ACT_PROMPT,
                     },
                 }
             },
             "additional": {
-                "label": "Additional prompt",
+                "label": trans("agent.coder.additional.label"),
                 "options": {
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Additional prompt for agent (will be added to the base prompt)",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.coder.additional.prompt.desc"),
                         "default": "",
                     },
                 }

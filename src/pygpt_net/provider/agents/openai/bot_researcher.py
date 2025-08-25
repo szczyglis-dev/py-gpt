@@ -6,16 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple, Union, Optional
 
 from agents import (
     Agent as OpenAIAgent,
-    Runner,
-    RunConfig,
-    ModelSettings,
 )
 
 from pygpt_net.core.agents.bridge import ConnectionContext
@@ -27,11 +24,9 @@ from pygpt_net.core.types import (
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.gpt.agents.client import get_custom_model_provider, set_openai_env
 from pygpt_net.provider.gpt.agents.remote_tools import append_tools
-from pygpt_net.provider.gpt.agents.response import StreamHandler
+from pygpt_net.utils import trans
 
 from ..base import BaseAgent
 from .bots.research_bot.manager import ResearchManager
@@ -207,82 +202,82 @@ class Agent(BaseAgent):
         """
         return {
             "writer": {
-                "label": "Base agent",
+                "label": trans("agent.option.section.base"),
                 "options": {
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for base agent",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.base.desc"),
                         "default": self.PROMPT_WRITER,
                     },
                     "allow_local_tools": {
                         "type": "bool",
-                        "label": "Allow local tools",
-                        "description": "Allow usage of local tools for this agent",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
                         "default": False,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
-                        "label": "Allow remote tools",
-                        "description": "Allow usage of remote tools for this agent",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
                         "default": False,
                     },
                 }
             },
             "planner": {
-                "label": "Planner",
+                "label": trans("agent.option.section.planner"),
                 "options": {
                     "model": {
-                        "label": "Model",
+                        "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
                     },
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for planner agent",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.planner.desc"),
                         "default": self.PROMPT_PLANNER,
                     },
                     "allow_local_tools": {
                         "type": "bool",
-                        "label": "Allow local tools",
-                        "description": "Allow usage of local tools for this agent",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
                         "default": False,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
-                        "label": "Allow remote tools",
-                        "description": "Allow usage of remote tools for this agent",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
                         "default": False,
                     },
                 }
             },
             "search": {
-                "label": "Search",
+                "label": trans("agent.option.section.search"),
                 "options": {
                     "model": {
-                        "label": "Model",
+                        "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
                     },
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for search agent",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.search.desc"),
                         "default": self.PROMPT_SEARCH,
                     },
                     "allow_local_tools": {
                         "type": "bool",
-                        "label": "Allow local tools",
-                        "description": "Allow usage of local tools for this agent",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
                         "default": False,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
-                        "label": "Allow remote tools",
-                        "description": "Allow usage of remote tools for this agent",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
                         "default": True,
                     },
                 }

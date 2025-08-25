@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -15,8 +15,6 @@ from typing import Dict, Any, Tuple, Literal, Optional
 from agents import (
     Agent as OpenAIAgent,
     Runner,
-    RunConfig,
-    ModelSettings,
     TResponseInputItem,
 )
 
@@ -31,9 +29,9 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.gpt.agents.client import get_custom_model_provider, set_openai_env
-from pygpt_net.provider.gpt.agents.remote_tools import get_remote_tools, is_computer_tool, append_tools
+from pygpt_net.provider.gpt.agents.remote_tools import append_tools
 from pygpt_net.provider.gpt.agents.response import StreamHandler
+from pygpt_net.utils import trans
 
 from ..base import BaseAgent
 from ...gpt.agents.experts import get_experts
@@ -284,9 +282,9 @@ class Agent(BaseAgent):
                 evaluator_result = await Runner.run(evaluator, input_items)
                 result: EvaluationFeedback = evaluator_result.final_output
 
-                info = f"\n___\n**Evaluator score: {result.score}**\n\n"
+                info = f"\n___\n**{trans('agent.eval.score')}: {result.score}**\n\n"
                 if result.score == "pass":
-                    info += "\n\n**Response is good enough, exiting.**\n"
+                    info += f"\n\n**{trans('agent.eval.score.good')}**\n"
                     if use_partial_ctx:
                         ctx = bridge.on_next_ctx(
                             ctx=ctx,
@@ -302,7 +300,7 @@ class Agent(BaseAgent):
                         final_output += info
                     break
 
-                info += "\n\n**Re-running with feedback**\n\n" + f"Feedback: {result.feedback}\n___\n"
+                info += f"\n\n**{trans('agent.eval.next')}**\n\nFeedback: {result.feedback}\n___\n"
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})
 
                 if use_partial_ctx:
@@ -330,53 +328,53 @@ class Agent(BaseAgent):
         """
         return {
             "base": {
-                "label": "Base agent",
+                "label": trans("agent.option.section.base"),
                 "options": {
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for base agent",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.base.desc"),
                         "default": self.PROMPT,
                     },
                     "allow_local_tools": {
                         "type": "bool",
-                        "label": "Allow local tools",
-                        "description": "Allow usage of local tools for this agent",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
                         "default": False,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
-                        "label": "Allow remote tools",
-                        "description": "Allow usage of remote tools for this agent",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
                         "default": False,
                     },
                 }
             },
             "feedback": {
-                "label": "Feedback",
+                "label": trans("agent.option.section.feedback"),
                 "options": {
                     "model": {
-                        "label": "Model",
+                        "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
                     },
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for feedback evaluation",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.feedback.desc"),
                         "default": self.PROMPT_FEEDBACK,
                     },
                     "allow_local_tools": {
                         "type": "bool",
-                        "label": "Allow local tools",
-                        "description": "Allow usage of local tools for this agent",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
                         "default": False,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
-                        "label": "Allow remote tools",
-                        "description": "Allow usage of remote tools for this agent",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
                         "default": False,
                     },
                 }

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.17 02:00:00                  #
+# Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -19,6 +19,7 @@ from pygpt_net.core.types import (
 from llama_index.core.llms.llm import LLM
 from llama_index.core.tools.types import BaseTool
 
+from pygpt_net.utils import trans
 from .workflow.supervisor import (
     get_workflow,
     SUPERVISOR_PROMPT,
@@ -86,29 +87,29 @@ class SupervisorAgent(BaseAgent):
         """
         return {
             "supervisor": {
-                "label": "Supervisor",
+                "label": trans("agent.option.section.supervisor"),
                 "options": {
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for supervisor",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.supervisor.desc"),
                         "default": SUPERVISOR_PROMPT,
                     },
                 }
             },
             "worker": {
-                "label": "Worker",
+                "label": trans("agent.option.section.worker"),
                 "options": {
                     "model": {
-                        "label": "Model",
+                        "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
                     },
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for worker",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.worker.desc"),
                         "default": WORKER_PROMPT,
                     },
                 }

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -31,6 +31,7 @@ from pygpt_net.item.preset import PresetItem
 
 from pygpt_net.provider.gpt.agents.remote_tools import append_tools
 from pygpt_net.provider.gpt.agents.response import StreamHandler
+from pygpt_net.utils import trans
 
 from ..base import BaseAgent
 from ...gpt.agents.experts import get_experts
@@ -73,7 +74,7 @@ class Agent(BaseAgent):
         id = kwargs.get("bot_id", 1)
         option_key = f"bot_{id}"
         kwargs = {
-            "name": "Bot {}".format(id),
+            "name": self.get_option(preset, option_key, "name"),
             "instructions": self.get_option(preset, option_key, "prompt"),
             "model": window.core.agents.provider.get_openai_model(model),
         }
@@ -226,6 +227,7 @@ class Agent(BaseAgent):
             tools=tools,
         )
 
+        bot_1_name = self.get_option(preset, "bot_1", "name")
         bot_1_kwargs = copy.deepcopy(agent_kwargs)
         bot_2_kwargs = copy.deepcopy(agent_kwargs)
 
@@ -239,6 +241,7 @@ class Agent(BaseAgent):
         if model_name_2:
             model_2 = window.core.models.get(model_name_2)
             bot_2_kwargs["model"] = model_2
+        bot_2_name = self.get_option(preset, "bot_2", "name")
         bot_2_kwargs["bot_id"] = 2
         if experts:
             bot_2_kwargs["handoffs"] = experts
@@ -334,7 +337,7 @@ class Agent(BaseAgent):
                 handler.reset()
 
                 # bot 1 title
-                title = "\n\n**Bot 1**\n\n"
+                title = f"\n\n**{bot_1_name}**\n\n"
                 ctx.stream = title
                 bridge.on_step(ctx, begin)
                 begin = False
@@ -380,7 +383,7 @@ class Agent(BaseAgent):
                 handler.reset()
 
                 # bot 2 title
-                title = "\n\n**Bot 2**\n\n"
+                title = f"\n\n**{bot_2_name}**\n\n"
                 ctx.stream = title
                 bridge.on_step(ctx, False)
                 if not use_partial_ctx:
@@ -427,22 +430,27 @@ class Agent(BaseAgent):
             "bot_1": {
                 "label": "Bot 1",
                 "options": {
+                    "name": {
+                        "type": "text",
+                        "label": trans("agent.option.name"),
+                        "default": "Bot 1",
+                    },
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for bot 1",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.b1.desc"),
                         "default": self.PROMPT_BOT_1,
                     },
                     "allow_local_tools": {
                         "type": "bool",
-                        "label": "Allow local tools",
-                        "description": "Allow usage of local tools for this agent",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
                         "default": False,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
-                        "label": "Allow remote tools",
-                        "description": "Allow usage of remote tools for this agent",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
                         "default": False,
                     },
                 }
@@ -450,28 +458,33 @@ class Agent(BaseAgent):
             "bot_2": {
                 "label": "Bot 2",
                 "options": {
+                    "name": {
+                        "type": "text",
+                        "label": trans("agent.option.name"),
+                        "default": "Bot 2",
+                    },
                     "model": {
-                        "label": "Model",
+                        "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
                     },
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for bot 2",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.b2.desc"),
                         "default": self.PROMPT_BOT_2,
                     },
                     "allow_local_tools": {
                         "type": "bool",
-                        "label": "Allow local tools",
-                        "description": "Allow usage of local tools for this agent",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
                         "default": False,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
-                        "label": "Allow remote tools",
-                        "description": "Allow usage of remote tools for this agent",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
                         "default": False,
                     },
                 }

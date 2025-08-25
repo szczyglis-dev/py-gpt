@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
 import json
@@ -16,10 +16,8 @@ from typing import Dict, Any, Tuple, Optional
 from agents import (
     Agent as OpenAIAgent,
     Runner,
-    RunConfig,
     RunContextWrapper,
     SQLiteSession,
-    ModelSettings,
     function_tool,
 )
 
@@ -33,10 +31,10 @@ from pygpt_net.core.types import (
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
-from pygpt_net.provider.gpt.agents.client import get_custom_model_provider, set_openai_env
 from pygpt_net.provider.gpt.agents.remote_tools import append_tools
 from pygpt_net.provider.gpt.agents.response import StreamHandler
 from pygpt_net.provider.gpt.agents.experts import get_experts
+from pygpt_net.utils import trans
 
 from ..base import BaseAgent
 
@@ -199,7 +197,7 @@ class Agent(BaseAgent):
             :param instruction: Instruction for the Worker
             :return: Output from the Worker
             """
-            item_ctx.stream = f"\n\n**Supervisor --> Worker:** {instruction}\n\n"
+            item_ctx.stream = f"\n\n**{trans('agent.name.supervisor')} --> {trans('agent.name.worker')}:** {instruction}\n\n"
             bridge.on_step(item_ctx, True)
             handler.begin = False
             result = await Runner.run(
@@ -295,11 +293,11 @@ class Agent(BaseAgent):
         if action == "ask_user":
             question = response.get("question", "")
             reasoning = response.get("reasoning", "")
-            return f"**Supervisor:** {reasoning}\n\n{question}"
+            return f"**{trans('agent.name.supervisor')}:** {reasoning}\n\n{question}"
         elif action == "final":
             final_answer = response.get("final_answer", "")
             reasoning = response.get("reasoning", "")
-            return f"**Supervisor:** {reasoning}\n\n{final_answer}\n\n"
+            return f"**{trans('agent.name.supervisor')}:** {reasoning}\n\n{final_answer}\n\n"
         else:
             return response.get("final_answer", "")
 
@@ -311,41 +309,41 @@ class Agent(BaseAgent):
         """
         return {
             "supervisor": {
-                "label": "Supervisor",
+                "label": trans("agent.option.section.supervisor"),
                 "options": {
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for supervisor",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.supervisor.desc"),
                         "default": SUPERVISOR_PROMPT,
                     },
                 }
             },
             "worker": {
-                "label": "Worker",
+                "label": trans("agent.option.section.worker"),
                 "options": {
                     "model": {
-                        "label": "Model",
+                        "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
                     },
                     "prompt": {
                         "type": "textarea",
-                        "label": "Prompt",
-                        "description": "Prompt for worker",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.option.prompt.worker.desc"),
                         "default": WORKER_PROMPT,
                     },
                     "allow_local_tools": {
                         "type": "bool",
-                        "label": "Allow local tools",
-                        "description": "Allow usage of local tools for this agent",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
                         "default": True,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
-                        "label": "Allow remote tools",
-                        "description": "Allow usage of remote tools for this agent",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
                         "default": True,
                     },
                 }
