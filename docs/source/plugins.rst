@@ -47,12 +47,13 @@ You can create your own plugin for **PyGPT** at any time. The plugin can be writ
 PyGPT can be extended with:
 
 * custom plugins
-* custom LLM wrappers
+* custom LLMs
 * custom vector store providers
 * custom data loaders
 * custom audio input providers
 * custom audio output providers
 * custom web search engine providers
+* custom agents
 
 See the section ``Extending PyGPT / Adding a custom plugin`` for more details.
 
