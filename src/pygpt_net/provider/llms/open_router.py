@@ -70,6 +70,8 @@ class OpenRouterLLM(BaseLLM):
         """
         from llama_index.llms.openai_like import OpenAILike
         args = self.parse_args(model.llama_index, window)
+        if "model" not in args:
+            args["model"] = model.id
         if "api_key" not in args:
             args["api_key"] = window.core.config.get("api_key_open_router", "")
         if "api_base" not in args:

@@ -431,13 +431,13 @@ class Importer:
                 ]
             elif self.provider == "mistral_ai":
                 m.tool_calls = True
-                m.llama_index['args'] = [
+                m.llama_index['args'].append([
                     {
                         'name': 'api_key',
                         'value': '{api_key_mistral}',
                         'type': 'str'
                     }
-                ]
+                ])
             elif self.provider == "local_ai":
                 m.tool_calls = True
                 m.llama_index['env'] = [
