@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -337,6 +337,8 @@ class Placeholder:
                 items[mid] = model.name
 
         data: List[Dict[str, str]] = []
+        if "allow_empty" in params and params["allow_empty"] is True:
+            data.append({'_': '---'})
         providers = self.window.core.llm.get_choices()
         if not providers:
             for mid, name in sorted(items.items(), key=lambda kv: kv[1].lower()):

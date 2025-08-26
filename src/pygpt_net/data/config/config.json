@@ -52,6 +52,8 @@
   "agent.idx": "base",
   "agent.idx.auto_retrieve": false,
   "agent.iterations": 3,
+  "agent.llama.append_eval": false,
+  "agent.llama.eval_model": "_",
   "agent.llama.idx": "base",
   "agent.llama.loop.enabled": false,
   "agent.llama.loop.score": 75,

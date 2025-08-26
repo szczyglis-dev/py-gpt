@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -92,9 +92,11 @@ class Loop(BaseRunner):
 
         ctx = context.ctx
         self.send_response(ctx, signals, KernelEvent.APPEND_BEGIN)  # lock input, show stop btn
+
         history = context.history
         tools = self.window.core.agents.observer.evaluation.get_tools()
         mode = self.window.core.config.get('agent.llama.loop.mode', "score")
+
         prompt = ""
         if mode == "score":
             prompt = self.window.core.agents.observer.evaluation.get_prompt_score(history)
@@ -106,8 +108,18 @@ class Loop(BaseRunner):
         self.next_instruction = ""  # reset
         self.prev_score = -1  # reset
 
+        # select evaluation model
+        eval_model = ctx.model
+        custom_model = self.window.core.config.get('agent.llama.eval_model', None)
+        if custom_model and custom_model != "_":
+            eval_model = custom_model
+
+        if self.is_verbose():
+            print("[Evaluation] Prompt:", prompt)
+            print("[Evaluation] Running with model:", eval_model)
+
         # run agent once
-        self.run_once(prompt, tools, ctx.model)  # tool will update evaluation
+        self.run_once(prompt, tools, eval_model)  # tool will update evaluation
         return self.handle_evaluation(ctx, self.next_instruction, self.prev_score, signals)
 
     def handle_evaluation(
@@ -134,11 +146,17 @@ class Loop(BaseRunner):
             score=str(score)
         )
         self.set_status(signals, msg)
+
+        if self.is_verbose():
+            print("[Evaluation] Score:", score)
+
         if score < 0:
             self.send_response(ctx, signals, KernelEvent.APPEND_END)
             self.set_idle(signals)
             return True
         good_score = self.window.core.config.get("agent.llama.loop.score", 75)
+        if self.is_verbose():
+            print("[Evaluation] Score needed:", good_score)
         if score >= good_score != 0:
             msg = "{status_finished} {score_label}: {score}%".format(
                 status_finished=trans('status.finished'),
@@ -146,6 +164,8 @@ class Loop(BaseRunner):
                 score=str(score)
             )
             ctx.extra["agent_eval_finish"] = True
+            if self.is_verbose():
+                print("[Evaluation] Stopping. Finish with score:", score)
             self.send_response(ctx, signals, KernelEvent.APPEND_END, msg=msg)
             self.set_idle(signals)
             return True
@@ -182,5 +202,18 @@ class Loop(BaseRunner):
             "agent_idx": preset.idx,
             "agent_provider": preset.agent_provider,
         }
+        if preset.agent_openai:
+            extra["agent_provider"] = preset.agent_provider_openai
+        if self.is_verbose():
+            print("[Evaluation] Instruction:", instruction)
+            print("[Evaluation] Running next step...")
         context.model = self.window.core.models.get(self.window.core.config.get('model'))
         return self.window.core.agents.runner.call(context, extra, signals)
+
+    def is_verbose(self) -> bool:
+        """
+        Check if verbose mode is enabled
+
+        :return: True if verbose mode is enabled
+        """
+        return self.window.core.config.get("agent.llama.verbose", False)

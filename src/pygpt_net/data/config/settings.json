@@ -1954,6 +1954,24 @@
         "advanced": false,
         "tab": "llama"
     },
+    "agent.llama.eval_model": {
+        "section": "agent",
+        "description": "settings.agent.llama.eval_model.desc",
+        "type": "combo",
+        "use": "models",
+        "use_params": {
+            "allow_empty": true
+        },
+        "slider": true,
+        "label": "settings.agent.llama.eval_model",
+        "value": null,
+        "min": 0,
+        "max": 100,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "llama"
+    },
     "agent.llama.append_eval": {
         "section": "agent",
         "description": "settings.agent.llama.append_eval.desc",
@@ -1967,7 +1985,7 @@
         "step": 1,
         "advanced": false,
         "tab": "llama"
-    },
+    },    
     "agent.openai.response.split": {
         "section": "agent",
         "description": "settings.agent.openai.response.split.desc",

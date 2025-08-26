@@ -2430,13 +2430,15 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 **Agents (LlamaIndex / OpenAI)**
 
-- `Max steps (per iteration)` - Max steps is one iteration before goal achieved
+- `Max steps (per iteration)`: Max steps is one iteration before goal achieved
 
-- `Max evaluation steps in loop` - Maximum evaluation steps to achieve the final result, set 0 to infinity
+- `Max evaluation steps in loop`: Maximum evaluation steps to achieve the final result, set 0 to infinity
 
-- `Append and compare previous evaluation prompt in next evaluation` - If enabled, previous improvement prompt will be checked in next eval in loop, default: False
+- `Model for evaluation`: Model used for evaluation with score/percentage (loop). If not selected, then current active model will be used.
 
-- `Split response messages` - Split response messages to separated context items in OpenAI Agents mode.
+- `Append and compare previous evaluation prompt in next evaluation`: If enabled, previous improvement prompt will be checked in next eval in loop, default: False
+
+- `Split response messages`: Split response messages to separated context items in OpenAI Agents mode.
 
 **Autonomous (Legacy agents)**
 

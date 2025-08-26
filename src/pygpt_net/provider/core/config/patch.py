@@ -2304,6 +2304,8 @@ class Patch:
                 print("Migrating config from < 2.6.25...")
                 if "api_key_voyage" not in data:
                     data["api_key_voyage"] = ""
+                if "agent.llama.eval_model" not in data:
+                    data["agent.llama.eval_model"] = "_"
                 if "llama.idx.embeddings.default" in data:
                     providers = []
                     for item in data["llama.idx.embeddings.default"]:
