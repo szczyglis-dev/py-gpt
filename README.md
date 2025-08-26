@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.25** | build: **2025-08-26** | Python: **>=3.10, <3.14**
+Release: **2.6.26** | build: **2025-08-26** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -1153,6 +1153,7 @@ There is built-in support for those LLM providers:
 - `Mistral AI`
 - `Ollama`
 - `OpenAI`
+- `OpenRouter`
 - `Perplexity`
 - `xAI`
 
@@ -3425,6 +3426,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.26 (2025-08-26)**
+
+- Added new provider: OpenRouter (#133).
 
 **2.6.25 (2025-08-26)**
 

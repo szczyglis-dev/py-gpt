@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.26 (2025-08-26)
+
+- Added new provider: OpenRouter (#133).
+
 ## 2.6.25 (2025-08-26)
 
 - Fixed the empty agent ID issue in OpenAI Agents evaluation.

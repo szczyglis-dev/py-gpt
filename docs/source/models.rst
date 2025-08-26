@@ -102,6 +102,7 @@ There is built-in support for those LLM providers:
 * ``Mistral AI``
 * ``Ollama``
 * ``OpenAI``
+* ``OpenRouter``
 * ``Perplexity``
 * ``xAI``
 
