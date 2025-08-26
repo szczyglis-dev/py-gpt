@@ -40,7 +40,7 @@ class OpenRouterLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        from llama_index.embeddings.openai import OpenAIEmbedding
+        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
         args = {}
         if config is not None:
             args = self.parse_args({
@@ -52,7 +52,7 @@ class OpenRouterLLM(BaseLLM):
             args["api_base"] = window.core.config.get("api_endpoint_open_router", "")
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
-        return OpenAIEmbedding(**args)
+        return OpenAILikeEmbedding(**args)
 
     def llama(
             self,

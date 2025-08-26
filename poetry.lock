@@ -3115,6 +3115,21 @@ llama-index-core = ">=0.12.0,<0.13.0"
 openai = ">=1.1.0"
 
 [[package]]
+name = "llama-index-embeddings-openai-like"
+version = "0.1.1"
+description = "llama-index embeddings openai integration"
+optional = false
+python-versions = "<4.0,>=3.9"
+groups = ["main"]
+files = [
+    {file = "llama_index_embeddings_openai_like-0.1.1-py3-none-any.whl", hash = "sha256:e9b49ce66b2f1ec27818b653541d8ce3fcdcbecea56c6c10e3180ff1251132d2"},
+    {file = "llama_index_embeddings_openai_like-0.1.1.tar.gz", hash = "sha256:95b460a43415866d1e74c4e0f884af8d9e828051b39ae15e5b438dc3e3ede71f"},
+]
+
+[package.dependencies]
+llama-index-embeddings-openai = ">=0.3.0,<0.4"
+
+[[package]]
 name = "llama-index-embeddings-voyageai"
 version = "0.3.6"
 description = "llama-index embeddings voyageai integration"
@@ -9311,4 +9326,4 @@ cffi = ["cffi (>=1.17) ; python_version >= \"3.13\" and platform_python_implemen
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "91a57e5b207a06c732fc37fd7feb5f184337e79dcedd044bf17b9d5ff2b3098a"
+content-hash = "dd9053311c7238d1c4336e8755cf8e86e7ba7f2e7f9961b272cc525ad443229a"

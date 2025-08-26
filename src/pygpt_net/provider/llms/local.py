@@ -39,7 +39,7 @@ class LocalLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        from llama_index.embeddings.openai import OpenAIEmbedding
+        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
         args = {}
         if config is not None:
             args = self.parse_args({
@@ -47,7 +47,7 @@ class LocalLLM(BaseLLM):
             }, window)
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
-        return OpenAIEmbedding(**args)
+        return OpenAILikeEmbedding(**args)
 
     def llama(
             self,
@@ -65,6 +65,8 @@ class LocalLLM(BaseLLM):
         """
         from llama_index.llms.openai_like import OpenAILike
         args = self.parse_args(model.llama_index, window)
+        if "model" not in args:
+            args["model"] = model.id
         if "is_chat_model" not in args:
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
