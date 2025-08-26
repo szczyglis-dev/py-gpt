@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.08.26 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -2333,6 +2333,15 @@ class Patch:
                             "provider": "x_ai",
                             "model": "",
                         })
+                updated = True
+
+            # < 2.6.26
+            if old < parse_version("2.6.26"):
+                print("Migrating config from < 2.6.26...")
+                if "api_key_open_router" not in data:
+                    data["api_key_open_router"] = ""
+                if "api_endpoint_open_router" not in data:
+                    data["api_endpoint_open_router"] = "https://openrouter.ai/api/v1"
                 updated = True
 
         # update file

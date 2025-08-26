@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.08.26 23:00:00                  #
 # ================================================== #
 
 OPENAI_COMPATIBLE_PROVIDERS = [
@@ -21,6 +21,7 @@ OPENAI_COMPATIBLE_PROVIDERS = [
     "perplexity",
     "deepseek_api",
     "x_ai",
+    "open_router",
 ]
 
 OPENAI_DISABLE_TOOLS = [

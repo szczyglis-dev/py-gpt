@@ -77,6 +77,7 @@
   "api_endpoint_anthropic": "https://api.anthropic.com/v1",
   "api_endpoint_mistral": "https://api.mistral.ai/v1",
   "api_endpoint_hugging_face": "https://router.huggingface.co/v1",
+  "api_endpoint_open_router": "https://openrouter.ai/api/v1",
   "api_key": "",
   "api_key_google": "",
   "api_key_anthropic": "",
@@ -86,6 +87,7 @@
   "api_key_xai": "",
   "api_key_mistral": "",
   "api_key_voyage": "",
+  "api_key_open_router": "",
   "api_proxy": "",
   "api_use_responses": true,
   "api_use_responses_llama": false,
@@ -244,6 +246,16 @@
           "name": "model_name",
           "value": "text-embedding-3-small",
           "type": "str"
+      },
+      {
+          "name": "api_base",
+          "value": "https://api.openai.com/v1",
+          "type": "str"
+      },
+      {
+          "name": "timeout",
+          "value": 60,
+          "type": "float"
       }
   ],
   "llama.idx.embeddings.env": [

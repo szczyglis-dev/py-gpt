@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.08.26 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -449,6 +449,20 @@ class Importer:
                     {
                         'name': 'OPENAI_API_BASE',
                         'value': '{api_endpoint}',
+                        'type': 'str'
+                    }
+                ]
+            elif self.provider == "open_router":
+                m.tool_calls = True
+                m.llama_index['env'] = [
+                    {
+                        'name': 'OPENAI_API_KEY',
+                        'value': '{api_key_open_router}',
+                        'type': 'str'
+                    },
+                    {
+                        'name': 'OPENAI_API_BASE',
+                        'value': '{api_endpoint_open_router}',
                         'type': 'str'
                     }
                 ]

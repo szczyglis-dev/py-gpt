@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.08.26 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -498,6 +498,10 @@ class Models:
                 args["api_key"] = cfg.get('api_key_hugging_face', "")
                 args["base_url"] = cfg.get('api_endpoint_hugging_face', "")
                 self.window.core.debug.info("[api] Using client: HuggingFace Router API")
+            elif model.provider == "open_router":
+                args["api_key"] = cfg.get('api_key_open_router', "")
+                args["base_url"] = cfg.get('api_endpoint_open_router', "")
+                self.window.core.debug.info("[api] Using client: OpenRouter API")
             elif model.provider == "ollama":
                 args["api_key"] = "ollama"
                 args["base_url"] = self.window.core.models.ollama.get_base_url() + "/v1"

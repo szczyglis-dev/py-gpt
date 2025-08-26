@@ -388,6 +388,40 @@
         "advanced": false,
         "tab": "Voyage"
     },
+    "api_key_open_router": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.open_router",
+        "description": "settings.api_key.open_router.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "OpenRouter"
+    },
+    "api_endpoint_open_router": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_open_router",
+        "description": "settings.api_endpoint_open_router.desc",
+        "value": "https://openrouter.ai/api/v1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "OpenRouter"
+    },
     "app.env": {
         "section": "general",
         "type": "dict",

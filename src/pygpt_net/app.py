@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.26 23:00:00                  #
 # ================================================== #
 
 import os
@@ -124,6 +124,7 @@ from pygpt_net.provider.llms.ollama import OllamaLLM
 from pygpt_net.provider.llms.openai import OpenAILLM
 from pygpt_net.provider.llms.perplexity import PerplexityLLM
 from pygpt_net.provider.llms.x_ai import xAILLM
+from pygpt_net.provider.llms.open_router import OpenRouterLLM
 
 # vector store providers (llama-index)
 from pygpt_net.provider.vector_stores.chroma import ChromaProvider
@@ -430,6 +431,7 @@ def run(**kwargs):
     launcher.add_llm(DeepseekApiLLM())
     launcher.add_llm(PerplexityLLM())
     launcher.add_llm(xAILLM())
+    launcher.add_llm(OpenRouterLLM())
 
     # register LLMs
     llms = kwargs.get('llms', None)
