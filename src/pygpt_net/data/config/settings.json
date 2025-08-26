@@ -1697,6 +1697,24 @@
         "advanced": false,
         "tab": "embeddings"
     },
+    "llama.idx.embeddings.default": {
+        "section": "llama-index",
+        "type": "dict",
+        "keys": {
+            "provider": {
+                "type": "combo",
+                "use": "embeddings_providers"
+            },
+            "model": {
+                "type": "str"
+            }
+        },
+        "label": "settings.llama.idx.embeddings.default",
+        "description": "settings.llama.idx.embeddings.default.desc",
+        "value": [],
+        "advanced": false,
+        "tab": "embeddings"
+    },
     "llama.idx.recursive": {
         "section": "llama-index",
         "type": "bool",

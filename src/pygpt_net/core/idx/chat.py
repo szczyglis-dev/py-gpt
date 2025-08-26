@@ -656,7 +656,7 @@ class Chat:
         """
         if model is None:
             model = self.window.core.models.from_defaults()
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False, auto_embed=True)
         index = self.storage.get_ctx_idx(path, llm, embed_model)
 
         # 1. try to retrieve directly from index

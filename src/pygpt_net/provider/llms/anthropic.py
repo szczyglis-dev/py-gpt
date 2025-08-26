@@ -63,11 +63,12 @@ class AnthropicLLM(BaseLLM):
         :param window: window instance
         :return: list of models
         """
-        items = []
-        from llama_index.llms.anthropic import Anthropic
-        api_key = window.core.config.get('api_key_anthropic', "")
-        client = Anthropic(api_key=api_key)
+        import anthropic
+        client = anthropic.Anthropic(
+            api_key=window.core.config.get('api_key_anthropic', "")
+        )
         models_list = client.models.list()
+        items = []
         if models_list.data:
             for item in models_list.data:
                 items.append({

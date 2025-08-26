@@ -2291,6 +2291,14 @@ class Patch:
                 self.window.core.updater.patch_css('web-blocks.light.css', True)
                 updated = True
 
+            # < 2.6.24
+            if old < parse_version("2.6.24"):
+                print("Migrating config from < 2.6.24...")
+                if "llama.idx.embeddings.default" not in data:
+                    data["llama.idx.embeddings.default"] = self.window.core.config.get_base(
+                        'llama.idx.embeddings.default')
+                updated = True
+
         # update file
         migrated = False
         if updated:

@@ -67,13 +67,13 @@ class GoogleLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        from llama_index.embeddings.gemini import GeminiEmbedding
+        from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
         args = {}
         if config is not None:
             args = self.parse_args({
                 "args": config,
             }, window)
-        return GeminiEmbedding(**args)
+        return GoogleGenAIEmbedding(**args)
 
     def get_models(
             self,

@@ -3421,8 +3421,11 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.6.24 (2025-08-26)**
 
-- The same model is now used for both embedding and query in attachment indexing.
+- Added a new option: LlamaIndex -> Embeddings -> Default embedding providers for attachments.
+- The same model provider is now used for both embedding and RAG query in attachment indexing.
 - Translations have been added to Agents.
+- Fixed fetching Anthropic models list.
+- Added Google GenAI Embeddings.
 
 **2.6.23 (2025-08-25)**
 

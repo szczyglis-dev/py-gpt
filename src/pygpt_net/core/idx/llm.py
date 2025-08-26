@@ -19,7 +19,7 @@ from llama_index.llms.openai import OpenAI
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
-    MODEL_DEFAULT_MINI,
+    MODEL_DEFAULT_MINI, MODE_CHAT,
 )
 from pygpt_net.item.model import ModelItem
 
@@ -128,14 +128,70 @@ class Llm:
             self,
             model: Optional[ModelItem] = None,
             stream: bool = False,
+            auto_embed: bool = False,
     ):
         """
         Get service context + embeddings provider
 
         :param model: Model item (for query)
         :param stream: Stream mode (True to enable streaming)
+        :param auto_embed: Auto-detect embeddings provider based on model capabilities
         :return: Service context instance
         """
         llm = self.get(model=model, stream=stream)
-        embed_model = self.get_embeddings_provider()
+        if not auto_embed:
+            embed_model = self.get_embeddings_provider()
+        else:
+            embed_model = self.get_custom_embed_provider(model=model)
         return llm, embed_model
+
+
+    def get_custom_embed_provider(self, model: Optional[ModelItem] = None) -> Optional[BaseEmbedding]:
+        """
+        Get custom embeddings provider based on model
+
+        :param model: Model item
+        :return: Embeddings provider instance or None
+        """
+        # base_embedding_provider = self.window.core.config.get("llama.idx.embeddings.provider", self.default_embed)
+        # if base_embedding_provider == model.provider:
+            # return self.get_embeddings_provider()
+
+        embed_model = None
+        args = []
+
+        # try to get custom args from config for the model provider
+        is_custom_provider = False
+        default = self.window.core.config.get("llama.idx.embeddings.default", [])
+        for item in default:
+            provider = item.get("provider", "")
+            if provider and provider == model.provider:
+                is_custom_provider = True
+                m = ModelItem()
+                m.provider = model.provider
+                client_args = self.window.core.models.prepare_client_args(MODE_CHAT, m)
+                model_name = item.get("model", "")
+                if not model_name:
+                    model_name = model.id  # fallback to model id if not set in config (Ollama, etc)
+                args = [
+                    {
+                        "name": "model_name",
+                        "type": "str",
+                        "value": model_name,
+                    },
+                    {
+                        "name": "api_key",
+                        "type": "str",
+                        "value": client_args.get("api_key", ""),
+                    }
+                ]
+                break
+
+        if is_custom_provider:
+            embed_model = self.window.core.llm.llms[model.provider].get_embeddings_model(
+                window=self.window,
+                config=args,
+            )
+        if not embed_model:
+            embed_model = self.get_embeddings_provider()
+        return embed_model

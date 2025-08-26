@@ -722,9 +722,9 @@ google-auth==2.40.3 ; python_version >= "3.10" and python_version < "3.14" \
 google-auth[requests]==2.40.3 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:1370d4593e86213563547f97a92752fc658456fe4514c809544f330fed45a7ca \
     --hash=sha256:500c3a29adedeb36ea9cf24b8d10858e152f2412e3ca37829b3fa18e33d63b77
-google-genai==1.23.0 ; python_version >= "3.10" and python_version < "3.14" \
-    --hash=sha256:59d603e35440fb1e61482264ee214d17f8c4ed9d29ec08cd4a6de8d090aaabb9 \
-    --hash=sha256:a3ce7803ac3b038d4c4e166070451b560278c9f20cd819650debd17cd69cb1b3
+google-genai==1.31.0 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:5c6959bcf862714e8ed0922db3aaf41885bacf6318751b3421bf1e459f78892f \
+    --hash=sha256:8572b47aa684357c3e5e10d290ec772c65414114939e3ad2955203e27cd2fcbc
 google-generativeai==0.8.5 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:22b420817fb263f8ed520b33285f45976d5b21e904da32b80d4fd20c055123a2
 googleapis-common-protos==1.70.0 ; python_version >= "3.10" and python_version < "3.14" \
@@ -1083,6 +1083,9 @@ llama-index-embeddings-azure-openai==0.3.8 ; python_version >= "3.10" and python
 llama-index-embeddings-gemini==0.3.2 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:4a47b59aa355057622adfdc118502466a785cb05e7b4c2c736e47ffa98c3ba95 \
     --hash=sha256:cf9798a2669fd67fb6b8e3bf92afabbf5d17b462953f48468a70e13e56e5424f
+llama-index-embeddings-google-genai==0.2.1 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:aee3e7f91684cb1e4df3b53f659ab1c6a60591d46ad95643a9fd88158472470b \
+    --hash=sha256:be1eaf71166acd91ae526d27b46ebd66cd16ba34620a4b9721d566df6742f8db
 llama-index-embeddings-huggingface-api==0.3.1 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:01053be04bc607879e9c00932f501e9645d4c2b5daac6a234961b5d133cca82e \
     --hash=sha256:a12b1a48b36a6d86437bd25e89acf9426dd6bb040dbb7485052f8f7d6646b781

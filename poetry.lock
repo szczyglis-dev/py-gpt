@@ -1776,14 +1776,14 @@ tool = ["click (>=6.0.0)"]
 
 [[package]]
 name = "google-genai"
-version = "1.23.0"
+version = "1.31.0"
 description = "GenAI Python SDK"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "google_genai-1.23.0-py3-none-any.whl", hash = "sha256:59d603e35440fb1e61482264ee214d17f8c4ed9d29ec08cd4a6de8d090aaabb9"},
-    {file = "google_genai-1.23.0.tar.gz", hash = "sha256:a3ce7803ac3b038d4c4e166070451b560278c9f20cd819650debd17cd69cb1b3"},
+    {file = "google_genai-1.31.0-py3-none-any.whl", hash = "sha256:5c6959bcf862714e8ed0922db3aaf41885bacf6318751b3421bf1e459f78892f"},
+    {file = "google_genai-1.31.0.tar.gz", hash = "sha256:8572b47aa684357c3e5e10d290ec772c65414114939e3ad2955203e27cd2fcbc"},
 ]
 
 [package.dependencies]
@@ -1792,7 +1792,7 @@ google-auth = ">=2.14.1,<3.0.0"
 httpx = ">=0.28.1,<1.0.0"
 pydantic = ">=2.0.0,<3.0.0"
 requests = ">=2.28.1,<3.0.0"
-tenacity = ">=8.2.3,<9.0.0"
+tenacity = ">=8.2.3,<9.2.0"
 typing-extensions = ">=4.11.0,<5.0.0"
 websockets = ">=13.0.0,<15.1.0"
 
@@ -2930,6 +2930,22 @@ files = [
 [package.dependencies]
 google-generativeai = ">=0.5.2"
 llama-index-core = ">=0.12.0,<0.13.0"
+
+[[package]]
+name = "llama-index-embeddings-google-genai"
+version = "0.2.1"
+description = "llama-index embeddings google genai integration"
+optional = false
+python-versions = "<4.0,>=3.9"
+groups = ["main"]
+files = [
+    {file = "llama_index_embeddings_google_genai-0.2.1-py3-none-any.whl", hash = "sha256:aee3e7f91684cb1e4df3b53f659ab1c6a60591d46ad95643a9fd88158472470b"},
+    {file = "llama_index_embeddings_google_genai-0.2.1.tar.gz", hash = "sha256:be1eaf71166acd91ae526d27b46ebd66cd16ba34620a4b9721d566df6742f8db"},
+]
+
+[package.dependencies]
+google-genai = ">=1.24.0,<2"
+llama-index-core = ">=0.12.0,<0.13"
 
 [[package]]
 name = "llama-index-embeddings-huggingface-api"
@@ -8950,4 +8966,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "3d77ef008aca39d00ba80dff41e02d6319fed945207205b444f69b567b86cc36"
+content-hash = "b769d5eb923bfda4edea7597bcc391407ee7472c6ee881233140d3c3dfdf0ff2"

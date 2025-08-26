@@ -253,6 +253,24 @@
           "value": "{api_endpoint}"
       }
   ],
+  "llama.idx.embeddings.default": [
+    {
+        "provider": "google",
+        "model": "gemini-embedding-001"
+    },
+    {
+        "provider": "openai",
+        "model": "text-embedding-3-small"
+    },
+    {
+        "provider": "azure_openai",
+        "model": "text-embedding-3-small"
+    },
+    {
+        "provider": "ollama",
+        "model": ""
+    }
+  ],
   "llama.idx.embeddings.limit.rpm": 100,
   "llama.idx.excluded.ext": "3g2,3gp,7z,a,aac,aiff,alac,apk,apk,apng,app,ar,avif,bin,cab,class,deb,deb,dll,dmg,dmg,drv,dsd,dylib,dylib,ear,egg,elf,esd,exe,flac,flv,heic,heif,ico,img,iso,jar,ko,lib,lz,lz4,m2v,mpc,msi,nrg,o,ogg,ogv,pcm,pkg,pkg,psd,pyc,rar,rpm,rpm,so,so,svg,swm,sys,vdi,vhd,vhdx,vmdk,vob,war,whl,wim,wma,wmv,xz,zst",
   "llama.idx.excluded.force": false,
