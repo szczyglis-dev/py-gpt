@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.25 20:00:00                  #
+# Updated Date: 2025.08.27 00:00:00                  #
 # ================================================== #
 
 import os
@@ -50,6 +50,9 @@ class Theme:
 
         :param name: theme name
         """
+        current = self.window.core.config.get('theme')
+        if name == current:
+            return
         self.window.update_status(trans("status.reloading"))
         QApplication.processEvents()
         self.toggle(name, force=True)
