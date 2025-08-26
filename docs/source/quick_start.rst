@@ -1,12 +1,11 @@
 Quick Start
 ===========
 
-Setting-up OpenAI API KEY
--------------------------
+**Setting-up API Key**
 
-**Tip:** The API key is required to work with the OpenAI API. If you wish to use custom API endpoints or local API that do not require API keys, simply enter anything into the API key field to avoid a prompt about the API key being empty.
+You can configure API keys for various providers, such as ``OpenAI``, ``Anthropic``, ``Google``, ``xAI``, ``Perplexity``, ``OpenRouter``, and more. This flexibility allows you to use different providers based on your needs.
 
-During the initial launch, you must configure your API key within the application.
+During the initial setup, configure your API keys within the application.
 
 To do so, navigate to the menu:
 
@@ -14,20 +13,20 @@ To do so, navigate to the menu:
 
    Config -> Settings -> API Keys
 
-
-and then paste the API key into the ``OpenAI API KEY`` field.
+Here, you can add or manage API keys for any supported provider.
 
 .. image:: images/v2_api_keys.png
    :width: 400
 
+**Configuring Provider**
 
-The API key can be obtained by registering on the OpenAI website:
+1. **Select the Provider:** Choose a tab with provider.
+2. **Enter the API Key:** Paste the corresponding API key for the selected provider.
 
-https://platform.openai.com
+**Example**
 
-Your API keys will be available here:
+- **OpenAI:** Obtain your API key by registering on the OpenAI website: https://platform.openai.com and navigating to https://platform.openai.com/account/api-keys.
+- **Anthropic, Google, etc.:** Follow similar steps on their respective platforms.
 
-https://platform.openai.com/account/api-keys
-
-
-**Note:** the ability to use models in the application depends on the API user's access to a given model!
+.. note::
+   The ability to use models or services depends on your access level with the respective provider. If you wish to use custom API endpoints or local APIs that do not require API keys, simply enter any value into the API key field to bypass prompts about an empty key.

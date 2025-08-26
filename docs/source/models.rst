@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has built-in support for models (as of 2025-07-26):
+PyGPT has a preconfigured list of models (as of 2025-07-26):
 
 - ``bielik-11b-v2.3-instruct:Q4_K_M`` (Ollama)
 - ``chatgpt-4o-latest`` (OpenAI)
@@ -83,7 +83,10 @@ PyGPT has built-in support for models (as of 2025-07-26):
 All models are specified in the configuration file ``models.json``, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by ``OpenAI API`` (or compatible) and those supported by ``LlamaIndex`` or ``Ollama`` to this file. Configuration for LlamaIndex in placed in ``llama_index`` key.
 
-**Tip**: Anthropic and Deepseek API providers use VoyageAI for embeddings, so you must also configure the Voyage API key if you want to use embeddings from these providers.
+You can import new models by manually editing ``models.json`` or by using the model importer in the ``Config -> Models -> Import`` menu.
+
+.. tip::
+    Anthropic and Deepseek API providers use VoyageAI for embeddings (Chat with Files and attachments RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
 
 Adding a custom model
 ---------------------

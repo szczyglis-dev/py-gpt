@@ -16,6 +16,7 @@ PyGPT can be extended with:
 * custom audio input providers
 * custom audio output providers
 * custom web search engine providers
+* custom agents (LlamaIndex or OpenAI Agents)
 
 **Examples (tutorial files)** 
 
@@ -66,6 +67,10 @@ To register custom web providers:
 
 - Pass a list with the web provider instances as ``web`` keyword argument.
 
+To register an agent:
+
+- Pass a list with the agent instances as ``agents`` keyword argument.
+
 
 Adding a custom model
 ---------------------
@@ -107,9 +112,10 @@ Example of models configuration - ``%WORKDIR%/models.json``:
     },
 
 
-**Tip**: ``{api_key}`` in ``models.json`` is a placeholder for the main OpenAI API KEY from the settings. It will be replaced by the configured key value.
+.. tip::
+    ``{api_key}`` in ``models.json`` is a placeholder for the main OpenAI API KEY from the settings. It will be replaced by the configured key value.
 
-There is built-in support for those LLMs providers:
+There is built-in support for those LLM providers:
 
 * ``Anthropic``
 * ``Azure OpenAI``
@@ -119,6 +125,7 @@ There is built-in support for those LLMs providers:
 * ``Local models`` (OpenAI API compatible)
 * ``Ollama``
 * ``OpenAI``
+* ``OpenRouter``
 * ``Perplexity``
 * ``xAI``
 

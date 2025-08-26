@@ -16,7 +16,9 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 **PyGPT** makes it simple for users to upload files and send them to the model for tasks like analysis, similar to attaching files in ``ChatGPT``. There's a separate ``Attachments`` tab next to the text input area specifically for managing file uploads. 
 
-**Tip: Attachments uploaded in group are available in all contexts in group**.
+
+.. tip::
+   Attachments uploaded in group are available in all contexts in group.
 
 .. image:: images/v2_file_input.png
    :width: 800
@@ -64,6 +66,12 @@ Files such as jpg, png, and similar images are a special case. By default, image
 **Uploading larger files and auto-index**
 
 To use the ``RAG`` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the ``Auto-index on upload`` option in the ``Attachments`` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the ``Full context`` option, which does not use the index, you can disable the ``Auto-index`` option to speed up the upload of the attachment. In this case, it will only be indexed when the ``RAG`` option is called for the first time, and until then, attachment will be available in the form of ``Full context`` and ``Summary``.
+
+**Embeddings**
+
+When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: ``Config -> Settings -> Files and Attachments``. You can also choose the embedding models for specified providers in ``Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Default embedding models`` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
+
+For example, if the RAG query model is ``gpt-4o-mini``, then the default model for the provider ``OpenAI`` will be used. If the default model for ``OpenAI`` is not specified on the list, the global provider and model will be used.
 
 Downloading files
 -----------------

@@ -53,7 +53,7 @@ PyGPT can be extended with:
 * custom audio input providers
 * custom audio output providers
 * custom web search engine providers
-* custom agents
+* custom agents (LlamaIndex or OpenAI Agents)
 
 See the section ``Extending PyGPT / Adding a custom plugin`` for more details.
 
@@ -361,7 +361,9 @@ Both ``OpenAI TTS`` and ``OpenAI Whisper`` use the same single API key provided 
 Autonomous Agent (inline)
 -------------------------
 
-**WARNING: Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
+
+.. warning::
+   **Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
 The plugin activates autonomous mode in standard chat modes, where AI begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
@@ -377,7 +379,8 @@ You can adjust the number of iterations for the self-conversation in the ``Plugi
 
 *Default:* `3`
 
-**WARNING**: Setting this option to ``0`` activates an **infinity loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
+.. warning::
+   Setting this option to ``0`` activates an **infinity loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
 
 - ``Prompts`` *prompts*
 
@@ -627,7 +630,7 @@ To use IPython in sandbox mode, Docker must be installed on your system.
 
 You can find the installation instructions here: https://docs.docker.com/engine/install/
 
-**Tip: connecting IPython in Docker in Snap version**:
+**Connecting IPython in Docker in Snap version**:
 
 To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
@@ -644,9 +647,11 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 .. image:: images/v2_python.png
    :width: 600
 
-**INFO:** Executing Python code using IPython in compiled versions requires an enabled sandbox (Docker container). You can connect the Docker container via ``Plugins -> Settings``.
+.. important::
+   Executing Python code using IPython in compiled versions requires an enabled sandbox (Docker container). You can connect the Docker container via ``Plugins -> Settings``.
 
-**Tip:** always remember to enable the ``+ Tools`` option to allow execute commands from the plugins.
+.. tip::
+   always remember to enable the ``+ Tools`` option to allow execute commands from the plugins.
 
 **Options:**
 
@@ -1662,9 +1667,10 @@ SMTP Password.
 Mouse And Keyboard
 -------------------
 
-Introduced in version: `2.4.4` (2024-11-09)
+Introduced in version: ``2.4.4`` (2024-11-09)
 
-**WARNING: Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**
+.. warning::
+   **Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**
 
 The plugin allows for controlling the mouse and keyboard by the model. With this plugin, you can send a task to the model, e.g., "open notepad, type something in it" or "open web browser, do search, find something."
 
@@ -1769,7 +1775,8 @@ Serial port / USB
 
 Provides commands for reading and sending data to USB ports.
 
-**Tip:** in Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
+.. note::
+   In the Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
 
 You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
 
@@ -2300,7 +2307,8 @@ Vision (inline)
 
 The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
 
-**Tip:** When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
+.. tip::
+   When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
 
 **Options**
 

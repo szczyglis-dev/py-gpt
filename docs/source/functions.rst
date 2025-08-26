@@ -15,7 +15,8 @@ In background, **PyGPT** uses an internal syntax to define commands and their pa
 
 It is a JSON object wrapped between ``<tool>`` tags. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the ``Custom Commands`` plugin, or simply by creating your own plugin and adding it to the application.
 
-**Tip:** The ``+ Tools`` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens and may slow down local models).
+.. tip::
+	The ``+ Tools`` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens and may slow down local models).
 
 .. image:: images/v2_code_execute.png
    :width: 400

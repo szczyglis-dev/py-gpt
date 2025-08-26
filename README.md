@@ -374,39 +374,39 @@ Please go to `Debugging and Logging` section for instructions on how to log and 
 
 ## Setting-up OpenAI API KEY
 
-**Tip:** The API key is required to work with the OpenAI API. If you wish to use custom API endpoints or local API that do not require API keys, simply enter anything into the API key field to avoid a prompt about the API key being empty.
+You can configure API keys for various providers, such as OpenAI, Anthropic, Google, xAI, Perplexity, OpenRouter, and more. This flexibility allows you to use different providers based on your needs.
 
-During the initial launch, you must configure your API key within the application.
+During the initial setup, configure your API keys within the application.
 
 To do so, navigate to the menu:
 
-``` ini
-Config -> Settings -> API Keys
-```
+`Config -> Settings -> API Keys`
 
-and then paste the API key into the `OpenAI API KEY` field.
+Here, you can add or manage API keys for any supported provider.
 
 ![v2_api_keys](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_api_keys.png)
 
-The API key can be obtained by registering on the OpenAI website:
+**Configuring Provider**
 
-<https://platform.openai.com>
+1. **Select the Provider:** Choose a tab with provider.
+2. **Enter the API Key:** Paste the corresponding API key for the selected provider.
 
-Your API keys will be available here:
+**Example**
 
-<https://platform.openai.com/account/api-keys>
+- **OpenAI:** Obtain your API key by registering on the OpenAI website: https://platform.openai.com and navigating to https://platform.openai.com/account/api-keys.
+- **Anthropic, Google, etc.:** Follow similar steps on their respective platforms.
 
-**Note:** The ability to use models within the application depends on the API user's access to a given model!
+**Note:** The ability to use models or services depends on your access level with the respective provider. If you wish to use custom API endpoints or local APIs that do not require API keys, simply enter any value into the API key field to bypass prompts about an empty key.
 
-# Working modes
+# Work modes
 
 ## Chat
 
 **+ Inline Vision and Image generation**
 
-This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `o1`, `o3`, `GPT-4`, `GPT-4o` and  `Claude`, `Gemini`, `Grok`, `Perplexity`, `Deepseek`. It works by using the `Responses` and `ChatCompletions` OpenAI API (or compatible). You can select the API endpoint to use in: `Config -> Settings -> API Keys`.
+This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `GPT-5`, `GPT-4`, `o1`, `o3`, and`Claude`, `Gemini`, `Grok`, `Perplexity (sonar)`, `Deepseek`, and others. It works by using the `Responses` and `ChatCompletions` OpenAI API (or compatible). You can select the API endpoint to use in: `Config -> Settings -> API Keys`.
 
-**Tip: This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, Grok, Sonar, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints (if available), which the application switches to in the background when working with models other than OpenAI.**
+**Tip: This mode directly uses the OpenAI SDK. Other models, such as Gemini, Claude, Grok, Sonar, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints (if available), which the application switches to in the background when working with models other than OpenAI.**
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
@@ -514,7 +514,7 @@ You can also develop and provide your own custom loader and register it within t
 LlamaIndex is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
 Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Indexes / LlamaIndex` section.
 
-**WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
+**WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
 
 **Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
@@ -540,8 +540,6 @@ In the `Settings -> LlamaIndex -> Data loaders` section you can define the addit
 
 ## Chat with Audio
 
-2024-11-26: currently in beta.
-
 This mode works like the Chat mode but with native support for audio input and output using a multimodal model - `gpt-4o-audio`. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
 
 More info: https://platform.openai.com/docs/guides/audio/quickstart
@@ -549,8 +547,6 @@ More info: https://platform.openai.com/docs/guides/audio/quickstart
 Currently, in beta. Tool and function calls are not enabled in this mode.
 
 ## Research
-
-2025-03-02: currently in beta.
 
 This mode (when using Sonar and R1 models) operates using the Perplexity API: https://perplexity.ai.
 
@@ -616,7 +612,7 @@ Images are stored in ``img`` directory in **PyGPT** user data folder.
 
 ## Vision
 
-This mode enables image analysis using the `gpt-4o`, `gpt-4-vision` and other vision (multimodal) models. Functioning much like the chat mode, 
+This mode enables image analysis using the `GPT-5`, `GPT-4o` and other vision (multimodal) models. Functioning much like the chat mode, 
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online. 
 
@@ -719,8 +715,6 @@ You can set the limit of steps in such a loop by going to `Settings -> Agents an
 You can change the prompts used for evaluating the response in `Settings -> Prompts -> Agent: evaluation prompt in loop`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
 ## Agent (OpenAI)
-
-**Added in: 2.5.76** - currently in beta.
 
 The mode operates on the `openai-agents` library integrated into the application:
 
@@ -850,9 +844,7 @@ You can choose which internal mode the agent should use in the settings:
 
 ```Settings / Agent (autonomous) / Sub-mode to use```
 
-Available choices include: `chat`, `completion`, `langchain`, `vision`, `llama_index` (Chat with Files).
-
-Default is: `chat`.
+Default mode is: `Chat`.
 
 If you want to use the LlamaIndex mode when running the agent, you can also specify which index `LlamaIndex` should use with the option:
 
@@ -890,8 +882,6 @@ Give me a list of active experts.
 ```
 
 ##  Computer use
-
-**2.5.71**: Currently in beta.
 
 This mode allows for autonomous computer control.
 
@@ -1008,6 +998,12 @@ Files such as jpg, png, and similar images are a special case. By default, image
 
 To use the `RAG` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `RAG` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
 
+**Embeddings**
+
+When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: `Config -> Settings -> Files and Attachments`. You can also choose the embedding models for specified providers in `Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Default embedding models` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
+
+For example, if the RAG query model is `gpt-4o-mini`, then the default model for the provider `OpenAI` will be used. If the default model for `OpenAI` is not specified on the list, the global provider and model will be used.
+
 ## Downloading files
 
 **PyGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an `data` folder located within the user's working directory. To view or manage these files, users can navigate to the `Files` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
@@ -1056,7 +1052,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has built-in support for models (as of 2025-07-26):
+PyGPT has a preconfigured list of models (as of 2025-07-26):
 
 - `bielik-11b-v2.3-instruct:Q4_K_M` (Ollama)
 - `chatgpt-4o-latest` (OpenAI)
@@ -1135,7 +1131,9 @@ PyGPT has built-in support for models (as of 2025-07-26):
 All models are specified in the configuration file `models.json`, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by `OpenAI API` (or compatible) and those supported by `LlamaIndex` or `Ollama` to this file. Configuration for LlamaIndex is placed in `llama_index` key.
 
-**Tip**: Anthropic and Deepseek API providers use VoyageAI for embeddings, so you must also configure the Voyage API key if you want to use embeddings from these providers.
+You can import new models by manually editing `models.json` or by using the model importer in the `Config -> Models -> Import` menu.
+
+**Tip**: Anthropic and Deepseek API providers use VoyageAI for embeddings (Chat with Files and attachments RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
 
 ## Adding a custom model
 
@@ -1820,7 +1818,7 @@ PyGPT can be extended with:
 
 - custom web search engine providers
 
-- custom agents
+- custom agents (LlamaIndex or OpenAI Agents)
 
 
 See the section `Extending PyGPT / Adding a custom plugin` for more details.
@@ -1998,7 +1996,7 @@ a particular query will consume and displays this estimate in real time. This gi
 control over your token usage. The app provides detailed information about the tokens used for the user's prompt, 
 the system prompt, any additional data, and those used within the context (the memory of previous entries).
 
-**Remember that these are only approximate calculations and do not include, for example, the number of tokens consumed by some plugins. You can find the exact number of tokens used on the OpenAI website.**
+**Remember that these are only approximate calculations and do not include, for example, the number of tokens consumed by some plugins. You can find the exact number of tokens used on provider's website.**
 
 ![v2_tokens1](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tokens1.png)
 
@@ -2922,7 +2920,7 @@ PyGPT can be extended with:
 
 - custom web search engine providers
 
-- custom agents
+- custom agents (LlamaIndex or OpenAI Agents)
 
 **Examples (tutorial files)** 
 
@@ -3028,6 +3026,7 @@ There is built-in support for those LLM providers:
 - Local models (OpenAI API compatible)
 - Ollama
 - OpenAI
+- OpenRouter
 - Perplexity
 - xAI
 

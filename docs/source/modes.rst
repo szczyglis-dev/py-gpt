@@ -6,10 +6,10 @@ Chat
 
 **+ Inline Vision and Image generation**
 
-This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``o1``, ``o3``, ``GPT-4``, ``GPT-4o`` and ``Claude``, ``Gemini``, ``Grok``, ``Perplexity``, ``Deepseek``, etc. It works by using the ``Responses`` and ``ChatCompletions`` OpenAI API (or compatible). You can select the API endpoint to use in: ``Config -> Settings -> API Keys``.
+This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``GPT-5``, ``GPT-4``, ``o1``, ``o3``, and ``Claude``, ``Gemini``, ``Grok``, ``Perplexity (sonar)``, ``Deepseek``, and others. It works by using the ``Responses`` and ``ChatCompletions`` OpenAI API (or compatible). You can select the API endpoint to use in: ``Config -> Settings -> API Keys``.
 
 .. note::
-   **Tip:** This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, Grok, Perplexity, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints (if available), which the application switches to in the background when working with models other than OpenAI.
+   This mode directly uses the OpenAI SDK. Other models, such as Gemini, Claude, Grok, Perplexity, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints (if available), which the application switches to in the background when working with models other than OpenAI.
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
@@ -41,7 +41,8 @@ Chat with Files (LlamaIndex)
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
 
-**Tip:** If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: ``Settings -> Indexes / LlamaIndex -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
+.. tip::
+   If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: ``Settings -> Indexes / LlamaIndex -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
 
 **Querying single files**
 
@@ -117,10 +118,11 @@ You can also develop and provide your own custom loader and register it within t
 LlamaIndex is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
 Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in ``Settings / LlamaIndex`` section.
 
-**WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. 
-Always control the number of tokens used on the OpenAI page.
+.. warning::
+   Remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
 
-**Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
+.. tip::
+   Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
 **Token limit:** When you use ``Chat with Files`` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
 
@@ -145,11 +147,8 @@ This mode works like the Chat mode but with native support for audio input and o
 
 More info: https://platform.openai.com/docs/guides/audio/quickstart
 
-Currently in beta. Tool and function calls are not enabled in this mode.
-
 Research
 ----------------------
-2025-03-02: currently in beta.
 
 This mode (when using Sonar and R1 models) operates using the Perplexity API: https://perplexity.ai.
 
@@ -167,7 +166,8 @@ Similar to chat mode, on the right-hand side of the interface, there are conveni
 
 Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
-**Info:** From version ``2.0.107`` the davinci models are deprecated and has been replaced with ``gpt-3.5-turbo-instruct`` model.
+.. note::
+   From version ``2.0.107`` the davinci models are deprecated and has been replaced with ``gpt-3.5-turbo-instruct`` model.
 
 
 Image generation
@@ -208,8 +208,9 @@ If **Raw Mode** is disabled, a model will generate the best prompt for you based
 Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
 You also have the options to delete it or view it in full size in your web browser.
 
-**Tip:** Use presets to save your prepared prompts. 
-This lets you quickly use them again for generating new images later on.
+.. tip::
+   Use presets to save your prepared prompts. 
+   This lets you quickly use them again for generating new images later on.
 
 The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
 prompts for creating new images.
@@ -220,7 +221,7 @@ Images are stored in ``img`` directory in PyGPT's user data folder.
 Vision
 -------
 
-This mode enables image analysis using the ``gpt-4o``, ``gpt-4-vision`` and other vision (multimodal) models. Functioning much like the chat mode, 
+This mode enables image analysis using the ``GPT-5``, ``GPT-4o`` and other vision (multimodal) models. Functioning much like the chat mode, 
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online.
 
@@ -247,7 +248,8 @@ Vision mode also includes real-time video capture from camera. To capture image 
    :width: 800
 
 
-**Tip:** When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` label will appear at the bottom of the Chat window.
+.. tip::
+   When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` label will appear at the bottom of the Chat window.
 
 
 Assistants
@@ -337,8 +339,6 @@ You can change the prompts used for evaluating the response in ``Settings -> Pro
 
 Agent (OpenAI)
 --------------
-
-**Added in: 2.5.76** - currently in beta.
 
 The mode operates on the ``openai-agents`` library integrated into the application:
 
@@ -442,7 +442,8 @@ Below is a pattern for how different types of agents work. You can use these pat
 * If the task is completed, the Supervisor returns the result to the user. If not, the Supervisor sends another instruction to the Worker to complete the task or asks the user if there are any questions.
 * The cycle repeats until the task is completed.
 
-**Tip**: Starting from version ``2.5.97``, you can assign and use Experts in all of the agent types.
+.. tip::
+   Starting from version ``2.5.97``, you can assign and use Experts in all of the agent types.
 
 **Limitations:**
 
@@ -454,14 +455,15 @@ Agent (Autonomous)
 
 This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: ``Agent (LlamaIndex)``.
 
-**WARNING: Please use this mode with caution!** - autonomous mode, when connected with other plugins, may produce unexpected results!
+.. warning::
+   **Please use this mode with caution!** - autonomous mode, when connected with other plugins, may produce unexpected results!
 
 The mode activates autonomous mode, where AI begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
-**WARNING:** Setting the number of run steps (iterations) to ``0`` activates an infinite loop which can generate a large number of requests 
-and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
+.. warning::
+   Setting the number of run steps (iterations) to ``0`` activates an infinite loop which can generate a large number of requests and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
 
 This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into 
 subtasks that the model will autonomously perform one after another until the goal is achieved. 
@@ -484,9 +486,7 @@ You can choose which internal mode the agent should use in the settings:
 
    Settings / Agent (autonomous) / Sub-mode to use
 
-Available choices include: ``chat``, ``completion``, ``langchain``, ``vision``, ``llama_index`` (Chat with Files).
-
-Default is: ``chat``.
+Default mode is: ``Chat``.
 
 If you want to use the LlamaIndex mode when running the agent, you can also specify which index ``LlamaIndex`` should use with the option:
 
@@ -529,12 +529,11 @@ You can also ask for a list of active experts at any time:
 
 Computer use
 -------------
-
-**2.5.71**: Currently in beta.
-
 This mode allows for autonomous computer control.
 
-In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. The ``Computer use`` remote tool is used here: https://platform.openai.com/docs/guides/tools-computer-use, combined with the ``Mouse and Keyboard`` plugin.
+In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. 
+
+The ``Computer use`` remote tool is used here: https://platform.openai.com/docs/guides/tools-computer-use, combined with the ``Mouse and Keyboard`` plugin.
 
 **Example of use:**
 
@@ -551,4 +550,5 @@ You can change the environment in which the navigation mode operates by using th
 * Windows
 * Mac
 
-**Tip:** DO NOT enable the `Mouse and Keyboard` plugin in Computer use mode — it is already connected to Computer use mode "in the background."
+.. tip::
+   **DO NOT** enable the ``Mouse and Keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.

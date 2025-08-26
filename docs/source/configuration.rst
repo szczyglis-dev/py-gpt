@@ -360,7 +360,10 @@ settings.agent.openai.response.split.desc = Split re
 
 **Personalize**
 
-* ``About You``: Provide information about yourself, e.g., "My name is... I'm 30 years old, I'm interested in..." This will be included in the model's system prompt. **WARNING:** Please do not use AI as a "friend". Real-life friendship is better than using an AI as a friendship replacement. DO NOT become emotionally involved in interactions with an AI.
+* ``About You``: Provide information about yourself, e.g., "My name is... I'm 30 years old, I'm interested in..." This will be included in the model's system prompt. 
+
+.. warning::
+   Please do not use AI as a "friend". Real-life friendship is better than using an AI as a friendship replacement. DO NOT become emotionally involved in interactions with an AI.
 
 * ``Enable in Modes``: Select the modes where the personalized "about" prompt will be used.
 
@@ -513,7 +516,8 @@ Files loaders: https://github.com/run-llama/llama_index/tree/main/llama-index-in
 
 Web loaders: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-web
 
-**Tip:** to index an external data or data from the Web just ask for it, by using ``Web Search`` plugin, e.g. you can ask the model with ``Please index the youtube video: URL to video``, etc. Data loader for a specified content will be choosen automatically.
+.. tip::
+   To index an external data or data from the Web just ask for it, by using ``Web Search`` plugin, e.g. you can ask the model with ``Please index the youtube video: URL to video``, etc. Data loader for a specified content will be choosen automatically.
 
 Allowed additional keyword arguments for built-in data loaders (files):
 
@@ -533,7 +537,8 @@ This loader can operate in two modes: local model and API.
 If the local mode is enabled, then the local model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
 If the API mode (default) is selected, then the OpenAI API and the standard vision model will be used. 
 
-**Note:** Usage of API mode consumes additional tokens in OpenAI API (for ``GPT-4 Vision`` model)!
+.. note::
+   Usage of API mode consumes additional tokens in OpenAI API (for ``GPT-4 Vision`` model)!
 
 Local mode requires ``torch``, ``transformers``, ``sentencepiece`` and ``Pillow`` to be installed and uses the ``Salesforce/blip2-opt-2.7b`` model to describing images.
 
