@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.25 (2025-08-26)
+
+- Fixed the empty agent ID issue in OpenAI Agents evaluation.
+- Added the ability to select a custom model for evaluation.
+- Added embedding providers: Anthropic, Deepseek, MistralAI, xAI, VoyageAI.
+
 ## 2.6.24 (2025-08-26)
 
 - Added a new option: LlamaIndex -> Embeddings -> Default embedding providers for attachments.

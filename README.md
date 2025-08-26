@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.24** | build: **2025-08-26** | Python: **>=3.10, <3.14**
+Release: **2.6.25** | build: **2025-08-26** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -1135,6 +1135,8 @@ PyGPT has built-in support for models (as of 2025-07-26):
 All models are specified in the configuration file `models.json`, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by `OpenAI API` (or compatible) and those supported by `LlamaIndex` or `Ollama` to this file. Configuration for LlamaIndex is placed in `llama_index` key.
 
+**Tip**: Anthropic and Deepseek API providers use VoyageAI for embeddings, so you must also configure the Voyage API key if you want to use embeddings from these providers.
+
 ## Adding a custom model
 
 You can add your own models. See the section `Extending PyGPT / Adding a new model` for more info.
@@ -1230,8 +1232,7 @@ Define parameters like model name and Ollama base URL in the Embeddings provider
 
 ### Google Gemini, Anthropic Claude, xAI Grok, etc.
 
-To use `Gemini`, `Grok`, or `Claude` models, select the `Chat` or `Chat with Files` mode in PyGPT and select a predefined model. `Chat` mode works via OpenAI SDK, `Chat with Files` mode works via LlamaIndex.
-If you want to use `Chat with Files` mode (LlamaIndex), then remember to configure the required parameters like API keys in the model ENV config fields:
+If you want to use non-OpenAI models in `Chat with Files` and `Agents (LlamaIndex)` modes, then remember to configure the required parameters like API keys in the model config fields. `Chat` mode works via OpenAI SDK (compatible API), `Chat with Files` and `Agents (LlamaIndex)` modes works via LlamaIndex.
 
 **Google Gemini**
 
@@ -3424,6 +3425,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.25 (2025-08-26)**
+
+- Fixed the empty agent ID issue in OpenAI Agents evaluation.
+- Added the ability to select a custom model for evaluation.
+- Added embedding providers: Anthropic, Deepseek, MistralAI, xAI, VoyageAI.
 
 **2.6.24 (2025-08-26)**
 
