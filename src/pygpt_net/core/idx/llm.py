@@ -178,13 +178,16 @@ class Llm:
                         "name": "model_name",
                         "type": "str",
                         "value": model_name,
-                    },
-                    {
-                        "name": "api_key",
-                        "type": "str",
-                        "value": client_args.get("api_key", ""),
                     }
                 ]
+                if model.provider != "ollama":
+                    args.append(
+                        {
+                            "name": "api_key",
+                            "type": "str",
+                            "value": client_args.get("api_key", ""),
+                        }
+                    )
                 break
 
         if is_custom_provider:
