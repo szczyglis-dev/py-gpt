@@ -372,7 +372,7 @@ Please go to `Debugging and Logging` section for instructions on how to log and 
 
 # Quick Start
 
-## Setting-up OpenAI API KEY
+## Setting-up API Key(s)
 
 You can configure API keys for various providers, such as OpenAI, Anthropic, Google, xAI, Perplexity, OpenRouter, and more. This flexibility allows you to use different providers based on your needs.
 

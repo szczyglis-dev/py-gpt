@@ -1,7 +1,7 @@
 Quick Start
 ===========
 
-**Setting-up API Key**
+**Setting-up API Key(s)**
 
 You can configure API keys for various providers, such as ``OpenAI``, ``Anthropic``, ``Google``, ``xAI``, ``Perplexity``, ``OpenRouter``, and more. This flexibility allows you to use different providers based on your needs.
 
