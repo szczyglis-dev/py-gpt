@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 
 import os
@@ -47,6 +47,8 @@ class HuggingFaceApiLLM(BaseLLM):
         args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_hugging_face", "")
         return HuggingFaceInferenceAPI(**args)
 
     def get_embeddings_model(
@@ -61,13 +63,17 @@ class HuggingFaceApiLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding as HuggingFaceAPIEmbedding
+        from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
         args = {}
         if config is not None:
             args = self.parse_args({
                 "args": config,
             }, window)
-        return HuggingFaceAPIEmbedding(**args)
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_hugging_face", "")
+        if "model" in args and "model_name" not in args:
+            args["model_name"] = args.pop("model")
+        return HuggingFaceInferenceAPIEmbedding(**args)
 
     def init_embeddings(
             self,

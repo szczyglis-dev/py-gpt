@@ -369,6 +369,25 @@
         "advanced": false,
         "tab": "Mistral AI"
     },
+    "api_key_voyage": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.voyage",
+        "description": "settings.api_key.voyage.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Voyage"
+    },
     "app.env": {
         "section": "general",
         "type": "dict",

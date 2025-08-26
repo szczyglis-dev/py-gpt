@@ -2374,11 +2374,13 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 **Embeddings**
 
-- `Embeddings provider`: Embeddings provider.
+- `Embeddings provider`: Global embeddings provider (for indexing and Chat with Files).
 
-- `Embeddings provider (ENV)`: ENV vars to embeddings provider (API keys, etc.).
+- `Embeddings provider (ENV)`: ENV vars for global embeddings provider (API keys, etc.).
 
-- `Embeddings provider (**kwargs)`: Keyword arguments for embeddings provider (model name, etc.).
+- `Embeddings provider (**kwargs)`: Keyword arguments for global embeddings provider (model_name, etc.).
+
+- `Default embedding providers for attachments`: Define embedding model by provider to use in attachments.
 
 - `RPM limit for embeddings API calls`: Specify the limit of maximum requests per minute (RPM), 0 = no limit.
 
@@ -2915,6 +2917,8 @@ PyGPT can be extended with:
 - custom audio output providers
 
 - custom web search engine providers
+
+- custom agents
 
 **Examples (tutorial files)** 
 

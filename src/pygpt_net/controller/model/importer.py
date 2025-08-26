@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -391,7 +391,7 @@ class Importer:
                         'type': 'str'
                     }
                 ]
-            elif self.provider == "openai":
+            elif self.provider in ["openai", "azure_openai"]:
                 m.tool_calls = True
                 m.llama_index['env'] = [
                     {
@@ -429,12 +429,35 @@ class Importer:
                         'type': 'str'
                     }
                 ]
+            elif self.provider == "mistral_ai":
+                m.tool_calls = True
+                m.llama_index['args'] = [
+                    {
+                        'name': 'api_key',
+                        'value': '{api_key_mistral}',
+                        'type': 'str'
+                    }
+                ]
+            elif self.provider == "local_ai":
+                m.tool_calls = True
+                m.llama_index['env'] = [
+                    {
+                        'name': 'OPENAI_API_KEY',
+                        'value': '{api_key}',
+                        'type': 'str'
+                    },
+                    {
+                        'name': 'OPENAI_API_BASE',
+                        'value': '{api_endpoint}',
+                        'type': 'str'
+                    }
+                ]
             elif self.provider == "x_ai":
                 m.tool_calls = True
                 m.llama_index['env'] = [
                     {
                         'name': 'OPENAI_API_KEY',
-                        'value': '{api_key_xai',
+                        'value': '{api_key_xai}',
                         'type': 'str'
                     },
                     {
@@ -587,9 +610,9 @@ class Importer:
         :return: Dict with keys and values
         """
         excluded = [
-            "azure_openai",
+            #"azure_openai",
             "huggingface_api",
-            "mistral_ai",
+            #"mistral_ai",
             "local_ai",
             "perplexity",
         ]

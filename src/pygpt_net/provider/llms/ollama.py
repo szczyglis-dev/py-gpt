@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 
 import os
@@ -118,6 +118,8 @@ class OllamaLLM(BaseLLM):
         if 'OLLAMA_API_BASE' in os.environ:
             if "base_url" not in args:
                 args["base_url"] = os.environ['OLLAMA_API_BASE']
+        if "model" in args and "model_name" not in args:
+            args["model_name"] = args.pop("model")
         return OllamaEmbedding(**args)
 
     def init_embeddings(

@@ -8,7 +8,9 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
+from typing import Optional, Dict, List
 
+from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.core.types import (
@@ -23,7 +25,29 @@ class LocalLLM(BaseLLM):
         super(LocalLLM, self).__init__(*args, **kwargs)
         self.id = "local_ai"
         self.name = "Local model (OpenAI API compatible)"
-        self.type = [MODE_LLAMA_INDEX]
+        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
+        """
+        Return provider instance for embeddings
+
+        :param window: window instance
+        :param config: config keyword arguments list
+        :return: Embedding provider instance
+        """
+        from llama_index.embeddings.openai import OpenAIEmbedding
+        args = {}
+        if config is not None:
+            args = self.parse_args({
+                "args": config,
+            }, window)
+        if "model" in args and "model_name" not in args:
+            args["model_name"] = args.pop("model")
+        return OpenAIEmbedding(**args)
 
     def llama(
             self,

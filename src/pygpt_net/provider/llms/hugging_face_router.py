@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 19:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -28,7 +28,7 @@ class HuggingFaceRouterLLM(BaseLLM):
         super(HuggingFaceRouterLLM, self).__init__(*args, **kwargs)
         self.id = "huggingface_router"
         self.name = "HuggingFace Router"
-        self.type = [MODE_CHAT, MODE_LLAMA_INDEX]
+        self.type = [MODE_CHAT, MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(
             self,
@@ -78,6 +78,10 @@ class HuggingFaceRouterLLM(BaseLLM):
         """
         from llama_index.llms.openai_like import OpenAILike
         args = self.parse_args(model.llama_index, window)
+        if "model" not in args:
+            args["model"] = model.id
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_hugging_face", "")
         return OpenAILike(**args)
 
     def llama_multimodal(
@@ -108,7 +112,17 @@ class HuggingFaceRouterLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        pass
+        from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+        args = {}
+        if config is not None:
+            args = self.parse_args({
+                "args": config,
+            }, window)
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_hugging_face", "")
+        if "model" in args and "model_name" not in args:
+            args["model_name"] = args.pop("model")
+        return HuggingFaceInferenceAPIEmbedding(**args)
 
     def get_models(
             self,

@@ -83,6 +83,7 @@
   "api_key_perplexity": "",
   "api_key_xai": "",
   "api_key_mistral": "",
+  "api_key_voyage": "",
   "api_proxy": "",
   "api_use_responses": true,
   "api_use_responses_llama": false,
@@ -238,7 +239,7 @@
   "llama.idx.embeddings.provider": "openai",
   "llama.idx.embeddings.args": [
       {
-          "name": "model",
+          "name": "model_name",
           "value": "text-embedding-3-small",
           "type": "str"
       }
@@ -255,6 +256,14 @@
   ],
   "llama.idx.embeddings.default": [
     {
+        "provider": "anthropic",
+        "model": "voyage-3.5"
+    },
+    {
+        "provider": "deepseek_api",
+        "model": "voyage-3.5"
+    },
+    {
         "provider": "google",
         "model": "gemini-embedding-001"
     },
@@ -267,7 +276,15 @@
         "model": "text-embedding-3-small"
     },
     {
+        "provider": "mistral_ai",
+        "model": "mistral-embed"
+    },
+    {
         "provider": "ollama",
+        "model": ""
+    },
+    {
+        "provider": "x_ai",
         "model": ""
     }
   ],

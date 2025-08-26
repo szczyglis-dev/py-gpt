@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 
-import json
 from typing import Optional, List, Dict
 
 # from langchain_openai import OpenAI
@@ -93,6 +92,8 @@ class OpenAILLM(BaseLLM):
         from .llama_index.openai import OpenAI as LlamaOpenAI
         from .llama_index.openai import OpenAIResponses as LlamaOpenAIResponses
         args = self.parse_args(model.llama_index, window)
+        if "api_key" not in args:
+            args["api_key"] = window.core.config.get("api_key", "")
         if "model" not in args:
             args["model"] = model.id
 
@@ -148,6 +149,10 @@ class OpenAILLM(BaseLLM):
             args = self.parse_args({
                 "args": config,
             }, window)
+        if "api_key" not in args:
+            args["api_key"] = window.core.config.get("api_key", "")
+        if "model" in args and "model_name" not in args:
+            args["model_name"] = args.pop("model")
         return OpenAIEmbedding(**args)
 
     def get_models(

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 import os
 import pytest
@@ -330,7 +330,7 @@ def test_get_providers_option(importer, mock_window, monkeypatch):
     assert any("_" in list(d.keys())[0] for d in keys)
     for d in keys:
         key = list(d.keys())[0]
-        assert key not in ["azure_openai", "perplexity"]
+        assert key not in ["perplexity"]
 
 def test_hook_update(importer):
     importer.init = MagicMock()

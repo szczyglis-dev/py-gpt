@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -28,7 +28,7 @@ class xAILLM(BaseLLM):
         super(xAILLM, self).__init__(*args, **kwargs)
         self.id = "x_ai"
         self.name = "xAI"
-        self.type = [MODE_CHAT, MODE_LLAMA_INDEX]
+        self.type = [MODE_CHAT, MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(
             self,
@@ -78,6 +78,12 @@ class xAILLM(BaseLLM):
         """
         from llama_index.llms.openai_like import OpenAILike
         args = self.parse_args(model.llama_index, window)
+        if "model" not in args:
+            args["model"] = model.id
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_xai", "")
+        if "api_base" not in args or args["api_base"] == "":
+            args["api_base"] = window.core.config.get("api_endpoint_xai", "https://api.x.ai/v1")
         return OpenAILike(**args)
 
     def llama_multimodal(
@@ -108,7 +114,17 @@ class xAILLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        pass
+        from .llama_index.x_ai.embedding import XAIEmbedding
+        args = {}
+        if config is not None:
+            args = self.parse_args({
+                "args": config,
+            }, window)
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_xai", "")
+        if "model" in args and "model_name" not in args:
+            args["model_name"] = args.pop("model")
+        return XAIEmbedding(**args)
 
     def get_models(
             self,

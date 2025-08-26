@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.26 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -53,6 +53,8 @@ class GoogleLLM(BaseLLM):
         args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_google", "")
         return GoogleGenAI(**args)
 
     def get_embeddings_model(
@@ -73,6 +75,10 @@ class GoogleLLM(BaseLLM):
             args = self.parse_args({
                 "args": config,
             }, window)
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_google", "")
+        if "model" in args and "model_name" not in args:
+            args["model_name"] = args.pop("model")
         return GoogleGenAIEmbedding(**args)
 
     def get_models(
