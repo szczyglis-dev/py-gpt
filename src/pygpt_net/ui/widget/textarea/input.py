@@ -46,7 +46,7 @@ class ChatInput(QTextEdit):
         self.value = self.window.core.config.data['font_size.input']
         self.max_font_size = 42
         self.min_font_size = 8
-        self._text_top_padding = 12
+        self._text_top_padding = 10
         self.textChanged.connect(self.window.controller.ui.update_tokens)
         self.setProperty('class', 'layout-input')
 
