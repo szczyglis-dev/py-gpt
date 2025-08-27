@@ -196,6 +196,8 @@ class Common:
                 continue
             for file in os.listdir(path):
                 if file.startswith("web-") and file.endswith('.css'):
+                    if file.endswith("darkest.css"):
+                        continue
                     to_replace = ['web-', '.css', '.light', '.dark']
                     for item in to_replace:
                         file = file.replace(item, '')

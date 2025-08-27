@@ -114,6 +114,9 @@ class Theme:
 
         :param name: web style name
         """
+        styles_list = self.common.get_styles_list()
+        if name not in styles_list:
+            name = "chatgpt"
         QApplication.processEvents()
         core = self.window.core
         core.config.set('theme.style', name)
