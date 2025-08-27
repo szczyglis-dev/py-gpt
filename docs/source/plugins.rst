@@ -33,9 +33,11 @@ The following plugins are currently available, and model can use them instantly:
 * ``System (OS)`` - provides access to the operating system and executes system commands.
 * ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 * ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
+* ``Tuya (IoT)`` - Handle Tuya Smart Home devices via Tuya Cloud API.
 * ``Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 * ``Voice Control (inline)`` - provides voice control command execution within a conversation.
 * ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
+* ``Wikipedia`` - Search Wikipedia for information.
 * ``X/Twitter`` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
 
 
@@ -2302,6 +2304,100 @@ The plugin enables integration with Telegram for both bots and user accounts thr
   Get recent messages from a chat in user mode.
 
 
+Tuya (IoT)
+-----------
+
+The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless interactions with your smart devices via the Tuya Cloud API. This plugin provides a user-friendly interface to manage and control devices directly from your assistant.
+
+* Provide your Tuya Cloud credentials to enable communication.
+* Access and list all smart devices connected to your Tuya app account.
+* Retrieve detailed information about each device, including its status and supported functions.
+* Effortlessly search for devices by their names using cached data for quick access.
+* Control devices by turning them on or off, toggle states, and set specific device parameters.
+* Send custom commands to devices for more advanced control.
+* Read sensor values and normalize them for easy interpretation.
+
+**Options**
+
+- ``API base`` *api_base*
+
+  Base URL for interacting with the Tuya API. *Default:* `https://openapi.tuyaeu.com`
+
+- ``HTTP timeout (s)`` *http_timeout*
+
+  Requests timeout duration in seconds. *Default:* `30`
+
+- ``Language`` *lang*
+
+  Language setting for API interactions. *Default:* `en`
+
+**Commands**
+
+**Auth**
+
+- ``tuya_set_keys``
+
+  Input your Tuya Cloud credentials to enable device interactions.
+
+- ``tuya_set_uid``
+
+  Set your Tuya App Account UID for managing device listings.
+
+- ``tuya_token_get``
+
+  Obtain an access token for authenticated API requests.
+
+**Devices**
+
+- ``tuya_devices_list``
+
+  List all devices associated with your account UID, with options to paginate results.
+
+- ``tuya_device_get``
+
+  Retrieve detailed information for a specified device.
+
+- ``tuya_device_status``
+
+  Check the current status and data point values of a device.
+
+- ``tuya_device_functions``
+
+  Discover supported functions and data point codes for a specific device.
+
+- ``tuya_find_device``
+
+  Quickly locate devices using name-based searches from cached data.
+
+**Control**
+
+- ``tuya_device_set``
+
+  Set specific data point values for a device or use multiple settings at once.
+
+- ``tuya_device_send``
+
+  Send a list of raw commands directly to a device for execution.
+
+- ``tuya_device_on``
+
+  Turn a device on with an optional switch code.
+
+- ``tuya_device_off``
+
+  Switch a device off, with automatic code detection if needed.
+
+- ``tuya_device_toggle``
+
+  Toggle a device's on/off state.
+
+**Sensors**
+
+- ``tuya_sensors_read``
+
+  Read normalized sensor values from your connected devices.
+
+
 Vision (inline)
 ----------------
 
@@ -2498,6 +2594,118 @@ If enabled, every URL used by the model will be automatically indexed using Llam
 
 ID of index to use for web page indexing (persistent index). *Default:* `base`
 
+--
+
+Wikipedia
+----------
+
+The Wikipedia plugin allows for comprehensive interactions with Wikipedia, including language settings, article searching, summaries, and random article discovery. This plugin offers a variety of options to optimize your search experience.
+
+* Set your preferred language for Wikipedia queries.
+* Retrieve and check the current language setting.
+* Explore a list of supported languages.
+* Search for articles using keywords or get suggestions for queries.
+* Obtain summaries and detailed page content.
+* Discover articles by geographic location or randomly.
+* Open articles directly in your web browser.
+
+**Options**
+
+- ``Language`` *lang*
+
+  Default Wikipedia language. *Default:* `en`
+
+- ``Auto Suggest`` *auto_suggest*
+
+  Enable automatic suggestions for titles. *Default:* `True`
+
+- ``Follow Redirects`` *redirect*
+
+  Enable following of page redirects. *Default:* `True`
+
+- ``Rate Limit`` *rate_limit*
+
+  Control Wikipedia API request rate limiting. *Default:* `True`
+
+- ``User-Agent`` *user_agent*
+
+  Custom User-Agent string for requests. *Default:* `pygpt-net-wikipedia-plugin/1.0 (+https://pygpt.net)`
+
+- ``Summary Sentences`` *summary_sentences*
+
+  Default number of sentences in summaries. *Default:* `3`
+
+- ``Default Results Limit`` *results_default*
+
+  Number of results for searches. *Default:* `10`
+
+- ``Content Maximum Characters`` *content_max_chars*
+
+  Maximum characters for page content. *Default:* `5000`
+
+- ``Max List Items`` *max_list_items*
+
+  Maximum items from article lists. *Default:* `50`
+
+- ``Full Content by Default`` *content_full_default*
+
+  Return full content by default. *Default:* `False`
+
+**Commands**
+
+**Language**
+
+- ``wp_set_lang``
+
+  Set the language for Wikipedia queries.
+
+- ``wp_get_lang``
+
+  Retrieve current language setting.
+
+- ``wp_languages``
+
+  Get list of supported languages.
+
+**Search / Suggest**
+
+- ``wp_search``
+
+  Search for articles using keywords.
+
+- ``wp_suggest``
+
+  Get title suggestions for queries.
+
+**Read**
+
+- ``wp_summary``
+
+  Fetch a summary of a Wikipedia article.
+
+- ``wp_page``
+
+  Access full details of a Wikipedia article.
+
+- ``wp_section``
+
+  Get content of a specific article section.
+
+**Discover**
+
+- ``wp_random``
+
+  Discover random Wikipedia article titles.
+
+- ``wp_geosearch``
+
+  Find articles near specific coordinates.
+
+**Utilities**
+
+- ``wp_open``
+
+  Open articles in a web browser by title or URL.
 
 X/Twitter
 ----------

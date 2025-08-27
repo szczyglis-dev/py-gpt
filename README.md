@@ -1355,11 +1355,15 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Telegram` - Send messages, photos, and documents; manage chats and contacts.
 
+- `Tuya (IoT)` - Handle Tuya Smart Home devices via Tuya Cloud API.
+
 - `Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
 - `Voice Control (inline)` - provides voice control command execution within a conversation.
 
 - `Web Search` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
+
+- `Wikipedia` - Search Wikipedia for information.
 
 - `X/Twitter` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
 
@@ -1747,6 +1751,20 @@ The plugin enables integration with Telegram for both bots and user accounts thr
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#telegram
 
+## Tuya (IoT)
+
+The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless interactions with your smart devices via the Tuya Cloud API. This plugin provides a user-friendly interface to manage and control devices directly from your assistant.
+
+* Provide your Tuya Cloud credentials to enable communication.
+* Access and list all smart devices connected to your Tuya app account.
+* Retrieve detailed information about each device, including its status and supported functions.
+* Effortlessly search for devices by their names using cached data for quick access.
+* Control devices by turning them on or off, toggle states, and set specific device parameters.
+* Send custom commands to devices for more advanced control.
+* Read sensor values and normalize them for easy interpretation.
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#tuya-iot
+
 ## Vision (inline)
 
 The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
@@ -1770,6 +1788,20 @@ To activate this feature, turn on the `Web Search` plugin found in the `Plugins`
 Web searches are provided by `Google Custom Search Engine` and `Microsoft Bing` APIs and can be extended with other search engine providers. 
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#web-search
+
+## Wikipedia
+
+The Wikipedia plugin allows for comprehensive interactions with Wikipedia, including language settings, article searching, summaries, and random article discovery. This plugin offers a variety of options to optimize your search experience.
+
+* Set your preferred language for Wikipedia queries.
+* Retrieve and check the current language setting.
+* Explore a list of supported languages.
+* Search for articles using keywords or get suggestions for queries.
+* Obtain summaries and detailed page content.
+* Discover articles by geographic location or randomly.
+* Open articles directly in your web browser.
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#wikipedia
 
 ## X/Twitter
 

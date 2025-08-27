@@ -525,6 +525,8 @@ class Command:
                 "bool": "boolean",
                 "dict": "object",
                 "list": "array",
+                "float": "number",
+                "any": "string",
             }
 
             limit = self.DESC_LIMIT
