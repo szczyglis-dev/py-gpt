@@ -89,8 +89,6 @@ The following basic options can be modified directly within the application:
 
 * ``Directory for file downloads``: Subdirectory for downloaded files, e.g. in Assistants mode, inside "data". Default: "download"
 
-* ``Verbose mode``: Enabled verbose mode when using attachment as additional context.
-
 * ``Model for querying index``: Model to use for preparing query and querying the index when the RAG option is selected.
 
 * ``Model for attachment content summary``: Model to use when generating a summary for the content of a file when the Summary option is selected.
@@ -297,8 +295,6 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 **General**
 
-* ``Verbose`` - enables verbose mode.
-
 * ``Auto retrieve additional context from RAG``: Auto retrieve additional context from RAG at the beginning if the index is provided.
 
 * ``Display a tray notification when the goal is achieved.``: If enabled, a notification will be displayed after goal achieved / finished run.
@@ -386,6 +382,10 @@ settings.agent.openai.response.split.desc = Split re
 * ``Log plugin usage to console``: Enables logging of plugin usage to console.
 
 * ``Log DALL-E usage to console``: Enables logging of DALL-E usage to console.
+
+* ``Log attachments usage to console``: Enables logging of attachments usage to console.
+
+* ``Log Agents usage to console``: Enables logging of Agents usage to console.
 
 * ``Log LlamaIndex usage to console``: Enables logging of LlamaIndex usage to console.
 

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.29 (2025-08-28)
+
+- Verbose options have been moved to the Developer section in settings.
+- Enhanced logging of embeddings usage.
+- Fixed styles list.
+
 ## 2.6.28 (2025-08-27)
 
 - Added new plugins: Tuya (IoT) and Wikipedia.
