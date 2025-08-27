@@ -10,7 +10,7 @@
 # ================================================== #
 
 import os.path
-from typing import Optional, Union
+from typing import Optional, Union, List, Dict
 
 from llama_index.core.llms.llm import BaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM
@@ -119,6 +119,8 @@ class Llm:
             window=self.window,
             env=env,
         )
+        model_name = self.extract_model_name_from_args(args)
+        self.window.core.idx.log(f"Embeddings: using global provider: {provider}, model_name: {model_name}")
         return self.window.core.llm.llms[provider].get_embeddings_model(
             window=self.window,
             config=args,
@@ -162,8 +164,8 @@ class Llm:
 
         # try to get custom args from config for the model provider
         is_custom_provider = False
-        default = self.window.core.config.get("llama.idx.embeddings.default", [])
-        for item in default:
+        defaults = self.window.core.config.get("llama.idx.embeddings.default", [])
+        for item in defaults:
             provider = item.get("provider", "")
             if provider and provider == model.provider:
                 is_custom_provider = True
@@ -188,6 +190,7 @@ class Llm:
                             "value": client_args.get("api_key", ""),
                         }
                     )
+                self.window.core.idx.log(f"Embeddings: trying to use {m.provider}, model_name: {model_name}")
                 break
 
         if is_custom_provider:
@@ -196,5 +199,20 @@ class Llm:
                 config=args,
             )
         if not embed_model:
+            self.window.core.idx.log(f"Embeddings: not configured for {model.provider}. Fallback: using global provider.")
             embed_model = self.get_embeddings_provider()
         return embed_model
+
+    def extract_model_name_from_args(self, args: List[Dict]) -> str:
+        """
+        Extract model name from provider args
+
+        :param args: List of args
+        :return: Model name if configured
+        """
+        model_name = ""
+        for item in args:
+            if item.get("name") in ["model", "model_name"]:
+                model_name = item.get("value")
+                break
+        return model_name
