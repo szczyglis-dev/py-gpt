@@ -50,6 +50,9 @@ class ChatInput(QTextEdit):
         self.textChanged.connect(self.window.controller.ui.update_tokens)
         self.setProperty('class', 'layout-input')
 
+        if self.window.core.platforms.is_windows():
+            self._text_top_padding = 8
+
         # --- Icon bar (left) settings ---
         # Settings controlling the left icon bar (spacing, sizes, margins)
         self._icons_margin = 6           # inner left/right padding around the bar
@@ -87,7 +90,7 @@ class ChatInput(QTextEdit):
 
     def _apply_text_top_padding(self):
         """Apply extra top padding inside the text area by using viewport margins."""
-        # English: Left margin is computed in _apply_margins()
+        # Left margin is computed in _apply_margins()
         self._apply_margins()
 
     def set_text_top_padding(self, px: int):
@@ -237,21 +240,6 @@ class ChatInput(QTextEdit):
             return
         super().wheelEvent(event)
 
-    # -------------------- Attachment button (top-left) --------------------
-    def _init_attachment_button(self):
-        """Create and place the '+' attachment button pinned in the top-left corner."""
-        # Deprecated – use _init_icon_bar() and add_icon(...).
-        if not hasattr(self, "_icon_bar"):
-            self._init_icon_bar()
-        if "attach" not in self._icons:
-            self.add_icon(
-                key="attach",
-                icon=self.ICON_ATTACHMENT,
-                tooltip=trans("attachments.btn.input.add"),
-                callback=self.action_add_attachment,
-                visible=True,
-            )
-
     def action_add_attachment(self):
         """Add attachment (button click)."""
         self.window.controller.attachment.open_add()
@@ -270,13 +258,13 @@ class ChatInput(QTextEdit):
         self._icon_bar = QWidget(self)
         self._icon_bar.setObjectName("chatInputIconBar")
 
-        # English: Keep styled background enabled so the style engine (Qt Material) can still
-        # paint hover/pressed states on child buttons. We'll only make the BAR itself transparent.
+        # Keep styled background enabled so the style engine (Qt Material) can still
+        # paint hover/pressed states on child buttons.
         self._icon_bar.setAttribute(Qt.WA_StyledBackground, True)
         self._icon_bar.setAutoFillBackground(False)
 
-        # English: Scope the rule to this object by its ID to avoid cascading 'background: transparent'
-        # to child QPushButtons, which would kill their hover highlight in Qt Material.
+        # Scope the rule to this object by its ID to avoid cascading 'background: transparent'
+        # to child QPushButtons.
         self._icon_bar.setStyleSheet("""
             #chatInputIconBar { background-color: transparent; }
         """)
@@ -308,13 +296,14 @@ class ChatInput(QTextEdit):
         """
         Add a new icon button to the left bar.
 
-        - key: unique identifier (string)
-        - icon: default QIcon (e.g., mic off)
-        - tooltip: default tooltip
-        - callback: callable executed on click
-        - visible: initial visibility
-        - alt_icon: optional alternate icon (e.g., mic on / recording)
-        - alt_tooltip: optional alternate tooltip
+        :param key: unique identifier for the icon
+        :param icon: default QIcon (e.g., mic off)
+        :param tooltip: default tooltip text
+        :param callback: callable executed on click
+        :param visible: initial visibility (True=shown, False=hidden)
+        :param alt_icon: optional alternate icon (e.g., mic on / recording)
+        :param alt_tooltip: optional alternate tooltip text
+        :return: the created QPushButton (or existing one if key already present)
         """
         if key in self._icons:
             btn = self._icons[key]
@@ -381,6 +370,8 @@ class ChatInput(QTextEdit):
         - items: iterable of tuples/dicts:
           tuple: (key, icon, tooltip, callback, visible=True, alt_icon=None, alt_tooltip=None)
           dict : {"key":..., "icon":..., "tooltip":..., "callback":..., "visible":True, "alt_icon":..., "alt_tooltip":...}
+
+        :param items: iterable of tuples/dicts defining icons
         """
         for it in items:
             if isinstance(it, dict):
@@ -403,7 +394,11 @@ class ChatInput(QTextEdit):
                 self.add_icon(key, icon, tooltip, callback, visible, alt_icon, alt_tooltip)
 
     def remove_icon(self, key: str):
-        """English: Remove an icon from the bar."""
+        """
+        Remove an icon from the bar.
+
+        :param key: icon key
+        """
         btn = self._icons.pop(key, None)
         self._icon_meta.pop(key, None)
         if btn is not None:
@@ -418,7 +413,12 @@ class ChatInput(QTextEdit):
             self._apply_margins()
 
     def set_icon_visible(self, key: str, visible: bool):
-        """Show or hide an icon by key; margins are recalculated."""
+        """
+        Show or hide an icon by key; margins are recalculated.
+
+        :param key: icon key
+        :param visible: True to show, False to hide
+        """
         btn = self._icons.get(key)
         if not btn:
             return
@@ -427,7 +427,11 @@ class ChatInput(QTextEdit):
         self._apply_margins()
 
     def toggle_icon(self, key: str):
-        """Toggle icon visibility and recalc margins."""
+        """
+        Toggle icon visibility and recalc margins.
+
+        :param key: icon key
+        """
         btn = self._icons.get(key)
         if not btn:
             return
@@ -436,7 +440,11 @@ class ChatInput(QTextEdit):
         self._apply_margins()
 
     def is_icon_visible(self, key: str) -> bool:
-        """ Return True if icon is visible (not hidden)."""
+        """
+        Return True if icon is visible (not hidden).
+
+        :param key: icon key
+        """
         btn = self._icons.get(key)
         return bool(btn and not btn.isHidden())
 
@@ -444,6 +452,8 @@ class ChatInput(QTextEdit):
         """
         Set rendering order for icons by a list of keys.
         Icons not listed keep their relative order at the end.
+
+        :param keys: list of icon keys in desired order
         """
         new_order = []
         seen = set()
@@ -466,6 +476,9 @@ class ChatInput(QTextEdit):
         Switch between base icon and alt icon at runtime.
         - active=False -> show base icon/tooltip
         - active=True  -> show alt icon/tooltip (if provided; falls back to base icon if not)
+
+        :param key: icon key
+        :param active: True to show alt icon, False for base icon
         """
         if key not in self._icons:
             return
@@ -475,7 +488,12 @@ class ChatInput(QTextEdit):
         self._apply_icon_visual(key)
 
     def toggle_icon_state(self, key: str) -> bool:
-        """Toggle active state and return new state."""
+        """
+        Toggle active state and return new state.
+
+        :param key: icon key
+        :return: new active state (True if alt icon is now shown)
+        """
         if key not in self._icons:
             return False
         current = bool(self._icon_meta.get(key, {}).get("active", False))
@@ -483,7 +501,12 @@ class ChatInput(QTextEdit):
         return not current
 
     def set_icon_pixmap(self, key: str, icon: QIcon):
-        """Replace base icon at runtime (does not touch alt icon)."""
+        """
+        Replace base icon at runtime (does not touch alt icon).
+
+        :param key: icon key
+        :param icon: new QIcon
+        """
         if key not in self._icons:
             return
         meta = self._icon_meta.get(key, {})
@@ -492,7 +515,13 @@ class ChatInput(QTextEdit):
         self._apply_icon_visual(key)
 
     def set_icon_alt(self, key: str, alt_icon: Optional[QIcon], alt_tooltip: Optional[str] = None):
-        """Set/replace alternate icon and optional tooltip."""
+        """
+        Set/replace alternate icon and optional tooltip
+
+        :param key: icon key
+        :param alt_icon: new alternate QIcon (or None to clear)
+        :param alt_tooltip: new alternate tooltip (or None to keep existing)
+        """
         if key not in self._icons:
             return
         meta = self._icon_meta.get(key, {})
@@ -503,7 +532,13 @@ class ChatInput(QTextEdit):
         self._apply_icon_visual(key)
 
     def set_icon_tooltip(self, key: str, tooltip: str, for_alt: bool = False):
-        """Update tooltip; for_alt=True updates alternate tooltip."""
+        """
+        Update tooltip; for_alt=True updates alternate tooltip
+
+        :param key: icon key
+        :param tooltip: new tooltip text
+        :param for_alt: if True, update alt tooltip instead of base tooltip
+        """
         if key not in self._icons:
             return
         meta = self._icon_meta.get(key, {})
@@ -515,7 +550,12 @@ class ChatInput(QTextEdit):
         self._apply_icon_visual(key)
 
     def set_icon_callback(self, key: str, callback):
-        """Update click callback at runtime."""
+        """
+        Update click callback at runtime.
+
+        :param key: icon key
+        :param callback: new callable (or None to disconnect)
+        """
         btn = self._icons.get(key)
         if not btn:
             return
@@ -527,17 +567,30 @@ class ChatInput(QTextEdit):
             btn.clicked.connect(callback)
 
     def get_icon_state(self, key: str) -> bool:
-        """Return active state for icon (True if alt icon is displayed)."""
+        """
+        Return active state for icon (True if alt icon is displayed).
+
+        :param key: icon key
+        """
         return bool(self._icon_meta.get(key, {}).get("active", False))
 
     def get_icon_button(self, key: str) -> Optional[QPushButton]:
-        """Return the underlying QPushButton for advanced customization."""
+        """
+        Return the underlying QPushButton for advanced customization.
+
+        :param key: icon key
+        :return: QPushButton or None if key not found
+        """
         return self._icons.get(key)
 
     # ---- Internal layout helpers ----
 
     def _apply_icon_visual(self, key: str):
-        """Apply correct icon and tooltip based on meta state."""
+        """
+        Apply correct icon and tooltip based on meta state.
+
+        :param key: icon key
+        """
         btn = self._icons.get(key)
         meta = self._icon_meta.get(key, {})
         if not btn or not meta:
@@ -572,7 +625,11 @@ class ChatInput(QTextEdit):
         return [self._icons[k] for k in self._icon_order if k in self._icons and not self._icons[k].isHidden()]
 
     def _compute_icon_bar_width(self) -> int:
-        """Compute width from button count to ensure padding before layout measures."""
+        """
+        Compute width from button count to ensure padding before layout measures.
+
+        :return: total width in pixels
+        """
         vis = self._visible_buttons()
         if not vis:
             return 0
