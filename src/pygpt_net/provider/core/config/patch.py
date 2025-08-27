@@ -2347,6 +2347,8 @@ class Patch:
             # < 2.6.28  -- fix: cmd color
             if old < parse_version("2.6.28"):
                 print("Migrating config from < 2.6.28...")
+                self.window.core.updater.patch_css('web-chatgpt.css', True)
+                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)
                 self.window.core.updater.patch_css('web-chatgpt.dark.css', True)
                 self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)
                 self.window.core.updater.patch_css('web-chatgpt.light.css', True)

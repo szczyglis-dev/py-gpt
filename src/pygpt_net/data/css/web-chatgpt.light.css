@@ -18,7 +18,10 @@ p {{
     color: #000;
 }}
 a {{
-    color: #3b7097 !important;
+    color: #2b4e67 !important;
+}}
+a:hover {{
+    color: #426f90 !important;
 }}
 .msg-user {{
     color: #000;
@@ -33,7 +36,7 @@ a {{
     color: #000;
 }}
 .cmd {{
-    color: #4d4d4d !important;
+    color: #888787 !important;
     text-decoration: none;
 }}
 .ts {{
@@ -75,6 +78,9 @@ code {{
 }}
 .action-icons a:hover {{
     filter: brightness(60%);
+}}
+.tool-output .content {{
+    color: #888787 !important;
 }}
 
 /* loader */

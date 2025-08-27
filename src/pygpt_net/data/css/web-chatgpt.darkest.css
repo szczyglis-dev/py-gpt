@@ -1,15 +1,15 @@
 body {{ 
     color: #fff;
-    background-color: #232629;
+    background-color: #202020;
 }}
 ::-webkit-scrollbar {{
-    background: #232629;
+    background: #1c1c1c;
 }}
 ::-webkit-scrollbar-thumb {{
-    background: {QTMATERIAL_SECONDARYLIGHTCOLOR};
+    background: #282828;
 }}
 ::-webkit-scrollbar-thumb:hover {{
-    background: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+    background: #333333;
 }}
 ::-webkit-scrollbar-corner {{
     background: #232629;

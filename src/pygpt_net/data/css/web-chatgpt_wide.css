@@ -57,6 +57,7 @@ p {{
 .cmd {{
     font-family: 'Monaspace Neon';
     text-decoration: none;
+    padding-top: 5px;
     padding-bottom: 0px;
     font-size: 0.75rem;
 }}
@@ -252,7 +253,7 @@ code {{
 }}
 .tool-output .toggle-cmd-output {{
     cursor: pointer;
-    padding-top: 10px;
+    padding-top: 0px;
     display: block;
     color: gray;
 }}
@@ -305,7 +306,7 @@ code {{
     height: 150px;
     margin: 0;
     margin-bottom: 0px !important;
-    border-radius: 5px;
+    border-radius: 0;
     width: auto;
 }}
 .extra-src-img-box .img-wrapper:hover {{

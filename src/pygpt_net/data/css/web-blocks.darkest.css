@@ -1,34 +1,30 @@
 body {{ 
     color: #fff;
-    background-color: #232629;
+    background-color: #202020;
 }}
 ::-webkit-scrollbar {{
-    background: #232629;
+    background: #1c1c1c;
 }}
 ::-webkit-scrollbar-thumb {{
-    background: {QTMATERIAL_SECONDARYLIGHTCOLOR};
+    background: #282828;
 }}
 ::-webkit-scrollbar-thumb:hover {{
-    background: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+    background: #333333;
 }}
 ::-webkit-scrollbar-corner {{
     background: #232629;
 }}
-p {{ 
-    color: #fff;
-}}
 a {{
-    color: #b5c3cd !important;
+    color: #a1b5c4 !important;
 }}
 a:hover {{
     color: #b8cad7 !important;
 }}
 .msg-user {{
-    background: #303030;
-    color: #fff;
+    color: #cbcbcb;
 }}
 .msg-user p {{
-    color: #fff;
+    color: #cbcbcb;
 }}
 .msg-bot {{
     color: #fff;
@@ -36,8 +32,12 @@ a:hover {{
 .msg-bot p {{
     color: #fff;
 }}
+.msg-highlight {{
+    border: 1px solid #323436;
+    background-color: #272a2d;
+}}
 .cmd {{
-    color: #4d4d4d !important;
+    color: #4d4d4d;
 }}
 .ts {{
     color: #4d4d4d;
@@ -47,17 +47,17 @@ a:hover {{
 code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
 }}
+.code-wrapper {{
+    border: 1px solid #1d1f21;
+}}
 .code-header-wrapper {{
-    background-color: #303030;
+    background-color: #1d1f21;
 }}
-.code-header-action {{
-    color: silver !important;
+.code-header-copy {{
+    color: #a0a0a0;
 }}
-.code-header-action:hover {{
+.code-header-copy:hover {{
     color: #fff;
-}}
-.code-header-action:hover img {{
-    filter: brightness(130%);
 }}
 .code-header-lang {{
     color: #686868;
@@ -65,22 +65,22 @@ code {{
 .action-icons a:hover {{
     filter: brightness(130%);
 }}
-.name-bot::before {{
+.display-blocks {{
+    background-color: #31363b;
+}}
+.display-blocks .msg-box {{
+    background-color: #232629;
+    border: 1px solid gray;
+}}
+.display-blocks .name-bot::before {{
     background-color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
 }}
-.name-user::before {{
+.display-blocks .name-user::before {{
     background-color: silver;
 }}
-.tool-output .content {{
-    color: #4d4d4d !important;
-}}
-
 /* loader */
 .lds-ring {{
    color: #fff;
-}}
-.append_live {{
-  color: gray;
 }}
 
 .tips p {{

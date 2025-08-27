@@ -101,6 +101,8 @@ class Markdown:
                 color = '.light'
             else:
                 color = '.dark'
+                if base_name == 'web' and theme.endswith('darkest'):
+                    color = '.darkest'
 
             # load CSS, app + user
             file_base = name + suffix + '.css'
