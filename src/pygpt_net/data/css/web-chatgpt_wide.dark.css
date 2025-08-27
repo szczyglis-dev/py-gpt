@@ -37,7 +37,7 @@ a:hover {{
     color: #fff;
 }}
 .cmd {{
-    color: #4d4d4d;
+    color: #4d4d4d !important;
 }}
 .ts {{
     color: #4d4d4d;

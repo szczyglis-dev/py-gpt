@@ -21,6 +21,7 @@ a {{
     color: #3b7097 !important;
 }}
 .msg-user {{
+    background-color: #f3f3f3;
     color: #000;
 }}
 .msg-user p {{
@@ -33,7 +34,7 @@ a {{
     color: #000;
 }}
 .cmd {{
-    color: #4d4d4d;
+    color: #8a8a8a !important;
     text-decoration: none;
 }}
 .ts {{
@@ -62,10 +63,6 @@ code {{
 }}
 .code-header-lang {{
     color: #5c5c5c;
-}}
-.msg-user {{
-    background-color: #f3f3f3;
-    color: #000;
 }}
 .name-bot::before {{
     background-color: #6b6b6b;

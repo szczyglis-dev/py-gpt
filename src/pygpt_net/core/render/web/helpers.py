@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
-
+import json
 import re
 import html
 
@@ -155,14 +155,24 @@ class Helpers:
             s = f'<div class="cmd">&gt; {s}</div>'
         return s
 
-    def format_cmd_text(self, text: str) -> str:
+    def format_cmd_text(self, text: str, indent: bool = False) -> str:
         """
         Post-format cmd text
 
         :param text: text to format
+        :param indent: whether to indent text
         :return: formatted text
         """
-        return html.escape(text)
+        if not text:
+            return ""
+        if not indent:
+            return html.escape(text)
+        else:
+            try:
+                return html.escape(json.dumps(json.loads(text), indent=2))
+            except Exception:
+                return html.escape(text)
+
 
     def format_chunk(self, text: str) -> str:
         """

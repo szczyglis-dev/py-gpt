@@ -55,10 +55,10 @@ p {{
 
 /* cmd */
 .cmd {{
-    font-family: 'Lato';
+    font-family: 'Monaspace Neon';
     text-decoration: none;
     padding-bottom: 0px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
 }}
 
 /* lists, code */
@@ -245,8 +245,10 @@ code {{
     color: gray;
 }}
 .tool-output .content {{
+    font-family: 'Monaspace Neon';
     padding: 10px;
     color: gray !important;
+    font-size: 0.75rem;
 }}
 .tool-output .toggle-cmd-output {{
     cursor: pointer;

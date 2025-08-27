@@ -1317,15 +1317,15 @@ class Renderer(BaseRenderer):
         if is_cmd:
             if ctx.results is not None and len(ctx.results) > 0 \
                     and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
-                tool_output = self.helpers.format_cmd_text(str(ctx.input))
+                tool_output = self.helpers.format_cmd_text(str(ctx.input), indent=True)
                 output_class = ""
             else:
-                tool_output = self.helpers.format_cmd_text(str(next_ctx.input))
+                tool_output = self.helpers.format_cmd_text(str(next_ctx.input), indent=True)
                 output_class = ""
 
         elif ctx.results is not None and len(ctx.results) > 0 \
                 and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
-            tool_output = self.helpers.format_cmd_text(str(ctx.input))
+            tool_output = self.helpers.format_cmd_text(str(ctx.input), indent=True)
         else:
             out = (getattr(ctx, "output", "") or "")
             cmds = getattr(ctx, "cmds", ())
