@@ -683,20 +683,7 @@
         "multiplier": null,
         "step": null,
         "advanced": false
-    },
-    "ctx.attachment.verbose": {
-        "section": "files",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.ctx.attachment.verbose",
-        "description": "settings.ctx.attachment.verbose.desc",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
+    },    
     "ctx.attachment.img": {
         "section": "files",
         "type": "bool",
@@ -2047,20 +2034,7 @@
         "step": 1,
         "advanced": false,
         "tab": "llama"
-    },
-    "agent.llama.verbose": {
-        "section": "agent",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.agent.llama.verbose",
-        "value": false,
-        "min": 0,
-        "max": 0,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false,
-        "tab": "general"
-    },
+    },    
     "agent.idx.auto_retrieve": {
         "section": "agent",
         "type": "bool",
@@ -2317,6 +2291,31 @@
         "multiplier": null,
         "step": null,
         "advanced": false
+    },
+    "ctx.attachment.verbose": {
+        "section": "developer",
+        "type": "bool",
+        "slider": false,
+        "label": "Log attachments usage to console",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "agent.llama.verbose": {
+        "section": "developer",
+        "type": "bool",
+        "slider": false,
+        "label": "Log Agents usage to console",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
     },
     "log.llama": {
         "section": "developer",
