@@ -351,3 +351,12 @@ class Notepad:
                 widget.opened = True
             if idx not in self.opened_idx:
                 self.opened_idx.add(idx)
+
+    def focus_opened(self, tab = None):
+        """Focus opened notepad"""
+        if tab is None:
+            tab = self.window.controller.ui.tabs.get_current_tab()
+        if tab is not None and tab.type == Tab.TAB_NOTEPAD:
+            widget = self.window.ui.notepad.get(tab.data_id)
+            if widget is not None:
+                QTimer.singleShot(100, widget.textarea.setFocus)

@@ -170,6 +170,7 @@ class Tabs:
         w = self.window
         core = w.core
         tabs_core = core.tabs
+        appended = self.appended
 
         tab = tabs_core.get_tab_by_index(idx, column_idx)
         if tab is None:
@@ -185,6 +186,8 @@ class Tabs:
                     if meta is not None:
                         w.controller.ctx.load(meta.id)
                 self.create_new_on_tab = True
+            else:
+                self.current = idx
 
         prev_tab = self.current
         prev_column = self.column_idx
@@ -197,6 +200,8 @@ class Tabs:
         if tab.type == Tab.TAB_NOTEPAD:
             w.controller.notepad.opened_once = True
             w.controller.notepad.on_open(idx, column_idx)
+            if appended:
+                w.controller.notepad.focus_opened(tab)
         elif tab.type == Tab.TAB_CHAT:
             meta_id = tab.data_id
             if meta_id is None:
