@@ -1,3 +1,9 @@
+2.6.28 (2025-08-27)
+
+- Added new plugins: Tuya (IoT) and Wikipedia.
+- Improved formatting of JSON command output.
+- Fixed CSS issues.
+
 2.6.27 (2025-08-26)
 
 - Simplified audio input: A microphone icon has been added to the input field.

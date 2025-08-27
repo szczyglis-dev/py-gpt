@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.27** | build: **2025-08-26** | Python: **>=3.10, <3.14**
+Release: **2.6.28** | build: **2025-08-27** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3459,6 +3459,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.28 (2025-08-27)**
+
+- Added new plugins: Tuya (IoT) and Wikipedia.
+- Improved formatting of JSON command output.
+- Fixed CSS issues.
 
 **2.6.27 (2025-08-26)**
 
