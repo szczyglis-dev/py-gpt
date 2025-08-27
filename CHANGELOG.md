@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.27 (2025-08-26)
+
+- Simplified audio input: A microphone icon has been added to the input field.
+
 ## 2.6.26 (2025-08-26)
 
 - Added new provider: OpenRouter (#133).

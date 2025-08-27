@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.26** | build: **2025-08-26** | Python: **>=3.10, <3.14**
+Release: **2.6.27** | build: **2025-08-26** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3427,6 +3427,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.27 (2025-08-26)**
+
+- Simplified audio input: A microphone icon has been added to the input field.
 
 **2.6.26 (2025-08-26)**
 
