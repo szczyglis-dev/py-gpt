@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 import os
@@ -41,14 +41,11 @@ class Simple:
 
     def switch_btn_stop(self):
         """Switch button to stop"""
-        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn.stop'))
-        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setToolTip(
-            trans('audio.speak.btn.stop.tooltip'))
+        self.plugin.window.controller.audio.ui.on_input_begin("input")
 
     def switch_btn_start(self):
         """Switch button to start"""
-        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn'))
-        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setToolTip(trans('audio.speak.btn.tooltip'))
+        self.plugin.window.controller.audio.ui.on_input_end("input")
 
     def stop_timeout(self):
         """Stop timeout"""
@@ -85,10 +82,8 @@ class Simple:
             # stop audio output if playing
             self.plugin.window.controller.audio.stop_output()
 
-            # set audio volume bar
-            self.plugin.window.core.audio.capture.set_bar(
-                self.plugin.window.ui.plugin_addon['audio.input.btn'].bar
-            )
+            # set audio input mode
+            self.plugin.window.core.audio.capture.set_mode("input")
 
             # start timeout timer to prevent infinite recording
             # disable in continuous mode

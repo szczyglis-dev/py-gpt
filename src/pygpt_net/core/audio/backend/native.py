@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 22:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 import os
@@ -40,7 +40,6 @@ class NativeBackend(QObject):
         self.start_time = 0
         self.devices = []
         self.selected_device = None
-        self.bar = None
         self.loop = False
         self.stop_callback = None
         self.player = None
@@ -49,6 +48,7 @@ class NativeBackend(QObject):
         self.audio_output = None
         self.envelope = []
         self.chunk_ms = 10
+        self.mode = "input" # input|control
 
         # Get configuration values (use defaults if unavailable)
         if self.window is not None and hasattr(self.window, "core"):
@@ -58,6 +58,10 @@ class NativeBackend(QObject):
             self.channels = 1
             self.rate = 44100
 
+        # --- Added: internal recording state flag to suppress volume updates after stop ---
+        # This prevents late/queued readyRead events from updating the UI when recording is no longer active.
+        self._is_recording = False
+
     def init(self):
         """
         Initialize audio input backend.
@@ -65,6 +69,14 @@ class NativeBackend(QObject):
         if not self.initialized:
             self.check_audio_devices()
             self.initialized = True
+
+    def set_mode(self, mode: str):
+        """
+        Set input mode (input|control)
+
+        :param mode: mode name
+        """
+        self.mode = mode
 
     def set_repeat_callback(self, callback):
         """
@@ -93,14 +105,6 @@ class NativeBackend(QObject):
         """
         self.path = path
 
-    def set_bar(self, bar):
-        """
-        Set audio level bar
-
-        :param bar: audio level bar
-        """
-        self.bar = bar
-
     def start(self):
         """
         Start audio input recording
@@ -127,6 +131,11 @@ class NativeBackend(QObject):
         # Set up audio input and start recording
         self.setup_audio_input()
         self.start_time = time.time()
+
+        # --- Added: mark recording as active only after setup succeeded ---
+        # This ensures process_audio_input() will start updating the UI.
+        if self.audio_source is not None and self.audio_io_device is not None:
+            self._is_recording = True
         return True
 
     def stop(self) -> bool:
@@ -136,9 +145,20 @@ class NativeBackend(QObject):
         :return: True if stopped
         """
         result = False
+
+        # --- Added: immediately mark that we are no longer recording ---
+        # This blocks any late UI updates coming from queued signals.
+        self._is_recording = False
+
         if self.audio_source is not None:
             # Disconnect the readyRead signal
-            self.audio_io_device.readyRead.disconnect(self.process_audio_input)
+            try:
+                if self.audio_io_device is not None:
+                    self.audio_io_device.readyRead.disconnect(self.process_audio_input)
+            except (TypeError, RuntimeError):
+                # ignore if already disconnected or device gone ---
+                pass
+
             self.audio_source.stop()
             self.audio_source = None
             self.audio_io_device = None
@@ -149,6 +169,10 @@ class NativeBackend(QObject):
                 result = True
             else:
                 print("No audio data recorded")
+
+        # reset input volume on stop to visually indicate end of recording ---
+        self.reset_audio_level()
+
         return result
 
     def has_source(self) -> bool:
@@ -187,8 +211,7 @@ class NativeBackend(QObject):
 
     def reset_audio_level(self):
         """Reset the audio level bar"""
-        if self.bar is not None:
-            self.bar.setLevel(0)
+        self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
         """
@@ -326,6 +349,10 @@ class NativeBackend(QObject):
         import numpy as np
         from PySide6.QtMultimedia import QAudioFormat
 
+        # guard against late calls after stop or missing device ---
+        if not self._is_recording or self.audio_io_device is None:
+            return
+
         # add seconds to stop timer
         data = self.audio_io_device.readAll()
         if data.isEmpty():
@@ -383,8 +410,10 @@ class NativeBackend(QObject):
 
         :param level: audio level
         """
-        if self.bar is not None:
-            self.bar.setLevel(level)
+        # --- Added: do not update UI if recording already stopped ---
+        if not self._is_recording:
+            return
+        self.window.controller.audio.ui.on_input_volume_change(int(level), self.mode)
 
     def save_audio_file(self, filename: str):
         """
@@ -558,8 +587,7 @@ class NativeBackend(QObject):
         """
         if self.player is not None:
             self.player.stop()
-            if self.playback_timer is not None:
-                self.playback_timer.stop()
+        self.stop_timers()
         return False
 
     def calculate_envelope(

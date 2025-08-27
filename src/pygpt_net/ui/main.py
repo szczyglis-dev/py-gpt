@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 import os
@@ -254,7 +254,6 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         message = message if isinstance(message, str) else str(message)
         self.dispatch(KernelEvent(KernelEvent.STATUS, {"status": message}))
-        del message  # free memory
 
     @Slot(str)
     def update_state(self, state: str):

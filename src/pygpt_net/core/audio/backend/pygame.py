@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 import time
@@ -26,7 +26,6 @@ class PygameBackend:
         self.window = window
         self.path = None
         self.frames = []      # List to store captured audio chunks (bytes)
-        self.bar = None       # Optional audio level bar widget
         self.loop = False
         self.stop_callback = None
         self.start_time = 0
@@ -54,6 +53,7 @@ class PygameBackend:
         self.devices = []
         self.selected_device = None
         self.initialized = False
+        self.mode = "input"  # input|control
 
     def init(self):
         """
@@ -74,6 +74,14 @@ class PygameBackend:
             pygame.init()
             self.check_audio_devices()
             self.initialized = True
+
+    def set_mode(self, mode: str):
+        """
+        Set input mode (input|control)
+
+        :param mode: mode name
+        """
+        self.mode = mode
 
     def set_repeat_callback(self, callback):
         """
@@ -101,15 +109,6 @@ class PygameBackend:
         :param path: Path to save the audio file.
         """
         self.path = path
-
-    def set_bar(self, bar):
-        """
-        Set an audio level bar widget.
-        If not available, this will be silently ignored.
-
-        :param bar: A widget that has a setLevel method to update the audio level.
-        """
-        self.bar = bar
 
     def start(self):
         """
@@ -187,8 +186,7 @@ class PygameBackend:
         """
         Reset the audio level bar (if available).
         """
-        if self.bar is not None:
-            self.bar.setLevel(0)
+        self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
         """
@@ -312,8 +310,7 @@ class PygameBackend:
         level = min(max(rms, 0.0), 1.0)
         level_percent = int(level * 100)
 
-        if self.bar is not None:
-            QTimer.singleShot(0, lambda: self.bar.setLevel(level_percent))
+        QTimer.singleShot(0, lambda: self.window.controller.audio.ui.on_input_volume_change(level_percent, self.mode))
 
         # Handle loop recording if enabled.
         if self.loop and self.stop_callback is not None:

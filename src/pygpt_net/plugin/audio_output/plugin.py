@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -250,7 +250,8 @@ class Plugin(BasePlugin):
             worker.signals.stop.connect(self.handle_stop)
             worker.signals.volume_changed.connect(self.handle_volume)
 
-            self.window.controller.audio.on_begin("")
+            if not self.window.controller.audio.ui.recording:
+                self.window.controller.audio.on_begin("")
 
             backend = self.window.core.config.get("audio.output.backend", "native")
             if backend == "native":
@@ -274,20 +275,6 @@ class Plugin(BasePlugin):
         :param status: status text
         """
         self.window.ui.plugin_addon['audio.output'].set_status(status)
-
-    def show_stop_button(self):
-        """Show stop button"""
-        self.window.ui.plugin_addon['audio.output'].stop.setVisible(True)
-
-    def hide_stop_button(self):
-        """Hide stop button"""
-        self.window.ui.plugin_addon['audio.output'].stop.setVisible(False)
-
-    def stop_speak(self):
-        """Stop speaking"""
-        self.window.ui.plugin_addon['audio.output'].stop.setVisible(False)
-        self.window.ui.plugin_addon['audio.output'].set_status('Stopped')
-        self.window.ui.plugin_addon['audio.output'].stop_audio()
 
     def stop_audio(self):
         """
@@ -336,4 +323,4 @@ class Plugin(BasePlugin):
 
         :param volume: volume level
         """
-        self.window.ui.plugin_addon['audio.output.bar'].setLevel(volume)
+        self.window.controller.audio.ui.on_output_volume_change(int(volume))

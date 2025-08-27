@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 import time
@@ -27,7 +27,6 @@ class PyaudioBackend:
         self.window = window
         self.path = None
         self.frames = []
-        self.bar = None
         self.loop = False
         self.stop_callback = None
         self.start_time = 0
@@ -36,6 +35,7 @@ class PyaudioBackend:
         self.pyaudio_instance_output = None
         self.stream = None
         self.stream_output = None
+        self.mode = "input"  # input|control
 
         # Get configuration values (use defaults if unavailable)
         if self.window is not None and hasattr(self.window, "core"):
@@ -59,6 +59,14 @@ class PyaudioBackend:
             self.pyaudio_instance = pyaudio.PyAudio()
             self.check_audio_devices()
             self.initialized = True
+
+    def set_mode(self, mode: str):
+        """
+        Set input mode (input|control)
+
+        :param mode: mode name
+        """
+        self.mode = mode
 
     def set_repeat_callback(self, callback):
         """
@@ -86,14 +94,6 @@ class PyaudioBackend:
         :param path: file path to save recorded audio
         """
         self.path = path
-
-    def set_bar(self, bar):
-        """
-        Set audio level bar.
-
-        :param bar: audio level bar widget to update with audio levels
-        """
-        self.bar = bar
 
     def start(self):
         """
@@ -169,8 +169,7 @@ class PyaudioBackend:
         """
         Reset the audio level bar.
         """
-        if self.bar is not None:
-            self.bar.setLevel(0)
+        self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
         """
@@ -284,11 +283,10 @@ class PyaudioBackend:
         level_percent = int(level * 100)
 
         # Update the audio level bar if available.
-        if self.bar is not None:
-            try:
-                QTimer.singleShot(0, lambda: self.bar.setLevel(level_percent))
-            except Exception:
-                pass
+        try:
+            QTimer.singleShot(0, lambda: self.window.controller.audio.ui.on_input_volume_change(level_percent, self.mode))
+        except Exception:
+            pass
 
         # Handle loop recording if enabled.
         if self.loop and self.stop_callback is not None:
@@ -306,8 +304,7 @@ class PyaudioBackend:
         Update the audio level bar.
         :param level: audio level (0-100).
         """
-        if self.bar is not None:
-            self.bar.setLevel(level)
+        self.window.controller.audio.ui.on_input_volume_change(level, self.mode)
 
     def save_audio_file(self, filename: str):
         """

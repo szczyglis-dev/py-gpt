@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
@@ -233,10 +233,8 @@ class Voice(QObject):
             # stop audio output if playing
             self.window.controller.audio.stop_output()
 
-            # set audio volume bar
-            self.window.core.audio.capture.set_bar(
-                self.window.ui.nodes['voice.control.btn'].bar
-            )
+            # set audio input mode
+            self.window.core.audio.capture.set_mode("control")
 
             # start timeout timer to prevent infinite recording
             timeout = int(self.window.core.config.get('audio.input.timeout', 120) or 0)  # get timeout

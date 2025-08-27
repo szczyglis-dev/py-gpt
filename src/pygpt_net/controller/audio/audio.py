@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 import os
@@ -19,6 +19,8 @@ from pygpt_net.core.events import Event, BaseEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
+from .ui import UI
+
 
 class Audio:
     def __init__(self, window=None):
@@ -28,6 +30,7 @@ class Audio:
         :param window: Window instance
         """
         self.window = window
+        self.ui = UI(window)
         self.input_allowed_tabs = [
             Tab.TAB_NOTEPAD,
             Tab.TAB_CHAT,
@@ -410,18 +413,18 @@ class Audio:
             # show/hide extra options
             tab = self.window.controller.ui.tabs.get_current_tab()
             if tab.type == Tab.TAB_NOTEPAD:
-                self.window.ui.plugin_addon['audio.input.btn'].notepad_footer.setVisible(True)
+                self.window.controller.audio.ui.on_input_continuous_enable("input")
             else:
-                self.window.ui.plugin_addon['audio.input.btn'].notepad_footer.setVisible(False)
+                self.window.controller.audio.ui.on_input_continuous_disable("input")
             if is_advanced:
-                self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)
+                self.window.controller.audio.ui.on_input_disable("input")
                 self.window.ui.plugin_addon['audio.input'].setVisible(True)
             else:
-                self.window.ui.plugin_addon['audio.input.btn'].setVisible(True)  # simple recording
+                self.window.controller.audio.ui.on_input_enable("input")
                 self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
             self.toggle_input_icon(True)
         else:
-            self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)  # simple recording
+            self.window.controller.audio.ui.on_input_disable("input")  # simple recording
             self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
             self.toggle_input_icon(False)
 

@@ -6,12 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
-from typing import Dict, Any
-
-from pygpt_net.item.ctx import CtxItem
+from typing import Dict
 
 
 class AudioContext:
@@ -35,5 +33,4 @@ class AudioContext:
             "prev_id": self.prev_id
         }
         # sort by keys
-        data = dict(sorted(data.items(), key=lambda item: item[0]))
-        return data
+        return dict(sorted(data.items(), key=lambda item: item[0]))

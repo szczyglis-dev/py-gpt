@@ -227,6 +227,8 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Audio notify microphone listening start/stop``: enables audio "tick" notify when microphone listening started/ended.
 
+* ``Continuous Audio Recording (Chunks)``: Enable recording in chunks for long audio recordings in notepad (voice notes).
+
 **Indexes / LlamaIndex**
 
 **General**

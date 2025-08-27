@@ -1429,7 +1429,20 @@
         "step": 1,
         "advanced": false,        
         "tab": "device"
-    }, 
+    },     
+    "audio.input.timeout": {
+        "section": "audio",
+        "type": "int",
+        "slider": false,
+        "label": "settings.audio.input.timeout",
+        "description": "settings.audio.input.timeout.desc",
+        "value": 120,
+        "min": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,        
+        "tab": "options"
+    },
     "audio.input.stop_interval": {
         "section": "audio",
         "type": "int",
@@ -1444,16 +1457,17 @@
         "advanced": false,        
         "tab": "options"
     },
-    "audio.input.timeout": {
+    "audio.input.continuous": {
         "section": "audio",
-        "type": "int",
+        "type": "bool",
         "slider": false,
-        "label": "settings.audio.input.timeout",
-        "description": "settings.audio.input.timeout.desc",
-        "value": 120,
-        "min": 0,
-        "multiplier": 1,
-        "step": 1,
+        "label": "settings.audio.input.continuous",
+        "description": "settings.audio.input.continuous.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
         "advanced": false,        
         "tab": "options"
     },
@@ -1469,7 +1483,7 @@
         "step": null,
         "advanced": false,        
         "tab": "options"
-    },
+    },    
     "audio.cache.enabled": {
         "section": "audio",
         "type": "bool",

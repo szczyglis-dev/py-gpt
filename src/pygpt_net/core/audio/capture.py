@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
+
 from typing import List, Tuple
 
 from .backend.native import NativeBackend
@@ -57,6 +58,14 @@ class Capture:
         """
         self.get_backend().set_repeat_callback(callback)
 
+    def set_mode(self, mode: str):
+        """
+        Set input mode (input|control)
+
+        :param mode: mode name
+        """
+        self.get_backend().set_mode(mode)
+
     def set_loop(self, loop: bool):
         """
         Set loop recording
@@ -72,14 +81,6 @@ class Capture:
         :param path: file path
         """
         self.get_backend().set_path(path)
-
-    def set_bar(self, bar):
-        """
-        Set audio level bar
-
-        :param bar: audio level bar
-        """
-        self.get_backend().set_bar(bar)
 
     def start(self):
         """

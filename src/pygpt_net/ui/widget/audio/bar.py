@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -25,6 +25,8 @@ class InputBar(QWidget):
 
         :param level: level
         """
+        if self._level == level:
+            return
         self._level = level
         self.update()
 
@@ -69,6 +71,8 @@ class OutputBar(QWidget):
 
         :param level: level
         """
+        if self._level == level:
+            return
         self._level = level
         self.update()
 

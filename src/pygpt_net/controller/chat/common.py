@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 import os
@@ -249,6 +249,22 @@ class Common:
         if ctx.has_commands():
             unlock = False
         return unlock
+
+    def handle_stop(self):
+        """Handle stop"""
+        # stop voice recording if active
+        if self.window.controller.access.voice.is_recording:
+            self.window.controller.access.voice.stop_recording(timeout=True)
+
+        if self.window.core.plugins.get("audio_input").handler_simple.is_recording:
+            self.window.core.plugins.get("audio_input").handler_simple.stop_recording(timeout=False)
+            return
+
+        # stop audio output if playing
+        self.window.controller.audio.stop_output()
+
+        # stop generating if active
+        self.window.controller.kernel.stop()
 
     def auto_unlock(self, ctx: CtxItem) -> bool:
         """

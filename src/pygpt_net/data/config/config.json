@@ -175,7 +175,9 @@
     "vision": "",
     "agent": "",
     "agent_llama": "",
-    "expert": ""
+    "agent_openai": "",
+    "expert": "",
+    "computer": ""
   },
   "debug": false,
   "debug.render": false,
@@ -345,7 +347,7 @@
   "plugins": {},
   "plugins_enabled": {
     "agent": false,
-    "audio_input": false,
+    "audio_input": true,
     "audio_output": false,
     "cmd_api": false,
     "cmd_code_interpreter": false,

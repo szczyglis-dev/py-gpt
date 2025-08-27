@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
 from functools import partial
@@ -149,6 +149,9 @@ class Input:
         self.window.ui.plugin_addon['audio.input'] = AudioInput(self.window)
         self.window.ui.plugin_addon['audio.input.btn'] = AudioInputButton(self.window)
 
+        self.window.ui.plugin_addon['audio.input'].setVisible(False)
+        self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)
+
         grid = QGridLayout()
 
         center_layout = QHBoxLayout()
@@ -204,7 +207,7 @@ class Input:
 
         nodes['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
         nodes['input.stop_btn'].setVisible(False)
-        nodes['input.stop_btn'].clicked.connect(controller.kernel.stop)
+        nodes['input.stop_btn'].clicked.connect(controller.chat.common.handle_stop)
 
         nodes['input.update_btn'] = QPushButton(trans("input.btn.update"))
         nodes['input.update_btn'].setVisible(False)
