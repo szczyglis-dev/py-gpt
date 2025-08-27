@@ -30,6 +30,7 @@ class ChatInput(QTextEdit):
     ICON_VOLUME = QIcon(":/icons/volume.svg")
     ICON_SAVE = QIcon(":/icons/save.svg")
     ICON_ATTACHMENT = QIcon(":/icons/add.svg")
+    #ICON_ATTACHMENT = QIcon(":/icons/attachment.svg")
     ICON_MIC_ON = QIcon(":/icons/mic.svg")
     ICON_MIC_OFF = QIcon(":/icons/mic_off.svg")
 
@@ -66,8 +67,8 @@ class ChatInput(QTextEdit):
         self._icon_meta = {}   # key -> {"icon": QIcon, "alt_icon": Optional[QIcon], "tooltip": str, "alt_tooltip": Optional[str], "active": bool}
         self._icon_order = []  # rendering order
 
-        # Add a "+" button in the top-left corner to add attachments
         self._init_icon_bar()
+        # Add a "+" button in the top-left corner to add attachments
         self.add_icon(
             key="attach",
             icon=self.ICON_ATTACHMENT,
@@ -75,6 +76,7 @@ class ChatInput(QTextEdit):
             callback=self.action_add_attachment,
             visible=True,
         )
+        # Add a microphone button (hidden by default; shown when audio input is enabled)
         self.add_icon(
             key="mic",
             icon=self.ICON_MIC_ON,
@@ -94,7 +96,11 @@ class ChatInput(QTextEdit):
         self._apply_margins()
 
     def set_text_top_padding(self, px: int):
-        """Public helper to adjust top padding at runtime."""
+        """
+        Public helper to adjust top padding at runtime.
+
+        :param px: padding in pixels
+        """
         self._text_top_padding = max(0, int(px))
         self._apply_margins()
 
@@ -177,9 +183,7 @@ class ChatInput(QTextEdit):
             menu.deleteLater()
 
     def action_from_clipboard(self):
-        """
-        Get from clipboard
-        """
+        """Paste from clipboard"""
         clipboard = QApplication.clipboard()
         source = clipboard.mimeData()
         self.handle_clipboard(source)
@@ -324,7 +328,6 @@ class ChatInput(QTextEdit):
                     pass
                 btn.clicked.connect(callback)
             btn.setHidden(not visible)
-            self._sync_icon_order(key)
             self._rebuild_icon_layout()
             self._update_icon_bar_geometry()
             self._apply_margins()
