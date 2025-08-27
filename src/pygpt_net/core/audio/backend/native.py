@@ -507,9 +507,6 @@ class NativeBackend(QObject):
         :param signals: Signals to emit on playback
         :return: True if started
         """
-        if signals is not None:
-            signals.playback.emit(event_name)
-
         self.audio_output = QAudioOutput()
         self.audio_output.setVolume(1.0)
 
@@ -561,6 +558,7 @@ class NativeBackend(QObject):
         self.playback_timer.start()
         self.volume_timer.start()
         signals.volume_changed.emit(0)
+        signals.playback.emit(event_name)
 
     def stop_timers(self):
         """
