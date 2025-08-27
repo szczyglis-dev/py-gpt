@@ -13,6 +13,7 @@ import threading
 from typing import Any, Dict, Optional, Union, List
 
 from PySide6.QtCore import QObject, Slot
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -337,6 +338,7 @@ class Kernel:
         """
         self.status = status
         self.window.ui.status(status)
+        QApplication.processEvents()  # process events to update UI
 
     def resume(self):
         """
