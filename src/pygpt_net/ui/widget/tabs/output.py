@@ -323,6 +323,8 @@ class AddButton(QPushButton):
             idx = 0
             column_idx = self.column.get_idx()
             self.show_menu(idx, column_idx, event.globalPos())
+            event.accept()
+            return
         super(AddButton, self).mousePressEvent(event)
 
     def show_menu(self, index: int, column_idx: int, global_pos):
