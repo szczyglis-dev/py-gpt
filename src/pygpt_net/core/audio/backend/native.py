@@ -9,11 +9,16 @@
 # Updated Date: 2025.08.27 07:00:00                  #
 # ================================================== #
 
-import os
-import time
 from typing import List, Tuple
 
-from PySide6.QtCore import QTimer, QObject
+from bs4 import UnicodeDammit
+import os
+import time
+import numpy as np
+import wave
+
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput, QMediaDevices, QAudioFormat, QAudioSource
+from PySide6.QtCore import QTimer, QObject, QUrl
 from pydub import AudioSegment
 
 
@@ -54,13 +59,18 @@ class NativeBackend(QObject):
         if self.window is not None and hasattr(self.window, "core"):
             self.channels = int(self.window.core.config.get('audio.input.channels', 1))
             self.rate = int(self.window.core.config.get('audio.input.rate', 44100))
+            self.latency_ms = int(self.window.core.config.get('audio.input.latency_ms', 30))
         else:
             self.channels = 1
             self.rate = 44100
+            self.latency_ms = 30
 
-        # --- Added: internal recording state flag to suppress volume updates after stop ---
+        # internal recording state flag to suppress volume updates after stop
         # This prevents late/queued readyRead events from updating the UI when recording is no longer active.
         self._is_recording = False
+
+        self._dtype = None
+        self._norm = None
 
     def init(self):
         """
@@ -112,6 +122,7 @@ class NativeBackend(QObject):
         :return: True if started
         """
         self.init()
+
         # Clear previous frames
         self.frames = []
 
@@ -132,7 +143,7 @@ class NativeBackend(QObject):
         self.setup_audio_input()
         self.start_time = time.time()
 
-        # --- Added: mark recording as active only after setup succeeded ---
+        # mark recording as active only after setup succeeded
         # This ensures process_audio_input() will start updating the UI.
         if self.audio_source is not None and self.audio_io_device is not None:
             self._is_recording = True
@@ -146,7 +157,7 @@ class NativeBackend(QObject):
         """
         result = False
 
-        # --- Added: immediately mark that we are no longer recording ---
+        # immediately mark that we are no longer recording
         # This blocks any late UI updates coming from queued signals.
         self._is_recording = False
 
@@ -220,24 +231,27 @@ class NativeBackend(QObject):
         :return: True if working
         """
         self.init()
-        from PySide6.QtMultimedia import QMediaDevices, QAudioFormat, QAudioSource
-
         devices = QMediaDevices.audioInputs()
         if not devices:
             print("No audio input devices found.")
             return False
 
         device = self.selected_device if self.selected_device else devices[0]
-        audio_format = QAudioFormat()
-        audio_format.setSampleRate(self.rate)
-        audio_format.setChannelCount(self.channels)
-        audio_format.setSampleFormat(QAudioFormat.SampleFormat.Int16)
 
-        if not device.isFormatSupported(audio_format):
-            print("Requested format not supported, using nearest format.")
-            audio_format = device.preferredFormat()
+        audio_format = device.preferredFormat()
+        desired = QAudioFormat()
+        desired.setSampleRate(self.rate)
+        desired.setChannelCount(self.channels)
+        desired.setSampleFormat(QAudioFormat.SampleFormat.Int16)
+        if device.isFormatSupported(desired):
+            audio_format = desired
+
         try:
             audio_source = QAudioSource(device, audio_format)
+            bs = int(audio_format.sampleRate() * audio_format.channelCount() * audio_format.bytesPerSample() * (float(self.latency_ms) / 1000.0))
+            if bs < 4096:
+                bs = 4096
+            audio_source.setBufferSize(bs)
             io_device = audio_source.start()
             if io_device is None:
                 print("Unable to access audio input device")
@@ -250,7 +264,6 @@ class NativeBackend(QObject):
 
     def check_audio_devices(self):
         """Check audio input devices"""
-        from PySide6.QtMultimedia import QMediaDevices
         self.devices = QMediaDevices.audioInputs()
         if not self.devices:
             # no devices found
@@ -297,39 +310,30 @@ class NativeBackend(QObject):
             print("No audio input device selected")
             return
 
-        from PySide6.QtMultimedia import QAudioFormat, QAudioSource
-
-        # Define audio format
-        audio_format = QAudioFormat()
-        audio_format.setSampleRate(int(self.window.core.config.get('audio.input.rate', 44100)))
-        audio_format.setChannelCount(int(self.window.core.config.get('audio.input.channels', 1)))
-        audio_format.setSampleFormat(QAudioFormat.SampleFormat.Int16)
-
-        # Select default audio input device
         audio_input_device = self.selected_device
 
-        # Check if the format is supported
-        if not audio_input_device.isFormatSupported(audio_format):
-            print("Requested format not supported, using nearest format.")
-            audio_format = audio_input_device.preferredFormat()
-            if audio_format.channelCount() > 2:
-                audio_format.setChannelCount(2)
-            if audio_format.sampleRate() > 44100:
-                audio_format.setSampleRate(44100)
-            if audio_format.bytesPerSample() > 2:
-                audio_format.setSampleFormat(QAudioFormat.SampleFormat.Int16)
+        audio_format = audio_input_device.preferredFormat()
+        desired = QAudioFormat()
+        desired.setSampleRate(int(self.window.core.config.get('audio.input.rate', 44100)))
+        desired.setChannelCount(int(self.window.core.config.get('audio.input.channels', 1)))
+        desired.setSampleFormat(QAudioFormat.SampleFormat.Int16)
+        if audio_input_device.isFormatSupported(desired):
+            audio_format = desired
 
-        # Store the actual format being used
         self.actual_audio_format = audio_format
+        self._dtype = self.get_dtype_from_sample_format(self.actual_audio_format.sampleFormat())
+        self._norm = self.get_normalization_factor(self.actual_audio_format.sampleFormat())
 
-        # Create QAudioSource object with the device and format
         try:
             self.audio_source = QAudioSource(audio_input_device, audio_format)
+            bs = int(audio_format.sampleRate() * audio_format.channelCount() * audio_format.bytesPerSample() * (float(self.latency_ms) / 1000.0))
+            if bs < 4096:
+                bs = 4096
+            self.audio_source.setBufferSize(bs)
         except Exception as e:
             self.disconnected = True
             print(f"Failed to create audio source: {e}")
 
-        # Start audio input and obtain the QIODevice
         try:
             self.audio_io_device = self.audio_source.start()
             if self.audio_io_device is None:
@@ -341,14 +345,10 @@ class NativeBackend(QObject):
             self.audio_io_device = None
             return
 
-        # Connect the readyRead signal to process incoming data
         self.audio_io_device.readyRead.connect(self.process_audio_input)
 
     def process_audio_input(self):
         """Process incoming audio data"""
-        import numpy as np
-        from PySide6.QtMultimedia import QAudioFormat
-
         # guard against late calls after stop or missing device ---
         if not self._is_recording or self.audio_io_device is None:
             return
@@ -366,8 +366,8 @@ class NativeBackend(QObject):
 
         # Determine the correct dtype and normalization factor
         sample_format = self.actual_audio_format.sampleFormat()
-        dtype = self.get_dtype_from_sample_format(sample_format)
-        normalization_factor = self.get_normalization_factor(sample_format)
+        dtype = self._dtype if self._dtype is not None else self.get_dtype_from_sample_format(sample_format)
+        normalization_factor = self._norm if self._norm is not None else self.get_normalization_factor(sample_format)
 
         # Convert bytes to NumPy array of the appropriate type
         samples = np.frombuffer(data_bytes, dtype=dtype)
@@ -410,7 +410,7 @@ class NativeBackend(QObject):
 
         :param level: audio level
         """
-        # --- Added: do not update UI if recording already stopped ---
+        # do not update UI if recording already stopped
         if not self._is_recording:
             return
         self.window.controller.audio.ui.on_input_volume_change(int(level), self.mode)
@@ -421,20 +421,40 @@ class NativeBackend(QObject):
 
         :param filename: output file name
         """
-        import wave
         # Define the parameters for the WAV file
         channels = self.actual_audio_format.channelCount()
-        sample_size = self.actual_audio_format.bytesPerSample()
         frame_rate = self.actual_audio_format.sampleRate()
+        sample_format = self.actual_audio_format.sampleFormat()
 
-        # Open the WAV file
+        raw = b''.join(self.frames)
+
+        if sample_format == QAudioFormat.SampleFormat.Int16:
+            out_bytes = raw
+            sample_size = 2
+        elif sample_format == QAudioFormat.SampleFormat.UInt8:
+            arr = np.frombuffer(raw, dtype=np.uint8).astype(np.int16)
+            arr = (arr - 128) << 8
+            out_bytes = arr.tobytes()
+            sample_size = 2
+        elif sample_format == QAudioFormat.SampleFormat.Int32:
+            arr = np.frombuffer(raw, dtype=np.int32)
+            arr = (arr >> 16).astype(np.int16)
+            out_bytes = arr.tobytes()
+            sample_size = 2
+        elif sample_format == QAudioFormat.SampleFormat.Float:
+            arr = np.frombuffer(raw, dtype=np.float32)
+            arr = np.clip(arr, -1.0, 1.0)
+            arr = (arr * 32767.0).astype(np.int16)
+            out_bytes = arr.tobytes()
+            sample_size = 2
+        else:
+            raise ValueError("Unsupported sample format")
+
         wf = wave.open(filename, 'wb')
         wf.setnchannels(channels)
         wf.setsampwidth(sample_size)
         wf.setframerate(frame_rate)
-
-        # Write frames to the file
-        wf.writeframes(b''.join(self.frames))
+        wf.writeframes(out_bytes)
         wf.close()
 
     def get_dtype_from_sample_format(self, sample_format):
@@ -443,9 +463,6 @@ class NativeBackend(QObject):
 
         :param sample_format: QAudioFormat.SampleFormat
         """
-        import numpy as np
-        from PySide6.QtMultimedia import QAudioFormat
-
         if sample_format == QAudioFormat.SampleFormat.UInt8:
             return np.uint8
         elif sample_format == QAudioFormat.SampleFormat.Int16:
@@ -463,8 +480,6 @@ class NativeBackend(QObject):
 
         :param sample_format: QAudioFormat.SampleFormat
         """
-        from PySide6.QtMultimedia import QAudioFormat
-
         if sample_format == QAudioFormat.SampleFormat.UInt8:
             return 255.0
         elif sample_format == QAudioFormat.SampleFormat.Int16:
@@ -492,8 +507,6 @@ class NativeBackend(QObject):
         :param signals: Signals to emit on playback
         :return: True if started
         """
-        from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput, QMediaDevices
-        from PySide6.QtCore import QUrl, QTimer
         if signals is not None:
             signals.playback.emit(event_name)
 
@@ -601,7 +614,6 @@ class NativeBackend(QObject):
         :param audio_file: Path to the audio file
         :param chunk_ms: Size of each chunk in milliseconds
         """
-        import numpy as np
         audio = AudioSegment.from_file(audio_file)
         max_amplitude = 32767
         envelope = []
@@ -639,8 +651,6 @@ class NativeBackend(QObject):
 
         :return devices list: [(id, name)]
         """
-        from bs4 import UnicodeDammit
-        from PySide6.QtMultimedia import QMediaDevices
         devices = QMediaDevices.audioInputs()
         devices_list = []
         for index, device in enumerate(devices):
@@ -654,8 +664,6 @@ class NativeBackend(QObject):
 
         :return devices list: [(id, name)]
         """
-        from bs4 import UnicodeDammit
-        from PySide6.QtMultimedia import QMediaDevices
         devices = QMediaDevices.audioOutputs()
         devices_list = []
         for index, device in enumerate(devices):
@@ -669,7 +677,6 @@ class NativeBackend(QObject):
 
         :return: (device_id, error_message) tuple
         """
-        from PySide6.QtMultimedia import QMediaDevices
         default_device = QMediaDevices.defaultAudioInput()
         devices = QMediaDevices.audioInputs()
         try:
@@ -684,7 +691,6 @@ class NativeBackend(QObject):
 
         :return: (device_id, None) if successful, (None, error_message) if failed
         """
-        from PySide6.QtMultimedia import QMediaDevices
         default_device = QMediaDevices.defaultAudioOutput()
         devices = QMediaDevices.audioOutputs()
         try:
