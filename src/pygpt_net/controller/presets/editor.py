@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 13:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,6 +14,7 @@ import os
 import shutil
 from typing import Any, Optional, Dict
 
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout
 
 from pygpt_net.core.types import (
@@ -101,10 +102,10 @@ class Editor:
                 "type": "bool",
                 "label": "preset.completion",
             },
-            MODE_VISION: {
-                "type": "bool",
-                "label": "preset.vision",
-            },
+            #MODE_VISION: {
+            #   "type": "bool",
+            #    "label": "preset.vision",
+            #},
             #MODE_LANGCHAIN: {
             #    "type": "bool",
             #    "label": "preset.langchain",
@@ -262,32 +263,30 @@ class Editor:
         if not self.tab_options_idx:
             return
         mode = self.window.core.config.get('mode')
+        tabs = self.window.ui.tabs['preset.editor.extra']
         if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
-            # show base prompt
-            self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
-            # hide all tabs
-            for id in self.tab_options_idx:
-                for tab_idx in self.tab_options_idx[id]:
-                    if self.window.ui.tabs['preset.editor.extra'].count() >= tab_idx:
-                        self.window.ui.tabs['preset.editor.extra'].setTabVisible(tab_idx, False)
+            tabs.setTabVisible(0, True)  # show base prompt
+            for opt_id in self.tab_options_idx:  # hide all tabs
+                for tab_idx in self.tab_options_idx[opt_id]:
+                    if tabs.count() >= tab_idx:
+                        tabs.setTabVisible(tab_idx, False)
             return
         else:
-            # hide all tabs
-            for id in self.tab_options_idx:
-                for tab_idx in self.tab_options_idx[id]:
-                    if self.window.ui.tabs['preset.editor.extra'].count() >= tab_idx:
-                        self.window.ui.tabs['preset.editor.extra'].setTabVisible(tab_idx, False)
+            for opt_id in self.tab_options_idx:  # hide all tabs
+                for tab_idx in self.tab_options_idx[opt_id]:
+                    if tabs.count() >= tab_idx:
+                        tabs.setTabVisible(tab_idx, False)
 
             self.toggle_extra_options_by_provider()
 
     def toggle_extra_options_by_provider(self):
         """Toggle extra options in preset editor by provider"""
         if not self.tab_options_idx:
-            # show base prompt
-            self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
+            self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)   # show base prompt
             return
 
         mode = self.window.core.config.get('mode')
+        tabs = self.window.ui.tabs['preset.editor.extra']
         key_agent = ""
 
         if mode in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
@@ -303,32 +302,29 @@ class Editor:
                 option=self.options[key_agent],
             )
             if current_provider is None or current_provider == "":
-                # show base prompt
-                self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
+                tabs.setTabVisible(0, True)  # show base prompt
                 return
 
             # show all tabs for current provider
-            for id in self.tab_options_idx:
-
-                self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, False)
-
-                if id != current_provider:
-                    for tab_idx in self.tab_options_idx[id]:
-                        if self.window.ui.tabs['preset.editor.extra'].count() >= tab_idx:
-                            self.window.ui.tabs['preset.editor.extra'].setTabVisible(tab_idx, False)
+            for opt_id in self.tab_options_idx:
+                tabs.setTabVisible(0, False)
+                if opt_id != current_provider:
+                    for tab_idx in self.tab_options_idx[opt_id]:
+                        if tabs.count() >= tab_idx:
+                            tabs.setTabVisible(tab_idx, False)
                 else:
-                    for tab_idx in self.tab_options_idx[id]:
-                        if self.window.ui.tabs['preset.editor.extra'].count() >= tab_idx:
-                            self.window.ui.tabs['preset.editor.extra'].setTabVisible(tab_idx, True)
+                    for tab_idx in self.tab_options_idx[opt_id]:
+                        if tabs.count() >= tab_idx:
+                            tabs.setTabVisible(tab_idx, True)
 
             # show base prompt if no custom options in current agent
             agent = self.window.core.agents.provider.get(current_provider)
             if not agent:
-                self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
+                tabs.setTabVisible(0, True)
                 return
             option_tabs = agent.get_options()
             if not option_tabs or len(option_tabs) == 0:
-                self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
+                tabs.setTabVisible(0, True)
 
     def load_extra_options(self, preset: PresetItem):
         """
@@ -337,7 +333,6 @@ class Editor:
         :param preset: preset item
         """
         mode = self.window.core.config.get('mode')
-        id = None
         if mode == MODE_AGENT_OPENAI:
             if preset.agent_provider_openai is None or preset.agent_provider_openai == "":
                 return
@@ -356,6 +351,8 @@ class Editor:
         if not preset.extra or id not in preset.extra:
             return
 
+        apply_value = self.window.controller.config.apply_value
+
         data_dict = preset.extra[id]
         option_tabs = agent.get_options()
         for option_tab_id in data_dict:
@@ -372,7 +369,7 @@ class Editor:
             for key in extra_options:
                 value = data_dict[option_tab_id].get(key, None)
                 if value is not None:
-                    self.window.controller.config.apply_value(
+                    apply_value(
                         parent_id=option_key,
                         key=key,
                         option=extra_options[key],
@@ -382,7 +379,7 @@ class Editor:
                     # from defaults
                     if "default" not in extra_options[key]:
                         continue
-                    self.window.controller.config.apply_value(
+                    apply_value(
                         parent_id=option_key,
                         key=key,
                         option=extra_options[key],
@@ -396,6 +393,8 @@ class Editor:
         mode = self.window.core.config.get('mode')
         if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
             return
+
+        apply_value = self.window.controller.config.apply_value
 
         # load defaults for all tabs
         for id in self.tab_options_idx:
@@ -411,7 +410,7 @@ class Editor:
                 for key in extra_options:
                     value = extra_options[key].get('default', None)
                     if value is not None:
-                        self.window.controller.config.apply_value(
+                        apply_value(
                             parent_id=option_key,
                             key=key,
                             option=extra_options[key],
@@ -440,11 +439,13 @@ class Editor:
         elif mode == MODE_AGENT_LLAMA:
             current_provider_id = preset.agent_provider if preset else None
 
+        get_value = self.window.controller.config.get_value
+        apply_value = self.window.controller.config.apply_value
+
         # load defaults for all tabs
         for id in self.tab_options_idx:
-            # skip current provider
             if current_provider_id and id == current_provider_id:
-                continue
+                continue  # skip current provider
             agent = self.window.core.agents.provider.get(id)
             if not agent:
                 continue
@@ -456,9 +457,8 @@ class Editor:
                 extra_options = option_tabs[option_tab_id]['options']
                 for key in extra_options:
                     value = extra_options[key].get('default', None)
-                    if value is not None:
-                        # check current, apply only if current is empty
-                        current_value = self.window.controller.config.get_value(
+                    if value is not None:  # check current, apply only if current is empty
+                        current_value = get_value(
                             parent_id=option_key,
                             key=key,
                             option=extra_options[key],
@@ -466,7 +466,7 @@ class Editor:
                         if current_value is not None and current_value != "":
                             continue
 
-                        self.window.controller.config.apply_value(
+                        apply_value(
                             parent_id=option_key,
                             key=key,
                             option=extra_options[key],
@@ -491,6 +491,7 @@ class Editor:
         else:
             return
 
+        get_value = self.window.controller.config.get_value
         options = {}
         agent = self.window.core.agents.provider.get(id)
         if not agent:
@@ -509,7 +510,7 @@ class Editor:
                 data_dict[option_tab_id] = {}
             extra_options = option_tabs[option_tab_id]['options']
             for key in extra_options:
-                data_dict[option_tab_id][key] = self.window.controller.config.get_value(
+                data_dict[option_tab_id][key] = get_value(
                     parent_id=option_key,
                     key=key,
                     option=extra_options[key],
@@ -528,6 +529,8 @@ class Editor:
         ]
         agents = self.window.core.agents.provider.all()
         tabs = self.window.ui.tabs['preset.editor.extra']
+        build_option_widgets = self.window.ui.dialogs.preset.build_option_widgets
+
         tab_idx = 1
         for id in agents:
             agent = agents[id]
@@ -543,20 +546,19 @@ class Editor:
                 option = option_tabs[option_tab_id]
                 title = option.get('label', '')
                 config_id = "agent." + id + "." + option_tab_id
-                widgets, options = self.window.ui.dialogs.preset.build_option_widgets(config_id, option['options'])
+                widgets, options = build_option_widgets(config_id, option['options'])
                 layout = QVBoxLayout()
                 layout.setContentsMargins(0, 10, 0, 10)
 
-                checkboxLayout = QHBoxLayout()
+                checkbox_layout = QHBoxLayout()
                 for key in options:
                     opt_layout = options[key]
                     if option['options'][key]['type'] == 'bool':
-                        # checkbox
-                        checkboxLayout.addLayout(opt_layout)
+                        checkbox_layout.addLayout(opt_layout)   # checkbox
                     else:
                         layout.addLayout(opt_layout)
                 layout.addStretch(1)
-                layout.addLayout(checkboxLayout)
+                layout.addLayout(checkbox_layout)
 
                 # as tab
                 tab_widget = QWidget()
@@ -575,7 +577,10 @@ class Editor:
     def append_default_prompt(self):
         """Append default prompt to the preset editor"""
         mode = self.window.core.config.get('mode')
-        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
+        if mode not in [
+            MODE_AGENT_OPENAI,
+            MODE_AGENT_LLAMA
+        ]:
             return
 
         parent_key = ""
@@ -698,8 +703,8 @@ class Editor:
                 data.completion = True
             elif mode == MODE_IMAGE:
                 data.img = True
-            elif mode == MODE_VISION:
-                data.vision = True
+            # elif mode == MODE_VISION:
+                # data.vision = True
             # elif mode == MODE_LANGCHAIN:
                 # data.langchain = True
             # elif mode == MODE_ASSISTANT:
@@ -768,7 +773,7 @@ class Editor:
         :param force: force overwrite file
         :param close: close dialog
         """
-        id = self.window.controller.config.get_value(
+        preset_id = self.window.controller.config.get_value(
             parent_id=self.id,
             key="filename",
             option=self.options["filename"],
@@ -778,7 +783,7 @@ class Editor:
             MODE_CHAT,
             MODE_COMPLETION,
             MODE_IMAGE,
-            MODE_VISION,
+            # MODE_VISION,
             # MODE_LANGCHAIN,
             MODE_LLAMA_INDEX,
             MODE_EXPERT,
@@ -790,11 +795,11 @@ class Editor:
         ]
 
         # disallow editing default preset
-        if id == "current." + mode:
+        if preset_id == "current." + mode:
             self.window.ui.dialogs.alert("Reserved ID. Please use another ID.")
             return
 
-        if id is None or id == "":
+        if preset_id is None or preset_id == "":
             name = self.window.controller.config.get_value(
                 parent_id=self.id,
                 key="name",
@@ -806,33 +811,34 @@ class Editor:
                 return
 
             # generate new filename
-            id = self.window.controller.presets.make_filename(name)
+            preset_id = self.window.controller.presets.make_filename(name)
             path = os.path.join(
                 self.window.core.config.path,
                 "presets",
-                id + ".json",
+                preset_id + ".json",
             )
             if os.path.exists(path) and not force:
-                id = id + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+                preset_id += '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
         # validate filename
-        id = self.window.controller.presets.validate_filename(id)
+        preset_id = self.window.controller.presets.validate_filename(preset_id)
         is_new = False
-        if id not in self.window.core.presets.items:
+        if preset_id not in self.window.core.presets.items:
             is_new = True
-            self.window.core.presets.items[id] = self.window.core.presets.build()
+            self.window.core.presets.items[preset_id] = self.window.core.presets.build()
         elif not force:
             self.window.ui.dialogs.confirm(
                 type='preset_exists',
-                id=id,
+                id=preset_id,
                 msg=trans('confirm.preset.overwrite'),
             )
             return
 
         # check if at least one mode is selected
         is_mode = False
+        get_value = self.window.controller.config.get_value
         for check in modes:
-            if self.window.controller.config.get_value(
+            if get_value(
                 parent_id=self.id,
                 key=check,
                 option=self.options[check],
@@ -846,12 +852,12 @@ class Editor:
             return
 
         # assign data from fields to preset object in items
-        self.assign_data(id)
+        self.assign_data(preset_id)
 
         if is_new:
             # assign tmp avatar
             if self.tmp_avatar is not None:
-                self.window.core.presets.items[id].ai_avatar = self.tmp_avatar
+                self.window.core.presets.items[preset_id].ai_avatar = self.tmp_avatar
                 self.tmp_avatar = None
         else:
             self.tmp_avatar = None
@@ -859,26 +865,26 @@ class Editor:
         # if agent, assign experts and select only agent mode
         curr_mode = self.window.core.config.get('mode')
         if curr_mode == MODE_AGENT:
-            self.window.core.presets.items[id].mode = [MODE_AGENT]
+            self.window.core.presets.items[preset_id].mode = [MODE_AGENT]
         elif curr_mode == MODE_AGENT_LLAMA:
-            self.window.core.presets.items[id].mode = [MODE_AGENT_LLAMA]
+            self.window.core.presets.items[preset_id].mode = [MODE_AGENT_LLAMA]
         elif curr_mode == MODE_AGENT_OPENAI:
-            self.window.core.presets.items[id].mode = [MODE_AGENT_OPENAI]
+            self.window.core.presets.items[preset_id].mode = [MODE_AGENT_OPENAI]
 
         # apply changes to current active preset
         current = self.window.core.config.get('preset')
-        if current is not None and current == id:
-            self.to_current(self.window.core.presets.items[id])
+        if current is not None and current == preset_id:
+            self.to_current(self.window.core.presets.items[preset_id])
             self.window.core.config.save()
 
         # update current uuid
-        self.current = self.window.core.presets.items[id].uuid
+        self.current = self.window.core.presets.items[preset_id].uuid
 
         # save
         no_scroll = False
         if not is_new:
             no_scroll = True
-        self.window.core.presets.save(id)
+        self.window.core.presets.save(preset_id)
         self.window.controller.presets.refresh(no_scroll=no_scroll)
 
         # close dialog
@@ -890,7 +896,7 @@ class Editor:
                 parent_id=self.id,
                 key="filename",
                 option=self.options["filename"],
-                value=id,
+                value=preset_id,
             )
         self.window.update_status(trans('status.preset.saved'))
 
@@ -898,7 +904,7 @@ class Editor:
         self.window.core.presets.sort_by_name()
 
         # switch to editing preset on save
-        self.window.controller.presets.set(mode, id)
+        self.window.controller.presets.set(mode, preset_id)
         self.window.controller.presets.select_model()
 
         # update presets list
@@ -914,12 +920,12 @@ class Editor:
 
         :param id: preset id (filename)
         """
+        get_value = self.window.controller.config.get_value
         data_dict = {}
         for key in self.options:
-            # assigned separately
             if key == "tool.function":
-                continue
-            data_dict[key] = self.window.controller.config.get_value(
+                continue  # assigned separately
+            data_dict[key] = get_value(
                 parent_id=self.id,
                 key=key,
                 option=self.options[key],
@@ -948,42 +954,46 @@ class Editor:
 
         :param preset: preset item
         """
-        self.window.core.config.set('ai_name', preset.ai_name)
-        self.window.core.config.set('user_name', preset.user_name)
-        self.window.core.config.set('prompt', preset.prompt)
-        self.window.core.config.set('temperature', preset.temperature)
+        config = self.window.core.config
+        config.set('ai_name', preset.ai_name)
+        config.set('user_name', preset.user_name)
+        config.set('prompt', preset.prompt)
+        config.set('temperature', preset.temperature)
 
+    @Slot()
     def from_current(self):
         """Copy data from current active preset"""
-        self.window.controller.config.apply_value(
+        apply_value = self.window.controller.config.apply_value
+        get_config = self.window.core.config.get
+        apply_value(
             parent_id=self.id,
             key="ai_name",
             option=self.options["ai_name"],
-            value=self.window.core.config.get('ai_name'),
+            value=get_config('ai_name'),
         )
-        self.window.controller.config.apply_value(
+        apply_value(
             parent_id=self.id,
             key="user_name",
             option=self.options["user_name"],
-            value=self.window.core.config.get('user_name'),
+            value=get_config('user_name'),
         )
-        self.window.controller.config.apply_value(
+        apply_value(
             parent_id=self.id,
             key="prompt",
             option=self.options["prompt"],
-            value=self.window.core.config.get('prompt'),
+            value=get_config('prompt'),
         )
-        self.window.controller.config.apply_value(
+        apply_value(
             parent_id=self.id,
             key="temperature",
             option=self.options["temperature"],
-            value=self.window.core.config.get('temperature'),
+            value=get_config('temperature'),
         )
-        self.window.controller.config.apply_value(
+        apply_value(
             parent_id=self.id,
             key="model",
             option=self.options["model"],
-            value=self.window.core.config.get('model'),
+            value=get_config('model'),
         )
 
     def update_from_global(self, key: str, value: Any):
@@ -1021,6 +1031,8 @@ class Editor:
         store_name = preset_name + "_" + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + file_ext
         avatar_path = os.path.join(avatars_dir, store_name)
 
+        avatar_widget = self.window.ui.nodes['preset.editor.avatar']
+
         # copy avatar to avatars directory
         if os.path.exists(avatar_path):
             os.remove(avatar_path)
@@ -1036,8 +1048,8 @@ class Editor:
                 option=self.options["ai_avatar"],
                 value=store_name,
             )
-            self.window.ui.nodes['preset.editor.avatar'].load_avatar(avatar_path)
-            self.window.ui.nodes['preset.editor.avatar'].enable_remove_button(True)
+            avatar_widget.load_avatar(avatar_path)
+            avatar_widget.enable_remove_button(True)
         return avatar_path
 
     def update_avatar_config(self, preset: PresetItem):
@@ -1046,6 +1058,7 @@ class Editor:
 
         :param preset: preset item
         """
+        avatar_widget = self.window.ui.nodes['preset.editor.avatar']
         avatar_path = preset.ai_avatar
         if avatar_path:
             file_path = os.path.join(
@@ -1054,13 +1067,13 @@ class Editor:
                 avatar_path,
             )
             if not os.path.exists(file_path):
-                self.window.ui.nodes['preset.editor.avatar'].remove_avatar()
+                avatar_widget.remove_avatar()
                 print("Avatar file does not exist:", file_path)
                 return
-            self.window.ui.nodes['preset.editor.avatar'].load_avatar(file_path)
-            self.window.ui.nodes['preset.editor.avatar'].enable_remove_button(True)
+            avatar_widget.load_avatar(file_path)
+            avatar_widget.enable_remove_button(True)
         else:
-            self.window.ui.nodes['preset.editor.avatar'].remove_avatar()
+            avatar_widget.remove_avatar()
 
     def remove_avatar(self, force: bool = False):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -17,6 +17,8 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_ASSISTANT,
+    MODE_VISION,
+    MODE_LOOP_NEXT,
 )
 from pygpt_net.core.events import KernelEvent, Event
 
@@ -29,7 +31,7 @@ class BridgeSignals(QObject):
 class BridgeWorker(QRunnable):
     """Bridge worker"""
     def __init__(self, *args, **kwargs):
-        QRunnable.__init__(self)
+        super().__init__()
         self.signals = BridgeSignals()
         self.args = args
         self.kwargs = kwargs
@@ -64,6 +66,8 @@ class BridgeWorker(QRunnable):
                     extra=self.extra,
                 )
                 """
+            elif self.mode == MODE_VISION:
+                raise Exception("Vision mode is deprecated from v2.6.30 and integrated into Chat. ")
 
             # LlamaIndex: chat with files
             if self.mode == MODE_LLAMA_INDEX:
@@ -87,7 +91,7 @@ class BridgeWorker(QRunnable):
                     self.extra["error"] = str(self.window.core.agents.runner.get_error())
 
             # Loop: next step
-            elif self.mode == "loop_next":  # virtual mode
+            elif self.mode == MODE_LOOP_NEXT:  # virtual mode
                 result = self.window.core.agents.runner.loop.run_next(
                     context=self.context,
                     extra=self.extra,
@@ -170,7 +174,7 @@ class BridgeWorker(QRunnable):
         ad_context = self.window.controller.chat.attachment.get_context(ctx, self.context.history)
         ad_mode = self.window.controller.chat.attachment.get_mode()
         if ad_context:
-            self.context.prompt += "\n\n" + ad_context  # append to input text
+            self.context.prompt += f"\n\n{ad_context}"  # append to input text
             if (ad_mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT
                     or self.mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]):
                 ctx.hidden_input = ad_context  # store for future use, only if query context

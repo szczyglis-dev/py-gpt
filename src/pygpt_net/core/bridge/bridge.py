@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 import time
@@ -59,7 +59,7 @@ class Bridge:
         if self.window.controller.kernel.stopped():
             return False
 
-        allowed_model_change = MODE_VISION
+        allowed_model_change = [MODE_CHAT]
         is_virtual = False
         force_sync = False
 

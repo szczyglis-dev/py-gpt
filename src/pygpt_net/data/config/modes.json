@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.28",
-        "app.version": "2.5.28",
-        "updated_at": "2025-07-08T00:00:00"
+        "version": "2.6.30",
+        "app.version": "2.6.30",
+        "updated_at": "2025-08-28T09:00:00"
     },
     "items": {
         "chat": {
@@ -39,12 +39,6 @@
             "id": "img",
             "name": "img",
             "label": "mode.img",
-            "default": false
-        },
-        "vision": {
-            "id": "vision",
-            "name": "vision",
-            "label": "mode.vision",
             "default": false
         },
         "assistant": {

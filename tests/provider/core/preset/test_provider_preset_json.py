@@ -162,7 +162,7 @@ def test_serialize(mock_window):
     assert data['chat'] is True
     assert data['completion'] is False
     assert data['img'] is False
-    assert data['vision'] is False
+#    assert data['vision'] is False
 #    assert data['langchain'] is False
     assert data['assistant'] is False
     assert data['temperature'] == 1.0

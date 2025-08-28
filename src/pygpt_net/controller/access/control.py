@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 import re
@@ -14,16 +14,8 @@ import re
 from PySide6.QtCore import QTimer
 
 from pygpt_net.core.types import (
-    MODE_AGENT,
-    MODE_AGENT_LLAMA,
-    MODE_ASSISTANT,
     MODE_CHAT,
-    MODE_COMPLETION,
-    MODE_EXPERT,
-    MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
-    MODE_VISION, 
-    MODE_IMAGE,
 )
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import ControlEvent

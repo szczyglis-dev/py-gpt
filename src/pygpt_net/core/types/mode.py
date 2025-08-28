@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 21:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 MODE_AGENT = "agent"
@@ -23,3 +23,6 @@ MODE_LANGCHAIN = "langchain"
 MODE_LLAMA_INDEX = "llama_index"
 MODE_RESEARCH = "research"
 MODE_VISION = "vision"
+
+# virtual modes
+MODE_LOOP_NEXT = "loop_next"

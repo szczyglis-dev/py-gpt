@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -18,7 +18,8 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
-    MODE_RESEARCH, MULTIMODAL_IMAGE,
+    MODE_RESEARCH, 
+    MULTIMODAL_IMAGE,
 )
 
 class Vision:
@@ -64,20 +65,21 @@ class Vision:
 
     def switch_to_vision(self):
         """Switch to vision mode"""
+        return  # DO NOT SWITCH, deprecated
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
         if mode in [MODE_AGENT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
             return  # disallow change in agent modes
-        if mode == MODE_CHAT and MODE_VISION in model_data.mode:
+        if mode == MODE_CHAT and MODE_CHAT in model_data.mode:
             return  # abort if vision is already allowed
-        if mode == MODE_VISION:
-            return
+        # if mode == MODE_VISION:
+            # return
         # abort if vision is already enabled
         if not self.window.controller.plugins.is_enabled('openai_vision') \
                 or (self.window.controller.plugins.is_enabled('openai_vision')
                     and mode not in self.allowed_modes):
-            self.window.controller.mode.set(MODE_VISION)
+            self.window.controller.mode.set(MODE_CHAT)
 
     def allowed(self) -> bool:
         """
@@ -85,10 +87,7 @@ class Vision:
 
         :return: True if allowed
         """
-        if self.window.controller.plugins.is_enabled('openai_vision') \
-                or self.window.core.config.get('mode') in self.allowed_modes:
-            return True
-        return False
+        return self.window.controller.plugins.is_enabled('openai_vision') or self.is_vision_model()
 
     def is_vision_model(self) -> bool:
         """
@@ -96,17 +95,8 @@ class Vision:
 
         :return: True if vision model
         """
-        allowed_modes = [
-            MODE_CHAT,
-            MODE_COMPLETION,
-            MODE_LANGCHAIN,
-            MODE_LLAMA_INDEX,
-            MODE_RESEARCH,
-        ]
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
-        if MULTIMODAL_IMAGE in model_data.input and mode in allowed_modes:
-            return True
-        return False
+        return model_data.is_image_input() and mode in self.allowed_modes
 

@@ -42,7 +42,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 12 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Computer use, Agents and Autonomous Mode.
+- 11 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Assistants, Experts, Computer use, Agents and Autonomous Mode.
 - Supports multiple models like `OpenAI GPT-5`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `DeepSeek`, `gpt-oss`, `Llama 3`, `Mistral`, `Bielik`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -324,9 +324,9 @@ Alternatively, you can try removing snap and reinstalling it:
 `sudo snap install pygpt`
 
 
-**Access to microphone and audio in Windows version:**
+**Access to a microphone and audio in Windows version:**
 
-If you have a problems with audio or microphone in the non-binary PIP/Python version on Windows, check to see if FFmpeg is installed. If it's not, install it and add it to the PATH. You can find a tutorial on how to do this here: https://phoenixnap.com/kb/ffmpeg-windows. The binary version already includes FFmpeg.
+If you have a problems with audio or a microphone in the non-binary PIP/Python version on Windows, check to see if FFmpeg is installed. If it's not, install it and add it to the PATH. You can find a tutorial on how to do this here: https://phoenixnap.com/kb/ffmpeg-windows. The binary version already includes FFmpeg.
 
 **Windows and VC++ Redistributable**
 
@@ -608,31 +608,6 @@ The app keeps a history of all your prompts, allowing you to revisit any session
 prompts for creating new images.
 
 Images are stored in ``img`` directory in **PyGPT** user data folder.
-
-
-## Vision
-
-This mode enables image analysis using the `GPT-5`, `GPT-4o` and other vision (multimodal) models. Functioning much like the chat mode, 
-it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
-images and those found online. 
-
-Vision is also integrated into any chat mode via plugin `Vision (inline)`. Just enable the plugin and use Vision in other work modes, such as Chat or Chat with Files.
-
-Vision mode also includes real-time video capture from camera. To capture image from camera and append it to chat just click on video at left side. You can also enable `Auto capture` - image will be captured and appended to chat message every time you send message.
-
-**1) Video camera real-time image capture**
-
-![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_chat.png)
-
-**2) you can also provide an image URL**
-
-![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_vision.png)
-
-**3) or you can just upload your local images or use the inline Vision in the standard chat mode:**
-
-![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_vision_upload.png)
-
-**Tip:** When using `Vision (inline)` by utilizing a plugin in standard mode, such as `Chat` (not `Vision` mode), the `+ Vision` label will appear at the bottom of the Chat window.
 
 ## Assistants
 

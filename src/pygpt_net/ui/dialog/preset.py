@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 13:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy, \
-    QTabWidget, QLineEdit, QFileDialog
+    QTabWidget, QFileDialog
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -51,12 +51,8 @@ class Preset(BaseConfigDialog):
         """Setup preset editor dialog"""
         self.window.ui.nodes['preset.btn.current'] = QPushButton(trans("dialog.preset.btn.current"))
         self.window.ui.nodes['preset.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
-        self.window.ui.nodes['preset.btn.current'].clicked.connect(
-            lambda: self.window.controller.presets.editor.from_current()
-        )
-        self.window.ui.nodes['preset.btn.save'].clicked.connect(
-            lambda: self.window.controller.presets.editor.save()
-        )
+        self.window.ui.nodes['preset.btn.current'].clicked.connect(self.window.controller.presets.editor.from_current)
+        self.window.ui.nodes['preset.btn.save'].clicked.connect(self.window.controller.presets.editor.save)
 
         self.window.ui.nodes['preset.btn.current'].setAutoDefault(False)
         self.window.ui.nodes['preset.btn.save'].setAutoDefault(True)
@@ -119,14 +115,14 @@ class Preset(BaseConfigDialog):
         mode_keys_middle = [
             MODE_COMPLETION,
             MODE_IMAGE,
-            MODE_VISION,
+            # MODE_VISION,
             MODE_COMPUTER,
+            MODE_EXPERT,
         ]
         mode_keys_right = [
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
             MODE_AGENT,
-            MODE_EXPERT,
         ]
 
         rows_mode_left = QVBoxLayout()
@@ -156,17 +152,20 @@ class Preset(BaseConfigDialog):
         rows_mode.addStretch(1)
 
         # modes
-        self.window.ui.nodes['preset.editor.modes'] = QWidget()
-        self.window.ui.nodes['preset.editor.modes'].setLayout(rows_mode)
-        self.window.ui.nodes['preset.editor.modes'].setContentsMargins(0, 0, 0, 0)
+        modes = QWidget()
+        modes.setLayout(rows_mode)
+        modes.setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['preset.editor.modes'] = modes
 
         # experts
         self.window.ui.nodes['preset.editor.experts'] = ExpertsEditor(self.window)
 
         # desc and prompt
-        self.window.ui.nodes['preset.editor.description'] = QWidget()
-        self.window.ui.nodes['preset.editor.description'].setLayout(options['description'])
-        self.window.ui.nodes['preset.editor.description'].setContentsMargins(0, 5, 0, 5)
+        desc = QWidget()
+        desc.setLayout(options['description'])
+        desc.setContentsMargins(0, 5, 0, 5)
+        self.window.ui.nodes['preset.editor.description'] = desc
+
 
         # prompt + extra options
         prompt_layout = QVBoxLayout()
@@ -195,6 +194,7 @@ class Preset(BaseConfigDialog):
             "agent_provider_openai",
             "idx",
         ]
+        # personalize tab
         personalize_keys = [
             "ai_name",
             "user_name",
@@ -202,15 +202,18 @@ class Preset(BaseConfigDialog):
             "ai_personalize",
         ]
         for key in left_keys:
-            self.window.ui.nodes['preset.editor.' + key] = QWidget()
-            self.window.ui.nodes['preset.editor.' + key].setLayout(options[key])
-            self.window.ui.nodes['preset.editor.' + key].setContentsMargins(0, 0, 0, 0)
-            rows.addWidget(self.window.ui.nodes['preset.editor.' + key])
+            node_key = f"preset.editor.{key}"
+            node = QWidget()
+            node.setLayout(options[key])
+            node.setContentsMargins(0, 0, 0, 0)
+            rows.addWidget(node)
+            self.window.ui.nodes[node_key] = node
 
         # remote tools
-        self.window.ui.nodes['preset.editor.remote_tools'] = QWidget()
-        self.window.ui.nodes['preset.editor.remote_tools'].setLayout(options['remote_tools'])
-        self.window.ui.nodes['preset.editor.remote_tools'].setContentsMargins(0, 0, 0, 0)
+        remote_tools =  QWidget()
+        remote_tools.setLayout(options['remote_tools'])
+        remote_tools.setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['preset.editor.remote_tools'] = remote_tools
 
         rows_remote_tools = QVBoxLayout()
         rows_remote_tools.addWidget(self.window.ui.nodes['preset.editor.remote_tools'])
@@ -222,10 +225,12 @@ class Preset(BaseConfigDialog):
         # personalize
         personalize_rows = QVBoxLayout()
         for key in personalize_keys:
-            self.window.ui.nodes['preset.editor.' + key] = QWidget()
-            self.window.ui.nodes['preset.editor.' + key].setLayout(options[key])
-            self.window.ui.nodes['preset.editor.' + key].setContentsMargins(0, 0, 0, 0)
-            personalize_rows.addWidget(self.window.ui.nodes['preset.editor.' + key])
+            node_key = f"preset.editor.{key}"
+            node = QWidget()
+            node.setLayout(options[key])
+            node.setContentsMargins(0, 0, 0, 0)
+            personalize_rows.addWidget(node)
+            self.window.ui.nodes[node_key] = node
 
         self.window.ui.nodes['preset.editor.ai_avatar'].setVisible(False)
 
@@ -255,11 +260,12 @@ class Preset(BaseConfigDialog):
         widget_main = QWidget()
         widget_main.setLayout(main)
 
-        self.window.ui.splitters['editor.presets'] = QSplitter(Qt.Vertical)
-        self.window.ui.splitters['editor.presets'].addWidget(widget_main)
-        self.window.ui.splitters['editor.presets'].addWidget(widget_prompt)
-        self.window.ui.splitters['editor.presets'].setStretchFactor(0, 1)
-        self.window.ui.splitters['editor.presets'].setStretchFactor(1, 2)
+        splitter = QSplitter(Qt.Vertical)
+        splitter.addWidget(widget_main)
+        splitter.addWidget(widget_prompt)
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 2)
+        self.window.ui.splitters['editor.presets'] = splitter
 
         widget_personalize = QWidget()
         widget_personalize.setLayout(personalize_rows)
@@ -270,24 +276,26 @@ class Preset(BaseConfigDialog):
         widget_experts = QWidget()
         widget_experts.setLayout(experts_rows)
 
-        self.window.ui.tabs['preset.editor.tabs'] = QTabWidget()
-        self.window.ui.tabs['preset.editor.tabs'].addTab(self.window.ui.splitters['editor.presets'], trans("preset.tab.general"))
-        self.window.ui.tabs['preset.editor.tabs'].addTab(widget_personalize, trans("preset.tab.personalize"))
-        self.window.ui.tabs['preset.editor.tabs'].addTab(widget_experts, trans("preset.tab.experts"))
-        self.window.ui.tabs['preset.editor.tabs'].addTab(widget_remote_tools, trans("preset.tab.remote_tools"))
+        tabs = QTabWidget()
+        tabs.addTab(splitter, trans("preset.tab.general"))
+        tabs.addTab(widget_personalize, trans("preset.tab.personalize"))
+        tabs.addTab(widget_experts, trans("preset.tab.experts"))
+        tabs.addTab(widget_remote_tools, trans("preset.tab.remote_tools"))
+        self.window.ui.tabs['preset.editor.tabs'] = tabs
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.tabs['preset.editor.tabs'])
         layout.addLayout(footer)
 
-        self.window.ui.dialog['editor.' + self.dialog_id] = EditorDialog(self.window, self.dialog_id)
-        self.window.ui.dialog['editor.' + self.dialog_id].setSizeGripEnabled(True)
-        self.window.ui.dialog['editor.' + self.dialog_id].setWindowFlags(
-            self.window.ui.dialog['editor.' + self.dialog_id].windowFlags() | Qt.WindowMaximizeButtonHint
+        dialog = EditorDialog(self.window, self.dialog_id)
+        dialog.setSizeGripEnabled(True)
+        dialog.setWindowFlags(
+            dialog.windowFlags() | Qt.WindowMaximizeButtonHint
         )
-        self.window.ui.dialog['editor.' + self.dialog_id].setLayout(layout)
-        self.window.ui.dialog['editor.' + self.dialog_id].setWindowTitle(trans('dialog.preset'))
-        self.window.ui.dialog['editor.' + self.dialog_id].on_close_callback = self.on_close
+        dialog.setLayout(layout)
+        dialog.setWindowTitle(trans('dialog.preset'))
+        dialog.on_close_callback = self.on_close
+        self.window.ui.dialog['editor.' + self.dialog_id] = dialog
 
 
     def prepare_extra_config(self, prompt_layout):
@@ -301,15 +309,17 @@ class Preset(BaseConfigDialog):
         prompt_widget.setLayout(prompt_layout)
 
         self.window.ui.nodes['preset.editor.extra'] = {}
-        self.window.ui.tabs['preset.editor.extra'] = QTabWidget()
-        self.window.ui.tabs['preset.editor.extra'].addTab(
+
+        tabs = QTabWidget()
+        tabs.addTab(
             prompt_widget,
             trans("preset.prompt"),
         )
-        self.window.ui.tabs['preset.editor.extra'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.window.ui.tabs['preset.editor.extra'].setMinimumHeight(150)
+        tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        tabs.setMinimumHeight(150)
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.tabs['preset.editor.extra'])
+        layout.addWidget(tabs)
+        self.window.ui.tabs['preset.editor.extra'] = tabs
         return layout
 
 
@@ -368,6 +378,7 @@ class AvatarWidget(QWidget):
         self.init_ui()
 
     def init_ui(self):
+        """Initialize the avatar widget UI."""
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -397,13 +408,19 @@ class AvatarWidget(QWidget):
         main_layout.addStretch()
 
     def open_file_dialog(self):
+        """Open a file dialog to select an avatar image file."""
         file_name, _ = QFileDialog.getOpenFileName(
             self, trans("preset.personalize.avatar.choose.title"), "", "Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp)"
         )
         if file_name:
             self.window.controller.presets.editor.upload_avatar(file_name)
 
-    def load_avatar(self, file_path):
+    def load_avatar(self, file_path: str):
+        """
+        Load and display the avatar image from the given file path.
+
+        :param file_path: Path to the avatar image file
+        """
         from PySide6.QtGui import QPixmap
         pixmap = QPixmap(file_path)
         if not pixmap.isNull():
@@ -420,9 +437,7 @@ class AvatarWidget(QWidget):
         self.remove_button.setEnabled(enabled)
 
     def disable_remove_button(self):
-        """
-        Disable the remove button.
-        """
+        """Disable the remove button."""
         self.enable_remove_button(False)
 
     def get_cover_pixmap(self, pixmap, target_width, target_height):
@@ -432,6 +447,7 @@ class AvatarWidget(QWidget):
         :param pixmap: Original pixmap
         :param target_width: Target width for the avatar preview
         :param target_height: Target height for the avatar preview
+        :return: Scaled and cropped pixmap
         """
         factor = max(target_width / pixmap.width(), target_height / pixmap.height())
         new_width = int(pixmap.width() * factor)
@@ -439,9 +455,9 @@ class AvatarWidget(QWidget):
         scaled_pix = pixmap.scaled(new_width, new_height, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         x = (scaled_pix.width() - target_width) // 2
         y = (scaled_pix.height() - target_height) // 2
-        cropped_pix = scaled_pix.copy(x, y, target_width, target_height)
-        return cropped_pix
+        return scaled_pix.copy(x, y, target_width, target_height)
 
     def remove_avatar(self):
+        """Remove the current avatar image."""
         self.avatar_preview.clear()
         self.remove_button.setEnabled(False)

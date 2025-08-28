@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 import json
@@ -16,7 +16,11 @@ from typing import Optional, Dict, Any, List
 from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_VISION,
-    MODE_AUDIO, MULTIMODAL_IMAGE, MODE_RESEARCH, MODE_COMPLETION, OPENAI_DISABLE_TOOLS,
+    MODE_AUDIO,
+    MULTIMODAL_IMAGE,
+    MODE_RESEARCH,
+    MODE_COMPLETION,
+    OPENAI_DISABLE_TOOLS,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
@@ -367,7 +371,7 @@ class Chat:
             output = response.choices[0].text.strip()
         elif mode in [
             MODE_CHAT,
-            MODE_VISION,
+            # MODE_VISION,
             MODE_RESEARCH,
         ]:
             if response.choices[0]:

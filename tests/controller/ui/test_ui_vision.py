@@ -57,7 +57,7 @@ def test_update_vision_no_vision(mock_window):
     """Test update vision: no vision"""
     vision = Vision(mock_window)
     mock_window.core.config.data['mode'] = 'chat'
-    mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=False)
+    mock_window.controller.chat.vision.allowed = MagicMock(return_value=False)
     mock_window.controller.painter.is_active = MagicMock(return_value=False)
     mock_window.controller.camera.setup = MagicMock()
     mock_window.controller.camera.show_camera = MagicMock()

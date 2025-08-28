@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 import json
@@ -253,7 +253,7 @@ class ModelItem:
 
         :return: True if supports image input
         """
-        if MODE_VISION in self.mode or MULTIMODAL_IMAGE in self.input:
+        if MULTIMODAL_IMAGE in self.input:
             return True
         return False
 

@@ -218,40 +218,6 @@ prompts for creating new images.
 Images are stored in ``img`` directory in PyGPT's user data folder.
 
 
-Vision
--------
-
-This mode enables image analysis using the ``GPT-5``, ``GPT-4o`` and other vision (multimodal) models. Functioning much like the chat mode, 
-it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
-images and those found online.
-
-Vision is also integrated into any chat mode via plugin ``Vision (inline)``. Just enable the plugin and use Vision in other work modes, such as Chat or Chat with Files.
-
-Vision mode also includes real-time video capture from camera. To capture image from camera and append it to chat just click on video at left side. You can also enable ``Auto capture`` - image will be captured and appended to chat message every time you send message.
-
-**1) Video camera real-time image capture:**
-
-.. image:: images/v2_capture1.png
-   :width: 800
-
-.. image:: images/v3_vision_chat.png
-   :width: 800
-
-**2) you can also provide an image URL**
-
-.. image:: images/v2_mode_vision.png
-   :width: 800
-
-**3) or you can just upload your local images or use the inline Vision in the standard chat mode:**
-
-.. image:: images/v2_mode_vision_upload.png
-   :width: 800
-
-
-.. tip::
-   When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` label will appear at the bottom of the Chat window.
-
-
 Assistants
 ----------
 This mode uses the OpenAI's **Assistants API**.

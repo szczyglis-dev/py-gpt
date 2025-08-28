@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 import json
@@ -192,7 +192,7 @@ class JsonFileProvider(BaseProvider):
             MODE_CHAT: item.chat,
             MODE_COMPLETION: item.completion,
             MODE_IMAGE: item.img,
-            MODE_VISION: item.vision,
+            # MODE_VISION: item.vision,
             # MODE_LANGCHAIN: item.langchain,
             MODE_ASSISTANT: item.assistant,
             MODE_LLAMA_INDEX: item.llama_index,
@@ -250,8 +250,6 @@ class JsonFileProvider(BaseProvider):
             item.llama_index = data[MODE_LLAMA_INDEX]
         if MODE_RESEARCH in data:
             item.research = data[MODE_RESEARCH]
-        if MODE_VISION in data:
-            item.vision = data[MODE_VISION]
 
         if 'agent_provider' in data:
             item.agent_provider = data['agent_provider']

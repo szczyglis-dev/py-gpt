@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -102,7 +102,7 @@ class Plugin(BasePlugin):
                 )  # mode change
 
         elif name == Event.MODEL_BEFORE:
-            if "mode" in data and data["mode"] == MODE_VISION:
+            if data.get("mode") == MODE_CHAT:
                 key = self.get_option_value("model")
                 if self.window.core.models.has(key):
                     data['model'] = self.window.core.models.get(key)
@@ -119,7 +119,7 @@ class Plugin(BasePlugin):
                 data['value'] = self.on_system_prompt(data['value'])
 
         elif name == Event.UI_ATTACHMENTS:
-            mode = data["mode"]
+            mode = data.get("mode")
             if mode in [MODE_AGENT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI] and not self.window.core.config.get("cmd"):
                 pass
             else:
@@ -263,8 +263,7 @@ class Plugin(BasePlugin):
         # append vision prompt only if vision is provided or enabled
         if not self.is_vision_provided():
             return prompt
-        prompt = "Image attachment has been already sent.\n\n" + prompt
-        return prompt
+        return "Image attachment has been already sent.\n\n" + prompt
 
     def on_pre_prompt(self, prompt: str) -> str:
         """
@@ -343,13 +342,13 @@ class Plugin(BasePlugin):
         :return: updated mode
         """
         # abort if already in vision mode or command enabled
-        if mode == MODE_VISION or mode in self.disabled_mode_switch:
+        if mode in self.disabled_mode_switch:
             return mode  # keep current mode
 
-        # if already used in this ctx then keep vision mode
+        # if already used in this ctx then keep vision (in CHAT) mode
         if self.is_vision_provided():
             ctx.is_vision = True
-            return MODE_VISION
+            return MODE_CHAT
 
         return mode  # keep current mode
 

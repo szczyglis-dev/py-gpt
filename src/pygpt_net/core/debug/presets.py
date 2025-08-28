@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 import os
@@ -62,7 +62,7 @@ class PresetsDebug:
                 MODE_CHAT: preset.chat,
                 MODE_COMPLETION: preset.completion,
                 MODE_IMAGE: preset.img,
-                MODE_VISION: preset.vision,
+                # MODE_VISION: preset.vision,
                 # MODE_LANGCHAIN: preset.langchain,
                 MODE_ASSISTANT: preset.assistant,
                 MODE_LLAMA_INDEX: preset.llama_index,

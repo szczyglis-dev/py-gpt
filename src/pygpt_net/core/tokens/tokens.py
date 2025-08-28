@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 from typing import Tuple, List
@@ -36,8 +36,8 @@ from pygpt_net.item.ctx import CtxItem
 
 CHAT_MODES = [
     MODE_CHAT,
-    MODE_VISION,
-    MODE_LANGCHAIN,
+    # MODE_VISION,
+    # MODE_LANGCHAIN,
     MODE_ASSISTANT,
     MODE_LLAMA_INDEX,
     MODE_AGENT,
@@ -328,7 +328,7 @@ class Tokens:
         model_id = self.window.core.models.get_id(model)
         mode = self.window.core.config.get('mode')
         tokens = 0
-        if mode in [MODE_CHAT, MODE_VISION, MODE_AUDIO, MODE_RESEARCH]:
+        if mode in [MODE_CHAT, MODE_AUDIO, MODE_RESEARCH]:
             tokens += self.from_prompt(system_prompt, "", model_id)
             tokens += self.from_text("system", model_id)
             tokens += self.from_prompt(input_prompt, "", model_id)

@@ -24,7 +24,7 @@ from pygpt_net.core.types import (
 def test_get_allowed_modes():
     # Check allowed modes list
     legacy = Legacy()
-    expected = [MODE_CHAT, MODE_COMPLETION, MODE_VISION, MODE_LLAMA_INDEX, MODE_AUDIO, MODE_RESEARCH]
+    expected = [MODE_CHAT, MODE_COMPLETION, MODE_LLAMA_INDEX, MODE_AUDIO, MODE_RESEARCH]
     assert legacy.get_allowed_modes() == expected
 
 def test_get_mode_default():
@@ -39,7 +39,7 @@ def test_get_mode_valid():
     window = MagicMock()
     window.core.config.get.side_effect = lambda key: MODE_VISION if key == "agent.mode" else None
     legacy = Legacy(window)
-    assert legacy.get_mode() == MODE_VISION
+    assert legacy.get_mode() == MODE_CHAT
 
 def test_get_mode_invalid():
     # When an invalid mode is set, should return MODE_CHAT as default

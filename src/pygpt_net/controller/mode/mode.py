@@ -6,10 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 23:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
+from pygpt_net.core.types import (
+    MODE_ASSISTANT,
+    MODE_CHAT,
+)
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -26,25 +30,33 @@ class Mode:
 
     @staticmethod
     def _normalize_mode(mode: str) -> str:
+        """
+        Normalize mode name (handle deprecated modes)
+
+        :param mode: mode name
+        :return: normalized mode name
+        """
         if mode == "langchain":
             print("Langchain mode is deprecated from v2.5.20 and no longer supported. "
                   "Please use LlamaIndex or Chat mode instead.")
-            return "chat"
+            return MODE_CHAT
+        elif mode == "vision":
+            print("Vision mode is deprecated from v2.6.30 and no longer supported. "
+                  "Please use Chat mode with multimodal models instead.")
+            return MODE_CHAT
         return mode
 
     def select(self, mode: str):
         """
         Select mode by id
 
-        :param mode
+        :param mode: mode to select
         """
         mode = self._normalize_mode(mode)
-
-        # check if mode change is not locked
         if self.change_locked() or mode is None:
-            return
-        self.set(mode)
+            return  # abort if mode is locked
 
+        self.set(mode)
         event = Event(Event.MODE_SELECT, {
             'value': mode,
         })
@@ -70,7 +82,7 @@ class Mode:
         core = w.core
         cfg = core.config
         try:
-            if mode == "assistant":
+            if mode == MODE_ASSISTANT:
                 c.presets.select_default()
                 core_ctx = core.ctx
                 current = core_ctx.get_current()
@@ -172,9 +184,7 @@ class Mode:
             *args,
             **kwargs
     ):
-        """
-        Hook: on update current temperature global field
-        """
+        """Hook: on update current temperature global field"""
         if caller != "slider":
             return  # accept call only from slider (has already validated min/max)
 
@@ -240,6 +250,5 @@ class Mode:
         Check if mode change is locked
 
         :return: True if locked
-        :rtype: bool
         """
         return bool(self.window.controller.chat.input.generating)
