@@ -12,7 +12,7 @@
 import os
 import pytest
 from unittest.mock import MagicMock
-from pygpt_net.provider.gpt.store import Store
+from pygpt_net.provider.api.openai.store import Store
 
 @pytest.fixture
 def fake_window():

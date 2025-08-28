@@ -16,7 +16,7 @@ from tests.mocks import mock_window
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.gpt.image import Image
+from pygpt_net.provider.api.openai.image import Image
 
 
 def test_generate(mock_window):

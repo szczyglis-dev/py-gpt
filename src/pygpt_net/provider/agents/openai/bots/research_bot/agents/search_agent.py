@@ -14,7 +14,7 @@ from agents.model_settings import ModelSettings
 
 from pygpt_net.core.types import OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH
 from pygpt_net.item.preset import PresetItem
-from pygpt_net.provider.gpt.agents.remote_tools import append_tools
+from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 
 
 def get_search_agent(

@@ -3223,7 +3223,7 @@ These wrappers are loaded into the application during startup using `launcher.ad
 ```python
 # app.py
 
-from pygpt_net.provider.llms.openai import OpenAILLM
+from pygpt_net.provider.api.openai import OpenAILLM
 from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
 from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM

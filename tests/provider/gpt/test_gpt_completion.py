@@ -12,7 +12,7 @@
 import pytest
 from unittest.mock import MagicMock
 import types
-from pygpt_net.provider.gpt.completion import Completion
+from pygpt_net.provider.api.openai.completion import Completion
 
 @pytest.fixture
 def dummy_window():

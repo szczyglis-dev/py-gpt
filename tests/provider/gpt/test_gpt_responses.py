@@ -23,7 +23,7 @@ from pygpt_net.item.preset import PresetItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
 
-from pygpt_net.provider.gpt.responses import Responses
+from pygpt_net.provider.api.openai.responses import Responses
 
 
 @pytest.fixture

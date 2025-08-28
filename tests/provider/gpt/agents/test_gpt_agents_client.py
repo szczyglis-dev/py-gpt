@@ -13,7 +13,7 @@ import os
 import pytest
 from unittest.mock import MagicMock
 
-from pygpt_net.provider.gpt.agents.client import (
+from pygpt_net.provider.api.openai.agents.client import (
     CustomModelProvider,
     get_custom_model_provider,
     get_client,
@@ -27,7 +27,7 @@ def test_custom_model_provider_get_model(monkeypatch):
     def fake_OpenAIChatCompletionsModel(model, openai_client):
         call_args.append((model, openai_client))
         return MagicMock()
-    monkeypatch.setattr("pygpt_net.provider.gpt.agents.client.OpenAIChatCompletionsModel", fake_OpenAIChatCompletionsModel)
+    monkeypatch.setattr("pygpt_net.provider.api.openai.agents.client.OpenAIChatCompletionsModel", fake_OpenAIChatCompletionsModel)
     provider = CustomModelProvider(fake_client)
     result = provider.get_model("test-model")
     assert call_args == [("test-model", fake_client)]
@@ -37,7 +37,7 @@ def test_custom_model_provider_init(monkeypatch):
     flag = {"called": False}
     def fake_set_tracing_disabled(val):
         flag["called"] = True
-    monkeypatch.setattr("pygpt_net.provider.gpt.agents.client.set_tracing_disabled", fake_set_tracing_disabled)
+    monkeypatch.setattr("pygpt_net.provider.api.openai.agents.client.set_tracing_disabled", fake_set_tracing_disabled)
     fake_client = MagicMock()
     provider = CustomModelProvider(fake_client)
     assert provider.client is fake_client
@@ -51,7 +51,7 @@ def test_get_custom_model_provider(monkeypatch):
     def fake_AsyncOpenAI(**kwargs):
         assert kwargs == fake_args
         return fake_client
-    monkeypatch.setattr("pygpt_net.provider.gpt.agents.client.AsyncOpenAI", fake_AsyncOpenAI)
+    monkeypatch.setattr("pygpt_net.provider.api.openai.agents.client.AsyncOpenAI", fake_AsyncOpenAI)
     provider = get_custom_model_provider(window, MagicMock())
     assert isinstance(provider, CustomModelProvider)
     assert provider.client is fake_client
@@ -64,11 +64,11 @@ def test_get_client(monkeypatch):
     def fake_AsyncOpenAI(**kwargs):
         assert kwargs == fake_args
         return fake_client
-    monkeypatch.setattr("pygpt_net.provider.gpt.agents.client.AsyncOpenAI", fake_AsyncOpenAI)
+    monkeypatch.setattr("pygpt_net.provider.api.openai.agents.client.AsyncOpenAI", fake_AsyncOpenAI)
     flag = {"called": False}
     def fake_set_tracing_disabled(val):
         flag["called"] = True
-    monkeypatch.setattr("pygpt_net.provider.gpt.agents.client.set_tracing_disabled", fake_set_tracing_disabled)
+    monkeypatch.setattr("pygpt_net.provider.api.openai.agents.client.set_tracing_disabled", fake_set_tracing_disabled)
     client = get_client(window, MagicMock())
     assert client is fake_client
     assert flag["called"]

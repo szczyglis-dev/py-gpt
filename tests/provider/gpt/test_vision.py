@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, mock_open, patch
 from tests.mocks import mock_window_conf
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.gpt.vision import Vision
+from pygpt_net.provider.api.openai.vision import Vision
 
 
 def mock_get(key):

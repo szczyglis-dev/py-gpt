@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from agents import Agent
 
 from pygpt_net.item.preset import PresetItem
-from pygpt_net.provider.gpt.agents.remote_tools import append_tools
+from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 
 
 class WebSearchItem(BaseModel):

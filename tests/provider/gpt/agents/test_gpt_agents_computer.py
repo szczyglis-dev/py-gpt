@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock
 import pytest
-from pygpt_net.provider.gpt.agents.computer import LocalComputer, Agent
+from pygpt_net.provider.api.openai.agents.computer import LocalComputer, Agent
 
 @pytest.fixture
 def dummy_window():

@@ -14,7 +14,7 @@ from typing import Any
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.events import Event, KernelEvent
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, freeze_updates
 
 
 class Settings:
@@ -52,7 +52,8 @@ class Settings:
                 'status': trans("status.loading")
             }))
             QApplication.processEvents()
-            self.setup()
+            with freeze_updates(self.window):
+                self.setup()
             self.config_initialized = True
         if self.config_dialog:
             return

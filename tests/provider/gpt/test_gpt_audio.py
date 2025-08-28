@@ -12,7 +12,7 @@
 import base64
 import pytest
 from unittest.mock import MagicMock
-from pygpt_net.provider.gpt.audio import Audio
+from pygpt_net.provider.api.openai.audio import Audio
 
 @pytest.fixture
 def audio_instance():

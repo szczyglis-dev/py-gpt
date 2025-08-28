@@ -12,7 +12,7 @@
 import json
 import pytest
 from unittest.mock import MagicMock, patch
-from pygpt_net.provider.gpt.assistants import Assistants
+from pygpt_net.provider.api.openai.assistants import Assistants
 
 @pytest.fixture
 def fake_client():
@@ -329,7 +329,7 @@ def test_import_all(assistants_obj, fake_window):
     response2.last_id = None
     fake_window.core.gpt.get_client.return_value.beta.assistants.list.side_effect = [response1, response2]
     callback = MagicMock()
-    with patch("pygpt_net.provider.gpt.assistants.AssistantItem", side_effect=lambda: MagicMock()) as FakeAssistantItem:
+    with patch("pygpt_net.provider.api.openai.assistants.AssistantItem", side_effect=lambda: MagicMock()) as FakeAssistantItem:
         items = {}
         result = assistants_obj.import_all(items, order="asc", limit=100, after=None, callback=callback)
     fake_window.core.gpt.get_client.return_value.beta.assistants.list.assert_any_call(order="asc", limit=100)

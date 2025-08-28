@@ -14,7 +14,7 @@ import json
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 import pytest
-from pygpt_net.provider.gpt.chat import Chat
+from pygpt_net.provider.api.openai.chat import Chat
 from pygpt_net.item.ctx import CtxItem
 
 @pytest.fixture

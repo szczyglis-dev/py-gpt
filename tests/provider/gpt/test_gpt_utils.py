@@ -12,7 +12,7 @@
 import re
 import pytest
 from unittest.mock import MagicMock
-from pygpt_net.provider.gpt.utils import sanitize_name
+from pygpt_net.provider.api.openai.utils import sanitize_name
 
 def test_sanitize_name_none():
     assert sanitize_name(None) == ""

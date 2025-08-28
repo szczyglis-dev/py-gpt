@@ -13,8 +13,8 @@ import json
 from types import SimpleNamespace
 import pytest
 from pygpt_net.core.types import MODE_COMPUTER
-import pygpt_net.provider.gpt.remote_tools as remote_mod
-from pygpt_net.provider.gpt.remote_tools import RemoteTools
+import pygpt_net.provider.api.openai.remote_tools as remote_mod
+from pygpt_net.provider.api.openai.remote_tools import RemoteTools
 
 class DummyConfig:
     def __init__(self, data):

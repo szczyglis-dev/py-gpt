@@ -26,12 +26,12 @@ from pygpt_net.core.types import (
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
-from pygpt_net.provider.gpt.agents.remote_tools import is_computer_tool, append_tools
-from pygpt_net.provider.gpt.agents.computer import Agent as ComputerAgent, LocalComputer
-from pygpt_net.provider.gpt.agents.response import StreamHandler
+from pygpt_net.provider.api.openai.agents.remote_tools import is_computer_tool, append_tools
+from pygpt_net.provider.api.openai.agents.computer import Agent as ComputerAgent, LocalComputer
+from pygpt_net.provider.api.openai.agents.response import StreamHandler
+from pygpt_net.provider.api.openai.agents.experts import get_experts
 
 from ..base import BaseAgent
-from ...gpt.agents.experts import get_experts
 
 class Agent(BaseAgent):
     def __init__(self, *args, **kwargs):

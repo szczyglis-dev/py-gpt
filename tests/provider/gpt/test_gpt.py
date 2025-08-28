@@ -12,7 +12,7 @@
 from unittest.mock import MagicMock
 
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.provider.gpt import Gpt
+from pygpt_net.provider.api.openai import Gpt
 from tests.mocks import mock_window_conf
 
 def mock_get(key):

@@ -17,12 +17,13 @@ from PySide6.QtWidgets import QMainWindow, QApplication
 from qt_material import QtStyleTools
 
 from pygpt_net.core.events import BaseEvent, KernelEvent, ControlEvent
-from pygpt_net.container import Container
+from pygpt_net.app_core import Core
 from pygpt_net.controller import Controller
 from pygpt_net.tools import Tools
 from pygpt_net.ui import UI
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
-from pygpt_net.utils import get_app_meta
+from pygpt_net.utils import get_app_meta, freeze_updates
+
 
 class MainWindow(QMainWindow, QtStyleTools):
 
@@ -63,7 +64,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.meta = get_app_meta()
 
         # setup service container
-        self.core = Container(self)
+        self.core = Core(self)
         self.core.init()
         self.core.patch()  # patch version if needed
         self.core.post_setup()
@@ -85,7 +86,8 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # setup UI
         self.ui = UI(self)
-        self.ui.init()
+        with freeze_updates(self):
+            self.ui.init()
 
         # global shortcuts
         self.shortcuts = []

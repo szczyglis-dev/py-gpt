@@ -13,7 +13,7 @@ import json
 import pytest
 from types import SimpleNamespace
 from unittest.mock import MagicMock
-from pygpt_net.provider.gpt.computer import Computer
+from pygpt_net.provider.api.openai.computer import Computer
 
 @pytest.fixture
 def fake_window():

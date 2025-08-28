@@ -12,8 +12,8 @@
 import pytest
 import json
 from types import SimpleNamespace
-from pygpt_net.provider.gpt.agents.remote_tools import is_computer_tool, append_tools, get_remote_tools
-import pygpt_net.provider.gpt.agents.remote_tools as tools
+from pygpt_net.provider.api.openai.agents.remote_tools import is_computer_tool, append_tools, get_remote_tools
+import pygpt_net.provider.api.openai.agents.remote_tools as tools
 from agents import ModelSettings
 
 class DummyModel:

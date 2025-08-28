@@ -13,6 +13,7 @@ import json
 import os
 import re
 from datetime import datetime
+from contextlib import contextmanager
 
 from PySide6 import QtCore, QtGui
 from PySide6.QtWidgets import QApplication
@@ -60,6 +61,14 @@ def trans(key: str, reload: bool = False, domain: str = None) -> str:
         locale.reload(domain)
     return locale.get(key, domain)
 
+
+@contextmanager
+def freeze_updates(widget):
+    widget.setUpdatesEnabled(False)
+    try:
+        yield
+    finally:
+        widget.setUpdatesEnabled(True)
 
 def get_init_value(key: str = "__version__") -> str:
     """

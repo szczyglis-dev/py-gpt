@@ -14,7 +14,7 @@ import time
 import pytest
 import requests
 
-from pygpt_net.provider.gpt.container import Container
+from pygpt_net.provider.api.openai.container import Container
 
 class DummyResponse:
     def __init__(self, status_code, content=None, json_data=None, text=""):

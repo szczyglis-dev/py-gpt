@@ -14,7 +14,7 @@ import os
 import pytest
 from unittest.mock import MagicMock
 from types import SimpleNamespace
-from pygpt_net.provider.gpt.vision import Vision
+from pygpt_net.provider.api.openai.vision import Vision
 
 @pytest.fixture
 def dummy_window():

@@ -15,7 +15,7 @@ from typing import Any, Optional
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.events import RenderEvent
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, freeze_updates
 
 from .common import Common
 from .markdown import Markdown
@@ -55,7 +55,8 @@ class Theme:
             return
         self.window.update_status(trans("status.reloading"))
         QApplication.processEvents()
-        self.toggle(name, force=True)
+        with freeze_updates(self.window):
+            self.toggle(name, force=True)
         self.window.update_status("")
 
     def toggle_option_by_menu(self, name: str, value: Any = None):

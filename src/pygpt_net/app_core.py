@@ -45,19 +45,18 @@ from pygpt_net.core.tokens import Tokens
 from pygpt_net.core.updater import Updater
 from pygpt_net.core.vision import Vision
 from pygpt_net.core.web import Web
-from pygpt_net.provider.gpt import Gpt
+from pygpt_net.provider.api.openai import Gpt
 
 
-class Container:
+class Core:
     def __init__(self, window=None):
         """
-        Service container
+        App core
 
         :param window: Window instance
         """
         self.window = window
 
-        # core
         self.access = Access(window)
         self.agents = Agents(window)
         self.assistants = Assistants(window)

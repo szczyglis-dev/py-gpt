@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 
 from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window_conf
-from pygpt_net.provider.gpt.summarizer import Summarizer
+from pygpt_net.provider.api.openai.summarizer import Summarizer
 from pygpt_net.item.ctx import CtxItem
 
 

@@ -12,7 +12,7 @@
 import json
 import pytest
 from unittest.mock import MagicMock
-from pygpt_net.provider.gpt.tools import Tools
+from pygpt_net.provider.api.openai.tools import Tools
 
 def test_prepare_with_functions_none():
     t = Tools()
