@@ -477,7 +477,7 @@ class Attachment:
         """
         try:
             # get file info from assistant API
-            data = self.window.core.openai.store.get_file(file_id)
+            data = self.window.core.api.openai.store.get_file(file_id)
             if data is None:
                 return
 
@@ -503,7 +503,7 @@ class Attachment:
                 path = self.get_download_path(filename)
 
             # download file
-            self.window.core.openai.store.download(
+            self.window.core.api.openai.store.download(
                 file_id=file_id,
                 path=path,
             )

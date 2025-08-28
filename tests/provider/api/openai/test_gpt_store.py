@@ -18,7 +18,7 @@ from pygpt_net.provider.api.openai.store import Store
 def fake_window():
     window = MagicMock()
     client = MagicMock()
-    window.core.openai.get_client.return_value = client
+    window.core.api.openai.get_client.return_value = client
     window.core.assistants.store.parse_status.return_value = "parsed_status"
     window.core.assistants.store.append_status = MagicMock()
     window.core.assistants.files.insert = MagicMock()
@@ -30,7 +30,7 @@ def store(fake_window):
 
 def test_get_client(store):
     client = MagicMock()
-    store.window.core.openai.get_client.return_value = client
+    store.window.core.api.openai.get_client.return_value = client
     assert store.get_client() is client
 
 def test_log_with_callback(store):
@@ -46,14 +46,14 @@ def test_log_print(store, capsys):
 def test_get_file(store):
     fake_client = MagicMock()
     fake_client.files.retrieve.return_value = "file_info"
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.get_file("file1")
     fake_client.files.retrieve.assert_called_once_with("file1")
     assert result == "file_info"
 
 def test_upload_no_file(store, monkeypatch):
     fake_client = MagicMock()
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     monkeypatch.setattr(os.path, "exists", lambda path: False)
     result = store.upload("nonexistent", "assistants")
     assert result is None
@@ -64,7 +64,7 @@ def test_upload_success(store, tmp_path):
     fake_result = MagicMock()
     fake_result.id = "upload_id"
     fake_client.files.create.return_value = fake_result
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     file = tmp_path / "test.txt"
     file.write_text("content")
     result = store.upload(str(file), "assistants")
@@ -75,7 +75,7 @@ def test_download(store, tmp_path):
     content_mock = MagicMock()
     content_mock.read.return_value = b"binary_data"
     fake_client.files.content.return_value = content_mock
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     dest = tmp_path / "dest.bin"
     store.download("file1", str(dest))
     fake_client.files.content.assert_called_once_with("file1")
@@ -97,7 +97,7 @@ def test_get_files_ids_all(store):
     second_response.data = [remote3]
     second_response.has_more = False
     fake_client.files.list.side_effect = [first_response, second_response]
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.get_files_ids_all([])
     assert set(result) == {"f1", "f2", "f3"}
     assert fake_client.files.list.call_count == 2
@@ -111,7 +111,7 @@ def test_get_files_ids(store):
     response = MagicMock()
     response.data = [remote1, remote2]
     fake_client.files.list.return_value = response
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.get_files_ids()
     assert set(result) == {"f1", "f2"}
 
@@ -150,7 +150,7 @@ def test_import_stores(store):
     response.data = [remote]
     response.has_more = False
     fake_client.vector_stores.list.return_value = response
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     store.window.core.assistants.store.parse_status.return_value = "parsed_status"
     items = {}
     callback = MagicMock()
@@ -169,7 +169,7 @@ def test_create_store(store):
     fake_vector_store = MagicMock()
     fake_vector_store.id = "vs1"
     fake_client.vector_stores.create.return_value = fake_vector_store
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.create_store("Test Store", expire_days=0)
     fake_client.vector_stores.create.assert_called_once_with(name="Test Store", expires_after=None)
     assert result is fake_vector_store
@@ -186,7 +186,7 @@ def test_update_store(store):
     fake_updated_store = MagicMock()
     fake_updated_store.id = "vs1"
     fake_client.vector_stores.update.return_value = fake_updated_store
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.update_store("vs1", "Updated Store", expire_days=0)
     fake_client.vector_stores.update.assert_called_once_with(vector_store_id="vs1", name="Updated Store", expires_after=None)
     assert result is fake_updated_store
@@ -203,7 +203,7 @@ def test_get_store(store):
     fake_vector_store = MagicMock()
     fake_vector_store.id = "vs1"
     fake_client.vector_stores.retrieve.return_value = fake_vector_store
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.get_store("vs1")
     fake_client.vector_stores.retrieve.assert_called_once_with(vector_store_id="vs1")
     assert result is fake_vector_store
@@ -213,7 +213,7 @@ def test_remove_store(store):
     fake_vector_store = MagicMock()
     fake_vector_store.id = "vs1"
     fake_client.vector_stores.delete.return_value = fake_vector_store
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.remove_store("vs1")
     fake_client.vector_stores.delete.assert_called_once_with(vector_store_id="vs1")
     assert result is fake_vector_store
@@ -228,7 +228,7 @@ def test_get_stores_ids(store):
     response.data = [remote1, remote2]
     response.has_more = False
     fake_client.vector_stores.list.return_value = response
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.get_stores_ids([])
     assert set(result) == {"s1", "s2"}
 
@@ -242,7 +242,7 @@ def test_get_store_files_ids(store):
     response.data = [remote1, remote2]
     response.has_more = False
     fake_client.vector_stores.files.list.return_value = response
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.get_store_files_ids("s1", [])
     assert set(result) == {"f1", "f2"}
 
@@ -280,7 +280,7 @@ def test_add_file(store):
     fake_client = MagicMock()
     fake_vector_store_file = MagicMock()
     fake_client.vector_stores.files.create.return_value = fake_vector_store_file
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.add_file("s1", "f1")
     fake_client.vector_stores.files.create.assert_called_once_with(vector_store_id="s1", file_id="f1")
     assert result is fake_vector_store_file
@@ -290,7 +290,7 @@ def test_delete_file(store):
     fake_deleted = MagicMock()
     fake_deleted.id = "f1"
     fake_client.files.delete.return_value = fake_deleted
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.delete_file("f1")
     fake_client.files.delete.assert_called_once_with(file_id="f1")
     assert result == "f1"
@@ -299,7 +299,7 @@ def test_delete_store_file(store):
     fake_client = MagicMock()
     fake_vector_store_file = MagicMock()
     fake_client.vector_stores.files.delete.return_value = fake_vector_store_file
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     result = store.delete_store_file("s1", "f1")
     fake_client.vector_stores.files.delete.assert_called_once_with(vector_store_id="s1", file_id="f1")
     assert result is fake_vector_store_file
@@ -319,7 +319,7 @@ def test_import_store_files(store):
     response.data = [remote]
     response.has_more = False
     fake_client.vector_stores.files.list.return_value = response
-    store.window.core.openai.get_client.return_value = fake_client
+    store.window.core.api.openai.get_client.return_value = fake_client
     store.get_file = MagicMock(return_value="file_data")
     store.window.core.assistants.files.insert = MagicMock()
     store.log = MagicMock()

@@ -49,7 +49,7 @@ def test_send(mock_window_conf):
     mock_response.choices[0].message = MagicMock()
     mock_response.choices[0].message.content = 'test_response'
     client.chat.completions.create.return_value = mock_response
-    vision.window.core.openai.get_client = MagicMock(return_value=client)
+    vision.window.core.api.openai.get_client = MagicMock(return_value=client)
 
     model = ModelItem()
     vision.window.core.ctx.add_item = MagicMock()

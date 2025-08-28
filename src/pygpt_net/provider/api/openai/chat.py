@@ -70,7 +70,7 @@ class Chat:
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
 
-        client = self.window.core.openai.get_client(mode, context.model)
+        client = self.window.core.api.openai.get_client(mode, context.model)
 
         # build chat messages
         messages = self.build(
@@ -98,7 +98,7 @@ class Chat:
         response_kwargs = {}
 
         # tools / functions
-        tools = self.window.core.openai.tools.prepare(model, functions)
+        tools = self.window.core.api.openai.tools.prepare(model, functions)
 
         # fix: o1 compatibility
         if (model.id is not None
@@ -323,12 +323,12 @@ class Chat:
         if not is_tool_output:  # append current prompt only if not tool output
             content = str(prompt)
             if model.is_image_input():
-                content = self.window.core.openai.vision.build_content(
+                content = self.window.core.api.openai.vision.build_content(
                     content=content,
                     attachments=attachments,
                 )
             if model.is_audio_input():
-                content = self.window.core.openai.audio.build_content(
+                content = self.window.core.api.openai.audio.build_content(
                     content=content,
                     multimodal_ctx=multimodal_ctx,
                 )

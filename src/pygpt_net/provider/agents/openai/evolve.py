@@ -340,7 +340,7 @@ class Agent(BaseAgent):
 
                 print("Winner: agent ", choose)
 
-                final_output, last_response_id = window.core.openai.responses.unpack_agent_response(results[choose], ctx)
+                final_output, last_response_id = window.core.api.openai.responses.unpack_agent_response(results[choose], ctx)
                 input_items = results[choose].to_input_list()
 
                 if bridge.stopped():
@@ -437,7 +437,7 @@ class Agent(BaseAgent):
                     bridge.on_stop(ctx)
                     break
 
-                window.core.openai.responses.unpack_agent_response(results[choose], ctx)
+                window.core.api.openai.responses.unpack_agent_response(results[choose], ctx)
                 input_items = results[choose].to_input_list()
 
                 evaluator_result = await Runner.run(evaluator, input_items)

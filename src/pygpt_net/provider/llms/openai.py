@@ -99,7 +99,7 @@ class OpenAILLM(BaseLLM):
 
         if window.core.config.get('api_use_responses_llama', False):
             tools = []
-            tools = window.core.openai.remote_tools.append_to_tools(
+            tools = window.core.api.openai.remote_tools.append_to_tools(
                 mode=MODE_LLAMA_INDEX,
                 model=model,
                 stream=stream,

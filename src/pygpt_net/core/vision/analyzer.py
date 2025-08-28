@@ -51,7 +51,7 @@ class Analyzer:
 
         extra = {}
         output = ""
-        response = self.window.core.openai.vision.send(context, extra)
+        response = self.window.core.api.openai.vision.send(context, extra)
         if response.choices[0] and response.choices[0].message.content:
             output = response.choices[0].message.content.strip()
         for id in files:

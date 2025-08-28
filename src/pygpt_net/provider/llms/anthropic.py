@@ -93,7 +93,7 @@ class AnthropicLLM(BaseLLM):
         :param window: window instance
         :return: list of models
         """
-        client = window.core.anthropic.get_client()
+        client = window.core.api.anthropic.get_client()
         models_list = client.models.list()
         items = []
         if models_list.data:

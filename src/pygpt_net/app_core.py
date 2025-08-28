@@ -46,9 +46,7 @@ from pygpt_net.core.updater import Updater
 from pygpt_net.core.vision import Vision
 from pygpt_net.core.web import Web
 
-# APIs
-from pygpt_net.provider.api.openai import ApiOpenAI
-from pygpt_net.provider.api.anthropic import ApiAnthropic
+from pygpt_net.provider.api import Api
 
 class Core:
     def __init__(self, window=None):
@@ -61,7 +59,7 @@ class Core:
 
         self.access = Access(window)
         self.agents = Agents(window)
-        self.anthropic = ApiAnthropic(window)
+        self.api = Api(window)
         self.assistants = Assistants(window)
         self.attachments = Attachments(window)
         self.audio = Audio(window)
@@ -85,7 +83,6 @@ class Core:
         self.models = Models(window)
         self.modes = Modes(window)
         self.notepad = Notepad(window)
-        self.openai = ApiOpenAI(window)
         self.platforms = Platforms(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)

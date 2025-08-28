@@ -25,7 +25,7 @@ class DummyConfig:
 def get_dummy_window(config_data):
     dummy_config = DummyConfig(config_data)
     dummy_computer = SimpleNamespace(get_tool=lambda: {"type": "computer_tool"})
-    core = SimpleNamespace(config=dummy_config, openai=SimpleNamespace(computer=dummy_computer))
+    core = SimpleNamespace(config=dummy_config, api=SimpleNamespace(openai=SimpleNamespace(computer=dummy_computer)))
     return SimpleNamespace(core=core)
 
 def set_disable(monkeypatch):

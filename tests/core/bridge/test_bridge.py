@@ -73,8 +73,9 @@ def make_window():
     window.core.agents.legacy.get_idx = Mock(return_value=None)
     window.core.experts = SimpleNamespace()
     window.core.experts.get_mode = Mock(return_value=None)
-    window.core.openai = SimpleNamespace()
-    window.core.openai.quick_call = Mock(return_value="quick_result")
+    window.core.api = SimpleNamespace()
+    window.core.api.openai = SimpleNamespace()
+    window.core.api.openai.quick_call = Mock(return_value="quick_result")
     return window
 
 def test_request_returns_false_when_kernel_stopped():
@@ -199,7 +200,7 @@ def test_call_switches_to_research_and_uses_quick_call(monkeypatch):
             return False
     fm = FakeModel()
     ctx = DummyContext(mode=None, model=fm)
-    window.core.openai.quick_call = Mock(return_value="GPT_OK")
+    window.core.api.openai.quick_call = Mock(return_value="GPT_OK")
     b = Bridge(window)
     res = b.call(ctx, extra={})
     assert res == "GPT_OK"
@@ -209,7 +210,7 @@ def test_call_default_quick_call_invoked():
     window = make_window()
     b = Bridge(window)
     ctx = DummyContext(mode=mod.MODE_CHAT, model=None)
-    window.core.openai.quick_call = Mock(return_value="DEFAULT")
+    window.core.api.openai.quick_call = Mock(return_value="DEFAULT")
     res = b.call(ctx, extra={"x": 1})
     assert res == "DEFAULT"
     assert b.last_context_quick() is ctx

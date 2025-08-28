@@ -67,7 +67,7 @@ class ExampleAudioOutput(BaseProvider):
         :param text: text to speech
         :return: path to generated audio file or None if audio playback is handled here
         """
-        client = self.plugin.window.core.openai.get_client()
+        client = self.plugin.window.core.api.openai.get_client()
         output_file = self.plugin.output_file
         voice = self.plugin.get_option_value('openai_voice')
         model = self.plugin.get_option_value('openai_model')

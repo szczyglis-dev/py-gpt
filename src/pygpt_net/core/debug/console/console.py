@@ -69,8 +69,8 @@ class Console:
         elif msg.lower() == "mpkfa":
             self.log("GOD MODE ACTIVATED ;)")
         elif msg == "oclr":
-            if self.window.core.openai.client:
-                self.window.core.openai.client.close()
+            if self.window.core.api.openai.client:
+                self.window.core.api.openai.client.close()
                 self.log("OpenAI client closed")
             else:
                 self.log("OpenAI client not initialized")

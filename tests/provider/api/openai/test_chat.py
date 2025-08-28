@@ -48,7 +48,7 @@ def test_send(mock_window_conf):
     mock_response.choices[0].message = MagicMock()
     mock_response.choices[0].message.content = 'test_response'
     client.chat.completions.create.return_value = mock_response
-    chat.window.core.openai.get_client = MagicMock(return_value=client)
+    chat.window.core.api.openai.get_client = MagicMock(return_value=client)
 
     model = ModelItem()
     model.ctx = 2048

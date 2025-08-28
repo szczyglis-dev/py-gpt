@@ -132,12 +132,12 @@ def test_create(mock_window):
     mock_window.core.assistants.create = MagicMock(return_value=item)
 
     assistant.editor.assign_data = MagicMock()
-    mock_window.core.openai.assistants.create = MagicMock()
+    mock_window.core.api.openai.assistants.create = MagicMock()
 
     assistant.create()
     mock_window.core.assistants.create.assert_called_once()
     assistant.editor.assign_data.assert_called_once_with(item)
-    mock_window.core.openai.assistants.create.assert_called_once()
+    mock_window.core.api.openai.assistants.create.assert_called_once()
 
 
 def test_clear(mock_window):
@@ -163,7 +163,7 @@ def test_delete(mock_window):
     mock_window.core.config.data['assistant'] = 'assistant_id'
     mock_window.core.assistants.get_by_idx = MagicMock(return_value='assistant_id')
     mock_window.core.assistants.has = MagicMock(return_value=True)
-    mock_window.core.openai.assistants.delete = MagicMock()
+    mock_window.core.api.openai.assistants.delete = MagicMock()
     mock_window.core.assistants.delete = MagicMock()
     assistant.update = MagicMock()
     assistant.delete(1, force=True)
@@ -171,7 +171,7 @@ def test_delete(mock_window):
     # assert item.id is None  # ??
     assert mock_window.core.config.get('assistant') is None
     assert mock_window.core.config.get('assistant_thread') is None
-    mock_window.core.openai.assistants.delete.assert_called_once()
+    mock_window.core.api.openai.assistants.delete.assert_called_once()
     mock_window.core.assistants.delete.assert_called_once()
     assistant.update.assert_called_once()
 

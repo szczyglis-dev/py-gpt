@@ -20,7 +20,7 @@ from pygpt_net.provider.api.openai.agents.computer import LocalComputer, Agent
 @pytest.fixture
 def dummy_window():
     win = MagicMock()
-    win.core.openai.computer.get_current_env.return_value = "windows"
+    win.core.api.openai.computer.get_current_env.return_value = "windows"
     win.core.plugins.get.return_value.handle_call = MagicMock()
     scr = MagicMock()
     size = MagicMock()

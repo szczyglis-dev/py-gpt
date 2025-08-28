@@ -254,7 +254,7 @@ class Bridge:
                         context.mode = MODE_RESEARCH
 
         # default: OpenAI API call
-        return self.window.core.openai.quick_call(
+        return self.window.core.api.openai.quick_call(
             context=context,
             extra=extra,
         )

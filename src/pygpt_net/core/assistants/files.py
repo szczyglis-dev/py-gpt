@@ -245,12 +245,12 @@ class Files:
             if store_id is None or store_id == "":
                 continue  # skip if no store_id
             try:
-                self.window.core.openai.store.delete_store_file(store_id, file_id)  # remove from vector store
+                self.window.core.api.openai.store.delete_store_file(store_id, file_id)  # remove from vector store
             except Exception as e:
                 self.window.core.debug.log("Failed to delete file from vector store: " + str(e))
         self.provider.delete_by_id(file.record_id)  # delete file in DB
         try:
-            self.window.core.openai.store.delete_file(file.file_id)  # delete file in API
+            self.window.core.api.openai.store.delete_file(file.file_id)  # delete file in API
         except Exception as e:
             self.window.core.debug.log("Failed to delete remote file: " + str(e))
         if file.record_id in self.items:
@@ -290,9 +290,9 @@ class Files:
         :return: True if truncated
         """
         if store_id is not None:
-            self.window.core.openai.store.remove_from_store(store_id)  # remove files from vector store
+            self.window.core.api.openai.store.remove_from_store(store_id)  # remove files from vector store
         else:
-            self.window.core.openai.store.remove_from_stores()  # remove files from all vector stores
+            self.window.core.api.openai.store.remove_from_stores()  # remove files from all vector stores
         return self.truncate_local(store_id)  # truncate files in DB
 
     def truncate_local(self, store_id: Optional[str] = None) -> bool:
@@ -316,7 +316,7 @@ class Files:
         :param store_id: store ID
         :return: True if imported
         """
-        files = self.window.core.openai.store.import_store_files(store_id)
+        files = self.window.core.api.openai.store.import_store_files(store_id)
         for file in files:
             self.create(file.assistant, file.thread_id, file.file_id, file.name, file.path, file.size)
         return True

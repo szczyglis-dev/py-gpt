@@ -21,7 +21,7 @@ def fake_client():
 @pytest.fixture
 def fake_window(fake_client):
     window = MagicMock()
-    window.core.openai.get_client.return_value = fake_client
+    window.core.api.openai.get_client.return_value = fake_client
     return window
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def assistants_obj(fake_window):
 
 def test_get_client(assistants_obj, fake_window):
     client = MagicMock()
-    fake_window.core.openai.get_client.return_value = client
+    fake_window.core.api.openai.get_client.return_value = client
     assert assistants_obj.get_client() is client
 
 def test_log_with_callback(assistants_obj):
@@ -53,9 +53,9 @@ def test_create(assistants_obj, fake_window):
     assistant.has_functions.return_value = False
     fake_result = MagicMock()
     fake_result.id = "assistant_id"
-    fake_window.core.openai.get_client.return_value.beta.assistants.create.return_value = fake_result
+    fake_window.core.api.openai.get_client.return_value.beta.assistants.create.return_value = fake_result
     result = assistants_obj.create(assistant)
-    fake_window.core.openai.get_client.return_value.beta.assistants.create.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.assistants.create.assert_called_once_with(
         instructions="inst",
         description="desc",
         name="name",
@@ -76,9 +76,9 @@ def test_update(assistants_obj, fake_window):
     assistant.has_functions.return_value = False
     fake_result = MagicMock()
     fake_result.id = "updated_id"
-    fake_window.core.openai.get_client.return_value.beta.assistants.update.return_value = fake_result
+    fake_window.core.api.openai.get_client.return_value.beta.assistants.update.return_value = fake_result
     result = assistants_obj.update(assistant)
-    fake_window.core.openai.get_client.return_value.beta.assistants.update.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.assistants.update.assert_called_once_with(
         "old_id",
         instructions="inst",
         description="desc",
@@ -92,40 +92,40 @@ def test_update(assistants_obj, fake_window):
 def test_delete(assistants_obj, fake_window):
     fake_response = MagicMock()
     fake_response.id = "deleted_id"
-    fake_window.core.openai.get_client.return_value.beta.assistants.delete.return_value = fake_response
+    fake_window.core.api.openai.get_client.return_value.beta.assistants.delete.return_value = fake_response
     result = assistants_obj.delete("some_id")
-    fake_window.core.openai.get_client.return_value.beta.assistants.delete.assert_called_once_with("some_id")
+    fake_window.core.api.openai.get_client.return_value.beta.assistants.delete.assert_called_once_with("some_id")
     assert result == "deleted_id"
 
 def test_thread_create(assistants_obj, fake_window):
     fake_thread = MagicMock()
     fake_thread.id = "thread_id"
-    fake_window.core.openai.get_client.return_value.beta.threads.create.return_value = fake_thread
+    fake_window.core.api.openai.get_client.return_value.beta.threads.create.return_value = fake_thread
     result = assistants_obj.thread_create()
-    fake_window.core.openai.get_client.return_value.beta.threads.create.assert_called_once()
+    fake_window.core.api.openai.get_client.return_value.beta.threads.create.assert_called_once()
     assert result == "thread_id"
 
 def test_thread_delete(assistants_obj, fake_window):
     fake_response = MagicMock()
     fake_response.id = "thread_deleted_id"
-    fake_window.core.openai.get_client.return_value.beta.threads.delete.return_value = fake_response
+    fake_window.core.api.openai.get_client.return_value.beta.threads.delete.return_value = fake_response
     result = assistants_obj.thread_delete("thread1")
-    fake_window.core.openai.get_client.return_value.beta.threads.delete.assert_called_once_with("thread1")
+    fake_window.core.api.openai.get_client.return_value.beta.threads.delete.assert_called_once_with("thread1")
     assert result == "thread_deleted_id"
 
 def test_msg_list(assistants_obj, fake_window):
     fake_list = MagicMock()
     fake_list.data = ["msg1", "msg2"]
-    fake_window.core.openai.get_client.return_value.beta.threads.messages.list.return_value = fake_list
+    fake_window.core.api.openai.get_client.return_value.beta.threads.messages.list.return_value = fake_list
     result = assistants_obj.msg_list("thread1")
-    fake_window.core.openai.get_client.return_value.beta.threads.messages.list.assert_called_once_with("thread1")
+    fake_window.core.api.openai.get_client.return_value.beta.threads.messages.list.assert_called_once_with("thread1")
     assert result == ["msg1", "msg2"]
 
 def test_msg_send_without_files(assistants_obj, fake_window):
     fake_message = MagicMock()
-    fake_window.core.openai.get_client.return_value.beta.threads.messages.create.return_value = fake_message
+    fake_window.core.api.openai.get_client.return_value.beta.threads.messages.create.return_value = fake_message
     result = assistants_obj.msg_send("thread1", "hello", [])
-    fake_window.core.openai.get_client.return_value.beta.threads.messages.create.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.threads.messages.create.assert_called_once_with(
         "thread1",
         role="user",
         content="hello"
@@ -134,13 +134,13 @@ def test_msg_send_without_files(assistants_obj, fake_window):
 
 def test_msg_send_with_files(assistants_obj, fake_window):
     fake_message = MagicMock()
-    fake_window.core.openai.get_client.return_value.beta.threads.messages.create.return_value = fake_message
+    fake_window.core.api.openai.get_client.return_value.beta.threads.messages.create.return_value = fake_message
     result = assistants_obj.msg_send("thread1", "hello", ["file1", "file2"])
     expected_attachments = [
         {"file_id": "file1", "tools": [{"type": "code_interpreter"}, {"type": "file_search"}]},
         {"file_id": "file2", "tools": [{"type": "code_interpreter"}, {"type": "file_search"}]},
     ]
-    fake_window.core.openai.get_client.return_value.beta.threads.messages.create.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.threads.messages.create.assert_called_once_with(
         "thread1",
         role="user",
         content="hello",
@@ -195,9 +195,9 @@ def test_get_tool_resources_negative(assistants_obj):
 def test_run_create(assistants_obj, fake_window):
     fake_run = MagicMock()
     fake_run.id = "run_id"
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.create.return_value = fake_run
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.create.return_value = fake_run
     result = assistants_obj.run_create("thread1", "assistant1", model="modelX", instructions="inst")
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.create.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.create.assert_called_once_with(
         thread_id="thread1", assistant_id="assistant1", instructions="inst", model="modelX"
     )
     assert result is fake_run
@@ -205,9 +205,9 @@ def test_run_create(assistants_obj, fake_window):
 def test_run_create_without_instructions(assistants_obj, fake_window):
     fake_run = MagicMock()
     fake_run.id = "run_id"
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.create.return_value = fake_run
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.create.return_value = fake_run
     result = assistants_obj.run_create("thread1", "assistant1", model="modelX")
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.create.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.create.assert_called_once_with(
         thread_id="thread1", assistant_id="assistant1", model="modelX"
     )
     assert result is fake_run
@@ -218,23 +218,23 @@ def test_run_create_stream(assistants_obj, fake_window):
     fake_stream.get_final_run.return_value = fake_run_final
     fake_cm = MagicMock()
     fake_cm.__enter__.return_value = fake_stream
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.stream.return_value = fake_cm
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.stream.return_value = fake_cm
     signals = MagicMock()
     ctx = MagicMock()
     result = assistants_obj.run_create_stream(signals, ctx, "thread1", "assistant1", model="modelX", instructions="inst")
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.stream.assert_called_once()
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.stream.assert_called_once()
     assert result is fake_run_final
 
 def test_run_status(assistants_obj, fake_window):
     fake_run = MagicMock()
     fake_run.usage = {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30}
     fake_run.status = "completed"
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.retrieve.return_value = fake_run
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.retrieve.return_value = fake_run
     ctx = MagicMock()
     ctx.thread = "thread1"
     ctx.run_id = "run1"
     status = assistants_obj.run_status(ctx)
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.retrieve.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.retrieve.assert_called_once_with(
         thread_id="thread1", run_id="run1"
     )
     assert ctx.input_tokens == 10
@@ -244,12 +244,12 @@ def test_run_status(assistants_obj, fake_window):
 
 def test_run_get(assistants_obj, fake_window):
     fake_run = MagicMock()
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.retrieve.return_value = fake_run
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.retrieve.return_value = fake_run
     ctx = MagicMock()
     ctx.thread = "thread1"
     ctx.run_id = "run1"
     result = assistants_obj.run_get(ctx)
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.retrieve.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.retrieve.assert_called_once_with(
         thread_id="thread1", run_id="run1"
     )
     assert result is fake_run
@@ -258,12 +258,12 @@ def test_run_stop(assistants_obj, fake_window):
     fake_run = MagicMock()
     fake_run.usage = {"prompt_tokens": 5, "completion_tokens": 15, "total_tokens": 20}
     fake_run.status = "stopped"
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.cancel.return_value = fake_run
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.cancel.return_value = fake_run
     ctx = MagicMock()
     ctx.thread = "thread1"
     ctx.run_id = "run1"
     status = assistants_obj.run_stop(ctx)
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.cancel.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.cancel.assert_called_once_with(
         thread_id="thread1", run_id="run1"
     )
     assert ctx.input_tokens == 5
@@ -273,14 +273,14 @@ def test_run_stop(assistants_obj, fake_window):
 
 def test_run_submit_tool(assistants_obj, fake_window):
     fake_response = MagicMock()
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.submit_tool_outputs.return_value = fake_response
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.submit_tool_outputs.return_value = fake_response
     ctx = MagicMock()
     ctx.thread = "thread1"
     ctx.run_id = "run1"
     outputs = [{"output": {"key": "value"}}, {"output": "string_output"}]
     result = assistants_obj.run_submit_tool(ctx, outputs)
     expected_outputs = [{"output": json.dumps({"key": "value"})}, {"output": "string_output"}]
-    fake_window.core.openai.get_client.return_value.beta.threads.runs.submit_tool_outputs.assert_called_once_with(
+    fake_window.core.api.openai.get_client.return_value.beta.threads.runs.submit_tool_outputs.assert_called_once_with(
         thread_id="thread1",
         run_id="run1",
         tool_outputs=expected_outputs
@@ -327,12 +327,12 @@ def test_import_all(assistants_obj, fake_window):
     response2.data = [remote2]
     response2.has_more = False
     response2.last_id = None
-    fake_window.core.openai.get_client.return_value.beta.assistants.list.side_effect = [response1, response2]
+    fake_window.core.api.openai.get_client.return_value.beta.assistants.list.side_effect = [response1, response2]
     callback = MagicMock()
     with patch("pygpt_net.provider.api.openai.assistants.AssistantItem", side_effect=lambda: MagicMock()) as FakeAssistantItem:
         items = {}
         result = assistants_obj.import_all(items, order="asc", limit=100, after=None, callback=callback)
-    fake_window.core.openai.get_client.return_value.beta.assistants.list.assert_any_call(order="asc", limit=100)
+    fake_window.core.api.openai.get_client.return_value.beta.assistants.list.assert_any_call(order="asc", limit=100)
     callback.assert_any_call("Imported assistant: a1")
     callback.assert_any_call("Imported assistant: a2")
     assert "a1" in result

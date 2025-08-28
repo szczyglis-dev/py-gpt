@@ -137,7 +137,7 @@ class Agent(BaseAgent):
                 agent,
                 **kwargs
             )
-            final_output, last_response_id = window.core.openai.responses.unpack_agent_response(result, ctx)
+            final_output, last_response_id = window.core.api.openai.responses.unpack_agent_response(result, ctx)
             response_id = result.last_response_id
             if verbose:
                 print("Final response:", result)

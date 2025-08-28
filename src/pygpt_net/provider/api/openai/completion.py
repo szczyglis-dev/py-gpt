@@ -76,7 +76,7 @@ class Completion:
         if user_name is not None and user_name != '':
             stop = [user_name + ':']
 
-        client = self.window.core.openai.get_client()
+        client = self.window.core.api.openai.get_client()
 
         # fix for deprecated OpenAI davinci models
         if model_id.startswith('text-davinci'):

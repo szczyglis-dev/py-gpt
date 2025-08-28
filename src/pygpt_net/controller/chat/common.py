@@ -307,7 +307,7 @@ class Common:
         controller.kernel.halt = True
         dispatch(RenderEvent(RenderEvent.TOOL_END))  # show waiting
 
-        core.openai.stop()
+        core.api.openai.stop()
         self.unlock_input()
 
         controller.chat.input.generating = False

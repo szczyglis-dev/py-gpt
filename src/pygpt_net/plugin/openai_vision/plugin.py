@@ -293,12 +293,12 @@ class Plugin(BasePlugin):
         """
         mode = self.window.core.config.get('mode')
         attachments = self.window.core.attachments.get_all(mode)
-        self.window.core.openai.vision.build_content(
+        self.window.core.api.openai.vision.build_content(
             str(self.prompt),
             attachments,
         )  # tmp build content, provide attachments from global mode
 
-        built_attachments = self.window.core.openai.vision.attachments
+        built_attachments = self.window.core.api.openai.vision.attachments
         if len(built_attachments) > 0:
             return True
         return False
@@ -312,13 +312,13 @@ class Plugin(BasePlugin):
         result = False
         mode = self.window.core.config.get('mode')
         attachments = self.window.core.attachments.get_all(mode)  # from global mode
-        self.window.core.openai.vision.build_content(
+        self.window.core.api.openai.vision.build_content(
             str(self.prompt),
             attachments,
         )  # tmp build content, provide attachments from global mode
 
-        built_attachments = self.window.core.openai.vision.attachments
-        built_urls = self.window.core.openai.vision.urls
+        built_attachments = self.window.core.api.openai.vision.attachments
+        built_urls = self.window.core.api.openai.vision.urls
 
         # check for images in URLs found in prompt
         img_urls = []

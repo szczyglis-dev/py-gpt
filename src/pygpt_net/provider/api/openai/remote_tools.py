@@ -113,7 +113,7 @@ class RemoteTools:
         # extend local tools with remote tools
         if enabled["computer_use"]:
             if not model.id in OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE:
-                tools.append(self.window.core.openai.computer.get_tool())
+                tools.append(self.window.core.api.openai.computer.get_tool())
         else:
             if not model.id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH:
                 if enabled["web_search"]:

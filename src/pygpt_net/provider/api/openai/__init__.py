@@ -281,7 +281,7 @@ class ApiOpenAI:
             # additional_kwargs["max_tokens"] = max_tokens
 
         # tools / functions
-        tools = self.window.core.openai.tools.prepare(model, functions)
+        tools = self.window.core.api.openai.tools.prepare(model, functions)
         if len(tools) > 0 and "disable_tools" not in extra:
             additional_kwargs["tools"] = tools
         

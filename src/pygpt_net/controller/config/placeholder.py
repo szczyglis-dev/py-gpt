@@ -219,7 +219,7 @@ class Placeholder:
 
         :return: placeholders list
         """
-        return self.window.core.openai.remote_tools.get_choices()
+        return self.window.core.api.openai.remote_tools.get_choices()
 
     def get_llama_index_chat_modes(self) -> List[Dict[str, str]]:
         """

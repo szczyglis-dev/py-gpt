@@ -54,12 +54,12 @@ def test_count_upload(mock_window):
 
 def test_import_files(mock_window):
     """Test import files"""
-    mock_window.core.openai.assistants.importer.import_files = MagicMock()
+    mock_window.core.api.openai.assistants.importer.import_files = MagicMock()
     files = Files(mock_window)
     item = AssistantItem()
     item.id = "assistant_id"
     files.import_files(item)
-    mock_window.core.openai.assistants.importer.import_files.assert_called_once_with(item)
+    mock_window.core.api.openai.assistants.importer.import_files.assert_called_once_with(item)
 
 
 def test_download(mock_window):
@@ -205,7 +205,7 @@ def test_upload(mock_window):
 
     mock_window.core.config.data['assistant'] = "assistant_id"
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.openai.assistants.file_upload = MagicMock(return_value="new_id")
+    mock_window.core.api.openai.assistants.file_upload = MagicMock(return_value="new_id")
     files.update_list = MagicMock()
     mock_window.core.assistants.save = MagicMock()
     mock_window.controller.attachment.update = MagicMock()

@@ -166,7 +166,7 @@ class Plugin(BasePlugin):
                     sync = False
                     if self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
                         sync = True
-                    self.window.core.openai.image.generate(bridge_context, extra, sync)  # force inline mode, async call
+                    self.window.core.api.openai.image.generate(bridge_context, extra, sync)  # force inline mode, async call
             except Exception as e:
                 self.log("Error: " + str(e))
                 return

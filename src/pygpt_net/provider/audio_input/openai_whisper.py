@@ -43,7 +43,7 @@ class OpenAIWhisper(BaseProvider):
         :param path: path to audio file to transcribe
         :return: transcribed text
         """
-        client = self.plugin.window.core.openai.get_client()
+        client = self.plugin.window.core.api.openai.get_client()
         with open(path, "rb") as audio_file:
             return client.audio.transcriptions.create(
                 model=self.plugin.get_option_value('whisper_model'),
