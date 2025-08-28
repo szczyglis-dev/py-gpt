@@ -47,7 +47,7 @@
     "updates": {
         "label": "settings.section.updates"
     },
-    "developer": {
-        "label": "settings.section.developer"
+    "debug": {
+        "label": "settings.section.debug"
     }
 }

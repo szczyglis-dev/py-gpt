@@ -2497,9 +2497,11 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Check for updates in background`: Enables checking for updates in background (checking every 5 minutes). Default: True.
 
-**Developer**
+**Debug**
 
 - `Show debug menu`: Enables debug (developer) menu.
+
+- `Log level`: toggle log level (ERROR|WARNING|INFO|DEBUG)
 
 - `Log and debug context`: Enables logging of context input/output.
 
@@ -2516,8 +2518,6 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 - `Log LlamaIndex usage to console`: Enables logging of LlamaIndex usage to console.
 
 - `Log Assistants usage to console`: Enables logging of Assistants API usage to console.
-
-- `Log level`: toggle log level (ERROR|WARNING|INFO|DEBUG)
 
 
 ## JSON files
