@@ -75,7 +75,7 @@ class Files:
         """
         # run asynchronous
         self.window.update_status("Importing files...please wait...")
-        self.window.core.gpt.assistants.importer.import_files(store_id)
+        self.window.core.openai.assistants.importer.import_files(store_id)
 
     def download(self, idx: int):
         """
@@ -276,7 +276,7 @@ class Files:
                     continue
 
                 # upload local attachment file and get new ID (file_id)
-                new_id = self.window.core.gpt.store.upload(
+                new_id = self.window.core.openai.store.upload(
                     attachment.path,
                 )
                 if new_id is not None:
@@ -287,14 +287,14 @@ class Files:
 
                     """
                     if assistant.vector_store is None or assistant.vector_store == "":
-                        assistant.vector_store = self.window.core.gpt.store.create_store(
+                        assistant.vector_store = self.window.core.openai.store.create_store(
                             "thread-" + thread_id,
                         )
                     """
 
                     # add to vector store if defined in assistant, otherwise file will be added to thread store
                     if assistant.vector_store:
-                        self.window.core.gpt.store.add_file(
+                        self.window.core.openai.store.add_file(
                             assistant.vector_store,
                             new_id,
                         )

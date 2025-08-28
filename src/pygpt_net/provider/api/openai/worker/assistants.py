@@ -565,7 +565,7 @@ class Worker(QRunnable):
         """
         try:
             if self.stream:  # stream mode
-                run = self.window.core.gpt.assistants.run_create_stream(
+                run = self.window.core.openai.assistants.run_create_stream(
                     self.signals,
                     self.ctx,
                     self.thread_id,
@@ -575,7 +575,7 @@ class Worker(QRunnable):
                 )
             else:
                 # not stream mode
-                run = self.window.core.gpt.assistants.run_create(
+                run = self.window.core.openai.assistants.run_create(
                     self.thread_id,
                     self.assistant_id,
                     self.model,
@@ -596,7 +596,7 @@ class Worker(QRunnable):
         :return: result
         """
         try:
-            response = self.window.core.gpt.assistants.msg_send(
+            response = self.window.core.openai.assistants.msg_send(
                 self.thread_id,
                 self.prompt,
                 self.file_ids,
@@ -615,7 +615,7 @@ class Worker(QRunnable):
         :return: result
         """
         try:
-            run = self.window.core.gpt.assistants.run_submit_tool(self.ctx, self.tools_outputs)
+            run = self.window.core.openai.assistants.run_submit_tool(self.ctx, self.tools_outputs)
             if run is not None:
                 self.ctx.run_id = run.id  # update run id
                 self.signals.finished.emit(self.ctx, run, False)  # continue status check

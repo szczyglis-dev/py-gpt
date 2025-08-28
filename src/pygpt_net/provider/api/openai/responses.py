@@ -92,7 +92,7 @@ class Responses:
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
 
-        client = self.window.core.gpt.get_client(mode, model)
+        client = self.window.core.openai.get_client(mode, model)
 
         # build chat messages
         messages = self.build(
@@ -122,7 +122,7 @@ class Responses:
         response_kwargs = {}
 
         # tools / functions
-        tools = self.window.core.gpt.tools.prepare_responses_api(model, functions)
+        tools = self.window.core.openai.tools.prepare_responses_api(model, functions)
 
         # extra arguments, o3 only
         if model.extra and "reasoning_effort" in model.extra:
@@ -130,7 +130,7 @@ class Responses:
             response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
 
         # append remote tools
-        tools = self.window.core.gpt.remote_tools.append_to_tools(
+        tools = self.window.core.openai.remote_tools.append_to_tools(
             mode=mode,
             model=model,
             stream=stream,
@@ -340,7 +340,7 @@ class Responses:
 
                                     # computer call output
                                     elif output_type == "computer_call":
-                                        base64img = self.window.core.gpt.vision.get_attachment(attachments)
+                                        base64img = self.window.core.openai.vision.get_attachment(attachments)
                                         if base64img and "call_id" in tool_call:
                                             if tool_call["call_id"]:
                                                 # tool output
@@ -382,13 +382,13 @@ class Responses:
             if (model.is_image_input()
                     and mode != MODE_COMPUTER
                     and not model.id.startswith("computer-use")):
-                content = self.window.core.gpt.vision.build_content(
+                content = self.window.core.openai.vision.build_content(
                     content=content,
                     attachments=attachments,
                     responses_api=True,
                 )
             if model.is_audio_input():
-                content = self.window.core.gpt.audio.build_content(
+                content = self.window.core.openai.audio.build_content(
                     content=content,
                     multimodal_ctx=multimodal_ctx,
                 )
@@ -499,7 +499,7 @@ class Responses:
                 id = output.id
                 call_id = output.call_id
                 action = output.action
-                tool_calls, is_call = self.window.core.gpt.computer.handle_action(
+                tool_calls, is_call = self.window.core.openai.computer.handle_action(
                     id=id,
                     call_id=call_id,
                     action=action,
@@ -567,7 +567,7 @@ class Responses:
         if files:
             self.window.core.debug.info("[chat] Container files found, downloading...")
             try:
-                self.window.core.gpt.container.download_files(ctx, files)
+                self.window.core.openai.container.download_files(ctx, files)
             except Exception as e:
                 self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
 
@@ -631,7 +631,7 @@ class Responses:
         if files:
             self.window.core.debug.info("[chat] Container files found, downloading...")
             try:
-                self.window.core.gpt.container.download_files(ctx, files)
+                self.window.core.openai.container.download_files(ctx, files)
             except Exception as e:
                 self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
 

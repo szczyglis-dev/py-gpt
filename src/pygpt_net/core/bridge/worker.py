@@ -104,7 +104,7 @@ class BridgeWorker(QRunnable):
 
             # API OpenAI: chat, completion, vision, image, assistants
             else:
-                result = self.window.core.gpt.call(
+                result = self.window.core.openai.call(
                     context=self.context,
                     extra=self.extra,
                 )

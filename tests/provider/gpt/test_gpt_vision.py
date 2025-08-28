@@ -22,7 +22,7 @@ def dummy_window():
     mw.core = MagicMock()
     client = MagicMock()
     client.chat.completions.create.return_value = "response"
-    mw.core.gpt.get_client.return_value = client
+    mw.core.openai.get_client.return_value = client
     tokens = MagicMock()
     tokens.from_user.return_value = 10
     tokens.from_messages.return_value = 50
@@ -56,7 +56,7 @@ def test_send(vision):
     context = SimpleNamespace(prompt="test prompt", stream=False, max_tokens=20, system_prompt="sys prompt", attachments={}, model=model, history=[])
     response = vision.send(context)
     assert response == "response"
-    vision.window.core.gpt.get_client.return_value.chat.completions.create.assert_called_once()
+    vision.window.core.openai.get_client.return_value.chat.completions.create.assert_called_once()
 
 def test_build_with_context(vision):
     model = SimpleNamespace(id="test-model", ctx=80)

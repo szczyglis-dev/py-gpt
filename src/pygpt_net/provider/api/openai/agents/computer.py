@@ -48,7 +48,7 @@ class LocalComputer(Computer):
 
         :return: Environment of the computer, such as "mac", "windows", "ubuntu", or "browser".
         """
-        return self.window.core.gpt.computer.get_current_env()
+        return self.window.core.openai.computer.get_current_env()
 
     @property
     def dimensions(self) -> tuple[int, int]:

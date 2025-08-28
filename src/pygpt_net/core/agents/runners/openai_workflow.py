@@ -68,8 +68,8 @@ class OpenAIWorkflow(BaseRunner):
         context = agent_kwargs.get("context", BridgeContext())
         attachments = context.attachments if context else []
         history, previous_response_id = self.window.core.agents.memory.prepare_openai(context)
-        msg = self.window.core.gpt.vision.build_agent_input(prompt, attachments)  # build content with attachments
-        self.window.core.gpt.vision.append_images(ctx)  # append images to ctx if provided
+        msg = self.window.core.openai.vision.build_agent_input(prompt, attachments)  # build content with attachments
+        self.window.core.openai.vision.append_images(ctx)  # append images to ctx if provided
         history = history + msg
 
         # ------------ callbacks ----------------

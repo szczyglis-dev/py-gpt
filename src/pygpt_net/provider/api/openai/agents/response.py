@@ -169,7 +169,7 @@ class StreamHandler:
             self.files_handled = True
             self.window.core.debug.info("[chat] Container files found, downloading...")
             try:
-                self.window.core.gpt.container.download_files(ctx, self.files)
+                self.window.core.openai.container.download_files(ctx, self.files)
             except Exception as e:
                 self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
 

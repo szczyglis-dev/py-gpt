@@ -21,10 +21,10 @@ from pygpt_net.item.ctx import CtxItem
 def dummy_window():
     window = MagicMock()
     window.core = MagicMock()
-    window.core.gpt = MagicMock()
-    window.core.gpt.get_client = MagicMock()
-    window.core.gpt.tools = MagicMock()
-    window.core.gpt.tools.prepare = MagicMock(return_value=[])
+    window.core.openai = MagicMock()
+    window.core.openai.get_client = MagicMock()
+    window.core.openai.tools = MagicMock()
+    window.core.openai.tools.prepare = MagicMock(return_value=[])
     window.core.tokens = MagicMock()
     window.core.tokens.from_messages = MagicMock(return_value=10)
     window.core.tokens.from_user = MagicMock(return_value=5)
@@ -41,10 +41,10 @@ def dummy_window():
     window.core.config.get = MagicMock(side_effect=lambda k, default=None: config_values.get(k, default))
     window.core.ctx = MagicMock()
     window.core.ctx.get_history = MagicMock(return_value=[])
-    window.core.gpt.vision = MagicMock()
-    window.core.gpt.vision.build_content = MagicMock(side_effect=lambda content, attachments: content + " vision")
-    window.core.gpt.audio = MagicMock()
-    window.core.gpt.audio.build_content = MagicMock(side_effect=lambda content, multimodal_ctx: content + " audio")
+    window.core.openai.vision = MagicMock()
+    window.core.openai.vision.build_content = MagicMock(side_effect=lambda content, attachments: content + " vision")
+    window.core.openai.audio = MagicMock()
+    window.core.openai.audio.build_content = MagicMock(side_effect=lambda content, multimodal_ctx: content + " audio")
     window.core.command = MagicMock()
     window.core.command.unpack_tool_calls = MagicMock(return_value=["unpacked_tool"])
     window.core.plugins = MagicMock()
@@ -126,7 +126,7 @@ def test_send_chat_mode(dummy_window, dummy_context):
     client.chat = MagicMock()
     client.chat.completions = MagicMock()
     client.chat.completions.create = MagicMock(return_value="response")
-    dummy_window.core.gpt.get_client.return_value = client
+    dummy_window.core.openai.get_client.return_value = client
     response = chat.send(dummy_context)
     assert response == "response"
     args, kwargs = client.chat.completions.create.call_args

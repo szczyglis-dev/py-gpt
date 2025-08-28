@@ -36,7 +36,7 @@ def dummy_window():
     gpt.get_client.return_value = client
     core.tokens = tokens
     core.config = config
-    core.gpt = gpt
+    core.openai = gpt
     core.ctx.get_history.return_value = []
     window.core = core
     return window
@@ -108,7 +108,7 @@ def test_send(dummy_window, dummy_context):
     comp = Completion(window=dummy_window)
     comp.build = MagicMock(return_value="constructed prompt")
     response = comp.send(dummy_context)
-    client = dummy_window.core.gpt.get_client.return_value
+    client = dummy_window.core.openai.get_client.return_value
     args, kwargs = client.completions.create.call_args
     assert kwargs["prompt"] == "constructed prompt"
     assert kwargs["model"] == dummy_context.model.id
@@ -126,7 +126,7 @@ def test_send_with_text_davinci(dummy_window, dummy_context):
     comp = Completion(window=dummy_window)
     comp.build = MagicMock(return_value="constructed prompt")
     response = comp.send(dummy_context)
-    client = dummy_window.core.gpt.get_client.return_value
+    client = dummy_window.core.openai.get_client.return_value
     args, kwargs = client.completions.create.call_args
     assert kwargs["model"] == "gpt-3.5-turbo-instruct"
     assert response == {"result": "response"}
@@ -139,7 +139,7 @@ def test_send_with_ctx_none(monkeypatch, dummy_window, dummy_context):
     comp = Completion(window=dummy_window)
     comp.build = MagicMock(return_value="constructed prompt")
     response = comp.send(dummy_context)
-    client = dummy_window.core.gpt.get_client.return_value
+    client = dummy_window.core.openai.get_client.return_value
     args, kwargs = client.completions.create.call_args
     assert kwargs["stop"] == ""
     assert response == {"result": "response"}

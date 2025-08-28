@@ -36,8 +36,8 @@ def test_stream_worker_run_raw_chunk(monkeypatch):
     window.core.debug.info = MagicMock()
     window.core.debug.error = MagicMock()
     window.core.debug.log = MagicMock()
-    window.core.gpt.computer.handle_stream_chunk.return_value = ([], False)
-    window.core.gpt.container.download_files = MagicMock()
+    window.core.openai.computer.handle_stream_chunk.return_value = ([], False)
+    window.core.openai.container.download_files = MagicMock()
     window.core.command.unpack_tool_calls_chunks = MagicMock()
     window.controller.kernel.stopped.return_value = False
     window.controller.ui.update_tokens = MagicMock()
@@ -84,8 +84,8 @@ def test_stream_worker_run_stopped(monkeypatch):
     window.core.debug.info = MagicMock()
     window.core.debug.error = MagicMock()
     window.core.debug.log = MagicMock()
-    window.core.gpt.computer.handle_stream_chunk.return_value = ([], False)
-    window.core.gpt.container.download_files = MagicMock()
+    window.core.openai.computer.handle_stream_chunk.return_value = ([], False)
+    window.core.openai.container.download_files = MagicMock()
     window.core.command.unpack_tool_calls_chunks = MagicMock()
     window.controller.kernel.stopped.return_value = True
     window.controller.ui.update_tokens = MagicMock()
@@ -132,8 +132,8 @@ def test_stream_worker_run_exception(monkeypatch):
     window.core.debug.info = MagicMock()
     window.core.debug.error = MagicMock()
     window.core.debug.log = MagicMock()
-    window.core.gpt.computer.handle_stream_chunk.return_value = ([], False)
-    window.core.gpt.container.download_files = MagicMock()
+    window.core.openai.computer.handle_stream_chunk.return_value = ([], False)
+    window.core.openai.container.download_files = MagicMock()
     window.core.command.unpack_tool_calls_chunks = MagicMock()
     window.controller.kernel.stopped.return_value = False
     window.controller.ui.update_tokens = MagicMock()

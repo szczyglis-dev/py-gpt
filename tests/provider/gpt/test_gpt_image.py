@@ -23,7 +23,7 @@ def test_generate(mock_window):
     """Test generate"""
     image = Image(mock_window)
     ctx = CtxItem()
-    image.window.core.gpt.get_client = MagicMock()
+    image.window.core.openai.get_client = MagicMock()
     model = ModelItem()
     model.id = 'test'
     bridge_context = BridgeContext(
@@ -39,4 +39,4 @@ def test_generate(mock_window):
         context=bridge_context,
         extra=extra,
     )
-    image.window.core.gpt.get_client.assert_called_once()
+    image.window.core.openai.get_client.assert_called_once()

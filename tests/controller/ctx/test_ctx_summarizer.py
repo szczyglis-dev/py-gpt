@@ -30,10 +30,10 @@ def test_summarize(mock_window):
 def test_summarizer(mock_window):
     """Test summarizer worker"""
     summarizer = Summarizer(mock_window)
-    mock_window.core.gpt.summarizer = MagicMock()
+    mock_window.core.openai.summarizer = MagicMock()
 
     signal = MagicMock()
-    mock_window.core.gpt.summarizer.summary_ctx = MagicMock(return_value='test_title')
+    mock_window.core.openai.summarizer.summary_ctx = MagicMock(return_value='test_title')
 
     item = CtxItem()
     summarizer.summarizer(3, item, mock_window, signal)

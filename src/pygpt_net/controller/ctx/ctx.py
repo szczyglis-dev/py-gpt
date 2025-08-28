@@ -295,7 +295,7 @@ class Ctx:
 
     def clean_memory(self):
         """Clean memory"""
-        self.window.core.gpt.close()  # clear gpt client
+        self.window.core.openai.close()  # clear gpt client
 
     def new_in_group(
             self,

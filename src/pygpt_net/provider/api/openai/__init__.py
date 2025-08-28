@@ -39,7 +39,7 @@ from .tools import Tools
 from .vision import Vision
 
 
-class Gpt:
+class ApiOpenAI:
 
     def __init__(self, window=None):
         """
@@ -281,7 +281,7 @@ class Gpt:
             # additional_kwargs["max_tokens"] = max_tokens
 
         # tools / functions
-        tools = self.window.core.gpt.tools.prepare(model, functions)
+        tools = self.window.core.openai.tools.prepare(model, functions)
         if len(tools) > 0 and "disable_tools" not in extra:
             additional_kwargs["tools"] = tools
         

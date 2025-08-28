@@ -31,7 +31,7 @@ def test_send(mock_window):
     # mock_window.core.config.data['store_history'] = True
 
     result = True
-    mock_window.core.gpt.call = MagicMock(return_value=result)
+    mock_window.core.openai.call = MagicMock(return_value=result)
     #mock_window.core.chain.call = MagicMock(return_value=result)
 
     model = ModelItem()

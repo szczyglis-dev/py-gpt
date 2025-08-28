@@ -45,7 +45,7 @@ from pygpt_net.core.tokens import Tokens
 from pygpt_net.core.updater import Updater
 from pygpt_net.core.vision import Vision
 from pygpt_net.core.web import Web
-from pygpt_net.provider.api.openai import Gpt
+from pygpt_net.provider.api.openai import ApiOpenAI
 
 
 class Core:
@@ -74,7 +74,6 @@ class Core:
         self.dispatcher = Dispatcher(window)
         self.experts = Experts(window)
         self.filesystem = Filesystem(window)
-        self.gpt = Gpt(window)
         self.history = History(window)
         self.idx = Idx(window)
         self.image = Image(window)
@@ -83,6 +82,7 @@ class Core:
         self.models = Models(window)
         self.modes = Modes(window)
         self.notepad = Notepad(window)
+        self.openai = ApiOpenAI(window)
         self.platforms = Platforms(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)

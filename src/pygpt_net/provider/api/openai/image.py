@@ -74,7 +74,7 @@ class Image:
         # worker
         self.worker = ImageWorker()
         self.worker.window = self.window
-        self.worker.client = self.window.core.gpt.get_client()
+        self.worker.client = self.window.core.openai.get_client()
         self.worker.ctx = ctx
         self.worker.mode = sub_mode  # mode can be "generate" or "edit"
         self.worker.attachments = attachments  # attachments for edit mode

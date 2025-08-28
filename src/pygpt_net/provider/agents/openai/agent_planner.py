@@ -326,7 +326,7 @@ class Agent(BaseAgent):
                     print("Final response:", result)
 
                 input_items = result.to_input_list()
-                final_output, last_response_id = window.core.gpt.responses.unpack_agent_response(result, ctx)
+                final_output, last_response_id = window.core.openai.responses.unpack_agent_response(result, ctx)
 
                 if bridge.stopped():
                     bridge.on_stop(ctx)

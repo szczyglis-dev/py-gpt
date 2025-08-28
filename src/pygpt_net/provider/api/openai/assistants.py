@@ -36,7 +36,7 @@ class Assistants:
 
         :return: OpenAI client
         """
-        return self.window.core.gpt.get_client()
+        return self.window.core.openai.get_client()
 
     def log(
             self,

@@ -222,7 +222,7 @@ class BaseLLM:
         """
         model = ModelItem()
         model.provider = self.id
-        return window.core.gpt.get_client(
+        return window.core.openai.get_client(
             mode=MODE_CHAT,
             model=model,
         )

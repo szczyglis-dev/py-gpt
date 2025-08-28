@@ -237,7 +237,7 @@ class ImportWorker(QRunnable):
             self.log("Importing assistants...")
             self.window.core.assistants.clear()
             items = self.window.core.assistants.get_all()
-            self.window.core.gpt.assistants.import_all(items, callback=self.callback)
+            self.window.core.openai.assistants.import_all(items, callback=self.callback)
             self.window.core.assistants.items = items
             self.window.core.assistants.save()
 
@@ -266,7 +266,7 @@ class ImportWorker(QRunnable):
             self.log("Importing vector stores...")
             self.window.core.assistants.store.clear()
             items = {}
-            self.window.core.gpt.store.import_stores(items, callback=self.callback)
+            self.window.core.openai.store.import_stores(items, callback=self.callback)
             self.window.core.assistants.store.import_items(items)
             if not silent:
                 self.signals.finished.emit("vector_stores", self.store_id, len(items))
@@ -285,7 +285,7 @@ class ImportWorker(QRunnable):
         """
         try:
             self.log("Truncating stores...")
-            num = self.window.core.gpt.store.remove_all(callback=self.callback)
+            num = self.window.core.openai.store.remove_all(callback=self.callback)
             self.window.core.assistants.store.items = {}
             self.window.core.assistants.store.save()
             if not silent:
@@ -336,12 +336,12 @@ class ImportWorker(QRunnable):
                 self.log("Truncating all files...")
                 self.window.core.assistants.files.truncate() # clear all files
                 # remove all files in API
-                num = self.window.core.gpt.store.remove_files(callback=self.callback)
+                num = self.window.core.openai.store.remove_files(callback=self.callback)
             else:
                 self.log("Truncating files for store: {}".format(self.store_id))
                 self.window.core.assistants.files.truncate(self.store_id)  # clear store files, remove from stores / DB
                 # remove store files in API
-                num = self.window.core.gpt.store.remove_store_files(
+                num = self.window.core.openai.store.remove_store_files(
                     self.store_id,
                     callback=self.callback,
                 )
@@ -365,14 +365,14 @@ class ImportWorker(QRunnable):
             self.log("Uploading files...")
             for file in self.files:
                 try:
-                    file_id = self.window.core.gpt.store.upload(file)
+                    file_id = self.window.core.openai.store.upload(file)
                     if file_id is not None:
-                        stored_file = self.window.core.gpt.store.add_file(
+                        stored_file = self.window.core.openai.store.add_file(
                             self.store_id,
                             file_id,
                         )
                         if stored_file is not None:
-                            data = self.window.core.gpt.store.get_file(file_id)
+                            data = self.window.core.openai.store.get_file(file_id)
                             self.window.core.assistants.files.insert(self.store_id, data)  # insert to DB
                             msg = "Uploaded file: {}/{}".format((num + 1), len(self.files))
                             self.signals.status.emit("upload_files", msg)
@@ -403,11 +403,11 @@ class ImportWorker(QRunnable):
             if self.store_id is None:
                 self.log("Importing all files...")
                 self.window.core.assistants.files.truncate_local()  # clear local DB (all)
-                num = self.window.core.gpt.store.import_stores_files(self.callback)  # import all files
+                num = self.window.core.openai.store.import_stores_files(self.callback)  # import all files
             else:
                 self.log("Importing files for store: {}".format(self.store_id))
                 self.window.core.assistants.files.truncate_local(self.store_id)  # clear local DB (all)
-                items = self.window.core.gpt.store.import_store_files(
+                items = self.window.core.openai.store.import_store_files(
                     self.store_id,
                     [],
                     callback=self.callback,

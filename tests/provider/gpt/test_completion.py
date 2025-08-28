@@ -47,7 +47,7 @@ def test_send(mock_window_conf):
     mock_response.choices = [MagicMock()]
     mock_response.choices[0].text = 'test_response'
     client.completions.create.return_value = mock_response
-    completion.window.core.gpt.get_client = MagicMock(return_value=client)
+    completion.window.core.openai.get_client = MagicMock(return_value=client)
 
     model = ModelItem()
     model.id = 'gpt-3.5-turbo-instruct'

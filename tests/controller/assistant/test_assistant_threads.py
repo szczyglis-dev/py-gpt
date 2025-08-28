@@ -24,10 +24,10 @@ from pygpt_net.controller.assistant.threads import Threads
 def test_create_thread(mock_window):
     """Test create thread"""
     threads = Threads(mock_window)
-    mock_window.core.gpt.assistants.thread_create = MagicMock(return_value="thread_id")
+    mock_window.core.openai.assistants.thread_create = MagicMock(return_value="thread_id")
     mock_window.core.ctx.append_thread = MagicMock()
     threads.create_thread()
-    mock_window.core.gpt.assistants.thread_create.assert_called_once()
+    mock_window.core.openai.assistants.thread_create.assert_called_once()
     mock_window.core.ctx.append_thread.assert_called_once()
 
     assert mock_window.core.config.get("assistant_thread") == "thread_id"
@@ -45,7 +45,7 @@ def test_handle_messages(mock_window):
     mock_window.core.filesystem = Filesystem(mock_window)
 
     threads = Threads(mock_window)
-    mock_window.core.gpt.assistants.msg_list = MagicMock(return_value=[msg])
+    mock_window.core.openai.assistants.msg_list = MagicMock(return_value=[msg])
     mock_window.controller.assistant.files.handle_received_ids = MagicMock(return_value=["file_path"])
     mock_window.controller.chat.output.handle = MagicMock()
     mock_window.controller.chat.command.handle = MagicMock()
@@ -56,7 +56,7 @@ def test_handle_messages(mock_window):
     ctx.thread = "thread_id"
     threads.handle_messages(ctx)
 
-    mock_window.core.gpt.assistants.msg_list.assert_called_once()
+    mock_window.core.openai.assistants.msg_list.assert_called_once()
     mock_window.controller.assistant.files.handle_received_ids.assert_called_once_with([])
     mock_window.controller.chat.output.handle.assert_called_once()
     mock_window.controller.chat.command.handle.assert_called_once()

@@ -30,7 +30,7 @@ class Store:
 
         :return: OpenAI client
         """
-        return self.window.core.gpt.get_client()
+        return self.window.core.openai.get_client()
 
     def log(
             self,
@@ -92,7 +92,7 @@ class Store:
         :param file_id: file ID
         :param path: path to save file
         """
-        client = self.window.core.gpt.get_client()
+        client = self.window.core.openai.get_client()
         content = client.files.content(file_id)
         data = content.read()
         with open(path, 'wb', ) as f:

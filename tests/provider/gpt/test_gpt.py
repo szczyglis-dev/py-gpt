@@ -12,7 +12,7 @@
 from unittest.mock import MagicMock
 
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.provider.api.openai import Gpt
+from pygpt_net.provider.api.openai import ApiOpenAI
 from tests.mocks import mock_window_conf
 
 def mock_get(key):
@@ -38,7 +38,7 @@ def test_quick_call(mock_window_conf):
     mock_response.choices[0].message = MagicMock()
     mock_response.choices[0].message.content = 'test_response'
     client.chat.completions.create.return_value = mock_response
-    gpt = Gpt(mock_window_conf)
+    gpt = ApiOpenAI(mock_window_conf)
     gpt.get_client = MagicMock(return_value=client)
     gpt.build_chat_messages = MagicMock(return_value='test_messages')
     gpt.window.core.config.get.side_effect = mock_get

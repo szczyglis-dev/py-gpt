@@ -41,21 +41,21 @@ def dummy_window():
     window.core = SimpleNamespace()
     window.core.config = SimpleNamespace()
     window.core.config.get = lambda key, default=None: config_dict.get(key, default)
-    window.core.gpt = SimpleNamespace()
-    window.core.gpt.get_client = MagicMock()
-    window.core.gpt.tools = SimpleNamespace()
-    window.core.gpt.tools.prepare_responses_api = MagicMock(return_value=[])
-    window.core.gpt.remote_tools = SimpleNamespace()
-    window.core.gpt.remote_tools.append_to_tools = MagicMock(side_effect=lambda mode, model, stream, is_expert_call, tools, preset: tools)
-    window.core.gpt.vision = SimpleNamespace()
-    window.core.gpt.vision.build_content = MagicMock(side_effect=lambda content, attachments, responses_api: "vision_" + content)
-    window.core.gpt.vision.get_attachment = MagicMock(return_value="base64img")
-    window.core.gpt.audio = SimpleNamespace()
-    window.core.gpt.audio.build_content = MagicMock(side_effect=lambda content, multimodal_ctx: "audio_" + content)
-    window.core.gpt.computer = SimpleNamespace()
-    window.core.gpt.computer.handle_action = MagicMock(return_value=(["dummy_tool_call"], True))
-    window.core.gpt.container = SimpleNamespace()
-    window.core.gpt.container.download_files = MagicMock()
+    window.core.openai = SimpleNamespace()
+    window.core.openai.get_client = MagicMock()
+    window.core.openai.tools = SimpleNamespace()
+    window.core.openai.tools.prepare_responses_api = MagicMock(return_value=[])
+    window.core.openai.remote_tools = SimpleNamespace()
+    window.core.openai.remote_tools.append_to_tools = MagicMock(side_effect=lambda mode, model, stream, is_expert_call, tools, preset: tools)
+    window.core.openai.vision = SimpleNamespace()
+    window.core.openai.vision.build_content = MagicMock(side_effect=lambda content, attachments, responses_api: "vision_" + content)
+    window.core.openai.vision.get_attachment = MagicMock(return_value="base64img")
+    window.core.openai.audio = SimpleNamespace()
+    window.core.openai.audio.build_content = MagicMock(side_effect=lambda content, multimodal_ctx: "audio_" + content)
+    window.core.openai.computer = SimpleNamespace()
+    window.core.openai.computer.handle_action = MagicMock(return_value=(["dummy_tool_call"], True))
+    window.core.openai.container = SimpleNamespace()
+    window.core.openai.container.download_files = MagicMock()
     window.core.tokens = SimpleNamespace()
     window.core.tokens.from_messages = MagicMock(return_value=5)
     window.core.tokens.from_user = MagicMock(return_value=10)
@@ -158,7 +158,7 @@ def test_send(responses_instance, dummy_window, dummy_context):
     client = SimpleNamespace()
     client.responses = SimpleNamespace()
     client.responses.create = MagicMock(return_value=SimpleNamespace(id="resp123"))
-    dummy_window.core.gpt.get_client.return_value = client
+    dummy_window.core.openai.get_client.return_value = client
     dummy_window.core.tokens.from_messages.return_value = 10
     dummy_context.model.ctx = 100
     resp = responses_instance.send(dummy_context)
@@ -211,7 +211,7 @@ def test_unpack_response(responses_instance, dummy_window):
     assert ctx.msg_id == "resp001"
     assert hasattr(ctx, "set_tokens")
     dummy_window.core.command.unpack_tool_calls_chunks.assert_called()
-    dummy_window.core.gpt.container.download_files.assert_called()
+    dummy_window.core.openai.container.download_files.assert_called()
 
 
 def test_unpack_agent_response(responses_instance, dummy_window):

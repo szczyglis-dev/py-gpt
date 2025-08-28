@@ -42,7 +42,7 @@ class Threads(QObject):
 
         :return: thread id
         """
-        thread_id = self.window.core.gpt.assistants.thread_create()
+        thread_id = self.window.core.openai.assistants.thread_create()
         self.window.core.config.set('assistant_thread', thread_id)
         self.window.core.ctx.append_thread(thread_id)
         return thread_id
@@ -245,7 +245,7 @@ class Threads(QObject):
 
         :param ctx: CtxItem
         """
-        data = self.window.core.gpt.assistants.msg_list(ctx.thread)
+        data = self.window.core.openai.assistants.msg_list(ctx.thread)
         for msg in data:
             if msg.role == "assistant":
                 try:
@@ -640,7 +640,7 @@ class RunWorker(QRunnable):
             while self.check \
                     and not self.window.is_closing \
                     and not self.window.controller.assistant.threads.stop:
-                run = self.window.core.gpt.assistants.run_get(self.ctx)
+                run = self.window.core.openai.assistants.run_get(self.ctx)
                 status = None
                 if run is not None:
                     status = run.status

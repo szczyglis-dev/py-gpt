@@ -54,7 +54,7 @@ class Vision:
         attachments = context.attachments
         model = context.model
         model_id = model.id
-        client = self.window.core.gpt.get_client()
+        client = self.window.core.openai.get_client()
 
         # extra API kwargs
         response_kwargs = {}

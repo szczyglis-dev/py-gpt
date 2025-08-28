@@ -106,7 +106,7 @@ class Store:
         :return: store item
         """
         name = "New vector store"
-        vector_store = self.window.core.gpt.store.create_store(name, 0)
+        vector_store = self.window.core.openai.store.create_store(name, 0)
         if vector_store is None:
             return None
         store = AssistantStoreItem()
@@ -124,7 +124,7 @@ class Store:
         :param store: store
         :return: updated store or None if failed
         """
-        vector_store = self.window.core.gpt.store.update_store(store.id, store.name, store.expire_days)
+        vector_store = self.window.core.openai.store.update_store(store.id, store.name, store.expire_days)
         if vector_store is None:
             return None
         self.items[store.id] = store
@@ -139,7 +139,7 @@ class Store:
         :return: status data, store data
         """
         status = {}
-        data = self.window.core.gpt.store.get_store(id)
+        data = self.window.core.openai.store.get_store(id)
         if data is not None:
             status = self.parse_status(data)
         return status, data
@@ -236,7 +236,7 @@ class Store:
         if id in self.items:
             store = self.items[id]
             self.provider.delete_by_id(store.record_id)
-            self.window.core.gpt.store.remove_store(id)
+            self.window.core.openai.store.remove_store(id)
             del self.items[id]
             return True
         return False

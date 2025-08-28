@@ -188,7 +188,7 @@ class StreamWorker(QRunnable):
                         if etype == "response.completed":
                             for item in chunk.response.output:
                                 if item.type == "mcp_list_tools":
-                                    core.gpt.responses.mcp_tools = item.tools
+                                    core.openai.responses.mcp_tools = item.tools
                                 elif item.type == "mcp_call":
                                     call = {
                                         "id": item.id,
@@ -264,7 +264,7 @@ class StreamWorker(QRunnable):
                             response = chunk.delta
 
                         elif etype == "response.output_item.done":
-                            tool_calls, has_calls = core.gpt.computer.handle_stream_chunk(ctx, chunk, tool_calls)
+                            tool_calls, has_calls = core.openai.computer.handle_stream_chunk(ctx, chunk, tool_calls)
                             if has_calls:
                                 force_func_call = True
 
@@ -386,7 +386,7 @@ class StreamWorker(QRunnable):
             if files and not stopped:
                 core.debug.info("[chat] Container files found, downloading...")
                 try:
-                    core.gpt.container.download_files(ctx, files)
+                    core.openai.container.download_files(ctx, files)
                 except Exception as e:
                     core.debug.error(f"[chat] Error downloading container files: {e}")
 

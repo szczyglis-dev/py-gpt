@@ -145,7 +145,7 @@ class ImageVisionLLMReader(BaseReader):
                 image = image.convert("RGB")
             image_str = img_2_b64(image)
 
-        client = self._window.core.gpt.get_client()
+        client = self._window.core.openai.get_client()
         encoded = self._encode_image(str(file))
         content = [
             {

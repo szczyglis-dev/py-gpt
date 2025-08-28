@@ -42,7 +42,7 @@ class Batch:
 
         # run asynchronous
         self.window.update_status("Importing assistants...please wait...")
-        self.window.core.gpt.assistants.importer.import_assistants()
+        self.window.core.openai.assistants.importer.import_assistants()
 
     def import_stores(self, force: bool = False):
         """
@@ -60,7 +60,7 @@ class Batch:
         # run asynchronous
         self.window.update_status("Importing vector stores...please wait...")
         self.window.core.assistants.store.truncate()  # clear all stores
-        self.window.core.gpt.assistants.importer.import_vector_stores()
+        self.window.core.openai.assistants.importer.import_vector_stores()
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.update()
 
@@ -140,7 +140,7 @@ class Batch:
         # run asynchronous
         self.window.update_status("Removing files...please wait...")
         QApplication.processEvents()
-        self.window.core.gpt.assistants.importer.truncate_files()  # remove all files from API
+        self.window.core.openai.assistants.importer.truncate_files()  # remove all files from API
 
     def truncate_store_files_by_idx(self, idx: int, force: bool = False):
         """
@@ -173,7 +173,7 @@ class Batch:
         # run asynchronous
         self.window.update_status("Removing files...please wait...")
         QApplication.processEvents()
-        self.window.core.gpt.assistants.importer.truncate_files(store_id)  # remove all files from API
+        self.window.core.openai.assistants.importer.truncate_files(store_id)  # remove all files from API
 
     def clear_store_files_by_idx(
             self,
@@ -277,7 +277,7 @@ class Batch:
         self.window.update_status("Removing vector stores...please wait...")
         QApplication.processEvents()
         self.window.core.assistants.store.truncate()  # clear all stores
-        self.window.core.gpt.assistants.importer.truncate_vector_stores()
+        self.window.core.openai.assistants.importer.truncate_vector_stores()
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.update()
         self.window.controller.assistant.store.current = None
@@ -298,7 +298,7 @@ class Batch:
             return
         self.window.update_status("Refreshing vector stores...please wait...")
         QApplication.processEvents()
-        self.window.core.gpt.assistants.importer.refresh_vector_stores()
+        self.window.core.openai.assistants.importer.refresh_vector_stores()
 
     def handle_imported_assistants(self, num: int):
         """
@@ -539,7 +539,7 @@ class Batch:
         store_id = self.window.controller.assistant.store.current
         self.window.update_status("Uploading files...please wait...")
         QApplication.processEvents()
-        self.window.core.gpt.assistants.importer.upload_files(store_id, self.files_to_upload)
+        self.window.core.openai.assistants.importer.upload_files(store_id, self.files_to_upload)
         self.files_to_upload = []  # clear files
 
     def handle_uploaded_files(self, num: int):

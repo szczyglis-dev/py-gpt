@@ -59,7 +59,7 @@ class Summarizer:
         :param window: Window instance
         :param updated_signal: WorkerSignals: updated signal
         """
-        title = window.core.gpt.summarizer.summary_ctx(ctx)
+        title = window.core.openai.summarizer.summary_ctx(ctx)
         if title:
             updated_signal.emit(id, ctx, title)
             updated_signal.disconnect()

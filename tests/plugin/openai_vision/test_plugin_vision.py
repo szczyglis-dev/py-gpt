@@ -151,27 +151,27 @@ def test_is_vision_provided(mock_window):
 
     mock_window.core.config.data['mode'] = "chat"
 
-    mock_window.core.gpt.vision = MagicMock()
+    mock_window.core.openai.vision = MagicMock()
 
     # no attachments
-    mock_window.core.gpt.vision.attachments = []
+    mock_window.core.openai.vision.attachments = []
     assert plugin.is_vision_provided() is False
 
     # no images in URLs
-    mock_window.core.gpt.vision.urls = []
+    mock_window.core.openai.vision.urls = []
     assert plugin.is_vision_provided() is False
 
     # images in URLs
-    mock_window.core.gpt.vision.attachments = []
-    mock_window.core.gpt.vision.urls = ["https://example.com/image.jpg"]
+    mock_window.core.openai.vision.attachments = []
+    mock_window.core.openai.vision.urls = ["https://example.com/image.jpg"]
     assert plugin.is_vision_provided() is True
 
     # images in attachments
-    mock_window.core.gpt.vision.urls = []
-    mock_window.core.gpt.vision.attachments = ["attachment.jpg"]
+    mock_window.core.openai.vision.urls = []
+    mock_window.core.openai.vision.attachments = ["attachment.jpg"]
     assert plugin.is_vision_provided() is True
 
     # images in both
-    mock_window.core.gpt.vision.urls = ["https://example.com/image.jpg"]
-    mock_window.core.gpt.vision.attachments = ["attachment.jpg"]
+    mock_window.core.openai.vision.urls = ["https://example.com/image.jpg"]
+    mock_window.core.openai.vision.attachments = ["attachment.jpg"]
     assert plugin.is_vision_provided() is True

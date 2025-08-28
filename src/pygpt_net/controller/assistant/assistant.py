@@ -91,7 +91,7 @@ class Assistant:
 
                 # get status
                 try:
-                    status = self.window.core.gpt.assistants.run_stop(ctx)
+                    status = self.window.core.openai.assistants.run_stop(ctx)
                     if status == "cancelling" or status == "cancelled":
                         print("Run has been canceled.")
                         self.threads.log("Run status: {}".format(status))
@@ -227,7 +227,7 @@ class Assistant:
         assistant = self.window.core.assistants.create()
         self.editor.assign_data(assistant)
         try:
-            return self.window.core.gpt.assistants.create(assistant)
+            return self.window.core.openai.assistants.create(assistant)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
@@ -240,7 +240,7 @@ class Assistant:
         """
         self.editor.assign_data(assistant)
         try:
-            return self.window.core.gpt.assistants.update(assistant)
+            return self.window.core.openai.assistants.update(assistant)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
@@ -300,7 +300,7 @@ class Assistant:
 
                     # delete in API
                     try:
-                        self.window.core.gpt.assistants.delete(id)
+                        self.window.core.openai.assistants.delete(id)
                     except Exception as e:
                         self.window.ui.dialogs.alert(e)
 

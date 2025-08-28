@@ -295,7 +295,7 @@ def test_run_gpt_call_exception_emits_failed():
     def raise_err(context, extra):
         raise ValueError("boom")
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
-                                                      gpt=SimpleNamespace(call=raise_err)))
+                                                      openai=SimpleNamespace(call=raise_err)))
     worker.context = ContextObj()
     worker.extra = {}
     mock_response = Mock()
@@ -316,7 +316,7 @@ def test_run_gpt_call_result_emits_ok_or_error():
     worker = BridgeWorker()
     worker.mode = "other"
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
-                                                      gpt=SimpleNamespace(call=Mock(return_value=False))))
+                                                      openai=SimpleNamespace(call=Mock(return_value=False))))
     worker.context = ContextObj()
     worker.extra = {}
     mock_response = Mock()

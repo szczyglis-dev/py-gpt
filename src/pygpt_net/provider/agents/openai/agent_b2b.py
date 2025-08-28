@@ -274,7 +274,7 @@ class Agent(BaseAgent):
                 if verbose:
                     print("Final response:", result)
 
-                final_output, last_response_id = window.core.gpt.responses.unpack_agent_response(result, ctx)
+                final_output, last_response_id = window.core.openai.responses.unpack_agent_response(result, ctx)
 
                 if bridge.stopped():
                     bridge.on_stop(ctx)
@@ -305,7 +305,7 @@ class Agent(BaseAgent):
                 if verbose:
                     print("Final response:", result)
 
-                final_output, last_response_id = window.core.gpt.responses.unpack_agent_response(result, ctx)
+                final_output, last_response_id = window.core.openai.responses.unpack_agent_response(result, ctx)
                 if bridge.stopped():
                     bridge.on_stop(ctx)
                     break
