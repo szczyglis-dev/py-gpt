@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 05:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 from pygpt_net.config import Config
@@ -45,8 +45,10 @@ from pygpt_net.core.tokens import Tokens
 from pygpt_net.core.updater import Updater
 from pygpt_net.core.vision import Vision
 from pygpt_net.core.web import Web
-from pygpt_net.provider.api.openai import ApiOpenAI
 
+# APIs
+from pygpt_net.provider.api.openai import ApiOpenAI
+from pygpt_net.provider.api.anthropic import ApiAnthropic
 
 class Core:
     def __init__(self, window=None):
@@ -59,6 +61,7 @@ class Core:
 
         self.access = Access(window)
         self.agents = Agents(window)
+        self.anthropic = ApiAnthropic(window)
         self.assistants = Assistants(window)
         self.attachments = Attachments(window)
         self.audio = Audio(window)

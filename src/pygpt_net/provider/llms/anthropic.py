@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.08.28 09:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Optional
@@ -93,10 +93,7 @@ class AnthropicLLM(BaseLLM):
         :param window: window instance
         :return: list of models
         """
-        import anthropic
-        client = anthropic.Anthropic(
-            api_key=window.core.config.get('api_key_anthropic', "")
-        )
+        client = window.core.anthropic.get_client()
         models_list = client.models.list()
         items = []
         if models_list.data:
