@@ -2355,6 +2355,19 @@ class Patch:
                 self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)
                 updated = True
 
+            # < 2.6.30
+            if old < parse_version("2.6.30"):
+                print("Migrating config from < 2.6.30...")
+                if "api_native_google" not in data:
+                    data["api_native_google"] = True
+                if "remote_tools.google.web_search" not in data:
+                    data["remote_tools.google.web_search"] = True
+                if "remote_tools.google.image" not in data:
+                    data["remote_tools.google.image"] = False
+                if "remote_tools.google.code_interpreter" not in data:
+                    data["remote_tools.google.code_interpreter"] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:

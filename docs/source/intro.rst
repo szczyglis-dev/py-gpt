@@ -53,7 +53,7 @@ Features
 * Includes simple painter / drawing tool.
 * Supports multiple languages.
 * Requires no previous knowledge of using AI models.
-* Simplifies image generation using ``DALL-E``.
+* Simplifies image generation using image models like `DALL-E` and `Imagen`.
 * Fully configurable.
 * Themes support.
 * Real-time code syntax highlighting.

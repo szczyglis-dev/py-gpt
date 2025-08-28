@@ -66,7 +66,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Includes simple painter / drawing tool.
 - Supports multiple languages.
 - Requires no previous knowledge of using AI models.
-- Simplifies image generation using `DALL-E`.
+- Simplifies image generation using image models like `DALL-E` and `Imagen`.
 - Fully configurable.
 - Themes support.
 - Real-time code syntax highlighting.
@@ -404,9 +404,16 @@ Here, you can add or manage API keys for any supported provider.
 
 **+ Inline Vision and Image generation**
 
-This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `GPT-5`, `GPT-4`, `o1`, `o3`, and`Claude`, `Gemini`, `Grok`, `Perplexity (sonar)`, `Deepseek`, and others. It works by using the `Responses` and `ChatCompletions` OpenAI API (or compatible). You can select the API endpoint to use in: `Config -> Settings -> API Keys`.
+In **PyGPT**, this mode mirrors `ChatGPT`, allowing you to chat with models like `GPT-5`, `GPT-4`, `o1`, `o3`, `Claude`, `Gemini`, `Grok`, `Perplexity (Sonar)`, `Deepseek`, and more. It works using the OpenAI API `Responses` and `ChatCompletions`, or the `Google GenAI SDK` if the Google native client is enabled. You can choose the API endpoint for `ChatCompletions` in `Config -> Settings -> API Keys`.
 
-**Tip: This mode directly uses the OpenAI SDK. Other models, such as Gemini, Claude, Grok, Sonar, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints (if available), which the application switches to in the background when working with models other than OpenAI.**
+**Tip:** This mode uses the provider SDK directly. If there's no native client built into the app, models like Gemini, Claude, Grok, Sonar, or Llama3 are supported in Chat mode via LlamaIndex or compatible OpenAI API endpoints. The app automatically switches to these endpoints when using non-OpenAI models.
+
+Currently built-in native clients:
+
+- OpenAI SDK
+- Google GenAI SDK
+
+Support for Anthropic and xAI native clients is coming soon.
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
@@ -568,17 +575,16 @@ From version `2.0.107` the `davinci` models are deprecated and has been replaced
 
 ## Image generation
 
-### DALL-E 3
+### OpenAI DALL-E 3 / Google Imagen
 
-**PyGPT** enables quick and easy image creation with `DALL-E 3` or `gpt-image-1`. 
-The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, 
-and displaying the image onscreen. You can send raw prompt to `DALL-E` in `Image generation` mode or ask the model for the best prompt.
+**PyGPT** enables quick and easy image creation with image models like `DALL-E 3`, `gpt-image-1` or `Google Imagen`. 
+Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in `Image generation` mode or ask the model for the best prompt.
 
 ![v3_img](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img.png)
 
-Image generation using DALL-E is available in every mode via plugin `Image Generation (inline)`. Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.
+Image generation using image models is also available in every mode via plugin `Image Generation (inline)`. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
 
-If you want to generate images (using DALL-E) directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
+If you want to generate images directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
@@ -593,7 +599,7 @@ the bottom of the screen. This replaces the conversation temperature slider when
 
 There is an option for switching prompt generation mode.
 
-If **Raw Mode** is enabled, DALL-E will receive the prompt exactly as you have provided it.
+If **Raw Mode** is enabled, a model will receive the prompt exactly as you have provided it.
 If **Raw Mode** is disabled, a model will generate the best prompt for you based on your instructions.
 
 ### Image storage

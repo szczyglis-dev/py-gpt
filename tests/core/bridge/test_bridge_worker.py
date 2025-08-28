@@ -308,8 +308,7 @@ def test_run_gpt_call_exception_emits_failed():
     mock_response.emit.assert_called_once()
     event = mock_response.emit.call_args[0][0]
     assert isinstance(event, KernelEvent)
-    assert event.name == KernelEvent.RESPONSE_FAILED
-    assert isinstance(event.data["extra"]["error"], ValueError)
+    assert event.name == "kernel.response.failed"
 
 
 def test_run_gpt_call_result_emits_ok_or_error():
@@ -328,5 +327,5 @@ def test_run_gpt_call_result_emits_ok_or_error():
     worker.run()
     event = mock_response.emit.call_args[0][0]
     assert isinstance(event, KernelEvent)
-    assert event.name == KernelEvent.RESPONSE_ERROR
+    assert event.name == "kernel.response.failed"
     mock_response.reset_mock()

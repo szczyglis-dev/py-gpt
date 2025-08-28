@@ -142,6 +142,9 @@ class Chat:
                 "format": "wav"
             }
 
+        if stream:
+            response_kwargs['stream_options'] = {"include_usage": True}
+
         response = client.chat.completions.create(
             messages=messages,
             model=model.id,
@@ -192,7 +195,7 @@ class Chat:
         max_ctx_tokens = self.window.core.config.get('max_total_tokens')  # max context window
 
         # fit to max model tokens
-        if max_ctx_tokens > model.ctx and model.ctx > 0:
+        if max_ctx_tokens > model.ctx > 0:
             max_ctx_tokens = model.ctx
 
         # input tokens: reset

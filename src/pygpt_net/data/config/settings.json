@@ -133,6 +133,21 @@
         "advanced": false,
         "tab": "Google"
     },
+    "api_native_google": {
+        "section": "api_keys",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.api_native_google",
+        "description": "settings.api_native_google.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "Google"
+    },
     "api_key_anthropic": {
         "section": "api_keys",
         "type": "text",
@@ -1596,6 +1611,48 @@
         "urls": {
             "OpenAI Docs": "https://platform.openai.com/docs/guides/tools-file-search"
         }
+    },
+    "remote_tools.google.web_search": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.google.web_search",
+        "description": "settings.remote_tools.google.web_search.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "Google"
+    },
+    "remote_tools.google.image": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.google.image",
+        "description": "settings.remote_tools.google.image.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "Google"
+    },
+    "remote_tools.google.code_interpreter": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.google.code_interpreter",
+        "description": "settings.remote_tools.google.code_interpreter.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "Google"
     },
     "llama.idx.list": {
         "section": "llama-index",

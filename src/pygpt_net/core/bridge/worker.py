@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.08.28 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -102,12 +102,27 @@ class BridgeWorker(QRunnable):
                 else:
                     self.extra["error"] = str(self.window.core.agents.runner.get_error())
 
-            # API OpenAI: chat, completion, vision, image, assistants
+            # API SDK: chat, completion, vision, image, assistants
             else:
-                result = self.window.core.api.openai.call(
-                    context=self.context,
-                    extra=self.extra,
-                )
+                sdk = "openai"
+                model = self.context.model
+                if model.provider == "google":
+                    if self.window.core.config.get("api_native_google", False):
+                        sdk = "google"
+
+                # call appropriate SDK
+                if sdk == "google":
+                    # print("Using Google SDK")
+                    result = self.window.core.api.google.call(
+                        context=self.context,
+                        extra=self.extra,
+                    )
+                elif sdk == "openai":
+                    # print("Using OpenAI SDK")
+                    result = self.window.core.api.openai.call(
+                        context=self.context,
+                        extra=self.extra,
+                    )
         except Exception as e:
             if self.signals:
                 self.extra["error"] = e

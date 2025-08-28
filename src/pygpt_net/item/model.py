@@ -257,13 +257,33 @@ class ModelItem:
             return True
         return False
 
+    def is_image_output(self) -> bool:
+        """
+        Check if model supports image output
+
+        :return: True if supports image output
+        """
+        if "image" in self.output or MODE_VISION in self.mode:
+            return True
+        return False
+
     def is_audio_input(self) -> bool:
         """
         Check if model supports audio input
 
         :return: True if supports audio input
         """
-        if MODE_AUDIO in self.mode or MULTIMODAL_AUDIO in self.input:
+        if MULTIMODAL_AUDIO in self.input:
+            return True
+        return False
+
+    def is_audio_output(self) -> bool:
+        """
+        Check if model supports audio output
+
+        :return: True if supports audio output
+        """
+        if MULTIMODAL_AUDIO in self.output:
             return True
         return False
 

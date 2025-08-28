@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.08.28 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -98,5 +98,7 @@ class Vision:
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
-        return model_data.is_image_input() and mode in self.allowed_modes
+        if model_data:
+            return model_data.is_image_input() and mode in self.allowed_modes
+        return False
 

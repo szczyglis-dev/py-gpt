@@ -59,6 +59,18 @@ class GoogleTextToSpeech(BaseProvider):
             },
         )
         self.plugin.add_option(
+            "google_voice_native",
+            type="text",
+            value="Kore",
+            label="Voice (Gemini API)",
+            tab="google",
+            description="Specify voice for Gemini API (supported voices may differ)",
+            tooltip="Voice name",
+            urls={
+                "Voices": "https://ai.google.dev/gemini-api/docs/speech-generation"
+            },
+        )
+        self.plugin.add_option(
             "google_lang",
             type="text",
             value="en-US",
