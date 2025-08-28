@@ -1,3 +1,10 @@
+2.6.30 (2025-08-29)
+
+- Added native Google GenAI API support (beta); live audio is not supported yet (#132).
+- Added new predefined models for image generation: Google Imagen3 and Imagen4.
+- Optimized token usage in the Responses API.
+- Removed Vision mode (it is now integrated into Chat).
+
 2.6.29 (2025-08-28)
 
 - Verbose options have been moved to the Developer section in settings.

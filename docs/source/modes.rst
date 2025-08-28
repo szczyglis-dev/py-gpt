@@ -180,7 +180,7 @@ Additionally, this mode offers options for labeling the AI and the user, making 
 Image generation
 -----------------
 
-**OpenAI DALL-E 3 / Google Imagen**
+**OpenAI DALL-E 3 / Google Imagen 3 and 4**
 
 **PyGPT** enables quick and easy image creation with image models like ``DALL-E 3``, ``gpt-image-1`` or ``Google Imagen``. 
 Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in ``Image generation`` mode or ask the model for the best prompt.

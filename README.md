@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.29** | build: **2025-08-27** | Python: **>=3.10, <3.14**
+Release: **2.6.30** | build: **2025-08-29** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -575,7 +575,7 @@ From version `2.0.107` the `davinci` models are deprecated and has been replaced
 
 ## Image generation
 
-### OpenAI DALL-E 3 / Google Imagen
+### OpenAI DALL-E 3 / Google Imagen 3 and 4
 
 **PyGPT** enables quick and easy image creation with image models like `DALL-E 3`, `gpt-image-1` or `Google Imagen`. 
 Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in `Image generation` mode or ask the model for the best prompt.
@@ -3440,6 +3440,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.30 (2025-08-29)**
+
+- Added native Google GenAI API support (beta); live audio is not supported yet (#132).
+- Added new predefined models for image generation: Google Imagen3 and Imagen4.
+- Optimized token usage in the Responses API.
+- Removed Vision mode (it is now integrated into Chat).
 
 **2.6.29 (2025-08-28)**
 
