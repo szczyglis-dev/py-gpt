@@ -250,20 +250,31 @@ class Responses:
                 used_tokens,
                 max_ctx_tokens,
             )
+
+            has_response_id_in_last_item = False
+            if items and len(items) > 0:
+                last_item = items[-1]
+                if last_item and last_item.msg_id:
+                    has_response_id_in_last_item = True
+
             for item in items:
                 # input
                 if item.final_input is not None and item.final_input != "":
-                    messages.append({
-                        "role": "user",
-                        "content": item.final_input,
-                    })
+                    if not has_response_id_in_last_item:
+                        messages.append({
+                            "role": "user",
+                            "content": item.final_input,
+                        })
 
                 # output
                 if item.final_output is not None and item.final_output != "":
-                    msg = {
-                        "role": "assistant",
-                        "content": item.final_output,
-                    }
+                    if not has_response_id_in_last_item:
+                        msg = {
+                            "role": "assistant",
+                            "content": item.final_output,
+                        }
+                    else:
+                        msg = {}
                     # append previous audio ID
                     if MODE_AUDIO in model.mode:
                         if item.audio_id:
@@ -281,7 +292,9 @@ class Responses:
                                 msg["audio"] = {
                                     "id": self.audio_prev_id
                                 }
-                    messages.append(msg)
+
+                    if msg:
+                        messages.append(msg)
 
                     # ---- tool output ----
                     is_tool_output = False  # reset tool output flag
@@ -404,6 +417,7 @@ class Responses:
             messages,
             model.id,
         )
+
         return messages
 
     def reset_tokens(self):
