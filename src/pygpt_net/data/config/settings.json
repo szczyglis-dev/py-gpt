@@ -1641,20 +1641,6 @@
         "advanced": false,
         "tab": "Google"
     },
-    "remote_tools.google.image": {
-        "section": "remote_tools",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.remote_tools.google.image",
-        "description": "settings.remote_tools.google.image.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "Google"
-    },
     "remote_tools.google.code_interpreter": {
         "section": "remote_tools",
         "type": "bool",

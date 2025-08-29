@@ -2362,8 +2362,6 @@ class Patch:
                     data["api_native_google"] = True
                 if "remote_tools.google.web_search" not in data:
                     data["remote_tools.google.web_search"] = True
-                if "remote_tools.google.image" not in data:
-                    data["remote_tools.google.image"] = False
                 if "remote_tools.google.code_interpreter" not in data:
                     data["remote_tools.google.code_interpreter"] = False
                 updated = True

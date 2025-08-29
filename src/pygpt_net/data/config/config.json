@@ -398,7 +398,6 @@
   "remote_tools.file_search.args": "",
   "remote_tools.computer_use.env": "",
   "remote_tools.google.web_search": true,
-  "remote_tools.google.image": false,
   "remote_tools.google.code_interpreter": false,
   "send_clear": true,
   "send_mode": 2,
