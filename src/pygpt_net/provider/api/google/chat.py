@@ -156,7 +156,7 @@ class Chat:
             # Voice selection (case-sensitive name)
             voice_name = "Kore"
             try:
-                tmp = self.window.core.plugins.get_option("audio_output", "google_voice_native")
+                tmp = self.window.core.plugins.get_option("audio_output", "google_genai_tts_voice")
                 if tmp:
                     name = str(tmp).strip()
                     mapping = {"kore": "Kore", "puck": "Puck", "charon": "Charon", "verse": "Verse", "legend": "Legend"}
