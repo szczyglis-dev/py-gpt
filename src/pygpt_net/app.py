@@ -171,10 +171,12 @@ from pygpt_net.provider.audio_input.openai_whisper import OpenAIWhisper
 from pygpt_net.provider.audio_input.openai_whisper_local import OpenAIWhisperLocal
 from pygpt_net.provider.audio_input.google_speech_recognition import GoogleSpeechRecognition
 from pygpt_net.provider.audio_input.google_cloud_speech_recognition import GoogleCloudSpeechRecognition
+from pygpt_net.provider.audio_input.google_genai import GoogleGenAIAudioInput
 from pygpt_net.provider.audio_input.bing_speech_recognition import BingSpeechRecognition
 from pygpt_net.provider.audio_output.openai_tts import OpenAITextToSpeech
 from pygpt_net.provider.audio_output.ms_azure_tts import MSAzureTextToSpeech
 from pygpt_net.provider.audio_output.google_tts import GoogleTextToSpeech
+from pygpt_net.provider.audio_output.google_genai_tts import GoogleGenAITextToSpeech
 from pygpt_net.provider.audio_output.eleven_labs import ElevenLabsTextToSpeech
 
 # web search engine providers
@@ -318,10 +320,12 @@ def run(**kwargs):
     launcher.add_audio_input(OpenAIWhisperLocal())
     launcher.add_audio_input(GoogleSpeechRecognition())
     launcher.add_audio_input(GoogleCloudSpeechRecognition())
+    launcher.add_audio_input(GoogleGenAIAudioInput())
     launcher.add_audio_input(BingSpeechRecognition())
     launcher.add_audio_output(OpenAITextToSpeech())
     launcher.add_audio_output(MSAzureTextToSpeech())
     launcher.add_audio_output(GoogleTextToSpeech())
+    launcher.add_audio_output(GoogleGenAITextToSpeech())
     launcher.add_audio_output(ElevenLabsTextToSpeech())
 
     # register custom audio providers

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 18:00:00                  #
+# Updated Date: 2025.08.29 18:00:00                  #
 # ================================================== #
 
 from typing import List
@@ -21,10 +21,14 @@ class Whisper:
         self.window = window
         self.voices = [
             "alloy",
+            "ash",
+            "ballad",
+            "coral",
             "echo",
             "fable",
-            "onyx",
             "nova",
+            "onyx",
+            "sage",
             "shimmer",
         ]
 
