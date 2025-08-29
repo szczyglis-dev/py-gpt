@@ -765,11 +765,12 @@ class Patch:
 
             # <  2.6.30 <--- add Google Imagen models
             if old < parse_version("2.6.30"):
-                print("Migrating models from < 2.6.304...")
+                print("Migrating models from < 2.6.30...")
                 if "imagen-3.0-generate-002" not in data:
                     data["imagen-3.0-generate-002"] = base_data["imagen-3.0-generate-002"]
                 if "imagen-4.0-generate-001" not in data:
                     data["imagen-4.0-generate-001"] = base_data["imagen-4.0-generate-001"]
+                updated = True
 
         # update file
         if updated:
