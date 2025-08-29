@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 20:00:00                  #
+# Updated Date: 2025.08.29 20:40:00                  #
 # ================================================== #
 
+import mimetypes
 from typing import Optional, Dict, Any, List
 from google import genai
 from google.genai import types as gtypes
@@ -37,11 +38,11 @@ class Image:
             sync: bool = True
     ) -> bool:
         """
-        Generate image(s) using Google GenAI API
+        Generate or edit image(s) using Google GenAI API (Developer API or Vertex AI).
 
-        :param context: BridgeContext
-        :param extra: Extra parameters (num, inline)
-        :param sync: Run synchronously if True
+        :param context: BridgeContext with prompt, model, attachments
+        :param extra: extra parameters (num, inline)
+        :param sync: run synchronously (blocking) if True
         :return: True if started
         """
         extra = extra or {}
@@ -51,6 +52,14 @@ class Image:
         num = int(extra.get("num", 1))
         inline = bool(extra.get("inline", False))
 
+        # decide sub-mode based on attachments
+        sub_mode = self.MODE_GENERATE
+        attachments = context.attachments
+        if attachments and len(attachments) > 0:
+            pass # TODO: implement edit!
+            # sub_mode = self.MODE_EDIT
+
+        # model used to improve the prompt (not image model)
         prompt_model = self.window.core.models.from_defaults()
         tmp = self.window.core.config.get('img_prompt_model')
         if self.window.core.models.has(tmp):
@@ -60,9 +69,11 @@ class Image:
         worker.window = self.window
         worker.client = self.window.core.api.google.get_client()
         worker.ctx = ctx
-        worker.model = model.id
+        worker.mode = sub_mode
+        worker.attachments = attachments or {}
+        worker.model = model.id  # image model id
         worker.input_prompt = prompt
-        worker.model_prompt = prompt_model
+        worker.model_prompt = prompt_model  # LLM for prompt rewriting
         worker.system_prompt = self.window.core.prompt.get('img')
         worker.raw = self.window.core.config.get('img_raw')
         worker.num = num
@@ -87,18 +98,10 @@ class Image:
 
 
 class ImageSignals(QObject):
-    """
-    Signals for ImageWorker
-
-    finished: Emitted when image generation is finished
-    finished_inline: Emitted when image generation is finished (inline)
-    status: Emitted to report status messages
-    error: Emitted when an error occurs
-    """
-    finished = Signal(object, list, str)  # ctx, paths, prompt
+    finished = Signal(object, list, str)         # ctx, paths, prompt
     finished_inline = Signal(object, list, str)  # ctx, paths, prompt
-    status = Signal(object) # message
-    error = Signal(object) # exception
+    status = Signal(object)                      # message
+    error = Signal(object)                       # exception
 
 
 class ImageWorker(QRunnable):
@@ -108,7 +111,11 @@ class ImageWorker(QRunnable):
         self.window = None
         self.client: Optional[genai.Client] = None
         self.ctx: Optional[CtxItem] = None
-        self.model = "imagen-4.0-generate-001"
+
+        # params
+        self.mode = Image.MODE_GENERATE
+        self.attachments: Dict[str, Any] = {}
+        self.model = "imagen-4.0-generate-preview-06-06"
         self.model_prompt = None
         self.input_prompt = ""
         self.system_prompt = ""
@@ -117,11 +124,17 @@ class ImageWorker(QRunnable):
         self.num = 1
         self.resolution = "1024x1024"  # used to derive aspect ratio for Imagen
 
+        # limits
+        self.imagen_max_num = 4  # Imagen returns up to 4 images
+
+        # fallbacks
+        self.DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation"
+
     @Slot()
     def run(self):
         try:
-            # Optional prompt enhancement
-            if not self.raw and not not self.inline:
+            # optional prompt enhancement
+            if not self.raw and not self.inline:
                 try:
                     self.signals.status.emit(trans('img.status.prompt.wait'))
                     bridge_context = BridgeContext(
@@ -143,68 +156,98 @@ class ImageWorker(QRunnable):
             self.signals.status.emit(trans('img.status.generating') + f": {self.input_prompt}...")
 
             paths: List[str] = []
-            if self._is_imagen(self.model):
-                # Imagen: generate_images
-                resp = self._imagen_generate(self.input_prompt, self.num, self.resolution)
-                imgs = getattr(resp, "generated_images", None) or []
-                for idx, gi in enumerate(imgs[: self.num]):
-                    data = self._extract_imagen_bytes(gi)
-                    p = self._save(idx, data)
-                    if p:
-                        paths.append(p)
+
+            if self.mode == Image.MODE_EDIT:
+                # EDIT
+                if self._using_vertex():
+                    # Vertex Imagen edit API (preferred)
+                    resp = self._imagen_edit(self.input_prompt, self.attachments, self.num)
+                    imgs = getattr(resp, "generated_images", None) or []
+                    for idx, gi in enumerate(imgs[: self.num]):
+                        data = self._extract_imagen_bytes(gi)
+                        p = self._save(idx, data)
+                        if p:
+                            paths.append(p)
+                else:
+                    # Developer API fallback via Gemini image model; force v1 to avoid 404
+                    resp = self._gemini_edit(self.input_prompt, self.attachments, self.num)
+                    saved = 0
+                    for cand in getattr(resp, "candidates", []) or []:
+                        parts = getattr(getattr(cand, "content", None), "parts", None) or []
+                        for part in parts:
+                            inline = getattr(part, "inline_data", None)
+                            if inline and getattr(inline, "data", None):
+                                p = self._save(saved, inline.data)
+                                if p:
+                                    paths.append(p)
+                                    saved += 1
+                                    if saved >= self.num:
+                                        break
+                        if saved >= self.num:
+                            break
+
             else:
-                # Gemini image preview: generate_content -> parts[].inline_data.data
-                resp = self.client.models.generate_content(
-                    model=self.model,
-                    contents=[self.input_prompt],
-                )
-                from PIL import Image as PILImage
-                from io import BytesIO
-                cands = getattr(resp, "candidates", None) or []
-                saved = 0
-                for cand in cands:
-                    parts = getattr(getattr(cand, "content", None), "parts", None) or []
-                    for part in parts:
-                        inline = getattr(part, "inline_data", None)
-                        if inline and getattr(inline, "data", None):
-                            data = inline.data
-                            p = self._save(saved, data)
-                            if p:
-                                paths.append(p)
-                                saved += 1
-                                if saved >= self.num:
-                                    break
-                    if saved >= self.num:
-                        break
+                # GENERATE
+                if self._is_imagen_generate(self.model) and self._using_vertex():
+                    num = min(self.num, self.imagen_max_num)
+                    resp = self._imagen_generate(self.input_prompt, num, self.resolution)
+                    imgs = getattr(resp, "generated_images", None) or []
+                    for idx, gi in enumerate(imgs[: num]):
+                        data = self._extract_imagen_bytes(gi)
+                        p = self._save(idx, data)
+                        if p:
+                            paths.append(p)
+                else:
+                    # Gemini Developer API image generation (needs response_modalities)
+                    resp = self.client.models.generate_content(
+                        model=self.model,
+                        contents=[self.input_prompt],
+                        config=gtypes.GenerateContentConfig(
+                            response_modalities=[gtypes.Modality.TEXT, gtypes.Modality.IMAGE],
+                        ),
+                    )
+                    saved = 0
+                    for cand in getattr(resp, "candidates", []) or []:
+                        parts = getattr(getattr(cand, "content", None), "parts", None) or []
+                        for part in parts:
+                            inline = getattr(part, "inline_data", None)
+                            if inline and getattr(inline, "data", None):
+                                p = self._save(saved, inline.data)
+                                if p:
+                                    paths.append(p)
+                                    saved += 1
+                                    if saved >= self.num:
+                                        break
+                        if saved >= self.num:
+                            break
 
             if self.inline:
                 self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
             else:
                 self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+
         except Exception as e:
             self.signals.error.emit(e)
         finally:
             self._cleanup()
 
-    def _is_imagen(self, model_id: str) -> bool:
-        """
-        Check if model_id is an Imagen model
+    # ---------- helpers ----------
 
-        :param model_id: Model ID
-        :return: True if Imagen model
+    def _using_vertex(self) -> bool:
         """
-        return "imagen" in str(model_id).lower()
+        Detect if Vertex AI is configured via env vars.
+        """
+        val = os.getenv("GOOGLE_GENAI_USE_VERTEXAI") or ""
+        return str(val).lower() in ("1", "true", "yes", "y")
+
+    def _is_imagen_generate(self, model_id: str) -> bool:
+        """True for Imagen generate models."""
+        mid = str(model_id).lower()
+        return "imagen" in mid and "generate" in mid
 
     def _imagen_generate(self, prompt: str, num: int, resolution: str):
-        """
-        Call Imagen generate_images with config (number_of_images, optional aspect_ratio).
-
-        :param prompt: Prompt text
-        :param num: Number of images to generate
-        :param resolution: Resolution string, e.g. "1024x1024"
-        :return: GenerateImagesResponse
-        """
-        aspect = self._aspect_from_resolution(resolution)  # "1:1", "3:4", …
+        """Imagen text-to-image."""
+        aspect = self._aspect_from_resolution(resolution)
         cfg = gtypes.GenerateImagesConfig(number_of_images=num)
         if aspect:
             cfg.aspect_ratio = aspect
@@ -214,16 +257,90 @@ class ImageWorker(QRunnable):
             config=cfg,
         )
 
-    def _aspect_from_resolution(self, resolution: str) -> Optional[str]:
+    def _imagen_edit(self, prompt: str, attachments: Dict[str, Any], num: int):
         """
-        Derive aspect ratio string from resolution.
+        Imagen edit: requires Vertex AI and capability model (e.g. imagen-3.0-capability-001).
+        First attachment = base image, optional second = mask.
+        """
+        paths = self._collect_attachment_paths(attachments)
+        if len(paths) == 0:
+            raise RuntimeError("No attachment provided for edit mode.")
 
-        :param resolution: Resolution string, e.g. "1024x1024"
-        :return: Aspect ratio string, e.g. "1:1", "3:4", or None if unknown
+        base_img = gtypes.Image.from_file(location=paths[0])
+        raw_ref = gtypes.RawReferenceImage(reference_id=0, reference_image=base_img)
+
+        if len(paths) >= 2:
+            mask_img = gtypes.Image.from_file(location=paths[1])
+            mask_ref = gtypes.MaskReferenceImage(
+                reference_id=1,
+                reference_image=mask_img,
+                config=gtypes.MaskReferenceConfig(
+                    mask_mode="MASK_MODE_USER_PROVIDED",
+                    mask_dilation=0.0,
+                ),
+            )
+            edit_mode = "EDIT_MODE_INPAINT_INSERTION"
+        else:
+            mask_ref = gtypes.MaskReferenceImage(
+                reference_id=1,
+                reference_image=None,
+                config=gtypes.MaskReferenceConfig(
+                    mask_mode="MASK_MODE_BACKGROUND",
+                    mask_dilation=0.0,
+                ),
+            )
+            edit_mode = "EDIT_MODE_BGSWAP"
+
+        cfg = gtypes.EditImageConfig(
+            edit_mode=edit_mode,
+            number_of_images=min(num, self.imagen_max_num),
+            include_rai_reason=True,
+        )
+
+        # Ensure capability model for edit
+        model_id = "imagen-3.0-capability-001"
+        return self.client.models.edit_image(
+            model=model_id,
+            prompt=prompt,
+            reference_images=[raw_ref, mask_ref],
+            config=cfg,
+        )
+
+    def _gemini_edit(self, prompt: str, attachments: Dict[str, Any], num: int):
         """
+        Gemini image-to-image editing via generate_content (Developer/Vertex depending on client).
+        The first attachment is used as the input image.
+        """
+        paths = self._collect_attachment_paths(attachments)
+        if len(paths) == 0:
+            raise RuntimeError("No attachment provided for edit mode.")
+
+        img_path = paths[0]
+        with open(img_path, "rb") as f:
+            img_bytes = f.read()
+        mime = self._guess_mime(img_path)
+
+        return self.client.models.generate_content(
+            model=self.model,
+            contents=[prompt, gtypes.Part.from_bytes(data=img_bytes, mime_type=mime)],
+        )
+
+    def _collect_attachment_paths(self, attachments: Dict[str, Any]) -> List[str]:
+        """Extract file paths from attachments dict."""
+        out: List[str] = []
+        for _, att in (attachments or {}).items():
+            try:
+                if getattr(att, "path", None) and os.path.exists(att.path):
+                    out.append(att.path)
+            except Exception:
+                continue
+        return out
+
+    def _aspect_from_resolution(self, resolution: str) -> Optional[str]:
+        """Derive aspect ratio for Imagen."""
         try:
             from math import gcd
-            tolerance: float = 0.08  # 8% relative error allowed
+            tolerance = 0.08
             w_str, h_str = resolution.lower().replace("×", "x").split("x")
             w, h = int(w_str.strip()), int(h_str.strip())
             if w <= 0 or h <= 0:
@@ -239,22 +356,15 @@ class ImageWorker(QRunnable):
             key = f"{w // g}:{h // g}"
             if key in supported:
                 return key
-
             r = w / h
-            best_label = min(supported.keys(), key=lambda k: abs(r - supported[k]))
-            rel_err = abs(r - supported[best_label]) / supported[best_label]
-            return best_label if rel_err <= tolerance else None
-        except Exception as e:
-            print(e)
+            best = min(supported.keys(), key=lambda k: abs(r - supported[k]))
+            rel_err = abs(r - supported[best]) / supported[best]
+            return best if rel_err <= tolerance else None
+        except Exception:
             return None
 
     def _extract_imagen_bytes(self, generated_image) -> Optional[bytes]:
-        """
-        Extract bytes from Imagen generated image object.
-
-        :param generated_image: GeneratedImage object
-        :return: Image bytes or None
-        """
+        """Extract bytes from Imagen GeneratedImage."""
         img = getattr(generated_image, "image", None)
         if not img:
             return None
@@ -266,7 +376,6 @@ class ImageWorker(QRunnable):
                 return base64.b64decode(data)
             except Exception:
                 return None
-        # fallback: url/uri if present
         url = getattr(img, "url", None) or getattr(img, "uri", None)
         if url:
             try:
@@ -278,13 +387,7 @@ class ImageWorker(QRunnable):
         return None
 
     def _save(self, idx: int, data: Optional[bytes]) -> Optional[str]:
-        """
-        Save image bytes to file and return path.
-
-        :param idx: Image index (for filename)
-        :param data: Image bytes
-        :return: Path string or None
-        """
+        """Save image bytes to file and return path."""
         if not data:
             return None
         name = (
@@ -299,8 +402,22 @@ class ImageWorker(QRunnable):
             return path
         return None
 
+    def _guess_mime(self, path: str) -> str:
+        """
+        Guess MIME type for a local image file.
+        """
+        mime, _ = mimetypes.guess_type(path)
+        if mime:
+            return mime
+        ext = os.path.splitext(path.lower())[1]
+        if ext in ('.jpg', '.jpeg'):
+            return 'image/jpeg'
+        if ext == '.webp':
+            return 'image/webp'
+        return 'image/png'
+
     def _cleanup(self):
-        """Cleanup resources"""
+        """Cleanup resources."""
         sig = self.signals
         self.signals = None
         if sig is not None:
