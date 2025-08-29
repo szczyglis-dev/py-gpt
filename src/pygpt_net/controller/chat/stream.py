@@ -11,6 +11,7 @@
 
 import base64
 import io
+import json
 from dataclasses import dataclass, field
 from typing import Optional, Literal, Any
 
@@ -255,7 +256,6 @@ class StreamWorker(QRunnable):
         if state.tool_calls:
             ctx.force_call = state.force_func_call
             core.debug.info("[chat] Tool calls found, unpacking...")
-            import json
             # Ensure function.arguments is JSON string
             for tc in state.tool_calls:
                 fn = tc.get("function") or {}
@@ -738,7 +738,6 @@ class StreamWorker(QRunnable):
             return obj
 
         if fc_list:
-            import json
             for fc in fc_list:
                 name = getattr(fc, "name", "") or ""
                 args_obj = getattr(fc, "args", {}) or {}
@@ -754,7 +753,6 @@ class StreamWorker(QRunnable):
         else:
             # Fallback: read from candidates -> parts[].function_call
             try:
-                import json
                 cands = getattr(chunk, "candidates", None) or []
                 for cand in cands:
                     content = getattr(cand, "content", None)
@@ -808,7 +806,7 @@ class StreamWorker(QRunnable):
                         if code_txt is None:
                             code_txt = ""
                         if not state.is_code:
-                            response_parts.append(f"\n\n**Code interpreter**\n```{lang}\n{code_txt}")
+                            response_parts.append(f"\n\n**Code interpreter**\n```{lang.lower()}\n{code_txt}")
                             state.is_code = True
                         else:
                             response_parts.append(str(code_txt))
