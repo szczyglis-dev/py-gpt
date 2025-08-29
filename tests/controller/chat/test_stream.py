@@ -58,7 +58,7 @@ def test_stream_worker_run_raw_chunk(monkeypatch):
     worker.signals.errorOccurred.connect(lambda x: error_emitted.append(x))
 
     # Patch helper.
-    monkeypatch.setattr("pygpt_net.controller.chat.stream.has_unclosed_code_tag", lambda text: False)
+    monkeypatch.setattr("pygpt_net.core.text.utils.has_unclosed_code_tag", lambda text: False)
     worker.run()
 
     assert ctx.output == "hello"
@@ -105,7 +105,7 @@ def test_stream_worker_run_stopped(monkeypatch):
     worker.signals.errorOccurred.connect(lambda x: error_emitted.append(x))
     worker.stream = ctx.stream
 
-    monkeypatch.setattr("pygpt_net.controller.chat.stream.has_unclosed_code_tag", lambda text: False)
+    monkeypatch.setattr("pygpt_net.core.text.utils.has_unclosed_code_tag", lambda text: False)
     worker.run()
 
     assert ctx.output == ""
@@ -151,7 +151,7 @@ def test_stream_worker_run_exception(monkeypatch):
     worker.signals.errorOccurred.connect(lambda x: error_emitted.append(x))
     worker.stream = ctx.stream
 
-    monkeypatch.setattr("pygpt_net.controller.chat.stream.has_unclosed_code_tag", lambda text: False)
+    monkeypatch.setattr("pygpt_net.core.text.utils.has_unclosed_code_tag", lambda text: False)
     worker.run()
 
     assert "first chunk" in ctx.output
@@ -184,7 +184,7 @@ def test_stream_append(monkeypatch):
     window.controller.chat.response.failed = MagicMock()
 
     stream_obj = Stream(window)
-    monkeypatch.setattr("pygpt_net.controller.chat.stream.has_unclosed_code_tag", lambda text: False)
+    monkeypatch.setattr("pygpt_net.core.text.utils.has_unclosed_code_tag", lambda text: False)
     stream_obj.append(ctx, mode="test", is_response=False, reply=False, internal=False, context=None, extra={'key': 'value'})
     assert stream_obj.worker is None
 
