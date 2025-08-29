@@ -783,7 +783,6 @@ class StreamWorker(QRunnable):
                 if key not in seen:
                     state.tool_calls.append(tc)
                     seen.add(key)
-            state.force_func_call = True
 
         # 3) Inspect candidates for code execution parts, inline images, and citations
         try:

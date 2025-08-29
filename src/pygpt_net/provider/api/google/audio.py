@@ -24,6 +24,8 @@ class Audio:
         Audio helpers for Google GenAI.
         - Build audio input parts for requests
         - Convert Google PCM output to WAV (base64) for UI compatibility
+
+        :param window: Window instance
         """
         self.window = window
 
@@ -103,7 +105,12 @@ class Audio:
 
     @staticmethod
     def _ensure_bytes(data) -> Optional[bytes]:
-        """Return raw bytes from inline_data.data (bytes or base64 string)."""
+        """
+        Return raw bytes from inline_data.data (bytes or base64 string).
+
+        :param data: bytes or base64 string
+        :return: bytes or None
+        """
         try:
             if isinstance(data, (bytes, bytearray)):
                 return bytes(data)

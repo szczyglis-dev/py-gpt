@@ -42,7 +42,7 @@ class Image:
         :param context: BridgeContext
         :param extra: Extra parameters (num, inline)
         :param sync: Run synchronously if True
-        :return: bool
+        :return: True if started
         """
         extra = extra or {}
         ctx = context.ctx or CtxItem()
@@ -87,6 +87,14 @@ class Image:
 
 
 class ImageSignals(QObject):
+    """
+    Signals for ImageWorker
+
+    finished: Emitted when image generation is finished
+    finished_inline: Emitted when image generation is finished (inline)
+    status: Emitted to report status messages
+    error: Emitted when an error occurs
+    """
     finished = Signal(object, list, str)  # ctx, paths, prompt
     finished_inline = Signal(object, list, str)  # ctx, paths, prompt
     status = Signal(object) # message

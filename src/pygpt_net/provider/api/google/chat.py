@@ -29,9 +29,17 @@ class Chat:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, context: BridgeContext, extra: Optional[Dict[str, Any]] = None):
+    def send(
+            self,
+            context: BridgeContext,
+            extra: Optional[Dict[str, Any]] = None
+    ):
         """
         Call Google GenAI for chat / multimodal / audio.
+
+        :param context: BridgeContext with prompt, model, history, mode, etc.
+        :param extra: Extra parameters (not used currently)
+        :return: Response object or generator (if streaming)
         """
         prompt = context.prompt
         stream = context.stream
@@ -110,9 +118,13 @@ class Chat:
         # Tools -> merge app-defined tools with remote tools
         base_tools = self.window.core.api.google.tools.prepare(model, functions)
         remote_tools = self.window.core.api.google.build_remote_tools(model)
+
+        # Check tools compatibility
         if base_tools:
-            remote_tools = [] # do not mix local and remote tools
+            remote_tools = [] # remote tools are not allowed if function calling is used
         tools = (base_tools or []) + (remote_tools or [])
+        if "-image" in model.id:
+            tools = None  # function calling is not supported for image models
 
         # Sampling
         temperature = self.window.core.config.get('temperature')
@@ -169,9 +181,17 @@ class Chat:
         else:
             return client.models.generate_content(**params)
 
-    def unpack_response(self, mode: str, response, ctx: CtxItem):
+    def unpack_response(
+            self,
+            mode: str,
+            response, ctx: CtxItem
+    ):
         """
         Unpack non-streaming response from Google GenAI and set context.
+
+        :param mode: MODE_CHAT or MODE_AUDIO
+        :param response: Response object
+        :param ctx: CtxItem to set output, audio_output, tokens, tool_calls
         """
         if mode == MODE_AUDIO:
             # Prefer audio if present
@@ -229,6 +249,11 @@ class Chat:
     def extract_text(self, response) -> str:
         """
         Extract output text.
+
+        Prefer response.text (Python SDK), then fallback to parts[].text.
+
+        :param response: Response object
+        :return: Extracted text
         """
         txt = getattr(response, "text", None) or getattr(response, "output_text", None)
         if txt:
@@ -332,11 +357,17 @@ class Chat:
 
         return out
 
-    def _extract_inline_images_and_links(self, response, ctx: CtxItem) -> None:
+    def _extract_inline_images_and_links(
+            self,
+            response, ctx: CtxItem
+    ) -> None:
         """
         Extract inline image parts (Gemini image output) and file links.
         - Saves inline_data (image/*) bytes to files and appends paths to ctx.images.
         - Appends HTTP(S) image URIs from file_data to ctx.urls.
+
+        :param response: Response object
+        :param ctx: CtxItem to set images and urls
         """
         images: list[str] = []
         urls: list[str] = []
@@ -386,7 +417,12 @@ class Chat:
 
     @staticmethod
     def _ensure_bytes(data) -> bytes | None:
-        """Return raw bytes from SDK part.inline_data.data which can be bytes or base64 string."""
+        """
+        Return raw bytes from SDK part.inline_data.data which can be bytes or base64 string.
+
+        :param data: bytes or str
+        :return: bytes or None
+        """
         try:
             if isinstance(data, (bytes, bytearray)):
                 return bytes(data)
@@ -545,6 +581,9 @@ class Chat:
         Heuristic check if the model supports native TTS.
         - Official TTS models contain '-tts' in id (e.g. 'gemini-2.5-flash-preview-tts').
         - Future/preview names may contain 'native-audio'.
+
+        :param model_id: Model ID
+        :return: True if supports TTS, False otherwise
         """
         if not model_id:
             return False

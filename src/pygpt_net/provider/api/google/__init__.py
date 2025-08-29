@@ -135,7 +135,11 @@ class ApiGoogle:
                 pass
         return True
 
-    def quick_call(self, context: BridgeContext, extra: dict = None) -> str:
+    def quick_call(
+            self,
+            context: BridgeContext,
+            extra: dict = None
+    ) -> str:
         """
         Make a quick API call to Google GenAI and return the output text
 
@@ -206,9 +210,9 @@ class ApiGoogle:
     def build_remote_tools(self, model: ModelItem = None) -> list:
         """
         Build Google GenAI remote tools based on config flags.
-        - google_tool_search: enables grounding via Google Search (Gemini 2.x)
+        - remote_tools.google.web_search: enables grounding via Google Search (Gemini 2.x)
           or GoogleSearchRetrieval (Gemini 1.5 fallback).
-        - google_tool_code_execution: enables code execution tool.
+        - remote_tools.google.code_interpreter: enables code execution tool.
 
         Returns a list of gtypes.Tool objects (can be empty).
 
