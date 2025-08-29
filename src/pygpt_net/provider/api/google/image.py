@@ -222,15 +222,30 @@ class ImageWorker(QRunnable):
         :return: Aspect ratio string, e.g. "1:1", "3:4", or None if unknown
         """
         try:
-            w, h = [int(x) for x in resolution.lower().split("x")]
-            # Reduce to small set supported in docs
-            ratios = {(1, 1): "1:1", (3, 4): "3:4", (4, 3): "4:3", (9, 16): "9:16", (16, 9): "16:9"}
-            # Find nearest
             from math import gcd
+            tolerance: float = 0.08  # 8% relative error allowed
+            w_str, h_str = resolution.lower().replace("×", "x").split("x")
+            w, h = int(w_str.strip()), int(h_str.strip())
+            if w <= 0 or h <= 0:
+                return None
+            supported = {
+                "1:1": 1 / 1,
+                "3:4": 3 / 4,
+                "4:3": 4 / 3,
+                "9:16": 9 / 16,
+                "16:9": 16 / 9,
+            }
             g = gcd(w, h)
-            key = (w // g, h // g)
-            return ratios.get(key)
-        except Exception:
+            key = f"{w // g}:{h // g}"
+            if key in supported:
+                return key
+
+            r = w / h
+            best_label = min(supported.keys(), key=lambda k: abs(r - supported[k]))
+            rel_err = abs(r - supported[best_label]) / supported[best_label]
+            return best_label if rel_err <= tolerance else None
+        except Exception as e:
+            print(e)
             return None
 
     def _extract_imagen_bytes(self, generated_image) -> Optional[bytes]:

@@ -13,6 +13,7 @@ from typing import Optional
 
 from PySide6.QtGui import QColor
 
+from pygpt_net.core.types import MODE_IMAGE
 from pygpt_net.core.events import BaseEvent, Event
 from pygpt_net.utils import trans
 
@@ -64,6 +65,7 @@ class UI:
         self.update_tokens()
         self.vision.update()
         self.window.controller.agent.legacy.update()
+        self.img_update_available_resolutions()
 
     def handle(self, event: BaseEvent):
         """
@@ -216,3 +218,19 @@ class UI:
         """Global stop button action"""
         if self.stop_action == "idx":
             self.window.controller.idx.force_stop()
+
+    def img_update_available_resolutions(self):
+        """Update available resolutions for images"""
+        mode = self.window.core.config.get('mode')
+        if mode != MODE_IMAGE:
+            return
+        model = self.window.core.config.get('model')
+        keys = self.window.core.image.get_available_resolutions(model)
+        current = self.window.core.config.get('img_resolution', '1024x1024')
+        self.window.ui.config['global']['img_resolution'].set_keys(keys, lock=False)
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="img_resolution",
+            option=self.window.core.image.get_resolution_option(),
+            value=current,
+        )

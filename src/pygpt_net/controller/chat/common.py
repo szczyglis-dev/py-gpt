@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+from typing import Any
 
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog, QApplication
@@ -118,6 +119,17 @@ class Common:
             self.window.ui.config['global']['img_raw'].setChecked(True)
         else:
             self.window.ui.config['global']['img_raw'].setChecked(False)
+
+        # image resolution
+        resolution = self.window.core.config.get('img_resolution', '1024x1024')
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="img_resolution",
+            option=self.window.core.image.get_resolution_option(),
+            value=resolution,
+        )
+        if not self.initialized:
+            self.window.ui.add_hook("update.global.img_resolution", self.hook_update)
 
         # set focus to input
         self.window.ui.nodes['input'].setFocus()
@@ -451,6 +463,19 @@ class Common:
             self.img_disable_raw()
         else:
             self.img_enable_raw()
+
+    def hook_update(self, key: str, value: Any, caller, *args, **kwargs):
+        """
+        Hook for updating image resolution
+
+        :param key: config key
+        :param value: new value
+        :param caller: caller object
+        """
+        if key == "img_resolution":
+            if not value:
+                return
+            self.window.core.config.set('img_resolution', value)
 
     def save_text(
             self,

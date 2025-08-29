@@ -11,6 +11,7 @@
 
 from .agent import *
 from .base import *
+from .image import *
 from .mode import *
 from .model import *
 from .openai import *

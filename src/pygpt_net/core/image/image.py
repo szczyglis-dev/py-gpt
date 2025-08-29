@@ -12,10 +12,11 @@
 import os
 import uuid
 from time import strftime
-from typing import List
+from typing import List, Dict
 
 from PySide6.QtCore import Slot, QObject
 
+from pygpt_net.core.types import IMAGE_AVAILABLE_RESOLUTIONS
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -141,3 +142,52 @@ class Image(QObject):
         img_dir = self.window.core.config.get_user_dir("img")
         filename = f"{dt_prefix}_{img_id}.png"
         return os.path.join(img_dir, filename)
+
+    def get_resolution_option(self) -> dict:
+        """
+        Get image resolution option for UI
+
+        :return: dict
+        """
+        return {
+            "type": "combo",
+            "slider": True,
+            "label": "img_resolution",
+            "value": "1024x1024",
+            "keys": self.get_available_resolutions(),
+        }
+
+    def get_available_resolutions(self, model: str = None) -> Dict[str, str]:
+        """
+        Get available image resolutions
+
+        :param model: model name
+        :return: dict of available resolutions
+        """
+        available = IMAGE_AVAILABLE_RESOLUTIONS
+        model_keys = available.keys()
+        # find by model if specified
+        if model:
+            model = self._normalize_model_name(model)
+            for key in model_keys:
+                if model.startswith(key):
+                    return available[key]
+
+        # return all available resolutions, but unique only
+        resolutions = {}
+        for key in model_keys:
+            resolutions.update(available[key])
+        return resolutions
+
+
+    def _normalize_model_name(self, model: str) -> str:
+        """
+        Normalize model id (strip optional 'models/' prefix).
+
+        :param model: model id
+        """
+        try:
+            return model.split("/")[-1]
+        except Exception:
+            return model
+

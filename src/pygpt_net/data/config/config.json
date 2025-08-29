@@ -196,7 +196,7 @@
   "frequency_penalty": 0.0,
   "img_prompt_model": "gpt-4o",
   "img_raw": true,
-  "img_resolution": "1792x1024",
+  "img_resolution": "1024x1024",
   "img_quality": "standard",
   "img_variants": 1,
   "interpreter.auto_clear": false,

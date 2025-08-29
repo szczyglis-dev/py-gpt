@@ -79,6 +79,7 @@ class OptionCombo(QWidget):
         self.combo = NoScrollCombo()
         self.combo.currentIndexChanged.connect(self.on_combo_change)
         self.current_id = None
+        self.locked = False
 
         # add items
         self.update()
@@ -114,6 +115,12 @@ class OptionCombo(QWidget):
                             self.combo.addItem(value, key)
                 else:
                     self.combo.addItem(item, item)
+        elif type(self.keys) is dict:
+            for key, value in self.keys.items():
+                if key.startswith("separator::"):
+                    self.combo.addSeparator(value)
+                else:
+                    self.combo.addItem(value, key)
 
     def set_value(self, value):
         """
@@ -135,16 +142,21 @@ class OptionCombo(QWidget):
         """
         return self.current_id
 
-    def set_keys(self, keys):
+    def set_keys(self, keys, lock: bool = False):
         """
         Set keys
 
         :param keys: keys
+        :param lock: lock current value if True
         """
+        if lock:
+            self.locked = True  # lock on_change
         self.keys = keys
         self.option["keys"] = keys
         self.combo.clear()
         self.update()
+        if lock:
+            self.locked = False
 
     def on_combo_change(self, index):
         """
@@ -153,6 +165,8 @@ class OptionCombo(QWidget):
         :param index: combo index
         :return:
         """
+        if self.locked:
+            return
         self.current_id = self.combo.itemData(index)
         self.window.controller.config.combo.on_update(self.parent_id, self.id, self.option, self.current_id)
 

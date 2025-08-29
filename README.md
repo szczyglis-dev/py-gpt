@@ -2321,17 +2321,15 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Experts: Master prompt`: Prompt to instruct how to handle experts.
 
-- `DALL-E: image generate`: Prompt for generating prompts for DALL-E (if raw-mode is disabled).
+- `Image generate`: Prompt for generating prompts for image generation (if raw-mode is disabled).
 
 **Images**
 
-- `DALL-E Image size`: The resolution of the generated images (DALL-E). Default: 1792x1024.
+- `Image size`: The resolution of the generated images (DALL-E). Default: 1024x1024.
 
-- `DALL-E Image quality`: The image quality of the generated images (DALL-E). Default: standard.
+- `Image quality`: The image quality of the generated images (DALL-E). Default: standard.
 
-- `Open image dialog after generate`: Enable the image dialog to open after an image is generated in Image mode.
-
-- `DALL-E: prompt generation model`: Model used for generating prompts for DALL-E (if raw-mode is disabled).
+- `Prompt generation model`: Model used for generating prompts for image generation (if raw-mode is disabled).
 
 **Vision**
 
