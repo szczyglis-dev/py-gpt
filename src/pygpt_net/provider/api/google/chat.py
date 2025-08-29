@@ -110,6 +110,8 @@ class Chat:
         # Tools -> merge app-defined tools with remote tools
         base_tools = self.window.core.api.google.tools.prepare(model, functions)
         remote_tools = self.window.core.api.google.build_remote_tools(model)
+        if base_tools:
+            remote_tools = [] # do not mix local and remote tools
         tools = (base_tools or []) + (remote_tools or [])
 
         # Sampling
