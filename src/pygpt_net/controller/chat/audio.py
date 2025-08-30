@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 18:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 import base64
@@ -40,19 +40,12 @@ class Audio:
         """Update input/output audio"""
         mode = self.window.core.config.get("mode")
         if mode == MODE_AUDIO:
-            if not self.window.controller.audio.is_output_enabled():
-                self.window.controller.audio.enable_output()
-                self.tmp_output = True
-            else:
-                self.tmp_output = False
             if not self.window.controller.audio.is_input_enabled():
                 self.window.controller.audio.enable_input()
                 self.tmp_input = True
             else:
                 self.tmp_input = False
         else:
-            if self.tmp_output:
-                self.window.controller.audio.disable_output()
             if self.tmp_input:
                 self.window.controller.audio.disable_input()
 
