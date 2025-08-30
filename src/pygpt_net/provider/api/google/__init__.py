@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 20:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
 
 from google.genai import types as gtypes
 from google import genai
+
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_AUDIO,
@@ -29,7 +30,7 @@ from .vision import Vision
 from .tools import Tools
 from .audio import Audio
 from .image import Image
-
+from .realtime import Realtime
 
 class ApiGoogle:
     def __init__(self, window=None):
@@ -44,6 +45,7 @@ class ApiGoogle:
         self.tools = Tools(window)
         self.audio = Audio(window)
         self.image = Image(window)
+        self.realtime = Realtime(window)
         self.client: Optional[genai.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
@@ -72,12 +74,18 @@ class ApiGoogle:
         self.last_client_args = filtered
         return self.client
 
-    def call(self, context: BridgeContext, extra: dict = None) -> bool:
+    def call(
+            self,
+            context: BridgeContext,
+            extra: dict = None,
+            rt_signals = None
+    ) -> bool:
         """
         Make an API call to Google GenAI
 
         :param context: BridgeContext
         :param extra: Extra parameters
+        :param rt_signals: Realtime signals for audio streaming
         :return: True if successful, False otherwise
         """
         mode = context.mode
@@ -94,6 +102,18 @@ class ApiGoogle:
         response = None
 
         if mode in [MODE_COMPLETION, MODE_CHAT, MODE_AUDIO, MODE_RESEARCH]:
+
+            # Live API for audio streaming
+            if mode == MODE_AUDIO and stream:
+                is_realtime = self.realtime.begin(
+                    context=context,
+                    model=model,
+                    extra=extra or {},
+                    rt_signals=rt_signals
+                )
+                if is_realtime:
+                    return True
+
             response = self.chat.send(context=context, extra=extra)
             used_tokens = self.chat.get_used_tokens()
             if ctx:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 from typing import List, Tuple
@@ -29,6 +29,11 @@ class Output:
             "pyaudio": PyaudioBackend(self.window),
             "pygame": PygameBackend(self.window)
         }
+        self.backends_initialized ={
+            "native": False,
+            "pyaudio": False,
+            "pygame": False
+        }
 
     def get_backend(self):
         """
@@ -40,7 +45,21 @@ class Output:
         if backend not in self.backends:
             print("Invalid audio backend specified, falling back to 'native'")
             backend = "native"
+        if not self.backends_initialized[backend]:
+            self.setup(backend=backend)
+            self.backends_initialized[backend] = True
         return self.backends[backend]
+
+    def setup(self, backend: str = None):
+        """
+        Setup audio output backend
+
+        :param backend: Backend name
+        :return: True if setup
+        """
+        if backend and backend in self.backends:
+            if hasattr(self.backends[backend], 'set_rt_signals'):
+                self.backends[backend].set_rt_signals(self.window.controller.realtime.signals)
 
     def play(
             self,
@@ -89,3 +108,10 @@ class Output:
         :return: (id, name)
         """
         return self.get_backend().get_default_output_device()
+
+    def handle_realtime(self, payload, signals):
+        """
+        Handle real-time audio playback
+        """
+        #self.get_backend().set_signals(signals)
+        self.get_backend().handle_realtime(payload)

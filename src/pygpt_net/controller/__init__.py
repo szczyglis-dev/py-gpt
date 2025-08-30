@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
 # This file is a part of PYGPT package               #
@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.access import Access
@@ -34,6 +34,7 @@ from pygpt_net.controller.model import Model
 from pygpt_net.controller.notepad import Notepad
 from pygpt_net.controller.painter import Painter
 from pygpt_net.controller.plugins import Plugins
+from pygpt_net.controller.realtime import Realtime
 from pygpt_net.controller.presets import Presets
 from pygpt_net.controller.settings import Settings
 from pygpt_net.controller.theme import Theme
@@ -76,6 +77,7 @@ class Controller:
         self.painter = Painter(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
+        self.realtime = Realtime(window)
         self.settings = Settings(window)
         self.theme = Theme(window)
         self.tools = Tools(window)

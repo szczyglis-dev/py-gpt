@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -92,13 +92,12 @@ class GoogleLLM(BaseLLM):
         :return: list of models
         """
         items = []
-        client = self.get_client(window)
+        client = window.core.api.google.get_client()
         models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                id = item.id.replace("models/", "")
-                items.append({
-                    "id": id,
-                    "name": id,
-                })
+        for item in models_list:
+            id = item.name.replace("models/", "")
+            items.append({
+                "id": id,
+                "name": id,  # TODO: token limit get from API
+            })
         return items

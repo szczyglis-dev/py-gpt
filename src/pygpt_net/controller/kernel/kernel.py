@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 import threading
 from typing import Any, Dict, Optional, Union, List
 
-from PySide6.QtCore import QObject, Slot
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.types import (
@@ -281,6 +281,7 @@ class Kernel:
         self.window.dispatch(KernelEvent(KernelEvent.TERMINATE))
         self.stop(exit=True)
         self.window.controller.plugins.destroy()
+        self.window.controller.realtime.shutdown()
 
     def stop(self, exit: bool = False):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 20:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -33,6 +33,7 @@ class BridgeWorker(QRunnable):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.signals = BridgeSignals()
+        self.rt_signals = None
         self.args = args
         self.kwargs = kwargs
         self.window = None
@@ -116,12 +117,14 @@ class BridgeWorker(QRunnable):
                     result = self.window.core.api.google.call(
                         context=self.context,
                         extra=self.extra,
+                        rt_signals=self.rt_signals,
                     )
                 elif sdk == "openai":
                     # print("Using OpenAI SDK")
                     result = self.window.core.api.openai.call(
                         context=self.context,
                         extra=self.extra,
+                        rt_signals=self.rt_signals,
                     )
         except Exception as e:
             if self.signals:

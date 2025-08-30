@@ -6,21 +6,27 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.27 07:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
+from typing import Optional
 from typing import List, Tuple
 
 from bs4 import UnicodeDammit
+from pydub import AudioSegment
+
 import os
 import time
 import numpy as np
 import wave
+import audioop
 
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput, QMediaDevices, QAudioFormat, QAudioSource
 from PySide6.QtCore import QTimer, QObject, QUrl
-from pydub import AudioSegment
 
+from pygpt_net.core.events import RealtimeEvent
+
+from ..realtime.native import RealtimeSession
 
 class NativeBackend(QObject):
 
@@ -71,6 +77,9 @@ class NativeBackend(QObject):
 
         self._dtype = None
         self._norm = None
+
+        self._rt_session: Optional[RealtimeSession] = None
+        self._rt_signals = None  # set by core.audio.output on initialize()
 
     def init(self):
         """
@@ -596,6 +605,8 @@ class NativeBackend(QObject):
         :param signals: Signals object to emit stop event.
         :return: True if stopped successfully.
         """
+        if self._rt_session:
+            self._rt_session.stop()
         if self.player is not None:
             self.player.stop()
         self.stop_timers()
@@ -696,3 +707,231 @@ class NativeBackend(QObject):
         except ValueError:
             index = None
         return index, None
+
+    # ---- REALTIME ----
+
+    def _select_output_device(self):
+        """
+        Select the audio output device based on configuration.
+
+        :return: QAudioDevice
+        """
+        devices = QMediaDevices.audioOutputs()
+        if devices:
+            try:
+                num_device = int(self.window.core.config.get('audio.output.device', 0))
+            except Exception:
+                num_device = 0
+            return devices[num_device] if 0 <= num_device < len(devices) else devices[0]
+        return QMediaDevices.defaultAudioOutput()
+
+    def _sample_format_from_mime(self, mime: Optional[str]) -> QAudioFormat.SampleFormat:
+        """
+        Determine sample format from MIME type.
+
+        :param mime: MIME type string
+        :return: QAudioFormat.SampleFormat
+        """
+        s = (mime or "audio/pcm").lower()
+        if "float" in s or "f32" in s:
+            return QAudioFormat.SampleFormat.Float
+        if "pcm" in s:
+            if "32" in s or "s32" in s or "int32" in s:
+                return QAudioFormat.SampleFormat.Int32
+            if "8" in s or "u8" in s:
+                return QAudioFormat.SampleFormat.UInt8
+            return QAudioFormat.SampleFormat.Int16
+        if "l16" in s:
+            return QAudioFormat.SampleFormat.Int16
+        return QAudioFormat.SampleFormat.Int16
+
+    def _make_format(self, rate: int, channels: int, sample_format: QAudioFormat.SampleFormat) -> QAudioFormat:
+        """
+        Create QAudioFormat from parameters.
+
+        :param rate: Sample rate
+        :param channels: Number of channels
+        :param sample_format: Sample format
+        :return: QAudioFormat
+        """
+        fmt = QAudioFormat()
+        fmt.setSampleRate(int(rate))
+        fmt.setChannelCount(int(channels))
+        fmt.setSampleFormat(sample_format)
+        return fmt
+
+
+    def _emit_output_volume(self, value: int) -> None:
+        """
+        Emit output volume change event.
+
+        :param value: Volume level (0-100)
+        """
+        if not self._rt_signals:
+            return
+        self._rt_signals.response.emit(RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_VOLUME_CHANGED, {"volume": value}))
+
+    def _ensure_rt_session(self, mime: str, rate: Optional[int], channels: Optional[int]) -> RealtimeSession:
+        """
+        Ensure a realtime audio playback session exists with the device's preferred (or nearest) format.
+        Keep it simple: prefer Int16, reuse session if format unchanged.
+        """
+        device = self._select_output_device()
+
+        # NOTE: start from device preferred format and coerce to Int16 if supported
+        fmt = device.preferredFormat()
+        try:
+            if fmt.sampleFormat() != QAudioFormat.SampleFormat.Int16:
+                test = QAudioFormat()
+                test.setSampleRate(fmt.sampleRate())
+                test.setChannelCount(fmt.channelCount())
+                test.setSampleFormat(QAudioFormat.SampleFormat.Int16)
+                if device.isFormatSupported(test):
+                    fmt = test
+                else:
+                    try:
+                        fmt = device.nearestFormat(test)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+        # reuse current session if same format
+        if self._rt_session is not None:
+            try:
+                ef = self._rt_session.format
+                if (ef.sampleRate() == fmt.sampleRate()
+                        and ef.channelCount() == fmt.channelCount()
+                        and ef.sampleFormat() == fmt.sampleFormat()):
+                    return self._rt_session
+            except Exception:
+                pass
+            # NOTE: hard stop old one (we keep things simple)
+            try:
+                self._rt_session.stop()
+            except Exception:
+                pass
+            self._rt_session = None
+
+        session = RealtimeSession(
+            device=device,
+            fmt=fmt,
+            parent=self,
+            volume_emitter=self._emit_output_volume
+        )
+        # NOTE: when device actually stops (buffer empty), inform UI
+        session.on_stopped = lambda: (
+            self._rt_signals and self._rt_signals.response.emit(
+                RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_END, {"source": "device"})
+            ),
+            setattr(self, "_rt_session", None)
+        )
+        self._rt_session = session
+        return session
+
+    def _convert_pcm_for_output(self, data: bytes, in_rate: int, in_channels: int, out_fmt: QAudioFormat) -> bytes:
+        """
+        Minimal PCM converter to device format:
+        - assumes input is S16LE,
+        - converts channels (mono<->stereo) and sample rate,
+        - keeps Int16; if device uses UInt8/Float, adapts sample width and bias.
+        """
+        if not data:
+            return b""
+
+        try:
+            out_rate = int(out_fmt.sampleRate()) or in_rate
+            out_ch = int(out_fmt.channelCount()) or in_channels
+            out_sw = int(out_fmt.bytesPerSample()) or 2
+            out_sf = out_fmt.sampleFormat()
+
+            src = data
+
+            # channels
+            if in_channels != out_ch:
+                if in_channels == 2 and out_ch == 1:
+                    src = audioop.tomono(src, 2, 0.5, 0.5)
+                elif in_channels == 1 and out_ch == 2:
+                    src = audioop.tostereo(src, 2, 1.0, 1.0)
+                else:
+                    # fallback: downmix then upmix if exotic channel count
+                    mid = audioop.tomono(src, 2, 0.5, 0.5) if in_channels > 1 else src
+                    src = audioop.tostereo(mid, 2, 1.0, 1.0) if out_ch == 2 else mid
+
+            # sample rate
+            if in_rate != out_rate:
+                src, _ = audioop.ratecv(src, 2, out_ch, in_rate, out_rate, None)
+
+            # sample width (Int16 -> other widths if needed)
+            if out_sw != 2:
+                src = audioop.lin2lin(src, 2, out_sw)
+
+            # sample format nuances
+            if out_sf == QAudioFormat.SampleFormat.UInt8 and out_sw == 1:
+                src = audioop.bias(src, 1, 128)  # silence at 0x80
+            elif out_sf == QAudioFormat.SampleFormat.Float and out_sw == 4:
+                import numpy as _np
+                arr = _np.frombuffer(src, dtype=_np.int16).astype(_np.float32) / 32768.0
+                src = arr.tobytes()
+
+            return src
+        except Exception:
+            return data
+
+    def stop_realtime(self):
+        """Stop realtime audio playback session (simple/friendly)."""
+        s = self._rt_session
+        if s is not None:
+            try:
+                s.mark_final()  # NOTE: add small tail and let it finish
+            except Exception:
+                try:
+                    s.stop()
+                except Exception:
+                    pass
+
+    def set_rt_signals(self, signals) -> None:
+        """
+        Set signals object for realtime events.
+
+        :param signals: Signals object
+        """
+        self._rt_signals = signals
+
+    def handle_realtime(self, payload: dict) -> None:
+        """
+        Handle realtime audio playback payload (simple path).
+        """
+        try:
+            data: bytes = payload.get("data", b"") or b""
+            mime: str = (payload.get("mime", "audio/pcm") or "audio/pcm").lower()
+            rate = int(payload.get("rate", 24000) or 24000)
+            channels = int(payload.get("channels", 1) or 1)
+            final = bool(payload.get("final", False))
+
+            # only raw PCM/L16
+            if ("pcm" not in mime) and ("l16" not in mime):
+                if final and self._rt_session is not None:
+                    try:
+                        self._rt_session.mark_final()
+                    except Exception:
+                        pass
+                return
+
+            session = self._ensure_rt_session(mime, rate, channels)
+
+            if data:
+                out_fmt = session.format
+                if (out_fmt.sampleRate() != rate) or (out_fmt.channelCount() != channels) or (
+                        out_fmt.sampleFormat() != QAudioFormat.SampleFormat.Int16):
+                    data = self._convert_pcm_for_output(data, rate, channels, out_fmt)
+                session.feed(data)
+
+            if final:
+                session.mark_final()
+
+        except Exception as e:
+            try:
+                self.window.core.debug.log(f"[audio][native] handle_realtime error: {e}")
+            except Exception:
+                pass

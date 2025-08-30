@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 from typing import List, Tuple
@@ -17,6 +17,7 @@ from pygpt_net.core.events import (
     ControlEvent,
     AppEvent,
     RenderEvent,
+    RealtimeEvent,
 )
 
 
@@ -71,6 +72,14 @@ class Dispatcher:
 
         handled = False
 
+        # realtime first, if it's a realtime event
+        if isinstance(event, RealtimeEvent):
+            controller.realtime.handle(event)
+            if log_event:
+                debug.info(f"[event] Dispatch end: {event.full_name} ({event.call_id})")
+            self.call_id += 1
+            return [], event
+
         # kernel
         if isinstance(event, KernelEvent):
             kernel_auto = (KernelEvent.INIT, KernelEvent.RESTART, KernelEvent.STOP, KernelEvent.TERMINATE)
@@ -96,20 +105,47 @@ class Dispatcher:
         if handled:
             return [], event
 
+        # realtime
+        controller.realtime.handle(event)
+        if event.stop:
+            if log_event:
+                debug.info(f"[event] Skipping... (stopped): {event.name}")
+            return [], event
+
         # agents
         controller.agent.handle(event)
+        if event.stop:
+            if log_event:
+                debug.info(f"[event] Skipping... (stopped): {event.name}")
+            return [], event
 
         # ctx
         controller.ctx.handle(event)
+        if event.stop:
+            if log_event:
+                debug.info(f"[event] Skipping... (stopped): {event.name}")
+            return [], event
 
         # model
         controller.model.handle(event)
+        if event.stop:
+            if log_event:
+                debug.info(f"[event] Skipping... (stopped): {event.name}")
+            return [], event
 
         # idx
         controller.idx.handle(event)
+        if event.stop:
+            if log_event:
+                debug.info(f"[event] Skipping... (stopped): {event.name}")
+            return [], event
 
         # ui
         controller.ui.handle(event)
+        if event.stop:
+            if log_event:
+                debug.info(f"[event] Skipping... (stopped): {event.name}")
+            return [], event
 
         # access
         if isinstance(event, (ControlEvent, AppEvent)):

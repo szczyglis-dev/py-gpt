@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 import time
@@ -268,6 +268,7 @@ class Bridge:
         worker = BridgeWorker()
         worker.window = self.window
         worker.signals.response.connect(self.window.controller.kernel.listener)
+        worker.rt_signals = self.window.controller.realtime.signals  # Realtime signals
         return worker
 
     def apply_rate_limit(self):

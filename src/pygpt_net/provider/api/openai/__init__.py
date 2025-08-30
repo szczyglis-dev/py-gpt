@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.08.30 06:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -33,6 +33,7 @@ from .container import Container
 from .image import Image
 from .remote_tools import RemoteTools
 from .responses import Responses
+from .realtime import Realtime
 from .store import Store
 from .summarizer import Summarizer
 from .tools import Tools
@@ -57,6 +58,7 @@ class ApiOpenAI:
         self.image = Image(window)
         self.remote_tools = RemoteTools(window)
         self.responses = Responses(window)
+        self.realtime = Realtime(window)
         self.store = Store(window)
         self.summarizer = Summarizer(window)
         self.tools = Tools(window)
@@ -90,12 +92,18 @@ class ApiOpenAI:
         self.last_client_args = args
         return self.client
 
-    def call(self, context: BridgeContext, extra: dict = None) -> bool:
+    def call(
+            self,
+            context: BridgeContext,
+            extra: dict = None,
+            rt_signals = None
+    ) -> bool:
         """
         Call OpenAI API
 
         :param context: Bridge context
         :param extra: Extra arguments
+        :param rt_signals: Realtime signals for audio streaming
         :return: result
         """
         mode = context.mode
@@ -145,6 +153,18 @@ class ApiOpenAI:
             MODE_RESEARCH,
             MODE_COMPUTER,
         ]:
+            if mode == MODE_AUDIO and stream:
+
+                # Realtime API for audio streaming
+                is_realtime = self.realtime.begin(
+                    context=context,
+                    model=model,
+                    extra=extra or {},
+                    rt_signals=rt_signals
+                )
+                if is_realtime:
+                    return True
+
             # responses API
             if use_responses_api:
                 response = self.responses.send(
