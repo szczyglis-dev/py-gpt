@@ -873,6 +873,44 @@
             "provider": "google",
             "tool_calls": true
         },
+        "gemini-2.5-flash-preview-native-audio-dialog": {
+            "id": "gemini-2.5-flash-preview-native-audio-dialog",
+            "name": "gemini-2.5-flash-preview-native-audio-dialog",
+            "mode": [
+                "audio"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-2.5-flash-preview-native-audio-dialog",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 8000,
+            "default": false,
+            "input": [
+                "text",
+                "audio"
+            ],
+            "output": [
+                "text",
+                "audio"
+            ],
+            "extra": {},
+            "imported": true,
+            "provider": "google",
+            "tool_calls": true
+        },
         "gemini-2.5-pro": {
             "id": "gemini-2.5-pro",
             "name": "gemini-2.5-pro",
@@ -2303,6 +2341,112 @@
             "provider": "ollama",
             "tool_calls": true
         },
+        "gpt-realtime": {
+            "id": "gpt-realtime",
+            "name": "gpt-realtime",
+            "mode": [
+                "audio"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-realtime",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 32000,
+            "tokens": 4096,
+            "default": false,
+            "input": [
+                "text",
+                "audio"
+            ],
+            "output": [
+                "text",
+                "audio"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "gpt-4o-realtime-preview": {
+            "id": "gpt-4o-realtime-preview",
+            "name": "gpt-4o-realtime-preview",
+            "mode": [
+                "audio"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-4o-realtime-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 32000,
+            "tokens": 4096,
+            "default": false,
+            "input": [
+                "text",
+                "audio"
+            ],
+            "output": [
+                "text",
+                "audio"
+            ],
+            "extra": {},
+            "imported": true,
+            "provider": "openai",
+            "tool_calls": true
+        },
         "grok-2-vision": {
             "id": "grok-2-vision",
             "name": "grok-2-vision",
@@ -2597,7 +2741,7 @@
                 "image"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
             "provider": "google",
             "tool_calls": true
         },
@@ -2633,7 +2777,7 @@
                 "image"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
             "provider": "google",
             "tool_calls": true
         },

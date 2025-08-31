@@ -2366,6 +2366,13 @@ class Patch:
                     data["remote_tools.google.code_interpreter"] = False
                 updated = True
 
+            # < 2.6.31
+            if old < parse_version("2.6.31"):
+                print("Migrating config from < 2.6.31...")
+                if "log.realtime" not in data:
+                    data["log.realtime"] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:

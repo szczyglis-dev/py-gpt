@@ -772,6 +772,17 @@ class Patch:
                     data["imagen-4.0-generate-001"] = base_data["imagen-4.0-generate-001"]
                 updated = True
 
+            # <  2.6.31 <--- add realtime models
+            if old < parse_version("2.6.31"):
+                print("Migrating models from < 2.6.31...")
+                if "gemini-2.5-flash-preview-native-audio-dialog" not in data:
+                    data["gemini-2.5-flash-preview-native-audio-dialog"] = base_data["gemini-2.5-flash-preview-native-audio-dialog"]
+                if "gpt-realtime" not in data:
+                    data["gpt-realtime"] = base_data["gpt-realtime"]
+                if "gpt-4o-realtime-preview" not in data:
+                    data["gpt-4o-realtime-preview"] = base_data["gpt-4o-realtime-preview"]
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))

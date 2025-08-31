@@ -547,11 +547,11 @@ In the `Settings -> LlamaIndex -> Data loaders` section you can define the addit
 
 ## Chat with Audio
 
-This mode works like the Chat mode but with native support for audio input and output using a multimodal model - `gpt-4o-audio`. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
+This mode works like the Chat mode but with native support for audio input and output using a Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
 
-More info: https://platform.openai.com/docs/guides/audio/quickstart
+Currently, in beta. 
 
-Currently, in beta. Tool and function calls are not enabled in this mode.
+At this moment, only OpenAI real-time models (via the Realtime API) and Google Gemini real-time models (via the Live API) are supported.
 
 ## Research
 
@@ -1033,7 +1033,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has a preconfigured list of models (as of 2025-07-26):
+PyGPT has a preconfigured list of models (as of 2025-08-31):
 
 - `bielik-11b-v2.3-instruct:Q4_K_M` (Ollama)
 - `chatgpt-4o-latest` (OpenAI)
@@ -1057,6 +1057,7 @@ PyGPT has a preconfigured list of models (as of 2025-07-26):
 - `gemini-1.5-pro` (Google)
 - `gemini-2.0-flash-exp` (Google)
 - `gemini-2.5-flash` (Google)
+- `gemini-2.5-flash-preview-native-audio-dialog` (Google, real-time)
 - `gemini-2.5-pro` (Google)
 - `gpt-3.5-turbo` (OpenAI)
 - `gpt-3.5-turbo-16k` (OpenAI)
@@ -1070,6 +1071,7 @@ PyGPT has a preconfigured list of models (as of 2025-07-26):
 - `gpt-4.1-nano` (OpenAI)
 - `gpt-4o` (OpenAI)
 - `gpt-4o-audio-preview` (OpenAI)
+- `gpt-4o-realtime-preview` (OpenAI, real-time)
 - `gpt-4o-mini` (OpenAI)
 - `gpt-5` (OpenAI)
 - `gpt-5-mini` (OpenAI)
@@ -1077,6 +1079,7 @@ PyGPT has a preconfigured list of models (as of 2025-07-26):
 - `gpt-image-1` (OpenAI)
 - `gpt-oss:20b` (OpenAI - via Ollama and HuggingFace Router)
 - `gpt-oss:120b` (OpenAI - via Ollama and HuggingFace Router)
+- `gpt-realtime` (OpenAI, real-time)
 - `grok-2-vision` (xAI)
 - `grok-3` (xAI)
 - `grok-3-fast` (xAI)

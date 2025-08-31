@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has a preconfigured list of models (as of 2025-07-26):
+PyGPT has a preconfigured list of models (as of 2025-08-31):
 
 - ``bielik-11b-v2.3-instruct:Q4_K_M`` (Ollama)
 - ``chatgpt-4o-latest`` (OpenAI)
@@ -28,6 +28,7 @@ PyGPT has a preconfigured list of models (as of 2025-07-26):
 - ``gemini-1.5-pro`` (Google)
 - ``gemini-2.0-flash-exp`` (Google)
 - ``gemini-2.5-flash`` (Google)
+- ``gemini-2.5-flash-preview-native-audio-dialog`` (Google, real-time)
 - ``gemini-2.5-pro`` (Google)
 - ``gpt-3.5-turbo`` (OpenAI)
 - ``gpt-3.5-turbo-16k`` (OpenAI)
@@ -41,6 +42,7 @@ PyGPT has a preconfigured list of models (as of 2025-07-26):
 - ``gpt-4.1-nano`` (OpenAI)
 - ``gpt-4o`` (OpenAI)
 - ``gpt-4o-audio-preview`` (OpenAI)
+- ``gpt-4o-realtime-preview`` (OpenAI, real-time)
 - ``gpt-4o-mini`` (OpenAI)
 - ``gpt-5`` (OpenAI)
 - ``gpt-5-mini`` (OpenAI)
@@ -48,6 +50,7 @@ PyGPT has a preconfigured list of models (as of 2025-07-26):
 - ``gpt-image-1`` (OpenAI)
 - ``gpt-oss:20b`` (OpenAI - via Ollama and HuggingFace Router)
 - ``gpt-oss:120b`` (OpenAI - via Ollama and HuggingFace Router)
+- ``gpt-realtime`` (OpenAI, real-time)
 - ``grok-2-vision`` (xAI)
 - ``grok-3`` (xAI)
 - ``grok-3-fast`` (xAI)

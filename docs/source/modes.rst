@@ -150,9 +150,11 @@ In the ``Settings -> LlamaIndex -> Data loaders`` section you can define the add
 
 Chat with Audio
 ---------------
-This mode works like the Chat mode but with native support for audio input and output using a multimodal model - ``gpt-4o-audio``. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
+This mode works like the Chat mode but with native support for audio input and output using a Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
 
-More info: https://platform.openai.com/docs/guides/audio/quickstart
+Currently, in beta. 
+
+At this moment, only OpenAI real-time models (via the Realtime API) and Google Gemini real-time models (via the Live API) are supported.
 
 Research
 ----------------------
