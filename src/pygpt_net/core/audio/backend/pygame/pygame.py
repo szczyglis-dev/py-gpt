@@ -6,14 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.27 07:00:00                  #
+# Updated Date: 2025.08.31 04:00:00                  #
 # ================================================== #
 
 import time
 import wave
+import numpy as np
 from typing import List, Tuple
+from collections import deque
+from threading import Lock
 
 from PySide6.QtCore import QTimer
+
+from ..shared import f32_to_s16le, build_rt_input_delta_event
 
 class PygameBackend:
     MIN_FRAMES = 25  # minimum frames to start transcription
@@ -22,6 +27,8 @@ class PygameBackend:
         """
         Audio input capture core using pygame's SDL2 audio capture backend.
         Captured devices are stored as device name strings.
+
+        :param window: Window instance
         """
         self.window = window
         self.path = None
@@ -55,10 +62,14 @@ class PygameBackend:
         self.initialized = False
         self.mode = "input"  # input|control
 
+        # --- REALTIME INPUT (mic -> dispatcher) ---
+        self._rt_signals = None           # set with set_rt_signals()
+        self._rt_queue = deque()          # queue of raw float32 chunks from SDL audio thread
+        self._rt_lock = Lock()            # protects _rt_queue
+        self._is_recording = False        # suppress updates after stop
+
     def init(self):
-        """
-        Initialize the pygame audio system if not already initialized.
-        """
+        """Initialize the pygame audio system if not already initialized."""
         if not self.initialized:
             import pygame
             from pygame._sdl2 import (
@@ -110,10 +121,20 @@ class PygameBackend:
         """
         self.path = path
 
+    def set_rt_signals(self, signals) -> None:
+        """
+        Set signals object for realtime events.
+
+        :param signals: Signals object
+        """
+        self._rt_signals = signals
+
     def start(self):
         """
         Start audio recording using pygame’s SDL2 audio capture.
         Returns True if started successfully.
+
+        :return: True if started
         """
         self.init()
         # Clear previously recorded frames.
@@ -136,15 +157,23 @@ class PygameBackend:
         self.timer.timeout.connect(self._update_level)
         self.timer.start(50)  # update every 50ms
 
+        # mark recording as active after setup
+        self._is_recording = True
         return True
 
     def stop(self):
         """
         Stop audio recording.
         Returns True if stopped and audio data was saved (if path is set).
+
+        :return: True if stopped and saved
         """
         self.init()
         result = False
+
+        # immediately mark as not recording
+        self._is_recording = False
+
         if self.audio_source is not None:
             if self.timer is not None:
                 self.timer.stop()
@@ -154,6 +183,12 @@ class PygameBackend:
             self.audio_source.pause(1)
             self.audio_source = None
 
+            # Emit final input chunk marker for realtime consumers
+            try:
+                self._emit_rt_input_delta(b"", final=True)
+            except Exception:
+                pass
+
             if self.frames:
                 if self.path:
                     self.save_audio_file(self.path)
@@ -162,35 +197,48 @@ class PygameBackend:
                     print("File path is not set.")
             else:
                 print("No audio data recorded")
+
+        # reset level indicator
+        try:
+            self.reset_audio_level()
+        except Exception:
+            pass
+
         return result
 
     def has_source(self) -> bool:
         """
         Check if the audio source is available.
+
+        :return: True if audio source is available
         """
         return self.audio_source is not None
 
     def has_frames(self) -> bool:
         """
         Check if any audio frames have been recorded.
+
+        :return: True if any frames recorded
         """
         return bool(self.frames)
 
     def has_min_frames(self) -> bool:
         """
         Check if at least MIN_FRAMES audio frames have been recorded.
+
+        :return: True if at least MIN_FRAMES recorded
         """
         return len(self.frames) >= self.MIN_FRAMES
 
     def reset_audio_level(self):
-        """
-        Reset the audio level bar (if available).
-        """
+        """Reset the audio level bar (if available)."""
         self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
         """
         Check if a default audio input device is available using pygame.
+
+        :return: True if an audio input device is available
         """
         from pygame._sdl2 import (
             get_audio_device_names,
@@ -226,6 +274,8 @@ class PygameBackend:
     def device_changed(self, index: int):
         """
         Change the selected audio input device by its index in the devices list.
+
+        :param index: Index of the device in the devices list.
         """
         self.init()
         if 0 <= index < len(self.devices):
@@ -234,9 +284,7 @@ class PygameBackend:
             self.selected_device = None
 
     def prepare_device(self):
-        """
-        Set the current audio input device based on configuration.
-        """
+        """Set the current audio input device based on configuration."""
         self.init()
         if self.window is not None and hasattr(self.window, "core"):
             device_index = int(self.window.core.config.get('audio.input.device', 0))
@@ -251,14 +299,26 @@ class PygameBackend:
         """
         Callback function called in the audio thread.
         It receives a memoryview of audio data which is converted to bytes and appended.
+
+        :param audiodevice: The audio device instance (not used here).
+        :param audiomemoryview: MemoryView of the captured audio data.
         """
+        if not self._is_recording:
+            return
+
         # Append captured audio bytes to the frames list.
-        self.frames.append(bytes(audiomemoryview))
+        chunk = bytes(audiomemoryview)
+        self.frames.append(chunk)
+
+        # Enqueue chunk for realtime emission (processed on the Qt thread).
+        try:
+            with self._rt_lock:
+                self._rt_queue.append(chunk)
+        except Exception:
+            pass
 
     def setup_audio_input(self):
-        """
-        Create an AudioDevice with the selected device name and start recording.
-        """
+        """Create an AudioDevice with the selected device name and start recording."""
         self.init()
         from pygame._sdl2 import (
             AudioDevice,
@@ -289,16 +349,18 @@ class PygameBackend:
         Periodically called (via QTimer) to compute RMS from the last captured audio chunk
         and update the audio level bar.
         """
+        # Drain realtime queue first to keep latency low.
+        self._drain_rt_queue()
+
         if not self.frames:
             return
 
-        import numpy as np
         # Use the last captured chunk.
         last_chunk = self.frames[-1]
         try:
             # Interpret the bytes as float32 samples.
             samples = np.frombuffer(last_chunk, dtype=np.float32)
-        except Exception as e:
+        except Exception:
             return
         if samples.size == 0:
             return
@@ -329,7 +391,6 @@ class PygameBackend:
 
         :param filename: The path to the output WAV file.
         """
-        import numpy as np
         full_data = b"".join(self.frames)
         try:
             data_array = np.frombuffer(full_data, dtype=np.float32)
@@ -337,7 +398,7 @@ class PygameBackend:
             print("Error converting audio data:", e)
             return
         # Convert float32 values in the range -1.0 ... 1.0 to PCM int16.
-        int_data = (data_array * 32767).astype(np.int16)
+        int_data = (np.clip(data_array, -1.0, 1.0) * 32767.0).astype(np.int16)
         new_data = int_data.tobytes()
         with wave.open(filename, 'wb') as wf:
             wf.setnchannels(self.channels)
@@ -490,11 +551,61 @@ class PygameBackend:
     def get_default_input_device(self) -> tuple:
         """
         Retrieve the default input device using PyAudio.
+
+        :return: (index, name)
         """
         return 0, "Default Input Device"
 
     def get_default_output_device(self) -> tuple:
         """
         Retrieve the default output device using PyAudio.
+
+        :return: (index, name)
         """
         return 0, "Default Output Device"
+
+    # --------------------
+    # REALTIME INPUT HELPERS
+    # --------------------
+    def _emit_rt_input_delta(self, data: bytes, final: bool) -> None:
+        """
+        Emit RT_INPUT_AUDIO_DELTA with a provider-agnostic payload.
+        Standardizes to PCM16, little-endian, and includes rate/channels.
+
+        :param data: PCM16LE audio bytes
+        :param final: True if this is the final chunk
+        """
+        if not self._rt_signals:
+            return
+        try:
+            event = build_rt_input_delta_event(
+                rate=int(self.rate),
+                channels=int(self.channels),
+                data=data or b"",
+                final=bool(final),
+            )
+            # Ensure emission on the Qt thread
+            QTimer.singleShot(0, lambda: self._rt_signals.response.emit(event))
+        except Exception:
+            pass
+
+    def _drain_rt_queue(self) -> None:
+        """
+        Drain queued float32 chunks from the audio thread, convert to PCM16,
+        and emit a single realtime delta event.
+        """
+        if not self._rt_signals:
+            # nothing to emit
+            with self._rt_lock:
+                self._rt_queue.clear()
+            return
+
+        with self._rt_lock:
+            if not self._rt_queue:
+                return
+            raw = b"".join(self._rt_queue)
+            self._rt_queue.clear()
+
+        s16 = f32_to_s16le(raw)
+        if s16:
+            self._emit_rt_input_delta(s16, final=False)

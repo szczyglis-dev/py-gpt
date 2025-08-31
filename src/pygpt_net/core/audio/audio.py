@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 22:00:00                  #
+# Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -41,6 +41,11 @@ class Audio:
             "output": {}, # speech synthesis providers
         }
         self.last_error = None
+
+    def setup(self):
+        """Initialize audio core"""
+        self.capture.setup()
+        self.output.setup()
 
     def get_input_devices(self) -> List[Tuple[int, str]]:
         """

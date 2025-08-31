@@ -6,203 +6,27 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.08.31 04:00:00                  #
 # ================================================== #
 
 from typing import List, Tuple, Optional
 
-import io
-import threading
 import time
 import wave
-import audioop
 import numpy as np
 
 from PySide6.QtCore import QTimer, QObject
 
 from pygpt_net.core.events import RealtimeEvent
 
-from ..realtime.pyaudio import RealtimeSessionPyAudio
-
-class _FilePlaybackThread(threading.Thread):
-    """
-    File playback worker that owns its PyAudio instance and stream.
-    All creation and teardown happen inside this thread to avoid cross-thread closes.
-    """
-    def __init__(self, device_index: int, audio_file: str, signals):
-        """
-        Initialize the playback thread.
-
-        :param device_index: output device index
-        :param audio_file: path to audio file
-        :param signals: signals object to emit volume changes
-        """
-        super().__init__(daemon=True)
-        self.device_index = int(device_index)
-        self.audio_file = audio_file
-        self.signals = signals
-        self._stop_evt = threading.Event()
-
-    def request_stop(self):
-        """Ask the worker to stop gracefully."""
-        self._stop_evt.set()
-
-    def _emit_main(self, fn, *args):
-        """
-        Emit via Qt main thread.
-
-        :param fn: function to call
-        :param args: arguments to pass
-        """
-        try:
-            QTimer.singleShot(0, lambda: fn(*args))
-        except Exception:
-            pass
-
-    def run(self):
-        """Thread entry point: play the audio file and emit volume changes."""
-        import pyaudio
-        import numpy as np
-        from pydub import AudioSegment
-        import wave as _wave
-
-        pa = None
-        wf = None
-        stream = None
-        try:
-            # prepare WAV in memory (normalize rate to 44100 to be safe)
-            audio = AudioSegment.from_file(self.audio_file)
-            audio = audio.set_frame_rate(44100)
-            wav_io = io.BytesIO()
-            audio.export(wav_io, format='wav')
-            wav_io.seek(0)
-            wf = _wave.open(wav_io, 'rb')
-
-            pa = pyaudio.PyAudio()
-
-            def _try_open(idx: int):
-                s = pa.open(
-                    format=pa.get_format_from_width(wf.getsampwidth()),
-                    channels=wf.getnchannels(),
-                    rate=wf.getframerate(),
-                    output=True,
-                    output_device_index=idx,
-                    frames_per_buffer=1024,
-                )
-                try:
-                    s.start_stream()
-                except Exception:
-                    pass
-                return s
-
-            # open output; if the specific device fails, try fallbacks
-            try:
-                stream = _try_open(self.device_index)
-            except Exception:
-                # try default
-                try:
-                    di = pa.get_default_output_device_info()
-                    stream = _try_open(int(di.get('index')))
-                except Exception:
-                    # scan first output-capable
-                    for i in range(pa.get_device_count()):
-                        try:
-                            di = pa.get_device_info_by_index(i)
-                            if di.get('maxOutputChannels', 0) > 0:
-                                stream = _try_open(i)
-                                break
-                        except Exception:
-                            continue
-
-            if stream is None:
-                return  # no device available
-
-            # dtype for meter
-            sw = wf.getsampwidth()
-            if sw == 1:
-                dtype = np.uint8
-                max_value = 255.0
-                offset = 128.0
-                is_u8 = True
-            elif sw == 2:
-                dtype = np.int16
-                max_value = 32767.0
-                offset = 0.0
-                is_u8 = False
-            elif sw == 4:
-                dtype = np.int32
-                max_value = 2147483647.0
-                offset = 0.0
-                is_u8 = False
-            else:
-                dtype = np.int16
-                max_value = 32767.0
-                offset = 0.0
-                is_u8 = False
-
-            chunk = 1024
-            data = wf.readframes(chunk)
-
-            while data and not self._stop_evt.is_set():
-                try:
-                    stream.write(data)
-                except Exception:
-                    break
-
-                # volume meter (emit on GUI thread)
-                if self.signals is not None:
-                    try:
-                        arr = np.frombuffer(data, dtype=dtype).astype(np.float32)
-                        if arr.size > 0:
-                            if is_u8:
-                                arr -= offset
-                                denom = 127.0
-                            else:
-                                denom = max_value
-                            rms = float(np.sqrt(np.mean(arr * arr)))
-                            if denom > 0.0 and rms > 0.0:
-                                db = 20.0 * float(np.log10(max(1e-12, rms / denom)))
-                                db = max(-60.0, min(0.0, db))
-                                vol = int(((db + 60.0) / 60.0) * 100.0)
-                            else:
-                                vol = 0
-                        else:
-                            vol = 0
-                        self._emit_main(self.signals.volume_changed.emit, vol)
-                    except Exception:
-                        pass
-
-                data = wf.readframes(chunk)
-
-        finally:
-            # teardown in the SAME thread
-            try:
-                if stream is not None:
-                    try:
-                        if stream.is_active():
-                            stream.stop_stream()
-                    except Exception:
-                        pass
-                    stream.close()
-            except Exception:
-                pass
-            try:
-                if pa is not None:
-                    pa.terminate()
-            except Exception:
-                pass
-            try:
-                if wf is not None:
-                    wf.close()
-            except Exception:
-                pass
-
-            if self.signals is not None:
-                try:
-                    self._emit_main(self.signals.volume_changed.emit, 0)
-                except Exception:
-                    pass
-
+from .realtime import RealtimeSessionPyAudio
+from .playback import _FilePlaybackThread
+from ..shared import (
+    pyaudio_to_s16le,
+    convert_s16_pcm,
+    build_rt_input_delta_event,
+    build_output_volume_event,
+)
 
 class PyaudioBackend:
 
@@ -245,6 +69,10 @@ class PyaudioBackend:
 
         # input state guard (prevents races on stop)
         self._input_active = False
+
+        # track actual input params for realtime payloads
+        self._in_rate: int = self.rate
+        self._in_channels: int = self.channels
 
         # file playback worker + guard timer
         self._file_thread: Optional[_FilePlaybackThread] = None
@@ -332,6 +160,12 @@ class PyaudioBackend:
             except Exception as e:
                 print(f"Error closing input stream: {e}")
             self.stream = None
+
+            # signal final input chunk marker for realtime consumers
+            try:
+                self._emit_rt_input_delta(b"", final=True)
+            except Exception:
+                pass
 
             if self.frames:
                 if self.path:
@@ -451,6 +285,10 @@ class PyaudioBackend:
             return
 
         try:
+            # remember current input parameters for RT payloads
+            self._in_rate = int(self.rate)
+            self._in_channels = int(self.channels)
+
             self.stream = self.pyaudio_instance.open(format=self.format,
                                                      channels=self.channels,
                                                      rate=self.rate,
@@ -500,9 +338,18 @@ class PyaudioBackend:
         # Update UI on the main thread only when recording is active
         if self._input_active:
             try:
-                QTimer.singleShot(0, lambda: self.window.controller.audio.ui.on_input_volume_change(level_percent, self.mode))
-            except Exception:
+                self.window.controller.audio.ui.on_input_volume_change(level_percent, self.mode)
+            except Exception as e:
+                print(f"Error updating audio level: {e}")
                 pass
+
+        # Emit realtime input delta (PCM16 LE), do not resample here
+        try:
+            s16 = pyaudio_to_s16le(in_data, self.format, pa_instance=self.pyaudio_instance)
+            self._emit_rt_input_delta(s16, final=False)
+        except Exception:
+            # fallback: emit raw buffer
+            self._emit_rt_input_delta(in_data or b"", final=False)
 
         # Handle loop recording if enabled.
         if self.loop and self.stop_callback is not None and self._input_active:
@@ -815,7 +662,7 @@ class PyaudioBackend:
             return
         try:
             self._rt_signals.response.emit(
-                RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_VOLUME_CHANGED, {"volume": int(value)})
+                build_output_volume_event(int(value))
             )
         except Exception:
             pass
@@ -943,7 +790,7 @@ class PyaudioBackend:
         )
         session.on_stopped = lambda: (
             self._rt_signals and self._rt_signals.response.emit(
-                RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_END, {"source": "device"})
+                RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"})
             ),
             setattr(self, "_rt_session", None)
         )
@@ -967,36 +814,20 @@ class PyaudioBackend:
         :param out_rate: output sample rate
         :param out_channels: output number of channels
         :param out_width: output sample width in bytes (1, 2, or 4)
+        :return: converted PCM bytes
         """
-        if not data:
-            return b""
-        try:
-            src = data
-
-            # channels
-            if in_channels != out_channels:
-                if in_channels == 2 and out_channels == 1:
-                    src = audioop.tomono(src, 2, 0.5, 0.5)
-                elif in_channels == 1 and out_channels == 2:
-                    src = audioop.tostereo(src, 2, 1.0, 1.0)
-                else:
-                    mid = audioop.tomono(src, 2, 0.5, 0.5) if in_channels > 1 else src
-                    src = audioop.tostereo(mid, 2, 1.0, 1.0) if out_channels == 2 else mid
-
-            # sample rate
-            if in_rate != out_rate:
-                src, _ = audioop.ratecv(src, 2, out_channels, in_rate, out_rate, None)
-
-            # sample width (keep Int16 by default)
-            if out_width != 2:
-                src = audioop.lin2lin(src, 2, out_width)
-
-            return src
-        except Exception:
-            return data
+        return convert_s16_pcm(
+            data,
+            in_rate=in_rate,
+            in_channels=in_channels,
+            out_rate=out_rate,
+            out_channels=out_channels,
+            out_width=out_width,
+            out_format="s16"
+        )
 
     def stop_realtime(self):
-        """Stop realtime audio playback session (friendly)."""
+        """Stop realtime audio playback session."""
         s = self._rt_session
         if s is not None:
             try:
@@ -1050,3 +881,43 @@ class PyaudioBackend:
                 self.window.core.debug.log(f"[audio][pyaudio] handle_realtime error: {e}")
             except Exception:
                 pass
+
+    def _emit_on_main(self, fn, *args) -> None:
+        """
+        Emit a Qt signal from the GUI thread.
+
+        :param fn: function to call
+        :param args: arguments to pass
+        """
+        try:
+            fn(*args)
+        except Exception:
+            pass
+
+    def _emit_rt_input_delta(self, data: bytes, final: bool) -> None:
+        """
+        Emit RT_INPUT_AUDIO_DELTA event with provider-agnostic payload (PCM16 LE).
+
+        :param data: PCM16 LE audio data bytes
+        :param final: True if this is the final chunk
+        """
+        if not self._rt_signals:
+            return
+        event = build_rt_input_delta_event(
+            rate=int(self._in_rate),
+            channels=int(self._in_channels),
+            data=data or b"",
+            final=bool(final),
+        )
+        # Always dispatch on the GUI thread to avoid cross-thread issues
+        self._emit_on_main(self._rt_signals.response.emit, event)
+
+    def _convert_input_to_int16(self, raw: bytes) -> bytes:
+        """
+        Convert PyAudio input buffer to PCM16 little-endian without changing
+        sample rate or channel count.
+
+        :param raw: input audio data bytes
+        :return: PCM16 LE audio data bytes
+        """
+        return pyaudio_to_s16le(raw, self.format, pa_instance=self.pyaudio_instance)

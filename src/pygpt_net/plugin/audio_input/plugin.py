@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
 import os
@@ -23,6 +23,7 @@ from pygpt_net.utils import trans
 from .config import Config
 from .worker import Worker
 from .simple import Simple
+from ...core.types import MODE_AUDIO
 
 
 class Plugin(BasePlugin):
@@ -124,13 +125,32 @@ class Plugin(BasePlugin):
             words = [x.strip() for x in words]  # remove white-spaces
         return words
 
-    def toggle_recording_simple(self):
+    def toggle_recording_simple(
+            self,
+            state: bool = None,
+            auto: bool = False
+    ):
         """
         Event: AUDIO_INPUT_RECORD_TOGGLE
 
         Toggle recording
+
+        :param state: state to set
+        :param auto: True if called automatically (not by user)
         """
-        self.handler_simple.toggle_recording()
+        mode = self.window.core.config.get("mode")
+        if mode == MODE_AUDIO:
+            self.handler_simple.toggle_realtime(state=state, auto=auto)
+            return
+        self.handler_simple.toggle_recording(state=state)
+
+    def is_recording(self) -> bool:
+        """
+        Check if is recording (simple mode)
+
+        :return: True if is recording
+        """
+        return self.handler_simple.is_recording
 
     def toggle_speech(self, state: bool):
         """
@@ -214,7 +234,9 @@ class Plugin(BasePlugin):
             self.toggle_speech(data['value'])
 
         elif name == Event.AUDIO_INPUT_RECORD_TOGGLE:
-            self.toggle_recording_simple()
+            state = data['state'] if 'value' in data else None
+            auto = data['auto'] if 'auto' in data else False
+            self.toggle_recording_simple(state=state, auto=auto)
 
         elif name == Event.AUDIO_INPUT_STOP:
             self.on_stop()

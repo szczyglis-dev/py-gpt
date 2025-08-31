@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -19,7 +19,7 @@ class Manager:
     Manager that mirrors chat.stream controller shape.
 
     Starts a RealtimeWorker and routes text events and lifecycle to the UI.
-    Audio is forwarded by the main-thread via AUDIO_OUTPUT_CHUNK events.
+    Audio is forwarded by the main-thread via RT_OUTPUT_AUDIO_DELTA events.
     """
     def __init__(self, window=None):
         self.window = window

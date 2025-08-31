@@ -27,11 +27,11 @@ class RealtimeWorker(QRunnable):
     """
     QRunnable worker that runs a provider-specific realtime session (websocket).
 
-    - AUDIO_OUTPUT_READY is emitted when the audio output is ready (STREAM_BEGIN).
-    - AUDIO_OUTPUT_TEXT_CHUNK is emitted for text deltas.
-    - AUDIO_OUTPUT_CHUNK is emitted for audio chunks to be handled by the main-thread AudioDispatcher.
-    - AUDIO_OUTPUT_END is emitted when the session ends.
-    - AUDIO_OUTPUT_ERROR is emitted on error.
+    - RT_OUTPUT_READY is emitted when the audio output is ready (STREAM_BEGIN).
+    - RT_OUTPUT_TEXT_DELTA is emitted for text deltas.
+    - RT_OUTPUT_AUDIO_DELTA is emitted for audio chunks to be handled by the main-thread AudioDispatcher.
+    - RT_OUTPUT_AUDIO_END is emitted when the session ends.
+    - RT_OUTPUT_AUDIO_ERROR is emitted on error.
     """
     def __init__(
             self,
@@ -72,7 +72,7 @@ class RealtimeWorker(QRunnable):
 
         # STREAM_BEGIN -> UI
         try:
-            event = RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_READY, {
+            event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_READY, {
                 "ctx": self.ctx,
             })
             self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
@@ -88,13 +88,13 @@ class RealtimeWorker(QRunnable):
                 async def on_text(delta: str):
                     if not delta:
                         return
-                    event = RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_TEXT_CHUNK, {
+                    event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_TEXT_DELTA, {
                         "ctx": self.ctx,
                         "chunk": delta,
                     })
                     self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
 
-                # Audio -> enqueue to main-thread AudioDispatcher and wake it (Queued)
+                # Audio -> enqueue to main-thread
                 async def on_audio(
                         data: bytes,
                         mime: str,
@@ -102,7 +102,7 @@ class RealtimeWorker(QRunnable):
                         channels: Optional[int],
                         final: bool = False
                 ):
-                    event = RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_CHUNK, {
+                    event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_DELTA, {
                         "payload":  {
                             "ctx": self.ctx,
                             "data": data or b"",
@@ -131,11 +131,11 @@ class RealtimeWorker(QRunnable):
 
         except Exception as e:
             try:
-                event = RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_ERROR, {"error": e})
+                event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {"error": e})
                 self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
             finally:
                 try:
-                    event = RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_END, {"ctx": self.ctx})
+                    event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"ctx": self.ctx})
                     self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
                 except Exception:
                     pass

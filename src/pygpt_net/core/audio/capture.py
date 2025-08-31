@@ -42,6 +42,11 @@ class Capture:
             backend = "native"
         return self.backends[backend]
 
+    def setup(self):
+        """Setup audio input backend"""
+        for b in self.backends.values():
+            b.set_rt_signals(self.window.controller.realtime.signals)
+
     def get_default_input_device(self) -> Tuple[int, str]:
         """
         Get default input device

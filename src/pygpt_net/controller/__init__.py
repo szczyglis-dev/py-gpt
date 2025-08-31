@@ -110,6 +110,7 @@ class Controller:
         self.attachment.setup()
         self.camera.setup_ui()
         self.access.setup()
+        self.realtime.setup()
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -15,6 +15,7 @@ from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_IMAGE,
+    MODE_AUDIO,
 )
 from pygpt_net.core.events import Event, AppEvent, RenderEvent, KernelEvent
 from pygpt_net.item.ctx import CtxItem
@@ -166,8 +167,12 @@ class Output:
 
         controller.chat.audio.handle_output(ctx)  # handle audio output
         controller.chat.common.auto_unlock(ctx)  # unlock input if allowed
-        controller.chat.common.show_response_tokens(ctx)  # update tokens
-        dispatch(KernelEvent(KernelEvent.STATE_IDLE, self.STATE_PARAMS))  # state: idle
+        if mode != MODE_AUDIO:
+            controller.chat.common.show_response_tokens(ctx)  # update tokens
+            dispatch(KernelEvent(KernelEvent.STATE_IDLE, self.STATE_PARAMS))  # state: idle
+        else:
+            if not controller.audio.is_recording():
+                controller.chat.common.show_response_tokens(ctx)
 
     def post_handle(
             self,

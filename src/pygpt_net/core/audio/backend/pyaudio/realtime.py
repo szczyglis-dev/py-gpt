@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
 import threading
@@ -22,7 +22,6 @@ class RealtimeSessionPyAudio(QObject):
     Realtime PCM playback session using PyAudio in callback mode.
     Consumes already-converted PCM frames, keeps GUI responsive and emits volume updates.
     """
-
     def __init__(
             self,
             device_index: int,
@@ -177,6 +176,7 @@ class RealtimeSessionPyAudio(QObject):
         :param frame_count: number of frames requested
         :param time_info: timing info (ignored)
         :param status: status flags (ignored)
+        :return: (data bytes, flag)
         """
         import pyaudio
         need = frame_count * self.frame_bytes

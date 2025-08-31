@@ -6,27 +6,33 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.08.31 04:00:00                  #
 # ================================================== #
 
 from typing import Optional
 from typing import List, Tuple
 
 from bs4 import UnicodeDammit
-from pydub import AudioSegment
 
-import os
 import time
 import numpy as np
 import wave
-import audioop
 
-from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput, QMediaDevices, QAudioFormat, QAudioSource
-from PySide6.QtCore import QTimer, QObject, QUrl
+from PySide6.QtMultimedia import QMediaDevices, QAudioFormat, QAudioSource
+from PySide6.QtCore import QTimer, QObject
 
 from pygpt_net.core.events import RealtimeEvent
 
-from ..realtime.native import RealtimeSession
+from .realtime import RealtimeSession
+from ..shared import (
+    qaudio_dtype,
+    qaudio_norm_factor,
+    qaudio_to_s16le,
+    convert_s16_pcm,
+    build_rt_input_delta_event,
+    build_output_volume_event,
+)
+from .player import NativePlayer
 
 class NativeBackend(QObject):
 
@@ -80,6 +86,9 @@ class NativeBackend(QObject):
 
         self._rt_session: Optional[RealtimeSession] = None
         self._rt_signals = None  # set by core.audio.output on initialize()
+
+        # dedicated player wrapper (file playback + envelope metering)
+        self._player = NativePlayer(window=self.window, chunk_ms=self.chunk_ms)
 
     def init(self):
         """
@@ -183,12 +192,16 @@ class NativeBackend(QObject):
             self.audio_source = None
             self.audio_io_device = None
 
+            # Emit final input chunk marker for realtime consumers
+            self._emit_rt_input_delta(b"", final=True)
+
             # Save frames to file (if any)
             if self.frames:
                 self.save_audio_file(self.path)
                 result = True
             else:
                 print("No audio data recorded")
+
 
         # reset input volume on stop to visually indicate end of recording ---
         self.reset_audio_level()
@@ -330,8 +343,8 @@ class NativeBackend(QObject):
             audio_format = desired
 
         self.actual_audio_format = audio_format
-        self._dtype = self.get_dtype_from_sample_format(self.actual_audio_format.sampleFormat())
-        self._norm = self.get_normalization_factor(self.actual_audio_format.sampleFormat())
+        self._dtype = qaudio_dtype(self.actual_audio_format.sampleFormat())
+        self._norm = qaudio_norm_factor(self.actual_audio_format.sampleFormat())
 
         try:
             self.audio_source = QAudioSource(audio_input_device, audio_format)
@@ -375,8 +388,8 @@ class NativeBackend(QObject):
 
         # Determine the correct dtype and normalization factor
         sample_format = self.actual_audio_format.sampleFormat()
-        dtype = self._dtype if self._dtype is not None else self.get_dtype_from_sample_format(sample_format)
-        normalization_factor = self._norm if self._norm is not None else self.get_normalization_factor(sample_format)
+        dtype = self._dtype if self._dtype is not None else qaudio_dtype(sample_format)
+        normalization_factor = self._norm if self._norm is not None else qaudio_norm_factor(sample_format)
 
         # Convert bytes to NumPy array of the appropriate type
         samples = np.frombuffer(data_bytes, dtype=dtype)
@@ -402,6 +415,15 @@ class NativeBackend(QObject):
 
         # Update the level bar widget
         self.update_audio_level(level_percent)
+
+        # --- emit realtime input delta (PCM16 LE) ---
+        # Always standardize to Int16 for provider compatibility; do not resample here.
+        try:
+            s16 = qaudio_to_s16le(data_bytes, sample_format)
+            self._emit_rt_input_delta(s16, final=False)
+        except Exception:
+            # avoid interrupting UI/recording on conversion issues
+            self._emit_rt_input_delta(data_bytes, final=False)
 
         # Handle loop recording
         if self.loop and self.stop_callback is not None:
@@ -459,12 +481,15 @@ class NativeBackend(QObject):
         else:
             raise ValueError("Unsupported sample format")
 
-        wf = wave.open(filename, 'wb')
-        wf.setnchannels(channels)
-        wf.setsampwidth(sample_size)
-        wf.setframerate(frame_rate)
-        wf.writeframes(out_bytes)
-        wf.close()
+        try:
+            wf = wave.open(filename, 'wb')
+            wf.setnchannels(channels)
+            wf.setsampwidth(sample_size)
+            wf.setframerate(frame_rate)
+            wf.writeframes(out_bytes)
+            wf.close()
+        except:
+            pass
 
     def get_dtype_from_sample_format(self, sample_format):
         """
@@ -472,16 +497,7 @@ class NativeBackend(QObject):
 
         :param sample_format: QAudioFormat.SampleFormat
         """
-        if sample_format == QAudioFormat.SampleFormat.UInt8:
-            return np.uint8
-        elif sample_format == QAudioFormat.SampleFormat.Int16:
-            return np.int16
-        elif sample_format == QAudioFormat.SampleFormat.Int32:
-            return np.int32
-        elif sample_format == QAudioFormat.SampleFormat.Float:
-            return np.float32
-        else:
-            raise ValueError("Unsupported sample format")
+        return qaudio_dtype(sample_format)
 
     def get_normalization_factor(self, sample_format):
         """
@@ -489,16 +505,7 @@ class NativeBackend(QObject):
 
         :param sample_format: QAudioFormat.SampleFormat
         """
-        if sample_format == QAudioFormat.SampleFormat.UInt8:
-            return 255.0
-        elif sample_format == QAudioFormat.SampleFormat.Int16:
-            return 32768.0
-        elif sample_format == QAudioFormat.SampleFormat.Int32:
-            return float(2 ** 31)
-        elif sample_format == QAudioFormat.SampleFormat.Float:
-            return 1.0
-        else:
-            raise ValueError("Unsupported sample format")
+        return qaudio_norm_factor(sample_format)
 
     def play_after(
             self,
@@ -516,69 +523,19 @@ class NativeBackend(QObject):
         :param signals: Signals to emit on playback
         :return: True if started
         """
-        self.audio_output = QAudioOutput()
-        self.audio_output.setVolume(1.0)
-
-        devices = QMediaDevices.audioOutputs()
-        if devices:
-            try:
-                num_device = int(self.window.core.config.get('audio.output.device', 0))
-            except Exception:
-                num_device = 0
-            selected_device = devices[num_device] if num_device < len(devices) else devices[0]
-            self.audio_output.setDevice(selected_device)
-
-        if self.AUTO_CONVERT_TO_WAV:
-            if audio_file.lower().endswith('.mp3'):
-                tmp_dir = self.window.core.audio.get_cache_dir()
-                base_name = os.path.splitext(os.path.basename(audio_file))[0]
-                dst_file = os.path.join(tmp_dir, "_" + base_name + ".wav")
-                wav_file = self.window.core.audio.mp3_to_wav(audio_file, dst_file)
-                if wav_file:
-                    audio_file = wav_file
-
-        def check_stop():
-            if stopped():
-                self.player.stop()
-                self.stop_timers()
-                signals.volume_changed.emit(0)
-            else:
-                if self.player:
-                    if self.player.playbackState() == QMediaPlayer.StoppedState:
-                        self.player.stop()
-                        self.stop_timers()
-                        signals.volume_changed.emit(0)
-
-        self.envelope = self.calculate_envelope(audio_file, self.chunk_ms)
-        self.player = QMediaPlayer()
-        self.player.setAudioOutput(self.audio_output)
-        self.player.setSource(QUrl.fromLocalFile(audio_file))
-        self.player.play()
-
-        self.playback_timer = QTimer()
-        self.playback_timer.setInterval(100)
-        self.playback_timer.timeout.connect(check_stop)
-        self.volume_timer = QTimer(self)
-        self.volume_timer.setInterval(10)  # every 100 ms
-        self.volume_timer.timeout.connect(
-            lambda: self.update_volume(signals)
+        # delegate to player wrapper to keep logic isolated
+        self._player.play_after(
+            audio_file=audio_file,
+            event_name=event_name,
+            stopped=stopped,
+            signals=signals,
+            auto_convert_to_wav=self.AUTO_CONVERT_TO_WAV,
+            select_output_device=self._select_output_device,
         )
 
-        self.playback_timer.start()
-        self.volume_timer.start()
-        signals.volume_changed.emit(0)
-        signals.playback.emit(event_name)
-
     def stop_timers(self):
-        """
-        Stop playback timers.
-        """
-        if self.playback_timer is not None:
-            self.playback_timer.stop()
-            self.playback_timer = None
-        if self.volume_timer is not None:
-            self.volume_timer.stop()
-            self.volume_timer = None
+        """Stop playback timers."""
+        self._player.stop_timers()
 
     def play(
             self,
@@ -607,9 +564,7 @@ class NativeBackend(QObject):
         """
         if self._rt_session:
             self._rt_session.stop()
-        if self.player is not None:
-            self.player.stop()
-        self.stop_timers()
+        self._player.stop(signals=signals)
         return False
 
     def calculate_envelope(
@@ -622,23 +577,10 @@ class NativeBackend(QObject):
 
         :param audio_file: Path to the audio file
         :param chunk_ms: Size of each chunk in milliseconds
+        :return: List of volume levels (0-100) for each chunk
         """
-        audio = AudioSegment.from_file(audio_file)
-        max_amplitude = 32767
-        envelope = []
-
-        for ms in range(0, len(audio), chunk_ms):
-            chunk = audio[ms:ms + chunk_ms]
-            rms = chunk.rms
-            if rms > 0:
-                db = 20 * np.log10(rms / max_amplitude)
-            else:
-                db = -60
-            db = max(-60, min(0, db))
-            volume = ((db + 60) / 60) * 100
-            envelope.append(volume)
-
-        return envelope
+        from ..shared import compute_envelope_from_file
+        return compute_envelope_from_file(audio_file, chunk_ms)
 
     def update_volume(self, signals=None):
         """
@@ -646,13 +588,7 @@ class NativeBackend(QObject):
 
         :param signals: Signals object to emit volume changed event.
         """
-        pos = self.player.position()
-        index = int(pos / self.chunk_ms)
-        if index < len(self.envelope):
-            volume = self.envelope[index]
-        else:
-            volume = 0
-        signals.volume_changed.emit(volume)
+        self._player.update_volume(signals)
 
     def get_input_devices(self) -> List[Tuple[int, str]]:
         """
@@ -745,7 +681,12 @@ class NativeBackend(QObject):
             return QAudioFormat.SampleFormat.Int16
         return QAudioFormat.SampleFormat.Int16
 
-    def _make_format(self, rate: int, channels: int, sample_format: QAudioFormat.SampleFormat) -> QAudioFormat:
+    def _make_format(
+            self, 
+            rate: int, 
+            channels: int, 
+            sample_format: QAudioFormat.SampleFormat
+    ) -> QAudioFormat:
         """
         Create QAudioFormat from parameters.
 
@@ -760,7 +701,6 @@ class NativeBackend(QObject):
         fmt.setSampleFormat(sample_format)
         return fmt
 
-
     def _emit_output_volume(self, value: int) -> None:
         """
         Emit output volume change event.
@@ -769,12 +709,22 @@ class NativeBackend(QObject):
         """
         if not self._rt_signals:
             return
-        self._rt_signals.response.emit(RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_VOLUME_CHANGED, {"volume": value}))
+        self._rt_signals.response.emit(build_output_volume_event(int(value)))
 
-    def _ensure_rt_session(self, mime: str, rate: Optional[int], channels: Optional[int]) -> RealtimeSession:
+    def _ensure_rt_session(
+            self, 
+            mime: str, 
+            rate: Optional[int], 
+            channels: Optional[int]
+    ) -> RealtimeSession:
         """
         Ensure a realtime audio playback session exists with the device's preferred (or nearest) format.
         Keep it simple: prefer Int16, reuse session if format unchanged.
+
+        :param mime: MIME type of the audio data
+        :param rate: Sample rate of the audio data
+        :param channels: Number of channels in the audio data
+        :return: RealtimeSession
         """
         device = self._select_output_device()
 
@@ -822,19 +772,31 @@ class NativeBackend(QObject):
         # NOTE: when device actually stops (buffer empty), inform UI
         session.on_stopped = lambda: (
             self._rt_signals and self._rt_signals.response.emit(
-                RealtimeEvent(RealtimeEvent.AUDIO_OUTPUT_END, {"source": "device"})
+                RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"})
             ),
             setattr(self, "_rt_session", None)
         )
         self._rt_session = session
         return session
 
-    def _convert_pcm_for_output(self, data: bytes, in_rate: int, in_channels: int, out_fmt: QAudioFormat) -> bytes:
+    def _convert_pcm_for_output(
+            self, 
+            data: bytes, 
+            in_rate: int, 
+            in_channels: int, 
+            out_fmt: QAudioFormat
+    ) -> bytes:
         """
         Minimal PCM converter to device format:
         - assumes input is S16LE,
         - converts channels (mono<->stereo) and sample rate,
         - keeps Int16; if device uses UInt8/Float, adapts sample width and bias.
+
+        :param data: Input PCM data (assumed S16LE)
+        :param in_rate: Input sample rate
+        :param in_channels: Input number of channels
+        :param out_fmt: Desired output QAudioFormat
+        :return: Converted PCM data
         """
         if not data:
             return b""
@@ -845,36 +807,23 @@ class NativeBackend(QObject):
             out_sw = int(out_fmt.bytesPerSample()) or 2
             out_sf = out_fmt.sampleFormat()
 
-            src = data
-
-            # channels
-            if in_channels != out_ch:
-                if in_channels == 2 and out_ch == 1:
-                    src = audioop.tomono(src, 2, 0.5, 0.5)
-                elif in_channels == 1 and out_ch == 2:
-                    src = audioop.tostereo(src, 2, 1.0, 1.0)
-                else:
-                    # fallback: downmix then upmix if exotic channel count
-                    mid = audioop.tomono(src, 2, 0.5, 0.5) if in_channels > 1 else src
-                    src = audioop.tostereo(mid, 2, 1.0, 1.0) if out_ch == 2 else mid
-
-            # sample rate
-            if in_rate != out_rate:
-                src, _ = audioop.ratecv(src, 2, out_ch, in_rate, out_rate, None)
-
-            # sample width (Int16 -> other widths if needed)
-            if out_sw != 2:
-                src = audioop.lin2lin(src, 2, out_sw)
-
-            # sample format nuances
+            # pick string flag for format conversion
             if out_sf == QAudioFormat.SampleFormat.UInt8 and out_sw == 1:
-                src = audioop.bias(src, 1, 128)  # silence at 0x80
+                flag = "u8"
             elif out_sf == QAudioFormat.SampleFormat.Float and out_sw == 4:
-                import numpy as _np
-                arr = _np.frombuffer(src, dtype=_np.int16).astype(_np.float32) / 32768.0
-                src = arr.tobytes()
+                flag = "f32"
+            else:
+                flag = "s16"
 
-            return src
+            return convert_s16_pcm(
+                data,
+                in_rate=in_rate,
+                in_channels=in_channels,
+                out_rate=out_rate,
+                out_channels=out_ch,
+                out_width=out_sw,
+                out_format=flag
+            )
         except Exception:
             return data
 
@@ -900,7 +849,17 @@ class NativeBackend(QObject):
 
     def handle_realtime(self, payload: dict) -> None:
         """
-        Handle realtime audio playback payload (simple path).
+        Handle realtime audio playback payload.
+
+        Expected payload keys:
+        - data: bytes
+        - mime: str (e.g. "audio/pcm", "audio/l16", etc.)
+        - rate: int (sample rate)
+        - channels: int (number of channels)
+        - final: bool (True if final chunk)
+        If mime is not PCM/L16, the chunk is ignored.
+
+        :param payload: Payload dictionary        
         """
         try:
             data: bytes = payload.get("data", b"") or b""
@@ -935,3 +894,37 @@ class NativeBackend(QObject):
                 self.window.core.debug.log(f"[audio][native] handle_realtime error: {e}")
             except Exception:
                 pass
+
+    # ---- REALTIME INPUT ----
+    def _emit_rt_input_delta(self, data: bytes, final: bool) -> None:
+        """
+        Emit RT_INPUT_AUDIO_DELTA with a provider-agnostic payload.
+        Standardizes to PCM16, little-endian, and includes rate/channels.
+
+        :param data: audio data bytes
+        :param final: True if this is the final chunk
+        """
+        if not self._rt_signals:
+            return
+
+        # Resolve current format safely
+        try:
+            rate = int(self.actual_audio_format.sampleRate())
+            channels = int(self.actual_audio_format.channelCount())
+        except Exception:
+            rate = int(self.window.core.config.get('audio.input.rate', 44100))
+            channels = int(self.window.core.config.get('audio.input.channels', 1))
+
+        event = build_rt_input_delta_event(rate=rate, channels=channels, data=data or b"", final=bool(final))
+        self._rt_signals.response.emit(event)
+
+    def _convert_input_to_int16(self, raw: bytes, sample_format) -> bytes:
+        """
+        Convert arbitrary QAudioFormat sample format to PCM16 little-endian.
+        Does not change sample rate or channel count.
+
+        :param raw: input audio data bytes
+        :param sample_format: QAudioFormat.SampleFormat of the input data
+        :return: converted audio data bytes in PCM16 LE
+        """
+        return qaudio_to_s16le(raw, sample_format)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
 from dataclasses import dataclass, field
@@ -29,7 +29,7 @@ class RealtimeOptions:
     :param extra: Free-form dictionary for extra parameters
     :param rt_signals: Real-time signals for event handling
     """
-    provider: str = "google"  # "google" | "openai"
+    provider: str = "openai"  # "google" | "openai"
     model: Optional[str] = None
     system_prompt: Optional[str] = None
     prompt: Optional[str] = None
@@ -43,8 +43,40 @@ class RealtimeOptions:
     # Provider-specific VAD flag (use None for manual mode)
     vad: Optional[str] = None           # e.g., "server_vad"
 
-    # Free-form extra
-    extra: dict = field(default_factory=dict)
-
     # Real-time signals
     rt_signals: field() = None  # RT signals
+
+    # Tools and remote tools
+    tools: Optional[list] = None
+    remote_tools: Optional[list] = None
+
+    # Auto-turn enable/disable
+    auto_turn: Optional[bool] = False
+
+    # Transcript enable/disable
+    transcribe: Optional[bool] = True
+
+    # Last session ID
+    rt_session_id: Optional[str] = None
+
+    # Extra parameters
+    extra: dict = field(default_factory=dict)
+
+    def to_dict(self):
+        return {
+            "provider": self.provider,
+            "model": self.model,
+            "system_prompt": self.system_prompt,
+            "prompt": self.prompt,
+            "voice": self.voice,
+            "audio_data (len)": len(self.audio_data) if self.audio_data else 0,
+            "audio_format": self.audio_format,
+            "audio_rate": self.audio_rate,
+            "vad": self.vad,
+            "tools": self.tools,
+            "remote_tools": self.remote_tools,
+            "auto_turn": self.auto_turn,
+            "transcribe": self.transcribe,
+            "rt_session_id": self.rt_session_id,
+            "extra": self.extra,
+        }

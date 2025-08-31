@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
 import json
@@ -108,6 +108,10 @@ class Reply:
         prev_ctx = core.ctx.as_previous(self.reply_ctx)  # copy result to previous ctx and clear current ctx
         core.ctx.update_item(self.reply_ctx)  # update context in db
         self.window.update_status('...')
+
+        # append tool calls from previous context (used for tool results handling)
+        if self.reply_ctx.tool_calls:
+            prev_ctx.extra["prev_tool_calls"] = self.reply_ctx.tool_calls
 
         # tool output append
         dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, {

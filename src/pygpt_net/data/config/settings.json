@@ -1655,6 +1655,20 @@
         "advanced": false,
         "tab": "Google"
     },
+    "remote_tools.google.url_ctx": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.google.url_ctx",
+        "description": "settings.remote_tools.google.url_ctx.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "Google"
+    },
     "llama.idx.list": {
         "section": "llama-index",
         "type": "dict",
@@ -2399,6 +2413,18 @@
         "type": "bool",
         "slider": false,
         "label": "Log LlamaIndex usage to console",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "log.realtime": {
+        "section": "debug",
+        "type": "bool",
+        "slider": false,
+        "label": "Log Realtime sessions to console",
         "value": false,
         "min": null,
         "max": null,

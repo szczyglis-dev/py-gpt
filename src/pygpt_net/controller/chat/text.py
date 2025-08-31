@@ -111,6 +111,7 @@ class Text:
         # if prev ctx is not empty, then copy input name to current ctx
         if prev_ctx is not None and prev_ctx.sub_call is True:  # sub_call = sent from expert
             ctx.input_name = prev_ctx.input_name
+
         if reply:
             ctx.extra["sub_reply"] = True  # mark as sub reply in extra data
 

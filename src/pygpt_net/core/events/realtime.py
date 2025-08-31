@@ -18,21 +18,27 @@ class RealtimeEvent(BaseEvent):
     """
     Realtime events
 
-    - AUDIO_OUTPUT_CHUNK - audio output chunk (with payload)
-    - AUDIO_OUTPUT_READY - audio output is ready (STREAM_BEGIN)
-    - AUDIO_OUTPUT_TEXT_CHUNK - text chunk (delta)
-    - AUDIO_OUTPUT_END - audio output ended (STREAM_END)
-    - AUDIO_OUTPUT_ERROR - audio output error (STREAM_ERROR)
-    - AUDIO_OUTPUT_VOLUME_CHANGED - audio output volume changed (volume level)
+    - RT_OUTPUT_AUDIO_DELTA - audio output chunk (with payload)
+    - RT_OUTPUT_READY - audio output is ready (STREAM_BEGIN)
+    - RT_OUTPUT_TEXT_DELTA - text chunk (delta)
+    - RT_OUTPUT_AUDIO_END - audio output ended (STREAM_END)
+    - RT_OUTPUT_TURN_END - audio output turn ended (TURN_END)
+    - RT_OUTPUT_AUDIO_ERROR - audio output error (STREAM_ERROR)
+    - RT_OUTPUT_AUDIO_VOLUME_CHANGED - audio output volume changed (volume level)
     """
 
-    # core, events sent from kernel
-    AUDIO_OUTPUT_CHUNK = "realtime.audio.output.chunk"
-    AUDIO_OUTPUT_READY = "realtime.audio.output.ready"
-    AUDIO_OUTPUT_TEXT_CHUNK = "realtime.audio.output.text.chunk"
-    AUDIO_OUTPUT_END = "realtime.audio.output.end"
-    AUDIO_OUTPUT_ERROR = "realtime.audio.output.error"
-    AUDIO_OUTPUT_VOLUME_CHANGED = "realtime.audio.output.volume.changed"
+    # realtime events
+    RT_OUTPUT_AUDIO_DELTA = "rt.output.audio.delta"
+    RT_OUTPUT_AUDIO_END = "rt.output.audio.end"
+    RT_OUTPUT_AUDIO_ERROR = "rt.output.audio.error"
+    RT_OUTPUT_AUDIO_VOLUME_CHANGED = "rt.output.audio.volume.changed"
+    RT_OUTPUT_AUDIO_COMMIT = "rt.output.audio.commit"
+    RT_OUTPUT_READY = "rt.output.audio.ready"
+    RT_OUTPUT_TEXT_DELTA = "rt.output.text.delta"
+    RT_OUTPUT_TURN_END = "rt.output.turn.end"
+    RT_INPUT_AUDIO_DELTA = "rt.input.audio.delta"
+    RT_INPUT_AUDIO_MANUAL_START = "rt.input.audio.manual.start"
+    RT_INPUT_AUDIO_MANUAL_STOP = "rt.input.audio.manual.stop"
 
     def __init__(
             self,
