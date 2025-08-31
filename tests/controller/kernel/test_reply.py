@@ -46,7 +46,7 @@ def reply_instance():
     window.controller.files = MagicMock()
     window.controller.files.update_explorer = MagicMock()
     window.core.ctx = MagicMock()
-    window.core.ctx.as_previous.return_value = "previous_ctx"
+    window.core.ctx.as_previous.return_value = MagicMock()
     window.core.ctx.update_item = MagicMock()
 
     reply = Reply(window)

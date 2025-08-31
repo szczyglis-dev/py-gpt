@@ -52,6 +52,7 @@ def make_window():
     window.controller.mode.switch_inline = Mock(side_effect=lambda mode, ctx, prompt: mode)
     window.controller.model = SimpleNamespace()
     window.controller.model.switch_inline = Mock(side_effect=lambda mode, model: model)
+    window.controller.realtime = SimpleNamespace(signals=Mock())
     window.core = SimpleNamespace()
     window.core.debug = SimpleNamespace()
     window.core.debug.info = Mock()

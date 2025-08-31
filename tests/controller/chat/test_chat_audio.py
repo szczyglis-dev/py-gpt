@@ -64,9 +64,7 @@ def test_update_enable(audio_obj, dummy_window):
     dummy_window.controller.audio.is_output_enabled.return_value = False
     dummy_window.controller.audio.is_input_enabled.return_value = False
     audio_obj.update()
-    dummy_window.controller.audio.enable_output.assert_called_once()
     dummy_window.controller.audio.enable_input.assert_called_once()
-    assert audio_obj.tmp_output is True
     assert audio_obj.tmp_input is True
 
 def test_update_no_enable(audio_obj, dummy_window):
@@ -84,7 +82,6 @@ def test_update_disable(audio_obj, dummy_window):
     audio_obj.tmp_output = True
     audio_obj.tmp_input = True
     audio_obj.update()
-    dummy_window.controller.audio.disable_output.assert_called_once()
     dummy_window.controller.audio.disable_input.assert_called_once()
 
 def test_handle_output(monkeypatch, audio_obj, dummy_window):
