@@ -97,6 +97,9 @@ class GoogleLiveClient:
         # Live session resumption (current session handle)
         self._rt_session_id: Optional[str] = None  # string handle that can be used to resume a session
 
+        # Cached tools signature to avoid redundant restarts
+        self._cached_session_tools_sig: Optional[str] = None
+
     # -----------------------------
     # Public high-level entrypoints
     # -----------------------------
@@ -233,6 +236,37 @@ class GoogleLiveClient:
         self._bg.stop(timeout=timeout)
 
     # -----------------------------
+    # Tools helpers
+    # -----------------------------
+
+    def _update_last_opts_tools(self, tools: Optional[list], remote_tools: Optional[list]) -> None:
+        """
+        Update self._last_opts with tools/remote_tools if those attributes exist.
+        """
+        lo = self._last_opts
+        if not lo:
+            return
+        try:
+            if tools is not None and hasattr(lo, "tools"):
+                setattr(lo, "tools", tools)
+        except Exception:
+            pass
+        try:
+            if remote_tools is not None and hasattr(lo, "remote_tools"):
+                setattr(lo, "remote_tools", remote_tools)
+        except Exception:
+            pass
+
+    def _tools_signature(self, tools_list: list) -> str:
+        """
+        Build a stable signature string for the given tools list.
+        """
+        try:
+            return json.dumps(tools_list or [], ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        except Exception:
+            return str(tools_list or [])
+
+    # -----------------------------
     # Internal: background loop/dispatch
     # -----------------------------
 
@@ -288,6 +322,9 @@ class GoogleLiveClient:
         }
         if session_tools:
             live_cfg["tools"] = session_tools
+
+        # Cache current tools signature
+        self._cached_session_tools_sig = self._tools_signature(session_tools or [])
 
         sys_prompt = getattr(opts, "system_prompt", None)
         if sys_prompt:
@@ -363,6 +400,9 @@ class GoogleLiveClient:
 
         # Clear only in-memory handle; keep persisted ctx.extra["rt_session_id"]
         self._rt_session_id = None
+
+        # Clear cached tools signature
+        self._cached_session_tools_sig = None
 
         if self.debug:
             print("[google.close_session] closed")
@@ -531,8 +571,6 @@ class GoogleLiveClient:
                 await self._session.send_realtime_input(
                     audio=gtypes.Blob(data=part, mime_type=mime)
                 )
-                # if self.debug:
-                    # print("[google.audio] payload", len(part))
             except Exception as e:
                 if self.debug:
                     print(f"[google.audio] payload send failed: {e!r}")
@@ -547,7 +585,6 @@ class GoogleLiveClient:
             if self.debug:
                 print(f"[google.audio] activityEnd failed: {e!r}")
             raise
-
 
     # -----------------------------
     # Internal: realtime audio input (auto-turn mode)
@@ -614,7 +651,6 @@ class GoogleLiveClient:
 
         async with self._send_lock:
             try:
-                print("SENDING GOOGLE")
                 await self._session.send_realtime_input(
                     audio=gtypes.Blob(data=pcm, mime_type=f"audio/pcm;rate={int(norm_rate)}")
                 )
@@ -924,6 +960,128 @@ class GoogleLiveClient:
 
             if self.debug:
                 print("[google._recv_one_turn] done")
+
+    # -----------------------------
+    # Public: live tools update
+    # -----------------------------
+
+    async def update_session_tools(
+        self,
+        tools: Optional[list] = None,
+        remote_tools: Optional[list] = None,
+        force: bool = False,
+    ):
+        """
+        Update session tools for Google Live.
+        Since the Live API does not support mid-session tool config updates via SDK,
+        this performs a safe session restart with best-effort resumption if the tools changed.
+        If the session is not open, it only updates cached opts for the next open.
+        """
+        self._ensure_background_loop()
+        return await self._run_on_owner(
+            self._update_session_tools_internal(tools, remote_tools, force)
+        )
+
+    def update_session_tools_sync(
+        self,
+        tools: Optional[list] = None,
+        remote_tools: Optional[list] = None,
+        force: bool = False,
+        timeout: float = 10.0,
+    ):
+        """Synchronous wrapper over update_session_tools()."""
+        self._ensure_background_loop()
+        return self._bg.run_sync(
+            self._update_session_tools_internal(tools, remote_tools, force),
+            timeout=timeout
+        )
+
+    async def _update_session_tools_internal(
+        self,
+        tools: Optional[list],
+        remote_tools: Optional[list],
+        force: bool,
+    ):
+        """
+        Owner-loop implementation for tools update on Google Live.
+
+        Strategy:
+        - Sanitize and compute signature of the requested tools set.
+        - If session is closed: update last opts and clear local cache.
+        - If session is open and tools changed (or force=True):
+            * Wait for any active response to finish.
+            * Restart the Live session and request resumption using the last known handle.
+        """
+        # Prepare target tools (prefer explicit args, fallback to last opts)
+        try:
+            target_tools_raw = tools if tools is not None else getattr(self._last_opts, "tools", None)
+        except Exception:
+            target_tools_raw = None
+        try:
+            target_remote_raw = remote_tools if remote_tools is not None else getattr(self._last_opts, "remote_tools", None)
+        except Exception:
+            target_remote_raw = None
+
+        session_tools = self._sanitize_tools(target_tools_raw, target_remote_raw)
+        new_sig = self._tools_signature(session_tools or [])
+
+        # If session is not open, just cache for next open
+        if not self._session:
+            self._update_last_opts_tools(tools, remote_tools)
+            self._cached_session_tools_sig = None
+            if self.debug:
+                print("[google.update_session_tools] session not open; cached for next open")
+            return
+
+        # Skip if unchanged
+        if not force and self._cached_session_tools_sig == new_sig:
+            self._update_last_opts_tools(tools, remote_tools)
+            if self.debug:
+                print("[google.update_session_tools] no changes; skipping restart")
+            return
+
+        # Ensure previous response is finished
+        if self._send_lock is None:
+            self._send_lock = asyncio.Lock()
+        async with self._send_lock:
+            if self._response_active and self._response_done:
+                if self.debug:
+                    print("[google.update_session_tools] waiting for active response to finish")
+                try:
+                    await self._response_done.wait()
+                except Exception:
+                    pass
+
+        # Persist new tools into last opts
+        self._update_last_opts_tools(tools, remote_tools)
+
+        # Try to resume the session state after restart if possible
+        prev_handle = self._rt_session_id
+
+        # Inject resumption handle into opts for the next open
+        try:
+            if self._last_opts is not None and prev_handle:
+                setattr(self._last_opts, "rt_session_id", prev_handle)
+        except Exception:
+            pass
+
+        if self.debug:
+            print("[google.update_session_tools] restarting session to apply new tools")
+
+        # Restart session with updated opts and best-effort resume
+        await self._reset_session_internal(
+            ctx=self._ctx,
+            opts=self._last_opts,
+            on_text=self._on_text,
+            on_audio=self._on_audio,
+            should_stop=self._should_stop,
+        )
+
+        # Cache new signature to suppress redundant restarts
+        self._cached_session_tools_sig = new_sig
+
+        if self.debug:
+            print(f"[google.update_session_tools] session restarted; tools={len(session_tools)}")
 
     # -----------------------------
     # Public: send tool results back to the model
@@ -1276,7 +1434,7 @@ class GoogleLiveClient:
                     if fn.get("description"):
                         fd["description"] = fn["description"]
                     params = fn.get("parameters")
-                    fd["parameters"] = self._schema_to_plain(params if params is not None else {"type": "object"})
+                    fd["parameters"] = self._schema_to_plain(params if params is not None else {"type": "OBJECT"})
                     add({"function_declarations": [fd]})
 
             for k in ("google_search", "code_execution", "url_context"):
@@ -1316,7 +1474,7 @@ class GoogleLiveClient:
             if desc:
                 out["description"] = desc
             params = getattr(fd, "parameters", None)
-            out["parameters"] = self._schema_to_plain(params if params is not None else {"type": "object"})
+            out["parameters"] = self._schema_to_plain(params if params is not None else {"type": "OBJECT"})
             return out
 
         if isinstance(fd, dict):
@@ -1327,7 +1485,7 @@ class GoogleLiveClient:
             if fd.get("description"):
                 out["description"] = fd["description"]
             params = fd.get("parameters")
-            out["parameters"] = self._schema_to_plain(params if params is not None else {"type": "object"})
+            out["parameters"] = self._schema_to_plain(params if params is not None else {"type": "OBJECT"})
             return out
 
         return None
