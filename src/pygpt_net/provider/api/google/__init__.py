@@ -266,6 +266,15 @@ class ApiGoogle:
             except Exception as e:
                 self.window.core.debug.log(e)
 
+        # URL Context tool
+        if cfg.get("remote_tools.google.url_ctx") and "image" not in model.id:
+            try:
+                # Supported on Gemini 2.x+ models (not on 1.5)
+                if not model_id.startswith("gemini-1.5") and not model_id.startswith("models/gemini-1.5"):
+                    tools.append(gtypes.Tool(url_context=gtypes.UrlContext))
+            except Exception as e:
+                self.window.core.debug.log(e)
+
         return tools
 
 

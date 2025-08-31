@@ -2371,6 +2371,8 @@ class Patch:
                 print("Migrating config from < 2.6.31...")
                 if "log.realtime" not in data:
                     data["log.realtime"] = False
+                if "remote_tools.google.url_ctx" not in data:
+                    data["remote_tools.google.url_ctx"] = False
                 updated = True
 
         # update file
