@@ -920,6 +920,9 @@ class Worker(BaseWorker):
         :param context: context data
         :return: extra data
         """
+        # disabled in v2.6.31
+        # reason: do not duplicate context in chat
+        return {}
         cmd = item["cmd"]
         extra = {
             'plugin': "cmd_files",
