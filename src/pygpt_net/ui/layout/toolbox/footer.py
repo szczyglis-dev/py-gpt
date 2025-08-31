@@ -81,6 +81,21 @@ class Footer:
         rows.addWidget(self.window.ui.nodes['voice.control.btn'])
         rows.setContentsMargins(2, 0, 0, 0)
 
+        self.window.ui.nodes['audio.auto_turn'] = ToggleLabel(trans('audio.auto_turn'), label_position="left",
+                                                              icon=":/icons/voice.svg",
+                                                              parent=self.window)
+        self.window.ui.nodes['audio.auto_turn'].box.toggled.connect(
+            self.window.controller.audio.toggle_auto_turn
+        )
+        auto_turn_widget = QWidget(widget)
+        auto_turn_layout = QHBoxLayout(auto_turn_widget)
+
+        auto_turn_layout.addWidget(QLabel("", auto_turn_widget))
+        auto_turn_layout.addStretch(1)
+        auto_turn_layout.addWidget(self.window.ui.nodes['audio.auto_turn'])
+        auto_turn_layout.setContentsMargins(5, 0, 15, 0)
+        rows.addWidget(auto_turn_widget)
+
         self.window.ui.nodes['layout.split'] = ToggleLabel(trans('layout.split'), label_position="left",
                                                           icon=":/icons/split_screen.svg",
                                                           parent=self.window)
@@ -89,6 +104,7 @@ class Footer:
         )
         split_widget = QWidget(widget)
         split_layout = QHBoxLayout(split_widget)
+
 
         split_layout.addWidget(QLabel("", split_widget))
         split_layout.addStretch(1)

@@ -172,7 +172,7 @@ class Output:
             dispatch(KernelEvent(KernelEvent.STATE_IDLE, self.STATE_PARAMS))  # state: idle
         else:
             if not controller.audio.is_recording():
-                controller.chat.common.show_response_tokens(ctx)
+                self.window.update_status("...")  # wait for audio
 
     def post_handle(
             self,

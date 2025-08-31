@@ -15,9 +15,9 @@ from pygpt_net.core.events import RealtimeEvent, RenderEvent, BaseEvent, AppEven
 from pygpt_net.core.realtime.worker import RealtimeSignals
 from pygpt_net.core.types import MODE_AUDIO
 from pygpt_net.utils import trans
+from pygpt_net.core.tabs import Tab
 
 from .manager import Manager
-
 
 class Realtime:
     def __init__(self, window=None):
@@ -37,6 +37,18 @@ class Realtime:
     def setup(self):
         """Setup realtime core, signals, etc. in main thread"""
         self.window.core.audio.setup()  # setup RT signals in audio input/output core
+
+    def is_enabled(self) -> bool:
+        """
+        Check if realtime is enabled in settings
+
+        :return: True if enabled, False otherwise
+        """
+        mode = self.window.core.config.get("mode")
+        if mode == MODE_AUDIO:
+            if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_NOTEPAD:
+                return True
+        return False
 
     @Slot(object)
     def handle(self, event: BaseEvent):
@@ -75,25 +87,27 @@ class Realtime:
                     "meta": ctx.meta,
                     "ctx": ctx,
                 }))
+                self.set_busy()
 
         # commit: audio buffer sent, stop audio input and finalize the response
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT:
+            self.set_busy()
             if self.manual_commit_sent:
                 self.manual_commit_sent = False
                 return # abort if manual commit was already sent
             self.window.controller.audio.execute_input_stop()
 
         elif event.name == RealtimeEvent.RT_INPUT_AUDIO_MANUAL_STOP:
-            if self.current_active == "openai":  # only if automatic turn
-                self.manual_commit_sent = True
-                QTimer.singleShot(0, lambda: self.manual_commit())
-            elif self.current_active == "google":
-                self.set_busy()
+            self.manual_commit_sent = True
+            self.set_busy()
+            QTimer.singleShot(0, lambda: self.manual_commit())
+            self.window.controller.chat.common.unlock_input()
 
         elif event.name == RealtimeEvent.RT_INPUT_AUDIO_MANUAL_START:
             self.set_idle()
             self.window.controller.chat.input.execute("...", force=True)
             QTimer.singleShot(10, lambda: self.window.update_status(trans("speech.listening")))
+            self.window.controller.chat.common.lock_input()
 
         # text delta: append text chunk to the response
         elif event.name == RealtimeEvent.RT_OUTPUT_TEXT_DELTA:
@@ -111,6 +125,7 @@ class Realtime:
         # audio end: stop audio playback
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_END:
             self.set_idle()
+            self.window.controller.chat.common.unlock_input()
 
         # end of turn: finalize the response
         elif event.name == RealtimeEvent.RT_OUTPUT_TURN_END:
@@ -120,6 +135,7 @@ class Realtime:
                 self.end_turn(ctx)
             if self.window.controller.audio.is_recording():
                 self.window.update_status(trans("speech.listening"))
+            self.window.controller.chat.common.unlock_input()
 
         # volume change: update volume in audio output handler
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_VOLUME_CHANGED:
@@ -138,13 +154,13 @@ class Realtime:
         elif event.name == AppEvent.MODE_SELECTED:
             mode = self.window.core.config.get("mode")
             if mode != MODE_AUDIO:
-                self.reset()
+                QTimer.singleShot(0, lambda: self.reset())
 
         elif event.name == AppEvent.CTX_CREATED:
-            self.reset()
+            QTimer.singleShot(0, lambda: self.reset())
 
         elif event.name == AppEvent.CTX_SELECTED:
-            self.reset()
+            QTimer.singleShot(0, lambda: self.reset())
 
     @Slot(object)
     def handle_response(self, event: RealtimeEvent):
@@ -154,6 +170,14 @@ class Realtime:
         :param event: RealtimeEvent instance
         """
         self.window.controller.kernel.listener(event)
+
+    def is_auto_turn(self) -> bool:
+        """
+        Check if auto-turn is enabled
+
+        :return: True if auto-turn is enabled, False otherwise
+        """
+        return self.window.core.config.get("audio.input.auto_turn", True)
 
     def manual_commit(self):
         """Manually commit the response (end of turn)"""
@@ -185,6 +209,7 @@ class Realtime:
             ctx=ctx,
             mode=MODE_AUDIO,
         )
+        self.window.controller.chat.common.show_response_tokens(ctx)
 
     def shutdown(self):
         """Shutdown all realtime threads and async loops"""

@@ -183,7 +183,7 @@ class UI:
         """
         self.recording = True
         self.window.ui.nodes['input'].set_icon_state("mic", True)
-        if mode == "input":
+        if mode in ["input", "realtime"]:
             self.window.controller.chat.common.lock_input()
             return
         btn = self.get_input_btn() if mode == 'input' else self.get_input_control_btn()
@@ -198,7 +198,7 @@ class UI:
         """
         self.recording = False
         self.window.ui.nodes['input'].set_icon_state("mic", False)
-        if mode == "input":
+        if mode in ["input", "realtime"]:
             self.window.controller.chat.common.unlock_input()
             return
         btn = self.get_input_btn() if mode == 'input' else self.get_input_control_btn()

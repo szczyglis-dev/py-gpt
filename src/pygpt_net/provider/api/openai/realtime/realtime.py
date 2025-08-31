@@ -13,6 +13,7 @@ import json
 from typing import Optional, Dict, Any
 
 from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.events import RealtimeEvent
 from pygpt_net.core.realtime.options import RealtimeOptions
 from pygpt_net.core.realtime.shared.session import extract_last_session_id
 from pygpt_net.item.model import ModelItem
@@ -54,7 +55,7 @@ class Realtime:
         audio_format = getattr(mm, "audio_format", None) if mm else None
         audio_rate = getattr(mm, "audio_rate", None) if mm else None
         is_debug = self.window.core.config.get("log.realtime", False)
-        auto_turn = True
+        auto_turn = self.window.core.config.get("audio.input.auto_turn", True)
 
         # setup manager
         self.window.controller.realtime.set_current_active(self.PROVIDER)
@@ -93,6 +94,7 @@ class Realtime:
                     self.handler.send_tool_results_sync({
                         tool_call_id: tool_results
                     })
+                    self.handler.update_ctx(context.ctx)
                     return True  # do not start new session, just send tool results
 
         # if auto-turn is enabled and prompt is empty, update session and context only
@@ -133,6 +135,8 @@ class Realtime:
             rt_signals=rt_signals,
             rt_session_id=last_session_id,
             auto_turn=auto_turn,
+            vad_end_silence_ms=self.window.core.config.get("audio.input.vad.silence", 2000),  # VAD end silence in ms
+            vad_prefix_padding_ms=self.window.core.config.get("audio.input.vad.prefix", 300),
         )
 
         # Start or append to realtime session via manager
@@ -145,6 +149,14 @@ class Realtime:
         except Exception as e:
             self.window.core.debug.log(e)
             return False  # fallback to non-live path
+
+    def handle_audio_input(self, event: RealtimeEvent):
+        """
+        Handle Realtime audio input event
+
+        :param event: RealtimeEvent
+        """
+        self.handler.rt_handle_audio_input_sync(event)
 
     def manual_commit(self):
         """Manually commit audio input to realtime session"""

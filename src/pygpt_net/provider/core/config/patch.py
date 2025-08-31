@@ -2373,6 +2373,12 @@ class Patch:
                     data["log.realtime"] = False
                 if "remote_tools.google.url_ctx" not in data:
                     data["remote_tools.google.url_ctx"] = False
+                if "audio.input.auto_turn" not in data:
+                    data["audio.input.auto_turn"] = True
+                if "audio.input.vad.prefix" not in data:
+                    data["audio.input.vad.prefix"] = 300
+                if "audio.input.vad.silence" not in data:
+                    data["audio.input.vad.silence"] = 2000
                 updated = True
 
         # update file

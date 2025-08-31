@@ -225,6 +225,10 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Continuous Audio Recording (Chunks)``: Enable recording in chunks for long audio recordings in notepad (voice notes).
 
+* ``VAD prefix padding (in ms)``:  VAD prefix padding in ms, default: 300ms (Realtime audio mode)
+
+* ``VAD end silence (in ms)``: VAD end silence in ms, default: 2000ms (Realtime audio mode)
+
 **Indexes / LlamaIndex**
 
 **General**

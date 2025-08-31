@@ -138,8 +138,7 @@ class Plugin(BasePlugin):
         :param state: state to set
         :param auto: True if called automatically (not by user)
         """
-        mode = self.window.core.config.get("mode")
-        if mode == MODE_AUDIO:
+        if self.window.controller.realtime.is_enabled():
             self.handler_simple.toggle_realtime(state=state, auto=auto)
             return
         self.handler_simple.toggle_recording(state=state)
@@ -513,6 +512,18 @@ class Plugin(BasePlugin):
                 })
                 self.window.dispatch(event)  # send text, input clear in send method
                 self.set_status('')
+
+    def handle_realtime_stopped(self):
+        """Handle realtime stopped"""
+        context = BridgeContext()
+        context.prompt = "..."
+        extra = {}
+        event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+            'context': context,
+            'extra': extra,
+        })
+        self.window.dispatch(event)  # send text, input clear in send method
+        self.set_status('')
 
     @Slot(object)
     def handle_status(self, data: str):

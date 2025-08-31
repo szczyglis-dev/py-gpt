@@ -1501,6 +1501,30 @@
         "advanced": false,        
         "tab": "options"
     },    
+    "audio.input.vad.prefix": {
+        "section": "audio",
+        "type": "int",
+        "slider": false,
+        "label": "settings.audio.input.vad.prefix",
+        "value": 300,
+        "min": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "options"
+    },
+    "audio.input.vad.silence": {
+        "section": "audio",
+        "type": "int",
+        "slider": false,
+        "label": "settings.audio.input.vad.silence",
+        "value": 2000,
+        "min": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "options"
+    },
     "audio.cache.enabled": {
         "section": "audio",
         "type": "bool",

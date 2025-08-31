@@ -42,7 +42,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Assistants, Experts, Computer use, Agents and Autonomous Mode.
+- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image generation, Assistants, Experts, Computer use, Agents and Autonomous Mode.
 - Supports multiple models like `OpenAI GPT-5`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `DeepSeek`, `gpt-oss`, `Llama 3`, `Mistral`, `Bielik`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -2365,6 +2365,10 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 - `Audio notify microphone listening start/stop`: enables audio "tick" notify when microphone listening started/ended.
 
 - `Continuous Audio Recording (Chunks)`: Enable recording in chunks for long audio recordings in notepad (voice notes).
+
+- `VAD prefix padding (in ms)`:  VAD prefix padding in ms, default: 300ms (Realtime audio mode)
+
+- `VAD end silence (in ms)`: VAD end silence in ms, default: 2000ms (Realtime audio mode)
 
 **Indexes / LlamaIndex**
 

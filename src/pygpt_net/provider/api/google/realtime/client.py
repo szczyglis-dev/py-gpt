@@ -39,11 +39,16 @@ class GoogleLiveClient:
         * text: send_client_content(Content(...), turn_complete=True/False)
         * audio: ActivityStart -> send_realtime_input(audio=Blob...) -> ActivityEnd
           (manual turns; no auto VAD; no inline dicts — SDK serializes wire format)
+    - Auto-turn mode (automatic VAD) is fully supported for continuous mic input:
+        * push audio chunks via send_realtime_input(audio=...)
+        * flush on demand via send_realtime_input(audio_stream_end=True)
+        * receiver for one model turn is started automatically on first audio chunk.
     - Each turn has its own receive loop, ending on serverContent.turnComplete or toolCall.
     - Audio is jitter-buffered (~60ms) and de-duplicated (prefer response.data over inline_data).
     - Final transcript is coalesced; preserves hard line breaks only.
     - Tool calls, citations, images and usage are extracted and persisted to ctx to mirror OpenAI provider behavior.
-    - Emits RealtimeEvent.RT_OUTPUT_TURN_END after each turn.
+    - Emits RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT when the model starts responding after auto VAD or after an explicit flush,
+      and RealtimeEvent.RT_OUTPUT_TURN_END after each turn.
     - Supports sending tool results back to the model (send_tool_results/send_tool_results_sync).
     """
     def __init__(
@@ -99,6 +104,9 @@ class GoogleLiveClient:
 
         # Cached tools signature to avoid redundant restarts
         self._cached_session_tools_sig: Optional[str] = None
+
+        # Auto-turn state
+        self._auto_audio_in_flight: bool = False  # True if auto-turn audio has been sent in current turn
 
     # -----------------------------
     # Public high-level entrypoints
@@ -347,9 +355,10 @@ class GoogleLiveClient:
         except Exception:
             pass
 
-        # Apply turn mode (prepared for future auto mode)
+        # Apply turn mode (auto/manual VAD)
         turn_mode = TurnMode.AUTO if bool(getattr(opts, "auto_turn", False)) else TurnMode.MANUAL
         apply_turn_mode_google(live_cfg, turn_mode)
+        self._tune_google_vad(live_cfg, opts)
 
         # Save callbacks and ctx
         self._on_text = on_text
@@ -403,6 +412,9 @@ class GoogleLiveClient:
 
         # Clear cached tools signature
         self._cached_session_tools_sig = None
+
+        # Auto-turn flags
+        self._auto_audio_in_flight = False
 
         if self.debug:
             print("[google.close_session] closed")
@@ -467,6 +479,7 @@ class GoogleLiveClient:
             self._saw_data_stream = False
             self._rt_reset_state()
             self._last_tool_calls = []
+            self._auto_audio_in_flight = False
 
             # Normalize prompt/audio first to choose a stable path
             txt = str(prompt).strip() if prompt is not None else ""
@@ -500,7 +513,15 @@ class GoogleLiveClient:
                 self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-turn")
 
             elif has_audio and not has_text:
-                # AUDIO-ONLY -> manual activity: start -> audio -> end
+                # AUDIO-ONLY
+                # If auto-turn is enabled, use auto-VAD path and flush with audio_stream_end.
+                # Otherwise, use manual ActivityStart/End boundaries.
+                use_auto = False
+                try:
+                    use_auto = bool(getattr(self._last_opts, "auto_turn", False))
+                except Exception:
+                    use_auto = False
+
                 self._response_active = True
                 if self._response_done is None:
                     self._response_done = asyncio.Event()
@@ -510,18 +531,42 @@ class GoogleLiveClient:
                     except Exception:
                         self._response_done = asyncio.Event()
 
-                # Start receiving before streaming, to catch early server messages
+                # Start receiving before sending any audio
                 self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-turn")
-                await self._send_audio_realtime_manual(pcm, rate)
+
+                if use_auto:
+                    self._auto_audio_in_flight = True
+                    # Auto-VAD: send a single audio blob and flush explicitly
+                    try:
+                        await self._session.send_realtime_input(
+                            audio=gtypes.Blob(data=pcm, mime_type=f"audio/pcm;rate={int(rate)}")
+                        )
+                        await self._session.send_realtime_input(audio_stream_end=True)
+                        self._emit_audio_commit_signal()  # fire once for explicit flush
+                    except Exception as e:
+                        if self.debug:
+                            print(f"[google.audio:auto] send failed: {e!r}")
+                        raise
+                else:
+                    # Manual activity: start -> audio -> end
+                    await self._send_audio_realtime_manual(pcm, rate)
 
             elif has_text and has_audio:
                 # TEXT + AUDIO in one user turn:
+                # Respect the configured mode: in manual mode keep ActivityStart/End,
+                # in auto-turn mode send text first and then treat audio as auto-VAD stream with explicit flush.
+                use_auto = False
+                try:
+                    use_auto = bool(getattr(self._last_opts, "auto_turn", False))
+                except Exception:
+                    use_auto = False
+
                 # 1) text opens the turn (turn_complete=False)
                 await self._session.send_client_content(
                     turns=gtypes.Content(role="user", parts=parts_t),
                     turn_complete=False,
                 )
-                # 2) start receive and stream audio as the same turn (manual activity)
+
                 self._response_active = True
                 if self._response_done is None:
                     self._response_done = asyncio.Event()
@@ -530,8 +575,24 @@ class GoogleLiveClient:
                         self._response_done.clear()
                     except Exception:
                         self._response_done = asyncio.Event()
+
+                # Start receiver, then send audio
                 self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-turn")
-                await self._send_audio_realtime_manual(pcm, rate)
+
+                if use_auto:
+                    self._auto_audio_in_flight = True
+                    try:
+                        await self._session.send_realtime_input(
+                            audio=gtypes.Blob(data=pcm, mime_type=f"audio/pcm;rate={int(rate)}")
+                        )
+                        await self._session.send_realtime_input(audio_stream_end=True)
+                        self._emit_audio_commit_signal()  # fire once for explicit flush
+                    except Exception as e:
+                        if self.debug:
+                            print(f"[google.audio:auto+text] send failed: {e!r}")
+                        raise
+                else:
+                    await self._send_audio_realtime_manual(pcm, rate)
 
             else:
                 # nothing to send
@@ -645,6 +706,12 @@ class GoogleLiveClient:
         except Exception:
             return
 
+        # Ensure a receiver for this auto-turn is running before sending audio
+        self._ensure_auto_receiver_started()
+
+        # Mark that auto-turn audio has been sent in this turn
+        self._auto_audio_in_flight = True
+
         # Send audio blob; Gemini Live handles VAD automatically in auto mode
         if self._send_lock is None:
             self._send_lock = asyncio.Lock()
@@ -661,8 +728,84 @@ class GoogleLiveClient:
             if is_final:
                 try:
                     await self._session.send_realtime_input(audio_stream_end=True)
+                    self._emit_audio_commit_signal()  # fire once for explicit flush
                 except Exception:
                     pass
+
+    def commit_audio_input_sync(self, timeout: float = 0.5):
+        """
+        Synchronous entrypoint to flush the input audio stream in auto-turn mode.
+        This sends audio_stream_end to force the model to process current buffered audio.
+        Safe to call from any thread.
+        """
+        self._ensure_background_loop()
+        try:
+            self._bg.run_sync(self._commit_audio_input_internal(), timeout=timeout)
+        except Exception:
+            # Never raise to caller
+            pass
+
+    async def _commit_audio_input_internal(self):
+        """
+        Owner-loop implementation: in auto-turn mode flush server-side VAD buffer.
+        """
+        if not self._session:
+            return
+        try:
+            if not bool(getattr(self._last_opts, "auto_turn", False)):
+                return
+        except Exception:
+            return
+
+        # Ensure a receiver is running for this turn
+        self._ensure_auto_receiver_started()
+
+        if self._send_lock is None:
+            self._send_lock = asyncio.Lock()
+        async with self._send_lock:
+            try:
+                await self._session.send_realtime_input(audio_stream_end=True)
+                self._emit_audio_commit_signal()  # fire once for explicit flush
+            except Exception:
+                pass
+
+    def force_response_now_sync(self, timeout: float = 5.0):
+        """
+        Synchronously force the model to create a response from current input buffer (auto-turn).
+        Internally sends audio_stream_end and ensures a receiver is running for the pending turn.
+        """
+        self._ensure_background_loop()
+        try:
+            self._bg.run_sync(self._force_response_now_internal(), timeout=timeout)
+        except Exception:
+            # Defensive: do not propagate errors to caller
+            pass
+
+    async def _force_response_now_internal(self):
+        """
+        Owner-loop: in auto-turn mode, flush current audio buffer and guarantee that a receive task
+        for the current model turn is running. No-op in manual mode.
+        """
+        if not self._session:
+            return
+        try:
+            if not bool(getattr(self._last_opts, "auto_turn", False)):
+                return
+        except Exception:
+            return
+
+        # Ensure a receiver is running for this turn
+        self._ensure_auto_receiver_started()
+
+        # Flush server-side buffer to force the model to respond
+        if self._send_lock is None:
+            self._send_lock = asyncio.Lock()
+        async with self._send_lock:
+            try:
+                await self._session.send_realtime_input(audio_stream_end=True)
+                self._emit_audio_commit_signal()  # fire once for explicit flush
+            except Exception:
+                pass
 
     async def _recv_one_turn(self):
         """Receive one turn until serverContent.turnComplete or toolCall."""
@@ -698,12 +841,18 @@ class GoogleLiveClient:
                 # 2) Preferred audio source: response.data (PCM16@24kHz)
                 data = getattr(response, "data", None)
                 if isinstance(data, (bytes, bytearray)):
+                    # First output from model -> emit commit once (auto-turn only)
+                    self._maybe_emit_auto_commit()
                     self._saw_data_stream = True
                     await self._audio_push(bytes(data), final=False)
 
                 # 3) Server content
                 sc = getattr(response, "server_content", None) or getattr(response, "serverContent", None)
                 if sc:
+                    # Any serverContent reaching here implies the model started processing;
+                    # emit commit once if not yet emitted (auto-turn only).
+                    self._maybe_emit_auto_commit()
+
                     # Output transcription (often cumulative)
                     out_tr = getattr(sc, "output_transcription", None) or getattr(sc, "outputTranscription", None)
                     if out_tr and getattr(out_tr, "text", None) and self._on_text:
@@ -833,6 +982,7 @@ class GoogleLiveClient:
                 # 4) Dedicated toolCall message
                 tc = getattr(response, "tool_call", None) or getattr(response, "toolCall", None)
                 if tc:
+                    self._maybe_emit_auto_commit()  # ensure commit signaled before handing off to tools
                     fcs = getattr(tc, "function_calls", None) or getattr(tc, "functionCalls", None) or []
                     new_calls = []
                     for fc in fcs:
@@ -957,6 +1107,7 @@ class GoogleLiveClient:
 
             # Reset per-turn state
             self._rt_state = None
+            self._auto_audio_in_flight = False
 
             if self.debug:
                 print("[google._recv_one_turn] done")
@@ -1250,6 +1401,7 @@ class GoogleLiveClient:
             "is_code": False,
             "force_func_call": False,
             "usage_payload": {},
+            "auto_commit_signaled": False,
         }
 
     def _rt_capture_google_usage(self, um_obj: Any):
@@ -1549,6 +1701,37 @@ class GoogleLiveClient:
 
         return {"type": "OBJECT"}
 
+    def _tune_google_vad(self, live_cfg: dict, opts) -> None:
+        """
+        Increase end-of-speech hold for automatic VAD in Gemini Live.
+        """
+        try:
+            ric = live_cfg.setdefault("realtime_input_config", {})
+            aad = ric.setdefault("automatic_activity_detection", {})
+            if aad.get("disabled") is True:
+                return  # manual mode, VAD disabled
+
+            # Resolve target silence (default 2000 ms)
+            target_ms = getattr(opts, "vad_end_silence_ms", None)
+            if not isinstance(target_ms, (int, float)) or target_ms <= 0:
+                base = int(aad.get("silence_duration_ms") or 100)
+                target_ms = max(base, 2000)
+
+            aad["silence_duration_ms"] = int(target_ms)
+
+            # Optional: make end-of-speech less aggressive
+            try:
+                aad["end_of_speech_sensitivity"] = gtypes.EndSensitivity.END_SENSITIVITY_LOW
+            except Exception:
+                aad["end_of_speech_sensitivity"] = "END_SENSITIVITY_LOW"
+
+            # Optional: leading padding before detected speech
+            prefix_ms = getattr(opts, "vad_prefix_padding_ms", None)
+            if isinstance(prefix_ms, (int, float)) and prefix_ms >= 0:
+                aad["prefix_padding_ms"] = int(prefix_ms)
+        except Exception:
+            pass
+
     def set_debug(self, enabled: bool):
         """
         Enable or disable debug logging.
@@ -1564,3 +1747,79 @@ class GoogleLiveClient:
     def update_ctx(self, ctx: CtxItem):
         """Update the current CtxItem (for session handle persistence)."""
         self._ctx = ctx
+
+    # -----------------------------
+    # Internal: auto-turn receiver bootstrap
+    # -----------------------------
+
+    def _ensure_auto_receiver_started(self):
+        """
+        Start a receiver task for one model turn in auto-turn mode if not already active.
+        This guarantees we do not miss server responses when sending live audio chunks.
+        """
+        # Only in auto-turn mode and with an open session
+        if not self._session:
+            return
+        try:
+            if not bool(getattr(self._last_opts, "auto_turn", False)):
+                return
+        except Exception:
+            return
+
+        # If a previous task exists but is done, clear the ref
+        if self._turn_task and self._turn_task.done():
+            self._turn_task = None
+
+        if not self._response_active:
+            # Reset per-turn collectors
+            self._turn_text_parts = []
+            self._last_out_tr = ""
+            self._audio_buf.clear()
+            self._saw_data_stream = False
+            self._rt_reset_state()
+
+            self._response_active = True
+            if self._response_done is None:
+                self._response_done = asyncio.Event()
+            else:
+                try:
+                    self._response_done.clear()
+                except Exception:
+                    self._response_done = asyncio.Event()
+
+            self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-auto-turn")
+
+    # -----------------------------
+    # Internal: commit event helpers
+    # -----------------------------
+
+    def _emit_audio_commit_signal(self):
+        """
+        Emit RT_OUTPUT_AUDIO_COMMIT once per turn in auto-turn mode.
+        """
+        if self._rt_state is None:
+            self._rt_reset_state()
+        if self._rt_state.get("auto_commit_signaled"):
+            return
+        try:
+            if not bool(getattr(self._last_opts, "auto_turn", False)):
+                return
+        except Exception:
+            return
+        # Limit to audio turns: only when we actually sent auto-turn audio this turn
+        if not self._auto_audio_in_flight:
+            return
+        try:
+            if self._last_opts and hasattr(self._last_opts, "rt_signals"):
+                self._last_opts.rt_signals.response.emit(
+                    RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT, {"ctx": self._ctx})
+                )
+            self._rt_state["auto_commit_signaled"] = True
+        except Exception:
+            pass
+
+    def _maybe_emit_auto_commit(self):
+        """
+        Emit RT_OUTPUT_AUDIO_COMMIT on first sign of model output in auto-turn mode.
+        """
+        self._emit_audio_commit_signal()

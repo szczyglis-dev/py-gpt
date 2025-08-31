@@ -43,6 +43,9 @@ class RealtimeOptions:
     # Provider-specific VAD flag (use None for manual mode)
     vad: Optional[str] = None           # e.g., "server_vad"
 
+    vad_end_silence_ms: Optional[int] = 2000  # VAD end silence in ms
+    vad_prefix_padding_ms: Optional[int] = 300  # VAD prefix padding in ms
+
     # Real-time signals
     rt_signals: field() = None  # RT signals
 
@@ -73,6 +76,8 @@ class RealtimeOptions:
             "audio_format": self.audio_format,
             "audio_rate": self.audio_rate,
             "vad": self.vad,
+            "vad_end_silence_ms": self.vad_end_silence_ms,
+            "vad_prefix_padding_ms": self.vad_prefix_padding_ms,
             "tools": self.tools,
             "remote_tools": self.remote_tools,
             "auto_turn": self.auto_turn,

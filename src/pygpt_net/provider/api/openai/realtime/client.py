@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2025.09.01 00:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -398,6 +398,7 @@ class OpenAIRealtimeClient:
         }
         turn_mode = TurnMode.AUTO if bool(getattr(opts, "auto_turn", False)) else TurnMode.MANUAL
         apply_turn_mode_openai(session_payload, turn_mode)
+        self._tune_openai_vad(session_payload, opts)
 
         # Attach tools to session (remote + functions)
         try:
@@ -528,6 +529,31 @@ class OpenAIRealtimeClient:
         if self._send_lock is None:
             self._send_lock = asyncio.Lock()
 
+        # Determine whether we should trigger a response for this turn
+        def _bool(v) -> bool:
+            try:
+                return bool(v)
+            except Exception:
+                return False
+
+        is_auto_turn = _bool(getattr(self._last_opts or object(), "auto_turn", False))
+        has_text = bool(prompt and str(prompt).strip() and str(prompt).strip() != "...")
+        has_audio = bool(audio_data)
+        # Honor explicit "reply" hint if provided by caller (e.g., opts.extra.reply == True)
+        reply_hint = False
+        try:
+            extra = getattr(self._last_opts, "extra", None)
+            if isinstance(extra, dict):
+                reply_hint = bool(extra.get("reply", False))
+        except Exception:
+            pass
+
+        # In manual mode, do not auto-trigger response.create when there is no user input and no explicit reply request.
+        if not is_auto_turn and not has_text and not has_audio and not reply_hint:
+            if self.debug:
+                print("[send_turn] skipped: manual mode with empty input; waiting for explicit commit")
+            return
+
         async with self._send_lock:
             # Ensure previous response is finished
             if self._response_active and self._response_done:
@@ -536,7 +562,7 @@ class OpenAIRealtimeClient:
                 await self._response_done.wait()
 
             # Optional text
-            if prompt and str(prompt).strip() and prompt != "...":
+            if has_text:
                 if self.debug:
                     print(f"[send_turn] prompt len={len(prompt)}")
                 await self.ws.send(json.dumps({
@@ -549,7 +575,7 @@ class OpenAIRealtimeClient:
                 }))
 
             # Optional audio
-            if audio_data:
+            if has_audio:
                 sr, _ch, pcm = coerce_to_pcm16_mono(audio_data, audio_format, audio_rate, fallback_rate=self._DEFAULT_RATE)
 
                 if sr != self._DEFAULT_RATE:
@@ -581,7 +607,7 @@ class OpenAIRealtimeClient:
                 except Exception:
                     self._response_done = asyncio.Event()
 
-            # Build optional response payload (tools/tool_choice)
+            # Build optional response payload (modalities + tools/tool_choice)
             resp_obj = {"modalities": ["text", "audio"]}
             try:
                 resp_tools, tool_choice = prepare_tools_for_response(self._last_opts)
@@ -1604,6 +1630,32 @@ class OpenAIRealtimeClient:
                 if not getattr(self._last_opts, "prompt", None):
                     self._ctx.input = str(transcript)
                 self.window.core.ctx.update_item(self._ctx)
+        except Exception:
+            pass
+
+    def _tune_openai_vad(self, session_payload: dict, opts) -> None:
+        """
+        Increase end-of-speech hold for server VAD (auto-turn) to reduce premature turn endings.
+        """
+        try:
+            sess = session_payload.get("session") or {}
+            td = sess.get("turn_detection")
+            if not isinstance(td, dict):
+                return  # manual mode or VAD disabled
+
+            # Resolve target silence (default +2000 ms)
+            target_ms = getattr(opts, "vad_end_silence_ms", None)
+            if not isinstance(target_ms, (int, float)) or target_ms <= 0:
+                # If user didn't override, ensure at least 2000 ms
+                base = int(td.get("silence_duration_ms") or 500)
+                target_ms = max(base, 2000)
+
+            td["silence_duration_ms"] = int(target_ms)
+
+            # Optional: prefix padding before detected speech
+            prefix_ms = getattr(opts, "vad_prefix_padding_ms", None)
+            if isinstance(prefix_ms, (int, float)) and prefix_ms >= 0:
+                td["prefix_padding_ms"] = int(prefix_ms)
         except Exception:
             pass
 

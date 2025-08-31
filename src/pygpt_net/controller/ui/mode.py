@@ -20,6 +20,7 @@ from pygpt_net.core.types import (
     MODE_COMPUTER,
     MODE_AGENT_OPENAI,
     MODE_COMPLETION,
+    MODE_AUDIO,
 )
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event
@@ -55,6 +56,12 @@ class Mode:
         is_image = mode == MODE_IMAGE
         is_llama_index = mode == MODE_LLAMA_INDEX
         is_completion = mode == MODE_COMPLETION
+        is_audio = mode == MODE_AUDIO
+
+        if not is_audio:
+            self.window.ui.nodes['audio.auto_turn'].setVisible(False)
+        else:
+            self.window.ui.nodes['audio.auto_turn'].setVisible(True)
 
         if not is_assistant:
             ui_nodes['presets.widget'].setVisible(True)

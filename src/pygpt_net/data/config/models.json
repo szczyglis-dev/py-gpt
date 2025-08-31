@@ -2380,7 +2380,7 @@
             },
             "ctx": 32000,
             "tokens": 4096,
-            "default": false,
+            "default": true,
             "input": [
                 "text",
                 "audio"
