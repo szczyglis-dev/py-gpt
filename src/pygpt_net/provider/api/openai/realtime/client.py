@@ -443,12 +443,20 @@ class OpenAIRealtimeClient:
     async def _close_session_internal(self):
         """Close WS and stop the receiver; keep the background loop alive for reuse."""
         self._running = False
+
         # Cancel active response if any
         if self.ws and self._response_active:
             try:
                 await self.ws.send(json.dumps({"type": "response.cancel"}))
             except Exception:
                 pass
+
+        # Unblock any waiters before clearing handles
+        try:
+            if self._response_done and not self._response_done.is_set():
+                self._response_done.set()
+        except Exception:
+            pass
 
         # Close the socket
         if self.ws:
@@ -554,12 +562,13 @@ class OpenAIRealtimeClient:
                 print("[send_turn] skipped: manual mode with empty input; waiting for explicit commit")
             return
 
+        wait_prev: Optional[asyncio.Event] = None
+        wait_curr: Optional[asyncio.Event] = None
+
         async with self._send_lock:
-            # Ensure previous response is finished
+            # Ensure previous response is finished (snapshot the handle to avoid race with close)
             if self._response_active and self._response_done:
-                if self.debug:
-                    print("[send_turn] waiting for previous response")
-                await self._response_done.wait()
+                wait_prev = self._response_done
 
             # Optional text
             if has_text:
@@ -598,7 +607,16 @@ class OpenAIRealtimeClient:
                     }))
                 await self.ws.send(json.dumps({"type": "input_audio_buffer.commit"}))
 
-            # Trigger exactly one assistant response
+            # If we were waiting for a previous response, do it inside lock handoff-safe
+            if wait_prev:
+                try:
+                    if self.debug:
+                        print("[send_turn] waiting for previous response")
+                    await wait_prev.wait()
+                except Exception:
+                    pass
+
+            # Prepare wait handle for the response about to start
             if self._response_done is None:
                 self._response_done = asyncio.Event()
             else:
@@ -606,6 +624,7 @@ class OpenAIRealtimeClient:
                     self._response_done.clear()
                 except Exception:
                     self._response_done = asyncio.Event()
+            wait_curr = self._response_done  # snapshot for race-free waiting
 
             # Build optional response payload (modalities + tools/tool_choice)
             resp_obj = {"modalities": ["text", "audio"]}
@@ -630,10 +649,13 @@ class OpenAIRealtimeClient:
                 print("[send_turn] response.create sent")
 
         # Optionally wait for response.done (otherwise return immediately)
-        if wait_for_done and self._response_done:
+        if wait_for_done and wait_curr:
             if self.debug:
                 print("[send_turn] waiting for response.done")
-            await self._response_done.wait()
+            try:
+                await wait_curr.wait()
+            except Exception:
+                pass
             if self.debug:
                 print("[send_turn] response.done received")
 
@@ -962,6 +984,7 @@ class OpenAIRealtimeClient:
         if self._send_lock is None:
             self._send_lock = asyncio.Lock()
 
+        wait_ev: Optional[asyncio.Event] = None
         async with self._send_lock:
             # Emit one conversation.item.create per tool output
             for it in outputs:
@@ -986,13 +1009,13 @@ class OpenAIRealtimeClient:
                         self._response_done.clear()
                     except Exception:
                         self._response_done = asyncio.Event()
-
+                wait_ev = self._response_done  # snapshot for race-free waiting
                 await self.ws.send(json.dumps({"type": "response.create"}))
 
         # Wait for the follow-up response to complete
-        if continue_turn and wait_for_done and self._response_done:
+        if continue_turn and wait_for_done and wait_ev:
             try:
-                await self._response_done.wait()
+                await wait_ev.wait()
             except Exception:
                 pass
 
@@ -1485,6 +1508,12 @@ class OpenAIRealtimeClient:
         finally:
             if self.debug:
                 print("[_recv_loop] stopped")
+            # Ensure any waiters are unblocked on socket teardown
+            try:
+                if self._response_done and not self._response_done.is_set():
+                    self._response_done.set()
+            except Exception:
+                pass
             try:
                 if self.ws:
                     await self.ws.close()

@@ -75,9 +75,9 @@ class Realtime:
         elif event.name == RealtimeEvent.RT_INPUT_AUDIO_DELTA:
             self.set_idle()
             if self.current_active == "google":
-                self.window.core.api.google.realtime.handler.rt_handle_audio_input_sync(event)
+                self.window.core.api.google.realtime.handle_audio_input(event)
             elif self.current_active == "openai":
-                self.window.core.api.openai.realtime.handler.rt_handle_audio_input_sync(event)
+                self.window.core.api.openai.realtime.handle_audio_input(event)
 
         # begin: first text chunk or audio chunk received, start rendering
         elif event.name == RealtimeEvent.RT_OUTPUT_READY:
@@ -101,13 +101,13 @@ class Realtime:
             self.manual_commit_sent = True
             self.set_busy()
             QTimer.singleShot(0, lambda: self.manual_commit())
-            self.window.controller.chat.common.unlock_input()
 
         elif event.name == RealtimeEvent.RT_INPUT_AUDIO_MANUAL_START:
             self.set_idle()
             self.window.controller.chat.input.execute("...", force=True)
-            QTimer.singleShot(10, lambda: self.window.update_status(trans("speech.listening")))
-            self.window.controller.chat.common.lock_input()
+            self.window.dispatch(KernelEvent(KernelEvent.STATUS, {
+                'status': trans("speech.listening"),
+            }))
 
         # text delta: append text chunk to the response
         elif event.name == RealtimeEvent.RT_OUTPUT_TEXT_DELTA:
@@ -147,6 +147,7 @@ class Realtime:
             self.set_idle()
             error = event.data.get("error")
             self.window.core.debug.log(error)
+            self.window.controller.chat.common.unlock_input()
 
         # -----------------------------------
 
@@ -256,12 +257,12 @@ class Realtime:
 
     def set_idle(self):
         """Set kernel state to IDLE"""
-        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+        QTimer.singleShot(0, lambda: self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "realtime",
-        }))
+        })))
 
     def set_busy(self):
         """Set kernel state to BUSY"""
-        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+        QTimer.singleShot(0, lambda: self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
             "id": "realtime",
-        }))
+        })))
