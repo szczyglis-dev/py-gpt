@@ -11,7 +11,14 @@
 
 from PySide6.QtCore import Slot, QTimer
 
-from pygpt_net.core.events import RealtimeEvent, RenderEvent, BaseEvent, AppEvent, KernelEvent
+from pygpt_net.core.events import (
+    RealtimeEvent,
+    RenderEvent,
+    BaseEvent,
+    AppEvent,
+    KernelEvent,
+    Event,
+)
 from pygpt_net.core.realtime.worker import RealtimeSignals
 from pygpt_net.core.types import MODE_AUDIO
 from pygpt_net.utils import trans
@@ -122,10 +129,12 @@ class Realtime:
                     "begin": False,
                 }))
 
-        # audio end: stop audio playback
+        # audio end: on stop audio playback
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_END:
             self.set_idle()
             self.window.controller.chat.common.unlock_input()
+            if self.is_loop():
+                QTimer.singleShot(500, lambda: self.next_turn())  # wait a bit before next turn
 
         # end of turn: finalize the response
         elif event.name == RealtimeEvent.RT_OUTPUT_TURN_END:
@@ -162,6 +171,22 @@ class Realtime:
 
         elif event.name == AppEvent.CTX_SELECTED:
             QTimer.singleShot(0, lambda: self.reset())
+
+    def next_turn(self):
+        """Start next turn in loop mode (if enabled)"""
+        self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
+        if self.window.controller.audio.is_recording():
+            QTimer.singleShot(100, lambda: self.window.update_status(trans("speech.listening")))
+
+    def is_loop(self) -> bool:
+        """
+        Check if loop recording is enabled
+
+        :return: True if loop recording is enabled, False otherwise
+        """
+        if self.window.controller.kernel.stopped():
+            return False
+        return self.window.core.config.get("audio.input.loop", False)
 
     @Slot(object)
     def handle_response(self, event: RealtimeEvent):

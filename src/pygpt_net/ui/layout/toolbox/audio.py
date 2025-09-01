@@ -9,7 +9,7 @@
 # Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QWidget
 
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
@@ -37,12 +37,19 @@ class Audio:
         self.window.ui.nodes['audio.auto_turn'].box.toggled.connect(
             self.window.controller.audio.toggle_auto_turn
         )
-        auto_turn_widget = QWidget(self.window)
-        auto_turn_layout = QHBoxLayout(auto_turn_widget)
+        self.window.ui.nodes['audio.loop'] = ToggleLabel(trans('audio.loop'), label_position="left",
+                                                              parent=self.window)
+        self.window.ui.nodes['audio.loop'].box.toggled.connect(
+            self.window.controller.audio.toggle_loop
+        )
 
-        auto_turn_layout.addWidget(QLabel("", auto_turn_widget))
-        auto_turn_layout.addStretch(1)
-        auto_turn_layout.addWidget(self.window.ui.nodes['audio.auto_turn'])
-        auto_turn_layout.setContentsMargins(5, 0, 15, 0)
+        audio_layout = QHBoxLayout()
+        audio_layout.addStretch(1)
+        audio_layout.addWidget(self.window.ui.nodes['audio.auto_turn'])
+        audio_layout.addWidget(self.window.ui.nodes['audio.loop'])
+        audio_layout.setContentsMargins(5, 0, 15, 0)
 
-        return auto_turn_widget
+        audio_widget = QWidget()
+        audio_widget.setLayout(audio_layout)
+
+        return audio_widget

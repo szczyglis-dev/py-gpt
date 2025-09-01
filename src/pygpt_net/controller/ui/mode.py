@@ -60,8 +60,10 @@ class Mode:
 
         if not is_audio:
             self.window.ui.nodes['audio.auto_turn'].setVisible(False)
+            self.window.ui.nodes["audio.loop"].setVisible(False)
         else:
             self.window.ui.nodes['audio.auto_turn'].setVisible(True)
+            self.window.ui.nodes["audio.loop"].setVisible(True)
 
         if not is_assistant:
             ui_nodes['presets.widget'].setVisible(True)

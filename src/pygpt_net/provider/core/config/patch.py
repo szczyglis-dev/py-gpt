@@ -2419,6 +2419,10 @@ class Patch:
                 if "api_native_google.app_credentials" not in data:
                     data["api_native_google.app_credentials"] = cfg_get_base('api_native_google.app_credentials')
 
+                # audio loop
+                if "audio.input.loop" not in data:
+                    data["audio.input.loop"] = False
+
                 # add video player CSS
                 patch_css('web-chatgpt.css', True)
                 patch_css('web-chatgpt_wide.css', True)

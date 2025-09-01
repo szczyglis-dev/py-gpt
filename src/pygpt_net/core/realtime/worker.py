@@ -134,11 +134,7 @@ class RealtimeWorker(QRunnable):
                 event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {"error": e})
                 self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
             finally:
-                try:
-                    event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"ctx": self.ctx})
-                    self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
-                except Exception:
-                    pass
+                pass
         finally:
             # Robust asyncio teardown to avoid hangs on subsequent runs
             if loop is not None:

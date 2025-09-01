@@ -40,11 +40,18 @@ class Audio:
     def setup(self):
         """Setup controller"""
         self.update()
+
+        # continuous input (notepad)
         if self.window.core.config.get("audio.input.continuous", False):
             self.window.ui.plugin_addon['audio.input.btn'].continuous.setChecked(True)
 
+        # auto turn (VAD)
         if self.window.core.config.get("audio.input.auto_turn", False):
             self.window.ui.nodes['audio.auto_turn'].box.setChecked(True)
+
+        # loop recording
+        if self.window.core.config.get("audio.input.loop", False):
+            self.window.ui.nodes['audio.loop'].box.setChecked(True)
 
     def execute_input_stop(self):
         """Execute input stop (from UI)"""
@@ -65,6 +72,12 @@ class Audio:
         """Toggle auto turn setting"""
         value = self.window.ui.nodes['audio.auto_turn'].box.isChecked()
         self.window.core.config.set("audio.input.auto_turn", value)
+        self.window.core.config.save()
+
+    def toggle_loop(self):
+        """Toggle loop recording setting"""
+        value = self.window.ui.nodes['audio.loop'].box.isChecked()
+        self.window.core.config.set("audio.input.loop", value)
         self.window.core.config.save()
 
     def toggle_input(
