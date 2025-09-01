@@ -6,8 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
+
+VIDEO_AVAILABLE_ASPECT_RATIOS = {
+    "16:9": "16:9",
+    "9:16": "9:16",
+}
+
 
 IMAGE_AVAILABLE_RESOLUTIONS = {
     "gpt-image": {

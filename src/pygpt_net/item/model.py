@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 import json
@@ -19,6 +19,7 @@ from pygpt_net.core.types import (
     MODE_AUDIO,
     MULTIMODAL_AUDIO,
     OPENAI_COMPATIBLE_PROVIDERS,
+    MULTIMODAL_VIDEO,
 )
 
 class ModelItem:
@@ -284,6 +285,26 @@ class ModelItem:
         :return: True if supports audio output
         """
         if MULTIMODAL_AUDIO in self.output:
+            return True
+        return False
+
+    def is_video_input(self) -> bool:
+        """
+        Check if model supports video input
+
+        :return: True if supports video input
+        """
+        if MULTIMODAL_VIDEO in self.input:
+            return True
+        return False
+
+    def is_video_output(self) -> bool:
+        """
+        Check if model supports video output
+
+        :return: True if supports video output
+        """
+        if MULTIMODAL_VIDEO in self.output:
             return True
         return False
 

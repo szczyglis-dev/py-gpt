@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 23:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -2379,6 +2379,47 @@ class Patch:
                     data["audio.input.vad.prefix"] = 300
                 if "audio.input.vad.silence" not in data:
                     data["audio.input.vad.silence"] = 2000
+                updated = True
+
+            # < 2.6.32
+            if old < parse_version("2.6.32"):
+                print("Migrating config from < 2.6.32...")
+
+                data["prompt.img"] = self.window.core.config.get_base(
+                    'prompt.img')
+
+                if "prompt.video" not in data:
+                    data["prompt.video"] = self.window.core.config.get_base(
+                        'prompt.video')
+                if "video.prompt_model" not in data:
+                    data["video.prompt_model"] = self.window.core.config.get_base(
+                        'video.prompt_model')
+                if "video.aspect_ratio" not in data:
+                    data["video.aspect_ratio"] = self.window.core.config.get_base(
+                        'video.aspect_ratio')
+                if "video.duration" not in data:
+                    data["video.duration"] = self.window.core.config.get_base(
+                        'video.duration')
+                if "video.fps" not in data:
+                    data["video.fps"] = self.window.core.config.get_base(
+                        'video.fps')
+                if "video.seed" not in data:
+                    data["video.seed"] = self.window.core.config.get_base(
+                        'video.seed')
+                if "video.negative_prompt" not in data:
+                    data["video.negative_prompt"] = self.window.core.config.get_base(
+                        'video.negative_prompt')
+                if "video.generate_audio" not in data:
+                    data["video.generate_audio"] = self.window.core.config.get_base(
+                        'video.generate_audio')
+                if "video.resolution" not in data:
+                    data["video.resolution"] = self.window.core.config.get_base(
+                        'video.resolution')
+
+                # add video player CSS
+                self.window.core.updater.patch_css('web-chatgpt.css', True)
+                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)
+                self.window.core.updater.patch_css('web-blocks.css', True)
                 updated = True
 
         # update file

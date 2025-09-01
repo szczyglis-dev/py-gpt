@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -31,6 +31,7 @@ from .tools import Tools
 from .audio import Audio
 from .image import Image
 from .realtime import Realtime
+from .video import Video
 
 class ApiGoogle:
     def __init__(self, window=None):
@@ -46,6 +47,7 @@ class ApiGoogle:
         self.audio = Audio(window)
         self.image = Image(window)
         self.realtime = Realtime(window)
+        self.video = Video(window)
         self.client: Optional[genai.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
@@ -120,7 +122,10 @@ class ApiGoogle:
                 self.vision.append_images(ctx)
 
         elif mode == MODE_IMAGE:
-            return self.image.generate(context=context, extra=extra)
+            if context.model.is_video_output():
+                return self.video.generate(context=context, extra=extra)  # veo, etc.
+            else:
+                return self.image.generate(context=context, extra=extra) # imagen, etc.
 
         elif mode == MODE_ASSISTANT:
             return False  # not implemented for Google

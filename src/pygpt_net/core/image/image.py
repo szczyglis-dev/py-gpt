@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
-import os
 import uuid
-from time import strftime
+import os
 from typing import List, Dict
+from time import strftime
 
 from PySide6.QtCore import Slot, QObject
 
@@ -73,7 +73,7 @@ class Image(QObject):
             prompt,
         )
 
-    @Slot()
+    @Slot(object)
     def handle_status(self, msg: str):
         """
         Handle thread status message
@@ -90,7 +90,7 @@ class Image(QObject):
         if is_log:
             print(msg)
 
-    @Slot()
+    @Slot(object)
     def handle_error(self, msg: any):
         """
         Handle thread error message
@@ -99,6 +99,7 @@ class Image(QObject):
         """
         self.window.update_status(msg)
         self.window.core.debug.log(msg)
+        self.window.ui.dialogs.alert(msg)
 
     def save_image(self, path: str, image: bytes) -> bool:
         """

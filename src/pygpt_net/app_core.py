@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.config import Config
@@ -43,6 +43,7 @@ from pygpt_net.core.tabs import Tabs
 from pygpt_net.core.text import Text
 from pygpt_net.core.tokens import Tokens
 from pygpt_net.core.updater import Updater
+from pygpt_net.core.video import Video
 from pygpt_net.core.vision import Vision
 from pygpt_net.core.web import Web
 
@@ -92,6 +93,7 @@ class Core:
         self.text = Text(window)
         self.tokens = Tokens(window)
         self.updater = Updater(window)
+        self.video = Video(window)
         self.vision = Vision(window)
         self.web = Web(window)
 

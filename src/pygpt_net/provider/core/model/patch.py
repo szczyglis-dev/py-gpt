@@ -6,12 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
 
-from pygpt_net.core.types import MODE_RESEARCH, MODE_CHAT, MODE_AGENT_OPENAI, MODE_COMPUTER, MODE_EXPERT
+from pygpt_net.core.types import (
+    MODE_RESEARCH,
+    MODE_CHAT,
+    MODE_AGENT_OPENAI,
+    MODE_COMPUTER,
+    MODE_EXPERT
+)
 
 
 class Patch:
@@ -781,6 +787,15 @@ class Patch:
                     data["gpt-realtime"] = base_data["gpt-realtime"]
                 if "gpt-4o-realtime-preview" not in data:
                     data["gpt-4o-realtime-preview"] = base_data["gpt-4o-realtime-preview"]
+                updated = True
+
+            # add veo-3.0-generate-preview
+            if old < parse_version("2.6.32"):
+                print("Migrating models from < 2.6.32...")
+                if "veo-3.0-generate-preview" not in data:
+                    data["veo-3.0-generate-preview"] = base_data["veo-3.0-generate-preview"]
+                if "veo-3.0-fast-generate-preview" not in data:
+                    data["veo-3.0-fast-generate-preview"] = base_data["veo-3.0-fast-generate-preview"]
                 updated = True
 
         # update file

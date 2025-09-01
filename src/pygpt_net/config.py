@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -66,6 +66,8 @@ class Config:
             "presets": "presets",
             "upload": "upload",
             "tmp": "tmp",
+            "video": "video",
+            "music": "music",
         }
         self._app_path = None
         self._version_cache = version if version else None

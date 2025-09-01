@@ -405,3 +405,8 @@ think {{
 .tips.visible {{
  opacity: 1;
 }}
+
+.extra-src-video-box,
+.video-player {{
+  max-width: 400px;
+}}

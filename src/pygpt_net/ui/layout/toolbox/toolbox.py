@@ -6,22 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget, QSizePolicy
 
-from pygpt_net.ui.layout.toolbox.assistants import Assistants
-from pygpt_net.ui.layout.toolbox.indexes import Indexes
-from pygpt_net.ui.layout.toolbox.mode import Mode
-from pygpt_net.ui.layout.toolbox.model import Model
-from pygpt_net.ui.layout.toolbox.presets import Presets
-from pygpt_net.ui.layout.toolbox.prompt import Prompt
-from pygpt_net.ui.layout.toolbox.footer import Footer
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
+from .assistants import Assistants
+from .indexes import Indexes
+from .mode import Mode
+from .model import Model
+from .presets import Presets
+from .prompt import Prompt
+from .footer import Footer
 
 class ToolboxMain:
     def __init__(self, window=None):

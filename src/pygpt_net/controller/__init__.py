@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.access import Access
@@ -29,6 +29,7 @@ from pygpt_net.controller.kernel import Kernel
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
 from pygpt_net.controller.layout import Layout
+from pygpt_net.controller.media import Media
 from pygpt_net.controller.mode import Mode
 from pygpt_net.controller.model import Model
 from pygpt_net.controller.notepad import Notepad
@@ -71,6 +72,7 @@ class Controller:
         self.lang = Lang(window)
         self.launcher = Launcher(window)
         self.layout = Layout(window)
+        self.media = Media(window)
         self.mode = Mode(window)
         self.model = Model(window)
         self.notepad = Notepad(window)
@@ -111,6 +113,7 @@ class Controller:
         self.camera.setup_ui()
         self.access.setup()
         self.realtime.setup()
+        self.media.setup()
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
@@ -169,6 +172,7 @@ class Controller:
         self.lang.reload()
         self.debug.reload()
         self.chat.reload()
+        self.media.reload()
         self.window.tools.on_reload()
         self.access.reload()
         self.tools.reload()

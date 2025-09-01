@@ -9,13 +9,12 @@
 # Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QCheckBox
 
-from pygpt_net.ui.widget.option.combo import OptionCombo
-from pygpt_net.ui.widget.option.slider import OptionSlider
+from pygpt_net.utils import trans
 
 
-class Image:
+class Raw:
     def __init__(self, window=None):
         """
         Toolbox UI
@@ -26,36 +25,25 @@ class Image:
 
     def setup(self) -> QWidget:
         """
-        Setup image
+        Setup media raw
 
         :return: QWidget
         :rtype: QWidget
         """
-        option = {
-            "type": "int",
-            "slider": True,
-            "label": "img_variants",
-            "min": 1,
-            "max": 4,
-            "step": 1,
-            "value": 1,
-            "multiplier": 1,
-        }
-
         ui = self.window.ui
         conf_global = ui.config['global']
 
         container = QWidget()
-        ui.nodes['dalle.options'] = container
+        ui.nodes['media.raw'] = container
 
-        conf_global['img_variants'] = OptionSlider(self.window, 'global', 'img_variants', option)
+        conf_global['img_raw'] = QCheckBox(trans("img.raw"), parent=container)
+        conf_global['img_raw'].toggled.connect(self.window.controller.media.toggle_raw)
 
-        option_resolutions = self.window.core.image.get_resolution_option()
-        conf_global['img_resolution'] = OptionCombo(self.window, 'global', 'img_resolution', option_resolutions)
+        cols = QHBoxLayout()
+        cols.addWidget(conf_global['img_raw'])
 
         rows = QVBoxLayout()
-        rows.addWidget(conf_global['img_variants'])
-        rows.addWidget(conf_global['img_resolution'])
+        rows.addLayout(cols)
         rows.setContentsMargins(2, 5, 5, 5)
 
         container.setLayout(rows)

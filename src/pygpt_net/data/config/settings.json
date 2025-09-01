@@ -1256,6 +1256,19 @@
         "step": null,
         "advanced": false
     },
+    "prompt.video": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.video",
+        "description": "settings.prompt.video.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "img_resolution": {
         "section": "images",
         "type": "combo",
@@ -1294,7 +1307,8 @@
             {"2560x1792": "[Imagen 4.0] 2560x1792"},
             {"1536x2816": "[Imagen 4.0] 1536x2816"},
             {"2816x1536": "[Imagen 4.0] 2816x1536"}
-        ]
+        ],
+        "tab": "image"
     },
     "img_quality": {
         "section": "images",
@@ -1315,7 +1329,8 @@
             {"standard": "[DALL-E 3] standard"},
             {"hd": "[DALL-E 3] hd"},
             {"standard": "[DALL-E 2] standard"}
-        ]
+        ],
+        "tab": "image"
     },
     "img_prompt_model": {
         "section": "images",
@@ -1323,12 +1338,125 @@
         "use": "models",
         "slider": false,
         "label": "settings.img_prompt_model",
-        "value": "gpt-4-1106-preview",
+        "description": "settings.img_prompt_model.desc",
+        "value": "gpt-4o",
         "min": null,
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": true
+        "tab": "image"
+    },    
+    "video.aspect_ratio": {
+        "section": "images",
+        "type": "text",
+        "slider": false,
+        "label": "settings.video.aspect_ratio",
+        "description": "settings.video.aspect_ratio.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "video"
+    },
+    "video.duration": {
+        "section": "images",
+        "type": "int",
+        "slider": false,
+        "label": "settings.video.duration",
+        "description": "settings.video.duration.desc",
+        "value": "",
+        "min": 1,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "video"
+    },
+    "video.fps": {
+        "section": "images",
+        "type": "int",
+        "slider": false,
+        "label": "settings.video.fps",
+        "description": "settings.video.fps.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "video"
+    },
+    "video.seed": {
+        "section": "images",
+        "type": "text",
+        "slider": false,
+        "label": "settings.video.seed",
+        "description": "settings.video.seed.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "video"
+    },    
+    "video.generate_audio": {
+        "section": "images",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.video.generate_audio",
+        "description": "settings.video.generate_audio.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "video"
+    },
+    "video.resolution": {
+        "section": "images",
+        "type": "text",
+        "slider": false,
+        "label": "settings.video.resolution",
+        "description": "settings.video.resolution.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "video"
+    },
+    "video.negative_prompt": {
+        "section": "images",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.video.negative_prompt",
+        "description": "settings.video.negative_prompt.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "video"
+    },
+    "video.prompt_model": {
+        "section": "images",
+        "type": "combo",
+        "use": "models",
+        "slider": false,
+        "label": "settings.video.prompt_model",
+        "description": "settings.video.prompt_model.desc",
+        "value": "gemini-2.5-flash",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "tab": "video"
     },
     "vision.capture.idx": {
         "section": "vision",

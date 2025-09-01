@@ -81,6 +81,8 @@ PyGPT has a preconfigured list of models (as of 2025-08-31):
 - ``sonar-pro`` (Perplexity)
 - ``sonar-reasoning`` (Perplexity)
 - ``sonar-reasoning-pro`` (Perplexity)
+- ``veo-3.0-generate-preview`` (Google)
+- ``veo-3.0-fast-generate-preview`` (Google)
 
 All models are specified in the configuration file ``models.json``, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by ``OpenAI API`` (or compatible) and those supported by ``LlamaIndex`` or ``Ollama`` to this file. Configuration for LlamaIndex in placed in ``llama_index`` key.
@@ -100,13 +102,13 @@ There is built-in support for those LLM providers:
 * ``Anthropic``
 * ``Azure OpenAI``
 * ``Deepseek API``
-* ``Google``
+* ``Google`` (native SDK)
 * ``HuggingFace API``
 * ``HuggingFace Router`` (wrapper for OpenAI compatible ChatCompletions)
 * ``Local models`` (OpenAI API compatible)
 * ``Mistral AI``
 * ``Ollama``
-* ``OpenAI``
+* ``OpenAI`` (native SDK)
 * ``OpenRouter``
 * ``Perplexity``
 * ``xAI``
@@ -114,8 +116,8 @@ There is built-in support for those LLM providers:
 How to use local or non-GPT models
 ----------------------------------
 
-Llama 3, Mistral, DeepSeek, and other local models
-```````````````````````````````````````````````````
+Llama 3, Mistral, DeepSeek, Qwen, gpt-oss, and other local models
+``````````````````````````````````````````````````````````````````
 
 How to use locally installed Llama 3, DeepSeek, Mistral, etc. models:
 

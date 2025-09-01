@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 import json
@@ -107,7 +107,6 @@ class Realtime:
                 and (auto_turn != self.prev_auto_turn
                      or opt_vad_silence != self.prev_vad_silence
                      or opt_vad_prefix != self.prev_vad_prefix)):
-            print("updating")
             self.handler.update_session_autoturn_sync(auto_turn, opt_vad_silence, opt_vad_prefix)
 
         # if auto-turn is enabled and prompt is empty, update session and context only

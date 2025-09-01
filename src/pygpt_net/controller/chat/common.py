@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.27 07:00:00                  #
+# Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
 import os
@@ -99,37 +99,6 @@ class Common:
 
         event = RenderEvent(RenderEvent.ON_SWITCH)
         self.window.dispatch(event)  # switch renderer if needed
-
-        # edit icons
-        """
-        if self.window.core.config.has('ctx.edit_icons'):
-            self.window.ui.nodes['output.edit'].setChecked(self.window.core.config.get('ctx.edit_icons'))
-            data = {
-                "initialized": self.initialized,
-            }
-            if self.window.core.config.get('ctx.edit_icons'):
-                event = RenderEvent(RenderEvent.ON_EDIT_ENABLE, data)
-            else:
-                event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
-            self.window.dispatch(event)
-        """
-
-        # images generation
-        if self.window.core.config.get('img_raw'):
-            self.window.ui.config['global']['img_raw'].setChecked(True)
-        else:
-            self.window.ui.config['global']['img_raw'].setChecked(False)
-
-        # image resolution
-        resolution = self.window.core.config.get('img_resolution', '1024x1024')
-        self.window.controller.config.apply_value(
-            parent_id="global",
-            key="img_resolution",
-            option=self.window.core.image.get_resolution_option(),
-            value=resolution,
-        )
-        if not self.initialized:
-            self.window.ui.add_hook("update.global.img_resolution", self.hook_update)
 
         # set focus to input
         self.window.ui.nodes['input'].setFocus()
@@ -404,6 +373,23 @@ class Common:
             event = RenderEvent(RenderEvent.ON_TS_DISABLE, data)
         self.window.dispatch(event)
 
+    def toggle_edit_icons(self, value: bool):
+        """
+        Toggle edit icons
+
+        :param value: value of the checkbox
+        """
+        self.window.core.config.set('ctx.edit_icons', value)
+        self.window.core.config.save()
+        data = {
+            "initialized": True,
+        }
+        if value:
+            event = RenderEvent(RenderEvent.ON_EDIT_ENABLE, data)
+        else:
+            event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
+        self.window.dispatch(event)
+
     def toggle_raw(self, value: bool):
         """
         Toggle raw (plain) output
@@ -426,57 +412,6 @@ class Common:
 
         # restore previous font size
         self.window.controller.ui.update_font_size()
-
-    def toggle_edit_icons(self, value: bool):
-        """
-        Toggle edit icons
-
-        :param value: value of the checkbox
-        """
-        self.window.core.config.set('ctx.edit_icons', value)
-        self.window.core.config.save()
-        data = {
-            "initialized": True,
-        }
-        if value:
-            event = RenderEvent(RenderEvent.ON_EDIT_ENABLE, data)
-        else:
-            event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
-        self.window.dispatch(event)
-
-    def img_enable_raw(self):
-        """Enable help for images"""
-        self.window.core.config.set('img_raw', True)
-        self.window.core.config.save()
-
-    def img_disable_raw(self):
-        """Disable help for images"""
-        self.window.core.config.set('img_raw', False)
-        self.window.core.config.save()
-
-    def img_toggle_raw(self, state: bool):
-        """
-        Toggle help for images
-
-        :param state: state of checkbox
-        """
-        if not state:
-            self.img_disable_raw()
-        else:
-            self.img_enable_raw()
-
-    def hook_update(self, key: str, value: Any, caller, *args, **kwargs):
-        """
-        Hook for updating image resolution
-
-        :param key: config key
-        :param value: new value
-        :param caller: caller object
-        """
-        if key == "img_resolution":
-            if not value:
-                return
-            self.window.core.config.set('img_resolution', value)
 
     def save_text(
             self,

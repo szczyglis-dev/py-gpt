@@ -3973,6 +3973,78 @@
             "imported": false,
             "provider": "perplexity",
             "tool_calls": true
+        },
+        "veo-3.0-generate-preview": {
+            "id": "veo-3.0-generate-preview",
+            "name": "veo-3.0-generate-preview",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/veo-3.0-generate-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "video"
+            ],
+            "extra": {},
+            "imported": true,
+            "provider": "google",
+            "tool_calls": true
+        },
+        "veo-3.0-fast-generate-preview": {
+            "id": "veo-3.0-fast-generate-preview",
+            "name": "veo-3.0-fast-generate-preview",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/veo-3.0-fast-generate-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "video"
+            ],
+            "extra": {},
+            "imported": true,
+            "provider": "google",
+            "tool_calls": true
         }
     }
 }

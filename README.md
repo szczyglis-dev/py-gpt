@@ -42,7 +42,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image generation, Assistants, Experts, Computer use, Agents and Autonomous Mode.
+- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and video generation, Assistants, Experts, Computer use, Agents and Autonomous Mode.
 - Supports multiple models like `OpenAI GPT-5`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `DeepSeek`, `gpt-oss`, `Llama 3`, `Mistral`, `Bielik`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -429,7 +429,7 @@ With this plugin, you can capture an image with your camera or attach an image a
 
 ![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_chat.png)
 
-**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin `Image generation (inline)` in the Plugins menu.
+**Image generation:** If you want to generate images directly in chat you must enable plugin `Image generation (inline)` in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
@@ -573,7 +573,7 @@ Additionally, this mode offers options for labeling the AI and the user, making 
 
 From version `2.0.107` the `davinci` models are deprecated and has been replaced with `gpt-3.5-turbo-instruct` model in Completion mode.
 
-## Image generation
+## Image and video generation
 
 ### OpenAI DALL-E 3 / Google Imagen 3 and 4
 
@@ -588,6 +588,8 @@ If you want to generate images directly in chat you must enable plugin **Image g
 Plugin allows you to generate images in Chat mode:
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
+
+**Video generation**: From version `2.6.32`, video generation (using `Google Veo 3`) is also available.
 
 ### Multiple variants
 
@@ -1110,6 +1112,8 @@ PyGPT has a preconfigured list of models (as of 2025-08-31):
 - `sonar-pro` (Perplexity)
 - `sonar-reasoning` (Perplexity)
 - `sonar-reasoning-pro` (Perplexity)
+- `veo-3.0-generate-preview` (Google)
+- `veo-3.0-fast-generate-preview` (Google)
 
 All models are specified in the configuration file `models.json`, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by `OpenAI API` (or compatible) and those supported by `LlamaIndex` or `Ollama` to this file. Configuration for LlamaIndex is placed in `llama_index` key.
@@ -1127,20 +1131,20 @@ There is built-in support for those LLM providers:
 - `Anthropic`
 - `Azure OpenAI`
 - `Deepseek API`
-- `Google`
+- `Google` (native SDK)
 - `HuggingFace API`
 - `HuggingFace Router` (wrapper for OpenAI compatible ChatCompletions)
 - `Local models` (OpenAI API compatible)
 - `Mistral AI`
 - `Ollama`
-- `OpenAI`
+- `OpenAI` (native SDK)
 - `OpenRouter`
 - `Perplexity`
 - `xAI`
 
 ## How to use local or non-GPT models
 
-### Llama 3, Mistral, DeepSeek, and other local models
+### Llama 3, Mistral, DeepSeek, Qwen, gpt-oss, and other local models
 
 How to use locally installed Llama 3, DeepSeek, Mistral, etc. models:
 

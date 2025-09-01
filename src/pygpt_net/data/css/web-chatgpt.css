@@ -435,3 +435,8 @@ think {{
 .name-user {{
   display: none;
 }}
+
+.extra-src-video-box,
+.video-player {{
+  max-width: 400px;
+}}

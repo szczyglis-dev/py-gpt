@@ -37,7 +37,7 @@ With this plugin, you can capture an image with your camera or attach an image a
    :width: 800
 
 
-**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin ``Image generation (inline)`` in the Plugins menu. Plugin allows you to generate images in Chat mode:
+**Image generation:** If you want to generate images directly in chat you must enable plugin ``Image generation (inline)`` in the Plugins menu. Plugin allows you to generate images in Chat mode:
 
 .. image:: images/v3_img_chat.png
    :width: 800
@@ -179,8 +179,8 @@ Additionally, this mode offers options for labeling the AI and the user, making 
    From version ``2.0.107`` the davinci models are deprecated and has been replaced with ``gpt-3.5-turbo-instruct`` model.
 
 
-Image generation
------------------
+Image and video generation
+--------------------------
 
 **OpenAI DALL-E 3 / Google Imagen 3 and 4**
 
@@ -197,6 +197,8 @@ Plugin allows you to generate images in Chat mode:
 
 .. image:: images/v3_img_chat.png
    :width: 800
+
+**Video generation**: From version ``2.6.32``, video generation (using ``Google Veo 3``) is also available.
 
 
 **Multiple variants**
