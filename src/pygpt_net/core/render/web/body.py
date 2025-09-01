@@ -15,6 +15,7 @@ from random import shuffle as _shuffle
 
 from typing import Optional, List, Dict
 
+from pygpt_net.core.text.utils import elide_filename
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -24,6 +25,7 @@ from .syntax_highlight import SyntaxHighlight
 import pygpt_net.js_rc
 import pygpt_net.css_rc
 import pygpt_net.fonts_rc
+
 
 class Body:
 
@@ -1089,12 +1091,12 @@ class Body:
             return f'''
             <div class="extra-src-video-box" title="{url}">
                 <video class="video-player" controls>
-                    <source src="file://{path}" type="video/{ext[1:]}">
+                    <source src="{path}" type="video/{ext[1:]}">
                 </video>
-                <a href="{url}" class="title">{basename}</a>
-            </div><br/>
+                <p><a href="{url}" class="title">{elide_filename(basename)}</a></p>
+            </div>
             '''
-        return f'<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url}"><img src="{path}" class="image"></a></div><a href="{url}" class="title">{basename}</a></div></div><br/>'
+        return f'<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url}"><img src="{path}" class="image"></a></div><a href="{url}" class="title">{elide_filename(basename)}</a></div></div><br/>'
 
     def get_url_html(
             self,

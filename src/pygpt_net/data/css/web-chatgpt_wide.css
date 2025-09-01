@@ -435,4 +435,5 @@ think {{
 .extra-src-video-box,
 .video-player {{
   max-width: 400px;
+  text-align: left;
 }}
