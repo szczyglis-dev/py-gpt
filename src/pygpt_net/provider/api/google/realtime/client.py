@@ -1789,6 +1789,126 @@ class GoogleLiveClient:
 
             self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-auto-turn")
 
+    def update_session_autoturn_sync(
+            self,
+            enabled: bool,
+            silence_ms: Optional[int] = None,
+            prefix_ms: Optional[int] = None,
+            timeout: float = 10.0,
+    ):
+        """
+        Synchronous helper: enable/disable auto-turn (VAD) for Google Live
+        and optionally override silence/prefix (milliseconds).
+        Note: Live API doesn't support mid-session VAD reconfigure; we restart
+        the session safely if it is open.
+        """
+        self._ensure_background_loop()
+        return self._bg.run_sync(
+            self._update_session_autoturn_internal(enabled, silence_ms, prefix_ms),
+            timeout=timeout
+        )
+
+    async def _update_session_autoturn_internal(
+            self,
+            enabled: bool,
+            silence_ms: Optional[int] = None,
+            prefix_ms: Optional[int] = None,
+    ):
+        """
+        Owner-loop: toggle auto-turn (automatic_activity_detection) and optionally
+        set silence_duration_ms / prefix_padding_ms. If the session is open,
+        perform a safe restart to apply new config. If closed, cache in opts.
+        """
+
+        # Helper to update cached opts
+        def _apply_to_opts():
+            if not self._last_opts:
+                return
+            try:
+                setattr(self._last_opts, "auto_turn", bool(enabled))
+            except Exception:
+                pass
+            try:
+                if silence_ms is not None:
+                    setattr(self._last_opts, "vad_end_silence_ms", int(silence_ms))
+            except Exception:
+                pass
+            try:
+                if prefix_ms is not None:
+                    setattr(self._last_opts, "vad_prefix_padding_ms", int(prefix_ms))
+            except Exception:
+                pass
+
+        # If session not open -> just cache and exit
+        if not self._session:
+            _apply_to_opts()
+            if self.debug:
+                print("[google.update_session_autoturn] session not open; cached for next open")
+            return
+
+        # Compute whether anything changes to avoid unnecessary restart
+        cur_enabled = False
+        try:
+            cur_enabled = bool(getattr(self._last_opts, "auto_turn", False))
+        except Exception:
+            pass
+        cur_sil = getattr(self._last_opts, "vad_end_silence_ms", None)
+        cur_pre = getattr(self._last_opts, "vad_prefix_padding_ms", None)
+
+        change = (cur_enabled != bool(enabled))
+        if silence_ms is not None and int(silence_ms) != (int(cur_sil) if isinstance(cur_sil, (int, float)) else None):
+            change = True
+        if prefix_ms is not None and int(prefix_ms) != (int(cur_pre) if isinstance(cur_pre, (int, float)) else None):
+            change = True
+
+        if not change:
+            # Nothing to do; still persist values to opts for consistency
+            _apply_to_opts()
+            if self.debug:
+                print("[google.update_session_autoturn] no changes; skipping restart")
+            return
+
+        # Wait for any active response to finish before restart
+        if self._send_lock is None:
+            self._send_lock = asyncio.Lock()
+        async with self._send_lock:
+            if self._response_active and self._response_done:
+                if self.debug:
+                    print("[google.update_session_autoturn] waiting for active response to finish")
+                try:
+                    await self._response_done.wait()
+                except Exception:
+                    pass
+
+        # Update cached opts with requested values
+        _apply_to_opts()
+
+        # Try to resume after restart using the last known handle (best-effort)
+        prev_handle = self._rt_session_id
+        try:
+            if self._last_opts is not None and prev_handle:
+                setattr(self._last_opts, "rt_session_id", prev_handle)
+        except Exception:
+            pass
+
+        if self.debug:
+            eff_sil = silence_ms if silence_ms is not None else cur_sil
+            eff_pre = prefix_ms if prefix_ms is not None else cur_pre
+            print(f"[google.update_session_autoturn] restarting session; auto_turn={enabled}, "
+                  f"silence_ms={eff_sil}, prefix_ms={eff_pre}")
+
+        # Restart session with updated config
+        await self._reset_session_internal(
+            ctx=self._ctx,
+            opts=self._last_opts,
+            on_text=self._on_text,
+            on_audio=self._on_audio,
+            should_stop=self._should_stop,
+        )
+
+        if self.debug:
+            print("[google.update_session_autoturn] session restarted with new VAD settings")
+
     # -----------------------------
     # Internal: commit event helpers
     # -----------------------------

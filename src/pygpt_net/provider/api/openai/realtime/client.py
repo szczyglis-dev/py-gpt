@@ -1688,6 +1688,129 @@ class OpenAIRealtimeClient:
         except Exception:
             pass
 
+    def update_session_autoturn_sync(
+        self,
+        enabled: bool,
+        silence_ms: Optional[int] = None,
+        prefix_ms: Optional[int] = None,
+        timeout: float = 5.0,
+    ):
+        """
+        Synchronous helper to enable/disable auto-turn (VAD) mode on the live session.
+        You can override silence and prefix (ms) as 2nd and 3rd args.
+        If WS is not open, this updates self._last_opts and returns.
+        """
+        self._ensure_background_loop()
+        try:
+            self._bg.run_sync(
+                self._update_session_autoturn_internal(enabled, silence_ms, prefix_ms),
+                timeout=timeout
+            )
+        except Exception:
+            pass
+
+    async def _update_session_autoturn_internal(
+        self,
+        enabled: bool,
+        silence_ms: Optional[int] = None,
+        prefix_ms: Optional[int] = None,
+    ):
+        """
+        Owner-loop implementation for toggling auto-turn (server/semantic VAD) at runtime
+        with optional silence and prefix overrides (milliseconds).
+        """
+        # If socket is not open, just cache into last opts
+        if not self.ws:
+            try:
+                if self._last_opts:
+                    setattr(self._last_opts, "auto_turn", bool(enabled))
+                    if silence_ms is not None:
+                        setattr(self._last_opts, "vad_end_silence_ms", int(silence_ms))
+                    if prefix_ms is not None:
+                        setattr(self._last_opts, "vad_prefix_padding_ms", int(prefix_ms))
+            except Exception:
+                pass
+            if self.debug:
+                print("[update_session_autoturn] WS not open; cached for next session")
+            return
+
+        if self._send_lock is None:
+            self._send_lock = asyncio.Lock()
+
+        async with self._send_lock:
+            try:
+                # Build base session.update; let helper set correct turn_detection shape
+                payload: dict = {"type": "session.update", "session": {}}
+                turn_mode = TurnMode.AUTO if enabled else TurnMode.MANUAL
+                apply_turn_mode_openai(payload, turn_mode)  # sets session.turn_detection (AUTO) or None (MANUAL)
+
+                if enabled:
+                    sess = payload.get("session", {})
+                    td = sess.get("turn_detection")
+
+                    # Optional VAD type override via opts.vad_type ("server_vad" | "semantic_vad")
+                    try:
+                        vad_type = getattr(self._last_opts, "vad_type", None)
+                        if isinstance(vad_type, str) and vad_type in ("server_vad", "semantic_vad"):
+                            if isinstance(td, dict):
+                                td["type"] = vad_type
+                    except Exception:
+                        pass
+
+                    # Optional threshold for server_vad
+                    try:
+                        thr = getattr(self._last_opts, "vad_threshold", None)
+                        if isinstance(thr, (int, float)) and isinstance(td, dict) and td.get("type") == "server_vad":
+                            td["threshold"] = float(thr)
+                    except Exception:
+                        pass
+
+                    # Apply defaults based on opts first
+                    self._tune_openai_vad(payload, self._last_opts)
+
+                    # Then hard-override with explicit args (user provided values win)
+                    if isinstance(td, dict):
+                        if silence_ms is not None:
+                            td["silence_duration_ms"] = int(silence_ms)
+                        if prefix_ms is not None:
+                            td["prefix_padding_ms"] = int(prefix_ms)
+
+                        # Optional flags from opts
+                        try:
+                            cr = getattr(self._last_opts, "vad_create_response", None)
+                            if isinstance(cr, bool):
+                                td["create_response"] = cr
+                        except Exception:
+                            pass
+                        try:
+                            ir = getattr(self._last_opts, "vad_interrupt_response", None)
+                            if isinstance(ir, bool):
+                                td["interrupt_response"] = ir
+                        except Exception:
+                            pass
+
+                # Send the update
+                await self.ws.send(json.dumps(payload))
+
+                # Update local opts snapshot so next calls keep the same settings
+                try:
+                    if self._last_opts:
+                        setattr(self._last_opts, "auto_turn", bool(enabled))
+                        if silence_ms is not None:
+                            setattr(self._last_opts, "vad_end_silence_ms", int(silence_ms))
+                        if prefix_ms is not None:
+                            setattr(self._last_opts, "vad_prefix_padding_ms", int(prefix_ms))
+                except Exception:
+                    pass
+
+                if self.debug:
+                    td_dbg = (payload.get("session", {}) or {}).get("turn_detection")
+                    print(f"[update_session_autoturn] session.update sent; auto_turn={enabled}, td={td_dbg}")
+
+            except Exception as e:
+                if self.debug:
+                    print(f"[update_session_autoturn] send error: {e}")
+
     def set_debug(self, enabled: bool):
         """
         Enable or disable debug logging.

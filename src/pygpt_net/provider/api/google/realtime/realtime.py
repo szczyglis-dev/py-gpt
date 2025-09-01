@@ -33,6 +33,9 @@ class Realtime:
         """
         self.window = window
         self.handler = GoogleLiveClient(window)
+        self.prev_auto_turn = False
+        self.prev_vad_silence = 2000
+        self.prev_vad_prefix = 300
 
     def begin(
             self,
@@ -57,6 +60,8 @@ class Realtime:
         audio_rate = getattr(mm, "audio_rate", None) if mm else None
         is_debug = self.window.core.config.get("log.realtime", False)
         auto_turn = self.window.core.config.get("audio.input.auto_turn", True)
+        opt_vad_silence = self.window.core.config.get("audio.input.vad.silence", 2000)
+        opt_vad_prefix = self.window.core.config.get("audio.input.vad.prefix", 300)
 
         # setup manager
         self.window.controller.realtime.set_current_active(self.PROVIDER)
@@ -82,6 +87,13 @@ class Realtime:
                         tool_call_id: tool_results
                     })
                     return True  # do not start new session, just send tool results
+
+        # update auto-turn in active session
+        if (self.handler.is_session_active()
+                and (auto_turn != self.prev_auto_turn
+                     or opt_vad_silence != self.prev_vad_silence
+                     or opt_vad_prefix != self.prev_vad_prefix)):
+            self.handler.update_session_autoturn_sync(auto_turn, opt_vad_silence, opt_vad_prefix)
 
         # Tools
         tools = self.window.core.api.google.tools.prepare(model, context.external_functions)
@@ -128,8 +140,8 @@ class Realtime:
             rt_signals=rt_signals,
             rt_session_id=last_session_id,
             auto_turn=auto_turn,
-            vad_end_silence_ms=self.window.core.config.get("audio.input.vad.silence", 2000),  # VAD end silence in ms
-            vad_prefix_padding_ms=self.window.core.config.get("audio.input.vad.prefix", 300),  # VAD prefix padding in ms
+            vad_end_silence_ms=opt_vad_silence,
+            vad_prefix_padding_ms=opt_vad_prefix,
         )
 
         # Start or append to realtime session via manager
@@ -138,6 +150,10 @@ class Realtime:
                 print("[realtime] Starting session with options:", opts.to_dict())
             rt = self.window.controller.realtime.manager
             rt.start(context.ctx, opts)
+
+            self.prev_auto_turn = auto_turn
+            self.prev_vad_silence = opt_vad_silence
+            self.prev_vad_prefix = opt_vad_prefix
             return True
         except Exception as e:
             self.window.core.debug.log(e)
