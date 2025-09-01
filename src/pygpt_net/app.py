@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.27 20:00:00                  #
+# Updated Date: 2025.09.02 01:00:00                  #
 # ================================================== #
 
 import os
@@ -182,6 +182,7 @@ from pygpt_net.provider.audio_output.eleven_labs import ElevenLabsTextToSpeech
 # web search engine providers
 from pygpt_net.provider.web.google_custom_search import GoogleCustomSearch
 from pygpt_net.provider.web.microsoft_bing import MicrosoftBingSearch
+from pygpt_net.provider.web.duckduck_search import DuckDuckGoSearch
 
 # tools
 from pygpt_net.tools.indexer import IndexerTool
@@ -342,6 +343,7 @@ def run(**kwargs):
     # register web providers
     launcher.add_web(GoogleCustomSearch())
     launcher.add_web(MicrosoftBingSearch())
+    launcher.add_web(DuckDuckGoSearch())
 
     # register custom web providers
     providers = kwargs.get('web', None)

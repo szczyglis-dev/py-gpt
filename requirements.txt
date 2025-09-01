@@ -502,6 +502,9 @@ cssselect==1.3.0 ; python_version >= "3.10" and python_version < "3.14" \
 dataclasses-json==0.6.7 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:0dbf33f26c8d5305befd61b39d2b3414e8a407bedc2834dea9b8d642666fb40a \
     --hash=sha256:b6b3e528266ea45b9535223bc53ca645f5208833c29229e847b3f26a1cc55fc0
+ddgs==9.5.5 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:01fc8017a653ad16501bd8ac9fedcd29291f6500b1f8a7e92a916cdad7fc2fa2 \
+    --hash=sha256:9a09aa9ba24173d14321137c8c1bc54040ed0bf3bad956cb2f9feeda77968770
 debugpy==1.8.16 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:135ccd2b1161bade72a7a099c9208811c137a150839e970aeaf121c2467debe8 \
     --hash=sha256:19c9521962475b87da6f673514f7fd610328757ec993bf7ec0d8c96f9a325f9e \
@@ -2081,6 +2084,16 @@ playwright==1.54.0 ; python_version >= "3.10" and python_version < "3.14" \
 posthog==6.6.1 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:87dfc67d48a50eed737b77d6dd306c340f0da2f32101533e8e17b2f22ad572e0 \
     --hash=sha256:cba48af9af1df2a611d08fd10a2014dbee99433118973b8c51881d9ef1aa6667
+primp==0.15.0 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:1af8ea4b15f57571ff7fc5e282a82c5eb69bc695e19b8ddeeda324397965b30a \
+    --hash=sha256:1b281f4ca41a0c6612d4c6e68b96e28acfe786d226a427cd944baa8d7acd644f \
+    --hash=sha256:489cbab55cd793ceb8f90bb7423c6ea64ebb53208ffcf7a044138e3c66d77299 \
+    --hash=sha256:592f6079646bdf5abbbfc3b0a28dac8de943f8907a250ce09398cda5eaebd260 \
+    --hash=sha256:5a728e5a05f37db6189eb413d22c78bd143fa59dd6a8a26dacd43332b3971fe8 \
+    --hash=sha256:6b84a6ffa083e34668ff0037221d399c24d939b5629cd38223af860de9e17a83 \
+    --hash=sha256:aeb6bd20b06dfc92cfe4436939c18de88a58c640752cf7f30d9e4ae893cdec32 \
+    --hash=sha256:c18b45c23f94016215f62d2334552224236217aaeb716871ce0e4dcfa08eb161 \
+    --hash=sha256:e985a9cba2e3f96a323722e5440aa9eccaac3178e74b884778e926b5249df080
 prompt-toolkit==3.0.51 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:52742911fde84e2d423e2f9a4cf1de7d7ac4e51958f648d9540e0fb8db077b07 \
     --hash=sha256:931a162e3b27fc90c86f1b48bb1fb2c528c2761475e57c9c06de13311c7b54ed

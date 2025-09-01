@@ -2444,7 +2444,7 @@ Web Search
 
 To activate this feature, turn on the ``Web Search`` plugin found in the ``Plugins`` menu.
 
-Web searches are provided by ``Google Custom Search Engine`` and ``Microsoft Bing`` APIs and can be extended with other search engine providers. 
+Web searches are provided by ``DuckDuckGo``, ``Google Custom Search Engine`` and ``Microsoft Bing`` APIs and can be extended with other search engine providers. 
 
 **Options**
 

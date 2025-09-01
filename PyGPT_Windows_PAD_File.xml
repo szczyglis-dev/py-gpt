@@ -24,7 +24,7 @@ Features
 - Built-in vector databases support and automated files and data embedding.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 - Handles and stores the full context of conversations (short and long-term memory).
-- Internet access via Google and Microsoft Bing.
+- Internet access via DuckDuckGo, Google and Microsoft Bing.
 - Speech synthesis via Microsoft Azure, Google, Eleven Labs and OpenAI Text-To-Speech services.
 - Speech recognition via OpenAI Whisper, Google and Microsoft Speech Recognition.
 - Real-time video camera capture in Vision mode.
