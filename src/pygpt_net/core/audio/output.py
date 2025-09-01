@@ -43,8 +43,9 @@ class Output:
         return self.backends[backend]
 
     def setup(self):
-        """Setup audio output backend"""
-        pass
+        """Setup audio input backend"""
+        for b in self.backends.values():
+            b.set_rt_signals(self.window.controller.realtime.signals)
 
     def play(
             self,
