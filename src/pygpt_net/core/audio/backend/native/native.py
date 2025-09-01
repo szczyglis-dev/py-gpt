@@ -18,8 +18,8 @@ import time
 import numpy as np
 import wave
 
-from PySide6.QtMultimedia import QMediaDevices, QAudioFormat, QAudioSource
-from PySide6.QtCore import QTimer, QObject
+from PySide6.QtMultimedia import QMediaDevices, QAudioFormat, QAudioSource, QAudio
+from PySide6.QtCore import QTimer, QObject, QLoggingCategory
 
 from pygpt_net.core.events import RealtimeEvent
 
@@ -89,6 +89,17 @@ class NativeBackend(QObject):
 
         # dedicated player wrapper (file playback + envelope metering)
         self._player = NativePlayer(window=self.window, chunk_ms=self.chunk_ms)
+
+        # Reduce WASAPI debug spam on Windows-like backends (non-invasive).
+        try:
+            QLoggingCategory.setFilterRules(
+                "qt.multimedia.wasapi.debug=false\n"
+                "qt.multimedia.audio.debug=false\n"
+                "qt.multimedia.wasapi.info=false\n"
+                "qt.multimedia.audio.info=false"
+            )
+        except Exception:
+            pass
 
     def init(self):
         """
@@ -185,10 +196,13 @@ class NativeBackend(QObject):
                 if self.audio_io_device is not None:
                     self.audio_io_device.readyRead.disconnect(self.process_audio_input)
             except (TypeError, RuntimeError):
-                # ignore if already disconnected or device gone ---
+                # ignore if already disconnected or device gone
                 pass
 
-            self.audio_source.stop()
+            try:
+                self.audio_source.stop()
+            except Exception:
+                pass
             self.audio_source = None
             self.audio_io_device = None
 
@@ -202,8 +216,7 @@ class NativeBackend(QObject):
             else:
                 print("No audio data recorded")
 
-
-        # reset input volume on stop to visually indicate end of recording ---
+        # reset input volume on stop to visually indicate end of recording
         self.reset_audio_level()
 
         return result
@@ -267,6 +280,12 @@ class NativeBackend(QObject):
         desired.setSampleFormat(QAudioFormat.SampleFormat.Int16)
         if device.isFormatSupported(desired):
             audio_format = desired
+        else:
+            # Choose nearest format to avoid silent captures on Windows.
+            try:
+                audio_format = device.nearestFormat(desired)
+            except Exception:
+                pass
 
         try:
             audio_source = QAudioSource(device, audio_format)
@@ -341,6 +360,14 @@ class NativeBackend(QObject):
         desired.setSampleFormat(QAudioFormat.SampleFormat.Int16)
         if audio_input_device.isFormatSupported(desired):
             audio_format = desired
+        else:
+            # Use nearest supported format to requested (important on Windows/WASAPI).
+            try:
+                near = audio_input_device.nearestFormat(desired)
+                if near is not None:
+                    audio_format = near
+            except Exception:
+                pass
 
         self.actual_audio_format = audio_format
         self._dtype = qaudio_dtype(self.actual_audio_format.sampleFormat())
@@ -348,10 +375,19 @@ class NativeBackend(QObject):
 
         try:
             self.audio_source = QAudioSource(audio_input_device, audio_format)
+
+            # Configure buffer size based on desired latency
             bs = int(audio_format.sampleRate() * audio_format.channelCount() * audio_format.bytesPerSample() * (float(self.latency_ms) / 1000.0))
             if bs < 4096:
                 bs = 4096
             self.audio_source.setBufferSize(bs)
+
+            # reduce notify interval to improve responsiveness
+            try:
+                self.audio_source.setNotifyInterval(max(5, min(50, int(self.latency_ms))))
+            except Exception:
+                pass
+
         except Exception as e:
             self.disconnected = True
             print(f"Failed to create audio source: {e}")
@@ -371,11 +407,10 @@ class NativeBackend(QObject):
 
     def process_audio_input(self):
         """Process incoming audio data"""
-        # guard against late calls after stop or missing device ---
+        # guard against late calls after stop or missing device
         if not self._is_recording or self.audio_io_device is None:
             return
 
-        # add seconds to stop timer
         data = self.audio_io_device.readAll()
         if data.isEmpty():
             return
@@ -482,12 +517,11 @@ class NativeBackend(QObject):
             raise ValueError("Unsupported sample format")
 
         try:
-            wf = wave.open(filename, 'wb')
-            wf.setnchannels(channels)
-            wf.setsampwidth(sample_size)
-            wf.setframerate(frame_rate)
-            wf.writeframes(out_bytes)
-            wf.close()
+            with wave.open(filename, 'wb') as wf:
+                wf.setnchannels(channels)
+                wf.setsampwidth(sample_size)
+                wf.setframerate(frame_rate)
+                wf.writeframes(out_bytes)
         except:
             pass
 
@@ -682,9 +716,9 @@ class NativeBackend(QObject):
         return QAudioFormat.SampleFormat.Int16
 
     def _make_format(
-            self, 
-            rate: int, 
-            channels: int, 
+            self,
+            rate: int,
+            channels: int,
             sample_format: QAudioFormat.SampleFormat
     ) -> QAudioFormat:
         """
@@ -712,9 +746,9 @@ class NativeBackend(QObject):
         self._rt_signals.response.emit(build_output_volume_event(int(value)))
 
     def _ensure_rt_session(
-            self, 
-            mime: str, 
-            rate: Optional[int], 
+            self,
+            mime: str,
+            rate: Optional[int],
             channels: Optional[int]
     ) -> RealtimeSession:
         """
@@ -780,10 +814,10 @@ class NativeBackend(QObject):
         return session
 
     def _convert_pcm_for_output(
-            self, 
-            data: bytes, 
-            in_rate: int, 
-            in_channels: int, 
+            self,
+            data: bytes,
+            in_rate: int,
+            in_channels: int,
             out_fmt: QAudioFormat
     ) -> bytes:
         """
@@ -847,6 +881,14 @@ class NativeBackend(QObject):
         """
         self._rt_signals = signals
 
+    def set_signals(self, signals) -> None:
+        """
+        Alias to set_rt_signals to keep backend API consistent.
+
+        :param signals: Signals object
+        """
+        self.set_rt_signals(signals)
+
     def handle_realtime(self, payload: dict) -> None:
         """
         Handle realtime audio playback payload.
@@ -859,7 +901,7 @@ class NativeBackend(QObject):
         - final: bool (True if final chunk)
         If mime is not PCM/L16, the chunk is ignored.
 
-        :param payload: Payload dictionary        
+        :param payload: Payload dictionary
         """
         try:
             data: bytes = payload.get("data", b"") or b""
@@ -916,7 +958,10 @@ class NativeBackend(QObject):
             channels = int(self.window.core.config.get('audio.input.channels', 1))
 
         event = build_rt_input_delta_event(rate=rate, channels=channels, data=data or b"", final=bool(final))
-        self._rt_signals.response.emit(event)
+        try:
+            self._rt_signals.response.emit(event)
+        except Exception:
+            QTimer.singleShot(0, lambda: self._rt_signals.response.emit(event))
 
     def _convert_input_to_int16(self, raw: bytes, sample_format) -> bytes:
         """
@@ -928,3 +973,25 @@ class NativeBackend(QObject):
         :return: converted audio data bytes in PCM16 LE
         """
         return qaudio_to_s16le(raw, sample_format)
+
+    # ---- internals (diagnostics) ----
+    def _on_audio_state_changed(self, state: int):
+        """
+        Diagnostics for input device state changes. Keep safe across Qt builds by using int.
+        """
+        return
+        try:
+            # QAudio.State.StoppedState -> typically 0; compare robustly
+            try:
+                stopped_val = int(QAudio.State.StoppedState)
+            except Exception:
+                try:
+                    stopped_val = int(QAudio.StoppedState)
+                except Exception:
+                    stopped_val = 0
+            if int(state) == stopped_val and self.audio_source is not None:
+                err = self.audio_source.error()
+                if err:
+                    print(f"[native][input] QAudioSource stopped with error: {err}")
+        except Exception:
+            pass
