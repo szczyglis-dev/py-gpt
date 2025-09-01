@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.31** | build: **2025-09-01** | Python: **>=3.10, <3.14**
+Release: **2.6.32** | build: **2025-09-02** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3448,6 +3448,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.32 (2025-09-02)**
+
+- Added video generation and support for Google Veo 3 models.
+- Introduced new predefined models: veo-3.0-generate-preview and veo-3.0-fast-generate-preview.
+- Integrated DuckDuckGo as a search provider in the WebSearch plugin.
+- Added "Loop" mode to Realtime + audio mode for automatic turn handling and continuous conversation without manually enabling the microphone.
 
 **2.6.31 (2025-09-01)**
 
