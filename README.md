@@ -1070,7 +1070,6 @@ PyGPT has a preconfigured list of models (as of 2025-08-31):
 - `gpt-4.1-mini` (OpenAI)
 - `gpt-4.1-nano` (OpenAI)
 - `gpt-4o` (OpenAI)
-- `gpt-4o-audio-preview` (OpenAI)
 - `gpt-4o-realtime-preview` (OpenAI, real-time)
 - `gpt-4o-mini` (OpenAI)
 - `gpt-5` (OpenAI)
