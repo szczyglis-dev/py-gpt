@@ -173,7 +173,12 @@ class Realtime:
 
     def shutdown(self):
         """Shutdown realtime loops"""
-        self.handler.stop_loop_sync()
+        if self.handler.is_session_active():
+            self.handler.close_session_sync()
+        try:
+            self.handler.stop_loop_sync()
+        except Exception:
+            pass
 
     def reset(self):
         """Close realtime session"""
