@@ -557,7 +557,7 @@ class OpenAIRealtimeClient:
             pass
 
         # In manual mode, do not auto-trigger response.create when there is no user input and no explicit reply request.
-        if not is_auto_turn and not has_text and not has_audio and not reply_hint:
+        if not has_text and not has_audio and not reply_hint:
             if self.debug:
                 print("[send_turn] skipped: manual mode with empty input; waiting for explicit commit")
             return
