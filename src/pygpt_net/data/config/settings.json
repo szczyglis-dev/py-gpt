@@ -81,7 +81,7 @@
         "multiplier": null,
         "step": null,
         "secret": false,
-        "advanced": false,
+        "advanced": true,
         "tab": "OpenAI"
     },
     "api_use_responses_llama": {
@@ -96,7 +96,7 @@
         "multiplier": null,
         "step": null,
         "secret": false,
-        "advanced": false,
+        "advanced": true,
         "tab": "OpenAI"
     },
     "api_key_google": {
@@ -146,6 +146,66 @@
         "step": null,
         "secret": false,
         "advanced": false,
+        "tab": "Google"
+    },
+    "api_native_google.use_vertex": {
+        "section": "api_keys",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.api_native_google.use_vertex",
+        "description": "settings.api_native_google.use_vertex.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": true,
+        "tab": "Google"
+    },
+    "api_native_google.cloud_project": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_native_google.cloud_project",
+        "description": "settings.api_native_google.cloud_project.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": true,
+        "tab": "Google"
+    },
+    "api_native_google.cloud_location": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_native_google.cloud_location",
+        "description": "settings.api_native_google.cloud_location.desc",
+        "value": "us-central1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": true,
+        "tab": "Google"
+    },
+    "api_native_google.app_credentials": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_native_google.app_credentials",
+        "description": "settings.api_native_google.app_credentials.desc",
+        "value": "us-central1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": true,
         "tab": "Google"
     },
     "api_key_anthropic": {

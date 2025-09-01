@@ -9,6 +9,7 @@
 # Updated Date: 2025.09.01 23:00:00                  #
 # ================================================== #
 
+import os
 from typing import Optional, Dict, Any
 
 from google.genai import types as gtypes
@@ -68,12 +69,42 @@ class ApiGoogle:
             model = ModelItem()
             model.provider = "google"
         args = self.window.core.models.prepare_client_args(mode, model)
+        config = self.window.core.config
+
         filtered = {}
         if args.get("api_key"):
             filtered["api_key"] = args["api_key"]
+
+        # setup VertexAI
+        use_vertex = False
+        if config.get("api_native_google.use_vertex", False):
+            use_vertex = True
+            os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
+            os.environ["GOOGLE_CLOUD_PROJECT"] = config.get("api_native_google.cloud_project", "")
+            os.environ["GOOGLE_CLOUD_LOCATION"] = config.get("api_native_google.cloud_location", "us-central1")
+            if config.get("api_native_google.app_credentials", ""):
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.get("api_native_google.app_credentials", "")
+        else:
+            if os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
+                del os.environ["GOOGLE_GENAI_USE_VERTEXAI"]
+            if os.environ.get("GOOGLE_CLOUD_PROJECT"):
+                del os.environ["GOOGLE_CLOUD_PROJECT"]
+            if os.environ.get("GOOGLE_CLOUD_LOCATION"):
+                del os.environ["GOOGLE_CLOUD_LOCATION"]
+            if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+                del os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+
+        # append VertexAI params to client args
+        if use_vertex:
+            filtered["vertexai"] = True
+            filtered["project"] = os.environ.get("GOOGLE_CLOUD_PROJECT")
+            filtered["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+            # filtered["http_options"] = gtypes.HttpOptions(api_version="v1")
+
         if self.client is None or self.last_client_args != filtered:
             self.client = genai.Client(**filtered)
         self.last_client_args = filtered
+
         return self.client
 
     def call(

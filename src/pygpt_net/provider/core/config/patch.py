@@ -27,6 +27,8 @@ class Patch:
         :return: True if migrated
         """
         data = self.window.core.config.all()
+        cfg_get_base = self.window.core.config.get_base
+        patch_css = self.window.core.updater.patch_css
         current = "0.0.0"
         updated = False
         is_old = False
@@ -196,9 +198,9 @@ class Patch:
             if old < parse_version("2.0.25"):
                 print("Migrating config from < 2.0.25...")
                 if 'cmd.prompt' not in data:
-                    data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')
+                    data['cmd.prompt'] = cfg_get_base('cmd.prompt')
                 if 'img_prompt' not in data:
-                    data['img_prompt'] = self.window.core.config.get_base('img_prompt')
+                    data['img_prompt'] = cfg_get_base('img_prompt')
                 if 'vision.capture.quality' not in data:
                     data['vision.capture.quality'] = 85
                 if 'attachments_capture_clear' not in data:
@@ -232,7 +234,7 @@ class Patch:
                                           "paragraphs, trying to find the most " \
                                           "important content that can help answer the " \
                                           "following question: {query}"
-                data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')  # fix
+                data['cmd.prompt'] = cfg_get_base('cmd.prompt')  # fix
                 updated = True
 
             # < 2.0.30
@@ -404,7 +406,7 @@ class Patch:
             # < 2.0.81
             if old < parse_version("2.0.81"):
                 print("Migrating config from < 2.0.81...")
-                self.window.core.updater.patch_css('markdown.light.css', True)  # force replace file
+                patch_css('markdown.light.css', True)  # force replace file
                 updated = True
 
             # < 2.0.85
@@ -495,7 +497,7 @@ class Patch:
             # < 2.0.91
             if old < parse_version("2.0.91"):
                 print("Migrating config from < 2.0.91...")
-                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
+                patch_css('style.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.0.96
@@ -509,9 +511,9 @@ class Patch:
             if old < parse_version("2.0.98"):
                 print("Migrating config from < 2.0.98...")
                 data['img_resolution'] = "1792x1024"  # char fix
-                self.window.core.updater.patch_css('style.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
+                patch_css('style.css', True)  # force replace file
+                patch_css('style.light.css', True)  # force replace file
+                patch_css('style.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.0.99
@@ -775,7 +777,7 @@ class Patch:
             # < 2.0.152
             if old < parse_version("2.0.152"):
                 print("Migrating config from < 2.0.152...")
-                data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')  # bg run fix
+                data['cmd.prompt'] = cfg_get_base('cmd.prompt')  # bg run fix
                 updated = True
 
             # < 2.0.153
@@ -1116,7 +1118,7 @@ class Patch:
             # < 2.1.20
             if old < parse_version("2.1.20"):
                 print("Migrating config from < 2.1.20...")
-                data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')  # moved to json schema
+                data['cmd.prompt'] = cfg_get_base('cmd.prompt')  # moved to json schema
                 updated = True
 
             # < 2.1.22
@@ -1225,12 +1227,12 @@ class Patch:
                 ])
 
                 # old keys first
-                data['cmd.prompt'] = self.window.core.config.get_base('prompt.cmd')  # new format
-                data['cmd.prompt.extra'] = self.window.core.config.get_base('prompt.cmd.extra')  # new format
-                data['cmd.prompt.extra.assistants'] = self.window.core.config.get_base('prompt.cmd.extra.assistants')  # new format
+                data['cmd.prompt'] = cfg_get_base('prompt.cmd')  # new format
+                data['cmd.prompt.extra'] = cfg_get_base('prompt.cmd.extra')  # new format
+                data['cmd.prompt.extra.assistants'] = cfg_get_base('prompt.cmd.extra.assistants')  # new format
 
                 # new keys
-                data['prompt.agent.goal'] = self.window.core.config.get_base('prompt.agent.goal')  # new format
+                data['prompt.agent.goal'] = cfg_get_base('prompt.agent.goal')  # new format
 
                 # replace to new keys
                 self.window.core.config.replace_key(data, "img_prompt", "prompt.img")
@@ -1309,48 +1311,48 @@ class Patch:
                     # data["render.engine"] = "legacy"
 
                 # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # NEW
-                self.window.core.updater.patch_css('web.light.css', True)  # NEW
-                self.window.core.updater.patch_css('web.dark.css', True)  #  NEW
+                patch_css('web.css', True)  # NEW
+                patch_css('web.light.css', True)  # NEW
+                patch_css('web.dark.css', True)  #  NEW
                 updated = True
 
             # < 2.1.60
             if old < parse_version("2.1.60"):
                 print("Migrating config from < 2.1.60...")
                 # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # force update
+                patch_css('web.css', True)  # force update
                 updated = True
 
             # < 2.1.61
             if old < parse_version("2.1.61"):
                 print("Migrating config from < 2.1.61...")
                 # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # force update
+                patch_css('web.css', True)  # force update
                 updated = True
 
             # < 2.1.63
             if old < parse_version("2.1.63"):
                 print("Migrating config from < 2.1.63...")
                 # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # force update
-                self.window.core.updater.patch_css('web.light.css', True)  # force update
-                self.window.core.updater.patch_css('web.dark.css', True)  # force update
+                patch_css('web.css', True)  # force update
+                patch_css('web.light.css', True)  # force update
+                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.70
             if old < parse_version("2.1.70"):
                 print("Migrating config from < 2.1.70...")
                 # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # force update
+                patch_css('web.css', True)  # force update
                 updated = True
 
             # < 2.1.72
             if old < parse_version("2.1.72"):
                 print("Migrating config from < 2.1.72...")
                 # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # force update
-                self.window.core.updater.patch_css('web.light.css', True)  # force update
-                self.window.core.updater.patch_css('web.dark.css', True)  # force update
+                patch_css('web.css', True)  # force update
+                patch_css('web.light.css', True)  # force update
+                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.73
@@ -1367,18 +1369,18 @@ class Patch:
             if old < parse_version("2.1.74"):
                 print("Migrating config from < 2.1.74...")
                 # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # force update
-                self.window.core.updater.patch_css('web.light.css', True)  # force update
-                self.window.core.updater.patch_css('web.dark.css', True)  # force update
+                patch_css('web.css', True)  # force update
+                patch_css('web.light.css', True)  # force update
+                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.75
             if old < parse_version("2.1.75"):
                 print("Migrating config from < 2.1.75...")
                 # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # force update
-                self.window.core.updater.patch_css('web.light.css', True)  # force update
-                self.window.core.updater.patch_css('web.dark.css', True)  # force update
+                patch_css('web.css', True)  # force update
+                patch_css('web.light.css', True)  # force update
+                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.76
@@ -1387,18 +1389,18 @@ class Patch:
                 if 'render.blocks' not in data:
                     data["render.blocks"] = True
                 # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # force update
-                self.window.core.updater.patch_css('web.light.css', True)  # force update
-                self.window.core.updater.patch_css('web.dark.css', True)  # force update
+                patch_css('web.css', True)  # force update
+                patch_css('web.light.css', True)  # force update
+                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.78
             if old < parse_version("2.1.78"):
                 print("Migrating config from < 2.1.78...")
                 # css upgrade, scroll bg
-                self.window.core.updater.patch_css('web.css', True)  # force update
-                self.window.core.updater.patch_css('web.light.css', True)  # force update
-                self.window.core.updater.patch_css('web.dark.css', True)  # force update
+                patch_css('web.css', True)  # force update
+                patch_css('web.light.css', True)  # force update
+                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.79
@@ -1425,11 +1427,11 @@ class Patch:
                 if 'experts.mode' not in data:
                     data["experts.mode"] = "chat"
                 # from base
-                data["prompt.agent.instruction"] = self.window.core.config.get_base('prompt.agent.instruction')
-                data["prompt.agent.continue"] = self.window.core.config.get_base('prompt.agent.continue')
-                data["prompt.agent.goal"] = self.window.core.config.get_base('prompt.agent.goal')
-                data["prompt.expert"] = self.window.core.config.get_base('prompt.expert')
-                data["prompt.img"] = self.window.core.config.get_base('prompt.img')
+                data["prompt.agent.instruction"] = cfg_get_base('prompt.agent.instruction')
+                data["prompt.agent.continue"] = cfg_get_base('prompt.agent.continue')
+                data["prompt.agent.goal"] = cfg_get_base('prompt.agent.goal')
+                data["prompt.expert"] = cfg_get_base('prompt.expert')
+                data["prompt.img"] = cfg_get_base('prompt.img')
                 updated = True
 
             # < 2.2.8
@@ -1506,7 +1508,7 @@ class Patch:
                 print("Migrating config from < 2.2.20...")
                 if 'func_call.native' not in data:
                     data["func_call.native"] = True
-                self.window.core.updater.patch_css('web.css', True)  # force update
+                patch_css('web.css', True)  # force update
                 updated = True
 
             # < 2.2.22
@@ -1519,7 +1521,7 @@ class Patch:
             # < 2.2.25
             if old < parse_version("2.2.25"):
                 print("Migrating config from < 2.2.25...")
-                data["prompt.expert"] = self.window.core.config.get_base('prompt.expert')
+                data["prompt.expert"] = cfg_get_base('prompt.expert')
                 updated = True
 
             # < 2.2.26
@@ -1577,15 +1579,15 @@ class Patch:
             if old < parse_version("2.4.10"):
                 print("Migrating config from < 2.4.10...")
                 if 'prompt.agent.continue.llama' not in data:
-                    data["prompt.agent.continue.llama"] = self.window.core.config.get_base('prompt.agent.continue.llama')
+                    data["prompt.agent.continue.llama"] = cfg_get_base('prompt.agent.continue.llama')
                 if 'agent.llama.idx' not in data:
-                    data["agent.llama.idx"] = self.window.core.config.get_base('agent.llama.idx')
+                    data["agent.llama.idx"] = cfg_get_base('agent.llama.idx')
                 if 'agent.llama.steps' not in data:
-                    data["agent.llama.steps"] = self.window.core.config.get_base('agent.llama.steps')
+                    data["agent.llama.steps"] = cfg_get_base('agent.llama.steps')
                 if 'agent.llama.provider' not in data:
-                    data["agent.llama.provider"] = self.window.core.config.get_base('agent.llama.provider')
+                    data["agent.llama.provider"] = cfg_get_base('agent.llama.provider')
                 if 'agent.llama.verbose' not in data:
-                    data["agent.llama.verbose"] = self.window.core.config.get_base('agent.llama.verbose')
+                    data["agent.llama.verbose"] = cfg_get_base('agent.llama.verbose')
                 data["agent.goal.notify"] = False  # disable by default
                 updated = True
 
@@ -1618,13 +1620,13 @@ class Patch:
             if old < parse_version("2.4.14"):
                 print("Migrating config from < 2.4.14...")
                 if 'prompt.agent.llama.max_eval' not in data:
-                    data["prompt.agent.llama.max_eval"] = self.window.core.config.get_base('prompt.agent.llama.max_eval')
+                    data["prompt.agent.llama.max_eval"] = cfg_get_base('prompt.agent.llama.max_eval')
                 if 'prompt.agent.llama.append_eval' not in data:
-                    data["prompt.agent.llama.append_eval"] = self.window.core.config.get_base('prompt.agent.llama.append_eval')
+                    data["prompt.agent.llama.append_eval"] = cfg_get_base('prompt.agent.llama.append_eval')
                 if 'agent.llama.loop.enabled' not in data:
-                    data["agent.llama.loop.enabled"] = self.window.core.config.get_base('agent.llama.loop.enabled')
+                    data["agent.llama.loop.enabled"] = cfg_get_base('agent.llama.loop.enabled')
                 if 'agent.llama.loop.score' not in data:
-                    data["agent.llama.loop.score"] = self.window.core.config.get_base('agent.llama.loop.score')
+                    data["agent.llama.loop.score"] = cfg_get_base('agent.llama.loop.score')
                 updated = True
 
             # < 2.4.15
@@ -1665,7 +1667,7 @@ class Patch:
             if old < parse_version("2.4.19"):
                 print("Migrating config from < 2.4.19...")
                 if 'layout.animation.disable' not in data:
-                    data["layout.animation.disable"] = self.window.core.config.get_base('layout.animation.disable')
+                    data["layout.animation.disable"] = cfg_get_base('layout.animation.disable')
                 if 'cmd_code_interpreter' in data['plugins'] \
                         and 'cmd.ipython_execute' in data['plugins']['cmd_code_interpreter']:
                     # remove
@@ -1676,19 +1678,19 @@ class Patch:
             if old < parse_version("2.4.21"):
                 print("Migrating config from < 2.4.21...")
                 if 'ctx.attachment.mode' not in data:
-                    data["ctx.attachment.mode"] = self.window.core.config.get_base('ctx.attachment.mode')
+                    data["ctx.attachment.mode"] = cfg_get_base('ctx.attachment.mode')
                 if 'ctx.attachment.summary.model' not in data:
-                    data["ctx.attachment.summary.model"] = self.window.core.config.get_base('ctx.attachment.summary.model')
+                    data["ctx.attachment.summary.model"] = cfg_get_base('ctx.attachment.summary.model')
                 if 'ctx.attachment.verbose' not in data:
-                    data["ctx.attachment.verbose"] = self.window.core.config.get_base('ctx.attachment.verbose')
+                    data["ctx.attachment.verbose"] = cfg_get_base('ctx.attachment.verbose')
                 updated = True
 
             # < 2.4.22
             if old < parse_version("2.4.22"):
                 print("Migrating config from < 2.4.22...")
-                data["ctx.attachment.mode"] = self.window.core.config.get_base('ctx.attachment.mode')
+                data["ctx.attachment.mode"] = cfg_get_base('ctx.attachment.mode')
                 if 'ctx.attachment.img' not in data:
-                    data["ctx.attachment.img"] = self.window.core.config.get_base(
+                    data["ctx.attachment.img"] = cfg_get_base(
                         'ctx.attachment.img')
                 updated = True
 
@@ -1705,7 +1707,7 @@ class Patch:
             if old < parse_version("2.4.31"):
                 print("Migrating config from < 2.4.31...")
                 if 'attachments_auto_index' not in data:
-                    data["attachments_auto_index"] = self.window.core.config.get_base(
+                    data["attachments_auto_index"] = cfg_get_base(
                         'attachments_auto_index')
                 updated = True
 
@@ -1713,7 +1715,7 @@ class Patch:
             if old < parse_version("2.4.34"):
                 print("Migrating config from < 2.4.34...")
                 if 'ctx.attachment.query.model' not in data:
-                    data["ctx.attachment.query.model"] = self.window.core.config.get_base(
+                    data["ctx.attachment.query.model"] = cfg_get_base(
                         'ctx.attachment.query.model')
                 updated = True
 
@@ -1727,10 +1729,10 @@ class Patch:
             if old < parse_version("2.4.37"):
                 print("Migrating config from < 2.4.37...")
                 if 'ctx.attachment.rag.history' not in data:
-                    data["ctx.attachment.rag.history"] = self.window.core.config.get_base(
+                    data["ctx.attachment.rag.history"] = cfg_get_base(
                         'ctx.attachment.rag.history')
                 if 'ctx.attachment.rag.history.max_items' not in data:
-                    data["ctx.attachment.rag.history.max_items"] = self.window.core.config.get_base(
+                    data["ctx.attachment.rag.history.max_items"] = cfg_get_base(
                         'ctx.attachment.rag.history.max_items')
                 updated = True
 
@@ -1745,7 +1747,7 @@ class Patch:
                     data["audio.input.channels"] = 1
                 if 'audio.input.rate' not in data:
                     data["audio.input.rate"] = 44100
-                self.window.core.updater.patch_css('style.light.css', True)  # force update
+                patch_css('style.light.css', True)  # force update
                 updated = True
 
             # < 2.4.39
@@ -1770,10 +1772,10 @@ class Patch:
                 if 'cmd_web' in data['plugins'] \
                         and 'cmd.web_url_raw' in data['plugins']['cmd_web']:
                     del data['plugins']['cmd_web']['cmd.web_url_raw']
-                self.window.core.updater.patch_css('web-blocks.css', True)  # force update
-                self.window.core.updater.patch_css('web-blocks.light.css', True)  # force update
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force update
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force update
+                patch_css('web-blocks.css', True)  # force update
+                patch_css('web-blocks.light.css', True)  # force update
+                patch_css('web-chatgpt.css', True)  # force update
+                patch_css('web-chatgpt_wide.css', True)  # force update
                 updated = True
 
             # < 2.4.44
@@ -1785,7 +1787,7 @@ class Patch:
             # < 2.4.45
             if old < parse_version("2.4.45"):
                 print("Migrating config from < 2.4.45...")
-                self.window.core.updater.patch_css('style.css', True)  # force update
+                patch_css('style.css', True)  # force update
                 updated = True
 
             # < 2.4.46
@@ -1841,9 +1843,9 @@ class Patch:
             # < 2.5.7
             if old < parse_version("2.5.7"):
                 print("Migrating config from < 2.5.7...")
-                self.window.core.updater.patch_css('web-blocks.css', True)  # force update
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force update
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force update
+                patch_css('web-blocks.css', True)  # force update
+                patch_css('web-chatgpt.css', True)  # force update
+                patch_css('web-chatgpt_wide.css', True)  # force update
                 updated = True
 
             # < 2.5.8
@@ -1894,13 +1896,13 @@ class Patch:
             # < 2.5.21
             if old < parse_version("2.5.21"):
                 print("Migrating config from < 2.5.21...")
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
                 updated = True
 
             # < 2.5.24
             if old < parse_version("2.5.24"):
                 print("Migrating config from < 2.5.24...")
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
                 updated = True
 
             # < 2.5.25
@@ -1946,29 +1948,29 @@ class Patch:
             # < 2.5.36
             if old < parse_version("2.5.36"):
                 print("Migrating config from < 2.5.36...")
-                self.window.core.updater.patch_css('style.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                patch_css('style.css', True)  # force replace file
+                patch_css('style.dark.css', True)  # force replace file
+                patch_css('style.light.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.light.css', True)  # force replace file
+                patch_css('web-chatgpt.dark.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.37
             if old < parse_version("2.5.37"):
                 print("Migrating config from < 2.5.37...")
-                self.window.core.updater.patch_css('style.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                patch_css('style.css', True)  # force replace file
+                patch_css('style.dark.css', True)  # force replace file
+                patch_css('style.light.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.light.css', True)  # force replace file
+                patch_css('web-chatgpt.dark.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.40 - update tool prompts
@@ -1976,13 +1978,13 @@ class Patch:
                 print("Migrating config from < 2.5.40...")
 
                 # config
-                data['prompt.agent.goal'] = self.window.core.config.get_base('prompt.agent.goal')
-                data['prompt.agent.instruction'] = self.window.core.config.get_base('prompt.agent.instruction')
-                data['prompt.ctx.auto_summary.user'] = self.window.core.config.get_base('prompt.ctx.auto_summary.user')
-                data['prompt.cmd'] = self.window.core.config.get_base('prompt.cmd')
-                data['prompt.cmd.extra'] = self.window.core.config.get_base('prompt.cmd.extra')
-                data['prompt.cmd.extra.assistants'] = self.window.core.config.get_base('prompt.cmd.extra.assistants')
-                data['prompt.expert'] = self.window.core.config.get_base('prompt.expert')
+                data['prompt.agent.goal'] = cfg_get_base('prompt.agent.goal')
+                data['prompt.agent.instruction'] = cfg_get_base('prompt.agent.instruction')
+                data['prompt.ctx.auto_summary.user'] = cfg_get_base('prompt.ctx.auto_summary.user')
+                data['prompt.cmd'] = cfg_get_base('prompt.cmd')
+                data['prompt.cmd.extra'] = cfg_get_base('prompt.cmd.extra')
+                data['prompt.cmd.extra.assistants'] = cfg_get_base('prompt.cmd.extra.assistants')
+                data['prompt.expert'] = cfg_get_base('prompt.expert')
 
                 # plugins
                 if 'openai_dalle' in data['plugins'] \
@@ -2002,8 +2004,8 @@ class Patch:
             # < 2.5.42 - action img padding
             if old < parse_version("2.5.42"):
                 print("Migrating config from < 2.5.42...")
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.css', True)  # force replace file
                 updated = True
 
             # < 2.5.43 - remove cmd_code_interpreter fresh_kernel option
@@ -2017,35 +2019,35 @@ class Patch:
             # < 2.5.51
             if old < parse_version("2.5.51"):
                 print("Migrating config from < 2.5.51...")
-                self.window.core.updater.patch_css('style.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
+                patch_css('style.css', True)  # force replace file
+                patch_css('style.dark.css', True)  # force replace file
+                patch_css('style.light.css', True)  # force replace file
                 updated = True
 
             # < 2.5.54
             if old < parse_version("2.5.54"):
                 print("Migrating config from < 2.5.54...")
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
                 updated = True
 
             # < 2.5.55
             if old < parse_version("2.5.55"):
                 print("Migrating config from < 2.5.55...")
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
                 updated = True
 
             # < 2.5.60
             if old < parse_version("2.5.60"):
                 print("Migrating config from < 2.5.60...")
-                self.window.core.updater.patch_css('style.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                patch_css('style.css', True)  # force replace file
+                patch_css('style.dark.css', True)  # force replace file
+                patch_css('style.light.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.light.css', True)  # force replace file
+                patch_css('web-chatgpt.dark.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.61
@@ -2053,7 +2055,7 @@ class Patch:
                 print("Migrating config from < 2.5.61..")
                 if "agent.output.render.all" not in data:
                     data["agent.output.render.all"] = False
-                data["prompt.expert"] = self.window.core.config.get_base(
+                data["prompt.expert"] = cfg_get_base(
                     'prompt.expert')
                 if "experts.use_agent" not in data:
                     data["experts.use_agent"] = True
@@ -2070,11 +2072,11 @@ class Patch:
             # < 2.5.64
             if old < parse_version("2.5.64"):
                 print("Migrating config from < 2.5.64..")
-                data["prompt.cmd"] = self.window.core.config.get_base(
+                data["prompt.cmd"] = cfg_get_base(
                     'prompt.cmd')
-                data["prompt.cmd.extra"] = self.window.core.config.get_base(
+                data["prompt.cmd.extra"] = cfg_get_base(
                     'prompt.cmd.extra')
-                data["prompt.expert"] = self.window.core.config.get_base(
+                data["prompt.expert"] = cfg_get_base(
                     'prompt.expert')
                 data["experts.use_agent"] = False
                 updated = True
@@ -2082,7 +2084,7 @@ class Patch:
             # < 2.5.65
             if old < parse_version("2.5.65"):
                 print("Migrating config from < 2.5.65..")
-                data["prompt.expert"] = self.window.core.config.get_base(
+                data["prompt.expert"] = cfg_get_base(
                     'prompt.expert')
                 updated = True
 
@@ -2098,11 +2100,11 @@ class Patch:
             # < 2.5.69
             if old < parse_version("2.5.69"):
                 print("Migrating config from < 2.5.69.")
-                data["prompt.agent.continue"] = self.window.core.config.get_base(
+                data["prompt.agent.continue"] = cfg_get_base(
                     'prompt.agent.continue')
-                data["prompt.agent.goal"] = self.window.core.config.get_base(
+                data["prompt.agent.goal"] = cfg_get_base(
                     'prompt.agent.goal')
-                data["prompt.expert"] = self.window.core.config.get_base(
+                data["prompt.expert"] = cfg_get_base(
                     'prompt.expert')
                 if "agent.api_use_responses" not in data:
                     data["agent.api_use_responses"] = False
@@ -2123,7 +2125,7 @@ class Patch:
                 if "remote_tools.mcp" not in data:
                     data["remote_tools.mcp"] = False
                 if "remote_tools.mcp.args" not in data:
-                    data["remote_tools.mcp.args"] = self.window.core.config.get_base(
+                    data["remote_tools.mcp.args"] = cfg_get_base(
                     'remote_tools.mcp.args')
                 if "remote_tools.file_search" not in data:
                     data["remote_tools.file_search"] = False
@@ -2143,23 +2145,23 @@ class Patch:
             # < 2.5.73
             if old < parse_version("2.5.73"):
                 print("Migrating config from < 2.5.73...")
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.light.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.76
             if old < parse_version("2.5.76"):
                 print("Migrating config from < 2.5.76.")
                 if "agent.llama.loop.mode" not in data:
-                    data["agent.llama.loop.mode"] = self.window.core.config.get_base(
+                    data["agent.llama.loop.mode"] = cfg_get_base(
                         'agent.llama.loop.mode')
                 if "prompt.agent.llama.eval.complete" not in data:
-                    data["prompt.agent.llama.eval.complete"] = self.window.core.config.get_base(
+                    data["prompt.agent.llama.eval.complete"] = cfg_get_base(
                         'prompt.agent.llama.eval.complete')
-                data["prompt.agent.llama.eval"] = self.window.core.config.get_base(
+                data["prompt.agent.llama.eval"] = cfg_get_base(
                     'prompt.agent.llama.eval')
 
             # < 2.5.89
@@ -2177,11 +2179,11 @@ class Patch:
             # < 2.5.90
             if old < parse_version("2.5.90"):
                 print("Migrating config from < 2.5.90...")
-                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-blocks.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-blocks.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-blocks.light.css', True)  # force replace file
+                patch_css('style.dark.css', True)  # force replace file
+                patch_css('style.light.css', True)  # force replace file
+                patch_css('web-blocks.css', True)  # force replace file
+                patch_css('web-blocks.dark.css', True)  # force replace file
+                patch_css('web-blocks.light.css', True)  # force replace file
                 updated = True
 
             # < 2.5.91
@@ -2205,15 +2207,15 @@ class Patch:
                     data["api_endpoint_hugging_face"] = "https://router.huggingface.co/v1"
 
                 # tips
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-blocks.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-blocks.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-blocks.dark.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.light.css', True)  # force replace file
+                patch_css('web-chatgpt.dark.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                patch_css('web-blocks.css', True)  # force replace file
+                patch_css('web-blocks.light.css', True)  # force replace file
+                patch_css('web-blocks.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.95
@@ -2225,15 +2227,15 @@ class Patch:
                     data["personalize.modes"] = "chat"
 
                 # avatars css
-                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-blocks.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-blocks.light.css', True)  # force replace file
-                self.window.core.updater.patch_css('web-blocks.dark.css', True)  # force replace file
+                patch_css('web-chatgpt.css', True)  # force replace file
+                patch_css('web-chatgpt.light.css', True)  # force replace file
+                patch_css('web-chatgpt.dark.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
+                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                patch_css('web-blocks.css', True)  # force replace file
+                patch_css('web-blocks.light.css', True)  # force replace file
+                patch_css('web-blocks.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.98
@@ -2246,19 +2248,19 @@ class Patch:
             # < 2.6.0
             if old < parse_version("2.6.0"):
                 print("Migrating config from < 2.6.0...")
-                self.window.core.updater.patch_css('style.light.css', True)  # scrollbar, calendar fix
-                self.window.core.updater.patch_css('style.dark.css', True)  # calendar fix
+                patch_css('style.light.css', True)  # scrollbar, calendar fix
+                patch_css('style.dark.css', True)  # calendar fix
                 updated = True
 
             # < 2.6.8
             if old < parse_version("2.6.8"):
                 print("Migrating config from < 2.6.8...")
-                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # p color
-                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # p color
-                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # p color
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # p color
-                self.window.core.updater.patch_css('style.light.css', True)  # tree
-                self.window.core.updater.patch_css('style.dark.css', True)  # tree
+                patch_css('web-chatgpt.light.css', True)  # p color
+                patch_css('web-chatgpt.dark.css', True)  # p color
+                patch_css('web-chatgpt_wide.light.css', True)  # p color
+                patch_css('web-chatgpt_wide.dark.css', True)  # p color
+                patch_css('style.light.css', True)  # tree
+                patch_css('style.dark.css', True)  # tree
                 updated = True
 
             # < 2.6.10
@@ -2283,19 +2285,19 @@ class Patch:
             # < 2.6.23  -- fix: restore <p> color
             if old < parse_version("2.6.23"):
                 print("Migrating config from < 2.6.23...")
-                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)
-                self.window.core.updater.patch_css('web-chatgpt.light.css', True)
-                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)                
-                self.window.core.updater.patch_css('web-blocks.dark.css', True)
-                self.window.core.updater.patch_css('web-blocks.light.css', True)
+                patch_css('web-chatgpt.dark.css', True)
+                patch_css('web-chatgpt_wide.dark.css', True)
+                patch_css('web-chatgpt.light.css', True)
+                patch_css('web-chatgpt_wide.light.css', True)
+                patch_css('web-blocks.dark.css', True)
+                patch_css('web-blocks.light.css', True)
                 updated = True
 
             # < 2.6.24
             if old < parse_version("2.6.24"):
                 print("Migrating config from < 2.6.24...")
                 if "llama.idx.embeddings.default" not in data:
-                    data["llama.idx.embeddings.default"] = self.window.core.config.get_base(
+                    data["llama.idx.embeddings.default"] = cfg_get_base(
                         'llama.idx.embeddings.default')
                 updated = True
 
@@ -2347,12 +2349,12 @@ class Patch:
             # < 2.6.28  -- fix: cmd color
             if old < parse_version("2.6.28"):
                 print("Migrating config from < 2.6.28...")
-                self.window.core.updater.patch_css('web-chatgpt.css', True)
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)
-                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)
-                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)
-                self.window.core.updater.patch_css('web-chatgpt.light.css', True)
-                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt_wide.css', True)
+                patch_css('web-chatgpt.dark.css', True)
+                patch_css('web-chatgpt_wide.dark.css', True)
+                patch_css('web-chatgpt.light.css', True)
+                patch_css('web-chatgpt_wide.light.css', True)
                 updated = True
 
             # < 2.6.30
@@ -2385,41 +2387,42 @@ class Patch:
             if old < parse_version("2.6.32"):
                 print("Migrating config from < 2.6.32...")
 
-                data["prompt.img"] = self.window.core.config.get_base(
+                data["prompt.img"] = cfg_get_base(
                     'prompt.img')
 
                 if "prompt.video" not in data:
-                    data["prompt.video"] = self.window.core.config.get_base(
-                        'prompt.video')
+                    data["prompt.video"] = cfg_get_base('prompt.video')
                 if "video.prompt_model" not in data:
-                    data["video.prompt_model"] = self.window.core.config.get_base(
-                        'video.prompt_model')
+                    data["video.prompt_model"] = cfg_get_base( 'video.prompt_model')
                 if "video.aspect_ratio" not in data:
-                    data["video.aspect_ratio"] = self.window.core.config.get_base(
-                        'video.aspect_ratio')
+                    data["video.aspect_ratio"] = cfg_get_base( 'video.aspect_ratio')
                 if "video.duration" not in data:
-                    data["video.duration"] = self.window.core.config.get_base(
-                        'video.duration')
+                    data["video.duration"] = cfg_get_base('video.duration')
                 if "video.fps" not in data:
-                    data["video.fps"] = self.window.core.config.get_base(
-                        'video.fps')
+                    data["video.fps"] = cfg_get_base('video.fps')
                 if "video.seed" not in data:
-                    data["video.seed"] = self.window.core.config.get_base(
-                        'video.seed')
+                    data["video.seed"] = cfg_get_base('video.seed')
                 if "video.negative_prompt" not in data:
-                    data["video.negative_prompt"] = self.window.core.config.get_base(
-                        'video.negative_prompt')
+                    data["video.negative_prompt"] = cfg_get_base('video.negative_prompt')
                 if "video.generate_audio" not in data:
-                    data["video.generate_audio"] = self.window.core.config.get_base(
-                        'video.generate_audio')
+                    data["video.generate_audio"] = cfg_get_base('video.generate_audio')
                 if "video.resolution" not in data:
-                    data["video.resolution"] = self.window.core.config.get_base(
-                        'video.resolution')
+                    data["video.resolution"] = cfg_get_base('video.resolution')
+
+                # google vertex
+                if "api_native_google.use_vertex" not in data:
+                    data["api_native_google.use_vertex"] = cfg_get_base('api_native_google.use_vertex')
+                if "api_native_google.cloud_project" not in data:
+                    data["api_native_google.cloud_project"] = cfg_get_base('api_native_google.cloud_project')
+                if "api_native_google.cloud_location" not in data:
+                    data["api_native_google.cloud_location"] = cfg_get_base('api_native_google.cloud_location')
+                if "api_native_google.app_credentials" not in data:
+                    data["api_native_google.app_credentials"] = cfg_get_base('api_native_google.app_credentials')
 
                 # add video player CSS
-                self.window.core.updater.patch_css('web-chatgpt.css', True)
-                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)
-                self.window.core.updater.patch_css('web-blocks.css', True)
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt_wide.css', True)
+                patch_css('web-blocks.css', True)
                 updated = True
 
         # update file
