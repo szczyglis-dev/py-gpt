@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.6.31 (2025-09-01)
+
+- Chat with Audio mode renamed to Realtime + audio.
+- Added support for real-time audio models from OpenAI (Realtime API) and Google (Live API), featuring real-time audio integration (beta).
+- Introduced new predefined models: gpt-realtime, gpt-4o-realtime-preview, and gemini-2.5-flash-preview-native-audio-dialog.
+- Included Google Gen AI audio input and output providers in the Audio Input/Output plugins.
+- Added URL Context remote tool support in Google Gen AI.
+
 ## 2.6.30 (2025-08-29)
 
 - Added native Google GenAI API support (beta); live audio is not supported yet (#132).
