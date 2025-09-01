@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
-# ================================================== #
-
 import threading
 from typing import Optional
 
@@ -53,6 +42,9 @@ class RealtimeSessionPyAudio(QObject):
         self._final = False
         self._tail_ms = 60  # add a small silence tail to avoid clicks
 
+        # one-shot guard to avoid double stop and duplicate callbacks
+        self._stopping = False
+
         # volume metering
         self._volume_emitter = volume_emitter
         self._vol_buffer = bytearray()
@@ -77,6 +69,13 @@ class RealtimeSessionPyAudio(QObject):
             self._stream.start_stream()
         except Exception:
             pass
+
+        # finished-state watchdog: guarantees stop()+on_stopped once playback is truly done
+        self._finish_timer = QTimer(self)
+        self._finish_timer.setTimerType(Qt.PreciseTimer)
+        self._finish_timer.setInterval(15)  # fast but lightweight watchdog
+        self._finish_timer.timeout.connect(self._check_finished)
+        self._finish_timer.start()
 
         # stop callback (set by backend)
         self.on_stopped = None
@@ -124,15 +123,28 @@ class RealtimeSessionPyAudio(QObject):
         self._final = True
 
     def stop(self) -> None:
-        """Stop playback and free resources."""
+        """Stop playback and free resources. Idempotent."""
+        # ensure this executes only once even if called from multiple paths
+        if self._stopping:
+            return
+        self._stopping = True
+
+        # stop timers first to prevent re-entry
+        try:
+            if self._finish_timer:
+                self._finish_timer.stop()
+        except Exception:
+            pass
         try:
             if self._vol_timer:
                 self._vol_timer.stop()
         except Exception:
             pass
+
+        # gracefully stop PortAudio stream and close/terminate
         try:
             if self._stream and self._stream.is_active():
-                self._stream.stop_stream()
+                self._stream.stop_stream()  # drains queued audio per PortAudio docs
         except Exception:
             pass
         try:
@@ -197,10 +209,35 @@ class RealtimeSessionPyAudio(QObject):
 
         # auto-finish: when final and nothing more to play, complete and stop()
         if self._final and self._buffer_empty():
-            QTimer.singleShot(0, self.stop)  # stop on the GUI thread
+            # Return paComplete and request stop on the GUI thread.
+            # PaComplete deactivates the stream after the last callback buffer is played.
+            QTimer.singleShot(0, self.stop)
             return out, pyaudio.paComplete
 
         return out, pyaudio.paContinue
+
+    def _check_finished(self) -> None:
+        """
+        Watchdog that runs on the Qt thread to guarantee a single, reliable stop().
+        Triggers when PortAudio deactivates the stream, or when the buffer is fully
+        drained after mark_final().
+        """
+        if self._stopping:
+            return
+
+        # If underlying PA stream is no longer active, we are done.
+        try:
+            if self._stream is not None and not self._stream.is_active():
+                self.stop()
+                return
+        except Exception:
+            # If querying state fails, assume the stream is done and stop.
+            self.stop()
+            return
+
+        # If we've been marked final and our buffer is empty, finalize proactively.
+        if self._final and self._buffer_empty():
+            self.stop()
 
     def _buffer_empty(self) -> bool:
         """
