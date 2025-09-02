@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.33** | build: **2025-09-02** | Python: **>=3.10, <3.14**
+Release: **2.6.34** | build: **2025-09-03** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3448,6 +3448,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.34 (2025-09-03)**
+
+- Added auto-resizing for input.
+- Added file management to the OpenAI Vector Stores tool.
+- Implemented removal of script tags when exporting HTML.
+- Enabled maintaining custom resolution in Painter.
 
 **2.6.33 (2025-09-02)**
 

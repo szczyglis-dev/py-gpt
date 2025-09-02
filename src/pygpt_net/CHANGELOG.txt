@@ -1,3 +1,10 @@
+2.6.34 (2025-09-03)
+
+- Added auto-resizing for input.
+- Added file management to the OpenAI Vector Stores tool.
+- Implemented removal of script tags when exporting HTML.
+- Enabled maintaining custom resolution in Painter.
+
 2.6.33 (2025-09-02)
 
 - Added a "crop" option, auto-resize canvas, and layer support to Painter.
