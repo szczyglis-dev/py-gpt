@@ -257,6 +257,24 @@ class Files:
             del self.items[file.record_id]
         return True
 
+    def delete_by_file_id(self, file_id: str) -> bool:
+        """
+        Delete file by file ID
+
+        :param file_id: file ID
+        :return: True if deleted
+        """
+        res = self.provider.delete_by_file_id(file_id)
+        if res:
+            # remove from items
+            to_delete = []
+            for id in self.items:
+                if self.items[id].file_id == file_id:
+                    to_delete.append(id)
+            for id in to_delete:
+                del self.items[id]
+        return res
+
     def on_store_deleted(self, store_id: str):
         """
         Clear deleted store from files

@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.02 22:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any
 
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.utils import trans
@@ -526,6 +527,15 @@ class Batch:
                 msg=msg,
             )
 
+    def refresh_delayed(self, ms: int = 1000):
+        """
+        Refresh UI after delay
+
+        :param ms: milliseconds to wait
+        """
+        self.window.update_status("Refreshing status...")
+        QTimer.singleShot(ms, lambda: self.window.controller.assistant.store.refresh_status())
+
     def upload(self, force: bool = False):
         """
         Upload files to vector store
@@ -548,10 +558,10 @@ class Batch:
 
         :param num: number of uploaded files
         """
-        self.window.controller.assistant.files.update()
-        self.window.controller.assistant.store.refresh_status()
+        self.window.controller.assistant.files.update()        
         self.window.update_status("OK. Uploaded files: " + str(num) + ".")
         self.window.ui.dialogs.alert("OK. Uploaded files: " + str(num) + ".")
+        self.refresh_delayed(1500)
 
     def handle_uploaded_files_failed(self, error: Any):
         """
@@ -562,7 +572,7 @@ class Batch:
         self.window.core.debug.log(error)
         print("Error uploading files")
         self.window.controller.assistant.files.update()
-        self.window.controller.assistant.store.refresh_status()
+        self.refresh_delayed(1500)
         self.window.update_status("Error uploading files.")
         self.window.ui.dialogs.alert(error)
 

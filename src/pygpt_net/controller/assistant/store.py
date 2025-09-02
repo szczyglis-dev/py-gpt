@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.02 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -14,6 +14,8 @@ import json
 from typing import Optional
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QStandardItem
+from PySide6.QtCore import Qt, QTimer
 
 from pygpt_net.item.assistant import AssistantStoreItem
 from pygpt_net.utils import trans
@@ -57,6 +59,8 @@ class VectorStore:
                 "value": "",
             },
         }
+        # Mapping of current files list rows to file IDs
+        self._files_row_to_id = []
 
     def get_options(self) -> dict:
         """
@@ -147,6 +151,8 @@ class VectorStore:
             self.current = None  # reset if not exists
             self.window.controller.config.load_options(self.id, options)
 
+        self.update_files_list()
+
     def refresh_status(self):
         """Reload store status"""
         if self.current is not None:  # TODO: reset on profile reload
@@ -157,6 +163,7 @@ class VectorStore:
                 self.refresh_store(store)
                 self.window.update_status(trans('status.assistant.saved'))
                 self.update()  # update stores list in assistant dialog
+                self.update_files_list()
 
     def refresh_store(
             self,
@@ -200,6 +207,8 @@ class VectorStore:
                 self.refresh_store(store)
                 self.window.update_status(trans('status.assistant.saved'))
                 self.update()
+                if self.current == store_id:
+                    self.update_files_list()
 
     def update_current(self):
         """Update current store"""
@@ -258,6 +267,7 @@ class VectorStore:
             self.update()  # update stores list in assistant dialog
             self.window.update_status(trans("info.settings.saved"))
             self.restore_selection()
+            self.update_files_list()
 
     def reload_items(self):
         """Reload list items"""
@@ -281,6 +291,7 @@ class VectorStore:
         self.save(persist=False)
         self.current = self.get_by_tab_idx(idx)
         self.init()
+        self.update_files_list()
 
     def new(self):
         """Create new vector store"""
@@ -305,6 +316,7 @@ class VectorStore:
         self.init()
         self.restore_selection()
         self.refresh_by_store_id(store.id)
+        self.update_files_list()
 
     def delete_by_idx(
             self,
@@ -357,6 +369,7 @@ class VectorStore:
                 self.update()  # update stores list in assistant dialog
                 self.init()
                 self.restore_selection()
+                self.update_files_list()
             else:
                 self.window.update_status(trans('status.error'))
         except Exception as e:
@@ -469,6 +482,7 @@ class VectorStore:
         """Update vector store editor"""
         self.reload_items()
         self.window.controller.assistant.editor.update_store_list()  # update stores list in assistant dialog
+        self.update_files_list()
 
     def set_hide_thread(self, state: bool):
         """
@@ -478,3 +492,176 @@ class VectorStore:
         """
         self.window.core.config.set("assistant.store.hide_threads", state)
         self.update()
+
+    # ==================== Files  ====================
+
+    def update_files_list(self):
+        """
+        Update files list view for the current store based on local DB.
+        This method does not hit the API; it reflects local state.
+        """
+        model_id = 'assistant.store.files.list'
+        if 'assistant.store.files.list' not in self.window.ui.models:
+            return  # files panel not initialized yet
+        model = self.window.ui.models[model_id]
+        try:
+            model.removeRows(0, model.rowCount())
+        except Exception:
+            pass
+
+        self._files_row_to_id = []
+
+        if self.current is None:
+            return
+
+        files_db = self.window.core.assistants.files
+        if files_db is None:
+            return
+
+        # Resolve store files collection from DB
+        try:
+            store_files = files_db.get_by_store_or_thread(self.current, None) or {}
+        except Exception as e:
+            self.window.core.debug.log(e)
+            store_files = {}
+
+        i = 0
+        for file_id, file_obj in store_files.items():
+            if isinstance(file_obj, dict):
+                data = file_obj
+            else:
+                data = {}
+                for key in ('id', 'file_id', 'name', 'filename', 'bytes', 'size', 'usage_bytes', 'status'):
+                    try:
+                        if hasattr(file_obj, key):
+                            data[key] = getattr(file_obj, key)
+                    except Exception:
+                        pass
+                if not data and hasattr(file_obj, 'to_dict'):
+                    try:
+                        data = file_obj.to_dict()
+                    except Exception:
+                        data = {}
+
+            # Choose display name
+            name = data.get('filename') or data.get('name') or file_id
+            # Choose size
+            size_val = None
+            for k in ('bytes', 'size', 'usage_bytes'):
+                if data.get(k) is not None:
+                    size_val = data.get(k)
+                    break
+
+            # Human-readable size if possible
+            size_txt = ""
+            try:
+                if size_val:
+                    size_txt = self.window.core.filesystem.sizeof_fmt(int(size_val))
+            except Exception:
+                pass
+
+            extra = []
+            if size_txt:
+                extra.append(size_txt)
+            if data.get('status'):
+                extra.append(str(data.get('status')))
+            label = name
+            if extra:
+                label += " ({})".format(", ".join(extra))
+
+            item = QStandardItem(label)
+            item.setEditable(False)
+            item.setData(file_id, Qt.UserRole)
+            model.setItem(i, 0, item)
+            self._files_row_to_id.append(data['file_id'] if 'file_id' in data else file_id)
+            i += 1
+
+    def delete_file_by_idx(self, idx: int, force: bool = False):
+        """
+        Delete a single file from the current store by row index in files list.
+        This uses API to remove the file from a remote store, then triggers async re-import
+        of files for the current store to keep the local DB in sync.
+
+        :param idx: row index in files list
+        :param force: force delete without confirmation
+        """
+        if self.current is None:
+            self.window.ui.dialogs.alert("Please select vector store first.")
+            return
+
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='assistant.file.delete',
+                id=idx,
+                msg=trans('confirm.assistant.store.file.delete'),
+            )
+            return
+
+        model_id = 'assistant.store.files.list'
+        if model_id not in self.window.ui.models:
+            return
+        if idx < 0 or idx >= len(self._files_row_to_id):
+            return
+
+        file_id = self._files_row_to_id[idx]
+        if not file_id:
+            return
+
+        # Update UI state
+        self.window.update_status(trans('status.sending'))
+        QApplication.processEvents()
+
+        try:
+            api = self.window.core.api.openai.store
+            removed = False
+
+            # Prefer store-scoped removal if available
+            if hasattr(api, 'remove_store_file'):
+                try:
+                    api.remove_store_file(self.current, file_id)
+                    removed = True
+                except Exception as e:
+                    self.window.core.debug.log(e)
+
+            # Fallback: remove by file_id only
+            if not removed and hasattr(api, 'remove_file'):
+                try:
+                    api.remove_file(file_id)
+                    removed = True
+                except Exception as e:
+                    self.window.core.debug.log(e)
+
+            if not removed:
+                raise RuntimeError("Remove file API not available.")
+
+            # Remove from local DB
+            try:
+                self.window.core.assistants.files.delete_by_file_id(file_id)
+            except Exception as e:
+                self.window.core.debug.log(e)
+
+            # Optimistic UI update: remove row from the model immediately
+            try:
+                self.window.ui.models[model_id].removeRow(idx)
+                # also update index map
+                try:
+                    del self._files_row_to_id[idx]
+                except Exception:
+                    pass
+            except Exception:
+                pass
+
+            # Trigger re-import for the current store to refresh local DB and UI elsewhere
+            try:
+                self.window.update_status("Refreshing status...")
+                QTimer.singleShot(1000, lambda: self.window.controller.assistant.store.refresh_status())
+            except Exception as e:
+                self.window.core.debug.log(e)
+
+            self.window.update_status(trans('status.deleted'))
+
+        except Exception as e:
+            self.window.update_status(trans('status.error'))
+            self.window.ui.dialogs.alert("Failed to delete file: {}".format(e))
+            self.window.core.debug.log(e)
+            self.update_files_list()

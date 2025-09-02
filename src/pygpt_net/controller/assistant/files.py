@@ -31,6 +31,7 @@ class Files:
     def update(self):
         """Update assistants files list"""
         self.update_list()
+        self.window.controller.assistant.store.update_files_list()
 
     def select(self, idx: int):
         """

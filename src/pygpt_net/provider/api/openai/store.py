@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 18:00:00                  #
+# Updated Date: 2025.09.02 22:00:00                  #
 # ================================================== #
 
 import os
@@ -174,6 +174,50 @@ class Store:
                 msg = "Error removing file {}: {}".format(file_id, str(e))
                 self.log(msg, callback)
         return num
+
+    def remove_file(
+            self,
+            file_id: str,
+            callback: Optional[callable] = None
+    ) -> bool:
+        """
+        Remove a single file using the Files API.
+
+        :param file_id: file ID
+        :param callback: callback function for logging
+        :return: True if removed
+        """
+        self.log("Removing file: " + file_id, callback)
+        try:
+            res = self.delete_file(file_id)
+            return res is not None
+        except Exception as e:
+            msg = "Error removing file {}: {}".format(file_id, str(e))
+            self.log(msg, callback)
+            raise
+
+    def remove_store_file(
+            self,
+            store_id: str,
+            file_id: str,
+            callback: Optional[callable] = None
+    ) -> bool:
+        """
+        Remove a single file from a specific vector store.
+
+        :param store_id: store ID
+        :param file_id: file ID
+        :param callback: callback function for logging
+        :return: True if removed
+        """
+        self.log("Removing file from vector store [{}]: {}".format(store_id, file_id), callback)
+        try:
+            res = self.delete_store_file(store_id, file_id)
+            return res is not None
+        except Exception as e:
+            msg = "Error removing file {} from store {}: {}".format(file_id, store_id, str(e))
+            self.log(msg, callback)
+            raise
 
     def remove_store_files(
             self,

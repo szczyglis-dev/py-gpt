@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 19:00:00                  #
+# Updated Date: 2025.09.02 22:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -204,6 +204,8 @@ class Confirm:
             self.window.controller.assistant.batch.clear_store_files(id, True)  # by store_id
         elif type == 'assistant.files.upload':
             self.window.controller.assistant.batch.upload(True)
+        elif type == 'assistant.file.delete':
+            self.window.controller.assistant.store.delete_file_by_idx(id, True)
         elif type == 'assistant.functions.import':
             self.window.controller.assistant.editor.import_functions(True)
         elif type == 'assistant.functions.clear':

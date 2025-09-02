@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.09.02 22:00:00                  #
 # ================================================== #
 
 import json
@@ -270,6 +270,18 @@ class AssistantStoreItem:
         self.uuid = data.get('uuid', None)
         self.expire_days = data.get('expire_days', 0)
         self.status = data.get('status', {})
+
+    def get_file_count(self):
+        """
+        Return number of files in store
+
+        :return: number of files
+        """
+        num = self.num_files
+        if self.status and isinstance(self.status, dict) and 'file_counts' in self.status:
+            if 'completed' in self.status['file_counts']:
+                num = int(self.status['file_counts']['completed'] or 0)
+        return num
 
     def dump(self) -> str:
         """
