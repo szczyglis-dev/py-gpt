@@ -68,6 +68,13 @@ class Body:
                 let pendingHighlightRoot = null;
                 let pendingHighlightMath = false;
                 let scrollScheduled = false;
+                
+                // Auto-follow state: when false, live stream auto-scroll is suppressed
+                let autoFollow = true;
+                let lastScrollTop = 0;
+                // Tracks whether user has performed any scroll-related interaction
+                let userInteracted = false;
+                const AUTO_FOLLOW_REENABLE_PX = 8; // px from bottom to re-enable auto-follow
 
                 // timers
                 let tipsTimers = [];
@@ -214,6 +221,8 @@ class Body:
                     return distanceToBottom <= marginPx;
                 }
                 function scheduleScroll(live = false) {
+                    // Skip scheduling live auto-scroll when user disabled follow
+                    if (live === true && autoFollow !== true) return;
                     if (scrollScheduled) return;
                     scrollScheduled = true;
                     requestAnimationFrame(function() {
@@ -221,21 +230,32 @@ class Body:
                         scrollToBottom(live);
                     });
                 }
+                // Force immediate scroll to bottom (pre-interaction bootstrap)
+                function forceScrollToBottomImmediate() {
+                    const el = document.scrollingElement || document.documentElement;
+                    el.scrollTop = el.scrollHeight; // no behavior, no RAF, deterministic
+                    prevScroll = el.scrollHeight;
+                }
                 function scrollToBottom(live = false) {
                     const el = document.scrollingElement || document.documentElement;
                     const marginPx = 450;
-                    let behavior = 'instant';
-                    if (live == true) {
-                        behavior = 'instant';
-                    } else {
-                        behavior = 'smooth';
+                    const behavior = (live === true) ? 'instant' : 'smooth';
+                
+                    // Respect user-follow state during live updates
+                    if (live === true && autoFollow !== true) {
+                        // Keep prevScroll consistent for potential consumers
+                        prevScroll = el.scrollHeight;
+                        return;
                     }
-                    if (isNearBottom(marginPx) || live == false) {
+                
+                    // Allow initial auto-follow before any user interaction
+                    if ((live === true && userInteracted === false) || isNearBottom(marginPx) || live == false) {
                         el.scrollTo({ top: el.scrollHeight, behavior });
                     }
                     prevScroll = el.scrollHeight;
                 }
                 function appendToInput(content) {
+                    userInteracted = false;
                     const element = els.appendInput || document.getElementById('_append_input_');
                     if (element) {
                         element.insertAdjacentHTML('beforeend', content);
@@ -286,6 +306,7 @@ class Body:
                     if (DEBUG_MODE) {
                         log("-- CLEAN DOM --");
                     }
+                    userInteracted = false;
                     const el = els.nodes || document.getElementById('_nodes_');
                     if (el) {
                         el.replaceChildren();
@@ -381,8 +402,11 @@ class Body:
                     if (DEBUG_MODE) {
                         log("STREAM BEGIN");
                     }
+                    userInteracted = false;
                     clearOutput();
-                    scheduleScroll();
+                    // Ensure initial auto-follow baseline before any chunks overflow
+                    forceScrollToBottomImmediate();
+                    scheduleScroll(); // keep existing logic
                 }
                 function endStream() {
                     if (DEBUG_MODE) {
@@ -481,7 +505,12 @@ class Body:
                             }
                         }
                     }
-                    scheduleScroll(true);
+                    // Initial auto-follow until first user interaction
+                    if (userInteracted === false) {
+                        forceScrollToBottomImmediate();
+                    } else {
+                        scheduleScroll(true);
+                    }
                 }
                 function nextStream() {
                     hideTips();
@@ -808,6 +837,30 @@ class Body:
                             removeClassFromMsg(id, 'msg-highlight');
                         }
                     });
+                    // Wheel up disables auto-follow immediately (works even at absolute bottom)
+                    document.addEventListener('wheel', function(ev) {
+                        userInteracted = true;
+                        if (ev.deltaY < 0) {
+                            autoFollow = false;
+                        }
+                    }, { passive: true });
+                    
+                    // Track scroll direction and restore auto-follow when user returns to bottom
+                    window.addEventListener('scroll', function() {
+                        const el = document.scrollingElement || document.documentElement;
+                        const top = el.scrollTop;
+                    
+                        // User scrolled up (ignore tiny jitter)
+                        if (top + 1 < lastScrollTop) {
+                            autoFollow = false;
+                        } else if (!autoFollow) {
+                            const distanceToBottom = el.scrollHeight - el.clientHeight - top;
+                            if (distanceToBottom <= AUTO_FOLLOW_REENABLE_PX) {
+                                autoFollow = true;
+                            }
+                        }
+                        lastScrollTop = top;
+                    }, { passive: true });
                     container.addEventListener('click', function(event) {
                         const copyButton = event.target.closest('.code-header-copy');
                         if (copyButton) {
