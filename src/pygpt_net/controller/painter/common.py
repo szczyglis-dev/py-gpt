@@ -1,9 +1,19 @@
-# controller/painter/common.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2025.09.02 20:00:00                  #
+# ================================================== #
 
 from typing import Tuple, Optional, Dict, List
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor
+from PySide6.QtWidgets import QComboBox
 
 
 class Common:
@@ -14,6 +24,12 @@ class Common:
         :param window: Window instance
         """
         self.window = window
+        # Guard to prevent re-entrancy when programmatically changing the combo/size
+        self._changing_canvas_size = False
+        # Cached set for predefined canvas sizes
+        self._predef_canvas_sizes_set = None
+        # Sticky custom value derived from the current "source" image (kept at index 0 when present)
+        self._sticky_custom_value: Optional[str] = None
 
     def convert_to_size(self, canvas_size: str) -> Tuple[int, int]:
         """
@@ -28,8 +44,8 @@ class Common:
         """
         Set canvas size
 
-        :param width: int
-        :param height: int
+        :param width: Canvas width
+        :param height: Canvas height
         """
         self.window.ui.painter.setFixedSize(QSize(width, height))
 
@@ -69,16 +85,64 @@ class Common:
 
         :param selected: Selected size
         """
+        # Re-entrancy guard to avoid loops when we adjust the combo programmatically
+        if self._changing_canvas_size:
+            return
+
+        combo: QComboBox = self.window.ui.nodes['painter.select.canvas.size']
+        painter = self.window.ui.painter
+
+        # Heuristic to detect manual UI change vs programmatic call
+        # - manual if: no arg, or int index (Qt int overload), or arg equals currentText/currentData
+        raw_arg = selected
+        current_text = combo.currentText()
+        current_data = combo.currentData()
+        current_data_str = current_data if isinstance(current_data, str) else None
+        is_manual = (
+            raw_arg is None
+            or isinstance(raw_arg, int)
+            or (isinstance(raw_arg, str) and (raw_arg == current_text or (current_data_str and raw_arg == current_data_str)))
+        )
+
+        # Resolve selection if not passed explicitly; fallback to currentText if userData is missing
         if not selected:
-            selected = self.window.ui.nodes['painter.select.canvas.size'].currentData()
-        if selected:
-            size = self.convert_to_size(selected)
-            # setCurrentText might not exist in the combo's items for custom sizes; harmless if it doesn't match
-            self.window.ui.nodes['painter.select.canvas.size'].setCurrentText(selected)
-            self.set_canvas_size(size[0], size[1])
-            # resizing the widget triggers automatic image rescale in PainterWidget.resizeEvent
-            self.window.core.config.set('painter.canvas.size', selected)
+            selected = current_data_str or current_text
+
+        # Normalize to "WxH" strictly; if invalid, do nothing
+        selected_norm = self._normalize_canvas_value(selected)
+        if not selected_norm:
+            return
+
+        # Save undo only for manual changes and only if size will change
+        will_change = selected_norm != f"{painter.width()}x{painter.height()}"
+        if is_manual and will_change:
+            painter.saveForUndo()
+
+        try:
+            self._changing_canvas_size = True
+
+            predef = self._get_predef_canvas_set()
+
+            # Sticky custom update only for programmatic (source-driven) changes
+            programmatic = not is_manual
+            if programmatic:
+                if selected_norm in predef:
+                    self._sticky_custom_value = None
+                else:
+                    self._sticky_custom_value = selected_norm
+
+            # Ensure combo reflects single custom at index 0 (sticky respected), then select current value
+            self._sync_canvas_size_combo(combo, selected_norm, sticky_to_keep=self._sticky_custom_value)
+
+            # Apply canvas size; PainterWidget handles rescaling in resizeEvent
+            w, h = self.convert_to_size(selected_norm)
+            self.set_canvas_size(w, h)
+
+            # Persist normalized value
+            self.window.core.config.set('painter.canvas.size', selected_norm)
             self.window.core.config.save()
+        finally:
+            self._changing_canvas_size = False
 
     def change_brush_size(self, size: int):
         """
@@ -141,7 +205,7 @@ class Common:
         if self.window.core.config.has('painter.brush.size'):
             size = int(self.window.core.config.get('painter.brush.size', 3))
         self.window.ui.nodes['painter.select.brush.size'].setCurrentIndex(
-                self.window.ui.nodes['painter.select.brush.size'].findText(str(size))
+            self.window.ui.nodes['painter.select.brush.size'].findText(str(size))
         )
 
     def get_colors(self) -> Dict[str, QColor]:
@@ -192,3 +256,157 @@ class Common:
         :return: path to capture directory
         """
         return self.window.core.config.get_user_dir('capture')
+
+    # ---------- Public sync helper (used by PainterWidget undo/redo) ----------
+
+    def sync_canvas_combo_from_widget(self):
+        """
+        Sync the size combobox with current PainterWidget canvas size.
+        Also derive sticky custom from the current source image if it is custom.
+        This method does not change the canvas size (UI-only sync).
+        """
+        if self._changing_canvas_size:
+            return
+
+        combo: QComboBox = self.window.ui.nodes['painter.select.canvas.size']
+        painter = self.window.ui.painter
+
+        canvas_value = f"{painter.width()}x{painter.height()}"
+        canvas_norm = self._normalize_canvas_value(canvas_value)
+        if not canvas_norm:
+            return
+
+        # Derive sticky from current source image (if custom)
+        predef = self._get_predef_canvas_set()
+        sticky = None
+        if painter.sourceImageOriginal is not None and not painter.sourceImageOriginal.isNull():
+            src_val = f"{painter.sourceImageOriginal.width()}x{painter.sourceImageOriginal.height()}"
+            src_val = self._normalize_canvas_value(src_val)
+            if src_val and src_val not in predef:
+                sticky = src_val
+
+        try:
+            self._changing_canvas_size = True
+            self._sticky_custom_value = sticky
+            self._sync_canvas_size_combo(combo, canvas_norm, sticky_to_keep=sticky)
+
+            # Persist canvas size only (do not change sticky config-scope)
+            self.window.core.config.set('painter.canvas.size', canvas_norm)
+            self.window.core.config.save()
+        finally:
+            self._changing_canvas_size = False
+
+    # ---------- Internal helpers ----------
+
+    def _normalize_canvas_value(self, value: Optional[str]) -> Optional[str]:
+        """
+        Normalize arbitrary canvas string to canonical 'WxH'. Returns None if invalid.
+        Accepts variants like ' 1024 x 768 ', '1024×768', etc.
+
+        :param value: input value
+        :return: normalized value or None
+        """
+        if not value:
+            return None
+        s = str(value).strip().lower().replace(' ', '').replace('×', 'x')
+        if 'x' not in s:
+            return None
+        parts = s.split('x', 1)
+        try:
+            w = int(parts[0])
+            h = int(parts[1])
+        except Exception:
+            return None
+        if w <= 0 or h <= 0:
+            return None
+        return f"{w}x{h}"
+
+    def _get_predef_canvas_set(self) -> set:
+        """
+        Return cached set of predefined sizes for O(1) lookups.
+
+        :return: set of predefined sizes
+        """
+        if self._predef_canvas_sizes_set is None:
+            self._predef_canvas_sizes_set = set(self.get_canvas_sizes())
+        return self._predef_canvas_sizes_set
+
+    def _find_index_for_value(self, combo: QComboBox, value: str) -> int:
+        """
+        Find index by userData first, then by text. Returns -1 if not found.
+
+        :param combo: QComboBox
+        :param value: value to find
+        :return: index or -1
+        """
+        idx = combo.findData(value)
+        if idx == -1:
+            idx = combo.findText(value, Qt.MatchFixedString)
+        return idx
+
+    def _remove_extra_custom_items(self, combo: QComboBox, predef: set, keep_index: int = -1):
+        """
+        Remove all non-predefined items except one at keep_index (if set).
+
+        :param combo: QComboBox
+        :param predef: set of predefined values
+        :param keep_index: index to keep even if custom, or -1 to remove all custom
+        """
+        for i in range(combo.count() - 1, -1, -1):
+            if i == keep_index:
+                continue
+            txt = combo.itemText(i)
+            if txt not in predef:
+                combo.removeItem(i)
+
+    def _ensure_custom_index0(self, combo: QComboBox, custom_value: str, predef: set):
+        """
+        Ensure exactly one custom item exists at index 0 with given value.
+
+        :param combo: QComboBox
+        :param custom_value: custom value to set at index 0
+        :param predef: set of predefined values
+        """
+        if combo.count() > 0 and combo.itemText(0) not in predef:
+            if combo.itemText(0) != custom_value:
+                combo.setItemText(0, custom_value)
+                combo.setItemData(0, custom_value)
+        else:
+            combo.insertItem(0, custom_value, custom_value)
+        self._remove_extra_custom_items(combo, predef, keep_index=0)
+
+    def _sync_canvas_size_combo(self, combo: QComboBox, value: str, sticky_to_keep: Optional[str]):
+        """
+        Enforce invariant and selection:
+        - If sticky_to_keep is a custom value -> keep it as single custom item at index 0.
+        - If sticky_to_keep is None -> remove all custom items.
+        - Select 'value' in the combo. If value is custom and sticky_to_keep differs or is None,
+          ensure index 0 matches 'value' and select it.
+
+        :param combo: QComboBox
+        :param value: current canvas size value to select
+        :param sticky_to_keep: sticky custom value to keep at index 0, or None
+        """
+        predef = self._get_predef_canvas_set()
+
+        # Maintain sticky custom slot (index 0) if provided
+        if sticky_to_keep and sticky_to_keep not in predef:
+            self._ensure_custom_index0(combo, sticky_to_keep, predef)
+        else:
+            self._remove_extra_custom_items(combo, predef, keep_index=-1)
+
+        # Select the current canvas value
+        if value in predef:
+            idx = self._find_index_for_value(combo, value)
+            if idx != -1 and idx != combo.currentIndex():
+                combo.setCurrentIndex(idx)
+            elif idx == -1:
+                # Fallback: set text (should not normally happen if combo prepopulates predefined sizes)
+                combo.setCurrentText(value)
+        else:
+            # Current value is custom: ensure it exists at index 0 and select it
+            # If sticky differs or is None, overwrite/create the custom at index 0 to reflect true current value.
+            if not sticky_to_keep or sticky_to_keep != value:
+                self._ensure_custom_index0(combo, value, predef)
+            if combo.currentIndex() != 0:
+                combo.setCurrentIndex(0)

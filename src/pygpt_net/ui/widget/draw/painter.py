@@ -1,4 +1,13 @@
-# ui/widget.painer.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2025.09.02 20:00:00                  #
+# ================================================== #
 
 import datetime
 from collections import deque
@@ -364,6 +373,9 @@ class PainterWidget(QWidget):
             self.redoStack.append(current)
             state = self.undoStack.pop()
             self._apply_state(state)
+            # Keep size combo in sync with restored canvas and source (handles sticky custom)
+            if self.window and hasattr(self.window, "controller"):
+                self.window.controller.painter.common.sync_canvas_combo_from_widget()
 
     def redo(self):
         """Redo the last undo action"""
@@ -372,6 +384,9 @@ class PainterWidget(QWidget):
             self.undoStack.append(current)
             state = self.redoStack.pop()
             self._apply_state(state)
+            # Keep size combo in sync with restored canvas and source (handles sticky custom)
+            if self.window and hasattr(self.window, "controller"):
+                self.window.controller.painter.common.sync_canvas_combo_from_widget()
 
     def has_undo(self) -> bool:
         """Check if undo is available"""
