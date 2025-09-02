@@ -229,6 +229,13 @@ class VectorStore:
             option["value"] = store.expire_days
             self.window.controller.config.apply(self.id, "expire_days", option)
 
+    def save_btn(self):
+        """Save vector store editor and close dialog"""
+        self.window.update_status("Saving...")
+        self.save()
+        self.refresh_status()
+        self.window.update_status("Saved.")
+
     def save(self, persist: bool = True):
         """
         Save vector store editor

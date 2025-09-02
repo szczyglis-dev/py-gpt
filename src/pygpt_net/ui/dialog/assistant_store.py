@@ -73,7 +73,7 @@ class AssistantVectorStore:
         )
 
         nodes['assistant.store.btn.new'].clicked.connect(controller.assistant.store.new)
-        nodes['assistant.store.btn.save'].clicked.connect(controller.assistant.store.save)
+        nodes['assistant.store.btn.save'].clicked.connect(controller.assistant.store.save_btn)
         nodes['assistant.store.btn.close'].clicked.connect(controller.assistant.store.close)
         nodes['assistant.store.btn.refresh_status'].clicked.connect(controller.assistant.store.refresh_status)
         nodes['assistant.store.btn.upload.files'].clicked.connect(controller.assistant.batch.open_upload_files)
@@ -86,12 +86,6 @@ class AssistantVectorStore:
         footer = QHBoxLayout()
         footer.addWidget(nodes['assistant.store.btn.close'])
         footer.addWidget(nodes['assistant.store.btn.save'])
-
-        upload_layout = QHBoxLayout()
-        upload_layout.addWidget(nodes['assistant.store.btn.refresh_status'])
-        upload_layout.addWidget(nodes['assistant.store.btn.upload.files'])
-        upload_layout.addWidget(nodes['assistant.store.btn.upload.dir'])
-        upload_layout.setContentsMargins(0, 0, 0, 0)
 
         ui.tabs['assistant.store'] = QTabWidget()
 
@@ -127,7 +121,6 @@ class AssistantVectorStore:
                 ui.groups[group_id].add_layout(option)
             content.addWidget(ui.groups[group_id])
 
-        content.addLayout(upload_layout)
         content.setContentsMargins(0, 0, 0, 0)
 
         scroll_widget = QWidget()
@@ -157,7 +150,7 @@ class AssistantVectorStore:
 
         self.update_list(list_id, core.assistants.store.items)
 
-        # ==================== ADDED: Files panel on the right ====================
+        # ==================== Files panel ====================
         files_panel = QVBoxLayout()
         files_label = QLabel("Files")
         files_label.setStyleSheet("font-weight: bold;")
@@ -174,8 +167,15 @@ class AssistantVectorStore:
         nodes[files_list_id].setModel(models[files_list_id])
         nodes[files_list_id].setMinimumWidth(280)
 
+        files_bottom = QHBoxLayout()
+        files_bottom.setContentsMargins(0, 0, 0, 0)
+        files_bottom.addWidget(nodes['assistant.store.btn.upload.files'])
+        files_bottom.addWidget(nodes['assistant.store.btn.upload.dir'])
+        files_bottom.addWidget(nodes['assistant.store.btn.refresh_status'])
+
         files_panel.addWidget(nodes[files_list_id])
-        files_panel.setContentsMargins(6, 6, 6, 6)
+        files_panel.setContentsMargins(0, 0, 0, 5)
+        files_panel.addLayout(files_bottom)
         files_widget = QWidget()
         files_widget.setLayout(files_panel)
         # ========================================================================
@@ -184,10 +184,10 @@ class AssistantVectorStore:
         splitters['dialog.assistant.store'].addWidget(left_widget)
 
         splitters['dialog.assistant.store.right'] = QSplitter(Qt.Horizontal)
-        splitters['dialog.assistant.store.right'].addWidget(area_widget)
         splitters['dialog.assistant.store.right'].addWidget(files_widget)
-        splitters['dialog.assistant.store.right'].setStretchFactor(0, 7)
-        splitters['dialog.assistant.store.right'].setStretchFactor(1, 3)
+        splitters['dialog.assistant.store.right'].addWidget(area_widget)
+        splitters['dialog.assistant.store.right'].setStretchFactor(1, 7)
+        splitters['dialog.assistant.store.right'].setStretchFactor(0, 3)
 
         splitters['dialog.assistant.store'].addWidget(splitters['dialog.assistant.store.right'])
         splitters['dialog.assistant.store'].setStretchFactor(0, 2)
