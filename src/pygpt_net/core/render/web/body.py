@@ -1239,6 +1239,9 @@ class Body:
     def get_html(self, pid: int) -> str:
         """
         Build webview HTML code (fast path, minimal allocations)
+
+        :param pid: process ID
+        :return: HTML code
         """
         cfg_get = self.window.core.config.get
         style = cfg_get("theme.style", "blocks")

@@ -10,7 +10,6 @@
 # ================================================== #
 
 import os
-from typing import Any
 
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog, QApplication
@@ -34,42 +33,45 @@ class Common:
 
     def setup(self):
         """Set up UI"""
+        nodes = self.window.ui.nodes
+        config = self.window.core.config
+
         # stream mode
-        if self.window.core.config.get('stream'):
-            self.window.ui.nodes['input.stream'].setChecked(True)
+        if config.get('stream'):
+            nodes['input.stream'].setChecked(True)
         else:
-            self.window.ui.nodes['input.stream'].setChecked(False)
+            nodes['input.stream'].setChecked(False)
 
         # send clear
-        if self.window.core.config.get('send_clear'):
-            self.window.ui.nodes['input.send_clear'].setChecked(True)
+        if config.get('send_clear'):
+            nodes['input.send_clear'].setChecked(True)
         else:
-            self.window.ui.nodes['input.send_clear'].setChecked(False)
+            nodes['input.send_clear'].setChecked(False)
 
         # send with enter/shift/disabled
-        mode = self.window.core.config.get('send_mode')
+        mode = config.get('send_mode')
         if mode == 2:
-            self.window.ui.nodes['input.send_shift_enter'].setChecked(True)
-            self.window.ui.nodes['input.send_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_none'].setChecked(False)
+            nodes['input.send_shift_enter'].setChecked(True)
+            nodes['input.send_enter'].setChecked(False)
+            nodes['input.send_none'].setChecked(False)
         elif mode == 1:
-            self.window.ui.nodes['input.send_enter'].setChecked(True)
-            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_none'].setChecked(False)
+            nodes['input.send_enter'].setChecked(True)
+            nodes['input.send_shift_enter'].setChecked(False)
+            nodes['input.send_none'].setChecked(False)
         elif mode == 0:
-            self.window.ui.nodes['input.send_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_none'].setChecked(True)
+            nodes['input.send_enter'].setChecked(False)
+            nodes['input.send_shift_enter'].setChecked(False)
+            nodes['input.send_none'].setChecked(True)
 
         # cmd enabled
-        if self.window.core.config.get('cmd'):
-            self.window.ui.nodes['cmd.enabled'].setChecked(True)
+        if config.get('cmd'):
+            nodes['cmd.enabled'].setChecked(True)
         else:
-            self.window.ui.nodes['cmd.enabled'].setChecked(False)
+            nodes['cmd.enabled'].setChecked(False)
 
         # output timestamps
-        is_timestamp = self.window.core.config.get('output_timestamp')
-        self.window.ui.nodes['output.timestamp'].setChecked(is_timestamp)
+        is_timestamp = config.get('output_timestamp')
+        nodes['output.timestamp'].setChecked(is_timestamp)
         if is_timestamp:
             data = {
                 "initialized": self.initialized,
@@ -78,22 +80,22 @@ class Common:
             self.window.dispatch(event)
 
         # raw (plain) output
-        plain = self.window.core.config.get('render.plain')
-        self.window.ui.nodes['output.raw'].setChecked(plain)
+        plain = config.get('render.plain')
+        nodes['output.raw'].setChecked(plain)
         if plain:
-            self.window.ui.nodes['output.timestamp'].setVisible(True)
-            for pid in self.window.ui.nodes['output']:
+            nodes['output.timestamp'].setVisible(True)
+            for pid in nodes['output']:
                 try:
-                    self.window.ui.nodes['output'][pid].setVisible(False)
-                    self.window.ui.nodes['output_plain'][pid].setVisible(True)
+                    nodes['output'][pid].setVisible(False)
+                    nodes['output_plain'][pid].setVisible(True)
                 except Exception as e:
                     pass
         else:
-            self.window.ui.nodes['output.timestamp'].setVisible(False)
-            for pid in self.window.ui.nodes['output']:
+            nodes['output.timestamp'].setVisible(False)
+            for pid in nodes['output']:
                 try:
-                    self.window.ui.nodes['output'][pid].setVisible(True)
-                    self.window.ui.nodes['output_plain'][pid].setVisible(False)
+                    nodes['output'][pid].setVisible(True)
+                    nodes['output_plain'][pid].setVisible(False)
                 except Exception as e:
                     pass
 
@@ -101,7 +103,7 @@ class Common:
         self.window.dispatch(event)  # switch renderer if needed
 
         # set focus to input
-        self.window.ui.nodes['input'].setFocus()
+        nodes['input'].setFocus()
         self.initialized = True
 
     def append_to_input(
@@ -115,8 +117,9 @@ class Common:
         :param text: text to append
         :param separator: text separator
         """
-        prev_text = self.window.ui.nodes['input'].toPlainText()
-        cur = self.window.ui.nodes['input'].textCursor()
+        node = self.window.ui.nodes['input']
+        prev_text = node.toPlainText()
+        cur = node.textCursor()
         cur.movePosition(QTextCursor.End)
         text = str(text).strip()
         if prev_text.strip() != "":
@@ -128,8 +131,8 @@ class Common:
             if sep:  # New line if LF
                 cur.insertBlock()
         cur.movePosition(QTextCursor.End)  # Move cursor to end of text
-        self.window.ui.nodes['input'].setTextCursor(cur)  # Update visible cursor
-        self.window.ui.nodes['input'].setFocus()  # Set focus to input
+        node.setTextCursor(cur)  # Update visible cursor
+        node.setFocus()  # Set focus to input
 
         # update tokens counter
         self.window.controller.ui.update_tokens()
@@ -176,18 +179,19 @@ class Common:
 
         :param value: True if enabled
         """
+        nodes = self.window.ui.nodes
         if value == 0:
-            self.window.ui.nodes['input.send_none'].setChecked(True)
-            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_enter'].setChecked(False)
+            nodes['input.send_none'].setChecked(True)
+            nodes['input.send_shift_enter'].setChecked(False)
+            nodes['input.send_enter'].setChecked(False)
         elif value == 1:
-            self.window.ui.nodes['input.send_enter'].setChecked(True)
-            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_none'].setChecked(False)
+            nodes['input.send_enter'].setChecked(True)
+            nodes['input.send_shift_enter'].setChecked(False)
+            nodes['input.send_none'].setChecked(False)
         elif value == 2:
-            self.window.ui.nodes['input.send_shift_enter'].setChecked(True)
-            self.window.ui.nodes['input.send_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_none'].setChecked(False)
+            nodes['input.send_shift_enter'].setChecked(True)
+            nodes['input.send_enter'].setChecked(False)
+            nodes['input.send_none'].setChecked(False)
         self.window.core.config.set('send_mode', value)
 
     def focus_input(self):
