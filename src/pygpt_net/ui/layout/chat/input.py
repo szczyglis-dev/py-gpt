@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.27 07:00:00                  #
+# Updated Date: 2025.09.03 00:00:00                  #
 # ================================================== #
 
 from functools import partial
@@ -246,7 +246,7 @@ class Input:
 
         idx = tabs.currentIndex()
         if idx == 0:
-            nodes['input'].setMinimumHeight(self.min_height_input)
+            # nodes['input'].setMinimumHeight(self.min_height_input)
             tabs.setMinimumHeight(self.min_height_input_tab)
             sizes = controller_ui.splitter_output_size_input
             if sizes and sizes != [0, 0]:
@@ -255,5 +255,5 @@ class Input:
             sizes = controller_ui.splitter_output_size_files
             if sizes and controller_ui.splitter_output_size_input != [0, 0]:
                 splitters['main.output'].setSizes(sizes)
-            nodes['input'].setMinimumHeight(self.min_height_files_tab)
+            # nodes['input'].setMinimumHeight(self.min_height_files_tab)
             tabs.setMinimumHeight(self.min_height_files_tab + 90)
