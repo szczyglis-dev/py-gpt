@@ -69,32 +69,12 @@ class ApiGoogle:
             model = ModelItem()
             model.provider = "google"
         args = self.window.core.models.prepare_client_args(mode, model)
-        config = self.window.core.config
-
         filtered = {}
         if args.get("api_key"):
             filtered["api_key"] = args["api_key"]
 
-        # setup VertexAI
-        use_vertex = False
-        if config.get("api_native_google.use_vertex", False):
-            use_vertex = True
-            os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
-            os.environ["GOOGLE_CLOUD_PROJECT"] = config.get("api_native_google.cloud_project", "")
-            os.environ["GOOGLE_CLOUD_LOCATION"] = config.get("api_native_google.cloud_location", "us-central1")
-            if config.get("api_native_google.app_credentials", ""):
-                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.get("api_native_google.app_credentials", "")
-        else:
-            if os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
-                del os.environ["GOOGLE_GENAI_USE_VERTEXAI"]
-            if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-                del os.environ["GOOGLE_CLOUD_PROJECT"]
-            if os.environ.get("GOOGLE_CLOUD_LOCATION"):
-                del os.environ["GOOGLE_CLOUD_LOCATION"]
-            if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
-                del os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-
-        # append VertexAI params to client args
+        # setup VertexAI if enabled
+        use_vertex = self.setup_env()
         if use_vertex:
             filtered["vertexai"] = True
             filtered["project"] = os.environ.get("GOOGLE_CLOUD_PROJECT")
@@ -104,7 +84,6 @@ class ApiGoogle:
         if self.client is None or self.last_client_args != filtered:
             self.client = genai.Client(**filtered)
         self.last_client_args = filtered
-
         return self.client
 
     def call(
@@ -313,6 +292,36 @@ class ApiGoogle:
 
         return tools
 
+    def setup_env(self) -> bool:
+        """
+        Setup environment variables for VertexAI via Google GenAI API
+
+        - GOOGLE_GENAI_USE_VERTEXAI
+        - GOOGLE_CLOUD_PROJECT
+        - GOOGLE_CLOUD_LOCATION
+        - GOOGLE_APPLICATION_CREDENTIALS
+
+        :return: bool: True if VertexAI is used, False otherwise
+        """
+        config = self.window.core.config
+        use_vertex = False
+        if config.get("api_native_google.use_vertex", False):
+            use_vertex = True
+            os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
+            os.environ["GOOGLE_CLOUD_PROJECT"] = config.get("api_native_google.cloud_project", "")
+            os.environ["GOOGLE_CLOUD_LOCATION"] = config.get("api_native_google.cloud_location", "us-central1")
+            if config.get("api_native_google.app_credentials", ""):
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.get("api_native_google.app_credentials", "")
+        else:
+            if os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
+                del os.environ["GOOGLE_GENAI_USE_VERTEXAI"]
+            if os.environ.get("GOOGLE_CLOUD_PROJECT"):
+                del os.environ["GOOGLE_CLOUD_PROJECT"]
+            if os.environ.get("GOOGLE_CLOUD_LOCATION"):
+                del os.environ["GOOGLE_CLOUD_LOCATION"]
+            if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+                del os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+        return use_vertex
 
     def stop(self):
         """On global event stop"""

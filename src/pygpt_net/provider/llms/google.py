@@ -55,6 +55,8 @@ class GoogleLLM(BaseLLM):
             args["model"] = model.id
         if "api_key" not in args or args["api_key"] == "":
             args["api_key"] = window.core.config.get("api_key_google", "")
+
+        window.core.api.google.setup_env()  # setup VertexAI if configured
         return GoogleGenAI(**args)
 
     def get_embeddings_model(
@@ -79,6 +81,8 @@ class GoogleLLM(BaseLLM):
             args["api_key"] = window.core.config.get("api_key_google", "")
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
+
+        window.core.api.google.setup_env()  # setup VertexAI if configured
         return GoogleGenAIEmbedding(**args)
 
     def get_models(
