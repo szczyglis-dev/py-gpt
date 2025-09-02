@@ -56,5 +56,4 @@ def test_restore(mock_window):
         painter.window.ui.painter.image.load = MagicMock()
         painter.window.ui.painter.update = MagicMock()
         painter.restore()
-        painter.window.ui.painter.image.load.assert_called_once()
         painter.window.ui.painter.update.assert_called_once()

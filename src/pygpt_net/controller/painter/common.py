@@ -1,13 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
-# ================================================== #
+# controller/painter/common.py
 
 from typing import Tuple, Optional, Dict, List
 
@@ -49,8 +40,11 @@ class Common:
         :param enabled: bool
         """
         if enabled:
+            # keep UI color for compatibility
             self.window.ui.nodes['painter.select.brush.color'].setCurrentText("Black")
             self.window.ui.painter.set_brush_color(Qt.black)
+            # switch widget to brush mode (layered painting)
+            self.window.ui.painter.set_mode("brush")
             self.window.core.config.set('painter.brush.mode', "brush")
             self.window.core.config.save()
 
@@ -61,8 +55,11 @@ class Common:
         :param enabled: bool
         """
         if enabled:
+            # keep UI color for compatibility
             self.window.ui.nodes['painter.select.brush.color'].setCurrentText("White")
             self.window.ui.painter.set_brush_color(Qt.white)
+            # switch widget to erase mode (layered erasing)
+            self.window.ui.painter.set_mode("erase")
             self.window.core.config.set('painter.brush.mode', "erase")
             self.window.core.config.save()
 
@@ -76,8 +73,10 @@ class Common:
             selected = self.window.ui.nodes['painter.select.canvas.size'].currentData()
         if selected:
             size = self.convert_to_size(selected)
+            # setCurrentText might not exist in the combo's items for custom sizes; harmless if it doesn't match
             self.window.ui.nodes['painter.select.canvas.size'].setCurrentText(selected)
             self.set_canvas_size(size[0], size[1])
+            # resizing the widget triggers automatic image rescale in PainterWidget.resizeEvent
             self.window.core.config.set('painter.canvas.size', selected)
             self.window.core.config.save()
 

@@ -1,13 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
-# ================================================== #
+# controller/painter/painter.py
 
 import os
 
@@ -72,7 +63,8 @@ class Painter:
             return
         path = os.path.join(self.common.get_capture_dir(), '_current.png')
         if os.path.exists(path):
-            self.window.ui.painter.image.load(path)
+            # load as flat source; layers will be rebuilt on canvas resize
+            self.window.ui.painter.load_flat_image(path)
         else:
             # clear image
             self.window.ui.painter.clear_image()
