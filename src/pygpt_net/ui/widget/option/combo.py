@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 19:00:00                  #
+# Updated Date: 2025.09.02 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -109,6 +109,8 @@ class OptionCombo(QWidget):
             for item in self.keys:
                 if type(item) is dict:
                     for key, value in item.items():
+                        if not isinstance(key, str):
+                            key = str(key)
                         if key.startswith("separator::"):
                             self.combo.addSeparator(value)
                         else:
@@ -117,6 +119,8 @@ class OptionCombo(QWidget):
                     self.combo.addItem(item, item)
         elif type(self.keys) is dict:
             for key, value in self.keys.items():
+                if not isinstance(key, str):
+                    key = str(key)
                 if key.startswith("separator::"):
                     self.combo.addSeparator(value)
                 else:

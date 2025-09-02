@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.09.02 16:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -29,42 +29,48 @@ class Placeholder:
         """
         self.window = window
         self._apply_handlers = {
-            "presets": lambda p: self.get_presets(p),
-            "modes": lambda p: self.get_modes(p),
-            "models": lambda p: self.get_models(p),
-            "languages": lambda p: self.get_languages(),
-            "multimodal": lambda p: self.get_multimodal(p),
-            "langchain_providers": lambda p: self.get_langchain_providers(),
-            "llama_index_providers": lambda p: self.get_llama_index_providers(),
-            "llm_providers": lambda p: self.get_llm_providers(),
-            "embeddings_providers": lambda p: self.get_embeddings_providers(),
-            "llama_index_loaders": lambda p: self.get_llama_index_loaders(),
-            "llama_index_loaders_file": lambda p: self.get_llama_index_loaders(type="file"),
-            "llama_index_loaders_web": lambda p: self.get_llama_index_loaders(type="web"),
-            "llama_index_chat_modes": lambda p: self.get_llama_index_chat_modes(),
-            "vector_storage": lambda p: self.get_vector_storage(),
-            "var_types": lambda p: self.get_var_types(),
+            "access_actions": lambda p: self.get_access_actions(),
             "agent_modes": lambda p: self.get_agent_modes(),
             "agent_provider": lambda p: self.get_agent_providers(),
             "agent_provider_llama": lambda p: self.get_agent_providers_llama(),
             "agent_provider_openai": lambda p: self.get_agent_providers_openai(),
-            "remote_tools_openai": lambda p: self.get_remote_tools_openai(),
-            "syntax_styles": lambda p: self.get_syntax_styles(),
-            "styles": lambda p: self.get_styles(),
+            "audio_input_backend": lambda p: self.get_audio_input_backend(),
+            "audio_input_devices": lambda p: self.get_audio_input_devices(),
+            "audio_output_backend": lambda p: self.get_audio_output_backend(),
+            "audio_output_devices": lambda p: self.get_audio_output_devices(),
+            "audio_tts_whisper_voices": lambda p: self.get_audio_tts_whisper_voices(),
+            "camera_devices": lambda p: self.get_camera_devices(),
+            "embeddings_providers": lambda p: self.get_embeddings_providers(),
             "idx": lambda p: self.get_idx(p),
             "keys": lambda p: self.get_keys(),
             "keys_modifiers": lambda p: self.get_modifiers(),
-            "access_actions": lambda p: self.get_access_actions(),
+            "langchain_providers": lambda p: self.get_langchain_providers(),
+            "languages": lambda p: self.get_languages(),
+            "llama_index_chat_modes": lambda p: self.get_llama_index_chat_modes(),
+            "llama_index_loaders": lambda p: self.get_llama_index_loaders(),
+            "llama_index_loaders_file": lambda p: self.get_llama_index_loaders(type="file"),
+            "llama_index_loaders_web": lambda p: self.get_llama_index_loaders(type="web"),
+            "llama_index_providers": lambda p: self.get_llama_index_providers(),
+            "llm_providers": lambda p: self.get_llm_providers(),
+            "models": lambda p: self.get_models(p),
+            "modes": lambda p: self.get_modes(p),
+            "multimodal": lambda p: self.get_multimodal(p),
+            "presets": lambda p: self.get_presets(p),
+            "remote_tools_openai": lambda p: self.get_remote_tools_openai(),
             "speech_synthesis_actions": lambda p: self.get_speech_synthesis_actions(),
+            "styles": lambda p: self.get_styles(),
+            "syntax_styles": lambda p: self.get_syntax_styles(),
+            "vector_storage": lambda p: self.get_vector_storage(),
+            "var_types": lambda p: self.get_var_types(),
             "voice_control_actions": lambda p: self.get_voice_control_actions(),
-            "audio_input_devices": lambda p: self.get_audio_input_devices(),
-            "audio_output_devices": lambda p: self.get_audio_output_devices(),
-            "audio_input_backend": lambda p: self.get_audio_input_backend(),
-            "audio_output_backend": lambda p: self.get_audio_output_backend(),
-            "audio_tts_whisper_voices": lambda p: self.get_audio_tts_whisper_voices(),
         }
 
     def _apply_combo_if_needed(self, item: Any):
+        """
+        Apply combo keys if needed
+
+        :param item: item to check
+        """
         if isinstance(item, dict) and item.get("type") == "combo":
             use = item.get("use")
             if use is not None:
@@ -74,6 +80,11 @@ class Placeholder:
                 item["keys"] = self.apply_by_id(use, params)
 
     def _apply_suboptions(self, mapping: Dict[str, Any]):
+        """
+        Apply placeholders to suboptions in mapping
+
+        :param mapping: Suboptions mapping
+        """
         for item in mapping.values():
             self._apply_combo_if_needed(item)
 
@@ -102,6 +113,7 @@ class Placeholder:
 
         :param id: Placeholder options id
         :param params: Additional parameters for specific placeholders
+        :return: Filled placeholder list
         """
         if params is None:
             params = {}
@@ -112,7 +124,7 @@ class Placeholder:
         """
         Get audio TTS whisper voices list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         voices = self.window.core.audio.whisper.get_voices()
         return [{v: v} for v in voices]
@@ -121,16 +133,24 @@ class Placeholder:
         """
         Get audio input devices list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         devices = self.window.core.audio.get_input_devices()
         return [{str(did): name} for did, name in devices]
+
+    def get_camera_devices(self) -> List[Dict[str, str]]:
+        """
+        Get camera devices list
+
+        :return: Filled placeholder list
+        """
+        return self.window.core.camera.get_devices()
 
     def get_audio_output_devices(self) -> List[Dict[str, str]]:
         """
         Get audio output devices list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         devices = self.window.core.audio.get_output_devices()
         return [{str(did): name} for did, name in devices]
@@ -139,7 +159,7 @@ class Placeholder:
         """
         Get audio input backends list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         items = self.window.core.audio.get_input_backends()
         return [{str(i): name} for i, name in items]
@@ -148,25 +168,25 @@ class Placeholder:
         """
         Get audio output backends list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         items = self.window.core.audio.get_output_backends()
         return [{str(i): name} for i, name in items]
 
     def get_langchain_providers(self) -> List[Dict[str, str]]:
         """
-        Get Langchain LLM provider placeholders list
+        Get Langchain LLM providers list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         choices = self.window.core.llm.get_choices(MODE_LANGCHAIN)
         return [{k: v} for k, v in choices.items()]
 
     def get_llama_index_providers(self) -> List[Dict[str, str]]:
         """
-        Get Llama-index LLM provider placeholders list
+        Get Llama-index LLM providers list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         choices = self.window.core.llm.get_choices(MODE_LLAMA_INDEX)
         return [{k: v} for k, v in choices.items()]
@@ -175,49 +195,49 @@ class Placeholder:
         """
         Get all LLM provider placeholders list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         choices = self.window.core.llm.get_choices()
         return [{k: v} for k, v in choices.items()]
 
     def get_embeddings_providers(self) -> List[Dict[str, str]]:
         """
-        Get embeddings placeholders list
+        Get embedding providers list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         choices = self.window.core.llm.get_choices("embeddings")
         return [{k: v} for k, v in choices.items()]
 
     def get_agent_providers(self) -> List[Dict[str, str]]:
         """
-        Get all agent provider placeholders list
+        Get all agent providers list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         return self.window.core.agents.provider.get_choices()
 
     def get_agent_providers_llama(self) -> List[Dict[str, str]]:
         """
-        Get Llama-index agent provider placeholders list
+        Get Llama-index agent provider list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         return self.window.core.agents.provider.get_choices(AGENT_TYPE_LLAMA)
 
     def get_agent_providers_openai(self) -> List[Dict[str, str]]:
         """
-        Get OpenAI agent provider placeholders list
+        Get OpenAI agent provider list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         return self.window.core.agents.provider.get_choices(AGENT_TYPE_OPENAI)
 
     def get_remote_tools_openai(self) -> List[Dict[str, str]]:
         """
-        Get OpenAI remote tools placeholders list
+        Get OpenAI remote tools list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         return self.window.core.api.openai.remote_tools.get_choices()
 
@@ -225,7 +245,7 @@ class Placeholder:
         """
         Get llama chat modes list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         return [
             {"best": "best"},
@@ -239,10 +259,10 @@ class Placeholder:
 
     def get_llama_index_loaders(self, type: str = "all") -> List[Dict[str, str]]:
         """
-        Get data loaders placeholders list
+        Get data loaders list
 
         :param type: data type
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         data = []
         choices = self.window.controller.idx.common.get_loaders_choices()
@@ -261,28 +281,28 @@ class Placeholder:
 
     def get_vector_storage(self) -> List[Dict[str, str]]:
         """
-        Get vector storage placeholders list
+        Get vector storage list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         ids = self.window.core.idx.storage.get_ids()
         return [{i: i} for i in ids]
 
     def get_var_types(self) -> List[Dict[str, str]]:
         """
-        Get langchain placeholders list
+        Get var types list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         types = ["str", "int", "float", "bool", "dict", "list", "None"]
         return [{t: t} for t in types]
 
     def get_presets(self, params: dict = None) -> List[Dict[str, str]]:
         """
-        Get presets placeholders list
+        Get presets list
 
         :param params: Additional parameters for specific placeholders
-        :return: Presets placeholders list
+        :return: Filled placeholder list
         """
         if params is None:
             params = {}
@@ -293,10 +313,10 @@ class Placeholder:
 
     def get_modes(self, params: dict = None) -> List[Dict[str, str]]:
         """
-        Get modes placeholders list
+        Get modes list
 
         :param params: Additional parameters for specific placeholders
-        :return: Modes placeholders list
+        :return: Filled placeholder list
         """
         if params is None:
             params = {}
@@ -305,10 +325,10 @@ class Placeholder:
 
     def get_multimodal(self, params: dict = None) -> List[Dict[str, str]]:
         """
-        Get multimodal placeholders list
+        Get multimodal options list
 
         :param params: Additional parameters for specific placeholders
-        :return: multimodal placeholders list
+        :return: Filled placeholder list
         """
         if params is None:
             params = {}
@@ -317,10 +337,10 @@ class Placeholder:
 
     def get_models(self, params: dict = None) -> List[Dict[str, str]]:
         """
-        Get models placeholders list (+ provider separators)
+        Get models list (+ provider separators)
 
         :param params: Additional parameters for specific placeholders
-        :return: Models placeholders list
+        :return: Filled placeholder list
         """
         if params is None:
             params = {}
@@ -354,9 +374,9 @@ class Placeholder:
 
     def get_agent_modes(self) -> List[Dict[str, str]]:
         """
-        Get agent/expert modes placeholders list
+        Get agent/expert modes list
 
-        :return: Models placeholders list
+        :return: Filled placeholder list
         """
         modes = self.window.core.agents.legacy.get_allowed_modes()
         return [{mid: trans(f"mode.{mid}")} for mid in modes]
@@ -365,16 +385,16 @@ class Placeholder:
         """
         Get world languages list
 
-        :return: Languages placeholders list
+        :return: Filled placeholder list
         """
         return self.window.core.text.get_language_choices()
 
     def get_idx(self, params: dict = None) -> List[Dict[str, str]]:
         """
-        Get indexes placeholders list
+        Get indexes (LlamaIndex) list
 
         :param params: Additional parameters for specific placeholders
-        :return: Indexes placeholders list
+        :return: Filled placeholder list
         """
         if params is None:
             params = {}
@@ -389,9 +409,9 @@ class Placeholder:
 
     def get_syntax_styles(self) -> List[Dict[str, str]]:
         """
-        Get highlighter styles list
+        Get code syntax highlighter styles list
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         styles = self.window.controller.chat.render.web_renderer.body.highlight.get_styles()
         styles.sort()
@@ -399,9 +419,9 @@ class Placeholder:
 
     def get_styles(self) -> List[Dict[str, str]]:
         """
-        Get styles list
+        Get styles list (blocks, chatgpt, etc.)
 
-        :return: placeholders list
+        :return: Filled placeholder list
         """
         styles = self.window.controller.theme.common.get_styles_list()
         styles.sort()
@@ -409,9 +429,9 @@ class Placeholder:
 
     def get_keys(self) -> List[Dict[str, str]]:
         """
-        Get keys
+        Get keyboard keys list
 
-        :return: keys
+        :return: Filled placeholder list
         """
         return self.window.core.access.shortcuts.get_keys_choices()
 
@@ -419,7 +439,7 @@ class Placeholder:
         """
         Get modifiers
 
-        :return: keys
+        :return: Filled placeholder list
         """
         return self.window.core.access.shortcuts.get_modifiers_choices()
 
@@ -432,7 +452,7 @@ class Placeholder:
         """
         Get access actions list
 
-        :return: app actions list
+        :return: Filled placeholder list
         """
         choices = self.window.core.access.actions.get_access_choices()
         return self._translate_sort_choices(choices)
@@ -441,7 +461,7 @@ class Placeholder:
         """
         Get speech actions list
 
-        :return: app actions list
+        :return: Filled placeholder list
         """
         choices = self.window.core.access.actions.get_speech_synthesis_choices()
         return self._translate_sort_choices(choices)
@@ -450,7 +470,7 @@ class Placeholder:
         """
         Get voice control actions list
 
-        :return: app actions list
+        :return: Filled placeholder list
         """
         choices = self.window.core.access.actions.get_voice_control_choices()
         return self._translate_sort_choices(choices)

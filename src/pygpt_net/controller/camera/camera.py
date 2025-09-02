@@ -18,7 +18,7 @@ from PySide6.QtCore import Slot, QObject
 from PySide6.QtGui import QImage, QPixmap, Qt
 
 from pygpt_net.core.events import AppEvent, KernelEvent
-from pygpt_net.core.camera import CaptureWorker
+from pygpt_net.core.camera.worker import CaptureWorker
 from pygpt_net.core.types import MODE_ASSISTANT
 from pygpt_net.utils import trans
 

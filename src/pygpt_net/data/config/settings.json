@@ -1520,7 +1520,8 @@
     },
     "vision.capture.idx": {
         "section": "vision",
-        "type": "int",
+        "type": "combo",
+        "use": "camera_devices",
         "slider": true,
         "label": "settings.vision.capture.idx",
         "description": "settings.vision.capture.idx.desc",
@@ -1529,7 +1530,8 @@
         "max": 3,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
+        "advanced": false,
+        "tab": "camera"
     },
     "vision.capture.width": {
         "section": "vision",
@@ -1541,7 +1543,8 @@
         "max": 4096,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
+        "advanced": false,
+        "tab": "camera"
     },
     "vision.capture.height": {
         "section": "vision",
@@ -1553,7 +1556,8 @@
         "max": 4096,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
+        "advanced": false,
+        "tab": "camera"
     },
     "vision.capture.quality": {
         "section": "vision",
@@ -1565,7 +1569,8 @@
         "max": 100,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
+        "advanced": false,
+        "tab": "camera"
     },    
     "audio.input.backend": {
         "section": "audio",
