@@ -1093,7 +1093,7 @@ class Body:
                 <video class="video-player" controls>
                     <source src="{path}" type="video/{ext[1:]}">
                 </video>
-                <p><a href="{url}" class="title">{elide_filename(basename)}</a></p>
+                <p><a href="bridge://play_video/{url}" class="title">{elide_filename(basename)}</a></p>
             </div>
             '''
         return f'<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url}"><img src="{path}" class="image"></a></div><a href="{url}" class="title">{elide_filename(basename)}</a></div></div><br/>'

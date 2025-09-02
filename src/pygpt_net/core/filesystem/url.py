@@ -44,6 +44,9 @@ class Url:
             if pid in self.window.ui.nodes['output']:
                 self.window.ui.nodes['output'][pid].on_focus_js()
             return
+        elif url.toString().startswith('bridge://play_video/'):
+            self.window.controller.media.play_video(url.toString().replace("bridge://play_video/", ""))
+            return
 
         # -------------
         extra_schemes = (

@@ -80,12 +80,12 @@ class Media:
         self.window.core.config.save()
 
     def disable_raw(self):
-        """Disable prompt enhancement for images"""
+        """Disable prompt enhancement for media"""
         self.window.core.config.set('img_raw', False)
         self.window.core.config.save()
 
     def toggle_raw(self):
-        """Save prompt enhancement option for images"""
+        """Save prompt enhancement option for media"""
         state = self.window.ui.config['global']['img_raw'].isChecked()
         if not state:
             self.disable_raw()
@@ -113,3 +113,11 @@ class Media:
         model_data = self.window.core.models.get(current)
         if model_data:
             return model_data.is_video_output()
+
+    def play_video(self, path: str):
+        """
+        Play video file
+
+        :param path: path to video file
+        """
+        self.window.tools.get("player").play(path)
