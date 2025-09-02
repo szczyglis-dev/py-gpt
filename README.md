@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.32** | build: **2025-09-02** | Python: **>=3.10, <3.14**
+Release: **2.6.33** | build: **2025-09-02** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3448,6 +3448,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.33 (2025-09-02)**
+
+- Added a "crop" option, auto-resize canvas, and layer support to Painter.
+- Improved video capture from the camera.
 
 **2.6.32 (2025-09-02)**
 

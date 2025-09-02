@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.33 (2025-09-02)
+
+- Added a "crop" option, auto-resize canvas, and layer support to Painter.
+- Improved video capture from the camera.
+
 ## 2.6.32 (2025-09-02)
 
 - Added video generation and support for Google Veo 3 models.
