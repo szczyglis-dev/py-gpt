@@ -126,6 +126,8 @@ class Attachment(QObject):
         self.uploaded = False
         auto_index = self.window.core.config.get("attachments_auto_index", False)
         attachments = self.window.core.attachments.get_all(mode, only_files=True)
+        if self.mode != self.MODE_QUERY_CONTEXT:
+            auto_index = False  # disable auto index for full context and summary modes
 
         if self.is_verbose() and len(attachments) > 0:
             print(f"\nUploading attachments...\nWork Mode: {mode}")
