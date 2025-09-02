@@ -60,6 +60,9 @@ def output_clean_html(html: str) -> str:
         # remove action icons
         for tag in soup.select('div.action-icons'):
             tag.decompose()
+        # remove scripts
+        for tag in soup.select('script'):
+            tag.decompose()
         return str(soup)
     except Exception:
         pass
