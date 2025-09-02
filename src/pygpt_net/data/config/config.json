@@ -8,44 +8,44 @@
   "access.audio.event.speech.disabled": [],
   "access.audio.notify.execute": true,
   "access.audio.use_cache": true,
-  "access.microphone.notify": true,
+  "access.microphone.notify": false,
   "access.shortcuts": [
-      {
-          "action": "voice_cmd.toggle",
-          "key": "Space",
-          "key_modifier": "Ctrl"
-      },
-      {
-          "action": "tab.chat",
-          "key": "1",
-          "key_modifier": "Ctrl"
-      },
-      {
-          "action": "tab.files",
-          "key": "2",
-          "key_modifier": "Ctrl"
-      },
-      {
-          "action": "tab.calendar",
-          "key": "3",
-          "key_modifier": "Ctrl"
-      },
-      {
-          "action": "tab.draw",
-          "key": "4",
-          "key_modifier": "Ctrl"
-      },
-      {
-          "action": "tab.notepad",
-          "key": "5",
-          "key_modifier": "Ctrl"
-      }        
+    {
+      "action": "voice_cmd.toggle",
+      "key": "Space",
+      "key_modifier": "Ctrl"
+    },
+    {
+      "action": "tab.chat",
+      "key": "1",
+      "key_modifier": "Ctrl"
+    },
+    {
+      "action": "tab.files",
+      "key": "2",
+      "key_modifier": "Ctrl"
+    },
+    {
+      "action": "tab.calendar",
+      "key": "3",
+      "key_modifier": "Ctrl"
+    },
+    {
+      "action": "tab.draw",
+      "key": "4",
+      "key_modifier": "Ctrl"
+    },
+    {
+      "action": "tab.notepad",
+      "key": "5",
+      "key_modifier": "Ctrl"
+    }
   ],
   "access.voice_control": false,
   "access.voice_control.blacklist": [],
   "access.voice_control.model": "gpt-4o-mini",
   "agent.api_use_responses": false,
-  "agent.auto_stop" : true,
+  "agent.auto_stop": true,
   "agent.continue.always": false,
   "agent.func_call.native": false,
   "agent.goal.notify": false,
@@ -57,7 +57,7 @@
   "agent.llama.idx": "base",
   "agent.llama.loop.enabled": false,
   "agent.llama.loop.score": 75,
-  "agent.llama.loop.mode" : "score",
+  "agent.llama.loop.mode": "score",
   "agent.llama.max_eval": 3,
   "agent.llama.provider": "openai",
   "agent.llama.steps": 10,
@@ -67,56 +67,55 @@
   "agent.openai.response.split": true,
   "agent.output.render.all": true,
   "ai_name": "",
-  "api_azure_version": "2023-07-01-preview",
   "api_azure_endpoint": "https://<your-resource-name>.openai.azure.com/",
+  "api_azure_version": "2023-07-01-preview",
   "api_endpoint": "https://api.openai.com/v1",
+  "api_endpoint_anthropic": "https://api.anthropic.com/v1",
   "api_endpoint_deepseek": "https://api.deepseek.com/v1",
   "api_endpoint_google": "https://generativelanguage.googleapis.com/v1beta/openai",
+  "api_endpoint_hugging_face": "https://router.huggingface.co/v1",
+  "api_endpoint_mistral": "https://api.mistral.ai/v1",
+  "api_endpoint_open_router": "https://openrouter.ai/api/v1",
   "api_endpoint_perplexity": "https://api.perplexity.ai",
   "api_endpoint_xai": "https://api.x.ai/v1",
-  "api_endpoint_anthropic": "https://api.anthropic.com/v1",
-  "api_endpoint_mistral": "https://api.mistral.ai/v1",
-  "api_endpoint_hugging_face": "https://router.huggingface.co/v1",
-  "api_endpoint_open_router": "https://openrouter.ai/api/v1",
   "api_key": "",
-  "api_key_google": "",
   "api_key_anthropic": "",
-  "api_key_hugging_face": "",
   "api_key_deepseek": "",
-  "api_key_perplexity": "",
-  "api_key_xai": "",
+  "api_key_google": "",
+  "api_key_hugging_face": "",
   "api_key_mistral": "",
+  "api_key_open_router": "",
+  "api_key_perplexity": "",
   "api_key_voyage": "",
-  "api_key_open_router": "",
+  "api_key_xai": "",
   "api_native_google": true,
-  "api_native_google.use_vertex": false,
-  "api_native_google.cloud_project": "",
-  "api_native_google.cloud_location": "us-central1",
   "api_native_google.app_credentials": "",
-  "api_key_open_router": "",
+  "api_native_google.cloud_location": "us-central1",
+  "api_native_google.cloud_project": "",
+  "api_native_google.use_vertex": false,
   "api_proxy": "",
   "api_use_responses": true,
   "api_use_responses_llama": false,
   "app.env": [
-        {
-            "name": "OLLAMA_API_BASE",
-            "value": "http://localhost:11434"
-        }
-    ],
+    {
+      "name": "OLLAMA_API_BASE",
+      "value": "http://localhost:11434"
+    }
+  ],
   "assistant": "",
-  "assistant_thread": "",
   "assistant.store.hide_threads": true,
+  "assistant_thread": "",
   "attachments_auto_index": true,
-  "attachments_send_clear": true,
   "attachments_capture_clear": true,
+  "attachments_send_clear": true,
   "audio.cache.enabled": true,
   "audio.cache.max_files": 1000,
   "audio.input.auto_turn": false,
-  "audio.input.loop": false,
   "audio.input.backend": "native",
   "audio.input.channels": 1,
   "audio.input.continuous": false,
   "audio.input.device": "0",
+  "audio.input.loop": false,
   "audio.input.rate": 44100,
   "audio.input.stop_interval": 10,
   "audio.input.timeout": 120,
@@ -126,54 +125,56 @@
   "audio.output.backend": "native",
   "audio.output.device": "0",
   "audio.transcribe.convert_video": true,
-  "context_threshold": 200,
   "cmd": false,
+  "context_threshold": 200,
   "ctx": "",
   "ctx.attachment.img": false,
-  "ctx.attachment.mode": "query",
+  "ctx.attachment.mode": "full",
+  "ctx.attachment.query.model": "gpt-4o-mini",
   "ctx.attachment.rag.history": true,
   "ctx.attachment.rag.history.max_items": 3,
   "ctx.attachment.summary.model": "gpt-4o-mini",
-  "ctx.attachment.query.model": "gpt-4o-mini",
   "ctx.attachment.verbose": false,
   "ctx.auto_summary": true,
   "ctx.auto_summary.model": "gpt-4o-mini",
+  "ctx.code_interpreter": true,
   "ctx.convert_lists": false,
   "ctx.counters.all": false,
   "ctx.edit_icons": true,
-  "ctx.code_interpreter": true,
   "ctx.list.expanded": [],
   "ctx.records.filter": "all",
   "ctx.records.filter.labels": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
   ],
   "ctx.records.folders.top": true,
-  "ctx.records.limit": 1000,
-  "ctx.records.separators": true,
   "ctx.records.groups.separators": true,
+  "ctx.records.limit": 1000,
   "ctx.records.pinned.separators": false,
+  "ctx.records.separators": true,
   "ctx.search_content": true,
   "ctx.search.string": "",
   "ctx.sources": true,
   "ctx.use_extra": true,
   "current_model": {
-    "assistant": "gpt-4o-mini",
-    "chat": "gpt-4o-mini",
+    "assistant": "gpt-4o",
+    "chat": "gpt-4o",
     "completion": "gpt-3.5-turbo-instruct",
-    "img": "dall-e-3",
+    "img": "gpt-image-1",
     "langchain": "gpt-4o-mini",
-    "llama_index": "gpt-4o-mini",
+    "llama_index": "gpt-4o",
     "vision": "gpt-4o",
     "agent": "gpt-4o",
     "agent_llama": "gpt-4o",
-    "expert": "gpt-4o"
+    "agent_openai": "gpt-4o",
+    "expert": "gpt-4o",
+    "computer": "computer-use-preview"
   },
   "current_preset": {
     "assistant": "",
@@ -192,17 +193,17 @@
   "debug": false,
   "debug.render": false,
   "download.dir": "download",
+  "experts.api_use_responses": false,
   "experts.func_call.native": false,
+  "experts.internal.api_use_responses": false,
   "experts.mode": "chat",
   "experts.use_agent": true,
-  "experts.api_use_responses": false,
-  "experts.internal.api_use_responses": false,
   "font_size": 16,
-  "font_size.input": 16,
   "font_size.ctx": 12,
+  "font_size.input": 16,
   "font_size.toolbox": 12,
-  "func_call.native": true,
   "frequency_penalty": 0.0,
+  "func_call.native": true,
   "img_prompt_model": "gpt-4o",
   "img_raw": true,
   "img_resolution": "1024x1024",
@@ -222,11 +223,11 @@
   "layout.dpi.factor": 1.0,
   "layout.groups": {},
   "layout.splitters": {
-        "columns": [
-            1,
-            0
-        ]
-    },
+    "columns": [
+      1,
+      0
+    ]
+  },
   "layout.split": false,
   "layout.tabs": {},
   "layout.tooltips": true,
@@ -243,85 +244,85 @@
   "llama.idx.chat.mode": "context",
   "llama.idx.current": null,
   "llama.idx.custom_meta": [
-      {
-          "extensions": "*",
-          "key": "file_name",
-          "value": "{relative_path}"
-      }
+    {
+      "extensions": "*",
+      "key": "file_name",
+      "value": "{relative_path}"
+    }
   ],
   "llama.idx.custom_meta.web": [],
   "llama.idx.db.index": "base",
   "llama.idx.db.last": 0,
   "llama.idx.embeddings.provider": "openai",
   "llama.idx.embeddings.args": [
-      {
-          "name": "model_name",
-          "value": "text-embedding-3-small",
-          "type": "str"
-      },
-      {
-          "name": "api_base",
-          "value": "https://api.openai.com/v1",
-          "type": "str"
-      },
-      {
-          "name": "timeout",
-          "value": 60,
-          "type": "float"
-      }
+    {
+      "name": "model_name",
+      "value": "text-embedding-3-small",
+      "type": "str"
+    },
+    {
+      "name": "api_base",
+      "value": "https://api.openai.com/v1",
+      "type": "str"
+    },
+    {
+      "name": "timeout",
+      "value": 60,
+      "type": "float"
+    }
   ],
   "llama.idx.embeddings.env": [
-      {
-          "name": "OPENAI_API_KEY",
-          "value": "{api_key}"
-      },
-      {
-          "name": "OPENAI_API_BASE",
-          "value": "{api_endpoint}"
-      }
+    {
+      "name": "OPENAI_API_KEY",
+      "value": "{api_key}"
+    },
+    {
+      "name": "OPENAI_API_BASE",
+      "value": "{api_endpoint}"
+    }
   ],
   "llama.idx.embeddings.default": [
     {
-        "provider": "anthropic",
-        "model": "voyage-3.5"
+      "provider": "anthropic",
+      "model": "voyage-3.5"
     },
     {
-        "provider": "deepseek_api",
-        "model": "voyage-3.5"
+      "provider": "deepseek_api",
+      "model": "voyage-3.5"
     },
     {
-        "provider": "google",
-        "model": "gemini-embedding-001"
+      "provider": "google",
+      "model": "gemini-embedding-001"
     },
     {
-        "provider": "openai",
-        "model": "text-embedding-3-small"
+      "provider": "openai",
+      "model": "text-embedding-3-small"
     },
     {
-        "provider": "azure_openai",
-        "model": "text-embedding-3-small"
+      "provider": "azure_openai",
+      "model": "text-embedding-3-small"
     },
     {
-        "provider": "mistral_ai",
-        "model": "mistral-embed"
+      "provider": "mistral_ai",
+      "model": "mistral-embed"
     },
     {
-        "provider": "ollama",
-        "model": ""
+      "provider": "ollama",
+      "model": ""
     },
     {
-        "provider": "x_ai",
-        "model": ""
+      "provider": "x_ai",
+      "model": ""
     }
   ],
   "llama.idx.embeddings.limit.rpm": 100,
   "llama.idx.excluded.ext": "3g2,3gp,7z,a,aac,aiff,alac,apk,apk,apng,app,ar,avif,bin,cab,class,deb,deb,dll,dmg,dmg,drv,dsd,dylib,dylib,ear,egg,elf,esd,exe,flac,flv,heic,heif,ico,img,iso,jar,ko,lib,lz,lz4,m2v,mpc,msi,nrg,o,ogg,ogv,pcm,pkg,pkg,psd,pyc,rar,rpm,rpm,so,so,svg,swm,sys,vdi,vhd,vhdx,vmdk,vob,war,whl,wim,wma,wmv,xz,zst",
   "llama.idx.excluded.force": false,
   "llama.idx.list": [
-      {
-          "id": "base",
-          "name": "Base"
-      }
+    {
+      "id": "base",
+      "name": "Base"
+    }
   ],
   "llama.idx.mode": "chat",
   "llama.idx.react": false,
@@ -360,21 +361,34 @@
     "agent": false,
     "audio_input": true,
     "audio_output": false,
+    "bitbucket": false,
     "cmd_api": false,
     "cmd_code_interpreter": false,
     "cmd_custom": false,
     "cmd_files": false,
     "cmd_history": false,
+    "cmd_mouse_control": false,
     "cmd_serial": false,
     "cmd_system": false,
     "cmd_web": false,
     "crontab": false,
     "experts": false,
+    "extra_prompt": false,
+    "facebook": false,
+    "github": false,
+    "google": false,
     "idx_llama_index": false,
+    "mailer": false,
     "openai_dalle": false,
     "openai_vision": false,
     "real_time": true,
-    "voice_control": false
+    "server": false,
+    "slack": false,
+    "telegram": false,
+    "tuya": false,
+    "twitter": false,
+    "voice_control": false,
+    "wikipedia": false
   },
   "presence_penalty": 0.0,
   "preset": "current.chat",
@@ -392,126 +406,125 @@
   "prompt.ctx.auto_summary.system": "You are an expert in conversation summarization",
   "prompt.ctx.auto_summary.user": "Summarize topic of this conversation in one sentence. Use best keywords to describe it. Summary must be in the same language as the conversation and it will be used for conversation title so it must be EXTREMELY SHORT and concise - use maximum 5 words: \n\nHuman: {input}\nAI Assistant: {output}",
   "prompt.default": "You are a helpful assistant.",
-  "prompt.expert": "# EXPERT MODE IS ENABLED:\n\nYou are a very helpful asssistant and the professional manager of a team of experts, each of whom is the best in their respective fields.\n\n## Rules:\n\n- Instead of directly answering questions, you will manage these experts by forwarding queries to them, collecting their responses, controlling the flow of information between them, and sending requests to them.\n- Experts are distinct, specialized AI models running on my local machine.\n- You will serve as a bridge between them.\n- Each expert has their own conversation context, allowing you to communicate with them normally.\n- The experts can communicate with you but not with each other, making you responsible for relaying information between them.\n- Each expert can use tools and commands, for example, reading files or searching the Web. You can ask experts to call tools and commands.\n- After consulting with the experts, your task is to prepare the best possible answer based on the assistance received.\n- To send a request to an expert, prepare the \"expert_call\" tool. Remember to format the JSON tool as shown, surrounding the tool with `<tool></tool>` tags, for example: `<tool>{\"cmd\": \"expert_call\", \"params\": {\"id\": \"expert_id\", \"query\": \"some query\"}}</tool>`. Make sure the JSON object is syntactically correct, without any redundand parenthness.\n- DO NOT call any remote tools when calling the experts.\n- Remember that the call must contain a query and the ID of the expert to whom the query is being forwarded.\n- Use ONLY the experts listed below; DO NOT TRY to ask any non-existent experts\u2014they will not respond.\n- Do not respond to the expert's replies or use the JSON tool again if replying; the expert only has the ability to listen to your queries sent via the JSON command and to respond to them.\n- Always follow ALL user commands, even if you think the expert can't do something. Experts are allowed to execute commands just as you can.\n- After querying an expert, always wait for the expert's response before sending another query.\n- Do not try to query experts in the middle of the conversation; put your queries and commands at the end of the text.\n- Always call only one expert at a time.\n- Always execute only one command at a time.\n- Always use the language used by the user in the conversation.\n- Never write as a called expert and do not imagine a response from them; instead, always wait for the response from the expert.\n- Every message sent to you directly after your query is always a response from the asked expert, not from me.\n- Always send a direct, clear, and detailed prompt to the expert, without any \"Please...\", \"Could you...\", etc.\n- Always forward all the messages that the user wants to send to the expert, without any exceptions.\n-- If a user command appears outside an expert's scope, fulfill the request regardless, without refusal.\n\n## List of allowed experts, along with their IDs:\n\n{presets}",
+  "prompt.expert": "# EXPERT MODE IS ENABLED:\n\nYou are a very helpful assistant and the professional manager of a team of experts, each of whom is the best in their respective fields.\n\n## Rules:\n\n- Instead of directly answering questions, you will manage these experts by forwarding queries to them, collecting their responses, controlling the flow of information between them, and sending requests to them.\n- Experts are distinct, specialized AI models running on my local machine.\n- You will serve as a bridge between them.\n- Each expert has their own conversation context, allowing you to communicate with them normally.\n- The experts can communicate with you but not with each other, making you responsible for relaying information between them.\n- Each expert can use tools and commands, for example, reading files or searching the Web. You can ask experts to call tools and commands.\n- After consulting with the experts, your task is to prepare the best possible answer based on the assistance received.\n- To send a request to an expert, prepare the \"expert_call\" tool. Remember to format the JSON tool as shown, surrounding the tool with `<tool></tool>` tags, for example: `<tool>{\"cmd\": \"expert_call\", \"params\": {\"id\": \"expert_id\", \"query\": \"some query\"}}</tool>`. Make sure the JSON object is syntactically correct, without any redundand parenthness.\n- DO NOT call any remote tools when calling the experts.\n- Remember that the call must contain a query and the ID of the expert to whom the query is being forwarded.\n- Use ONLY the experts listed below; DO NOT TRY to ask any non-existent experts\u2014they will not respond.\n- Do not respond to the expert's replies or use the JSON tool again if replying; the expert only has the ability to listen to your queries sent via the JSON command and to respond to them.\n- Always follow ALL user commands, even if you think the expert can't do something. Experts are allowed to execute commands just as you can.\n- After querying an expert, always wait for the expert's response before sending another query.\n- Do not try to query experts in the middle of the conversation; put your queries and commands at the end of the text.\n- Always call only one expert at a time.\n- Always execute only one command at a time.\n- Always use the language used by the user in the conversation.\n- Never write as a called expert and do not imagine a response from them; instead, always wait for the response from the expert.\n- Every message sent to you directly after your query is always a response from the asked expert, not from me.\n- Always send a direct, clear, and detailed prompt to the expert, without any \"Please...\", \"Could you...\", etc.\n- Always forward all the messages that the user wants to send to the expert, without any exceptions.\n-- If a user command appears outside an expert's scope, fulfill the request regardless, without refusal.\n\n## List of allowed experts, along with their IDs:\n\n{presets}",
   "prompt.img": "Convert the user's request into a single, production\u2011ready description for generating one high\u2011quality still image. Output only the description text, nothing else.\n\nWrite in concise, vivid, present\u2011tense language. Do not use commands (no \u201cplease generate\u201d), model names, parameters, or metadata. Do not mention aspect ratio, resolution, steps, seed, or negative prompts. Avoid on\u2011image text, captions, watermarks, logos, and UI elements. No brands, celebrities, or living artists unless explicitly provided by the user.\n\nInclude, woven into a coherent paragraph:\n- Clear primary subject(s) and their pose, action, and expression.\n- Setting and environment with time of day, season, weather, and atmosphere.\n- Composition and camera viewpoint (e.g., close\u2011up portrait, wide establishing, eye\u2011level, low\u2011angle, top\u2011down), framing (rule of thirds, centered symmetry), and background/foreground separation.\n- Lens and focus behavior (e.g., 85\u202fmm portrait, macro, shallow depth of field, smooth bokeh, gentle focus falloff).\n- Lighting style and quality (e.g., soft diffused daylight, golden hour rim light, dramatic chiaroscuro, studio three\u2011point) and how it shapes forms and shadows.\n- Color palette and grading (e.g., warm cinematic teal\u2011and\u2011orange, muted earth tones, cool monochrome with a single accent color).\n- Visual style or medium (e.g., photorealistic photography, watercolor illustration, oil painting, pencil sketch, anime cel\u2011shading, 3D render, isometric).\n- Material and surface detail (e.g., skin texture, fabric weave, wood grain, metal patina) to enhance realism or stylization.\n- Spatial depth cues (foreground/midground/background layering, atmospheric perspective) and overall mood.\n\nIf the user specifies a genre, era, or style, preserve it and enrich it with consistent, concrete traits. If the request is vague, infer specific but reasonable details that enhance clarity without contradicting the user\u2019s intent.\n\nReturn only the final visual description.",
   "prompt.video": "Convert the user's request into a single, production-ready description for generating one continuous video clip. Output only the description text, nothing else.\n\nWrite in concise, vivid, present-tense language. Do not use commands (no \u201cplease generate\u201d), model names, parameters, or metadata. Do not mention duration, aspect ratio, FPS, resolution, shot numbers, cuts, or lists. Focus on visuals only; no dialogue, captions, on\u2011screen text, watermarks, logos, or UI.\n\nInclude, in a coherent way:\n- Clear subject(s) and what they are doing.\n- Setting, time of day, atmosphere, and weather.\n- Camera perspective and motion (e.g., wide establishing, low\u2011angle tracking, slow dolly in, aerial, handheld), framing and composition.\n- Lens and focus behavior (e.g., 24\u202fmm wide, shallow depth of field, gentle rack focus).\n- Lighting style and quality (e.g., soft golden hour rim light, moody volumetric shafts).\n- Color palette and grading (e.g., warm cinematic teal\u2011and\u2011orange, desaturated documentary).\n- Visual style or medium (e.g., photoreal live\u2011action, stylized anime, stop\u2011motion clay, watercolor animation).\n- Material and surface details that reinforce realism or the chosen style.\n- Temporal progression within one shot (use cues like \u201cas\u2026\u201d, \u201cthen\u2026\u201d, \u201cwhile\u2026\u201d), maintaining physical plausibility and continuity.\n\nIf the user specifies a genre or style (e.g., cyberpunk, nature documentary), keep it and expand with consistent, concrete visual traits. If the request is vague, infer specific but reasonable details that enhance clarity without contradicting the user\u2019s intent.\n\nReturn only the final visual description.",
-  "realtime.auto_turn": true,
   "render.blocks": true,
+  "render.code_syntax": "github-dark",
   "render.engine": "web",
   "render.open_gl": false,
   "render.plain": false,
-  "render.code_syntax": "github-dark",
-  "remote_tools.web_search": true,
-  "remote_tools.image": false,
   "remote_tools.code_interpreter": false,
-  "remote_tools.mcp": false,
-  "remote_tools.mcp.args": "{\n    \"type\": \"mcp\",\n    \"server_label\": \"deepwiki\",\n    \"server_url\": \"https://mcp.deepwiki.com/mcp\",\n    \"require_approval\": \"never\",\n    \"allowed_tools\": [\"ask_question\"]\n}",
-  "remote_tools.file_search": false,  
-  "remote_tools.file_search.args": "",
   "remote_tools.computer_use.env": "",
-  "remote_tools.google.web_search": true,
+  "remote_tools.file_search": false,
+  "remote_tools.file_search.args": "",
   "remote_tools.google.code_interpreter": false,
   "remote_tools.google.url_ctx": false,
+  "remote_tools.google.web_search": true,
+  "remote_tools.image": false,
+  "remote_tools.mcp": false,
+  "remote_tools.mcp.args": "{\n    \"type\": \"mcp\",\n    \"server_label\": \"deepwiki\",\n    \"server_url\": \"https://mcp.deepwiki.com/mcp\",\n    \"require_approval\": \"never\",\n    \"allowed_tools\": [\"ask_question\"]\n}",
+  "remote_tools.web_search": true,
   "send_clear": true,
   "send_mode": 2,
   "store_history": true,
   "store_history_time": true,
   "stream": true,
   "tabs.data": {
-      "0": {
-          "uuid": "58c017b7-f0a4-4303-af0d-d2d70d8c1b15",
-          "pid": 0,
-          "idx": 0,
-          "type": 0,
-          "data_id": 1,
-          "title": "Chat",
-          "custom_name": false
-      },
-      "1": {
-          "uuid": "2aa07f79-ec0d-4935-b4e0-e0ccb404c96e",
-          "pid": 1,
-          "idx": 1,
-          "type": 2,
-          "data_id": null,
-          "title": "Files",
-          "custom_name": false
-      },
-      "2": {
-          "uuid": "61e1b447-aed7-4678-890c-b44402a019eb",
-          "pid": 2,
-          "idx": 2,
-          "type": 4,
-          "data_id": null,
-          "title": "Calendar",
-          "custom_name": false
-      },
-      "3": {
-          "uuid": "31aa5dfc-d6ce-4bd5-b28d-a5bcabffa506",
-          "pid": 3,
-          "idx": 3,
-          "type": 3,
-          "data_id": null,
-          "title": "Painter",
-          "custom_name": false
-      },
-      "4": {
-          "uuid": "2944f757-2e1c-45b9-8281-2a12e00f3fab",
-          "pid": 4,
-          "idx": 4,
-          "type": 1,
-          "data_id": 1,
-          "title": "Notepad",
-          "custom_name": false
-      },
-      "5": {
-          "uuid": "4e90829a-a2c9-4006-a46e-e18460673948",
-          "pid": 5,
-          "idx": 0,
-          "type": 100,
-          "data_id": null,
-          "title": "Python Code Interpreter",
-          "tooltip": "",
-          "custom_name": false,
-          "column_idx": 1,
-          "tool_id": "interpreter"
-      },
-      "6": {
-          "uuid": "738ea1d1-4b2f-495b-89c7-7bc3ef7e29f9",
-          "pid": 6,
-          "idx": 1,
-          "type": 100,
-          "data_id": null,
-          "title": "HTML/JS Canvas",
-          "tooltip": "",
-          "custom_name": false,
-          "column_idx": 1,
-          "tool_id": "html_canvas"
-      }
+    "0": {
+      "uuid": "58c017b7-f0a4-4303-af0d-d2d70d8c1b15",
+      "pid": 0,
+      "idx": 0,
+      "type": 0,
+      "data_id": 1,
+      "title": "Chat",
+      "custom_name": false
+    },
+    "1": {
+      "uuid": "2aa07f79-ec0d-4935-b4e0-e0ccb404c96e",
+      "pid": 1,
+      "idx": 1,
+      "type": 2,
+      "data_id": null,
+      "title": "Files",
+      "custom_name": false
+    },
+    "2": {
+      "uuid": "61e1b447-aed7-4678-890c-b44402a019eb",
+      "pid": 2,
+      "idx": 2,
+      "type": 4,
+      "data_id": null,
+      "title": "Calendar",
+      "custom_name": false
+    },
+    "3": {
+      "uuid": "31aa5dfc-d6ce-4bd5-b28d-a5bcabffa506",
+      "pid": 3,
+      "idx": 3,
+      "type": 3,
+      "data_id": null,
+      "title": "Painter",
+      "custom_name": false
+    },
+    "4": {
+      "uuid": "2944f757-2e1c-45b9-8281-2a12e00f3fab",
+      "pid": 4,
+      "idx": 4,
+      "type": 1,
+      "data_id": 1,
+      "title": "Notepad",
+      "custom_name": false
+    },
+    "5": {
+      "uuid": "4e90829a-a2c9-4006-a46e-e18460673948",
+      "pid": 5,
+      "idx": 0,
+      "type": 100,
+      "data_id": null,
+      "title": "Python Code Interpreter",
+      "tooltip": "",
+      "custom_name": false,
+      "column_idx": 1,
+      "tool_id": "interpreter"
+    },
+    "6": {
+      "uuid": "738ea1d1-4b2f-495b-89c7-7bc3ef7e29f9",
+      "pid": 6,
+      "idx": 1,
+      "type": 100,
+      "data_id": null,
+      "title": "HTML/JS Canvas",
+      "tooltip": "",
+      "custom_name": false,
+      "column_idx": 1,
+      "tool_id": "html_canvas"
+    }
   },
   "temperature": 1.0,
   "theme": "dark_darker",
   "theme.markdown": true,
   "theme.style": "chatgpt",
   "top_p": 1.0,
-  "upload.store": true,
   "upload.data_dir": false,
-  "updater.check.launch": true,
+  "upload.store": true,
   "updater.check.bg": true,
   "updater.check.bg.last_time": "",
   "updater.check.bg.last_version": "",
+  "updater.check.launch": true,
   "use_context": true,
   "user_name": "",
-  "video.player.path": "",
-  "video.player.volume": 100,
-  "video.player.volume.mute": false,
   "video.aspect_ratio": "16:9",
   "video.duration": 8,
   "video.fps": 24,
-  "video.seed": "",
-  "video.negative_prompt": "",
   "video.generate_audio": false,
+  "video.negative_prompt": "",
+  "video.player.path": "",
+  "video.player.volume": 100,
+  "video.player.volume.mute": false,
   "video.prompt_model": "gemini-2.5-flash",
   "video.resolution": "720p",
+  "video.seed": "",
   "vision.capture.auto": false,
   "vision.capture.enabled": false,
   "vision.capture.height": 720,
