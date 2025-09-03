@@ -342,3 +342,15 @@ class ApiOpenAI:
             except Exception as e:
                 self.window.core.debug.log(e)
                 print("Error closing GPT client:", e)
+
+    def safe_close(self):
+        """Close client"""
+        if self.locked:
+            return
+        if self.client is not None:
+            try:
+                self.client.close()
+                self.client = None
+            except Exception as e:
+                self.window.core.debug.log(e)
+                print("Error closing client:", e)

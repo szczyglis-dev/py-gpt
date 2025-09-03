@@ -292,8 +292,6 @@ class Common:
         }))  # stop audio input
         controller.kernel.halt = True
         dispatch(RenderEvent(RenderEvent.TOOL_END))  # show waiting
-
-        core.api.openai.stop()
         self.unlock_input()
 
         controller.chat.input.generating = False
@@ -310,6 +308,14 @@ class Common:
 
         if not exit:
             dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
+
+        self.stop_client()  # stop clients
+
+    def stop_client(self):
+        """Stop all clients"""
+        return # TODO: make it work without connection error after close
+        self.window.core.api.openai.safe_close()
+        self.window.core.api.google.safe_close()
 
     def check_api_key(
             self,
