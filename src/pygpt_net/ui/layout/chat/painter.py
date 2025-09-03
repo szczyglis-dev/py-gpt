@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.02 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QPixmap, QIcon
@@ -15,7 +15,6 @@ from PySide6.QtCore import QSize
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
 from pygpt_net.ui.widget.element.labels import HelpLabel
-from pygpt_net.ui.widget.tabs.body import TabBody
 from pygpt_net.utils import trans
 
 
@@ -90,6 +89,63 @@ class Painter:
             cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
             nodes[key] = cb
 
+            # Zoom combo (view-only scale) placed to the right of canvas size
+            key = 'painter.select.zoom'
+            if nodes.get(key) is None:
+                cb = QComboBox()
+                cb.setMinimumContentsLength(8)
+                cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+
+                # Preferred preset steps from widget; fallback to defaults
+                steps = []
+                if hasattr(ui.painter, 'get_zoom_steps_percent'):
+                    try:
+                        steps = ui.painter.get_zoom_steps_percent()
+                    except Exception:
+                        steps = []
+                if not steps:
+                    steps = [10, 25, 50, 75, 100, 150, 200, 500, 1000]
+
+                cb.addItems([f"{p}%" for p in steps])
+
+                # User -> widget
+                cb.currentTextChanged.connect(ui.painter.on_zoom_combo_changed)
+
+                # Widget -> combo (also covers CTRL+wheel and programmatic changes)
+                def _sync_zoom_combo_from_widget(z):
+                    """Keep zoom combobox in sync with the widget's zoom."""
+                    percent = int(round(float(z) * 100))
+                    label = f"{percent}%"
+                    cb.blockSignals(True)
+                    idx = cb.findText(label)
+                    if idx >= 0:
+                        cb.setCurrentIndex(idx)
+                    else:
+                        # Insert missing value keeping ascending order
+                        items = [cb.itemText(i) for i in range(cb.count())]
+                        if label not in items:
+                            items.append(label)
+                            try:
+                                items_sorted = sorted(
+                                    set(items),
+                                    key=lambda s: float(s.replace('%', '').strip())
+                                )
+                            except Exception:
+                                items_sorted = items
+                            cb.clear()
+                            cb.addItems(items_sorted)
+                        cb.setCurrentText(label)
+                    cb.blockSignals(False)
+
+                # Keep reference to prevent GC of the inner function
+                cb._sync_zoom_combo_from_widget = _sync_zoom_combo_from_widget
+                if hasattr(ui.painter, 'zoomChanged'):
+                    ui.painter.zoomChanged.connect(cb._sync_zoom_combo_from_widget)
+
+                # Initial label; actual value will be set by load_zoom below
+                cb.setCurrentText("100%")
+                nodes[key] = cb
+
         self._initialized = True
 
     def setup(self) -> QWidget:
@@ -118,6 +174,8 @@ class Painter:
         top.addWidget(nodes['painter.select.brush.size'])
         top.addWidget(nodes['painter.select.brush.color'])
         top.addWidget(nodes['painter.select.canvas.size'])
+        # Zoom combo placed right after canvas size
+        top.addWidget(nodes['painter.select.zoom'])
         top.addStretch(1)
 
         if nodes.get('painter.btn.capture') is None:
@@ -141,11 +199,12 @@ class Painter:
         if getattr(ui, 'painter_scroll', None) is None:
             ui.painter_scroll = QScrollArea()
             ui.painter_scroll.setWidget(ui.painter)
-            ui.painter_scroll.setWidgetResizable(True)
+            # Must be False to allow content widget to grow/shrink with zoom and show scrollbars
+            ui.painter_scroll.setWidgetResizable(False)
         else:
             if ui.painter_scroll.widget() is not ui.painter:
                 ui.painter_scroll.setWidget(ui.painter)
-            ui.painter_scroll.setWidgetResizable(True)
+            ui.painter_scroll.setWidgetResizable(False)
 
         if nodes.get('tip.output.tab.draw') is None:
             nodes['tip.output.tab.draw'] = HelpLabel(trans('tip.output.tab.draw'), self.window)

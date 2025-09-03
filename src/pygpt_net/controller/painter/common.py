@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 20:00:00                  #
+# Updated Date: 2025.09.02 15:00:00                  #
 # ================================================== #
 
 from typing import Tuple, Optional, Dict, List
@@ -207,6 +207,18 @@ class Common:
         self.window.ui.nodes['painter.select.brush.size'].setCurrentIndex(
             self.window.ui.nodes['painter.select.brush.size'].findText(str(size))
         )
+
+    def restore_zoom(self):
+        """Restore zoom from config"""
+        if self.window.core.config.has('painter.zoom'):
+            zoom = int(self.window.core.config.get('painter.zoom', 100))
+            self.window.ui.painter.set_zoom_percent(zoom)
+
+    def save_zoom(self):
+        """Save zoom to config"""
+        zoom = self.window.ui.painter.get_zoom_percent()
+        self.window.core.config.set('painter.zoom', zoom)
+        self.window.core.config.save()
 
     def get_colors(self) -> Dict[str, QColor]:
         """

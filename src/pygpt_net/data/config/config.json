@@ -354,6 +354,7 @@
   "painter.brush.mode": "brush",
   "painter.brush.size": 3,
   "painter.canvas.size": "1280x720",
+  "painter.zoom": 100,
   "personalize.about": "",
   "personalize.modes": "chat",
   "plugins": {},

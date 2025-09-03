@@ -36,9 +36,9 @@ def test_open(mock_window):
 def test_save(mock_window):
     """Test save"""
     painter = Painter(mock_window)
-    painter.window.ui.painter.image.save = MagicMock()
+    painter.window.ui.painter.save_base = MagicMock()
     painter.save()
-    painter.window.ui.painter.image.save.assert_called_once()
+    painter.window.ui.painter.save_base.assert_called_once()
 
 
 def test_save_all(mock_window):
