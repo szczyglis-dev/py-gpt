@@ -13,9 +13,9 @@ import datetime
 import os
 from collections import deque
 
-from PySide6.QtCore import Qt, QPoint, QRect, QSize, QSaveFile, QIODevice
+from PySide6.QtCore import Qt, QPoint, QRect, QSize, QSaveFile, QIODevice, QTimer
 from PySide6.QtGui import QImage, QPainter, QPen, QAction, QIcon, QColor, QCursor
-from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication
+from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication, QAbstractScrollArea
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
@@ -71,6 +71,16 @@ class PainterWidget(QWidget):
         self._pendingResizeApply = None  # payload used after crop to apply exact pixels on resize
         self._ignoreResizeOnce = False   # guard to prevent recursive work in resize path
 
+        # Auto-scroll while cropping (scroll area integration)
+        self._scrollArea = None
+        self._scrollViewport = None
+        self._autoScrollTimer = QTimer(self)
+        self._autoScrollTimer.setInterval(16)  # ~60 FPS, low overhead
+        self._autoScrollTimer.timeout.connect(self._autoscroll_tick)
+        self._autoScrollMargin = 36            # px from viewport edge to trigger autoscroll
+        self._autoScrollMinSpeed = 2           # px per tick (min)
+        self._autoScrollMaxSpeed = 18          # px per tick (max)
+
         # Actions
         self._act_undo = QAction(QIcon(":/icons/undo.svg"), trans('action.undo'), self)
         self._act_undo.triggered.connect(self.undo)
@@ -100,12 +110,18 @@ class PainterWidget(QWidget):
         self._act_crop = QAction(QIcon(":/icons/crop.svg"), trans('painter.btn.crop') if trans('painter.btn.crop') else "Crop", self)
         self._act_crop.triggered.connect(self.start_crop)
 
+        # Fit action (trims letterbox and resizes canvas to the scaled image area)
+        self._act_fit = QAction(QIcon(":/icons/resize.svg"), trans('painter.btn.fit') if trans('painter.btn.fit') else "Fit", self)
+        self._act_fit.triggered.connect(self.action_fit)
+
         # Context menu
         self._ctx_menu = QMenu(self)
         self._ctx_menu.addAction(self._act_undo)
         self._ctx_menu.addAction(self._act_redo)
         self._ctx_menu.addSeparator()
         self._ctx_menu.addAction(self._act_crop)
+        self._ctx_menu.addAction(self._act_fit)
+        self._ctx_menu.addSeparator()
         self._ctx_menu.addSeparator()
         self._ctx_menu.addAction(self._act_open)
         self._ctx_menu.addAction(self._act_capture)
@@ -225,6 +241,133 @@ class PainterWidget(QWidget):
         self._ignoreResizeOnce = False
         self.update()
 
+    def _is_fit_available(self) -> bool:
+        """Return True if there are letterbox margins that can be trimmed."""
+        # Ensure composition is current
+        self._recompose()
+
+        # If we have a valid target rect that does not cover the whole canvas, fit is available
+        if self.baseTargetRect.isValid() and not self.baseTargetRect.isNull():
+            if self.baseTargetRect.width() < self.width() or self.baseTargetRect.height() < self.height():
+                return True
+
+        # Fallback: detect non-white content bounds on the composited image
+        bounds = self._detect_nonwhite_bounds(self.image)
+        if bounds is not None:
+            # Fit is useful only if bounds are strictly smaller than canvas
+            return bounds.width() < self.width() or bounds.height() < self.height()
+        return False
+
+    def action_fit(self):
+        """Trim white letterbox margins and resize canvas to the scaled image area. Undo-safe."""
+        if not self._is_fit_available():
+            return
+
+        self.saveForUndo()
+        self._ensure_layers()
+        self._recompose()
+
+        # Prefer exact baseTargetRect if available
+        fit_rect = None
+        if self.baseTargetRect.isValid() and not self.baseTargetRect.isNull():
+            # Clip to canvas just in case
+            canvas_rect = QRect(0, 0, self.width(), self.height())
+            fit_rect = self.baseTargetRect.intersected(canvas_rect)
+
+        # Fallback to content bounds if baseTargetRect is not usable
+        if fit_rect is None or fit_rect.isNull() or fit_rect.width() <= 0 or fit_rect.height() <= 0:
+            fit_rect = self._detect_nonwhite_bounds(self.image)
+            if fit_rect is None or fit_rect.isNull() or fit_rect.width() <= 0 or fit_rect.height() <= 0:
+                # Nothing to do
+                return
+
+        # If already tight, do nothing
+        if fit_rect.width() == self.width() and fit_rect.height() == self.height():
+            return
+
+        # Prepare exact pixels to apply after the canvas resize (pixel-perfect, no rescale)
+        new_base = self.baseCanvas.copy(fit_rect)
+        new_draw = self.drawingLayer.copy(fit_rect)
+
+        self._pendingResizeApply = {
+            'base': QImage(new_base),
+            'draw': QImage(new_draw),
+        }
+
+        # Keep original source as-is: mapped area equals the full image, quality is preserved.
+        # After resize, resizeEvent will set baseTargetRect to the full canvas.
+        self.window.controller.painter.common.change_canvas_size(f"{fit_rect.width()}x{fit_rect.height()}")
+        self.update()
+
+    def _detect_nonwhite_bounds(self, img: QImage, threshold: int = 250) -> QRect | None:
+        """
+        Detect tight bounding rect of non-white content in a composited image.
+        A pixel is considered background if all channels >= threshold.
+        Returns None if no non-white content is found.
+        """
+        if img is None or img.isNull():
+            return None
+
+        w, h = img.width(), img.height()
+        if w <= 0 or h <= 0:
+            return None
+
+        def is_bg(px: QColor) -> bool:
+            return px.red() >= threshold and px.green() >= threshold and px.blue() >= threshold
+
+        # Scan from four sides until content is found; early exits minimize work on large images.
+        left = 0
+        found = False
+        for x in range(w):
+            for y in range(h):
+                if not is_bg(img.pixelColor(x, y)):
+                    left = x
+                    found = True
+                    break
+            if found:
+                break
+        if not found:
+            return None  # all white
+
+        right = w - 1
+        found = False
+        for x in range(w - 1, -1, -1):
+            for y in range(h):
+                if not is_bg(img.pixelColor(x, y)):
+                    right = x
+                    found = True
+                    break
+            if found:
+                break
+
+        top = 0
+        found = False
+        for y in range(h):
+            for x in range(left, right + 1):
+                if not is_bg(img.pixelColor(x, y)):
+                    top = y
+                    found = True
+                    break
+            if found:
+                break
+
+        bottom = h - 1
+        found = False
+        for y in range(h - 1, -1, -1):
+            for x in range(left, right + 1):
+                if not is_bg(img.pixelColor(x, y)):
+                    bottom = y
+                    found = True
+                    break
+            if found:
+                break
+
+        # Validate bounds
+        if right < left or bottom < top:
+            return None
+
+        return QRect(left, top, right - left + 1, bottom - top + 1)
+
     # ---------- Public API (clipboard, file, actions) ----------
 
     def handle_paste(self):
@@ -252,6 +395,7 @@ class PainterWidget(QWidget):
         """
         self._act_undo.setEnabled(self.has_undo())
         self._act_redo.setEnabled(self.has_redo())
+        self._act_fit.setEnabled(self._is_fit_available())
 
         clipboard = QApplication.clipboard()
         mime_data = clipboard.mimeData()
@@ -552,11 +696,14 @@ class PainterWidget(QWidget):
         self.cropping = False
         self._selecting = False
         self._selectionRect = QRect()
+        self._stop_autoscroll()
         self.unsetCursor()
         self.update()
 
     def _finalize_crop(self):
         """Finalize crop with current selection rectangle."""
+        # Always stop autoscroll when finishing the crop
+        self._stop_autoscroll()
         if not self.cropping or self._selectionRect.isNull() or self._selectionRect.width() <= 1 or self._selectionRect.height() <= 1:
             self.cancel_crop()
             return
@@ -617,6 +764,109 @@ class PainterWidget(QWidget):
         self.window.controller.painter.common.change_canvas_size(f"{sel.width()}x{sel.height()}")
         self.update()
 
+    # ---------- Auto-scroll while cropping (for scroll areas) ----------
+
+    def _find_scroll_area(self):
+        """Locate the nearest ancestor QAbstractScrollArea and cache references."""
+        w = self.parentWidget()
+        area = None
+        while w is not None:
+            if isinstance(w, QAbstractScrollArea):
+                area = w
+                break
+            w = w.parentWidget()
+        self._scrollArea = area
+        self._scrollViewport = area.viewport() if area is not None else None
+
+    def _calc_scroll_step(self, dist_to_edge: int, margin: int) -> int:
+        """
+        Compute a smooth step size (px per tick) based on proximity to the edge.
+        Closer to the edge -> faster scroll, clamped to configured limits.
+        """
+        if dist_to_edge < 0:
+            dist_to_edge = 0
+        if margin <= 0:
+            return self._autoScrollMinSpeed
+        ratio = 1.0 - min(1.0, dist_to_edge / float(margin))
+        step = self._autoScrollMinSpeed + ratio * (self._autoScrollMaxSpeed - self._autoScrollMinSpeed)
+        return max(self._autoScrollMinSpeed, min(self._autoScrollMaxSpeed, int(step)))
+
+    def _start_autoscroll(self):
+        """Start autoscroll timer if inside a scroll area and cropping is active."""
+        self._find_scroll_area()
+        if self._scrollArea is not None and self._scrollViewport is not None:
+            if not self._autoScrollTimer.isActive():
+                self._autoScrollTimer.start()
+
+    def _stop_autoscroll(self):
+        """Stop autoscroll timer and release mouse if grabbed."""
+        if self._autoScrollTimer.isActive():
+            self._autoScrollTimer.stop()
+        self.releaseMouse()
+
+    def _autoscroll_tick(self):
+        """
+        Periodic autoscroll while user drags the crop selection near viewport edges.
+        Uses global cursor position -> viewport coords -> scrollbars.
+        Also updates current selection end in widget coordinates.
+        """
+        if not (self.cropping and self._selecting):
+            self._stop_autoscroll()
+            return
+        if self._scrollArea is None or self._scrollViewport is None:
+            return
+
+        vp = self._scrollViewport
+        area = self._scrollArea
+
+        # Cursor position relative to viewport
+        global_pos = QCursor.pos()
+        pos_vp = vp.mapFromGlobal(global_pos)
+
+        margin = self._autoScrollMargin
+        dx = 0
+        dy = 0
+
+        # Horizontal autoscroll
+        if pos_vp.x() < margin:
+            dx = -self._calc_scroll_step(pos_vp.x(), margin)
+        elif pos_vp.x() > vp.width() - margin:
+            dist = max(0, vp.width() - pos_vp.x())
+            dx = self._calc_scroll_step(dist, margin)
+
+        # Vertical autoscroll
+        if pos_vp.y() < margin:
+            dy = -self._calc_scroll_step(pos_vp.y(), margin)
+        elif pos_vp.y() > vp.height() - margin:
+            dist = max(0, vp.height() - pos_vp.y())
+            dy = self._calc_scroll_step(dist, margin)
+
+        scrolled = False
+        if dx != 0:
+            hbar = area.horizontalScrollBar()
+            if hbar is not None and hbar.maximum() > hbar.minimum():
+                newv = max(hbar.minimum(), min(hbar.maximum(), hbar.value() + dx))
+                if newv != hbar.value():
+                    hbar.setValue(newv)
+                    scrolled = True
+
+        if dy != 0:
+            vbar = area.verticalScrollBar()
+            if vbar is not None and vbar.maximum() > vbar.minimum():
+                newv = max(vbar.minimum(), min(vbar.maximum(), vbar.value() + dy))
+                if newv != vbar.value():
+                    vbar.setValue(newv)
+                    scrolled = True
+
+        # Update current selection end using the real pointer position in widget coords.
+        if self._selecting:
+            pos_widget = self.mapFromGlobal(global_pos)
+            cx = min(max(0, pos_widget.x()), max(0, self.width() - 1))
+            cy = min(max(0, pos_widget.y()), max(0, self.height() - 1))
+            self._selectionRect = QRect(self._selectionStart, QPoint(cx, cy))
+            if scrolled or dx != 0 or dy != 0:
+                self.update()
+
     # ---------- Events ----------
 
     def mousePressEvent(self, event):
@@ -633,6 +883,9 @@ class PainterWidget(QWidget):
                 self._selectionStart = event.pos()
                 self._selectionRect = QRect(self._selectionStart, self._selectionStart)
                 self.update()
+                # Begin crop drag with mouse grab + autoscroll
+                self.grabMouse()
+                self._start_autoscroll()
                 return
 
             # painting
@@ -807,7 +1060,7 @@ class PainterWidget(QWidget):
             # Standard path: rebuild base from original source to avoid quality loss
             self._rescale_base_from_source()
 
-            # Scale drawing layer content to new size (best effort). This may introduce minor quality loss, acceptable.
+            # Scale drawing layer content to new size. This may introduce minor quality loss, acceptable.
             if old_size.isValid() and (old_size.width() > 0 and old_size.height() > 0) and \
                     (self.drawingLayer is not None) and (self.drawingLayer.size() != new_size):
                 self.drawingLayer = self.drawingLayer.scaled(new_size, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
