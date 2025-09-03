@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.09.03 21:50:18                  #
 # ================================================== #
 
 import os
@@ -35,6 +35,8 @@ class Body:
             <!DOCTYPE html>
             <html>
             <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
                 <style>
                     """
     _HTML_P1 = """
@@ -45,6 +47,7 @@ class Body:
                 <script type="text/javascript" src="qrc:///js/katex.min.js"></script>
                 <script>
                 const DEBUG_MODE = false;
+                let streamHandler;
                 let scrollTimeout = null;
                 let prevScroll = 0;
                 let bridge;
@@ -67,8 +70,9 @@ class Body:
                 let highlightScheduled = false;
                 let pendingHighlightRoot = null;
                 let pendingHighlightMath = false;
+                let highlightRAF = 0;  // RAF id for highlight batcher
                 let scrollScheduled = false;
-                
+
                 // Auto-follow state: when false, live stream auto-scroll is suppressed
                 let autoFollow = true;
                 let lastScrollTop = 0;
@@ -76,8 +80,23 @@ class Body:
                 let userInteracted = false;
                 const AUTO_FOLLOW_REENABLE_PX = 8; // px from bottom to re-enable auto-follow
 
+                // FAB thresholds
+                const SHOW_DOWN_THRESHOLD_PX = 0; // show "down" only when farther than this from bottom
+                let currentFabAction = 'none'; // tracks current FAB state to avoid redundant work
+
                 // timers
                 let tipsTimers = [];
+
+                // observers
+                let roDoc = null;
+                let roContainer = null;
+
+                // FAB (scroll-to-top/bottom) scheduling
+                let scrollFabUpdateScheduled = false;
+
+                // Streaming micro-batching config
+                const STREAM_MAX_PER_FRAME = 64; // defensive upper bound of operations per frame
+                const STREAM_EMERGENCY_COALESCE_LEN = 1500; // when queue length is high, coalesce aggressively
 
                 // clear previous references
                 function resetEphemeralDomRefs() {
@@ -91,6 +110,30 @@ class Body:
                 function stopTipsTimers() {
                     tipsTimers.forEach(clearTimeout);
                     tipsTimers = [];
+                }
+
+                function teardown() {
+                    // Cancel timers/RAF/observers to prevent background CPU usage
+                    stopTipsTimers();
+                    try {
+                        if (streamRAF) {
+                            cancelAnimationFrame(streamRAF);
+                            streamRAF = 0;
+                        }
+                        if (highlightRAF) {
+                            cancelAnimationFrame(highlightRAF);
+                            highlightRAF = 0;
+                        }
+                    } catch (e) { /* ignore */ }
+                    try {
+                        if (roDoc) roDoc.disconnect();
+                        if (roContainer) roContainer.disconnect();
+                    } catch (e) { /* ignore */ }
+                    // Clear streaming queue to release memory immediately
+                    streamQ.length = 0;
+                    scrollFabUpdateScheduled = false;
+                    scrollScheduled = false;
+                    highlightScheduled = false;
                 }
 
                 history.scrollRestoration = "manual";
@@ -124,6 +167,9 @@ class Body:
                     els.footer = document.getElementById('_footer_');
                     els.loader = document.getElementById('_loader_');
                     els.tips = document.getElementById('tips');
+                    // FAB refs
+                    els.scrollFab = document.getElementById('scrollFab');
+                    els.scrollFabIcon = document.getElementById('scrollFabIcon');
                 }
                 function scheduleHighlight(root, withMath = true) {
                     const scope = root && root.nodeType === 1 ? root : document;
@@ -135,29 +181,37 @@ class Body:
                     if (withMath) pendingHighlightMath = true;
                     if (highlightScheduled) return;
                     highlightScheduled = true;
-                    requestAnimationFrame(function() {
+                    if (highlightRAF) {
+                        // Ensure we do not queue multiple highlight frames
+                        cancelAnimationFrame(highlightRAF);
+                        highlightRAF = 0;
+                    }
+                    highlightRAF = requestAnimationFrame(function() {
                         try {
                             highlightCodeInternal(pendingHighlightRoot || document, pendingHighlightMath);
                         } finally {
                             highlightScheduled = false;
                             pendingHighlightRoot = null;
                             pendingHighlightMath = false;
+                            highlightRAF = 0;
                         }
                     });
                 }
                 function highlightCodeInternal(root, withMath) {
-                    (root || document).querySelectorAll('pre code:not(.hljs)').forEach(el => {
+                    (root || document).querySelectorAll('pre code').forEach(el => {
+                        try { if (el.dataset) delete el.dataset.highlighted; } catch (e) {}
                         hljs.highlightElement(el);
                     });
                     if (withMath) {
                         renderMath(root);
+                        if (DEBUG_MODE) log("math");
                     }
                     if (DEBUG_MODE) log("execute highlight");
-                    restoreCollapsedCode(root);
                 }
                 function highlightCode(withMath = true, root = null) {
                      if (DEBUG_MODE) log("queue highlight, withMath: " + withMath);
-                    scheduleHighlight(root || document, withMath);
+                    highlightCodeInternal(root || document, withMath); // prevent blink on fast updates
+                    // scheduleHighlight(root || document, withMath);  // disabled
                 }
                 function hideTips() {
                     if (tips_hidden) return;
@@ -228,6 +282,8 @@ class Body:
                     requestAnimationFrame(function() {
                         scrollScheduled = false;
                         scrollToBottom(live);
+                        // keep FAB state in sync after any programmatic scroll
+                        scheduleScrollFabUpdate();
                     });
                 }
                 // Force immediate scroll to bottom (pre-interaction bootstrap)
@@ -240,14 +296,14 @@ class Body:
                     const el = document.scrollingElement || document.documentElement;
                     const marginPx = 450;
                     const behavior = (live === true) ? 'instant' : 'smooth';
-                
+
                     // Respect user-follow state during live updates
                     if (live === true && autoFollow !== true) {
                         // Keep prevScroll consistent for potential consumers
                         prevScroll = el.scrollHeight;
                         return;
                     }
-                
+
                     // Allow initial auto-follow before any user interaction
                     if ((live === true && userInteracted === false) || isNearBottom(marginPx) || live == false) {
                         el.scrollTo({ top: el.scrollHeight, behavior });
@@ -285,6 +341,7 @@ class Body:
                         element.insertAdjacentHTML('beforeend', content);
                         highlightCode(true, element);
                         scrollToBottom(false);  // without schedule
+                        scheduleScrollFabUpdate();
                     }
                 }
                 function replaceNodes(content) {
@@ -300,6 +357,7 @@ class Body:
                         element.insertAdjacentHTML('beforeend', content);
                         highlightCode(true, element);
                         scrollToBottom(false);  // without schedule
+                        scheduleScrollFabUpdate();
                     }
                 }
                 function clean() {
@@ -415,6 +473,7 @@ class Body:
                     clearOutput();
                 }
                 function enqueueStream(name_header, content, chunk, replace = false, is_code_block = false) {
+                  // Push incoming chunk; scheduling is done with RAF to batch DOM ops
                   streamQ.push({name_header, content, chunk, replace, is_code_block});
                   if (!streamRAF) {
                     streamRAF = requestAnimationFrame(drainStream);
@@ -422,16 +481,53 @@ class Body:
                 }                
                 function drainStream() {
                   streamRAF = 0;
-                  while (streamQ.length) {
-                    const {name_header, content, chunk, replace, is_code_block} = streamQ.shift();
-                    appendStream(name_header, content, chunk, replace, is_code_block);
+                  let processed = 0;
+
+                  // Emergency coalescing if queue grows too large
+                  const shouldAggressiveCoalesce = streamQ.length >= STREAM_EMERGENCY_COALESCE_LEN;
+
+                  while (streamQ.length && processed < STREAM_MAX_PER_FRAME) {
+                    let {name_header, content, chunk, replace, is_code_block} = streamQ.shift();
+
+                    // Coalesce contiguous simple appends to reduce DOM churn
+                    if (!replace && !content && (chunk && chunk.length > 0)) {
+                      // Collect chunks into an array to avoid O(n^2) string concatenation
+                      const chunks = [chunk];
+                      while (streamQ.length) {
+                        const next = streamQ[0];
+                        if (!next.replace && !next.content && next.is_code_block === is_code_block && next.name_header === name_header) {
+                          chunks.push(next.chunk);
+                          streamQ.shift();
+                          if (!shouldAggressiveCoalesce) {
+                            // Light coalescing per frame is enough under normal conditions
+                            break;
+                          }
+                        } else {
+                          break;
+                        }
+                      }
+                      chunk = chunks.join('');
+                    }
+
+                    applyStream(name_header, content, chunk, replace, is_code_block);
+                    processed++;
+                  }
+
+                  // If there are remaining items re-schedule next frame
+                  if (streamQ.length) {
+                    streamRAF = requestAnimationFrame(drainStream);
                   }
                 }
+                // Public API: enqueue and process in the next animation frame
                 function appendStream(name_header, content, chunk, replace = false, is_code_block = false) {
+                    enqueueStream(name_header, content, chunk, replace, is_code_block);
+                }
+                // Internal: performs actual DOM updates for a single merged chunk
+                function applyStream(name_header, content, chunk, replace = false, is_code_block = false) {
                     dropIfDetached(); // clear references to detached elements
                     hideTips();
                     if (DEBUG_MODE) {
-                        log("APPEND CHUNK: {" + chunk + "}, CONTENT: {"+content+"}, replace: " + replace + ", is_code_block: " + is_code_block);
+                        log("APPLY CHUNK: {" + chunk + "}, CONTENT: {"+content+"}, replace: " + replace + ", is_code_block: " + is_code_block);
                     }
                     const element = getStreamContainer();
                     let msg;
@@ -456,7 +552,9 @@ class Body:
                             msg = box.querySelector('.msg');
                         }
                         if (msg) {
-                            if (replace) {
+                            if (replace) {                            
+                                domLastCodeBlock = null;
+                                domLastParagraphBlock = null;
                                 msg.replaceChildren();
                                 if (content) {
                                   msg.insertAdjacentHTML('afterbegin', content);
@@ -466,17 +564,23 @@ class Body:
                                     doMath = false;
                                 }
                                 highlightCode(doMath, msg);
-                                domLastCodeBlock = null;
-                                domLastParagraphBlock = null;
                             } else {
                                 if (is_code_block) {
-                                    let lastCodeBlock;
-                                    if (domLastCodeBlock) {
-                                        lastCodeBlock = domLastCodeBlock;
-                                    } else {
-                                        const msgBlocks = msg.querySelectorAll('pre');
-                                        if (msgBlocks.length > 0) {
-                                            lastCodeBlock = msgBlocks[msgBlocks.length - 1].querySelector('code');
+                                    // Try to reuse cached last code block; fallback to cheap lastElementChild check
+                                    let lastCodeBlock = domLastCodeBlock;
+                                    if (!lastCodeBlock || !msg.contains(lastCodeBlock)) {
+                                        const last = msg.lastElementChild;
+                                        if (last && last.tagName === 'PRE') {
+                                            const codeEl = last.querySelector('code');
+                                            if (codeEl) {
+                                                lastCodeBlock = codeEl;
+                                            }
+                                        } else {
+                                            // Fallback scan only when necessary
+                                            const codes = msg.querySelectorAll('pre code');
+                                            if (codes.length > 0) {
+                                                lastCodeBlock = codes[codes.length - 1];
+                                            }
                                         }
                                     }
                                     if (lastCodeBlock) {
@@ -610,10 +714,12 @@ class Body:
                         const outputEl = element.querySelector('.tool-output');
                         if (outputEl) {
                             const contentEl = outputEl.querySelector('.content');
-                            if (contentEl.style.display === 'none') {
-                                contentEl.style.display = 'block';
-                            } else {
-                                contentEl.style.display = 'none';
+                            if (contentEl) {
+                                if (contentEl.style.display === 'none') {
+                                    contentEl.style.display = 'block';
+                                } else {
+                                    contentEl.style.display = 'none';
+                                }
                             }
                             const toggleEl = outputEl.querySelector('.toggle-cmd-output img');
                             if (toggleEl) {
@@ -660,6 +766,7 @@ class Body:
                     clearStreamBefore();
                     domLastCodeBlock = null;
                     domLastParagraphBlock = null;
+                    domOutputStream = null; // release handle to allow GC on old container subtree
                     const element = els.appendOutput || document.getElementById('_append_output_');
                     if (element) {
                         element.replaceChildren();
@@ -736,7 +843,7 @@ class Body:
                         const source = wrapper.querySelector('code');
                         if (source && collapsed_idx.includes(index)) {
                             source.style.display = 'none';
-                            const collapseBtn = wrapper.querySelector('.code-header-collapse');
+                            const collapseBtn = wrapper.querySelector('code-header-collapse');
                             if (collapseBtn) {
                                 const collapseSpan = collapseBtn.querySelector('span');
                                 if (collapseSpan) {
@@ -803,12 +910,125 @@ class Body:
                         el.classList.add('hidden');
                     }
                 }
+
+                // ---------- scroll bottom ----------
+                function hasVerticalScroll() {
+                    const el = document.scrollingElement || document.documentElement;
+                    return (el.scrollHeight - el.clientHeight) > 1;
+                }
+                function distanceToBottomPx() {
+                    const el = document.scrollingElement || document.documentElement;
+                    return el.scrollHeight - el.clientHeight - el.scrollTop;
+                }
+                function isAtBottom(thresholdPx = 2) {
+                    return distanceToBottomPx() <= thresholdPx;
+                }
+                function isLoaderHidden() {
+                    const el = els.loader || document.getElementById('_loader_');
+                    // If loader element is missing treat as hidden to avoid blocking FAB unnecessarily
+                    return !el || el.classList.contains('hidden');
+                }
+                function updateScrollFab() {
+                    const btn = els.scrollFab || document.getElementById('scrollFab');
+                    const icon = els.scrollFabIcon || document.getElementById('scrollFabIcon');
+                    if (!btn || !icon) return;
+
+                    const hasScroll = hasVerticalScroll();
+                    if (!hasScroll) {
+                        btn.classList.remove('visible');
+                        currentFabAction = 'none';
+                        return;
+                    }
+
+                    const atBottom = isAtBottom();
+                    const dist = distanceToBottomPx();
+                    const loaderHidden = isLoaderHidden();
+
+                    // Determine desired action and visibility based on requirements:
+                    // - Show "down" only when at least SHOW_DOWN_THRESHOLD_PX away from bottom.
+                    // - Show "up" only when loader-global has the 'hidden' class.
+                    // - Otherwise hide the FAB to prevent overlap and noise.
+                    let action = 'none'; // 'up' | 'down' | 'none'
+                    if (atBottom) {
+                        if (loaderHidden) {
+                            action = 'up';
+                        } else {
+                            action = 'none';
+                        }
+                    } else {
+                        if (dist >= SHOW_DOWN_THRESHOLD_PX) {
+                            action = 'down';
+                        } else {
+                            action = 'none';
+                        }
+                    }
+
+                    if (action === 'none') {
+                        btn.classList.remove('visible');
+                        currentFabAction = 'none';
+                        return;
+                    }
+
+                    // Update icon and semantics only if changed to avoid redundant 'load' events
+                    if (action !== currentFabAction) {
+                        if (action === 'up') {
+                            if (icon.src !== ICON_COLLAPSE) icon.src = ICON_COLLAPSE;
+                            btn.title = "Go to top";
+                        } else {
+                            if (icon.src !== ICON_EXPAND) icon.src = ICON_EXPAND;
+                            btn.title = "Go to bottom";
+                        }
+                        btn.setAttribute('aria-label', btn.title);
+                        currentFabAction = action;
+                    }
+
+                    // Finally show
+                    btn.classList.add('visible');
+                }
+                function scheduleScrollFabUpdate() {
+                    if (scrollFabUpdateScheduled) return;
+                    scrollFabUpdateScheduled = true;
+                    requestAnimationFrame(function() {
+                        scrollFabUpdateScheduled = false;
+                        updateScrollFab();
+                    });
+                }
+                function scrollToTopUser() {
+                    // Explicit user-driven scroll disables auto-follow
+                    userInteracted = true;
+                    autoFollow = false;
+                    try {
+                        const el = document.scrollingElement || document.documentElement;
+                        el.scrollTo({ top: 0, behavior: 'smooth' });
+                    } catch (e) {
+                        // Fallback in environments without smooth scrolling support
+                        const el = document.scrollingElement || document.documentElement;
+                        el.scrollTop = 0;
+                    }
+                    scheduleScrollFabUpdate();
+                }
+                function scrollToBottomUser() {
+                    // User action to go to bottom re-enables auto-follow
+                    userInteracted = true;
+                    autoFollow = true;
+                    try {
+                        const el = document.scrollingElement || document.documentElement;
+                        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+                    } catch (e) {
+                        const el = document.scrollingElement || document.documentElement;
+                        el.scrollTop = el.scrollHeight;
+                    }
+                    scheduleScrollFabUpdate();
+                }
+                // ---------- end of scroll bottom ----------
+
                 document.addEventListener('DOMContentLoaded', function() {
                     new QWebChannel(qt.webChannelTransport, function (channel) {
                         bridge = channel.objects.bridge;
-                        bridge.chunk.connect((name, html, chunk, replace, isCode) => {
-                            appendStream(name, html, chunk, replace, isCode);
-                        });
+                        streamHandler = (name, html, chunk, replace, isCode) => {
+                          appendStream(name, html, chunk, replace, isCode);
+                        };
+                        bridge.chunk.connect(streamHandler);
                         if (bridge.js_ready) bridge.js_ready();
                     });
                     initDomRefs();
@@ -844,12 +1064,12 @@ class Body:
                             autoFollow = false;
                         }
                     }, { passive: true });
-                    
+
                     // Track scroll direction and restore auto-follow when user returns to bottom
                     window.addEventListener('scroll', function() {
                         const el = document.scrollingElement || document.documentElement;
                         const top = el.scrollTop;
-                    
+
                         // User scrolled up (ignore tiny jitter)
                         if (top + 1 < lastScrollTop) {
                             autoFollow = false;
@@ -861,6 +1081,24 @@ class Body:
                         }
                         lastScrollTop = top;
                     }, { passive: true });
+
+                    // Scroll-to-top/bottom FAB wiring
+                    if (els.scrollFab) {
+                        els.scrollFab.addEventListener('click', function(ev) {
+                            ev.preventDefault();
+                            if (isAtBottom()) {
+                                scrollToTopUser();
+                            } else {
+                                scrollToBottomUser();
+                            }
+                        }, { passive: false });
+                    }
+                    window.addEventListener('scroll', scheduleScrollFabUpdate, { passive: true });
+                    window.addEventListener('resize', scheduleScrollFabUpdate, { passive: true });
+
+                    // Initial state
+                    scheduleScrollFabUpdate();
+
                     container.addEventListener('click', function(event) {
                         const copyButton = event.target.closest('.code-header-copy');
                         if (copyButton) {
@@ -935,6 +1173,10 @@ class Body:
                             }
                         }
                     });
+
+                    // Cleanup on page lifecycle changes
+                    window.addEventListener('pagehide', teardown, { passive: true });
+                    window.addEventListener('beforeunload', teardown, { passive: true });
                 });
                 setTimeout(cycleTips, 10000);  // after 10 seconds
                 </script>
@@ -953,6 +1195,9 @@ class Body:
                 </div>
                 <div id="tips" class="tips"></div>
             </div>
+            <button id="scrollFab" class="scroll-fab" type="button" title="Go to top" aria-label="Go to top">
+                <img id="scrollFabIcon" src="" alt="Scroll">
+            </button>
             </body>
             </html>
             """
@@ -1003,6 +1248,51 @@ class Body:
         }
         """
 
+    # CSS for the scroll-to-top/bottom
+    _SCROLL_FAB_CSS = """
+        #scrollFab.scroll-fab {
+            position: fixed;
+            //left: 50%;
+            right: 16px;
+            bottom: 16px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2147483647;
+            cursor: pointer;
+            opacity: .65;
+            transition: opacity .2s ease, transform .2s ease;
+            //transform: translate(-50%, 0);
+            will-change: transform, opacity;
+            pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #scrollFab.scroll-fab.visible {
+            display: inline-flex;
+        }
+        #scrollFab.scroll-fab:hover {
+            opacity: 1;
+            //transform: translate(-50%, -1px);
+        }
+        #scrollFab.scroll-fab img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            pointer-events: none;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #scrollFab.scroll-fab {
+                transition: none;
+            }
+        }
+    """
+
     def __init__(self, window=None):
         """
         HTML Body
@@ -1052,9 +1342,13 @@ class Body:
         syntax_style = self.window.core.config.get("render.code_syntax") or "default"
 
         theme_css = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
-        parts = [self._SPINNER, theme_css,
-                 "pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }",
-                 self.highlight.get_style_defs()]
+        parts = [
+            self._SPINNER,
+            theme_css,
+            "pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }",
+            self.highlight.get_style_defs(),
+            self._SCROLL_FAB_CSS,  # keep FAB styles last to ensure precedence
+        ]
         return "\n".join(parts)
 
     def prepare_action_icons(self, ctx: CtxItem) -> str:
@@ -1309,11 +1603,18 @@ class Body:
         styles_css = self.prepare_styles()
         tips_json = self.get_all_tips()
 
+        # Build file:// paths for FAB icons
+        app_path = self.window.core.config.get_app_path().replace("\\", "/")
+        expand_path = os.path.join(app_path, "data", "icons", "expand.svg").replace("\\", "/")
+        collapse_path = os.path.join(app_path, "data", "icons", "collapse.svg").replace("\\", "/")
+        icons_js = f';const ICON_EXPAND="file://{expand_path}";const ICON_COLLAPSE="file://{collapse_path}";'
+
         return ''.join((
             self._HTML_P0,
             styles_css,
             self._HTML_P1,
             str(pid),
+            icons_js,
             self._HTML_P2,
             tips_json,
             self._HTML_P3,

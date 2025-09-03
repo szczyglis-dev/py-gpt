@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.09.03 20:58:21                  #
 # ================================================== #
 
 import json
@@ -69,7 +69,7 @@ class Renderer(BaseRenderer):
         self._file_prefix = 'file:///' if self.window and self.window.core.platforms.is_windows() else 'file://'
 
         self._thr = {}
-        self._throttle_interval = 0.01 # 10 ms delay
+        self._throttle_interval = 0.03  # 30 ms delay
 
     def prepare(self):
         """
@@ -597,7 +597,7 @@ class Renderer(BaseRenderer):
             if self.window.core.config.get("agent.output.render.all", False):
                 output = ctx.output  # full agent output
             else:
-                output = ctx.extra["output"] # final output only
+                output = ctx.extra["output"]  # final output only
         else:
             if not output:
                 return
@@ -656,6 +656,7 @@ class Renderer(BaseRenderer):
         pid = self.get_or_create_pid(meta)
         pctx = self.pids[pid]
         pctx.item = ctx
+
         if not text_chunk:
             if begin:
                 pctx.clear()
@@ -663,12 +664,14 @@ class Renderer(BaseRenderer):
                 self._throttle_reset(pid)
             return
 
-        if begin:  # prepare name and avatar header only at the beginning to avoid unnecessary checks
+        if begin:
+            # Prepare name header once per streaming session
             pctx.header = self.get_name_header(ctx, stream=True)
             self.update_names(meta, ctx)
 
         name_header_str = pctx.header
         text_chunk = text_chunk if isinstance(text_chunk, str) else str(text_chunk)
+        # Escape angle brackets early to avoid accidental HTML creation
         text_chunk = text_chunk.translate({ord('<'): '&lt;', ord('>'): '&gt;'})
 
         if begin:
@@ -683,42 +686,68 @@ class Renderer(BaseRenderer):
             self.clear_chunks_output(pid)
             self.prev_chunk_replace = False
 
+        # Append to the logical buffer (owned by pid)
         pctx.append_buffer(text_chunk)
-
         buffer = pctx.buffer
-        if has_unclosed_code_tag(buffer):
-            buffer_to_parse = "".join((buffer, "\n```"))
-        else:
-            buffer_to_parse = buffer
 
-        html = self.parser.parse(buffer_to_parse)
-        del buffer_to_parse
-        is_code_block = html.endswith(self.ENDINGS_CODE)
-        is_list = html.endswith(self.ENDINGS_LIST)
+        # Cheap detection of open code fence without full parse
+        open_code = has_unclosed_code_tag(buffer)
+
+        # Newline/flow state
         is_n = "\n" in text_chunk
-        is_newline = is_n or buffer.endswith("\n") or is_code_block
-        force_replace = False
-        if self.prev_chunk_newline:
-            force_replace = True
-        if is_n:
-            self.prev_chunk_newline = True
-        else:
-            self.prev_chunk_newline = False
+        is_newline = is_n or buffer.endswith("\n") or open_code
+        force_replace = self.prev_chunk_newline
+        self.prev_chunk_newline = bool(is_n)
 
         replace = False
-        if is_newline or force_replace or is_list:
+        if is_newline or force_replace:
             replace = True
-            if is_code_block:
-                if not is_n:
-                    replace = False
+            # Do not replace for an open code block unless a newline arrived
+            if open_code and not is_n:
+                replace = False
 
+        thr = self._throttle_get(pid)
+        html = None
+
+        # Only parse when required:
+        # - a replace is needed now, or
+        # - a replace is pending in the throttle and must be refreshed, or
+        # - rarely: we must detect list termination without a newline
+        need_parse_for_pending_replace = (thr["op"] == 1)
+        need_parse_for_list = False
+
+        if not replace:
+            # Very rare case: list closing without newline. Check on a short tail only.
+            # This keeps behavior intact while avoiding full-buffer parse on every chunk.
+            tail = buffer[-4096:]
+            if tail:
+                tail_to_parse = f"{tail}\n```" if open_code else tail
+                tail_html = self.parser.parse(tail_to_parse)
+                need_parse_for_list = tail_html.endswith(self.ENDINGS_LIST)
+                # Tail string is short and will be collected promptly
+                del tail_html
+            if need_parse_for_list:
+                replace = True
+
+        if replace or need_parse_for_pending_replace:
+            buffer_to_parse = f"{buffer}\n```" if open_code else buffer
+            html = self.parser.parse(buffer_to_parse)
+            del buffer_to_parse
+
+        is_code_block = open_code
+
+        # Adjust output chunk formatting based on block type
         if not is_code_block:
             if is_n:
+                # Convert text newlines to <br/> in non-code context
                 text_chunk = text_chunk.replace("\n", "<br/>")
         else:
+            # When previous operation replaced content and this chunk closes the fence,
+            # prepend a newline so the final code block renders correctly.
             if self.prev_chunk_replace and (is_code_block and not has_unclosed_code_tag(text_chunk)):
                 text_chunk = "\n" + text_chunk
 
+        # Update replace flag for next iteration AFTER formatting decisions
         self.prev_chunk_replace = replace
 
         if begin:
@@ -727,7 +756,16 @@ class Renderer(BaseRenderer):
             except Exception:
                 pass
 
-        self._throttle_queue(pid, name_header_str or "", html, text_chunk, replace, is_code_block)
+        # Queue throttled emission; HTML is only provided when it is really needed
+        self._throttle_queue(
+            pid=pid,
+            name=name_header_str or "",
+            html=html if html is not None else "",
+            text_chunk=text_chunk,
+            replace=replace,
+            is_code_block=is_code_block,
+        )
+        # Emit if throttle interval allows
         self._throttle_emit(pid, force=False)
 
     def next_chunk(
@@ -1276,7 +1314,7 @@ class Renderer(BaseRenderer):
             extra = ctx.extra["footer"]
             extra_style = "display:block;"
 
-        return  f'<div class="msg-box msg-user" id="{msg_id}"><div class="name-header name-user">{name}</div><div class="msg">{html}<div class="msg-extra" style="{extra_style}">{extra}</div>{debug}</div></div>'
+        return f'<div class="msg-box msg-user" id="{msg_id}"><div class="name-header name-user">{name}</div><div class="msg">{html}<div class="msg-extra" style="{extra_style}">{extra}</div>{debug}</div></div>'
 
     def prepare_node_output(
             self,
@@ -1870,6 +1908,7 @@ class Renderer(BaseRenderer):
             thr["code"] = bool(is_code_block)
         else:
             if thr["op"] == 1:
+                # Refresh the pending replace with the latest HTML snapshot
                 thr["replace_html"] = html
                 thr["code"] = bool(is_code_block)
                 return
