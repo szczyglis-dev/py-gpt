@@ -566,6 +566,8 @@ class Bridge(QObject):
         self.window = window
 
     chunk = Signal(str, str, str, bool, bool)  # name, buffer, chunk, replace, is_code
+    node = Signal(str)  # content
+    nodeReplace = Signal(str)  # content
     readyChanged = Signal(bool)
 
     @Slot()

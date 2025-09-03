@@ -6,16 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.03 20:58:21                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 import json
 import os
 import re
+import gc
 
 from datetime import datetime
 from typing import Optional, List, Any
 from time import monotonic
+from io import StringIO
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.text.utils import has_unclosed_code_tag
@@ -47,6 +49,38 @@ class Renderer(BaseRenderer):
         "</li>"
     )
     RE_AMP_LT_GT = re.compile(r'&amp;(lt|gt);')
+
+    class _AppendBuffer:
+        """Small, allocation-friendly buffer for throttled appends."""
+        __slots__ = ("_buf", "_size")
+
+        def __init__(self):
+            self._buf = StringIO()
+            self._size = 0
+
+        def append(self, s: str):
+            if not s:
+                return
+            self._buf.write(s)
+            self._size += len(s)
+
+        def is_empty(self) -> bool:
+            return self._size == 0
+
+        def get_and_clear(self) -> str:
+            """Return content and replace underlying buffer to release memory eagerly."""
+            if self._size == 0:
+                return ""
+            data = self._buf.getvalue()
+            # Replace the internal buffer instance to drop capacity immediately
+            self._buf = StringIO()
+            self._size = 0
+            return data
+
+        def clear(self):
+            """Clear content and drop buffer capacity."""
+            self._buf = StringIO()
+            self._size = 0
 
     def __init__(self, window=None):
         super(Renderer, self).__init__(window)
@@ -327,6 +361,9 @@ class Renderer(BaseRenderer):
             self.get_output_node(meta).page().runJavaScript("endStream();")
         except Exception:
             pass
+
+        # Help the allocator release large transient strings sooner after stream flush
+        gc.collect()
 
     def append_context(
             self,
@@ -671,8 +708,9 @@ class Renderer(BaseRenderer):
 
         name_header_str = pctx.header
         text_chunk = text_chunk if isinstance(text_chunk, str) else str(text_chunk)
-        # Escape angle brackets early to avoid accidental HTML creation
-        text_chunk = text_chunk.translate({ord('<'): '&lt;', ord('>'): '&gt;'})
+        # Escape angle brackets only if present to avoid unnecessary allocations
+        if ('<' in text_chunk) or ('>' in text_chunk):
+            text_chunk = text_chunk.translate({ord('<'): '&lt;', ord('>'): '&gt;'})
 
         if begin:
             if self.is_debug():
@@ -732,6 +770,7 @@ class Renderer(BaseRenderer):
         if replace or need_parse_for_pending_replace:
             buffer_to_parse = f"{buffer}\n```" if open_code else buffer
             html = self.parser.parse(buffer_to_parse)
+            # Help the GC by breaking the reference as soon as possible
             del buffer_to_parse
 
         is_code_block = open_code
@@ -765,6 +804,9 @@ class Renderer(BaseRenderer):
             replace=replace,
             is_code_block=is_code_block,
         )
+        # Explicitly drop local ref to large html string as early as possible
+        html = None
+
         # Emit if throttle interval allows
         self._throttle_emit(pid, force=False)
 
@@ -1327,7 +1369,7 @@ class Renderer(BaseRenderer):
         """
         Prepare output node
 
-        :param meta: context meta
+        :param meta: CtxMeta
         :param ctx: CtxItem instance
         :param html: html text
         :param prev_ctx: previous context item
@@ -1437,12 +1479,12 @@ class Renderer(BaseRenderer):
         """
         try:
             if replace:
-                self.get_output_node_by_pid(pid).page().runJavaScript(
-                    f"if (typeof window.replaceNodes !== 'undefined') replaceNodes({self.to_json(self.sanitize_html(html))});"
+                self.get_output_node_by_pid(pid).page().bridge.nodeReplace.emit(
+                    self.sanitize_html(html)
                 )
             else:
-                self.get_output_node_by_pid(pid).page().runJavaScript(
-                    f"if (typeof window.appendNode !== 'undefined') appendNode({self.to_json(self.sanitize_html(html))});"
+                self.get_output_node_by_pid(pid).page().bridge.node.emit(
+                    self.sanitize_html(html)
                 )
         except Exception:
             pass
@@ -1810,6 +1852,9 @@ class Renderer(BaseRenderer):
         """
         if not html:
             return ""
+        # Fast path: avoid regex work and extra allocations when not needed
+        if '&amp;' not in html:
+            return html
         return self.RE_AMP_LT_GT.sub(r'&\1;', html)
 
     def append_debug(
@@ -1857,7 +1902,14 @@ class Renderer(BaseRenderer):
         """
         thr = self._thr.get(pid)
         if thr is None:
-            thr = {"last": 0.0, "op": 0, "name": "", "replace_html": "", "append": [], "code": False}
+            thr = {
+                "last": 0.0,
+                "op": 0,
+                "name": "",
+                "replace_html": "",
+                "append": Renderer._AppendBuffer(),
+                "code": False,
+            }
             self._thr[pid] = thr
         return thr
 
@@ -1875,7 +1927,8 @@ class Renderer(BaseRenderer):
         thr["op"] = 0
         thr["name"] = ""
         thr["replace_html"] = ""
-        thr["append"].clear()
+        # Replace append buffer instance to drop any capacity eagerly
+        thr["append"] = Renderer._AppendBuffer()
         thr["code"] = False
 
     def _throttle_queue(
@@ -1904,6 +1957,7 @@ class Renderer(BaseRenderer):
         if replace:
             thr["op"] = 1
             thr["replace_html"] = html
+            # Drop previous append items aggressively when a replace snapshot is available
             thr["append"].clear()
             thr["code"] = bool(is_code_block)
         else:
@@ -1934,17 +1988,21 @@ class Renderer(BaseRenderer):
 
         try:
             if thr["op"] == 1:
+                # Replace snapshot
+                replace_payload = self.sanitize_html(thr["replace_html"])
                 node.page().bridge.chunk.emit(
                     thr["name"],
-                    self.sanitize_html(thr["replace_html"]),
+                    replace_payload,
                     "",
                     True,
                     bool(thr["code"]),
                 )
+                thr["replace_html"] = ""  # Cut reference ASAP
                 thr["last"] = now
 
-                if thr["append"]:
-                    append_str = "".join(thr["append"])
+                # Append tail (if any)
+                if not thr["append"].is_empty():
+                    append_str = thr["append"].get_and_clear()
                     node.page().bridge.chunk.emit(
                         thr["name"],
                         "",
@@ -1956,8 +2014,8 @@ class Renderer(BaseRenderer):
 
                 self._throttle_reset(pid)
 
-            elif thr["op"] == 2 and thr["append"]:
-                append_str = "".join(thr["append"])
+            elif thr["op"] == 2 and not thr["append"].is_empty():
+                append_str = thr["append"].get_and_clear()
                 node.page().bridge.chunk.emit(
                     thr["name"],
                     "",

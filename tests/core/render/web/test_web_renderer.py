@@ -582,10 +582,11 @@ class TestRenderer:
         pid = 1
         renderer.pids = {pid: MagicMock()}
         node = fake_window.core.ctx.output.get_by_pid(pid)
-        node.page().runJavaScript = MagicMock()
+        node.page().bridge = MagicMock()
+        node.page().bridge.node = MagicMock()
         node.update_current_content = MagicMock()
         renderer.flush_output(pid, "html")
-        node.page().runJavaScript.assert_called()
+        node.page().bridge.node.emit.assert_called()
 
     def test_reload(self, renderer, fake_window):
         renderer.window.controller.ctx.refresh_output = MagicMock()

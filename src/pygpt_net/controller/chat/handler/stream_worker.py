@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 20:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 import base64
@@ -67,7 +67,8 @@ class WorkerSignals(QObject):
 @dataclass
 class WorkerState:
     """Holds mutable state for the streaming loop."""
-    output_parts: list[str] = field(default_factory=list)
+    # Replaced list[str] with StringIO to reduce allocation overhead and fragmentation
+    out: Optional[io.StringIO] = None
     output_tokens: int = 0
     begin: bool = True
     error: Optional[Exception] = None
@@ -236,7 +237,10 @@ class StreamWorker(QRunnable):
         """
         if state.begin and response == "":
             return
-        state.output_parts.append(response)
+        # Use a single expandable buffer to avoid per-chunk list allocations
+        if state.out is None:
+            state.out = io.StringIO()
+        state.out.write(response)
         state.output_tokens += 1
         emit_event(
             RenderEvent(
@@ -307,9 +311,14 @@ class StreamWorker(QRunnable):
         :param state: WorkerState
         :param emit_end: Function to emit end signal
         """
-        # Build final output
-        output = "".join(state.output_parts)
-        state.output_parts.clear()
+        # Build final output from the incremental buffer
+        output = state.out.getvalue() if state.out is not None else ""
+        if state.out is not None:
+            try:
+                state.out.close()
+            except Exception:
+                pass
+            state.out = None
 
         if has_unclosed_code_tag(output):
             output += "\n```"
@@ -336,6 +345,7 @@ class StreamWorker(QRunnable):
 
         self.stream = None
         ctx.output = output
+        output = None  # free ref
 
         # Tokens usage
         if state.usage_payload:

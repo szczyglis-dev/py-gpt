@@ -81,16 +81,7 @@ class ApiOpenAI:
         """
         # update client args by mode and model
         args = self.window.core.models.prepare_client_args(mode, model)
-        if self.client is None or self.last_client_args != args:
-            if self.client is not None:
-                try:
-                    self.client.close()  # close previous client if exists
-                except Exception as e:
-                    self.window.core.debug.log(e)
-                    print("Error closing previous GPT client:", e)
-            self.client = OpenAI(**args)
-        self.last_client_args = args
-        return self.client
+        return OpenAI(**args)
 
     def call(
             self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.03 21:50:18                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -47,7 +47,10 @@ class Body:
                 <script type="text/javascript" src="qrc:///js/katex.min.js"></script>
                 <script>
                 const DEBUG_MODE = false;
+                let bridgeConnected = false;
                 let streamHandler;
+                let nodeHandler;
+                let nodeReplaceHandler;
                 let scrollTimeout = null;
                 let prevScroll = 0;
                 let bridge;
@@ -125,10 +128,6 @@ class Body:
                             highlightRAF = 0;
                         }
                     } catch (e) { /* ignore */ }
-                    try {
-                        if (roDoc) roDoc.disconnect();
-                        if (roContainer) roContainer.disconnect();
-                    } catch (e) { /* ignore */ }
                     // Clear streaming queue to release memory immediately
                     streamQ.length = 0;
                     scrollFabUpdateScheduled = false;
@@ -170,6 +169,57 @@ class Body:
                     // FAB refs
                     els.scrollFab = document.getElementById('scrollFab');
                     els.scrollFabIcon = document.getElementById('scrollFabIcon');
+                }
+                function bridgeConnect() {
+                    // Idempotent connect
+                    if (!bridge || !bridge.chunk || typeof bridge.chunk.connect !== 'function') return false;
+                    if (bridgeConnected) return true;
+                
+                    // Ensure handler exists and is stable (same identity for disconnect/connect)
+                    if (!streamHandler) {
+                        streamHandler = (name, html, chunk, replace, isCode) => {
+                            appendStream(name, html, chunk, replace, isCode);
+                        };
+                        nodeHandler = (html) => {
+                            appendNode(html);
+                        };
+                        nodeReplaceHandler = (html) => {
+                            replaceNodes(html);
+                        };
+                    }
+                    try {
+                        bridge.chunk.connect(streamHandler);
+                        bridge.node.connect(nodeHandler);
+                        bridge.nodeReplace.connect(nodeReplaceHandler);
+                        bridgeConnected = true;
+                        return true;
+                    } catch (e) {
+                        log(e);
+                        return false;
+                    }
+                }
+                
+                function bridgeDisconnect() {
+                    // Idempotent disconnect
+                    if (!bridge || !bridge.chunk || typeof bridge.chunk.disconnect !== 'function') return false;
+                    if (!bridgeConnected) return true;
+                
+                    try {
+                        bridge.chunk.disconnect(streamHandler);
+                        bridge.node.disconnect(nodeHandler);
+                        bridge.nodeReplace.disconnect(nodeReplaceHandler);
+                    } catch (e) { /* ignore */ }
+                    bridgeConnected = false;
+                
+                    // Stop scheduled work and release pending chunks immediately
+                    try { if (streamRAF) { cancelAnimationFrame(streamRAF); streamRAF = 0; } } catch (e) { /* ignore */ }
+                    streamQ.length = 0;
+                    return true;
+                }
+                
+                function bridgeReconnect() {
+                    bridgeDisconnect();
+                    return bridgeConnect();
                 }
                 function scheduleHighlight(root, withMath = true) {
                     const scope = root && root.nodeType === 1 ? root : document;
@@ -341,8 +391,9 @@ class Body:
                         element.insertAdjacentHTML('beforeend', content);
                         highlightCode(true, element);
                         scrollToBottom(false);  // without schedule
-                        scheduleScrollFabUpdate();
-                    }
+                        scheduleScrollFabUpdate();    
+                    }               
+                    clearHighlightCache();
                 }
                 function replaceNodes(content) {
                     if (DEBUG_MODE) {
@@ -359,6 +410,7 @@ class Body:
                         scrollToBottom(false);  // without schedule
                         scheduleScrollFabUpdate();
                     }
+                    clearHighlightCache();
                 }
                 function clean() {
                     if (DEBUG_MODE) {
@@ -380,6 +432,12 @@ class Body:
                         // gc not available
                     }
                     */
+                }
+                function clearHighlightCache() {                
+                    const elements = document.querySelectorAll('pre code');
+                    elements.forEach(function(el) {
+                        try { if (el.dataset) delete el.dataset.highlighted; } catch (e) {}
+                    });
                 }
                 function appendExtra(id, content) {
                     hideTips();
@@ -471,6 +529,7 @@ class Body:
                         log("STREAM END");
                     }
                     clearOutput();
+                    bridgeReconnect(); 
                 }
                 function enqueueStream(name_header, content, chunk, replace = false, is_code_block = false) {
                   // Push incoming chunk; scheduling is done with RAF to batch DOM ops
@@ -771,6 +830,7 @@ class Body:
                     if (element) {
                         element.replaceChildren();
                     }
+                    clearHighlightCache();
                 }
                 function clearLive() {
                     const element = els.appendLive || document.getElementById('_append_live_');
@@ -1025,10 +1085,7 @@ class Body:
                 document.addEventListener('DOMContentLoaded', function() {
                     new QWebChannel(qt.webChannelTransport, function (channel) {
                         bridge = channel.objects.bridge;
-                        streamHandler = (name, html, chunk, replace, isCode) => {
-                          appendStream(name, html, chunk, replace, isCode);
-                        };
-                        bridge.chunk.connect(streamHandler);
+                        bridgeConnect();                        
                         if (bridge.js_ready) bridge.js_ready();
                     });
                     initDomRefs();

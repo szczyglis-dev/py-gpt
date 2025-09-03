@@ -81,10 +81,7 @@ class ApiGoogle:
             filtered["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
             # filtered["http_options"] = gtypes.HttpOptions(api_version="v1")
 
-        if self.client is None or self.last_client_args != filtered:
-            self.client = genai.Client(**filtered)
-        self.last_client_args = filtered
-        return self.client
+        return genai.Client(**filtered)
 
     def call(
             self,
