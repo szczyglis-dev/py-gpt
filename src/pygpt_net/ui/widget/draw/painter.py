@@ -10,9 +10,10 @@
 # ================================================== #
 
 import datetime
+import os
 from collections import deque
 
-from PySide6.QtCore import Qt, QPoint, QRect, QSize
+from PySide6.QtCore import Qt, QPoint, QRect, QSize, QSaveFile, QIODevice
 from PySide6.QtGui import QImage, QPainter, QPen, QAction, QIcon, QColor, QCursor
 from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication
 
@@ -396,11 +397,109 @@ class PainterWidget(QWidget):
         """Check if redo is available"""
         return bool(self.redoStack)
 
+    def save_base(self, path: str, include_drawing: bool = False) -> bool:
+        """
+        Save high-quality base image:
+        - If an original source is present, saves that (cropped if crop was applied).
+        - If no source exists, falls back to saving the current composited canvas.
+        - When include_drawing=True, composites the stroke layer onto the original at original resolution.
+        Returns True on success.
+
+        :param path: Path to save
+        :param include_drawing: Whether to include drawing layer
+        :return: True on success
+        """
+        if not path:
+            return False
+
+        # Ensure parent directory exists
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        except Exception:
+            # Directory creation failure is not fatal for cases when dir already exists
+            pass
+
+        # If we have the original (or cropped original), use it
+        if self.sourceImageOriginal is not None and not self.sourceImageOriginal.isNull():
+            if not include_drawing:
+                return self._save_image_atomic(self.sourceImageOriginal, path)
+
+            # Composite drawing onto the original at original resolution
+            src = QImage(self.sourceImageOriginal)
+            if self.drawingLayer is None or self.drawingLayer.isNull():
+                return self._save_image_atomic(src, path)
+
+            # If we know where the original was drawn on the canvas, map strokes accordingly
+            if self.baseTargetRect.isNull() or self.baseTargetRect.width() <= 0 or self.baseTargetRect.height() <= 0:
+                # Unknown mapping; save the pure original to avoid wrong scaling
+                return self._save_image_atomic(src, path)
+
+            # Extract strokes over the image area, scale them to original resolution, and blend
+            overlay_canvas_roi = self.drawingLayer.copy(self.baseTargetRect)
+            overlay_hi = overlay_canvas_roi.scaled(
+                src.size(),
+                Qt.IgnoreAspectRatio,
+                Qt.SmoothTransformation
+            )
+
+            result = QImage(src)
+            p = QPainter(result)
+            p.setRenderHint(QPainter.Antialiasing, True)
+            p.setCompositionMode(QPainter.CompositionMode_SourceOver)
+            p.drawImage(QPoint(0, 0), overlay_hi)
+            p.end()
+
+            return self._save_image_atomic(result, path)
+
+        # No original available: save the current composited canvas as a safe fallback
+        self._recompose()
+        return self._save_image_atomic(self.image, path)
+
+    def _save_image_atomic(self, img: QImage, path: str, fmt: str = None, quality: int = -1) -> bool:
+        """
+        Save an image atomically using QSaveFile. Returns True on success.
+
+        :param img: Image
+        :param path: Path to save
+        :param fmt: Format (e.g. 'PNG', 'JPEG'); if None, inferred from file extension
+        :param quality: Quality (0-100) or -1 for default
+        :return: True on success
+        """
+        if img is None or img.isNull() or not path:
+            return False
+
+        # Infer a format from file extension; default to PNG
+        if fmt is None:
+            ext = os.path.splitext(path)[1].lower()
+            if ext in ('.jpg', '.jpeg'):
+                fmt = 'JPEG'
+            elif ext == '.bmp':
+                fmt = 'BMP'
+            elif ext == '.webp':
+                fmt = 'WEBP'
+            elif ext in ('.tif', '.tiff'):
+                fmt = 'TIFF'
+            else:
+                fmt = 'PNG'
+
+        f = QSaveFile(path)
+        if not f.open(QIODevice.WriteOnly):
+            return False
+
+        ok = img.save(f, fmt, quality)
+        if not ok:
+            f.cancelWriting()
+            return False
+
+        return f.commit()
+
     # ---------- Brush/eraser ----------
 
     def set_mode(self, mode: str):
         """
         Set painting mode: "brush" or "erase"
+
+        :param mode: Mode
         """
         if mode not in ("brush", "erase"):
             return

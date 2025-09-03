@@ -51,7 +51,7 @@ class Painter:
         if not hasattr(self.window.ui, 'painter'):
             return
         path = os.path.join(self.common.get_capture_dir(), '_current.png')
-        self.window.ui.painter.image.save(path)
+        self.window.ui.painter.save_base(path, include_drawing=True)
 
     def save_all(self):
         """Save all (on exit)"""
