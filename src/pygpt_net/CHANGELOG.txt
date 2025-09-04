@@ -1,3 +1,10 @@
+2.6.35 (2025-09-04)
+
+- Improved responsiveness in chat streaming.
+- Added zoom, fit, and auto-scroll on crop in Painter.
+- Added a scroll-up button in the chat window.
+- Optimized memory usage.
+
 2.6.34 (2025-09-03)
 
 - Added auto-resizing for input.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.34** | build: **2025-09-03** | Python: **>=3.10, <3.14**
+Release: **2.6.35** | build: **2025-09-04** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3448,6 +3448,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.35 (2025-09-04)**
+
+- Improved responsiveness in chat streaming.
+- Added zoom, fit, and auto-scroll on crop in Painter.
+- Added a scroll-up button in the chat window.
+- Optimized memory usage.
 
 **2.6.34 (2025-09-03)**
 
