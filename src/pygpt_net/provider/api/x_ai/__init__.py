@@ -11,7 +11,9 @@
 
 from typing import Optional, Dict, Any
 
-import anthropic
+import os
+import json
+
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_AUDIO,
@@ -23,77 +25,90 @@ from pygpt_net.core.types import (
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
 
+import xai_sdk
+
 from .chat import Chat
-from .tools import Tools
 from .vision import Vision
+from .tools import Tools
 from .audio import Audio
 from .image import Image
+from .remote import Remote
 
 
-class ApiAnthropic:
+class ApiXAI:
     def __init__(self, window=None):
         """
-        Anthropic Messages API SDK wrapper
+        xAI (Grok) Python SDK wrapper.
 
         :param window: Window instance
         """
         self.window = window
         self.chat = Chat(window)
-        self.tools = Tools(window)
         self.vision = Vision(window)
-        self.audio = Audio(window)   # stub helpers (no official audio out/in in SDK as of now)
-        self.image = Image(window)   # stub: no image generation in Anthropic
-        self.client: Optional[anthropic.Anthropic] = None
+        self.tools = Tools(window)
+        self.audio = Audio(window)
+        self.image = Image(window)
+        self.remote = Remote(window)  # Live Search builder
+        self.client: Optional[xai_sdk.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
 
     def get_client(
             self,
             mode: str = MODE_CHAT,
-            model: ModelItem = None,
-    ) -> anthropic.Anthropic:
+            model: ModelItem = None
+    ) -> xai_sdk.Client:
         """
-        Get or create Anthropic client
+        Get or create xAI client.
 
-        :param mode: Mode (chat, completion, image, etc.)
-        :param model: ModelItem
-        :return: anthropic.Anthropic instance
+        - Reads api_key from config or XAI_API_KEY env.
+        - Caches the client instance.
+
+        :param mode: One of MODE_*
+        :param model: ModelItem (optional, not used currently)
+        :return: xai_sdk.Client
         """
-        # Build minimal args from app config
-        args = self.window.core.models.prepare_client_args(mode, model)
-        filtered = {}
-        if args.get("api_key"):
-            filtered["api_key"] = args["api_key"]
+        if self.client is not None:
+            return self.client
 
-        # Optionally honor custom base_url if present in config (advanced)
-        # base_url = self.window.core.config.get("api_native_anthropic.base_url", "").strip()
-        # if base_url:
-            # filtered["base_url"] = base_url
+        cfg = self.window.core.config
+        api_key = cfg.get("api_key_xai") or os.environ.get("XAI_API_KEY") or ""
+        timeout = cfg.get("api_native_xai.timeout")  # optional
 
-        # Keep a fresh client per call; Anthropic client is lightweight
-        return anthropic.Anthropic(**filtered)
+        kwargs: Dict[str, Any] = {}
+        if api_key:
+            kwargs["api_key"] = api_key
+        if timeout is not None:
+            # Official SDK supports setting a global timeout on client init.
+            kwargs["timeout"] = timeout
+
+        self.client = xai_sdk.Client(**kwargs)
+        return self.client
 
     def call(
             self,
             context: BridgeContext,
             extra: dict = None,
-            rt_signals=None,   # unused for Anthropic
+            rt_signals=None
     ) -> bool:
         """
-        Make an API call to Anthropic Messages API
+        Make an API call to xAI.
+
+        Supports chat (stream/non-stream), images (via REST),
+        and function-calling. Audio is not available in public xAI SDK at this time.
 
         :param context: BridgeContext
-        :param extra: Extra parameters
-        :param rt_signals: Not used (no realtime Voice API)
-        :return: True if successful, False otherwise
+        :param extra: Extra params (not used)
+        :param rt_signals: Realtime signals (not used)
+        :return: True on success, False on error
         """
         mode = context.mode
         model = context.model
         stream = context.stream
         ctx = context.ctx
-        ai_name = ctx.output_name if ctx else "assistant"
+        ai_name = (ctx.output_name if ctx else "assistant")
 
-        # Anthropic: no Responses API; stream events are custom to Anthropic
+        # No Responses API in xAI SDK
         if ctx:
             ctx.use_responses_api = False
 
@@ -101,18 +116,18 @@ class ApiAnthropic:
         response = None
 
         if mode in (MODE_COMPLETION, MODE_CHAT, MODE_AUDIO, MODE_RESEARCH):
-            # MODE_AUDIO fallback: treat as normal chat (no native audio API)
+            # There is no public realtime audio in SDK; treat MODE_AUDIO as chat (TTS not supported).
             response = self.chat.send(context=context, extra=extra)
             used_tokens = self.chat.get_used_tokens()
             if ctx:
                 self.vision.append_images(ctx)
 
         elif mode == MODE_IMAGE:
-            # Anthropic does not support image generation – only vision (image input in chat)
-            return self.image.generate(context=context, extra=extra)  # always returns False
+            # Image generation via REST /v1/images/generations (OpenAI-compatible)
+            return self.image.generate(context=context, extra=extra)
 
         elif mode == MODE_ASSISTANT:
-            return False  # not implemented for Anthropic
+            return False  # not implemented for xAI
 
         if stream:
             if ctx:
@@ -129,9 +144,8 @@ class ApiAnthropic:
 
         if ctx:
             ctx.ai_name = ai_name
-            self.chat.unpack_response(mode, response, ctx)
+            self.chat.unpack_response(context.mode, response, ctx)
             try:
-                import json
                 for tc in getattr(ctx, "tool_calls", []) or []:
                     fn = tc.get("function") or {}
                     args = fn.get("arguments")
@@ -150,11 +164,13 @@ class ApiAnthropic:
             extra: dict = None
     ) -> str:
         """
-        Make a quick API call to Anthropic and return the output text
+        Quick non-streaming xAI chat call and return output text.
+
+        If context.request is set, makes a full call() instead (for consistency).
 
         :param context: BridgeContext
-        :param extra: Extra parameters
-        :return: Output text
+        :param extra: Extra params (not used)
+        :return: Output text or "" on error
         """
         if context.request:
             context.stream = False
@@ -174,10 +190,30 @@ class ApiAnthropic:
             functions = context.external_functions
             model = context.model or self.window.core.models.from_defaults()
 
-            client = self.get_client(MODE_CHAT, model)
-            tools = self.tools.get_all_tools(model, functions)
+            tools = self.tools.prepare(functions)
 
-            inputs = self.chat.build_input(
+            # If tools are present, prefer non-streaming HTTP Chat Completions path to extract tool calls reliably.
+            # Otherwise use native SDK chat.sample().
+            if tools:
+                out, calls, citations, usage  = self.chat.call_http_nonstream(
+                    model=model.id,
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    history=history,
+                    attachments=context.attachments,
+                    multimodal_ctx=context.multimodal_ctx,
+                    tools=tools,
+                    temperature=temperature,
+                    max_tokens=context.max_tokens,
+                )
+                if ctx:
+                    if calls:
+                        ctx.tool_calls = calls
+                return out or ""
+
+            # Native SDK path (no tools)
+            client = self.get_client(MODE_CHAT, model)
+            messages = self.chat.build_messages(
                 prompt=prompt,
                 system_prompt=system_prompt,
                 model=model,
@@ -185,27 +221,9 @@ class ApiAnthropic:
                 attachments=context.attachments,
                 multimodal_ctx=context.multimodal_ctx,
             )
-
-            # Anthropic params
-            params: Dict[str, Any] = {
-                "model": model.id,
-                "max_tokens": context.max_tokens if context.max_tokens else 1024,
-                "messages": inputs,
-            }
-            if system_prompt:
-                params["system"] = system_prompt
-            if temperature is not None:
-                params["temperature"] = temperature
-            if tools:  # only include when non-empty list
-                params["tools"] = tools
-
-            resp = client.messages.create(**params)
-
-            if ctx:
-                calls = self.chat.extract_tool_calls(resp)
-                if calls:
-                    ctx.tool_calls = calls
-            return self.chat.extract_text(resp)
+            chat = client.chat.create(model=model.id, messages=messages)
+            resp = chat.sample()
+            return getattr(resp, "content", "") or ""
         except Exception as e:
             self.window.core.debug.log(e)
             return ""
@@ -213,17 +231,17 @@ class ApiAnthropic:
             self.locked = False
 
     def stop(self):
-        """On global event stop (no-op for Anthropic)"""
+        """On global event stop."""
         pass
 
     def close(self):
-        """Close client (no persistent resources to close)"""
+        """Close xAI client."""
         if self.locked:
             return
-        self.client = None
+        self.client = None  # xai-sdk gRPC channels close on GC; explicit close not exposed.
 
     def safe_close(self):
-        """Close client (safe)"""
+        """Close client."""
         if self.locked:
             return
         self.client = None

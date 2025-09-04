@@ -46,13 +46,15 @@ class ChunkType(str, Enum):
     """
     Enum for chunk type classification.
     """
-    API_CHAT = "api_chat"
-    API_CHAT_RESPONSES = "api_chat_responses"
-    API_COMPLETION = "api_completion"
-    LANGCHAIN_CHAT = "langchain_chat"
-    LLAMA_CHAT = "llama_chat"
-    GOOGLE = "google"
-    RAW = "raw"
+    API_CHAT = "api_chat"  # OpenAI Chat Completions / or compatible
+    API_CHAT_RESPONSES = "api_chat_responses"  # OpenAI Responses
+    API_COMPLETION = "api_completion"  # OpenAI Completions
+    LANGCHAIN_CHAT = "langchain_chat"  # LangChain chat (deprecated)
+    LLAMA_CHAT = "llama_chat"  # LlamaIndex chat
+    GOOGLE = "google"  # Google SDK
+    ANTHROPIC = "anthropic"  # Anthropic SDK
+    XAI_SDK = "xai_sdk"  # xAI SDK
+    RAW = "raw"  # Raw string fallback
 
 
 class WorkerSignals(QObject):
@@ -91,6 +93,9 @@ class WorkerState:
     google_stream_ref: Any = None
     tool_calls: list[dict] = field(default_factory=list)
 
+    # --- XAI SDK ---
+    xai_last_response: Any = None  # holds final response from xai_sdk.chat.stream()
+
 
 class StreamWorker(QRunnable):
     __slots__ = ("signals", "ctx", "window", "stream")
@@ -122,6 +127,7 @@ class StreamWorker(QRunnable):
 
         try:
             if state.generator is not None:
+                # print(state.generator)  # TODO: detect by obj type?
                 for chunk in state.generator:
                     # cooperative stop
                     if self._should_stop(ctrl, state, ctx):
@@ -174,11 +180,6 @@ class StreamWorker(QRunnable):
     ) -> bool:
         """
         Checks external stop signal and attempts to stop the generator gracefully.
-
-        :param ctrl: Controller with stop signal
-        :param state: WorkerState
-        :param ctx: CtxItem
-        :return: True if stopped, False otherwise
         """
         if not ctrl.kernel.stopped():
             return False
@@ -200,10 +201,9 @@ class StreamWorker(QRunnable):
     def _detect_chunk_type(self, chunk) -> ChunkType:
         """
         Detects chunk type for various providers/SDKs.
-
-        :param chunk: The chunk object from the stream
-        :return: Detected ChunkType
+        Order matters: detect vendor-specific types before generic fallbacks.
         """
+        # OpenAI SDK / OpenAI-compatible SSE
         choices = getattr(chunk, 'choices', None)
         if choices:
             choice0 = choices[0] if len(choices) > 0 else None
@@ -212,12 +212,39 @@ class StreamWorker(QRunnable):
             if choice0 is not None and hasattr(choice0, 'text') and choice0.text is not None:
                 return ChunkType.API_COMPLETION
 
-        if hasattr(chunk, 'content') and getattr(chunk, 'content') is not None:
-            return ChunkType.LANGCHAIN_CHAT
-        if hasattr(chunk, 'delta') and getattr(chunk, 'delta') is not None:
-            return ChunkType.LLAMA_CHAT
+        # xAI SDK: chat.stream() yields (response, chunk) tuples
+        if isinstance(chunk, (tuple, list)) and len(chunk) == 2:
+            _resp, _ch = chunk[0], chunk[1]
+            if hasattr(_ch, "content") or isinstance(_ch, str):
+                return ChunkType.XAI_SDK
+
+        # Anthropic: detect both SSE events and raw delta objects early
+        t = getattr(chunk, "type", None)
+        if isinstance(t, str):
+            anthropic_events = {
+                "message_start", "content_block_start", "content_block_delta",
+                "content_block_stop", "message_delta", "message_stop",
+                "ping", "error",                      # control / error
+                "text_delta", "input_json_delta",     # content deltas
+                "thinking_delta", "signature_delta",  # thinking deltas
+            }
+            if t in anthropic_events or t.startswith("message_") or t.startswith("content_block_"):
+                return ChunkType.ANTHROPIC
+
+        # Google python-genai
         if hasattr(chunk, "candidates"):
             return ChunkType.GOOGLE
+
+        # LangChain chat-like objects
+        if hasattr(chunk, 'content') and getattr(chunk, 'content') is not None:
+            return ChunkType.LANGCHAIN_CHAT
+
+        # LlamaIndex (generic delta fallback) - exclude Anthropic/Google shapes
+        if hasattr(chunk, 'delta') and getattr(chunk, 'delta') is not None:
+            # guard: do not misclassify Anthropic or Google objects
+            if not hasattr(chunk, "type") and not hasattr(chunk, "candidates"):
+                return ChunkType.LLAMA_CHAT
+
         return ChunkType.RAW
 
     def _append_response(
@@ -229,17 +256,9 @@ class StreamWorker(QRunnable):
     ):
         """
         Appends response delta and emits STREAM_APPEND event.
-
-        Skips empty initial chunks if state.begin is True.
-
-        :param ctx: CtxItem
-        :param state: WorkerState
-        :param response: Response delta string
-        :param emit_event: Function to emit RenderEvent
         """
         if state.begin and response == "":
             return
-        # Use a single expandable buffer to avoid per-chunk list allocations
         if state.out is None:
             state.out = io.StringIO()
         state.out.write(response)
@@ -265,10 +284,6 @@ class StreamWorker(QRunnable):
     ):
         """
         Post-loop handling for tool calls and images assembly.
-
-        :param ctx: CtxItem
-        :param core: Core instance
-        :param state: WorkerState
         """
         if state.tool_calls:
             ctx.force_call = state.force_func_call
@@ -297,6 +312,29 @@ class StreamWorker(QRunnable):
                         ctx.images.append(p)
                         seen.add(p)
 
+        # xAI SDK: extract tool calls from final response if not already present
+        if (not state.tool_calls) and (state.xai_last_response is not None):
+            try:
+                calls = self._xai_extract_tool_calls(state.xai_last_response)
+                if calls:
+                    state.tool_calls = calls
+                    state.force_func_call = True
+            except Exception:
+                pass
+
+        # xAI SDK: collect citations (final response) -> ctx.urls
+        if state.xai_last_response is not None:
+            try:
+                cites = self._xai_extract_citations(state.xai_last_response) or []
+                if cites:
+                    if ctx.urls is None:
+                        ctx.urls = []
+                    for u in cites:
+                        if u not in ctx.urls:
+                            ctx.urls.append(u)
+            except Exception:
+                pass
+
     def _finalize(
             self,
             ctx: CtxItem,
@@ -307,13 +345,7 @@ class StreamWorker(QRunnable):
     ):
         """
         Finalize stream: build output, usage, tokens, files, errors, cleanup.
-
-        :param ctx: CtxItem
-        :param core: Core instance
-        :param state: WorkerState
-        :param emit_end: Function to emit end signal
         """
-        # Build final output from the incremental buffer
         output = state.out.getvalue() if state.out is not None else ""
         if state.out is not None:
             try:
@@ -325,7 +357,7 @@ class StreamWorker(QRunnable):
         if has_unclosed_code_tag(output):
             output += "\n```"
 
-        # Attempt to resolve Google usage from the stream object if missing
+        # Resolve Google usage if present
         if ((state.usage_vendor is None or state.usage_vendor == "google")
                 and not state.usage_payload and state.generator is not None):
             try:
@@ -334,6 +366,16 @@ class StreamWorker(QRunnable):
                     um = getattr(state.generator, "usage_metadata", None)
                     if um:
                         self._capture_google_usage(state, um)
+            except Exception:
+                pass
+
+        # xAI SDK: usage from final response if still missing
+        if (not state.usage_payload) and (state.xai_last_response is not None):
+            try:
+                up = self._xai_extract_usage(state.xai_last_response)
+                if up:
+                    state.usage_payload = up
+                    state.usage_vendor = "xai"
             except Exception:
                 pass
 
@@ -375,7 +417,6 @@ class StreamWorker(QRunnable):
             except Exception:
                 pass
         else:
-            # Fallback when usage is not available
             ctx.set_tokens(ctx.input_tokens if ctx.input_tokens is not None else 0, state.output_tokens)
 
         core.ctx.update_item(ctx)
@@ -406,7 +447,6 @@ class StreamWorker(QRunnable):
             state.citations.clear()
         state.citations = None
 
-        # Worker cleanup (signals etc.)
         self.cleanup()
 
     # ------------ Chunk processors ------------
@@ -421,13 +461,6 @@ class StreamWorker(QRunnable):
     ) -> Optional[str]:
         """
         Dispatches processing to concrete provider-specific processing.
-
-        :param ctx: CtxItem
-        :param core: Core instance
-        :param state: WorkerState
-        :param chunk: The chunk object from the stream
-        :param etype: Optional event type for Responses API
-        :return: Response delta string or None
         """
         t = state.chunk_type
         if t == ChunkType.API_CHAT:
@@ -442,7 +475,10 @@ class StreamWorker(QRunnable):
             return self._process_llama_chat(state, chunk)
         if t == ChunkType.GOOGLE:
             return self._process_google_chunk(ctx, core, state, chunk)
-        # raw fallback
+        if t == ChunkType.ANTHROPIC:
+            return self._process_anthropic_chunk(ctx, core, state, chunk)
+        if t == ChunkType.XAI_SDK:
+            return self._process_xai_sdk_chunk(ctx, core, state, chunk)
         return self._process_raw(chunk)
 
     def _process_api_chat(
@@ -452,53 +488,88 @@ class StreamWorker(QRunnable):
             chunk
     ) -> Optional[str]:
         """
-        OpenAI Chat Completions stream delta.
-
-        Handles text deltas, citations, and streamed tool_calls.
-
-        :param ctx: CtxItem
-        :param state: WorkerState
-        :param chunk: The chunk object from the stream
-        :return: Response delta string or None
+        OpenAI-compatible Chat Completions stream delta (robust to dict/object tool_calls).
         """
         response = None
-        state.citations = None  # as in original, reset to None for this type
-
         delta = chunk.choices[0].delta if getattr(chunk, "choices", None) else None
-        if delta and getattr(delta, "content", None) is not None:
-            if state.citations is None and hasattr(chunk, 'citations') and chunk.citations is not None:
-                state.citations = chunk.citations
-                ctx.urls = state.citations
-            response = delta.content
 
-        # Accumulate streamed tool_calls
-        if delta and getattr(delta, "tool_calls", None):
-            for tool_chunk in delta.tool_calls:
-                if tool_chunk.index is None:
-                    tool_chunk.index = 0
-                if len(state.tool_calls) <= tool_chunk.index:
-                    state.tool_calls.append(
-                        {
-                            "id": "",
-                            "type": "function",
-                            "function": {"name": "", "arguments": ""}
-                        }
-                    )
-                tool_call = state.tool_calls[tool_chunk.index]
-                if getattr(tool_chunk, "id", None):
-                    tool_call["id"] += tool_chunk.id
-                if getattr(getattr(tool_chunk, "function", None), "name", None):
-                    tool_call["function"]["name"] += tool_chunk.function.name
-                if getattr(getattr(tool_chunk, "function", None), "arguments", None):
-                    tool_call["function"]["arguments"] += tool_chunk.function.arguments
+        # Capture citations (top-level) if present
+        try:
+            cits = getattr(chunk, "citations", None)
+            if cits:
+                state.citations = cits
+                ctx.urls = cits
+        except Exception:
+            pass
 
-        # Capture usage (if available on final chunk with include_usage=True)
+        # Capture usage (top-level) if present
         try:
             u = getattr(chunk, "usage", None)
             if u:
                 self._capture_openai_usage(state, u)
         except Exception:
             pass
+
+        # Text delta
+        if delta and getattr(delta, "content", None) is not None:
+            response = delta.content
+
+        # Tool calls (support OpenAI object or xAI dict)
+        if delta and getattr(delta, "tool_calls", None):
+            state.force_func_call = True
+            for tool_chunk in delta.tool_calls:
+                # Normalize fields
+                if isinstance(tool_chunk, dict):
+                    idx = tool_chunk.get("index")
+                    id_val = tool_chunk.get("id")
+                    fn = tool_chunk.get("function") or {}
+                    name_part = fn.get("name")
+                    args_part = fn.get("arguments")
+                else:
+                    idx = getattr(tool_chunk, "index", None)
+                    id_val = getattr(tool_chunk, "id", None)
+                    fn_obj = getattr(tool_chunk, "function", None)
+                    name_part = getattr(fn_obj, "name", None) if fn_obj else None
+                    args_part = getattr(fn_obj, "arguments", None) if fn_obj else None
+
+                # Default index when missing
+                if idx is None or not isinstance(idx, int):
+                    idx = len(state.tool_calls)
+
+                # Ensure list length
+                while len(state.tool_calls) <= idx:
+                    state.tool_calls.append({
+                        "id": "",
+                        "type": "function",
+                        "function": {"name": "", "arguments": ""}
+                    })
+                tool_call = state.tool_calls[idx]
+
+                # Append id fragment (if streamed)
+                if id_val:
+                    frag = str(id_val)
+                    if not tool_call["id"]:
+                        tool_call["id"] = frag
+                    else:
+                        if not tool_call["id"].endswith(frag):
+                            tool_call["id"] += frag
+
+                # Append name fragment
+                if name_part:
+                    frag = str(name_part)
+                    if not tool_call["function"]["name"]:
+                        tool_call["function"]["name"] = frag
+                    else:
+                        if not tool_call["function"]["name"].endswith(frag):
+                            tool_call["function"]["name"] += frag
+
+                # Append arguments fragment (string or JSON)
+                if args_part is not None:
+                    if isinstance(args_part, (dict, list)):
+                        frag = json.dumps(args_part, ensure_ascii=False)
+                    else:
+                        frag = str(args_part)
+                    tool_call["function"]["arguments"] += frag
 
         return response
 
@@ -511,16 +582,7 @@ class StreamWorker(QRunnable):
             etype: Optional[EventType]
     ) -> Optional[str]:
         """
-        OpenAI Responses API stream events
-
-        Handles various event types including text deltas, tool calls, citations, images, and usage.
-
-        :param ctx: CtxItem
-        :param core: Core instance
-        :param state: WorkerState
-        :param chunk: The chunk object from the stream
-        :param etype: EventType string
-        :return: Response delta string or None
+        OpenAI Responses API stream events.
         """
         response = None
 
@@ -613,7 +675,6 @@ class StreamWorker(QRunnable):
             response = chunk.delta
 
         elif etype == "response.output_item.done":
-            # Delegate to computer handler which may add tool calls
             tool_calls, has_calls = core.api.openai.computer.handle_stream_chunk(ctx, chunk, state.tool_calls)
             state.tool_calls = tool_calls
             if has_calls:
@@ -650,9 +711,6 @@ class StreamWorker(QRunnable):
     def _process_api_completion(self, chunk) -> Optional[str]:
         """
         OpenAI Completions stream text delta.
-
-        :param chunk: The chunk object from the stream
-        :return: Response delta string or None
         """
         if getattr(chunk, "choices", None):
             choice0 = chunk.choices[0]
@@ -663,9 +721,6 @@ class StreamWorker(QRunnable):
     def _process_langchain_chat(self, chunk) -> Optional[str]:
         """
         LangChain chat streaming delta.
-
-        :param chunk: The chunk object from the stream
-        :return: Response delta string or None
         """
         if getattr(chunk, "content", None) is not None:
             return str(chunk.content)
@@ -678,10 +733,6 @@ class StreamWorker(QRunnable):
     ) -> Optional[str]:
         """
         Llama chat streaming delta with optional tool call extraction.
-
-        :param state: WorkerState
-        :param chunk: The chunk object from the stream
-        :return: Response delta string or None
         """
         response = None
         if getattr(chunk, "delta", None) is not None:
@@ -718,22 +769,12 @@ class StreamWorker(QRunnable):
     ) -> Optional[str]:
         """
         Google python-genai streaming chunk.
-
-        Handles text, tool calls, inline images, code execution parts, citations, and usage.
-
-        :param ctx: CtxItem
-        :param core: Core instance
-        :param state: WorkerState
-        :param chunk: The chunk object from the stream
-        :return: Response delta string or None
         """
         response_parts: list[str] = []
 
-        # Keep a reference to stream object for resolve() later if needed
         if state.google_stream_ref is None:
             state.google_stream_ref = state.generator
 
-        # Try to capture usage from this chunk (usage_metadata)
         try:
             um = getattr(chunk, "usage_metadata", None)
             if um:
@@ -741,7 +782,6 @@ class StreamWorker(QRunnable):
         except Exception:
             pass
 
-        # 1) Plain text delta (if present)
         t = None
         try:
             t = getattr(chunk, "text", None)
@@ -750,7 +790,6 @@ class StreamWorker(QRunnable):
         except Exception:
             pass
 
-        # 2) Tool calls (function_calls property preferred)
         fc_list = []
         try:
             fc_list = getattr(chunk, "function_calls", None) or []
@@ -760,9 +799,7 @@ class StreamWorker(QRunnable):
         new_calls = []
 
         def _to_plain_dict(obj):
-            """
-            Best-effort conversion of SDK objects to plain dict/list.
-            """
+            """Best-effort conversion of SDK objects to plain dict/list."""
             try:
                 if hasattr(obj, "to_json_dict"):
                     return obj.to_json_dict()
@@ -792,7 +829,6 @@ class StreamWorker(QRunnable):
                     }
                 })
         else:
-            # Fallback: read from candidates -> parts[].function_call
             try:
                 cands = getattr(chunk, "candidates", None) or []
                 for cand in cands:
@@ -816,7 +852,6 @@ class StreamWorker(QRunnable):
             except Exception:
                 pass
 
-        # De-duplicate tool calls and mark force flag if any found
         if new_calls:
             seen = {(tc["function"]["name"], tc["function"]["arguments"]) for tc in state.tool_calls}
             for tc in new_calls:
@@ -825,7 +860,6 @@ class StreamWorker(QRunnable):
                     state.tool_calls.append(tc)
                     seen.add(key)
 
-        # 3) Inspect candidates for code execution parts, inline images, and citations
         try:
             cands = getattr(chunk, "candidates", None) or []
             for cand in cands:
@@ -833,7 +867,6 @@ class StreamWorker(QRunnable):
                 parts = getattr(content, "parts", None) or []
 
                 for p in parts:
-                    # Code execution: executable code part -> open or append within fenced block
                     ex = getattr(p, "executable_code", None)
                     if ex:
                         lang = (getattr(ex, "language", None) or "python").strip() or "python"
@@ -851,22 +884,18 @@ class StreamWorker(QRunnable):
                         else:
                             response_parts.append(str(code_txt))
 
-                    # Code execution result -> close fenced block (output will be streamed as normal text if provided)
                     cer = getattr(p, "code_execution_result", None)
                     if cer:
                         if state.is_code:
                             response_parts.append("\n\n```\n-----------\n")
                             state.is_code = False
-                        # Note: We do not append execution outputs here to avoid duplicating chunk.text.
 
-                    # Inline image blobs
                     blob = getattr(p, "inline_data", None)
                     if blob:
                         mime = (getattr(blob, "mime_type", "") or "").lower()
                         if mime.startswith("image/"):
                             data = getattr(blob, "data", None)
                             if data:
-                                # inline_data.data may be bytes or base64-encoded string
                                 if isinstance(data, (bytes, bytearray)):
                                     img_bytes = bytes(data)
                                 else:
@@ -880,7 +909,6 @@ class StreamWorker(QRunnable):
                                 state.image_paths.append(save_path)
                                 state.has_google_inline_image = True
 
-                    # File data that points to externally hosted image (http/https)
                     fdata = getattr(p, "file_data", None)
                     if fdata:
                         uri = getattr(fdata, "file_uri", None) or getattr(fdata, "uri", None)
@@ -890,22 +918,204 @@ class StreamWorker(QRunnable):
                                 ctx.urls = []
                             ctx.urls.append(uri)
 
-            # Collect citations (web search URLs) if present in candidates metadata
             self._collect_google_citations(ctx, state, chunk)
 
         except Exception:
-            # Never break stream on extraction failures
             pass
 
-        # Combine all response parts
         return "".join(response_parts) if response_parts else None
+
+    def _process_anthropic_chunk(self, ctx: CtxItem, core, state: WorkerState, chunk) -> Optional[str]:
+        """
+        Anthropic streaming events handler.
+        Supports both full event objects and top-level delta objects.
+        """
+        state.usage_vendor = "anthropic"
+        etype = str(getattr(chunk, "type", "") or "")
+        response: Optional[str] = None
+
+        # --- Top-level delta objects (when SDK yields deltas directly) ---
+        if etype == "text_delta":
+            # Print plain text piece
+            txt = getattr(chunk, "text", None)
+            return str(txt) if txt is not None else None
+
+        if etype == "thinking_delta":
+            # Do not surface internal reasoning to the user; ignore silently
+            return None
+
+        if etype == "input_json_delta":
+            # Accumulate partial JSON for the most recent tool call
+            pj = getattr(chunk, "partial_json", "") or ""
+            # Use a single rolling buffer when we don't get a content_block index
+            buf = state.fn_args_buffers.get("__anthropic_last__")
+            if buf is None:
+                buf = io.StringIO()
+                state.fn_args_buffers["__anthropic_last__"] = buf
+            buf.write(pj)
+            # Keep tool call arguments in sync if we have at least one call
+            if state.tool_calls:
+                state.tool_calls[-1]["function"]["arguments"] = buf.getvalue()
+            return None
+
+        if etype == "signature_delta":
+            # Not user-visible; ignore.
+            return None
+
+        # --- Standard event flow ---
+        if etype == "message_start":
+            # Capture input tokens if present
+            try:
+                msg = getattr(chunk, "message", None)
+                um = getattr(msg, "usage", None) if msg else None
+                if um:
+                    inp = self._as_int(getattr(um, "input_tokens", None))
+                    if inp is not None:
+                        state.usage_payload["in"] = inp
+            except Exception:
+                pass
+            return None
+
+        if etype == "content_block_start":
+            # Tool call started -> prepare buffer keyed by content_block index
+            try:
+                cb = getattr(chunk, "content_block", None)
+                if cb and getattr(cb, "type", "") == "tool_use":
+                    idx = getattr(chunk, "index", 0) or 0
+                    tid = getattr(cb, "id", "") or ""
+                    name = getattr(cb, "name", "") or ""
+                    state.tool_calls.append({
+                        "id": tid,
+                        "type": "function",
+                        "function": {"name": name, "arguments": ""}
+                    })
+                    state.fn_args_buffers[str(idx)] = io.StringIO()
+                    # Keep the rolling buffer in sync as a fallback for SDKs that yield raw deltas later
+                    state.fn_args_buffers["__anthropic_last__"] = state.fn_args_buffers[str(idx)]
+            except Exception:
+                pass
+
+            # Optional: collect URLs from custom search block types if present
+            try:
+                cb = getattr(chunk, "content_block", None)
+                if cb and getattr(cb, "type", "") == "web_search_tool_result":
+                    results = getattr(cb, "content", None) or []
+                    for r in results:
+                        url = r.get("url") if isinstance(r, dict) else None
+                        if url:
+                            if ctx.urls is None:
+                                ctx.urls = []
+                            if url not in ctx.urls:
+                                ctx.urls.append(url)
+            except Exception:
+                pass
+
+            return None
+
+        if etype == "content_block_delta":
+            try:
+                delta = getattr(chunk, "delta", None)
+                if not delta:
+                    return None
+                # Text fragment within content block
+                if getattr(delta, "type", "") == "text_delta":
+                    txt = getattr(delta, "text", None)
+                    if txt is not None:
+                        response = str(txt)
+                # Tool input JSON fragment within content block
+                elif getattr(delta, "type", "") == "input_json_delta":
+                    idx = str(getattr(chunk, "index", 0) or 0)
+                    buf = state.fn_args_buffers.get(idx)
+                    pj = getattr(delta, "partial_json", "") or ""
+                    if buf is None:
+                        buf = io.StringIO()
+                        state.fn_args_buffers[idx] = buf
+                    buf.write(pj)
+                    # Keep last-tool rolling buffer updated for consistency
+                    state.fn_args_buffers["__anthropic_last__"] = buf
+                    try:
+                        if state.tool_calls:
+                            tc = state.tool_calls[-1]
+                            tc["function"]["arguments"] = buf.getvalue()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            return response
+
+        if etype == "content_block_stop":
+            # Finalize the buffer for this block; copy to last tool call
+            try:
+                idx = str(getattr(chunk, "index", 0) or 0)
+                buf = state.fn_args_buffers.pop(idx, None)
+                if buf is not None:
+                    try:
+                        args_val = buf.getvalue()
+                    finally:
+                        try:
+                            buf.close()
+                        except Exception:
+                            pass
+                    if state.tool_calls:
+                        state.tool_calls[-1]["function"]["arguments"] = args_val
+                # Clear rolling buffer if it pointed to this block
+                if state.fn_args_buffers.get("__anthropic_last__") is buf:
+                    state.fn_args_buffers.pop("__anthropic_last__", None)
+            except Exception:
+                pass
+            return None
+
+        if etype == "message_delta":
+            # Capture output tokens and detect stop reason
+            try:
+                usage = getattr(chunk, "usage", None)
+                if usage:
+                    out_tok = self._as_int(getattr(usage, "output_tokens", None))
+                    if out_tok is not None:
+                        state.usage_payload["out"] = out_tok
+                delta = getattr(chunk, "delta", None)
+                stop_reason = getattr(delta, "stop_reason", None) if delta else None
+                if stop_reason == "tool_use":
+                    state.force_func_call = True
+            except Exception:
+                pass
+            return None
+
+        if etype == "message_stop":
+            return None
+
+        # Ignore ping/error at this level; errors are surfaced elsewhere
+        return None
+
+    def _process_xai_sdk_chunk(
+            self,
+            ctx: CtxItem,
+            core,
+            state: WorkerState,
+            item
+    ) -> Optional[str]:
+        """
+        xAI SDK native streaming chunk.
+        """
+        try:
+            response, chunk = item
+        except Exception:
+            return None
+
+        state.xai_last_response = response
+
+        try:
+            if hasattr(chunk, "content") and chunk.content is not None:
+                return str(chunk.content)
+            if isinstance(chunk, str):
+                return chunk
+        except Exception:
+            pass
+        return None
 
     def _process_raw(self, chunk) -> Optional[str]:
         """
         Raw chunk fallback.
-
-        :param chunk: The chunk object from the stream
-        :return: String representation of chunk or None
         """
         if chunk is not None:
             return chunk if isinstance(chunk, str) else str(chunk)
@@ -916,10 +1126,6 @@ class StreamWorker(QRunnable):
     def _safe_get(self, obj, path: str) -> Any:
         """
         Dot-path getter for dicts and objects.
-
-        :param obj: dict or object
-        :param path: Dot-separated path string
-        :return: Value or None
         """
         cur = obj
         for seg in path.split("."):
@@ -928,7 +1134,6 @@ class StreamWorker(QRunnable):
             if isinstance(cur, dict):
                 cur = cur.get(seg)
             else:
-                # Support numeric indices for lists like candidates.0...
                 if seg.isdigit() and isinstance(cur, (list, tuple)):
                     idx = int(seg)
                     if 0 <= idx < len(cur):
@@ -942,9 +1147,6 @@ class StreamWorker(QRunnable):
     def _as_int(self, val) -> Optional[int]:
         """
         Coerce to int if possible, else None.
-
-        :param val: Any value
-        :return: int or None
         """
         if val is None:
             return None
@@ -958,10 +1160,7 @@ class StreamWorker(QRunnable):
 
     def _capture_openai_usage(self, state: WorkerState, u_obj):
         """
-        Extract usage for OpenAI; include reasoning tokens in output if available.
-
-        :param state: WorkerState
-        :param u_obj: Usage object from OpenAI response
+        Extract usage for OpenAI/xAI-compatible chunks.
         """
         if not u_obj:
             return
@@ -981,9 +1180,6 @@ class StreamWorker(QRunnable):
     def _capture_google_usage(self, state: WorkerState, um_obj):
         """
         Extract usage for Google python-genai; prefer total - prompt to include reasoning.
-
-        :param state: WorkerState
-        :param um_obj: Usage metadata object from Google chunk
         """
         if not um_obj:
             return
@@ -1019,13 +1215,6 @@ class StreamWorker(QRunnable):
     ):
         """
         Collect web citations (URLs) from Google GenAI stream.
-
-        Tries multiple known locations (grounding metadata and citation metadata)
-        in a defensive manner to remain compatible with SDK changes.
-
-        :param ctx: CtxItem
-        :param state: WorkerState
-        :param chunk: The chunk object from the stream
         """
         try:
             cands = getattr(chunk, "candidates", None) or []
@@ -1035,14 +1224,12 @@ class StreamWorker(QRunnable):
         if not isinstance(state.citations, list):
             state.citations = []
 
-        # Helper to add URLs with de-duplication
         def _add_url(url: Optional[str]):
             if not url or not isinstance(url, str):
                 return
             url = url.strip()
             if not (url.startswith("http://") or url.startswith("https://")):
                 return
-            # Initialize ctx.urls if needed
             if ctx.urls is None:
                 ctx.urls = []
             if url not in state.citations:
@@ -1050,15 +1237,12 @@ class StreamWorker(QRunnable):
             if url not in ctx.urls:
                 ctx.urls.append(url)
 
-        # Candidate-level metadata extraction
         for cand in cands:
-            # Grounding metadata (web search attributions)
             gm = self._safe_get(cand, "grounding_metadata") or self._safe_get(cand, "groundingMetadata")
             if gm:
                 atts = self._safe_get(gm, "grounding_attributions") or self._safe_get(gm, "groundingAttributions") or []
                 try:
                     for att in atts or []:
-                        # Try several common paths for URI
                         for path in (
                             "web.uri",
                             "web.url",
@@ -1072,7 +1256,6 @@ class StreamWorker(QRunnable):
                             _add_url(self._safe_get(att, path))
                 except Exception:
                     pass
-                # Also check search entry point
                 for path in (
                     "search_entry_point.uri",
                     "search_entry_point.url",
@@ -1083,7 +1266,6 @@ class StreamWorker(QRunnable):
                 ):
                     _add_url(self._safe_get(gm, path))
 
-            # Citation metadata (legacy and alt paths)
             cm = self._safe_get(cand, "citation_metadata") or self._safe_get(cand, "citationMetadata")
             if cm:
                 cit_arrays = (
@@ -1098,11 +1280,9 @@ class StreamWorker(QRunnable):
                 except Exception:
                     pass
 
-            # Part-level citation metadata
             try:
                 parts = self._safe_get(cand, "content.parts") or []
                 for p in parts:
-                    # Per-part citation metadata
                     pcm = self._safe_get(p, "citation_metadata") or self._safe_get(p, "citationMetadata")
                     if pcm:
                         arr = (
@@ -1113,7 +1293,6 @@ class StreamWorker(QRunnable):
                         for cit in arr or []:
                             for path in ("uri", "url", "source.uri", "source.url", "web.uri", "web.url"):
                                 _add_url(self._safe_get(cit, path))
-                    # Per-part grounding attributions (rare)
                     gpa = self._safe_get(p, "grounding_attributions") or self._safe_get(p, "groundingAttributions") or []
                     for att in gpa or []:
                         for path in ("web.uri", "web.url", "source.web.uri", "source.web.url", "uri", "url"):
@@ -1121,9 +1300,92 @@ class StreamWorker(QRunnable):
             except Exception:
                 pass
 
-        # Bind to ctx on first discovery
         if state.citations and (ctx.urls is None or not ctx.urls):
             ctx.urls = list(state.citations)
+
+    def _xai_extract_tool_calls(self, response) -> list[dict]:
+        """
+        Extract tool calls from xAI SDK final response (proto).
+        """
+        out: list[dict] = []
+        try:
+            proto = getattr(response, "proto", None)
+            if not proto:
+                return out
+            choices = getattr(proto, "choices", None) or []
+            if not choices:
+                return out
+            msg = getattr(choices[0], "message", None)
+            if not msg:
+                return out
+            tool_calls = getattr(msg, "tool_calls", None) or []
+            for tc in tool_calls:
+                try:
+                    name = getattr(getattr(tc, "function", None), "name", "") or ""
+                    args = getattr(getattr(tc, "function", None), "arguments", "") or "{}"
+                    out.append({
+                        "id": getattr(tc, "id", "") or "",
+                        "type": "function",
+                        "function": {"name": name, "arguments": args},
+                    })
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        return out
+
+    def _xai_extract_citations(self, response) -> list[str]:
+        """
+        Extract citations (URLs) from xAI final response if present.
+        """
+        urls: list[str] = []
+        try:
+            cites = getattr(response, "citations", None)
+            if isinstance(cites, (list, tuple)):
+                for u in cites:
+                    if isinstance(u, str) and (u.startswith("http://") or u.startswith("https://")):
+                        if u not in urls:
+                            urls.append(u)
+        except Exception:
+            pass
+        try:
+            proto = getattr(response, "proto", None)
+            if proto:
+                proto_cites = getattr(proto, "citations", None) or []
+                for u in proto_cites:
+                    if isinstance(u, str) and (u.startswith("http://") or u.startswith("https://")):
+                        if u not in urls:
+                            urls.append(u)
+        except Exception:
+            pass
+        return urls
+
+    def _xai_extract_usage(self, response) -> dict:
+        """
+        Extract usage from xAI final response via proto.usage -> {'in','out','reasoning','total'}.
+        """
+        try:
+            proto = getattr(response, "proto", None)
+            usage = getattr(proto, "usage", None) if proto else None
+            if not usage:
+                return {}
+
+            def as_int(v):
+                try:
+                    return int(v)
+                except Exception:
+                    try:
+                        return int(float(v))
+                    except Exception:
+                        return 0
+
+            p = as_int(getattr(usage, "prompt_tokens", 0) or 0)
+            c = as_int(getattr(usage, "completion_tokens", 0) or 0)
+            t = as_int(getattr(usage, "total_tokens", (p + c)) or (p + c))
+            out_total = max(0, t - p) if t else c
+            return {"in": p, "out": out_total, "reasoning": 0, "total": t}
+        except Exception:
+            return {}
 
     def cleanup(self):
         """Cleanup resources after worker execution."""

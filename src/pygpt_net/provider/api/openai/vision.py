@@ -369,6 +369,12 @@ class Vision:
         """Reset input tokens counter"""
         self.input_tokens = 0
 
+    def reset(self):
+        """Reset attachments, urls and input tokens"""
+        self.attachments = {}
+        self.urls = []
+        self.input_tokens = 0
+
     def get_attachments(self) -> Dict[str, str]:
         """
         Get attachments

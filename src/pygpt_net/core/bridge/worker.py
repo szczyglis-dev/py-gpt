@@ -46,7 +46,8 @@ class BridgeWorker(QRunnable):
     @Slot()
     def run(self):
         """Run bridge worker"""
-        self.window.core.debug.info("[bridge] Worker started.")
+        core = self.window.core
+        core.debug.info("[bridge] Worker started.")
         result = False
 
         try:
@@ -64,7 +65,7 @@ class BridgeWorker(QRunnable):
             if self.mode == MODE_LANGCHAIN:
                 raise Exception("Langchain mode is deprecated from v2.5.20 and no longer supported. ")
                 """
-                result = self.window.core.chain.call(
+                result = core.chain.call(
                     context=self.context,
                     extra=self.extra,
                 )
@@ -74,15 +75,18 @@ class BridgeWorker(QRunnable):
 
             # LlamaIndex: chat with files
             if self.mode == MODE_LLAMA_INDEX:
-                result = self.window.core.idx.chat.call(
+                result = core.idx.chat.call(
                     context=self.context,
                     extra=self.extra,
                     signals=self.signals,
                 )
 
-            # LlamaIndex: agents
-            elif self.mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
-                result = self.window.core.agents.runner.call(
+            # Agents (OpenAI, Llama)
+            elif self.mode in (
+                    MODE_AGENT_LLAMA,
+                    MODE_AGENT_OPENAI
+            ):
+                result = core.agents.runner.call(
                     context=self.context,
                     extra=self.extra,
                     signals=self.signals,
@@ -91,11 +95,11 @@ class BridgeWorker(QRunnable):
                     self.cleanup()
                     return  # don't emit any signals (handled in agent runner, step by step)
                 else:
-                    self.extra["error"] = str(self.window.core.agents.runner.get_error())
+                    self.extra["error"] = str(core.agents.runner.get_error())
 
-            # Loop: next step
+            # Agents loop: next step
             elif self.mode == MODE_LOOP_NEXT:  # virtual mode
-                result = self.window.core.agents.runner.loop.run_next(
+                result = core.agents.runner.loop.run_next(
                     context=self.context,
                     extra=self.extra,
                     signals=self.signals,
@@ -103,27 +107,47 @@ class BridgeWorker(QRunnable):
                 if result:
                     return  # don't emit any signals (handled in agent runner, step by step)
                 else:
-                    self.extra["error"] = str(self.window.core.agents.runner.get_error())
+                    self.extra["error"] = str(core.agents.runner.get_error())
 
             # API SDK: chat, completion, vision, image, assistants
             else:
-                sdk = "openai"
+                sdk = "openai"  # default to OpenAI SDK
                 model = self.context.model
                 if model.provider == "google":
-                    if self.window.core.config.get("api_native_google", False):
+                    if core.config.get("api_native_google", False):
                         sdk = "google"
+                elif model.provider == "anthropic":
+                    if core.config.get("api_native_anthropic", False):
+                        sdk = "anthropic"
+                elif model.provider == "x_ai":
+                    if core.config.get("api_native_xai", False):
+                        sdk = "x_ai"
 
                 # call appropriate SDK
                 if sdk == "google":
-                    # print("Using Google SDK")
-                    result = self.window.core.api.google.call(
+                    core.debug.info("[bridge] Using Google SDK.")
+                    result = core.api.google.call(
+                        context=self.context,
+                        extra=self.extra,
+                        rt_signals=self.rt_signals,
+                    )
+                elif sdk == "anthropic":
+                    core.debug.info("[bridge] Using Anthropic SDK.")
+                    result = core.api.anthropic.call(
+                        context=self.context,
+                        extra=self.extra,
+                        rt_signals=self.rt_signals,
+                    )
+                elif sdk == "x_ai":
+                    core.debug.info("[bridge] Using xAI SDK.")
+                    result = core.api.xai.call(
                         context=self.context,
                         extra=self.extra,
                         rt_signals=self.rt_signals,
                     )
                 elif sdk == "openai":
-                    # print("Using OpenAI SDK")
-                    result = self.window.core.api.openai.call(
+                    core.debug.info("[bridge] Using OpenAI SDK.")
+                    result = core.api.openai.call(
                         context=self.context,
                         extra=self.extra,
                         rt_signals=self.rt_signals,

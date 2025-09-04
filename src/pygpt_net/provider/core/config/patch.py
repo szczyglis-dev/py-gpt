@@ -2450,9 +2450,29 @@ class Patch:
             # < 2.6.37
             if old < parse_version("2.6.37"):
                 print("Migrating config from < 2.6.37...")
-                # add: label-desc
+
+                # add: label-desc CSS
                 patch_css('style.dark.css', True)
                 patch_css('style.light.css', True)
+
+                # add: Anthropic SDK
+                if "api_native_anthropic" not in data:
+                    data["api_native_anthropic"] = True
+                if "remote_tools.anthropic.web_search" not in data:
+                    data["remote_tools.anthropic.web_search"] = True
+
+                # add: xAI SDK
+                if "api_native_xai" not in data:
+                    data["api_native_xai"] = True
+                if "remote_tools.xai.mode" not in data:
+                    data["remote_tools.xai.mode"] = "auto"
+                if "remote_tools.xai.sources.web" not in data:
+                    data["remote_tools.xai.sources.web"] = True
+                if "remote_tools.xai.sources.x" not in data:
+                    data["remote_tools.xai.sources.x"] = True
+                if "remote_tools.xai.sources.news" not in data:
+                    data["remote_tools.xai.sources.news"] = False
+
                 updated = True
 
         # update file

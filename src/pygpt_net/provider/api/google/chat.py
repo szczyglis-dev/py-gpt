@@ -401,8 +401,7 @@ class Chat:
                             # Store only as URL; downloading is out of scope here.
                             if uri.startswith("http://") or uri.startswith("https://"):
                                 urls.append(uri)
-        except Exception:
-            # Best-effort only
+        except Exception as e:
             pass
 
         if images:
@@ -497,6 +496,7 @@ class Chat:
         :param multimodal_ctx: MultimodalContext for audio
         :return: List of Part
         """
+        self.window.core.api.google.vision.reset()
         parts: List[Part] = []
         if content:
             parts.append(Part.from_text(text=str(content)))

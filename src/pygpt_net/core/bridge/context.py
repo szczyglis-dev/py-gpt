@@ -22,10 +22,10 @@ class MultimodalContext:
     """
     Multimodal context
     """
-    is_audio_input: bool = False
-    is_audio_output: bool = False
-    audio_data: Optional[Any] = None
-    audio_format: str = "wav"
+    is_audio_input: bool = False  # is audio input
+    is_audio_output: bool = False  # is audio output
+    audio_data: Optional[Any] = None  # audio data (bytes or file-like object)
+    audio_format: str = "wav"  # audio format (wav, mp3, etc.)
 
     def __init__(self, **kwargs):
         """
@@ -59,32 +59,32 @@ class BridgeContext:
     """
     Bridge context
     """
-    assistant_id: str = ""
-    attachments: dict = field(default_factory=dict)
-    ctx: Optional[CtxItem] = None
-    external_functions: list = field(default_factory=list)
-    file_ids: list = field(default_factory=list)
-    force: bool = False  # Force mode flag
-    force_sync: bool = False  # Force sync flag
-    history: list = field(default_factory=list)
-    idx: Optional[Any] = None
-    idx_mode: str = "chat"
-    is_expert_call: bool = False  # Expert call flag
-    max_tokens: int = 0
-    mode: Optional[Any] = None
+    assistant_id: str = "" # OpenAI Assistant ID
+    attachments: dict = field(default_factory=dict) # id -> AttachmentItem
+    ctx: Optional[CtxItem] = None # CtxItem instance
+    external_functions: list = field(default_factory=list) # list of tools definitions
+    file_ids: list = field(default_factory=list)  # list of uploaded file IDs
+    force: bool = False  # force send
+    force_sync: bool = False  # force synchronous plugin call
+    history: list = field(default_factory=list) # list of messages
+    idx: Optional[Any] = None  # index name for LlamaIndex
+    idx_mode: str = "chat" # sub-mode for LlamaIndex
+    is_expert_call: bool = False  # is expert call
+    max_tokens: int = 0  # max tokens
+    mode: Optional[Any] = None # mode to use
     model: Optional[ModelItem] = None  # model instance, not model name
     multimodal_ctx: MultimodalContext = field(default_factory=lambda: MultimodalContext())  # AudioContext
     parent_mode: Optional[Any] = None  # real mode (global)
     preset: Optional[Any] = None  # PresetItem
-    prompt: str = ""
+    prompt: str = "" # user input prompt
     reply_context: Optional[Any] = None  # ReplyContext
-    request: bool = False  # Use normal request instead of quick call
-    stream: bool = False
-    system_prompt: str = ""
-    system_prompt_raw: str = ""  # without plugins addons
-    temperature: float = 1.0
-    thread_id: str = ""
-    tools_outputs: list = field(default_factory=list)
+    request: bool = False  # use normal request instead of quick call
+    stream: bool = False  # stream enabled
+    system_prompt: str = "" # system prompt
+    system_prompt_raw: str = ""  # system prompt without plugins addons
+    temperature: float = 1.0  # temperature
+    thread_id: str = "" # OpenAI Assistants thread ID for chat mode
+    tools_outputs: list = field(default_factory=list)  # list of tools outputs
 
     def __init__(self, **kwargs):
         """
@@ -98,24 +98,24 @@ class BridgeContext:
         self.ctx = kwargs.get("ctx", None)
         self.external_functions = list(kwargs.get("external_functions", []))
         self.file_ids = list(kwargs.get("file_ids", []))
-        self.force = kwargs.get("force", False)  # Force mode flag
-        self.force_sync = kwargs.get("force_sync", False)  # Force sync flag
+        self.force = kwargs.get("force", False)
+        self.force_sync = kwargs.get("force_sync", False)
         self.history = list(kwargs.get("history", []))
         self.idx = kwargs.get("idx", None)
         self.idx_mode = kwargs.get("idx_mode", "chat")
-        self.is_expert_call = kwargs.get("is_expert_call", False)  # Expert call flag
+        self.is_expert_call = kwargs.get("is_expert_call", False)
         self.max_tokens = kwargs.get("max_tokens", 0)
         self.mode = kwargs.get("mode", None)
-        self.model = kwargs.get("model", None)  # model instance, not model name
-        self.multimodal_ctx = kwargs.get("multimodal_ctx", MultimodalContext())  # AudioContext
-        self.parent_mode = kwargs.get("parent_mode", None)  # real mode (global)
-        self.preset = kwargs.get("preset", None)  # PresetItem
+        self.model = kwargs.get("model", None)
+        self.multimodal_ctx = kwargs.get("multimodal_ctx", MultimodalContext())
+        self.parent_mode = kwargs.get("parent_mode", None)
+        self.preset = kwargs.get("preset", None)
         self.prompt = kwargs.get("prompt", "")
-        self.reply_context = kwargs.get("reply_ctx", kwargs.get("reply_context", None))  # ReplyContext
-        self.request = kwargs.get("request", False)  # Use normal request instead of quick call
+        self.reply_context = kwargs.get("reply_ctx", kwargs.get("reply_context", None))
+        self.request = kwargs.get("request", False)
         self.stream = kwargs.get("stream", False)
         self.system_prompt = kwargs.get("system_prompt", "")
-        self.system_prompt_raw = kwargs.get("system_prompt_raw", "")  # without plugins addons
+        self.system_prompt_raw = kwargs.get("system_prompt_raw", "")
         self.temperature = kwargs.get("temperature", 1.0)
         self.thread_id = kwargs.get("thread_id", "")
         self.tools_outputs = list(kwargs.get("tools_outputs", []))

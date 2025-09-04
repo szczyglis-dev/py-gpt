@@ -9,21 +9,24 @@
 # Updated Date: 2025.09.05 01:00:00                  #
 # ================================================== #
 
-from .anthropic import ApiAnthropic
-from .google import ApiGoogle
-from .openai import ApiOpenAI
-from .x_ai import ApiXAI
+from typing import Tuple
 
-class Api:
 
+class Audio:
     def __init__(self, window=None):
         """
-        API wrappers
+        Audio helpers for xAI.
+
+        Note: As of now, the public xAI Python SDK does not expose TTS/STT or realtime audio APIs.
+        This class exists to keep provider surface compatible.
 
         :param window: Window instance
         """
         self.window = window
-        self.anthropic = ApiAnthropic(window)
-        self.google = ApiGoogle(window)
-        self.openai = ApiOpenAI(window)
-        self.xai = ApiXAI(window)
+
+    # Placeholders to keep interface parity
+    def build_part(self, multimodal_ctx) -> None:
+        return None
+
+    def extract_first_audio_part(self, response) -> Tuple[None, None]:
+        return None, None

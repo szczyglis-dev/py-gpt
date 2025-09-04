@@ -404,16 +404,16 @@ Here, you can add or manage API keys for any supported provider.
 
 **+ Inline Vision and Image generation**
 
-In **PyGPT**, this mode mirrors `ChatGPT`, allowing you to chat with models like `GPT-5`, `GPT-4`, `o1`, `o3`, `Claude`, `Gemini`, `Grok`, `Perplexity (Sonar)`, `Deepseek`, and more. It works using the OpenAI API `Responses` and `ChatCompletions`, or the `Google GenAI SDK` if the Google native client is enabled. You can choose the API endpoint for `ChatCompletions` in `Config -> Settings -> API Keys`.
+In **PyGPT**, this mode mirrors `ChatGPT`, allowing you to chat with models like `GPT-5`, `GPT-4`, `o1`, `o3`, `Claude`, `Gemini`, `Grok`, `Perplexity (Sonar)`, `Deepseek`, and more. It works with the OpenAI SDK using the `Responses API` and `ChatCompletions API. You can also use SDKs from Google GenAI, Anthropic, or xAI if the native SDK is enabled. You can set the endpoint for `ChatCompletions in Config -> Settings -> API Keys`.
 
-**Tip:** This mode uses the provider SDK directly. If there's no native client built into the app, models like Gemini, Claude, Grok, Sonar, or Llama3 are supported in Chat mode via LlamaIndex or compatible OpenAI API endpoints. The app automatically switches to these endpoints when using non-OpenAI models.
+**Tip:** This mode uses the provider SDK directly. If there's no native client built into the app, models like Sonar, or Llama3 are supported in Chat mode via LlamaIndex or OpenAI-compatible API endpoints. The app automatically switches to these endpoints when using non-OpenAI models. You can enable or disable the use of the native API SDK (per provider) in `Settings -> API Keys`. If the native SDK is disabled, the OpenAI SDK will be used via the compatible ChatCompletions API endpoint.
 
 Currently built-in native clients:
 
+- Anthropic SDK
 - OpenAI SDK
 - Google GenAI SDK
-
-Support for Anthropic and xAI native clients is coming soon.
+- xAI SDK
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 

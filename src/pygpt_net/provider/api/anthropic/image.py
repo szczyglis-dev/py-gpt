@@ -9,21 +9,17 @@
 # Updated Date: 2025.09.05 01:00:00                  #
 # ================================================== #
 
-from .anthropic import ApiAnthropic
-from .google import ApiGoogle
-from .openai import ApiOpenAI
-from .x_ai import ApiXAI
+from typing import Optional, Dict
+from pygpt_net.core.bridge.context import BridgeContext
 
-class Api:
 
+class Image:
     def __init__(self, window=None):
-        """
-        API wrappers
-
-        :param window: Window instance
-        """
         self.window = window
-        self.anthropic = ApiAnthropic(window)
-        self.google = ApiGoogle(window)
-        self.openai = ApiOpenAI(window)
-        self.xai = ApiXAI(window)
+
+    def generate(self, context: BridgeContext, extra: Optional[Dict] = None, sync: bool = True) -> bool:
+        """
+        Anthropic does not support image generation; only vision input.
+        """
+        # Inform handlers that nothing was generated
+        return False

@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 20:00:00                  #
+# Updated Date: 2025.09.05 01:00:00                  #
 # ================================================== #
 
+import base64
 import os
 from typing import Optional, Dict, List, Union
-
-from google.genai.types import Part
 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
@@ -21,7 +20,7 @@ from pygpt_net.item.ctx import CtxItem
 class Vision:
     def __init__(self, window=None):
         """
-        Vision helpers for Google GenAI
+        Vision helpers for Anthropic (image input blocks).
 
         :param window: Window instance
         """
@@ -30,19 +29,19 @@ class Vision:
         self.urls: List[str] = []
         self.input_tokens = 0
 
-    def build_parts(
+    def build_blocks(
         self,
         content: Union[str, list],
         attachments: Optional[Dict[str, AttachmentItem]] = None,
-    ) -> List[Part]:
+    ) -> List[dict]:
         """
-        Build image parts from local attachments (inline bytes)
+        Build image content blocks from local attachments.
 
-        :param content: Message content (str or list)
+        :param content: User message text (unused here)
         :param attachments: Attachments dict (id -> AttachmentItem)
-        :return: List of Parts
+        :return: List of Anthropic content blocks
         """
-        parts: List[Part] = []
+        blocks: List[dict] = []
         self.attachments = {}
         self.urls = []
 
@@ -53,27 +52,35 @@ class Vision:
                         mime = self._guess_mime(attachment.path)
                         with open(attachment.path, "rb") as f:
                             data = f.read()
-                        parts.append(Part.from_bytes(data=data, mime_type=mime))
+                        b64 = base64.b64encode(data).decode("utf-8")
+                        blocks.append({
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": mime,
+                                "data": b64,
+                            }
+                        })
                         self.attachments[id_] = attachment.path
                         attachment.consumed = True
 
-        return parts
+        return blocks
 
     def is_image(self, path: str) -> bool:
         """
-        Check if path looks like an image
+        Check if path looks like an image.
 
         :param path: File path
-        :return: True if image, False otherwise
+        :return: True if path has image file extension
         """
         return path.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif', '.webp'))
 
     def _guess_mime(self, path: str) -> str:
         """
-        Guess mime type from file extension
+        Guess mime type from file extension.
 
         :param path: File path
-        :return: Mime type string
+        :return: MIME type string
         """
         ext = os.path.splitext(path)[1].lower().lstrip(".")
         if ext in ("jpg", "jpeg"):
@@ -92,7 +99,7 @@ class Vision:
 
     def append_images(self, ctx: CtxItem):
         """
-        Append sent images paths to context for UI/history
+        Append sent images paths to context for UI/history.
 
         :param ctx: CtxItem
         """
@@ -102,34 +109,34 @@ class Vision:
 
     def get_attachments(self) -> Dict[str, str]:
         """
-        Return attachments dict (id -> path)
+        Return attachments dict (id -> path).
 
-        :return: Dict of attachments
+        :return: Attachments dictionary
         """
         return self.attachments
 
     def get_urls(self) -> List[str]:
         """
-        Return image urls (unused here)
+        Return image urls (unused).
 
-        :return: List of URLs
+        :return: List of image URLs
         """
         return self.urls
 
     def reset_tokens(self):
-        """Reset input tokens counter"""
+        """Reset input tokens counter."""
         self.input_tokens = 0
 
     def get_used_tokens(self) -> int:
         """
-        Return input tokens counter
+        Return input tokens counter.
 
         :return: Number of input tokens
         """
         return self.input_tokens
 
     def reset(self):
-        """Reset state"""
+        """Reset state."""
         self.attachments = {}
         self.urls = []
         self.input_tokens = 0

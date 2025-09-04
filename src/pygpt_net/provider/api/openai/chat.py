@@ -177,6 +177,7 @@ class Chat:
         :param multimodal_ctx: Multimodal context
         :return: messages list
         """
+        self.window.core.api.openai.vision.reset()
         messages = []
 
         # tokens config
