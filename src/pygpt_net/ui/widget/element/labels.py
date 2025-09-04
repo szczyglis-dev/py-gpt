@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QTimer, QRect, Signal, QUrl, QEvent
@@ -16,13 +16,26 @@ from PySide6.QtWidgets import QLabel, QLineEdit, QToolTip
 from pygpt_net.utils import trans
 
 
-class HelpLabel(QLabel):
+class BaseLabel(QLabel):
     def __init__(self, text, window=None):
         super().__init__(text, window)
         self.window = window
         self.setWordWrap(True)
         self.setContentsMargins(3, 3, 3, 3)
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+class HelpLabel(BaseLabel):
+    def __init__(self, text, window=None):
+        super().__init__(text, window)
+        self.window = window
         self.setProperty('class', 'label-help')
+
+class DescLabel(BaseLabel):
+    def __init__(self, text, window=None):
+        super().__init__(text, window)
+        self.window = window
+        self.setMaximumHeight(80)
+        self.setProperty('class', 'label-desc')
 
 
 class TitleLabel(QLabel):
@@ -30,6 +43,7 @@ class TitleLabel(QLabel):
         super().__init__(text, window)
         self.window = window
         self.setProperty('class', 'label-title')
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
 
 class ChatStatusLabel(QLabel):
@@ -39,6 +53,7 @@ class ChatStatusLabel(QLabel):
         self.setWordWrap(True)
         self.setAlignment(Qt.AlignRight)
         self.setProperty('class', 'label-chat-status')
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
 
 class UrlLabel(QLabel):
@@ -49,6 +64,7 @@ class UrlLabel(QLabel):
         self.update_url()
         self.setCursor(QCursor(Qt.PointingHandCursor))
         self.setToolTip(url)
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
         # self.setWordWrap(True)
 
     def update_url(self):
@@ -59,7 +75,7 @@ class UrlLabel(QLabel):
         self.setText(text)
 
     def mousePressEvent(self, event):
-        if self.window:
+        if self.window and hasattr(self.window, 'controller'):
             self.window.controller.dialogs.info.open_url(self.url)
         else:
             QDesktopServices.openUrl(QUrl(self.url))
