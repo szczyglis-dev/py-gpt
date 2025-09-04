@@ -193,7 +193,7 @@ class ChatWebOutput(QWebEngineView):
             p = self.page()
 
         p.runJavaScript(
-            f"""clean();"""
+            f"""if (typeof window.clean !== 'undefined') clean();"""
         )
         try:
             p.history().clear()
