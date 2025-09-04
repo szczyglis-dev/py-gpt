@@ -181,9 +181,8 @@ QPushButton {{
 .label-title {{
   font-weight: bold;
 }}
-.label-help {{
-  color: #5d5d5d;
-}}
+.label-help,
+.label-desc,
 .label-chat-status {{
   color: #5d5d5d;
 }}

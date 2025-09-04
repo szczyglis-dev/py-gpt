@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.22 10:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QWidget, QFrame
-from PySide6.QtGui import QFont
 
-from pygpt_net.ui.widget.element.labels import TitleLabel, UrlLabel
+from pygpt_net.ui.widget.element.labels import TitleLabel, UrlLabel, DescLabel, BaseLabel
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.checkbox_list import OptionCheckboxList
 from pygpt_net.ui.widget.option.combo import OptionCombo
@@ -123,7 +122,7 @@ class BaseConfigDialog:
         if extra.get('bold'):
             nodes[label_key] = TitleLabel(txt)
         else:
-            nodes[label_key] = QLabel(txt)
+            nodes[label_key] = BaseLabel(txt)
         nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         nodes[label_key].setMinimumWidth(120)
         nodes[label_key].setWordWrap(True)
@@ -169,7 +168,7 @@ class BaseConfigDialog:
         if extra.get('bold'):
             nodes[label_key] = TitleLabel(txt)
         else:
-            nodes[label_key] = QLabel(txt)
+            nodes[label_key] = BaseLabel(txt)
         nodes[label_key].setMinimumHeight(30)
         nodes[label_key].setWordWrap(True)
 
@@ -234,12 +233,7 @@ class BaseConfigDialog:
         :param text: text (to translate)
         :return: QLabel
         """
-        desc = trans(text)
-        label = QLabel(desc)
-        label.setWordWrap(True)
-        label.setMaximumHeight(80)
-        label.setStyleSheet("font-size: 10px;")
-        return label
+        return DescLabel(trans(text))
 
     def add_urls(self, urls, align=Qt.AlignLeft) -> QWidget:
         """

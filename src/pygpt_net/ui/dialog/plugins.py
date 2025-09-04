@@ -6,18 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 18:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
     QSplitter, QSizePolicy
 
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.ui.widget.dialog.settings_plugin import PluginSettingsDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
-from pygpt_net.ui.widget.element.labels import UrlLabel, HelpLabel
+from pygpt_net.ui.widget.element.labels import UrlLabel, HelpLabel, DescLabel, BaseLabel
 from pygpt_net.ui.widget.lists.plugin import PluginList
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.checkbox_list import OptionCheckboxList
@@ -77,14 +77,15 @@ class Plugins:
         self.window.ui.tabs['plugin.settings.tabs'] = {}
 
         sorted_ids = self.window.core.plugins.get_ids(sort=True)
+        get_plugin = self.window.core.plugins.get
 
         # build plugin settings tabs
         for id in sorted_ids:
             content_tabs = {}
             scroll_tabs = {}
 
-            plugin = self.window.core.plugins.get(id)
-            parent_id = "plugin." + id
+            plugin = get_plugin(id)
+            parent_id = f"plugin.{id}"
 
             # create plugin options entry if not exists
             if parent_id not in self.window.ui.config:
@@ -137,7 +138,7 @@ class Plugins:
             # append advanced options at the end
             if len(advanced_keys) > 0:
                 groups = {}
-                group_id = 'plugin.settings.advanced' + '.' + id
+                group_id = f"plugin.settings.advanced.{id}"
                 for key in widgets:
                     if key not in advanced_keys:  # ignore non-advanced options
                         continue
@@ -157,7 +158,7 @@ class Plugins:
 
                 # add advanced options group to scrolls
                 for tab_id in groups:
-                    full_id = group_id + '.' + tab_id
+                    full_id = f"{group_id}.{tab_id}"
                     content_tabs[tab_id].addWidget(groups[tab_id])
                     self.window.ui.groups[full_id] = groups[tab_id]
 
@@ -167,17 +168,16 @@ class Plugins:
 
             # set description, translate if localization is enabled
             name_txt = plugin.name
-            desc_key = 'plugin.settings.' + id + '.desc'
+            desc_key = f"plugin.settings.{id}.desc"
             desc_txt = plugin.description
             if plugin.use_locale:
-                domain = 'plugin.' + plugin.id
+                domain = f"plugin.{plugin.id}"
                 name_txt = trans('plugin.name', False, domain)
                 desc_txt = trans('plugin.description', False, domain)
 
-            self.window.ui.nodes[desc_key] = QLabel(desc_txt)
-            self.window.ui.nodes[desc_key].setWordWrap(True)
+            self.window.ui.nodes[desc_key] = DescLabel(desc_txt)
             self.window.ui.nodes[desc_key].setAlignment(Qt.AlignCenter)
-            self.window.ui.nodes[desc_key].setStyleSheet("font-weight: bold;")
+            #self.window.ui.nodes[desc_key].setStyleSheet("font-weight: bold;")
 
             line = self.add_line()
 
@@ -234,8 +234,7 @@ class Plugins:
 
         data = {}
         for plugin_id in sorted_ids:
-            plugin = self.window.core.plugins.get(plugin_id)
-            data[plugin_id] = plugin
+            data[plugin_id] = get_plugin(plugin_id)
 
         # plugins list
         id = 'plugin.list'
@@ -250,12 +249,13 @@ class Plugins:
         self.window.ui.nodes[id].setMinimumWidth(self.max_list_width)
 
         # splitter
-        self.window.ui.splitters['dialog.plugins'] = QSplitter(Qt.Horizontal)
-        self.window.ui.splitters['dialog.plugins'].addWidget(self.window.ui.nodes[id])  # list
-        self.window.ui.splitters['dialog.plugins'].addWidget(self.window.ui.tabs['plugin.settings'])  # tabs
-        self.window.ui.splitters['dialog.plugins'].setStretchFactor(0, 2)
-        self.window.ui.splitters['dialog.plugins'].setStretchFactor(1, 5)
-        self.window.ui.splitters['dialog.plugins'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(self.window.ui.nodes[id])  # list
+        splitter.addWidget(self.window.ui.tabs['plugin.settings'])  # tabs
+        splitter.setStretchFactor(0, 2)
+        splitter.setStretchFactor(1, 5)
+        splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.window.ui.splitters['dialog.plugins'] = splitter
 
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.window.ui.splitters['dialog.plugins'])
@@ -279,7 +279,7 @@ class Plugins:
                 self.window.ui.tabs['plugin.settings'].setCurrentIndex(idx)
                 self.window.controller.plugins.set_by_tab(idx)
             except Exception as e:
-                print('Failed restore plugin settings tab: {}'.format(idx))
+                print(f"Failed restore plugin settings tab: {idx}", e)
         else:
             self.window.controller.plugins.set_by_tab(0)
 
@@ -317,15 +317,16 @@ class Plugins:
         :return: dict of widgets
         """
         id = plugin.id
-        parent = "plugin." + id  # parent id for plugins is in format: plugin.<plugin_id>
+        parent = f"plugin.{id}"  # parent id for plugins is in format: plugin.<plugin_id>
         widgets = {}
+        base_types = ('text', 'int', 'float')
+        number_types = ('int', 'float')
 
         for key in options:
             option = options[key]
             # create widget by option type
-            if option['type'] == 'text' or option['type'] == 'int' or option['type'] == 'float':
-                if 'slider' in option and option['slider'] \
-                        and (option['type'] == 'int' or option['type'] == 'float'):
+            if option['type'] in base_types:
+                if 'slider' in option and option['slider'] and option['type'] in number_types:
                     widgets[key] = OptionSlider(self.window, parent, key, option)  # slider + text input
                 else:
                     if 'secret' in option and option['secret']:
@@ -396,14 +397,14 @@ class Plugins:
         :param option: option dict
         :return: QVBoxLayout
         """
-        one_column_types = ['textarea', 'dict', 'bool', 'cmd']
-        no_label_types = ['bool', 'cmd']
-        no_desc_types = ['cmd']
+        one_column_types = ('textarea', 'dict', 'bool', 'cmd')
+        no_label_types = ('bool', 'cmd')
+        no_desc_types = 'cmd'
         allow_locale = True
 
         key = option['id']
-        label_key = 'plugin.' + plugin.id + '.' + key + '.label'
-        desc_key = 'plugin.' + plugin.id + '.' + key + '.desc'
+        label_key = f"plugin.{plugin.id}.{key}.label"
+        desc_key = f"plugin.{plugin.id}.{key}.desc"
 
         # get option label and description
         txt_title = option['label']
@@ -415,14 +416,14 @@ class Plugins:
 
         # translate if localization is enabled
         if plugin.use_locale and allow_locale:
-            domain = 'plugin.' + plugin.id
-            txt_title = trans(key + '.label', False, domain)
-            txt_desc = trans(key + '.description', False, domain)
-            txt_tooltip = trans(key + '.tooltip', False, domain)
+            domain = f"plugin.{plugin.id}"
+            txt_title = trans(f"{key}.label", False, domain)
+            txt_desc = trans(f"{key}.description", False, domain)
+            # txt_tooltip = trans(f"{key}.tooltip", False, domain)
 
             # if empty tooltip then use description
-            if txt_tooltip == key + '.tooltip':
-                txt_tooltip = txt_desc
+            # if txt_tooltip == f"{key}.tooltip":
+                # txt_tooltip = txt_desc
 
 
         """
@@ -431,7 +432,7 @@ class Plugins:
         """
 
         if option['type'] not in no_label_types:
-            self.window.ui.nodes[label_key] = QLabel(txt_title)
+            self.window.ui.nodes[label_key] = BaseLabel(txt_title)
             self.window.ui.nodes[label_key].setStyleSheet("font-weight: bold;")
 
         # 2-columns layout
@@ -447,10 +448,8 @@ class Plugins:
             cols_widget.setLayout(cols)
             # cols_widget.setMaximumHeight(90)
 
-            self.window.ui.nodes[desc_key] = QLabel(txt_desc)
-            self.window.ui.nodes[desc_key].setWordWrap(True)
+            self.window.ui.nodes[desc_key] = DescLabel(txt_desc)
             self.window.ui.nodes[desc_key].setMaximumHeight(40)
-            self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
             # self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
 
             layout = QVBoxLayout()
@@ -468,10 +467,8 @@ class Plugins:
             layout.addWidget(widget)
 
             if option['type'] not in no_desc_types:
-                self.window.ui.nodes[desc_key] = QLabel(txt_desc)
-                self.window.ui.nodes[desc_key].setWordWrap(True)
+                self.window.ui.nodes[desc_key] = DescLabel(txt_desc)
                 self.window.ui.nodes[desc_key].setMaximumHeight(40)
-                self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
                 # self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
                 layout.addWidget(self.window.ui.nodes[desc_key])
 

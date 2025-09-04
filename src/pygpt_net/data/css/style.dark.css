@@ -67,9 +67,8 @@ QHeaderView::section {{
 .label-title {{
   font-weight: bold;
 }}
-.label-help {{
-  color: #999;
-}}
+.label-help,
+.label-desc,
 .label-chat-status {{
   color: #999;
 }}
