@@ -46,10 +46,12 @@ class Body:
                 <script type="text/javascript" src="qrc:///js/highlight.min.js"></script>
                 <script type="text/javascript" src="qrc:///js/katex.min.js"></script>
                 <script>
-                hljs.configure({
-                  ignoreUnescapedHTML: true,
-                });
-                const DEBUG_MODE = false;
+                if (hljs) {
+                     hljs.configure({
+                      ignoreUnescapedHTML: true,
+                    });
+                }               
+                let DEBUG_MODE = false;  // allow dynamic enabling via debug console
                 let bridgeConnected = false;
                 let streamHandler;
                 let nodeHandler;
@@ -1351,6 +1353,27 @@ class Body:
         }
     """
 
+    _PERFORMANCE_CSS = """
+        #container, #_nodes_, #_append_output_, #_append_output_before_ {
+            contain: layout paint;
+            overscroll-behavior: contain;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+        .msg-box {
+            contain: layout paint style;
+            contain-intrinsic-size: 1px 600px;            
+            box-shadow: none !important;
+            filter: none !important;
+        }
+        .msg-box:not(:last-child) {       
+            content-visibility: auto;
+        }
+        .msg {
+            text-rendering: optimizeSpeed;
+        }
+        """
+
     def __init__(self, window=None):
         """
         HTML Body
@@ -1398,42 +1421,14 @@ class Body:
         cfg = self.window.core.config
         fonts_path = os.path.join(cfg.get_app_path(), "data", "fonts").replace("\\", "/")
         syntax_style = self.window.core.config.get("render.code_syntax") or "default"
-        perf_css = """
-        #container, #_nodes_, #_append_output_, #_append_output_before_ {
-            contain: layout paint;
-            overscroll-behavior: contain;
-        }
-        .msg-box {
-            contain: layout paint style;
-            contain-intrinsic-size: 1px 600px;
-        }
-        .msg-box:not(:last-child) {       
-            content-visibility: auto;
-        }
-        #container,
-        #_nodes_,
-        #_append_output_,
-        #_append_output_before_ {
-            backface-visibility: hidden;
-            transform: translateZ(0);
-        }
-        .msg-box {
-            box-shadow: none !important;
-            filter: none !important;
-        }
-        .msg {
-            text-rendering: optimizeSpeed;
-        }
-        """
-
         theme_css = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
         parts = [
             self._SPINNER,
+            self._SCROLL_FAB_CSS,
             theme_css,
             "pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }",
             self.highlight.get_style_defs(),
-            perf_css,
-            self._SCROLL_FAB_CSS,  # keep FAB styles last to ensure precedence
+            self._PERFORMANCE_CSS  # performance improvements
         ]
         return "\n".join(parts)
 
