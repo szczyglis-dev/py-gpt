@@ -6,39 +6,31 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 import json
-from typing import Optional, Dict, Any
+from dataclasses import dataclass
+from typing import Optional, Dict, Any, ClassVar
 
 from pygpt_net.item.ctx import CtxItem
 
+
+@dataclass(slots=True)
 class BaseEvent:
+    """Base Event object class"""
+    id: ClassVar[str] = None
+    name: Optional[str] = None
+    data: Optional[dict] = None
+    ctx: Optional[CtxItem] = None  # CtxItem
+    stop: bool = False  # True to stop propagation
+    internal: bool = False
+    call_id: int = 0
 
-    def __init__(
-            self,
-            name: Optional[str] = None,
-            data: Optional[dict] = None,
-            ctx: CtxItem = None
-    ):
-        """
-        Base Event object class
-
-        :param name: event name
-        :param data: event data
-        :param ctx: context instance
-        """
-        self.id = None
-        self.name = name
-        self.data = data
+    def __post_init__(self):
+        # Normalize None to empty dict for convenience and safety
         if self.data is None:
             self.data = {}
-        self.ctx = ctx  # CtxItem
-        self.stop = False  # True to stop propagation
-        self.internal = False
-        self.call_id = 0
-
 
     @property
     def full_name(self) -> str:
@@ -47,7 +39,7 @@ class BaseEvent:
 
         :return: Full event name
         """
-        return self.id + ": " + self.name
+        return self.id + ": " + self.name  # type: ignore[operator]
 
     def to_dict(self) -> Dict[str, Any]:
         """Dump event to dict"""
@@ -66,7 +58,7 @@ class BaseEvent:
         """
         try:
             return json.dumps(self.to_dict())
-        except Exception as e:
+        except Exception:
             pass
         return ""
 

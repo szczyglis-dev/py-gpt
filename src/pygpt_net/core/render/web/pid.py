@@ -6,37 +6,52 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 import io
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
 from pygpt_net.utils import trans
 
 
+@dataclass(slots=True)
 class PidData:
+    """Pid Data"""
+    # Required/primary data
+    pid: Any
+    meta: Optional[Any] = None
 
-    def __init__(self, pid, meta=None):
-        """Pid Data"""
-        self.pid = pid
-        self.meta = meta
-        self.images_appended = []
-        self.urls_appended = []
-        self.files_appended = []
-        self._buffer = io.StringIO()
-        self._live_buffer = io.StringIO()
-        self._html = io.StringIO()
-        self._document = io.StringIO()
-        self.is_cmd = False
-        self.initialized = False
-        self.loaded = False
-        self.item = None
-        self.use_buffer = False
-        self.name_user = trans("chat.name.user")
-        self.name_bot = trans("chat.name.bot")
-        self.last_time_called = 0
-        self.cooldown = 1 / 6
-        self.throttling_min_chars = 5000
-        self.header = None
+    # Collections
+    images_appended: list = field(default_factory=list)
+    urls_appended: list = field(default_factory=list)
+    files_appended: list = field(default_factory=list)
+
+    # Internal buffers (excluded from repr to avoid large dumps)
+    _buffer: io.StringIO = field(default_factory=io.StringIO, repr=False)
+    _live_buffer: io.StringIO = field(default_factory=io.StringIO, repr=False)
+    _html: io.StringIO = field(default_factory=io.StringIO, repr=False)
+    _document: io.StringIO = field(default_factory=io.StringIO, repr=False)
+
+    # Flags/state
+    is_cmd: bool = False
+    initialized: bool = False
+    loaded: bool = False
+    item: Optional[Any] = None
+    use_buffer: bool = False
+
+    # Names
+    name_user: str = field(default_factory=lambda: trans("chat.name.user"))
+    name_bot: str = field(default_factory=lambda: trans("chat.name.bot"))
+
+    # Throttling / timing
+    last_time_called: float = 0.0
+    cooldown: float = 1 / 6
+    throttling_min_chars: int = 5000
+
+    # Misc
+    header: Optional[Any] = None
 
     @property
     def buffer(self) -> str:

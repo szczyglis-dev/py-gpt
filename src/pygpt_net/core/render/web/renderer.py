@@ -13,6 +13,7 @@ import json
 import os
 import re
 import gc
+from dataclasses import dataclass, field
 
 from datetime import datetime
 from typing import Optional, List, Any
@@ -50,15 +51,13 @@ class Renderer(BaseRenderer):
     )
     RE_AMP_LT_GT = re.compile(r'&amp;(lt|gt);')
 
+    @dataclass(slots=True)
     class _AppendBuffer:
         """Small, allocation-friendly buffer for throttled appends."""
-        __slots__ = ("_buf", "_size")
+        _buf: StringIO = field(default_factory=StringIO, repr=False)
+        _size: int = 0
 
-        def __init__(self):
-            self._buf = StringIO()
-            self._size = 0
-
-        def append(self, s: str):
+        def append(self, s: str) -> None:
             if not s:
                 return
             self._buf.write(s)
@@ -72,15 +71,25 @@ class Renderer(BaseRenderer):
             if self._size == 0:
                 return ""
             data = self._buf.getvalue()
+            old = self._buf
             # Replace the internal buffer instance to drop capacity immediately
             self._buf = StringIO()
             self._size = 0
+            try:
+                old.close()
+            except Exception:
+                pass
             return data
 
-        def clear(self):
+        def clear(self) -> None:
             """Clear content and drop buffer capacity."""
+            old = self._buf
             self._buf = StringIO()
             self._size = 0
+            try:
+                old.close()
+            except Exception:
+                pass
 
     def __init__(self, window=None):
         super(Renderer, self).__init__(window)
@@ -362,7 +371,7 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-        # Help the allocator release large transient strings sooner after stream flush
+        # release strings
         gc.collect()
 
     def append_context(

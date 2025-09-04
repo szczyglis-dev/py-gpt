@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 import importlib
@@ -98,7 +98,6 @@ def test_request_runs_worker_sync_when_mode_in_sync_modes(monkeypatch):
     res = b.request(ctx, extra={"a": 1})
     assert res is True
     worker.run.assert_called_once()
-    assert b.last_context() is ctx
 
 def test_request_starts_worker_async_when_mode_not_in_sync_modes(monkeypatch):
     window = make_window()
@@ -187,7 +186,6 @@ def test_call_uses_llama_index_quick_call(monkeypatch):
     b = Bridge(window)
     res = b.call(ctx, extra={"k": "v"})
     assert res == "ANSWER"
-    assert b.last_context_quick() is ctx
     assert ctx.stream is False
 
 def test_call_switches_to_research_and_uses_quick_call(monkeypatch):
@@ -214,7 +212,6 @@ def test_call_default_quick_call_invoked():
     window.core.api.openai.quick_call = Mock(return_value="DEFAULT")
     res = b.call(ctx, extra={"x": 1})
     assert res == "DEFAULT"
-    assert b.last_context_quick() is ctx
 
 def test_get_worker_connects_signals(monkeypatch):
     window = make_window()

@@ -15,9 +15,13 @@ from pygpt_net.item.ctx import CtxItem
 
 
 class Bag:
+    __slots__ = ('window', 'meta', 'tab_id', 'items')
+
     def __init__(self, window=None):
         """
         Context bag
+
+        :param window: Window instance
         """
         self.window = window
         self.meta = None  # current meta

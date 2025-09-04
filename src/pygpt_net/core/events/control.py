@@ -6,16 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 21:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from dataclasses import dataclass
+from typing import Optional, ClassVar
 
 from .base import BaseEvent
+from ...item.ctx import CtxItem
 
 
+@dataclass(slots=True)
 class ControlEvent(BaseEvent):
     """Events used for app control"""
+    # static id for event family
+    id: ClassVar[str] = "ControlEvent"
+
     APP_EXIT = "app.exit"
     APP_STATUS = "app.status"
     AUDIO_INPUT_DISABLE = "audio.input.disable"
@@ -73,17 +79,3 @@ class ControlEvent(BaseEvent):
     VOICE_MESSAGE_START = "voice_msg.start"
     VOICE_MESSAGE_STOP = "voice_msg.stop"
     VOICE_MESSAGE_TOGGLE = "voice_msg.toggle"
-
-    def __init__(
-            self,
-            name: Optional[str] = None,
-            data: Optional[dict] = None,
-    ):
-        """
-        Event object class
-
-        :param name: event name
-        :param data: event data
-        """
-        super(ControlEvent, self).__init__(name, data)
-        self.id = "ControlEvent"

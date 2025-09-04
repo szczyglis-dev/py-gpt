@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -29,6 +29,8 @@ class BridgeSignals(QObject):
 
 
 class BridgeWorker(QRunnable):
+    __slots__ = ('signals', 'rt_signals', 'args', 'kwargs', 'window', 'context', 'extra', 'mode')
+
     """Bridge worker"""
     def __init__(self, *args, **kwargs):
         super().__init__()

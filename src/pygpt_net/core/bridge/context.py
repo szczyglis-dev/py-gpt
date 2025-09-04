@@ -6,30 +6,101 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 import json
-from typing import Dict, Any
+from dataclasses import dataclass, field
+from typing import Dict, Any, Optional
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
+
+@dataclass(slots=True)
+class MultimodalContext:
+    """
+    Multimodal context
+    """
+    is_audio_input: bool = False
+    is_audio_output: bool = False
+    audio_data: Optional[Any] = None
+    audio_format: str = "wav"
+
+    def __init__(self, **kwargs):
+        """
+        Multimodal context
+
+        :param kwargs: keyword arguments
+        """
+        # kwargs-based initialization
+        self.is_audio_input = kwargs.get("is_audio_input", False)
+        self.is_audio_output = kwargs.get("is_audio_output", False)
+        self.audio_data = kwargs.get("audio_data", None)
+        self.audio_format = kwargs.get("audio_format", "wav")
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Return as dictionary
+
+        :return: dictionary
+        """
+        data = {
+            "is_audio_input": self.is_audio_input,
+            "is_audio_output": self.is_audio_output,
+            "audio_format": self.audio_format,
+        }
+        # sort by keys
+        return dict(sorted(data.items(), key=lambda item: item[0]))
+
+
+@dataclass(slots=True)
 class BridgeContext:
+    """
+    Bridge context
+    """
+    assistant_id: str = ""
+    attachments: dict = field(default_factory=dict)
+    ctx: Optional[CtxItem] = None
+    external_functions: list = field(default_factory=list)
+    file_ids: list = field(default_factory=list)
+    force: bool = False  # Force mode flag
+    force_sync: bool = False  # Force sync flag
+    history: list = field(default_factory=list)
+    idx: Optional[Any] = None
+    idx_mode: str = "chat"
+    is_expert_call: bool = False  # Expert call flag
+    max_tokens: int = 0
+    mode: Optional[Any] = None
+    model: Optional[ModelItem] = None  # model instance, not model name
+    multimodal_ctx: MultimodalContext = field(default_factory=lambda: MultimodalContext())  # AudioContext
+    parent_mode: Optional[Any] = None  # real mode (global)
+    preset: Optional[Any] = None  # PresetItem
+    prompt: str = ""
+    reply_context: Optional[Any] = None  # ReplyContext
+    request: bool = False  # Use normal request instead of quick call
+    stream: bool = False
+    system_prompt: str = ""
+    system_prompt_raw: str = ""  # without plugins addons
+    temperature: float = 1.0
+    thread_id: str = ""
+    tools_outputs: list = field(default_factory=list)
+
     def __init__(self, **kwargs):
         """
         Bridge context
 
         :param kwargs: keyword arguments
         """
+        # Assign with defaults
         self.assistant_id = kwargs.get("assistant_id", "")
-        self.attachments = kwargs.get("attachments", [])
+        self.attachments = dict(kwargs.get("attachments", []))
         self.ctx = kwargs.get("ctx", None)
-        self.external_functions = kwargs.get("external_functions", [])
-        self.file_ids = kwargs.get("file_ids", [])
+        self.external_functions = list(kwargs.get("external_functions", []))
+        self.file_ids = list(kwargs.get("file_ids", []))
         self.force = kwargs.get("force", False)  # Force mode flag
         self.force_sync = kwargs.get("force_sync", False)  # Force sync flag
-        self.history = kwargs.get("history", [])
+        self.history = list(kwargs.get("history", []))
         self.idx = kwargs.get("idx", None)
         self.idx_mode = kwargs.get("idx_mode", "chat")
         self.is_expert_call = kwargs.get("is_expert_call", False)  # Expert call flag
@@ -40,14 +111,14 @@ class BridgeContext:
         self.parent_mode = kwargs.get("parent_mode", None)  # real mode (global)
         self.preset = kwargs.get("preset", None)  # PresetItem
         self.prompt = kwargs.get("prompt", "")
-        self.reply_context = kwargs.get("reply_ctx", None)  # ReplyContext
+        self.reply_context = kwargs.get("reply_ctx", kwargs.get("reply_context", None))  # ReplyContext
         self.request = kwargs.get("request", False)  # Use normal request instead of quick call
         self.stream = kwargs.get("stream", False)
         self.system_prompt = kwargs.get("system_prompt", "")
         self.system_prompt_raw = kwargs.get("system_prompt_raw", "")  # without plugins addons
         self.temperature = kwargs.get("temperature", 1.0)
         self.thread_id = kwargs.get("thread_id", "")
-        self.tools_outputs = kwargs.get("tools_outputs", [])
+        self.tools_outputs = list(kwargs.get("tools_outputs", []))
 
         # check types
         if self.ctx is not None and not isinstance(self.ctx, CtxItem):
@@ -101,36 +172,10 @@ class BridgeContext:
         """
         try:
             return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
-        except Exception as e:
+        except Exception:
             pass
         return ""
 
     def __str__(self):
         """To string"""
         return self.dump()
-
-class MultimodalContext:
-    def __init__(self, **kwargs):
-        """
-        Multimodal context
-
-        :param kwargs: keyword arguments
-        """
-        self.is_audio_input = kwargs.get("is_audio_input", False)
-        self.is_audio_output = kwargs.get("is_audio_output", False)
-        self.audio_data = kwargs.get("audio_data", None)
-        self.audio_format = kwargs.get("audio_format", "wav")
-
-    def to_dict(self) -> Dict[str, Any]:
-        """
-        Return as dictionary
-
-        :return: dictionary
-        """
-        data = {
-            "is_audio_input": self.is_audio_input,
-            "is_audio_output": self.is_audio_output,
-            "audio_format": self.audio_format,
-        }
-        # sort by keys
-        return dict(sorted(data.items(), key=lambda item: item[0]))

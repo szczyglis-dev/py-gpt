@@ -14,6 +14,7 @@ import io
 import json
 from dataclasses import dataclass, field
 from typing import Optional, Literal, Any
+from enum import Enum
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
@@ -40,16 +41,18 @@ EventType = Literal[
     "error",
 ]
 
-# Chunks
-ChunkType = Literal[
-    "api_chat",
-    "api_chat_responses",
-    "api_completion",
-    "langchain_chat",
-    "llama_chat",
-    "google",
-    "raw",
-]
+
+class ChunkType(str, Enum):
+    """
+    Enum for chunk type classification.
+    """
+    API_CHAT = "api_chat"
+    API_CHAT_RESPONSES = "api_chat_responses"
+    API_COMPLETION = "api_completion"
+    LANGCHAIN_CHAT = "langchain_chat"
+    LLAMA_CHAT = "llama_chat"
+    GOOGLE = "google"
+    RAW = "raw"
 
 
 class WorkerSignals(QObject):
@@ -64,10 +67,9 @@ class WorkerSignals(QObject):
     eventReady = Signal(object)
 
 
-@dataclass
+@dataclass(slots=True)
 class WorkerState:
     """Holds mutable state for the streaming loop."""
-    # Replaced list[str] with StringIO to reduce allocation overhead and fragmentation
     out: Optional[io.StringIO] = None
     output_tokens: int = 0
     begin: bool = True
@@ -82,7 +84,7 @@ class WorkerState:
     is_code: bool = False
     force_func_call: bool = False
     stopped: bool = False
-    chunk_type: ChunkType = "raw"
+    chunk_type: ChunkType = ChunkType.RAW
     generator: Any = None
     usage_vendor: Optional[str] = None
     usage_payload: dict = field(default_factory=dict)
@@ -91,6 +93,8 @@ class WorkerState:
 
 
 class StreamWorker(QRunnable):
+    __slots__ = ("signals", "ctx", "window", "stream")
+
     def __init__(self, ctx: CtxItem, window, parent=None):
         super().__init__()
         self.signals = WorkerSignals()
@@ -135,7 +139,7 @@ class StreamWorker(QRunnable):
                     if ctx.use_responses_api:
                         if hasattr(chunk, 'type'):
                             etype = chunk.type  # type: ignore[assignment]
-                            state.chunk_type = "api_chat_responses"
+                            state.chunk_type = ChunkType.API_CHAT_RESPONSES
                         else:
                             continue
                     else:
@@ -200,23 +204,21 @@ class StreamWorker(QRunnable):
         :param chunk: The chunk object from the stream
         :return: Detected ChunkType
         """
-        if (hasattr(chunk, 'choices')
-                and chunk.choices
-                and hasattr(chunk.choices[0], 'delta')
-                and chunk.choices[0].delta is not None):
-            return "api_chat"
-        if (hasattr(chunk, 'choices')
-                and chunk.choices
-                and hasattr(chunk.choices[0], 'text')
-                and chunk.choices[0].text is not None):
-            return "api_completion"
-        if hasattr(chunk, 'content') and chunk.content is not None:
-            return "langchain_chat"
-        if hasattr(chunk, 'delta') and chunk.delta is not None:
-            return "llama_chat"
-        if hasattr(chunk, "candidates"):  # Google python-genai chunk
-            return "google"
-        return "raw"
+        choices = getattr(chunk, 'choices', None)
+        if choices:
+            choice0 = choices[0] if len(choices) > 0 else None
+            if choice0 is not None and hasattr(choice0, 'delta') and choice0.delta is not None:
+                return ChunkType.API_CHAT
+            if choice0 is not None and hasattr(choice0, 'text') and choice0.text is not None:
+                return ChunkType.API_COMPLETION
+
+        if hasattr(chunk, 'content') and getattr(chunk, 'content') is not None:
+            return ChunkType.LANGCHAIN_CHAT
+        if hasattr(chunk, 'delta') and getattr(chunk, 'delta') is not None:
+            return ChunkType.LLAMA_CHAT
+        if hasattr(chunk, "candidates"):
+            return ChunkType.GOOGLE
+        return ChunkType.RAW
 
     def _append_response(
             self,
@@ -428,17 +430,17 @@ class StreamWorker(QRunnable):
         :return: Response delta string or None
         """
         t = state.chunk_type
-        if t == "api_chat":
+        if t == ChunkType.API_CHAT:
             return self._process_api_chat(ctx, state, chunk)
-        if t == "api_chat_responses":
+        if t == ChunkType.API_CHAT_RESPONSES:
             return self._process_api_chat_responses(ctx, core, state, chunk, etype)
-        if t == "api_completion":
+        if t == ChunkType.API_COMPLETION:
             return self._process_api_completion(chunk)
-        if t == "langchain_chat":
+        if t == ChunkType.LANGCHAIN_CHAT:
             return self._process_langchain_chat(chunk)
-        if t == "llama_chat":
+        if t == ChunkType.LLAMA_CHAT:
             return self._process_llama_chat(state, chunk)
-        if t == "google":
+        if t == ChunkType.GOOGLE:
             return self._process_google_chunk(ctx, core, state, chunk)
         # raw fallback
         return self._process_raw(chunk)
@@ -1119,7 +1121,7 @@ class StreamWorker(QRunnable):
             except Exception:
                 pass
 
-        # Bind to ctx on first discovery for compatibility with other parts of the app
+        # Bind to ctx on first discovery
         if state.citations and (ctx.urls is None or not ctx.urls):
             ctx.urls = list(state.citations)
 

@@ -6,16 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 21:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from dataclasses import dataclass
+from typing import Optional, ClassVar
 
 from .base import BaseEvent
+from ...item.ctx import CtxItem
 
 
+@dataclass(slots=True)
 class KernelEvent(BaseEvent):
     """Kernel events"""
+    # static id for event family
+    id: ClassVar[str] = "KernelEvent"
 
     # core, events sent from kernel
     INIT = "kernel.init"
@@ -56,17 +61,3 @@ class KernelEvent(BaseEvent):
 
     LIVE_APPEND = "kernel.live.append"
     LIVE_CLEAR = "kernel.live.clear"
-
-    def __init__(
-            self,
-            name: Optional[str] = None,
-            data: Optional[dict] = None,
-    ):
-        """
-        Event object class
-
-        :param name: event name
-        :param data: event data
-        """
-        super(KernelEvent, self).__init__(name, data)
-        self.id = "KernelEvent"

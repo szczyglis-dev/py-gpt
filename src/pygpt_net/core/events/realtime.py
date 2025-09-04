@@ -6,14 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from dataclasses import dataclass
+from typing import Optional, ClassVar
 
 from .base import BaseEvent
+from ...item.ctx import CtxItem
 
 
+@dataclass(slots=True)
 class RealtimeEvent(BaseEvent):
     """
     Realtime events
@@ -26,6 +29,8 @@ class RealtimeEvent(BaseEvent):
     - RT_OUTPUT_AUDIO_ERROR - audio output error (STREAM_ERROR)
     - RT_OUTPUT_AUDIO_VOLUME_CHANGED - audio output volume changed (volume level)
     """
+    # static id for event family
+    id: ClassVar[str] = "RealtimeEvent"
 
     # realtime events
     RT_OUTPUT_AUDIO_DELTA = "rt.output.audio.delta"
@@ -39,17 +44,3 @@ class RealtimeEvent(BaseEvent):
     RT_INPUT_AUDIO_DELTA = "rt.input.audio.delta"
     RT_INPUT_AUDIO_MANUAL_START = "rt.input.audio.manual.start"
     RT_INPUT_AUDIO_MANUAL_STOP = "rt.input.audio.manual.stop"
-
-    def __init__(
-            self,
-            name: Optional[str] = None,
-            data: Optional[dict] = None,
-    ):
-        """
-        Event object class
-
-        :param name: event name
-        :param data: event data
-        """
-        super(RealtimeEvent, self).__init__(name, data)
-        self.id = "RealtimeEvent"

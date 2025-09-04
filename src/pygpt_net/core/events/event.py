@@ -6,16 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 21:00:00                  #
+# Updated Date: 2025.09.04 00:00:00                  #
 # ================================================== #
 
 import json
-from typing import Optional, Dict, Any
+from dataclasses import dataclass
+from typing import Optional, Dict, Any, ClassVar
 
 from pygpt_net.item.ctx import CtxItem
 from .base import BaseEvent
 
+
+@dataclass(slots=True)
 class Event(BaseEvent):
+    """Generic event with context serialization"""
+    # static id for event family
+    id: ClassVar[str] = "Event"
 
     # Events
     AI_NAME = "ai.name"
@@ -64,62 +70,3 @@ class Event(BaseEvent):
     UI_VISION = "ui.vision"
     USER_NAME = "user.name"
     USER_SEND = "user.send"
-
-    def __init__(
-            self,
-            name: Optional[str] = None,
-            data: Optional[dict] = None,
-            ctx: Optional[CtxItem] = None
-    ):
-        """
-        Event object class
-
-        :param name: event name
-        :param data: event data
-        :param ctx: context instance
-        """
-        super(Event, self).__init__(name, data, ctx)
-        self.id = "Event"
-        self.name = name
-        self.data = data
-        if self.data is None:
-            self.data = {}
-        self.ctx = ctx  # CtxItem
-        self.stop = False  # True to stop propagation
-        self.internal = False
-        # internal event, not called from user
-        # internal event is handled synchronously, ctx item has internal flag
-
-    def to_dict(self) -> Dict[str, Any]:
-        """
-        Dump event to dict
-
-        :return: Event dict
-        """
-        return {
-            'name': self.name,
-            'data': self.data,
-            'ctx': self.ctx.to_dict() if self.ctx else None,
-            'stop': self.stop,
-            'internal': self.internal,
-        }
-
-    def dump(self) -> str:
-        """
-        Dump event to json string
-
-        :return: JSON string
-        """
-        try:
-            return json.dumps(self.to_dict())
-        except Exception as e:
-            pass
-        return ""
-
-    def __str__(self) -> str:
-        """
-        String representation of event
-
-        :return: Event string
-        """
-        return self.dump()
