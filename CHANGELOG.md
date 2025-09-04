@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.36 (2025-09-04)
+
+- Optimized rendering of large code blocks.
+
 ## 2.6.35 (2025-09-04)
 
 - Improved responsiveness in chat streaming.
