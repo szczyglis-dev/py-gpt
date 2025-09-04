@@ -1488,12 +1488,12 @@ class Renderer(BaseRenderer):
         """
         try:
             if replace:
-                self.get_output_node_by_pid(pid).page().bridge.nodeReplace.emit(
-                    self.sanitize_html(html)
+                self.get_output_node_by_pid(pid).page().runJavaScript(
+                    f"if (typeof window.replaceNodes !== 'undefined') replaceNodes({self.to_json(self.sanitize_html(html))});"
                 )
             else:
-                self.get_output_node_by_pid(pid).page().bridge.node.emit(
-                    self.sanitize_html(html)
+                self.get_output_node_by_pid(pid).page().runJavaScript(
+                    f"if (typeof window.appendNode !== 'undefined') appendNode({self.to_json(self.sanitize_html(html))});"
                 )
         except Exception:
             pass

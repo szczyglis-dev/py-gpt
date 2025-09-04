@@ -46,6 +46,9 @@ class Body:
                 <script type="text/javascript" src="qrc:///js/highlight.min.js"></script>
                 <script type="text/javascript" src="qrc:///js/katex.min.js"></script>
                 <script>
+                hljs.configure({
+                  ignoreUnescapedHTML: true,
+                });
                 const DEBUG_MODE = false;
                 let bridgeConnected = false;
                 let streamHandler;
@@ -248,8 +251,7 @@ class Body:
                     });
                 }
                 function highlightCodeInternal(root, withMath) {
-                    (root || document).querySelectorAll('pre code').forEach(el => {
-                        try { if (el.dataset) delete el.dataset.highlighted; } catch (e) {}
+                    (root || document).querySelectorAll('pre code:not(.hljs)').forEach(el => {
                         hljs.highlightElement(el);
                     });
                     if (withMath) {
@@ -342,7 +344,7 @@ class Body:
                     el.scrollTop = el.scrollHeight; // no behavior, no RAF, deterministic
                     prevScroll = el.scrollHeight;
                 }
-                function scrollToBottom(live = false) {
+                function scrollToBottom(live = false, force = false) {
                     const el = document.scrollingElement || document.documentElement;
                     const marginPx = 450;
                     const behavior = (live === true) ? 'instant' : 'smooth';
@@ -355,7 +357,7 @@ class Body:
                     }
 
                     // Allow initial auto-follow before any user interaction
-                    if ((live === true && userInteracted === false) || isNearBottom(marginPx) || live == false) {
+                    if ((live === true && userInteracted === false) || isNearBottom(marginPx) || live == false || force) {
                         el.scrollTo({ top: el.scrollHeight, behavior });
                     }
                     prevScroll = el.scrollHeight;
@@ -380,6 +382,7 @@ class Body:
                     return element;
                 }
                 function appendNode(content) {
+                    userInteracted = false;
                     if (DEBUG_MODE) {
                         log("APPEND NODE: {" + content + "}");
                     }
@@ -396,6 +399,7 @@ class Body:
                     clearHighlightCache();
                 }
                 function replaceNodes(content) {
+                    userInteracted = false;
                     if (DEBUG_MODE) {
                         log("REPLACE NODES: {" + content + "}");
                     }
@@ -407,7 +411,7 @@ class Body:
                         element.replaceChildren();
                         element.insertAdjacentHTML('beforeend', content);
                         highlightCode(true, element);
-                        scrollToBottom(false);  // without schedule
+                        scrollToBottom(false, true);  // without schedule
                         scheduleScrollFabUpdate();
                     }
                     clearHighlightCache();
@@ -434,10 +438,7 @@ class Body:
                     */
                 }
                 function clearHighlightCache() {                
-                    const elements = document.querySelectorAll('pre code');
-                    elements.forEach(function(el) {
-                        try { if (el.dataset) delete el.dataset.highlighted; } catch (e) {}
-                    });
+                    //
                 }
                 function appendExtra(id, content) {
                     hideTips();
@@ -522,14 +523,14 @@ class Body:
                     clearOutput();
                     // Ensure initial auto-follow baseline before any chunks overflow
                     forceScrollToBottomImmediate();
-                    scheduleScroll(); // keep existing logic
+                    scheduleScroll();
                 }
                 function endStream() {
                     if (DEBUG_MODE) {
                         log("STREAM END");
                     }
                     clearOutput();
-                    bridgeReconnect(); 
+                    bridgeReconnect();
                 }
                 function enqueueStream(name_header, content, chunk, replace = false, is_code_block = false) {
                   // Push incoming chunk; scheduling is done with RAF to batch DOM ops
@@ -1154,7 +1155,7 @@ class Body:
                     window.addEventListener('resize', scheduleScrollFabUpdate, { passive: true });
 
                     // Initial state
-                    scheduleScrollFabUpdate();
+                    scheduleScrollFabUpdate();  
 
                     container.addEventListener('click', function(event) {
                         const copyButton = event.target.closest('.code-header-copy');
@@ -1397,6 +1398,33 @@ class Body:
         cfg = self.window.core.config
         fonts_path = os.path.join(cfg.get_app_path(), "data", "fonts").replace("\\", "/")
         syntax_style = self.window.core.config.get("render.code_syntax") or "default"
+        perf_css = """
+        #container, #_nodes_, #_append_output_, #_append_output_before_ {
+            contain: layout paint;
+            overscroll-behavior: contain;
+        }
+        .msg-box {
+            contain: layout paint style;
+            contain-intrinsic-size: 1px 600px;
+        }
+        .msg-box:not(:last-child) {       
+            content-visibility: auto;
+        }
+        #container,
+        #_nodes_,
+        #_append_output_,
+        #_append_output_before_ {
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+        .msg-box {
+            box-shadow: none !important;
+            filter: none !important;
+        }
+        .msg {
+            text-rendering: optimizeSpeed;
+        }
+        """
 
         theme_css = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
         parts = [
@@ -1404,6 +1432,7 @@ class Body:
             theme_css,
             "pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }",
             self.highlight.get_style_defs(),
+            perf_css,
             self._SCROLL_FAB_CSS,  # keep FAB styles last to ensure precedence
         ]
         return "\n".join(parts)

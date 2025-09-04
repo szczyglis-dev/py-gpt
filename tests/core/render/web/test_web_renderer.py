@@ -586,7 +586,7 @@ class TestRenderer:
         node.page().bridge.node = MagicMock()
         node.update_current_content = MagicMock()
         renderer.flush_output(pid, "html")
-        node.page().bridge.node.emit.assert_called()
+        node.page().runJavaScript.assert_called()
 
     def test_reload(self, renderer, fake_window):
         renderer.window.controller.ctx.refresh_output = MagicMock()
