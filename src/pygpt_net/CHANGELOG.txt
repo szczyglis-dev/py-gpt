@@ -1,3 +1,10 @@
+2.6.38 (2025-09-05)
+
+- Fixed: Detection of chunk type in Ollama.
+- Fixed: Import of models with existing IDs.
+- Fixed: Updating Assistants UI list after create new Assistant.
+- Refactor and optimization.
+
 2.6.37 (2025-09-05)
 
 - Fixed: Function parameters sanitization in the Google Gen AI SDK.

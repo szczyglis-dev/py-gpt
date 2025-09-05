@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.37** | build: **2025-09-05** | Python: **>=3.10, <3.14**
+Release: **2.6.38** | build: **2025-09-05** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3448,6 +3448,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.38 (2025-09-05)**
+
+- Fixed: Detection of chunk type in Ollama.
+- Fixed: Import of models with existing IDs.
+- Fixed: Updating the Assistants UI list after creating a new Assistant.
+- Refactored and optimized the code.
 
 **2.6.37 (2025-09-05)**
 
