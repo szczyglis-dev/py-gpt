@@ -15,7 +15,7 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.core.types import (
-    MODE_LLAMA_INDEX,
+    MODE_LLAMA_INDEX, MODE_CHAT,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -93,7 +93,9 @@ class AnthropicLLM(BaseLLM):
         :param window: window instance
         :return: list of models
         """
-        client = window.core.api.anthropic.get_client()
+        model = ModelItem()
+        model.provider = "anthropic"
+        client = window.core.api.anthropic.get_client(MODE_CHAT, model)
         models_list = client.models.list()
         items = []
         if models_list.data:
