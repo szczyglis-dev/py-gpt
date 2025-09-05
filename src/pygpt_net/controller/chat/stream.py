@@ -18,7 +18,7 @@ from pygpt_net.core.events import RenderEvent
 from pygpt_net.core.types import MODE_ASSISTANT
 from pygpt_net.item.ctx import CtxItem
 
-from .handler.stream_worker import StreamWorker
+from .handler.worker import StreamWorker
 
 class Stream:
     def __init__(self, window=None):
