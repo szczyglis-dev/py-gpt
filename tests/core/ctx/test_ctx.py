@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -379,7 +379,6 @@ def test_get_id_by_idx(mock_window_conf):
         2: item2,
     }
 
-    # WARNING: list is sorted: get_meta() sorts items before returning!
     assert ctx.get_id_by_idx(1) == 2
     assert ctx.get_id_by_idx(0) == 1
     assert ctx.get_id_by_idx(2) is None
@@ -401,7 +400,6 @@ def test_get_idx_by_id(mock_window_conf):
         2: item2,
     }
 
-    # WARNING: list is sorted: get_meta() sorts items before returning!
     assert ctx.get_idx_by_id(2) == 1
     assert ctx.get_idx_by_id(1) == 0
     assert ctx.get_idx_by_id(6) is None
@@ -423,7 +421,6 @@ def test_get_first(mock_window_conf):
         2: item2,
     }
 
-    # WARNING: list is sorted: get_meta() sorts items before returning!
     assert ctx.get_first() == 1
     ctx.meta = {}
     assert ctx.get_first() is None
@@ -445,7 +442,6 @@ def test_get_meta_by_id(mock_window_conf):
         2: item2,
     }
 
-    # WARNING: list is sorted: get_meta() sorts items before returning!
     assert ctx.get_meta_by_id(2) == item2
     assert ctx.get_meta_by_id(1) == item1
     assert ctx.get_meta_by_id(3) is None
@@ -717,16 +713,16 @@ def test_get_prompt_items():
     ctx.container = container
 
     ctx.window.core.tokens.from_ctx.return_value = 10
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:2]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:2]
     assert len(ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)) == 2
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[0] == item1
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[1] == item2
 
     ctx.window.core.tokens.from_ctx.return_value = 30
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:2]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:2]
 
     ctx.window.core.tokens.from_ctx.return_value = 100
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:2]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:2]
 
     ctx.window.core.tokens.from_ctx.return_value = 1000
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == []
@@ -756,7 +752,7 @@ def test_get_prompt_items():
     ctx.container = container
 
     ctx.window.core.tokens.from_ctx.return_value = 10
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:5]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:5]
     assert len(ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)) == 5
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[0] == item1
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[1] == item2
@@ -765,7 +761,7 @@ def test_get_prompt_items():
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[4] == item5
 
     ctx.window.core.tokens.from_ctx.return_value = 30
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:5]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:5]
 
     ctx.window.core.tokens.from_ctx.return_value = 130
     assert len(ctx.get_prompt_items('test_model', 'test_mode', 1000, 1400)) == 3
@@ -788,7 +784,7 @@ def test_get_all_items(mock_window_conf):
     item1 = CtxItem()
     item2 = CtxItem()
     items = [
-        item1,  # should be removed
+        item1,
         item2
     ]
     container = MagicMock()        
@@ -877,7 +873,7 @@ def test_remove_last(mock_window_conf):
     assert ctx.items == []
 
 
-def test_remove_first():
+def test_remove_first(mock_window_conf):
     """
     Test remove_first
     """
@@ -900,7 +896,7 @@ def test_remove_first():
     assert ctx.items == []
 
 
-def test_is_allowed_for_mode():
+def test_is_allowed_for_mode(mock_window_conf):
     """
     Test is_allowed_for_mode
     """
@@ -942,7 +938,7 @@ def test_is_allowed_for_mode():
     assert ctx.is_allowed_for_mode('test_mode2') is False
 
 
-def test_load_meta():
+def test_load_meta(mock_window_conf):
     """
     Test load_meta
     """
@@ -952,12 +948,8 @@ def test_load_meta():
     ctx.window.core.config.get.return_value = 1000
     ctx.provider = MagicMock()
     metas = {
-        2: {
-            CtxMeta()
-        },
-        4: {
-           CtxMeta()
-        }
+        2: CtxMeta(),
+        4: CtxMeta(),
     }
     ctx.provider.get_meta.return_value = metas
     ctx.search_string = 'abc'
@@ -965,7 +957,7 @@ def test_load_meta():
     assert ctx.meta == metas
 
 
-def test_load():
+def test_load(mock_window_conf):
     """
     Test load
     """
@@ -982,7 +974,7 @@ def test_load():
     assert res == items
 
 
-def test_save():
+def test_save(mock_window_conf):
     """
     Test save
     """
@@ -1011,14 +1003,9 @@ def test_store(mock_window_conf):
     ctx = Ctx(mock_window_conf)
     ctx.current = 7
     ctx.meta = {
-        7: {
-            CtxMeta()
-        },
-        8: {
-            CtxMeta()
-        }
+        7: CtxMeta(),
+        8: CtxMeta(),
     }
     ctx.save = MagicMock()
     ctx.store()
     ctx.save.assert_called_once_with(7)
-

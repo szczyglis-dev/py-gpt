@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any, Optional
@@ -34,6 +34,8 @@ class Plugins:
         self.settings = Settings(window)
         self.presets = Presets(window)
         self.enabled = {}
+        self._ids = None
+        self._ids_with_update = None
         self._suspend_updates = 0
 
     def _begin_batch(self):
@@ -316,9 +318,15 @@ class Plugins:
     def on_post_update(self):
         """Called on post update"""
         pm = self.window.core.plugins
-        for pid in pm.get_ids():
+        if self._ids is None:
+            self._ids = pm.get_ids()
+        if self._ids_with_update is None:
+            self._ids_with_update = [pid for pid in self._ids if hasattr(self.window.core.plugins.get(pid), "on_post_update")]
+        if len(self._ids_with_update) == 0:
+            return
+        for pid in self._ids_with_update:
             if self.is_enabled(pid):
-                fn = getattr(pm.get(pid), "on_post_update", None)
+                fn = pm.get(pid).on_post_update
                 if callable(fn):
                     fn()
 

@@ -6,13 +6,53 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import json
 import uuid
+from dataclasses import dataclass, field
+from typing import Optional, List, Dict, Any
 
+
+@dataclass(slots=True)
 class PresetItem:
+    agent: bool = False
+    agent_llama: bool = False
+    agent_openai: bool = False
+    agent_provider: Optional[str] = None
+    agent_provider_openai: Optional[str] = None
+    ai_avatar: str = ""
+    ai_name: str = ""
+    ai_personalize: bool = False
+    assistant: bool = False
+    assistant_id: str = ""
+    audio: bool = False
+    chat: bool = False
+    completion: bool = False
+    computer: bool = False
+    description: str = ""
+    enabled: bool = True
+    expert: bool = False
+    experts: List[Any] = field(default_factory=list)  # agent mode
+    extra: Dict[str, Any] = field(default_factory=dict)
+    filename: Optional[str] = None
+    img: bool = False
+    idx: Optional[int] = None
+    langchain: bool = False
+    llama_index: bool = False
+    model: Optional[str] = None
+    name: str = "*"
+    prompt: str = ""
+    research: bool = False
+    remote_tools: List[Any] = field(default_factory=list)
+    temperature: float = 1.0
+    tools: Dict[str, Any] = field(default_factory=lambda: {"function": []})
+    uuid: Optional[str] = None
+    user_name: str = ""
+    version: Optional[str] = None
+    vision: bool = False
+
     def __init__(self):
         self.agent = False
         self.agent_llama = False

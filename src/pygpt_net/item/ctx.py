@@ -6,17 +6,89 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import copy
 import datetime
 import json
 import time
+
 from typing import Optional
+from dataclasses import dataclass, field
 
 
+@dataclass(slots=True)
 class CtxItem:
+    mode: Optional[str] = None
+    additional_ctx: list = field(default_factory=list)
+    agent_call: bool = False
+    agent_final_response: str = ""
+    async_disabled: bool = False
+    attachments: list = field(default_factory=list)
+    attachments_before: list = field(default_factory=list)
+    audio_expires_ts: int = 0
+    audio_id: Optional[object] = None
+    audio_output: Optional[object] = None
+    bag: Optional[object] = None
+    cmds: list = field(default_factory=list)
+    cmds_before: list = field(default_factory=list)
+    current: bool = False
+    doc_ids: list = field(default_factory=list)
+    external_id: Optional[object] = None
+    extra: dict = field(default_factory=dict)
+    extra_ctx: Optional[object] = None
+    files: list = field(default_factory=list)
+    files_before: list = field(default_factory=list)
+    first: bool = False
+    force_call: bool = False
+    hidden: bool = False
+    hidden_input: Optional[str] = None
+    hidden_output: Optional[str] = None
+    id: Optional[object] = None
+    idx: int = 0
+    images: list = field(default_factory=list)
+    images_before: list = field(default_factory=list)
+    index_meta: dict = field(default_factory=dict)
+    input: Optional[str] = None
+    input_name: Optional[str] = None
+    input_timestamp: Optional[int] = None
+    input_tokens: int = 0
+    internal: bool = False
+    is_audio: bool = False
+    is_vision: bool = False
+    live: bool = False
+    live_output: str = ""
+    meta: Optional["CtxMeta"] = None
+    meta_id: Optional[object] = None
+    model: Optional[object] = None
+    msg_id: Optional[object] = None
+    output: Optional[str] = None
+    output_name: Optional[str] = None
+    output_timestamp: Optional[int] = None
+    output_tokens: int = 0
+    partial: bool = False
+    pid: int = 0
+    prev_ctx: Optional["CtxItem"] = None
+    reply: bool = False
+    response: Optional[object] = None
+    results: list = field(default_factory=list)
+    run_id: Optional[object] = None
+    stopped: bool = False
+    stream: Optional[object] = None
+    stream_agent_output: bool = True
+    sub_call: bool = False
+    sub_calls: int = 0
+    sub_reply: bool = False
+    sub_tool_call: bool = False
+    thread: Optional[object] = None
+    tool_calls: list = field(default_factory=list)
+    total_tokens: int = 0
+    urls: list = field(default_factory=list)
+    urls_before: list = field(default_factory=list)
+    use_agent_final_response: bool = False
+    use_responses_api: bool = False
+    ai_name: Optional[str] = None
 
     def __init__(self, mode: Optional[str] = None):
         """
@@ -92,6 +164,7 @@ class CtxItem:
         self.urls_before = []
         self.use_agent_final_response = False  # use agent final response
         self.use_responses_api = False  # use responses API format
+        self.ai_name = None  # AI name
 
     @property
     def final_input(self) -> Optional[str]:
@@ -364,7 +437,6 @@ class CtxItem:
         self.urls = g("urls", [])
         self.urls_before = g("urls_before", [])
 
-
     def dump(self, dump: bool = True) -> str:
         """
         Dump context item to JSON string
@@ -392,7 +464,38 @@ class CtxItem:
         return self.dump(True)
 
 
+@dataclass(slots=True)
 class CtxMeta:
+    id: Optional[int] = None
+    additional_ctx: list = field(default_factory=list)
+    archived: bool = False
+    assistant: Optional[object] = None
+    created: int = field(default_factory=lambda: int(time.time()))
+    date: str = field(default_factory=lambda: datetime.datetime.now().strftime("%Y-%m-%d"))
+    deleted: bool = False
+    external_id: Optional[object] = None
+    extra: Optional[object] = None
+    group: Optional["CtxGroup"] = None
+    group_id: Optional[object] = None
+    important: bool = False
+    indexed: Optional[object] = None
+    indexes: dict = field(default_factory=dict)
+    initialized: bool = False
+    label: int = 0
+    last_mode: Optional[object] = None
+    last_model: Optional[object] = None
+    model: Optional[object] = None
+    mode: Optional[object] = None
+    name: Optional[str] = None
+    owner_uuid: Optional[object] = None
+    parent_id: Optional[object] = None
+    preset: Optional[object] = None
+    root_id: Optional[object] = None
+    run: Optional[object] = None
+    status: Optional[object] = None
+    thread: Optional[object] = None
+    updated: int = field(default_factory=lambda: int(time.time()))
+    uuid: Optional[object] = None
 
     def __init__(self, id: Optional[int] = None):
         """
@@ -592,7 +695,17 @@ class CtxMeta:
         """
         return self.dump()
 
+
+@dataclass(slots=True)
 class CtxGroup:
+    id: Optional[int] = None
+    name: Optional[str] = None
+    additional_ctx: list = field(default_factory=list)
+    count: int = 0
+    created: int = field(default_factory=lambda: int(time.time()))
+    items: list = field(default_factory=list)
+    updated: int = field(default_factory=lambda: int(time.time()))
+    uuid: Optional[object] = None
 
     def __init__(self, id: Optional[int] = None, name: Optional[str] = None):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import json
@@ -65,16 +65,13 @@ class Viewer:
         limit_clause = f" LIMIT {limit} OFFSET {offset}"
 
         params = {}
-        if search_query:
-            search_clauses = [f"{column} LIKE :search_query" for column in search_fields]
-            where_clause = f" WHERE ({' OR '.join(search_clauses)})"
-            params['search_query'] = f"%{search_query}%"
+        if search_query is not None:
+            sq = search_query.strip()
+            if sq:
+                search_clauses = [f"{column} LIKE :search_query" for column in search_fields]
+                where_clause = f" WHERE ({' OR '.join(search_clauses)})"
+                params['search_query'] = f"%{sq}%"
 
-        # apply filters
-        # filters = {
-        #     "column1": "value1",
-        #     "column2": "value2"  # AND condition
-        # }
         if filters:
             filter_clauses = [f"{column} = :filter_{column}" for column in filters.keys()]
             if where_clause == "":
@@ -82,13 +79,13 @@ class Viewer:
             else:
                 where_clause += f" AND ({' AND '.join(filter_clauses)})"
             for column, value in filters.items():
-                params[f"filter_{column}"] = value  # filter placeholder prefixed with 'filter_'
+                params[f"filter_{column}"] = value
 
         query = f"{base_query}{where_clause}{order_clause}{limit_clause}"
         stmt = text(query).bindparams(**params)
         with self.database.get_db().connect() as conn:
             result = conn.execute(stmt).fetchall()
-            return result
+            return [tuple(r) for r in result]
 
     def count_rows(
             self,
@@ -116,15 +113,12 @@ class Viewer:
         else:
             search_fields = tables[table]['search_fields']
 
-        if search_query:
-            where_clause = f" WHERE {' OR '.join([f'{column} LIKE :search_query' for column in search_fields])}"
-            params['search_query'] = f"%{search_query}%"
+        if search_query is not None:
+            sq = search_query.strip()
+            if sq:
+                where_clause = f" WHERE {' OR '.join([f'{column} LIKE :search_query' for column in search_fields])}"
+                params['search_query'] = f"%{sq}%"
 
-        # apply filters
-        # filters = {
-        #     "column1": "value1",
-        #     "column2": "value2"  # AND condition
-        # }
         if filters:
             filter_clauses = [f"{column} = :filter_{column}" for column in filters.keys()]
             if where_clause == "":
@@ -132,13 +126,13 @@ class Viewer:
             else:
                 where_clause += f" AND ({' AND '.join(filter_clauses)})"
             for column, value in filters.items():
-                params[f"filter_{column}"] = value  # filter placeholder prefixed with 'filter_'
+                params[f"filter_{column}"] = value
 
         query = f"{base_query}{where_clause}"
         stmt = text(query).bindparams(**params)
         with self.database.get_db().connect() as conn:
             count = conn.execute(stmt).scalar()
-            return count
+            return int(count) if count is not None else 0
 
     def is_auto_backup(self) -> bool:
         """
@@ -154,14 +148,12 @@ class Viewer:
 
         :param data: Dictionary with table and row_id keys
         """
-        # create backup
         if self.is_auto_backup():
             backup_path = self.database.make_backup()
             if backup_path:
                 msg = f"[DB] Created DB backup: {backup_path}"
                 self.log(msg)
 
-        # delete row
         with self.database.get_db().begin() as conn:
             conn.execute(
                 text(f"DELETE FROM {data['table']} WHERE id = :row_id")
@@ -184,35 +176,30 @@ class Viewer:
         timestamp_columns = tables[data['table']]['timestamp_columns']
         primary_key = tables[data['table']]['primary_key']
 
-        # check JSON
         if field in json_columns or field.endswith("_json"):
             try:
-                value = json.dumps(json.loads(value))  # validate and pack JSON
+                value = json.dumps(json.loads(value))
             except:
                 raise ValueError(f"Invalid JSON value for column {field}")
 
-        # check timestamp
         if field in timestamp_columns or field.endswith("_ts"):
             try:
                 value = int(value)
             except:
                 raise ValueError(f"Invalid timestamp value for column {field}")
 
-        # check foreign id field
         if field.endswith("_id"):
             try:
                 value = int(value)
             except:
                 raise ValueError(f"Invalid _id value for column {field}")
 
-        # create backup
         if self.is_auto_backup():
             backup_path = self.database.make_backup()
             if backup_path:
                 msg = f"[DB] Created DB backup: {backup_path}"
                 self.log(msg)
 
-        # update row
         with self.database.get_db().begin() as conn:
             conn.execute(
                 text(f"UPDATE {data['table']} SET {data['field']} = :value WHERE {primary_key} = :id")
@@ -229,17 +216,15 @@ class Viewer:
         :param data: Dictionary with table key
         :param reset: Reset table sequence
         """
-        # create backup
         if self.is_auto_backup():
             backup_path = self.database.make_backup()
             if backup_path:
                 msg = f"[DB] Created DB backup: {backup_path}"
                 self.log(msg)
 
-        # truncate table
         with self.database.get_db().begin() as conn:
             conn.execute(text(f"DELETE FROM {data['table']}"))
-            if reset:  # reset table sequence (autoincrement)
+            if reset:
                 conn.execute(text(f"DELETE FROM sqlite_sequence WHERE name='{data['table']}'"))
                 msg = f"[DB] Truncated table {data['table']}"
             else:

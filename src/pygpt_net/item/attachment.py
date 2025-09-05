@@ -6,34 +6,33 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import json
+from dataclasses import dataclass, field
+from typing import Optional
 
 
+@dataclass(slots=True)
 class AttachmentItem:
 
     TYPE_FILE = 'file'
     TYPE_URL = 'url'
 
-    def __init__(self):
-        """
-        Attachment item
-        """
-        self.name = None
-        self.id = None
-        self.uuid = None
-        self.path = None
-        self.remote = None
-        self.vector_store_ids = []
-        self.meta_id = None
-        self.ctx = False
-        self.consumed = False
-        self.size = 0
-        self.send = False
-        self.type = self.TYPE_FILE
-        self.extra = {}
+    name: Optional[str] = None
+    id: Optional[str] = None
+    uuid: Optional[str] = None
+    path: Optional[str] = None
+    remote: Optional[str] = None
+    vector_store_ids: list = field(default_factory=list)
+    meta_id: Optional[int] = None
+    ctx: bool = False
+    consumed: bool = False
+    size: int = 0
+    send: bool = False
+    type: str = TYPE_FILE
+    extra: dict = field(default_factory=dict)
 
     def serialize(self) -> dict:
         """
@@ -72,8 +71,10 @@ class AttachmentItem:
             self.path = data['path']
         if 'size' in data:
             self.size = data['size']
-        if 'remote_id' in data:
+        if 'remote' in data:
             self.remote = data['remote']
+        elif 'remote_id' in data:
+            self.remote = data['remote_id']
         if 'ctx' in data:
             self.ctx = data['ctx']
         if 'vector_store_ids' in data:

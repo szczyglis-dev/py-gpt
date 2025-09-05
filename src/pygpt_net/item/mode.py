@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
+from dataclasses import dataclass
+from typing import Optional
 
+
+@dataclass(slots=True)
 class ModeItem:
-
-    def __init__(self):
-        self.id = None
-        self.name = ""
-        self.label = ""
+    id: Optional[object] = None
+    name: str = ""
+    label: str = ""
+    default: bool = False

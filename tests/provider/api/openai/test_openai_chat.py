@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import time
@@ -68,7 +68,6 @@ def dummy_ctx():
     ctx = CtxItem()
     ctx.input_name = "user"
     ctx.output_name = "assistant"
-    ctx.set_tokens = MagicMock()
     return ctx
 
 @pytest.fixture
@@ -138,7 +137,9 @@ def test_unpack_response_completion(dummy_window, dummy_ctx):
     response = SimpleNamespace(choices=[SimpleNamespace(text=" output text ")], usage=SimpleNamespace(prompt_tokens=1, completion_tokens=2))
     chat.unpack_response("completion", response, dummy_ctx)
     assert dummy_ctx.output == "output text"
-    dummy_ctx.set_tokens.assert_called_with(1, 2)
+    assert dummy_ctx.input_tokens == 1
+    assert dummy_ctx.output_tokens == 2
+    assert dummy_ctx.total_tokens == 3
 
 def test_unpack_response_chat_no_tool(dummy_window, dummy_ctx):
     msg = SimpleNamespace(content=" chat output ", tool_calls=None)
@@ -147,7 +148,9 @@ def test_unpack_response_chat_no_tool(dummy_window, dummy_ctx):
     chat = Chat(window=dummy_window)
     chat.unpack_response("chat", response, dummy_ctx)
     assert dummy_ctx.output == "chat output"
-    dummy_ctx.set_tokens.assert_called_with(3, 4)
+    assert dummy_ctx.input_tokens == 3
+    assert dummy_ctx.output_tokens == 4
+    assert dummy_ctx.total_tokens == 7
 
 def test_unpack_response_chat_with_tool(dummy_window, dummy_ctx):
     msg = SimpleNamespace(content=" chat output ", tool_calls=[{"dummy": "call"}])
@@ -157,7 +160,9 @@ def test_unpack_response_chat_with_tool(dummy_window, dummy_ctx):
     chat.unpack_response("chat", response, dummy_ctx)
     assert dummy_ctx.output == "chat output"
     assert dummy_ctx.tool_calls == ["unpacked_tool"]
-    dummy_ctx.set_tokens.assert_called_with(5, 6)
+    assert dummy_ctx.input_tokens == 5
+    assert dummy_ctx.output_tokens == 6
+    assert dummy_ctx.total_tokens == 11
 
 def test_unpack_response_audio_with_audio(dummy_window, dummy_ctx):
     audio = SimpleNamespace(data="audio_data", id="audio123", expires_at=999999, transcript=" audio transcript ")
@@ -175,7 +180,9 @@ def test_unpack_response_audio_with_audio(dummy_window, dummy_ctx):
     assert dummy_ctx.is_audio is True
     assert chat.audio_prev_id == "audio123"
     assert chat.audio_prev_expires_ts == 999999
-    dummy_ctx.set_tokens.assert_called_with(7, 8)
+    assert dummy_ctx.input_tokens == 7
+    assert dummy_ctx.output_tokens == 8
+    assert dummy_ctx.total_tokens == 15
 
 def test_unpack_response_audio_without_audio(dummy_window, dummy_ctx):
     msg = SimpleNamespace(audio=None, content=" fallback audio content ", tool_calls=None)
@@ -188,4 +195,6 @@ def test_unpack_response_audio_without_audio(dummy_window, dummy_ctx):
     assert dummy_ctx.output == " fallback audio content "
     assert dummy_ctx.audio_id == "prev_audio"
     assert dummy_ctx.audio_expires_ts == 888888
-    dummy_ctx.set_tokens.assert_called_with(9, 10)
+    assert dummy_ctx.input_tokens == 9
+    assert dummy_ctx.output_tokens == 10
+    assert dummy_ctx.total_tokens == 19

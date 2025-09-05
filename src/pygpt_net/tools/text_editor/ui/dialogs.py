@@ -47,7 +47,7 @@ class DialogSpawner:
             lambda: self.window.tools.get("editor").restore(id)
         )
         self.window.ui.nodes['editor.custom.btn.save'].clicked.connect(
-            lambda: self.window.tools.get("editor").save(id)
+            lambda: self.window.tools.get("editor").save(id, close=True)
         )
 
         bottom_layout = QHBoxLayout()

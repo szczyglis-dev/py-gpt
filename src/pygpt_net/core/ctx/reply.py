@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from dataclasses import dataclass, field
 
 
+@dataclass(slots=True)
 class ReplyContext:
 
     AGENT_CONTINUE = "agent.continue"
@@ -20,6 +22,15 @@ class ReplyContext:
     CMD_EXECUTE_FORCE = "cmd.execute.force"
     EXPERT_CALL = "expert.call"
     EXPERT_RESPONSE = "expert.response"
+
+    type: Optional[object] = None
+    bridge_context: Optional[object] = None
+    ctx: Optional[object] = None
+    prev_ctx: Optional[object] = None
+    parent_id: Optional[object] = None
+    input: str = ""
+    internal: bool = False
+    cmds: list = field(default_factory=list)
 
     def __init__(self):
         """Reply context"""
@@ -55,7 +66,11 @@ class ReplyContext:
             data["prev_ctx"] = self.prev_ctx.to_dict()
         return data
 
+
+@dataclass(slots=True)
 class Reply:
+    window: Optional[object] = None
+
     def __init__(self, window=None):
         """
         Reply core

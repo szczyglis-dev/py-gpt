@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.27 07:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import os
@@ -231,7 +231,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def update(self):
         """Called on every update (real-time)"""
-        self.controller.on_update()
+        # self.controller.on_update()
         self.controller.plugins.on_update()
         self.tools.on_update()
 
@@ -254,8 +254,13 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param message: status message
         """
-        message = message if isinstance(message, str) else str(message)
-        self.dispatch(KernelEvent(KernelEvent.STATUS, {"status": message}))
+        self.dispatch(
+            KernelEvent(
+                KernelEvent.STATUS, {
+                    "status": message if isinstance(message, str) else str(message)
+                }
+            )
+        )
 
     @Slot(str)
     def update_state(self, state: str):

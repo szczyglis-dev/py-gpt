@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QScrollArea, QWidget, QSizePolicy
@@ -47,87 +47,85 @@ class Dictionary(BaseConfigDialog):
 
     def setup(self):
         """Setup dictionary editor dialogs"""
-        for dict_id in self.dicts:
-            parent_id = self.id + "." + dict_id
+        ui = self.window.ui
+        controller = self.window.controller
+        save_text = trans("dialog.preset.btn.save")
+        dismiss_text = trans("dialog.rename.dismiss")
+        edit_title = trans('action.edit')
+
+        for dict_id, data in self.dicts.items():
+            parent_id = f"{self.id}.{dict_id}"
             option_key = self.keys[dict_id]
             parent = self.parents[dict_id]
-            data = self.dicts[dict_id]
-            self.window.ui.config[parent_id] = {}
+            ui.config[parent_id] = {}
 
-            # widgets
             fields = {}
-
-            # option type: dict
             if data["type"] == 'dict':
-                fields = self.window.controller.config.dictionary.to_options(
+                fields = controller.config.dictionary.to_options(
                     parent_id,
                     data,
-                )  # item to options
-
-            # option type: cmd
+                )
             elif data["type"] == 'cmd':
-                fields = self.window.controller.config.cmd.to_options(
+                fields = controller.config.cmd.to_options(
                     parent_id,
                     data,
-                )  # item to options
+                )
 
             widgets = self.build_widgets(
                 parent_id,
                 fields,
                 stretch=True,
-            )  # from base config dialog
+            )
+            ui.config[parent_id] = widgets
 
-            for key in widgets:
-                self.window.ui.config[parent_id][key] = widgets[key]
-
-            # apply widgets to layouts
-            options = {}
-            is_stretch = False
-            for key in widgets:
-                if fields[key]["type"] == 'int' or fields[key]["type"] == 'float':
-                    options[key] = self.add_option(widgets[key], fields[key])
-                elif fields[key]["type"] == 'text' or fields[key]["type"] == 'textarea':
-                    options[key] = self.add_row_option(widgets[key], fields[key])
-                elif fields[key]["type"] == 'bool':
-                    options[key] = self.add_raw_option(widgets[key], fields[key])
-                elif fields[key]["type"] == 'dict':
-                    options[key] = self.add_row_option(widgets[key], fields[key])
-                elif fields[key]["type"] == 'combo':
-                    options[key] = self.add_row_option(widgets[key], fields[key])
-
-                # stretch all only if textarea is present
-                if fields[key]["type"] == 'textarea':
-                    is_stretch = True
+            add_option = self.add_option
+            add_row_option = self.add_row_option
+            add_raw_option = self.add_raw_option
 
             rows = QVBoxLayout()
-            for key in options:
-                rows.addLayout(options[key])
+            has_textarea = False
 
-            if not is_stretch:
+            for k, f in fields.items():
+                t = f.get("type")
+                w = widgets.get(k)
+                if t in ('int', 'float'):
+                    row = add_option(w, f)
+                elif t in ('text', 'textarea', 'dict', 'combo'):
+                    row = add_row_option(w, f)
+                elif t == 'bool':
+                    row = add_raw_option(w, f)
+                else:
+                    continue
+                rows.addLayout(row)
+                if t == 'textarea':
+                    has_textarea = True
+
+            if not has_textarea:
                 rows.addStretch()
 
-            # footer
-            self.window.ui.nodes[parent_id + '.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
-            self.window.ui.nodes[parent_id + '.btn.save'].clicked.connect(
+            save_key = f"{parent_id}.btn.save"
+            dismiss_key = f"{parent_id}.btn.dismiss"
+
+            ui.nodes[save_key] = QPushButton(save_text)
+            ui.nodes[save_key].clicked.connect(
                 lambda checked=True, option_key=option_key, parent=parent, fields=fields:
-                self.window.controller.config.dictionary.save_editor(
+                controller.config.dictionary.save_editor(
                     option_key,
                     parent,
                     fields,
                 ))
-            self.window.ui.nodes[parent_id + '.btn.save'].setAutoDefault(True)
+            ui.nodes[save_key].setAutoDefault(True)
 
-            self.window.ui.nodes[parent_id + '.btn.dismiss'] = QPushButton(trans("dialog.rename.dismiss"))
-            self.window.ui.nodes[parent_id + '.btn.dismiss'].clicked.connect(
-                lambda checked=True, parent_id=parent_id: self.window.ui.dialogs.close('editor.' + parent_id)
+            ui.nodes[dismiss_key] = QPushButton(dismiss_text)
+            ui.nodes[dismiss_key].clicked.connect(
+                lambda checked=True, pid=parent_id: ui.dialogs.close(f'editor.{pid}')
             )
-            self.window.ui.nodes[parent_id + '.btn.dismiss'].setAutoDefault(False)
+            ui.nodes[dismiss_key].setAutoDefault(False)
 
             footer = QHBoxLayout()
-            footer.addWidget(self.window.ui.nodes[parent_id + '.btn.dismiss'])
-            footer.addWidget(self.window.ui.nodes[parent_id + '.btn.save'])
+            footer.addWidget(ui.nodes[dismiss_key])
+            footer.addWidget(ui.nodes[save_key])
 
-            # scroll area
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
             scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -138,10 +136,10 @@ class Dictionary(BaseConfigDialog):
             widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
             layout = QVBoxLayout()
-            layout.addWidget(scroll)  # options
-            layout.addLayout(footer)  # footer
+            layout.addWidget(scroll)
+            layout.addLayout(footer)
 
-            # dialog
-            self.window.ui.dialog['editor.' + parent_id] = EditorDialog(self.window, parent_id)  # current idx here
-            self.window.ui.dialog['editor.' + parent_id].setLayout(layout)
-            self.window.ui.dialog['editor.' + parent_id].setWindowTitle(trans('action.edit'))
+            dialog_key = f'editor.{parent_id}'
+            ui.dialog[dialog_key] = EditorDialog(self.window, parent_id)
+            ui.dialog[dialog_key].setLayout(layout)
+            ui.dialog[dialog_key].setWindowTitle(edit_title)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -16,7 +16,6 @@ from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
     QSplitter, QSizePolicy
 
-from pygpt_net.item.model import ModelItem
 from pygpt_net.ui.widget.dialog.model import ModelDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
 from pygpt_net.ui.widget.element.labels import UrlLabel, DescLabel
@@ -56,13 +55,17 @@ class Models:
             QPushButton(trans("dialog.models.editor.btn.save"))
 
         self.window.ui.nodes['models.editor.btn.new'].clicked.connect(
-            lambda: self.window.controller.model.editor.new())
+            lambda: self.window.controller.model.editor.new()
+        )
         self.window.ui.nodes['models.editor.btn.defaults.user'].clicked.connect(
-            lambda: self.window.controller.model.editor.load_defaults_user())
+            lambda: self.window.controller.model.editor.load_defaults_user()
+        )
         self.window.ui.nodes['models.editor.btn.defaults.app'].clicked.connect(
-            lambda: self.window.controller.model.editor.load_defaults_app())
+            lambda: self.window.controller.model.editor.load_defaults_app()
+        )
         self.window.ui.nodes['models.editor.btn.save'].clicked.connect(
-            lambda: self.window.controller.model.editor.save())
+            lambda: self.window.controller.model.editor.save()
+        )
 
         # set enter key to save button
         self.window.ui.nodes['models.editor.btn.new'].setAutoDefault(False)
@@ -111,17 +114,16 @@ class Models:
         # append advanced options at the end
         if len(advanced_keys) > 0:
             group_id = 'models.editor.advanced'
-            self.window.ui.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
-            self.window.ui.groups[group_id].box.setText(trans('settings.advanced.collapse'))
+            group = CollapsedGroup(self.window, group_id, None, False, None)
+            group.box.setText(trans('settings.advanced.collapse'))
             for key in widgets:
                 if key not in advanced_keys:  # ignore non-advanced options
                     continue
-
-                option = self.add_option(widgets[key], options[key])  # build option
-                self.window.ui.groups[group_id].add_layout(option)  # add option to group
+                group.add_layout(self.add_option(widgets[key], options[key]))  # add option to group
 
             # add advanced options group to scroll
-            content.addWidget(self.window.ui.groups[group_id])
+            content.addWidget(group)
+            self.window.ui.groups[group_id] = group
 
         content.addStretch()
 

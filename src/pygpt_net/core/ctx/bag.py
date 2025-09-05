@@ -6,16 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from typing import List
+from dataclasses import dataclass, field
 
 from pygpt_net.item.ctx import CtxItem
 
 
+@dataclass(slots=True)
 class Bag:
-    __slots__ = ('window', 'meta', 'tab_id', 'items')
+    window: object = None
+    meta: object = None
+    tab_id: int = 0
+    items: List[CtxItem] = field(default_factory=list)
 
     def __init__(self, window=None):
         """

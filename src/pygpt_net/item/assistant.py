@@ -6,16 +6,33 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 22:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import json
 import time
+from dataclasses import dataclass, field
+from typing import Optional
 
 from pygpt_net.item.attachment import AttachmentItem
 
 
+@dataclass(slots=True)
 class AssistantItem:
+    id: Optional[object] = None
+    name: Optional[object] = None
+    description: Optional[object] = None
+    instructions: Optional[object] = None
+    model: Optional[object] = None
+    meta: dict = field(default_factory=dict)
+    files: dict = field(default_factory=dict)
+    attachments: dict = field(default_factory=dict)
+    vector_store: str = ""
+    tools: dict = field(default_factory=lambda: {
+        "code_interpreter": False,
+        "file_search": False,
+        "function": [],
+    })
 
     def __init__(self):
         """Assistant item"""
@@ -203,7 +220,26 @@ class AssistantItem:
         return self.dump()
 
 
+@dataclass(slots=True)
 class AssistantStoreItem:
+    id: Optional[object] = None
+    record_id: Optional[object] = None
+    uuid: Optional[object] = None
+    name: Optional[object] = None
+    description: Optional[object] = None
+    status: dict = field(default_factory=dict)
+    last_status: str = ""
+    expire_days: int = 0
+    usage_bytes: int = 0
+    bytes: int = 0
+    num_files: int = 0
+    is_thread: bool = False
+    created: int = 0
+    updated: int = 0
+    last_active: int = 0
+    last_sync: int = 0
+    file_ids: list = field(default_factory=list)
+
     def __init__(self):
         """Assistant vector store item"""
         self.id = None
@@ -300,7 +336,20 @@ class AssistantStoreItem:
         return self.dump()
 
 
+@dataclass(slots=True)
 class AssistantFileItem:
+    id: Optional[object] = None
+    record_id: Optional[object] = None
+    name: Optional[object] = None
+    path: Optional[object] = None
+    file_id: Optional[object] = None
+    store_id: Optional[object] = None
+    thread_id: Optional[object] = None
+    uuid: Optional[object] = None
+    size: int = 0
+    created: int = 0
+    updated: int = 0
+
     def __init__(self):
         """Assistant file item"""
         self.id = None

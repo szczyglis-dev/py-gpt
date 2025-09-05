@@ -183,16 +183,19 @@ class TextEditor(BaseTool):
         self.window.core.filesystem.editor.destroy(id)  # unregister from memory
         self.window.ui.dialogs.close(id)
 
-    def save(self, id: str) -> str:
+    def save(self, id: str, close: bool = False) -> str:
         """
         Save content to current file
 
         :param id: editor id
+        :param close: close editor after save
         :return: new editor id
         """
         file = self.window.ui.dialog[id].file
         if file:
             self.window.core.filesystem.editor.save(id)
+            if close:
+                self.close(id)
         else:
             id = self.save_as_file(id)
         return id

@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 from typing import Dict, Any, Optional
+from dataclasses import dataclass, field
 
 
+@dataclass(slots=True)
 class Tab:
 
     # types
@@ -23,6 +25,27 @@ class Tab:
     TAB_TOOL_PAINTER = 3
     TAB_TOOL_CALENDAR = 4
     TAB_TOOL = 100
+
+    uuid: Optional[str] = None
+    pid: Optional[int] = None
+    idx: Optional[int] = 0
+    type: Optional[int] = TAB_CHAT
+    title: Optional[str] = ""
+    icon: Optional[str] = None
+    tooltip: Optional[str] = None
+    data_id: Optional[str] = None
+    new_idx: Optional[int] = None
+    custom_name: Optional[bool] = False
+    child: Optional[Any] = None
+    parent: Optional[Any] = None
+    column_idx: Optional[int] = 0
+    tool_id: Optional[str] = None
+    on_delete: Optional[callable] = None
+
+    loaded: bool = False
+    refs: list = field(default_factory=list)
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
 
     def __init__(
             self,

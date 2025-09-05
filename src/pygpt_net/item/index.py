@@ -6,13 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import json
+from dataclasses import dataclass, field
+from typing import Optional
 
 
+@dataclass(slots=True)
 class IndexItem:
+    id: Optional[object] = None
+    name: Optional[object] = None
+    store: Optional[object] = None
+    items: dict = field(default_factory=dict)
 
     def __init__(self):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QTimer, QRect, Signal, QUrl, QEvent
@@ -50,7 +50,7 @@ class ChatStatusLabel(QLabel):
     def __init__(self, text, window=None):
         super().__init__(text, window)
         self.window = window
-        self.setWordWrap(True)
+        self.setWordWrap(False)
         self.setAlignment(Qt.AlignRight)
         self.setProperty('class', 'label-chat-status')
         self.setTextInteractionFlags(Qt.TextSelectableByMouse)

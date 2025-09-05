@@ -6,15 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
-from pygpt_net.item.attachment import AttachmentItem
+import pygpt_net.item.attachment as attachment_mod
 
 
 def test_integrity():
     """Test AttachmentItem integrity"""
-    item = AttachmentItem()
+    item = attachment_mod.AttachmentItem()
 
     assert item.name is None
     assert item.id is None

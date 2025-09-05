@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import os
@@ -108,7 +108,7 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :return: updated system prompt
         """
-        if self.get_option_value("auto_cwd"):
+        if self.get_option_value("auto_cwd") and self.window.core.command.is_cmd(inline=False):
             prompt += "\n\nCURRENT WORKING DIRECTORY: " + self.window.core.config.get_user_dir('data')
         return prompt
 

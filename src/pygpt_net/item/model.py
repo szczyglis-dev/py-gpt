@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import json
 from typing import Optional
+from dataclasses import dataclass, field
 
 from pygpt_net.core.types import (
     MODE_CHAT,
@@ -22,7 +23,23 @@ from pygpt_net.core.types import (
     MULTIMODAL_VIDEO,
 )
 
+@dataclass(slots=True)
 class ModelItem:
+    id: Optional[str] = None
+    ctx: int = 0
+    default: bool = False
+    extra: dict = field(default_factory=dict)
+    imported: bool = False
+    input: list = field(default_factory=lambda: ["text"])
+    langchain: dict = field(default_factory=dict)
+    llama_index: dict = field(default_factory=dict)
+    mode: list = field(default_factory=lambda: ["chat"])
+    multimodal: list = field(default_factory=lambda: ["text"])
+    name: Optional[str] = None
+    output: list = field(default_factory=lambda: ["text"])
+    provider: str = "openai"
+    tokens: int = 0
+    tool_calls: bool = False
 
     def __init__(self, id: Optional[str] = None):
         """
@@ -79,7 +96,7 @@ class ModelItem:
             self.tokens = data['tokens']
         if 'tool_calls' in data:
             self.tool_calls = data['tool_calls']
-        
+
         # llama index
         if 'llama_index.provider' in data:
             self.llama_index['provider'] = data['llama_index.provider']  # backward compatibility < v2.5.20

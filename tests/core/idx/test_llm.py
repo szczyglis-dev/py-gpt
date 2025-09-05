@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 00:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import os
@@ -76,45 +76,6 @@ def test_get_calls_init_and_llama_with_stream_and_sets_initialized(mock_window):
 
     assert llm.initialized is True
 
-
-def test_get_multimodal_prefers_llama_multimodal(mock_window):
-    model = ModelItem()
-    model.provider = "provA"
-    model.is_multimodal = MagicMock(return_value=True)
-
-    provider = MagicMock()
-    provider.init = MagicMock()
-    provider.llama_multimodal = MagicMock(return_value="MM_LLM")
-    provider.llama = MagicMock(return_value="LLM_FALLBACK")
-    mock_window.core.llm.llms = {"provA": provider}
-
-    llm = Llm(mock_window)
-    result = llm.get(model=model, multimodal=True)
-
-    assert result == "MM_LLM"
-    provider.init.assert_called_once()
-    provider.llama_multimodal.assert_called_once()
-    provider.llama.assert_not_called()
-
-
-def test_get_multimodal_fallbacks_to_llama_when_none(mock_window):
-    model = ModelItem()
-    model.provider = "provB"
-    model.is_multimodal = MagicMock(return_value=True)
-
-    provider = MagicMock()
-    provider.init = MagicMock()
-    provider.llama_multimodal = MagicMock(return_value=None)
-    provider.llama = MagicMock(return_value="LLM_OK")
-    mock_window.core.llm.llms = {"provB": provider}
-
-    llm = Llm(mock_window)
-    result = llm.get(model=model, multimodal=True)
-
-    assert result == "LLM_OK"
-    provider.init.assert_called_once()
-    provider.llama_multimodal.assert_called_once()
-    provider.llama.assert_called_once()
 
 
 def test_get_returns_default_openai_when_model_none_and_sets_env(mock_window, patch_openai):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 23:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -503,7 +503,7 @@ class Importer:
                 return models
             else:
                 for model in ollama_models:
-                    name = model.get('name').replace(":latest", "")
+                    name = model.get('name')
                     m = self.window.core.models.create_empty(append=False)
                     m.id = name
                     m.name = name
@@ -541,6 +541,13 @@ class Importer:
                 base_models[key] = copy.deepcopy(self.pending[key])
                 base_models[key].imported = True
                 added = True
+            else:
+                # add provider suffix - to key
+                new_key = f"{key}-{self.provider}"
+                if new_key not in base_models:
+                    base_models[new_key] = copy.deepcopy(self.pending[key])
+                    base_models[new_key].imported = True
+                    added = True
         for key in list(self.removed.keys()):
             if key in base_models:
                 del base_models[key]

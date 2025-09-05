@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
@@ -45,7 +45,8 @@ class Editor:
             lambda: self.window.controller.settings.editor.load_editor_defaults_app()
         )
         self.window.ui.nodes['editor.btn.save'].clicked.connect(
-            lambda: self.window.core.settings.save_editor())
+            lambda: self.window.core.settings.save_editor()
+        )
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['editor.btn.default'])

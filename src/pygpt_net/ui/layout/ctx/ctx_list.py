@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -210,7 +210,7 @@ class CtxList:
                 files_str = ", ".join(files)
                 if len(files_str) > 40:
                     files_str = files_str[:40] + '...'
-                tooltip_str = trans("attachments.ctx.tooltip.list").format(num=len(files)) + ": " + files_str
+                tooltip_str = f"{trans('attachments.ctx.tooltip.list').format(num=len(files))}: {files_str}"
                 group_item.setToolTip(tooltip_str)
 
             group_item.setData(custom_data, QtCore.Qt.ItemDataRole.UserRole)
@@ -282,8 +282,7 @@ class CtxList:
             files_str = ", ".join(files)
             if len(files_str) > 40:
                 files_str = files_str[:40] + '...'
-            tooltip_str = trans("attachments.ctx.tooltip.list").format(num=len(files)) + ": " + files_str
-            tooltip_text += "\n" + tooltip_str
+            tooltip_text += f"\n{trans('attachments.ctx.tooltip.list').format(num=len(files))}: {files_str}"
 
         item = Item(name, id)
         item.id = id

@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import os
 from unittest.mock import MagicMock, patch, mock_open
 
-from pygpt_net.item.attachment import AttachmentItem
+import pygpt_net.item.attachment as attachment_mod
 from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -159,10 +159,12 @@ def test_upload(mock_window):
     ctx = CtxItem()
     meta = CtxMeta()
     ctx.meta = meta
-    attachment = AttachmentItem()
-    attachment.uuid = "test_uuid"
-    attachment.name = "test_name"
-    attachment.path = "test_path"
+    attachment = attachment_mod.AttachmentItem()
+    attachment.deserialize({
+        "uuid": "test_uuid",
+        "name": "test_name",
+        "path": "test_path",
+    })
     with patch("os.makedirs", return_value=True), \
             patch('os.path.getsize', return_value=123):
         with patch('builtins.open', mock_open()) as mock_file:
@@ -179,7 +181,7 @@ def test_upload(mock_window):
                 auto_index=False,
                 real_path = "test_real_path"
             )
-            assert result["name"] == "test_path"  # basename(path)
+            assert result["name"] == "test_path"
             assert result["type"] == "local_file"
             assert result["path"] == "test_path"
             assert result["real_path"] == "test_real_path"
@@ -188,9 +190,11 @@ def test_upload(mock_window):
 
 def test_read_content(mock_window):
     """Test read_content"""
-    attachment = AttachmentItem()
-    attachment.path = "test_path"
-    attachment.type = "file"
+    attachment = attachment_mod.AttachmentItem()
+    attachment.deserialize({
+        "path": "test_path",
+        "type": attachment_mod.AttachmentItem.TYPE_FILE,
+    })
     mock_window.core.idx.indexing.read_text_content = MagicMock(return_value=("test_content", []))
     context = Context(mock_window)
     result, _ = context.read_content(attachment, "test_path", "test_prompt")
@@ -199,9 +203,11 @@ def test_read_content(mock_window):
 
 def test_store_content(mock_window):
     """Test store_content"""
-    attachment = AttachmentItem()
-    attachment.path = "test_path"
-    attachment.type = "url"
+    attachment = attachment_mod.AttachmentItem()
+    attachment.deserialize({
+        "path": "test_path",
+        "type": attachment_mod.AttachmentItem.TYPE_URL,
+    })
     mock_window.core.idx.indexing.read_web_content = MagicMock(return_value=("test_content", []))
     with patch("os.path.exists", return_value=True), \
             patch('os.remove', return_value=True):

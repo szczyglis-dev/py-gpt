@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import json
@@ -162,7 +162,7 @@ class JsonFileProvider(BaseProvider):
             attachment.name = data['name']
         if 'path' in data:
             attachment.path = data['path']
-        if 'remote_id' in data:
+        if 'remote' in data:
             attachment.remote = data['remote']
         if 'send' in data:
             attachment.send = data['send']

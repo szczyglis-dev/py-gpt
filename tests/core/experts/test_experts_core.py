@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import json
@@ -314,8 +314,8 @@ def test_reply(fake_window):
     ctx.meta = MagicMock(preset="expReply")
     ctx.sub_reply = False
     # dummy implementations for to_dict and from_dict
-    ctx.to_dict = lambda: {"output": ctx.output, "meta": ctx.meta, "input": "Expert input"}
-    ctx.from_dict = lambda data: None
+#    ctx.to_dict = lambda: {"output": ctx.output, "meta": ctx.meta, "input": "Expert input"}
+#   ctx.from_dict = lambda data: None
 
     experts = Experts(window=fake_window)
     experts.reply(ctx)
@@ -351,8 +351,8 @@ def test_handle_cmd(fake_window):
     ctx.output = "cmd result"
     ctx.input = "input text"
     ctx.cmds = []
-    ctx.from_previous = lambda: None
-    ctx.to_dict = lambda: {"output": ctx.output, "input": ctx.input}
+#    ctx.from_previous = lambda: None
+#   ctx.to_dict = lambda: {"output": ctx.output, "input": ctx.input}
     # override handle_response to capture the call.
     experts.handle_response = MagicMock()
     experts.handle_cmd(ctx, master_ctx, "expCmd", "Expert Cmd", "cmd result")

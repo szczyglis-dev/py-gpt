@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -31,6 +31,7 @@ class Debug(QObject):
         self.is_logger = False  # logger window opened
         self.is_app_log = False  # app log window opened
         self.allow_level_change = False  # allow changing log level
+        self._ids = None
 
     def update(self):
         """Update debug"""
@@ -100,12 +101,11 @@ class Debug(QObject):
 
         :param all: update all debug windows
         """
-        # not_realtime = ['context']
-        not_realtime = []
-        for id in self.window.controller.dialogs.debug.get_ids():
+        if self._ids is None:
+            self._ids = self.window.controller.dialogs.debug.get_ids()
+        for id in self._ids:
             if self.window.controller.dialogs.debug.is_active(id):
-                if all or id not in not_realtime:
-                    self.window.controller.dialogs.debug.update_worker(id)
+                self.window.controller.dialogs.debug.update_worker(id)
 
     def post_setup(self):
         """Post setup debug"""

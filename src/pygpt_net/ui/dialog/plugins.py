@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -55,11 +55,14 @@ class Plugins:
             QPushButton(trans("dialog.plugin.settings.btn.save"))
 
         self.window.ui.nodes['plugin.settings.btn.defaults.user'].clicked.connect(
-            lambda: self.window.controller.plugins.settings.load_defaults_user())
+            lambda: self.window.controller.plugins.settings.load_defaults_user()
+        )
         self.window.ui.nodes['plugin.settings.btn.defaults.app'].clicked.connect(
-            lambda: self.window.controller.plugins.settings.load_defaults_app())
+            lambda: self.window.controller.plugins.settings.load_defaults_app()
+        )
         self.window.ui.nodes['plugin.settings.btn.save'].clicked.connect(
-            lambda: self.window.controller.plugins.settings.save())
+            lambda: self.window.controller.plugins.settings.save()
+        )
 
         # set enter key to save button
         self.window.ui.nodes['plugin.settings.btn.defaults.user'].setAutoDefault(False)
@@ -321,33 +324,35 @@ class Plugins:
         widgets = {}
         base_types = ('text', 'int', 'float')
         number_types = ('int', 'float')
+        apply = self.window.controller.config.placeholder.apply
 
         for key in options:
             option = options[key]
+            t = option['type']
             # create widget by option type
-            if option['type'] in base_types:
-                if 'slider' in option and option['slider'] and option['type'] in number_types:
+            if t in base_types:
+                if 'slider' in option and option['slider'] and t in number_types:
                     widgets[key] = OptionSlider(self.window, parent, key, option)  # slider + text input
                 else:
                     if 'secret' in option and option['secret']:
                         widgets[key] = PasswordInput(self.window, parent, key, option)  # password input
                     else:
                         widgets[key] = OptionInput(self.window, parent, key, option)  # text input
-            elif option['type'] == 'textarea':
+            elif t == 'textarea':
                 widgets[key] = OptionTextarea(self.window, parent, key, option)  # textarea
-            elif option['type'] == 'bool':
+            elif t == 'bool':
                 widgets[key] = OptionCheckbox(self.window, parent, key, option)  # checkbox
-            elif option['type'] == 'bool_list':
-                self.window.controller.config.placeholder.apply(option)
+            elif t == 'bool_list':
+                apply(option)
                 widgets[key] = OptionCheckboxList(self.window, parent, key, option)  # checkbox list
-            elif option['type'] == 'dict':
-                self.window.controller.config.placeholder.apply(option)
+            elif t == 'dict':
+                apply(option)
                 widgets[key] = OptionDict(self.window, parent, key, option)  # dictionary
-            elif option['type'] == 'combo':
-                self.window.controller.config.placeholder.apply(option)
+            elif t == 'combo':
+                apply(option)
                 widgets[key] = OptionCombo(self.window, parent, key, option)  # combobox
-            elif option['type'] == 'cmd':
-                self.window.controller.config.placeholder.apply(option)
+            elif t == 'cmd':
+                apply(option)
                 widgets[key] = OptionCmd(self.window, plugin, parent, key, option)  # command
 
         return widgets
@@ -508,12 +513,13 @@ class Plugins:
         :param id: ID of the list
         :param data: Data to update
         """
-        self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
+        model = self.window.ui.models[id]
+        model.removeRows(0, model.rowCount())
         i = 0
         for n in data:
-            self.window.ui.models[id].insertRow(i)
+            model.insertRow(i)
             name = self.window.core.plugins.get_name(data[n].id)
             tooltip = self.window.core.plugins.get_desc(data[n].id)
-            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
-            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), tooltip, Qt.ToolTipRole)
+            model.setData(model.index(i, 0), name)
+            model.setData(model.index(i, 0), tooltip, Qt.ToolTipRole)
             i += 1

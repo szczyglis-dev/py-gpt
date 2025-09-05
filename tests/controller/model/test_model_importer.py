@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 import os
 import pytest
@@ -411,4 +411,4 @@ def test_get_ollama_available_success(importer, mock_window):
 
     mock_window.core.models.create_empty.side_effect = fake_create_empty
     result = importer.get_ollama_available()
-    assert "test" in result
+    assert "test:latest" in result

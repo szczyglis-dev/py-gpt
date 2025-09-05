@@ -1013,11 +1013,7 @@ class Body:
                     // - Otherwise hide the FAB to prevent overlap and noise.
                     let action = 'none'; // 'up' | 'down' | 'none'
                     if (atBottom) {
-                        if (loaderHidden) {
-                            action = 'up';
-                        } else {
-                            action = 'none';
-                        }
+                        action = 'up';
                     } else {
                         if (dist >= SHOW_DOWN_THRESHOLD_PX) {
                             action = 'down';

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import base64
@@ -16,9 +16,9 @@ from types import SimpleNamespace
 import pytest
 from unittest.mock import MagicMock, mock_open
 
-from pygpt_net.core.types import MODE_CHAT, MODE_VISION, MODE_AUDIO, MODE_RESEARCH, MODE_AGENT, MODE_AGENT_OPENAI, MODE_AGENT_LLAMA, MODE_EXPERT, MODE_COMPUTER, OPENAI_DISABLE_TOOLS
+from pygpt_net.core.types import MODE_CHAT, MODE_VISION, MODE_AUDIO, MODE_RESEARCH, MODE_AGENT, MODE_AGENT_OPENAI, MODE_AGENT_LLAMA, MODE_EXPERT, MODE_COMPUTER, OPENAI_DISABLE_TOOLS, MULTIMODAL_IMAGE, MULTIMODAL_AUDIO
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.item.attachment import AttachmentItem
+import pygpt_net.item.attachment as attachment_mod
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
@@ -85,9 +85,7 @@ def dummy_model():
     model.ctx = 100
     model.mode = [MODE_CHAT]
     model.extra = {}
-    model.is_image_input = lambda: False
-    model.is_audio_input = lambda: False
-    model.is_gpt = lambda: True
+    model.input = ["text"]
     return model
 
 
@@ -131,8 +129,7 @@ def test_get_used_tokens(responses_instance):
 
 def test_build_plain(responses_instance, dummy_window, dummy_model):
     dummy_window.core.config.get = lambda key, default=None: False if key == 'use_context' else (50 if key == 'max_total_tokens' else default)
-    dummy_model.is_image_input = lambda: False
-    dummy_model.is_audio_input = lambda: False
+    dummy_model.input = ["text"]
     res = responses_instance.build("plain", "sys", dummy_model, history=[], attachments={}, ai_name="AI", user_name="User", multimodal_ctx=None, is_expert_call=False)
     assert res[-1]["role"] == "user"
     assert res[-1]["content"] == "plain"
@@ -140,16 +137,14 @@ def test_build_plain(responses_instance, dummy_window, dummy_model):
 
 
 def test_build_image(responses_instance, dummy_window, dummy_model):
-    dummy_model.is_image_input = lambda: True
-    dummy_model.is_audio_input = lambda: False
-    res = responses_instance.build("img", "sys", dummy_model, history=[], attachments={"att": AttachmentItem()}, ai_name="AI", user_name="User", multimodal_ctx=None, is_expert_call=False)
+    dummy_model.input = ["text", MULTIMODAL_IMAGE]
+    res = responses_instance.build("img", "sys", dummy_model, history=[], attachments={"att": attachment_mod.AttachmentItem()}, ai_name="AI", user_name="User", multimodal_ctx=None, is_expert_call=False)
     assert res[-1]["role"] == "user"
     assert res[-1]["content"] == "vision_img"
 
 
 def test_build_audio(responses_instance, dummy_window, dummy_model):
-    dummy_model.is_image_input = lambda: False
-    dummy_model.is_audio_input = lambda: True
+    dummy_model.input = ["text", MULTIMODAL_AUDIO]
     res = responses_instance.build("aud", "sys", dummy_model, history=[], attachments={}, ai_name="AI", user_name="User", multimodal_ctx="multi", is_expert_call=False)
     assert res[-1]["role"] == "user"
     assert res[-1]["content"] == "audio_aud"

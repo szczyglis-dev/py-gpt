@@ -6,12 +6,23 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.12 19:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import io
+from dataclasses import dataclass, field
 
+
+@dataclass(slots=True)
 class PidData:
+
+    pid: object = None
+    meta: object = None
+    images_appended: list = field(default_factory=list)
+    urls_appended: list = field(default_factory=list)
+    files_appended: list = field(default_factory=list)
+    _buffer: io.StringIO = field(default_factory=io.StringIO)
+    is_cmd: bool = False
 
     def __init__(self, pid, meta=None):
         """Pid Data"""

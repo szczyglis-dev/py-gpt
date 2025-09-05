@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import re
@@ -440,7 +440,7 @@ class Presets:
         if preset_id and preset_id in w.core.presets.items:
             preset = w.core.presets.items[preset_id]
             preset.prompt = w.core.config.get('prompt')
-            w.core.presets.save(preset)
+            w.core.presets.save(preset_id)
 
     def select_model(self):
         """Select model by current preset"""

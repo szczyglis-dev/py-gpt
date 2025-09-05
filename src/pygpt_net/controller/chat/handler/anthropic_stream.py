@@ -154,8 +154,6 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                     state.usage_payload["out"] = out_tok
             delta = getattr(chunk, "delta", None)
             stop_reason = getattr(delta, "stop_reason", None) if delta else None
-            if stop_reason == "tool_use":
-                state.force_func_call = True
         except Exception:
             pass
         return None

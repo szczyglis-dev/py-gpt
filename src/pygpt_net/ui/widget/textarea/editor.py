@@ -113,10 +113,6 @@ class BaseCodeEditor(QTextEdit):
         self.finder.clear()
 
     def on_destroy(self):
-        try:
-            self.textChanged.disconnect(self.text_changed)
-        except Exception:
-            pass
         self.window.controller.finder.unset(self.finder)
 
     def keyPressEvent(self, e):

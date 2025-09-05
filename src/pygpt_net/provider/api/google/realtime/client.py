@@ -890,7 +890,7 @@ class GoogleLiveClient:
                                         "arguments": json.dumps(args_dict, ensure_ascii=False),
                                     }
                                 })
-                                self._rt_state["force_func_call"] = True
+                                # self._rt_state["force_func_call"] = True
                                 self._last_tool_calls = list(self._rt_state["tool_calls"])
                                 turn_finished = True  # let the app run tools now
 
@@ -1004,7 +1004,7 @@ class GoogleLiveClient:
                             if key not in seen:
                                 self._rt_state["tool_calls"].append(c)
                                 seen.add(key)
-                        self._rt_state["force_func_call"] = True
+                        # self._rt_state["force_func_call"] = True
                         self._last_tool_calls = list(self._rt_state["tool_calls"])
                     turn_finished = True
 

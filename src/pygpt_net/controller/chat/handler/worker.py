@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import io
@@ -16,6 +16,7 @@ from typing import Optional, Literal, Any
 from enum import Enum
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
+from openai.types.chat import ChatCompletionChunk
 
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.core.text.utils import has_unclosed_code_tag
@@ -262,6 +263,10 @@ class StreamWorker(QRunnable):
             if not hasattr(chunk, "type") and not hasattr(chunk, "candidates"):
                 return ChunkType.LLAMA_CHAT
 
+        # fallback: OpenAI ChatCompletionChunk not caught above
+        if isinstance(chunk, ChatCompletionChunk):
+            return ChunkType.API_CHAT
+
         return ChunkType.RAW
 
     def _append_response(
@@ -344,7 +349,6 @@ class StreamWorker(QRunnable):
                 calls = xai_stream.xai_extract_tool_calls(state.xai_last_response)
                 if calls:
                     state.tool_calls = calls
-                    state.force_func_call = True
             except Exception:
                 pass
 

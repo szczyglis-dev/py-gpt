@@ -6,14 +6,26 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import json
 import time
+from dataclasses import dataclass
+from typing import Optional
 
 
+@dataclass(slots=True)
 class NotepadItem:
+    id: int = 0
+    uuid: Optional[object] = None
+    idx: int = 0
+    title: str = ""
+    content: str = ""
+    deleted: bool = False
+    created: int = 0
+    updated: int = 0
+    initialized: bool = False
 
     def __init__(self):
         self.id = 0
