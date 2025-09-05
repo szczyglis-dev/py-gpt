@@ -56,10 +56,6 @@ class Common:
         :param enabled: bool
         """
         if enabled:
-            # keep UI color for compatibility
-            self.window.ui.nodes['painter.select.brush.color'].setCurrentText("Black")
-            self.window.ui.painter.set_brush_color(Qt.black)
-            # switch widget to brush mode (layered painting)
             self.window.ui.painter.set_mode("brush")
             self.window.core.config.set('painter.brush.mode', "brush")
             self.window.core.config.save()
@@ -71,10 +67,6 @@ class Common:
         :param enabled: bool
         """
         if enabled:
-            # keep UI color for compatibility
-            self.window.ui.nodes['painter.select.brush.color'].setCurrentText("White")
-            self.window.ui.painter.set_brush_color(Qt.white)
-            # switch widget to erase mode (layered erasing)
             self.window.ui.painter.set_mode("erase")
             self.window.core.config.set('painter.brush.mode', "erase")
             self.window.core.config.save()
