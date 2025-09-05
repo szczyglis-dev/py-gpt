@@ -28,61 +28,70 @@ class Tools:
     # -------- SANITIZER --------
     def _sanitize_schema(self, schema: Any) -> Any:
         """
-        Sanitize JSON Schema dict by removing unsupported keywords and normalizing types.
+        Sanitize a JSON Schema dict for Google GenAI (function parameters).
 
-        1. Remove unsupported keywords like additionalProperties, patternProperties,
-           dependencies, oneOf, anyOf, allOf, $ref, $defs, examples, readOnly, writeOnly.
-        2. Normalize 'type' to a single value (e.g., if it's a list, take the first non-null type).
-        3. Ensure 'enum' is only present for string types.
-        4. Recursively sanitize nested schemas in 'properties' and 'items'.
-        5. Handle arrays by ensuring 'items' is a single schema.
-        6. Handle objects by ensuring 'properties' is a dict and 'required' is a list of strings.
-
-        :param schema: Any JSON Schema as dict or list
-        :return: Sanitized schema dict
+        Key points:
+        - Remove unsupported JSON Schema keywords (additionalProperties, oneOf, $ref, ...).
+        - Normalize "type" so that it's either a single lowercase string or absent.
+          Handle lists (unions), non-string types (e.g., dict), and infer a type when possible.
+        - Keep "enum" only when type is string.
+        - For objects, sanitize only "properties" (each property's schema) and validate "required".
+        - For arrays, sanitize "items" into a single schema (object, not list).
+        - Do not recurse into "properties" itself as a map, nor into "required"/"enum" as they are scalars/lists.
         """
+        # 1) Fast exits
         if isinstance(schema, list):
-            return self._sanitize_schema(schema[0]) if schema else {}
+            # Only descend into lists of dicts (complex schemas). For scalar lists (required/enum), return as is.
+            if schema and all(isinstance(x, dict) for x in schema):
+                return [self._sanitize_schema(x) for x in schema]
+            return schema
 
         if not isinstance(schema, dict):
             return schema
 
+        # 2) Remove unsupported/problematic keywords for Google function parameters
         banned = {
-            "additionalProperties",
-            "additional_properties",
-            "unevaluatedProperties",
-            "patternProperties",
-            "dependencies",
-            "dependentSchemas",
-            "dependentRequired",
-            "oneOf",
-            "anyOf",
-            "allOf",
-            "$defs",
-            "$ref",
-            "$schema",
-            "$id",
-            "examples",
-            "readOnly",
-            "writeOnly",
-            "nullable",
+            "additionalProperties", "additional_properties",
+            "unevaluatedProperties", "patternProperties",
+            "dependencies", "dependentSchemas", "dependentRequired",
+            "oneOf", "anyOf", "allOf",
+            "$defs", "$ref", "$schema", "$id",
+            "examples", "readOnly", "writeOnly", "nullable",
         }
         for k in list(schema.keys()):
             if k in banned:
                 schema.pop(k, None)
 
-        # Union -> first non-null type
+        # 3) Normalize "type" safely
         t = schema.get("type")
-        if isinstance(t, list):
-            t_no_null = [x for x in t if x != "null"]
-            schema["type"] = t_no_null[0] if t_no_null else "string"
 
-        # enum only for string
-        if "enum" in schema and schema.get("type") not in ("string", "STRING"):
+        # a) If it's a list (union), pick the first non-null string, otherwise default to "object"
+        if isinstance(t, list):
+            t_no_null = [x for x in t if isinstance(x, str) and x.lower() != "null"]
+            schema["type"] = t_no_null[0] if t_no_null else "object"
+            t = schema["type"]
+
+        # b) If "type" is not a string (could be dict or missing), try to infer; otherwise drop it
+        if not isinstance(t, str):
+            if isinstance(schema.get("properties"), dict):
+                schema["type"] = "object"
+            elif "items" in schema:
+                schema["type"] = "array"
+            elif isinstance(schema.get("enum"), list) and all(isinstance(x, str) for x in schema["enum"]):
+                schema["type"] = "string"
+            else:
+                schema.pop("type", None)
+        else:
+            schema["type"] = t.lower()
+
+        type_l = schema["type"].lower() if isinstance(schema.get("type"), str) else ""
+
+        # 4) Keep enum only for string-typed schemas
+        if "enum" in schema and type_l != "string":
             schema.pop("enum", None)
 
-        # object
-        if (schema.get("type") or "").lower() == "object":
+        # 5) Objects: sanitize properties and required
+        if type_l == "object":
             props = schema.get("properties")
             if not isinstance(props, dict):
                 props = {}
@@ -92,25 +101,26 @@ class Tools:
             schema["properties"] = clean_props
 
             req = schema.get("required")
-            if not isinstance(req, list) or not all(isinstance(x, str) for x in req):
-                schema.pop("required", None)
-            elif len(req) == 0:
+            if not (isinstance(req, list) and all(isinstance(x, str) for x in req) and len(req) > 0):
                 schema.pop("required", None)
 
-        # array
-        if (schema.get("type") or "").lower() == "array":
+        # 6) Arrays: ensure "items" is a single dict schema
+        elif type_l == "array":
             items = schema.get("items")
-            if isinstance(items, list) and items:
-                items = items[0]
+            if isinstance(items, list):
+                items = items[0] if items else {"type": "string"}
             if not isinstance(items, dict):
                 items = {"type": "string"}
             schema["items"] = self._sanitize_schema(items)
 
-        # recursive sanitize
+        # 7) Recurse into the remaining nested dict/list values,
+        #    but skip "properties", "items", "required", and "enum" (already handled)
         for k, v in list(schema.items()):
+            if k in ("properties", "items", "required", "enum"):
+                continue
             if isinstance(v, dict):
                 schema[k] = self._sanitize_schema(v)
-            elif isinstance(v, list):
+            elif isinstance(v, list) and v and all(isinstance(x, dict) for x in v):
                 schema[k] = [self._sanitize_schema(x) for x in v]
 
         return schema
