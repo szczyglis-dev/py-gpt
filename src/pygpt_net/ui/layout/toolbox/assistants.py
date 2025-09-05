@@ -115,15 +115,14 @@ class Assistants:
         view.backup_selection()
         view.setUpdatesEnabled(False)
         try:
-            with QtCore.QSignalBlocker(model):
-                model.setRowCount(0)
-                count = len(data)
-                if count:
-                    model.setRowCount(count)
-                    for i, item in enumerate(data.values()):
-                        index = model.index(i, 0)
-                        model.setData(index, "ID: " + item.id, QtCore.Qt.ToolTipRole)
-                        model.setData(index, item.name)
+            model.setRowCount(0)
+            count = len(data)
+            if count:
+                model.setRowCount(count)
+                for i, item in enumerate(data.values()):
+                    index = model.index(i, 0)
+                    model.setData(index, "ID: " + item.id, QtCore.Qt.ToolTipRole)
+                    model.setData(index, item.name)
         finally:
             view.setUpdatesEnabled(True)
 
