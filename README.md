@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.36** | build: **2025-09-04** | Python: **>=3.10, <3.14**
+Release: **2.6.37** | build: **2025-09-05** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3448,6 +3448,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.37 (2025-09-05)**
+
+- Fixed: Function parameters sanitization in the Google Gen AI SDK.
+- Added: Native support for Anthropic SDK and xAI SDK (with remote tools).
 
 **2.6.36 (2025-09-04)**
 

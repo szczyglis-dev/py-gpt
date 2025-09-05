@@ -304,9 +304,7 @@ class Models:
 
         if desc:
             self.window.ui.nodes[desc_key] = DescLabel(desc)
-            self.window.ui.nodes[desc_key].setWordWrap(True)
             self.window.ui.nodes[desc_key].setMaximumHeight(40)
-            self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
             layout.addWidget(self.window.ui.nodes[desc_key])
 
         line = self.add_line()  # TODO: change name to separator

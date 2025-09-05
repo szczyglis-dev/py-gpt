@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.37 (2025-09-05)
+
+- Fixed: Function parameters sanitization in the Google Gen AI SDK.
+- Added: Native support for Anthropic SDK and xAI SDK (with remote tools).
+
 ## 2.6.36 (2025-09-04)
 
 - Optimized rendering of large code blocks.
