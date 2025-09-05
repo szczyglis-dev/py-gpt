@@ -46,30 +46,29 @@ class Body:
                 <script type="text/javascript" src="qrc:///js/highlight.min.js"></script>
                 <script type="text/javascript" src="qrc:///js/katex.min.js"></script>
                 <script>
-                if (hljs) {
+                if (typeof hljs !== 'undefined') {
                      hljs.configure({
                       ignoreUnescapedHTML: true,
                     });
-                }               
-                let DEBUG_MODE = false;  // allow dynamic enabling via debug console
+                }
+                const streamQ = [];
+                let DEBUG_MODE = false;
                 let bridgeConnected = false;
                 let streamHandler;
                 let nodeHandler;
                 let nodeReplaceHandler;
-                let scrollTimeout = null;
                 let prevScroll = 0;
                 let bridge;
-                let streamQ = [];
                 let streamRAF = 0;
+                let batching = false;
+                let needScroll = false;
                 let pid = """
     _HTML_P2 = """                
                 let collapsed_idx = [];
-                let domOutputStream = document.getElementById('_append_output_');
-                let domOutput = document.getElementById('_output_');
-                let domInput = document.getElementById('_input_');
+                let domOutputStream = null;
                 let domLastCodeBlock = null;
                 let domLastParagraphBlock = null;
-                let htmlBuffer = "";
+                let domStreamMsg = null;
                 let tips = """
     _HTML_P3 = """;
                 let tips_hidden = false;
@@ -78,70 +77,77 @@ class Body:
                 let highlightScheduled = false;
                 let pendingHighlightRoot = null;
                 let pendingHighlightMath = false;
-                let highlightRAF = 0;  // RAF id for highlight batcher
+                let highlightRAF = 0;
                 let scrollScheduled = false;
 
-                // Auto-follow state: when false, live stream auto-scroll is suppressed
                 let autoFollow = true;
                 let lastScrollTop = 0;
-                // Tracks whether user has performed any scroll-related interaction
                 let userInteracted = false;
-                const AUTO_FOLLOW_REENABLE_PX = 8; // px from bottom to re-enable auto-follow
+                const AUTO_FOLLOW_REENABLE_PX = 8;
 
-                // FAB thresholds
-                const SHOW_DOWN_THRESHOLD_PX = 0; // show "down" only when farther than this from bottom
-                let currentFabAction = 'none'; // tracks current FAB state to avoid redundant work
+                const SHOW_DOWN_THRESHOLD_PX = 0;
+                let currentFabAction = 'none';
 
-                // timers
                 let tipsTimers = [];
 
-                // observers
-                let roDoc = null;
-                let roContainer = null;
-
-                // FAB (scroll-to-top/bottom) scheduling
                 let scrollFabUpdateScheduled = false;
 
-                // Streaming micro-batching config
-                const STREAM_MAX_PER_FRAME = 64; // defensive upper bound of operations per frame
-                const STREAM_EMERGENCY_COALESCE_LEN = 1500; // when queue length is high, coalesce aggressively
+                const STREAM_MAX_PER_FRAME = 8;
+                const STREAM_EMERGENCY_COALESCE_LEN = 1500;
 
-                // clear previous references
+                Object.defineProperty(window,'SE',{get(){return document.scrollingElement || document.documentElement;}});
+
+                let wheelHandler = null;
+                let scrollHandler = null;
+                let resizeHandler = null;
+                let fabClickHandler = null;
+                let containerMouseOverHandler = null;
+                let containerMouseOutHandler = null;
+                let containerClickHandler = null;
+                let keydownHandler = null;
+                let docClickFocusHandler = null;
+
+                let fabFreezeUntil = 0;
+                const FAB_TOGGLE_DEBOUNCE_MS = 100;
+
                 function resetEphemeralDomRefs() {
                     domLastCodeBlock = null;
                     domLastParagraphBlock = null;
+                    domStreamMsg = null;
                 }
                 function dropIfDetached() {
                     if (domLastCodeBlock && !domLastCodeBlock.isConnected) domLastCodeBlock = null;
                     if (domLastParagraphBlock && !domLastParagraphBlock.isConnected) domLastParagraphBlock = null;
+                    if (domStreamMsg && !domStreamMsg.isConnected) domStreamMsg = null;
                 }
                 function stopTipsTimers() {
                     tipsTimers.forEach(clearTimeout);
                     tipsTimers = [];
                 }
 
-                function teardown() {
-                    // Cancel timers/RAF/observers to prevent background CPU usage
+                function cleanup() {
+                    try { if (highlightRAF) { cancelAnimationFrame(highlightRAF); highlightRAF = 0; } } catch (e) {}
+                    try { if (streamRAF) { cancelAnimationFrame(streamRAF); streamRAF = 0; } } catch (e) {}
                     stopTipsTimers();
-                    try {
-                        if (streamRAF) {
-                            cancelAnimationFrame(streamRAF);
-                            streamRAF = 0;
-                        }
-                        if (highlightRAF) {
-                            cancelAnimationFrame(highlightRAF);
-                            highlightRAF = 0;
-                        }
-                    } catch (e) { /* ignore */ }
-                    // Clear streaming queue to release memory immediately
+                    try { bridgeDisconnect(); } catch (e) {}
+                    if (wheelHandler) document.removeEventListener('wheel', wheelHandler, { passive: true });
+                    if (scrollHandler) window.removeEventListener('scroll', scrollHandler, { passive: true });
+                    if (resizeHandler) window.removeEventListener('resize', resizeHandler, { passive: true });
+                    if (fabClickHandler && els.scrollFab) els.scrollFab.removeEventListener('click', fabClickHandler, { passive: false });
+                    if (containerMouseOverHandler && els.container) els.container.removeEventListener('mouseover', containerMouseOverHandler, { passive: true });
+                    if (containerMouseOutHandler && els.container) els.container.removeEventListener('mouseout', containerMouseOutHandler, { passive: true });
+                    if (containerClickHandler && els.container) els.container.removeEventListener('click', containerClickHandler, { passive: false });
+                    if (keydownHandler) document.removeEventListener('keydown', keydownHandler, { passive: false });
+                    if (docClickFocusHandler) document.removeEventListener('click', docClickFocusHandler, { passive: true });
                     streamQ.length = 0;
-                    scrollFabUpdateScheduled = false;
-                    scrollScheduled = false;
-                    highlightScheduled = false;
+                    collapsed_idx.length = 0;
+                    resetEphemeralDomRefs();
+                    els = {};
+                    try { history.scrollRestoration = "auto"; } catch (e) {}
                 }
 
                 history.scrollRestoration = "manual";
-                document.addEventListener('keydown', function(event) {
+                keydownHandler = function(event) {
                     if (event.ctrlKey && event.key === 'f') {
                         window.location.href = 'bridge://open_find:' + pid;
                         event.preventDefault();
@@ -150,12 +156,17 @@ class Body:
                         window.location.href = 'bridge://escape';
                         event.preventDefault();
                     }
-                });
-                document.addEventListener('click', function(event) {
+                };
+                document.addEventListener('keydown', keydownHandler, { passive: false });
+
+                docClickFocusHandler = function(event) {
+                    if (event.target.closest('#scrollFab')) return;
                     if (event.target.tagName !== 'A' && !event.target.closest('a')) {
                         window.location.href = 'bridge://focus';
                     }
-                });
+                };
+                document.addEventListener('click', docClickFocusHandler, { passive: true });
+
                 function log(text) {
                     if (bridge) {
                         bridge.log(text);
@@ -171,16 +182,13 @@ class Body:
                     els.footer = document.getElementById('_footer_');
                     els.loader = document.getElementById('_loader_');
                     els.tips = document.getElementById('tips');
-                    // FAB refs
                     els.scrollFab = document.getElementById('scrollFab');
                     els.scrollFabIcon = document.getElementById('scrollFabIcon');
                 }
+
                 function bridgeConnect() {
-                    // Idempotent connect
-                    if (!bridge || !bridge.chunk || typeof bridge.chunk.connect !== 'function') return false;
+                    if (!bridge) return false;
                     if (bridgeConnected) return true;
-                
-                    // Ensure handler exists and is stable (same identity for disconnect/connect)
                     if (!streamHandler) {
                         streamHandler = (name, html, chunk, replace, isCode) => {
                             appendStream(name, html, chunk, replace, isCode);
@@ -193,9 +201,9 @@ class Body:
                         };
                     }
                     try {
-                        bridge.chunk.connect(streamHandler);
-                        bridge.node.connect(nodeHandler);
-                        bridge.nodeReplace.connect(nodeReplaceHandler);
+                        if (bridge.chunk && typeof bridge.chunk.connect === 'function') bridge.chunk.connect(streamHandler);
+                        if (bridge.node && typeof bridge.node.connect === 'function') bridge.node.connect(nodeHandler);
+                        if (bridge.nodeReplace && typeof bridge.nodeReplace.connect === 'function') bridge.nodeReplace.connect(nodeReplaceHandler);
                         bridgeConnected = true;
                         return true;
                     } catch (e) {
@@ -203,29 +211,24 @@ class Body:
                         return false;
                     }
                 }
-                
                 function bridgeDisconnect() {
-                    // Idempotent disconnect
-                    if (!bridge || !bridge.chunk || typeof bridge.chunk.disconnect !== 'function') return false;
+                    if (!bridge) return false;
                     if (!bridgeConnected) return true;
-                
                     try {
-                        bridge.chunk.disconnect(streamHandler);
-                        bridge.node.disconnect(nodeHandler);
-                        bridge.nodeReplace.disconnect(nodeReplaceHandler);
-                    } catch (e) { /* ignore */ }
+                        if (bridge.chunk && typeof bridge.chunk.disconnect === 'function') bridge.chunk.disconnect(streamHandler);
+                        if (bridge.node && typeof bridge.node.disconnect === 'function') bridge.node.disconnect(nodeHandler);
+                        if (bridge.nodeReplace && typeof bridge.nodeReplace.disconnect === 'function') bridge.nodeReplace.disconnect(nodeReplaceHandler);
+                    } catch (e) { }
                     bridgeConnected = false;
-                
-                    // Stop scheduled work and release pending chunks immediately
-                    try { if (streamRAF) { cancelAnimationFrame(streamRAF); streamRAF = 0; } } catch (e) { /* ignore */ }
+                    try { if (streamRAF) { cancelAnimationFrame(streamRAF); streamRAF = 0; } } catch (e) { }
                     streamQ.length = 0;
                     return true;
                 }
-                
                 function bridgeReconnect() {
                     bridgeDisconnect();
                     return bridgeConnect();
                 }
+
                 function scheduleHighlight(root, withMath = true) {
                     const scope = root && root.nodeType === 1 ? root : document;
                     if (!pendingHighlightRoot || pendingHighlightRoot === document) {
@@ -237,7 +240,6 @@ class Body:
                     if (highlightScheduled) return;
                     highlightScheduled = true;
                     if (highlightRAF) {
-                        // Ensure we do not queue multiple highlight frames
                         cancelAnimationFrame(highlightRAF);
                         highlightRAF = 0;
                     }
@@ -258,14 +260,10 @@ class Body:
                     });
                     if (withMath) {
                         renderMath(root);
-                        if (DEBUG_MODE) log("math");
                     }
-                    if (DEBUG_MODE) log("execute highlight");
                 }
                 function highlightCode(withMath = true, root = null) {
-                     if (DEBUG_MODE) log("queue highlight, withMath: " + withMath);
-                    highlightCodeInternal(root || document, withMath); // prevent blink on fast updates
-                    // scheduleHighlight(root || document, withMath);  // disabled
+                    highlightCodeInternal(root || document, withMath);
                 }
                 function hideTips() {
                     if (tips_hidden) return;
@@ -304,7 +302,6 @@ class Body:
                     showNextTip();
                 }
                 function renderMath(root) {
-                    if (DEBUG_MODE) log("execute math");
                     const scope = root || document;
                     const scripts = scope.querySelectorAll('script[type^="math/tex"]');
                     scripts.forEach(function(script) {
@@ -323,53 +320,46 @@ class Body:
                         if (parent) parent.replaceChild(element, script);
                       });
                 }
+
                 function isNearBottom(marginPx = 100) {
-                    const el = document.scrollingElement || document.documentElement;
+                    const el = SE;
                     const distanceToBottom = el.scrollHeight - el.clientHeight - el.scrollTop;
                     return distanceToBottom <= marginPx;
                 }
                 function scheduleScroll(live = false) {
-                    // Skip scheduling live auto-scroll when user disabled follow
                     if (live === true && autoFollow !== true) return;
                     if (scrollScheduled) return;
                     scrollScheduled = true;
                     requestAnimationFrame(function() {
                         scrollScheduled = false;
                         scrollToBottom(live);
-                        // keep FAB state in sync after any programmatic scroll
                         scheduleScrollFabUpdate();
                     });
                 }
-                // Force immediate scroll to bottom (pre-interaction bootstrap)
                 function forceScrollToBottomImmediate() {
-                    const el = document.scrollingElement || document.documentElement;
-                    el.scrollTop = el.scrollHeight; // no behavior, no RAF, deterministic
+                    const el = SE;
+                    el.scrollTop = el.scrollHeight;
                     prevScroll = el.scrollHeight;
                 }
                 function scrollToBottom(live = false, force = false) {
-                    const el = document.scrollingElement || document.documentElement;
+                    const el = SE;
                     const marginPx = 450;
                     const behavior = (live === true) ? 'instant' : 'smooth';
-
-                    // Respect user-follow state during live updates
                     if (live === true && autoFollow !== true) {
-                        // Keep prevScroll consistent for potential consumers
                         prevScroll = el.scrollHeight;
                         return;
                     }
-
-                    // Allow initial auto-follow before any user interaction
                     if ((live === true && userInteracted === false) || isNearBottom(marginPx) || live == false || force) {
                         el.scrollTo({ top: el.scrollHeight, behavior });
                     }
                     prevScroll = el.scrollHeight;
                 }
+
                 function appendToInput(content) {
                     userInteracted = false;
                     const element = els.appendInput || document.getElementById('_append_input_');
                     if (element) {
                         element.insertAdjacentHTML('beforeend', content);
-                        highlightCode(true, element);
                         scheduleScroll();
                     }
                 }
@@ -383,28 +373,49 @@ class Body:
                     }
                     return element;
                 }
+                function getStreamMsg(create = true, name_header = '') {
+                    const container = getStreamContainer();
+                    if (!container) return null;
+                    if (domStreamMsg && domStreamMsg.isConnected) return domStreamMsg;
+                    let box = container.querySelector('.msg-box');
+                    let msg = null;
+                    if (!box && create) {
+                        box = document.createElement('div');
+                        box.classList.add('msg-box');
+                        box.classList.add('msg-bot');
+                        if (name_header != '') {
+                            const name = document.createElement('div');
+                            name.classList.add('name-header');
+                            name.classList.add('name-bot');
+                            name.innerHTML = name_header;
+                            box.appendChild(name);
+                        }
+                        msg = document.createElement('div');
+                        msg.classList.add('msg');
+                        box.appendChild(msg);
+                        container.appendChild(box);
+                    } else if (box) {
+                        msg = box.querySelector('.msg');
+                    }
+                    if (msg) domStreamMsg = msg;
+                    return msg;
+                }
                 function appendNode(content) {
                     userInteracted = false;
-                    if (DEBUG_MODE) {
-                        log("APPEND NODE: {" + content + "}");
-                    }
                     clearStreamBefore();
                     prevScroll = 0;
                     const element = els.nodes || document.getElementById('_nodes_');
                     if (element) {
                         element.classList.remove('empty_list');
                         element.insertAdjacentHTML('beforeend', content);
-                        highlightCode(true, element);
-                        scrollToBottom(false);  // without schedule
+                        scheduleHighlight(element, true);
+                        scrollToBottom(false);
                         scheduleScrollFabUpdate();    
                     }               
                     clearHighlightCache();
                 }
                 function replaceNodes(content) {
                     userInteracted = false;
-                    if (DEBUG_MODE) {
-                        log("REPLACE NODES: {" + content + "}");
-                    }
                     clearStreamBefore();
                     prevScroll = 0;
                     const element = els.nodes || document.getElementById('_nodes_');
@@ -412,16 +423,13 @@ class Body:
                         element.classList.remove('empty_list');
                         element.replaceChildren();
                         element.insertAdjacentHTML('beforeend', content);
-                        highlightCode(true, element);
-                        scrollToBottom(false, true);  // without schedule
+                        scheduleHighlight(element, true);
+                        scrollToBottom(false, true);
                         scheduleScrollFabUpdate();
                     }
                     clearHighlightCache();
                 }
                 function clean() {
-                    if (DEBUG_MODE) {
-                        log("-- CLEAN DOM --");
-                    }
                     userInteracted = false;
                     const el = els.nodes || document.getElementById('_nodes_');
                     if (el) {
@@ -429,15 +437,6 @@ class Body:
                     }
                     resetEphemeralDomRefs();
                     els = {};
-                    /*
-                    try {
-                        if (window.gc) {
-                            window.gc();
-                        }
-                    } catch (e) {
-                        // gc not available
-                    }
-                    */
                 }
                 function clearHighlightCache() {                
                     //
@@ -450,7 +449,7 @@ class Body:
                         const extra = element.querySelector('.msg-extra');
                         if (extra) {
                             extra.insertAdjacentHTML('beforeend', content);
-                            highlightCode(true, extra);
+                            scheduleHighlight(extra, true);
                             scheduleScroll();
                         }
                     }
@@ -484,58 +483,33 @@ class Body:
                             }
                         });
                         resetEphemeralDomRefs();
-                        highlightCode(true, container);
+                        scheduleHighlight(container, true);
                         scheduleScroll();
                     }
                 }
                 function clearStream() {
                     hideTips();
-                    if (DEBUG_MODE) {
-                        log("STREAM CLEAR");
-                    }
                     domLastParagraphBlock = null;
                     domLastCodeBlock = null;
+                    domStreamMsg = null;
                     domOutputStream = null;
-                    const element = getStreamContainer();
-                    if (element) {
-                        let box = element.querySelector('.msg-box');
-                        let msg;
-                        if (!box) {
-                            box = document.createElement('div');
-                            box.classList.add('msg-box');
-                            box.classList.add('msg-bot');
-                            msg = document.createElement('div');
-                            msg.classList.add('msg');
-                            box.appendChild(msg);
-                            element.appendChild(box);
-                        } else {
-                            msg = box.querySelector('.msg');
-                        }
-                        if (msg) {
-                            msg.replaceChildren();
-                        }
-                    }
+                    el = getStreamContainer();
+                    if (!el) return;
+                    el.replaceChildren();
                 }
                 function beginStream() {
                     hideTips();
-                    if (DEBUG_MODE) {
-                        log("STREAM BEGIN");
-                    }
                     userInteracted = false;
                     clearOutput();
-                    // Ensure initial auto-follow baseline before any chunks overflow
                     forceScrollToBottomImmediate();
                     scheduleScroll();
                 }
                 function endStream() {
-                    if (DEBUG_MODE) {
-                        log("STREAM END");
-                    }
                     clearOutput();
                     bridgeReconnect();
                 }
+
                 function enqueueStream(name_header, content, chunk, replace = false, is_code_block = false) {
-                  // Push incoming chunk; scheduling is done with RAF to batch DOM ops
                   streamQ.push({name_header, content, chunk, replace, is_code_block});
                   if (!streamRAF) {
                     streamRAF = requestAnimationFrame(drainStream);
@@ -544,139 +518,112 @@ class Body:
                 function drainStream() {
                   streamRAF = 0;
                   let processed = 0;
-
-                  // Emergency coalescing if queue grows too large
                   const shouldAggressiveCoalesce = streamQ.length >= STREAM_EMERGENCY_COALESCE_LEN;
-
+                
+                  batching = true;        // start partii
                   while (streamQ.length && processed < STREAM_MAX_PER_FRAME) {
                     let {name_header, content, chunk, replace, is_code_block} = streamQ.shift();
-
-                    // Coalesce contiguous simple appends to reduce DOM churn
                     if (!replace && !content && (chunk && chunk.length > 0)) {
-                      // Collect chunks into an array to avoid O(n^2) string concatenation
                       const chunks = [chunk];
                       while (streamQ.length) {
                         const next = streamQ[0];
                         if (!next.replace && !next.content && next.is_code_block === is_code_block && next.name_header === name_header) {
                           chunks.push(next.chunk);
                           streamQ.shift();
-                          if (!shouldAggressiveCoalesce) {
-                            // Light coalescing per frame is enough under normal conditions
-                            break;
-                          }
-                        } else {
-                          break;
-                        }
+                          if (!shouldAggressiveCoalesce) break;
+                        } else break;
                       }
                       chunk = chunks.join('');
                     }
-
                     applyStream(name_header, content, chunk, replace, is_code_block);
                     processed++;
                   }
-
-                  // If there are remaining items re-schedule next frame
+                  batching = false;       // koniec partii
+                
+                  // jedno przewinięcie na partię
+                  if (needScroll) {
+                    if (userInteracted === false) forceScrollToBottomImmediate();
+                    else scheduleScroll(true);
+                    needScroll = false;
+                  }
+                
                   if (streamQ.length) {
                     streamRAF = requestAnimationFrame(drainStream);
                   }
                 }
-                // Public API: enqueue and process in the next animation frame
                 function appendStream(name_header, content, chunk, replace = false, is_code_block = false) {
                     enqueueStream(name_header, content, chunk, replace, is_code_block);
                 }
-                // Internal: performs actual DOM updates for a single merged chunk
                 function applyStream(name_header, content, chunk, replace = false, is_code_block = false) {
-                    dropIfDetached(); // clear references to detached elements
+                    dropIfDetached();
                     hideTips();
-                    if (DEBUG_MODE) {
-                        log("APPLY CHUNK: {" + chunk + "}, CONTENT: {"+content+"}, replace: " + replace + ", is_code_block: " + is_code_block);
-                    }
-                    const element = getStreamContainer();
-                    let msg;
-                    if (element) {
-                        let box = element.querySelector('.msg-box');
-                        if (!box) {
-                            box = document.createElement('div');
-                            box.classList.add('msg-box');
-                            box.classList.add('msg-bot');
-                            if (name_header != '') {
-                                const name = document.createElement('div');
-                                name.classList.add('name-header');
-                                name.classList.add('name-bot');
-                                name.innerHTML = name_header;
-                                box.appendChild(name);
+                    const msg = getStreamMsg(true, name_header);
+                    if (msg) {
+                        if (replace) {                            
+                            domLastCodeBlock = null;
+                            domLastParagraphBlock = null;
+                            msg.replaceChildren();
+                            if (content) {
+                              msg.insertAdjacentHTML('afterbegin', content);
                             }
-                            msg = document.createElement('div');
-                            msg.classList.add('msg');
-                            box.appendChild(msg);
-                            element.appendChild(box);
+                            let doMath = true;
+                            if (is_code_block) {
+                                doMath = false;
+                            }
+                            highlightCode(doMath, msg);
                         } else {
-                            msg = box.querySelector('.msg');
-                        }
-                        if (msg) {
-                            if (replace) {                            
-                                domLastCodeBlock = null;
-                                domLastParagraphBlock = null;
-                                msg.replaceChildren();
-                                if (content) {
-                                  msg.insertAdjacentHTML('afterbegin', content);
-                                }
-                                let doMath = true;
-                                if (is_code_block) {
-                                    doMath = false;
-                                }
-                                highlightCode(doMath, msg);
-                            } else {
-                                if (is_code_block) {
-                                    // Try to reuse cached last code block; fallback to cheap lastElementChild check
-                                    let lastCodeBlock = domLastCodeBlock;
-                                    if (!lastCodeBlock || !msg.contains(lastCodeBlock)) {
-                                        const last = msg.lastElementChild;
-                                        if (last && last.tagName === 'PRE') {
-                                            const codeEl = last.querySelector('code');
-                                            if (codeEl) {
-                                                lastCodeBlock = codeEl;
-                                            }
-                                        } else {
-                                            // Fallback scan only when necessary
-                                            const codes = msg.querySelectorAll('pre code');
-                                            if (codes.length > 0) {
-                                                lastCodeBlock = codes[codes.length - 1];
-                                            }
+                            if (is_code_block) {
+                                let lastCodeBlock = domLastCodeBlock;
+                                if (!lastCodeBlock || !msg.contains(lastCodeBlock)) {
+                                    const last = msg.lastElementChild;
+                                    if (last && last.tagName === 'PRE') {
+                                        const codeEl = last.querySelector('code');
+                                        if (codeEl) {
+                                            lastCodeBlock = codeEl;
+                                        }
+                                    } else {
+                                        const codes = msg.querySelectorAll('pre code');
+                                        if (codes.length > 0) {
+                                            lastCodeBlock = codes[codes.length - 1];
                                         }
                                     }
-                                    if (lastCodeBlock) {
-                                        lastCodeBlock.insertAdjacentHTML('beforeend', chunk);
-                                        domLastCodeBlock = lastCodeBlock;
-                                    } else {
-                                        msg.insertAdjacentHTML('beforeend', chunk);
-                                        domLastCodeBlock = null;
-                                    }
+                                }
+                                if (lastCodeBlock) {
+                                    lastCodeBlock.insertAdjacentHTML('beforeend', chunk);
+                                    domLastCodeBlock = lastCodeBlock;
                                 } else {
+                                    msg.insertAdjacentHTML('beforeend', chunk);
                                     domLastCodeBlock = null;
-                                    let p = (domLastParagraphBlock && msg.contains(domLastParagraphBlock))
-                                        ? domLastParagraphBlock
-                                        : (msg.lastElementChild && msg.lastElementChild.tagName === 'P'
-                                            ? msg.lastElementChild
-                                            : null);
-                                    if (p) {
-                                        p.insertAdjacentHTML('beforeend', chunk);
-                                        domLastParagraphBlock = p;
-                                    } else {
-                                        msg.insertAdjacentHTML('beforeend', chunk);
-                                        const last = msg.lastElementChild;
-                                        domLastParagraphBlock = (last && last.tagName === 'P') ? last : null;
-                                    }
+                                }
+                            } else {
+                                domLastCodeBlock = null;
+                                let p = (domLastParagraphBlock && msg.contains(domLastParagraphBlock))
+                                    ? domLastParagraphBlock
+                                    : (msg.lastElementChild && msg.lastElementChild.tagName === 'P'
+                                        ? msg.lastElementChild
+                                        : null);
+                                if (p) {
+                                    p.insertAdjacentHTML('beforeend', chunk);
+                                    domLastParagraphBlock = p;
+                                } else {
+                                    msg.insertAdjacentHTML('beforeend', chunk);
+                                    const last = msg.lastElementChild;
+                                    domLastParagraphBlock = (last && last.tagName === 'P') ? last : null;
                                 }
                             }
                         }
                     }
-                    // Initial auto-follow until first user interaction
-                    if (userInteracted === false) {
-                        forceScrollToBottomImmediate();
-                    } else {
-                        scheduleScroll(true);
-                    }
+                    if (batching) {
+                        needScroll = true;
+                      } else {
+                        if (userInteracted === false) {
+                          forceScrollToBottomImmediate();
+                        } else {
+                          scheduleScroll(true);
+                        }
+                      }
+                      fabFreezeUntil = performance.now() + FAB_TOGGLE_DEBOUNCE_MS;
+                      scheduleScrollFabUpdate();
                 }
                 function nextStream() {
                     hideTips();
@@ -690,6 +637,7 @@ class Body:
                         elementBefore.appendChild(frag);
                         domLastCodeBlock = null;
                         domLastParagraphBlock = null;
+                        domStreamMsg = null;
                         scheduleScroll();
                     }
                 }
@@ -798,7 +746,7 @@ class Body:
                             element.classList.add('visible');
                         }
                         element.innerHTML = content;
-                        highlightCode(true, element);
+                        scheduleHighlight(element, true);
                         scheduleScroll();
                     }
                 }
@@ -828,7 +776,8 @@ class Body:
                     clearStreamBefore();
                     domLastCodeBlock = null;
                     domLastParagraphBlock = null;
-                    domOutputStream = null; // release handle to allow GC on old container subtree
+                    domStreamMsg = null;
+                    domOutputStream = null;
                     const element = els.appendOutput || document.getElementById('_append_output_');
                     if (element) {
                         element.replaceChildren();
@@ -906,7 +855,7 @@ class Body:
                         const source = wrapper.querySelector('code');
                         if (source && collapsed_idx.includes(index)) {
                             source.style.display = 'none';
-                            const collapseBtn = wrapper.querySelector('code-header-collapse');
+                            const collapseBtn = wrapper.querySelector('.code-header-collapse');
                             if (collapseBtn) {
                                 const collapseSpan = collapseBtn.querySelector('span');
                                 if (collapseSpan) {
@@ -974,112 +923,112 @@ class Body:
                     }
                 }
 
-                // ---------- scroll bottom ----------
                 function hasVerticalScroll() {
-                    const el = document.scrollingElement || document.documentElement;
+                    const el = SE;
                     return (el.scrollHeight - el.clientHeight) > 1;
                 }
                 function distanceToBottomPx() {
-                    const el = document.scrollingElement || document.documentElement;
+                    const el = SE;
                     return el.scrollHeight - el.clientHeight - el.scrollTop;
                 }
                 function isAtBottom(thresholdPx = 2) {
                     return distanceToBottomPx() <= thresholdPx;
                 }
-                function isLoaderHidden() {
-                    const el = els.loader || document.getElementById('_loader_');
-                    // If loader element is missing treat as hidden to avoid blocking FAB unnecessarily
-                    return !el || el.classList.contains('hidden');
+
+                function computeFabAction() {
+                    const el = SE;
+                    const hasScroll = (el.scrollHeight - el.clientHeight) > 1;
+                    if (!hasScroll) return 'none';
+                    const dist = el.scrollHeight - el.clientHeight - el.scrollTop;
+                    if (dist <= 2) return 'up';
+                    if (dist >= SHOW_DOWN_THRESHOLD_PX) return 'down';
+                    return 'none';
                 }
-                function updateScrollFab() {
+                function updateScrollFab(force = false, actionOverride = null, bypassFreeze = false) {
                     const btn = els.scrollFab || document.getElementById('scrollFab');
                     const icon = els.scrollFabIcon || document.getElementById('scrollFabIcon');
                     if (!btn || !icon) return;
 
-                    const hasScroll = hasVerticalScroll();
-                    if (!hasScroll) {
-                        btn.classList.remove('visible');
-                        currentFabAction = 'none';
+                    const action = actionOverride || computeFabAction();
+                    if (!force && !bypassFreeze && performance.now() < fabFreezeUntil && action !== currentFabAction) {
                         return;
                     }
-
-                    const atBottom = isAtBottom();
-                    const dist = distanceToBottomPx();
-                    const loaderHidden = isLoaderHidden();
-
-                    // Determine desired action and visibility based on requirements:
-                    // - Show "down" only when at least SHOW_DOWN_THRESHOLD_PX away from bottom.
-                    // - Show "up" only when loader-global has the 'hidden' class.
-                    // - Otherwise hide the FAB to prevent overlap and noise.
-                    let action = 'none'; // 'up' | 'down' | 'none'
-                    if (atBottom) {
-                        action = 'up';
-                    } else {
-                        if (dist >= SHOW_DOWN_THRESHOLD_PX) {
-                            action = 'down';
-                        } else {
-                            action = 'none';
-                        }
-                    }
-
                     if (action === 'none') {
-                        btn.classList.remove('visible');
-                        currentFabAction = 'none';
+                        if (currentFabAction !== 'none' || force) {
+                            btn.classList.remove('visible');
+                            currentFabAction = 'none';
+                        }
                         return;
                     }
-
-                    // Update icon and semantics only if changed to avoid redundant 'load' events
-                    if (action !== currentFabAction) {
+                    if (action !== currentFabAction || force) {
                         if (action === 'up') {
-                            if (icon.src !== ICON_COLLAPSE) icon.src = ICON_COLLAPSE;
+                            if (icon.dataset.dir !== 'up') {
+                                icon.src = ICON_COLLAPSE;
+                                icon.dataset.dir = 'up';
+                            }
                             btn.title = "Go to top";
                         } else {
-                            if (icon.src !== ICON_EXPAND) icon.src = ICON_EXPAND;
+                            if (icon.dataset.dir !== 'down') {
+                                icon.src = ICON_EXPAND;
+                                icon.dataset.dir = 'down';
+                            }
                             btn.title = "Go to bottom";
                         }
                         btn.setAttribute('aria-label', btn.title);
                         currentFabAction = action;
+                        btn.classList.add('visible');
+                    } else if (!btn.classList.contains('visible')) {
+                        btn.classList.add('visible');
                     }
-
-                    // Finally show
-                    btn.classList.add('visible');
                 }
                 function scheduleScrollFabUpdate() {
                     if (scrollFabUpdateScheduled) return;
                     scrollFabUpdateScheduled = true;
                     requestAnimationFrame(function() {
                         scrollFabUpdateScheduled = false;
-                        updateScrollFab();
+                        const action = computeFabAction();
+                        if (action !== currentFabAction) {
+                            updateScrollFab(false, action);
+                        }
                     });
                 }
+
+                function maybeEnableAutoFollowByProximity() {
+                    const el = SE;
+                    if (!autoFollow) {
+                        const distanceToBottom = el.scrollHeight - el.clientHeight - el.scrollTop;
+                        if (distanceToBottom <= AUTO_FOLLOW_REENABLE_PX) {
+                            autoFollow = true;
+                        }
+                    }
+                }
                 function scrollToTopUser() {
-                    // Explicit user-driven scroll disables auto-follow
                     userInteracted = true;
                     autoFollow = false;
                     try {
-                        const el = document.scrollingElement || document.documentElement;
+                        const el = SE;
                         el.scrollTo({ top: 0, behavior: 'smooth' });
+                        lastScrollTop = el.scrollTop;
                     } catch (e) {
-                        // Fallback in environments without smooth scrolling support
-                        const el = document.scrollingElement || document.documentElement;
+                        const el = SE;
                         el.scrollTop = 0;
+                        lastScrollTop = 0;
                     }
-                    scheduleScrollFabUpdate();
                 }
                 function scrollToBottomUser() {
-                    // User action to go to bottom re-enables auto-follow
                     userInteracted = true;
-                    autoFollow = true;
+                    autoFollow = false;
                     try {
-                        const el = document.scrollingElement || document.documentElement;
+                        const el = SE;
                         el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+                        lastScrollTop = el.scrollTop;
                     } catch (e) {
-                        const el = document.scrollingElement || document.documentElement;
+                        const el = SE;
                         el.scrollTop = el.scrollHeight;
+                        lastScrollTop = el.scrollTop;
                     }
-                    scheduleScrollFabUpdate();
+                    maybeEnableAutoFollowByProximity();
                 }
-                // ---------- end of scroll bottom ----------
 
                 document.addEventListener('DOMContentLoaded', function() {
                     new QWebChannel(qt.webChannelTransport, function (channel) {
@@ -1089,6 +1038,7 @@ class Body:
                     });
                     initDomRefs();
                     const container = els.container;
+
                     function addClassToMsg(id, className) {
                         const msgElement = document.getElementById('msg-bot-' + id);
                         if (msgElement) {
@@ -1101,61 +1051,71 @@ class Body:
                             msgElement.classList.remove(className);
                         }
                     }
-                    container.addEventListener('mouseover', function(event) {
+                    containerMouseOverHandler = function(event) {
                         if (event.target.classList.contains('action-img')) {
                             const id = event.target.getAttribute('data-id');
                             addClassToMsg(id, 'msg-highlight');
                         }
-                    });
-                    container.addEventListener('mouseout', function(event) {
+                    };
+                    containerMouseOutHandler = function(event) {
                         if (event.target.classList.contains('action-img')) {
                             const id = event.target.getAttribute('data-id');
                             removeClassFromMsg(id, 'msg-highlight');
                         }
-                    });
-                    // Wheel up disables auto-follow immediately (works even at absolute bottom)
-                    document.addEventListener('wheel', function(ev) {
+                    };
+                    container.addEventListener('mouseover', containerMouseOverHandler, { passive: true });
+                    container.addEventListener('mouseout', containerMouseOutHandler, { passive: true });
+
+                    wheelHandler = function(ev) {
                         userInteracted = true;
                         if (ev.deltaY < 0) {
                             autoFollow = false;
+                        } else {
+                            maybeEnableAutoFollowByProximity();
                         }
-                    }, { passive: true });
+                    };
+                    document.addEventListener('wheel', wheelHandler, { passive: true });
 
-                    // Track scroll direction and restore auto-follow when user returns to bottom
-                    window.addEventListener('scroll', function() {
-                        const el = document.scrollingElement || document.documentElement;
+                    scrollHandler = function() {
+                        const el = SE;
                         const top = el.scrollTop;
-
-                        // User scrolled up (ignore tiny jitter)
                         if (top + 1 < lastScrollTop) {
                             autoFollow = false;
-                        } else if (!autoFollow) {
-                            const distanceToBottom = el.scrollHeight - el.clientHeight - top;
-                            if (distanceToBottom <= AUTO_FOLLOW_REENABLE_PX) {
-                                autoFollow = true;
-                            }
                         }
+                        maybeEnableAutoFollowByProximity();
                         lastScrollTop = top;
-                    }, { passive: true });
+                        const action = computeFabAction();
+                        if (action !== currentFabAction) {
+                            updateScrollFab(false, action, true);
+                        }
+                    };
+                    window.addEventListener('scroll', scrollHandler, { passive: true });
 
-                    // Scroll-to-top/bottom FAB wiring
                     if (els.scrollFab) {
-                        els.scrollFab.addEventListener('click', function(ev) {
+                        fabClickHandler = function(ev) {
                             ev.preventDefault();
-                            if (isAtBottom()) {
+                            ev.stopPropagation();
+                            const action = computeFabAction();
+                            if (action === 'up') {
                                 scrollToTopUser();
-                            } else {
+                            } else if (action === 'down') {
                                 scrollToBottomUser();
                             }
-                        }, { passive: false });
+                            fabFreezeUntil = performance.now() + FAB_TOGGLE_DEBOUNCE_MS;
+                            updateScrollFab(true);
+                        };
+                        els.scrollFab.addEventListener('click', fabClickHandler, { passive: false });
                     }
-                    window.addEventListener('scroll', scheduleScrollFabUpdate, { passive: true });
-                    window.addEventListener('resize', scheduleScrollFabUpdate, { passive: true });
 
-                    // Initial state
-                    scheduleScrollFabUpdate();  
+                    resizeHandler = function() {
+                        maybeEnableAutoFollowByProximity();
+                        scheduleScrollFabUpdate();
+                    };
+                    window.addEventListener('resize', resizeHandler, { passive: true });
 
-                    container.addEventListener('click', function(event) {
+                    updateScrollFab(true);
+
+                    containerClickHandler = function(event) {
                         const copyButton = event.target.closest('.code-header-copy');
                         if (copyButton) {
                             event.preventDefault();
@@ -1228,13 +1188,13 @@ class Body:
                                 }
                             }
                         }
-                    });
+                    };
+                    container.addEventListener('click', containerClickHandler, { passive: false });
 
-                    // Cleanup on page lifecycle changes
-                    window.addEventListener('pagehide', teardown, { passive: true });
-                    window.addEventListener('beforeunload', teardown, { passive: true });
+                    // window.addEventListener('pagehide', cleanup, { once: true });
+                    // window.addEventListener('beforeunload', cleanup, { once: true });
                 });
-                setTimeout(cycleTips, 10000);  // after 10 seconds
+                setTimeout(cycleTips, 10000);
                 </script>
             </head>
             <body """
@@ -1304,7 +1264,6 @@ class Body:
         }
         """
 
-    # CSS for the scroll-to-top/bottom
     _SCROLL_FAB_CSS = """
         #scrollFab.scroll-fab {
             position: fixed;
@@ -1371,11 +1330,6 @@ class Body:
         """
 
     def __init__(self, window=None):
-        """
-        HTML Body
-
-        :param window: Window instance
-        """
         self.window = window
         self.highlight = SyntaxHighlight(window)
         self._tip_keys = tuple(f"output.tips.{i}" for i in range(1, self.NUM_TIPS + 1))
@@ -1399,21 +1353,10 @@ class Body:
             "zenburn",
         )
 
-
     def is_timestamp_enabled(self) -> bool:
-        """
-        Check if timestamp is enabled
-
-        :return: True if timestamp is enabled
-        """
         return self.window.core.config.get('output_timestamp')
 
     def prepare_styles(self) -> str:
-        """
-        Prepare CSS styles
-
-        :return: CSS styles
-        """
         cfg = self.window.core.config
         fonts_path = os.path.join(cfg.get_app_path(), "data", "fonts").replace("\\", "/")
         syntax_style = self.window.core.config.get("render.code_syntax") or "default"
@@ -1424,30 +1367,17 @@ class Body:
             theme_css,
             "pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }",
             self.highlight.get_style_defs(),
-            self._PERFORMANCE_CSS  # performance improvements
+            self._PERFORMANCE_CSS
         ]
         return "\n".join(parts)
 
     def prepare_action_icons(self, ctx: CtxItem) -> str:
-        """
-        Append action icons
-
-        :param ctx: context item
-        :return: HTML code
-        """
         icons_html = "".join(self.get_action_icons(ctx, all=True))
         if icons_html:
             return f'<div class="action-icons" data-id="{ctx.id}">{icons_html}</div>'
         return ""
 
     def get_action_icons(self, ctx: CtxItem, all: bool = False) -> List[str]:
-        """
-        Get action icons for context item
-
-        :param ctx: context item
-        :param all: True to show all icons
-        :return: list of icons
-        """
         icons: List[str] = []
         if ctx.output:
             cid = ctx.id
@@ -1467,46 +1397,17 @@ class Body:
                     f'<a href="extra-join:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("playlist_add", t("ctx.extra.join"), ctx)}</span></a>')
         return icons
 
-    def get_icon(
-            self,
-            icon: str,
-            title: Optional[str] = None,
-            item: Optional[CtxItem] = None
-    ) -> str:
-        """
-        Get icon
-
-        :param icon: icon name
-        :param title: icon title
-        :param item: context item
-        :return: icon HTML
-        """
+    def get_icon(self, icon: str, title: Optional[str] = None, item: Optional[CtxItem] = None) -> str:
         app_path = self.window.core.config.get_app_path()
         icon_path = os.path.join(app_path, "data", "icons", f"{icon}.svg")
         return f'<img src="file://{icon_path}" class="action-img" title="{title}" alt="{title}" data-id="{item.id}">'
 
-    def get_image_html(
-            self,
-            url: str,
-            num: Optional[int] = None,
-            num_all: Optional[int] = None
-    ) -> str:
-        """
-        Get media image/video/audio HTML
-
-        :param url: URL to image
-        :param num: number of image
-        :param num_all: number of all images
-        :return: HTML code
-        """
+    def get_image_html(self, url: str, num: Optional[int] = None, num_all: Optional[int] = None) -> str:
         url, path = self.window.core.filesystem.extract_local_url(url)
         basename = os.path.basename(path)
-
-        # if video file then embed video player
         ext = os.path.splitext(basename)[1].lower()
         video_exts = (".mp4", ".webm", ".ogg", ".mov", ".avi", ".mkv")
         if ext in video_exts:
-            # check if .webm file exists for better compatibility
             if ext != ".webm":
                 webm_path = os.path.splitext(path)[0] + ".webm"
                 if os.path.exists(webm_path):
@@ -1522,20 +1423,7 @@ class Body:
             '''
         return f'<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url}"><img src="{path}" class="image"></a></div><a href="{url}" class="title">{elide_filename(basename)}</a></div></div><br/>'
 
-    def get_url_html(
-            self,
-            url: str,
-            num: Optional[int] = None,
-            num_all: Optional[int] = None
-    ) -> str:
-        """
-        Get URL HTML
-
-        :param url: external URL
-        :param num: number of URL
-        :param num_all: number of all URLs
-        :return: HTML code
-        """
+    def get_url_html(self, url: str, num: Optional[int] = None, num_all: Optional[int] = None) -> str:
         app_path = self.window.core.config.get_app_path()
         icon_path = os.path.join(app_path, "data", "icons", "language.svg").replace("\\", "/")
         icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
@@ -1543,12 +1431,6 @@ class Body:
         return f'{icon}<a href="{url}" title="{url}">{url}</a> <small>{num_str}</small>'
 
     def get_docs_html(self, docs: List[Dict]) -> str:
-        """
-        Get Llama-index doc metadata HTML
-
-        :param docs: list of document metadata
-        :return: HTML code
-        """
         html_parts: List[str] = []
         src_parts: List[str] = []
         num = 1
@@ -1578,20 +1460,7 @@ class Body:
 
         return "".join(html_parts)
 
-    def get_file_html(
-            self,
-            url: str,
-            num: Optional[int] = None,
-            num_all: Optional[int] = None
-    ) -> str:
-        """
-        Get file HTML
-
-        :param url: URL to file
-        :param num: number of file
-        :param num_all: number of all files
-        :return: HTML code
-        """
+    def get_file_html(self, url: str, num: Optional[int] = None, num_all: Optional[int] = None) -> str:
         app_path = self.window.core.config.get_app_path()
         icon_path = os.path.join(app_path, "data", "icons", "attachments.svg").replace("\\", "/")
         icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
@@ -1600,12 +1469,6 @@ class Body:
         return f'{icon} <b>{num_str}</b> <a href="{url}">{path}</a>'
 
     def prepare_tool_extra(self, ctx: CtxItem) -> str:
-        """
-        Prepare footer extra
-
-        :param ctx: context item
-        :return: HTML code
-        """
         extra = ctx.extra
         if not extra:
             return ""
@@ -1643,11 +1506,6 @@ class Body:
         return "".join(parts)
 
     def get_all_tips(self) -> str:
-        """
-        Get all tips for the output view
-
-        :return: JSON string of tips
-        """
         if not self.window.core.config.get("layout.tooltips", False):
             return "[]"
 
@@ -1661,12 +1519,6 @@ class Body:
         return _json_dumps(tips)
 
     def get_html(self, pid: int) -> str:
-        """
-        Build webview HTML code (fast path, minimal allocations)
-
-        :param pid: process ID
-        :return: HTML code
-        """
         cfg_get = self.window.core.config.get
         style = cfg_get("theme.style", "blocks")
         classes = ["theme-" + style]
@@ -1680,7 +1532,6 @@ class Body:
         styles_css = self.prepare_styles()
         tips_json = self.get_all_tips()
 
-        # Build file:// paths for FAB icons
         app_path = self.window.core.config.get_app_path().replace("\\", "/")
         expand_path = os.path.join(app_path, "data", "icons", "expand.svg").replace("\\", "/")
         collapse_path = os.path.join(app_path, "data", "icons", "collapse.svg").replace("\\", "/")
