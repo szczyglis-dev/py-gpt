@@ -37,15 +37,18 @@ class Editor:
             "id": {
                 "type": "text",
                 "label": "model.id",
+                "description": "model.id.desc",
             },
             "name": {
                 "type": "text",
                 "label": "model.name",
+                "description": "model.name.desc",
             },
             "provider": {
                 "type": "combo",
                 "use": "llm_providers",
                 "label": "model.provider",
+                "description": "model.provider.desc",
             },
             "ctx": {
                 "type": "int",

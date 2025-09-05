@@ -19,7 +19,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSc
 from pygpt_net.item.model import ModelItem
 from pygpt_net.ui.widget.dialog.model import ModelDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
-from pygpt_net.ui.widget.element.labels import UrlLabel
+from pygpt_net.ui.widget.element.labels import UrlLabel, DescLabel
 from pygpt_net.ui.widget.lists.model_editor import ModelEditorList
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.checkbox_list import OptionCheckboxList
@@ -303,7 +303,7 @@ class Models:
             layout.addWidget(widget)
 
         if desc:
-            self.window.ui.nodes[desc_key] = QLabel(desc)
+            self.window.ui.nodes[desc_key] = DescLabel(desc)
             self.window.ui.nodes[desc_key].setWordWrap(True)
             self.window.ui.nodes[desc_key].setMaximumHeight(40)
             self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
