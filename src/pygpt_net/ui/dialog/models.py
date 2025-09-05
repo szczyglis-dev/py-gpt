@@ -333,6 +333,21 @@ class Models:
         """
         return QStandardItemModel(0, 1, parent)
 
+    def _get_provider_display_name(self, provider_id: str) -> str:
+        """
+        Resolve provider display name using app's LLM provider registry.
+        """
+        if not provider_id:
+            return ""
+        try:
+            name = self.window.core.llm.get_provider_name(provider_id)
+            if isinstance(name, str):
+                name = name.strip()
+            return name or ""
+        except Exception:
+            # Fail silently to avoid breaking the models list rendering
+            return ""
+
     def update_list(self, id: str, data: dict):
         """
         Update list
@@ -341,9 +356,26 @@ class Models:
         :param data: Data to update
         """
         self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
+
+        # Count occurrences of each model display name to detect duplicates
+        name_counts = {}
+        for key in data:
+            item = data[key]
+            base_name = getattr(item, "name", "") or ""
+            name_counts[base_name] = name_counts.get(base_name, 0) + 1
+
+        # Populate rows with optional provider suffix for duplicate names
         i = 0
         for n in data:
+            item = data[n]
+            base_name = getattr(item, "name", "") or ""
+            display_name = base_name
+            if name_counts.get(base_name, 0) > 1:
+                provider_id = getattr(item, "provider", None)
+                provider_name = self._get_provider_display_name(provider_id) if provider_id else ""
+                if provider_name:
+                    display_name = f"{base_name} ({provider_name})"
+
             self.window.ui.models[id].insertRow(i)
-            name = data[n].name
-            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
+            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), display_name)
             i += 1
