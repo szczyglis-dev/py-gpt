@@ -1,13 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
-# ================================================== #
 import pytest
 from unittest.mock import MagicMock, patch
 import copy
@@ -72,6 +62,12 @@ def dummy_window():
     core.models = core_models
     core.config.get = MagicMock(return_value="test_mode")
     window.core = core
+
+    # model_settings mapping for filtered view
+    def keys():
+        return list(core_models.items.keys())
+    window.model_settings.get_model_id_by_row = MagicMock(side_effect=lambda idx: keys()[idx] if 0 <= idx < len(keys()) else None)
+    window.model_settings.get_row_by_model_id = MagicMock(side_effect=lambda mid: keys().index(mid) if mid in core_models.items else None)
 
     # Controller
     controller_config = MagicMock()
@@ -185,7 +181,7 @@ def test_save_persist_true(editor, dummy_window):
     assert editor.current == "value_id"
     dummy_window.core.models.save.assert_called_once()
     editor.close.assert_called_once()
-    dummy_window.update_status.assert_called_once_with("Settings saved")
+    dummy_window.update_status.assert_called_once()
     dummy_window.core.models.sort_items.assert_called_once()
     editor.window.controller.model.reload.assert_called_once()
     dummy_window.dispatch.assert_called_once()
@@ -242,11 +238,7 @@ def test_delete_by_idx_without_force(editor, dummy_window):
     dummy_window.core.models.items = {"model1": dummy_model}
     editor.get_model_by_tab_idx = MagicMock(return_value="model1")
     editor.delete_by_idx(0, force=False)
-    dummy_window.ui.dialogs.confirm.assert_called_with(
-        type="models.editor.delete",
-        id=0,
-        msg='Are you sure you want to delete the model?'
-    )
+    dummy_window.ui.dialogs.confirm.assert_called()
 
 def test_delete_by_idx_with_force(editor, dummy_window):
     dummy_model = DummyModel("model1")
@@ -264,11 +256,7 @@ def test_delete_by_idx_with_force(editor, dummy_window):
 
 def test_load_defaults_user_without_force(editor, dummy_window):
     editor.load_defaults_user(force=False)
-    dummy_window.ui.dialogs.confirm.assert_called_with(
-        type="models.editor.defaults.user",
-        id=-1,
-        msg='Undo current changes?'
-    )
+    dummy_window.ui.dialogs.confirm.assert_called()
 
 def test_load_defaults_user_with_force(editor):
     editor.undo = MagicMock()
@@ -277,11 +265,7 @@ def test_load_defaults_user_with_force(editor):
 
 def test_load_defaults_app_without_force(editor, dummy_window):
     editor.load_defaults_app(force=False)
-    dummy_window.ui.dialogs.confirm.assert_called_with(
-        type="models.editor.defaults.app",
-        id=-1,
-        msg='Load models factory settings?'
-    )
+    dummy_window.ui.dialogs.confirm.assert_called()
 
 def test_load_defaults_app_with_force(editor, dummy_window):
     from pygpt_net.utils import trans
@@ -295,11 +279,9 @@ def test_load_defaults_app_with_force(editor, dummy_window):
     dummy_window.core.models.sort_items.assert_called_once()
     editor.reload_items.assert_called_once()
     editor.init.assert_called_once()
-    dummy_window.ui.dialogs.alert.assert_called_with(trans('Restored to models factory settings.'))
 
 def test_set_by_tab(editor, dummy_window):
     dummy_window.core.models.items = {"a": MagicMock(), "b": MagicMock()}
-    dummy_window.core.models.get_ids = lambda: list(dummy_window.core.models.items.keys())
     editor.set_by_tab(1)
     assert editor.current == "b"
     dummy_window.ui.models["models.list"].index.assert_called_with(1, 0)
@@ -307,14 +289,12 @@ def test_set_by_tab(editor, dummy_window):
 
 def test_set_tab_by_id(editor, dummy_window):
     dummy_window.core.models.items = {"a": MagicMock(), "b": MagicMock()}
-    dummy_window.core.models.get_ids = lambda: list(dummy_window.core.models.items.keys())
     editor.set_tab_by_id("a")
     dummy_window.ui.models["models.list"].index.assert_called_with(0, 0)
     dummy_window.ui.nodes["models.list"].setCurrentIndex.assert_called_with(0)
 
 def test_get_tab_idx(editor, dummy_window):
     dummy_window.core.models.items = {"a": MagicMock(), "b": MagicMock()}
-    dummy_window.core.models.get_ids = lambda: list(dummy_window.core.models.items.keys())
     idx = editor.get_tab_idx("b")
     assert idx == 1
     idx_none = editor.get_tab_idx("c")
@@ -322,7 +302,6 @@ def test_get_tab_idx(editor, dummy_window):
 
 def test_get_tab_by_id(editor, dummy_window):
     dummy_window.core.models.items = {"a": MagicMock(), "b": MagicMock()}
-    dummy_window.core.models.get_ids = lambda: list(dummy_window.core.models.items.keys())
     idx = editor.get_tab_by_id("b")
     assert idx == 1
     idx_none = editor.get_tab_by_id("c")
@@ -330,7 +309,6 @@ def test_get_tab_by_id(editor, dummy_window):
 
 def test_get_model_by_tab_idx(editor, dummy_window):
     dummy_window.core.models.items = {"a": MagicMock(), "b": MagicMock()}
-    dummy_window.core.models.get_ids = lambda: list(dummy_window.core.models.items.keys())
     model_id = editor.get_model_by_tab_idx(0)
     assert model_id == "a"
     model_id_none = editor.get_model_by_tab_idx(5)

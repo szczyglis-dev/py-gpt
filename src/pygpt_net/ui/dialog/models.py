@@ -10,6 +10,7 @@
 # ================================================== #
 
 import copy
+from typing import Dict, List, Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel, QIcon
@@ -27,7 +28,9 @@ from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
+from pygpt_net.ui.widget.textarea.search_input import SearchInput
 from pygpt_net.utils import trans
+
 
 class Models:
     def __init__(self, window=None):
@@ -38,6 +41,13 @@ class Models:
         """
         self.window = window
         self.dialog_id = "models.editor"
+
+        # Internal state for filtering/mapping
+        self._filter_text: str = ""
+        self._filtered_ids: List[str] = []     # current list of model keys displayed in the view (order matters)
+        self._index_to_id: List[str] = []      # row index -> model key
+        self._id_to_index: Dict[str, int] = {} # model key -> row index
+        self._all_data: Dict[str, object] = {} # last known (unfiltered) data snapshot used to render the list
 
     def setup(self, idx=None):
         """
@@ -148,16 +158,29 @@ class Models:
         self.window.ui.nodes[id] = ModelEditorList(self.window, id)
         self.window.ui.models[id] = self.create_model(self.window)
         self.window.ui.nodes[id].setModel(self.window.ui.models[id])
+        self.window.ui.nodes[id].setMinimumWidth(250)  # set max width to list
 
-        # update models list
+        # search input (placed above the list)
+        self.window.ui.nodes['models.editor.search'] = SearchInput()
+        # Connect to provided callback API (callables assigned to attributes)
+        self.window.ui.nodes['models.editor.search'].on_search = self._on_search_models
+        self.window.ui.nodes['models.editor.search'].on_clear = self._on_clear_models  # clear via "X" button
+
+        # container for search + list (left panel)
+        left_layout = QVBoxLayout()
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(6)
+        left_layout.addWidget(self.window.ui.nodes['models.editor.search'])
+        left_layout.addWidget(self.window.ui.nodes[id])
+        left_widget = QWidget()
+        left_widget.setLayout(left_layout)
+
+        # update models list (initial, unfiltered)
         self.update_list(id, data)
-
-        # set max width to list
-        self.window.ui.nodes[id].setMinimumWidth(250)
 
         # splitter
         self.window.ui.splitters['dialog.models'] = QSplitter(Qt.Horizontal)
-        self.window.ui.splitters['dialog.models'].addWidget(self.window.ui.nodes[id])  # list
+        self.window.ui.splitters['dialog.models'].addWidget(left_widget)  # search + list
         self.window.ui.splitters['dialog.models'].addWidget(area_widget)  # tabs
         self.window.ui.splitters['dialog.models'].setStretchFactor(0, 2)
         self.window.ui.splitters['dialog.models'].setStretchFactor(1, 5)
@@ -183,6 +206,86 @@ class Models:
         else:
             if self.window.controller.model.editor.current is None:
                 self.window.controller.model.editor.set_by_tab(0)
+
+    def _on_search_models(self, text: str):
+        """
+        Handle SearchInput callback. Filtering is prefix-based on model id or name (case-insensitive).
+        """
+        # Keep normalized filter text
+        self._filter_text = (text or "").strip().casefold()
+        # Re-apply list render using the last known dataset
+        self.update_list('models.list', self._all_data)
+        # Do not force-select rows here to avoid heavy editor re-initialization on each keystroke.
+
+    def _on_clear_models(self):
+        """
+        Handle SearchInput clear (click on 'X' button).
+        """
+        if not self._filter_text:
+            return
+        self._filter_text = ""
+        self.update_list('models.list', self._all_data)
+        # Try to restore selection for the current model if it is visible again.
+        self._restore_selection_for_current()
+
+    def _restore_selection_for_current(self):
+        """
+        Attempt to restore selection on the list to the current editor model if present in the view.
+        """
+        current_id = getattr(self.window.controller.model.editor, "current", None)
+        if not current_id:
+            return
+        idx = self.get_row_by_model_id(current_id)
+        if idx is None:
+            return
+        current = self.window.ui.models['models.list'].index(idx, 0)
+        self.window.ui.nodes['models.list'].setCurrentIndex(current)
+
+    def _apply_filter(self, data: Dict[str, object]) -> Dict[str, object]:
+        """
+        Return filtered data view, preserving original order.
+        """
+        if not self._filter_text:
+            return data
+
+        out: Dict[str, object] = {}
+        needle = self._filter_text
+        for mid, item in data.items():
+            # Normalize fields for prefix matching
+            model_id = (str(getattr(item, "id", mid)) or "").casefold()
+            model_name = (getattr(item, "name", "") or "").casefold()
+            if (needle in model_name
+                    or needle in model_id):
+                out[mid] = item
+        return out
+
+    def _refresh_index_mapping(self, ids: List[str]):
+        """
+        Build fast row<->id mapping for the current filtered list.
+        """
+        self._filtered_ids = list(ids)
+        self._index_to_id = list(ids)
+        self._id_to_index = {mid: idx for idx, mid in enumerate(ids)}
+
+    def get_model_id_by_row(self, row: int) -> Optional[str]:
+        """
+        Map a view row index to the model id currently displayed at that row.
+        """
+        if 0 <= row < len(self._index_to_id):
+            return self._index_to_id[row]
+        return None
+
+    def get_row_by_model_id(self, model_id: str) -> Optional[int]:
+        """
+        Map a model id to its current row index in the filtered view.
+        """
+        return self._id_to_index.get(model_id)
+
+    def get_filtered_ids(self) -> List[str]:
+        """
+        Return a copy of currently visible model ids (filtered order).
+        """
+        return list(self._filtered_ids)
 
     def build_widgets(self, options: dict) -> dict:
         """
@@ -355,19 +458,27 @@ class Models:
         :param id: ID of the list
         :param data: Data to update
         """
+        # Keep latest source data for subsequent filtering cycles
+        self._all_data = dict(data)
+
+        # Apply current filter (preserve insertion/sorted order)
+        filtered = self._apply_filter(self._all_data)
+
+        # Reset model rows
         self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
 
-        # Count occurrences of each model display name to detect duplicates
+        # Count occurrences of each model display name to detect duplicates (in filtered view)
         name_counts = {}
-        for key in data:
-            item = data[key]
+        for key in filtered:
+            item = filtered[key]
             base_name = getattr(item, "name", "") or ""
             name_counts[base_name] = name_counts.get(base_name, 0) + 1
 
         # Populate rows with optional provider suffix for duplicate names
         i = 0
-        for n in data:
-            item = data[n]
+        row_ids: List[str] = []
+        for n in filtered:
+            item = filtered[n]
             base_name = getattr(item, "name", "") or ""
             display_name = base_name
             if name_counts.get(base_name, 0) > 1:
@@ -378,4 +489,9 @@ class Models:
 
             self.window.ui.models[id].insertRow(i)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), display_name)
+            # IMPORTANT: map list row to the dictionary key (stable and unique within models.items)
+            row_ids.append(n)
             i += 1
+
+        # Refresh index mappings used by Editor
+        self._refresh_index_mapping(row_ids)

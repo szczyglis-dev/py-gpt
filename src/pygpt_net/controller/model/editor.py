@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.09.05 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -69,7 +69,6 @@ class Editor:
                 "type": "bool",
                 "label": "model.tool_calls",
                 "description": "model.tool_calls.desc",
-                "advanced": True,
             },
             "input": {
                 "type": "bool_list",  # list of comma separated values
@@ -424,15 +423,14 @@ class Editor:
 
         :param idx: tab index
         """
-        model_idx = 0
-        self.window.core.models.sort_items()
-        for id in self.window.core.models.get_ids():
-            if model_idx == idx:
-                self.current = id
-                break
-            model_idx += 1
-        current = self.window.ui.models['models.list'].index(idx, 0)
-        self.window.ui.nodes['models.list'].setCurrentIndex(current)
+        if idx is None:
+            return
+        # Resolve model id using the filtered view mapping
+        model_id = self.window.model_settings.get_model_id_by_row(idx)
+        if model_id is not None:
+            self.current = model_id
+            current = self.window.ui.models['models.list'].index(idx, 0)
+            self.window.ui.nodes['models.list'].setCurrentIndex(current)
 
     def set_tab_by_id(self, model_id: str):
         """
@@ -441,57 +439,37 @@ class Editor:
         :param model_id: model id
         """
         idx = self.get_tab_idx(model_id)
+        if idx is None:
+            return
         current = self.window.ui.models['models.list'].index(idx, 0)
         self.window.ui.nodes['models.list'].setCurrentIndex(current)
 
-    def get_tab_idx(self, model_id: str) -> int:
+    def get_tab_idx(self, model_id: str) -> Optional[int]:
         """
-        Get model list index
+        Get model list index (in the current filtered view)
 
         :param model_id: model id
         :return: list index
         """
-        model_idx = None
-        i = 0
-        self.window.core.models.sort_items()
-        for id in self.window.core.models.get_ids():
-            if id == model_id:
-                model_idx = i
-                break
-            i += 1
-        return model_idx
+        return self.window.model_settings.get_row_by_model_id(model_id)
 
-    def get_tab_by_id(self, model_id: str) -> int:
+    def get_tab_by_id(self, model_id: str) -> Optional[int]:
         """
-        Get model list index
+        Get model list index (alias to get_tab_idx for compatibility)
 
         :param model_id: model id
         :return: list index
         """
-        model_idx = None
-        i = 0
-        self.window.core.models.sort_items()
-        for id in self.window.core.models.get_ids():
-            if id == model_id:
-                model_idx = i
-                break
-            i += 1
-        return model_idx
+        return self.get_tab_idx(model_id)
 
     def get_model_by_tab_idx(self, idx: int) -> Optional[str]:
         """
-        Get model key by list index
+        Get model key by list index (in the current filtered view)
 
         :param idx: list index
         :return: model key
         """
-        model_idx = 0
-        self.window.core.models.sort_items()
-        for id in self.window.core.models.get_ids():
-            if model_idx == idx:
-                return id
-            model_idx += 1
-        return None
+        return self.window.model_settings.get_model_id_by_row(idx)
 
     def open_by_idx(self, idx: int):
         """

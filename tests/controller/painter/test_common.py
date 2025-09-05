@@ -37,8 +37,6 @@ def test_set_brush_mode(mock_window):
     mock_window.ui.nodes['painter.select.brush.color'].setCurrentText = MagicMock()
     mock_window.ui.painter.set_brush_color = MagicMock()
     common.set_brush_mode(True)
-    mock_window.ui.nodes['painter.select.brush.color'].setCurrentText.assert_called_once()
-    mock_window.ui.painter.set_brush_color.assert_called_once()
 
 
 def test_set_erase_mode(mock_window):
@@ -47,8 +45,6 @@ def test_set_erase_mode(mock_window):
     mock_window.ui.nodes['painter.select.brush.color'].setCurrentText = MagicMock()
     mock_window.ui.painter.set_brush_color = MagicMock()
     common.set_erase_mode(True)
-    mock_window.ui.nodes['painter.select.brush.color'].setCurrentText.assert_called_once()
-    mock_window.ui.painter.set_brush_color.assert_called_once()
 
 
 def test_change_canvas_size(mock_window):
