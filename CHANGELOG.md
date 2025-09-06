@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.40 (2025-09-06)
+
+- CSS fixes.
+
 ## 2.6.39 (2025-09-06)
 
 - Added: Search input to the models editor.
