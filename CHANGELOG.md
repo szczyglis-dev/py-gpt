@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.39 (2025-09-06)
+
+- Added: Search input to the models editor.
+- Fixed: Brush color switching when changing modes in the Painter.
+
 ## 2.6.38 (2025-09-05)
 
 - Fixed: Detection of chunk type in Ollama.

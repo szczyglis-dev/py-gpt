@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.38** | build: **2025-09-05** | Python: **>=3.10, <3.14**
+Release: **2.6.39** | build: **2025-09-06** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3448,6 +3448,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.39 (2025-09-06)**
+
+- Added: Search input to the models editor.
+- Fixed: Brush color switching when changing modes in the Painter.
 
 **2.6.38 (2025-09-05)**
 

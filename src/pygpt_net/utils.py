@@ -269,28 +269,25 @@ def natsort(l: list) -> list:
     return sorted(l, key=alphanum_key)
 
 def mem_clean():
-    """
-    Clean memory by removing unused variables
-    """
-    return  # temporary disabled
-
+    """Clean memory by removing unused objects"""
+    return
     import sys, gc
     ok = False
     try:
         gc.collect()
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
         
     try:
         QApplication.sendPostedEvents(None, QtCore.QEvent.DeferredDelete)
         QApplication.processEvents(QtCore.QEventLoop.AllEvents, 50)
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
 
     try:
         QtGui.QPixmapCache.clear()
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
     
     try:
         if sys.platform.startswith("linux"):
@@ -299,6 +296,7 @@ def mem_clean():
             if hasattr(libc, "malloc_trim"):
                 libc.malloc_trim(0)
                 ok = True
+        '''
         elif sys.platform == "win32":
             import ctypes, ctypes.wintypes
             kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -322,6 +320,7 @@ def mem_clean():
                     ok = True
             except Exception:
                 pass
-    except Exception:
-        pass
+        '''
+    except Exception as e:
+        print(e)
     return ok
