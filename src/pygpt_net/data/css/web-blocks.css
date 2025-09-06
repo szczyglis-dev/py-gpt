@@ -181,7 +181,7 @@ code {{
 }}
 .msg-box .name-header.name-bot {{
     display: block;
-    margin-left: -20px;
+    margin-left: -10px;
     margin-bottom: 1rem;
     color: #cfcfcf;
 }}

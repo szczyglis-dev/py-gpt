@@ -2475,6 +2475,15 @@ class Patch:
 
                 updated = True
 
+            # < 2.6.40
+            if old < parse_version("2.6.40"):
+                print("Migrating config from < 2.6.40...")
+                # perf css
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt_wide.css', True)
+                patch_css('web-blocks.css', True)
+                updated = True
+
         # update file
         migrated = False
         if updated:
