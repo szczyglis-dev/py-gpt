@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 01:00:00                  #
+# Updated Date: 2025.09.11 08:00:00                  #
 # ================================================== #
 
 import os
@@ -35,6 +35,11 @@ os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
     "--js-flags=--expose-gc"
 )
 """
+# by default, optimize for low-end devices
+os.environ.setdefault(
+    "QTWEBENGINE_CHROMIUM_FLAGS",
+    "--disable-gpu --process-per-site --renderer-process-limit=1 --enable-low-end-device-mode"
+)
 
 _original_open = builtins.open
 

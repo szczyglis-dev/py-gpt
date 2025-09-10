@@ -30,6 +30,7 @@ class Debug(QObject):
         self.window = window
         self.is_logger = False  # logger window opened
         self.is_app_log = False  # app log window opened
+        self.is_fake_stream = False  # fake stream enabled
         self.allow_level_change = False  # allow changing log level
         self._ids = None
 
@@ -188,6 +189,14 @@ class Debug(QObject):
                 cur.insertText("\n")
         self.window.logger.setTextCursor(cur)  # Update visible cursor
 
+    def fake_stream_enabled(self) -> bool:
+        """
+        Check if fake stream is enabled
+
+        :return: True if enabled, False otherwise
+        """
+        return self.is_fake_stream
+
     def logger_enabled(self) -> bool:
         """
         Check if debug window is enabled
@@ -240,6 +249,16 @@ class Debug(QObject):
 
         self.log('debug.' + id + ' toggled')
 
+        # update menu
+        self.update()
+
+    def toggle_fake_stream(self):
+        """
+        Toggle fake stream debug
+        """
+        value = self.window.ui.menu['debug.fake_stream'].isChecked()
+        self.is_fake_stream = value
+        self.log(f"debug.fake_stream set to {value}")
         # update menu
         self.update()
 

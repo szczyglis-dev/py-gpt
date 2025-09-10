@@ -80,6 +80,12 @@ class Console:
             expr = msg[5:-1].strip()
             self.log(f"{expr}:")
             self.log(self.dump(expr))
+        elif msg.startswith("js(") and msg.endswith(")"):
+            expr = msg[3:-1].strip()
+            if self.window.controller.chat.render.get_engine() == "web":
+                self.window.controller.chat.render.web_renderer.eval_js(expr)  # async result
+            else:
+                self.log("JS eval is only available in web rendering engine")
         else:
             self.log(f"Unknown command: {msg}. Type 'help' for available commands.")
 
@@ -110,6 +116,8 @@ class Console:
             "  lang - reload language\n"
             "  oclr - close OpenAI client\n"
             "  dump(object|expr) - dump object or eval() expression\n"
+            "  js(expr) - evaluate JavaScript expression (current PID)\n"
             "  help - show this help message\n"
             "  quit|exit - close application\n"
+            "  JS debug (window.*): STREAM_DEBUG|MD_LANG_DEBUG|CM_DEBUG\n"
         )

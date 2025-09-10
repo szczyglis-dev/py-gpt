@@ -151,9 +151,11 @@ class Responses:
             # expert call, use previous response ID from context
             if self.prev_internal_response_id:
                 response_kwargs['previous_response_id'] = self.prev_internal_response_id
+                self.prev_internal_response_id = None  # reset after use
         else:
             if self.prev_response_id:
                 response_kwargs['previous_response_id'] = self.prev_response_id
+                self.prev_response_id = None  # reset after use
 
         if system_prompt:
             response_kwargs['instructions'] = system_prompt
@@ -227,7 +229,7 @@ class Responses:
         max_ctx_tokens = self.window.core.config.get('max_total_tokens')  # max context window
 
         # fit to max model tokens
-        if max_ctx_tokens > model.ctx and model.ctx > 0:
+        if max_ctx_tokens > model.ctx > 0:
             max_ctx_tokens = model.ctx
 
         # input tokens: reset

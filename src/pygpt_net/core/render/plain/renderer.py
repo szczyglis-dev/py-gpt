@@ -37,6 +37,17 @@ class Renderer(BaseRenderer):
         self.helpers = Helpers(window)
         self.pids = {}  # per node data
 
+        # Pid-related cached methods
+        self._get_pid = None
+        self._get_output_node_by_meta = None
+        self._get_output_node_by_pid = None
+        if (self.window and hasattr(self.window, "core")
+                and hasattr(self.window.core, "ctx")
+                and hasattr(self.window.core.ctx, "output")):
+            self._get_pid = self.window.core.ctx.output.get_pid
+            self._get_output_node_by_meta = self.window.core.ctx.output.get_current_plain
+            self._get_output_node_by_pid = self.window.core.ctx.output.get_by_pid
+
     def prepare(self):
         """
         Prepare renderer
@@ -58,7 +69,9 @@ class Renderer(BaseRenderer):
 
         :param meta: context PID
         """
-        return self.window.core.ctx.output.get_pid(meta)
+        if self._get_pid is None:
+            self._get_pid = self.window.core.ctx.output.get_pid
+        return self._get_pid(meta)
 
     def get_or_create_pid(self, meta: CtxMeta):
         """
@@ -523,9 +536,9 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :return: output node
         """
-        node = self.window.core.ctx.output.get_current_plain(meta)
-        node.setAcceptRichText(False)
-        return node
+        if self._get_output_node_by_meta is None:
+            self._get_output_node_by_meta = self.window.core.ctx.output.get_current_plain
+        return self._get_output_node_by_meta(meta)
 
     def get_input_node(self) -> ChatInput:
         """

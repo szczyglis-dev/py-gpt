@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.40** | build: **2025-09-06** | Python: **>=3.10, <3.14**
+Release: **2.6.41** | build: **2025-09-11** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -2171,6 +2171,8 @@ Config -> Settings...
 
 - `Application environment (os.environ)`: Additional environment vars to set on application start.
 
+- `Memory Limit`: Renderer memory limit; set to 0 to disable. If > 0, the app will try to free memory after the limit is reached. Accepted formats: 3.5GB, 2GB, 2048MB, 1_000_000. Minimum: 2GB.
+
 **API Keys**
 
 - `OpenAI API KEY`: Required for the OpenAI API. If you wish to use custom endpoints or local APIs, then you may enter any value here.
@@ -3448,6 +3450,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.41 (2025-09-11)**
+
+- Rendering engine optimizations: markdown parsing moved to JS, reduced CPU usage, added auto-memory clearing, and more.
 
 **2.6.40 (2025-09-06)**
 

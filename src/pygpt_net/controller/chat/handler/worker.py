@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.07 05:00:00                  #
 # ================================================== #
 
 import io
@@ -73,10 +73,12 @@ class WorkerSignals(QObject):
     - `finished`: No data
     - `errorOccurred`: Exception
     - `eventReady`: RenderEvent
+    - `chunk`: CtxItem, chunk str, begin bool
     """
     end = Signal(object)
     errorOccurred = Signal(Exception)
     eventReady = Signal(object)
+    chunk = Signal(object, str, bool)  # CtxItem, chunk, begin
 
 
 @dataclass(slots=True)
@@ -127,6 +129,7 @@ class StreamWorker(QRunnable):
         emit_event = self.signals.eventReady.emit
         emit_error = self.signals.errorOccurred.emit
         emit_end = self.signals.end.emit
+        emit_chunk = self.signals.chunk.emit
 
         state = WorkerState()
         state.generator = self.stream
@@ -166,7 +169,7 @@ class StreamWorker(QRunnable):
 
                     # emit response delta if present
                     if response is not None and response != "" and not state.stopped:
-                        self._append_response(ctx, state, response, emit_event)
+                        self._append_response(ctx, state, response, emit_chunk)
 
                     # free per-iteration ref
                     chunk = None
@@ -274,7 +277,7 @@ class StreamWorker(QRunnable):
             ctx: CtxItem,
             state: WorkerState,
             response: str,
-            emit_event
+            emit_chunk
     ):
         """
         Appends response delta and emits STREAM_APPEND event.
@@ -282,7 +285,7 @@ class StreamWorker(QRunnable):
         :param ctx: Current context item
         :param state: Current worker state
         :param response: Response delta to append
-        :param emit_event: Function to emit events
+        :param emit_chunk: Function to emit chunk event
         """
         if state.begin and response == "":
             return
@@ -290,17 +293,7 @@ class StreamWorker(QRunnable):
             state.out = io.StringIO()
         state.out.write(response)
         state.output_tokens += 1
-        emit_event(
-            RenderEvent(
-                RenderEvent.STREAM_APPEND,
-                {
-                    "meta": ctx.meta,
-                    "ctx": ctx,
-                    "chunk": response,
-                    "begin": state.begin,
-                },
-            )
-        )
+        emit_chunk(ctx, response, state.begin)
         state.begin = False
 
     def _handle_after_loop(
@@ -390,8 +383,8 @@ class StreamWorker(QRunnable):
                 pass
             state.out = None
 
-        if has_unclosed_code_tag(output):
-            output += "\n```"
+        #if has_unclosed_code_tag(output):
+            #output += "\n```"
 
         # Google: resolve usage if present
         if ((state.usage_vendor is None or state.usage_vendor == "google")
@@ -468,6 +461,9 @@ class StreamWorker(QRunnable):
         # Emit error and end
         if state.error:
             emit_error(state.error)
+            ctx.msg_id = None
+            # clear response_id on error - this prevents no response_id in API on next call
+            # prev messages will be sent again, new response_id will be generated
         emit_end(ctx)
 
         # Cleanup local buffers

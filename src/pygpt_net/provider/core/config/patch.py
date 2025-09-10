@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.09.07 05:00:00                  #
 # ================================================== #
 
 import copy
@@ -2479,6 +2479,17 @@ class Patch:
             if old < parse_version("2.6.40"):
                 print("Migrating config from < 2.6.40...")
                 # perf css
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt_wide.css', True)
+                patch_css('web-blocks.css', True)
+                updated = True
+
+            # < 2.6.41
+            if old < parse_version("2.6.41"):
+                print("Migrating config from < 2.6.41...")
+                if "render.memory.limit" not in data:
+                    data["render.memory.limit"] = "2.5GB"
+                # ul p
                 patch_css('web-chatgpt.css', True)
                 patch_css('web-chatgpt_wide.css', True)
                 patch_css('web-blocks.css', True)

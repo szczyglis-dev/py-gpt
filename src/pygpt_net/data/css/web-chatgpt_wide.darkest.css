@@ -47,6 +47,9 @@ a:hover {{
 code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
 }}
+.code-wrapper ::-webkit-scrollbar {{
+    background: #303030;
+}}
 .code-header-wrapper {{
     background-color: #303030;
 }}

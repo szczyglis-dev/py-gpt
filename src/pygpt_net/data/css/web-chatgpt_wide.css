@@ -135,6 +135,7 @@ code {{
     margin: 0px;
     border: none;
     border-radius: .25rem;
+    margin-bottom: 1rem;
 }}
 .code-wrapper pre {{
     padding: 0;
@@ -420,10 +421,18 @@ think {{
  transition: opacity 1s ease-in-out;
  text-align: center;
  font-size: 0.8rem;
- display: flex;
- justify-content: center;
- align-items: center;
- height: 75vh;
+ height: 100vh;
+ min-height: 100%;
+ bottom: 10px;
+}}
+
+.tips p {{
+ display: block;
+ position: fixed;
+ top: 50%;
+ margin: auto;
+ width: 100%;
+ text-align: center;
 }}
 .tips.visible {{
  opacity: 1;
@@ -438,4 +447,25 @@ think {{
 .video-player {{
   max-width: 400px;
   text-align: left;
+}}
+
+ol,
+ul {{
+  list-style-position: outside  !important;
+  padding-inline-start: 2rem;
+  margin: 0 0 0 0;
+}}
+
+li > p:first-child {{
+  margin: 0;
+  margin-top: -1.25rem;
+}}
+
+li + li {{
+  margin-top: .35em;
+}}
+
+.code-wrapper pre code {{
+ max-height: 1000px;
+ overflow-y: auto;
 }}

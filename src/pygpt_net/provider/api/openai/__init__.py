@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.09.07 05:00:00                  #
 # ================================================== #
+import os
 
 from openai import OpenAI
 
@@ -23,6 +24,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.api.fake.generator import FakeOpenAIStream
 
 from .audio import Audio
 from .assistants import Assistants
@@ -79,7 +81,7 @@ class ApiOpenAI:
         :param model: Model
         :return: OpenAI client
         """
-        # update client args by mode and model
+        # prepare client args by mode and model provider
         args = self.window.core.models.prepare_client_args(mode, model)
         return OpenAI(**args)
 
@@ -117,6 +119,8 @@ class ApiOpenAI:
         use_responses_api = self.responses.is_enabled(model, mode, parent_mode, is_expert_call, preset)
         ctx.use_responses_api = use_responses_api  # set in context
 
+        fake_stream = self.window.controller.debug.fake_stream_enabled()  # for testing
+
         # get model id
         model_id = None
         if model is not None:
@@ -145,7 +149,6 @@ class ApiOpenAI:
             MODE_COMPUTER,
         ]:
             if mode == MODE_AUDIO and stream:
-
                 # Realtime API for audio streaming
                 is_realtime = self.realtime.begin(
                     context=context,
@@ -156,23 +159,33 @@ class ApiOpenAI:
                 if is_realtime:
                     return True
 
-            # responses API
-            if use_responses_api:
-                response = self.responses.send(
-                    context=context,
-                    extra=extra,
+            if fake_stream:
+                # fake stream for testing
+                use_responses_api = False
+                ctx.use_responses_api = False
+                test_code_path = os.path.join(self.window.core.config.get_app_path(), "data", "js", "app.js")
+                response = FakeOpenAIStream(code_path=test_code_path).stream(
+                    api="raw",
+                    chunk="code",
                 )
-                used_tokens = self.responses.get_used_tokens()
             else:
-                # chat completion API
-                response = self.chat.send(
-                    context=context,
-                    extra=extra,
-                )
-                if hasattr(response, "citations"):
-                    if response.citations:
-                        ctx.urls = response.citations
-                used_tokens = self.chat.get_used_tokens()
+                # responses API
+                if use_responses_api:
+                    response = self.responses.send(
+                        context=context,
+                        extra=extra,
+                    )
+                    used_tokens = self.responses.get_used_tokens()
+                else:
+                    # chat completion API
+                    response = self.chat.send(
+                        context=context,
+                        extra=extra,
+                    )
+                    if hasattr(response, "citations"):
+                        if response.citations:
+                            ctx.urls = response.citations
+                    used_tokens = self.chat.get_used_tokens()
 
             self.vision.append_images(ctx)  # append images to ctx if provided
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2025.09.07 05:00:00                  #
 # ================================================== #
 import re
 import html
@@ -49,7 +49,7 @@ def test_replace_code_tags_math():
 
 def test_pre_format_text(helper):
     inp = "   <think>Test</think> and (file:///home/test) and <p class=\"ccc\">print(<hello>)   "
-    exp = "<think>Test</think> and (file:///home/test) and &lt;p class=\"ccc\"&gt;print(&lt;hello&gt;)"
+    exp = "[!think]Test[/!think] and (file:///home/test) and <p class=\"ccc\">print(<hello>)"
     out = helper.pre_format_text(inp)
     assert out == exp
 
@@ -94,6 +94,6 @@ def test_format_cmd_text():
 def test_format_chunk():
     h = Helpers()
     inp = "line1\nline2"
-    exp = "line1<br/>line2"
+    exp = "line1\nline2"
     out = h.format_chunk(inp)
     assert out == exp

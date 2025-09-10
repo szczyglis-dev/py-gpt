@@ -14,6 +14,7 @@ import os
 import re
 from datetime import datetime
 from contextlib import contextmanager
+from typing import Any
 
 from PySide6 import QtCore, QtGui
 from PySide6.QtWidgets import QApplication
@@ -60,6 +61,22 @@ def trans(key: str, reload: bool = False, domain: str = None) -> str:
     if reload:
         locale.reload(domain)
     return locale.get(key, domain)
+
+def sizeof_fmt(num: Any, suffix: str = 'B'):
+    """
+    Convert numbers to human-readable unit formats.
+
+    :param num: number to convert
+    :param suffix: suffix to add
+    :return: human-readable format
+    """
+    if not isinstance(num, (int, float)):
+        return '-'
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        if abs(num) < 1024.0:
+            return f"{num:.1f} {unit}{suffix}".replace('.', ',')
+        num /= 1024.0
+    return f"{num:.1f} Yi{suffix}".replace('.', ',')
 
 
 @contextmanager

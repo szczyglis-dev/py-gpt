@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.41 (2025-09-11)
+
+- Rendering engine optimizations: markdown parsing moved to JS, reduced CPU usage, added auto-memory clearing, and more.
+
 ## 2.6.40 (2025-09-06)
 
 - CSS fixes.

@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.09.07 05:00:00                  #
 # ================================================== #
+
 import json
 import re
 import html
@@ -20,8 +21,10 @@ class Helpers:
     _PLACEHOLDER_THINK_OPEN = "{{{{think}}}}"
     _PLACEHOLDER_THINK_CLOSE = "{{{{/think}}}}"
 
-    _RE_TOOL_TAG = re.compile(r"&lt;tool&gt;(.*?)&lt;/tool&gt;", re.DOTALL)
-    _RE_MATH_PARENS = re.compile(r"\\\((.*?)\\\)", re.DOTALL)
+    #_RE_TOOL_TAG = re.compile(r"&lt;tool&gt;(.*?)&lt;/tool&gt;", re.DOTALL)
+    _RE_TOOL_TAG = re.compile(r"<tool>(.*?)</tool>", re.DOTALL)
+    _RE_THINK_TAG = re.compile(r"<think>(.*?)</think>", re.DOTALL)
+    #_RE_MATH_PARENS = re.compile(r"\\\((.*?)\\\)", re.DOTALL)
 
     def __init__(self, window=None):
         """
@@ -65,8 +68,17 @@ class Helpers:
         :param m: regex match object
         :return: formatted HTML string
         """
-        code = self._unescape_lt_gt(m.group(1))
-        return f'<p class="cmd">{html.escape(code)}</p>'
+        return f'[!cmd]{html.escape(m.group(1))}[/!cmd]'
+
+    def _repl_think(self, m: re.Match) -> str:
+        """
+        Replace think tags with HTML paragraph
+
+        :param m: regex match object
+        :return: formatted HTML string
+        """
+        g = m.group(1).replace("\n", "<br>")
+        return f'[!think]{html.escape(g)}[/!think]'
 
     def _repl_math_fix(self, m: re.Match) -> str:
         """
@@ -91,12 +103,27 @@ class Helpers:
         s = text
 
         # --- tool tags ---
-        if "&lt;tool&gt;" in s and "&lt;/tool&gt;" in s:
+        if "<tool>" in s and "</tool>" in s:
             s = self._RE_TOOL_TAG.sub(self._repl_tool_cmd, s)
 
         # --- fix math formula \( ... \) ---
-        if "\\(" in s and "\\)" in s and ("&lt;" in s or "&gt;" in s):
-            s = self._RE_MATH_PARENS.sub(self._repl_math_fix, s)
+        #if "\\(" in s and "\\)" in s and ("&lt;" in s or "&gt;" in s):
+            #s = self._RE_MATH_PARENS.sub(self._repl_math_fix, s)
+
+        return s
+
+    def replace_think_tags(self, text: str) -> str:
+        """
+        Replace think tags
+
+        :param text:
+        :return: replaced text
+        """
+        s = text
+
+        # --- think tags ---
+        if "<think>" in s and "</think>" in s:
+            s = self._RE_THINK_TAG.sub(self._repl_think, s)
 
         return s
 
@@ -107,7 +134,7 @@ class Helpers:
         :param text: text to format
         :return: formatted text
         """
-        s = text.strip()
+        """
         if "<" in s or ">" in s:
             had_think = ("<think>" in s) or ("</think>" in s)
             if had_think:
@@ -119,9 +146,13 @@ class Helpers:
                 s = s.replace(self._PLACEHOLDER_THINK_OPEN, "<think>").replace(self._PLACEHOLDER_THINK_CLOSE, "</think>")
                 if "<think>\n" in s:
                     s = s.replace("<think>\n", "<think>")
+        """
 
-        # replace cmd tags
-        s = self.replace_code_tags(s)
+        # replace tags with markdown placeholders (will be converted to HTML in JS runtime)
+        s = self.replace_code_tags(text.strip())
+        s = self.replace_think_tags(s)
+
+        # replace workdir token
         if "%workdir%" in s:
             prefix = self.window.core.filesystem.get_workdir_prefix()
             s = self._RE_WORKDIR_TOKEN.sub(lambda m, p=prefix: f'({p}{m.group(1)})', s)
@@ -181,4 +212,5 @@ class Helpers:
         :param text: text to format
         :return: formatted text
         """
-        return text.replace("\n", "<br/>")
+        return text
+        # return text.replace("\n", "<br/>")

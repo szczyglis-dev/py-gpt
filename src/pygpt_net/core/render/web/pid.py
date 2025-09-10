@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2025.09.07 05:00:00                  #
 # ================================================== #
 
 import io
@@ -33,6 +33,9 @@ class PidData:
     _live_buffer: io.StringIO = field(default_factory=io.StringIO, repr=False)
     _html: io.StringIO = field(default_factory=io.StringIO, repr=False)
     _document: io.StringIO = field(default_factory=io.StringIO, repr=False)
+    _fence_tail: str = field(default="", repr=False)
+    _fence_open: bool = field(default=False, repr=False)
+    _fence_char: str = field(default="", repr=False)
 
     # Flags/state
     is_cmd: bool = False

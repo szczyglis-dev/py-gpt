@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.09.07 05:00:00                  #
 # ================================================== #
 
 import os
@@ -110,6 +110,9 @@ class Image:
             attachments=files,
         )
         try:
+            dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+                "id": "chat",
+            }))
             dispatch(KernelEvent(KernelEvent.REQUEST, {
                 'context': context,
                 'extra': {
@@ -120,6 +123,9 @@ class Image:
             core.debug.log(e)
             self.window.ui.dialogs.alert(e)
             update_status(trans('status.error'))
+            dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+                "id": "chat",
+            }))
         return ctx
 
     @Slot(object, list, str)

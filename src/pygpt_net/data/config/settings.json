@@ -578,8 +578,7 @@
         "step": null,
         "advanced": false,
         "keys": [
-            {"web": "WebEngine / Chromium"},
-            {"legacy": "Legacy (markdown)"}
+            {"web": "WebEngine / Chromium"}
         ]
     },
     "render.open_gl": {
@@ -2936,5 +2935,18 @@
         "multiplier": null,
         "step": null,
         "advanced": false
-    } 
+    },
+    "render.memory.limit": {
+        "section": "general",
+        "type": "text",
+        "slider": false,
+        "label": "settings.render.memory.limit",
+        "description": "settings.render.memory.limit.desc",
+        "value": "2GB",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": true
+    }
 }

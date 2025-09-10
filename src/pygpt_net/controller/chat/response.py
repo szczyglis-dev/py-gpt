@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2025.09.07 05:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -176,9 +176,8 @@ class Response:
 
         # if stopped
         if controller.kernel.stopped():
-            output = ctx.output
-            if output and has_unclosed_code_tag(output):
-                ctx.output += "\n```"
+            # if ctx.output and has_unclosed_code_tag(ctx.output):
+                # ctx.output += "\n```"
             ctx.msg_id = None
             if ctx.id is None:
                 if not ctx.is_empty():

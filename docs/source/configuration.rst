@@ -25,6 +25,8 @@ The following basic options can be modified directly within the application:
 
 * ``Application environment (os.environ)``: Additional environment vars to set on application start.
 
+* ``Memory Limit``: Renderer memory limit; set to 0 to disable. If > 0, the app will try to free memory after the limit is reached. Accepted formats: 3.5GB, 2GB, 2048MB, 1_000_000. Minimum: 2GB.
+
 **API Keys**
 
 * ``OpenAI API KEY``: Required for the OpenAI API. If you wish to use custom endpoints or local APIs, then you may enter any value here.

@@ -46,6 +46,7 @@ class Debug:
             'db',
             'logger',
             'app.log',
+            'fake_stream',
             'kernel',
             'render'
         )
@@ -71,6 +72,7 @@ class Debug:
         m['debug.logger'].triggered.connect(dbg.toggle_logger)
         m['debug.app.log'].triggered.connect(dbg.toggle_app_log)
         m['debug.render'].triggered.connect(dbg.toggle_render)
+        m['debug.fake_stream'].triggered.connect(dbg.toggle_fake_stream)
 
         m['menu.debug'] = win.menuBar().addMenu(trans("menu.debug"))
         menu = m['menu.debug']
@@ -78,7 +80,8 @@ class Debug:
             [m['debug.logger'],
              m['debug.render'],
              m['debug.db'],
-             m['debug.app.log']]
+             m['debug.app.log'],
+             m['debug.fake_stream']]
         )
         menu.addSeparator()
         menu.addActions([

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.09.11 08:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -487,4 +487,8 @@ class BaseRenderer:
         """
         Remove PID from renderer
         """
+        pass
+
+    def on_js_ready(self, pid: int) -> None:
+        """On JS ready - web renderer only"""
         pass

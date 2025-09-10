@@ -571,6 +571,17 @@ class Render:
         self.instance().tool_output_end()
         self.update()
 
+    def on_js_ready(self, pid: int) -> None:
+        """
+        On JS ready - called from WebEngine when Bridge is ready
+
+        Web renderer only.
+
+        :param pid: PID
+        """
+        if self.get_engine() == "web":
+            self.web_renderer.on_js_ready(pid)
+
     def get_engine(self) -> str:
         """
         Get current render engine ID
@@ -591,20 +602,26 @@ class Render:
             outputs = nodes.get('output', {})
             outputs_plain = nodes.get('output_plain', {})
             for pid, w_plain in outputs_plain.items():
-                w = outputs.get(pid)
-                if w and w_plain:
-                    w.setVisible(False)
-                    w_plain.setVisible(True)
+                try:
+                    w = outputs.get(pid)
+                    if w and w_plain:
+                        w.setVisible(False)
+                        w_plain.setVisible(True)
+                except Exception:
+                    continue
         else:
             nodes['output.timestamp'].setVisible(False)
             self.window.controller.theme.markdown.update(force=True)
             outputs = nodes.get('output', {})
             outputs_plain = nodes.get('output_plain', {})
             for pid, w in outputs.items():
-                w_plain = outputs_plain.get(pid)
-                if w and w_plain:
-                    w.setVisible(True)
-                    w_plain.setVisible(False)
+                try:
+                    w_plain = outputs_plain.get(pid)
+                    if w and w_plain:
+                        w.setVisible(True)
+                        w_plain.setVisible(False)
+                except Exception:
+                    continue
 
         if plain:
             self.renderer = self.plaintext_renderer

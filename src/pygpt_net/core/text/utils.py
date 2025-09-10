@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.09.07 05:00:00                  #
 # ================================================== #
 
 def output_html2text(html: str) -> str:
@@ -76,6 +76,7 @@ def has_unclosed_code_tag(text: str) -> bool:
     :param text: HTML content
     :return: True if unclosed code block found
     """
+    return False
     if not text:
         return False
     return (text.count('```') % 2) != 0

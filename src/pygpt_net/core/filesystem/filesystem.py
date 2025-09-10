@@ -273,9 +273,9 @@ class Filesystem:
             return '-'
         for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
             if abs(num) < 1024.0:
-                return "{:.1f} {}{}".format(num, unit, suffix).replace('.', ',')
+                return f"{num:.1f} {unit}{suffix}".replace('.', ',')
             num /= 1024.0
-        return "{:.1f} {}{}".format(num, 'Yi', suffix).replace('.', ',')
+        return f"{num:.1f} Yi{suffix}".replace('.', ',')
 
     def get_directory_size(
             self,
