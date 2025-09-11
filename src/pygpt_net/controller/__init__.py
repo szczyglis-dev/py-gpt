@@ -150,6 +150,7 @@ class Controller:
     def reload(self):
         """Reload components"""
         self.reloading = True  # lock
+        self.presets.lock()
 
         print(trans("status.reloading.profile.begin"))
 
@@ -185,5 +186,6 @@ class Controller:
         self.theme.reload_all(prev_theme=prev_theme)  # do not reload theme if no change
 
         self.reloading = False  # unlock
+        self.presets.unlock()
 
         print(trans("status.reloading.profile.end"))

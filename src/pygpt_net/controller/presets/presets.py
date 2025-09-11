@@ -671,9 +671,19 @@ class Presets:
 
     def reload(self):
         """Reload presets"""
+        was_locked = self.locked
         self.locked = True
         self.window.core.presets.load()
         self.refresh()
+        if not was_locked:
+            self.locked = False
+
+    def lock(self):
+        """Lock presets change"""
+        self.locked = True
+
+    def unlock(self):
+        """Unlock presets change"""
         self.locked = False
 
     def add_selected(self, id: int):
