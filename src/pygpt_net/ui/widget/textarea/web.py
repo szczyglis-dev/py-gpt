@@ -99,6 +99,8 @@ class ChatWebOutput(QWebEngineView):
                     pass
 
         page = self.page()
+        page.set_loaded(False)
+
         try:
             page.triggerAction(QWebEnginePage.Stop)
         except Exception:
@@ -132,7 +134,7 @@ class ChatWebOutput(QWebEngineView):
             pass
 
         try:
-            page.deleteLater()
+            page.cleanup()
         except Exception:
             pass
 
@@ -351,6 +353,9 @@ class ChatWebOutput(QWebEngineView):
             })
             self.window.dispatch(event)
             self.setUpdatesEnabled(True)
+            p = self.page()
+            if p and isinstance(p, CustomWebEnginePage):
+                p.set_loaded(True)
 
     def get_selected_text(self) -> str:
         p = self.page()
@@ -395,6 +400,7 @@ class CustomWebEnginePage(QWebEnginePage):
 
         self.window = window
         self.view = view
+        self.loaded = False
 
         # signals have parent=page (automatic cleanup)
         self.signals = WebEnginePageSignals(self)
@@ -425,6 +431,9 @@ class CustomWebEnginePage(QWebEnginePage):
         self.channel.registerObject("bridge", self.bridge)
         self.setWebChannel(self.channel)
 
+    def set_loaded(self, loaded: bool = True):
+        self.loaded = loaded
+
     def on_find_finished(self, result):
         current = int(result.activeMatch())
         num = int(result.numberOfMatches())
@@ -433,6 +442,8 @@ class CustomWebEnginePage(QWebEnginePage):
         self.view.finder.on_find_finished()
 
     def on_view_changed(self):
+        if not self.loaded:
+            return
         zoom = self.zoomFactor()
         self.window.core.config.set("zoom", zoom)
         option = self.window.controller.settings.editor.get_option('zoom')
@@ -455,6 +466,7 @@ class CustomWebEnginePage(QWebEnginePage):
 
     def cleanup(self):
         """Cleanup method to release resources"""
+        self.loaded = False
         try:
             self.findTextFinished.disconnect()
             self.zoomFactorChanged.disconnect()
