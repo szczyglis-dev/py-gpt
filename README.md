@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.41** | build: **2025-09-11** | Python: **>=3.10, <3.14**
+Release: **2.6.42** | build: **2025-09-11** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3450,6 +3450,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.42 (2025-09-11)**
+
+- Fixed: Save/load zoom factor in the chat window when switched via Ctrl + mouse wheel.
+- Fixed: Break the first line in code blocks.
+- Added: Configuration options for syntax highlight limits.
+- Updated: SVG icons.
 
 **2.6.41 (2025-09-11)**
 
