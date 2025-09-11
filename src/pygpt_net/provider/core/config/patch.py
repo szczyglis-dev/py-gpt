@@ -2499,7 +2499,7 @@ class Patch:
             if old < parse_version("2.6.42"):
                 print("Migrating config from < 2.6.42...")
                 if "render.code_syntax.stream_max_lines" not in data:
-                    data["render.code_syntax.stream_max_lines"] = 300
+                    data["render.code_syntax.stream_max_lines"] = 1000
                 if "render.code_syntax.final_max_lines" not in data:
                     data["render.code_syntax.final_max_lines"] = 1500
                 if "render.code_syntax.final_max_chars" not in data:

@@ -444,7 +444,7 @@ class Body:
             f'window.LOCALE_EXPAND={_json_dumps(t_expand)};'
         )
 
-        syntax_style = self.window.core.config.get("render.code_syntax") or "default"
+        syntax_style = cfg_get("render.code_syntax") or "default"
         style_js = (
             f'window.CODE_SYNTAX_STYLE={_json_dumps(syntax_style)};'
             f'window.PROFILE_CODE_STOP_HL_AFTER_LINES={int(cfg_get("render.code_syntax.stream_max_lines", 300))};'
