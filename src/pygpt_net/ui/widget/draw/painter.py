@@ -128,7 +128,7 @@ class PainterWidget(QWidget):
         self._act_crop.triggered.connect(self.start_crop)
 
         # Fit action (trims letterbox and resizes canvas to the scaled image area)
-        self._act_fit = QAction(QIcon(":/icons/resize.svg"), trans('painter.btn.fit') if trans('painter.btn.fit') else "Fit", self)
+        self._act_fit = QAction(QIcon(":/icons/fit.svg"), trans('painter.btn.fit') if trans('painter.btn.fit') else "Fit", self)
         self._act_fit.triggered.connect(self.action_fit)
 
         # Context menu

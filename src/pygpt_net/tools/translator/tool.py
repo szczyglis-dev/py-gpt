@@ -46,7 +46,7 @@ class Translator(BaseTool):
         self.dialog_id = "translator"
         self.has_tab = False
         self.tab_title = "menu.tools.translator"
-        self.tab_icon = ":/icons/text.svg"
+        self.tab_icon = ":/icons/translate.svg"
         self.opened = False
         self.is_edit = False
         self.auto_clear = True
