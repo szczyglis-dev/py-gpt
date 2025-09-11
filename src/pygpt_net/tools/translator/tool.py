@@ -448,7 +448,7 @@ class Translator(BaseTool):
         id = "translator"
         actions = {}
         actions[id] = QAction(
-            QIcon(":/icons/text.svg"),
+            QIcon(":/icons/translate.svg"),
             trans("menu.tools.translator"),
             self.window,
             checkable=False,
