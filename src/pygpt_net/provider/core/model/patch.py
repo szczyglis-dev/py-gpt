@@ -798,6 +798,15 @@ class Patch:
                     data["veo-3.0-fast-generate-preview"] = base_data["veo-3.0-fast-generate-preview"]
                 updated = True
 
+            # add image models
+            if old < parse_version("2.6.42"):
+                print("Migrating models from < 2.6.42...")
+                if "grok-2-image-1212" not in data:
+                    data["grok-2-image-1212"] = base_data["grok-2-image-1212"]
+                if "gemini-2.5-flash-image-preview" not in data:
+                    data["gemini-2.5-flash-image-preview"] = base_data["gemini-2.5-flash-image-preview"]
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))

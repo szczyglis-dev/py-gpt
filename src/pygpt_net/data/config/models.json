@@ -1,7 +1,7 @@
 {
     "__meta__": {
-        "version": "2.6.41",
-        "app.version": "2.6.41",
+        "version": "2.6.42",
+        "app.version": "2.6.42",
         "updated_at": "2025-09-11T08:03:34"
     },
     "items": {
@@ -869,6 +869,49 @@
             ],
             "extra": {},
             "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        },
+        "gemini-2.5-flash-image-preview": {
+            "id": "gemini-2.5-flash-image-preview",
+            "name": "gemini-2.5-flash-image-preview",
+            "mode": [
+                "chat",
+                "llama_index",
+                "img",
+                "agent_llama",
+                "agent_openai",
+                "agent",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-2.5-flash-image-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text",
+                "image"
+            ],
+            "extra": {},
+            "imported": true,
             "provider": "google",
             "tool_calls": true
         },
@@ -2387,6 +2430,54 @@
             ],
             "extra": {},
             "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-2-image-1212": {
+            "id": "grok-2-image-1212",
+            "name": "grok-2-image-1212",
+            "mode": [
+                "chat",
+                "llama_index",
+                "img",
+                "agent_llama",
+                "agent_openai",
+                "agent",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-2-image-1212",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text",
+                "image"
+            ],
+            "extra": {},
+            "imported": true,
             "provider": "x_ai",
             "tool_calls": true
         },
