@@ -2763,6 +2763,10 @@
 
       // Streaming mode flag – controls reduced rendering (no linkify etc.) on hot path.
       this.isStreaming = false;
+
+      // Tracks whether renderSnapshot injected a one-off synthetic EOL for parsing an open fence
+      // (used to strip it from the initial streaming tail to avoid "#\n foo" on first line).
+      this._lastInjectedEOL = false;
     }
     _d(tag, data) { this.logger.debug('STREAM', tag, data); }
 
@@ -2807,6 +2811,10 @@
       this.activeCode = null; this.suppressPostFinalizePass = false;
       this._promoteScheduled = false;
       this._firstCodeOpenSnapDone = false;
+
+      // Clear any previous synthetic EOL marker.
+      this._lastInjectedEOL = false;
+
       this._d('RESET', { });
     }
     // Turn active streaming code block into plain text (safety on abort).
@@ -3033,6 +3041,15 @@
       const cls = Array.from(last.classList).find(c => c.startsWith('language-')) || 'language-plaintext';
       const lang = (cls.replace('language-', '') || 'plaintext');
       const parts = this.ensureSplitCodeEl(last); if (!parts) return null;
+
+      // If we injected a synthetic EOL for parsing an open fence, remove it from the streaming tail now.
+      // This prevents breaking the very first code line into "#\n foo" when the next chunk starts with " foo".
+      if (this._lastInjectedEOL && parts.tailEl && parts.tailEl.textContent && parts.tailEl.textContent.endsWith('\n')) {
+        parts.tailEl.textContent = parts.tailEl.textContent.slice(0, -1);
+        // Reset the marker so we don't accidentally trim again in this snapshot lifecycle.
+        this._lastInjectedEOL = false;
+      }
+
       const st = this.codeScroll.state(parts.codeEl); st.autoFollow = true; st.userInteracted = false;
       parts.codeEl.dataset._active_stream = '1';
       const baseFrozenNL = Utils.countNewlines(parts.frozenEl.textContent || ''); const baseTailNL = Utils.countNewlines(parts.tailEl.textContent || '');
@@ -3421,9 +3438,13 @@
 
       const t0 = Utils.now();
 
-      // Slightly adjusted: when fence is open we append '\n' to ensure stable fence-close detection
+      // When an open fence is present, append a synthetic EOL only if the current buffer
+      // does not already end with EOL. This stabilizes markdown-it parsing without polluting
+      // the real code tail (we will strip this EOL from the active tail right after snapshot).
       const allText = this.getStreamText();
-      const src = this.fenceOpen ? (allText + '\n') : allText;
+      const needSyntheticEOL = (this.fenceOpen && !/[\r\n]$/.test(allText));
+      this._lastInjectedEOL = !!needSyntheticEOL;
+      const src = needSyntheticEOL ? (allText + '\n') : allText;
 
       // Use streaming renderer (no linkify) on hot path to reduce CPU/allocs
       const html = streaming ? this.renderer.renderStreamingSnapshot(src) : this.renderer.renderFinalSnapshot(src);
