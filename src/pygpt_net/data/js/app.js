@@ -557,11 +557,11 @@
         promoteMinInterval: 300, promoteMaxLatency: 800, promoteMinLines: 50,
         adaptiveStep: Utils.g('PROFILE_CODE_ADAPTIVE_STEP', true),
         // Hard switches to plain streaming (no incremental hljs, minimal DOM churn)
-        stopAfterLines: 300,        // Turn off incremental hljs very early
+        stopAfterLines: Utils.g('PROFILE_CODE_STOP_HL_AFTER_LINES', 300),   // Stop incremental hljs after this many lines
         streamPlainAfterLines: 0,   // Belt-and-suspenders: enforce plain mode soon after
         streamPlainAfterChars: 0,   // Also guard huge single-line code (chars cap)
         maxFrozenChars: 32000,      // If promotions slipped through, cap before spans grow too large
-        finalHighlightMaxLines: Utils.g('PROFILE_CODE_FINAL_HL_MAX_LINES', 1000),
+        finalHighlightMaxLines: Utils.g('PROFILE_CODE_FINAL_HL_MAX_LINES', 1500),
         finalHighlightMaxChars: Utils.g('PROFILE_CODE_FINAL_HL_MAX_CHARS', 350000)
       };
 
@@ -1302,21 +1302,30 @@
       if (t.indexOf('[!') === -1) return false;
 
       for (const rule of rules) {
-        if (!rule || rule.tag !== 'p') continue;
+        if (!rule) continue;
+
+        // Tolerant full-paragraph detection using textContent survives linkify splits.
         const m = rule.reFullTrim ? rule.reFullTrim.exec(t) : null;
         if (!m) continue;
 
-        const out = document.createElement('p');
+        // IMPORTANT: create the replacement element using the rule's tag (was hard-coded to <p>).
+        // This makes [!cmd] ... [/!cmd] (configured with tag: 'div') work even when linkify
+        // inserted <a> tags inside the paragraph — detection is done on textContent, not DOM nodes.
+        const outTag = (rule.tag && typeof rule.tag === 'string') ? rule.tag.toLowerCase() : 'span';
+        const out = document.createElement(outTag === 'p' ? 'p' : outTag);
         if (rule.className) out.className = rule.className;
         out.setAttribute('data-cm', rule.name);
+
         const innerText = m[1] || '';
+        // Use mode-driven inner content materialization (text or markdown-inline).
         this.setInnerByMode(out, rule.innerMode, innerText, MD);
 
+        // Replace the original <p> with the desired container (<div>, <think>, <p>, etc.).
         try { el.replaceWith(out); } catch (_) {
           const parent = el.parentNode; if (parent) parent.replaceChild(out, el);
         }
 
-        this._d('P_REPLACED', { rule: rule.name, preview: this.logger.pv(t, 160) });
+        this._d('P_REPLACED', { rule: rule.name, asTag: outTag, preview: this.logger.pv(t, 160) });
         return true;
       }
       this._d('P_NO_FULL_MATCH', { preview: this.logger.pv(t, 160) });

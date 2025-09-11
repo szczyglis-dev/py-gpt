@@ -65,7 +65,7 @@ class Body:
                     """
 
     _HTML_P4 = """
-                    // highlight style
+                    // highlight options
                     """
 
     _HTML_P5 = """
@@ -303,7 +303,7 @@ class Body:
 
     def get_url_html(self, url: str, num: Optional[int] = None, num_all: Optional[int] = None) -> str:
         app_path = self.window.core.config.get_app_path()
-        icon_path = os.path.join(app_path, "data", "icons", "language.svg").replace("\\", "/")
+        icon_path = os.path.join(app_path, "data", "icons", "url.svg").replace("\\", "/")
         icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
         num_str = f" [{num}]" if (num is not None and num_all is not None and num_all > 1) else ""
         return f'{icon}<a href="{url}" title="{url}">{url}</a> <small>{num_str}</small>'
@@ -445,7 +445,12 @@ class Body:
         )
 
         syntax_style = self.window.core.config.get("render.code_syntax") or "default"
-        style_js = f'window.CODE_SYNTAX_STYLE={_json_dumps(syntax_style)};'
+        style_js = (
+            f'window.CODE_SYNTAX_STYLE={_json_dumps(syntax_style)};'
+            f'window.PROFILE_CODE_STOP_HL_AFTER_LINES={int(cfg_get("render.code_syntax.stream_max_lines", 300))};'
+            f'window.PROFILE_CODE_FINAL_HL_MAX_LINES={int(cfg_get("render.code_syntax.final_max_lines", 1500))};'
+            f'window.PROFILE_CODE_FINAL_HL_MAX_CHARS={int(cfg_get("render.code_syntax.final_max_chars", 350000))};'
+        )
 
         tips_js = f'window.TIPS={tips_json};'
 

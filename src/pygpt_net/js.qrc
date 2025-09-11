@@ -1,10 +1,10 @@
 <RCC>
     <qresource prefix="/js">
-        <file alias="auto-render.min.js">./data/js/katex/auto-render.min.js</file>
-        <file alias="highlight.min.js">./data/js/highlight/highlight.min.js</file>
-        <file alias="katex.min.js">./data/js/katex/katex.min.js</file>
-        <file alias="markdown-it.min.js">./data/js/markdown-it/markdown-it.min.js</file>
-        <file alias="markdown-it-katex.min.js">./data/js/markdown-it/markdown-it-katex.min.js</file>
-        <file alias="app.js">./data/js/app.js</file>
+        <file alias="app.js">data/js/app.js</file>
+        <file alias="auto-render.min.js">data/js/katex/auto-render.min.js</file>
+        <file alias="highlight.min.js">data/js/highlight/highlight.min.js</file>
+        <file alias="katex.min.js">data/js/katex/katex.min.js</file>
+        <file alias="markdown-it-katex.min.js">data/js/markdown-it/markdown-it-katex.min.js</file>
+        <file alias="markdown-it.min.js">data/js/markdown-it/markdown-it.min.js</file>
     </qresource>
 </RCC>

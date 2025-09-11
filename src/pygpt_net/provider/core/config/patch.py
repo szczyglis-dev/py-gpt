@@ -2495,6 +2495,17 @@ class Patch:
                 patch_css('web-blocks.css', True)
                 updated = True
 
+            # < 2.6.42
+            if old < parse_version("2.6.42"):
+                print("Migrating config from < 2.6.42...")
+                if "render.code_syntax.stream_max_lines" not in data:
+                    data["render.code_syntax.stream_max_lines"] = 300
+                if "render.code_syntax.final_max_lines" not in data:
+                    data["render.code_syntax.final_max_lines"] = 1500
+                if "render.code_syntax.final_max_chars" not in data:
+                    data["render.code_syntax.final_max_chars"] = 350000
+                updated = True
+
         # update file
         migrated = False
         if updated:

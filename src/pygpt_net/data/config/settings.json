@@ -623,7 +623,41 @@
         "label": "settings.render.code_syntax",
         "description": "settings.render.web.only.desc",
         "value": "github-dark",
-        "advanced": false
+        "advanced": false,
+        "tab": "code_syntax"
+    },
+    "render.code_syntax.stream_max_lines": {
+        "section": "layout",
+        "type": "int",
+        "min": 0,
+        "slider": false,
+        "label": "settings.render.code_syntax.stream_max_lines",
+        "description": "settings.render.code_syntax.stream_max_lines.desc",
+        "value": 300,
+        "advanced": false,
+        "tab": "code_syntax"
+    },
+    "render.code_syntax.final_max_lines": {
+        "section": "layout",
+        "type": "int",
+        "min": 0,
+        "slider": false,
+        "label": "settings.render.code_syntax.final_max_lines",
+        "description": "settings.render.code_syntax.final_max_lines.desc",
+        "value": 1500,
+        "advanced": false,
+        "tab": "code_syntax"
+    },
+    "render.code_syntax.final_max_chars": {
+        "section": "layout",
+        "type": "int",
+        "min": 0,
+        "slider": false,
+        "label": "settings.render.code_syntax.final_max_chars",
+        "description": "settings.render.code_syntax.final_max_chars.desc",
+        "value": 350000,
+        "advanced": false,
+        "tab": "code_syntax"
     },
     "font_size": {
         "section": "layout",
