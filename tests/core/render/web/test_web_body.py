@@ -153,7 +153,7 @@ def test_get_url_html():
     b = Body(win)
     url = "http://example.com"
     html = b.get_url_html(url, 1, 2)
-    assert "language.svg" in html
+    assert "url.svg" in html
     assert f'href="{url}"' in html
     assert "[1]" in html
 
