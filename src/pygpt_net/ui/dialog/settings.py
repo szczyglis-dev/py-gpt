@@ -37,6 +37,7 @@ class Settings(BaseConfigDialog):
         id = "settings"
         path = self.window.core.config.path
         sections = self.window.core.settings.get_sections()
+        setup_idx = idx
 
         # buttons
         self.window.ui.nodes['settings.btn.defaults.user'] = QPushButton(trans("dialog.settings.btn.defaults.user"))
@@ -280,12 +281,12 @@ class Settings(BaseConfigDialog):
         self.window.ui.dialog['config.' + id].setWindowTitle(trans('dialog.settings'))
 
         # restore current opened tab if idx is set
-        if idx is not None:
+        if setup_idx is not None:
             try:
-                self.window.ui.tabs['settings.section'].setCurrentIndex(idx)
-                self.window.controller.settings.set_by_tab(idx)
+                self.window.ui.tabs['settings.section'].setCurrentIndex(setup_idx)
+                self.window.controller.settings.set_by_tab(setup_idx)
             except Exception as e:
-                print('Failed restore settings tab: {}'.format(idx))
+                print('Failed restore settings tab: {}'.format(setup_idx))
         else:
             self.window.controller.settings.set_by_tab(0)
 
