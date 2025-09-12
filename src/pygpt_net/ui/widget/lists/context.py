@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.12 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -47,11 +47,25 @@ class ContextList(BaseList):
             'attachment': QIcon(":/icons/attachment.svg"),
         }
         self._color_icon_cache = {}
+
+        # Use a custom delegate for labels/pinned/attachment indicators
         self.setItemDelegate(ImportantItemDelegate(self, self._icons['attachment']))
+
+        # Ensure context menu works as before
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
         self._backup_selection = None
         self.restore_after_ctx_menu = True
+
+        # Make group rows visually stick to the left edge (if this is a tree view).
+        # Children remain indented by delegate's manual shift (+15 px), preserving structure.
+        try:
+            if hasattr(self, 'setIndentation'):
+                # Set tree indentation to 0 so group/folder rows do not look like children
+                self.setIndentation(0)
+        except Exception:
+            # Safe no-op if the underlying view does not support setIndentation
+            pass
 
     @property
     def _model(self):
@@ -62,6 +76,9 @@ class ContextList(BaseList):
         return self.window.ui.nodes['ctx.list']
 
     def _color_icon(self, color: QColor) -> QIcon:
+        """
+        Returns (and caches) a solid color icon pixmap for menu items.
+        """
         key = color.rgba()
         icon = self._color_icon_cache.get(key)
         if icon is None:
@@ -405,11 +422,15 @@ class ContextList(BaseList):
 
 class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
     """
-    Label color delegate
+    Item delegate that paints:
+    - Attachment icon on the right side (centered vertically),
+    - Pinned indicator (small circle) in the top-right corner (fixed position regardless of attachment),
+    - Label color as a full-height vertical bar on the left for labeled items.
     """
     def __init__(self, parent=None, attachment_icon: QIcon = None):
         super().__init__(parent)
         self._attachment_icon = attachment_icon or QIcon(":/icons/attachment.svg")
+        # Predefined label colors (status -> QColor)
         self._status_colors = {
             0: QColor(100, 100, 100),
             1: QColor(255, 0, 0),
@@ -420,64 +441,101 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
             6: QColor(75, 0, 130),
             7: QColor(238, 130, 238),
         }
+
+        # Visual tuning constants
         self._pin_pen = QtGui.QPen(QtCore.Qt.black, 0.5, QtCore.Qt.SolidLine)
+        self._pin_diameter = 4            # Small pinned circle diameter
+        self._pin_margin = 3              # Margin from top and right edges
+        self._attach_spacing = 4          # Kept for potential future layout tweaks
+        self._label_bar_width = 4         # Full-height label bar width (left side)
+        self._label_v_margin = 3          # 3px top/bottom margin for the label bar
 
     def paint(self, painter, option, index):
+        # Shift children by +15 px to keep them visually nested.
         if index.parent().isValid():
             option.rect.adjust(15, 0, 0, 0)
 
-        super(ImportantItemDelegate, self).paint(painter, option, index)
+        # Detect if this row is a group/folder (top-level section).
+        is_group = False
+        try:
+            model = index.model()
+            item = model.itemFromIndex(index) if hasattr(model, "itemFromIndex") else None
+            is_group = bool(item is not None and getattr(item, 'isFolder', False))
+        except Exception:
+            is_group = False
 
-        data = index.data(QtCore.Qt.ItemDataRole.UserRole)
-        if data:
-            label = data.get("label", 0)
-            is_important = data.get("is_important", False)
-            is_attachment = data.get("is_attachment", False)
-
+        # Default painting:
+        # - For groups: translate painter -8 px to push folder/icon closer to the left edge.
+        # - For others: paint normally.
+        if is_group:
             painter.save()
-
-            if is_attachment:
-                icon_size = option.decorationSize or QtCore.QSize(16, 16)
-                icon_pos = option.rect.right() - icon_size.width()
-                y = option.rect.top() + (option.rect.height() - icon_size.height()) // 2
-                icon_rect = QtCore.QRect(
-                    icon_pos,
-                    y,
-                    icon_size.width(),
-                    icon_size.height()
-                )
-                self._attachment_icon.paint(painter, icon_rect, QtCore.Qt.AlignCenter)
-
-            if is_important:
-                color = self.get_color_for_status(3)
-                square_size = 3
-                square_rect = QtCore.QRect(
-                    option.rect.left(),
-                    option.rect.top() + 2,
-                    square_size,
-                    square_size,
-                )
-                painter.setBrush(color)
-                painter.setPen(self._pin_pen)
-                painter.drawRect(square_rect)
-
-            if label > 0:
-                color = self.get_color_for_status(label)
-                square_size = 5
-                y = option.rect.center().y() - (square_size // 2) + 2
-                square_rect = QtCore.QRect(
-                    option.rect.left(),
-                    y,
-                    square_size,
-                    square_size,
-                )
-                painter.setBrush(color)
-                painter.setPen(QtCore.Qt.NoPen)
-                painter.drawRect(square_rect)
-
+            painter.translate(-8, 0)
+            super(ImportantItemDelegate, self).paint(painter, option, index)
             painter.restore()
+        else:
+            super(ImportantItemDelegate, self).paint(painter, option, index)
+
+        # Custom data painting for non-group items only (labels, pinned, attachments).
+        if not is_group:
+            data = index.data(QtCore.Qt.ItemDataRole.UserRole)
+            if data:
+                label = data.get("label", 0)
+                is_important = data.get("is_important", False)
+                is_attachment = data.get("is_attachment", False)
+
+                painter.save()
+
+                # Draw attachment icon on the right (centered vertically).
+                # This is painted first, so the pin can overlay it when needed.
+                icon_size = option.decorationSize or QtCore.QSize(16, 16)
+                if is_attachment:
+                    icon_pos_x = option.rect.right() - icon_size.width()
+                    icon_pos_y = option.rect.top() + (option.rect.height() - icon_size.height()) // 2
+                    icon_rect = QtCore.QRect(
+                        icon_pos_x,
+                        icon_pos_y,
+                        icon_size.width(),
+                        icon_size.height()
+                    )
+                    self._attachment_icon.paint(painter, icon_rect, QtCore.Qt.AlignCenter)
+
+                # Pinned indicator (small circle) kept at a fixed top-right position.
+                # It does not shift left when the attachment is present; it overlays above it.
+                if is_important:
+                    painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+                    # Ensure standard alpha-over compositing for proper overlay
+                    painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceOver)
+                    color = self.get_color_for_status(3)
+
+                    x = option.rect.x() + option.rect.width() - self._pin_margin - self._pin_diameter
+                    y = option.rect.y() + self._pin_margin
+                    pin_rect = QtCore.QRect(x, y, self._pin_diameter, self._pin_diameter)
+
+                    painter.setBrush(color)
+                    painter.setPen(self._pin_pen)
+                    painter.drawEllipse(pin_rect)
+
+                # Label bar on the left with 3px vertical margins
+                if label > 0:
+                    color = self.get_color_for_status(label)
+                    bar_y = option.rect.y() + self._label_v_margin
+                    bar_h = max(1, option.rect.height() - 2 * self._label_v_margin)
+                    bar_rect = QtCore.QRect(
+                        option.rect.x(),
+                        bar_y,
+                        self._label_bar_width,
+                        bar_h,
+                    )
+                    painter.setBrush(color)
+                    painter.setPen(QtCore.Qt.NoPen)
+                    painter.drawRect(bar_rect)
+
+                painter.restore()
 
     def get_color_for_status(self, status: int) -> QColor:
+        """
+        Returns color mapped for given status value.
+        """
         return self._status_colors.get(status, self._status_colors[0])
 
 
@@ -485,6 +543,7 @@ class GroupItem(QStandardItem):
     def __init__(self, icon, name, id):
         super().__init__(icon, name)
         self.id = id
+        # Keep name as provided; display text is handled by the model/view
         self.name = name
         self.isFolder = True
         self.isPinned = False
@@ -496,6 +555,7 @@ class Item(QStandardItem):
     def __init__(self, name, id):
         super().__init__(name)
         self.id = id
+        # Keep name as provided; display text is handled by the model/view
         self.name = name
         self.isFolder = False
         self.isPinned = False
