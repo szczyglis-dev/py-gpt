@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.12 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -46,7 +46,7 @@ class Debug:
             'db',
             'logger',
             'app.log',
-            'fake_stream',
+            'fixtures.stream',
             'kernel',
             'render'
         )
@@ -72,32 +72,45 @@ class Debug:
         m['debug.logger'].triggered.connect(dbg.toggle_logger)
         m['debug.app.log'].triggered.connect(dbg.toggle_app_log)
         m['debug.render'].triggered.connect(dbg.toggle_render)
-        m['debug.fake_stream'].triggered.connect(dbg.toggle_fake_stream)
+        m['debug.fixtures.stream'].triggered.connect(
+            lambda _=False: dbg.fixtures.toggle_from_menu("stream")
+        )
 
         m['menu.debug'] = win.menuBar().addMenu(trans("menu.debug"))
         menu = m['menu.debug']
         menu.addActions(
-            [m['debug.logger'],
-             m['debug.render'],
-             m['debug.db'],
-             m['debug.app.log'],
-             m['debug.fake_stream']]
+            [
+                m['debug.logger'],
+                m['debug.render'],
+                m['debug.db'],
+                m['debug.app.log']
+            ]
         )
+
         menu.addSeparator()
-        menu.addActions([
-            m['debug.agent'],
-            m['debug.assistants'],
-            m['debug.attachments'],
-            m['debug.config'],
-            m['debug.context'],
-            m['debug.events'],
-            m['debug.indexes'],
-            m['debug.kernel'],
-            m['debug.models'],
-            m['debug.plugins'],
-            m['debug.presets'],
-            m['debug.tabs'],
-            m['debug.ui'],
-        ])
+        menu.addActions(
+            [
+                m['debug.fixtures.stream']
+            ]
+        )
+
+        menu.addSeparator()
+        menu.addActions(
+            [
+                m['debug.agent'],
+                m['debug.assistants'],
+                m['debug.attachments'],
+                m['debug.config'],
+                m['debug.context'],
+                m['debug.events'],
+                m['debug.indexes'],
+                m['debug.kernel'],
+                m['debug.models'],
+                m['debug.plugins'],
+                m['debug.presets'],
+                m['debug.tabs'],
+                m['debug.ui'],
+            ]
+        )
 
         m['debug.render'].setChecked(bool(win.core.config.get('debug.render')))

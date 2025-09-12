@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.09.12 20:00:00                  #
 # ================================================== #
 
 import gc
@@ -412,7 +412,7 @@ class Debug:
         qobjects = sum(1 for obj in QApplication.allWidgets() if isinstance(obj, QObject))
         stats.append(f"QObjects: {qobjects}")
 
-        res += "\n" + "\n".join(stats)
+        res += "\n\n".join(stats)
         print("\n".join(stats))
         return res
 

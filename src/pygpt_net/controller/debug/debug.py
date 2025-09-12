@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.12 20:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -18,6 +18,8 @@ from PySide6.QtGui import QTextCursor
 
 from pygpt_net.core.events import RenderEvent
 
+from .fixtures import Fixtures
+
 
 class Debug(QObject):
     def __init__(self, window=None):
@@ -28,6 +30,7 @@ class Debug(QObject):
         """
         super(Debug, self).__init__()
         self.window = window
+        self.fixtures = Fixtures(window)
         self.is_logger = False  # logger window opened
         self.is_app_log = False  # app log window opened
         self.is_fake_stream = False  # fake stream enabled
@@ -37,6 +40,7 @@ class Debug(QObject):
     def update(self):
         """Update debug"""
         self.update_menu()
+        self.fixtures.update()
 
     def update_menu(self):
         """Update debug menu"""
@@ -127,6 +131,8 @@ class Debug(QObject):
                 print("[LOGGER] Switching to: " + level)
                 self.set_log_level(level)
 
+        self.fixtures.setup()
+
     def connect_signals(self):
         """Connect signals"""
         # webengine debug signals
@@ -189,14 +195,6 @@ class Debug(QObject):
                 cur.insertText("\n")
         self.window.logger.setTextCursor(cur)  # Update visible cursor
 
-    def fake_stream_enabled(self) -> bool:
-        """
-        Check if fake stream is enabled
-
-        :return: True if enabled, False otherwise
-        """
-        return self.is_fake_stream
-
     def logger_enabled(self) -> bool:
         """
         Check if debug window is enabled
@@ -249,16 +247,6 @@ class Debug(QObject):
 
         self.log('debug.' + id + ' toggled')
 
-        # update menu
-        self.update()
-
-    def toggle_fake_stream(self):
-        """
-        Toggle fake stream debug
-        """
-        value = self.window.ui.menu['debug.fake_stream'].isChecked()
-        self.is_fake_stream = value
-        self.log(f"debug.fake_stream set to {value}")
         # update menu
         self.update()
 

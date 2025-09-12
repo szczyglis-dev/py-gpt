@@ -6,9 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.07 05:00:00                  #
+# Updated Date: 2025.09.12 20:00:00                  #
 # ================================================== #
-import os
 
 from openai import OpenAI
 
@@ -24,7 +23,6 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.fake.generator import FakeOpenAIStream
 
 from .audio import Audio
 from .assistants import Assistants
@@ -119,7 +117,7 @@ class ApiOpenAI:
         use_responses_api = self.responses.is_enabled(model, mode, parent_mode, is_expert_call, preset)
         ctx.use_responses_api = use_responses_api  # set in context
 
-        fake_stream = self.window.controller.debug.fake_stream_enabled()  # for testing
+        fixtures = self.window.controller.debug.fixtures
 
         # get model id
         model_id = None
@@ -159,15 +157,9 @@ class ApiOpenAI:
                 if is_realtime:
                     return True
 
-            if fake_stream:
-                # fake stream for testing
+            if fixtures.is_enabled("stream"): # fake stream for testing
                 use_responses_api = False
-                ctx.use_responses_api = False
-                test_code_path = os.path.join(self.window.core.config.get_app_path(), "data", "js", "app.js")
-                response = FakeOpenAIStream(code_path=test_code_path).stream(
-                    api="raw",
-                    chunk="code",
-                )
+                response = fixtures.get_stream_generator(ctx)
             else:
                 # responses API
                 if use_responses_api:
