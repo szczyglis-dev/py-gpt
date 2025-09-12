@@ -2522,6 +2522,9 @@
         this.threshold = Utils.g('USER_MSG_COLLAPSE_HEIGHT_PX', 1000);
         // Track processed .msg elements to allow cheap remeasure on resize if needed.
         this._processed = new Set();
+
+        // Visual indicator attached while collapsed (does not modify original text).
+        this.ellipsisText = ' [...]';
       }
 
       _icons() {
@@ -2617,6 +2620,58 @@
         return { content, toggle };
       }
 
+      // Create or update the ellipsis indicator inside content (absolute in the bottom-right corner).
+      _ensureEllipsisEl(msg, contentEl) {
+        const content = contentEl || (msg && msg.querySelector('.uc-content'));
+        if (!content) return null;
+
+        // Ensure the content becomes a positioning context only when needed.
+        if (getComputedStyle(content).position === 'static') {
+          content.style.position = 'relative';
+        }
+
+        let dot = content.querySelector('.uc-ellipsis');
+        if (!dot) {
+          dot = document.createElement('span');
+          dot.className = 'uc-ellipsis';
+          dot.textContent = this.ellipsisText;
+          // Inline, theme-agnostic styles; kept minimal and non-interactive.
+          dot.style.position = 'absolute';
+          dot.style.right = '0';
+          dot.style.bottom = '0';
+          dot.style.paddingLeft = '6px';
+          dot.style.pointerEvents = 'none';
+          dot.style.zIndex = '1';
+          dot.style.fontWeight = '500';
+          dot.style.opacity = '0.75';
+
+          content.appendChild(dot);
+        }
+        return dot;
+      }
+
+      // Show ellipsis only when there is hidden overflow (collapsed).
+      _showEllipsis(msg, contentEl) {
+        const dot = this._ensureEllipsisEl(msg, contentEl);
+        if (dot) dot.style.display = 'inline';
+      }
+      // Hide and clean ellipsis when not needed (expanded or short content).
+      _hideEllipsis(msg) {
+        const content = msg && msg.querySelector('.uc-content');
+        if (!content) return;
+        const dot = content.querySelector('.uc-ellipsis');
+        if (dot && dot.parentNode) {
+          // Remove the indicator to avoid accidental copy/select and keep DOM lean.
+          dot.parentNode.removeChild(dot);
+        }
+        // Drop positioning context when no indicator is present (keep styles minimal).
+        try {
+          if (content && content.style && content.querySelector('.uc-ellipsis') == null) {
+            content.style.position = '';
+          }
+        } catch (_) {}
+      }
+
       // Apply collapse to all user messages under root.
       apply(root) {
         const scope = root || document;
@@ -2650,6 +2705,9 @@
           c.classList.remove('uc-expanded'); // No class => fully expanded by default CSS.
           msg.dataset.ucState = 'expanded';
 
+          // Hide ellipsis in disabled mode.
+          this._hideEllipsis(msg);
+
           // Hide toggle in disabled mode to avoid user interaction.
           if (t) {
             t.classList.remove('visible');
@@ -2675,8 +2733,13 @@
           const desired = msg.dataset.ucState || 'collapsed';
           const expand = (desired === 'expanded');
 
-          if (expand) c.classList.add('uc-expanded');
-          else c.classList.add('uc-collapsed');
+          if (expand) {
+            c.classList.add('uc-expanded');
+            this._hideEllipsis(msg); // Expanded => no ellipsis
+          } else {
+            c.classList.add('uc-collapsed');
+            this._showEllipsis(msg, c); // Collapsed => show ellipsis overlay
+          }
 
           if (t) {
             const img = t.querySelector('img');
@@ -2688,10 +2751,11 @@
             t.title = expand ? labels.collapse : labels.expand;
           }
         } else {
-          // Short content – ensure fully expanded and hide toggle.
+          // Short content – ensure fully expanded and hide toggle + ellipsis.
           c.classList.remove('uc-collapsed');
           c.classList.remove('uc-expanded');
           msg.dataset.ucState = 'expanded';
+          this._hideEllipsis(msg);
           if (t) {
             t.classList.remove('visible');
             t.setAttribute('aria-expanded', 'false');
@@ -2717,20 +2781,22 @@
 
         const isCollapsed = c.classList.contains('uc-collapsed');
         if (isCollapsed) {
-          // Expand – leave scroll as-is (requirement targets collapse case).
+          // Expand – leave scroll as-is; remove ellipsis.
           c.classList.remove('uc-collapsed');
           c.classList.add('uc-expanded');
           msg.dataset.ucState = 'expanded';
+          this._hideEllipsis(msg);
           if (t) {
             t.setAttribute('aria-expanded', 'true');
             t.title = labels.collapse;
             const img = t.querySelector('img'); if (img) { img.src = icons.collapse; img.alt = labels.collapse; }
           }
         } else {
-          // Collapse – apply classes, then bring toggle into view (scroll up if needed).
+          // Collapse – apply classes, show ellipsis, then bring toggle into view (scroll up if needed).
           c.classList.remove('uc-expanded');
           c.classList.add('uc-collapsed');
           msg.dataset.ucState = 'collapsed';
+          this._showEllipsis(msg, c);
           if (t) {
             t.setAttribute('aria-expanded', 'false');
             t.title = labels.expand;
