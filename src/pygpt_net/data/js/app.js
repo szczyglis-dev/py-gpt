@@ -2514,7 +2514,7 @@
     }
   }
 
-   // UserCollapseManager – collapsible user messages (msg-box.msg-user)
+    // UserCollapseManager – collapsible user messages (msg-box.msg-user)
     class UserCollapseManager {
       constructor(cfg) {
         this.cfg = cfg || {};
@@ -2637,6 +2637,29 @@
       _update(msg, contentEl, toggleEl) {
         const c = contentEl || (msg && msg.querySelector('.uc-content'));
         if (!msg || !c) return;
+
+        // Special-case: when threshold = 0 (or '0'), auto-collapse is globally disabled.
+        // We avoid any measurement, force the content to be fully expanded, and ensure the toggle is hidden.
+        // This preserves public API while providing an explicit opt-out, without impacting existing behavior.
+        if (this.threshold === 0 || this.threshold === '0') {
+          const t = toggleEl || msg.querySelector('.uc-toggle');
+          const labels = this._labels();
+
+          // Ensure expanded state and remove any limiting classes.
+          c.classList.remove('uc-collapsed');
+          c.classList.remove('uc-expanded'); // No class => fully expanded by default CSS.
+          msg.dataset.ucState = 'expanded';
+
+          // Hide toggle in disabled mode to avoid user interaction.
+          if (t) {
+            t.classList.remove('visible');
+            t.setAttribute('aria-expanded', 'false');
+            t.title = labels.expand;
+            const img = t.querySelector('img');
+            if (img) { img.alt = labels.expand; }
+          }
+          return; // Do not proceed with measuring or collapsing.
+        }
 
         // Temporarily remove limiting classes for precise measurement.
         c.classList.remove('uc-collapsed');

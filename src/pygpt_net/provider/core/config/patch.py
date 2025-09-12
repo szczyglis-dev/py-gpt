@@ -71,6 +71,8 @@ class Patch:
                     data["render.code_syntax.stream_n_chars"] = 5000
                 if "render.code_syntax.disabled" not in data:
                     data["render.code_syntax.disabled"] = False
+                if "render.msg.user.collapse.px" not in data:
+                    data["render.msg.user.collapse.px"] = 1500
                 updated = True
 
         # update file

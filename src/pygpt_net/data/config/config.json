@@ -438,6 +438,7 @@
   "render.code_syntax.stream_n_chars": 5000,
   "render.engine": "web",
   "render.memory.limit": "2.5GB",
+  "render.msg.user.collapse.px": 1500,
   "render.open_gl": false,
   "render.plain": false,
   "send_clear": true,

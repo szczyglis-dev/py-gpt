@@ -453,6 +453,7 @@ class Body:
             f'window.PROFILE_CODE_FINAL_HL_MAX_LINES={int(cfg_get("render.code_syntax.final_max_lines", 1500))};'
             f'window.PROFILE_CODE_FINAL_HL_MAX_CHARS={int(cfg_get("render.code_syntax.final_max_chars", 350000))};'
             f'window.DISABLE_SYNTAX_HIGHLIGHT={int(cfg_get("render.code_syntax.disabled", 0))};'
+            f'window.USER_MSG_COLLAPSE_HEIGHT_PX={int(cfg_get("render.msg.user.collapse.px", 1500))};'
         )
 
         tips_js = f'window.TIPS={tips_json};'

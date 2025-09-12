@@ -776,7 +776,17 @@
         "multiplier": 1,
         "step": 1,
         "advanced": false
-    },    
+    },
+    "render.msg.user.collapse.px": {
+        "section": "layout",
+        "type": "int",
+        "min": 0,
+        "slider": false,
+        "label": "settings.render.msg.user.collapse.px",
+        "description": "settings.render.msg.user.collapse.px.desc",
+        "value": 1500,
+        "advanced": false
+    },
     "layout.tooltips": {
         "section": "layout",
         "type": "bool",
