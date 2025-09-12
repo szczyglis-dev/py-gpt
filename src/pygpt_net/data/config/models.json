@@ -2437,13 +2437,7 @@
             "id": "grok-2-image-1212",
             "name": "grok-2-image-1212",
             "mode": [
-                "chat",
-                "llama_index",
-                "img",
-                "agent_llama",
-                "agent_openai",
-                "agent",
-                "expert"
+                "img"
             ],
             "llama_index": {
                 "args": [

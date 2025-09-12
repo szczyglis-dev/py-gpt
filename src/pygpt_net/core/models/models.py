@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 23:00:00                  #
+# Updated Date: 2025.09.12 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -108,6 +108,16 @@ class Models:
             self.save()
 
         return updated
+
+    def from_base(self, key: str) -> Optional[ModelItem]:
+        """
+        Get model from base models
+
+        :param key: model name
+        :return: model config object or None
+        """
+        items = self.get_base()
+        return items.get(key)
 
     def get(self, key: str) -> ModelItem:
         """
