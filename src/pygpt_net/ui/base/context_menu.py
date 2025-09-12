@@ -23,6 +23,7 @@ class ContextMenu:
     _ICON_PASTE = QIcon(":/icons/paste.svg")
     _ICON_CODE = QIcon(":/icons/code.svg")
     _ICON_TEXT = QIcon(":/icons/text.svg")
+    _ICON_TRANSLATOR = QIcon(":/icons/translate.svg")
 
     def __init__(self, window=None):
         """
@@ -94,11 +95,11 @@ class ContextMenu:
                 menu.addSeparator()
                 translator = tools.get("translator")
                 if add_left:
-                    action = QAction(self._ICON_TEXT, trans('text.context_menu.copy_to.translator_left'), menu)
+                    action = QAction(self._ICON_TRANSLATOR, trans('text.context_menu.copy_to.translator_left'), menu)
                     action.triggered.connect(lambda checked=False: translator.append_content("left", selected_text))
                     menu.addAction(action)
                 if add_right:
-                    action = QAction(self._ICON_TEXT, trans('text.context_menu.copy_to.translator_right'), menu)
+                    action = QAction(self._ICON_TRANSLATOR, trans('text.context_menu.copy_to.translator_right'), menu)
                     action.triggered.connect(lambda checked=False: translator.append_content("right", selected_text))
                     menu.addAction(action)
 
