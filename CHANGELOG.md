@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.6.44 (2025-09-12)
+
+- Added: Auto-collapse for large user input blocks.
+- Added: Configuration for syntax highlighting intervals.
+- Improved: Visibility of label icons.
+- Improved: Scrolling of code blocks.
+- Fixed: Parsing of quotes in custom markdown blocks.
+
 ## 2.6.43 (2025-09-12)
 
 - Fixed: preset restoration when switching profiles.

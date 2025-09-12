@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.43** | build: **2025-09-12** | Python: **>=3.10, <3.14**
+Release: **2.6.44** | build: **2025-09-12** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3450,6 +3450,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.44 (2025-09-12)**
+
+- Added: Auto-collapse for large user input blocks.
+- Added: Configuration for syntax highlighting intervals.
+- Improved: Visibility of label icons.
+- Improved: Scrolling of code blocks.
+- Fixed: Parsing of quotes in custom markdown blocks.
 
 **2.6.43 (2025-09-12)**
 
