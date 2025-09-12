@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2025.09.11 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -453,11 +453,16 @@ class Updater:
             True
         )
 
-    def run_check(self):
-        """Run check for updates in background"""
+    def run_check(self, force: bool = False):
+        """
+        Run check for updates in background
+
+        :param force: force show version dialog
+        """
         worker = UpdaterWorker()
         worker.window = self.window
         worker.checker = self.check_silent
+        worker.force = force
         worker.signals.version_changed.connect(self.handle_new_version)
         self.window.threadpool.start(worker)
 
@@ -475,12 +480,13 @@ class UpdaterWorker(QRunnable):
         self.last_check_time = None
         self.window = None
         self.checker = None
+        self.force = False
 
     @Slot()
     def run(self):
         try:
             # if background check is not enabled, abort
-            if not self.window.core.config.get("updater.check.bg"):
+            if not self.window.core.config.get("updater.check.bg") and not self.force:
                 return
 
             # check
@@ -489,10 +495,12 @@ class UpdaterWorker(QRunnable):
             if last_checked is not None and last_checked != "":
                 parsed_prev_checked = parse_version(last_checked)
 
-            # print("Checking for updates...")
+            if self.force:
+                print("Checking for updates...")
+
             is_new, version, build, changelog, download_windows, download_linux = self.checker()
             if is_new:
-                if parsed_prev_checked is None or parsed_prev_checked < parse_version(version):
+                if self.force or (parsed_prev_checked is None or parsed_prev_checked < parse_version(version)):
                     self.signals.version_changed.emit(
                         version,
                         build,
@@ -500,6 +508,9 @@ class UpdaterWorker(QRunnable):
                         download_windows,
                         download_linux,
                     )
+                return
+            if self.force:
+                print("No updates available.")
 
         except Exception as e:
             self.window.core.debug.log(e)

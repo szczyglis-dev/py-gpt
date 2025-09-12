@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 16:00:00                  #
+# Updated Date: 2025.09.11 00:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -22,11 +22,11 @@ def test_post_setup(mock_window):
     mock_window.core.config.data['api_key'] = None
     mock_window.core.config.data['updater.check.launch'] = True
     launcher.show_api_monit = MagicMock()
-    mock_window.core.updater.check = MagicMock()
+    mock_window.core.updater.run_check = MagicMock()
 
     launcher.post_setup()
 #    launcher.show_api_monit.assert_called_once()
-    mock_window.core.updater.check.assert_called_once()
+    mock_window.core.updater.run_check.assert_called_once()
 
 
 def test_show_api_monit(mock_window):

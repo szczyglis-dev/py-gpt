@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 21:00:00                  #
+# Updated Date: 2025.09.11 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -29,7 +29,7 @@ class Launcher:
         """Post setup launcher"""
         # check for updates
         if self.window.core.config.get('updater.check.launch'):
-            self.window.core.updater.check()
+            self.window.core.updater.run_check(force=True)  # async
 
     def show_api_monit(self):
         """Show empty API KEY monit"""
