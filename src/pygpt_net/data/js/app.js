@@ -736,175 +736,159 @@
     }
   }
 
-  // ==========================================================================
-  // 2) Code scroll state manager
-  // ==========================================================================
+    // ==========================================================================
+    // 2) Code scroll state manager
+    // ==========================================================================
 
-  class CodeScrollState {
-    constructor(cfg, raf) {
-      this.cfg = cfg;
-      this.raf = raf;
-      this.map = new WeakMap();
-      this.rafMap = new WeakMap();
-      this.rafIds = new Set(); // legacy
-      this.rafKeyMap = new WeakMap();
-    }
-    // Get or create per-code element state.
-    state(el) {
-      let s = this.map.get(el);
-      if (!s) { s = { autoFollow: false, lastScrollTop: 0, userInteracted: false, freezeUntil: 0 }; this.map.set(el, s); }
-      return s;
-    }
-    // Check if code block is already finalized (not streaming).
-    isFinalizedCode(el) {
-      if (!el || el.tagName !== 'CODE') return false;
-      if (el.dataset && el.dataset._active_stream === '1') return false;
-      const highlighted = (el.getAttribute('data-highlighted') === 'yes') || el.classList.contains('hljs');
-      return highlighted;
-    }
-    // Is element scrolled close to the bottom by a margin?
-    isNearBottomEl(el, margin = 100) {
-      if (!el) return true;
-      const distance = el.scrollHeight - el.clientHeight - el.scrollTop;
-      return distance <= margin;
-    }
-    // Scroll code element to the bottom respecting interaction state.
-    scrollToBottom(el, live = false, force = false) {
-      if (!el || !el.isConnected) return;
-      if (!force && this.isFinalizedCode(el)) return;
-
-      const st = this.state(el);
-      const now = Utils.now();
-      if (!force && st.freezeUntil && now < st.freezeUntil) return;
-
-      const distNow = el.scrollHeight - el.clientHeight - el.scrollTop;
-      if (!force && distNow <= 1) { st.lastScrollTop = el.scrollTop; return; }
-
-      const marginPx = live ? 96 : this.cfg.CODE_SCROLL.NEAR_MARGIN_PX;
-      const behavior = 'instant';
-
-      if (!force) {
-        if (live && st.autoFollow !== true) return;
-        if (!live && !(st.autoFollow === true || this.isNearBottomEl(el, marginPx) || !st.userInteracted)) return;
+    class CodeScrollState {
+      constructor(cfg, raf) {
+        this.cfg = cfg;
+        this.raf = raf;
+        this.map = new WeakMap();
+        this.rafMap = new WeakMap();
+        this.rafIds = new Set(); // legacy
+        this.rafKeyMap = new WeakMap();
       }
+      // Get or create per-code element state.
+      state(el) {
+        let s = this.map.get(el);
+        if (!s) { s = { autoFollow: false, lastScrollTop: 0, userInteracted: false, freezeUntil: 0 }; this.map.set(el, s); }
+        return s;
+      }
+      // Check if code block is already finalized (not streaming).
+      isFinalizedCode(el) {
+        if (!el || el.tagName !== 'CODE') return false;
+        if (el.dataset && el.dataset._active_stream === '1') return false;
+        const highlighted = (el.getAttribute('data-highlighted') === 'yes') || el.classList.contains('hljs');
+        return highlighted;
+      }
+      // Is element scrolled close to the bottom by a margin?
+      isNearBottomEl(el, margin = 100) {
+        if (!el) return true;
+        const distance = el.scrollHeight - el.clientHeight - el.scrollTop;
+        return distance <= margin;
+      }
+      // Scroll code element to the bottom respecting interaction state.
+      scrollToBottom(el, live = false, force = false) {
+        if (!el || !el.isConnected) return;
+        if (!force && this.isFinalizedCode(el)) return;
 
-      try { el.scrollTo({ top: el.scrollHeight, behavior }); } catch (_) { el.scrollTop = el.scrollHeight; }
-      st.lastScrollTop = el.scrollTop;
-    }
-    // Schedule bottom scroll in rAF (coalesces multiple calls).
-    scheduleScroll(el, live = false, force = false) {
-      if (!el || !el.isConnected) return;
-      if (!force && this.isFinalizedCode(el)) return;
-      if (this.rafMap.get(el)) return;
-      this.rafMap.set(el, true);
-
-      let key = this.rafKeyMap.get(el);
-      if (!key) { key = { t: 'codeScroll', el }; this.rafKeyMap.set(el, key); }
-
-      this.raf.schedule(key, () => {
-        this.rafMap.delete(el);
-        this.scrollToBottom(el, live, force);
-      }, 'CodeScroll', 0);
-    }
-    // Attach scroll/wheel/touch handlers to manage auto-follow state.
-    attachHandlers(codeEl) {
-      if (!codeEl || codeEl.dataset.csListeners === '1') return;
-      codeEl.dataset.csListeners = '1';
-      const st = this.state(codeEl);
-
-      const onScroll = (ev) => {
-        const top = codeEl.scrollTop;
-        const isUser = !!(ev && ev.isTrusted === true);
+        const st = this.state(el);
         const now = Utils.now();
+        if (!force && st.freezeUntil && now < st.freezeUntil) return;
 
-        if (this.isFinalizedCode(codeEl)) {
-          if (isUser) st.userInteracted = true;
-          st.autoFollow = false;
-          st.lastScrollTop = top;
-          return;
+        const distNow = el.scrollHeight - el.clientHeight - el.scrollTop;
+        if (!force && distNow <= 1) { st.lastScrollTop = el.scrollTop; return; }
+
+        const marginPx = live ? 96 : this.cfg.CODE_SCROLL.NEAR_MARGIN_PX;
+        const behavior = 'instant';
+
+        if (!force) {
+          if (live && st.autoFollow !== true) return;
+          if (!live && !(st.autoFollow === true || this.isNearBottomEl(el, marginPx) || !st.userInteracted)) return;
         }
 
-        if (isUser) {
-          if (top + 1 < st.lastScrollTop) {
-            st.autoFollow = false; st.userInteracted = true; st.freezeUntil = now + 1000;
-          } else if (this.isNearBottomEl(codeEl, this.cfg.CODE_SCROLL.AUTO_FOLLOW_REENABLE_PX)) {
-            st.autoFollow = true;
+        try { el.scrollTo({ top: el.scrollHeight, behavior }); } catch (_) { el.scrollTop = el.scrollHeight; }
+        st.lastScrollTop = el.scrollTop;
+      }
+      // Schedule bottom scroll in rAF (coalesces multiple calls).
+      scheduleScroll(el, live = false, force = false) {
+        if (!el || !el.isConnected) return;
+        if (!force && this.isFinalizedCode(el)) return;
+        if (this.rafMap.get(el)) return;
+        this.rafMap.set(el, true);
+
+        let key = this.rafKeyMap.get(el);
+        if (!key) { key = { t: 'codeScroll', el }; this.rafKeyMap.set(el, key); }
+
+        this.raf.schedule(key, () => {
+          this.rafMap.delete(el);
+          this.scrollToBottom(el, live, force);
+        }, 'CodeScroll', 0);
+      }
+      // Attach scroll/wheel/touch handlers to manage auto-follow state.
+      attachHandlers(codeEl) {
+        if (!codeEl || codeEl.dataset.csListeners === '1') return;
+        codeEl.dataset.csListeners = '1';
+        const st = this.state(codeEl);
+
+        const onScroll = (ev) => {
+          const top = codeEl.scrollTop;
+          const isUser = !!(ev && ev.isTrusted === true);
+          const now = Utils.now();
+
+          if (this.isFinalizedCode(codeEl)) {
+            if (isUser) st.userInteracted = true;
+            st.autoFollow = false;
+            st.lastScrollTop = top;
+            return;
           }
-        } else {
-          if (this.isNearBottomEl(codeEl, this.cfg.CODE_SCROLL.AUTO_FOLLOW_REENABLE_PX)) st.autoFollow = true;
-        }
-        st.lastScrollTop = top;
-      };
 
-      const onWheel = (ev) => {
-        st.userInteracted = true;
-        const now = Utils.now();
+          if (isUser) {
+            if (top + 1 < st.lastScrollTop) {
+              st.autoFollow = false; st.userInteracted = true; st.freezeUntil = now + 1000;
+            } else if (this.isNearBottomEl(codeEl, this.cfg.CODE_SCROLL.AUTO_FOLLOW_REENABLE_PX)) {
+              st.autoFollow = true;
+            }
+          } else {
+            if (this.isNearBottomEl(codeEl, this.cfg.CODE_SCROLL.AUTO_FOLLOW_REENABLE_PX)) st.autoFollow = true;
+          }
+          st.lastScrollTop = top;
+        };
 
-        if (this.isFinalizedCode(codeEl)) { st.autoFollow = false; return; }
+        const onWheel = (ev) => {
+          st.userInteracted = true;
+          const now = Utils.now();
 
-        if (ev.deltaY < 0) { st.autoFollow = false; st.freezeUntil = now + 1000; }
-        else if (this.isNearBottomEl(codeEl, this.cfg.CODE_SCROLL.AUTO_FOLLOW_REENABLE_PX)) { st.autoFollow = true; }
-      };
+          if (this.isFinalizedCode(codeEl)) { st.autoFollow = false; return; }
 
-      codeEl.addEventListener('scroll', onScroll, { passive: true });
-      codeEl.addEventListener('wheel', onWheel, { passive: true });
-      codeEl.addEventListener('touchstart', function () { st.userInteracted = true; }, { passive: true });
-    }
-    // Ensure code starts scrolled to bottom once after insert.
-    initCodeBottomOnce(codeEl) {
-      if (!codeEl || !codeEl.isConnected) return;
-      if (codeEl.dataset && codeEl.dataset._active_stream === '1') return;
-      if (codeEl.dataset && codeEl.dataset.csInitBtm === '1') return;
-      const wrapper = codeEl.closest('.code-wrapper');
-      if (!wrapper) return;
+          if (ev.deltaY < 0) { st.autoFollow = false; st.freezeUntil = now + 1000; }
+          else if (this.isNearBottomEl(codeEl, this.cfg.CODE_SCROLL.AUTO_FOLLOW_REENABLE_PX)) { st.autoFollow = true; }
+        };
 
-      codeEl.dataset.csInitBtm = '1';
-      const key = { t: 'codeInitBottom', el: codeEl };
-      this.raf.schedule(key, () => {
-        if (!codeEl.isConnected) return;
-        try {
-          this.scrollToBottom(codeEl, false, true);
-          const st = this.state(codeEl);
-          st.autoFollow = false;
-          st.lastScrollTop = codeEl.scrollTop;
-        } catch (_) {}
-      }, 'CodeScroll', 0);
-    }
-    // Attach handlers to all bot code blocks under root (or document).
-    initScrollableBlocks(root) {
-      const scope = root || document;
-      let nodes = [];
-      if (scope.nodeType === 1 && scope.closest && scope.closest('.msg-box.msg-bot')) {
-        nodes = scope.querySelectorAll('pre code');
-      } else {
-        nodes = document.querySelectorAll('.msg-box.msg-bot pre code');
+        codeEl.addEventListener('scroll', onScroll, { passive: true });
+        codeEl.addEventListener('wheel', onWheel, { passive: true });
+        codeEl.addEventListener('touchstart', function () { st.userInteracted = true; }, { passive: true });
       }
-      if (!nodes.length) return;
-      nodes.forEach((code) => {
-        this.attachHandlers(code);
-        if (code.dataset._active_stream === '1') {
-          const st = this.state(code);
-          st.autoFollow = true;
-          this.scheduleScroll(code, true, false);
+      // Attach handlers to all bot code blocks under root (or document).
+      // IMPORTANT: We intentionally do NOT auto-scroll finalized/static code blocks to the bottom.
+      // Only actively streaming code blocks (data-_active_stream="1") are auto-followed live.
+      initScrollableBlocks(root) {
+        const scope = root || document;
+        let nodes = [];
+        if (scope.nodeType === 1 && scope.closest && scope.closest('.msg-box.msg-bot')) {
+          nodes = scope.querySelectorAll('pre code');
         } else {
-          this.initCodeBottomOnce(code);
+          nodes = document.querySelectorAll('.msg-box.msg-bot pre code');
         }
-      });
+        if (!nodes.length) return;
+
+        nodes.forEach((code) => {
+          this.attachHandlers(code);
+          // Live streaming blocks: enable auto-follow and keep them glued to bottom.
+          if (code.dataset._active_stream === '1') {
+            const st = this.state(code);
+            st.autoFollow = true;
+            this.scheduleScroll(code, true, false);
+          }
+          // Finalized/static blocks: do nothing (no initial scroll-to-bottom).
+          // This avoids surprising jumps when static content is rendered.
+        });
+      }
+      // Transfer stored scroll state between elements (after replace).
+      transfer(oldEl, newEl) {
+        if (!oldEl || !newEl || oldEl === newEl) return;
+        const oldState = this.map.get(oldEl);
+        if (oldState) this.map.set(newEl, { ...oldState });
+        this.attachHandlers(newEl);
+      }
+      // Cancel any scheduled scroll tasks for code blocks.
+      cancelAllScrolls() {
+        try { this.raf.cancelGroup('CodeScroll'); } catch (_) {}
+        this.rafMap = new WeakMap();
+        this.rafIds.clear();
+      }
     }
-    // Transfer stored scroll state between elements (after replace).
-    transfer(oldEl, newEl) {
-      if (!oldEl || !newEl || oldEl === newEl) return;
-      const oldState = this.map.get(oldEl);
-      if (oldState) this.map.set(newEl, { ...oldState });
-      this.attachHandlers(newEl);
-    }
-    // Cancel any scheduled scroll tasks for code blocks.
-    cancelAllScrolls() {
-      try { this.raf.cancelGroup('CodeScroll'); } catch (_) {}
-      this.rafMap = new WeakMap();
-      this.rafIds.clear();
-    }
-  }
 
   // ==========================================================================
   // 3) Highlighter (hljs) + rAF viewport scan
@@ -1175,7 +1159,6 @@
   // ==========================================================================
 
   class CustomMarkup {
-    // Logger-aware processor; no console usage.
     constructor(cfg, logger) {
       this.cfg = cfg || { CUSTOM_MARKUP_RULES: [] };
       this.logger = logger || new Logger(cfg);
