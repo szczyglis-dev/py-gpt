@@ -1183,6 +1183,17 @@
     }
     _d(line, ctx) { try { this.logger.debug('CM', line, ctx); } catch (_) {} }
 
+    // Decode HTML entities once (safe)
+    // This addresses cases when linkify/full markdown path leaves literal "&quot;" etc. in text nodes.
+    // We decode only for rules that explicitly opt-in (see compile()) to avoid changing semantics globally.
+    decodeEntitiesOnce(s) {
+      if (!s || s.indexOf('&') === -1) return String(s || '');
+      // Using a shared <textarea> avoids DOM parsing side-effects and is fast enough for small JSON payloads.
+      const ta = CustomMarkup._decTA || (CustomMarkup._decTA = document.createElement('textarea'));
+      ta.innerHTML = s;
+      return ta.value;
+    }
+
     // Compile rules once; also precompile strict and whitespace-tolerant "full match" regexes.
     compile(rules) {
       const src = Array.isArray(rules) ? rules : (window.CUSTOM_MARKUP_RULES || this.cfg.CUSTOM_MARKUP_RULES || []);
@@ -1193,11 +1204,26 @@
         const className = (r.className || r.class || '').trim();
         const innerMode = (r.innerMode === 'markdown-inline' || r.innerMode === 'text') ? r.innerMode : 'text';
 
+        // Opt-in decoding: default to true for "cmd" to fix JSON quotes (&quot;) in static full-render path,
+        // leave false for other tags unless explicitly requested by rule author.
+        const decodeEntities = (typeof r.decodeEntities === 'boolean')
+          ? r.decodeEntities
+          : ((r.name || '').toLowerCase() === 'cmd' || className === 'cmd');
+
         const re = new RegExp(Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close), 'g');
         const reFull = new RegExp('^' + Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close) + '$');
         const reFullTrim = new RegExp('^\\s*' + Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close) + '\\s*$');
 
-        const item = { name: r.name || tag, tag, className, innerMode, open: r.open, close: r.close, re, reFull, reFullTrim };
+        const item = {
+          name: r.name || tag,
+          tag,
+          className,
+          innerMode,
+          open: r.open,
+          close: r.close,
+          decodeEntities,  // per-rule decode switch
+          re, reFull, reFullTrim
+        };
         compiled.push(item);
         this._d('COMPILE_RULE', { name: item.name, tag: item.tag, innerMode: item.innerMode, open: item.open, close: item.close });
       }
@@ -1205,6 +1231,7 @@
         const open = '[!cmd]', close = '[/!cmd]';
         const item = {
           name: 'cmd', tag: 'p', className: 'cmd', innerMode: 'text', open, close,
+          decodeEntities: true, // Fallback rule for cmd also opts-in to decoding
           re: new RegExp(Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close), 'g'),
           reFull: new RegExp('^' + Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close) + '$'),
           reFullTrim: new RegExp('^\\s*' + Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close) + '\\s*$')
@@ -1279,16 +1306,22 @@
       return null;
     }
 
-    // Set inner content according to the rule's mode.
-    setInnerByMode(el, mode, text, MD) {
+    // Set inner content according to the rule's mode, with optional entity decode.
+    setInnerByMode(el, mode, text, MD, decodeEntities = false) {
+      let payload = String(text || '');
+      // Decode entities only when asked by the rule (prevents global behavior change).
+      if (decodeEntities && payload && payload.indexOf('&') !== -1) {
+        try { payload = this.decodeEntitiesOnce(payload); } catch (_) { /* keep original on failure */ }
+      }
+
       if (mode === 'markdown-inline' && typeof window.markdownit !== 'undefined') {
         try {
-          if (MD && typeof MD.renderInline === 'function') { el.innerHTML = MD.renderInline(text || ''); return; }
+          if (MD && typeof MD.renderInline === 'function') { el.innerHTML = MD.renderInline(payload); return; }
           const tempMD = window.markdownit({ html: false, linkify: true, breaks: true, highlight: () => '' });
-          el.innerHTML = tempMD.renderInline(text || ''); return;
+          el.innerHTML = tempMD.renderInline(payload); return;
         } catch (_) {}
       }
-      el.textContent = text || '';
+      el.textContent = payload;
     }
 
     // Try to replace an entire <p> that is a full custom markup match.
@@ -1317,8 +1350,8 @@
         out.setAttribute('data-cm', rule.name);
 
         const innerText = m[1] || '';
-        // Use mode-driven inner content materialization (text or markdown-inline).
-        this.setInnerByMode(out, rule.innerMode, innerText, MD);
+        // Use mode-driven inner content materialization (text or markdown-inline) with optional decoding.
+        this.setInnerByMode(out, rule.innerMode, innerText, MD, !!rule.decodeEntities);
 
         // Replace the original <p> with the desired container (<div>, <think>, <p>, etc.).
         try { el.replaceWith(out); } catch (_) {
@@ -1381,7 +1414,7 @@
             const out = document.createElement('p');
             if (fm.rule.className) out.className = fm.rule.className;
             out.setAttribute('data-cm', fm.rule.name);
-            this.setInnerByMode(out, fm.rule.innerMode, fm.inner, MD);
+            this.setInnerByMode(out, fm.rule.innerMode, fm.inner, MD, !!fm.rule.decodeEntities);
             try { parent.replaceWith(out); } catch (_) {
               const par = parent.parentNode; if (par) par.replaceChild(out, parent);
             }
@@ -1407,7 +1440,7 @@
           const el = document.createElement(tag);
           if (m.rule.className) el.className = m.rule.className;
           el.setAttribute('data-cm', m.rule.name);
-          this.setInnerByMode(el, m.rule.innerMode, m.inner, MD);
+          this.setInnerByMode(el, m.rule.innerMode, m.inner, MD, !!m.rule.decodeEntities);
 
           frag.appendChild(el);
           this._d('WALKER_INLINE_MATCH', { rule: m.rule.name, start: m.start, end: m.end });
