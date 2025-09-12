@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.6.43",
-    "app.version": "2.6.43",
+    "version": "2.6.44",
+    "app.version": "2.6.44",
     "updated_at": "2025-09-12T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -429,7 +429,8 @@
   "remote_tools.xai.sources.x": true,
   "remote_tools.xai.sources.news": false,
   "render.blocks": true,
-  "render.code_syntax": "github-dark",  
+  "render.code_syntax": "github-dark",    
+  "render.code_syntax.disabled": false,
   "render.code_syntax.final_max_chars": 350000,  
   "render.code_syntax.final_max_lines": 1500,
   "render.code_syntax.stream_max_lines": 1000,

@@ -69,6 +69,8 @@ class Patch:
                     data["render.code_syntax.stream_n_line"] = 25
                 if "render.code_syntax.stream_n_chars" not in data:
                     data["render.code_syntax.stream_n_chars"] = 5000
+                if "render.code_syntax.disabled" not in data:
+                    data["render.code_syntax.disabled"] = False
                 updated = True
 
         # update file

@@ -593,6 +593,15 @@
         "multiplier": 1,
         "step": 1,
         "advanced": false
+    },    
+    "theme.style": {
+        "section": "layout",
+        "type": "combo",
+        "use": "styles",
+        "label": "settings.theme.style",
+        "description": "settings.render.web.only.desc",
+        "value": "chatgpt",
+        "advanced": false
     },
     "zoom": {
         "section": "layout",
@@ -607,15 +616,6 @@
         "step": 1,
         "advanced": false
     },
-    "theme.style": {
-        "section": "layout",
-        "type": "combo",
-        "use": "styles",
-        "label": "settings.theme.style",
-        "description": "settings.render.web.only.desc",
-        "value": "chatgpt",
-        "advanced": false
-    },
     "render.code_syntax": {
         "section": "layout",
         "type": "combo",
@@ -623,6 +623,14 @@
         "label": "settings.render.code_syntax",
         "description": "settings.render.web.only.desc",
         "value": "github-dark",
+        "advanced": false,
+        "tab": "code_syntax"
+    },
+    "render.code_syntax.disabled": {
+        "section": "layout",
+        "type": "bool",
+        "label": "settings.render.code_syntax.disabled",
+        "value": false,
         "advanced": false,
         "tab": "code_syntax"
     },
@@ -743,19 +751,6 @@
         "step": 1,
         "advanced": false
     },
-    "layout.dpi.scaling": {
-        "section": "layout",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.layout.dpi.scaling",
-        "description": "settings.restart.required",
-        "value": true,
-        "min": 0,
-        "max": 0,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false
-    },
     "layout.dpi.factor": {
         "section": "layout",
         "type": "float",
@@ -769,6 +764,19 @@
         "step": 1,
         "advanced": false
     },
+    "layout.dpi.scaling": {
+        "section": "layout",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.layout.dpi.scaling",
+        "description": "settings.restart.required",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },    
     "layout.tooltips": {
         "section": "layout",
         "type": "bool",
