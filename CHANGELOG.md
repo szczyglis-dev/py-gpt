@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.43 (2025-09-12)
+
+- Fixed: preset restoration when switching profiles.
+- Improved: faster application launch and exit.
+
 ## 2.6.42 (2025-09-11)
 
 - Fixed: Save/load zoom factor in the chat window when switched via Ctrl + mouse wheel.

@@ -44,15 +44,23 @@ class Patch:
         # check if config file is older than current app version
         if old < version:
 
+            is_old = True
+
             # --------------------------------------------
             # previous patches for versions before 2.6.42
             if old < parse_version("2.6.42"):
                 patcher = PatchBefore2_6_42(self.window)
-                data, updated, is_old = patcher.execute(version)
+                data, updated, _ = patcher.execute(version)
             # --------------------------------------------
 
-            # > 2.6.42 below:
-            # pass
+            # < 2.6.43
+            if old < parse_version("2.6.43"):
+                print("Migrating config from < 2.6.43...")
+                # li div margin
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt_wide.css', True)
+                patch_css('web-blocks.css', True)
+                updated = True
 
         # update file
         migrated = False

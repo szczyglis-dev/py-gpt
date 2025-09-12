@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.42** | build: **2025-09-11** | Python: **>=3.10, <3.14**
+Release: **2.6.43** | build: **2025-09-12** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3451,6 +3451,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.6.43 (2025-09-12)**
+
+- Fixed: preset restoration when switching profiles.
+- Improved: faster application launch and exit.
+
 **2.6.42 (2025-09-11)**
 
 - Fixed: Save/load zoom factor in the chat window when switched via Ctrl + mouse wheel.
@@ -3461,132 +3466,6 @@ may consume additional tokens that are not displayed in the main window.
 **2.6.41 (2025-09-11)**
 
 - Rendering engine optimizations: markdown parsing moved to JS, reduced CPU usage, added auto-memory clearing, and more.
-
-**2.6.40 (2025-09-06)**
-
-- CSS fixes.
-
-**2.6.39 (2025-09-06)**
-
-- Added: Search input to the models editor.
-- Fixed: Brush color switching when changing modes in the Painter.
-
-**2.6.38 (2025-09-05)**
-
-- Fixed: Detection of chunk type in Ollama.
-- Fixed: Import of models with existing IDs.
-- Fixed: Updating the Assistants UI list after creating a new Assistant.
-- Refactored and optimized the code.
-
-**2.6.37 (2025-09-05)**
-
-- Fixed: Function parameters sanitization in the Google Gen AI SDK.
-- Added: Native support for Anthropic SDK and xAI SDK (with remote tools).
-
-**2.6.36 (2025-09-04)**
-
-- Optimized rendering of large code blocks.
-
-**2.6.35 (2025-09-04)**
-
-- Improved responsiveness in chat streaming.
-- Added zoom, fit, and auto-scroll on crop in Painter.
-- Added a scroll-up button in the chat window.
-- Optimized memory usage.
-
-**2.6.34 (2025-09-03)**
-
-- Added auto-resizing for input.
-- Added file management to the OpenAI Vector Stores tool.
-- Implemented removal of script tags when exporting HTML.
-- Enabled maintaining custom resolution in Painter.
-
-**2.6.33 (2025-09-02)**
-
-- Added a "crop" option, auto-resize canvas, and layer support to Painter.
-- Improved video capture from the camera.
-
-**2.6.32 (2025-09-02)**
-
-- Added video generation and support for Google Veo 3 models.
-- Introduced new predefined models: veo-3.0-generate-preview and veo-3.0-fast-generate-preview.
-- Integrated DuckDuckGo as a search provider in the WebSearch plugin.
-- Added "Loop" mode to Realtime + audio mode for automatic turn handling and continuous conversation without manually enabling the microphone.
-
-**2.6.31 (2025-09-01)**
-
-- Chat with Audio mode renamed to Realtime + audio.
-- Added support for real-time audio models from OpenAI (Realtime API) and Google (Live API), featuring real-time audio integration (beta).
-- Introduced new predefined models: gpt-realtime, gpt-4o-realtime-preview, and gemini-2.5-flash-preview-native-audio-dialog.
-- Included Google Gen AI audio input and output providers in the Audio Input/Output plugins.
-- Added URL Context remote tool support in Google Gen AI.
-
-**2.6.30 (2025-08-29)**
-
-- Added native Google GenAI API support (beta); live audio is not supported yet (#132).
-- Added new predefined models for image generation: Google Imagen3 and Imagen4.
-- Optimized token usage in the Responses API.
-- Removed Vision mode (it is now integrated into Chat).
-
-**2.6.29 (2025-08-28)**
-
-- Verbose options have been moved to the Developer section in settings.
-- Enhanced logging of embeddings usage.
-- Fixed styles list.
-
-**2.6.28 (2025-08-27)**
-
-- Added new plugins: Tuya (IoT) and Wikipedia.
-- Improved formatting of JSON command output.
-- Fixed CSS issues.
-
-**2.6.27 (2025-08-26)**
-
-- Simplified audio input: A microphone icon has been added to the input field.
-
-**2.6.26 (2025-08-26)**
-
-- Added new provider: OpenRouter (#133).
-
-**2.6.25 (2025-08-26)**
-
-- Fixed the empty agent ID issue in OpenAI Agents evaluation.
-- Added the ability to select a custom model for evaluation.
-- Added embedding providers: Anthropic, Deepseek, MistralAI, xAI, VoyageAI.
-
-**2.6.24 (2025-08-26)**
-
-- Added a new option: LlamaIndex -> Embeddings -> Default embedding providers for attachments.
-- The same model provider is now used for both embedding and RAG query in attachment indexing.
-- Translations have been added to Agents.
-- Fixed fetching Anthropic models list.
-- Added Google GenAI Embeddings.
-
-**2.6.23 (2025-08-25)**
-
-- Added an inline "Add a new chat" button to the right of the tabs.
-- Added an "Add Attachment" button in the input field.
-- Improved file open in the system's file manager
-- Fixed the restoration of input text color when changing themes from light to dark.
-- Fixed last eval step finish if 100% complete.
-- 
-**2.6.22 (2025-08-25)**
-
-- UI refactor and optimizations.
-
-**2.6.21 (2025-08-24)**
-
-- Ollama models are now available in OpenAI Agents mode.
-- Improved parsing of responses from Agents.
-- Fix: do not initialize index in Agents mode if not provided.
-- Fix: agent response evaluation steps limit.
-- Fix: do not execute code in agents if Tools are disabled.
-- Refactoring.
-
-**2.6.20 (2025-08-22)**
-
-- Added a new plugin: Server (FTP/SSH) - connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more (beta).
-- Added support for Wayland in Snap/compiled versions.
 
 # Credits and links
 
@@ -3654,4 +3533,6 @@ Awesome ChatGPT Prompts (used in templates): https://github.com/f/awesome-chatgp
 
 Code syntax highlight powered by: https://highlightjs.org
 
-LaTeX support by: https://katex.org and https://github.com/mitya57/python-markdown-math
+Markdown parsing powered by: https://github.com/markdown-it/markdown-it
+
+LaTeX support by: https://katex.org
