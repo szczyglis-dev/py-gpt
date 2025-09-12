@@ -626,6 +626,28 @@
         "advanced": false,
         "tab": "code_syntax"
     },
+    "render.code_syntax.stream_n_line": {
+        "section": "layout",
+        "type": "int",
+        "min": 0,
+        "slider": false,
+        "label": "settings.render.code_syntax.stream_n_line",
+        "description": "settings.render.code_syntax.stream_n_line.desc",
+        "value": 50,
+        "advanced": false,
+        "tab": "code_syntax"
+    },
+    "render.code_syntax.stream_n_chars": {
+        "section": "layout",
+        "type": "int",
+        "min": 0,
+        "slider": false,
+        "label": "settings.render.code_syntax.stream_n_chars",
+        "description": "settings.render.code_syntax.stream_n_chars.desc",
+        "value": 300,
+        "advanced": false,
+        "tab": "code_syntax"
+    },
     "render.code_syntax.stream_max_lines": {
         "section": "layout",
         "type": "int",

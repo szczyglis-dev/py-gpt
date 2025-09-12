@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.11 08:00:00                  #
+# Updated Date: 2025.09.12 23:00:00                  #
 # ================================================== #
 
 import os
@@ -447,6 +447,8 @@ class Body:
         syntax_style = cfg_get("render.code_syntax") or "default"
         style_js = (
             f'window.CODE_SYNTAX_STYLE={_json_dumps(syntax_style)};'
+            f'window.PROFILE_CODE_HL_N_LINE={int(cfg_get("render.code_syntax.stream_n_line", 25))};'
+            f'window.PROFILE_CODE_HL_N_CHARS={int(cfg_get("render.code_syntax.stream_n_chars", 5000))};'
             f'window.PROFILE_CODE_STOP_HL_AFTER_LINES={int(cfg_get("render.code_syntax.stream_max_lines", 300))};'
             f'window.PROFILE_CODE_FINAL_HL_MAX_LINES={int(cfg_get("render.code_syntax.final_max_lines", 1500))};'
             f'window.PROFILE_CODE_FINAL_HL_MAX_CHARS={int(cfg_get("render.code_syntax.final_max_chars", 350000))};'

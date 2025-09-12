@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.12 23:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -264,7 +264,7 @@ class CtxList:
         is_important = data.important
         is_attachment = data.has_additional_ctx()
         in_group = bool(data.group)
-        append_dt = False if (is_group and self._pinned_separators) or ((not is_group) and self._group_separators) else append_dt
+        append_dt = False if (is_group and self._group_separators) or ((not is_group) and self._group_separators) else append_dt
 
         dt = self.convert_date(data.updated)
         date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")

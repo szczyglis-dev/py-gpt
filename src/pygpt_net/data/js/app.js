@@ -553,8 +553,9 @@
         growth: 2.6,                // Ramp step quickly if adaptive is enabled
         minInterval: 500,           // Minimum time between snapshots (ms) to avoid churn
         softLatency: 1200,          // Force snapshot only after a noticeable idle (ms)
-        minLinesForHL: 50, minCharsForHL: 5000,
-        promoteMinInterval: 300, promoteMaxLatency: 800, promoteMinLines: 50,
+        minLinesForHL: Utils.g('PROFILE_CODE_HL_N_LINE', 25),
+        minCharsForHL: Utils.g('PROFILE_CODE_HL_N_CHARS', 5000),
+        promoteMinInterval: 300, promoteMaxLatency: 800, promoteMinLines: Utils.g('PROFILE_CODE_HL_N_LINE', 25),
         adaptiveStep: Utils.g('PROFILE_CODE_ADAPTIVE_STEP', true),
         // Hard switches to plain streaming (no incremental hljs, minimal DOM churn)
         stopAfterLines: Utils.g('PROFILE_CODE_STOP_HL_AFTER_LINES', 300),   // Stop incremental hljs after this many lines
