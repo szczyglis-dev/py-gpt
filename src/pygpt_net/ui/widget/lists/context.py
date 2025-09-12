@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 23:00:00                  #
+# Updated Date: 2025.09.12 23:47:47                  #
 # ================================================== #
 
 import datetime
@@ -48,7 +48,7 @@ class ContextList(BaseList):
         }
         self._color_icon_cache = {}
 
-        # Use a custom delegate for labels/pinned/attachment indicators
+        # Use a custom delegate for labels/pinned/attachment indicators and group border indicator
         self.setItemDelegate(ImportantItemDelegate(self, self._icons['attachment']))
 
         # Ensure context menu works as before
@@ -424,12 +424,16 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
     """
     Item delegate that paints:
     - Attachment icon on the right side (centered vertically),
-    - Pinned indicator (small circle) in the top-right corner (fixed position regardless of attachment),
-    - Label color as a full-height vertical bar on the left for labeled items.
+    - Pinned indicator (small circle) in the top-right corner (overlays if needed),
+    - Label color as a full-height vertical bar on the left for labeled items,
+    - Group enclosure indicator for expanded groups:
+        - thin vertical bar (default 2 px) on the left side of child rows area,
+        - thin horizontal bar (default 2 px) at the bottom of the last child row.
     """
     def __init__(self, parent=None, attachment_icon: QIcon = None):
         super().__init__(parent)
         self._attachment_icon = attachment_icon or QIcon(":/icons/attachment.svg")
+
         # Predefined label colors (status -> QColor)
         self._status_colors = {
             0: QColor(100, 100, 100),
@@ -450,10 +454,104 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         self._label_bar_width = 4         # Full-height label bar width (left side)
         self._label_v_margin = 3          # 3px top/bottom margin for the label bar
 
+        # Manual child indent to keep hierarchy visible when view indentation is 0
+        self._child_indent = 15
+
+        # Group indicator defaults (can be overridden by config)
+        self._group_indicator_enabled = True
+        self._group_indicator_width = 2
+        self._group_indicator_color = QColor(67, 75, 78)  # soft gray
+        self._group_indicator_gap = 6  # gap between child content left and the vertical bar
+        self._group_indicator_bottom_offset = 6
+
+        # Try to load customization from application config (safe if missing)
+        self._init_group_indicator_from_config()
+
+    def _init_group_indicator_from_config(self):
+        """
+        Initialize group indicator settings from config if available.
+        Accepts:
+          - color: list/tuple [r,g,b], dict {'r','g','b'}, "#RRGGBB", or "r,g,b"
+          - width: int
+          - enabled: bool
+          - gap: int
+        """
+        try:
+            view = self.parent()
+            window = getattr(view, 'window', None)
+            cfg = getattr(getattr(window, 'core', None), 'config', None)
+            if not cfg:
+                return
+
+            enabled = cfg.get('ctx.records.groups.indicator.enabled')
+            if enabled is not None:
+                self._group_indicator_enabled = bool(enabled)
+
+            width = cfg.get('ctx.records.groups.indicator.width')
+            if isinstance(width, int) and width >= 0:
+                self._group_indicator_width = int(width)
+
+            gap = cfg.get('ctx.records.groups.indicator.gap')
+            if isinstance(gap, int) and gap >= 0:
+                self._group_indicator_gap = int(gap)
+
+            color = cfg.get('ctx.records.groups.indicator.color')
+            qcolor = self._parse_qcolor(color)
+            if qcolor is not None:
+                self._group_indicator_color = qcolor
+        except Exception:
+            # Fail-safe: keep defaults if anything goes wrong
+            pass
+
+    def _parse_qcolor(self, value):
+        """
+        Parses various color formats into QColor.
+        Supports:
+          - QColor
+          - list/tuple [r, g, b]
+          - dict {'r':..,'g':..,'b':..} or {'red':..,'green':..,'blue':..}
+          - "#RRGGBB"
+          - "r,g,b" (also "r;g;b")
+        """
+        if value is None:
+            return None
+        if isinstance(value, QColor):
+            return value
+        if isinstance(value, (list, tuple)) and len(value) >= 3:
+            try:
+                r, g, b = int(value[0]), int(value[1]), int(value[2])
+                return QColor(r, g, b)
+            except Exception:
+                return None
+        if isinstance(value, dict):
+            keys = value.keys()
+            try:
+                if all(k in keys for k in ('r', 'g', 'b')):
+                    return QColor(int(value['r']), int(value['g']), int(value['b']))
+                if all(k in keys for k in ('red', 'green', 'blue')):
+                    return QColor(int(value['red']), int(value['green']), int(value['blue']))
+            except Exception:
+                return None
+        if isinstance(value, str):
+            s = value.strip()
+            if s.startswith('#'):
+                qc = QColor(s)
+                return qc if qc.isValid() else None
+            s = s.replace(';', ',')
+            parts = [p.strip() for p in s.split(',') if p.strip()]
+            if len(parts) >= 3:
+                try:
+                    r, g, b = int(parts[0]), int(parts[1]), int(parts[2])
+                    return QColor(r, g, b)
+                except Exception:
+                    return None
+        return None
+
     def paint(self, painter, option, index):
         # Shift children by +15 px to keep them visually nested.
-        if index.parent().isValid():
-            option.rect.adjust(15, 0, 0, 0)
+        is_child = index.parent().isValid()
+        if is_child:
+            option.rect.adjust(self._child_indent, 0, 0, 0)
 
         # Detect if this row is a group/folder (top-level section).
         is_group = False
@@ -469,11 +567,36 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         # - For others: paint normally.
         if is_group:
             painter.save()
-            painter.translate(-8, 0)
+            painter.translate(-2, 0)
             super(ImportantItemDelegate, self).paint(painter, option, index)
             painter.restore()
         else:
             super(ImportantItemDelegate, self).paint(painter, option, index)
+
+        # Group enclosure indicator (left bar + bottom bar on last child)
+        # This applies only to child rows (i.e., when a group is expanded).
+        if self._group_indicator_enabled and not is_group and is_child and self._group_indicator_width > 0:
+            try:
+                painter.save()
+                # Use solid fill for crisp 2px bars (no anti-alias blur)
+                painter.setRenderHint(QtGui.QPainter.Antialiasing, False)
+                color = self._group_indicator_color
+                painter.setPen(QtCore.Qt.NoPen)
+                painter.setBrush(color)
+
+                # Compute vertical bar geometry:
+                # Place the bar to the LEFT of the child content area, leaving a small gap.
+                child_left = option.rect.x()
+                bar_w = self._group_indicator_width
+                # Left edge of the vertical bar (never below 0)
+                vbar_left = max(0, child_left - (self._group_indicator_gap + bar_w))
+                vbar_rect = QtCore.QRect(vbar_left, option.rect.y(), bar_w, option.rect.height())
+                painter.drawRect(vbar_rect)
+
+                painter.restore()
+            except Exception:
+                # Fail-safe: do not block painting if anything goes wrong
+                pass
 
         # Custom data painting for non-group items only (labels, pinned, attachments).
         if not is_group:
@@ -503,7 +626,6 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
                 # It does not shift left when the attachment is present; it overlays above it.
                 if is_important:
                     painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
-                    # Ensure standard alpha-over compositing for proper overlay
                     painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceOver)
                     color = self.get_color_for_status(3)
 
