@@ -1120,6 +1120,8 @@ This file is located in your working directory. You can add new models provided 
 
 You can import new models by manually editing `models.json` or by using the model importer in the `Config -> Models -> Import` menu.
 
+**Tip:** The models on the list are sorted by provider, not by manufacturer. A model from a particular manufacturer may be available through different providers (e.g., OpenAI models can be provided by the `OpenAI API` or by `OpenRouter`). If you want to use a specific model through a particular provider, you need to configure the provider in `Config -> Models -> Edit`, or import it directly via `Config -> Models -> Import`.
+
 **Tip**: Anthropic and Deepseek API providers use VoyageAI for embeddings (Chat with Files and attachments RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
 
 ## Adding a custom model
@@ -1129,7 +1131,7 @@ You can add your own models. See the section `Extending PyGPT / Adding a new mod
 There is built-in support for those LLM providers:
 
 - `Anthropic`
-- `Azure OpenAI`
+- `Azure OpenAI` (native SDK)
 - `Deepseek API`
 - `Google` (native SDK)
 - `HuggingFace API`
@@ -1140,7 +1142,7 @@ There is built-in support for those LLM providers:
 - `OpenAI` (native SDK)
 - `OpenRouter`
 - `Perplexity`
-- `xAI`
+- `xAI` (native SDK)
 
 ## How to use local or non-GPT models
 
@@ -2203,11 +2205,9 @@ Config -> Settings...
 
 **Layout**
 
-- `Zoom`: Adjusts the zoom in chat window (web render view). `WebEngine / Chromium` render mode only.
-
 - `Style (chat)`: Chat style (Blocks, or ChatGPT-like, or ChatGPT-like Wide. `WebEngine / Chromium` render mode only.
 
-- `Code syntax highlight`: Syntax highlight theme in code blocks. `WebEngine / Chromium` render mode only.
+- `Zoom`: Adjusts the zoom in chat window (web render view). `WebEngine / Chromium` render mode only.
 
 - `Font Size (chat window)`: Adjusts the font size in the chat window (plain-text) and notepads.
 
@@ -2223,11 +2223,29 @@ Config -> Settings...
 
 - `DPI factor`: DPI factor. Restart of the application is required for this option to take effect. Default: 1.0. 
 
+- `Auto-collapse user message (px)` - Auto-collapse user message after N pixels of height, set to 0 to disable auto-collapse.
+
 - `Display tips (help descriptions)`: Display help tips, Default: True.
 
 - `Store dialog window positions`: Enable or disable dialogs positions store/restore, Default: True.
 
 - `Use theme colors in chat window`: Use color theme in chat window, Default: True.
+
+**Code syntax**
+
+- `Code syntax highlight`: Syntax highlight theme in code blocks. `WebEngine / Chromium` render mode only.
+
+- `Disable syntax highlight`: Option to disable syntax highlighting in code blocks. `WebEngine / Chromium` render mode only.
+
+- `Max chars to highlight (static)`: Sets the maximum number of characters to be highlighted in static content. Set to 0 to disable. `WebEngine / Chromium` render mode only.
+
+- `Max lines to highlight (static)`: Sets the maximum number of lines to be highlighted in static content. Set to 0 to disable. `WebEngine / Chromium` render mode only.
+
+- `Max lines to highlight (real-time)`: Sets the maximum number of lines to be highlighted in real-time stream mode. Set to 0 to disable. `WebEngine / Chromium` render mode only.
+
+- `Highlight every N chars (real-time)`: Sets the interval for highlighting every N characters in real-time stream mode. `WebEngine / Chromium` render mode only.
+
+- `Highlight every N line (real-time)`: Sets the interval for highlighting every N lines in real-time stream mode. `WebEngine / Chromium` render mode only.
 
 **Files and attachments**
 
@@ -2283,7 +2301,14 @@ Config -> Settings...
 
 **Remote tools**
 
-Enable/disable remote tools, like Web Search or Image generation to use in OpenAI Responses API (OpenAI models and Chat mode only).
+Enable/disable remote tools, like Web Search, MCP or Image generation.
+
+Remote tools are available for these providers, and only via their native SDKs:
+
+- Anthropic
+- Google
+- OpenAI
+- xAI
 
 **Models**
 
@@ -2331,7 +2356,9 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Image generate`: Prompt for generating prompts for image generation (if raw-mode is disabled).
 
-**Images**
+**Images and video**
+
+**Image**
 
 - `Image size`: The resolution of the generated images (DALL-E). Default: 1024x1024.
 
@@ -2339,15 +2366,33 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Prompt generation model`: Model used for generating prompts for image generation (if raw-mode is disabled).
 
-**Vision**
+**Video**
 
-- `Vision: Camera Input Device`: Video capture camera index (index of the camera, default: 0).
+- `Aspect ratio`: Specifies the frame aspect ratio (e.g., 16:9, 9:16, 1:1). Availability depends on the selected model.
 
-- `Vision: Camera capture width (px)`: Video capture resolution (width).
+- `Video duration`: Sets the clip length in seconds; limits may vary by model.
 
-- `Vision: Camera capture height (px)`: Video capture resolution (height).
+- `FPS`: Determines the frames per second (e.g., 24, 25, 30). Values may be rounded or ignored by the model.
 
-- `Vision: Image capture quality`: Video capture image JPEG quality (%).
+- `Generate audio`: Option to include synthesized background audio if supported by the model.
+
+- `Negative prompt`: Specifies words or phrases to avoid in the output (comma-separated).
+
+- `Prompt enhancement model`: Defines the LLM used to refine your prompt before video generation. This is not the video model.
+
+- `Video resolution`: Sets the target output resolution (e.g., 720p, 1080p). Availability depends on the model.
+
+- `Seed`: Provides an optional random seed for reproducible results; leave empty for random.
+
+**Vision and camera**
+
+- `Camera Input Device`: Video capture camera index (index of the camera, default: 0).
+
+- `Camera capture width (px)`: Video capture resolution (width).
+
+- `Camera capture height (px)`: Video capture resolution (height).
+
+- `Image capture quality`: Video capture image JPEG quality (%).
 
 **Audio**
 

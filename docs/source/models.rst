@@ -90,6 +90,9 @@ This file is located in your working directory. You can add new models provided 
 You can import new models by manually editing ``models.json`` or by using the model importer in the ``Config -> Models -> Import`` menu.
 
 .. tip::
+    The models on the list are sorted by provider, not by manufacturer. A model from a particular manufacturer may be available through different providers (e.g., OpenAI models can be provided by the ``OpenAI API`` or by ``OpenRouter``). If you want to use a specific model through a particular provider, you need to configure the provider in ``Config -> Models -> Edit``, or import it directly via ``Config -> Models -> Import``.
+
+.. tip::
     Anthropic and Deepseek API providers use VoyageAI for embeddings (Chat with Files and attachments RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
 
 Adding a custom model
@@ -100,7 +103,7 @@ You can add your own models. See the section ``Extending PyGPT / Adding a new mo
 There is built-in support for those LLM providers:
 
 * ``Anthropic``
-* ``Azure OpenAI``
+* ``Azure OpenAI`` (native SDK)
 * ``Deepseek API``
 * ``Google`` (native SDK)
 * ``HuggingFace API``
@@ -111,7 +114,7 @@ There is built-in support for those LLM providers:
 * ``OpenAI`` (native SDK)
 * ``OpenRouter``
 * ``Perplexity``
-* ``xAI``
+* ``xAI`` (native SDK)
 
 How to use local or non-GPT models
 ----------------------------------
