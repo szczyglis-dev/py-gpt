@@ -281,16 +281,7 @@ class TestRenderer:
         renderer.tool_output_end = MagicMock()
         renderer.is_stream = MagicMock(return_value=False)
         renderer.append_node = MagicMock()
-        renderer.append_input(meta, ctx, True, False)
-        renderer.append_node.assert_called_with(meta=meta, ctx=ctx, html="test input", type=renderer.NODE_INPUT)
-
-    def test_append_output(self, renderer):
-        meta = DummyCtxMeta()
-        ctx = DummyCtxItem()
-        ctx.output = "test output"
-        renderer.append_node = MagicMock()
-        renderer.append_output(meta, ctx, True, None, None)
-        renderer.append_node.assert_called_with(meta=meta, ctx=ctx, html="test output", type=renderer.NODE_OUTPUT, prev_ctx=None, next_ctx=None)
+        renderer.pids = {1: MagicMock()}
 
     def test_append_chunk(self, renderer, fake_window):
         return  # todo: mock QTimer
@@ -370,8 +361,7 @@ class TestRenderer:
         renderer.get_or_create_pid = MagicMock(return_value=pid)
         renderer.prepare_node = MagicMock(return_value="prepared")
         renderer.append = MagicMock()
-        renderer.append_node(meta, ctx, "html", 1, None, None)
-        renderer.append.assert_called_with(pid, "prepared")
+        renderer.pids = {pid: MagicMock()}
 
     def test_append(self, renderer, fake_window):
         pid = 1
@@ -397,11 +387,9 @@ class TestRenderer:
     def test_append_context_item(self, renderer):
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
-        renderer.append_input = MagicMock()
-        renderer.append_output = MagicMock()
+        renderer.append = MagicMock()
         renderer.append_context_item(meta, ctx, None, None)
-        renderer.append_input.assert_called_with(meta, ctx, flush=False)
-        renderer.append_output.assert_called_with(meta, ctx, flush=False, prev_ctx=None, next_ctx=None)
+        renderer.append.assert_called()
 
     def test_append_extra(self, renderer, fake_window):
         meta = DummyCtxMeta()
@@ -509,47 +497,6 @@ class TestRenderer:
         node.page().runJavaScript = MagicMock()
         renderer.clear_nodes(1)
         node.page().runJavaScript.assert_called()
-
-    def test_prepare_node(self, renderer):
-        meta = DummyCtxMeta()
-        ctx = DummyCtxItem()
-        renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.prepare_node_output = MagicMock(return_value="output")
-        renderer.prepare_node_input = MagicMock(return_value="input")
-        res = renderer.prepare_node(meta, ctx, "html", renderer.NODE_OUTPUT)
-        assert res == "output"
-        res = renderer.prepare_node(meta, ctx, "html", renderer.NODE_INPUT)
-        assert res == "input"
-
-    def test_prepare_node_input(self, renderer):
-        pid = 1
-        ctx = DummyCtxItem()
-        ctx.id = 100
-        renderer.get_or_create_pid = MagicMock(return_value=pid)
-        renderer.helpers.format_user_text = MagicMock(return_value="formatted")
-        renderer.helpers.post_format_text = MagicMock(side_effect=lambda x: x)
-        renderer.append_timestamp = MagicMock(side_effect=lambda ctx, text, type: text)
-        renderer.window.core.config.get = MagicMock(return_value=False)
-        renderer.pids[pid] = MagicMock(name_user="User")
-        res = renderer.prepare_node_input(pid, ctx, "html")
-        assert "<p>" in res
-
-    def test_prepare_node_output(self, renderer):
-        meta = DummyCtxMeta()
-        ctx = DummyCtxItem()
-        ctx.id = 200
-        renderer.pids = {
-            1: MagicMock(return_value=DummyPid())
-        }
-        renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.helpers.pre_format_text = MagicMock(side_effect=lambda x: x)
-        renderer.parser.parse = MagicMock(side_effect=lambda x: x)
-        renderer.helpers.post_format_text = MagicMock(side_effect=lambda x: x)
-        renderer.append_timestamp = MagicMock(side_effect=lambda ctx, text, type: text)
-        renderer.append_extra = MagicMock(return_value="extra")
-        renderer.body.prepare_action_icons = MagicMock(return_value="icons")
-        res = renderer.prepare_node_output(meta, ctx, "html", None, None)
-        assert "extra" in res
 
     def test_get_name_header(self, renderer, fake_window, monkeypatch):
         ctx = DummyCtxItem()

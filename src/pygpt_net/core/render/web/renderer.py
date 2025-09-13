@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.11 08:00:00                  #
+# Updated Date: 2025.09.13 06:10:00                  #
 # ================================================== #
 
 import gc
@@ -17,7 +17,7 @@ import html as _html
 from dataclasses import dataclass, field
 
 from datetime import datetime
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict, Tuple
 from time import monotonic
 from io import StringIO
 
@@ -39,6 +39,55 @@ from .parser import Parser
 from .pid import PidData
 
 from pygpt_net.core.events import RenderEvent
+
+
+@dataclass(slots=True)
+class RenderBlock:
+    """
+    JSON payload for node rendering in JS templates.
+
+    Keep only raw data here. HTML is avoided except where there is
+    no easy way to keep raw (e.g. plugin-provided tool extras), which are
+    carried under extra.tool_extra_html.
+    """
+    id: int
+    meta_id: Optional[int] = None
+    input: Optional[dict] = None
+    output: Optional[dict] = None
+    files: dict = field(default_factory=dict)
+    images: dict = field(default_factory=dict)
+    urls: dict = field(default_factory=dict)
+    tools: dict = field(default_factory=dict)
+    tools_outputs: dict = field(default_factory=dict)
+    extra: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "meta_id": self.meta_id,
+            "input": self.input,
+            "output": self.output,
+            "files": self.files,
+            "images": self.images,
+            "urls": self.urls,
+            "tools": self.tools,
+            "tools_outputs": self.tools_outputs,
+            "extra": self.extra,
+        }
+
+    def to_json(self, wrap: bool = True) -> str:
+        """
+        Convert node to JSON string.
+
+        :param wrap: wrap into {"node": {...}} (single appendNode case)
+        """
+        data = self.to_dict()
+        if wrap:
+            return json.dumps({"node": data}, ensure_ascii=False, separators=(',', ':'))
+        return json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+
+    def debug(self) -> str:
+        return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
 
 
 class Renderer(BaseRenderer):
@@ -71,7 +120,6 @@ class Renderer(BaseRenderer):
                 return ""
             data = self._buf.getvalue()
             old = self._buf
-            # Replace the internal buffer instance to drop capacity immediately
             self._buf = StringIO()
             self._size = 0
             try:
@@ -124,13 +172,10 @@ class Renderer(BaseRenderer):
         # ------------------------------------------------------------------
         # Python-side micro-batching for streaming
         # ------------------------------------------------------------------
-        #   render.stream.interval_ms      (int, default 100)
-        #   render.stream.max_bytes        (int, default 8192)
-        #   render.stream.emergency_bytes  (int, default 524288)
 
-        self._stream_interval_ms: int = _cfg('render.stream.interval_ms', 30)  # ~100ms pacing
-        self._stream_max_bytes: int = _cfg('render.stream.max_bytes', 8 * 1024) # idle flush threshold
-        self._stream_emergency_bytes: int = _cfg('render.stream.emergency_bytes', 512 * 1024)  # backstop
+        self._stream_interval_ms: int = _cfg('render.stream.interval_ms', 30)
+        self._stream_max_bytes: int = _cfg('render.stream.max_bytes', 8 * 1024)
+        self._stream_emergency_bytes: int = _cfg('render.stream.emergency_bytes', 512 * 1024)
 
         # Per-PID streaming state
         self._stream_acc: dict[int, Renderer._AppendBuffer] = {}
@@ -280,7 +325,7 @@ class Renderer(BaseRenderer):
         """
         On kernel state changed event
 
-        :param state: state name
+        :param state: new state
         :param meta: context meta
         """
         if state == RenderEvent.STATE_BUSY:
@@ -292,7 +337,7 @@ class Renderer(BaseRenderer):
                         node.page().runJavaScript(
                             "if (typeof window.showLoading !== 'undefined') showLoading();"
                         )
-                    except Exception as e:
+                    except Exception:
                         pass
 
         elif state == RenderEvent.STATE_IDLE:
@@ -303,7 +348,7 @@ class Renderer(BaseRenderer):
                         node.page().runJavaScript(
                             "if (typeof window.hideLoading !== 'undefined') hideLoading();"
                         )
-                    except Exception as e:
+                    except Exception:
                         pass
 
         elif state == RenderEvent.STATE_ERROR:
@@ -314,21 +359,16 @@ class Renderer(BaseRenderer):
                         node.page().runJavaScript(
                             "if (typeof window.hideLoading !== 'undefined') hideLoading();"
                         )
-                    except Exception as e:
+                    except Exception:
                         pass
 
-    def begin(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            stream: bool = False
-    ):
+    def begin(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render begin
 
         :param meta: context meta
         :param ctx: context item
-        :param stream: True if it is a stream
+        :param stream: True if streaming mode
         """
         pid = self.get_or_create_pid(meta)
         self.init(pid)
@@ -336,18 +376,13 @@ class Renderer(BaseRenderer):
         self.tool_output_end()
         self.prev_chunk_replace = False
 
-    def end(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            stream: bool = False
-    ):
+    def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render end
 
         :param meta: context meta
         :param ctx: context item
-        :param stream: True if it is a stream
+        :param stream: True if streaming mode
         """
         pid = self.get_or_create_pid(meta)
         if pid is None:
@@ -358,30 +393,19 @@ class Renderer(BaseRenderer):
         else:
             self.reload()
         self.pids[pid].clear()
-
-        # memory cleanup if needed
         self.auto_cleanup(meta)
 
-    def end_extra(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            stream: bool = False
-    ):
+    def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render end extra
 
         :param meta: context meta
         :param ctx: context item
-        :param stream: True if it is a stream
+        :param stream: True if streaming mode
         """
         self.to_end(ctx)
 
-    def stream_begin(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem
-    ):
+    def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
         """
         Render stream begin
 
@@ -401,18 +425,13 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-        # cache name header once per stream (used by JS to show avatar/name)
         try:
             self.pids[pid].header = self.get_name_header(ctx, stream=True)
         except Exception:
             self.pids[pid].header = ""
         self.update_names(meta, ctx)
 
-    def stream_end(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem
-    ):
+    def stream_end(self, meta: CtxMeta, ctx: CtxItem):
         """
         Render stream end
 
@@ -424,7 +443,6 @@ class Renderer(BaseRenderer):
         if pid is None:
             return
 
-        # Flush any pending micro-batch before we close the stream
         self._stream_flush(pid, force=True)
         if self.window.controller.agent.legacy.enabled():
             if self.pids[pid].item is not None:
@@ -435,24 +453,21 @@ class Renderer(BaseRenderer):
             self.get_output_node(meta).page().runJavaScript("if (typeof window.endStream !== 'undefined') endStream();")
         except Exception:
             pass
-        self._stream_reset(pid)  # clean after end
-
-        # memory cleanup if needed
+        self._stream_reset(pid)
         self.auto_cleanup(meta)
 
     def auto_cleanup(self, meta: CtxMeta):
         """
         Automatic cleanup after context is done
 
-        :param meta: context meta
+        If memory limit is set, perform fresh() cleanup when exceeded.
         """
-        # if memory limit reached - destroy old page view
         try:
             limit_bytes = parse_bytes(self.window.core.config.get('render.memory.limit', 0))
         except Exception as e:
             self.window.core.debug.log("[Renderer] auto-cleanup:", e)
             limit_bytes = 0
-        #if limit_bytes <= 0 or limit_bytes < self._min_memory_cleanup_bytes:
+
         if limit_bytes <= 0:
             self.auto_cleanup_soft(meta)
             return
@@ -474,47 +489,36 @@ class Renderer(BaseRenderer):
 
     def auto_cleanup_soft(self, meta: CtxMeta = None):
         """
-        Automatic soft cleanup (try to trim memory)
+        Try to trim memory on Linux
 
-        :param meta: context meta
+        Soft cleanup, called after each context is done.
         """
         try:
             malloc_trim_linux()
         except Exception:
             pass
 
-    def append_context(
-            self,
-            meta: CtxMeta,
-            items: List[CtxItem],
-            clear: bool = True
-    ):
+    def append_context(self, meta: CtxMeta, items: List[CtxItem], clear: bool = True):
         """
         Append all context items to output
 
-        :param meta: Context meta
-        :param items: context items
-        :param clear: True if clear all output before append
+        :param meta: context meta
+        :param items: list of context items
+        :param clear: clear previous content
         """
         self.tool_output_end()
-        self.append_context_all(
-            meta,
-            items,
-            clear=clear,
-        )
+        self.append_context_all(meta, items, clear=clear)
 
-    def append_context_partial(
-            self,
-            meta: CtxMeta,
-            items: List[CtxItem],
-            clear: bool = True
-    ):
+    def append_context_partial(self, meta: CtxMeta, items: List[CtxItem], clear: bool = True):
         """
-        Append all context items to output (part by part)
+        Append context items part-by-part
 
-        :param meta: Context meta
-        :param items: context items
-        :param clear: True if clear all output before append
+        Append each item as it comes, useful for non-streaming mode when
+        context is built gradually.
+
+        :param meta: context meta
+        :param items: list of context items
+        :param clear: clear previous content
         """
         if len(items) == 0:
             if meta is None:
@@ -522,7 +526,6 @@ class Renderer(BaseRenderer):
 
         pid = self.get_or_create_pid(meta)
         self.init(pid)
-
         if clear:
             self.reset(meta)
 
@@ -537,36 +540,32 @@ class Renderer(BaseRenderer):
             if i == 0:
                 item.first = True
             next_item = items[i + 1] if i + 1 < total else None
-            self.append_context_item(
-                meta,
-                item,
-                prev_ctx=prev_ctx,
-                next_ctx=next_item,
-            )
+
+            # ignore hidden
+            if item.hidden:
+                prev_ctx = item
+                continue
+
+            # build single RenderBlock with both input and output (if present)
+            input_text = self.prepare_input(meta, item, flush=False, append=False)
+            output_text = self.prepare_output(meta, item, flush=False, prev_ctx=prev_ctx, next_ctx=next_item)
+            block = self._build_render_block(meta, item, input_text, output_text, prev_ctx=prev_ctx, next_ctx=next_item)
+            if block:
+                self.append(pid, block.to_json(wrap=True))
+
             prev_ctx = item
 
-        prev_ctx = None
-        next_item = None
         self.pids[pid].use_buffer = False
         if self.pids[pid].html != "":
-            self.append(
-                pid,
-                self.pids[pid].html,
-                flush=True,
-            )
+            self.append(pid, self.pids[pid].html, flush=True)
 
-    def append_context_all(
-            self,
-            meta: CtxMeta,
-            items: List[CtxItem],
-            clear: bool = True
-    ):
+    def append_context_all(self, meta: CtxMeta, items: List[CtxItem], clear: bool = True):
         """
-        Append all context items to output (whole context at once)
+        Append whole context at once, using JSON nodes
 
-        :param meta: Context meta
-        :param items: context items
-        :param clear: True if clear all output before append
+        :param meta: context meta
+        :param items: list of context items
+        :param clear: clear previous content
         """
         if len(items) == 0:
             if meta is None:
@@ -576,14 +575,16 @@ class Renderer(BaseRenderer):
         self.init(pid)
 
         if clear:
-            self.reset(meta, clear_nodes=False)  # nodes will be cleared later, in flush_output()
+            # nodes will be cleared on JS when replace flag is True
+            self.reset(meta, clear_nodes=False)
 
         self.pids[pid].use_buffer = True
         self.pids[pid].html = ""
         prev_ctx = None
         next_ctx = None
         total = len(items)
-        html_parts = []
+        nodes: List[dict] = []
+
         for i, item in enumerate(items):
             self.update_names(meta, item)
             item.idx = i
@@ -591,82 +592,37 @@ class Renderer(BaseRenderer):
                 item.first = True
             next_ctx = items[i + 1] if i + 1 < total else None
 
-            # ignore hidden items
             if item.hidden:
                 prev_ctx = item
                 continue
 
-            # input node
-            data = self.prepare_input(meta, item, flush=False)
-            if data:
-                html = self.prepare_node(
-                    meta=meta,
-                    ctx=item,
-                    html=data,
-                    type=self.NODE_INPUT,
-                    prev_ctx=prev_ctx,
-                    next_ctx=next_ctx,
-                )
-                if html:
-                    html_parts.append(html)
-
-            # output node
-            data = self.prepare_output(
-                meta,
-                item,
-                flush=False,
-                prev_ctx=prev_ctx,
-                next_ctx=next_ctx,
-            )
-            if data:
-                html = self.prepare_node(
-                    meta=meta,
-                    ctx=item,
-                    html=data,
-                    type=self.NODE_OUTPUT,
-                    prev_ctx=prev_ctx,
-                    next_ctx=next_ctx,
-                )
-                if html:
-                    html_parts.append(html)
+            input_text = self.prepare_input(meta, item, flush=False, append=False)
+            output_text = self.prepare_output(meta, item, flush=False, prev_ctx=prev_ctx, next_ctx=next_ctx)
+            block = self._build_render_block(meta, item, input_text, output_text, prev_ctx=prev_ctx, next_ctx=next_ctx)
+            if block:
+                nodes.append(block.to_dict())
 
             prev_ctx = item
 
-        # flush all nodes at once
-        if html_parts:
-            self.append(
-                pid,
-                "".join(html_parts),
-                replace=True,
-            )
+        if nodes:
+            payload = json.dumps({"nodes": nodes}, ensure_ascii=False, separators=(',', ':'))
+            self.append(pid, payload, replace=True)
 
-        html_parts.clear()
-        html_parts = None
         prev_ctx = None
         next_ctx = None
         self.pids[pid].use_buffer = False
         if self.pids[pid].html != "":
-            self.append(
-                pid,
-                self.pids[pid].html,
-                flush=True,
-                replace=True,
-            )
+            self.append(pid, self.pids[pid].html, flush=True, replace=True)
 
-    def prepare_input(
-            self, meta: CtxMeta,
-            ctx: CtxItem,
-            flush: bool = True,
-            append: bool = False
-    ) -> Optional[str]:
+    def prepare_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False) -> Optional[str]:
         """
-        Prepare text input
+        Prepare text input (raw, no HTML)
 
         :param meta: context meta
         :param ctx: context item
-        :param flush: flush HTML
-        :param append: True if force append node
-        :return: Prepared input text or None if internal or empty input
+        :param flush: True if flush input area (legacy)
+        :param append: True if append to input area (legacy)
+        :return: prepared text or None
         """
         if ctx.input is None or ctx.input == "":
             return
@@ -691,21 +647,16 @@ class Renderer(BaseRenderer):
             if ctx.internal and ctx.input.startswith("user: "):
                 text = re.sub(r'^user: ', '> ', ctx.input)
 
-        return text.strip()
+        return str(text).strip()
 
-    def append_input(
-            self, meta: CtxMeta,
-            ctx: CtxItem,
-            flush: bool = True,
-            append: bool = False
-    ):
+    def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
         """
-        Append text input to output
+        Append user input as RenderBlock JSON
 
         :param meta: context meta
         :param ctx: context item
-        :param flush: flush HTML
-        :param append: True if force append node
+        :param flush: True if flush input area (legacy)
+        :param append: True if append to input area (legacy)
         """
         self.tool_output_end()
         pid = self.get_or_create_pid(meta)
@@ -717,35 +668,25 @@ class Renderer(BaseRenderer):
         if text:
             if flush:
                 if self.is_stream() and not append:
+                    # legacy streaming input (leave as-is)
                     content = self.prepare_node(meta, ctx, text, self.NODE_INPUT)
                     self.append_chunk_input(meta, ctx, content, begin=False)
-                    text = None
                     return
-            self.append_node(
-                meta=meta,
-                ctx=ctx,
-                html=text,
-                type=self.NODE_INPUT,
-            )
-        text = None  # free reference
+            block = self._build_render_block(meta, ctx, input_text=text, output_text=None)
+            if block:
+                self.append(pid, block.to_json(wrap=True))
 
-    def prepare_output(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            flush: bool = True,
-            prev_ctx: Optional[CtxItem] = None,
-            next_ctx: Optional[CtxItem] = None
-    ) -> Optional[str]:
+    def prepare_output(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True,
+                       prev_ctx: Optional[CtxItem] = None, next_ctx: Optional[CtxItem] = None) -> Optional[str]:
         """
-        Prepare text output
+        Prepare text output (raw markdown text)
 
         :param meta: context meta
         :param ctx: context item
-        :param flush: flush HTML
-        :param prev_ctx: previous context
-        :param next_ctx: next context
-        :return: Prepared output text or None if empty output
+        :param flush: True if flush output area (legacy)
+        :param prev_ctx: previous context item
+        :param next_ctx: next context item
+        :return: prepared text or None
         """
         output = ctx.output
         if isinstance(ctx.extra, dict) and ctx.extra.get("output"):
@@ -756,60 +697,36 @@ class Renderer(BaseRenderer):
         else:
             if not output:
                 return
-        return output.strip()
+        return str(output).strip()
 
-    def append_output(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            flush: bool = True,
-            prev_ctx: Optional[CtxItem] = None,
-            next_ctx: Optional[CtxItem] = None
-    ):
+    def append_output(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True,
+                      prev_ctx: Optional[CtxItem] = None, next_ctx: Optional[CtxItem] = None):
         """
-        Append text output to output
+        Append bot output as RenderBlock JSON
 
         :param meta: context meta
         :param ctx: context item
-        :param flush: flush HTML
-        :param prev_ctx: previous context
-        :param next_ctx: next context
+        :param flush: True if flush output area (legacy)
+        :param prev_ctx: previous context item
+        :param next_ctx: next context item
         """
         self.tool_output_end()
-        output = self.prepare_output(
-            meta=meta,
-            ctx=ctx,
-            flush=flush,
-            prev_ctx=prev_ctx,
-            next_ctx=next_ctx,
-        )
+        output = self.prepare_output(meta=meta, ctx=ctx, flush=flush, prev_ctx=prev_ctx, next_ctx=next_ctx)
         if output:
-            self.append_node(
-                meta=meta,
-                ctx=ctx,
-                html=output,
-                type=self.NODE_OUTPUT,
-                prev_ctx=prev_ctx,
-                next_ctx=next_ctx,
-            )
+            block = self._build_render_block(meta, ctx, input_text=None, output_text=output,
+                                             prev_ctx=prev_ctx, next_ctx=next_ctx)
+            if block:
+                pid = self.get_or_create_pid(meta)
+                self.append(pid, block.to_json(wrap=True))
 
-    def append_chunk(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            text_chunk: str,
-            begin: bool = False
-    ):
+    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
-        Append streamed Markdown chunk to JS with micro-batching.
-        - No Python-side parsing
-        - No Python-side full buffer retention
-        - Minimal signal rate thanks to micro-batching (per PID)
+        Append streamed Markdown chunk to JS with micro-batching and typed chunk support.
 
         :param meta: context meta
         :param ctx: context item
-        :param text_chunk: text chunk
-        :param begin: if it is the beginning of the text
+        :param text_chunk: text chunk to append
+        :param begin: True if begin of stream
         """
         pid = self.get_or_create_pid(meta)
         if pid is None:
@@ -819,14 +736,12 @@ class Renderer(BaseRenderer):
         pctx.item = ctx
 
         if begin:
-            # Reset stream area and loader on the JS side
             try:
                 self.get_output_node(meta).page().runJavaScript(
                     "if (typeof window.beginStream !== 'undefined') beginStream(true);"
                 )
             except Exception:
                 pass
-            # Prepare name header for this stream (avatar/name)
             pctx.header = self.get_name_header(ctx, stream=True)
             self._stream_reset(pid)
             self.update_names(meta, ctx)
@@ -834,16 +749,9 @@ class Renderer(BaseRenderer):
         if not text_chunk:
             return
 
-        # Push chunk into per-PID micro-batch buffer (will be flushed by a QTimer)
         self._stream_push(pid, pctx.header or "", str(text_chunk))
-        # self.get_output_node(meta).page().bridge.chunk.emit(pctx.header or "", str(text_chunk))
-        text_chunk = None  # release ref
 
-    def next_chunk(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-    ):
+    def next_chunk(self, meta: CtxMeta, ctx: CtxItem):
         """
         Flush current stream and start with new chunks
 
@@ -851,7 +759,6 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         """
         pid = self.get_or_create_pid(meta)
-        # Ensure all pending chunks are delivered before switching message
         self._stream_flush(pid, force=True)
         self.pids[pid].item = ctx
         self.pids[pid].buffer = ""
@@ -864,26 +771,19 @@ class Renderer(BaseRenderer):
             )
         except Exception:
             pass
-        # Reset micro-batch header for the next message
         try:
             self.pids[pid].header = self.get_name_header(ctx, stream=True)
         except Exception:
             self.pids[pid].header = ""
 
-    def append_chunk_input(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            text_chunk: str,
-            begin: bool = False
-    ):
+    def append_chunk_input(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
-        Append output chunk to output
+        Append output chunk to input area (legacy)
 
         :param meta: context meta
         :param ctx: context item
-        :param text_chunk: text chunk
-        :param begin: if it is the beginning of the text
+        :param text_chunk: text chunk to append
+        :param begin: True if begin of stream
         """
         if not text_chunk:
             return
@@ -891,28 +791,19 @@ class Renderer(BaseRenderer):
             return
         try:
             self.get_output_node(meta).page().bridge.nodeInput.emit(
-                self.sanitize_html(
-                    text_chunk
-                )
+                self.sanitize_html(text_chunk)
             )
         except Exception:
             pass
-        text_chunk = None  # free reference
 
-    def append_live(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            text_chunk: str,
-            begin: bool = False
-    ):
+    def append_live(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
-        Append live output chunk to output
+        Append live output chunk to output (legacy live preview)
 
         :param meta: context meta
         :param ctx: context item
-        :param text_chunk: text chunk
-        :param begin: if it is the beginning of the text
+        :param text_chunk: text chunk to append
+        :param begin: True if begin of stream
         """
         pid = self.get_or_create_pid(meta)
         self.pids[pid].item = ctx
@@ -933,7 +824,6 @@ class Renderer(BaseRenderer):
             self.pids[pid].is_cmd = False
             self.clear_live(meta, ctx)
         self.pids[pid].append_live_buffer(raw_chunk)
-        raw_chunk = None  # free reference
 
         try:
             self.get_output_node(meta).page().runJavaScript(
@@ -943,7 +833,7 @@ class Renderer(BaseRenderer):
                     )
                 )});"""
             )
-        except Exception as e:
+        except Exception:
             pass
 
     def clear_live(self, meta: CtxMeta, ctx: CtxItem):
@@ -963,22 +853,15 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-    def append_node(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            html: str,
-            type: int = 1,
-            prev_ctx: Optional[CtxItem] = None,
-            next_ctx: Optional[CtxItem] = None
-    ):
+    def append_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1,
+                    prev_ctx: Optional[CtxItem] = None, next_ctx: Optional[CtxItem] = None):
         """
-        Append and format raw text to output
+        Backward compatible: when called, convert HTML-like path to RenderBlock and send JSON.
 
         :param meta: context meta
-        :param html: text to append
-        :param type: type of message
-        :param ctx: CtxItem instance
+        :param ctx: context item
+        :param html: HTML content
+        :param type: NODE_INPUT or NODE_OUTPUT
         :param prev_ctx: previous context item
         :param next_ctx: next context item
         """
@@ -986,86 +869,57 @@ class Renderer(BaseRenderer):
             return
 
         pid = self.get_or_create_pid(meta)
-        self.append(
-            pid,
-            self.prepare_node(
-                meta=meta,
-                ctx=ctx,
-                html=html,
-                type=type,
-                prev_ctx=prev_ctx,
-                next_ctx=next_ctx,
-            )
-        )
 
-    def append(
-            self,
-            pid,
-            html: str,
-            flush: bool = False,
-            replace: bool = False,
-    ):
+        # Convert to RenderBlock JSON
+        input_text = html if type == self.NODE_INPUT else None
+        output_text = html if type == self.NODE_OUTPUT else None
+        block = self._build_render_block(meta, ctx, input_text, output_text, prev_ctx=prev_ctx, next_ctx=next_ctx)
+        if block:
+            self.append(pid, block.to_json(wrap=True))
+
+    def append(self, pid, payload: str, flush: bool = False, replace: bool = False):
         """
-        Append text to output
+        Append payload (HTML legacy or JSON string) to output.
 
-        :param pid: ctx pid
-        :param html: HTML code
-        :param flush: True if flush only
-        :param replace: True if replace current content
+        :param pid: context PID
+        :param payload: payload to append
+        :param flush: True if flush immediately (legacy HTML path)
         """
         if self.pids[pid].loaded and not self.pids[pid].use_buffer:
             self.clear_chunks(pid)
-            if html:
-                self.flush_output(pid, html, replace)
+            if payload:
+                self.flush_output(pid, payload, replace)
             self.pids[pid].clear()
         else:
             if not flush:
-                self.pids[pid].append_html(html)
-        html = None  # free reference
+                self.pids[pid].append_html(payload)
 
-    def append_context_item(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            prev_ctx: Optional[CtxItem] = None,
-            next_ctx: Optional[CtxItem] = None
-    ):
+    def append_context_item(self, meta: CtxMeta, ctx: CtxItem,
+                            prev_ctx: Optional[CtxItem] = None, next_ctx: Optional[CtxItem] = None):
         """
-        Append context item to output
+        Append context item as one RenderBlock with input+output (if present)
 
         :param meta: context meta
         :param ctx: context item
         :param prev_ctx: previous context item
         :param next_ctx: next context item
         """
-        self.append_input(
-            meta,
-            ctx,
-            flush=False,
-        )
-        self.append_output(
-            meta,
-            ctx,
-            flush=False,
-            prev_ctx=prev_ctx,
-            next_ctx=next_ctx,
-        )
+        input_text = self.prepare_input(meta, ctx, flush=False, append=False)
+        output_text = self.prepare_output(meta, ctx, flush=False, prev_ctx=prev_ctx, next_ctx=next_ctx)
+        block = self._build_render_block(meta, ctx, input_text, output_text, prev_ctx=prev_ctx, next_ctx=next_ctx)
+        if block:
+            pid = self.get_or_create_pid(meta)
+            self.append(pid, block.to_json(wrap=True))
 
-    def append_extra(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            footer: bool = False,
-            render: bool = True
-    ) -> str:
+    def append_extra(self, meta: CtxMeta, ctx: CtxItem, footer: bool = False, render: bool = True) -> str:
         """
-        Append extra data (images, files, etc.) to output
+        Append extra data (legacy HTML way) – kept for runtime calls that append later.
 
-        :param meta: Context meta
+        :param meta: context meta
         :param ctx: context item
-        :param footer: True if it is a footer
-        :param render: True if render, False if only return HTML
-        :return: HTML code
+        :param footer: True if append at the end (legacy)
+        :param render: True if render to output (legacy)
+        :return: rendered HTML
         """
         self.tool_output_end()
 
@@ -1086,7 +940,7 @@ class Renderer(BaseRenderer):
                     html_parts.append(self.body.get_image_html(image, n, c))
                     self.pids[pid].images_appended.append(image)
                     n += 1
-                except Exception as e:
+                except Exception:
                     pass
 
         c = len(ctx.files)
@@ -1101,7 +955,7 @@ class Renderer(BaseRenderer):
                     files_html.append(self.body.get_file_html(file, n, c))
                     self.pids[pid].files_appended.append(file)
                     n += 1
-                except Exception as e:
+                except Exception:
                     pass
             if files_html:
                 html_parts.append("<br/><br/>".join(files_html))
@@ -1118,7 +972,7 @@ class Renderer(BaseRenderer):
                     urls_html.append(self.body.get_url_html(url, n, c))
                     self.pids[pid].urls_appended.append(url)
                     n += 1
-                except Exception as e:
+                except Exception:
                     pass
             if urls_html:
                 html_parts.append("<br/><br/>".join(urls_html))
@@ -1128,7 +982,7 @@ class Renderer(BaseRenderer):
                 try:
                     docs = self.body.get_docs_html(ctx.doc_ids)
                     html_parts.append(docs)
-                except Exception as e:
+                except Exception:
                     pass
 
         html = "".join(html_parts)
@@ -1142,24 +996,19 @@ class Renderer(BaseRenderer):
                             self.sanitize_html(html)
                         )});"""
                     )
-                except Exception as e:
+                except Exception:
                     pass
 
         return html
 
-    def append_timestamp(
-            self,
-            ctx: CtxItem,
-            text: str,
-            type: Optional[int] = None
-    ) -> str:
+    def append_timestamp(self, ctx: CtxItem, text: str, type: Optional[int] = None) -> str:
         """
-        Append timestamp to text
+        Append timestamp to text (legacy HTML path)
 
         :param ctx: context item
-        :param text: Input text
-        :param type: Type of message
-        :return: Text with timestamp (if enabled)
+        :param text: text to append timestamp to
+        :param type: NODE_INPUT or NODE_OUTPUT
+        :return: text with timestamp
         """
         if ctx is not None and ctx.input_timestamp is not None:
             timestamp = None
@@ -1173,16 +1022,12 @@ class Renderer(BaseRenderer):
                 text = f'<span class="ts">{hour}: </span>{text}'
         return text
 
-    def reset(
-            self,
-            meta: Optional[CtxMeta] = None,
-            clear_nodes: bool = True
-    ):
+    def reset(self, meta: Optional[CtxMeta] = None, clear_nodes: bool = True):
         """
-        Reset
+        Reset current output
 
-        :param meta: Context meta
-        :param clear_nodes: True if clear nodes
+        :param meta: context meta
+        :param clear_nodes: True if clear nodes list
         """
         pid = self.get_pid(meta)
         if pid is not None and pid in self.pids:
@@ -1191,7 +1036,6 @@ class Renderer(BaseRenderer):
             if meta is not None:
                 pid = self.get_or_create_pid(meta)
                 self.reset_by_pid(pid, clear_nodes=clear_nodes)
-
         self.clear_live(meta, CtxItem())
 
     def reset_by_pid(self, pid: Optional[int], clear_nodes: bool = True):
@@ -1199,7 +1043,7 @@ class Renderer(BaseRenderer):
         Reset by PID
 
         :param pid: context PID
-        :param clear_nodes: True if clear nodes
+        :param clear_nodes: True if clear nodes list
         """
         self.pids[pid].item = None
         self.pids[pid].html = ""
@@ -1214,27 +1058,24 @@ class Renderer(BaseRenderer):
             node.reset_current_content()
         self.reset_names_by_pid(pid)
         self.prev_chunk_replace = False
-        self._stream_reset(pid)  # NEW
+        self._stream_reset(pid)
 
     def clear_input(self):
         """Clear input"""
         self.get_input_node().clear()
 
-    def clear_output(
-            self,
-            meta: Optional[CtxMeta] = None
-    ):
+    def clear_output(self, meta: Optional[CtxMeta] = None):
         """
         Clear output
 
-        :param meta: Context meta
+        :param meta: context meta
         """
         self.prev_chunk_replace = False
         self.reset(meta)
 
-    def clear_chunks(self, pid):
+    def clear_chunks(self, pid: Optional[int]):
         """
-        Clear chunks from output
+        Clear current chunks
 
         :param pid: context PID
         """
@@ -1243,14 +1084,11 @@ class Renderer(BaseRenderer):
         self.clear_chunks_input(pid)
         self.clear_chunks_output(pid)
 
-    def clear_chunks_input(
-            self,
-            pid: Optional[int]
-    ):
+    def clear_chunks_input(self, pid: Optional[int]):
         """
         Clear chunks from input
 
-        :pid: context PID
+        :param pid: context PID
         """
         if pid is None:
             return
@@ -1261,14 +1099,11 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-    def clear_chunks_output(
-            self,
-            pid: Optional[int]
-    ):
+    def clear_chunks_output(self, pid: Optional[int]):
         """
         Clear chunks from output
 
-        :pid: context PID
+        :param pid: context PID
         """
         self.prev_chunk_replace = False
         try:
@@ -1277,16 +1112,13 @@ class Renderer(BaseRenderer):
             )
         except Exception:
             pass
-        self._stream_reset(pid)  # NEW
+        self._stream_reset(pid)
 
-    def clear_nodes(
-            self,
-            pid: Optional[int]
-    ):
+    def clear_nodes(self, pid: Optional[int]):
         """
-        Clear nodes from output
+        Clear nodes list
 
-        :pid: context PID
+        :param pid: context PID
         """
         try:
             self.get_output_node_by_pid(pid).page().runJavaScript(
@@ -1295,173 +1127,33 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-    def prepare_node(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            html: str,
-            type: int = 1,
-            prev_ctx: Optional[CtxItem] = None,
-            next_ctx: Optional[CtxItem] = None
-    ) -> str:
+    # Legacy methods kept for compatibility with existing code paths
+    def prepare_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1,
+                     prev_ctx: Optional[CtxItem] = None, next_ctx: Optional[CtxItem] = None) -> str:
         """
-        Prepare node HTML
+        Compatibility shim: convert single input/output into markdown/raw for JS templates.
 
         :param meta: context meta
-        :param ctx: CtxItem instance
-        :param html: html text
-        :param type: type of message
+        :param ctx: context item
+        :param html: HTML content
+        :param type: NODE_INPUT or NODE_OUTPUT
         :param prev_ctx: previous context item
         :param next_ctx: next context item
-        :return: prepared HTML
+        :return: prepared text
         """
         pid = self.get_or_create_pid(meta)
         if type == self.NODE_OUTPUT:
-            return self.prepare_node_output(
-                meta=meta,
-                ctx=ctx,
-                html=html,
-                prev_ctx=prev_ctx,
-                next_ctx=next_ctx,
-            )
+            return str(html)
         elif type == self.NODE_INPUT:
-            return self.prepare_node_input(
-                pid=pid,
-                ctx=ctx,
-                html=html,
-                prev_ctx=prev_ctx,
-                next_ctx=next_ctx,
-            )
-
-    def prepare_node_input(
-            self,
-            pid,
-            ctx: CtxItem,
-            html: str,
-            prev_ctx: Optional[CtxItem] = None,
-            next_ctx: Optional[CtxItem] = None
-    ) -> str:
-        """
-        Prepare input node
-
-        :param pid: context PID
-        :param ctx: CtxItem instance
-        :param html: html text
-        :param prev_ctx: previous context item
-        :param next_ctx: next context item
-        :return: prepared HTML
-        """
-        msg_id = "msg-user-" + str(ctx.id) if ctx is not None else ""
-        content = self.append_timestamp(
-            ctx,
-            self.helpers.format_user_text(html),
-            type=self.NODE_INPUT
-        )
-        html = f"<p>{content}</p>"
-        html = self.helpers.post_format_text(html)
-        name = self.pids[pid].name_user
-
-        if ctx.internal and ctx.input.startswith("[{"):
-            name = trans("msg.name.system")
-        if type(ctx.extra) is dict and "agent_evaluate" in ctx.extra:
-            name = trans("msg.name.evaluation")
-
-        debug = ""
-        if self.is_debug():
-            debug = self.append_debug(ctx, pid, "input")
-
-        extra_style = ""
-        extra = ""
-        if ctx.extra is not None and "footer" in ctx.extra:
-            extra = ctx.extra["footer"]
-            extra_style = "display:block;"
-
-        return f'<div class="msg-box msg-user" id="{msg_id}"><div class="name-header name-user">{name}</div><div class="msg">{html}<div class="msg-extra" style="{extra_style}">{extra}</div>{debug}</div></div>'
-
-    def prepare_node_output(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem,
-            html: str,
-            prev_ctx: Optional[CtxItem] = None,
-            next_ctx: Optional[CtxItem] = None
-    ) -> str:
-        """
-        Prepare output node wrapper; content stays as raw Markdown in HTML (md-block-markdown=1).
-        JS (markdown-it) will render it and decorate code blocks.
-        Backward compatible with previous JS pipeline and public API.
-
-        :param meta: context meta
-        :param ctx: CtxItem instance
-        :param html: raw markdown text (pre/post formatted)
-        :param prev_ctx: previous context item
-        :param next_ctx: next context item
-        :return: prepared HTML
-        """
-        is_cmd = (
-                next_ctx is not None and
-                next_ctx.internal and
-                (len(ctx.cmds) > 0 or (ctx.extra_ctx is not None and len(ctx.extra_ctx) > 0))
-        )
-
-        pid = self.get_or_create_pid(meta)
-        msg_id = f"msg-bot-{ctx.id}" if ctx is not None else ""
-
-        # raw Markdown (no Python-side HTML rendering); keep existing pre/post formatting hooks
-        md_src = self.helpers.pre_format_text(html)
-        md_text = self.helpers.post_format_text(md_src)
-
-        # Escape Markdown for safe inclusion as textContent (browser will decode entities back to chars)
-        # This ensures no HTML is parsed before markdown-it processes the content on the JS side.
-        md_text_escaped = _html.escape(md_text, quote=False)
-
-        # extras/footer
-        extra = self.append_extra(meta, ctx, footer=True, render=False)
-        footer = self.body.prepare_action_icons(ctx)
-
-        tool_output = ""
-        output_class = "display:none"
-        if is_cmd:
-            if ctx.results is not None and len(ctx.results) > 0 \
-                    and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
-                tool_output = self.helpers.format_cmd_text(str(ctx.input), indent=True)
-                output_class = ""
-            else:
-                tool_output = self.helpers.format_cmd_text(str(next_ctx.input), indent=True)
-                output_class = ""
-        elif ctx.results is not None and len(ctx.results) > 0 \
-                and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
-            tool_output = self.helpers.format_cmd_text(str(ctx.input), indent=True)
-
-        tool_extra = self.body.prepare_tool_extra(ctx)
-        debug = self.append_debug(ctx, pid, "output") if self.is_debug() else ""
-        name_header = self.get_name_header(ctx)
-
-        # Native Markdown block: JS runtime will pick [md-block-markdown] and render via markdown-it.
-        return (
-            f"<div class='msg-box msg-bot' id='{msg_id}'>"
-            f"{name_header}"
-            f"<div class='msg'>"
-            f"<div class='md-block' md-block-markdown='1'>{md_text_escaped}</div>"
-            f"<div class='msg-tool-extra'>{tool_extra}</div>"
-            f"<div class='tool-output' style='{output_class}'>"
-            f"<span class='toggle-cmd-output' onclick='toggleToolOutput({ctx.id});' "
-            f"title='{trans('action.cmd.expand')}' role='button'>"
-            f"<img src='{self._file_prefix}{self._icon_expand}' width='25' height='25' valign='middle'></span>"
-            f"<div class='content' style='display:none'>{tool_output}</div>"
-            f"</div>"
-            f"<div class='msg-extra'>{extra}</div>"
-            f"{footer}{debug}"
-            f"</div></div>"
-        )
+            return str(html)
 
     def get_name_header(self, ctx: CtxItem, stream: bool = False) -> str:
         """
-        Get name header for the bot
+        Legacy - kept for stream header text (avatar + name string)
 
-        :param ctx: CtxItem instance
-        :param stream: True if it is a stream
-        :return: HTML name header
+        :param ctx: context item
+        :param stream: True if streaming mode
+        :return: HTML string
         """
         meta = ctx.meta
         if meta is None:
@@ -1494,13 +1186,13 @@ class Renderer(BaseRenderer):
         else:
             return f"<div class=\"name-header name-bot\">{avatar_html}{output_name}</div>"
 
-    def flush_output(self, pid: int, html: str, replace: bool = False):
+    def flush_output(self, pid: int, payload: str, replace: bool = False):
         """
-        Send content via QWebChannel when ready; otherwise queue with a safe fallback.
+        Send content via QWebChannel (JSON or HTML string).
 
         :param pid: context PID
-        :param html: HTML code
-        :param replace: True if replace current content
+        :param payload: payload to send
+        :param replace: True if replace nodes list
         """
         if pid is None:
             return
@@ -1516,23 +1208,23 @@ class Renderer(BaseRenderer):
                 if br is not None:
                     if replace and hasattr(br, "nodeReplace"):
                         self.clear_nodes(pid)
-                        br.nodeReplace.emit(html)
+                        br.nodeReplace.emit(payload)
                         return
                     if not replace and hasattr(br, "node"):
-                        br.node.emit(html)
+                        br.node.emit(payload)
                         return
-            # Not ready yet -> queue
-            self._queue_node(pid, html, replace)
+            # Not ready -> queue
+            self._queue_node(pid, payload, replace)
         except Exception:
-            # JS fallback
+            # Fallback to runJavaScript path
             try:
                 if replace:
                     node.page().runJavaScript(
-                        f"if (typeof window.replaceNodes !== 'undefined') replaceNodes({self.to_json(html)});"
+                        f"if (typeof window.replaceNodes !== 'undefined') replaceNodes({self.to_json(payload)});"
                     )
                 else:
                     node.page().runJavaScript(
-                        f"if (typeof window.appendNode !== 'undefined') appendNode({self.to_json(html)});"
+                        f"if (typeof window.appendNode !== 'undefined') appendNode({self.to_json(payload)});"
                     )
             except Exception:
                 pass
@@ -1541,13 +1233,9 @@ class Renderer(BaseRenderer):
         """Reload output, called externally only on theme change to redraw content"""
         self.window.controller.ctx.refresh_output()
 
-    def flush(
-            self,
-            pid:
-            Optional[int]
-    ):
+    def flush(self, pid: Optional[int]):
         """
-        Flush output
+        Flush output page HTML (initial)
 
         :param pid: context PID
         """
@@ -1559,20 +1247,16 @@ class Renderer(BaseRenderer):
         if node is not None:
             node.setHtml(html, baseUrl="file://")
 
-    def fresh(
-            self,
-            meta: Optional[CtxMeta] = None,
-            force: bool = False
-    ):
+    def fresh(self, meta: Optional[CtxMeta] = None, force: bool = False):
         """
         Reset page / unload old renderer from memory
 
         :param meta: context meta
-        :param force: True if force recycle even if not loaded
+        :param force: True if force even when not needed
         """
         plain = self.window.core.config.get('render.plain')
         if plain:
-            return  # plain text mode, no need to recycle
+            return
 
         pid = self.get_or_create_pid(meta)
         if pid is None:
@@ -1599,26 +1283,20 @@ class Renderer(BaseRenderer):
             self.recycle(node, meta)
             self.flush(pid)
 
-    def recycle(
-            self,
-            node: ChatWebOutput,
-            meta: Optional[CtxMeta] = None
-    ):
+    def recycle(self, node: ChatWebOutput, meta: Optional[CtxMeta] = None):
         """
-        Recycle renderer to free memory and avoid leaks
+        Recycle renderer to avoid leaks
 
-        Swaps out the old QWebEngineView with a fresh instance.
-
-        :param node: output node
+        :param node: output node to recycle
         :param meta: context meta
         """
         tab = node.get_tab()
-        layout = tab.child.layout()  # layout of TabBody
+        layout = tab.child.layout()
         layout.removeWidget(node)
         self.window.ui.nodes['output'].pop(tab.pid, None)
         tab.child.delete_refs()
 
-        node.on_delete()  # destroy old node
+        node.on_delete()
 
         view = ChatWebOutput(self.window)
         view.set_tab(tab)
@@ -1633,31 +1311,25 @@ class Renderer(BaseRenderer):
             gc.collect()
         except Exception:
             pass
-        self.auto_cleanup_soft(meta)  # trim memory in Linux
+        self.auto_cleanup_soft(meta)
 
-    def get_output_node(
-            self,
-            meta: Optional[CtxMeta] = None
-    ) -> Optional[ChatWebOutput]:
+    def get_output_node(self, meta: Optional[CtxMeta] = None) -> Optional[ChatWebOutput]:
         """
         Get output node
 
         :param meta: context meta
-        :return: output node
+        :return: output node or None
         """
         if self._get_output_node_by_meta is None:
             self._get_output_node_by_meta = self.window.core.ctx.output.get_output_node_by_meta
         return self._get_output_node_by_meta(meta)
 
-    def get_output_node_by_pid(
-            self,
-            pid: Optional[int]
-    ) -> Optional[ChatWebOutput]:
+    def get_output_node_by_pid(self, pid: Optional[int]) -> Optional[ChatWebOutput]:
         """
         Get output node by PID
 
-        :param pid: context pid
-        :return: output node
+        :param pid: context PID
+        :return: output node or None
         """
         if self._get_output_node_by_pid is None:
             self._get_output_node_by_pid = self.window.core.ctx.output.get_output_node_by_pid
@@ -1701,7 +1373,7 @@ class Renderer(BaseRenderer):
         """
         Reset names
 
-       :param meta: context meta
+        :param meta: context meta
         """
         if meta is None:
             return
@@ -1712,7 +1384,7 @@ class Renderer(BaseRenderer):
         """
         Reset names by PID
 
-        :param pid: context pid
+        :param pid: context PID
         """
         self.pids[pid].name_user = trans("chat.name.user")
         self.pids[pid].name_bot = trans("chat.name.bot")
@@ -1727,7 +1399,7 @@ class Renderer(BaseRenderer):
 
     def on_edit_submit(self, ctx: CtxItem):
         """
-        On regenerate submit
+        On edit submit
 
         :param ctx: context item
         """
@@ -1737,7 +1409,7 @@ class Renderer(BaseRenderer):
         """
         On enable edit icons
 
-        :param live: True if live update
+        :param live: True if live mode
         """
         if not live:
             return
@@ -1752,7 +1424,7 @@ class Renderer(BaseRenderer):
         """
         On disable edit icons
 
-        :param live: True if live update
+        :param live: True if live mode
         """
         if not live:
             return
@@ -1767,7 +1439,7 @@ class Renderer(BaseRenderer):
         """
         On enable timestamp
 
-        :param live: True if live update
+        :param live: True if live mode
         """
         if not live:
             return
@@ -1782,7 +1454,7 @@ class Renderer(BaseRenderer):
         """
         On disable timestamp
 
-        :param live: True if live update
+        :param live: True if live mode
         """
         if not live:
             return
@@ -1793,13 +1465,9 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-    def update_names(
-            self,
-            meta: CtxMeta,
-            ctx: CtxItem
-    ):
+    def update_names(self, meta: CtxMeta, ctx: CtxItem):
         """
-        Update names
+        Update names from ctx
 
         :param meta: context meta
         :param ctx: context item
@@ -1813,7 +1481,7 @@ class Renderer(BaseRenderer):
             self.pids[pid].name_bot = ctx.output_name
 
     def clear_all(self):
-        """Clear all"""
+        """Clear all tabs"""
         for pid in self.pids:
             self.clear_chunks(pid)
             self.clear_nodes(pid)
@@ -1821,33 +1489,23 @@ class Renderer(BaseRenderer):
             self._stream_reset(pid)
 
     def scroll_to_bottom(self):
-        """Scroll to bottom"""
+        """Scroll to bottom placeholder"""
         pass
 
     def append_block(self):
-        """Append block to output"""
+        """Append block placeholder"""
         pass
 
     def to_end(self, ctx: CtxItem):
-        """
-        Move cursor to end of output
-
-        :param ctx: context item
-        """
+        """Move cursor to end placeholder"""
         pass
 
     def get_all_nodes(self) -> list:
-        """
-        Return all registered nodes
-
-        :return: list of ChatOutput nodes (tabs)
-        """
+        """Return all registered nodes"""
         return self.window.core.ctx.output.get_all()
 
-    # TODO: on lang change
-
     def reload_css(self):
-        """Reload CSS - all, global"""
+        """Reload CSS – propagate theme and config to runtime"""
         to_json = self.to_json(self.body.prepare_styles())
         nodes = self.get_all_nodes()
         for pid in self.pids:
@@ -1865,7 +1523,7 @@ class Renderer(BaseRenderer):
                             node.page().runJavaScript(
                                 "if (typeof window.disableBlocks !== 'undefined') disableBlocks();"
                             )
-                    except Exception as e:
+                    except Exception:
                         pass
                 return
 
@@ -1877,16 +1535,12 @@ class Renderer(BaseRenderer):
                 self.reload_css()
                 return
 
-    def tool_output_append(
-            self,
-            meta: CtxMeta,
-            content: str
-    ):
+    def tool_output_append(self, meta: CtxMeta, content: str):
         """
         Add tool output (append)
 
         :param meta: context meta
-        :param content: content
+        :param content: content to append
         """
         try:
             self.get_output_node(meta).page().runJavaScript(
@@ -1897,16 +1551,12 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-    def tool_output_update(
-            self,
-            meta: CtxMeta,
-            content: str
-    ):
+    def tool_output_update(self, meta: CtxMeta, content: str):
         """
         Replace tool output
 
         :param meta: context meta
-        :param content: content
+        :param content: content to set
         """
         try:
             self.get_output_node(meta).page().runJavaScript(
@@ -1954,10 +1604,9 @@ class Renderer(BaseRenderer):
 
     def sanitize_html(self, html: str) -> str:
         """
-        Sanitize HTML to prevent XSS attacks
+        Sanitize HTM
 
-        :param html: HTML string to sanitize
-        :return: sanitized HTML string
+        :param html: HTML string
         """
         return html
         if not html:
@@ -1966,35 +1615,30 @@ class Renderer(BaseRenderer):
             return html
         return self.RE_AMP_LT_GT.sub(r'&\1;', html)
 
-    def append_debug(
-            self,
-            ctx: CtxItem,
-            pid,
-            title: Optional[str] = None
-    ) -> str:
+    def append_debug(self, ctx: CtxItem, pid, title: Optional[str] = None) -> str:
         """
-        Append debug info
+        Append debug info HTML (legacy path)
 
         :param ctx: context item
         :param pid: context PID
-        :param title: debug title
-        :return: HTML debug info
+        :param title: optional title
+        :return: HTML string
         """
         if title is None:
             title = "debug"
-        return f"<div class='debug'><b>{title}:</b> pid: {pid}, ctx: {ctx.to_dict()}</div>"
+        return f"<div class='debug'><b>{title}:</b> pid: {pid}, ctx: {_html.escape(ctx.to_debug())}</div>"
 
     def is_debug(self) -> bool:
         """
-        Check if debug mode is enabled
+        Check debug flag
 
-        :return: True if debug mode is enabled
+        :return: True if debug enabled
         """
         return self.window.core.config.get("debug.render", False)
 
     def js_stream_queue_len(self, pid: int):
         """
-        Ask the JS side how many items are currently queued for streaming (streamQ.length).
+        Ask JS side for stream queue length
 
         :param pid: context PID
         """
@@ -2012,13 +1656,12 @@ class Renderer(BaseRenderer):
 
     def remove_pid(self, pid: int):
         """
-        Remove PID from renderer
+        Remove PID and clean resources
 
         :param pid: context PID
         """
         if pid in self.pids:
             del self.pids[pid]
-        # Clean micro-batch resources
         self._stream_reset(pid)
         t = self._stream_timer.pop(pid, None)
         if t:
@@ -2032,7 +1675,7 @@ class Renderer(BaseRenderer):
 
     def on_js_ready(self, pid: int) -> None:
         """
-        On JS ready - called from JS side via QWebChannel when bridge is ready.
+        Called by JS via bridge when ready
 
         :param pid: context PID
         """
@@ -2044,7 +1687,7 @@ class Renderer(BaseRenderer):
 
     def _drain_pending_nodes(self, pid: int):
         """
-        Drain any pending nodes queued while bridge was not ready.
+        Flush queued node payloads
 
         :param pid: context PID
         """
@@ -2064,9 +1707,7 @@ class Renderer(BaseRenderer):
                 elif not replace and hasattr(br, "node"):
                     br.node.emit(payload)
             except Exception:
-                # If something goes wrong, stop draining to avoid dropping further items.
                 break
-        # stop/clear fallback timer if any
         t = self._pending_timer.pop(pid, None)
         if t:
             try:
@@ -2076,11 +1717,11 @@ class Renderer(BaseRenderer):
 
     def _queue_node(self, pid: int, payload: str, replace: bool):
         """
-        Queue node payload for later delivery when bridge is ready, with a safe fallback.
+        Queue node payload until bridge is ready (with safe fallback)
 
         :param pid: context PID
-        :param payload: sanitized HTML payload
-        :param replace: True if replace current content
+        :param payload: payload to queue
+        :param replace: True if replace nodes list
         """
         q = self._pending_nodes.setdefault(pid, [])
         q.append((replace, payload))
@@ -2090,7 +1731,6 @@ class Renderer(BaseRenderer):
             t.setInterval(1200)  # ms
 
             def on_timeout(pid=pid):
-                # Still not ready? Fallback: flush queued via runJavaScript once.
                 node = self.get_output_node_by_pid(pid)
                 if node:
                     while self._pending_nodes.get(pid):
@@ -2118,11 +1758,10 @@ class Renderer(BaseRenderer):
 
     def _stream_get(self, pid: int) -> tuple[_AppendBuffer, QTimer]:
         """
-        Get or create per-PID append buffer and timer for micro-batching.
-        Timer is single-shot and (re)started only when there is pending data.
+        Get/create per-PID append buffer and timer
 
         :param pid: context PID
-        :return: (buffer, timer) tuple
+        :return: (buffer, timer)
         """
         buf = self._stream_acc.get(pid)
         if buf is None:
@@ -2136,7 +1775,6 @@ class Renderer(BaseRenderer):
             t.setInterval(self._stream_interval_ms)
 
             def on_timeout(pid=pid):
-                # Flush pending batch and, if more data arrives later, timer will be restarted by _stream_push()
                 self._stream_flush(pid, force=False)
 
             t.timeout.connect(on_timeout)
@@ -2146,9 +1784,7 @@ class Renderer(BaseRenderer):
 
     def _stream_reset(self, pid: Optional[int]):
         """
-        Reset micro-batch resources for a PID. Safe to call frequently.
-
-        Clear buffer, stop timer, clear header and last-flush timestamp.
+        Reset micro-batch state for PID
 
         :param pid: context PID
         """
@@ -2168,56 +1804,42 @@ class Renderer(BaseRenderer):
 
     def _stream_push(self, pid: int, header: str, chunk: str):
         """
-        Append chunk to per-PID buffer. Start the micro-batch timer if it's not running.
-        If accumulated size crosses thresholds, flush immediately.
+        Push chunk into buffer and schedule flush
 
         :param pid: context PID
-        :param header: header/name for this stream (only used if first chunk)
-        :param chunk: chunk of text to append
+        :param header: optional header (first chunk only)
+        :param chunk: chunk to append
         """
         if not chunk:
             return
 
         buf, timer = self._stream_get(pid)
-        # Remember last known header for this PID
         if header and not self._stream_header.get(pid):
             self._stream_header[pid] = header
 
-        # Append chunk cheaply
         buf.append(chunk)
-
-        # Emergency backstop: if buffer is getting too large, flush now
         pending_size = getattr(buf, "_size", 0)
         if pending_size >= self._stream_emergency_bytes:
             self._stream_flush(pid, force=True)
             return
-
-        # Size-based early flush for responsiveness
         if pending_size >= self._stream_max_bytes:
             self._stream_flush(pid, force=True)
             return
-
-        # Start timer if not active to flush at ~frame rate
         if not timer.isActive():
             try:
                 timer.start()
             except Exception:
-                # As a fallback, if timer cannot start, flush synchronously
                 self._stream_flush(pid, force=True)
 
     def _stream_flush(self, pid: int, force: bool = False):
         """
-        Flush buffered chunks for a PID via QWebChannel (bridge.chunk.emit(name, chunk)).
-        If the bridge is not available, fall back to runJavaScript appendStream(name, chunk).
-
-        If no data is pending, do nothing. Stop the timer if running.
+        Flush buffered chunks via QWebChannel (bridge.chunk.emit(name, chunk, type))
 
         :param pid: context PID
-        :param force: True to force flush ignoring interval
+        :param force: True if force flush ignoring interval
         """
         buf = self._stream_acc.get(pid)
         if buf is None or buf.is_empty():
-            # Nothing to send; stop timer if any
             t = self._stream_timer.get(pid)
             if t and t.isActive():
                 try:
@@ -2228,11 +1850,9 @@ class Renderer(BaseRenderer):
 
         node = self.get_output_node_by_pid(pid)
         if node is None:
-            # Drop buffer if node is gone to avoid leaks
             buf.clear()
             return
 
-        # Stop timer for this flush; next push will re-arm it
         t = self._stream_timer.get(pid)
         if t and t.isActive():
             try:
@@ -2240,22 +1860,18 @@ class Renderer(BaseRenderer):
             except Exception:
                 pass
 
-        # Gather and clear the pending data in one allocation
         data = buf.get_and_clear()
         name = self._stream_header.get(pid, "") or ""
 
         try:
             br = getattr(node.page(), "bridge", None)
             if br is not None and hasattr(br, "chunk"):
-                # Send as raw text; JS runtime handles buffering/rendering
-                br.chunk.emit(name, data)
+                br.chunk.emit(name, data, "text_delta")
             else:
-                # Fallback path if bridge not yet connected on this page
                 node.page().runJavaScript(
                     f"if (typeof window.appendStream !== 'undefined') appendStream({self.to_json(name)},{self.to_json(data)});"
                 )
         except Exception:
-            # If something goes wrong, attempt a JS fallback once
             try:
                 node.page().runJavaScript(
                     f"if (typeof window.appendStream !== 'undefined') appendStream({self.to_json(name)},{self.to_json(data)});"
@@ -2263,16 +1879,13 @@ class Renderer(BaseRenderer):
             except Exception:
                 pass
 
-        # Opportunistic memory release on Linux for very large flushes
         try:
             if len(data) >= (256 * 1024):
                 self.auto_cleanup_soft()
         except Exception:
             pass
 
-        # Explicitly drop reference to large string so GC/malloc_trim can reclaim sooner
         del data
-
         self._stream_last_flush[pid] = monotonic()
 
     def eval_js(self, script: str):
@@ -2293,3 +1906,143 @@ class Renderer(BaseRenderer):
             node.page().runJavaScript(script, callback)
         except Exception:
             pass
+
+    # ------------------------- Helpers: build JSON blocks -------------------------
+
+    def _output_identity(self, ctx: CtxItem) -> Tuple[str, Optional[str], bool]:
+        """
+        Resolve output identity (name, avatar file:// path) based on preset.
+
+        :param ctx: context item
+        :return: (name, avatar, personalize)
+        """
+        meta = ctx.meta
+        if meta is None:
+            return self.pids[self.get_or_create_pid(meta)].name_bot if meta else "", None, False
+        preset_id = meta.preset
+        if not preset_id:
+            return self.pids[self.get_or_create_pid(meta)].name_bot, None, False
+        preset = self.window.core.presets.get(preset_id)
+        if preset is None or not preset.ai_personalize:
+            return self.pids[self.get_or_create_pid(meta)].name_bot, None, False
+        name = preset.ai_name or self.pids[self.get_or_create_pid(meta)].name_bot
+        avatar = None
+        if preset.ai_avatar:
+            presets_dir = self.window.core.config.get_user_dir("presets")
+            avatars_dir = os.path.join(presets_dir, "avatars")
+            avatar_path = os.path.join(avatars_dir, preset.ai_avatar)
+            if os.path.exists(avatar_path):
+                avatar = f"{self._file_prefix}{avatar_path}"
+        return name, avatar, bool(preset.ai_personalize)
+
+    def _build_render_block(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            input_text: Optional[str],
+            output_text: Optional[str],
+            prev_ctx: Optional[CtxItem] = None,
+            next_ctx: Optional[CtxItem] = None
+    ) -> Optional[RenderBlock]:
+        """
+        Build RenderBlock for given ctx and payloads (input/output).
+
+        - if input_text or output_text is None, that part is skipped.
+        - if ctx.hidden is True, returns None.
+        - if both input_text and output_text are None, returns None.
+        - if meta is None or invalid, returns None.
+
+        :param meta: CtxMeta object
+        :param ctx: CtxItem object
+        :param input_text: Input text (raw, un-formatted)
+        :param prev_ctx: Previous CtxItem (for context, optional)
+        :param next_ctx: Next CtxItem (for context, optional)
+        :return: RenderBlock object or None
+        """
+        pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return
+
+        block = RenderBlock(id=getattr(ctx, "id", None), meta_id=getattr(meta, "id", None))
+
+        # input
+        if input_text:
+            # Keep raw; formatting is a template duty (escape/BR etc.)
+            block.input = {
+                "type": "user",
+                "name": self.pids[pid].name_user,
+                "avatar_img": None,  # no user avatar by default
+                "text": str(input_text),
+                "timestamp": ctx.input_timestamp if hasattr(ctx, "input_timestamp") else None,
+            }
+
+        # output
+        if output_text:
+            # Pre/post format raw markdown via Helpers to preserve placeholders ([!cmd], think) and workdir tokens.
+            md_src = self.helpers.pre_format_text(output_text)
+            md_text = self.helpers.post_format_text(md_src)
+            name, avatar, personalize = self._output_identity(ctx)
+
+            # tool output visibility (agent step / commands)
+            is_cmd = (
+                next_ctx is not None and
+                next_ctx.internal and
+                (len(ctx.cmds) > 0 or (ctx.extra_ctx is not None and len(ctx.extra_ctx) > 0))
+            )
+            tool_output = ""
+            tool_output_visible = False
+            if is_cmd:
+                if ctx.results is not None and len(ctx.results) > 0 \
+                        and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
+                    tool_output = self.helpers.format_cmd_text(str(ctx.input), indent=True)
+                    tool_output_visible = True
+                else:
+                    tool_output = self.helpers.format_cmd_text(str(next_ctx.input), indent=True)
+                    tool_output_visible = True
+            elif ctx.results is not None and len(ctx.results) > 0 \
+                    and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
+                tool_output = self.helpers.format_cmd_text(str(ctx.input), indent=True)
+
+            # plugin-driven extra (HTML) – keep as-is to preserve functionality
+            tool_extra_html = self.body.prepare_tool_extra(ctx)
+
+            block.output = {
+                "type": "bot",
+                "name": name or self.pids[pid].name_bot,
+                "avatar_img": avatar,
+                "text": md_text,
+                "timestamp": ctx.output_timestamp if hasattr(ctx, "output_timestamp") else None,
+            }
+
+            # extras (images/files/urls/actions)
+            images, files, urls, extra_actions = self.body.build_extras_dicts(ctx, pid)
+            block.images = images
+            block.files = files
+            block.urls = urls
+
+            # docs as raw data -> rendered in JS
+            docs_norm = []
+            if self.window.core.config.get('ctx.sources'):
+                if ctx.doc_ids is not None and len(ctx.doc_ids) > 0:
+                    docs_norm = self.body.normalize_docs(ctx.doc_ids)
+
+            block.extra.update({
+                "tool_output": tool_output,
+                "tool_output_visible": tool_output_visible,
+                "tool_extra_html": tool_extra_html,
+                "docs": docs_norm,
+                "footer_icons": True,
+                "personalize": personalize,
+            })
+            block.extra.update(extra_actions)
+
+        # carry ctx.extra flags as-is (do not collide with our own keys)
+        if isinstance(ctx.extra, dict):
+            block.extra.setdefault("ctx_extra", ctx.extra)
+
+        # debug
+        if self.is_debug():
+            print(block.debug())
+            block.extra["debug_html"] = self.append_debug(ctx, pid, "output")
+
+        return block

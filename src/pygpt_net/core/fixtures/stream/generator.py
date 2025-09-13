@@ -140,9 +140,8 @@ class FakeOpenAIStream:
         # Chat: often the first delta with a role
         if api == "chat" and cfg.include_chat_role:
             prefix_payloads.append(self._wrap_chat_delta({"role": "assistant", "content": ""}))
-        # Code: we start with ```python\n
         if chunk == "code":
-            prefix_payloads.append(self._wrap_payload(cfg, "```javascript\n"))
+            prefix_payloads.append(self._wrap_payload(cfg, ""))
 
         self._code_mode = (chunk == "code")
         return prefix_payloads, sleep_dt

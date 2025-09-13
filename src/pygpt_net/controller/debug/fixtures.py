@@ -84,7 +84,7 @@ class Fixtures:
         :return: stream generator
         """
         ctx.use_responses_api = False
-        path = os.path.join(self.window.core.config.get_app_path(), "data", "js", "app.js")
+        path = os.path.join(self.window.core.config.get_app_path(), "data", "fixtures", "fake_stream.txt")
         return FakeOpenAIStream(code_path=path).stream(
             api="raw",
             chunk="code",

@@ -24,6 +24,7 @@ class Helpers:
     #_RE_TOOL_TAG = re.compile(r"&lt;tool&gt;(.*?)&lt;/tool&gt;", re.DOTALL)
     _RE_TOOL_TAG = re.compile(r"<tool>(.*?)</tool>", re.DOTALL)
     _RE_THINK_TAG = re.compile(r"<think>(.*?)</think>", re.DOTALL)
+    _RE_EXECUTE_TAG = re.compile(r"<execute>(.*?)</execute>", re.DOTALL)
     #_RE_MATH_PARENS = re.compile(r"\\\((.*?)\\\)", re.DOTALL)
 
     def __init__(self, window=None):
@@ -80,6 +81,15 @@ class Helpers:
         g = m.group(1).replace("\n", "<br>")
         return f'[!think]{html.escape(g)}[/!think]'
 
+    def _repl_execute(self, m: re.Match) -> str:
+        """
+        Replace execute tags with HTML paragraph
+
+        :param m: regex match object
+        :return: formatted HTML string
+        """
+        return f'[!exec]{html.escape(m.group(1))}[/!exec]'
+
     def _repl_math_fix(self, m: re.Match) -> str:
         """
         Fix math formula by replacing &lt; and &gt; with < and > inside \\( ... \\)
@@ -127,6 +137,21 @@ class Helpers:
 
         return s
 
+    def replace_execute_tags(self, text: str) -> str:
+        """
+        Replace execute tags
+
+        :param text:
+        :return: replaced text
+        """
+        s = text
+
+        # --- execute tags ---
+        if "<execute>" in s and "</execute>" in s:
+            s = self._RE_EXECUTE_TAG.sub(self._repl_execute, s)
+
+        return s
+
     def pre_format_text(self, text: str) -> str:
         """
         Pre-format text
@@ -151,6 +176,7 @@ class Helpers:
         # replace tags with markdown placeholders (will be converted to HTML in JS runtime)
         s = self.replace_code_tags(text.strip())
         s = self.replace_think_tags(s)
+        s = self.replace_execute_tags(s)
 
         # replace workdir token
         if "%workdir%" in s:

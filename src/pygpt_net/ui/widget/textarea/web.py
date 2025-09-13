@@ -505,10 +505,10 @@ class Bridge(QObject):
         super(Bridge, self).__init__(parent)
         self.window = window
 
-    chunk = Signal(str, str)  # name, chunk
-    node = Signal(str)  # content
-    nodeReplace = Signal(str)  # content
-    nodeInput = Signal(str)  # content
+    chunk = Signal(str, str, str)  # name, chunk, type
+    node = Signal(str)  # JSON payload
+    nodeReplace = Signal(str)  # JSON payload
+    nodeInput = Signal(str)  # raw text
     readyChanged = Signal(bool)
 
     @Slot(int)

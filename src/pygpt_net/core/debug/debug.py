@@ -412,7 +412,7 @@ class Debug:
         qobjects = sum(1 for obj in QApplication.allWidgets() if isinstance(obj, QObject))
         stats.append(f"QObjects: {qobjects}")
 
-        res += "\n\n".join(stats)
+        res += "\n" + "\n".join(stats)
         print("\n".join(stats))
         return res
 

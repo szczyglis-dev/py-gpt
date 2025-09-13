@@ -118,7 +118,7 @@ class Output:
 
         nodes['inline.vision'] = HelpLabel(trans('inline.vision'))
         nodes['inline.vision'].setVisible(False)
-        nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
+        nodes['inline.vision'].setContentsMargins(3, 2, 0, 0)
 
         opts_layout = QHBoxLayout()
         opts_layout.setContentsMargins(0, 0, 0, 0)

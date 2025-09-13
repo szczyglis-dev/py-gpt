@@ -1,22 +1,79 @@
-// v2.6.41 | 2025-09-11
-//
-// PyGPT Runtime for streaming Markdown in QWebEngine:
-//
-// - QWebChannel bridge
-// - markdown-it with lightweight KaTeX placeholders (no KaTeX compute on hot path)
-// - Dollar-delimiter math placeholders: $...$ and $$...$$ (finalize/idle/always policy)
-// - No inline hljs compute in renderer (final code highlight is deferred)
-// - Lightweight, scroll+rAF driven hljs highlighting (no IntersectionObserver)
-// - Async, chunked KaTeX rendering to avoid UI stalls
-// - Async, scheduled tail promotion (small chunks, UI-friendly)
-// - Adaptive snapshots, minimal DOM churn
-// - Incremental, non-flickering code streaming (frozen prefix + plain tail)
-// - Unified, bridge-based logger injected to all subsystems (no console)
-// - Buffered logging with auto-flush when QWebChannel is ready
-// - Runtime promotion of language from first-line directive during streaming
-// - Stream-aware renderer (no linkify on hot path) and plain-text streaming fallback for huge code
-// - Final highlight hard caps to avoid OOM on gigantic blocks
-// - Precomputed code meta (len/head/tail and nl for full renderer) to avoid heavy .textContent reads
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent lobortis lorem sapien, eu viverra tellus auctor nec. Nulla aliquet iaculis tellus, in tempus massa eleifend a. Vestibulum viverra, massa nec aliquet ultrices, felis libero eleifend est, eu elementum sapien libero vitae lectus. Quisque rhoncus mollis felis, sed finibus ex pharetra ultricies. Praesent viverra nulla id congue ullamcorper.
+
+<think>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent lobortis lorem sapien, eu viverra tellus auctor nec. Nulla aliquet iaculis tellus, in tempus massa eleifend a. Vestibulum viverra, massa nec aliquet ultrices, felis libero eleifend est, eu elementum sapien libero vitae lectus. Quisque rhoncus mollis felis, sed finibus ex pharetra ultricies. Praesent viverra nulla id congue ullamcorper.</think>
+
+<execute>a = 1
+b = 2
+c = a + b
+print(c)
+</execute>
+
+<tool>{"cmd": "fake_cmd", "params": {"foo": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."}}</tool>
+
+```python
+from pygpt_net.core.events import RenderEvent
+
+
+@dataclass(slots=True)
+class RenderBlock:
+    """
+    JSON payload for node rendering in JS templates.
+
+    Keep only raw data here. HTML is avoided except where there is
+    no easy way to keep raw (e.g. plugin-provided tool extras), which are
+    carried under extra.tool_extra_html.
+    """
+    id: int
+    meta_id: Optional[int] = None
+    input: Optional[dict] = None
+    output: Optional[dict] = None
+    files: dict = field(default_factory=dict)
+    images: dict = field(default_factory=dict)
+    urls: dict = field(default_factory=dict)
+    tools: dict = field(default_factory=dict)
+    tools_outputs: dict = field(default_factory=dict)
+    extra: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "meta_id": self.meta_id,
+            "input": self.input,
+            "output": self.output,
+            "files": self.files,
+            "images": self.images,
+            "urls": self.urls,
+            "tools": self.tools,
+            "tools_outputs": self.tools_outputs,
+            "extra": self.extra,
+        }
+
+```
+Interdum et malesuada fames ac ante ipsum primis in faucibus. Nam auctor tempor erat. Nam augue nisl, venenatis at semper ac, tristique ut lacus.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lorem ipsum dolor sit amet.</title>
+</head>
+<body>
+    <h1>Lorem ipsum dolor sit amet!</h1>
+    <p>Aliquam rutrum, nisi eget egestas vehicula, lectus nulla vestibulum odio, eget bibendum arcu nisi id diam. Praesent a blandit justo. Duis tristique leo in faucibus tempor</p>
+    <ul>
+        <li>Item 1</li>
+        <li>Item 2</li>
+        <li>Item 3</li>
+    </ul>
+</body>
+</html>
+```
+
+Nunc nec ex vel justo varius sagittis lobortis quis urna. Vivamus cursus faucibus augue, vitae eleifend ligula auctor a. Morbi arcu eros, porttitor eget bibendum vitae, pellentesque quis mauris. Fusce imperdiet leo a elit viverra porta pellentesque bibendum est.
+
+```js
 
 (function () {
   'use strict';
@@ -5671,3 +5728,6 @@
   window.__pygpt_cleanup = () => runtime.cleanup();
 
 })();
+```
+
+Interdum et malesuada fames ac ante ipsum primis in faucibus. Nam auctor tempor erat. Nam augue nisl, venenatis at semper ac, tristique ut lacus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Cras convallis volutpat est condimentum varius. 
