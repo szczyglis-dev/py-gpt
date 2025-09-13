@@ -1284,6 +1284,12 @@ class Ctx:
         """Clear selected list"""
         self.selected.clear()
 
+    def fresh_current_output(self):
+        """Fresh output for current context"""
+        meta = self.window.core.ctx.get_meta_by_id(self.window.core.ctx.get_current())
+        if meta is not None:
+            self.fresh_output(meta)
+
     def fresh_output(self, meta: CtxMeta):
         """
         Fresh output for new context

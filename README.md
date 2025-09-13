@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.44** | build: **2025-09-12** | Python: **>=3.10, <3.14**
+Release: **2.6.45** | build: **2025-09-13** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3450,6 +3450,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.45 (2025-09-13)**
+
+- Improved: Parsing of custom markup in the stream.
+- Improved: Message block parsing moved to JavaScript.
 
 **2.6.44 (2025-09-12)**
 

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.45 (2025-09-13)
+
+- Improved: Parsing of custom markup in the stream.
+- Improved: Message block parsing moved to JavaScript.
+
 ## 2.6.44 (2025-09-12)
 
 - Added: Auto-collapse for large user input blocks.
