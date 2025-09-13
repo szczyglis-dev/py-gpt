@@ -38,7 +38,7 @@ os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
 # by default, optimize for low-end devices
 os.environ.setdefault(
     "QTWEBENGINE_CHROMIUM_FLAGS",
-    "--disable-gpu --enable-low-end-device-mode"
+    "--enable-low-end-device-mode"
 )
 
 _original_open = builtins.open

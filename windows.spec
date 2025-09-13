@@ -77,6 +77,7 @@ datas += [
     (r'src\pygpt_net\data\locale\*', r'data\locale'),
     (r'src\pygpt_net\data\audio\*', r'data\audio'),
     (r'src\pygpt_net\data\css\*', r'data\css'),
+    (r'src\pygpt_net\data\fixtures\*', r'data\fixtures'),
     (r'src\pygpt_net\data\themes\*', r'data\themes'),
     (r'src\pygpt_net\data\fonts\Lato\*', r'data\fonts\Lato'),
     (r'src\pygpt_net\data\fonts\SpaceMono\*', r'data\fonts\SpaceMono'),
