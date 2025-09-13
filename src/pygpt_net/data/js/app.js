@@ -3680,9 +3680,15 @@
     }
 
     // Render tool output wrapper (always collapsed by default; wrapper visibility depends on flag)
+    // Inside class NodeTemplateEngine
     _renderToolOutputWrapper(block) {
       const extra = block.extra || {};
-      const tool_output = this._esc(extra.tool_output || '');
+
+      // IMPORTANT: keep initial tool output verbatim (HTML-ready).
+      // Do NOT HTML-escape here – the host already provides a safe/HTML-ready string.
+      // Escaping again would double-encode entities (e.g. " -> "), which
+      // caused visible """ in the UI instead of quotes.
+      const tool_output_html = (extra.tool_output != null) ? String(extra.tool_output) : '';
 
       // Wrapper visibility: show/hide based on tool_output_visible...
       const wrapperDisplay = (extra.tool_output_visible === true) ? '' : 'display:none';
@@ -3696,8 +3702,9 @@
           `title='${this._escapeHtml(toggleTitle)}' role='button'>` +
             `<img src='${this._esc(expIcon)}' width='25' height='25' valign='middle'>` +
           `</span>` +
-          // IMPORTANT: content is always collapsed initially
-          `<div class='content' style='display:none'>${this._escapeHtml(tool_output)}</div>` +
+          // Content is initially collapsed. We intentionally do NOT escape here,
+          // to keep behavior consistent with ToolOutput.append/update (HTML-in).
+          `<div class='content' style='display:none' data-trusted='1'>${tool_output_html}</div>` +
         `</div>`
       );
     }
