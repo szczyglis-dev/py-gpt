@@ -285,9 +285,10 @@ def natsort(l: list) -> list:
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
-def mem_clean():
+def mem_clean(force: bool = False) -> bool:
     """Clean memory by removing unused objects"""
-    return
+    if not force:
+        return False
     import sys, gc
     ok = False
     try:

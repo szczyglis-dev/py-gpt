@@ -56,7 +56,8 @@ class Console:
             res = "\n" + self.window.core.debug.mem("Console")
             self.log(res)
         elif msg == "free":
-            mem_clean()
+            self.window.controller.ctx.fresh_current_output()
+            mem_clean(force=True)
             self.log("Memory cleaned")
         elif msg in ["quit", "exit", "/q"]:
             self.window.close()
