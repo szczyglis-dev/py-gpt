@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 import os
 from typing import Optional, List, Dict
 
+import httpx
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
@@ -226,3 +227,14 @@ class BaseLLM:
             mode=MODE_CHAT,
             model=model,
         )
+
+    def inject_llamaindex_http_clients(self, args: dict, cfg) -> dict:
+        import httpx
+        proxy = (cfg.get("api_proxy") or "").strip()  # e.g. "http://user:pass@host:3128"
+        common_kwargs = dict(timeout=60.0, follow_redirects=True)
+        if proxy:
+            common_kwargs["proxy"] = proxy  # httpx>=0.28
+
+        args["http_client"] = httpx.Client(**common_kwargs)
+        args["async_http_client"] = httpx.AsyncClient(**common_kwargs)
+        return args

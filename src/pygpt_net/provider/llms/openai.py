@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -97,6 +97,7 @@ class OpenAILLM(BaseLLM):
         if "model" not in args:
             args["model"] = model.id
 
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         if window.core.config.get('api_use_responses_llama', False):
             tools = []
             tools = window.core.api.openai.remote_tools.append_to_tools(
@@ -153,6 +154,8 @@ class OpenAILLM(BaseLLM):
             args["api_key"] = window.core.config.get("api_key", "")
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
+
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAIEmbedding(**args)
 
     def get_models(

@@ -47,6 +47,7 @@ class LocalLLM(BaseLLM):
             }, window)
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILikeEmbedding(**args)
 
     def llama(
@@ -71,4 +72,5 @@ class LocalLLM(BaseLLM):
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILike(**args)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -84,6 +84,11 @@ class xAILLM(BaseLLM):
             args["api_key"] = window.core.config.get("api_key_xai", "")
         if "api_base" not in args or args["api_base"] == "":
             args["api_base"] = window.core.config.get("api_endpoint_xai", "https://api.x.ai/v1")
+        if "is_chat_model" not in args:
+            args["is_chat_model"] = True
+        if "is_function_calling_model" not in args:
+            args["is_function_calling_model"] = model.tool_calls
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILike(**args)
 
     def llama_multimodal(
@@ -108,23 +113,78 @@ class xAILLM(BaseLLM):
             config: Optional[List[Dict]] = None
     ) -> BaseEmbedding:
         """
-        Return provider instance for embeddings
+        Return provider instance for embeddings (xAI)
 
         :param window: window instance
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        from .llama_index.x_ai.embedding import XAIEmbedding
-        args = {}
+        from .llama_index.x_ai.embedding import XAIEmbedding as BaseXAIEmbedding
+
+        cfg = window.core.config
+
+        args: Dict = {}
         if config is not None:
-            args = self.parse_args({
-                "args": config,
-            }, window)
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_xai", "")
+            args = self.parse_args({"args": config}, window)
+
+        if "api_key" not in args or not args["api_key"]:
+            args["api_key"] = cfg.get("api_key_xai", "")
+
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
-        return XAIEmbedding(**args)
+
+        # if OpenAI-compatible
+        if "api_base" not in args or not args["api_base"]:
+            args["api_base"] = cfg.get("api_endpoint_xai", "https://api.x.ai/v1")
+
+        proxy = cfg.get("api_proxy") or cfg.get("api_native_xai.proxy")
+        timeout = cfg.get("api_native_xai.timeout")
+
+        # 1) REST (OpenAI-compatible)
+        try_args = dict(args)
+        try:
+            try_args = self.inject_llamaindex_http_clients(try_args, cfg)
+            return BaseXAIEmbedding(**try_args)
+        except TypeError:
+            # goto gRPC
+            pass
+
+        # 2) Fallback: gRPC (xai_sdk)
+        def _build_xai_grpc_client(api_key: str, proxy_url: Optional[str], timeout_val: Optional[float]):
+            import os
+            import xai_sdk
+            kwargs = {"api_key": api_key}
+            if timeout_val is not None:
+                kwargs["timeout"] = timeout_val
+
+            # channel_options - 'grpc.http_proxy'
+            if proxy_url:
+                try:
+                    kwargs["channel_options"] = [("grpc.http_proxy", proxy_url)]
+                except TypeError:
+                    # ENV
+                    os.environ["grpc_proxy"] = proxy_url
+
+            try:
+                return xai_sdk.Client(**kwargs)
+            except TypeError:
+                if proxy_url:
+                    os.environ["grpc_proxy"] = proxy_url
+                return xai_sdk.Client(api_key=api_key)
+
+        xai_client = _build_xai_grpc_client(args.get("api_key", ""), proxy, timeout)
+
+        # gRPC
+        class XAIEmbeddingWithProxy(BaseXAIEmbedding):
+            def __init__(self, *a, injected_client=None, **kw):
+                super().__init__(*a, **kw)
+                if injected_client is not None:
+                    for attr in ("client", "_client", "_xai_client"):
+                        if hasattr(self, attr):
+                            setattr(self, attr, injected_client)
+                            break
+
+        return XAIEmbeddingWithProxy(**args, injected_client=xai_client)
 
     def get_models(
             self,

@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
@@ -82,6 +82,7 @@ class HuggingFaceRouterLLM(BaseLLM):
             args["model"] = model.id
         if "api_key" not in args or args["api_key"] == "":
             args["api_key"] = window.core.config.get("api_key_hugging_face", "")
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILike(**args)
 
     def llama_multimodal(
@@ -105,24 +106,35 @@ class HuggingFaceRouterLLM(BaseLLM):
             window,
             config: Optional[List[Dict]] = None
     ) -> BaseEmbedding:
-        """
-        Return provider instance for embeddings
+        from .hugging_face_embedding import (
+            HuggingFaceInferenceAPIEmbeddingWithProxy as HFEmbed,
+        )
 
-        :param window: window instance
-        :param config: config keyword arguments list
-        :return: Embedding provider instance
-        """
-        from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
-        args = {}
+        args: Dict = {}
         if config is not None:
-            args = self.parse_args({
-                "args": config,
-            }, window)
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_hugging_face", "")
+            args = self.parse_args({"args": config}, window)
+
+        # token / api_key
+        if "token" not in args:
+            if "api_key" in args:
+                args["token"] = args.pop("api_key")
+            else:
+                args["token"] = window.core.config.get("api_key_hugging_face", "")
+
+        # model_name alias
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
-        return HuggingFaceInferenceAPIEmbedding(**args)
+
+        # Inference Endpoint / router
+        base_url = window.core.config.get("api_endpoint_hugging_face", "").strip()
+        if base_url and "base_url" not in args:
+            args["base_url"] = base_url
+
+        # proxy + trust_env (async)
+        proxy = window.core.config.get("api_proxy") or window.core.config.get("api_native_hf.proxy")
+        trust_env = window.core.config.get("api_native_hf.trust_env", False)
+
+        return HFEmbed(proxy=proxy, trust_env=trust_env, **args)
 
     def get_models(
             self,

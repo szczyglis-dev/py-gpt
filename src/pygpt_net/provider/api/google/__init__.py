@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 import os
@@ -72,6 +72,12 @@ class ApiGoogle:
         filtered = {}
         if args.get("api_key"):
             filtered["api_key"] = args["api_key"]
+        if args.get("api_proxy"):
+            http_options = gtypes.HttpOptions(
+                client_args={"proxy": args["api_proxy"]},
+                async_client_args={"proxy": args["api_proxy"]},
+            )
+            filtered["http_options"] = http_options
 
         # setup VertexAI if enabled
         use_vertex = self.setup_env()

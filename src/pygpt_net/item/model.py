@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 import json
@@ -189,6 +189,9 @@ class ModelItem:
 
         :return: True if OpenAI Responses API compatible
         """
+        if self.provider not in ("openai", "azure_openai"):
+            return False
+
         if self.id.startswith("gpt-oss"):
             return False
 

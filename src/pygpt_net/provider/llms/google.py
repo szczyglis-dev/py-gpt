@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
 
+from google.genai import types as gtypes
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 
@@ -57,6 +58,7 @@ class GoogleLLM(BaseLLM):
             args["api_key"] = window.core.config.get("api_key_google", "")
 
         window.core.api.google.setup_env()  # setup VertexAI if configured
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return GoogleGenAI(**args)
 
     def get_embeddings_model(
@@ -83,6 +85,7 @@ class GoogleLLM(BaseLLM):
             args["model_name"] = args.pop("model")
 
         window.core.api.google.setup_env()  # setup VertexAI if configured
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return GoogleGenAIEmbedding(**args)
 
     def get_models(
@@ -105,3 +108,13 @@ class GoogleLLM(BaseLLM):
                 "name": id,  # TODO: token limit get from API
             })
         return items
+
+    def inject_llamaindex_http_clients(self, args: dict, cfg) -> dict:
+        proxy = cfg.get("api_proxy")
+        if proxy:
+            http_options = gtypes.HttpOptions(
+                client_args={"proxy": proxy},
+                async_client_args={"proxy": proxy},
+            )
+            args["http_options"] = http_options
+        return args

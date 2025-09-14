@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 01:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -64,6 +64,8 @@ class ApiAnthropic:
         filtered = {}
         if args.get("api_key"):
             filtered["api_key"] = args["api_key"]
+        if args.get("api_proxy"):
+            filtered["api_proxy"] = args["api_proxy"]
 
         # Optionally honor custom base_url if present in config (advanced)
         # base_url = self.window.core.config.get("api_native_anthropic.base_url", "").strip()

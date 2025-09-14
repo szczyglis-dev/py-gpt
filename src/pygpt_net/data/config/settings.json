@@ -53,22 +53,7 @@
         "secret": false,
         "advanced": false,
         "tab": "OpenAI"
-    },
-    "api_proxy": {
-        "section": "api_keys",
-        "type": "text",
-        "slider": false,
-        "label": "settings.api_proxy",
-        "description": "settings.api_proxy.desc",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "secret": false,
-        "advanced": false,
-        "tab": "OpenAI"
-    },
+    },    
     "api_use_responses": {
         "section": "api_keys",
         "type": "bool",
@@ -593,7 +578,20 @@
         "multiplier": 1,
         "step": 1,
         "advanced": false
-    },    
+    },     
+    "api_proxy": {
+        "section": "general",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_proxy",
+        "description": "settings.api_proxy.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false
+    },
     "theme.style": {
         "section": "layout",
         "type": "combo",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 23:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, List
@@ -52,6 +52,7 @@ class OpenRouterLLM(BaseLLM):
             args["api_base"] = window.core.config.get("api_endpoint_open_router", "")
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILikeEmbedding(**args)
 
     def llama(
@@ -80,6 +81,7 @@ class OpenRouterLLM(BaseLLM):
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILike(**args)
 
     def get_models(

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 import os
@@ -44,12 +44,41 @@ class MistralAILLM(BaseLLM):
         :return: LLM provider instance
         """
         from llama_index.llms.mistralai import MistralAI
+        class MistralAIWithProxy(MistralAI):
+            def __init__(self, *args, proxy: Optional[str] = None, **kwargs):
+                endpoint = kwargs.get("endpoint")
+                super().__init__(*args, **kwargs)
+                if not proxy:
+                    return
+
+                import httpx
+                from mistralai import Mistral
+                timeout = getattr(self, "timeout", 120)
+
+                try:
+                    sync_client = httpx.Client(proxy=proxy, timeout=timeout, follow_redirects=True)
+                    async_client = httpx.AsyncClient(proxy=proxy, timeout=timeout, follow_redirects=True)
+                except TypeError:
+                    sync_client = httpx.Client(proxies=proxy, timeout=timeout, follow_redirects=True)
+                    async_client = httpx.AsyncClient(proxies=proxy, timeout=timeout, follow_redirects=True)
+
+                sdk_kwargs = {
+                    "api_key": self.api_key,
+                    "client": sync_client,
+                    "async_client": async_client,
+                }
+                if endpoint:
+                    sdk_kwargs["server_url"] = endpoint
+
+                self._client = Mistral(**sdk_kwargs)
+
         args = self.parse_args(model.llama_index, window)
+        proxy = window.core.config.get("api_proxy") or None
         if "model" not in args:
             args["model"] = model.id
         if "api_key" not in args or args["api_key"] == "":
             args["api_key"] = window.core.config.get("api_key_mistral", "")
-        return MistralAI(**args)
+        return MistralAIWithProxy(**args, proxy=proxy)
 
     def get_embeddings_model(
             self,
@@ -64,6 +93,32 @@ class MistralAILLM(BaseLLM):
         :return: Embedding provider instance
         """
         from llama_index.embeddings.mistralai import MistralAIEmbedding
+        class MistralAIEmbeddingWithProxy(MistralAIEmbedding):
+            def __init__(self, *args, proxy: Optional[str] = None, api_key: Optional[str] = None, **kwargs):
+                captured_key = api_key or os.environ.get("MISTRAL_API_KEY", "")
+                super().__init__(*args, api_key=api_key, **kwargs)
+
+                if not proxy:
+                    return
+
+                import httpx
+                try:
+                    sync_client = httpx.Client(proxy=proxy, timeout=60.0, follow_redirects=True)
+                    async_client = httpx.AsyncClient(proxy=proxy, timeout=60.0, follow_redirects=True)
+                except TypeError:
+                    sync_client = httpx.Client(proxies=proxy, timeout=60.0, follow_redirects=True)
+                    async_client = httpx.AsyncClient(proxies=proxy, timeout=60.0, follow_redirects=True)
+
+                from mistralai import Mistral
+                server_url = os.environ.get("MISTRAL_ENDPOINT") or None
+                self._client = Mistral(
+                    api_key=captured_key,
+                    client=sync_client,
+                    async_client=async_client,
+                    **({"server_url": server_url} if server_url else {}),
+                )
+                if hasattr(self, "_mistralai_client"):
+                    self._mistralai_client = self._client
         args = {}
         if config is not None:
             args = self.parse_args({
@@ -73,7 +128,9 @@ class MistralAILLM(BaseLLM):
             args["api_key"] = window.core.config.get("api_key_mistral", "")
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
-        return MistralAIEmbedding(**args)
+
+        proxy = window.core.config.get("api_proxy") or None
+        return MistralAIEmbeddingWithProxy(**args, proxy=proxy)
 
     def init_embeddings(
             self,

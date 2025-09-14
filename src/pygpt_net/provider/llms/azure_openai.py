@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -94,6 +94,7 @@ class AzureOpenAILLM(BaseLLM):
             args["api_key"] = window.core.config.get("api_key", "")
         if "model" not in args:
             args["model"] = model.id
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return LlamaAzureOpenAI(**args)
 
     def get_embeddings_model(
@@ -118,4 +119,5 @@ class AzureOpenAILLM(BaseLLM):
             args["api_key"] = window.core.config.get("api_key", "")
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
         return AzureOpenAIEmbedding(**args)

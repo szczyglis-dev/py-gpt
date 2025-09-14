@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Optional
@@ -50,12 +50,35 @@ class AnthropicLLM(BaseLLM):
         :return: LLM provider instance
         """
         from llama_index.llms.anthropic import Anthropic
+        class AnthropicWithProxy(Anthropic):
+            def __init__(self, *args, proxy: str = None, **kwargs):
+                super().__init__(*args, **kwargs)
+                if not proxy:
+                    return
+
+                # sync
+                from anthropic import DefaultHttpxClient
+                self._client = self._client.with_options(
+                    http_client=DefaultHttpxClient(proxy=proxy)
+                )
+
+                # async
+                import httpx
+                try:
+                    async_http = httpx.AsyncClient(proxy=proxy)  # httpx >= 0.28
+                except TypeError:
+                    async_http = httpx.AsyncClient(proxies=proxy)  # httpx <= 0.27
+
+                self._aclient = self._aclient.with_options(http_client=async_http)
+
         args = self.parse_args(model.llama_index, window)
+        proxy = window.core.config.get("api_proxy", None)
         if "model" not in args:
             args["model"] = model.id
         if "api_key" not in args or args["api_key"] == "":
             args["api_key"] = window.core.config.get("api_key_anthropic", "")
-        return Anthropic(**args)
+
+        return AnthropicWithProxy(**args, proxy=proxy)
 
     def get_embeddings_model(
             self,
@@ -69,7 +92,7 @@ class AnthropicLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        from llama_index.embeddings.voyageai import VoyageEmbedding
+        from .voyage import VoyageEmbeddingWithProxy
         args = {}
         if config is not None:
             args = self.parse_args({
@@ -81,7 +104,16 @@ class AnthropicLLM(BaseLLM):
             args["voyage_api_key"] = window.core.config.get("api_key_voyage", "")
         if "model" in args and "model_name" not in args:
             args["model_name"] = args.pop("model")
-        return VoyageEmbedding(**args)
+
+        timeout = window.core.config.get("api_native_voyage.timeout")
+        max_retries = window.core.config.get("api_native_voyage.max_retries")
+        proxy = window.core.config.get("api_proxy")
+        return VoyageEmbeddingWithProxy(
+            **args,
+            proxy=proxy,
+            timeout=timeout,
+            max_retries=max_retries,
+        )
 
     def get_models(
             self,

@@ -23,6 +23,8 @@ The following basic options can be modified directly within the application:
 
 * ``OpenGL hardware acceleration``: enables hardware acceleration in `WebEngine / Chromium` renderer.  Default: False.
 
+* ``Proxy address``: Proxy address to be used for connection in API SDKs; supports HTTP/SOCKS, e.g. http://proxy.example.com or socks5://user:pass@host:port
+
 * ``Application environment (os.environ)``: Additional environment vars to set on application start.
 
 * ``Memory Limit``: Renderer memory limit; set to 0 to disable. If > 0, the app will try to free memory after the limit is reached. Accepted formats: 3.5GB, 2GB, 2048MB, 1_000_000. Minimum: 2GB.
@@ -34,8 +36,6 @@ The following basic options can be modified directly within the application:
 * ``OpenAI ORGANIZATION KEY``: The organization's API key, which is optional for use within the application.
 
 * ``API Endpoint``: OpenAI API endpoint URL, default: https://api.openai.com/v1.
-
-* ``Proxy address``: Proxy address to be used for connection; supports HTTP/SOCKS.
 
 * ``Anthropic API KEY``: Required for the Anthropic API and Claude models.
 
