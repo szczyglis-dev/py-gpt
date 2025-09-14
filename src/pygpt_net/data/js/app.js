@@ -1206,643 +1206,727 @@
       this.hlQueueSet.clear(); this.hlQueue.length = 0;
     }
   }
-
-     // ==========================================================================
-     // 4) Custom Markup Processor
-     // ==========================================================================
-
-     class CustomMarkup {
-       constructor(cfg, logger) {
-         this.cfg = cfg || { CUSTOM_MARKUP_RULES: [] };
-         this.logger = logger || new Logger(cfg);
-         this.__compiled = null;
-         this.__hasStreamRules = false; // Fast flag to skip stream work if not needed
-       }
-       _d(line, ctx) { try { this.logger.debug('CM', line, ctx); } catch (_) {} }
-
-       // Decode HTML entities once (safe)
-       // This addresses cases when linkify/full markdown path leaves literal "&quot;" etc. in text nodes.
-       // We decode only for rules that explicitly opt-in (see compile()) to avoid changing semantics globally.
-       decodeEntitiesOnce(s) {
-         if (!s || s.indexOf('&') === -1) return String(s || '');
-         const ta = CustomMarkup._decTA || (CustomMarkup._decTA = document.createElement('textarea'));
-         ta.innerHTML = s;
-         return ta.value;
-       }
-
-       // Small helper: escape text to safe HTML (shared Utils or fallback)
-       _escHtml(s) {
-         try { return Utils.escapeHtml(s); } catch (_) {
-           return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-         }
-       }
-
-       // quick check if any rule's open token is present in text (used to skip expensive work early)
-       hasAnyOpenToken(text, rules) {
-         if (!text || !rules || !rules.length) return false;
-         for (let i = 0; i < rules.length; i++) {
-           const r = rules[i];
-           if (!r || !r.open) continue;
-           if (text.indexOf(r.open) !== -1) return true;
-         }
-         return false;
-       }
-
-       // Build inner HTML from text according to rule's mode (markdown-inline | text) with optional entity decode.
-       _materializeInnerHTML(rule, text, MD) {
-         let payload = String(text || '');
-         if (rule && rule.decodeEntities && payload && payload.indexOf('&') !== -1) {
-           try { payload = this.decodeEntitiesOnce(payload); } catch (_) { /* keep original */ }
-         }
-         if (rule && rule.innerMode === 'markdown-inline' && MD && typeof MD.renderInline === 'function') {
-           try { return MD.renderInline(payload); } catch (_) { return this._escHtml(payload); }
-         }
-         return this._escHtml(payload);
-       }
-
-       // Make a DOM Fragment from HTML string (robust across contexts).
-       _fragmentFromHTML(html, ctxNode) {
-         let frag = null;
-         try {
-           const range = document.createRange();
-           const ctx = (ctxNode && ctxNode.parentNode) ? ctxNode.parentNode : (document.body || document.documentElement);
-           range.selectNode(ctx);
-           frag = range.createContextualFragment(String(html || ''));
-           return frag;
-         } catch (_) {
-           const tmp = document.createElement('div');
-           tmp.innerHTML = String(html || '');
-           frag = document.createDocumentFragment();
-           while (tmp.firstChild) frag.appendChild(tmp.firstChild);
-           return frag;
-         }
-       }
-
-       // Replace one element in DOM with HTML string (keeps siblings intact).
-       _replaceElementWithHTML(el, html) {
-         if (!el || !el.parentNode) return;
-         const parent = el.parentNode;
-         const frag = this._fragmentFromHTML(html, el);
-         try {
-           // Insert new nodes before the old element, then remove the old element (widely supported).
-           parent.insertBefore(frag, el);
-           parent.removeChild(el);
-         } catch (_) {
-           // Conservative fallback: wrap in a span if direct fragment insertion failed for some reason.
-           const tmp = document.createElement('span');
-           tmp.innerHTML = String(html || '');
-           while (tmp.firstChild) parent.insertBefore(tmp.firstChild, el);
-           parent.removeChild(el);
-         }
-       }
-
-       // Compile rules once; also precompile strict and whitespace-tolerant "full match" regexes.
-       compile(rules) {
-         const src = Array.isArray(rules) ? rules : (window.CUSTOM_MARKUP_RULES || this.cfg.CUSTOM_MARKUP_RULES || []);
-         const compiled = [];
-         let hasStream = false;
-
-         for (const r of src) {
-           if (!r || typeof r.open !== 'string' || typeof r.close !== 'string') continue;
-
-           const tag = (r.tag || 'span').toLowerCase();
-           const className = (r.className || r.class || '').trim();
-           const innerMode = (r.innerMode === 'markdown-inline' || r.innerMode === 'text') ? r.innerMode : 'text';
-
-           const stream = !!(r.stream === true);
-           const openReplace = String((r.openReplace != null ? r.openReplace : (r.openReplace || '')) || '');
-           const closeReplace = String((r.closeReplace != null ? r.closeReplace : (r.closeReplace || '')) || '');
-
-           // Back-compat: decode entities default true for cmd-like
-           const decodeEntities = (typeof r.decodeEntities === 'boolean')
-             ? r.decodeEntities
-             : ((r.name || '').toLowerCase() === 'cmd' || className === 'cmd');
-
-           // Optional application phase (where replacement should happen)
-           // - 'source' => before markdown-it
-           // - 'html'   => after markdown-it (DOM fragment)
-           // - 'both'
-           let phaseRaw = (typeof r.phase === 'string') ? r.phase.toLowerCase() : '';
-           if (phaseRaw !== 'source' && phaseRaw !== 'html' && phaseRaw !== 'both') phaseRaw = '';
-           // Heuristic: if replacement contains fenced code backticks, default to 'source'
-           const looksLikeFence = (openReplace.indexOf('```') !== -1) || (closeReplace.indexOf('```') !== -1);
-           const phase = phaseRaw || (looksLikeFence ? 'source' : 'html');
-
-           const re = new RegExp(Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close), 'g');
-           const reFull = new RegExp('^' + Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close) + '$');
-           const reFullTrim = new RegExp('^\\s*' + Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close) + '\\s*$');
-
-           const item = {
-             name: r.name || tag,
-             tag, className, innerMode,
-             open: r.open, close: r.close,
-             decodeEntities,
-             re, reFull, reFullTrim,
-             stream,
-             openReplace, closeReplace,
-             phase,                 // NEW: where this rule should be applied
-             isSourceFence: looksLikeFence // NEW: hints StreamEngine to treat as custom fence
-           };
-           compiled.push(item);
-           if (stream) hasStream = true;
-           this._d('COMPILE_RULE', { name: item.name, phase: item.phase, stream: item.stream });
-         }
-
-         if (compiled.length === 0) {
-           const open = '[!cmd]', close = '[/!cmd]';
-           const item = {
-             name: 'cmd', tag: 'p', className: 'cmd', innerMode: 'text', open, close,
-             decodeEntities: true,
-             re: new RegExp(Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close), 'g'),
-             reFull: new RegExp('^' + Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close) + '$'),
-             reFullTrim: new RegExp('^\\s*' + Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close) + '\\s*$'),
-             stream: false,
-             openReplace: '', closeReplace: '',
-             phase: 'html', isSourceFence: false
-           };
-           compiled.push(item);
-           this._d('COMPILE_RULE_FALLBACK', { name: item.name });
-         }
-
-         this.__hasStreamRules = hasStream;
-         return compiled;
-       }
-
-       // pre-markdown source transformer – applies only rules for 'source'/'both' with replacements
-       // IMPORTANT CHANGE:
-       // - Skips replacements inside fenced code blocks (``` / ~~~).
-       // - Applies only when the rule opener is at top-level of the line (no list markers/blockquote).
-       transformSource(src, opts) {
-         let s = String(src || '');
-         this.ensureCompiled();
-         const rules = this.__compiled;
-         if (!rules || !rules.length) return s;
-
-         // Pick only source-phase rules with explicit replacements
-         const candidates = [];
-         for (let i = 0; i < rules.length; i++) {
-           const r = rules[i];
-           if (!r) continue;
-           if ((r.phase === 'source' || r.phase === 'both') && (r.openReplace || r.closeReplace)) candidates.push(r);
-         }
-         if (!candidates.length) return s;
-
-         // Compute fenced-code ranges once to exclude them from replacements (production-safe).
-         const fences = this._findFenceRanges(s);
-         if (!fences.length) {
-           // No code fences in source; apply top-level guarded replacements globally.
-           return this._applySourceReplacementsInChunk(s, s, 0, candidates);
-         }
-
-         // Apply replacements only in segments outside fenced code.
-         let out = '';
-         let last = 0;
-         for (let k = 0; k < fences.length; k++) {
-           const [a, b] = fences[k];
-           if (a > last) {
-             const chunk = s.slice(last, a);
-             out += this._applySourceReplacementsInChunk(s, chunk, last, candidates);
-           }
-           out += s.slice(a, b); // pass fenced code verbatim
-           last = b;
-         }
-         if (last < s.length) {
-           const tail = s.slice(last);
-           out += this._applySourceReplacementsInChunk(s, tail, last, candidates);
-         }
-         return out;
-       }
-
-       // expose custom fence specs (to StreamEngine)
-       getSourceFenceSpecs() {
-         this.ensureCompiled();
-         const rules = this.__compiled || [];
-         const out = [];
-         for (let i = 0; i < rules.length; i++) {
-           const r = rules[i];
-           if (!r || !r.isSourceFence) continue;
-           // Only expose when they actually look like fences in source phase
-           if (r.phase !== 'source' && r.phase !== 'both') continue;
-           out.push({ open: r.open, close: r.close });
-         }
-         return out;
-       }
-
-       // Ensure rules are compiled and cached.
-       ensureCompiled() {
-         if (!this.__compiled) {
-           this.__compiled = this.compile(window.CUSTOM_MARKUP_RULES || this.cfg.CUSTOM_MARKUP_RULES);
-           this._d('ENSURE_COMPILED', { count: this.__compiled.length, hasStream: this.__hasStreamRules });
-         }
-         return this.__compiled;
-       }
-
-       // Replace rules set (also exposes rules on window).
-       setRules(rules) {
-         this.__compiled = this.compile(rules);
-         window.CUSTOM_MARKUP_RULES = Array.isArray(rules) ? rules.slice() : (this.cfg.CUSTOM_MARKUP_RULES || []).slice();
-         this._d('SET_RULES', { count: this.__compiled.length, hasStream: this.__hasStreamRules });
-       }
-
-       // Return current rules as array.
-       getRules() {
-         const list = (window.CUSTOM_MARKUP_RULES ? window.CUSTOM_MARKUP_RULES.slice()
-                                                  : (this.cfg.CUSTOM_MARKUP_RULES || []).slice());
-         this._d('GET_RULES', { count: list.length });
-         return list;
-       }
-
-       // Fast switch: do we have any rules that want streaming parsing?
-       hasStreamRules() {
-         this.ensureCompiled();
-         return !!this.__hasStreamRules;
-       }
-
-       // Context guards
-       isInsideForbiddenContext(node) {
-         const p = node.parentElement; if (!p) return true;
-         // IMPORTANT: exclude code/math/hljs/wrappers AND list contexts (ul/ol/li/dl/dt/dd)
-         return !!p.closest('pre, code, kbd, samp, var, script, style, textarea, .math-pending, .hljs, .code-wrapper, ul, ol, li, dl, dt, dd');
-       }
-       isInsideForbiddenElement(el) {
-         if (!el) return true;
-         // IMPORTANT: exclude code/math/hljs/wrappers AND list contexts (ul/ol/li/dl/dt/dd)
-         return !!el.closest('pre, code, kbd, samp, var, script, style, textarea, .math-pending, .hljs, .code-wrapper, ul, ol, li, dl, dt, dd');
-       }
-
-       // Global finder on a single text blob (original per-text-node logic).
-       findNextMatch(text, from, rules) {
-         let best = null;
-         for (const rule of rules) {
-           rule.re.lastIndex = from;
-           const m = rule.re.exec(text);
-           if (m) {
-             const start = m.index, end = rule.re.lastIndex;
-             if (!best || start < best.start) best = { rule, start, end, inner: m[1] || '' };
-           }
-         }
-         return best;
-       }
-
-       // Strict full match of a pure text node (legacy path).
-       findFullMatch(text, rules) {
-         for (const rule of rules) {
-           if (rule.reFull) {
-             const m = rule.reFull.exec(text);
-             if (m) return { rule, inner: m[1] || '' };
-           } else {
-             rule.re.lastIndex = 0;
-             const m = rule.re.exec(text);
-             if (m && m.index === 0 && (rule.re.lastIndex === text.length)) {
-               const m2 = rule.re.exec(text);
-               if (!m2) return { rule, inner: m[1] || '' };
-             }
-           }
-         }
-         return null;
-       }
-
-       // Set inner content according to the rule's mode, with optional entity decode (element mode).
-       setInnerByMode(el, mode, text, MD, decodeEntities = false) {
-         let payload = String(text || '');
-         if (decodeEntities && payload && payload.indexOf('&') !== -1) {
-           try { payload = this.decodeEntitiesOnce(payload); } catch (_) {}
-         }
-
-         if (mode === 'markdown-inline' && typeof window.markdownit !== 'undefined') {
-           try {
-             if (MD && typeof MD.renderInline === 'function') { el.innerHTML = MD.renderInline(payload); return; }
-             const tempMD = window.markdownit({ html: false, linkify: true, breaks: true, highlight: () => '' });
-             el.innerHTML = tempMD.renderInline(payload); return;
-           } catch (_) {}
-         }
-         el.textContent = payload;
-       }
-
-       // Try to replace an entire <p> that is a full custom markup match.
-       _tryReplaceFullParagraph(el, rules, MD) {
-         if (!el || el.tagName !== 'P') return false;
-         if (this.isInsideForbiddenElement(el)) {
-           this._d('P_SKIP_FORBIDDEN', { tag: el.tagName });
-           return false;
-         }
-         const t = el.textContent || '';
-         if (!this.hasAnyOpenToken(t, rules)) return false;
-
-         for (const rule of rules) {
-           if (!rule) continue;
-           const m = rule.reFullTrim ? rule.reFullTrim.exec(t) : null;
-           if (!m) continue;
-
-           const innerText = m[1] || '';
-
-           if (rule.phase !== 'html' && rule.phase !== 'both') continue; // element materialization is html-phase only
-
-           if (rule.openReplace || rule.closeReplace) {
-             const innerHTML = this._materializeInnerHTML(rule, innerText, MD);
-             const html = String(rule.openReplace || '') + innerHTML + String(rule.closeReplace || '');
-             this._replaceElementWithHTML(el, html);
-             this._d('P_REPLACED_AS_HTML', { rule: rule.name });
-             return true;
-           }
-
-           const outTag = (rule.tag && typeof rule.tag === 'string') ? rule.tag.toLowerCase() : 'span';
-           const out = document.createElement(outTag === 'p' ? 'p' : outTag);
-           if (rule.className) out.className = rule.className;
-           out.setAttribute('data-cm', rule.name);
-           this.setInnerByMode(out, rule.innerMode, innerText, MD, !!rule.decodeEntities);
-
-           try { el.replaceWith(out); } catch (_) {
-             const par = el.parentNode; if (par) par.replaceChild(out, el);
-           }
-           this._d('P_REPLACED', { rule: rule.name, asTag: outTag });
-           return true;
-         }
-         this._d('P_NO_FULL_MATCH', { preview: this.logger.pv(t, 160) });
-         return false;
-       }
-
-       // Core implementation shared by static and streaming passes.
-       applyRules(root, MD, rules) {
-         if (!root || !rules || !rules.length) return;
-
-         const scope = (root.nodeType === 1 || root.nodeType === 11) ? root : document;
-
-         // Phase 1: tolerant <p> replacements
-         try {
-           const paragraphs = (typeof scope.querySelectorAll === 'function') ? scope.querySelectorAll('p') : [];
-           this._d('P_TOLERANT_SCAN_START', { count: paragraphs.length });
-
-           if (paragraphs && paragraphs.length) {
-             for (let i = 0; i < paragraphs.length; i++) {
-               const p = paragraphs[i];
-               if (p && p.getAttribute && p.getAttribute('data-cm')) continue;
-               const tc = p && (p.textContent || '');
-               if (!tc || !this.hasAnyOpenToken(tc, rules)) continue;
-               // Skip paragraphs inside forbidden contexts (includes lists now)
-               if (this.isInsideForbiddenElement(p)) continue;
-               this._tryReplaceFullParagraph(p, rules, MD);
-             }
-           }
-         } catch (e) {
-           this._d('P_TOLERANT_SCAN_ERR', String(e));
-         }
-
-         // Phase 2: legacy per-text-node pass for partial inline cases.
-         const self = this;
-         const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-           acceptNode: (node) => {
-             const val = node && node.nodeValue ? node.nodeValue : '';
-             if (!val || !self.hasAnyOpenToken(val, rules)) return NodeFilter.FILTER_SKIP;
-             if (self.isInsideForbiddenContext(node)) return NodeFilter.FILTER_REJECT;
-             return NodeFilter.FILTER_ACCEPT;
-           }
-         });
-
-         let node;
-         while ((node = walker.nextNode())) {
-           const text = node.nodeValue;
-           if (!text || !this.hasAnyOpenToken(text, rules)) continue; // quick skip
-           const parent = node.parentElement;
-
-           // Entire text node equals one full match and parent is <p>.
-           if (parent && parent.tagName === 'P' && parent.childNodes.length === 1) {
-             const fm = this.findFullMatch(text, rules);
-             if (fm) {
-               // If explicit HTML replacements are provided, swap <p> for exact HTML (only for html/both phase).
-               if ((fm.rule.phase === 'html' || fm.rule.phase === 'both') && (fm.rule.openReplace || fm.rule.closeReplace)) {
-                 const innerHTML = this._materializeInnerHTML(fm.rule, fm.inner, MD);
-                 const html = String(fm.rule.openReplace || '') + innerHTML + String(fm.rule.closeReplace || '');
-                 this._replaceElementWithHTML(parent, html);
-                 this._d('WALKER_FULL_REPLACE_HTML', { rule: fm.rule.name, preview: this.logger.pv(text, 160) });
-                 continue;
-               }
-
-               // Backward-compatible: only replace as <p> when rule tag is 'p'
-               if (fm.rule.tag === 'p') {
-                 const out = document.createElement('p');
-                 if (fm.rule.className) out.className = fm.rule.className;
-                 out.setAttribute('data-cm', fm.rule.name);
-                 this.setInnerByMode(out, fm.rule.innerMode, fm.inner, MD, !!fm.rule.decodeEntities);
-                 try { parent.replaceWith(out); } catch (_) {
-                   const par = parent.parentNode; if (par) par.replaceChild(out, parent);
-                 }
-                 this._d('WALKER_FULL_REPLACE', { rule: fm.rule.name, preview: this.logger.pv(text, 160) });
-                 continue;
-               }
-             }
-           }
-
-           // General inline replacement inside the text node (span-like or HTML-replace).
-           let i = 0;
-           let didReplace = false;
-           const frag = document.createDocumentFragment();
-
-           while (i < text.length) {
-             const m = this.findNextMatch(text, i, rules);
-             if (!m) break;
-
-             if (m.start > i) {
-               frag.appendChild(document.createTextNode(text.slice(i, m.start)));
-             }
-
-             // If HTML replacements are provided, build exact HTML around processed inner – only for html/both phase.
-             if ((m.rule.openReplace || m.rule.closeReplace) && (m.rule.phase === 'html' || m.rule.phase === 'both')) {
-               const innerHTML = this._materializeInnerHTML(m.rule, m.inner, MD);
-               const html = String(m.rule.openReplace || '') + innerHTML + String(m.rule.closeReplace || '');
-               const part = this._fragmentFromHTML(html, node);
-               frag.appendChild(part);
-               this._d('WALKER_INLINE_MATCH_HTML', { rule: m.rule.name, start: m.start, end: m.end });
-               i = m.end; didReplace = true; continue;
-             }
-
-             // If rule is not html-phase, do NOT inject open/close replacements here (source-only rules are handled pre-md).
-             if (m.rule.openReplace || m.rule.closeReplace) {
-               // Source-only replacement met in DOM pass – keep original text verbatim for this match.
-               frag.appendChild(document.createTextNode(text.slice(m.start, m.end)));
-               this._d('WALKER_INLINE_SKIP_SOURCE_PHASE_HTML', { rule: m.rule.name, start: m.start, end: m.end });
-               i = m.end; didReplace = true; continue;
-             }
-
-             // Element-based inline replacement (original behavior).
-             const tag = (m.rule.tag === 'p') ? 'span' : m.rule.tag;
-             const el = document.createElement(tag);
-             if (m.rule.className) el.className = m.rule.className;
-             el.setAttribute('data-cm', m.rule.name);
-             this.setInnerByMode(el, m.rule.innerMode, m.inner, MD, !!m.rule.decodeEntities);
-             frag.appendChild(el);
-             this._d('WALKER_INLINE_MATCH', { rule: m.rule.name, start: m.start, end: m.end });
-
-             i = m.end;
-             didReplace = true;
-           }
-
-           if (!didReplace) continue;
-
-           if (i < text.length) {
-             frag.appendChild(document.createTextNode(text.slice(i)));
-           }
-
-           const parentNode = node.parentNode;
-           if (parentNode) {
-             parentNode.replaceChild(frag, node);
-             this._d('WALKER_INLINE_DONE', { preview: this.logger.pv(text, 120) });
-           }
-         }
-       }
-
-       // Public API: apply custom markup for full (static) paths – unchanged behavior.
-       apply(root, MD) {
-         this.ensureCompiled();
-         this.applyRules(root, MD, this.__compiled);
-       }
-
-       // Public API: apply only stream-enabled rules (used in snapshots).
-       applyStream(root, MD) {
-         this.ensureCompiled();
-         if (!this.__hasStreamRules) return;
-         const rules = this.__compiled.filter(r => !!r.stream);
-         if (!rules.length) return;
-         this.applyRules(root, MD, rules);
-       }
-
-       // -----------------------------
-       // INTERNAL HELPERS (NEW)
-       // -----------------------------
-
-       // Scan source and return ranges [start, end) of fenced code blocks (``` or ~~~).
-       // Matches Markdown fences at line-start with up to 3 spaces/tabs indentation.
-       _findFenceRanges(s) {
-         const ranges = [];
-         const n = s.length;
-         let i = 0;
-         let inFence = false;
-         let fenceMark = '';
-         let fenceLen = 0;
-         let startLineStart = 0;
-
-         while (i < n) {
-           const lineStart = i;
-           // Find line end and newline length
-           let j = lineStart;
-           while (j < n && s.charCodeAt(j) !== 10 && s.charCodeAt(j) !== 13) j++;
-           const lineEnd = j;
-           let nl = 0;
-           if (j < n) {
-             if (s.charCodeAt(j) === 13 && j + 1 < n && s.charCodeAt(j + 1) === 10) nl = 2;
-             else nl = 1;
-           }
-
-           // Compute indentation up to 3 "spaces" (tabs count as 1 here – safe heuristic)
-           let k = lineStart;
-           let indent = 0;
-           while (k < lineEnd) {
-             const c = s.charCodeAt(k);
-             if (c === 32 /* space */) { indent++; if (indent > 3) break; k++; }
-             else if (c === 9 /* tab */) { indent++; if (indent > 3) break; k++; }
-             else break;
-           }
-
-           if (!inFence) {
-             if (indent <= 3 && k < lineEnd) {
-               const ch = s.charCodeAt(k);
-               if (ch === 0x60 /* ` */ || ch === 0x7E /* ~ */) {
-                 const mark = String.fromCharCode(ch);
-                 let m = k;
-                 while (m < lineEnd && s.charCodeAt(m) === ch) m++;
-                 const run = m - k;
-                 if (run >= 3) {
-                   inFence = true;
-                   fenceMark = mark;
-                   fenceLen = run;
-                   startLineStart = lineStart;
-                 }
-               }
-             }
-           } else {
-             if (indent <= 3 && k < lineEnd && s.charCodeAt(k) === fenceMark.charCodeAt(0)) {
-               let m = k;
-               while (m < lineEnd && s.charCodeAt(m) === fenceMark.charCodeAt(0)) m++;
-               const run = m - k;
-               if (run >= fenceLen) {
-                 // Only whitespace is allowed after closing fence on the same line
-                 let onlyWS = true;
-                 for (let t = m; t < lineEnd; t++) {
-                   const cc = s.charCodeAt(t);
-                   if (cc !== 32 && cc !== 9) { onlyWS = false; break; }
-                 }
-                 if (onlyWS) {
-                   const endIdx = lineEnd + nl; // include trailing newline if present
-                   ranges.push([startLineStart, endIdx]);
-                   inFence = false; fenceMark = ''; fenceLen = 0; startLineStart = 0;
-                 }
-               }
-             }
-           }
-           i = lineEnd + nl;
-         }
-
-         // If EOF while still in fence, mark until end of string.
-         if (inFence) ranges.push([startLineStart, n]);
-         return ranges;
-       }
-
-       // Check if match starts at "top-level" of a line:
-       // - up to 3 leading spaces/tabs allowed
-       // - not a list item marker ("- ", "+ ", "* ", "1. ", "1) ") and not a blockquote ("> ")
-       // - nothing else precedes the token on the same line
-       _isTopLevelLineInSource(s, absIdx) {
-         let ls = absIdx;
-         while (ls > 0) {
-           const ch = s.charCodeAt(ls - 1);
-           if (ch === 10 /* \n */ || ch === 13 /* \r */) break;
-           ls--;
-         }
-         const prefix = s.slice(ls, absIdx);
-
-         // Strip up to 3 leading "spaces" (tabs treated as 1 – acceptable heuristic)
-         let i = 0, indent = 0;
-         while (i < prefix.length) {
-           const c = prefix.charCodeAt(i);
-           if (c === 32) { indent++; if (indent > 3) break; i++; }
-           else if (c === 9) { indent++; if (indent > 3) break; i++; }
-           else break;
-         }
-         if (indent > 3) return false;
-         const rest = prefix.slice(i);
-
-         // Reject lists/blockquote
-         if (/^>\s?/.test(rest)) return false;
-         if (/^[-+*]\s/.test(rest)) return false;
-         if (/^\d+[.)]\s/.test(rest)) return false;
-
-         // If any other non-whitespace text precedes the token on this line – not top-level
-         if (rest.trim().length > 0) return false;
-
-         return true;
-       }
-
-       // Apply source-phase replacements to one outside-of-fence chunk with top-level guard.
-       _applySourceReplacementsInChunk(full, chunk, baseOffset, rules) {
-         let t = chunk;
-         for (let i = 0; i < rules.length; i++) {
-           const r = rules[i];
-           if (!r || !(r.openReplace || r.closeReplace)) continue;
-           try {
-             r.re.lastIndex = 0;
-             t = t.replace(r.re, (match, inner, offset /*, ...rest*/) => {
-               const abs = baseOffset + (offset | 0);
-               // Only apply when opener is at top-level on that line (not in lists/blockquote)
-               if (!this._isTopLevelLineInSource(full, abs)) return match;
-               const open = r.openReplace || '';
-               const close = r.closeReplace || '';
-               return open + (inner || '') + close;
-             });
-           } catch (_) { /* keep chunk as is on any error */ }
-         }
-         return t;
-       }
-     }
+    // ==========================================================================
+    // 4) Custom Markup Processor
+    // ==========================================================================
+
+    class CustomMarkup {
+      constructor(cfg, logger) {
+        this.cfg = cfg || { CUSTOM_MARKUP_RULES: [] };
+        this.logger = logger || new Logger(cfg);
+        this.__compiled = null;
+        this.__hasStreamRules = false; // Fast flag to skip stream work if not needed
+      }
+      _d(line, ctx) { try { this.logger.debug('CM', line, ctx); } catch (_) {} }
+
+      // Decode HTML entities once (safe)
+      // This addresses cases when linkify/full markdown path leaves literal "&quot;" etc. in text nodes.
+      // We decode only for rules that explicitly opt-in (see compile()) to avoid changing semantics globally.
+      decodeEntitiesOnce(s) {
+        if (!s || s.indexOf('&') === -1) return String(s || '');
+        const ta = CustomMarkup._decTA || (CustomMarkup._decTA = document.createElement('textarea'));
+        ta.innerHTML = s;
+        return ta.value;
+      }
+
+      // Small helper: escape text to safe HTML (shared Utils or fallback)
+      _escHtml(s) {
+        try { return Utils.escapeHtml(s); } catch (_) {
+          return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+        }
+      }
+
+      // quick check if any rule's open token is present in text (used to skip expensive work early)
+      hasAnyOpenToken(text, rules) {
+        if (!text || !rules || !rules.length) return false;
+        for (let i = 0; i < rules.length; i++) {
+          const r = rules[i];
+          if (!r || !r.open) continue;
+          if (text.indexOf(r.open) !== -1) return true;
+        }
+        return false;
+      }
+
+      // Build inner HTML from text according to rule's mode (markdown-inline | text) with optional entity decode.
+      _materializeInnerHTML(rule, text, MD) {
+        let payload = String(text || '');
+        if (rule && rule.decodeEntities && payload && payload.indexOf('&') !== -1) {
+          try { payload = this.decodeEntitiesOnce(payload); } catch (_) { /* keep original */ }
+        }
+        if (rule && rule.innerMode === 'markdown-inline' && MD && typeof MD.renderInline === 'function') {
+          try { return MD.renderInline(payload); } catch (_) { return this._escHtml(payload); }
+        }
+        return this._escHtml(payload);
+      }
+
+      // Make a DOM Fragment from HTML string (robust across contexts).
+      _fragmentFromHTML(html, ctxNode) {
+        let frag = null;
+        try {
+          const range = document.createRange();
+          const ctx = (ctxNode && ctxNode.parentNode) ? ctxNode.parentNode : (document.body || document.documentElement);
+          range.selectNode(ctx);
+          frag = range.createContextualFragment(String(html || ''));
+          return frag;
+        } catch (_) {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = String(html || '');
+          frag = document.createDocumentFragment();
+          while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+          return frag;
+        }
+      }
+
+      // Replace one element in DOM with HTML string (keeps siblings intact).
+      _replaceElementWithHTML(el, html) {
+        if (!el || !el.parentNode) return;
+        const parent = el.parentNode;
+        const frag = this._fragmentFromHTML(html, el);
+        try {
+          // Insert new nodes before the old element, then remove the old element (widely supported).
+          parent.insertBefore(frag, el);
+          parent.removeChild(el);
+        } catch (_) {
+          // Conservative fallback: wrap in a span if direct fragment insertion failed for some reason.
+          const tmp = document.createElement('span');
+          tmp.innerHTML = String(html || '');
+          while (tmp.firstChild) parent.insertBefore(tmp.firstChild, el);
+          parent.removeChild(el);
+        }
+      }
+
+      // Compile rules once; also precompile strict and whitespace-tolerant "full match" regexes.
+      compile(rules) {
+        const src = Array.isArray(rules) ? rules : (window.CUSTOM_MARKUP_RULES || this.cfg.CUSTOM_MARKUP_RULES || []);
+        const compiled = [];
+        let hasStream = false;
+
+        for (const r of src) {
+          if (!r || typeof r.open !== 'string' || typeof r.close !== 'string') continue;
+
+          const tag = (r.tag || 'span').toLowerCase();
+          const className = (r.className || r.class || '').trim();
+          const innerMode = (r.innerMode === 'markdown-inline' || r.innerMode === 'text') ? r.innerMode : 'text';
+
+          const stream = !!(r.stream === true);
+          const openReplace = String((r.openReplace != null ? r.openReplace : (r.openReplace || '')) || '');
+          const closeReplace = String((r.closeReplace != null ? r.closeReplace : (r.closeReplace || '')) || '');
+
+          // Back-compat: decode entities default true for cmd-like
+          const decodeEntities = (typeof r.decodeEntities === 'boolean')
+            ? r.decodeEntities
+            : ((r.name || '').toLowerCase() === 'cmd' || className === 'cmd');
+
+          // Optional application phase (where replacement should happen)
+          // - 'source' => before markdown-it
+          // - 'html'   => after markdown-it (DOM fragment)
+          // - 'both'
+          let phaseRaw = (typeof r.phase === 'string') ? r.phase.toLowerCase() : '';
+          if (phaseRaw !== 'source' && phaseRaw !== 'html' && phaseRaw !== 'both') phaseRaw = '';
+          // Heuristic: if replacement contains fenced code backticks, default to 'source'
+          const looksLikeFence = (openReplace.indexOf('```') !== -1) || (closeReplace.indexOf('```') !== -1);
+          const phase = phaseRaw || (looksLikeFence ? 'source' : 'html');
+
+          const re = new RegExp(Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close), 'g');
+          const reFull = new RegExp('^' + Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close) + '$');
+          const reFullTrim = new RegExp('^\\s*' + Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close) + '\\s*$');
+
+          const item = {
+            name: r.name || tag,
+            tag, className, innerMode,
+            open: r.open, close: r.close,
+            decodeEntities,
+            re, reFull, reFullTrim,
+            stream,
+            openReplace, closeReplace,
+            phase,                 // where this rule should be applied
+            isSourceFence: looksLikeFence // hints StreamEngine to treat as custom fence
+          };
+          compiled.push(item);
+          if (stream) hasStream = true;
+          this._d('COMPILE_RULE', { name: item.name, phase: item.phase, stream: item.stream });
+        }
+
+        if (compiled.length === 0) {
+          const open = '[!cmd]', close = '[/!cmd]';
+          const item = {
+            name: 'cmd', tag: 'p', className: 'cmd', innerMode: 'text', open, close,
+            decodeEntities: true,
+            re: new RegExp(Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close), 'g'),
+            reFull: new RegExp('^' + Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close) + '$'),
+            reFullTrim: new RegExp('^\\s*' + Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close) + '\\s*$'),
+            stream: false,
+            openReplace: '', closeReplace: '',
+            phase: 'html', isSourceFence: false
+          };
+          compiled.push(item);
+          this._d('COMPILE_RULE_FALLBACK', { name: item.name });
+        }
+
+        this.__hasStreamRules = hasStream;
+        return compiled;
+      }
+
+      // pre-markdown source transformer – applies only rules for 'source'/'both' with replacements
+      // - Skips replacements inside fenced code blocks (``` / ~~~).
+      // - Applies only when the rule opener is at top-level of the line (no list markers/blockquote).
+      transformSource(src, opts) {
+        let s = String(src || '');
+        this.ensureCompiled();
+        const rules = this.__compiled;
+        if (!rules || !rules.length) return s;
+
+        // Pick only source-phase rules with explicit replacements
+        const candidates = [];
+        for (let i = 0; i < rules.length; i++) {
+          const r = rules[i];
+          if (!r) continue;
+          if ((r.phase === 'source' || r.phase === 'both') && (r.openReplace || r.closeReplace)) candidates.push(r);
+        }
+        if (!candidates.length) return s;
+
+        // Compute fenced-code ranges once to exclude them from replacements (production-safe).
+        const fences = this._findFenceRanges(s);
+        if (!fences.length) {
+          // No code fences in source; apply top-level guarded replacements globally.
+          return this._applySourceReplacementsInChunk(s, s, 0, candidates);
+        }
+
+        // Apply replacements only in segments outside fenced code.
+        let out = '';
+        let last = 0;
+        for (let k = 0; k < fences.length; k++) {
+          const [a, b] = fences[k];
+          if (a > last) {
+            const chunk = s.slice(last, a);
+            out += this._applySourceReplacementsInChunk(s, chunk, last, candidates);
+          }
+          out += s.slice(a, b); // pass fenced code verbatim
+          last = b;
+        }
+        if (last < s.length) {
+          const tail = s.slice(last);
+          out += this._applySourceReplacementsInChunk(s, tail, last, candidates);
+        }
+        return out;
+      }
+
+      // expose custom fence specs (to StreamEngine)
+      getSourceFenceSpecs() {
+        this.ensureCompiled();
+        const rules = this.__compiled || [];
+        const out = [];
+        for (let i = 0; i < rules.length; i++) {
+          const r = rules[i];
+          if (!r || !r.isSourceFence) continue;
+          // Only expose when they actually look like fences in source phase
+          if (r.phase !== 'source' && r.phase !== 'both') continue;
+          out.push({ open: r.open, close: r.close });
+        }
+        return out;
+      }
+
+      // Ensure rules are compiled and cached.
+      ensureCompiled() {
+        if (!this.__compiled) {
+          this.__compiled = this.compile(window.CUSTOM_MARKUP_RULES || this.cfg.CUSTOM_MARKUP_RULES);
+          this._d('ENSURE_COMPILED', { count: this.__compiled.length, hasStream: this.__hasStreamRules });
+        }
+        return this.__compiled;
+      }
+
+      // Replace rules set (also exposes rules on window).
+      setRules(rules) {
+        this.__compiled = this.compile(rules);
+        window.CUSTOM_MARKUP_RULES = Array.isArray(rules) ? rules.slice() : (this.cfg.CUSTOM_MARKUP_RULES || []).slice();
+        this._d('SET_RULES', { count: this.__compiled.length, hasStream: this.__hasStreamRules });
+      }
+
+      // Return current rules as array.
+      getRules() {
+        const list = (window.CUSTOM_MARKUP_RULES ? window.CUSTOM_MARKUP_RULES.slice()
+                                                 : (this.cfg.CUSTOM_MARKUP_RULES || []).slice());
+        this._d('GET_RULES', { count: list.length });
+        return list;
+      }
+
+      // Fast switch: do we have any rules that want streaming parsing?
+      hasStreamRules() {
+        this.ensureCompiled();
+        return !!this.__hasStreamRules;
+      }
+
+      // Context guards
+      isInsideForbiddenContext(node) {
+        const p = node.parentElement; if (!p) return true;
+        // IMPORTANT: exclude code/math/hljs/wrappers AND list contexts (ul/ol/li/dl/dt/dd)
+        return !!p.closest('pre, code, kbd, samp, var, script, style, textarea, .math-pending, .hljs, .code-wrapper, ul, ol, li, dl, dt, dd');
+      }
+      isInsideForbiddenElement(el) {
+        if (!el) return true;
+        // IMPORTANT: exclude code/math/hljs/wrappers AND list contexts (ul/ol/li/dl/dt/dd)
+        return !!el.closest('pre, code, kbd, samp, var, script, style, textarea, .math-pending, .hljs, .code-wrapper, ul, ol, li, dl, dt, dd');
+      }
+
+      // Global finder on a single text blob (original per-text-node logic).
+      findNextMatch(text, from, rules) {
+        let best = null;
+        for (const rule of rules) {
+          rule.re.lastIndex = from;
+          const m = rule.re.exec(text);
+          if (m) {
+            const start = m.index, end = rule.re.lastIndex;
+            if (!best || start < best.start) best = { rule, start, end, inner: m[1] || '' };
+          }
+        }
+        return best;
+      }
+
+      // Strict full match of a pure text node (legacy path).
+      findFullMatch(text, rules) {
+        for (const rule of rules) {
+          if (rule.reFull) {
+            const m = rule.reFull.exec(text);
+            if (m) return { rule, inner: m[1] || '' };
+          } else {
+            rule.re.lastIndex = 0;
+            const m = rule.re.exec(text);
+            if (m && m.index === 0 && (rule.re.lastIndex === text.length)) {
+              const m2 = rule.re.exec(text);
+              if (!m2) return { rule: rule, inner: m[1] || '' };
+            }
+          }
+        }
+        return null;
+      }
+
+      // Set inner content according to the rule's mode, with optional entity decode (element mode).
+      setInnerByMode(el, mode, text, MD, decodeEntities = false) {
+        let payload = String(text || '');
+        if (decodeEntities && payload && payload.indexOf('&') !== -1) {
+          try { payload = this.decodeEntitiesOnce(payload); } catch (_) {}
+        }
+
+        if (mode === 'markdown-inline' && typeof window.markdownit !== 'undefined') {
+          try {
+            if (MD && typeof MD.renderInline === 'function') { el.innerHTML = MD.renderInline(payload); return; }
+            const tempMD = window.markdownit({ html: false, linkify: true, breaks: true, highlight: () => '' });
+            el.innerHTML = tempMD.renderInline(payload); return;
+          } catch (_) {}
+        }
+        el.textContent = payload;
+      }
+
+      // Try to replace an entire <p> that is a full custom markup match.
+      _tryReplaceFullParagraph(el, rules, MD) {
+        if (!el || el.tagName !== 'P') return false;
+        if (this.isInsideForbiddenElement(el)) {
+          this._d('P_SKIP_FORBIDDEN', { tag: el.tagName });
+          return false;
+        }
+        const t = el.textContent || '';
+        if (!this.hasAnyOpenToken(t, rules)) return false;
+
+        for (const rule of rules) {
+          if (!rule) continue;
+          const m = rule.reFullTrim ? rule.reFullTrim.exec(t) : null;
+          if (!m) continue;
+
+          const innerText = m[1] || '';
+
+          if (rule.phase !== 'html' && rule.phase !== 'both') continue; // element materialization is html-phase only
+
+          if (rule.openReplace || rule.closeReplace) {
+            const innerHTML = this._materializeInnerHTML(rule, innerText, MD);
+            const html = String(rule.openReplace || '') + innerHTML + String(rule.closeReplace || '');
+            this._replaceElementWithHTML(el, html);
+            this._d('P_REPLACED_AS_HTML', { rule: rule.name });
+            return true;
+          }
+
+          const outTag = (rule.tag && typeof rule.tag === 'string') ? rule.tag.toLowerCase() : 'span';
+          const out = document.createElement(outTag === 'p' ? 'p' : outTag);
+          if (rule.className) out.className = rule.className;
+          out.setAttribute('data-cm', rule.name);
+          this.setInnerByMode(out, rule.innerMode, innerText, MD, !!rule.decodeEntities);
+
+          try { el.replaceWith(out); } catch (_) {
+            const par = el.parentNode; if (par) par.replaceChild(out, el);
+          }
+          this._d('P_REPLACED', { rule: rule.name, asTag: outTag });
+          return true;
+        }
+        this._d('P_NO_FULL_MATCH', { preview: this.logger.pv(t, 160) });
+        return false;
+      }
+
+      // Core implementation shared by static and streaming passes.
+      applyRules(root, MD, rules) {
+        if (!root || !rules || !rules.length) return;
+
+        const scope = (root.nodeType === 1 || root.nodeType === 11) ? root : document;
+
+        // Phase 1: tolerant <p> replacements
+        try {
+          const paragraphs = (typeof scope.querySelectorAll === 'function') ? scope.querySelectorAll('p') : [];
+          this._d('P_TOLERANT_SCAN_START', { count: paragraphs.length });
+
+          if (paragraphs && paragraphs.length) {
+            for (let i = 0; i < paragraphs.length; i++) {
+              const p = paragraphs[i];
+              if (p && p.getAttribute && p.getAttribute('data-cm')) continue;
+              const tc = p && (p.textContent || '');
+              if (!tc || !this.hasAnyOpenToken(tc, rules)) continue;
+              // Skip paragraphs inside forbidden contexts (includes lists now)
+              if (this.isInsideForbiddenElement(p)) continue;
+              this._tryReplaceFullParagraph(p, rules, MD);
+            }
+          }
+        } catch (e) {
+          this._d('P_TOLERANT_SCAN_ERR', String(e));
+        }
+
+        // Phase 2: legacy per-text-node pass for partial inline cases.
+        const self = this;
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+          acceptNode: (node) => {
+            const val = node && node.nodeValue ? node.nodeValue : '';
+            if (!val || !self.hasAnyOpenToken(val, rules)) return NodeFilter.FILTER_SKIP;
+            if (self.isInsideForbiddenContext(node)) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+
+        let node;
+        while ((node = walker.nextNode())) {
+          const text = node.nodeValue;
+          if (!text || !this.hasAnyOpenToken(text, rules)) continue; // quick skip
+          const parent = node.parentElement;
+
+          // Entire text node equals one full match and parent is <p>.
+          if (parent && parent.tagName === 'P' && parent.childNodes.length === 1) {
+            const fm = this.findFullMatch(text, rules);
+            if (fm) {
+              // If explicit HTML replacements are provided, swap <p> for exact HTML (only for html/both phase).
+              if ((fm.rule.phase === 'html' || fm.rule.phase === 'both') && (fm.rule.openReplace || fm.rule.closeReplace)) {
+                const innerHTML = this._materializeInnerHTML(fm.rule, fm.inner, MD);
+                const html = String(fm.rule.openReplace || '') + innerHTML + String(fm.rule.closeReplace || '');
+                this._replaceElementWithHTML(parent, html);
+                this._d('WALKER_FULL_REPLACE_HTML', { rule: fm.rule.name, preview: this.logger.pv(text, 160) });
+                continue;
+              }
+
+              // Backward-compatible: only replace as <p> when rule tag is 'p'
+              if (fm.rule.tag === 'p') {
+                const out = document.createElement('p');
+                if (fm.rule.className) out.className = fm.rule.className;
+                out.setAttribute('data-cm', fm.rule.name);
+                this.setInnerByMode(out, fm.rule.innerMode, fm.inner, MD, !!fm.rule.decodeEntities);
+                try { parent.replaceWith(out); } catch (_) {
+                  const par = parent.parentNode; if (par) par.replaceChild(out, parent);
+                }
+                this._d('WALKER_FULL_REPLACE', { rule: fm.rule.name, preview: this.logger.pv(text, 160) });
+                continue;
+              }
+            }
+          }
+
+          // General inline replacement inside the text node (span-like or HTML-replace).
+          let i = 0;
+          let didReplace = false;
+          const frag = document.createDocumentFragment();
+
+          while (i < text.length) {
+            const m = this.findNextMatch(text, i, rules);
+            if (!m) break;
+
+            if (m.start > i) {
+              frag.appendChild(document.createTextNode(text.slice(i, m.start)));
+            }
+
+            // If HTML replacements are provided, build exact HTML around processed inner – only for html/both phase.
+            if ((m.rule.openReplace || m.rule.closeReplace) && (m.rule.phase === 'html' || m.rule.phase === 'both')) {
+              const innerHTML = this._materializeInnerHTML(m.rule, m.inner, MD);
+              const html = String(m.rule.openReplace || '') + innerHTML + String(m.rule.closeReplace || '');
+              const part = this._fragmentFromHTML(html, node);
+              frag.appendChild(part);
+              this._d('WALKER_INLINE_MATCH_HTML', { rule: m.rule.name, start: m.start, end: m.end });
+              i = m.end; didReplace = true; continue;
+            }
+
+            // If rule is not html-phase, do NOT inject open/close replacements here (source-only rules are handled pre-md).
+            if (m.rule.openReplace || m.rule.closeReplace) {
+              // Source-only replacement met in DOM pass – keep original text verbatim for this match.
+              frag.appendChild(document.createTextNode(text.slice(m.start, m.end)));
+              this._d('WALKER_INLINE_SKIP_SOURCE_PHASE_HTML', { rule: m.rule.name, start: m.start, end: m.end });
+              i = m.end; didReplace = true; continue;
+            }
+
+            // Element-based inline replacement (original behavior).
+            const tag = (m.rule.tag === 'p') ? 'span' : m.rule.tag;
+            const el = document.createElement(tag);
+            if (m.rule.className) el.className = m.rule.className;
+            el.setAttribute('data-cm', m.rule.name);
+            this.setInnerByMode(el, m.rule.innerMode, m.inner, MD, !!m.rule.decodeEntities);
+            frag.appendChild(el);
+            this._d('WALKER_INLINE_MATCH', { rule: m.rule.name, start: m.start, end: m.end });
+
+            i = m.end;
+            didReplace = true;
+          }
+
+          if (!didReplace) continue;
+
+          if (i < text.length) {
+            frag.appendChild(document.createTextNode(text.slice(i)));
+          }
+
+          const parentNode = node.parentNode;
+          if (parentNode) {
+            parentNode.replaceChild(frag, node);
+            this._d('WALKER_INLINE_DONE', { preview: this.logger.pv(text, 120) });
+          }
+        }
+      }
+
+      // Public API: apply custom markup for full (static) paths – unchanged behavior.
+      apply(root, MD) {
+        this.ensureCompiled();
+        this.applyRules(root, MD, this.__compiled);
+      }
+
+      // Public API: apply only stream-enabled rules (used in snapshots).
+      applyStream(root, MD) {
+        this.ensureCompiled();
+        if (!this.__hasStreamRules) return;
+        const rules = this.__compiled.filter(r => !!r.stream);
+        if (!rules.length) return;
+
+        // Existing full open+close pass
+        this.applyRules(root, MD, rules);
+
+        // streaming-only partial opener fallback (begin materialization on open without close)
+        try { this.applyStreamPartialOpeners(root, MD, rules); } catch (_) {}
+      }
+
+      // -----------------------------
+      // INTERNAL HELPERS
+      // -----------------------------
+
+      // Streaming-only: begin replacement when an opening token is present without a closing token
+      // in the SAME text node. We wrap the tail after the opener into the target element and mark
+      // it as pending (data-cm-pending="1"). On subsequent snapshots (when a close arrives),
+      // the standard full-pass (applyRules) will supersede this.
+      applyStreamPartialOpeners(root, MD, rulesAll) {
+        if (!root) return;
+
+        // Consider only DOM-phase element rules (html/both) without explicit HTML replacements.
+        // Source-phase rules (e.g. exec fences) are intentionally excluded here to avoid changing
+        // code streaming semantics (handled by transformSource/StreamEngine).
+        const rules = (rulesAll || []).filter(r =>
+          (r && (r.phase === 'html' || r.phase === 'both') && !(r.openReplace || r.closeReplace))
+        );
+        if (!rules.length) return;
+
+        const scope = (root.nodeType === 1 || root.nodeType === 11) ? root : document;
+        const self = this;
+
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            const val = node && node.nodeValue ? node.nodeValue : '';
+            if (!val || !self.hasAnyOpenToken(val, rules)) return NodeFilter.FILTER_SKIP;
+            if (self.isInsideForbiddenContext(node)) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+
+        let node;
+        while ((node = walker.nextNode())) {
+          const text = node.nodeValue || '';
+          if (!text) continue;
+
+          // Find the last unmatched opener among eligible rules in this node.
+          let best = null; // { rule, start }
+          for (let i = 0; i < rules.length; i++) {
+            const r = rules[i];
+            if (!r || !r.open || !r.close) continue;
+
+            // Find last occurrence for better UX on multiple openers; keeps earlier content intact.
+            const idx = text.lastIndexOf(r.open);
+            if (idx === -1) continue;
+
+            // If a closing token for this rule exists after this opener within the same node,
+            // let the standard pass handle it (we only want truly unmatched opens).
+            const after = text.indexOf(r.close, idx + r.open.length);
+            if (after !== -1) continue;
+
+            if (!best || idx > best.start) best = { rule: r, start: idx };
+          }
+
+          if (!best) continue;
+
+          // Build fragment: keep prefix as text, wrap the tail into the rule element and mark as pending.
+          const r = best.rule;
+          const start = best.start;
+
+          const prefix = text.slice(0, start);
+          const tail = text.slice(start + r.open.length);
+          const frag = document.createDocumentFragment();
+
+          if (prefix) frag.appendChild(document.createTextNode(prefix));
+
+          const outTag = (r.tag && typeof r.tag === 'string') ? r.tag.toLowerCase() : 'span';
+          const el = document.createElement(outTag === 'p' ? 'span' : outTag); // never create <p> inline
+          if (r.className) el.className = r.className;
+          el.setAttribute('data-cm', r.name);
+          el.setAttribute('data-cm-pending', '1'); // allows styling/debug on "open-but-not-closed"
+
+          // Populate inner according to innerMode and decode policy.
+          this.setInnerByMode(el, r.innerMode, tail, MD, !!r.decodeEntities);
+          frag.appendChild(el);
+
+          try {
+            node.parentNode.replaceChild(frag, node);
+            this._d('STREAM_PENDING_OPEN_WRAP', { rule: r.name, start, open: r.open, preview: this.logger.pv(text, 160) });
+          } catch (_) {
+            // In the worst case, do nothing – keep original text node untouched.
+          }
+        }
+      }
+
+      // Scan source and return ranges [start, end) of fenced code blocks (``` or ~~~).
+      // Matches Markdown fences at line-start with up to 3 spaces/tabs indentation.
+      _findFenceRanges(s) {
+        const ranges = [];
+        const n = s.length;
+        let i = 0;
+        let inFence = false;
+        let fenceMark = '';
+        let fenceLen = 0;
+        let startLineStart = 0;
+
+        while (i < n) {
+          const lineStart = i;
+          // Find line end and newline length
+          let j = lineStart;
+          while (j < n && s.charCodeAt(j) !== 10 && s.charCodeAt(j) !== 13) j++;
+          const lineEnd = j;
+          let nl = 0;
+          if (j < n) {
+            if (s.charCodeAt(j) === 13 && j + 1 < n && s.charCodeAt(j + 1) === 10) nl = 2;
+            else nl = 1;
+          }
+
+          // Compute indentation up to 3 "spaces" (tabs count as 1 here – safe heuristic)
+          let k = lineStart;
+          let indent = 0;
+          while (k < lineEnd) {
+            const c = s.charCodeAt(k);
+            if (c === 32 /* space */) { indent++; if (indent > 3) break; k++; }
+            else if (c === 9 /* tab */) { indent++; if (indent > 3) break; k++; }
+            else break;
+          }
+
+          if (!inFence) {
+            if (indent <= 3 && k < lineEnd) {
+              const ch = s.charCodeAt(k);
+              if (ch === 0x60 /* ` */ || ch === 0x7E /* ~ */) {
+                const mark = String.fromCharCode(ch);
+                let m = k;
+                while (m < lineEnd && s.charCodeAt(m) === ch) m++;
+                const run = m - k;
+                if (run >= 3) {
+                  inFence = true;
+                  fenceMark = mark;
+                  fenceLen = run;
+                  startLineStart = lineStart;
+                }
+              }
+            }
+          } else {
+            if (indent <= 3 && k < lineEnd && s.charCodeAt(k) === fenceMark.charCodeAt(0)) {
+              let m = k;
+              while (m < lineEnd && s.charCodeAt(m) === fenceMark.charCodeAt(0)) m++;
+              const run = m - k;
+              if (run >= fenceLen) {
+                // Only whitespace is allowed after closing fence on the same line
+                let onlyWS = true;
+                for (let t = m; t < lineEnd; t++) {
+                  const cc = s.charCodeAt(t);
+                  if (cc !== 32 && cc !== 9) { onlyWS = false; break; }
+                }
+                if (onlyWS) {
+                  const endIdx = lineEnd + nl; // include trailing newline if present
+                  ranges.push([startLineStart, endIdx]);
+                  inFence = false; fenceMark = ''; fenceLen = 0; startLineStart = 0;
+                }
+              }
+            }
+          }
+          i = lineEnd + nl;
+        }
+
+        // If EOF while still in fence, mark until end of string.
+        if (inFence) ranges.push([startLineStart, n]);
+        return ranges;
+      }
+
+      // Check if match starts at "top-level" of a line:
+      // - up to 3 leading spaces/tabs allowed
+      // - not a list item marker ("- ", "+ ", "* ", "1. ", "1) ") and not a blockquote ("> ")
+      // - nothing else precedes the token on the same line
+      _isTopLevelLineInSource(s, absIdx) {
+        let ls = absIdx;
+        while (ls > 0) {
+          const ch = s.charCodeAt(ls - 1);
+          if (ch === 10 /* \n */ || ch === 13 /* \r */) break;
+          ls--;
+        }
+        const prefix = s.slice(ls, absIdx);
+
+        // Strip up to 3 leading "spaces" (tabs treated as 1 – acceptable heuristic)
+        let i = 0, indent = 0;
+        while (i < prefix.length) {
+          const c = prefix.charCodeAt(i);
+          if (c === 32) { indent++; if (indent > 3) break; i++; }
+          else if (c === 9) { indent++; if (indent > 3) break; i++; }
+          else break;
+        }
+        if (indent > 3) return false;
+        const rest = prefix.slice(i);
+
+        // Reject lists/blockquote
+        if (/^>\s?/.test(rest)) return false;
+        if (/^[-+*]\s/.test(rest)) return false;
+        if (/^\d+[.)]\s/.test(rest)) return false;
+
+        // If any other non-whitespace text precedes the token on this line – not top-level
+        if (rest.trim().length > 0) return false;
+
+        return true;
+      }
+
+      // Apply source-phase replacements to one outside-of-fence chunk with top-level guard.
+      _applySourceReplacementsInChunk(full, chunk, baseOffset, rules) {
+        let t = chunk;
+        for (let i = 0; i < rules.length; i++) {
+          const r = rules[i];
+          if (!r || !(r.openReplace || r.closeReplace)) continue;
+          try {
+            r.re.lastIndex = 0;
+            t = t.replace(r.re, (match, inner, offset /*, ...rest*/) => {
+              const abs = baseOffset + (offset | 0);
+              // Only apply when opener is at top-level on that line (not in lists/blockquote)
+              if (!this._isTopLevelLineInSource(full, abs)) return match;
+              const open = r.openReplace || '';
+              const close = r.closeReplace || '';
+              return open + (inner || '') + close;
+            });
+          } catch (_) { /* keep chunk as is on any error */ }
+        }
+        return t;
+      }
+    }
 
   // ==========================================================================
   // 5) Markdown runtime (markdown-it + code wrapper + math placeholders)

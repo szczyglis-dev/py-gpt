@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 23:00:00                  #
+# Updated Date: 2025.09.15 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -73,6 +73,15 @@ class Patch:
                     data["render.code_syntax.disabled"] = False
                 if "render.msg.user.collapse.px" not in data:
                     data["render.msg.user.collapse.px"] = 1500
+                updated = True
+
+            # < 2.6.46
+            if old < parse_version("2.6.46"):
+                print("Migrating config from < 2.6.46...")
+                # output stream margin-top: 0
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt_wide.css', True)
+                patch_css('web-blocks.css', True)
                 updated = True
 
         # update file
