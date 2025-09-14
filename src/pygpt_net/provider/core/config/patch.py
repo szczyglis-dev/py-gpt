@@ -82,6 +82,10 @@ class Patch:
                 patch_css('web-chatgpt.css', True)
                 patch_css('web-chatgpt_wide.css', True)
                 patch_css('web-blocks.css', True)
+                patch_css('style.dark.css', True)
+                patch_css('web-blocks.light.css', True)
+                patch_css('web-chatgpt.light.css', True)
+                patch_css('web-chatgpt_wide.light.css', True)
                 updated = True
 
         # update file

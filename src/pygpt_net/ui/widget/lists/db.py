@@ -79,6 +79,7 @@ class DatabaseList(QTableView):
         self.customContextMenuRequested.connect(
             lambda: self.create_context_menu(self)
         )
+        self.setProperty("class", "DebugList")
 
     def on_data_begin(self):
         """
