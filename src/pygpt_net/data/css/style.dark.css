@@ -134,3 +134,9 @@ QCalendarWidget QAbstractItemView::item:hover {{
 .file-explorer QTreeView::branch {{
   background: #262a2e;
 }}
+
+.DebugList::item:selected,
+.DebugList::item:selected:focus {{
+  color: #000;
+  selection-color: #000000;
+}}

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.45** | build: **2025-09-13** | Python: **>=3.10, <3.14**
+Release: **2.6.46** | build: **2025-09-15** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3495,6 +3495,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.46 (2025-09-15)**
+
+- Added: Global proxy settings for all API SDKs.
+- Fixed: xAI client configuration in Chat with Files.
+- Fixed: Top margin in streaming container.
+- Refactored: Debug workers.
 
 **2.6.45 (2025-09-13)**
 
