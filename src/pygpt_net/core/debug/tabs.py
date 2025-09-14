@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 17:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 class TabsDebug:
@@ -21,29 +21,35 @@ class TabsDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.core.debug.begin(self.id)
-        self.window.core.debug.add(self.id, 'current Col', str(self.window.controller.ui.tabs.get_current_column_idx()))
-        self.window.core.debug.add(self.id, 'current IDX', str(self.window.controller.ui.tabs.get_current_idx()))
-        self.window.core.debug.add(self.id, 'current Tab', str(self.window.controller.ui.tabs.get_current_tab()))
-        self.window.core.debug.add(self.id, 'current PID', str(self.window.controller.ui.tabs.get_current_pid()))
-        self.window.core.debug.add(self.id, 'current Type', str(self.window.controller.ui.tabs.get_current_type()))
-        self.window.core.debug.add(self.id, '----', '')
-        self.window.core.debug.add(self.id, 'last_pid', str(self.window.core.tabs.last_pid))
-        self.window.core.debug.add(self.id, 'locked', str(self.window.controller.ui.tabs.locked))
-        self.window.core.debug.add(self.id, 'col', str(self.window.controller.ui.tabs.col))
-        self.window.core.debug.add(self.id, 'count(pids)', str(len(self.window.core.tabs.pids)))
-        self.window.core.debug.add(self.id, 'count(ctx bags)', str(len(self.window.core.ctx.container.bags)))
-        self.window.core.debug.add(self.id, '----', '')
+        debug = self.window.core.debug
+        tabs_controller = self.window.controller.ui.tabs
+        tabs_core = self.window.core.tabs
+        ctx_output = self.window.core.ctx.output
+        ctx_container = self.window.core.ctx.container
+
+        debug.begin(self.id)
+        debug.add(self.id, 'current Col', str(tabs_controller.get_current_column_idx()))
+        debug.add(self.id, 'current IDX', str(tabs_controller.get_current_idx()))
+        debug.add(self.id, 'current Tab', str(tabs_controller.get_current_tab()))
+        debug.add(self.id, 'current PID', str(tabs_controller.get_current_pid()))
+        debug.add(self.id, 'current Type', str(tabs_controller.get_current_type()))
+        debug.add(self.id, '----', '')
+        debug.add(self.id, 'last_pid', str(tabs_core.last_pid))
+        debug.add(self.id, 'locked', str(tabs_controller.locked))
+        debug.add(self.id, 'col', str(tabs_controller.col))
+        debug.add(self.id, 'count(pids)', str(len(tabs_core.pids)))
+        debug.add(self.id, 'count(ctx bags)', str(len(ctx_container.bags)))
+        debug.add(self.id, '----', '')
 
         # PIDs
-        for pid in list(self.window.core.tabs.pids):
-            tab = self.window.core.tabs.pids[pid]
+        for pid in list(tabs_core.pids):
+            tab = tabs_core.pids[pid]
             data = tab.to_dict()
-            self.window.core.debug.add(self.id, "PID ["+str(pid)+"]", str(data))
+            debug.add(self.id, f"PID [{pid}]", str(data))
 
         # mapping PID => meta.id
-        self.window.core.debug.add(self.id, '----', '')
-        self.window.core.debug.add(self.id, 'PID => meta.id', str(self.window.core.ctx.output.mapping))
-        self.window.core.debug.add(self.id, '(last) meta.id => PID', str(self.window.core.ctx.output.last_pids))
-        self.window.core.debug.add(self.id, '(last) PID', str(self.window.core.ctx.output.last_pid))
-        self.window.core.debug.end(self.id)
+        debug.add(self.id, '----', '')
+        debug.add(self.id, 'PID => meta.id', str(ctx_output.mapping))
+        debug.add(self.id, '(last) meta.id => PID', str(ctx_output.last_pids))
+        debug.add(self.id, '(last) PID', str(ctx_output.last_pid))
+        debug.end(self.id)

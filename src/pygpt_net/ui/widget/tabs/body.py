@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -54,6 +54,17 @@ class TabBody(QTabWidget):
             if ref and hasattr(ref, 'deleteLater'):
                 ref.deleteLater()
         del self.refs[:]
+
+    def delete_ref(self, widget: Any) -> None:
+        """
+        Unpin reference to widget in this tab
+
+        :param widget: widget reference
+        """
+        for ref in self.refs:
+            if ref and ref is widget:
+                self.refs.remove(ref)
+                break
 
     def append(self, body: QWidget):
         """
