@@ -174,7 +174,7 @@ class Tools:
         tools: List[dict] = []
 
         # sonnet-3.5 is not supported
-        if model and model.id and model.id.startswith("claude-3.5"):
+        if model and model.id and model.id.startswith("claude-3-5"):
             return tools
 
         # Web Search tool
