@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 22:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 
@@ -22,17 +22,20 @@ class PluginsDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.core.debug.begin(self.id)
+        debug = self.window.core.debug
+        plugins_dict = self.window.core.plugins.plugins
 
-        plugins = list(self.window.core.plugins.plugins.keys())
+        debug.begin(self.id)
+
+        plugins = list(plugins_dict.keys())
         for key in plugins:
-            plugin = self.window.core.plugins.plugins[key]
+            plugin = plugins_dict[key]
             data = {
                 'id': plugin.id,
                 'name': plugin.name,
                 'description': plugin.description,
                 'options': plugin.options
             }
-            self.window.core.debug.add(self.id, str(key), str(data))
+            debug.add(self.id, str(key), str(data))
 
-        self.window.core.debug.end(self.id)
+        debug.end(self.id)

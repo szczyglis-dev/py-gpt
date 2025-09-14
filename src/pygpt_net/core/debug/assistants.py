@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 class AssistantsDebug:
@@ -21,24 +21,24 @@ class AssistantsDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.core.debug.begin(self.id)
+        debug = self.window.core.debug
+        assistant_threads = self.window.controller.assistant.threads
+        assistant_editor = self.window.controller.assistant.editor
+        assistants_core = self.window.core.assistants
+        assistants_store = assistants_core.store
 
-        self.window.core.debug.add(self.id, '(thread) started', str(self.window.controller.assistant.threads.started))
-        self.window.core.debug.add(self.id, '(thread) stop', str(self.window.controller.assistant.threads.stop))
-        self.window.core.debug.add(self.id, '(thread) run_id', str(self.window.controller.assistant.threads.run_id))
-        self.window.core.debug.add(self.id, '(thread) tool_calls', str(self.window.controller.assistant.threads.tool_calls))
-
-        self.window.core.debug.add(
-            self.id, 'Options',
-            str(self.window.controller.assistant.editor.get_options())
-        )
-
-        self.window.core.debug.add(self.id, '----', '')
+        debug.begin(self.id)
+        debug.add(self.id, '(thread) started', str(assistant_threads.started))
+        debug.add(self.id, '(thread) stop', str(assistant_threads.stop))
+        debug.add(self.id, '(thread) run_id', str(assistant_threads.run_id))
+        debug.add(self.id, '(thread) tool_calls', str(assistant_threads.tool_calls))
+        debug.add(self.id, 'Options', str(assistant_editor.get_options()))
+        debug.add(self.id, '----', '')
 
         # assistants
-        assistants = self.window.core.assistants.get_all()
+        assistants = assistants_core.get_all()
         for key in list(assistants):
-            prefix = "[{}] ".format(key)
+            prefix = f"[{key}] "
             assistant = assistants[key]
             data = {
                 'id': assistant.id,
@@ -51,15 +51,13 @@ class AssistantsDebug:
                 'files': assistant.files,
                 'tools[function]': assistant.tools['function']
             }
-            self.window.core.debug.add(self.id, str(assistant.name), str(data))
+            debug.add(self.id, str(assistant.name), str(data))
 
-        self.window.core.debug.add(self.id, '----', '')
+        debug.add(self.id, '----', '')
 
         store_items = {}
-        for id in self.window.core.assistants.store.items:
-            store_items[id] = self.window.core.assistants.store.items[id].to_dict()
+        for id in assistants_store.items:
+            store_items[id] = assistants_store.items[id].to_dict()
 
-        self.window.core.debug.add(self.id, 'Store (items)', str(store_items))
-        #self.window.core.debug.add(self.id, 'Store (items)', str(self.window.core.assistants.store.items))
-
-        self.window.core.debug.end(self.id)
+        debug.add(self.id, 'Store (items)', str(store_items))
+        debug.end(self.id)

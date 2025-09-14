@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 class AttachmentsDebug:
@@ -21,11 +21,15 @@ class AttachmentsDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.core.debug.begin(self.id)
+        debug = self.window.core.debug
+        modes = self.window.core.modes
+        attachments_core = self.window.core.attachments
 
-        for mode in self.window.core.modes.all:
-            self.window.core.debug.add(self.id, '[' + mode + ']', '')
-            attachments = self.window.core.attachments.get_all(mode)
+        debug.begin(self.id)
+
+        for mode in modes.all:
+            debug.add(self.id, f'[{mode}]', '')
+            attachments = attachments_core.get_all(mode)
             for key in list(attachments):
                 attachment = attachments[key]
                 data = {
@@ -40,6 +44,6 @@ class AttachmentsDebug:
                     'consumed': attachment.consumed,
                     'extra': attachment.extra,
                 }
-                self.window.core.debug.add(self.id, attachment.name, str(data))
+                debug.add(self.id, attachment.name, str(data))
 
-        self.window.core.debug.end(self.id)
+        debug.end(self.id)

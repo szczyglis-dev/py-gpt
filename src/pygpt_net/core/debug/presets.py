@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 import os
@@ -39,19 +39,24 @@ class PresetsDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.core.debug.begin(self.id)
+        debug = self.window.core.debug
+        presets_controller = self.window.controller.presets
+        presets_core = self.window.core.presets
+        config_path = self.window.core.config.path
 
-        self.window.core.debug.add(
+        debug.begin(self.id)
+
+        debug.add(
             self.id, 'Options',
-            str(self.window.controller.presets.editor.get_options())
+            str(presets_controller.editor.get_options())
         )
 
-        self.window.core.debug.add(self.id, 'selected[]', str(self.window.controller.presets.selected))
+        debug.add(self.id, 'selected[]', str(presets_controller.selected))
 
-        # presets
-        for key in list(dict(self.window.core.presets.items)):
-            preset = self.window.core.presets.items[key]
-            path = os.path.join(self.window.core.config.path, 'presets', key + '.json')
+        # Presets
+        for key in list(dict(presets_core.items)):
+            preset = presets_core.items[key]
+            path = os.path.join(config_path, 'presets', f"{key}.json")
             data = {
                 'id': key,
                 'file': path,
@@ -75,6 +80,6 @@ class PresetsDebug:
                 'temperature': preset.temperature,
                 'version': preset.version,
             }
-            self.window.core.debug.add(self.id, str(key), str(data))
+            debug.add(self.id, str(key), str(data))
 
-        self.window.core.debug.end(self.id)
+        debug.end(self.id)

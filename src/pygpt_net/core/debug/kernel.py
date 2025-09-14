@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 class KernelDebug:
@@ -21,10 +21,13 @@ class KernelDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.core.debug.begin(self.id)
-        self.window.core.debug.add(self.id, 'Busy:', str(self.window.controller.kernel.busy))
-        self.window.core.debug.add(self.id, 'Halt:', str(self.window.controller.kernel.halt))
-        self.window.core.debug.add(self.id, 'Status:', str(self.window.controller.kernel.status))
-        self.window.core.debug.add(self.id, 'State:', str(self.window.controller.kernel.state))
-        self.window.core.debug.add(self.id, 'Stack:', str(self.window.controller.kernel.last_stack))
-        self.window.core.debug.end(self.id)
+        debug = self.window.core.debug
+        kernel_controller = self.window.controller.kernel
+
+        debug.begin(self.id)
+        debug.add(self.id, 'Busy:', str(kernel_controller.busy))
+        debug.add(self.id, 'Halt:', str(kernel_controller.halt))
+        debug.add(self.id, 'Status:', str(kernel_controller.status))
+        debug.add(self.id, 'State:', str(kernel_controller.state))
+        debug.add(self.id, 'Stack:', str(kernel_controller.last_stack))
+        debug.end(self.id)

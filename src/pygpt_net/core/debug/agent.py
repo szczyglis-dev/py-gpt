@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 class AgentDebug:
@@ -21,17 +21,22 @@ class AgentDebug:
 
     def update(self):
         """Update debug window"""
-        self.window.core.debug.begin(self.id)
-        self.window.core.debug.add(self.id, '[Llama-index]', '')
-        self.window.core.debug.add(self.id, 'agents', str(self.window.core.agents.provider.get_ids()))
-        self.window.core.debug.add(self.id, 'eval_step', str(self.window.controller.agent.llama.eval_step))
-        self.window.core.debug.add(self.id, '[LEGACY]', '')
-        self.window.core.debug.add(self.id, 'iteration', str(self.window.controller.agent.legacy.iteration))
-        self.window.core.debug.add(self.id, 'limit', str(self.window.core.config.get("agent.iterations")))
-        self.window.core.debug.add(self.id, 'prev_output', str(self.window.controller.agent.legacy.prev_output))
-        self.window.core.debug.add(self.id, 'is_user', str(self.window.controller.agent.legacy.is_user))
-        self.window.core.debug.add(self.id, 'stop', str(self.window.controller.agent.legacy.stop))
-        self.window.core.debug.add(self.id, 'finished', str(self.window.controller.agent.legacy.finished))
-        self.window.core.debug.add(self.id, 'allowed_cmds', str(self.window.controller.agent.legacy.allowed_cmds))
+        debug = self.window.core.debug
+        agents_provider = self.window.core.agents.provider
+        agent_controller = self.window.controller.agent
+        agent_legacy = agent_controller.legacy
+        agent_config = self.window.core.config
 
-        self.window.core.debug.end(self.id)
+        debug.begin(self.id)
+        debug.add(self.id, '[Llama-index]', '')
+        debug.add(self.id, 'agents', str(agents_provider.get_ids()))
+        debug.add(self.id, 'eval_step', str(agent_controller.llama.eval_step))
+        debug.add(self.id, '[LEGACY]', '')
+        debug.add(self.id, 'iteration', str(agent_legacy.iteration))
+        debug.add(self.id, 'limit', str(agent_config.get("agent.iterations")))
+        debug.add(self.id, 'prev_output', str(agent_legacy.prev_output))
+        debug.add(self.id, 'is_user', str(agent_legacy.is_user))
+        debug.add(self.id, 'stop', str(agent_legacy.stop))
+        debug.add(self.id, 'finished', str(agent_legacy.finished))
+        debug.add(self.id, 'allowed_cmds', str(agent_legacy.allowed_cmds))
+        debug.end(self.id)

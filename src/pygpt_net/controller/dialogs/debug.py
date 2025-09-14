@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -31,6 +31,7 @@ from pygpt_net.core.debug.ui import UIDebug
 
 
 class Debug:
+
     DBG_KEY, DBG_VALUE = range(2)
 
     def __init__(self, window=None):
@@ -42,21 +43,22 @@ class Debug:
         self.window = window
 
         # setup workers
-        self.workers = {}
-        self.workers['agent'] = AgentDebug(self.window)
-        self.workers['assistants'] = AssistantsDebug(self.window)
-        self.workers['attachments'] = AttachmentsDebug(self.window)
-        self.workers['config'] = ConfigDebug(self.window)
-        self.workers['context'] = ContextDebug(self.window)
-        self.workers['db'] = DatabaseDebug(self.window)
-        self.workers['events'] = EventsDebug(self.window)
-        self.workers['indexes'] = IndexesDebug(self.window)
-        self.workers['kernel'] = KernelDebug(self.window)
-        self.workers['models'] = ModelsDebug(self.window)
-        self.workers['plugins'] = PluginsDebug(self.window)
-        self.workers['presets'] = PresetsDebug(self.window)
-        self.workers['tabs'] = TabsDebug(self.window)
-        self.workers['ui'] = UIDebug(self.window)
+        self.workers = {
+            'agent': AgentDebug(self.window),
+            'assistants': AssistantsDebug(self.window),
+            'attachments': AttachmentsDebug(self.window),
+            'config': ConfigDebug(self.window),
+            'context': ContextDebug(self.window),
+            'db': DatabaseDebug(self.window),
+            'events': EventsDebug(self.window),
+            'indexes': IndexesDebug(self.window),
+            'kernel': KernelDebug(self.window),
+            'models': ModelsDebug(self.window),
+            'plugins': PluginsDebug(self.window),
+            'presets': PresetsDebug(self.window),
+            'tabs': TabsDebug(self.window),
+            'ui': UIDebug(self.window)
+        }
 
         # prepare debug ids
         self.ids = self.workers.keys()
@@ -79,12 +81,16 @@ class Debug:
 
         :param id: debug id
         """
-        self.window.ui.debug[id].setModel(self.models[id])
-        self.models[id].dataChanged.connect(self.window.ui.debug[id].on_data_begin)
+        model = self.models.get(id, None)
+        dialog = self.window.ui.debug[id]
+        dialog.setModel(model)
+        model.dataChanged.connect(dialog.on_data_begin)
 
-        if id not in self.counters or self.counters[id] != self.models[id].rowCount():
-            self.models[id].removeRows(0, self.models[id].rowCount())
+        dialog.setUpdatesEnabled(False)
+        if id not in self.counters or self.counters[id] != model.rowCount():
+            model.removeRows(0, model.rowCount())
             self.initialized[id] = False
+        dialog.setUpdatesEnabled(True)
         self.idx[id] = 0
 
     def end(self, id: str):
@@ -105,18 +111,23 @@ class Debug:
         :param k: key
         :param v: value
         """
+        dialog = self.window.ui.debug[id]
+        dialog.setUpdatesEnabled(False)
+        model = self.models.get(id, None)
         if self.initialized[id] is False:
-            idx = self.models[id].rowCount()
-            self.models[id].insertRow(idx)
-            self.models[id].setData(self.models[id].index(idx, self.DBG_KEY), k)
-            self.models[id].setData(self.models[id].index(idx, self.DBG_VALUE), v)
+            idx = model.rowCount()
+            model.insertRow(idx)
+            model.setData(model.index(idx, self.DBG_KEY), k)
+            model.setData(model.index(idx, self.DBG_VALUE), v)
         else:
-            for idx in range(0, self.models[id].rowCount()):
-                if self.models[id].index(idx, self.DBG_KEY).data() == k:
-                    self.models[id].setData(self.models[id].index(idx, self.DBG_VALUE), v)
+            for idx in range(0, model.rowCount()):
+                if model.index(idx, self.DBG_KEY).data() == k:
+                    model.setData(model.index(idx, self.DBG_VALUE), v)
                     self.idx[id] += 1
+                    dialog.setUpdatesEnabled(True)
                     return
         self.idx[id] += 1
+        dialog.setUpdatesEnabled(True)
 
     def get_ids(self) -> list:
         """
@@ -163,7 +174,7 @@ class Debug:
         if id not in self.active:
             return
         self.active[id] = True
-        self.window.ui.dialogs.open('debug.' + id, width=800, height=600)
+        self.window.ui.dialogs.open(f"debug.{id}", width=800, height=600)
 
     def hide(self, id: str):
         """
@@ -174,7 +185,7 @@ class Debug:
         if id not in self.active:
             return
         self.active[id] = False
-        self.window.ui.dialogs.close('debug.' + id)
+        self.window.ui.dialogs.close(f"debug.{id}")
 
     def create_model(self, parent) -> QStandardItemModel:
         """

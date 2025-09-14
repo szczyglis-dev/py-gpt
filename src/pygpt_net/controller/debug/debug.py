@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 20:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -84,18 +84,19 @@ class Debug(QObject):
             return
 
         print("[LOGGER] Changing log level to: " + level)
+        debug = self.window.core.debug
 
         if level == 'debug':
-            self.window.core.debug.switch_log_level(DEBUG)
+            debug.switch_log_level(DEBUG)
             print("** DEBUG level enabled")
         elif level == 'info':
-            self.window.core.debug.switch_log_level(INFO)
+            debug.switch_log_level(INFO)
             print("** INFO level enabled")
         elif level == 'warning':
-            self.window.core.debug.switch_log_level(WARNING)
+            debug.switch_log_level(WARNING)
             print("** WARNING level enabled")
         else:
-            self.window.core.debug.switch_log_level(ERROR)
+            debug.switch_log_level(ERROR)
             print("** ERROR level enabled")
 
         self.window.ui.dialogs.app_log.update_log_level()
@@ -106,11 +107,12 @@ class Debug(QObject):
 
         :param all: update all debug windows
         """
+        dialog = self.window.controller.dialogs.debug
         if self._ids is None:
-            self._ids = self.window.controller.dialogs.debug.get_ids()
+            self._ids = dialog.get_ids()
         for id in self._ids:
-            if self.window.controller.dialogs.debug.is_active(id):
-                self.window.controller.dialogs.debug.update_worker(id)
+            if dialog.is_active(id):
+                dialog.update_worker(id)
 
     def post_setup(self):
         """Post setup debug"""
@@ -239,7 +241,7 @@ class Debug(QObject):
                 self.window.core.tabs.toggle_debug(False)
         else:
             if id == "db":
-                self.window.ui.dialogs.database.viewer.update_table_view()  # update view on load
+                self.window.ui.dialogs.database.viewer.update_table_view(force=True)  # update view on load
             elif id == "tabs":
                 self.window.core.tabs.toggle_debug(True)
             self.window.controller.dialogs.debug.show(id)

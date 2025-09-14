@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2025.09.14 20:00:00                  #
 # ================================================== #
 
 import os
@@ -26,29 +26,28 @@ class ConfigDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.core.debug.begin(self.id)
-
+        debug = self.window.core.debug
+        config = self.window.core.config
+        profile = config.profile
+        settings_editor = self.window.controller.settings.editor
         app_fonts = QFontDatabase.families()
-        path = os.path.join(self.window.core.config.path, '', 'config.json')
-        self.window.core.debug.add(self.id, 'Config File', str(path))
-        self.window.core.debug.add(self.id, 'Current workdir', str(self.window.core.config.get_user_path()))
-        self.window.core.debug.add(self.id, 'Base workdir', str(self.window.core.config.get_base_workdir()))
-        self.window.core.debug.add(self.id, 'Workdir config', str(os.path.join(self.window.core.config.get_base_workdir(), "path.cfg")))
-        self.window.core.debug.add(self.id, 'App dir', str(self.window.core.config.get_app_path()))
-        self.window.core.debug.add(self.id, 'Profile [current]', str(self.window.core.config.profile.get_current()))
-        self.window.core.debug.add(self.id, 'Profile [all]', str(self.window.core.config.profile.get_all()))
-        self.window.core.debug.add(self.id, 'Registered fonts', str(app_fonts))
-        self.window.core.debug.add(
-            self.id, 'Sections',
-            str(self.window.controller.settings.editor.get_sections())
-        )
-        self.window.core.debug.add(
-            self.id, 'Options',
-            str(self.window.controller.settings.editor.get_options())
-        )
+
+        debug.begin(self.id)
+
+        path = os.path.join(config.path, '', 'config.json')
+        debug.add(self.id, 'Config File', str(path))
+        debug.add(self.id, 'Current workdir', str(config.get_user_path()))
+        debug.add(self.id, 'Base workdir', str(config.get_base_workdir()))
+        debug.add(self.id, 'Workdir config', str(os.path.join(config.get_base_workdir(), "path.cfg")))
+        debug.add(self.id, 'App dir', str(config.get_app_path()))
+        debug.add(self.id, 'Profile [current]', str(profile.get_current()))
+        debug.add(self.id, 'Profile [all]', str(profile.get_all()))
+        debug.add(self.id, 'Registered fonts', str(app_fonts))
+        debug.add(self.id, 'Sections', str(settings_editor.get_sections()))
+        debug.add(self.id, 'Options', str(settings_editor.get_options()))
 
         # config data
-        for key in self.window.core.config.all():
-            self.window.core.debug.add(self.id, key, str(self.window.core.config.get(key)))
+        for key in config.all():
+            debug.add(self.id, key, str(config.get(key)))
 
-        self.window.core.debug.end(self.id)
+        debug.end(self.id)
