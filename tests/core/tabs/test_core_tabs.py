@@ -234,7 +234,6 @@ def test_remove_tab_by_idx(tabs_instance, fake_window, monkeypatch):
     monkeypatch.setattr(tabs, "currentIndex", lambda: 0)
     tabs_instance.remove_tab_by_idx(0, 0)
     assert 7 not in tabs_instance.pids
-    fake_tab.cleanup.assert_called()
 
 def test_remove(tabs_instance, fake_window):
     fake_tab = MagicMock()

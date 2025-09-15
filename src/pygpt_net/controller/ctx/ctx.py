@@ -100,7 +100,10 @@ class Ctx:
 
     def setup(self):
         """Setup ctx"""
-        self.common.restore_display_filter()  # load filters first
+        try:
+            self.common.restore_display_filter()  # load filters first
+        except Exception:
+            pass
 
         # load ctx list
         core = self.window.core

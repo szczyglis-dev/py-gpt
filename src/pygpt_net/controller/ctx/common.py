@@ -113,13 +113,6 @@ class Common:
         pinned_radio = nodes['filter.ctx.radio.pinned']
         indexed_radio = nodes['filter.ctx.radio.indexed']
 
-        try:
-            b1 = QSignalBlocker(all_radio)
-            b2 = QSignalBlocker(pinned_radio)
-            b3 = QSignalBlocker(indexed_radio)
-        except:
-            pass
-
         all_radio.setChecked(False)
         pinned_radio.setChecked(False)
         indexed_radio.setChecked(False)

@@ -13,7 +13,9 @@ import uuid
 from datetime import datetime
 from typing import Optional, Any, Dict, Tuple, Union
 
+from PySide6.QtCore import QUrl
 from PySide6.QtGui import QIcon
+from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QLayout
 
 from pygpt_net.ui.widget.tabs.body import TabBody
@@ -234,20 +236,38 @@ class Tabs:
             tab.icon = self.icons[tab.type]
 
         if tab.type == Tab.TAB_CHAT:  # chat
-            self.add_chat(tab)
-            self.window.core.ctx.output.mapping[tab.pid] = tab.data_id  # restore pid => meta.id mapping
-            self.window.core.ctx.output.last_pids[tab.data_id] = tab.pid
-            self.window.core.ctx.output.last_pid = tab.pid
+            try:
+                self.add_chat(tab)
+                self.window.core.ctx.output.mapping[tab.pid] = tab.data_id  # restore pid => meta.id mapping
+                self.window.core.ctx.output.last_pids[tab.data_id] = tab.pid
+                self.window.core.ctx.output.last_pid = tab.pid
+            except Exception as e:
+                print("Error restoring chat tab:", e)
         elif tab.type == Tab.TAB_NOTEPAD: # notepad
-            self.add_notepad(tab)
+            try:
+                self.add_notepad(tab)
+            except Exception as e:
+                print("Error restoring notepad tab:", e)
         elif tab.type == Tab.TAB_FILES:  # files
-            self.add_tool_explorer(tab)
+            try:
+                self.add_tool_explorer(tab)
+            except Exception as e:
+                print("Error restoring explorer tab:", e)
         elif tab.type == Tab.TAB_TOOL_PAINTER:  # painter
-            self.add_tool_painter(tab)
+            try:
+                self.add_tool_painter(tab)
+            except Exception as e:
+                print("Error restoring painter tab:", e)
         elif tab.type == Tab.TAB_TOOL_CALENDAR:  # calendar
-            self.add_tool_calendar(tab)
+            try:
+                self.add_tool_calendar(tab)
+            except Exception as e:
+                print("Error restoring calendar tab:", e)
         elif tab.type == Tab.TAB_TOOL:  # custom tools, id 100+
-            self.add_tool(tab)
+            try:
+                self.add_tool(tab)
+            except Exception as e:
+                print("Error restoring tool tab:", e)
 
         self.pids[tab.pid] = tab
         self.last_pid = self.get_max_pid()
@@ -277,8 +297,32 @@ class Tabs:
         tab = self.get_tab_by_pid(pid)
         if tab is None:
             return
+        try:
+            if tab.type == Tab.TAB_CHAT:
+                node = self.window.ui.nodes['output'].get(tab.pid)
+                if node:
+                    node.hide()
+                    p = node.page()
+                    p.triggerAction(QWebEnginePage.Stop)
+                    p.setUrl(QUrl("about:blank"))
+                    p.history().clear()
+                    p.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
+                    tab.delete_ref(node)
+                    layout = tab.child.layout()
+                    layout.removeWidget(node)
+                    self.window.ui.nodes['output'].pop(pid, None)
+                    node.on_delete()
+                node_plain = self.window.ui.nodes['output_plain'].get(tab.pid)
+                if node_plain:
+                    tab.delete_ref(node_plain)
+                    layout = tab.child.layout()
+                    layout.removeWidget(node_plain)
+                    self.window.ui.nodes['output_plain'].pop(pid, None)
+                    node_plain.on_delete()
+                tab.cleanup()  # unload assigned data from memory
+        except Exception as e:
+            print(f"Error unloading tab {pid}: {e}")
 
-        tab.cleanup() # unload assigned data from memory
         column_idx = tab.column_idx
         self.window.ui.layout.get_tabs_by_idx(column_idx).removeTab(tab.idx)
         del self.pids[pid]

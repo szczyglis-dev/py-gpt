@@ -134,46 +134,15 @@ class Tabs:
 
     def reload(self):
         """Reload tabs"""
-        self.unload_current()
+        columns = self.window.ui.layout.columns
+        for col in columns:
+            col.setUpdatesEnabled(False)
+        self.window.core.tabs.remove_all()
         self.window.core.tabs.reload()
         self.window.dispatch(RenderEvent(RenderEvent.PREPARE))
         self.debug()
-
-    def unload_current(self):
-        """Unload current tabs from memory"""
-        tabs = self.window.core.tabs.pids
-        for pid in tabs:
-            tab = self.window.core.tabs.get_tab_by_pid(pid)
-            if tab is not None:
-                try:
-                    if tab.type == Tab.TAB_CHAT:
-                        node = self.window.ui.nodes['output'].get(tab.pid)
-                        if node:
-                            node.hide()
-                            p = node.page()
-                            p.triggerAction(QWebEnginePage.Stop)
-                            p.setUrl(QUrl("about:blank"))
-                            p.history().clear()
-                            p.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
-                            tab.delete_ref(node)
-                            layout = tab.child.layout()
-                            layout.removeWidget(node)
-                            self.window.ui.nodes['output'].pop(pid, None)
-                            node.on_delete()
-                        node_plain = self.window.ui.nodes['output_plain'].get(tab.pid)
-                        if node_plain:
-                            tab.delete_ref(node_plain)
-                            layout = tab.child.layout()
-                            layout.removeWidget(node_plain)
-                            self.window.ui.nodes['output_plain'].pop(pid, None)
-                            node_plain.on_delete()
-                    # tab.cleanup()
-                except Exception as e:
-                    print(f"Error unloading tab {pid}: {e}")
-        try:
-            gc.collect()
-        except Exception:
-            pass
+        for col in columns:
+            col.setUpdatesEnabled(True)
 
     def reload_after(self):
         """Reload tabs after"""
