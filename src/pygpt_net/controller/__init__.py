@@ -42,7 +42,7 @@ from .theme import Theme
 from .tools import Tools
 from .ui import UI
 
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, mem_clean
 
 
 class Controller:
@@ -190,5 +190,10 @@ class Controller:
 
         self.reloading = False  # unlock
         self.presets.unlock()
+
+        try:
+            mem_clean(force=True)  # try to clean memory
+        except Exception:
+            pass
 
         print(trans("status.reloading.profile.end"))
