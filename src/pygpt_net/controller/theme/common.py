@@ -81,11 +81,17 @@ class Common:
         if state:
             for node in nodes:
                 if node in self.window.ui.nodes:
-                    self.window.ui.nodes[node].setVisible(True)
+                    try:
+                        self.window.ui.nodes[node].setVisible(True)
+                    except Exception:
+                        pass
         else:
             for node in nodes:
                 if node in self.window.ui.nodes:
-                    self.window.ui.nodes[node].setVisible(False)
+                    try:
+                        self.window.ui.nodes[node].setVisible(False)
+                    except Exception:
+                        pass
 
         self.window.ui.menu['theme.tooltips'].setChecked(state)
 
