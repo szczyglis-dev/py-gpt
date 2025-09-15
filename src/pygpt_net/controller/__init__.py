@@ -6,41 +6,42 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.09.15 23:00:00                  #
 # ================================================== #
 
-from pygpt_net.controller.access import Access
-from pygpt_net.controller.agent import Agent
-from pygpt_net.controller.assistant import Assistant
-from pygpt_net.controller.attachment import Attachment
-from pygpt_net.controller.audio import Audio
-from pygpt_net.controller.calendar import Calendar
-from pygpt_net.controller.camera import Camera
-from pygpt_net.controller.chat import Chat
-from pygpt_net.controller.command import Command
-from pygpt_net.controller.config import Config
-from pygpt_net.controller.ctx import Ctx
-from pygpt_net.controller.debug import Debug
-from pygpt_net.controller.dialogs import Dialogs
-from pygpt_net.controller.files import Files
-from pygpt_net.controller.finder import Finder
-from pygpt_net.controller.idx import Idx
-from pygpt_net.controller.kernel import Kernel
-from pygpt_net.controller.lang import Lang
-from pygpt_net.controller.launcher import Launcher
-from pygpt_net.controller.layout import Layout
-from pygpt_net.controller.media import Media
-from pygpt_net.controller.mode import Mode
-from pygpt_net.controller.model import Model
-from pygpt_net.controller.notepad import Notepad
-from pygpt_net.controller.painter import Painter
-from pygpt_net.controller.plugins import Plugins
-from pygpt_net.controller.realtime import Realtime
-from pygpt_net.controller.presets import Presets
-from pygpt_net.controller.settings import Settings
-from pygpt_net.controller.theme import Theme
-from pygpt_net.controller.tools import Tools
-from pygpt_net.controller.ui import UI
+from .access import Access
+from .agent import Agent
+from .assistant import Assistant
+from .attachment import Attachment
+from .audio import Audio
+from .calendar import Calendar
+from .camera import Camera
+from .chat import Chat
+from .command import Command
+from .config import Config
+from .ctx import Ctx
+from .debug import Debug
+from .dialogs import Dialogs
+from .files import Files
+from .finder import Finder
+from .idx import Idx
+from .kernel import Kernel
+from .lang import Lang
+from .launcher import Launcher
+from .layout import Layout
+from .media import Media
+from .mode import Mode
+from .model import Model
+from .notepad import Notepad
+from .painter import Painter
+from .plugins import Plugins
+from .realtime import Realtime
+from .presets import Presets
+from .settings import Settings
+from .theme import Theme
+from .tools import Tools
+from .ui import UI
+
 from pygpt_net.utils import trans
 
 
@@ -154,34 +155,38 @@ class Controller:
 
         print(trans("status.reloading.profile.begin"))
 
-        self.window.core.reload()  # db, config, patch, etc.
-        self.ui.tabs.reload()
-        self.ctx.reload()
-        self.settings.reload()
-        self.assistant.reload()
-        self.attachment.reload()
-        self.presets.reload()
-        self.idx.reload()
-        self.agent.reload()
-        self.calendar.reload()
-        self.plugins.reload()
-        self.painter.reload()
-        self.notepad.reload()
-        self.files.reload()
-        self.lang.reload()
-        self.debug.reload()
-        self.chat.reload()
-        self.media.reload()
-        self.window.tools.on_reload()
-        self.access.reload()
-        self.tools.reload()
+        try:
+            self.window.core.reload()  # db, config, patch, etc.
+            self.ui.tabs.reload()
+            self.ctx.reload()
+            self.settings.reload()
+            self.assistant.reload()
+            self.attachment.reload()
+            self.presets.reload()
+            self.idx.reload()
+            self.agent.reload()
+            self.calendar.reload()
+            self.plugins.reload()
+            self.painter.reload()
+            self.notepad.reload()
+            self.files.reload()
+            self.lang.reload()
+            self.debug.reload()
+            self.chat.reload()
+            self.media.reload()
+            self.window.tools.on_reload()
+            self.access.reload()
+            self.tools.reload()
 
-        # post-reload
-        self.ui.tabs.reload_after()
-        self.ctx.reload_after()
-        self.ui.tabs.restore_data()  # restore opened tabs data
-        self.kernel.restart()
-        self.theme.reload_all()  # do not reload theme if no change
+            # post-reload
+            self.ui.tabs.reload_after()
+            self.ctx.reload_after()
+            self.ui.tabs.restore_data()  # restore opened tabs data
+            self.kernel.restart()
+            self.theme.reload_all()  # do not reload theme if no change
+
+        except Exception as e:
+            self.window.core.debug.log(e)
 
         self.reloading = False  # unlock
         self.presets.unlock()
