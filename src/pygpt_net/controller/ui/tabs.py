@@ -8,10 +8,11 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
-
+import gc
 from typing import Any, Optional, Tuple
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, QUrl
+from PySide6.QtWebEngineCore import QWebEnginePage
 
 from pygpt_net.core.events import AppEvent, RenderEvent
 from pygpt_net.core.tabs.tab import Tab
@@ -133,9 +134,45 @@ class Tabs:
 
     def reload(self):
         """Reload tabs"""
+        self.unload_current()
         self.window.core.tabs.reload()
         self.window.dispatch(RenderEvent(RenderEvent.PREPARE))
         self.debug()
+
+    def unload_current(self):
+        """Unload current tabs from memory"""
+        tabs = self.window.core.tabs.pids
+        for pid in tabs:
+            tab = self.window.core.tabs.get_tab_by_pid(pid)
+            if tab is not None and tab.type == Tab.TAB_CHAT:
+                try:
+                    node = self.window.ui.nodes['output'].get(tab.pid)
+                    if node:
+                        print("unloading tab", tab.pid)
+                        node.hide()
+                        p = node.page()
+                        p.triggerAction(QWebEnginePage.Stop)
+                        p.setUrl(QUrl("about:blank"))
+                        p.history().clear()
+                        p.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
+                        tab.delete_ref(node)
+                        layout = tab.child.layout()
+                        layout.removeWidget(node)
+                        self.window.ui.nodes['output'].pop(pid, None)
+                        node.on_delete()
+                    node_plain = self.window.ui.nodes['output_plain'].get(tab.pid)
+                    if node_plain:
+                        tab.delete_ref(node_plain)
+                        layout = tab.child.layout()
+                        layout.removeWidget(node_plain)
+                        self.window.ui.nodes['output_plain'].pop(pid, None)
+                        node_plain.on_delete()
+                except Exception as e:
+                    print(f"Error unloading tab {pid}: {e}")
+        try:
+            gc.collect()
+        except Exception:
+            pass
 
     def reload_after(self):
         """Reload tabs after"""
