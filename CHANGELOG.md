@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.47 (2025-09-15)
+
+- Improved: Parsing of custom markup tags.
+- Optimized: Switching profiles.
+
 ## 2.6.46 (2025-09-15)
 
 - Added: Global proxy settings for all API SDKs.

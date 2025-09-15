@@ -144,29 +144,31 @@ class Tabs:
         tabs = self.window.core.tabs.pids
         for pid in tabs:
             tab = self.window.core.tabs.get_tab_by_pid(pid)
-            if tab is not None and tab.type == Tab.TAB_CHAT:
+            if tab is not None:
                 try:
-                    node = self.window.ui.nodes['output'].get(tab.pid)
-                    if node:
-                        print("unloading tab", tab.pid)
-                        node.hide()
-                        p = node.page()
-                        p.triggerAction(QWebEnginePage.Stop)
-                        p.setUrl(QUrl("about:blank"))
-                        p.history().clear()
-                        p.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
-                        tab.delete_ref(node)
-                        layout = tab.child.layout()
-                        layout.removeWidget(node)
-                        self.window.ui.nodes['output'].pop(pid, None)
-                        node.on_delete()
-                    node_plain = self.window.ui.nodes['output_plain'].get(tab.pid)
-                    if node_plain:
-                        tab.delete_ref(node_plain)
-                        layout = tab.child.layout()
-                        layout.removeWidget(node_plain)
-                        self.window.ui.nodes['output_plain'].pop(pid, None)
-                        node_plain.on_delete()
+                    if tab.type == Tab.TAB_CHAT:
+                        node = self.window.ui.nodes['output'].get(tab.pid)
+                        if node:
+                            print("unloading tab", tab.pid)
+                            node.hide()
+                            p = node.page()
+                            p.triggerAction(QWebEnginePage.Stop)
+                            p.setUrl(QUrl("about:blank"))
+                            p.history().clear()
+                            p.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
+                            tab.delete_ref(node)
+                            layout = tab.child.layout()
+                            layout.removeWidget(node)
+                            self.window.ui.nodes['output'].pop(pid, None)
+                            node.on_delete()
+                        node_plain = self.window.ui.nodes['output_plain'].get(tab.pid)
+                        if node_plain:
+                            tab.delete_ref(node_plain)
+                            layout = tab.child.layout()
+                            layout.removeWidget(node_plain)
+                            self.window.ui.nodes['output_plain'].pop(pid, None)
+                            node_plain.on_delete()
+                    tab.on_delete()
                 except Exception as e:
                     print(f"Error unloading tab {pid}: {e}")
         try:

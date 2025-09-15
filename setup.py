@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.6.46'
+VERSION = '2.6.47'
 DESCRIPTION = 'Desktop AI Assistant powered by: OpenAI GPT-5, GPT-4, o1, o3, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama.'
 LONG_DESCRIPTION = 'Desktop AI Assistant powered by: OpenAI GPT-5, GPT-4, o1, o3, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, internet access, file handling, command execution and more.'
 

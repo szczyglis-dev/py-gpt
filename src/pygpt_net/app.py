@@ -35,6 +35,11 @@ os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
     "--js-flags=--expose-gc"
 )
 """
+# by default, optimize for low-end devices
+os.environ.setdefault(
+    "QTWEBENGINE_CHROMIUM_FLAGS",
+    "--enable-low-end-device-mode"
+)
 
 _original_open = builtins.open
 
