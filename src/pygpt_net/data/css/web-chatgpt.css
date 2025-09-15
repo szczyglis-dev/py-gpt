@@ -29,6 +29,9 @@ body {{
 #container {{
   will-change: transform, opacity;
 }}
+#__nodes__ {{
+ margin-top: 2rem;
+}}
 
 /* base */
 a {{

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.47** | build: **2025-09-15** | Python: **>=3.10, <3.14**
+Release: **2.6.48** | build: **2025-09-15** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3495,6 +3495,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.48 (2025-09-15)**
+
+- Added: auto-loading of next items to the list of contexts when scrolling to the end of the list.
 
 **2.6.47 (2025-09-15)**
 

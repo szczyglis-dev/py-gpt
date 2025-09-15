@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.48 (2025-09-15)
+
+- Added: auto-loading of next items to the list of contexts when scrolling to the end of the list.
+
 ## 2.6.47 (2025-09-15)
 
 - Improved: Parsing of custom markup tags.

@@ -319,7 +319,10 @@ class Tabs:
                     layout.removeWidget(node_plain)
                     self.window.ui.nodes['output_plain'].pop(pid, None)
                     node_plain.on_delete()
+
+            if tab.type in (Tab.TAB_CHAT, Tab.TAB_NOTEPAD, Tab.TAB_TOOL):
                 tab.cleanup()  # unload assigned data from memory
+
         except Exception as e:
             print(f"Error unloading tab {pid}: {e}")
 
