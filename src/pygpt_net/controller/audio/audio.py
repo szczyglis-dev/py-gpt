@@ -449,6 +449,8 @@ class Audio:
         if is_enabled:
             # show/hide extra options
             tab = self.window.controller.ui.tabs.get_current_tab()
+            if not tab:
+                return
             if tab.type == Tab.TAB_NOTEPAD:
                 self.window.controller.audio.ui.on_input_continuous_enable("input")
             else:
