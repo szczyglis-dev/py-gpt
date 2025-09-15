@@ -16,13 +16,13 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import QSplitter, QMessageBox
 
-from pygpt_net.ui.base.context_menu import ContextMenu
-from pygpt_net.ui.dialogs import Dialogs
-from pygpt_net.ui.layout.chat import ChatMain
-from pygpt_net.ui.layout.ctx import CtxMain
-from pygpt_net.ui.layout.toolbox import ToolboxMain
-from pygpt_net.ui.menu import Menu
-from pygpt_net.ui.tray import Tray
+from .base.context_menu import ContextMenu
+from .dialogs import Dialogs
+from .layout.chat import ChatMain
+from .layout.ctx import CtxMain
+from .layout.toolbox import ToolboxMain
+from .menu import Menu
+from .tray import Tray
 
 
 class UI:
@@ -139,12 +139,7 @@ class UI:
         suffix = self.window.core.platforms.get_env_suffix()
         profile_name = self.window.core.config.profile.get_current_name()
         self.window.setWindowTitle(
-            'PyGPT - Desktop AI Assistant {} | build {}{} ({})'.format(
-                self.window.meta['version'],
-                self.window.meta['build'].replace('.', '-'),
-                suffix,
-                profile_name,
-            )
+            f"PyGPT - Desktop AI Assistant {self.window.meta['version']} | build {self.window.meta['build'].replace('.', '-')}{suffix} ({profile_name})"
         )
 
     def post_setup(self):
@@ -164,7 +159,7 @@ class UI:
             return
         msg = str(text)
         msg = msg.replace("\n", " ")
-        status = msg[:self.STATUS_MAX_CHARS] + '...' if len(msg) > self.STATUS_MAX_CHARS else msg  # truncate
+        status = f"{msg[:self.STATUS_MAX_CHARS]}..." if len(msg) > self.STATUS_MAX_CHARS else msg  # truncate
         self.nodes['status'].setText(status)
 
     def get_status(self):
