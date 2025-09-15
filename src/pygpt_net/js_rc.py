@@ -84844,7 +84844,7 @@ olNode:Z,SvgNode\
 neNode:Q}};retur\
 n t=t.default}()\
 }));\
-\x00\x04\x11]\
+\x00\x04\x11\x8b\
 /\
 / v2.6.41 | 2025\
 -09-11\x0a//\x0a// PyG\
@@ -86024,1009 +86024,891 @@ now(); }\x0a      }\
 ================\
 ================\
 =======\x0a\x0a  class\
- Config {\x0a    co\
-nstructor() {\x0a  \
-    // Process i\
-dentifier (passe\
-d from host).\x0a  \
-    this.PID = U\
-tils.g('PID', 0)\
-;\x0a\x0a      // UI: \
+ Config {\x0a      \
+constructor() {\x0a\
+        // Proce\
+ss identifier (p\
+assed from host)\
+.\x0a        this.P\
+ID = Utils.g('PI\
+D', 0);\x0a\x0a       \
+ // UI: scroll b\
+ehavior and busy\
+/zoom signalling\
+ thresholds (mil\
+liseconds / pixe\
+ls).\x0a        thi\
+s.UI = {\x0a       \
+   AUTO_FOLLOW_R\
+EENABLE_PX: Util\
+s.g('AUTO_FOLLOW\
+_REENABLE_PX', 8\
+),\x0a          SCR\
+OLL_NEAR_MARGIN_\
+PX: Utils.g('SCR\
+OLL_NEAR_MARGIN_\
+PX', 450),\x0a     \
+     INTERACTION\
+_BUSY_MS: Utils.\
+g('UI_INTERACTIO\
+N_BUSY_MS', 140)\
+,\x0a          ZOOM\
+_BUSY_MS: Utils.\
+g('UI_ZOOM_BUSY_\
+MS', 300)\x0a      \
+  };\x0a\x0a        //\
+ FAB (floating a\
+ction button) vi\
+sibility and deb\
+ounce.\x0a        t\
+his.FAB = {\x0a    \
+      SHOW_DOWN_\
+THRESHOLD_PX: Ut\
+ils.g('SHOW_DOWN\
+_THRESHOLD_PX', \
+0),\x0a          TO\
+GGLE_DEBOUNCE_MS\
+: Utils.g('FAB_T\
+OGGLE_DEBOUNCE_M\
+S', 100)\x0a       \
+ };\x0a\x0a        // \
+Highlighting con\
+trols and per-fr\
+ame budget.\x0a    \
+    this.HL = {\x0a\
+          PER_FR\
+AME: Utils.g('HL\
+_PER_FRAME', 2),\
+\x0a          DISAB\
+LE_ALL: Utils.g(\
+'DISABLE_SYNTAX_\
+HIGHLIGHT', fals\
+e)\x0a        };\x0a\x0a \
+       // Inters\
+ection-like marg\
+ins (we do our o\
+wn scan, but the\
+se guide budgets\
+).\x0a        this.\
+OBSERVER = {\x0a   \
+       CODE_ROOT\
+_MARGIN: Utils.g\
+('CODE_ROOT_MARG\
+IN', '1000px 0px\
+ 1000px 0px'),\x0a \
+         BOX_ROO\
+T_MARGIN: Utils.\
+g('BOX_ROOT_MARG\
+IN', '1500px 0px\
+ 1500px 0px'),\x0a \
+         CODE_TH\
+RESHOLD: [0, 0.0\
+01], BOX_THRESHO\
+LD: 0\x0a        };\
+\x0a\x0a        // Vie\
+wport scan prelo\
+ad distance (in \
+pixels).\x0a       \
+ this.SCAN = { P\
+RELOAD_PX: Utils\
+.g('SCAN_PRELOAD\
+_PX', 1000) };\x0a\x0a\
+        // Code \
 scroll behavior \
-and busy/zoom si\
-gnalling thresho\
-lds (millisecond\
-s / pixels).\x0a   \
-   this.UI = {\x0a \
-       AUTO_FOLL\
-OW_REENABLE_PX: \
-Utils.g('AUTO_FO\
-LLOW_REENABLE_PX\
-', 8),     // En\
-able auto-follow\
- when near botto\
-m\x0a        SCROLL\
-_NEAR_MARGIN_PX:\
- Utils.g('SCROLL\
-_NEAR_MARGIN_PX'\
-, 450),      // \
-How close to bot\
-tom is considere\
-d \x22near\x22\x0a       \
- INTERACTION_BUS\
-Y_MS: Utils.g('U\
-I_INTERACTION_BU\
-SY_MS', 140),   \
-    // Minimum b\
-usy time for int\
-eractions\x0a      \
-  ZOOM_BUSY_MS: \
-Utils.g('UI_ZOOM\
-_BUSY_MS', 300) \
-                \
-     // Minimum \
-busy time for zo\
-om\x0a      };\x0a\x0a   \
-   // FAB (float\
-ing action butto\
-n) visibility an\
-d debounce.\x0a    \
-  this.FAB = {\x0a \
-       SHOW_DOWN\
-_THRESHOLD_PX: U\
-tils.g('SHOW_DOW\
-N_THRESHOLD_PX',\
- 0),      // Sho\
-w \x22down\x22 arrow w\
-hen scroll dista\
-nce is large\x0a   \
-     TOGGLE_DEBO\
-UNCE_MS: Utils.g\
-('FAB_TOGGLE_DEB\
-OUNCE_MS', 100) \
-        // Debou\
-nce for icon/tex\
-t toggles\x0a      \
-};\x0a\x0a      // Hig\
-hlighting contro\
-ls and per-frame\
- budget.\x0a      t\
-his.HL = {\x0a     \
-   PER_FRAME: Ut\
-ils.g('HL_PER_FR\
-AME', 2),       \
-                \
-      // How man\
-y code blocks to\
- highlight per f\
-rame\x0a        DIS\
-ABLE_ALL: Utils.\
-g('DISABLE_SYNTA\
-X_HIGHLIGHT', fa\
-lse)            \
-// Global off sw\
-itch for hljs\x0a  \
-    };\x0a\x0a      //\
- Intersection-li\
-ke margins (we d\
-o our own scan, \
-but these guide \
-budgets).\x0a      \
-this.OBSERVER = \
-{\x0a        CODE_R\
-OOT_MARGIN: Util\
-s.g('CODE_ROOT_M\
-ARGIN', '1000px \
-0px 1000px 0px')\
-,\x0a        BOX_RO\
-OT_MARGIN: Utils\
-.g('BOX_ROOT_MAR\
-GIN', '1500px 0p\
-x 1500px 0px'),\x0a\
-        CODE_THR\
-ESHOLD: [0, 0.00\
-1], BOX_THRESHOL\
-D: 0\x0a      };\x0a\x0a \
-     // Viewport\
- scan preload di\
-stance (in pixel\
-s).\x0a      this.S\
-CAN = { PRELOAD_\
-PX: Utils.g('SCA\
-N_PRELOAD_PX', 1\
-000) };\x0a\x0a      /\
-/ Code scroll be\
-havior (auto-fol\
-low re-enable ma\
-rgin and near-bo\
-ttom margin).\x0a  \
-    this.CODE_SC\
-ROLL = {\x0a       \
- AUTO_FOLLOW_REE\
-NABLE_PX: Utils.\
-g('CODE_AUTO_FOL\
-LOW_REENABLE_PX'\
-, 8),\x0a        NE\
-AR_MARGIN_PX: Ut\
-ils.g('CODE_SCRO\
-LL_NEAR_MARGIN_P\
-X', 48)\x0a      };\
-\x0a\x0a      // Strea\
-m (snapshot) bud\
-gets and queue l\
-imits.\x0a      thi\
-s.STREAM = {\x0a   \
-     MAX_PER_FRA\
-ME: Utils.g('STR\
-EAM_MAX_PER_FRAM\
-E', 8),         \
-        // How m\
-any chunks to pr\
-ocess per frame\x0a\
-        EMERGENC\
-Y_COALESCE_LEN: \
-Utils.g('STREAM_\
-EMERGENCY_COALES\
-CE_LEN', 300), /\
-/ If queue grows\
- beyond, coalesc\
-e\x0a        COALES\
+(auto-follow re-\
+enable margin an\
+d near-bottom ma\
+rgin).\x0a        t\
+his.CODE_SCROLL \
+= {\x0a          AU\
+TO_FOLLOW_REENAB\
+LE_PX: Utils.g('\
+CODE_AUTO_FOLLOW\
+_REENABLE_PX', 8\
+),\x0a          NEA\
+R_MARGIN_PX: Uti\
+ls.g('CODE_SCROL\
+L_NEAR_MARGIN_PX\
+', 48)\x0a        }\
+;\x0a\x0a        // St\
+ream (snapshot) \
+budgets and queu\
+e limits.\x0a      \
+  this.STREAM = \
+{\x0a          MAX_\
+PER_FRAME: Utils\
+.g('STREAM_MAX_P\
+ER_FRAME', 8),\x0a \
+         EMERGEN\
+CY_COALESCE_LEN:\
+ Utils.g('STREAM\
+_EMERGENCY_COALE\
+SCE_LEN', 300),\x0a\
+          COALES\
 CE_MODE: Utils.g\
 ('STREAM_COALESC\
 E_MODE', 'fixed'\
-),           // \
-fixed | adaptive\
-\x0a        SNAPSHO\
-T_MAX_STEP: Util\
-s.g('STREAM_SNAP\
-SHOT_MAX_STEP', \
-8000),      // U\
-pper bound for a\
-daptive step\x0a   \
-     // Bounds f\
-or queue to prev\
-ent memory growt\
-h on bursty stre\
-ams\x0a        QUEU\
-E_MAX_ITEMS: Uti\
-ls.g('STREAM_QUE\
-UE_MAX_ITEMS', 1\
-200),\x0a        PR\
-ESERVE_CODES_MAX\
-: Utils.g('STREA\
-M_PRESERVE_CODES\
-_MAX', 120)     \
- // Max code blo\
-cks to attempt r\
-euse\x0a      };\x0a\x0a \
-     // Math (Ka\
-TeX) idle batchi\
-ng and per-batch\
- hint.\x0a      thi\
-s.MATH = {\x0a     \
-   IDLE_TIMEOUT_\
-MS: Utils.g('MAT\
-H_IDLE_TIMEOUT_M\
-S', 800),\x0a      \
-  BATCH_HINT: Ut\
-ils.g('MATH_BATC\
-H_HINT', 24)\x0a   \
-   };\x0a\x0a      // \
+),\x0a          SNA\
+PSHOT_MAX_STEP: \
+Utils.g('STREAM_\
+SNAPSHOT_MAX_STE\
+P', 8000),\x0a     \
+     QUEUE_MAX_I\
+TEMS: Utils.g('S\
+TREAM_QUEUE_MAX_\
+ITEMS', 1200),\x0a \
+         PRESERV\
+E_CODES_MAX: Uti\
+ls.g('STREAM_PRE\
+SERVE_CODES_MAX'\
+, 120)\x0a        }\
+;\x0a\x0a        // Ma\
+th (KaTeX) idle \
+batching and per\
+-batch hint.\x0a   \
+     this.MATH =\
+ {\x0a          IDL\
+E_TIMEOUT_MS: Ut\
+ils.g('MATH_IDLE\
+_TIMEOUT_MS', 80\
+0),\x0a          BA\
+TCH_HINT: Utils.\
+g('MATH_BATCH_HI\
+NT', 24)\x0a       \
+ };\x0a\x0a        // \
 Icon URLs (provi\
 ded by host app)\
-.\x0a      this.ICO\
-NS = {\x0a        E\
-XPAND: Utils.g('\
-ICON_EXPAND', ''\
-), COLLAPSE: Uti\
-ls.g('ICON_COLLA\
-PSE', ''),\x0a     \
-   CODE_MENU: Ut\
+.\x0a        this.I\
+CONS = {\x0a       \
+   EXPAND: Utils\
+.g('ICON_EXPAND'\
+, ''), COLLAPSE:\
+ Utils.g('ICON_C\
+OLLAPSE', ''),\x0a \
+         CODE_ME\
+NU: Utils.g('ICO\
+N_CODE_MENU', ''\
+), CODE_COPY: Ut\
 ils.g('ICON_CODE\
-_MENU', ''), COD\
-E_COPY: Utils.g(\
-'ICON_CODE_COPY'\
-, ''),\x0a        C\
-ODE_RUN: Utils.g\
-('ICON_CODE_RUN'\
-, ''), CODE_PREV\
-IEW: Utils.g('IC\
-ON_CODE_PREVIEW'\
-, '')\x0a      };\x0a\x0a\
-      // Localiz\
-ed UI strings.\x0a \
-     this.LOCALE\
- = {\x0a        PRE\
+_COPY', ''),\x0a   \
+       CODE_RUN:\
+ Utils.g('ICON_C\
+ODE_RUN', ''), C\
+ODE_PREVIEW: Uti\
+ls.g('ICON_CODE_\
+PREVIEW', '')\x0a  \
+      };\x0a\x0a      \
+  // Localized U\
+I strings.\x0a     \
+   this.LOCALE =\
+ {\x0a          PRE\
 VIEW: Utils.g('L\
 OCALE_PREVIEW', \
 'Preview'),\x0a    \
-    RUN: Utils.g\
-('LOCALE_RUN', '\
-Run'),\x0a        C\
-OLLAPSE: Utils.g\
-('LOCALE_COLLAPS\
-E', 'Collapse'),\
-\x0a        EXPAND:\
- Utils.g('LOCALE\
-_EXPAND', 'Expan\
-d'),\x0a        COP\
-Y: Utils.g('LOCA\
-LE_COPY', 'Copy'\
-),\x0a        COPIE\
-D: Utils.g('LOCA\
-LE_COPIED', 'Cop\
-ied')\x0a      };\x0a\x0a\
-      // Code bl\
-ock styling them\
-e (hljs theme ke\
-y or custom).\x0a  \
+      RUN: Utils\
+.g('LOCALE_RUN',\
+ 'Run'),\x0a       \
+   COLLAPSE: Uti\
+ls.g('LOCALE_COL\
+LAPSE', 'Collaps\
+e'),\x0a          E\
+XPAND: Utils.g('\
+LOCALE_EXPAND', \
+'Expand'),\x0a     \
+     COPY: Utils\
+.g('LOCALE_COPY'\
+, 'Copy'),\x0a     \
+     COPIED: Uti\
+ls.g('LOCALE_COP\
+IED', 'Copied')\x0a\
+        };\x0a\x0a    \
+    // Code bloc\
+k styling theme \
+(hljs theme key \
+or custom).\x0a    \
     this.CODE_ST\
 YLE = Utils.g('C\
 ODE_SYNTAX_STYLE\
 ', 'default');\x0a\x0a\
+        // Adapt\
+ive snapshot pro\
+file for plain t\
+ext.\x0a        thi\
+s.PROFILE_TEXT =\
+ {\x0a          bas\
+e: Utils.g('PROF\
+ILE_TEXT_BASE', \
+4),\x0a          gr\
+owth: Utils.g('P\
+ROFILE_TEXT_GROW\
+TH', 1.28),\x0a    \
+      minInterva\
+l: Utils.g('PROF\
+ILE_TEXT_MIN_INT\
+ERVAL', 4),\x0a    \
+      softLatenc\
+y: Utils.g('PROF\
+ILE_TEXT_SOFT_LA\
+TENCY', 60),\x0a   \
+       adaptiveS\
+tep: Utils.g('PR\
+OFILE_TEXT_ADAPT\
+IVE_STEP', false\
+)\x0a        };\x0a\x0a  \
       // Adaptiv\
 e snapshot profi\
-le for plain tex\
-t.\x0a      this.PR\
-OFILE_TEXT = {\x0a \
-       base: Uti\
-ls.g('PROFILE_TE\
-XT_BASE', 4),   \
-              //\
- Base step (char\
-s) between snaps\
-hots\x0a        gro\
-wth: Utils.g('PR\
-OFILE_TEXT_GROWT\
-H', 1.28),      \
-    // Growth fa\
-ctor for adaptiv\
-e\x0a        minInt\
-erval: Utils.g('\
-PROFILE_TEXT_MIN\
-_INTERVAL', 4), \
- // Minimum time\
- between snapsho\
-ts (ms)\x0a        \
-softLatency: Uti\
-ls.g('PROFILE_TE\
-XT_SOFT_LATENCY'\
-, 60), // If idl\
-e for this long,\
- force a snapsho\
-t\x0a        adapti\
-veStep: Utils.g(\
-'PROFILE_TEXT_AD\
-APTIVE_STEP', fa\
-lse)\x0a      };\x0a\x0a \
-     // Adaptive\
- snapshot profil\
-e for code (line\
--aware).\x0a      t\
-his.PROFILE_CODE\
- = {\x0a        bas\
-e: 2048,        \
-         // Fewe\
-r snapshots duri\
-ng fence-open wa\
-rm-up (reduce tr\
-ansient fragment\
-s)\x0a        growt\
-h: 2.6,         \
-       // Ramp s\
-tep quickly if a\
-daptive is enabl\
-ed\x0a        minIn\
-terval: 500,    \
-       // Minimu\
-m time between s\
-napshots (ms) to\
- avoid churn\x0a   \
-     softLatency\
-: 1200,         \
- // Force snapsh\
-ot only after a \
-noticeable idle \
-(ms)\x0a        min\
-LinesForHL: Util\
+le for code (lin\
+e-aware).\x0a      \
+  this.PROFILE_C\
+ODE = {\x0a        \
+  base: 2048,\x0a  \
+        growth: \
+2.6,\x0a          m\
+inInterval: 500,\
+\x0a          softL\
+atency: 1200,\x0a  \
+        minLines\
+ForHL: Utils.g('\
+PROFILE_CODE_HL_\
+N_LINE', 25),\x0a  \
+        minChars\
+ForHL: Utils.g('\
+PROFILE_CODE_HL_\
+N_CHARS', 5000),\
+\x0a          promo\
+teMinInterval: 3\
+00, promoteMaxLa\
+tency: 800, prom\
+oteMinLines: Uti\
+ls.g('PROFILE_CO\
+DE_HL_N_LINE', 2\
+5),\x0a          ad\
+aptiveStep: Util\
 s.g('PROFILE_COD\
-E_HL_N_LINE', 25\
-),\x0a        minCh\
-arsForHL: Utils.\
-g('PROFILE_CODE_\
-HL_N_CHARS', 500\
-0),\x0a        prom\
-oteMinInterval: \
-300, promoteMaxL\
-atency: 800, pro\
-moteMinLines: Ut\
-ils.g('PROFILE_C\
-ODE_HL_N_LINE', \
-25),\x0a        ada\
-ptiveStep: Utils\
-.g('PROFILE_CODE\
-_ADAPTIVE_STEP',\
- true),\x0a        \
-// Hard switches\
- to plain stream\
-ing (no incremen\
-tal hljs, minima\
-l DOM churn)\x0a   \
-     stopAfterLi\
-nes: Utils.g('PR\
-OFILE_CODE_STOP_\
-HL_AFTER_LINES',\
- 300),   // Stop\
- incremental hlj\
-s after this man\
-y lines\x0a        \
-streamPlainAfter\
-Lines: 0,   // B\
-elt-and-suspende\
-rs: enforce plai\
-n mode soon afte\
-r\x0a        stream\
-PlainAfterChars:\
- 0,   // Also gu\
-ard huge single-\
-line code (chars\
- cap)\x0a        ma\
-xFrozenChars: 32\
-000,      // If \
-promotions slipp\
-ed through, cap \
-before spans gro\
-w too large\x0a    \
-    finalHighlig\
-htMaxLines: Util\
-s.g('PROFILE_COD\
-E_FINAL_HL_MAX_L\
-INES', 1500),\x0a  \
-      finalHighl\
-ightMaxChars: Ut\
-ils.g('PROFILE_C\
-ODE_FINAL_HL_MAX\
-_CHARS', 350000)\
-\x0a      };\x0a\x0a     \
- // Debounce for\
- heavy resets (m\
-s).\x0a      this.R\
-ESET = {\x0a       \
- HEAVY_DEBOUNCE_\
-MS: Utils.g('RES\
-ET_HEAVY_DEBOUNC\
-E_MS', 24)\x0a     \
- };\x0a\x0a      // Lo\
-gging caps (used\
- by Logger).\x0a   \
-   this.LOG = {\x0a\
-        MAX_QUEU\
-E: Utils.g('LOG_\
-MAX_QUEUE', 400)\
-,\x0a        MAX_BY\
-TES: Utils.g('LO\
-G_MAX_BYTES', 25\
-6 * 1024),\x0a     \
-   BATCH_MAX: Ut\
-ils.g('LOG_BATCH\
-_MAX', 64),\x0a    \
-    RATE_LIMIT_P\
-ER_SEC: Utils.g(\
-'LOG_RATE_LIMIT_\
-PER_SEC', 0)\x0a   \
-   };\x0a\x0a      // \
+E_ADAPTIVE_STEP'\
+, true),\x0a       \
+   stopAfterLine\
+s: Utils.g('PROF\
+ILE_CODE_STOP_HL\
+_AFTER_LINES', 3\
+00),\x0a          s\
+treamPlainAfterL\
+ines: 0,\x0a       \
+   streamPlainAf\
+terChars: 0,\x0a   \
+       maxFrozen\
+Chars: 32000,\x0a  \
+        finalHig\
+hlightMaxLines: \
+Utils.g('PROFILE\
+_CODE_FINAL_HL_M\
+AX_LINES', 1500)\
+,\x0a          fina\
+lHighlightMaxCha\
+rs: Utils.g('PRO\
+FILE_CODE_FINAL_\
+HL_MAX_CHARS', 3\
+50000)\x0a        }\
+;\x0a\x0a        // De\
+bounce for heavy\
+ resets (ms).\x0a  \
+      this.RESET\
+ = {\x0a          H\
+EAVY_DEBOUNCE_MS\
+: Utils.g('RESET\
+_HEAVY_DEBOUNCE_\
+MS', 24)\x0a       \
+ };\x0a\x0a        // \
+Logging caps (us\
+ed by Logger).\x0a \
+       this.LOG \
+= {\x0a          MA\
+X_QUEUE: Utils.g\
+('LOG_MAX_QUEUE'\
+, 400),\x0a        \
+  MAX_BYTES: Uti\
+ls.g('LOG_MAX_BY\
+TES', 256 * 1024\
+),\x0a          BAT\
+CH_MAX: Utils.g(\
+'LOG_BATCH_MAX',\
+ 64),\x0a          \
+RATE_LIMIT_PER_S\
+EC: Utils.g('LOG\
+_RATE_LIMIT_PER_\
+SEC', 0)\x0a       \
+ };\x0a\x0a        // \
 Async tuning for\
  background work\
-.\x0a      this.ASY\
-NC = {\x0a        S\
-LICE_MS: Utils.g\
-('ASYNC_SLICE_MS\
-', 12),\x0a        \
-MIN_YIELD_MS: Ut\
-ils.g('ASYNC_MIN\
-_YIELD_MS', 0),\x0a\
-        MD_NODES\
-_PER_SLICE: Util\
-s.g('ASYNC_MD_NO\
-DES_PER_SLICE', \
-12)\x0a      };\x0a\x0a  \
-    // RAF pump \
-tuning (budget p\
-er frame).\x0a     \
- this.RAF = {\x0a  \
+.\x0a        this.A\
+SYNC = {\x0a       \
+   SLICE_MS: Uti\
+ls.g('ASYNC_SLIC\
+E_MS', 12),\x0a    \
+      MIN_YIELD_\
+MS: Utils.g('ASY\
+NC_MIN_YIELD_MS'\
+, 0),\x0a          \
+MD_NODES_PER_SLI\
+CE: Utils.g('ASY\
+NC_MD_NODES_PER_\
+SLICE', 12)\x0a    \
+    };\x0a\x0a        \
+// RAF pump tuni\
+ng (budget per f\
+rame).\x0a        t\
+his.RAF = {\x0a    \
       FLUSH_BUDG\
 ET_MS: Utils.g('\
 RAF_FLUSH_BUDGET\
 _MS', 7),\x0a      \
-  MAX_TASKS_PER_\
-FLUSH: Utils.g('\
-RAF_MAX_TASKS_PE\
-R_FLUSH', 120)\x0a \
-     };\x0a\x0a      /\
-/ Markdown tunin\
-g \xe2\x80\x93 allow/disa\
-llow indented co\
-de blocks.\x0a     \
- this.MD = {\x0a   \
-     ALLOW_INDEN\
-TED_CODE: Utils.\
-g('MD_ALLOW_INDE\
-NTED_CODE', fals\
-e)\x0a      };\x0a\x0a   \
-   // Custom mar\
-kup rules for si\
-mple tags in tex\
-t.\x0a      this.CU\
-STOM_MARKUP_RULE\
-S = Utils.g('CUS\
-TOM_MARKUP_RULES\
-', [\x0a          {\
- name: 'cmd',   \
-     open: '[!cm\
-d]',     close: \
-'[/!cmd]',     t\
-ag: 'div',   cla\
-ssName: 'cmd', i\
-nnerMode: 'text'\
- },\x0a          { \
+    MAX_TASKS_PE\
+R_FLUSH: Utils.g\
+('RAF_MAX_TASKS_\
+PER_FLUSH', 120)\
+\x0a        };\x0a\x0a   \
+     // Markdown\
+ tuning \xe2\x80\x93 allo\
+w/disallow inden\
+ted code blocks.\
+\x0a        this.MD\
+ = {\x0a          A\
+LLOW_INDENTED_CO\
+DE: Utils.g('MD_\
+ALLOW_INDENTED_C\
+ODE', false)\x0a   \
+     };\x0a\x0a       \
+ // Custom marku\
+p rules for simp\
+le tags in text.\
+\x0a        // NOTE\
+: added nl2br + \
+allowBr for thin\
+k rules; rest un\
+changed.\x0a       \
+ this.CUSTOM_MAR\
+KUP_RULES = Util\
+s.g('CUSTOM_MARK\
+UP_RULES', [\x0a   \
+       { name: '\
+cmd',        ope\
+n: '[!cmd]',    \
+ close: '[/!cmd]\
+',     tag: 'div\
+',   className: \
+'cmd', innerMode\
+: 'text' },\x0a\x0a   \
+       // Think \
+(Markdown-style)\
+ \xe2\x80\x93 convert new\
+lines to <br>, a\
+llow real <br> t\
+okens; safe-esca\
+pe everything el\
+se.\x0a          { \
 name: 'think_md'\
 ,   open: '[!thi\
 nk]',   close: '\
 [/!think]',   ta\
 g: 'think', clas\
 sName: '',    in\
-nerMode: 'text' \
-},\x0a          { n\
-ame: 'think_html\
-', open: '<think\
->',    close: '<\
-/think>',    tag\
-: 'think', class\
-Name: '',    inn\
+nerMode: 'text',\
+ nl2br: true, al\
+lowBr: true },\x0a\x0a\
+          // Thi\
+nk (HTML-style, \
+streaming-friend\
+ly)\x0a          { \
+name: 'think_htm\
+l', open: '<thin\
+k>',    close: '\
+</think>',    ta\
+g: 'think', clas\
+sName: '',    in\
+nerMode: 'text',\
+ stream: true, n\
+l2br: true, allo\
+wBr: true },\x0a\x0a  \
+        { name: \
+'tool', open: '<\
+tool>',    close\
+: '</tool>',    \
+tag: 'div', clas\
+sName: 'cmd',   \
+ innerMode: 'tex\
+t', stream: true\
+ },\x0a\x0a          /\
+/ Streams+final:\
+ convert [!exec]\
+... into fenced \
+python code BEFO\
+RE markdown-it\x0a \
+         { name:\
+ 'exec_md',    o\
+pen: '[!exec]', \
+   close: '[/!ex\
+ec]',    innerMo\
+de: 'text', stre\
+am: true,\x0a      \
+      openReplac\
+e: '```python\x5cn'\
+, closeReplace: \
+'\x5cn```', phase: \
+'source' },\x0a\x0a   \
+       // Stream\
+s+final: convert\
+ <execute>...</e\
+xecute> into fen\
+ced python code \
+BEFORE markdown-\
+it\x0a          { n\
+ame: 'exec_html'\
+,  open: '<execu\
+te>',  close: '<\
+/execute>',  inn\
 erMode: 'text', \
-stream: true },\x0a\
-          { name\
-: 'tool', open: \
-'<tool>',    clo\
-se: '</tool>',  \
-  tag: 'div', cl\
-assName: 'cmd', \
-   innerMode: 't\
-ext', stream: tr\
-ue },\x0a\x0a         \
- // Streams+fina\
-l: convert [!exe\
-c]... into fence\
-d python code BE\
-FORE markdown-it\
-\x0a          { nam\
-e: 'exec_md',   \
- open: '[!exec]'\
-,    close: '[/!\
-exec]',    inner\
-Mode: 'text', st\
-ream: true,\x0a    \
-        openRepl\
-ace: '```python\x5c\
-n', closeReplace\
-: '\x5cn```', phase\
-: 'source' },\x0a\x0a \
-         // Stre\
-ams+final: conve\
-rt <execute>...<\
-/execute> into f\
-enced python cod\
-e BEFORE markdow\
-n-it\x0a          {\
- name: 'exec_htm\
-l',  open: '<exe\
-cute>',  close: \
-'</execute>',  i\
-nnerMode: 'text'\
-, stream: true,\x0a\
-            open\
-Replace: '```pyt\
-hon\x5cn', closeRep\
-lace: '\x5cn```', p\
-hase: 'source' }\
-\x0a        ]);\x0a   \
- }\x0a  }\x0a\x0a  // ===\
+stream: true,\x0a  \
+          openRe\
+place: '```pytho\
+n\x5cn', closeRepla\
+ce: '\x5cn```', pha\
+se: 'source' }\x0a \
+       ]);\x0a     \
+ }\x0a    }\x0a\x0a  // =\
 ================\
 ================\
 ================\
 ================\
-=======\x0a  // 1) \
-DOM references\x0a \
- // ============\
+=========\x0a  // 1\
+) DOM references\
+\x0a  // ==========\
 ================\
 ================\
 ================\
-==============\x0a\x0a\
-  class DOMRefs \
-{\x0a    constructo\
-r() { this.els =\
- {}; this.domOut\
-putStream = null\
-; this.domStream\
+================\
+\x0a\x0a  class DOMRef\
+s {\x0a    construc\
+tor() { this.els\
+ = {}; this.domO\
+utputStream = nu\
+ll; this.domStre\
+amMsg = null; }\x0a\
+    // Cache fre\
+quently used ele\
+ments by id.\x0a   \
+ init() {\x0a      \
+const ids = [\x0a  \
+      'container\
+','_nodes_','_ap\
+pend_input_','_a\
+ppend_output_bef\
+ore_','_append_o\
+utput_',\x0a       \
+ '_append_live_'\
+,'_footer_','_lo\
+ader_','tips','s\
+crollFab','scrol\
+lFabIcon'\x0a      \
+];\x0a      ids.for\
+Each(id => { thi\
+s.els[id] = docu\
+ment.getElementB\
+yId(id); });\x0a   \
+ }\x0a    // Get el\
+ement by id (rea\
+ds cache first).\
+\x0a    get(id) { r\
+eturn this.els[i\
+d] || document.g\
+etElementById(id\
+); }\x0a    // Rese\
+t ephemeral poin\
+ters (used durin\
+g stream).\x0a    r\
+esetEphemeral() \
+{ this.domStream\
 Msg = null; }\x0a  \
-  // Cache frequ\
-ently used eleme\
-nts by id.\x0a    i\
-nit() {\x0a      co\
-nst ids = [\x0a    \
-    'container',\
-'_nodes_','_appe\
-nd_input_','_app\
-end_output_befor\
-e_','_append_out\
-put_',\x0a        '\
-_append_live_','\
-_footer_','_load\
-er_','tips','scr\
-ollFab','scrollF\
-abIcon'\x0a      ];\
-\x0a      ids.forEa\
-ch(id => { this.\
-els[id] = docume\
-nt.getElementByI\
-d(id); });\x0a    }\
-\x0a    // Get elem\
-ent by id (reads\
- cache first).\x0a \
-   get(id) { ret\
-urn this.els[id]\
- || document.get\
-ElementById(id);\
- }\x0a    // Reset \
-ephemeral pointe\
-rs (used during \
-stream).\x0a    res\
-etEphemeral() { \
-this.domStreamMs\
-g = null; }\x0a    \
-// Release refs \
-and restore defa\
-ult scroll behav\
-ior.\x0a    cleanup\
-() {\x0a      this.\
-resetEphemeral()\
-; this.domOutput\
-Stream = null; t\
-his.els = {};\x0a  \
-    try { histor\
-y.scrollRestorat\
-ion = \x22auto\x22; } \
-catch (_) {}\x0a   \
- }\x0a    // Faster\
- clear of a cont\
-ainer by avoidin\
-g innerHTML='' (\
-which is slow on\
- large trees).\x0a \
-   fastClear(id)\
- {\x0a      const e\
-l = this.get(id)\
-;\x0a      if (!el)\
- return null;\x0a  \
-    // Fast path\
-s:\x0a      if (el.\
-firstChild) {\x0a  \
-      // Prefer \
-replaceChildren,\
- fallback to tex\
-tContent.\x0a      \
-  if (el.replace\
-Children) el.rep\
-laceChildren();\x0a\
-        else el.\
-textContent = ''\
-;\x0a      }\x0a      \
-return el;\x0a    }\
-\x0a\x0a    // Clear a\
-nd ensure paint \
-on next frame (a\
-wait before read\
-ing layout).\x0a   \
- async fastClear\
-AndPaint(id) {\x0a \
-     const el = \
-this.fastClear(i\
+  // Release ref\
+s and restore de\
+fault scroll beh\
+avior.\x0a    clean\
+up() {\x0a      thi\
+s.resetEphemeral\
+(); this.domOutp\
+utStream = null;\
+ this.els = {};\x0a\
+      try { hist\
+ory.scrollRestor\
+ation = \x22auto\x22; \
+} catch (_) {}\x0a \
+   }\x0a    // Fast\
+er clear of a co\
+ntainer by avoid\
+ing innerHTML=''\
+ (which is slow \
+on large trees).\
+\x0a    fastClear(i\
+d) {\x0a      const\
+ el = this.get(i\
 d);\x0a      if (!e\
 l) return null;\x0a\
-      // Yield t\
-o the next frame\
- through the cen\
-tralized RafMana\
-ger to ensure re\
-paint.\x0a      try\
- {\x0a        if (t\
-ypeof runtime !=\
-= 'undefined' &&\
- runtime.raf && \
-typeof runtime.r\
-af.nextFrame ===\
- 'function') {\x0a \
-         await r\
-untime.raf.nextF\
-rame();\x0a        \
-} else {\x0a       \
-   await new Pro\
-mise(r => setTim\
-eout(r, 16));\x0a  \
-      }\x0a      } \
-catch (_) {}\x0a   \
-   return el;\x0a  \
-  }\x0a\x0a    // Hard\
- clear by tempor\
-arily hiding ele\
-ment to avoid in\
-termediate paint\
-s.\x0a    fastClear\
-Hidden(id) {\x0a   \
-   const el = th\
-is.get(id);\x0a    \
-  if (!el) retur\
-n null;\x0a      co\
-nst prevDisplay \
-= el.style.displ\
-ay;\x0a      el.sty\
-le.display = 'no\
-ne';       // pa\
-use paints\x0a     \
- if (el.replaceC\
-hildren) el.repl\
-aceChildren();\x0a \
-     else el.tex\
-tContent = '';\x0a \
-     el.style.di\
-splay = prevDisp\
-lay;  // resume \
-paints\x0a      ret\
-urn el;\x0a    }\x0a  \
-  // Replace ele\
-ment node by a s\
-hallow clone (dr\
-ops children).\x0a \
-   hardReplaceBy\
-Clone(id) {\x0a    \
-  const el = thi\
-s.get(id);\x0a     \
- if (!el || !el.\
-parentNode) retu\
-rn null;\x0a      c\
-onst clone = el.\
-cloneNode(false)\
-;\x0a      try { el\
-.replaceWith(clo\
-ne); } catch (_)\
- { el.innerHTML \
-= ''; }\x0a      th\
-is.els[id] = clo\
-ne;\x0a      if (id\
- === '_append_ou\
-tput_') this.dom\
-OutputStream = c\
-lone;\x0a      retu\
-rn clone;\x0a    }\x0a\
-    // Clear str\
-eaming container\
-s and transient \
-state.\x0a    hardR\
-esetStreamContai\
-ners() {\x0a      t\
-his.resetEphemer\
-al();\x0a      this\
-.domOutputStream\
- = null;\x0a      t\
-his.fastClearHid\
-den('_append_out\
-put_before_');\x0a \
-     this.fastCl\
-earHidden('_appe\
-nd_output_');\x0a  \
-  }\x0a    // Retur\
-n output stream \
-container, cachi\
-ng reference.\x0a  \
-  getStreamConta\
-iner() {\x0a      i\
-f (this.domOutpu\
-tStream && this.\
-domOutputStream.\
-isConnected) ret\
-urn this.domOutp\
-utStream;\x0a      \
-const el = this.\
-get('_append_out\
-put_'); if (el) \
-this.domOutputSt\
-ream = el; retur\
-n el;\x0a    }\x0a    \
-// Get or create\
- current streami\
-ng message conta\
-iner (.msg-box >\
- .msg > .md-snap\
-shot-root).\x0a    \
-getStreamMsg(cre\
-ate, name_header\
-) {\x0a      const \
-container = this\
-.getStreamContai\
-ner(); if (!cont\
-ainer) return nu\
-ll;\x0a      if (th\
-is.domStreamMsg \
-&& this.domStrea\
-mMsg.isConnected\
-) return this.do\
-mStreamMsg;\x0a\x0a   \
-   let box = con\
-tainer.querySele\
-ctor('.msg-box')\
-; let msg = null\
-;\x0a      if (!box\
- && create) {\x0a  \
-      box = docu\
-ment.createEleme\
-nt('div'); box.c\
-lassList.add('ms\
-g-box', 'msg-bot\
-');\x0a        if (\
-name_header) {\x0a \
-         const n\
-ame = document.c\
-reateElement('di\
-v'); name.classL\
-ist.add('name-he\
-ader','name-bot'\
-); name.innerHTM\
-L = name_header;\
- box.appendChild\
-(name);\x0a        \
-}\x0a        msg = \
-document.createE\
-lement('div'); m\
-sg.classList.add\
-('msg');\x0a       \
- const snap = do\
-cument.createEle\
-ment('div'); sna\
-p.className = 'm\
-d-snapshot-root'\
-;\x0a        msg.ap\
-pendChild(snap);\
- box.appendChild\
-(msg); container\
-.appendChild(box\
-);\x0a      } else \
-if (box) {\x0a     \
-   msg = box.que\
-rySelector('.msg\
-');\x0a        if (\
-msg && !msg.quer\
-ySelector('.md-s\
-napshot-root')) \
-{\x0a          cons\
-t snap = documen\
-t.createElement(\
-'div'); snap.cla\
-ssName = 'md-sna\
-pshot-root'; msg\
-.appendChild(sna\
-p);\x0a        }\x0a  \
-    }\x0a      if (\
-msg) this.domStr\
-eamMsg = msg;\x0a  \
-    return msg;\x0a\
-    }\x0a    // Cle\
-ar the \x22before\x22 \
-area (older mess\
-ages area).\x0a    \
-clearStreamBefor\
-e() {\x0a      if (\
-typeof window.hi\
-deTips === 'func\
-tion') { window.\
-hideTips(); }\x0a  \
+      // Fast pa\
+ths:\x0a      if (e\
+l.firstChild) {\x0a\
+        // Prefe\
+r replaceChildre\
+n, fallback to t\
+extContent.\x0a    \
+    if (el.repla\
+ceChildren) el.r\
+eplaceChildren()\
+;\x0a        else e\
+l.textContent = \
+'';\x0a      }\x0a    \
+  return el;\x0a   \
+ }\x0a\x0a    // Clear\
+ and ensure pain\
+t on next frame \
+(await before re\
+ading layout).\x0a \
+   async fastCle\
+arAndPaint(id) {\
+\x0a      const el \
+= this.fastClear\
+(id);\x0a      if (\
+!el) return null\
+;\x0a      // Yield\
+ to the next fra\
+me through the c\
+entralized RafMa\
+nager to ensure \
+repaint.\x0a      t\
+ry {\x0a        if \
+(typeof runtime \
+!== 'undefined' \
+&& runtime.raf &\
+& typeof runtime\
+.raf.nextFrame =\
+== 'function') {\
+\x0a          await\
+ runtime.raf.nex\
+tFrame();\x0a      \
+  } else {\x0a     \
+     await new P\
+romise(r => setT\
+imeout(r, 16));\x0a\
+        }\x0a      \
+} catch (_) {}\x0a \
+     return el;\x0a\
+    }\x0a\x0a    // Ha\
+rd clear by temp\
+orarily hiding e\
+lement to avoid \
+intermediate pai\
+nts.\x0a    fastCle\
+arHidden(id) {\x0a \
+     const el = \
+this.get(id);\x0a  \
+    if (!el) ret\
+urn null;\x0a      \
+const prevDispla\
+y = el.style.dis\
+play;\x0a      el.s\
+tyle.display = '\
+none';       // \
+pause paints\x0a   \
+   if (el.replac\
+eChildren) el.re\
+placeChildren();\
+\x0a      else el.t\
+extContent = '';\
+\x0a      el.style.\
+display = prevDi\
+splay;  // resum\
+e paints\x0a      r\
+eturn el;\x0a    }\x0a\
+    // Replace e\
+lement node by a\
+ shallow clone (\
+drops children).\
+\x0a    hardReplace\
+ByClone(id) {\x0a  \
     const el = t\
-his.fastClearHid\
-den('_append_out\
-put_before_');\x0a \
-     if (el) { /\
-* no-op */ }\x0a   \
- }\x0a    // Clear \
-output stream ar\
-ea.\x0a    clearOut\
-put() { this.har\
+his.get(id);\x0a   \
+   if (!el || !e\
+l.parentNode) re\
+turn null;\x0a     \
+ const clone = e\
+l.cloneNode(fals\
+e);\x0a      try { \
+el.replaceWith(c\
+lone); } catch (\
+_) { el.innerHTM\
+L = ''; }\x0a      \
+this.els[id] = c\
+lone;\x0a      if (\
+id === '_append_\
+output_') this.d\
+omOutputStream =\
+ clone;\x0a      re\
+turn clone;\x0a    \
+}\x0a    // Clear s\
+treaming contain\
+ers and transien\
+t state.\x0a    har\
 dResetStreamCont\
-ainers(); }\x0a    \
-// Clear message\
-s list and reset\
- state.\x0a    clea\
-rNodes() {\x0a     \
- this.clearStrea\
-mBefore();\x0a     \
- const el = this\
-.fastClearHidden\
-('_nodes_'); if \
-(el) { el.classL\
-ist.add('empty_l\
-ist'); }\x0a      t\
-his.resetEphemer\
-al();\x0a    }\x0a    \
-// Clear input a\
-rea.\x0a    clearIn\
-put() { this.fas\
-tClearHidden('_a\
-ppend_input_'); \
-}\x0a    // Clear l\
-ive area and hid\
-e it.\x0a    clearL\
-ive() {\x0a      co\
-nst el = this.fa\
-stClearHidden('_\
-append_live_'); \
-if (!el) return;\
-\x0a      el.classL\
-ist.remove('visi\
-ble');\x0a      el.\
-classList.add('h\
-idden');\x0a      t\
-his.resetEphemer\
-al();\x0a    }\x0a  }\x0a\
-\x0a    // ========\
+ainers() {\x0a     \
+ this.resetEphem\
+eral();\x0a      th\
+is.domOutputStre\
+am = null;\x0a     \
+ this.fastClearH\
+idden('_append_o\
+utput_before_');\
+\x0a      this.fast\
+ClearHidden('_ap\
+pend_output_');\x0a\
+    }\x0a    // Ret\
+urn output strea\
+m container, cac\
+hing reference.\x0a\
+    getStreamCon\
+tainer() {\x0a     \
+ if (this.domOut\
+putStream && thi\
+s.domOutputStrea\
+m.isConnected) r\
+eturn this.domOu\
+tputStream;\x0a    \
+  const el = thi\
+s.get('_append_o\
+utput_'); if (el\
+) this.domOutput\
+Stream = el; ret\
+urn el;\x0a    }\x0a  \
+  // Get or crea\
+te current strea\
+ming message con\
+tainer (.msg-box\
+ > .msg > .md-sn\
+apshot-root).\x0a  \
+  getStreamMsg(c\
+reate, name_head\
+er) {\x0a      cons\
+t container = th\
+is.getStreamCont\
+ainer(); if (!co\
+ntainer) return \
+null;\x0a      if (\
+this.domStreamMs\
+g && this.domStr\
+eamMsg.isConnect\
+ed) return this.\
+domStreamMsg;\x0a\x0a \
+     let box = c\
+ontainer.querySe\
+lector('.msg-box\
+'); let msg = nu\
+ll;\x0a      if (!b\
+ox && create) {\x0a\
+        box = do\
+cument.createEle\
+ment('div'); box\
+.classList.add('\
+msg-box', 'msg-b\
+ot');\x0a        if\
+ (name_header) {\
+\x0a          const\
+ name = document\
+.createElement('\
+div'); name.clas\
+sList.add('name-\
+header','name-bo\
+t'); name.innerH\
+TML = name_heade\
+r; box.appendChi\
+ld(name);\x0a      \
+  }\x0a        msg \
+= document.creat\
+eElement('div');\
+ msg.classList.a\
+dd('msg');\x0a     \
+   const snap = \
+document.createE\
+lement('div'); s\
+nap.className = \
+'md-snapshot-roo\
+t';\x0a        msg.\
+appendChild(snap\
+); box.appendChi\
+ld(msg); contain\
+er.appendChild(b\
+ox);\x0a      } els\
+e if (box) {\x0a   \
+     msg = box.q\
+uerySelector('.m\
+sg');\x0a        if\
+ (msg && !msg.qu\
+erySelector('.md\
+-snapshot-root')\
+) {\x0a          co\
+nst snap = docum\
+ent.createElemen\
+t('div'); snap.c\
+lassName = 'md-s\
+napshot-root'; m\
+sg.appendChild(s\
+nap);\x0a        }\x0a\
+      }\x0a      if\
+ (msg) this.domS\
+treamMsg = msg;\x0a\
+      return msg\
+;\x0a    }\x0a    // C\
+lear the \x22before\
+\x22 area (older me\
+ssages area).\x0a  \
+  clearStreamBef\
+ore() {\x0a      if\
+ (typeof window.\
+hideTips === 'fu\
+nction') { windo\
+w.hideTips(); }\x0a\
+      const el =\
+ this.fastClearH\
+idden('_append_o\
+utput_before_');\
+\x0a      if (el) {\
+ /* no-op */ }\x0a \
+   }\x0a    // Clea\
+r output stream \
+area.\x0a    clearO\
+utput() { this.h\
+ardResetStreamCo\
+ntainers(); }\x0a  \
+  // Clear messa\
+ges list and res\
+et state.\x0a    cl\
+earNodes() {\x0a   \
+   this.clearStr\
+eamBefore();\x0a   \
+   const el = th\
+is.fastClearHidd\
+en('_nodes_'); i\
+f (el) { el.clas\
+sList.add('empty\
+_list'); }\x0a     \
+ this.resetEphem\
+eral();\x0a    }\x0a  \
+  // Clear input\
+ area.\x0a    clear\
+Input() { this.f\
+astClearHidden('\
+_append_input_')\
+; }\x0a    // Clear\
+ live area and h\
+ide it.\x0a    clea\
+rLive() {\x0a      \
+const el = this.\
+fastClearHidden(\
+'_append_live_')\
+; if (!el) retur\
+n;\x0a      el.clas\
+sList.remove('vi\
+sible');\x0a      e\
+l.classList.add(\
+'hidden');\x0a     \
+ this.resetEphem\
+eral();\x0a    }\x0a  \
+}\x0a\x0a    // ======\
 ================\
 ================\
 ================\
 ================\
-==\x0a    // 2) Cod\
-e scroll state m\
-anager\x0a    // ==\
+====\x0a    // 2) C\
+ode scroll state\
+ manager\x0a    // \
 ================\
 ================\
 ================\
 ================\
-========\x0a\x0a    cl\
-ass CodeScrollSt\
-ate {\x0a      cons\
-tructor(cfg, raf\
-) {\x0a        this\
-.cfg = cfg;\x0a    \
-    this.raf = r\
-af;\x0a        this\
-.map = new WeakM\
-ap();\x0a        th\
-is.rafMap = new \
-WeakMap();\x0a     \
-   this.rafIds =\
- new Set(); // l\
-egacy\x0a        th\
-is.rafKeyMap = n\
-ew WeakMap();\x0a  \
-    }\x0a      // G\
-et or create per\
--code element st\
-ate.\x0a      state\
-(el) {\x0a        l\
-et s = this.map.\
-get(el);\x0a       \
- if (!s) { s = {\
- autoFollow: fal\
-se, lastScrollTo\
-p: 0, userIntera\
-cted: false, fre\
-ezeUntil: 0 }; t\
-his.map.set(el, \
-s); }\x0a        re\
-turn s;\x0a      }\x0a\
-      // Check i\
-f code block is \
-already finalize\
-d (not streaming\
-).\x0a      isFinal\
-izedCode(el) {\x0a \
-       if (!el |\
-| el.tagName !==\
- 'CODE') return \
-false;\x0a        i\
-f (el.dataset &&\
- el.dataset._act\
-ive_stream === '\
-1') return false\
-;\x0a        const \
-highlighted = (e\
-l.getAttribute('\
-data-highlighted\
-') === 'yes') ||\
- el.classList.co\
-ntains('hljs');\x0a\
-        return h\
-ighlighted;\x0a    \
-  }\x0a      // Is \
-element scrolled\
- close to the bo\
-ttom by a margin\
-?\x0a      isNearBo\
-ttomEl(el, margi\
-n = 100) {\x0a     \
-   if (!el) retu\
-rn true;\x0a       \
- const distance \
-= el.scrollHeigh\
-t - el.clientHei\
-ght - el.scrollT\
-op;\x0a        retu\
-rn distance <= m\
-argin;\x0a      }\x0a \
-     // Scroll c\
-ode element to t\
-he bottom respec\
-ting interaction\
- state.\x0a      sc\
-rollToBottom(el,\
- live = false, f\
-orce = false) {\x0a\
-        if (!el \
-|| !el.isConnect\
-ed) return;\x0a    \
-    if (!force &\
-& this.isFinaliz\
-edCode(el)) retu\
-rn;\x0a\x0a        con\
-st st = this.sta\
-te(el);\x0a        \
-const now = Util\
-s.now();\x0a       \
- if (!force && s\
-t.freezeUntil &&\
- now < st.freeze\
-Until) return;\x0a\x0a\
-        const di\
-stNow = el.scrol\
-lHeight - el.cli\
-entHeight - el.s\
-crollTop;\x0a      \
-  if (!force && \
-distNow <= 1) { \
-st.lastScrollTop\
- = el.scrollTop;\
- return; }\x0a\x0a    \
-    const margin\
-Px = live ? 96 :\
- this.cfg.CODE_S\
-CROLL.NEAR_MARGI\
-N_PX;\x0a        co\
-nst behavior = '\
-instant';\x0a\x0a     \
-   if (!force) {\
-\x0a          if (l\
-ive && st.autoFo\
-llow !== true) r\
-eturn;\x0a         \
- if (!live && !(\
-st.autoFollow ==\
-= true || this.i\
-sNearBottomEl(el\
-, marginPx) || !\
-st.userInteracte\
-d)) return;\x0a    \
-    }\x0a\x0a        t\
-ry { el.scrollTo\
-({ top: el.scrol\
-lHeight, behavio\
-r }); } catch (_\
-) { el.scrollTop\
- = el.scrollHeig\
-ht; }\x0a        st\
-.lastScrollTop =\
- el.scrollTop;\x0a \
-     }\x0a      // \
-Schedule bottom \
-scroll in rAF (c\
-oalesces multipl\
-e calls).\x0a      \
-scheduleScroll(e\
+==========\x0a\x0a    \
+class CodeScroll\
+State {\x0a      co\
+nstructor(cfg, r\
+af) {\x0a        th\
+is.cfg = cfg;\x0a  \
+      this.raf =\
+ raf;\x0a        th\
+is.map = new Wea\
+kMap();\x0a        \
+this.rafMap = ne\
+w WeakMap();\x0a   \
+     this.rafIds\
+ = new Set(); //\
+ legacy\x0a        \
+this.rafKeyMap =\
+ new WeakMap();\x0a\
+      }\x0a      //\
+ Get or create p\
+er-code element \
+state.\x0a      sta\
+te(el) {\x0a       \
+ let s = this.ma\
+p.get(el);\x0a     \
+   if (!s) { s =\
+ { autoFollow: f\
+alse, lastScroll\
+Top: 0, userInte\
+racted: false, f\
+reezeUntil: 0 };\
+ this.map.set(el\
+, s); }\x0a        \
+return s;\x0a      \
+}\x0a      // Check\
+ if code block i\
+s already finali\
+zed (not streami\
+ng).\x0a      isFin\
+alizedCode(el) {\
+\x0a        if (!el\
+ || el.tagName !\
+== 'CODE') retur\
+n false;\x0a       \
+ if (el.dataset \
+&& el.dataset._a\
+ctive_stream ===\
+ '1') return fal\
+se;\x0a        cons\
+t highlighted = \
+(el.getAttribute\
+('data-highlight\
+ed') === 'yes') \
+|| el.classList.\
+contains('hljs')\
+;\x0a        return\
+ highlighted;\x0a  \
+    }\x0a      // I\
+s element scroll\
+ed close to the \
+bottom by a marg\
+in?\x0a      isNear\
+BottomEl(el, mar\
+gin = 100) {\x0a   \
+     if (!el) re\
+turn true;\x0a     \
+   const distanc\
+e = el.scrollHei\
+ght - el.clientH\
+eight - el.scrol\
+lTop;\x0a        re\
+turn distance <=\
+ margin;\x0a      }\
+\x0a      // Scroll\
+ code element to\
+ the bottom resp\
+ecting interacti\
+on state.\x0a      \
+scrollToBottom(e\
 l, live = false,\
  force = false) \
 {\x0a        if (!e\
@@ -87035,1604 +86917,1742 @@ cted) return;\x0a  \
       if (!force\
  && this.isFinal\
 izedCode(el)) re\
-turn;\x0a        if\
- (this.rafMap.ge\
-t(el)) return;\x0a \
-       this.rafM\
-ap.set(el, true)\
-;\x0a\x0a        let k\
-ey = this.rafKey\
-Map.get(el);\x0a   \
-     if (!key) {\
- key = { t: 'cod\
-eScroll', el }; \
-this.rafKeyMap.s\
-et(el, key); }\x0a\x0a\
-        this.raf\
-.schedule(key, (\
-) => {\x0a         \
- this.rafMap.del\
-ete(el);\x0a       \
-   this.scrollTo\
-Bottom(el, live,\
- force);\x0a       \
- }, 'CodeScroll'\
-, 0);\x0a      }\x0a  \
-    // Attach sc\
-roll/wheel/touch\
- handlers to man\
-age auto-follow \
-state.\x0a      att\
-achHandlers(code\
-El) {\x0a        if\
- (!codeEl || cod\
-eEl.dataset.csLi\
-steners === '1')\
- return;\x0a       \
- codeEl.dataset.\
-csListeners = '1\
-';\x0a        const\
- st = this.state\
-(codeEl);\x0a\x0a     \
-   const onScrol\
-l = (ev) => {\x0a  \
-        const to\
-p = codeEl.scrol\
-lTop;\x0a          \
-const isUser = !\
-!(ev && ev.isTru\
-sted === true);\x0a\
-          const \
-now = Utils.now(\
-);\x0a\x0a          if\
- (this.isFinaliz\
-edCode(codeEl)) \
-{\x0a            if\
- (isUser) st.use\
-rInteracted = tr\
-ue;\x0a            \
-st.autoFollow = \
-false;\x0a         \
-   st.lastScroll\
-Top = top;\x0a     \
-       return;\x0a \
-         }\x0a\x0a    \
-      if (isUser\
-) {\x0a            \
-if (top + 1 < st\
-.lastScrollTop) \
-{\x0a              \
-st.autoFollow = \
-false; st.userIn\
-teracted = true;\
+turn;\x0a\x0a        c\
+onst st = this.s\
+tate(el);\x0a      \
+  const now = Ut\
+ils.now();\x0a     \
+   if (!force &&\
  st.freezeUntil \
-= now + 1000;\x0a  \
-          } else\
- if (this.isNear\
-BottomEl(codeEl,\
- this.cfg.CODE_S\
-CROLL.AUTO_FOLLO\
-W_REENABLE_PX)) \
-{\x0a              \
-st.autoFollow = \
+&& now < st.free\
+zeUntil) return;\
+\x0a\x0a        const \
+distNow = el.scr\
+ollHeight - el.c\
+lientHeight - el\
+.scrollTop;\x0a    \
+    if (!force &\
+& distNow <= 1) \
+{ st.lastScrollT\
+op = el.scrollTo\
+p; return; }\x0a\x0a  \
+      const marg\
+inPx = live ? 96\
+ : this.cfg.CODE\
+_SCROLL.NEAR_MAR\
+GIN_PX;\x0a        \
+const behavior =\
+ 'instant';\x0a\x0a   \
+     if (!force)\
+ {\x0a          if \
+(live && st.auto\
+Follow !== true)\
+ return;\x0a       \
+   if (!live && \
+!(st.autoFollow \
+=== true || this\
+.isNearBottomEl(\
+el, marginPx) ||\
+ !st.userInterac\
+ted)) return;\x0a  \
+      }\x0a\x0a       \
+ try { el.scroll\
+To({ top: el.scr\
+ollHeight, behav\
+ior }); } catch \
+(_) { el.scrollT\
+op = el.scrollHe\
+ight; }\x0a        \
+st.lastScrollTop\
+ = el.scrollTop;\
+\x0a      }\x0a      /\
+/ Schedule botto\
+m scroll in rAF \
+(coalesces multi\
+ple calls).\x0a    \
+  scheduleScroll\
+(el, live = fals\
+e, force = false\
+) {\x0a        if (\
+!el || !el.isCon\
+nected) return;\x0a\
+        if (!for\
+ce && this.isFin\
+alizedCode(el)) \
+return;\x0a        \
+if (this.rafMap.\
+get(el)) return;\
+\x0a        this.ra\
+fMap.set(el, tru\
+e);\x0a\x0a        let\
+ key = this.rafK\
+eyMap.get(el);\x0a \
+       if (!key)\
+ { key = { t: 'c\
+odeScroll', el }\
+; this.rafKeyMap\
+.set(el, key); }\
+\x0a\x0a        this.r\
+af.schedule(key,\
+ () => {\x0a       \
+   this.rafMap.d\
+elete(el);\x0a     \
+     this.scroll\
+ToBottom(el, liv\
+e, force);\x0a     \
+   }, 'CodeScrol\
+l', 0);\x0a      }\x0a\
+      // Attach \
+scroll/wheel/tou\
+ch handlers to m\
+anage auto-follo\
+w state.\x0a      a\
+ttachHandlers(co\
+deEl) {\x0a        \
+if (!codeEl || c\
+odeEl.dataset.cs\
+Listeners === '1\
+') return;\x0a     \
+   codeEl.datase\
+t.csListeners = \
+'1';\x0a        con\
+st st = this.sta\
+te(codeEl);\x0a\x0a   \
+     const onScr\
+oll = (ev) => {\x0a\
+          const \
+top = codeEl.scr\
+ollTop;\x0a        \
+  const isUser =\
+ !!(ev && ev.isT\
+rusted === true)\
+;\x0a          cons\
+t now = Utils.no\
+w();\x0a\x0a          \
+if (this.isFinal\
+izedCode(codeEl)\
+) {\x0a            \
+if (isUser) st.u\
+serInteracted = \
 true;\x0a          \
-  }\x0a          } \
-else {\x0a         \
-   if (this.isNe\
+  st.autoFollow \
+= false;\x0a       \
+     st.lastScro\
+llTop = top;\x0a   \
+         return;\
+\x0a          }\x0a\x0a  \
+        if (isUs\
+er) {\x0a          \
+  if (top + 1 < \
+st.lastScrollTop\
+) {\x0a            \
+  st.autoFollow \
+= false; st.user\
+Interacted = tru\
+e; st.freezeUnti\
+l = now + 1000;\x0a\
+            } el\
+se if (this.isNe\
 arBottomEl(codeE\
 l, this.cfg.CODE\
 _SCROLL.AUTO_FOL\
 LOW_REENABLE_PX)\
-) st.autoFollow \
+) {\x0a            \
+  st.autoFollow \
 = true;\x0a        \
-  }\x0a          st\
-.lastScrollTop =\
- top;\x0a        };\
-\x0a\x0a        const \
-onWheel = (ev) =\
-> {\x0a          st\
-.userInteracted \
-= true;\x0a        \
-  const now = Ut\
-ils.now();\x0a\x0a    \
-      if (this.i\
-sFinalizedCode(c\
-odeEl)) { st.aut\
-oFollow = false;\
- return; }\x0a\x0a    \
-      if (ev.del\
-taY < 0) { st.au\
-toFollow = false\
-; st.freezeUntil\
- = now + 1000; }\
-\x0a          else \
-if (this.isNearB\
-ottomEl(codeEl, \
-this.cfg.CODE_SC\
-ROLL.AUTO_FOLLOW\
-_REENABLE_PX)) {\
- st.autoFollow =\
- true; }\x0a       \
- };\x0a\x0a        cod\
-eEl.addEventList\
-ener('scroll', o\
-nScroll, { passi\
-ve: true });\x0a   \
-     codeEl.addE\
-ventListener('wh\
-eel', onWheel, {\
- passive: true }\
-);\x0a        codeE\
-l.addEventListen\
-er('touchstart',\
- function () { s\
-t.userInteracted\
- = true; }, { pa\
-ssive: true });\x0a\
-      }\x0a      //\
- Attach handlers\
- to all bot code\
- blocks under ro\
-ot (or document)\
-.\x0a      // IMPOR\
-TANT: We intenti\
-onally do NOT au\
-to-scroll finali\
-zed/static code \
-blocks to the bo\
-ttom.\x0a      // O\
-nly actively str\
-eaming code bloc\
-ks (data-_active\
-_stream=\x221\x22) are\
- auto-followed l\
-ive.\x0a      initS\
-crollableBlocks(\
-root) {\x0a        \
-const scope = ro\
-ot || document;\x0a\
-        let node\
-s = [];\x0a        \
-if (scope.nodeTy\
-pe === 1 && scop\
-e.closest && sco\
-pe.closest('.msg\
--box.msg-bot')) \
-{\x0a          node\
-s = scope.queryS\
-electorAll('pre \
-code');\x0a        \
+    }\x0a          \
 } else {\x0a       \
-   nodes = docum\
-ent.querySelecto\
-rAll('.msg-box.m\
-sg-bot pre code'\
-);\x0a        }\x0a   \
-     if (!nodes.\
-length) return;\x0a\
-\x0a        nodes.f\
-orEach((code) =>\
- {\x0a          thi\
-s.attachHandlers\
-(code);\x0a        \
-  // Live stream\
-ing blocks: enab\
-le auto-follow a\
-nd keep them glu\
-ed to bottom.\x0a  \
-        if (code\
-.dataset._active\
-_stream === '1')\
- {\x0a            c\
-onst st = this.s\
-tate(code);\x0a    \
-        st.autoF\
-ollow = true;\x0a  \
-          this.s\
-cheduleScroll(co\
-de, true, false)\
-;\x0a          }\x0a  \
-        // Final\
-ized/static bloc\
-ks: do nothing (\
-no initial scrol\
-l-to-bottom).\x0a  \
-        // This \
-avoids surprisin\
-g jumps when sta\
-tic content is r\
-endered.\x0a       \
- });\x0a      }\x0a   \
-   // Transfer s\
-tored scroll sta\
-te between eleme\
-nts (after repla\
-ce).\x0a      trans\
-fer(oldEl, newEl\
-) {\x0a        if (\
-!oldEl || !newEl\
- || oldEl === ne\
-wEl) return;\x0a   \
-     const oldSt\
-ate = this.map.g\
-et(oldEl);\x0a     \
-   if (oldState)\
- this.map.set(ne\
-wEl, { ...oldSta\
-te });\x0a        t\
+     if (this.is\
+NearBottomEl(cod\
+eEl, this.cfg.CO\
+DE_SCROLL.AUTO_F\
+OLLOW_REENABLE_P\
+X)) st.autoFollo\
+w = true;\x0a      \
+    }\x0a          \
+st.lastScrollTop\
+ = top;\x0a        \
+};\x0a\x0a        cons\
+t onWheel = (ev)\
+ => {\x0a          \
+st.userInteracte\
+d = true;\x0a      \
+    const now = \
+Utils.now();\x0a\x0a  \
+        if (this\
+.isFinalizedCode\
+(codeEl)) { st.a\
+utoFollow = fals\
+e; return; }\x0a\x0a  \
+        if (ev.d\
+eltaY < 0) { st.\
+autoFollow = fal\
+se; st.freezeUnt\
+il = now + 1000;\
+ }\x0a          els\
+e if (this.isNea\
+rBottomEl(codeEl\
+, this.cfg.CODE_\
+SCROLL.AUTO_FOLL\
+OW_REENABLE_PX))\
+ { st.autoFollow\
+ = true; }\x0a     \
+   };\x0a\x0a        c\
+odeEl.addEventLi\
+stener('scroll',\
+ onScroll, { pas\
+sive: true });\x0a \
+       codeEl.ad\
+dEventListener('\
+wheel', onWheel,\
+ { passive: true\
+ });\x0a        cod\
+eEl.addEventList\
+ener('touchstart\
+', function () {\
+ st.userInteract\
+ed = true; }, { \
+passive: true })\
+;\x0a      }\x0a      \
+// Attach handle\
+rs to all bot co\
+de blocks under \
+root (or documen\
+t).\x0a      // IMP\
+ORTANT: We inten\
+tionally do NOT \
+auto-scroll fina\
+lized/static cod\
+e blocks to the \
+bottom.\x0a      //\
+ Only actively s\
+treaming code bl\
+ocks (data-_acti\
+ve_stream=\x221\x22) a\
+re auto-followed\
+ live.\x0a      ini\
+tScrollableBlock\
+s(root) {\x0a      \
+  const scope = \
+root || document\
+;\x0a        let no\
+des = [];\x0a      \
+  if (scope.node\
+Type === 1 && sc\
+ope.closest && s\
+cope.closest('.m\
+sg-box.msg-bot')\
+) {\x0a          no\
+des = scope.quer\
+ySelectorAll('pr\
+e code');\x0a      \
+  } else {\x0a     \
+     nodes = doc\
+ument.querySelec\
+torAll('.msg-box\
+.msg-bot pre cod\
+e');\x0a        }\x0a \
+       if (!node\
+s.length) return\
+;\x0a\x0a        nodes\
+.forEach((code) \
+=> {\x0a          t\
 his.attachHandle\
-rs(newEl);\x0a     \
- }\x0a      // Canc\
-el any scheduled\
- scroll tasks fo\
-r code blocks.\x0a \
-     cancelAllSc\
-rolls() {\x0a      \
-  try { this.raf\
-.cancelGroup('Co\
-deScroll'); } ca\
-tch (_) {}\x0a     \
-   this.rafMap =\
- new WeakMap();\x0a\
+rs(code);\x0a      \
+    // Live stre\
+aming blocks: en\
+able auto-follow\
+ and keep them g\
+lued to bottom.\x0a\
+          if (co\
+de.dataset._acti\
+ve_stream === '1\
+') {\x0a           \
+ const st = this\
+.state(code);\x0a  \
+          st.aut\
+oFollow = true;\x0a\
+            this\
+.scheduleScroll(\
+code, true, fals\
+e);\x0a          }\x0a\
+          // Fin\
+alized/static bl\
+ocks: do nothing\
+ (no initial scr\
+oll-to-bottom).\x0a\
+          // Thi\
+s avoids surpris\
+ing jumps when s\
+tatic content is\
+ rendered.\x0a     \
+   });\x0a      }\x0a \
+     // Transfer\
+ stored scroll s\
+tate between ele\
+ments (after rep\
+lace).\x0a      tra\
+nsfer(oldEl, new\
+El) {\x0a        if\
+ (!oldEl || !new\
+El || oldEl === \
+newEl) return;\x0a \
+       const old\
+State = this.map\
+.get(oldEl);\x0a   \
+     if (oldStat\
+e) this.map.set(\
+newEl, { ...oldS\
+tate });\x0a       \
+ this.attachHand\
+lers(newEl);\x0a   \
+   }\x0a      // Ca\
+ncel any schedul\
+ed scroll tasks \
+for code blocks.\
+\x0a      cancelAll\
+Scrolls() {\x0a    \
+    try { this.r\
+af.cancelGroup('\
+CodeScroll'); } \
+catch (_) {}\x0a   \
+     this.rafMap\
+ = new WeakMap()\
+;\x0a        this.r\
+afIds.clear();\x0a \
+     }\x0a    }\x0a\x0a  \
+// =============\
+================\
+================\
+================\
+=============\x0a  \
+// 3) Highlighte\
+r (hljs) + rAF v\
+iewport scan\x0a  /\
+/ ==============\
+================\
+================\
+================\
+============\x0a\x0a  \
+class Highlighte\
+r {\x0a    construc\
+tor(cfg, codeScr\
+oll, raf) {\x0a    \
+  this.cfg = cfg\
+;\x0a      this.cod\
+eScroll = codeSc\
+roll;\x0a      this\
+.raf = raf;\x0a    \
+  this.hlSchedul\
+ed = false;\x0a    \
+  this.hlQueue =\
+ [];\x0a      this.\
+hlQueueSet = new\
+ Set();\x0a      th\
+is.scanScheduled\
+ = false;\x0a\x0a     \
+ // Global scann\
+ing state for bu\
+dgeted viewport \
+scans (prevents \
+long frames).\x0a  \
+    this._global\
+ScanState = null\
+;\x0a      // Budge\
+t per scan step \
+(ms) \xe2\x80\x93 based o\
+n RAF budget hin\
+t with a small c\
+lamp.\x0a      cons\
+t hint = (cfg &&\
+ cfg.RAF && cfg.\
+RAF.FLUSH_BUDGET\
+_MS) ? cfg.RAF.F\
+LUSH_BUDGET_MS :\
+ 7;\x0a      this.S\
+CAN_STEP_BUDGET_\
+MS = Math.max(3,\
+ Math.min(12, hi\
+nt));\x0a    }\x0a    \
+_decodeEntitiesD\
+eep(text, maxPas\
+ses = 2) {\x0a     \
+   if (!text || \
+text.indexOf('&'\
+) === -1) return\
+ text || '';\x0a   \
+     const ta = \
+Highlighter._dec\
+TA || (Highlight\
+er._decTA = docu\
+ment.createEleme\
+nt('textarea'));\
+\x0a        const d\
+ecodeOnce = (s) \
+=> { ta.innerHTM\
+L = s; return ta\
+.value; };\x0a     \
+   let prev = St\
+ring(text);\x0a    \
+    let cur = de\
+codeOnce(prev);\x0a\
+        let pass\
+es = 1;\x0a        \
+while (passes < \
+maxPasses && cur\
+ !== prev) {\x0a   \
+       prev = cu\
+r;\x0a          cur\
+ = decodeOnce(pr\
+ev);\x0a          p\
+asses++;\x0a       \
+ }\x0a        retur\
+n cur;\x0a      }\x0a \
+   // Global swi\
+tch to skip all \
+highlighting.\x0a  \
+  isDisabled() {\
+ return !!this.c\
+fg.HL.DISABLE_AL\
+L; }\x0a    // Conf\
+igure hljs once \
+(safe if hljs no\
+t present).\x0a    \
+initHLJS() {\x0a   \
+   if (this.isDi\
+sabled()) return\
+;\x0a      if (type\
+of hljs !== 'und\
+efined' && hljs)\
+ { try { hljs.co\
+nfigure({ ignore\
+UnescapedHTML: t\
+rue }); } catch \
+(_) {} }\x0a    }\x0a \
+   // Check if c\
+ode is near view\
+port (with prelo\
+ad).\x0a    _nearVi\
+ewport(el) {\x0a   \
+   const preload\
+ = this.cfg.SCAN\
+.PRELOAD_PX;\x0a   \
+   const vh = wi\
+ndow.innerHeight\
+ || Utils.SE.cli\
+entHeight || 800\
+;\x0a      const r \
+= el.getBounding\
+ClientRect();\x0a  \
+    return r.bot\
+tom >= -preload \
+&& r.top <= (vh \
++ preload);\x0a    \
+}\x0a    // Queue a\
+ code element fo\
+r highlight; ski\
+p active streami\
+ng code and heav\
+y-known cases.\x0a \
+   queue(codeEl,\
+ activeCode) {\x0a \
+     if (this.is\
+Disabled()) retu\
+rn;\x0a      if (!c\
+odeEl || !codeEl\
+.isConnected) re\
+turn;\x0a      if (\
+activeCode && co\
+deEl === activeC\
+ode.codeEl) retu\
+rn;\x0a      if (co\
+deEl.getAttribut\
+e('data-highligh\
+ted') === 'yes')\
+ return;\x0a      i\
+f (codeEl.datase\
+t && (codeEl.dat\
+aset.hlStreamSus\
+pended === '1' |\
+| codeEl.dataset\
+.finalHlSkip ===\
+ '1')) return; /\
+/ skip heavy blo\
+cks intentionall\
+y left plain\x0a   \
+   if (!codeEl.c\
+losest('.msg-box\
+.msg-bot')) retu\
+rn;\x0a      if (!t\
+his.hlQueueSet.h\
+as(codeEl)) { th\
+is.hlQueueSet.ad\
+d(codeEl); this.\
+hlQueue.push(cod\
+eEl); }\x0a      if\
+ (!this.hlSchedu\
+led) {\x0a        t\
+his.hlScheduled \
+= true;\x0a        \
+this.raf.schedul\
+e('HL:flush', ()\
+ => this.flush(a\
+ctiveCode), 'Hig\
+hlighter', 1);\x0a \
+     }\x0a    }\x0a   \
+ // Process a sm\
+all batch of cod\
+e elements per f\
+rame.\x0a    flush(\
+activeCode) {\x0a  \
+    if (this.isD\
+isabled()) { thi\
+s.hlScheduled = \
+false; this.hlQu\
+eueSet.clear(); \
+this.hlQueue.len\
+gth = 0; return;\
+ }\x0a      this.hl\
+Scheduled = fals\
+e;\x0a      let cou\
+nt = 0;\x0a      wh\
+ile (this.hlQueu\
+e.length && coun\
+t < this.cfg.HL.\
+PER_FRAME) {\x0a   \
+     const el = \
+this.hlQueue.shi\
+ft();\x0a        if\
+ (el && el.isCon\
+nected) this.saf\
+eHighlight(el, a\
+ctiveCode);\x0a    \
+    if (el) this\
+.hlQueueSet.dele\
+te(el);\x0a        \
+count++;\x0a       \
+ try {\x0a         \
+ const sched = (\
+navigator && nav\
+igator.schedulin\
+g && navigator.s\
+cheduling.isInpu\
+tPending) ? navi\
+gator.scheduling\
+ : null;\x0a       \
+   if (sched && \
+sched.isInputPen\
+ding({ includeCo\
+ntinuous: true }\
+)) {\x0a           \
+ if (this.hlQueu\
+e.length) {\x0a    \
+          this.h\
+lScheduled = tru\
+e;\x0a             \
+ this.raf.schedu\
+le('HL:flush', (\
+) => this.flush(\
+activeCode),  'H\
+ighlighter', 1);\
+\x0a            }\x0a \
+           retur\
+n;\x0a          }\x0a \
+       } catch (\
+_) {}\x0a      }\x0a  \
+    if (this.hlQ\
+ueue.length) {\x0a \
+       this.hlSc\
+heduled = true;\x0a\
         this.raf\
-Ids.clear();\x0a   \
-   }\x0a    }\x0a\x0a  //\
- ===============\
-================\
-================\
-================\
-===========\x0a  //\
- 3) Highlighter \
-(hljs) + rAF vie\
-wport scan\x0a  // \
-================\
-================\
-================\
-================\
-==========\x0a\x0a  cl\
-ass Highlighter \
-{\x0a    constructo\
-r(cfg, codeScrol\
-l, raf) {\x0a      \
-this.cfg = cfg;\x0a\
-      this.codeS\
-croll = codeScro\
-ll;\x0a      this.r\
-af = raf;\x0a      \
-this.hlScheduled\
- = false;\x0a      \
-this.hlQueue = [\
-];\x0a      this.hl\
-QueueSet = new S\
-et();\x0a      this\
-.scanScheduled =\
- false;\x0a\x0a      /\
-/ Global scannin\
-g state for budg\
-eted viewport sc\
-ans (prevents lo\
-ng frames).\x0a    \
-  this._globalSc\
-anState = null;\x0a\
-      // Budget \
-per scan step (m\
-s) \xe2\x80\x93 based on \
-RAF budget hint \
-with a small cla\
-mp.\x0a      const \
-hint = (cfg && c\
-fg.RAF && cfg.RA\
-F.FLUSH_BUDGET_M\
-S) ? cfg.RAF.FLU\
-SH_BUDGET_MS : 7\
-;\x0a      this.SCA\
-N_STEP_BUDGET_MS\
- = Math.max(3, M\
-ath.min(12, hint\
-));\x0a    }\x0a    _d\
+.schedule('HL:fl\
+ush', () => this\
+.flush(activeCod\
+e), 'Highlighter\
+', 1);\x0a      }\x0a \
+   }\x0a    // High\
+light a single c\
+ode block with s\
+afety checks and\
+ scroll preserva\
+tion.\x0a    _needs\
+DeepDecode(text)\
+ {\x0a        if (!\
+text) return fal\
+se;\x0a        cons\
+t s = String(tex\
+t);\x0a        retu\
+rn (s.indexOf('&\
+amp;') !== -1) |\
+| (s.indexOf('&#\
+') !== -1);\x0a    \
+  }\x0a\x0a      safeH\
+ighlight(codeEl,\
+ activeCode) {\x0a \
+       if (this.\
+isDisabled()) re\
+turn;\x0a        if\
+ (!window.hljs |\
+| !codeEl || !co\
+deEl.isConnected\
+) return;\x0a      \
+  if (!codeEl.cl\
+osest('.msg-box.\
+msg-bot')) retur\
+n;\x0a        if (c\
+odeEl.getAttribu\
+te('data-highlig\
+hted') === 'yes'\
+) return;\x0a      \
+  if (activeCode\
+ && codeEl === a\
+ctiveCode.codeEl\
+) return;\x0a\x0a     \
+   // fast-skip \
+final highlight \
+for gigantic blo\
+cks using precom\
+puted meta.\x0a    \
+    try {\x0a      \
+    const wrap =\
+ codeEl.closest(\
+'.code-wrapper')\
+;\x0a          cons\
+t maxLines = thi\
+s.cfg.PROFILE_CO\
+DE.finalHighligh\
+tMaxLines | 0;\x0a \
+         const m\
+axChars = this.c\
+fg.PROFILE_CODE.\
+finalHighlightMa\
+xChars | 0;\x0a\x0a   \
+       let lines\
+ = NaN, chars = \
+NaN;\x0a          i\
+f (wrap) {\x0a     \
+       const nlA\
+ttr = wrap.getAt\
+tribute('data-co\
+de-nl');\x0a       \
+     const lenAt\
+tr = wrap.getAtt\
+ribute('data-cod\
+e-len');\x0a       \
+     if (nlAttr)\
+ lines = parseIn\
+t(nlAttr, 10);\x0a \
+           if (l\
+enAttr) chars = \
+parseInt(lenAttr\
+, 10);\x0a         \
+ }\x0a\x0a          if\
+ ((Number.isFini\
+te(lines) && max\
+Lines > 0 && lin\
+es > maxLines) |\
+|\x0a              \
+(Number.isFinite\
+(chars) && maxCh\
+ars > 0 && chars\
+ > maxChars)) {\x0a\
+            // N\
+EW: normalize en\
+tities for reada\
+bility even if w\
+e skip final hig\
+hlight\x0a         \
+   try {\x0a       \
+       const raw\
+ = codeEl.textCo\
+ntent || '';\x0a   \
+           if (t\
+his._needsDeepDe\
+code(raw)) {\x0a   \
+             con\
+st dec = this._d\
 ecodeEntitiesDee\
-p(text, maxPasse\
-s = 2) {\x0a       \
- if (!text || te\
-xt.indexOf('&') \
-=== -1) return t\
-ext || '';\x0a     \
-   const ta = Hi\
-ghlighter._decTA\
- || (Highlighter\
-._decTA = docume\
-nt.createElement\
-('textarea'));\x0a \
-       const dec\
-odeOnce = (s) =>\
- { ta.innerHTML \
-= s; return ta.v\
-alue; };\x0a       \
- let prev = Stri\
-ng(text);\x0a      \
-  let cur = deco\
-deOnce(prev);\x0a  \
-      let passes\
- = 1;\x0a        wh\
-ile (passes < ma\
-xPasses && cur !\
-== prev) {\x0a     \
-     prev = cur;\
-\x0a          cur =\
- decodeOnce(prev\
-);\x0a          pas\
-ses++;\x0a        }\
-\x0a        return \
-cur;\x0a      }\x0a   \
- // Global switc\
-h to skip all hi\
-ghlighting.\x0a    \
-isDisabled() { r\
-eturn !!this.cfg\
-.HL.DISABLE_ALL;\
- }\x0a    // Config\
-ure hljs once (s\
-afe if hljs not \
-present).\x0a    in\
-itHLJS() {\x0a     \
- if (this.isDisa\
-bled()) return;\x0a\
-      if (typeof\
- hljs !== 'undef\
-ined' && hljs) {\
- try { hljs.conf\
-igure({ ignoreUn\
-escapedHTML: tru\
-e }); } catch (_\
-) {} }\x0a    }\x0a   \
- // Check if cod\
-e is near viewpo\
-rt (with preload\
-).\x0a    _nearView\
-port(el) {\x0a     \
- const preload =\
- this.cfg.SCAN.P\
-RELOAD_PX;\x0a     \
- const vh = wind\
-ow.innerHeight |\
-| Utils.SE.clien\
-tHeight || 800;\x0a\
-      const r = \
-el.getBoundingCl\
-ientRect();\x0a    \
-  return r.botto\
-m >= -preload &&\
- r.top <= (vh + \
-preload);\x0a    }\x0a\
-    // Queue a c\
-ode element for \
-highlight; skip \
-active streaming\
- code and heavy-\
-known cases.\x0a   \
- queue(codeEl, a\
+p(raw);\x0a        \
+        if (dec \
+!== raw) codeEl.\
+textContent = de\
+c;\x0a             \
+ }\x0a            }\
+ catch (_) {}\x0a\x0a \
+           codeE\
+l.classList.add(\
+'hljs');\x0a       \
+     codeEl.setA\
+ttribute('data-h\
+ighlighted', 'ye\
+s');\x0a           \
+ codeEl.dataset.\
+finalHlSkip = '1\
+';\x0a            t\
+ry { this.codeSc\
+roll.attachHandl\
+ers(codeEl); } c\
+atch (_) {}\x0a    \
+        this.cod\
+eScroll.schedule\
+Scroll(codeEl, f\
+alse, false);\x0a  \
+          return\
+;\x0a          }\x0a\x0a \
+         // Fall\
+back to reading \
+actual text only\
+ if wrapper meta\
+ is missing.\x0a   \
+       if (!Numb\
+er.isFinite(line\
+s) || !Number.is\
+Finite(chars)) {\
+\x0a            con\
+st txt0 = codeEl\
+.textContent || \
+'';\x0a            \
+const ln0 = Util\
+s.countNewlines(\
+txt0);\x0a         \
+   if ((maxLines\
+ > 0 && ln0 > ma\
+xLines) || (maxC\
+hars > 0 && txt0\
+.length > maxCha\
+rs)) {\x0a         \
+     // NEW: nor\
+malize entities \
+here as well\x0a   \
+           try {\
+\x0a               \
+ if (this._needs\
+DeepDecode(txt0)\
+) {\x0a            \
+      const dec \
+= this._decodeEn\
+titiesDeep(txt0)\
+;\x0a              \
+    if (dec !== \
+txt0) codeEl.tex\
+tContent = dec;\x0a\
+                \
+}\x0a              \
+} catch (_) {}\x0a\x0a\
+              co\
+deEl.classList.a\
+dd('hljs');\x0a    \
+          codeEl\
+.setAttribute('d\
+ata-highlighted'\
+, 'yes');\x0a      \
+        codeEl.d\
+ataset.finalHlSk\
+ip = '1';\x0a      \
+        try { th\
+is.codeScroll.at\
+tachHandlers(cod\
+eEl); } catch (_\
+) {}\x0a           \
+   this.codeScro\
+ll.scheduleScrol\
+l(codeEl, false,\
+ false);\x0a       \
+       return;\x0a \
+           }\x0a   \
+       }\x0a       \
+ } catch (_) { /\
+* safe fallback \
+*/ }\x0a\x0a        co\
+nst wasNearBotto\
+m = this.codeScr\
+oll.isNearBottom\
+El(codeEl, 16);\x0a\
+        const st\
+ = this.codeScro\
+ll.state(codeEl)\
+;\x0a        const \
+shouldAutoScroll\
+After = (st.auto\
+Follow === true)\
+ || wasNearBotto\
+m;\x0a\x0a        try \
+{\x0a          try \
+{ codeEl.classLi\
+st.remove('hljs'\
+); codeEl.remove\
+Attribute('data-\
+highlighted'); }\
+ catch (_) {}\x0a\x0a \
+         // NEW:\
+ deep-decode tex\
+t before highlig\
+hting (fixes &am\
+p;#x27; \xe2\x86\x92 ' et\
+c.)\x0a          le\
+t txt = codeEl.t\
+extContent || ''\
+;\x0a          if (\
+this._needsDeepD\
+ecode(txt)) {\x0a  \
+          try { \
+txt = this._deco\
+deEntitiesDeep(t\
+xt); } catch (_)\
+ {}\x0a          }\x0a\
+          codeEl\
+.textContent = t\
+xt; // ensure no\
+ stale spans rem\
+ain and normaliz\
+ed text provided\
+\x0a\x0a          hljs\
+.highlightElemen\
+t(codeEl);\x0a     \
+     codeEl.setA\
+ttribute('data-h\
+ighlighted', 'ye\
+s');\x0a        } c\
+atch (_) {\x0a     \
+     if (!codeEl\
+.classList.conta\
+ins('hljs')) cod\
+eEl.classList.ad\
+d('hljs');\x0a     \
+   } finally {\x0a \
+         try { t\
+his.codeScroll.a\
+ttachHandlers(co\
+deEl); } catch (\
+_) {}\x0a          \
+const needInitFo\
+rce = (codeEl.da\
+taset && (codeEl\
+.dataset.csInitB\
+tm === '1' || co\
+deEl.dataset.jus\
+tFinalized === '\
+1'));\x0a          \
+const mustScroll\
+ = shouldAutoScr\
+ollAfter || need\
+InitForce;\x0a     \
+     if (mustScr\
+oll) this.codeSc\
+roll.scheduleScr\
+oll(codeEl, fals\
+e, !!needInitFor\
+ce);\x0a          i\
+f (codeEl.datase\
+t) {\x0a           \
+ if (codeEl.data\
+set.csInitBtm ==\
+= '1') codeEl.da\
+taset.csInitBtm \
+= '0';\x0a         \
+   if (codeEl.da\
+taset.justFinali\
+zed === '1') cod\
+eEl.dataset.just\
+Finalized = '0';\
+\x0a          }\x0a   \
+     }\x0a      }\x0a\x0a\
+    // Start a b\
+udgeted global s\
+can \xe2\x80\x93 split ac\
+ross frames to a\
+void long blocki\
+ng.\x0a    _startGl\
+obalScan(activeC\
+ode) {\x0a      if \
+(this.isDisabled\
+()) return;\x0a    \
+  const preload \
+= this.cfg.SCAN_\
+PRELOAD_PX || th\
+is.cfg.SCAN.PREL\
+OAD_PX;\x0a      co\
+nst vh = window.\
+innerHeight || U\
+tils.SE.clientHe\
+ight || 800;\x0a   \
+   const rectTop\
+ = 0 - preload, \
+rectBottom = vh \
++ preload;\x0a     \
+ const nodes = A\
+rray.from(docume\
+nt.querySelector\
+All('.msg-box.ms\
+g-bot pre code:n\
+ot([data-highlig\
+hted=\x22yes\x22])'));\
+\x0a      this._glo\
+balScanState = {\
+ nodes, idx: 0, \
+rectTop, rectBot\
+tom, activeCode \
+};\x0a      this._s\
+canGlobalStep();\
+\x0a    }\x0a    // Co\
+ntinue global sc\
+an for visible c\
+ode elements und\
+er a time budget\
+.\x0a    _scanGloba\
+lStep() {\x0a      \
+const state = th\
+is._globalScanSt\
+ate;\x0a      if (!\
+state || !state.\
+nodes || state.i\
+dx >= state.node\
+s.length) { this\
+._globalScanStat\
+e = null; return\
+; }\x0a      const \
+start = Utils.no\
+w();\x0a      while\
+ (state.idx < st\
+ate.nodes.length\
+) {\x0a        cons\
+t code = state.n\
+odes[state.idx++\
+];\x0a        if (!\
+code || !code.is\
+Connected) conti\
+nue;\x0a        if \
+(state.activeCod\
+e && code === st\
+ate.activeCode.c\
+odeEl) continue;\
+\x0a        try {\x0a \
+         const r\
+ = code.getBound\
+ingClientRect();\
+\x0a          if (r\
+.bottom >= state\
+.rectTop && r.to\
+p <= state.rectB\
+ottom) this.queu\
+e(code, state.ac\
+tiveCode);\x0a     \
+   } catch (_) {\
+}\x0a        if ((U\
+tils.now() - sta\
+rt) >= this.SCAN\
+_STEP_BUDGET_MS)\
+ {\x0a          // \
+Schedule next sl\
+ice to keep UI r\
+esponsive.\x0a     \
+     this.raf.sc\
+hedule('HL:scanS\
+tep', () => this\
+._scanGlobalStep\
+(), 'Highlighter\
+', 2);\x0a         \
+ return;\x0a       \
+ }\x0a      }\x0a     \
+ this._globalSca\
+nState = null;\x0a \
+   }\x0a\x0a    // Obs\
+erve new code bl\
+ocks and queue t\
+hose near the vi\
+ewport.\x0a    obse\
+rveNewCode(root,\
+ opts, activeCod\
+e) {\x0a      const\
+ scope = root ||\
+ document;\x0a     \
+ let nodes;\x0a    \
+  if (scope.node\
+Type === 1 && sc\
+ope.closest && s\
+cope.closest('.m\
+sg-box.msg-bot')\
+) nodes = scope.\
+querySelectorAll\
+('pre code');\x0a  \
+    else nodes =\
+ document.queryS\
+electorAll('.msg\
+-box.msg-bot pre\
+ code');\x0a      i\
+f (!nodes || !no\
+des.length) retu\
+rn;\x0a\x0a      const\
+ options = Objec\
+t.assign({ defer\
+LastIfStreaming:\
+ false, minLines\
+ForLast: 2, minC\
+harsForLast: 120\
+ }, (opts || {})\
+);\x0a      nodes.f\
+orEach((code) =>\
+ {\x0a        if (!\
+code.closest('.m\
+sg-box.msg-bot')\
+) return;\x0a      \
+  this.codeScrol\
+l.attachHandlers\
+(code);\x0a        \
+if (this.isDisab\
+led()) return;\x0a \
+       if (activ\
+eCode && code ==\
+= activeCode.cod\
+eEl) return;\x0a\x0a  \
+      if (option\
+s.deferLastIfStr\
+eaming && active\
+Code && code ===\
+ activeCode.code\
+El) {\x0a          \
+const tailLen = \
+(activeCode.tail\
+El && activeCode\
+.tailEl.textCont\
+ent) ? activeCod\
+e.tailEl.textCon\
+tent.length : 0;\
+\x0a          const\
+ tailLines = (ty\
+peof activeCode.\
+tailLines === 'n\
+umber') ? active\
+Code.tailLines :\
+ 0;\x0a          if\
+ (tailLines < op\
+tions.minLinesFo\
+rLast && tailLen\
+ < options.minCh\
+arsForLast) retu\
+rn;\x0a        }\x0a  \
+      if (this._\
+nearViewport(cod\
+e)) this.queue(c\
+ode, activeCode)\
+;\x0a      });\x0a    \
+}\x0a    // Schedul\
+e a viewport sca\
+n in a budgeted \
+way.\x0a    schedul\
+eScanVisibleCode\
+s(activeCode) {\x0a\
+      if (this.i\
+sDisabled()) ret\
+urn;\x0a\x0a      // F\
+ast bail-out: no\
+thing to highlig\
+ht and no active\
+ streaming code.\
+\x0a      try {\x0a   \
+     const anyCa\
+ndidate = docume\
+nt.querySelector\
+('.msg-box.msg-b\
+ot pre code:not(\
+[data-highlighte\
+d=\x22yes\x22])');\x0a   \
+     const hasAc\
+tive = !!(active\
+Code && activeCo\
+de.codeEl && act\
+iveCode.codeEl.i\
+sConnected);\x0a   \
+     if (!anyCan\
+didate && !hasAc\
+tive) return;\x0a  \
+    } catch (_) \
+{ /* safe fallba\
+ck */ }\x0a\x0a      /\
+/ If a scan is a\
+lready in progre\
+ss, just ensure \
+next step is sch\
+eduled; otherwis\
+e schedule start\
+.\x0a      if (this\
+._globalScanStat\
+e) {\x0a        thi\
+s.raf.schedule('\
+HL:scanStep', ()\
+ => this._scanGl\
+obalStep(), 'Hig\
+hlighter', 2);\x0a \
+       return;\x0a \
+     }\x0a      if \
+(this.scanSchedu\
+led) return;\x0a   \
+   this.scanSche\
+duled = true;\x0a  \
+    this.raf.sch\
+edule('HL:scan',\
+ () => {\x0a       \
+ this.scanSchedu\
+led = false;\x0a   \
+     this._start\
+GlobalScan(activ\
+eCode || null);\x0a\
+      }, 'Highli\
+ghter', 2);\x0a    \
+}\x0a\x0a    // Direct\
+ scan (synchrono\
+us) \xe2\x80\x93 used in \
+places where roo\
+t scope is small\
+.\x0a    scanVisibl\
+eCodes(activeCod\
+e) {\x0a      this.\
+_startGlobalScan\
+(activeCode || n\
+ull);\x0a    }\x0a    \
+// Scan only ins\
+ide a given root\
+ (synchronous, s\
+mall scopes).\x0a  \
+  scanVisibleCod\
+esInRoot(root, a\
 ctiveCode) {\x0a   \
    if (this.isDi\
 sabled()) return\
-;\x0a      if (!cod\
-eEl || !codeEl.i\
-sConnected) retu\
-rn;\x0a      if (ac\
-tiveCode && code\
-El === activeCod\
-e.codeEl) return\
-;\x0a      if (code\
-El.getAttribute(\
-'data-highlighte\
-d') === 'yes') r\
-eturn;\x0a      if \
-(codeEl.dataset \
-&& (codeEl.datas\
-et.hlStreamSuspe\
-nded === '1' || \
-codeEl.dataset.f\
-inalHlSkip === '\
-1')) return; // \
-skip heavy block\
-s intentionally \
-left plain\x0a     \
- if (!codeEl.clo\
-sest('.msg-box.m\
-sg-bot')) return\
-;\x0a      if (!thi\
-s.hlQueueSet.has\
-(codeEl)) { this\
-.hlQueueSet.add(\
-codeEl); this.hl\
-Queue.push(codeE\
-l); }\x0a      if (\
-!this.hlSchedule\
-d) {\x0a        thi\
-s.hlScheduled = \
-true;\x0a        th\
-is.raf.schedule(\
-'HL:flush', () =\
-> this.flush(act\
-iveCode), 'Highl\
-ighter', 1);\x0a   \
-   }\x0a    }\x0a    /\
-/ Process a smal\
-l batch of code \
-elements per fra\
-me.\x0a    flush(ac\
-tiveCode) {\x0a    \
-  if (this.isDis\
-abled()) { this.\
-hlScheduled = fa\
-lse; this.hlQueu\
-eSet.clear(); th\
-is.hlQueue.lengt\
-h = 0; return; }\
-\x0a      this.hlSc\
-heduled = false;\
-\x0a      let count\
- = 0;\x0a      whil\
-e (this.hlQueue.\
-length && count \
-< this.cfg.HL.PE\
-R_FRAME) {\x0a     \
-   const el = th\
-is.hlQueue.shift\
-();\x0a        if (\
-el && el.isConne\
-cted) this.safeH\
-ighlight(el, act\
-iveCode);\x0a      \
-  if (el) this.h\
-lQueueSet.delete\
-(el);\x0a        co\
-unt++;\x0a        t\
-ry {\x0a          c\
-onst sched = (na\
-vigator && navig\
-ator.scheduling \
-&& navigator.sch\
-eduling.isInputP\
-ending) ? naviga\
-tor.scheduling :\
- null;\x0a         \
- if (sched && sc\
-hed.isInputPendi\
-ng({ includeCont\
-inuous: true }))\
- {\x0a            i\
-f (this.hlQueue.\
-length) {\x0a      \
-        this.hlS\
-cheduled = true;\
-\x0a              t\
-his.raf.schedule\
-('HL:flush', () \
-=> this.flush(ac\
-tiveCode),  'Hig\
-hlighter', 1);\x0a \
-           }\x0a   \
-         return;\
-\x0a          }\x0a   \
-     } catch (_)\
- {}\x0a      }\x0a    \
-  if (this.hlQue\
-ue.length) {\x0a   \
-     this.hlSche\
-duled = true;\x0a  \
-      this.raf.s\
-chedule('HL:flus\
-h', () => this.f\
-lush(activeCode)\
-, 'Highlighter',\
- 1);\x0a      }\x0a   \
- }\x0a    // Highli\
-ght a single cod\
-e block with saf\
-ety checks and s\
-croll preservati\
-on.\x0a    _needsDe\
-epDecode(text) {\
-\x0a        if (!te\
-xt) return false\
-;\x0a        const \
-s = String(text)\
-;\x0a        return\
- (s.indexOf('&am\
-p;') !== -1) || \
-(s.indexOf('&#')\
- !== -1);\x0a      \
-}\x0a\x0a      safeHig\
-hlight(codeEl, a\
-ctiveCode) {\x0a   \
-     if (this.is\
-Disabled()) retu\
-rn;\x0a        if (\
-!window.hljs || \
-!codeEl || !code\
-El.isConnected) \
-return;\x0a        \
-if (!codeEl.clos\
-est('.msg-box.ms\
-g-bot')) return;\
-\x0a        if (cod\
-eEl.getAttribute\
-('data-highlight\
-ed') === 'yes') \
-return;\x0a        \
-if (activeCode &\
-& codeEl === act\
-iveCode.codeEl) \
-return;\x0a\x0a       \
- // fast-skip fi\
-nal highlight fo\
-r gigantic block\
-s using precompu\
-ted meta.\x0a      \
-  try {\x0a        \
-  const wrap = c\
-odeEl.closest('.\
-code-wrapper');\x0a\
-          const \
-maxLines = this.\
-cfg.PROFILE_CODE\
-.finalHighlightM\
-axLines | 0;\x0a   \
-       const max\
-Chars = this.cfg\
-.PROFILE_CODE.fi\
-nalHighlightMaxC\
-hars | 0;\x0a\x0a     \
-     let lines =\
- NaN, chars = Na\
-N;\x0a          if \
-(wrap) {\x0a       \
-     const nlAtt\
-r = wrap.getAttr\
-ibute('data-code\
--nl');\x0a         \
-   const lenAttr\
- = wrap.getAttri\
-bute('data-code-\
-len');\x0a         \
-   if (nlAttr) l\
-ines = parseInt(\
-nlAttr, 10);\x0a   \
-         if (len\
-Attr) chars = pa\
-rseInt(lenAttr, \
-10);\x0a          }\
-\x0a\x0a          if (\
-(Number.isFinite\
-(lines) && maxLi\
-nes > 0 && lines\
- > maxLines) ||\x0a\
-              (N\
-umber.isFinite(c\
-hars) && maxChar\
-s > 0 && chars >\
- maxChars)) {\x0a  \
-          // NEW\
-: normalize enti\
-ties for readabi\
-lity even if we \
-skip final highl\
-ight\x0a           \
- try {\x0a         \
-     const raw =\
- codeEl.textCont\
-ent || '';\x0a     \
-         if (thi\
-s._needsDeepDeco\
-de(raw)) {\x0a     \
-           const\
- dec = this._dec\
-odeEntitiesDeep(\
-raw);\x0a          \
-      if (dec !=\
-= raw) codeEl.te\
-xtContent = dec;\
-\x0a              }\
-\x0a            } c\
-atch (_) {}\x0a\x0a   \
-         codeEl.\
-classList.add('h\
-ljs');\x0a         \
-   codeEl.setAtt\
-ribute('data-hig\
-hlighted', 'yes'\
-);\x0a            c\
-odeEl.dataset.fi\
-nalHlSkip = '1';\
-\x0a            try\
- { this.codeScro\
-ll.attachHandler\
-s(codeEl); } cat\
-ch (_) {}\x0a      \
-      this.codeS\
-croll.scheduleSc\
-roll(codeEl, fal\
-se, false);\x0a    \
-        return;\x0a\
-          }\x0a\x0a   \
-       // Fallba\
-ck to reading ac\
-tual text only i\
-f wrapper meta i\
-s missing.\x0a     \
-     if (!Number\
-.isFinite(lines)\
- || !Number.isFi\
-nite(chars)) {\x0a \
-           const\
- txt0 = codeEl.t\
-extContent || ''\
-;\x0a            co\
-nst ln0 = Utils.\
-countNewlines(tx\
-t0);\x0a           \
- if ((maxLines >\
- 0 && ln0 > maxL\
-ines) || (maxCha\
-rs > 0 && txt0.l\
-ength > maxChars\
-)) {\x0a           \
-   // NEW: norma\
-lize entities he\
-re as well\x0a     \
-         try {\x0a \
-               i\
-f (this._needsDe\
-epDecode(txt0)) \
-{\x0a              \
-    const dec = \
-this._decodeEnti\
-tiesDeep(txt0);\x0a\
-                \
-  if (dec !== tx\
-t0) codeEl.textC\
-ontent = dec;\x0a  \
-              }\x0a\
-              } \
-catch (_) {}\x0a\x0a  \
-            code\
-El.classList.add\
-('hljs');\x0a      \
-        codeEl.s\
-etAttribute('dat\
-a-highlighted', \
-'yes');\x0a        \
-      codeEl.dat\
-aset.finalHlSkip\
- = '1';\x0a        \
-      try { this\
-.codeScroll.atta\
-chHandlers(codeE\
-l); } catch (_) \
-{}\x0a             \
- this.codeScroll\
-.scheduleScroll(\
-codeEl, false, f\
-alse);\x0a         \
-     return;\x0a   \
-         }\x0a     \
-     }\x0a        }\
- catch (_) { /* \
-safe fallback */\
- }\x0a\x0a        cons\
-t wasNearBottom \
-= this.codeScrol\
-l.isNearBottomEl\
-(codeEl, 16);\x0a  \
-      const st =\
- this.codeScroll\
-.state(codeEl);\x0a\
-        const sh\
-ouldAutoScrollAf\
-ter = (st.autoFo\
-llow === true) |\
-| wasNearBottom;\
-\x0a\x0a        try {\x0a\
-          try { \
-codeEl.classList\
-.remove('hljs');\
- codeEl.removeAt\
-tribute('data-hi\
-ghlighted'); } c\
-atch (_) {}\x0a\x0a   \
-       // NEW: d\
-eep-decode text \
-before highlight\
-ing (fixes &amp;\
-#x27; \xe2\x86\x92 ' etc.\
-)\x0a          let \
-txt = codeEl.tex\
-tContent || '';\x0a\
-          if (th\
-is._needsDeepDec\
-ode(txt)) {\x0a    \
-        try { tx\
-t = this._decode\
-EntitiesDeep(txt\
-); } catch (_) {\
-}\x0a          }\x0a  \
-        codeEl.t\
-extContent = txt\
-; // ensure no s\
-tale spans remai\
-n and normalized\
- text provided\x0a\x0a\
-          hljs.h\
-ighlightElement(\
-codeEl);\x0a       \
-   codeEl.setAtt\
-ribute('data-hig\
-hlighted', 'yes'\
-);\x0a        } cat\
-ch (_) {\x0a       \
-   if (!codeEl.c\
-lassList.contain\
-s('hljs')) codeE\
-l.classList.add(\
-'hljs');\x0a       \
- } finally {\x0a   \
-       try { thi\
-s.codeScroll.att\
-achHandlers(code\
-El); } catch (_)\
- {}\x0a          co\
-nst needInitForc\
-e = (codeEl.data\
-set && (codeEl.d\
-ataset.csInitBtm\
- === '1' || code\
-El.dataset.justF\
-inalized === '1'\
-));\x0a          co\
-nst mustScroll =\
- shouldAutoScrol\
-lAfter || needIn\
-itForce;\x0a       \
-   if (mustScrol\
-l) this.codeScro\
-ll.scheduleScrol\
-l(codeEl, false,\
- !!needInitForce\
-);\x0a          if \
-(codeEl.dataset)\
- {\x0a            i\
-f (codeEl.datase\
-t.csInitBtm === \
-'1') codeEl.data\
-set.csInitBtm = \
-'0';\x0a           \
- if (codeEl.data\
-set.justFinalize\
-d === '1') codeE\
-l.dataset.justFi\
-nalized = '0';\x0a \
-         }\x0a     \
-   }\x0a      }\x0a\x0a  \
-  // Start a bud\
-geted global sca\
-n \xe2\x80\x93 split acro\
-ss frames to avo\
-id long blocking\
-.\x0a    _startGlob\
-alScan(activeCod\
-e) {\x0a      if (t\
-his.isDisabled()\
-) return;\x0a      \
-const preload = \
-this.cfg.SCAN_PR\
-ELOAD_PX || this\
-.cfg.SCAN.PRELOA\
-D_PX;\x0a      cons\
-t vh = window.in\
-nerHeight || Uti\
-ls.SE.clientHeig\
-ht || 800;\x0a     \
- const rectTop =\
- 0 - preload, re\
-ctBottom = vh + \
-preload;\x0a      c\
-onst nodes = Arr\
-ay.from(document\
+;\x0a      const pr\
+eload = this.cfg\
+.SCAN_PRELOAD_PX\
+ || this.cfg.SCA\
+N.PRELOAD_PX;\x0a  \
+    const vh = w\
+indow.innerHeigh\
+t || Utils.SE.cl\
+ientHeight || 80\
+0;\x0a      const r\
+ectTop = 0 - pre\
+load, rectBottom\
+ = vh + preload;\
+\x0a      const sco\
+pe = root || doc\
+ument;\x0a      con\
+st nodes = scope\
 .querySelectorAl\
 l('.msg-box.msg-\
 bot pre code:not\
 ([data-highlight\
-ed=\x22yes\x22])'));\x0a \
-     this._globa\
-lScanState = { n\
-odes, idx: 0, re\
-ctTop, rectBotto\
-m, activeCode };\
-\x0a      this._sca\
-nGlobalStep();\x0a \
-   }\x0a    // Cont\
-inue global scan\
- for visible cod\
-e elements under\
- a time budget.\x0a\
-    _scanGlobalS\
-tep() {\x0a      co\
-nst state = this\
-._globalScanStat\
-e;\x0a      if (!st\
-ate || !state.no\
-des || state.idx\
- >= state.nodes.\
-length) { this._\
-globalScanState \
-= null; return; \
-}\x0a      const st\
-art = Utils.now(\
-);\x0a      while (\
-state.idx < stat\
-e.nodes.length) \
-{\x0a        const \
-code = state.nod\
-es[state.idx++];\
-\x0a        if (!co\
-de || !code.isCo\
-nnected) continu\
-e;\x0a        if (s\
-tate.activeCode \
-&& code === stat\
-e.activeCode.cod\
-eEl) continue;\x0a \
-       try {\x0a   \
-       const r =\
- code.getBoundin\
-gClientRect();\x0a \
-         if (r.b\
-ottom >= state.r\
-ectTop && r.top \
-<= state.rectBot\
-tom) this.queue(\
-code, state.acti\
-veCode);\x0a       \
- } catch (_) {}\x0a\
-        if ((Uti\
-ls.now() - start\
-) >= this.SCAN_S\
-TEP_BUDGET_MS) {\
-\x0a          // Sc\
-hedule next slic\
-e to keep UI res\
-ponsive.\x0a       \
-   this.raf.sche\
-dule('HL:scanSte\
-p', () => this._\
-scanGlobalStep()\
-, 'Highlighter',\
- 2);\x0a          r\
-eturn;\x0a        }\
-\x0a      }\x0a      t\
-his._globalScanS\
-tate = null;\x0a   \
- }\x0a\x0a    // Obser\
-ve new code bloc\
-ks and queue tho\
-se near the view\
-port.\x0a    observ\
-eNewCode(root, o\
-pts, activeCode)\
- {\x0a      const s\
-cope = root || d\
-ocument;\x0a      l\
-et nodes;\x0a      \
-if (scope.nodeTy\
-pe === 1 && scop\
-e.closest && sco\
-pe.closest('.msg\
--box.msg-bot')) \
-nodes = scope.qu\
-erySelectorAll('\
-pre code');\x0a    \
-  else nodes = d\
-ocument.querySel\
-ectorAll('.msg-b\
-ox.msg-bot pre c\
-ode');\x0a      if \
-(!nodes || !node\
-s.length) return\
-;\x0a\x0a      const o\
-ptions = Object.\
-assign({ deferLa\
-stIfStreaming: f\
-alse, minLinesFo\
-rLast: 2, minCha\
-rsForLast: 120 }\
-, (opts || {}));\
-\x0a      nodes.for\
-Each((code) => {\
-\x0a        if (!co\
-de.closest('.msg\
--box.msg-bot')) \
+ed=\x22yes\x22])');\x0a  \
+    // Local roo\
+t scans tend to \
+be small \xe2\x80\x93 kee\
+p them synchrono\
+us for simplicit\
+y.\x0a      nodes.f\
+orEach((code) =>\
+ {\x0a        if (!\
+code.isConnected\
+) return;\x0a      \
+  if (activeCode\
+ && code === act\
+iveCode.codeEl) \
 return;\x0a        \
-this.codeScroll.\
-attachHandlers(c\
-ode);\x0a        if\
- (this.isDisable\
-d()) return;\x0a   \
-     if (activeC\
-ode && code === \
-activeCode.codeE\
-l) return;\x0a\x0a    \
-    if (options.\
-deferLastIfStrea\
-ming && activeCo\
-de && code === a\
-ctiveCode.codeEl\
-) {\x0a          co\
-nst tailLen = (a\
-ctiveCode.tailEl\
- && activeCode.t\
-ailEl.textConten\
-t) ? activeCode.\
-tailEl.textConte\
-nt.length : 0;\x0a \
-         const t\
-ailLines = (type\
-of activeCode.ta\
-ilLines === 'num\
-ber') ? activeCo\
-de.tailLines : 0\
-;\x0a          if (\
-tailLines < opti\
-ons.minLinesForL\
-ast && tailLen <\
- options.minChar\
-sForLast) return\
-;\x0a        }\x0a    \
-    if (this._ne\
-arViewport(code)\
-) this.queue(cod\
-e, activeCode);\x0a\
-      });\x0a    }\x0a\
-    // Schedule \
-a viewport scan \
-in a budgeted wa\
-y.\x0a    scheduleS\
-canVisibleCodes(\
-activeCode) {\x0a  \
-    if (this.isD\
-isabled()) retur\
-n;\x0a\x0a      // Fas\
-t bail-out: noth\
-ing to highlight\
- and no active s\
-treaming code.\x0a \
-     try {\x0a     \
-   const anyCand\
-idate = document\
-.querySelector('\
-.msg-box.msg-bot\
- pre code:not([d\
-ata-highlighted=\
-\x22yes\x22])');\x0a     \
-   const hasActi\
-ve = !!(activeCo\
-de && activeCode\
-.codeEl && activ\
-eCode.codeEl.isC\
-onnected);\x0a     \
-   if (!anyCandi\
-date && !hasActi\
-ve) return;\x0a    \
-  } catch (_) { \
-/* safe fallback\
- */ }\x0a\x0a      // \
-If a scan is alr\
-eady in progress\
-, just ensure ne\
-xt step is sched\
-uled; otherwise \
-schedule start.\x0a\
-      if (this._\
-globalScanState)\
- {\x0a        this.\
-raf.schedule('HL\
-:scanStep', () =\
-> this._scanGlob\
-alStep(), 'Highl\
-ighter', 2);\x0a   \
-     return;\x0a   \
-   }\x0a      if (t\
-his.scanSchedule\
-d) return;\x0a     \
- this.scanSchedu\
-led = true;\x0a    \
-  this.raf.sched\
-ule('HL:scan', (\
-) => {\x0a        t\
-his.scanSchedule\
-d = false;\x0a     \
-   this._startGl\
-obalScan(activeC\
-ode || null);\x0a  \
-    }, 'Highligh\
-ter', 2);\x0a    }\x0a\
-\x0a    // Direct s\
-can (synchronous\
-) \xe2\x80\x93 used in pl\
-aces where root \
-scope is small.\x0a\
-    scanVisibleC\
-odes(activeCode)\
- {\x0a      this._s\
-tartGlobalScan(a\
-ctiveCode || nul\
-l);\x0a    }\x0a    //\
- Scan only insid\
-e a given root (\
-synchronous, sma\
-ll scopes).\x0a    \
-scanVisibleCodes\
-InRoot(root, act\
-iveCode) {\x0a     \
- if (this.isDisa\
-bled()) return;\x0a\
-      const prel\
-oad = this.cfg.S\
-CAN_PRELOAD_PX |\
-| this.cfg.SCAN.\
-PRELOAD_PX;\x0a    \
-  const vh = win\
-dow.innerHeight \
-|| Utils.SE.clie\
-ntHeight || 800;\
-\x0a      const rec\
-tTop = 0 - prelo\
-ad, rectBottom =\
- vh + preload;\x0a \
-     const scope\
- = root || docum\
-ent;\x0a      const\
- nodes = scope.q\
-uerySelectorAll(\
-'.msg-box.msg-bo\
-t pre code:not([\
-data-highlighted\
-=\x22yes\x22])');\x0a    \
-  // Local root \
-scans tend to be\
- small \xe2\x80\x93 keep \
-them synchronous\
- for simplicity.\
-\x0a      nodes.for\
-Each((code) => {\
-\x0a        if (!co\
-de.isConnected) \
-return;\x0a        \
-if (activeCode &\
-& code === activ\
-eCode.codeEl) re\
-turn;\x0a        co\
-nst r = code.get\
-BoundingClientRe\
-ct();\x0a        if\
- (r.bottom >= re\
-ctTop && r.top <\
-= rectBottom) th\
-is.queue(code, a\
-ctiveCode);\x0a    \
-  });\x0a    }\x0a    \
-installBoxObserv\
-er() { /* no-op \
-*/ }\x0a    // Visi\
-t bot message bo\
-xes and call cal\
-lback (used for \
-local scans).\x0a  \
-  observeMsgBoxe\
-s(root, onBoxInt\
-ersect) {\x0a      \
-const scope = ro\
-ot || document;\x0a\
-      let boxes;\
-\x0a      if (scope\
-.nodeType === 1)\
- boxes = scope.q\
-uerySelectorAll(\
-'.msg-box.msg-bo\
-t');\x0a      else \
-boxes = document\
+const r = code.g\
+etBoundingClient\
+Rect();\x0a        \
+if (r.bottom >= \
+rectTop && r.top\
+ <= rectBottom) \
+this.queue(code,\
+ activeCode);\x0a  \
+    });\x0a    }\x0a  \
+  installBoxObse\
+rver() { /* no-o\
+p */ }\x0a    // Vi\
+sit bot message \
+boxes and call c\
+allback (used fo\
+r local scans).\x0a\
+    observeMsgBo\
+xes(root, onBoxI\
+ntersect) {\x0a    \
+  const scope = \
+root || document\
+;\x0a      let boxe\
+s;\x0a      if (sco\
+pe.nodeType === \
+1) boxes = scope\
 .querySelectorAl\
 l('.msg-box.msg-\
-bot');\x0a      box\
-es.forEach((box)\
- => { onBoxInter\
-sect && onBoxInt\
-ersect(box); });\
-\x0a    }\x0a    // Cl\
-ear all internal\
- queues and sche\
-duled jobs.\x0a    \
-cleanup() {\x0a    \
-  try { this.raf\
-.cancelGroup('Hi\
-ghlighter'); } c\
-atch (_) {}\x0a    \
-  this.hlSchedul\
-ed = false;\x0a    \
-  this.scanSched\
+bot');\x0a      els\
+e boxes = docume\
+nt.querySelector\
+All('.msg-box.ms\
+g-bot');\x0a      b\
+oxes.forEach((bo\
+x) => { onBoxInt\
+ersect && onBoxI\
+ntersect(box); }\
+);\x0a    }\x0a    // \
+Clear all intern\
+al queues and sc\
+heduled jobs.\x0a  \
+  cleanup() {\x0a  \
+    try { this.r\
+af.cancelGroup('\
+Highlighter'); }\
+ catch (_) {}\x0a  \
+    this.hlSched\
 uled = false;\x0a  \
-    this._global\
-ScanState = null\
-;\x0a      this.hlQ\
-ueueSet.clear();\
- this.hlQueue.le\
-ngth = 0;\x0a    }\x0a\
-  }\x0a    // =====\
+    this.scanSch\
+eduled = false;\x0a\
+      this._glob\
+alScanState = nu\
+ll;\x0a      this.h\
+lQueueSet.clear(\
+); this.hlQueue.\
+length = 0;\x0a    \
+}\x0a  }\x0a    // ===\
 ================\
 ================\
 ================\
 ================\
-=====\x0a    // 4) \
-Custom Markup Pr\
-ocessor\x0a    // =\
+=======\x0a    // 4\
+) Custom Markup \
+Processor\x0a    //\
+ ===============\
 ================\
 ================\
 ================\
-================\
-=========\x0a\x0a    c\
-lass CustomMarku\
-p {\x0a      constr\
-uctor(cfg, logge\
-r) {\x0a        thi\
-s.cfg = cfg || {\
- CUSTOM_MARKUP_R\
-ULES: [] };\x0a    \
-    this.logger \
-= logger || new \
-Logger(cfg);\x0a   \
-     this.__comp\
-iled = null;\x0a   \
-     this.__hasS\
-treamRules = fal\
-se; // Fast flag\
- to skip stream \
-work if not need\
-ed\x0a      }\x0a     \
- _d(line, ctx) {\
- try { this.logg\
-er.debug('CM', l\
-ine, ctx); } cat\
-ch (_) {} }\x0a\x0a   \
-   // Decode HTM\
-L entities once \
-(safe)\x0a      // \
-This addresses c\
-ases when linkif\
-y/full markdown \
-path leaves lite\
-ral \x22&quot;\x22 etc\
-. in text nodes.\
-\x0a      // We dec\
-ode only for rul\
-es that explicit\
-ly opt-in (see c\
-ompile()) to avo\
-id changing sema\
-ntics globally.\x0a\
-      decodeEnti\
-tiesOnce(s) {\x0a  \
-      if (!s || \
-s.indexOf('&') =\
-== -1) return St\
-ring(s || '');\x0a \
-       const ta \
-= CustomMarkup._\
-decTA || (Custom\
-Markup._decTA = \
-document.createE\
-lement('textarea\
-'));\x0a        ta.\
-innerHTML = s;\x0a \
-       return ta\
-.value;\x0a      }\x0a\
-\x0a      // Small \
-helper: escape t\
-ext to safe HTML\
- (shared Utils o\
-r fallback)\x0a    \
-  _escHtml(s) {\x0a\
-        try { re\
-turn Utils.escap\
-eHtml(s); } catc\
-h (_) {\x0a        \
-  return String(\
-s || '').replace\
-(/[&<>\x22']/g, m =\
-> ({'&':'&amp;',\
-'<':'&lt;','>':'\
-&gt;','\x22':'&quot\
-;',\x22'\x22:'&#039;'}\
-[m]));\x0a        }\
-\x0a      }\x0a\x0a      \
-// quick check i\
-f any rule's ope\
-n token is prese\
-nt in text (used\
- to skip expensi\
-ve work early)\x0a \
-     hasAnyOpenT\
-oken(text, rules\
-) {\x0a        if (\
-!text || !rules \
-|| !rules.length\
-) return false;\x0a\
-        for (let\
- i = 0; i < rule\
-s.length; i++) {\
+===========\x0a\x0a   \
+ class CustomMar\
+kup {\x0a      cons\
+tructor(cfg, log\
+ger) {\x0a        t\
+his.cfg = cfg ||\
+ { CUSTOM_MARKUP\
+_RULES: [] };\x0a  \
+      this.logge\
+r = logger || ne\
+w Logger(cfg);\x0a \
+       this.__co\
+mpiled = null;\x0a \
+       this.__ha\
+sStreamRules = f\
+alse; // Fast fl\
+ag to skip strea\
+m work if not ne\
+eded\x0a      }\x0a   \
+   _d(line, ctx)\
+ { try { this.lo\
+gger.debug('CM',\
+ line, ctx); } c\
+atch (_) {} }\x0a\x0a \
+     // Decode H\
+TML entities onc\
+e (safe)\x0a      /\
+/ This addresses\
+ cases when link\
+ify/full markdow\
+n path leaves li\
+teral \x22&quot;\x22 e\
+tc. in text node\
+s.\x0a      // We d\
+ecode only for r\
+ules that explic\
+itly opt-in (see\
+ compile()) to a\
+void changing se\
+mantics globally\
+.\x0a      decodeEn\
+titiesOnce(s) {\x0a\
+        if (!s |\
+| s.indexOf('&')\
+ === -1) return \
+String(s || '');\
+\x0a        const t\
+a = CustomMarkup\
+._decTA || (Cust\
+omMarkup._decTA \
+= document.creat\
+eElement('textar\
+ea'));\x0a        t\
+a.innerHTML = s;\
+\x0a        return \
+ta.value;\x0a      \
+}\x0a\x0a      // Smal\
+l helper: escape\
+ text to safe HT\
+ML (shared Utils\
+ or fallback)\x0a  \
+    _escHtml(s) \
+{\x0a        try { \
+return Utils.esc\
+apeHtml(s); } ca\
+tch (_) {\x0a      \
+    return Strin\
+g(s || '').repla\
+ce(/[&<>\x22']/g, m\
+ => ({'&':'&amp;\
+','<':'&lt;','>'\
+:'&gt;','\x22':'&qu\
+ot;',\x22'\x22:'&#039;\
+'}[m]));\x0a       \
+ }\x0a      }\x0a\x0a    \
+  // Escape-all-\
+but-<br> helper \
+for rules that w\
+ant real line br\
+eaks without lea\
+king HTML.\x0a     \
+ // - Preserves \
+existing <br>, <\
+br/> and <br /> \
+tokens (case-ins\
+ensitive)\x0a      \
+// - Escapes eve\
+rything else\x0a   \
+   // - Optional\
+ly converts newl\
+ines to <br>\x0a   \
+   _escapeHtmlAl\
+lowBr(text, { co\
+nvertNewlines = \
+true } = {}) {\x0a \
+       const PLA\
+CEHOLDER = '\x5cu00\
+01__BR__\x5cu0001';\
+\x0a        let s =\
+ String(text || \
+'');\x0a\x0a        //\
+ Preserve existi\
+ng BR tokens usi\
+ng a placeholder\
+ to survive esca\
+ping.\x0a        s \
+= s.replace(/<br\
+\x5cs*\x5c/?>/gi, PLAC\
+EHOLDER);\x0a\x0a     \
+   // Escape the\
+ rest safely.\x0a  \
+      s = this._\
+escHtml(s);\x0a\x0a   \
+     // Convert \
+newlines to real\
+ <br> if request\
+ed.\x0a        if (\
+convertNewlines)\
+ {\x0a          s =\
+ s.replace(/\x5cr\x5cn\
+|\x5cr|\x5cn/g, '<br>'\
+);\x0a        }\x0a\x0a  \
+      // Restore\
+ placeholders to\
+ canonical <br>.\
+\x0a        s = s.r\
+eplace(new RegEx\
+p(PLACEHOLDER, '\
+g'), '<br>');\x0a  \
+      return s;\x0a\
+      }\x0a\x0a      /\
+/ quick check if\
+ any rule's open\
+ token is presen\
+t in text (used \
+to skip expensiv\
+e work early)\x0a  \
+    hasAnyOpenTo\
+ken(text, rules)\
+ {\x0a        if (!\
+text || !rules |\
+| !rules.length)\
+ return false;\x0a \
+       for (let \
+i = 0; i < rules\
+.length; i++) {\x0a\
+          const \
+r = rules[i];\x0a  \
+        if (!r |\
+| !r.open) conti\
+nue;\x0a          i\
+f (text.indexOf(\
+r.open) !== -1) \
+return true;\x0a   \
+     }\x0a        r\
+eturn false;\x0a   \
+   }\x0a\x0a      // B\
+uild inner HTML \
+from text accord\
+ing to rule's mo\
+de (markdown-inl\
+ine | text) with\
+ optional entity\
+ decode.\x0a      /\
+/ Extended: if r\
+ule.nl2br/allowB\
+r is set, we use\
+ _escapeHtmlAllo\
+wBr to materiali\
+ze safe HTML wit\
+h real <br>.\x0a   \
+   _materializeI\
+nnerHTML(rule, t\
+ext, MD) {\x0a     \
+   let payload =\
+ String(text || \
+'');\x0a        con\
+st wantsBr = !!(\
+rule && (rule.nl\
+2br || rule.allo\
+wBr));\x0a\x0a        \
+if (rule && rule\
+.decodeEntities \
+&& payload && pa\
+yload.indexOf('&\
+') !== -1) {\x0a   \
+       try { pay\
+load = this.deco\
+deEntitiesOnce(p\
+ayload); } catch\
+ (_) { /* keep o\
+riginal */ }\x0a   \
+     }\x0a\x0a        \
+if (wantsBr) {\x0a \
+         // Prod\
+uce safe HTML wi\
+th <br> preserve\
+d/converted; nev\
+er run markdown \
+here.\x0a          \
+try { return thi\
+s._escapeHtmlAll\
+owBr(payload, { \
+convertNewlines:\
+ !!rule.nl2br })\
+; }\x0a          ca\
+tch (_) { return\
+ this._escHtml(p\
+ayload); }\x0a     \
+   }\x0a\x0a        if\
+ (rule && rule.i\
+nnerMode === 'ma\
+rkdown-inline' &\
+& MD && typeof M\
+D.renderInline =\
+== 'function') {\
+\x0a          try {\
+ return MD.rende\
+rInline(payload)\
+; } catch (_) { \
+return this._esc\
+Html(payload); }\
+\x0a        }\x0a\x0a    \
+    return this.\
+_escHtml(payload\
+);\x0a      }\x0a\x0a    \
+  // Make a DOM \
+Fragment from HT\
+ML string (robus\
+t across context\
+s).\x0a      _fragm\
+entFromHTML(html\
+, ctxNode) {\x0a   \
+     let frag = \
+null;\x0a        tr\
+y {\x0a          co\
+nst range = docu\
+ment.createRange\
+();\x0a          co\
+nst ctx = (ctxNo\
+de && ctxNode.pa\
+rentNode) ? ctxN\
+ode.parentNode :\
+ (document.body \
+|| document.docu\
+mentElement);\x0a  \
+        range.se\
+lectNode(ctx);\x0a \
+         frag = \
+range.createCont\
+extualFragment(S\
+tring(html || ''\
+));\x0a          re\
+turn frag;\x0a     \
+   } catch (_) {\
 \x0a          const\
- r = rules[i];\x0a \
-         if (!r \
-|| !r.open) cont\
-inue;\x0a          \
-if (text.indexOf\
-(r.open) !== -1)\
- return true;\x0a  \
-      }\x0a        \
-return false;\x0a  \
-    }\x0a\x0a      // \
-Build inner HTML\
- from text accor\
-ding to rule's m\
-ode (markdown-in\
-line | text) wit\
-h optional entit\
-y decode.\x0a      \
-_materializeInne\
-rHTML(rule, text\
-, MD) {\x0a        \
-let payload = St\
-ring(text || '')\
-;\x0a        if (ru\
-le && rule.decod\
-eEntities && pay\
-load && payload.\
-indexOf('&') !==\
- -1) {\x0a         \
- try { payload =\
- this.decodeEnti\
-tiesOnce(payload\
-); } catch (_) {\
- /* keep origina\
-l */ }\x0a        }\
-\x0a        if (rul\
-e && rule.innerM\
-ode === 'markdow\
-n-inline' && MD \
-&& typeof MD.ren\
-derInline === 'f\
-unction') {\x0a    \
-      try { retu\
-rn MD.renderInli\
-ne(payload); } c\
-atch (_) { retur\
-n this._escHtml(\
-payload); }\x0a    \
-    }\x0a        re\
-turn this._escHt\
-ml(payload);\x0a   \
-   }\x0a\x0a      // M\
-ake a DOM Fragme\
-nt from HTML str\
-ing (robust acro\
-ss contexts).\x0a  \
-    _fragmentFro\
-mHTML(html, ctxN\
-ode) {\x0a        l\
-et frag = null;\x0a\
-        try {\x0a  \
-        const ra\
-nge = document.c\
-reateRange();\x0a  \
-        const ct\
-x = (ctxNode && \
-ctxNode.parentNo\
-de) ? ctxNode.pa\
-rentNode : (docu\
-ment.body || doc\
-ument.documentEl\
-ement);\x0a        \
-  range.selectNo\
-de(ctx);\x0a       \
-   frag = range.\
-createContextual\
-Fragment(String(\
-html || ''));\x0a  \
-        return f\
-rag;\x0a        } c\
-atch (_) {\x0a     \
-     const tmp =\
- document.create\
-Element('div');\x0a\
-          tmp.in\
-nerHTML = String\
-(html || '');\x0a  \
-        frag = d\
-ocument.createDo\
-cumentFragment()\
-;\x0a          whil\
-e (tmp.firstChil\
-d) frag.appendCh\
-ild(tmp.firstChi\
-ld);\x0a          r\
-eturn frag;\x0a    \
-    }\x0a      }\x0a\x0a \
-     // Replace \
-one element in D\
-OM with HTML str\
-ing (keeps sibli\
-ngs intact).\x0a   \
-   _replaceEleme\
-ntWithHTML(el, h\
-tml) {\x0a        i\
-f (!el || !el.pa\
-rentNode) return\
-;\x0a        const \
-parent = el.pare\
-ntNode;\x0a        \
-const frag = thi\
-s._fragmentFromH\
-TML(html, el);\x0a \
-       try {\x0a   \
-       // Insert\
- new nodes befor\
-e the old elemen\
-t, then remove t\
-he old element (\
-widely supported\
-).\x0a          par\
+ tmp = document.\
+createElement('d\
+iv');\x0a          \
+tmp.innerHTML = \
+String(html || '\
+');\x0a          fr\
+ag = document.cr\
+eateDocumentFrag\
+ment();\x0a        \
+  while (tmp.fir\
+stChild) frag.ap\
+pendChild(tmp.fi\
+rstChild);\x0a     \
+     return frag\
+;\x0a        }\x0a    \
+  }\x0a\x0a      // Re\
+place one elemen\
+t in DOM with HT\
+ML string (keeps\
+ siblings intact\
+).\x0a      _replac\
+eElementWithHTML\
+(el, html) {\x0a   \
+     if (!el || \
+!el.parentNode) \
+return;\x0a        \
+const parent = e\
+l.parentNode;\x0a  \
+      const frag\
+ = this._fragmen\
+tFromHTML(html, \
+el);\x0a        try\
+ {\x0a          par\
 ent.insertBefore\
 (frag, el);\x0a    \
       parent.rem\
 oveChild(el);\x0a  \
       } catch (_\
-) {\x0a          //\
- Conservative fa\
-llback: wrap in \
-a span if direct\
- fragment insert\
-ion failed for s\
-ome reason.\x0a    \
-      const tmp \
-= document.creat\
-eElement('span')\
-;\x0a          tmp.\
-innerHTML = Stri\
-ng(html || '');\x0a\
-          while \
-(tmp.firstChild)\
- parent.insertBe\
-fore(tmp.firstCh\
-ild, el);\x0a      \
-    parent.remov\
-eChild(el);\x0a    \
-    }\x0a      }\x0a\x0a \
-     // Compile \
-rules once; also\
- precompile stri\
-ct and whitespac\
-e-tolerant \x22full\
- match\x22 regexes.\
-\x0a      compile(r\
-ules) {\x0a        \
-const src = Arra\
-y.isArray(rules)\
- ? rules : (wind\
-ow.CUSTOM_MARKUP\
-_RULES || this.c\
-fg.CUSTOM_MARKUP\
-_RULES || []);\x0a \
-       const com\
-piled = [];\x0a    \
-    let hasStrea\
-m = false;\x0a\x0a    \
-    for (const r\
- of src) {\x0a     \
-     if (!r || t\
-ypeof r.open !==\
- 'string' || typ\
-eof r.close !== \
-'string') contin\
-ue;\x0a\x0a          c\
-onst tag = (r.ta\
-g || 'span').toL\
-owerCase();\x0a    \
-      const clas\
-sName = (r.class\
-Name || r.class \
-|| '').trim();\x0a \
-         const i\
-nnerMode = (r.in\
-nerMode === 'mar\
-kdown-inline' ||\
- r.innerMode ===\
- 'text') ? r.inn\
-erMode : 'text';\
-\x0a\x0a          cons\
-t stream = !!(r.\
-stream === true)\
-;\x0a          cons\
-t openReplace = \
-String((r.openRe\
-place != null ? \
-r.openReplace : \
-(r.openReplace |\
-| '')) || '');\x0a \
-         const c\
-loseReplace = St\
-ring((r.closeRep\
-lace != null ? r\
-.closeReplace : \
-(r.closeReplace \
-|| '')) || '');\x0a\
-\x0a          // Ba\
-ck-compat: decod\
-e entities defau\
-lt true for cmd-\
-like\x0a          c\
-onst decodeEntit\
-ies = (typeof r.\
-decodeEntities =\
-== 'boolean')\x0a  \
-          ? r.de\
-codeEntities\x0a   \
-         : ((r.n\
-ame || '').toLow\
-erCase() === 'cm\
-d' || className \
-=== 'cmd');\x0a\x0a   \
-       // Option\
-al application p\
-hase (where repl\
-acement should h\
-appen)\x0a         \
- // - 'source' =\
-> before markdow\
-n-it\x0a          /\
-/ - 'html'   => \
-after markdown-i\
-t (DOM fragment)\
-\x0a          // - \
-'both'\x0a         \
- let phaseRaw = \
-(typeof r.phase \
-=== 'string') ? \
-r.phase.toLowerC\
-ase() : '';\x0a    \
-      if (phaseR\
-aw !== 'source' \
-&& phaseRaw !== \
-'html' && phaseR\
-aw !== 'both') p\
-haseRaw = '';\x0a  \
-        // Heuri\
-stic: if replace\
-ment contains fe\
-nced code backti\
-cks, default to \
-'source'\x0a       \
-   const looksLi\
-keFence = (openR\
-eplace.indexOf('\
-```') !== -1) ||\
- (closeReplace.i\
-ndexOf('```') !=\
-= -1);\x0a         \
- const phase = p\
-haseRaw || (look\
-sLikeFence ? 'so\
-urce' : 'html');\
-\x0a\x0a          cons\
-t re = new RegEx\
-p(Utils.reEscape\
+) {\x0a          co\
+nst tmp = docume\
+nt.createElement\
+('span');\x0a      \
+    tmp.innerHTM\
+L = String(html \
+|| '');\x0a        \
+  while (tmp.fir\
+stChild) parent.\
+insertBefore(tmp\
+.firstChild, el)\
+;\x0a          pare\
+nt.removeChild(e\
+l);\x0a        }\x0a  \
+    }\x0a\x0a      // \
+Compile rules on\
+ce; also precomp\
+ile strict and w\
+hitespace-tolera\
+nt \x22full match\x22 \
+regexes.\x0a      c\
+ompile(rules) {\x0a\
+        const sr\
+c = Array.isArra\
+y(rules) ? rules\
+ : (window.CUSTO\
+M_MARKUP_RULES |\
+| this.cfg.CUSTO\
+M_MARKUP_RULES |\
+| []);\x0a        c\
+onst compiled = \
+[];\x0a        let \
+hasStream = fals\
+e;\x0a\x0a        for \
+(const r of src)\
+ {\x0a          if \
+(!r || typeof r.\
+open !== 'string\
+' || typeof r.cl\
+ose !== 'string'\
+) continue;\x0a\x0a   \
+       const tag\
+ = (r.tag || 'sp\
+an').toLowerCase\
+();\x0a          co\
+nst className = \
+(r.className || \
+r.class || '').t\
+rim();\x0a         \
+ const innerMode\
+ = (r.innerMode \
+=== 'markdown-in\
+line' || r.inner\
+Mode === 'text')\
+ ? r.innerMode :\
+ 'text';\x0a\x0a      \
+    const stream\
+ = !!(r.stream =\
+== true);\x0a      \
+    const openRe\
+place = String((\
+r.openReplace !=\
+ null ? r.openRe\
+place : (r.openR\
+eplace || '')) |\
+| '');\x0a         \
+ const closeRepl\
+ace = String((r.\
+closeReplace != \
+null ? r.closeRe\
+place : (r.close\
+Replace || '')) \
+|| '');\x0a\x0a       \
+   // Back-compa\
+t: decode entiti\
+es default true \
+for cmd-like\x0a   \
+       const dec\
+odeEntities = (t\
+ypeof r.decodeEn\
+tities === 'bool\
+ean')\x0a          \
+  ? r.decodeEnti\
+ties\x0a           \
+ : ((r.name || '\
+').toLowerCase()\
+ === 'cmd' || cl\
+assName === 'cmd\
+');\x0a\x0a          /\
+/ Optional appli\
+cation phase (wh\
+ere replacement \
+should happen)\x0a \
+         // - 's\
+ource' => before\
+ markdown-it\x0a   \
+       // - 'htm\
+l'   => after ma\
+rkdown-it (DOM f\
+ragment)\x0a       \
+   // - 'both'\x0a \
+         let pha\
+seRaw = (typeof \
+r.phase === 'str\
+ing') ? r.phase.\
+toLowerCase() : \
+'';\x0a          if\
+ (phaseRaw !== '\
+source' && phase\
+Raw !== 'html' &\
+& phaseRaw !== '\
+both') phaseRaw \
+= '';\x0a          \
+const looksLikeF\
+ence = (openRepl\
+ace.indexOf('```\
+') !== -1) || (c\
+loseReplace.inde\
+xOf('```') !== -\
+1);\x0a          co\
+nst phase = phas\
+eRaw || (looksLi\
+keFence ? 'sourc\
+e' : 'html');\x0a\x0a \
+         const r\
+e = new RegExp(U\
+tils.reEscape(r.\
+open) + '([\x5c\x5cs\x5c\x5c\
+S]*?)' + Utils.r\
+eEscape(r.close)\
+, 'g');\x0a        \
+  const reFull =\
+ new RegExp('^' \
++ Utils.reEscape\
 (r.open) + '([\x5c\x5c\
 s\x5c\x5cS]*?)' + Util\
 s.reEscape(r.clo\
-se), 'g');\x0a     \
-     const reFul\
-l = new RegExp('\
-^' + Utils.reEsc\
-ape(r.open) + '(\
-[\x5c\x5cs\x5c\x5cS]*?)' + U\
-tils.reEscape(r.\
-close) + '$');\x0a \
-         const r\
-eFullTrim = new \
-RegExp('^\x5c\x5cs*' +\
- Utils.reEscape(\
-r.open) + '([\x5c\x5cs\
-\x5c\x5cS]*?)' + Utils\
-.reEscape(r.clos\
-e) + '\x5c\x5cs*$');\x0a\x0a\
-          const \
-item = {\x0a       \
-     name: r.nam\
-e || tag,\x0a      \
-      tag, class\
-Name, innerMode,\
-\x0a            ope\
-n: r.open, close\
-: r.close,\x0a     \
-       decodeEnt\
-ities,\x0a         \
-   re, reFull, r\
-eFullTrim,\x0a     \
-       stream,\x0a \
-           openR\
-eplace, closeRep\
-lace,\x0a          \
-  phase,        \
-         // wher\
-e this rule shou\
-ld be applied\x0a  \
-          isSour\
-ceFence: looksLi\
-keFence // hints\
- StreamEngine to\
- treat as custom\
- fence\x0a         \
- };\x0a          co\
-mpiled.push(item\
-);\x0a          if \
-(stream) hasStre\
-am = true;\x0a     \
-     this._d('CO\
-MPILE_RULE', { n\
-ame: item.name, \
-phase: item.phas\
-e, stream: item.\
-stream });\x0a     \
-   }\x0a\x0a        if\
- (compiled.lengt\
-h === 0) {\x0a     \
-     const open \
-= '[!cmd]', clos\
-e = '[/!cmd]';\x0a \
-         const i\
-tem = {\x0a        \
-    name: 'cmd',\
- tag: 'p', class\
-Name: 'cmd', inn\
-erMode: 'text', \
-open, close,\x0a   \
-         decodeE\
-ntities: true,\x0a \
-           re: n\
-ew RegExp(Utils.\
+se) + '$');\x0a    \
+      const reFu\
+llTrim = new Reg\
+Exp('^\x5c\x5cs*' + Ut\
+ils.reEscape(r.o\
+pen) + '([\x5c\x5cs\x5c\x5cS\
+]*?)' + Utils.re\
+Escape(r.close) \
++ '\x5c\x5cs*$');\x0a\x0a   \
+       // Extend\
+ed flags (safe l\
+ine-break handli\
+ng for think-lik\
+e rules)\x0a       \
+   const nl2br =\
+ !!r.nl2br;\x0a    \
+      const allo\
+wBr = !!r.allowB\
+r;\x0a\x0a          co\
+nst item = {\x0a   \
+         name: r\
+.name || tag,\x0a  \
+          tag, c\
+lassName, innerM\
+ode,\x0a           \
+ open: r.open, c\
+lose: r.close,\x0a \
+           decod\
+eEntities,\x0a     \
+       re, reFul\
+l, reFullTrim,\x0a \
+           strea\
+m,\x0a            o\
+penReplace, clos\
+eReplace,\x0a      \
+      phase,\x0a   \
+         isSourc\
+eFence: looksLik\
+eFence,\x0a        \
+    nl2br, allow\
+Br\x0a          };\x0a\
+          compil\
+ed.push(item);\x0a \
+         if (str\
+eam) hasStream =\
+ true;\x0a         \
+ this._d('COMPIL\
+E_RULE', { name:\
+ item.name, phas\
+e: item.phase, s\
+tream: item.stre\
+am, nl2br: item.\
+nl2br, allowBr: \
+item.allowBr });\
+\x0a        }\x0a\x0a    \
+    if (compiled\
+.length === 0) {\
+\x0a          const\
+ open = '[!cmd]'\
+, close = '[/!cm\
+d]';\x0a          c\
+onst item = {\x0a  \
+          name: \
+'cmd', tag: 'p',\
+ className: 'cmd\
+', innerMode: 't\
+ext', open, clos\
+e,\x0a            d\
+ecodeEntities: t\
+rue,\x0a           \
+ re: new RegExp(\
+Utils.reEscape(o\
+pen) + '([\x5c\x5cs\x5c\x5cS\
+]*?)' + Utils.re\
+Escape(close), '\
+g'),\x0a           \
+ reFull: new Reg\
+Exp('^' + Utils.\
 reEscape(open) +\
  '([\x5c\x5cs\x5c\x5cS]*?)' \
 + Utils.reEscape\
-(close), 'g'),\x0a \
-           reFul\
-l: new RegExp('^\
-' + Utils.reEsca\
-pe(open) + '([\x5c\x5c\
-s\x5c\x5cS]*?)' + Util\
-s.reEscape(close\
-) + '$'),\x0a      \
-      reFullTrim\
-: new RegExp('^\x5c\
-\x5cs*' + Utils.reE\
-scape(open) + '(\
-[\x5c\x5cs\x5c\x5cS]*?)' + U\
-tils.reEscape(cl\
-ose) + '\x5c\x5cs*$'),\
-\x0a            str\
-eam: false,\x0a    \
-        openRepl\
-ace: '', closeRe\
-place: '',\x0a     \
-       phase: 'h\
-tml', isSourceFe\
-nce: false\x0a     \
+(close) + '$'),\x0a\
+            reFu\
+llTrim: new RegE\
+xp('^\x5c\x5cs*' + Uti\
+ls.reEscape(open\
+) + '([\x5c\x5cs\x5c\x5cS]*?\
+)' + Utils.reEsc\
+ape(close) + '\x5c\x5c\
+s*$'),\x0a         \
+   stream: false\
+,\x0a            op\
+enReplace: '', c\
+loseReplace: '',\
+\x0a            pha\
+se: 'html', isSo\
+urceFence: false\
+,\x0a            nl\
+2br: false, allo\
+wBr: false\x0a     \
      };\x0a        \
   compiled.push(\
 item);\x0a         \
@@ -88674,816 +88694,850 @@ s.__compiled;\x0a  \
       if (!rules\
  || !rules.lengt\
 h) return s;\x0a\x0a  \
-      // Pick on\
-ly source-phase \
-rules with expli\
-cit replacements\
-\x0a        const c\
-andidates = [];\x0a\
-        for (let\
- i = 0; i < rule\
-s.length; i++) {\
-\x0a          const\
- r = rules[i];\x0a \
-         if (!r)\
- continue;\x0a     \
-     if ((r.phas\
-e === 'source' |\
-| r.phase === 'b\
-oth') && (r.open\
-Replace || r.clo\
-seReplace)) cand\
-idates.push(r);\x0a\
-        }\x0a      \
-  if (!candidate\
-s.length) return\
- s;\x0a\x0a        // \
-Compute fenced-c\
-ode ranges once \
-to exclude them \
-from replacement\
-s (production-sa\
-fe).\x0a        con\
-st fences = this\
-._findFenceRange\
-s(s);\x0a        if\
- (!fences.length\
-) {\x0a          //\
- No code fences \
-in source; apply\
- top-level guard\
-ed replacements \
-globally.\x0a      \
-    return this.\
-_applySourceRepl\
-acementsInChunk(\
-s, s, 0, candida\
+      const cand\
+idates = [];\x0a   \
+     for (let i \
+= 0; i < rules.l\
+ength; i++) {\x0a  \
+        const r \
+= rules[i];\x0a    \
+      if (!r) co\
+ntinue;\x0a        \
+  if ((r.phase =\
+== 'source' || r\
+.phase === 'both\
+') && (r.openRep\
+lace || r.closeR\
+eplace)) candida\
+tes.push(r);\x0a   \
+     }\x0a        i\
+f (!candidates.l\
+ength) return s;\
+\x0a\x0a        const \
+fences = this._f\
+indFenceRanges(s\
+);\x0a        if (!\
+fences.length) {\
+\x0a          retur\
+n this._applySou\
+rceReplacementsI\
+nChunk(s, s, 0, \
+candidates);\x0a   \
+     }\x0a\x0a        \
+let out = '';\x0a  \
+      let last =\
+ 0;\x0a        for \
+(let k = 0; k < \
+fences.length; k\
+++) {\x0a          \
+const [a, b] = f\
+ences[k];\x0a      \
+    if (a > last\
+) {\x0a            \
+const chunk = s.\
+slice(last, a);\x0a\
+            out \
++= this._applySo\
+urceReplacements\
+InChunk(s, chunk\
+, last, candidat\
+es);\x0a          }\
+\x0a          out +\
+= s.slice(a, b);\
+\x0a          last \
+= b;\x0a        }\x0a \
+       if (last \
+< s.length) {\x0a  \
+        const ta\
+il = s.slice(las\
+t);\x0a          ou\
+t += this._apply\
+SourceReplacemen\
+tsInChunk(s, tai\
+l, last, candida\
 tes);\x0a        }\x0a\
-\x0a        // Appl\
-y replacements o\
-nly in segments \
-outside fenced c\
-ode.\x0a        let\
- out = '';\x0a     \
-   let last = 0;\
-\x0a        for (le\
-t k = 0; k < fen\
-ces.length; k++)\
- {\x0a          con\
-st [a, b] = fenc\
-es[k];\x0a         \
- if (a > last) {\
-\x0a            con\
-st chunk = s.sli\
-ce(last, a);\x0a   \
-         out += \
-this._applySourc\
-eReplacementsInC\
-hunk(s, chunk, l\
-ast, candidates)\
-;\x0a          }\x0a  \
-        out += s\
-.slice(a, b); //\
- pass fenced cod\
-e verbatim\x0a     \
-     last = b;\x0a \
-       }\x0a       \
- if (last < s.le\
-ngth) {\x0a        \
-  const tail = s\
-.slice(last);\x0a  \
-        out += t\
-his._applySource\
-ReplacementsInCh\
-unk(s, tail, las\
-t, candidates);\x0a\
-        }\x0a      \
-  return out;\x0a  \
-    }\x0a\x0a      // \
-expose custom fe\
-nce specs (to St\
-reamEngine)\x0a    \
-  getSourceFence\
-Specs() {\x0a      \
-  this.ensureCom\
-piled();\x0a       \
- const rules = t\
-his.__compiled |\
-| [];\x0a        co\
-nst out = [];\x0a  \
-      for (let i\
- = 0; i < rules.\
-length; i++) {\x0a \
-         const r\
- = rules[i];\x0a   \
-       if (!r ||\
- !r.isSourceFenc\
-e) continue;\x0a   \
-       // Only e\
-xpose when they \
-actually look li\
-ke fences in sou\
-rce phase\x0a      \
-    if (r.phase \
-!== 'source' && \
-r.phase !== 'bot\
-h') continue;\x0a  \
-        out.push\
-({ open: r.open,\
- close: r.close \
-});\x0a        }\x0a  \
-      return out\
-;\x0a      }\x0a\x0a     \
- // Ensure rules\
- are compiled an\
-d cached.\x0a      \
-ensureCompiled()\
- {\x0a        if (!\
-this.__compiled)\
- {\x0a          thi\
-s.__compiled = t\
-his.compile(wind\
-ow.CUSTOM_MARKUP\
-_RULES || this.c\
-fg.CUSTOM_MARKUP\
-_RULES);\x0a       \
-   this._d('ENSU\
-RE_COMPILED', { \
-count: this.__co\
-mpiled.length, h\
-asStream: this._\
-_hasStreamRules \
-});\x0a        }\x0a  \
-      return thi\
-s.__compiled;\x0a  \
-    }\x0a\x0a      // \
-Replace rules se\
-t (also exposes \
-rules on window)\
-.\x0a      setRules\
-(rules) {\x0a      \
-  this.__compile\
-d = this.compile\
-(rules);\x0a       \
- window.CUSTOM_M\
-ARKUP_RULES = Ar\
-ray.isArray(rule\
-s) ? rules.slice\
-() : (this.cfg.C\
-USTOM_MARKUP_RUL\
-ES || []).slice(\
-);\x0a        this.\
-_d('SET_RULES', \
-{ count: this.__\
-compiled.length,\
- hasStream: this\
-.__hasStreamRule\
-s });\x0a      }\x0a\x0a \
-     // Return c\
-urrent rules as \
-array.\x0a      get\
-Rules() {\x0a      \
-  const list = (\
-window.CUSTOM_MA\
-RKUP_RULES ? win\
-dow.CUSTOM_MARKU\
-P_RULES.slice()\x0a\
-                \
-                \
-                \
- : (this.cfg.CUS\
+        return o\
+ut;\x0a      }\x0a\x0a   \
+   // expose cus\
+tom fence specs \
+(to StreamEngine\
+)\x0a      getSourc\
+eFenceSpecs() {\x0a\
+        this.ens\
+ureCompiled();\x0a \
+       const rul\
+es = this.__comp\
+iled || [];\x0a    \
+    const out = \
+[];\x0a        for \
+(let i = 0; i < \
+rules.length; i+\
++) {\x0a          c\
+onst r = rules[i\
+];\x0a          if \
+(!r || !r.isSour\
+ceFence) continu\
+e;\x0a          if \
+(r.phase !== 'so\
+urce' && r.phase\
+ !== 'both') con\
+tinue;\x0a         \
+ out.push({ open\
+: r.open, close:\
+ r.close });\x0a   \
+     }\x0a        r\
+eturn out;\x0a     \
+ }\x0a\x0a      // Ens\
+ure rules are co\
+mpiled and cache\
+d.\x0a      ensureC\
+ompiled() {\x0a    \
+    if (!this.__\
+compiled) {\x0a    \
+      this.__com\
+piled = this.com\
+pile(window.CUST\
+OM_MARKUP_RULES \
+|| this.cfg.CUST\
+OM_MARKUP_RULES)\
+;\x0a          this\
+._d('ENSURE_COMP\
+ILED', { count: \
+this.__compiled.\
+length, hasStrea\
+m: this.__hasStr\
+eamRules });\x0a   \
+     }\x0a        r\
+eturn this.__com\
+piled;\x0a      }\x0a\x0a\
+      // Replace\
+ rules set (also\
+ exposes rules o\
+n window).\x0a     \
+ setRules(rules)\
+ {\x0a        this.\
+__compiled = thi\
+s.compile(rules)\
+;\x0a        window\
+.CUSTOM_MARKUP_R\
+ULES = Array.isA\
+rray(rules) ? ru\
+les.slice() : (t\
+his.cfg.CUSTOM_M\
+ARKUP_RULES || [\
+]).slice();\x0a    \
+    this._d('SET\
+_RULES', { count\
+: this.__compile\
+d.length, hasStr\
+eam: this.__hasS\
+treamRules });\x0a \
+     }\x0a\x0a      //\
+ Return current \
+rules as array.\x0a\
+      getRules()\
+ {\x0a        const\
+ list = (window.\
+CUSTOM_MARKUP_RU\
+LES ? window.CUS\
 TOM_MARKUP_RULES\
- || []).slice())\
-;\x0a        this._\
-d('GET_RULES', {\
- count: list.len\
-gth });\x0a        \
-return list;\x0a   \
-   }\x0a\x0a      // F\
-ast switch: do w\
-e have any rules\
- that want strea\
-ming parsing?\x0a  \
-    hasStreamRul\
-es() {\x0a        t\
-his.ensureCompil\
-ed();\x0a        re\
-turn !!this.__ha\
-sStreamRules;\x0a  \
-    }\x0a\x0a      // \
-Context guards\x0a \
-     isInsideFor\
-biddenContext(no\
-de) {\x0a        co\
-nst p = node.par\
-entElement; if (\
-!p) return true;\
-\x0a        // IMPO\
-RTANT: exclude c\
-ode/math/hljs/wr\
-appers AND list \
-contexts (ul/ol/\
-li/dl/dt/dd)\x0a   \
-     return !!p.\
-closest('pre, co\
-de, kbd, samp, v\
-ar, script, styl\
-e, textarea, .ma\
-th-pending, .hlj\
-s, .code-wrapper\
-, ul, ol, li, dl\
-, dt, dd');\x0a    \
-  }\x0a      isInsi\
-deForbiddenEleme\
-nt(el) {\x0a       \
- if (!el) return\
- true;\x0a        /\
-/ IMPORTANT: exc\
-lude code/math/h\
-ljs/wrappers AND\
- list contexts (\
-ul/ol/li/dl/dt/d\
-d)\x0a        retur\
-n !!el.closest('\
-pre, code, kbd, \
-samp, var, scrip\
-t, style, textar\
-ea, .math-pendin\
-g, .hljs, .code-\
-wrapper, ul, ol,\
- li, dl, dt, dd'\
-);\x0a      }\x0a\x0a    \
-  // Global find\
-er on a single t\
-ext blob (origin\
-al per-text-node\
- logic).\x0a      f\
-indNextMatch(tex\
-t, from, rules) \
-{\x0a        let be\
-st = null;\x0a     \
-   for (const ru\
-le of rules) {\x0a \
-         rule.re\
-.lastIndex = fro\
-m;\x0a          con\
-st m = rule.re.e\
-xec(text);\x0a     \
-     if (m) {\x0a  \
-          const \
-start = m.index,\
- end = rule.re.l\
-astIndex;\x0a      \
-      if (!best \
-|| start < best.\
-start) best = { \
-rule, start, end\
-, inner: m[1] ||\
- '' };\x0a         \
- }\x0a        }\x0a   \
-     return best\
-;\x0a      }\x0a\x0a     \
- // Strict full \
-match of a pure \
-text node (legac\
-y path).\x0a      f\
-indFullMatch(tex\
-t, rules) {\x0a    \
+.slice()\x0a       \
+                \
+                \
+          : (thi\
+s.cfg.CUSTOM_MAR\
+KUP_RULES || [])\
+.slice());\x0a     \
+   this._d('GET_\
+RULES', { count:\
+ list.length });\
+\x0a        return \
+list;\x0a      }\x0a\x0a \
+     // Fast swi\
+tch: do we have \
+any rules that w\
+ant streaming pa\
+rsing?\x0a      has\
+StreamRules() {\x0a\
+        this.ens\
+ureCompiled();\x0a \
+       return !!\
+this.__hasStream\
+Rules;\x0a      }\x0a\x0a\
+      // Lightwe\
+ight detector us\
+ed by StreamEngi\
+ne to force an e\
+arly snapshot wh\
+en a stream\x0a    \
+  // starts with\
+ a custom stream\
+-enabled opener \
+(e.g. \x22<think>\x22)\
+.\x0a      hasStrea\
+mOpenerAtStart(t\
+ext) {\x0a        i\
+f (!text) return\
+ false;\x0a        \
+this.ensureCompi\
+led();\x0a        c\
+onst rules = (th\
+is.__compiled ||\
+ []).filter(r =>\
+ !!r.stream);\x0a  \
+      if (!rules\
+.length) return \
+false;\x0a\x0a        \
+// Trim only lea\
+ding whitespace \
+to check \x22start\x22\
+ semantics.\x0a    \
+    const t = St\
+ring(text).trimS\
+tart();\x0a        \
+for (let i = 0; \
+i < rules.length\
+; i++) {\x0a       \
+   const r = rul\
+es[i];\x0a         \
+ if (!r || !r.op\
+en) continue;\x0a  \
+        if (t.st\
+artsWith(r.open)\
+) return true;\x0a \
+       }\x0a       \
+ return false;\x0a \
+     }\x0a\x0a      //\
+ Context guards\x0a\
+      isInsideFo\
+rbiddenContext(n\
+ode) {\x0a        c\
+onst p = node.pa\
+rentElement; if \
+(!p) return true\
+;\x0a        // IMP\
+ORTANT: exclude \
+code/math/hljs/w\
+rappers AND list\
+ contexts (ul/ol\
+/li/dl/dt/dd)\x0a  \
+      return !!p\
+.closest('pre, c\
+ode, kbd, samp, \
+var, script, sty\
+le, textarea, .m\
+ath-pending, .hl\
+js, .code-wrappe\
+r, ul, ol, li, d\
+l, dt, dd');\x0a   \
+   }\x0a      isIns\
+ideForbiddenElem\
+ent(el) {\x0a      \
+  if (!el) retur\
+n true;\x0a        \
+// IMPORTANT: ex\
+clude code/math/\
+hljs/wrappers AN\
+D list contexts \
+(ul/ol/li/dl/dt/\
+dd)\x0a        retu\
+rn !!el.closest(\
+'pre, code, kbd,\
+ samp, var, scri\
+pt, style, texta\
+rea, .math-pendi\
+ng, .hljs, .code\
+-wrapper, ul, ol\
+, li, dl, dt, dd\
+');\x0a      }\x0a\x0a   \
+   // Global fin\
+der on a single \
+text blob (origi\
+nal per-text-nod\
+e logic).\x0a      \
+findNextMatch(te\
+xt, from, rules)\
+ {\x0a        let b\
+est = null;\x0a    \
     for (const r\
 ule of rules) {\x0a\
-          if (ru\
-le.reFull) {\x0a   \
-         const m\
- = rule.reFull.e\
-xec(text);\x0a     \
-       if (m) re\
-turn { rule, inn\
-er: m[1] || '' }\
-;\x0a          } el\
-se {\x0a           \
- rule.re.lastInd\
-ex = 0;\x0a        \
-    const m = ru\
-le.re.exec(text)\
-;\x0a            if\
- (m && m.index =\
-== 0 && (rule.re\
-.lastIndex === t\
-ext.length)) {\x0a \
-             con\
-st m2 = rule.re.\
+          rule.r\
+e.lastIndex = fr\
+om;\x0a          co\
+nst m = rule.re.\
 exec(text);\x0a    \
-          if (!m\
-2) return { rule\
-: rule, inner: m\
-[1] || '' };\x0a   \
-         }\x0a     \
-     }\x0a        }\
-\x0a        return \
-null;\x0a      }\x0a\x0a \
-     // Set inne\
-r content accord\
-ing to the rule'\
-s mode, with opt\
-ional entity dec\
-ode (element mod\
-e).\x0a      setInn\
-erByMode(el, mod\
-e, text, MD, dec\
-odeEntities = fa\
-lse) {\x0a        l\
-et payload = Str\
-ing(text || '');\
-\x0a        if (dec\
-odeEntities && p\
-ayload && payloa\
-d.indexOf('&') !\
-== -1) {\x0a       \
-   try { payload\
- = this.decodeEn\
-titiesOnce(paylo\
-ad); } catch (_)\
- {}\x0a        }\x0a\x0a \
-       if (mode \
-=== 'markdown-in\
-line' && typeof \
-window.markdowni\
-t !== 'undefined\
-') {\x0a          t\
-ry {\x0a           \
- if (MD && typeo\
-f MD.renderInlin\
-e === 'function'\
-) { el.innerHTML\
- = MD.renderInli\
-ne(payload); ret\
-urn; }\x0a         \
-   const tempMD \
-= window.markdow\
-nit({ html: fals\
-e, linkify: true\
-, breaks: true, \
-highlight: () =>\
- '' });\x0a        \
-    el.innerHTML\
- = tempMD.render\
-Inline(payload);\
- return;\x0a       \
-   } catch (_) {\
-}\x0a        }\x0a    \
-    el.textConte\
-nt = payload;\x0a  \
-    }\x0a\x0a      // \
-Try to replace a\
-n entire <p> tha\
-t is a full cust\
-om markup match.\
-\x0a      _tryRepla\
-ceFullParagraph(\
-el, rules, MD) {\
-\x0a        if (!el\
- || el.tagName !\
-== 'P') return f\
-alse;\x0a        if\
- (this.isInsideF\
-orbiddenElement(\
-el)) {\x0a         \
- this._d('P_SKIP\
-_FORBIDDEN', { t\
-ag: el.tagName }\
-);\x0a          ret\
-urn false;\x0a     \
-   }\x0a        con\
-st t = el.textCo\
-ntent || '';\x0a   \
-     if (!this.h\
-asAnyOpenToken(t\
-, rules)) return\
- false;\x0a\x0a       \
- for (const rule\
- of rules) {\x0a   \
-       if (!rule\
-) continue;\x0a    \
-      const m = \
-rule.reFullTrim \
-? rule.reFullTri\
-m.exec(t) : null\
-;\x0a          if (\
-!m) continue;\x0a\x0a \
-         const i\
-nnerText = m[1] \
-|| '';\x0a\x0a        \
-  if (rule.phase\
- !== 'html' && r\
-ule.phase !== 'b\
-oth') continue; \
-// element mater\
-ialization is ht\
-ml-phase only\x0a\x0a \
-         if (rul\
-e.openReplace ||\
- rule.closeRepla\
-ce) {\x0a          \
-  const innerHTM\
-L = this._materi\
-alizeInnerHTML(r\
-ule, innerText, \
-MD);\x0a           \
- const html = St\
-ring(rule.openRe\
-place || '') + i\
-nnerHTML + Strin\
-g(rule.closeRepl\
-ace || '');\x0a    \
-        this._re\
-placeElementWith\
-HTML(el, html);\x0a\
-            this\
-._d('P_REPLACED_\
-AS_HTML', { rule\
-: rule.name });\x0a\
-            retu\
-rn true;\x0a       \
-   }\x0a\x0a          \
-const outTag = (\
-rule.tag && type\
-of rule.tag === \
-'string') ? rule\
-.tag.toLowerCase\
-() : 'span';\x0a   \
-       const out\
- = document.crea\
-teElement(outTag\
- === 'p' ? 'p' :\
- outTag);\x0a      \
-    if (rule.cla\
-ssName) out.clas\
-sName = rule.cla\
-ssName;\x0a        \
-  out.setAttribu\
-te('data-cm', ru\
-le.name);\x0a      \
-    this.setInne\
-rByMode(out, rul\
-e.innerMode, inn\
-erText, MD, !!ru\
-le.decodeEntitie\
-s);\x0a\x0a          t\
-ry { el.replaceW\
-ith(out); } catc\
-h (_) {\x0a        \
-    const par = \
-el.parentNode; i\
-f (par) par.repl\
-aceChild(out, el\
-);\x0a          }\x0a \
-         this._d\
-('P_REPLACED', {\
- rule: rule.name\
-, asTag: outTag \
-});\x0a          re\
-turn true;\x0a     \
-   }\x0a        thi\
-s._d('P_NO_FULL_\
-MATCH', { previe\
-w: this.logger.p\
-v(t, 160) });\x0a  \
-      return fal\
-se;\x0a      }\x0a\x0a   \
-   // Core imple\
-mentation shared\
- by static and s\
-treaming passes.\
-\x0a      applyRule\
-s(root, MD, rule\
-s) {\x0a        if \
-(!root || !rules\
- || !rules.lengt\
-h) return;\x0a\x0a    \
-    const scope \
-= (root.nodeType\
- === 1 || root.n\
-odeType === 11) \
-? root : documen\
-t;\x0a\x0a        // P\
-hase 1: tolerant\
- <p> replacement\
-s\x0a        try {\x0a\
+      if (m) {\x0a \
+           const\
+ start = m.index\
+, end = rule.re.\
+lastIndex;\x0a     \
+       if (!best\
+ || start < best\
+.start) best = {\
+ rule, start, en\
+d, inner: m[1] |\
+| '' };\x0a        \
+  }\x0a        }\x0a  \
+      return bes\
+t;\x0a      }\x0a\x0a    \
+  // Strict full\
+ match of a pure\
+ text node (lega\
+cy path).\x0a      \
+findFullMatch(te\
+xt, rules) {\x0a   \
+     for (const \
+rule of rules) {\
+\x0a          if (r\
+ule.reFull) {\x0a  \
           const \
-paragraphs = (ty\
-peof scope.query\
-SelectorAll === \
-'function') ? sc\
-ope.querySelecto\
-rAll('p') : [];\x0a\
-          this._\
-d('P_TOLERANT_SC\
-AN_START', { cou\
-nt: paragraphs.l\
-ength });\x0a\x0a     \
-     if (paragra\
-phs && paragraph\
-s.length) {\x0a    \
-        for (let\
- i = 0; i < para\
-graphs.length; i\
-++) {\x0a          \
-    const p = pa\
-ragraphs[i];\x0a   \
-           if (p\
- && p.getAttribu\
-te && p.getAttri\
-bute('data-cm'))\
- continue;\x0a     \
-         const t\
-c = p && (p.text\
-Content || '');\x0a\
-              if\
- (!tc || !this.h\
-asAnyOpenToken(t\
-c, rules)) conti\
-nue;\x0a           \
-   // Skip parag\
-raphs inside for\
-bidden contexts \
-(includes lists \
-now)\x0a           \
-   if (this.isIn\
-sideForbiddenEle\
-ment(p)) continu\
-e;\x0a             \
- this._tryReplac\
-eFullParagraph(p\
-, rules, MD);\x0a  \
+m = rule.reFull.\
+exec(text);\x0a    \
+        if (m) r\
+eturn { rule, in\
+ner: m[1] || '' \
+};\x0a          } e\
+lse {\x0a          \
+  rule.re.lastIn\
+dex = 0;\x0a       \
+     const m = r\
+ule.re.exec(text\
+);\x0a            i\
+f (m && m.index \
+=== 0 && (rule.r\
+e.lastIndex === \
+text.length)) {\x0a\
+              co\
+nst m2 = rule.re\
+.exec(text);\x0a   \
+           if (!\
+m2) return { rul\
+e: rule, inner: \
+m[1] || '' };\x0a  \
           }\x0a    \
       }\x0a        \
-} catch (e) {\x0a  \
+}\x0a        return\
+ null;\x0a      }\x0a\x0a\
+      // Set inn\
+er content accor\
+ding to the rule\
+'s mode, with op\
+tional entity de\
+code (element mo\
+de).\x0a      // Ex\
+tended: if rule.\
+nl2br/allowBr \xe2\x80\
+\x93 use innerHTML \
+with safe <br> h\
+andling.\x0a      s\
+etInnerByMode(el\
+, mode, text, MD\
+, decodeEntities\
+ = false, rule =\
+ null) {\x0a       \
+ let payload = S\
+tring(text || ''\
+);\x0a        const\
+ wantsBr = !!(ru\
+le && (rule.nl2b\
+r || rule.allowB\
+r));\x0a\x0a        if\
+ (decodeEntities\
+ && payload && p\
+ayload.indexOf('\
+&') !== -1) {\x0a  \
+        try { pa\
+yload = this.dec\
+odeEntitiesOnce(\
+payload); } catc\
+h (_) {}\x0a       \
+ }\x0a\x0a        if (\
+wantsBr) {\x0a     \
+     // Inject a\
+s HTML because w\
+e intentionally \
+want <br> to ren\
+der as real HTML\
+.\x0a          el.i\
+nnerHTML = this.\
+_escapeHtmlAllow\
+Br(payload, { co\
+nvertNewlines: !\
+!(rule && rule.n\
+l2br) });\x0a      \
+    return;\x0a    \
+    }\x0a\x0a        i\
+f (mode === 'mar\
+kdown-inline' &&\
+ typeof window.m\
+arkdownit !== 'u\
+ndefined') {\x0a   \
+       try {\x0a   \
+         if (MD \
+&& typeof MD.ren\
+derInline === 'f\
+unction') { el.i\
+nnerHTML = MD.re\
+nderInline(paylo\
+ad); return; }\x0a \
+           const\
+ tempMD = window\
+.markdownit({ ht\
+ml: false, linki\
+fy: true, breaks\
+: true, highligh\
+t: () => '' });\x0a\
+            el.i\
+nnerHTML = tempM\
+D.renderInline(p\
+ayload); return;\
+\x0a          } cat\
+ch (_) {}\x0a      \
+  }\x0a        el.t\
+extContent = pay\
+load;\x0a      }\x0a\x0a \
+     // Try to r\
+eplace an entire\
+ <p> that is a f\
+ull custom marku\
+p match.\x0a      _\
+tryReplaceFullPa\
+ragraph(el, rule\
+s, MD) {\x0a       \
+ if (!el || el.t\
+agName !== 'P') \
+return false;\x0a  \
+      if (this.i\
+sInsideForbidden\
+Element(el)) {\x0a \
+         this._d\
+('P_SKIP_FORBIDD\
+EN', { tag: el.t\
+agName });\x0a     \
+     return fals\
+e;\x0a        }\x0a   \
+     const t = e\
+l.textContent ||\
+ '';\x0a        if \
+(!this.hasAnyOpe\
+nToken(t, rules)\
+) return false;\x0a\
+\x0a        for (co\
+nst rule of rule\
+s) {\x0a          i\
+f (!rule) contin\
+ue;\x0a          co\
+nst m = rule.reF\
+ullTrim ? rule.r\
+eFullTrim.exec(t\
+) : null;\x0a      \
+    if (!m) cont\
+inue;\x0a\x0a         \
+ const innerText\
+ = m[1] || '';\x0a\x0a\
+          if (ru\
+le.phase !== 'ht\
+ml' && rule.phas\
+e !== 'both') co\
+ntinue; // eleme\
+nt materializati\
+on is html-phase\
+ only\x0a\x0a         \
+ if (rule.openRe\
+place || rule.cl\
+oseReplace) {\x0a  \
+          const \
+innerHTML = this\
+._materializeInn\
+erHTML(rule, inn\
+erText, MD);\x0a   \
+         const h\
+tml = String(rul\
+e.openReplace ||\
+ '') + innerHTML\
+ + String(rule.c\
+loseReplace || '\
+');\x0a            \
+this._replaceEle\
+mentWithHTML(el,\
+ html);\x0a        \
+    this._d('P_R\
+EPLACED_AS_HTML'\
+, { rule: rule.n\
+ame });\x0a        \
+    return true;\
+\x0a          }\x0a\x0a  \
+        const ou\
+tTag = (rule.tag\
+ && typeof rule.\
+tag === 'string'\
+) ? rule.tag.toL\
+owerCase() : 'sp\
+an';\x0a          c\
+onst out = docum\
+ent.createElemen\
+t(outTag === 'p'\
+ ? 'p' : outTag)\
+;\x0a          if (\
+rule.className) \
+out.className = \
+rule.className;\x0a\
+          out.se\
+tAttribute('data\
+-cm', rule.name)\
+;\x0a          this\
+.setInnerByMode(\
+out, rule.innerM\
+ode, innerText, \
+MD, !!rule.decod\
+eEntities, rule)\
+;\x0a\x0a          try\
+ { el.replaceWit\
+h(out); } catch \
+(_) {\x0a          \
+  const par = el\
+.parentNode; if \
+(par) par.replac\
+eChild(out, el);\
+\x0a          }\x0a   \
+       this._d('\
+P_REPLACED', { r\
+ule: rule.name, \
+asTag: outTag })\
+;\x0a          retu\
+rn true;\x0a       \
+ }\x0a        this.\
+_d('P_NO_FULL_MA\
+TCH', { preview:\
+ this.logger.pv(\
+t, 160) });\x0a    \
+    return false\
+;\x0a      }\x0a\x0a     \
+ // Core impleme\
+ntation shared b\
+y static and str\
+eaming passes.\x0a \
+     applyRules(\
+root, MD, rules)\
+ {\x0a        if (!\
+root || !rules |\
+| !rules.length)\
+ return;\x0a\x0a      \
+  const scope = \
+(root.nodeType =\
+== 1 || root.nod\
+eType === 11) ? \
+root : document;\
+\x0a\x0a        // Pha\
+se 1: tolerant <\
+p> replacements\x0a\
+        try {\x0a  \
+        const pa\
+ragraphs = (type\
+of scope.querySe\
+lectorAll === 'f\
+unction') ? scop\
+e.querySelectorA\
+ll('p') : [];\x0a  \
         this._d(\
 'P_TOLERANT_SCAN\
-_ERR', String(e)\
-);\x0a        }\x0a\x0a  \
-      // Phase 2\
-: legacy per-tex\
-t-node pass for \
-partial inline c\
-ases.\x0a        co\
-nst self = this;\
-\x0a        const w\
-alker = document\
-.createTreeWalke\
-r(root, NodeFilt\
-er.SHOW_TEXT, {\x0a\
-          accept\
-Node: (node) => \
-{\x0a            co\
-nst val = node &\
-& node.nodeValue\
- ? node.nodeValu\
-e : '';\x0a        \
-    if (!val || \
-!self.hasAnyOpen\
-Token(val, rules\
-)) return NodeFi\
-lter.FILTER_SKIP\
-;\x0a            if\
- (self.isInsideF\
-orbiddenContext(\
-node)) return No\
-deFilter.FILTER_\
-REJECT;\x0a        \
-    return NodeF\
-ilter.FILTER_ACC\
-EPT;\x0a          }\
-\x0a        });\x0a\x0a  \
-      let node;\x0a\
-        while ((\
-node = walker.ne\
-xtNode())) {\x0a   \
-       const tex\
-t = node.nodeVal\
-ue;\x0a          if\
- (!text || !this\
-.hasAnyOpenToken\
-(text, rules)) c\
-ontinue; // quic\
-k skip\x0a         \
- const parent = \
-node.parentEleme\
-nt;\x0a\x0a          /\
-/ Entire text no\
-de equals one fu\
-ll match and par\
-ent is <p>.\x0a    \
-      if (parent\
- && parent.tagNa\
-me === 'P' && pa\
-rent.childNodes.\
-length === 1) {\x0a\
-            cons\
-t fm = this.find\
-FullMatch(text, \
-rules);\x0a        \
-    if (fm) {\x0a  \
-            // I\
-f explicit HTML \
-replacements are\
- provided, swap \
-<p> for exact HT\
-ML (only for htm\
-l/both phase).\x0a \
-             if \
-((fm.rule.phase \
-=== 'html' || fm\
-.rule.phase === \
-'both') && (fm.r\
-ule.openReplace \
-|| fm.rule.close\
-Replace)) {\x0a    \
-            cons\
-t innerHTML = th\
-is._materializeI\
-nnerHTML(fm.rule\
-, fm.inner, MD);\
-\x0a               \
- const html = St\
-ring(fm.rule.ope\
-nReplace || '') \
-+ innerHTML + St\
-ring(fm.rule.clo\
-seReplace || '')\
-;\x0a              \
-  this._replaceE\
-lementWithHTML(p\
-arent, html);\x0a  \
-              th\
-is._d('WALKER_FU\
-LL_REPLACE_HTML'\
-, { rule: fm.rul\
-e.name, preview:\
- this.logger.pv(\
-text, 160) });\x0a \
-               c\
+_START', { count\
+: paragraphs.len\
+gth });\x0a\x0a       \
+   if (paragraph\
+s && paragraphs.\
+length) {\x0a      \
+      for (let i\
+ = 0; i < paragr\
+aphs.length; i++\
+) {\x0a            \
+  const p = para\
+graphs[i];\x0a     \
+         if (p &\
+& p.getAttribute\
+ && p.getAttribu\
+te('data-cm')) c\
 ontinue;\x0a       \
-       }\x0a\x0a      \
-        // Backw\
-ard-compatible: \
-only replace as \
-<p> when rule ta\
-g is 'p'\x0a       \
-       if (fm.ru\
-le.tag === 'p') \
-{\x0a              \
-  const out = do\
-cument.createEle\
-ment('p');\x0a     \
-           if (f\
-m.rule.className\
-) out.className \
-= fm.rule.classN\
-ame;\x0a           \
-     out.setAttr\
-ibute('data-cm',\
- fm.rule.name);\x0a\
-                \
-this.setInnerByM\
-ode(out, fm.rule\
-.innerMode, fm.i\
-nner, MD, !!fm.r\
-ule.decodeEntiti\
-es);\x0a           \
-     try { paren\
-t.replaceWith(ou\
-t); } catch (_) \
-{\x0a              \
-    const par = \
-parent.parentNod\
-e; if (par) par.\
-replaceChild(out\
-, parent);\x0a     \
-           }\x0a   \
-             thi\
-s._d('WALKER_FUL\
-L_REPLACE', { ru\
-le: fm.rule.name\
-, preview: this.\
-logger.pv(text, \
-160) });\x0a       \
-         continu\
+       const tc \
+= p && (p.textCo\
+ntent || '');\x0a  \
+            if (\
+!tc || !this.has\
+AnyOpenToken(tc,\
+ rules)) continu\
 e;\x0a             \
- }\x0a            }\
-\x0a          }\x0a\x0a  \
-        // Gener\
-al inline replac\
-ement inside the\
- text node (span\
--like or HTML-re\
-place).\x0a        \
-  let i = 0;\x0a   \
-       let didRe\
-place = false;\x0a \
-         const f\
-rag = document.c\
-reateDocumentFra\
-gment();\x0a\x0a      \
-    while (i < t\
-ext.length) {\x0a  \
+ if (this.isInsi\
+deForbiddenEleme\
+nt(p)) continue;\
+\x0a              t\
+his._tryReplaceF\
+ullParagraph(p, \
+rules, MD);\x0a    \
+        }\x0a      \
+    }\x0a        } \
+catch (e) {\x0a    \
+      this._d('P\
+_TOLERANT_SCAN_E\
+RR', String(e));\
+\x0a        }\x0a\x0a    \
+    // Phase 2: \
+legacy per-text-\
+node pass for pa\
+rtial inline cas\
+es.\x0a        cons\
+t self = this;\x0a \
+       const wal\
+ker = document.c\
+reateTreeWalker(\
+root, NodeFilter\
+.SHOW_TEXT, {\x0a  \
+        acceptNo\
+de: (node) => {\x0a\
+            cons\
+t val = node && \
+node.nodeValue ?\
+ node.nodeValue \
+: '';\x0a          \
+  if (!val || !s\
+elf.hasAnyOpenTo\
+ken(val, rules))\
+ return NodeFilt\
+er.FILTER_SKIP;\x0a\
+            if (\
+self.isInsideFor\
+biddenContext(no\
+de)) return Node\
+Filter.FILTER_RE\
+JECT;\x0a          \
+  return NodeFil\
+ter.FILTER_ACCEP\
+T;\x0a          }\x0a \
+       });\x0a\x0a    \
+    let node;\x0a  \
+      while ((no\
+de = walker.next\
+Node())) {\x0a     \
+     const text \
+= node.nodeValue\
+;\x0a          if (\
+!text || !this.h\
+asAnyOpenToken(t\
+ext, rules)) con\
+tinue; // quick \
+skip\x0a          c\
+onst parent = no\
+de.parentElement\
+;\x0a\x0a          // \
+Entire text node\
+ equals one full\
+ match and paren\
+t is <p>.\x0a      \
+    if (parent &\
+& parent.tagName\
+ === 'P' && pare\
+nt.childNodes.le\
+ngth === 1) {\x0a  \
           const \
-m = this.findNex\
-tMatch(text, i, \
-rules);\x0a        \
-    if (!m) brea\
-k;\x0a\x0a            \
-if (m.start > i)\
- {\x0a             \
- frag.appendChil\
-d(document.creat\
-eTextNode(text.s\
-lice(i, m.start)\
-));\x0a            \
-}\x0a\x0a            /\
-/ If HTML replac\
-ements are provi\
-ded, build exact\
- HTML around pro\
-cessed inner \xe2\x80\x93\
- only for html/b\
-oth phase.\x0a     \
-       if ((m.ru\
-le.openReplace |\
-| m.rule.closeRe\
-place) && (m.rul\
-e.phase === 'htm\
-l' || m.rule.pha\
-se === 'both')) \
-{\x0a              \
-const innerHTML \
-= this._material\
-izeInnerHTML(m.r\
-ule, m.inner, MD\
-);\x0a             \
- const html = St\
-ring(m.rule.open\
-Replace || '') +\
- innerHTML + Str\
-ing(m.rule.close\
+fm = this.findFu\
+llMatch(text, ru\
+les);\x0a          \
+  if (fm) {\x0a    \
+          // If \
+explicit HTML re\
+placements are p\
+rovided, swap <p\
+> for exact HTML\
+ (only for html/\
+both phase).\x0a   \
+           if ((\
+fm.rule.phase ==\
+= 'html' || fm.r\
+ule.phase === 'b\
+oth') && (fm.rul\
+e.openReplace ||\
+ fm.rule.closeRe\
+place)) {\x0a      \
+          const \
+innerHTML = this\
+._materializeInn\
+erHTML(fm.rule, \
+fm.inner, MD);\x0a \
+               c\
+onst html = Stri\
+ng(fm.rule.openR\
+eplace || '') + \
+innerHTML + Stri\
+ng(fm.rule.close\
 Replace || '');\x0a\
-              co\
-nst part = this.\
-_fragmentFromHTM\
-L(html, node);\x0a \
-             fra\
-g.appendChild(pa\
-rt);\x0a           \
-   this._d('WALK\
-ER_INLINE_MATCH_\
-HTML', { rule: m\
-.rule.name, star\
-t: m.start, end:\
- m.end });\x0a     \
-         i = m.e\
-nd; didReplace =\
- true; continue;\
-\x0a            }\x0a\x0a\
-            // I\
-f rule is not ht\
-ml-phase, do NOT\
- inject open/clo\
-se replacements \
-here (source-onl\
-y rules are hand\
-led pre-md).\x0a   \
-         if (m.r\
-ule.openReplace \
-|| m.rule.closeR\
-eplace) {\x0a      \
-        // Sourc\
-e-only replaceme\
-nt met in DOM pa\
-ss \xe2\x80\x93 keep orig\
-inal text verbat\
-im for this matc\
-h.\x0a             \
- frag.appendChil\
-d(document.creat\
-eTextNode(text.s\
-lice(m.start, m.\
-end)));\x0a        \
-      this._d('W\
-ALKER_INLINE_SKI\
-P_SOURCE_PHASE_H\
-TML', { rule: m.\
-rule.name, start\
-: m.start, end: \
-m.end });\x0a      \
-        i = m.en\
-d; didReplace = \
-true; continue;\x0a\
-            }\x0a\x0a \
-           // El\
-ement-based inli\
-ne replacement (\
-original behavio\
-r).\x0a            \
+                \
+this._replaceEle\
+mentWithHTML(par\
+ent, html);\x0a    \
+            this\
+._d('WALKER_FULL\
+_REPLACE_HTML', \
+{ rule: fm.rule.\
+name, preview: t\
+his.logger.pv(te\
+xt, 160) });\x0a   \
+             con\
+tinue;\x0a         \
+     }\x0a\x0a        \
+      // Backwar\
+d-compatible: on\
+ly replace as <p\
+> when rule tag \
+is 'p'\x0a         \
+     if (fm.rule\
+.tag === 'p') {\x0a\
+                \
+const out = docu\
+ment.createEleme\
+nt('p');\x0a       \
+         if (fm.\
+rule.className) \
+out.className = \
+fm.rule.classNam\
+e;\x0a             \
+   out.setAttrib\
+ute('data-cm', f\
+m.rule.name);\x0a  \
+              th\
+is.setInnerByMod\
+e(out, fm.rule.i\
+nnerMode, fm.inn\
+er, MD, !!fm.rul\
+e.decodeEntities\
+, fm.rule);\x0a    \
+            try \
+{ parent.replace\
+With(out); } cat\
+ch (_) {\x0a       \
+           const\
+ par = parent.pa\
+rentNode; if (pa\
+r) par.replaceCh\
+ild(out, parent)\
+;\x0a              \
+  }\x0a            \
+    this._d('WAL\
+KER_FULL_REPLACE\
+', { rule: fm.ru\
+le.name, preview\
+: this.logger.pv\
+(text, 160) });\x0a\
+                \
+continue;\x0a      \
+        }\x0a      \
+      }\x0a        \
+  }\x0a\x0a          /\
+/ General inline\
+ replacement ins\
+ide the text nod\
+e (span-like or \
+HTML-replace).\x0a \
+         let i =\
+ 0;\x0a          le\
+t didReplace = f\
+alse;\x0a          \
+const frag = doc\
+ument.createDocu\
+mentFragment();\x0a\
+\x0a          while\
+ (i < text.lengt\
+h) {\x0a           \
+ const m = this.\
+findNextMatch(te\
+xt, i, rules);\x0a \
+           if (!\
+m) break;\x0a\x0a     \
+       if (m.sta\
+rt > i) {\x0a      \
+        frag.app\
+endChild(documen\
+t.createTextNode\
+(text.slice(i, m\
+.start)));\x0a     \
+       }\x0a\x0a      \
+      // If HTML\
+ replacements ar\
+e provided, buil\
+d exact HTML aro\
+und processed in\
+ner \xe2\x80\x93 only for\
+ html/both phase\
+.\x0a            if\
+ ((m.rule.openRe\
+place || m.rule.\
+closeReplace) &&\
+ (m.rule.phase =\
+== 'html' || m.r\
+ule.phase === 'b\
+oth')) {\x0a       \
+       const inn\
+erHTML = this._m\
+aterializeInnerH\
+TML(m.rule, m.in\
+ner, MD);\x0a      \
+        const ht\
+ml = String(m.ru\
+le.openReplace |\
+| '') + innerHTM\
+L + String(m.rul\
+e.closeReplace |\
+| '');\x0a         \
+     const part \
+= this._fragment\
+FromHTML(html, n\
+ode);\x0a          \
+    frag.appendC\
+hild(part);\x0a    \
+          this._\
+d('WALKER_INLINE\
+_MATCH_HTML', { \
+rule: m.rule.nam\
+e, start: m.star\
+t, end: m.end })\
+;\x0a              \
+i = m.end; didRe\
+place = true; co\
+ntinue;\x0a        \
+    }\x0a\x0a         \
+   // If rule is\
+ not html-phase,\
+ do NOT inject o\
+pen/close replac\
+ements here (sou\
+rce-only rules a\
+re handled pre-m\
+d).\x0a            \
+if (m.rule.openR\
+eplace || m.rule\
+.closeReplace) {\
+\x0a              f\
+rag.appendChild(\
+document.createT\
+extNode(text.sli\
+ce(m.start, m.en\
+d)));\x0a          \
+    this._d('WAL\
+KER_INLINE_SKIP_\
+SOURCE_PHASE_HTM\
+L', { rule: m.ru\
+le.name, start: \
+m.start, end: m.\
+end });\x0a        \
+      i = m.end;\
+ didReplace = tr\
+ue; continue;\x0a  \
+          }\x0a\x0a   \
+         // Elem\
+ent-based inline\
+ replacement (or\
+iginal behavior)\
+, extended with \
+safe <br> handli\
+ng.\x0a            \
 const tag = (m.r\
 ule.tag === 'p')\
  ? 'span' : m.ru\
@@ -89503,992 +89557,1041 @@ this.setInnerByM\
 ode(el, m.rule.i\
 nnerMode, m.inne\
 r, MD, !!m.rule.\
-decodeEntities);\
-\x0a            fra\
-g.appendChild(el\
+decodeEntities, \
+m.rule);\x0a       \
+     frag.append\
+Child(el);\x0a     \
+       this._d('\
+WALKER_INLINE_MA\
+TCH', { rule: m.\
+rule.name, start\
+: m.start, end: \
+m.end });\x0a\x0a     \
+       i = m.end\
+;\x0a            di\
+dReplace = true;\
+\x0a          }\x0a\x0a  \
+        if (!did\
+Replace) continu\
+e;\x0a\x0a          if\
+ (i < text.lengt\
+h) {\x0a           \
+ frag.appendChil\
+d(document.creat\
+eTextNode(text.s\
+lice(i)));\x0a     \
+     }\x0a\x0a        \
+  const parentNo\
+de = node.parent\
+Node;\x0a          \
+if (parentNode) \
+{\x0a            pa\
+rentNode.replace\
+Child(frag, node\
 );\x0a            t\
 his._d('WALKER_I\
-NLINE_MATCH', { \
-rule: m.rule.nam\
-e, start: m.star\
-t, end: m.end })\
-;\x0a\x0a            i\
- = m.end;\x0a      \
-      didReplace\
- = true;\x0a       \
-   }\x0a\x0a          \
-if (!didReplace)\
- continue;\x0a\x0a    \
-      if (i < te\
-xt.length) {\x0a   \
-         frag.ap\
-pendChild(docume\
-nt.createTextNod\
-e(text.slice(i))\
-);\x0a          }\x0a\x0a\
-          const \
-parentNode = nod\
-e.parentNode;\x0a  \
-        if (pare\
-ntNode) {\x0a      \
-      parentNode\
-.replaceChild(fr\
-ag, node);\x0a     \
-       this._d('\
-WALKER_INLINE_DO\
-NE', { preview: \
-this.logger.pv(t\
-ext, 120) });\x0a  \
-        }\x0a      \
-  }\x0a      }\x0a\x0a   \
-   // Public API\
-: apply custom m\
-arkup for full (\
-static) paths \xe2\x80\
-\x93 unchanged beha\
-vior.\x0a      appl\
-y(root, MD) {\x0a  \
-      this.ensur\
-eCompiled();\x0a   \
-     this.applyR\
-ules(root, MD, t\
-his.__compiled);\
-\x0a      }\x0a\x0a      \
-// Public API: a\
-pply only stream\
--enabled rules (\
-used in snapshot\
-s).\x0a      applyS\
-tream(root, MD) \
-{\x0a        this.e\
-nsureCompiled();\
-\x0a        if (!th\
-is.__hasStreamRu\
-les) return;\x0a   \
-     const rules\
- = this.__compil\
-ed.filter(r => !\
-!r.stream);\x0a    \
-    if (!rules.l\
-ength) return;\x0a\x0a\
-        // Exist\
-ing full open+cl\
-ose pass\x0a       \
- this.applyRules\
-(root, MD, rules\
-);\x0a\x0a        // s\
-treaming-only pa\
-rtial opener fal\
-lback (begin mat\
-erialization on \
-open without clo\
-se)\x0a        try \
-{ this.applyStre\
-amPartialOpeners\
-(root, MD, rules\
-); } catch (_) {\
-}\x0a      }\x0a\x0a     \
- // ------------\
+NLINE_DONE', { p\
+review: this.log\
+ger.pv(text, 120\
+) });\x0a          \
+}\x0a        }\x0a    \
+  }\x0a\x0a      // Pu\
+blic API: apply \
+custom markup fo\
+r full (static) \
+paths \xe2\x80\x93 unchan\
+ged behavior.\x0a  \
+    apply(root, \
+MD) {\x0a        th\
+is.ensureCompile\
+d();\x0a        thi\
+s.applyRules(roo\
+t, MD, this.__co\
+mpiled);\x0a      }\
+\x0a\x0a      // Publi\
+c API: apply onl\
+y stream-enabled\
+ rules (used in \
+snapshots).\x0a    \
+  applyStream(ro\
+ot, MD) {\x0a      \
+  this.ensureCom\
+piled();\x0a       \
+ if (!this.__has\
+StreamRules) ret\
+urn;\x0a        con\
+st rules = this.\
+__compiled.filte\
+r(r => !!r.strea\
+m);\x0a        if (\
+!rules.length) r\
+eturn;\x0a\x0a        \
+// Existing full\
+ open+close pass\
+\x0a        this.ap\
+plyRules(root, M\
+D, rules);\x0a\x0a    \
+    // streaming\
+-only partial op\
+ener fallback (b\
+egin materializa\
+tion on open wit\
+hout close)\x0a    \
+    try { this.a\
+pplyStreamPartia\
+lOpeners(root, M\
+D, rules); } cat\
+ch (_) {}\x0a      \
+}\x0a\x0a      // ----\
 ----------------\
--\x0a      // INTER\
-NAL HELPERS\x0a    \
-  // -----------\
+---------\x0a      \
+// INTERNAL HELP\
+ERS\x0a      // ---\
 ----------------\
---\x0a\x0a      // Str\
-eaming-only: beg\
-in replacement w\
-hen an opening t\
-oken is present \
-without a closin\
-g token\x0a      //\
- in the SAME tex\
-t node. We wrap \
-the tail after t\
-he opener into t\
-he target elemen\
-t and mark\x0a     \
- // it as pendin\
-g (data-cm-pendi\
-ng=\x221\x22). On subs\
-equent snapshots\
- (when a close a\
-rrives),\x0a      /\
-/ the standard f\
-ull-pass (applyR\
-ules) will super\
-sede this.\x0a     \
- applyStreamPart\
-ialOpeners(root,\
- MD, rulesAll) {\
-\x0a        if (!ro\
-ot) return;\x0a\x0a   \
-     // Consider\
- only DOM-phase \
-element rules (h\
-tml/both) withou\
-t explicit HTML \
-replacements.\x0a  \
-      // Source-\
-phase rules (e.g\
-. exec fences) a\
-re intentionally\
- excluded here t\
-o avoid changing\
-\x0a        // code\
- streaming seman\
-tics (handled by\
- transformSource\
-/StreamEngine).\x0a\
-        const ru\
-les = (rulesAll \
-|| []).filter(r \
-=>\x0a          (r \
-&& (r.phase === \
-'html' || r.phas\
-e === 'both') &&\
- !(r.openReplace\
- || r.closeRepla\
-ce))\x0a        );\x0a\
-        if (!rul\
-es.length) retur\
-n;\x0a\x0a        cons\
-t scope = (root.\
-nodeType === 1 |\
-| root.nodeType \
-=== 11) ? root :\
- document;\x0a     \
-   const self = \
-this;\x0a\x0a        c\
-onst walker = do\
-cument.createTre\
-eWalker(scope, N\
-odeFilter.SHOW_T\
-EXT, {\x0a         \
- acceptNode(node\
-) {\x0a            \
-const val = node\
- && node.nodeVal\
-ue ? node.nodeVa\
-lue : '';\x0a      \
-      if (!val |\
-| !self.hasAnyOp\
-enToken(val, rul\
-es)) return Node\
-Filter.FILTER_SK\
-IP;\x0a            \
-if (self.isInsid\
-eForbiddenContex\
-t(node)) return \
-NodeFilter.FILTE\
-R_REJECT;\x0a      \
-      return Nod\
-eFilter.FILTER_A\
-CCEPT;\x0a         \
- }\x0a        });\x0a\x0a\
-        let node\
-;\x0a        while \
-((node = walker.\
-nextNode())) {\x0a \
-         const t\
-ext = node.nodeV\
-alue || '';\x0a    \
-      if (!text)\
- continue;\x0a\x0a    \
-      // Find th\
-e last unmatched\
- opener among el\
-igible rules in \
-this node.\x0a     \
-     let best = \
-null; // { rule,\
- start }\x0a       \
-   for (let i = \
-0; i < rules.len\
-gth; i++) {\x0a    \
-        const r \
-= rules[i];\x0a    \
-        if (!r |\
-| !r.open || !r.\
-close) continue;\
-\x0a\x0a            //\
- Find last occur\
-rence for better\
- UX on multiple \
-openers; keeps e\
-arlier content i\
-ntact.\x0a         \
-   const idx = t\
-ext.lastIndexOf(\
-r.open);\x0a       \
-     if (idx ===\
- -1) continue;\x0a\x0a\
-            // I\
-f a closing toke\
-n for this rule \
-exists after thi\
-s opener within \
-the same node,\x0a \
-           // le\
-t the standard p\
-ass handle it (w\
-e only want trul\
-y unmatched open\
-s).\x0a            \
-const after = te\
-xt.indexOf(r.clo\
-se, idx + r.open\
-.length);\x0a      \
-      if (after \
-!== -1) continue\
-;\x0a\x0a            i\
-f (!best || idx \
-> best.start) be\
-st = { rule: r, \
-start: idx };\x0a  \
-        }\x0a\x0a     \
-     if (!best) \
-continue;\x0a\x0a     \
-     // Build fr\
-agment: keep pre\
-fix as text, wra\
-p the tail into \
-the rule element\
- and mark as pen\
-ding.\x0a          \
-const r = best.r\
-ule;\x0a          c\
-onst start = bes\
-t.start;\x0a\x0a      \
-    const prefix\
- = text.slice(0,\
- start);\x0a       \
-   const tail = \
-text.slice(start\
- + r.open.length\
-);\x0a          con\
-st frag = docume\
-nt.createDocumen\
-tFragment();\x0a\x0a  \
-        if (pref\
-ix) frag.appendC\
-hild(document.cr\
-eateTextNode(pre\
-fix));\x0a\x0a        \
-  const outTag =\
- (r.tag && typeo\
-f r.tag === 'str\
-ing') ? r.tag.to\
-LowerCase() : 's\
-pan';\x0a          \
-const el = docum\
-ent.createElemen\
-t(outTag === 'p'\
- ? 'span' : outT\
-ag); // never cr\
-eate <p> inline\x0a\
-          if (r.\
-className) el.cl\
-assName = r.clas\
-sName;\x0a         \
- el.setAttribute\
-('data-cm', r.na\
-me);\x0a          e\
-l.setAttribute('\
-data-cm-pending'\
-, '1'); // allow\
-s styling/debug \
-on \x22open-but-not\
--closed\x22\x0a\x0a      \
-    // Populate \
-inner according \
-to innerMode and\
- decode policy.\x0a\
-          this.s\
-etInnerByMode(el\
-, r.innerMode, t\
-ail, MD, !!r.dec\
-odeEntities);\x0a  \
-        frag.app\
-endChild(el);\x0a\x0a \
-         try {\x0a \
-           node.\
-parentNode.repla\
-ceChild(frag, no\
-de);\x0a           \
- this._d('STREAM\
-_PENDING_OPEN_WR\
-AP', { rule: r.n\
-ame, start, open\
-: r.open, previe\
-w: this.logger.p\
-v(text, 160) });\
-\x0a          } cat\
-ch (_) {\x0a       \
-     // In the w\
-orst case, do no\
-thing \xe2\x80\x93 keep o\
-riginal text nod\
-e untouched.\x0a   \
-       }\x0a       \
- }\x0a      }\x0a\x0a    \
-  // Scan source\
- and return rang\
-es [start, end) \
-of fenced code b\
-locks (``` or ~~\
-~).\x0a      // Mat\
-ches Markdown fe\
-nces at line-sta\
-rt with up to 3 \
-spaces/tabs inde\
-ntation.\x0a      _\
-findFenceRanges(\
-s) {\x0a        con\
-st ranges = [];\x0a\
-        const n \
-= s.length;\x0a    \
-    let i = 0;\x0a \
-       let inFen\
-ce = false;\x0a    \
-    let fenceMar\
-k = '';\x0a        \
-let fenceLen = 0\
-;\x0a        let st\
-artLineStart = 0\
-;\x0a\x0a        while\
- (i < n) {\x0a     \
-     const lineS\
-tart = i;\x0a      \
-    // Find line\
- end and newline\
- length\x0a        \
-  let j = lineSt\
-art;\x0a          w\
-hile (j < n && s\
-.charCodeAt(j) !\
-== 10 && s.charC\
-odeAt(j) !== 13)\
- j++;\x0a          \
-const lineEnd = \
-j;\x0a          let\
- nl = 0;\x0a       \
-   if (j < n) {\x0a\
+----------\x0a\x0a    \
+  // Streaming-o\
+nly: begin repla\
+cement when an o\
+pening token is \
+present without \
+a closing token\x0a\
+      // in the \
+SAME text node. \
+We wrap the tail\
+ after the opene\
+r into the targe\
+t element and ma\
+rk\x0a      // it a\
+s pending (data-\
+cm-pending=\x221\x22).\
+ On subsequent s\
+napshots (when a\
+ close arrives),\
+\x0a      // the st\
+andard full-pass\
+ (applyRules) wi\
+ll supersede thi\
+s.\x0a      applySt\
+reamPartialOpene\
+rs(root, MD, rul\
+esAll) {\x0a       \
+ if (!root) retu\
+rn;\x0a\x0a        // \
+Consider only DO\
+M-phase element \
+rules (html/both\
+) without explic\
+it HTML replacem\
+ents.\x0a        co\
+nst rules = (rul\
+esAll || []).fil\
+ter(r =>\x0a       \
+   (r && (r.phas\
+e === 'html' || \
+r.phase === 'bot\
+h') && !(r.openR\
+eplace || r.clos\
+eReplace))\x0a     \
+   );\x0a        if\
+ (!rules.length)\
+ return;\x0a\x0a      \
+  const scope = \
+(root.nodeType =\
+== 1 || root.nod\
+eType === 11) ? \
+root : document;\
+\x0a        const s\
+elf = this;\x0a\x0a   \
+     const walke\
+r = document.cre\
+ateTreeWalker(sc\
+ope, NodeFilter.\
+SHOW_TEXT, {\x0a   \
+       acceptNod\
+e(node) {\x0a      \
+      const val \
+= node && node.n\
+odeValue ? node.\
+nodeValue : '';\x0a\
             if (\
-s.charCodeAt(j) \
-=== 13 && j + 1 \
-< n && s.charCod\
-eAt(j + 1) === 1\
-0) nl = 2;\x0a     \
-       else nl =\
- 1;\x0a          }\x0a\
-\x0a          // Co\
-mpute indentatio\
-n up to 3 \x22space\
-s\x22 (tabs count a\
-s 1 here \xe2\x80\x93 saf\
-e heuristic)\x0a   \
-       let k = l\
-ineStart;\x0a      \
-    let indent =\
- 0;\x0a          wh\
-ile (k < lineEnd\
-) {\x0a            \
-const c = s.char\
-CodeAt(k);\x0a     \
-       if (c ===\
- 32 /* space */)\
- { indent++; if \
-(indent > 3) bre\
-ak; k++; }\x0a     \
-       else if (\
-c === 9 /* tab *\
-/) { indent++; i\
-f (indent > 3) b\
-reak; k++; }\x0a   \
-         else br\
-eak;\x0a          }\
-\x0a\x0a          if (\
-!inFence) {\x0a    \
-        if (inde\
-nt <= 3 && k < l\
-ineEnd) {\x0a      \
-        const ch\
- = s.charCodeAt(\
-k);\x0a            \
-  if (ch === 0x6\
-0 /* ` */ || ch \
-=== 0x7E /* ~ */\
-) {\x0a            \
-    const mark =\
- String.fromChar\
-Code(ch);\x0a      \
-          let m \
-= k;\x0a           \
-     while (m < \
-lineEnd && s.cha\
-rCodeAt(m) === c\
-h) m++;\x0a        \
-        const ru\
-n = m - k;\x0a     \
-           if (r\
-un >= 3) {\x0a     \
-             inF\
-ence = true;\x0a   \
-               f\
-enceMark = mark;\
-\x0a               \
-   fenceLen = ru\
-n;\x0a             \
-     startLineSt\
-art = lineStart;\
-\x0a               \
- }\x0a             \
- }\x0a            }\
-\x0a          } els\
-e {\x0a            \
-if (indent <= 3 \
-&& k < lineEnd &\
-& s.charCodeAt(k\
-) === fenceMark.\
-charCodeAt(0)) {\
-\x0a              l\
-et m = k;\x0a      \
-        while (m\
- < lineEnd && s.\
-charCodeAt(m) ==\
-= fenceMark.char\
-CodeAt(0)) m++;\x0a\
-              co\
-nst run = m - k;\
-\x0a              i\
-f (run >= fenceL\
-en) {\x0a          \
-      // Only wh\
-itespace is allo\
-wed after closin\
-g fence on the s\
-ame line\x0a       \
-         let onl\
-yWS = true;\x0a    \
-            for \
-(let t = m; t < \
-lineEnd; t++) {\x0a\
-                \
-  const cc = s.c\
-harCodeAt(t);\x0a  \
-                \
-if (cc !== 32 &&\
- cc !== 9) { onl\
-yWS = false; bre\
-ak; }\x0a          \
-      }\x0a        \
-        if (only\
-WS) {\x0a          \
-        const en\
-dIdx = lineEnd +\
- nl; // include \
-trailing newline\
- if present\x0a    \
-              ra\
-nges.push([start\
-LineStart, endId\
-x]);\x0a           \
-       inFence =\
- false; fenceMar\
-k = ''; fenceLen\
- = 0; startLineS\
-tart = 0;\x0a      \
-          }\x0a    \
-          }\x0a    \
-        }\x0a      \
-    }\x0a          \
-i = lineEnd + nl\
-;\x0a        }\x0a\x0a   \
-     // If EOF w\
-hile still in fe\
-nce, mark until \
-end of string.\x0a \
-       if (inFen\
-ce) ranges.push(\
-[startLineStart,\
- n]);\x0a        re\
-turn ranges;\x0a   \
-   }\x0a\x0a      // C\
-heck if match st\
-arts at \x22top-lev\
-el\x22 of a line:\x0a \
-     // - up to \
-3 leading spaces\
-/tabs allowed\x0a  \
-    // - not a l\
-ist item marker \
-(\x22- \x22, \x22+ \x22, \x22* \
-\x22, \x221. \x22, \x221) \x22)\
- and not a block\
-quote (\x22> \x22)\x0a   \
-   // - nothing \
-else precedes th\
-e token on the s\
-ame line\x0a      _\
-isTopLevelLineIn\
-Source(s, absIdx\
-) {\x0a        let \
-ls = absIdx;\x0a   \
-     while (ls >\
- 0) {\x0a          \
-const ch = s.cha\
-rCodeAt(ls - 1);\
-\x0a          if (c\
-h === 10 /* \x5cn *\
-/ || ch === 13 /\
-* \x5cr */) break;\x0a\
-          ls--;\x0a\
-        }\x0a      \
-  const prefix =\
- s.slice(ls, abs\
-Idx);\x0a\x0a        /\
-/ Strip up to 3 \
-leading \x22spaces\x22\
- (tabs treated a\
-s 1 \xe2\x80\x93 acceptab\
-le heuristic)\x0a  \
-      let i = 0,\
- indent = 0;\x0a   \
-     while (i < \
-prefix.length) {\
-\x0a          const\
- c = prefix.char\
-CodeAt(i);\x0a     \
-     if (c === 3\
-2) { indent++; i\
-f (indent > 3) b\
-reak; i++; }\x0a   \
-       else if (\
-c === 9) { inden\
-t++; if (indent \
-> 3) break; i++;\
- }\x0a          els\
-e break;\x0a       \
- }\x0a        if (i\
-ndent > 3) retur\
-n false;\x0a       \
- const rest = pr\
-efix.slice(i);\x0a\x0a\
-        // Rejec\
-t lists/blockquo\
-te\x0a        if (/\
-^>\x5cs?/.test(rest\
-)) return false;\
-\x0a        if (/^[\
--+*]\x5cs/.test(res\
-t)) return false\
-;\x0a        if (/^\
-\x5cd+[.)]\x5cs/.test(\
-rest)) return fa\
-lse;\x0a\x0a        //\
- If any other no\
-n-whitespace tex\
-t precedes the t\
-oken on this lin\
-e \xe2\x80\x93 not top-le\
-vel\x0a        if (\
-rest.trim().leng\
-th > 0) return f\
-alse;\x0a\x0a        r\
-eturn true;\x0a    \
-  }\x0a\x0a      // Ap\
-ply source-phase\
- replacements to\
- one outside-of-\
-fence chunk with\
- top-level guard\
-.\x0a      _applySo\
-urceReplacements\
-InChunk(full, ch\
-unk, baseOffset,\
- rules) {\x0a      \
-  let t = chunk;\
-\x0a        for (le\
+!val || !self.ha\
+sAnyOpenToken(va\
+l, rules)) retur\
+n NodeFilter.FIL\
+TER_SKIP;\x0a      \
+      if (self.i\
+sInsideForbidden\
+Context(node)) r\
+eturn NodeFilter\
+.FILTER_REJECT;\x0a\
+            retu\
+rn NodeFilter.FI\
+LTER_ACCEPT;\x0a   \
+       }\x0a       \
+ });\x0a\x0a        le\
+t node;\x0a        \
+while ((node = w\
+alker.nextNode()\
+)) {\x0a          c\
+onst text = node\
+.nodeValue || ''\
+;\x0a          if (\
+!text) continue;\
+\x0a\x0a          // F\
+ind the last unm\
+atched opener am\
+ong eligible rul\
+es in this node.\
+\x0a          let b\
+est = null; // {\
+ rule, start }\x0a \
+         for (le\
 t i = 0; i < rul\
 es.length; i++) \
-{\x0a          cons\
-t r = rules[i];\x0a\
-          if (!r\
- || !(r.openRepl\
-ace || r.closeRe\
-place)) continue\
-;\x0a          try \
-{\x0a            r.\
-re.lastIndex = 0\
-;\x0a            t \
-= t.replace(r.re\
-, (match, inner,\
- offset /*, ...r\
-est*/) => {\x0a    \
+{\x0a            co\
+nst r = rules[i]\
+;\x0a            if\
+ (!r || !r.open \
+|| !r.close) con\
+tinue;\x0a\x0a        \
+    const idx = \
+text.lastIndexOf\
+(r.open);\x0a      \
+      if (idx ==\
+= -1) continue;\x0a\
+\x0a            con\
+st after = text.\
+indexOf(r.close,\
+ idx + r.open.le\
+ngth);\x0a         \
+   if (after !==\
+ -1) continue;\x0a\x0a\
+            if (\
+!best || idx > b\
+est.start) best \
+= { rule: r, sta\
+rt: idx };\x0a     \
+     }\x0a\x0a        \
+  if (!best) con\
+tinue;\x0a\x0a        \
+  // Build fragm\
+ent: keep prefix\
+ as text, wrap t\
+he tail into the\
+ rule element an\
+d mark as pendin\
+g.\x0a          con\
+st r = best.rule\
+;\x0a          cons\
+t start = best.s\
+tart;\x0a\x0a         \
+ const prefix = \
+text.slice(0, st\
+art);\x0a          \
+const tail = tex\
+t.slice(start + \
+r.open.length);\x0a\
           const \
-abs = baseOffset\
- + (offset | 0);\
-\x0a              /\
-/ Only apply whe\
-n opener is at t\
-op-level on that\
- line (not in li\
-sts/blockquote)\x0a\
-              if\
- (!this._isTopLe\
-velLineInSource(\
-full, abs)) retu\
-rn match;\x0a      \
-        const op\
-en = r.openRepla\
+frag = document.\
+createDocumentFr\
+agment();\x0a\x0a     \
+     if (prefix)\
+ frag.appendChil\
+d(document.creat\
+eTextNode(prefix\
+));\x0a\x0a          c\
+onst outTag = (r\
+.tag && typeof r\
+.tag === 'string\
+') ? r.tag.toLow\
+erCase() : 'span\
+';\x0a          con\
+st el = document\
+.createElement(o\
+utTag === 'p' ? \
+'span' : outTag)\
+; // never creat\
+e <p> inline\x0a   \
+       if (r.cla\
+ssName) el.class\
+Name = r.classNa\
+me;\x0a          el\
+.setAttribute('d\
+ata-cm', r.name)\
+;\x0a          el.s\
+etAttribute('dat\
+a-cm-pending', '\
+1'); // allows s\
+tyling/debug on \
+\x22open-but-not-cl\
+osed\x22\x0a\x0a         \
+ // Populate inn\
+er; for think we\
+ allow real <br>\
+.\x0a          this\
+.setInnerByMode(\
+el, r.innerMode,\
+ tail, MD, !!r.d\
+ecodeEntities, r\
+);\x0a          fra\
+g.appendChild(el\
+);\x0a\x0a          tr\
+y {\x0a            \
+node.parentNode.\
+replaceChild(fra\
+g, node);\x0a      \
+      this._d('S\
+TREAM_PENDING_OP\
+EN_WRAP', { rule\
+: r.name, start,\
+ open: r.open, p\
+review: this.log\
+ger.pv(text, 160\
+) });\x0a          \
+} catch (_) {\x0a  \
+          // In \
+the worst case, \
+do nothing \xe2\x80\x93 k\
+eep original tex\
+t node untouched\
+.\x0a          }\x0a  \
+      }\x0a      }\x0a\
+\x0a      // Scan s\
+ource and return\
+ ranges [start, \
+end) of fenced c\
+ode blocks (``` \
+or ~~~).\x0a      /\
+/ Matches Markdo\
+wn fences at lin\
+e-start with up \
+to 3 spaces/tabs\
+ indentation.\x0a  \
+    _findFenceRa\
+nges(s) { /* unc\
+hanged \xe2\x80\x93 omitt\
+ed for brevity h\
+ere in comment; \
+keep original bo\
+dy */\x0a        co\
+nst ranges = [];\
+\x0a        const n\
+ = s.length;\x0a   \
+     let i = 0;\x0a\
+        let inFe\
+nce = false;\x0a   \
+     let fenceMa\
+rk = '';\x0a       \
+ let fenceLen = \
+0;\x0a        let s\
+tartLineStart = \
+0;\x0a\x0a        whil\
+e (i < n) {\x0a    \
+      const line\
+Start = i;\x0a     \
+     // Find lin\
+e end and newlin\
+e length\x0a       \
+   let j = lineS\
+tart;\x0a          \
+while (j < n && \
+s.charCodeAt(j) \
+!== 10 && s.char\
+CodeAt(j) !== 13\
+) j++;\x0a         \
+ const lineEnd =\
+ j;\x0a          le\
+t nl = 0;\x0a      \
+    if (j < n) {\
+\x0a            if \
+(s.charCodeAt(j)\
+ === 13 && j + 1\
+ < n && s.charCo\
+deAt(j + 1) === \
+10) nl = 2;\x0a    \
+        else nl \
+= 1;\x0a          }\
+\x0a\x0a          // C\
+ompute indentati\
+on up to 3 \x22spac\
+es\x22 (tabs count \
+as 1 here \xe2\x80\x93 sa\
+fe heuristic)\x0a  \
+        let k = \
+lineStart;\x0a     \
+     let indent \
+= 0;\x0a          w\
+hile (k < lineEn\
+d) {\x0a           \
+ const c = s.cha\
+rCodeAt(k);\x0a    \
+        if (c ==\
+= 32 /* space */\
+) { indent++; if\
+ (indent > 3) br\
+eak; k++; }\x0a    \
+        else if \
+(c === 9 /* tab \
+*/) { indent++; \
+if (indent > 3) \
+break; k++; }\x0a  \
+          else b\
+reak;\x0a          \
+}\x0a\x0a          if \
+(!inFence) {\x0a   \
+         if (ind\
+ent <= 3 && k < \
+lineEnd) {\x0a     \
+         const c\
+h = s.charCodeAt\
+(k);\x0a           \
+   if (ch === 0x\
+60 /* ` */ || ch\
+ === 0x7E /* ~ *\
+/) {\x0a           \
+     const mark \
+= String.fromCha\
+rCode(ch);\x0a     \
+           let m\
+ = k;\x0a          \
+      while (m <\
+ lineEnd && s.ch\
+arCodeAt(m) === \
+ch) m++;\x0a       \
+         const r\
+un = m - k;\x0a    \
+            if (\
+run >= 3) {\x0a    \
+              in\
+Fence = true;\x0a  \
+                \
+fenceMark = mark\
+;\x0a              \
+    fenceLen = r\
+un;\x0a            \
+      startLineS\
+tart = lineStart\
+;\x0a              \
+  }\x0a            \
+  }\x0a            \
+}\x0a          } el\
+se {\x0a           \
+ if (indent <= 3\
+ && k < lineEnd \
+&& s.charCodeAt(\
+k) === fenceMark\
+.charCodeAt(0)) \
+{\x0a              \
+let m = k;\x0a     \
+         while (\
+m < lineEnd && s\
+.charCodeAt(m) =\
+== fenceMark.cha\
+rCodeAt(0)) m++;\
+\x0a              c\
+onst run = m - k\
+;\x0a              \
+if (run >= fence\
+Len) {\x0a         \
+       // Only w\
+hitespace is all\
+owed after closi\
+ng fence on the \
+same line\x0a      \
+          let on\
+lyWS = true;\x0a   \
+             for\
+ (let t = m; t <\
+ lineEnd; t++) {\
+\x0a               \
+   const cc = s.\
+charCodeAt(t);\x0a \
+                \
+ if (cc !== 32 &\
+& cc !== 9) { on\
+lyWS = false; br\
+eak; }\x0a         \
+       }\x0a       \
+         if (onl\
+yWS) {\x0a         \
+         const e\
+ndIdx = lineEnd \
++ nl; // include\
+ trailing newlin\
+e if present\x0a   \
+               r\
+anges.push([star\
+tLineStart, endI\
+dx]);\x0a          \
+        inFence \
+= false; fenceMa\
+rk = ''; fenceLe\
+n = 0; startLine\
+Start = 0;\x0a     \
+           }\x0a   \
+           }\x0a   \
+         }\x0a     \
+     }\x0a         \
+ i = lineEnd + n\
+l;\x0a        }\x0a\x0a  \
+      // If EOF \
+while still in f\
+ence, mark until\
+ end of string.\x0a\
+        if (inFe\
+nce) ranges.push\
+([startLineStart\
+, n]);\x0a        r\
+eturn ranges;\x0a  \
+    }\x0a\x0a      // \
+Check if match s\
+tarts at \x22top-le\
+vel\x22 of a line:\x0a\
+      _isTopLeve\
+lLineInSource(s,\
+ absIdx) { /* un\
+changed \xe2\x80\x93 keep\
+ original body *\
+/\x0a        let ls\
+ = absIdx;\x0a     \
+   while (ls > 0\
+) {\x0a          co\
+nst ch = s.charC\
+odeAt(ls - 1);\x0a \
+         if (ch \
+=== 10 /* \x5cn */ \
+|| ch === 13 /* \
+\x5cr */) break;\x0a  \
+        ls--;\x0a  \
+      }\x0a        \
+const prefix = s\
+.slice(ls, absId\
+x);\x0a\x0a        let\
+ i = 0, indent =\
+ 0;\x0a        whil\
+e (i < prefix.le\
+ngth) {\x0a        \
+  const c = pref\
+ix.charCodeAt(i)\
+;\x0a          if (\
+c === 32) { inde\
+nt++; if (indent\
+ > 3) break; i++\
+; }\x0a          el\
+se if (c === 9) \
+{ indent++; if (\
+indent > 3) brea\
+k; i++; }\x0a      \
+    else break;\x0a\
+        }\x0a      \
+  if (indent > 3\
+) return false;\x0a\
+        const re\
+st = prefix.slic\
+e(i);\x0a\x0a        i\
+f (/^>\x5cs?/.test(\
+rest)) return fa\
+lse;\x0a        if \
+(/^[-+*]\x5cs/.test\
+(rest)) return f\
+alse;\x0a        if\
+ (/^\x5cd+[.)]\x5cs/.t\
+est(rest)) retur\
+n false;\x0a\x0a      \
+  if (rest.trim(\
+).length > 0) re\
+turn false;\x0a\x0a   \
+     return true\
+;\x0a      }\x0a\x0a     \
+ // Apply source\
+-phase replaceme\
+nts to one outsi\
+de-of-fence chun\
+k with top-level\
+ guard.\x0a      _a\
+pplySourceReplac\
+ementsInChunk(fu\
+ll, chunk, baseO\
+ffset, rules) { \
+/* unchanged \xe2\x80\x93\
+ keep original b\
+ody */\x0a        l\
+et t = chunk;\x0a  \
+      for (let i\
+ = 0; i < rules.\
+length; i++) {\x0a \
+         const r\
+ = rules[i];\x0a   \
+       if (!r ||\
+ !(r.openReplace\
+ || r.closeRepla\
+ce)) continue;\x0a \
+         try {\x0a \
+           r.re.\
+lastIndex = 0;\x0a \
+           t = t\
+.replace(r.re, (\
+match, inner, of\
+fset /*, ...rest\
+*/) => {\x0a       \
+       const abs\
+ = baseOffset + \
+(offset | 0);\x0a  \
+            if (\
+!this._isTopLeve\
+lLineInSource(fu\
+ll, abs)) return\
+ match;\x0a        \
+      const open\
+ = r.openReplace\
+ || '';\x0a        \
+      const clos\
+e = r.closeRepla\
 ce || '';\x0a      \
-        const cl\
-ose = r.closeRep\
-lace || '';\x0a    \
-          return\
- open + (inner |\
-| '') + close;\x0a \
-           });\x0a \
-         } catch\
- (_) { /* keep c\
-hunk as is on an\
-y error */ }\x0a   \
-     }\x0a        r\
-eturn t;\x0a      }\
-\x0a    }\x0a\x0a  // ===\
+        return o\
+pen + (inner || \
+'') + close;\x0a   \
+         });\x0a   \
+       } catch (\
+_) { /* keep chu\
+nk as is on any \
+error */ }\x0a     \
+   }\x0a        ret\
+urn t;\x0a      }\x0a \
+   }\x0a\x0a  // =====\
 ================\
 ================\
 ================\
 ================\
-=======\x0a  // 5) \
-Markdown runtime\
- (markdown-it + \
-code wrapper + m\
-ath placeholders\
-)\x0a  // =========\
+=====\x0a  // 5) Ma\
+rkdown runtime (\
+markdown-it + co\
+de wrapper + mat\
+h placeholders)\x0a\
+  // ===========\
 ================\
 ================\
 ================\
-================\
-=\x0a\x0a  class Markd\
-ownRenderer {\x0a  \
-    constructor(\
-cfg, customMarku\
-p, logger, async\
-er, raf) {\x0a     \
-   this.cfg = cf\
-g; this.customMa\
-rkup = customMar\
-kup; this.MD = n\
-ull;\x0a        thi\
-s.logger = logge\
-r || new Logger(\
-cfg);\x0a        //\
- Cooperative asy\
-nc utilities ava\
-ilable in render\
-er for heavy dec\
-ode/render paths\
-\x0a        this.as\
-yncer = asyncer \
-|| new AsyncRunn\
-er(cfg, raf);\x0a  \
-      this.raf =\
- raf || null;\x0a\x0a \
-       // Fast-p\
-ath streaming re\
-nderer without l\
-inkify to reduce\
- regex work on h\
-ot path.\x0a       \
- this.MD_STREAM \
-= null;\x0a\x0a       \
- this.hooks = {\x0a\
-          observ\
-eNewCode: () => \
-{},\x0a          ob\
-serveMsgBoxes: (\
-) => {},\x0a       \
-   scheduleMathR\
-ender: () => {},\
-\x0a          codeS\
-crollInit: () =>\
- {}\x0a        };\x0a \
-     }\x0a      // \
-Initialize markd\
-own-it instances\
- and plugins.\x0a  \
-    init() {\x0a   \
-     if (!window\
-.markdownit) { t\
-his.logger.log('\
-[MD] markdown-it\
- not found \xe2\x80\x93 r\
-endering skipped\
-.'); return; }\x0a \
-       // Full r\
-enderer (used fo\
-r non-hot paths,\
- final results)\x0a\
-        this.MD \
-= window.markdow\
-nit({ html: fals\
-e, linkify: true\
-, breaks: true, \
-highlight: () =>\
- '' });\x0a        \
-// Streaming ren\
-derer (no linkif\
-y) \xe2\x80\x93 hot path\x0a\
-        this.MD_\
-STREAM = window.\
-markdownit({ htm\
-l: false, linkif\
-y: false, breaks\
-: true, highligh\
-t: () => '' });\x0a\
-\x0a        // SAFE\
-TY: disable Comm\
-onMark \x22indented\
- code blocks\x22 un\
-less explicitly \
-enabled.\x0a       \
- if (!this.cfg.M\
-D || this.cfg.MD\
-.ALLOW_INDENTED_\
-CODE !== true) {\
-\x0a          try {\
- this.MD.block.r\
-uler.disable('co\
-de'); } catch (_\
-) {}\x0a          t\
-ry { this.MD_STR\
-EAM.block.ruler.\
-disable('code');\
- } catch (_) {}\x0a\
-        }\x0a\x0a     \
-   const escapeH\
-tml = Utils.esca\
-peHtml;\x0a\x0a       \
- // Dollar and b\
-racket math plac\
-eholder plugins:\
- generate lightw\
-eight placeholde\
-rs to be picked \
-up by KaTeX late\
-r.\x0a        const\
- mathDollarPlace\
-holderPlugin = (\
-md) => {\x0a       \
-   function notE\
-scaped(src, pos)\
- { let back = 0;\
- while (pos - ba\
-ck - 1 >= 0 && s\
-rc.charCodeAt(po\
-s - back - 1) ==\
-= 0x5C) back++; \
-return (back % 2\
-) === 0; }\x0a     \
-     function ma\
-th_block_dollar(\
-state, startLine\
-, endLine, silen\
-t) {\x0a           \
- const pos = sta\
+===============\x0a\
+\x0a  class Markdow\
+nRenderer {\x0a    \
+  constructor(cf\
+g, customMarkup,\
+ logger, asyncer\
+, raf) {\x0a       \
+ this.cfg = cfg;\
+ this.customMark\
+up = customMarku\
+p; this.MD = nul\
+l;\x0a        this.\
+logger = logger \
+|| new Logger(cf\
+g);\x0a        // C\
+ooperative async\
+ utilities avail\
+able in renderer\
+ for heavy decod\
+e/render paths\x0a \
+       this.asyn\
+cer = asyncer ||\
+ new AsyncRunner\
+(cfg, raf);\x0a    \
+    this.raf = r\
+af || null;\x0a\x0a   \
+     // Fast-pat\
+h streaming rend\
+erer without lin\
+kify to reduce r\
+egex work on hot\
+ path.\x0a        t\
+his.MD_STREAM = \
+null;\x0a\x0a        t\
+his.hooks = {\x0a  \
+        observeN\
+ewCode: () => {}\
+,\x0a          obse\
+rveMsgBoxes: () \
+=> {},\x0a         \
+ scheduleMathRen\
+der: () => {},\x0a \
+         codeScr\
+ollInit: () => {\
+}\x0a        };\x0a   \
+   }\x0a      // In\
+itialize markdow\
+n-it instances a\
+nd plugins.\x0a    \
+  init() {\x0a     \
+   if (!window.m\
+arkdownit) { thi\
+s.logger.log('[M\
+D] markdown-it n\
+ot found \xe2\x80\x93 ren\
+dering skipped.'\
+); return; }\x0a   \
+     // Full ren\
+derer (used for \
+non-hot paths, f\
+inal results)\x0a  \
+      this.MD = \
+window.markdowni\
+t({ html: false,\
+ linkify: true, \
+breaks: true, hi\
+ghlight: () => '\
+' });\x0a        //\
+ Streaming rende\
+rer (no linkify)\
+ \xe2\x80\x93 hot path\x0a  \
+      this.MD_ST\
+REAM = window.ma\
+rkdownit({ html:\
+ false, linkify:\
+ false, breaks: \
+true, highlight:\
+ () => '' });\x0a\x0a \
+       // SAFETY\
+: disable Common\
+Mark \x22indented c\
+ode blocks\x22 unle\
+ss explicitly en\
+abled.\x0a        i\
+f (!this.cfg.MD \
+|| this.cfg.MD.A\
+LLOW_INDENTED_CO\
+DE !== true) {\x0a \
+         try { t\
+his.MD.block.rul\
+er.disable('code\
+'); } catch (_) \
+{}\x0a          try\
+ { this.MD_STREA\
+M.block.ruler.di\
+sable('code'); }\
+ catch (_) {}\x0a  \
+      }\x0a\x0a       \
+ const escapeHtm\
+l = Utils.escape\
+Html;\x0a\x0a        /\
+/ Dollar and bra\
+cket math placeh\
+older plugins: g\
+enerate lightwei\
+ght placeholders\
+ to be picked up\
+ by KaTeX later.\
+\x0a        const m\
+athDollarPlaceho\
+lderPlugin = (md\
+) => {\x0a         \
+ function notEsc\
+aped(src, pos) {\
+ let back = 0; w\
+hile (pos - back\
+ - 1 >= 0 && src\
+.charCodeAt(pos \
+- back - 1) === \
+0x5C) back++; re\
+turn (back % 2) \
+=== 0; }\x0a       \
+   function math\
+_block_dollar(st\
+ate, startLine, \
+endLine, silent)\
+ {\x0a            c\
+onst pos = state\
+.bMarks[startLin\
+e] + state.tShif\
+t[startLine];\x0a  \
+          const \
+max = state.eMar\
+ks[startLine];\x0a \
+           if (p\
+os + 1 >= max) r\
+eturn false;\x0a   \
+         if (sta\
+te.src.charCodeA\
+t(pos) !== 0x24 \
+|| state.src.cha\
+rCodeAt(pos + 1)\
+ !== 0x24) retur\
+n false;\x0a       \
+     let nextLin\
+e = startLine + \
+1, found = false\
+;\x0a            fo\
+r (; nextLine < \
+endLine; nextLin\
+e++) {\x0a         \
+     let p = sta\
+te.bMarks[nextLi\
+ne] + state.tShi\
+ft[nextLine];\x0a  \
+            cons\
+t pe = state.eMa\
+rks[nextLine];\x0a \
+             if \
+(p + 1 < pe && s\
+tate.src.charCod\
+eAt(p) === 0x24 \
+&& state.src.cha\
+rCodeAt(p + 1) =\
+== 0x24) { found\
+ = true; break; \
+}\x0a            }\x0a\
+            if (\
+!found) return f\
+alse;\x0a          \
+  if (silent) re\
+turn true;\x0a\x0a    \
+        const co\
+ntentStart = sta\
 te.bMarks[startL\
 ine] + state.tSh\
-ift[startLine];\x0a\
-            cons\
-t max = state.eM\
-arks[startLine];\
-\x0a            if \
-(pos + 1 >= max)\
- return false;\x0a \
-           if (s\
-tate.src.charCod\
-eAt(pos) !== 0x2\
-4 || state.src.c\
-harCodeAt(pos + \
-1) !== 0x24) ret\
-urn false;\x0a     \
-       let nextL\
-ine = startLine \
-+ 1, found = fal\
-se;\x0a            \
-for (; nextLine \
-< endLine; nextL\
-ine++) {\x0a       \
-       let p = s\
-tate.bMarks[next\
-Line] + state.tS\
-hift[nextLine];\x0a\
-              co\
-nst pe = state.e\
-Marks[nextLine];\
-\x0a              i\
-f (p + 1 < pe &&\
- state.src.charC\
-odeAt(p) === 0x2\
-4 && state.src.c\
-harCodeAt(p + 1)\
- === 0x24) { fou\
-nd = true; break\
-; }\x0a            \
-}\x0a            if\
- (!found) return\
- false;\x0a        \
-    if (silent) \
-return true;\x0a\x0a  \
-          const \
-contentStart = s\
-tate.bMarks[star\
-tLine] + state.t\
-Shift[startLine]\
- + 2;\x0a          \
-  const contentE\
-ndLine = nextLin\
-e - 1;\x0a         \
-   let content =\
- '';\x0a           \
- if (contentEndL\
-ine >= startLine\
- + 1) {\x0a        \
-      const star\
-tIdx = state.bMa\
-rks[startLine + \
-1];\x0a            \
-  const endIdx =\
- state.eMarks[co\
-ntentEndLine];\x0a \
-             con\
-tent = state.src\
-.slice(startIdx,\
- endIdx);\x0a      \
-      } else con\
-tent = '';\x0a\x0a    \
-        const to\
-ken = state.push\
-('math_block_dol\
-lar', '', 0);\x0a  \
-          token.\
-block = true; to\
-ken.content = co\
-ntent; state.lin\
-e = nextLine + 1\
-; return true;\x0a \
-         }\x0a     \
-     function ma\
-th_inline_dollar\
-(state, silent) \
-{\x0a            co\
-nst pos = state.\
-pos, src = state\
-.src, max = stat\
-e.posMax;\x0a      \
-      if (pos >=\
- max) return fal\
-se;\x0a            \
-if (src.charCode\
-At(pos) !== 0x24\
-) return false;\x0a\
-            if (\
-pos + 1 < max &&\
- src.charCodeAt(\
-pos + 1) === 0x2\
-4) return false;\
-\x0a            con\
-st after = pos +\
- 1 < max ? src.c\
-harCodeAt(pos + \
-1) : 0;\x0a        \
-    if (after ==\
-= 0x20 || after \
-=== 0x0A || afte\
-r === 0x0D) retu\
-rn false;\x0a      \
-      let i = po\
-s + 1;\x0a         \
-   while (i < ma\
-x) {\x0a           \
-   const ch = sr\
-c.charCodeAt(i);\
-\x0a              i\
-f (ch === 0x24 &\
-& notEscaped(src\
-, i)) {\x0a        \
-        const be\
-fore = i - 1 >= \
-0 ? src.charCode\
-At(i - 1) : 0;\x0a \
-               i\
-f (before === 0x\
-20 || before ===\
- 0x0A || before \
-=== 0x0D) { i++;\
- continue; }\x0a   \
-             bre\
-ak;\x0a            \
-  }\x0a            \
-  i++;\x0a         \
-   }\x0a           \
- if (i >= max ||\
- src.charCodeAt(\
-i) !== 0x24) ret\
-urn false;\x0a\x0a    \
-        if (!sil\
-ent) {\x0a         \
-     const token\
- = state.push('m\
-ath_inline_dolla\
+ift[startLine] +\
+ 2;\x0a            \
+const contentEnd\
+Line = nextLine \
+- 1;\x0a           \
+ let content = '\
+';\x0a            i\
+f (contentEndLin\
+e >= startLine +\
+ 1) {\x0a          \
+    const startI\
+dx = state.bMark\
+s[startLine + 1]\
+;\x0a              \
+const endIdx = s\
+tate.eMarks[cont\
+entEndLine];\x0a   \
+           conte\
+nt = state.src.s\
+lice(startIdx, e\
+ndIdx);\x0a        \
+    } else conte\
+nt = '';\x0a\x0a      \
+      const toke\
+n = state.push('\
+math_block_dolla\
 r', '', 0);\x0a    \
-          token.\
-block = false; t\
-oken.content = s\
-rc.slice(pos + 1\
-, i);\x0a          \
-  }\x0a            \
-state.pos = i + \
-1; return true;\x0a\
-          }\x0a\x0a   \
-       md.block.\
-ruler.before('fe\
-nce', 'math_bloc\
-k_dollar', math_\
-block_dollar, { \
-alt: ['paragraph\
-', 'reference', \
-'blockquote', 'l\
-ist'] });\x0a      \
-    md.inline.ru\
-ler.before('esca\
-pe', 'math_inlin\
-e_dollar', math_\
-inline_dollar);\x0a\
-\x0a          md.re\
-nderer.rules.mat\
-h_inline_dollar \
-= (tokens, idx) \
-=> {\x0a           \
- const tex = tok\
-ens[idx].content\
- || '';\x0a        \
-    return `<spa\
-n class=\x22math-pe\
-nding\x22 data-disp\
-lay=\x220\x22><span cl\
-ass=\x22math-fallba\
-ck\x22>$${escapeHtm\
-l(tex)}$</span><\
-script type=\x22mat\
-h/tex\x22>${escapeH\
-tml(tex)}</scrip\
-t></span>`;\x0a    \
-      };\x0a       \
-   md.renderer.r\
-ules.math_block_\
-dollar = (tokens\
+        token.bl\
+ock = true; toke\
+n.content = cont\
+ent; state.line \
+= nextLine + 1; \
+return true;\x0a   \
+       }\x0a       \
+   function math\
+_inline_dollar(s\
+tate, silent) {\x0a\
+            cons\
+t pos = state.po\
+s, src = state.s\
+rc, max = state.\
+posMax;\x0a        \
+    if (pos >= m\
+ax) return false\
+;\x0a            if\
+ (src.charCodeAt\
+(pos) !== 0x24) \
+return false;\x0a  \
+          if (po\
+s + 1 < max && s\
+rc.charCodeAt(po\
+s + 1) === 0x24)\
+ return false;\x0a \
+           const\
+ after = pos + 1\
+ < max ? src.cha\
+rCodeAt(pos + 1)\
+ : 0;\x0a          \
+  if (after === \
+0x20 || after ==\
+= 0x0A || after \
+=== 0x0D) return\
+ false;\x0a        \
+    let i = pos \
++ 1;\x0a           \
+ while (i < max)\
+ {\x0a             \
+ const ch = src.\
+charCodeAt(i);\x0a \
+             if \
+(ch === 0x24 && \
+notEscaped(src, \
+i)) {\x0a          \
+      const befo\
+re = i - 1 >= 0 \
+? src.charCodeAt\
+(i - 1) : 0;\x0a   \
+             if \
+(before === 0x20\
+ || before === 0\
+x0A || before ==\
+= 0x0D) { i++; c\
+ontinue; }\x0a     \
+           break\
+;\x0a              \
+}\x0a              \
+i++;\x0a           \
+ }\x0a            i\
+f (i >= max || s\
+rc.charCodeAt(i)\
+ !== 0x24) retur\
+n false;\x0a\x0a      \
+      if (!silen\
+t) {\x0a           \
+   const token =\
+ state.push('mat\
+h_inline_dollar'\
+, '', 0);\x0a      \
+        token.bl\
+ock = false; tok\
+en.content = src\
+.slice(pos + 1, \
+i);\x0a            \
+}\x0a            st\
+ate.pos = i + 1;\
+ return true;\x0a  \
+        }\x0a\x0a     \
+     md.block.ru\
+ler.before('fenc\
+e', 'math_block_\
+dollar', math_bl\
+ock_dollar, { al\
+t: ['paragraph',\
+ 'reference', 'b\
+lockquote', 'lis\
+t'] });\x0a        \
+  md.inline.rule\
+r.before('escape\
+', 'math_inline_\
+dollar', math_in\
+line_dollar);\x0a\x0a \
+         md.rend\
+erer.rules.math_\
+inline_dollar = \
+(tokens, idx) =>\
+ {\x0a            c\
+onst tex = token\
+s[idx].content |\
+| '';\x0a          \
+  return `<span \
+class=\x22math-pend\
+ing\x22 data-displa\
+y=\x220\x22><span clas\
+s=\x22math-fallback\
+\x22>$${escapeHtml(\
+tex)}$</span><sc\
+ript type=\x22math/\
+tex\x22>${escapeHtm\
+l(tex)}</script>\
+</span>`;\x0a      \
+    };\x0a         \
+ md.renderer.rul\
+es.math_block_do\
+llar = (tokens, \
+idx) => {\x0a      \
+      const tex \
+= tokens[idx].co\
+ntent || '';\x0a   \
+         return \
+`<div class=\x22mat\
+h-pending\x22 data-\
+display=\x221\x22><div\
+ class=\x22math-fal\
+lback\x22>$$${escap\
+eHtml(tex)}$$</d\
+iv><script type=\
+\x22math/tex; mode=\
+display\x22>${escap\
+eHtml(tex)}</scr\
+ipt></div>`;\x0a   \
+       };\x0a      \
+  };\x0a\x0a        co\
+nst mathBrackets\
+PlaceholderPlugi\
+n = (md) => {\x0a  \
+        function\
+ math_brackets(s\
+tate, silent) {\x0a\
+            cons\
+t src = state.sr\
+c, pos = state.p\
+os, max = state.\
+posMax;\x0a        \
+    if (pos + 1 \
+>= max || src.ch\
+arCodeAt(pos) !=\
+= 0x5C) return f\
+alse;\x0a          \
+  const next = s\
+rc.charCodeAt(po\
+s + 1);\x0a        \
+    if (next !==\
+ 0x28 && next !=\
+= 0x5B) return f\
+alse;\x0a          \
+  const isInline\
+ = (next === 0x2\
+8); const close \
+= isInline ? '\x5c\x5c\
+)' : '\x5c\x5c]';\x0a    \
+        const st\
+art = pos + 2; c\
+onst end = src.i\
+ndexOf(close, st\
+art);\x0a          \
+  if (end < 0) r\
+eturn false;\x0a   \
+         const c\
+ontent = src.sli\
+ce(start, end);\x0a\
+            if (\
+!silent) {\x0a     \
+         const t\
+ = state.push(is\
+Inline ? 'math_i\
+nline_bracket' :\
+ 'math_block_bra\
+cket', '', 0);\x0a \
+             t.c\
+ontent = content\
+; t.block = !isI\
+nline;\x0a         \
+   }\x0a           \
+ state.pos = end\
+ + 2; return tru\
+e;\x0a          }\x0a \
+         md.inli\
+ne.ruler.before(\
+'escape', 'math_\
+brackets', math_\
+brackets);\x0a     \
+     md.renderer\
+.rules.math_inli\
+ne_bracket = (to\
+kens, idx) => {\x0a\
+            cons\
+t tex = tokens[i\
+dx].content || '\
+';\x0a            r\
+eturn `<span cla\
+ss=\x22math-pending\
+\x22 data-display=\x22\
+0\x22><span class=\x22\
+math-fallback\x22>\x5c\
+\x5c(${escapeHtml(t\
+ex)}\x5c\x5c)</span><s\
+cript type=\x22math\
+/tex\x22>${escapeHt\
+ml(tex)}</script\
+></span>`;\x0a     \
+     };\x0a        \
+  md.renderer.ru\
+les.math_block_b\
+racket = (tokens\
 , idx) => {\x0a    \
         const te\
 x = tokens[idx].\
@@ -90498,487 +90601,910 @@ n `<div class=\x22m\
 ath-pending\x22 dat\
 a-display=\x221\x22><d\
 iv class=\x22math-f\
-allback\x22>$$${esc\
-apeHtml(tex)}$$<\
-/div><script typ\
-e=\x22math/tex; mod\
-e=display\x22>${esc\
-apeHtml(tex)}</s\
-cript></div>`;\x0a \
-         };\x0a    \
-    };\x0a\x0a        \
-const mathBracke\
-tsPlaceholderPlu\
-gin = (md) => {\x0a\
-          functi\
-on math_brackets\
-(state, silent) \
-{\x0a            co\
-nst src = state.\
-src, pos = state\
-.pos, max = stat\
-e.posMax;\x0a      \
-      if (pos + \
-1 >= max || src.\
-charCodeAt(pos) \
-!== 0x5C) return\
- false;\x0a        \
-    const next =\
- src.charCodeAt(\
-pos + 1);\x0a      \
-      if (next !\
-== 0x28 && next \
-!== 0x5B) return\
- false;\x0a        \
-    const isInli\
-ne = (next === 0\
-x28); const clos\
-e = isInline ? '\
-\x5c\x5c)' : '\x5c\x5c]';\x0a  \
-          const \
-start = pos + 2;\
- const end = src\
-.indexOf(close, \
-start);\x0a        \
-    if (end < 0)\
- return false;\x0a \
-           const\
- content = src.s\
-lice(start, end)\
-;\x0a            if\
- (!silent) {\x0a   \
-           const\
- t = state.push(\
-isInline ? 'math\
-_inline_bracket'\
- : 'math_block_b\
-racket', '', 0);\
-\x0a              t\
-.content = conte\
-nt; t.block = !i\
-sInline;\x0a       \
-     }\x0a         \
-   state.pos = e\
-nd + 2; return t\
-rue;\x0a          }\
-\x0a          md.in\
-line.ruler.befor\
-e('escape', 'mat\
-h_brackets', mat\
-h_brackets);\x0a   \
-       md.render\
-er.rules.math_in\
-line_bracket = (\
-tokens, idx) => \
-{\x0a            co\
-nst tex = tokens\
-[idx].content ||\
- '';\x0a           \
- return `<span c\
-lass=\x22math-pendi\
-ng\x22 data-display\
-=\x220\x22><span class\
-=\x22math-fallback\x22\
->\x5c\x5c(${escapeHtml\
-(tex)}\x5c\x5c)</span>\
-<script type=\x22ma\
-th/tex\x22>${escape\
-Html(tex)}</scri\
-pt></span>`;\x0a   \
-       };\x0a      \
-    md.renderer.\
-rules.math_block\
-_bracket = (toke\
-ns, idx) => {\x0a  \
-          const \
-tex = tokens[idx\
-].content || '';\
-\x0a            ret\
-urn `<div class=\
-\x22math-pending\x22 d\
-ata-display=\x221\x22>\
-<div class=\x22math\
--fallback\x22>\x5c\x5c[${\
-escapeHtml(tex)}\
-\x5c\x5c]</div><script\
- type=\x22math/tex;\
- mode=display\x22>$\
-{escapeHtml(tex)\
-}</script></div>\
-`;\x0a          };\x0a\
-        };\x0a\x0a    \
+allback\x22>\x5c\x5c[${es\
+capeHtml(tex)}\x5c\x5c\
+]</div><script t\
+ype=\x22math/tex; m\
+ode=display\x22>${e\
+scapeHtml(tex)}<\
+/script></div>`;\
+\x0a          };\x0a  \
+      };\x0a\x0a      \
+  this.MD.use(ma\
+thDollarPlacehol\
+derPlugin);\x0a    \
     this.MD.use(\
-mathDollarPlaceh\
-olderPlugin);\x0a  \
-      this.MD.us\
-e(mathBracketsPl\
-aceholderPlugin)\
-;\x0a        this.M\
-D_STREAM.use(mat\
-hDollarPlacehold\
-erPlugin);\x0a     \
-   this.MD_STREA\
-M.use(mathBracke\
-tsPlaceholderPlu\
-gin);\x0a\x0a        c\
-onst cfg = this.\
-cfg; const logge\
-r = this.logger;\
-\x0a\x0a        // STR\
-EAMING wrapper p\
-lugin (modified \
-header label gua\
-rd)\x0a        (fun\
-ction codeWrappe\
-rPlugin(md, logg\
-er) {\x0a          \
-let CODE_IDX = 1\
-;\x0a          cons\
-t log = (line, c\
-tx) => logger.de\
-bug('MD_LANG', l\
-ine, ctx);\x0a\x0a    \
-      const DEDU\
-P = (window.MD_L\
-ANG_LOG_DEDUP !=\
-= false);\x0a      \
-    const seenFP\
- = new Set();\x0a  \
-        const ma\
-keFP = (info, ra\
-w) => {\x0a        \
-    const head =\
- (raw || '').sli\
-ce(0, 96);\x0a     \
-       return St\
-ring(info || '')\
- + '|' + String(\
-(raw || '').leng\
-th) + '|' + head\
-;\x0a          };\x0a\x0a\
+mathBracketsPlac\
+eholderPlugin);\x0a\
+        this.MD_\
+STREAM.use(mathD\
+ollarPlaceholder\
+Plugin);\x0a       \
+ this.MD_STREAM.\
+use(mathBrackets\
+PlaceholderPlugi\
+n);\x0a\x0a        con\
+st cfg = this.cf\
+g; const logger \
+= this.logger;\x0a\x0a\
+        // STREA\
+MING wrapper plu\
+gin (modified he\
+ader label guard\
+)\x0a        (funct\
+ion codeWrapperP\
+lugin(md, logger\
+) {\x0a          le\
+t CODE_IDX = 1;\x0a\
           const \
-ALIAS = {\x0a      \
-      txt: 'plai\
-ntext', text: 'p\
-laintext', plain\
-text: 'plaintext\
-',\x0a            s\
-h: 'bash', shell\
-: 'bash', zsh: '\
-bash', 'shell-se\
-ssion': 'bash',\x0a\
-            py: \
-'python', python\
-3: 'python', py3\
-: 'python',\x0a    \
-        js: 'jav\
-ascript', node: \
-'javascript', no\
-dejs: 'javascrip\
-t',\x0a            \
-ts: 'typescript'\
-, 'ts-node': 'ty\
-pescript',\x0a     \
-       yml: 'yam\
-l', kt: 'kotlin'\
-, rs: 'rust',\x0a  \
-          csharp\
-: 'csharp', 'c#'\
-: 'csharp', 'c++\
-': 'cpp',\x0a      \
-      ps: 'power\
-shell', ps1: 'po\
-wershell', pwsh:\
- 'powershell', p\
-owershell7: 'pow\
-ershell',\x0a      \
-      docker: 'd\
-ockerfile'\x0a     \
-     };\x0a        \
-  function normL\
-ang(s) { if (!s)\
- return ''; cons\
-t v = String(s).\
-trim().toLowerCa\
-se(); return ALI\
-AS[v] || v; }\x0a  \
-        function\
+log = (line, ctx\
+) => logger.debu\
+g('MD_LANG', lin\
+e, ctx);\x0a\x0a      \
+    const DEDUP \
+= (window.MD_LAN\
+G_LOG_DEDUP !== \
+false);\x0a        \
+  const seenFP =\
+ new Set();\x0a    \
+      const make\
+FP = (info, raw)\
+ => {\x0a          \
+  const head = (\
+raw || '').slice\
+(0, 96);\x0a       \
+     return Stri\
+ng(info || '') +\
+ '|' + String((r\
+aw || '').length\
+) + '|' + head;\x0a\
+          };\x0a\x0a  \
+        const AL\
+IAS = {\x0a        \
+    txt: 'plaint\
+ext', text: 'pla\
+intext', plainte\
+xt: 'plaintext',\
+\x0a            sh:\
+ 'bash', shell: \
+'bash', zsh: 'ba\
+sh', 'shell-sess\
+ion': 'bash',\x0a  \
+          py: 'p\
+ython', python3:\
+ 'python', py3: \
+'python',\x0a      \
+      js: 'javas\
+cript', node: 'j\
+avascript', node\
+js: 'javascript'\
+,\x0a            ts\
+: 'typescript', \
+'ts-node': 'type\
+script',\x0a       \
+     yml: 'yaml'\
+, kt: 'kotlin', \
+rs: 'rust',\x0a    \
+        csharp: \
+'csharp', 'c#': \
+'csharp', 'c++':\
+ 'cpp',\x0a        \
+    ps: 'powersh\
+ell', ps1: 'powe\
+rshell', pwsh: '\
+powershell', pow\
+ershell7: 'power\
+shell',\x0a        \
+    docker: 'doc\
+kerfile'\x0a       \
+   };\x0a          \
+function normLan\
+g(s) { if (!s) r\
+eturn ''; const \
+v = String(s).tr\
+im().toLowerCase\
+(); return ALIAS\
+[v] || v; }\x0a    \
+      function i\
+sSupportedByHLJS\
+(lang) { try { r\
+eturn !!(window.\
+hljs && hljs.get\
+Language && hljs\
+.getLanguage(lan\
+g)); } catch (_)\
+ { return false;\
+ } }\x0a          f\
+unction classFor\
+Highlight(lang) \
+{ if (!lang) ret\
+urn 'plaintext';\
+ return isSuppor\
+tedByHLJS(lang) \
+? lang : 'plaint\
+ext'; }\x0a        \
+  function strip\
+BOM(s) { return \
+(s && s.charCode\
+At(0) === 0xFEFF\
+) ? s.slice(1) :\
+ s; }\x0a\x0a         \
+ function detect\
+FromFirstLine(ra\
+w, rid) {\x0a      \
+      if (!raw) \
+return { lang: '\
+', content: raw,\
+ isOutput: false\
+ };\x0a            \
+const lines = ra\
+w.split(/\x5cr?\x5cn/)\
+;\x0a            if\
+ (!lines.length)\
+ return { lang: \
+'', content: raw\
+, isOutput: fals\
+e };\x0a           \
+ let i = 0; whil\
+e (i < lines.len\
+gth && !lines[i]\
+.trim()) i++;\x0a  \
+          if (i \
+>= lines.length)\
+ { log(`#${rid} \
+first-line: only\
+ whitespace`); r\
+eturn { lang: ''\
+, content: raw, \
+isOutput: false \
+}; }\x0a           \
+ let first = str\
+ipBOM(lines[i]).\
+trim();\x0a        \
+    first = firs\
+t.replace(/^\x5cs*l\
+ang(?:uage)?\x5cs*[\
+:=]\x5cs*/i, '').tr\
+im();\x0a          \
+  let token = fi\
+rst.split(/\x5cs+/)\
+[0].replace(/:$/\
+, '');\x0a         \
+   if (!/^[A-Za-\
+z][\x5cw#+\x5c-\x5c.]{0,3\
+0}$/.test(token)\
+) { log(`#${rid}\
+ first-line: no \
+token match`, { \
+first }); return\
+ { lang: '', con\
+tent: raw, isOut\
+put: false }; }\x0a\
+            let \
+cand = normLang(\
+token);\x0a        \
+    if (cand ===\
+ 'output') {\x0a   \
+           const\
+ content = lines\
+.slice(i + 1).jo\
+in('\x5cn');\x0a      \
+        log(`#${\
+rid} first-line:\
+ output header`)\
+;\x0a              \
+return { lang: '\
+python', headerL\
+abel: 'output', \
+content, isOutpu\
+t: true };\x0a     \
+       }\x0a       \
+     const rest \
+= lines.slice(i \
++ 1).join('\x5cn');\
+\x0a            if \
+(!rest.trim()) {\
+ log(`#${rid} fi\
+rst-line: direct\
+ive but no conte\
+nt after, ignore\
+`, { cand }); re\
+turn { lang: '',\
+ content: raw, i\
+sOutput: false }\
+; }\x0a            \
+log(`#${rid} fir\
+st-line: directi\
+ve accepted`, { \
+cand, restLen: r\
+est.length, hljs\
+: isSupportedByH\
+LJS(cand) });\x0a  \
+          return\
+ { lang: cand, h\
+eaderLabel: cand\
+, content: rest,\
+ isOutput: false\
+ };\x0a          }\x0a\
+\x0a          md.re\
+nderer.rules.fen\
+ce = (tokens, id\
+x) => renderFenc\
+e(tokens[idx]);\x0a\
+          md.ren\
+derer.rules.code\
+_block = (tokens\
+, idx) => render\
+Fence({ info: ''\
+, content: token\
+s[idx].content |\
+| '' });\x0a\x0a      \
+    function res\
+olveLanguageAndC\
+ontent(info, raw\
+, rid) {\x0a       \
+     const infoL\
+angRaw = (info |\
+| '').trim().spl\
+it(/\x5cs+/)[0] || \
+'';\x0a            \
+let cand = normL\
+ang(infoLangRaw)\
+;\x0a            if\
+ (cand === 'outp\
+ut') {\x0a         \
+     log(`#${rid\
+} info: output h\
+eader`);\x0a       \
+       return { \
+lang: 'python', \
+headerLabel: 'ou\
+tput', content: \
+raw, isOutput: t\
+rue };\x0a         \
+   }\x0a           \
+ if (cand) {\x0a   \
+           log(`\
+#${rid} info: to\
+ken`, { infoLang\
+Raw, cand, hljs:\
  isSupportedByHL\
-JS(lang) { try {\
- return !!(windo\
-w.hljs && hljs.g\
-etLanguage && hl\
-js.getLanguage(l\
-ang)); } catch (\
-_) { return fals\
-e; } }\x0a         \
- function classF\
-orHighlight(lang\
-) { if (!lang) r\
-eturn 'plaintext\
-'; return isSupp\
-ortedByHLJS(lang\
-) ? lang : 'plai\
-ntext'; }\x0a      \
-    function str\
-ipBOM(s) { retur\
-n (s && s.charCo\
-deAt(0) === 0xFE\
-FF) ? s.slice(1)\
- : s; }\x0a\x0a       \
-   function dete\
-ctFromFirstLine(\
-raw, rid) {\x0a    \
-        if (!raw\
+JS(cand) });\x0a   \
+           retur\
+n { lang: cand, \
+headerLabel: can\
+d, content: raw,\
+ isOutput: false\
+ };\x0a            \
+}\x0a            co\
+nst det = detect\
+FromFirstLine(ra\
+w, rid);\x0a       \
+     if (det && \
+(det.lang || det\
+.isOutput)) retu\
+rn det;\x0a        \
+    log(`#${rid}\
+ resolve: fallba\
+ck`);\x0a          \
+  return { lang:\
+ '', headerLabel\
+: 'code', conten\
+t: raw, isOutput\
+: false };\x0a     \
+     }\x0a\x0a        \
+  function rende\
+rFence(token) {\x0a\
+            cons\
+t raw = token.co\
+ntent || '';\x0a   \
+         const r\
+id = String(CODE\
+_IDX + '');\x0a    \
+        const fp\
+ = makeFP(token.\
+info || '', raw)\
+;\x0a            co\
+nst canLog = !DE\
+DUP || !seenFP.h\
+as(fp);\x0a        \
+    if (canLog) \
+log(`FENCE_ENTER\
+ #${rid}`, { inf\
+o: (token.info |\
+| ''), rawHead: \
+logger.pv(raw) }\
+);\x0a\x0a            \
+const res = reso\
+lveLanguageAndCo\
+ntent(token.info\
+ || '', raw, rid\
+);\x0a            c\
+onst isOutput = \
+!!res.isOutput;\x0a\
+\x0a            // \
+Choose class and\
+ a safe header l\
+abel (avoid 'on'\
+, 'ml', 's' etc.\
+)\x0a            co\
+nst rawToken = (\
+res.lang || '').\
+trim();\x0a        \
+    const langCl\
+ass = isOutput ?\
+ 'python' : clas\
+sForHighlight(ra\
+wToken);\x0a\x0a      \
+      // Guard a\
+gainst tiny unsu\
+pported tokens \xe2\
+\x80\x93 show temporar\
+y 'code' instead\
+ of partial suff\
+ix.\x0a            \
+let headerLabel \
+= isOutput ? 'ou\
+tput' : (res.hea\
+derLabel || (raw\
+Token || 'code')\
+);\x0a            i\
+f (!isOutput) {\x0a\
+              if\
+ (rawToken && !i\
+sSupportedByHLJS\
+(rawToken) && ra\
+wToken.length < \
+3) {\x0a           \
+     headerLabel\
+ = 'code';\x0a     \
+         }\x0a     \
+       }\x0a\x0a      \
+      if (canLog\
+) {\x0a            \
+  log(`FENCE_RES\
+OLVE #${rid}`, {\
+ headerLabel, la\
+ngToken: (res.la\
+ng || ''), langC\
+lass, hljsSuppor\
+ted: isSupported\
+ByHLJS(res.lang \
+|| ''), contentL\
+en: (res.content\
+ || '').length }\
+);\x0a             \
+ if (DEDUP) seen\
+FP.add(fp);\x0a    \
+        }\x0a\x0a     \
+       // precom\
+pute code meta t\
+o avoid expensiv\
+e .textContent o\
+n next phases\x0a  \
+          const \
+content = res.co\
+ntent || '';\x0a   \
+         const l\
+en = content.len\
+gth;\x0a           \
+ const head = co\
+ntent.slice(0, 6\
+4);\x0a            \
+const tail = con\
+tent.slice(-64);\
+\x0a            con\
+st headEsc = Uti\
+ls.escapeHtml(he\
+ad);\x0a           \
+ const tailEsc =\
+ Utils.escapeHtm\
+l(tail);\x0a       \
+     // Note: fo\
+r full renderer \
+we will also per\
+sist data-code-n\
+l (see below).\x0a\x0a\
+            cons\
+t inner = Utils.\
+escapeHtml(conte\
+nt);\x0a           \
+ const idxLocal \
+= CODE_IDX++;\x0a\x0a \
+           let a\
+ctions = '';\x0a   \
+         if (lan\
+gClass === 'html\
+') {\x0a           \
+   actions += `<\
+a href=\x22empty:${\
+idxLocal}\x22 class\
+=\x22code-header-ac\
+tion code-header\
+-preview\x22><img s\
+rc=\x22${cfg.ICONS.\
+CODE_PREVIEW}\x22 c\
+lass=\x22action-img\
+\x22 data-id=\x22${idx\
+Local}\x22><span>${\
+Utils.escapeHtml\
+(cfg.LOCALE.PREV\
+IEW)}</span></a>\
+`;\x0a            }\
+ else if (langCl\
+ass === 'python'\
+ && headerLabel \
+!== 'output') {\x0a\
+              ac\
+tions += `<a hre\
+f=\x22empty:${idxLo\
+cal}\x22 class=\x22cod\
+e-header-action \
+code-header-run\x22\
+><img src=\x22${cfg\
+.ICONS.CODE_RUN}\
+\x22 class=\x22action-\
+img\x22 data-id=\x22${\
+idxLocal}\x22><span\
+>${Utils.escapeH\
+tml(cfg.LOCALE.R\
+UN)}</span></a>`\
+;\x0a            }\x0a\
+            acti\
+ons += `<a href=\
+\x22empty:${idxLoca\
+l}\x22 class=\x22code-\
+header-action co\
+de-header-collap\
+se\x22><img src=\x22${\
+cfg.ICONS.CODE_M\
+ENU}\x22 class=\x22act\
+ion-img\x22 data-id\
+=\x22${idxLocal}\x22><\
+span>${Utils.esc\
+apeHtml(cfg.LOCA\
+LE.COLLAPSE)}</s\
+pan></a>`;\x0a     \
+       actions +\
+= `<a href=\x22empt\
+y:${idxLocal}\x22 c\
+lass=\x22code-heade\
+r-action code-he\
+ader-copy\x22><img \
+src=\x22${cfg.ICONS\
+.CODE_COPY}\x22 cla\
+ss=\x22action-img\x22 \
+data-id=\x22${idxLo\
+cal}\x22><span>${Ut\
+ils.escapeHtml(c\
+fg.LOCALE.COPY)}\
+</span></a>`;\x0a\x0a \
+           // at\
+tach precomputed\
+ meta (len/head/\
+tail) on wrapper\
+ for downstream \
+optimizations\x0a  \
+          return\
+ (\x0a             \
+ `<div class=\x22co\
+de-wrapper highl\
+ight\x22 data-index\
+=\x22${idxLocal}\x22` \
++\x0a              \
+` data-code-lang\
+=\x22${Utils.escape\
+Html(res.lang ||\
+ '')}\x22` +\x0a      \
+        ` data-c\
+ode-len=\x22${Strin\
+g(len)}\x22 data-co\
+de-head=\x22${headE\
+sc}\x22 data-code-t\
+ail=\x22${tailEsc}\x22\
+` + // meta (no \
+nl here \xe2\x80\x93 only\
+ in full rendere\
+r)\x0a             \
+ ` data-locale-c\
+ollapse=\x22${Utils\
+.escapeHtml(cfg.\
+LOCALE.COLLAPSE)\
+}\x22 data-locale-e\
+xpand=\x22${Utils.e\
+scapeHtml(cfg.LO\
+CALE.EXPAND)}\x22` \
++\x0a              \
+` data-locale-co\
+py=\x22${Utils.esca\
+peHtml(cfg.LOCAL\
+E.COPY)}\x22 data-l\
+ocale-copied=\x22${\
+Utils.escapeHtml\
+(cfg.LOCALE.COPI\
+ED)}\x22 data-style\
+=\x22${Utils.escape\
+Html(cfg.CODE_ST\
+YLE)}\x22>` +\x0a     \
+           `<p c\
+lass=\x22code-heade\
+r-wrapper\x22><span\
+><span class=\x22co\
+de-header-lang\x22>\
+${Utils.escapeHt\
+ml(headerLabel)}\
+   </span>${acti\
+ons}</span></p>`\
+ +\x0a             \
+   `<pre><code c\
+lass=\x22language-$\
+{Utils.escapeHtm\
+l(langClass)} hl\
+js\x22>${inner}</co\
+de></pre>` +\x0a   \
+           `</di\
+v>`\x0a            \
+);\x0a          }\x0a \
+       })(this.M\
+D_STREAM, this.l\
+ogger);\x0a\x0a       \
+ // FULL rendere\
+r wrapper plugin\
+ (modified heade\
+r label guard)\x0a \
+       (function\
+ codeWrapperPlug\
+in(md, logger) {\
+\x0a          // id\
+entical core log\
+ic \xe2\x80\x93 augmented\
+ with data-code-\
+nl for full rend\
+erer\x0a          l\
+et CODE_IDX = 1;\
+\x0a          const\
+ log = (line, ct\
+x) => logger.deb\
+ug('MD_LANG', li\
+ne, ctx);\x0a\x0a     \
+     const DEDUP\
+ = (window.MD_LA\
+NG_LOG_DEDUP !==\
+ false);\x0a       \
+   const seenFP \
+= new Set();\x0a   \
+       const mak\
+eFP = (info, raw\
+) => {\x0a         \
+   const head = \
+(raw || '').slic\
+e(0, 96);\x0a      \
+      return Str\
+ing(info || '') \
++ '|' + String((\
+raw || '').lengt\
+h) + '|' + head;\
+\x0a          };\x0a\x0a \
+         const A\
+LIAS = {\x0a       \
+     txt: 'plain\
+text', text: 'pl\
+aintext', plaint\
+ext: 'plaintext'\
+,\x0a            sh\
+: 'bash', shell:\
+ 'bash', zsh: 'b\
+ash', 'shell-ses\
+sion': 'bash',\x0a \
+           py: '\
+python', python3\
+: 'python', py3:\
+ 'python',\x0a     \
+       js: 'java\
+script', node: '\
+javascript', nod\
+ejs: 'javascript\
+',\x0a            t\
+s: 'typescript',\
+ 'ts-node': 'typ\
+escript',\x0a      \
+      yml: 'yaml\
+', kt: 'kotlin',\
+ rs: 'rust',\x0a   \
+         csharp:\
+ 'csharp', 'c#':\
+ 'csharp', 'c++'\
+: 'cpp',\x0a       \
+     ps: 'powers\
+hell', ps1: 'pow\
+ershell', pwsh: \
+'powershell', po\
+wershell7: 'powe\
+rshell',\x0a       \
+     docker: 'do\
+ckerfile'\x0a      \
+    };\x0a         \
+ function normLa\
+ng(s) { if (!s) \
+return ''; const\
+ v = String(s).t\
+rim().toLowerCas\
+e(); return ALIA\
+S[v] || v; }\x0a   \
+       function \
+isSupportedByHLJ\
+S(lang) { try { \
+return !!(window\
+.hljs && hljs.ge\
+tLanguage && hlj\
+s.getLanguage(la\
+ng)); } catch (_\
+) { return false\
+; } }\x0a          \
+function classFo\
+rHighlight(lang)\
+ { if (!lang) re\
+turn 'plaintext'\
+; return isSuppo\
+rtedByHLJS(lang)\
+ ? lang : 'plain\
+text'; }\x0a       \
+   function stri\
+pBOM(s) { return\
+ (s && s.charCod\
+eAt(0) === 0xFEF\
+F) ? s.slice(1) \
+: s; }\x0a\x0a        \
+  function detec\
+tFromFirstLine(r\
+aw, rid) {\x0a     \
+       if (!raw)\
+ return { lang: \
+'', content: raw\
+, isOutput: fals\
+e };\x0a           \
+ const lines = r\
+aw.split(/\x5cr?\x5cn/\
+);\x0a            i\
+f (!lines.length\
 ) return { lang:\
  '', content: ra\
 w, isOutput: fal\
 se };\x0a          \
-  const lines = \
-raw.split(/\x5cr?\x5cn\
-/);\x0a            \
-if (!lines.lengt\
-h) return { lang\
-: '', content: r\
-aw, isOutput: fa\
-lse };\x0a         \
-   let i = 0; wh\
-ile (i < lines.l\
-ength && !lines[\
-i].trim()) i++;\x0a\
-            if (\
-i >= lines.lengt\
-h) { log(`#${rid\
-} first-line: on\
-ly whitespace`);\
- return { lang: \
-'', content: raw\
-, isOutput: fals\
-e }; }\x0a         \
-   let first = s\
-tripBOM(lines[i]\
-).trim();\x0a      \
-      first = fi\
-rst.replace(/^\x5cs\
-*lang(?:uage)?\x5cs\
-*[:=]\x5cs*/i, '').\
-trim();\x0a        \
-    let token = \
-first.split(/\x5cs+\
-/)[0].replace(/:\
-$/, '');\x0a       \
-     if (!/^[A-Z\
-a-z][\x5cw#+\x5c-\x5c.]{0\
-,30}$/.test(toke\
-n)) { log(`#${ri\
-d} first-line: n\
-o token match`, \
-{ first }); retu\
-rn { lang: '', c\
-ontent: raw, isO\
-utput: false }; \
-}\x0a            le\
-t cand = normLan\
-g(token);\x0a      \
-      if (cand =\
-== 'output') {\x0a \
-             con\
-st content = lin\
-es.slice(i + 1).\
-join('\x5cn');\x0a    \
-          log(`#\
-${rid} first-lin\
-e: output header\
-`);\x0a            \
-  return { lang:\
- 'python', heade\
-rLabel: 'output'\
-, content, isOut\
-put: true };\x0a   \
-         }\x0a     \
-       const res\
-t = lines.slice(\
-i + 1).join('\x5cn'\
-);\x0a            i\
-f (!rest.trim())\
- { log(`#${rid} \
-first-line: dire\
-ctive but no con\
-tent after, igno\
-re`, { cand }); \
+  let i = 0; whi\
+le (i < lines.le\
+ngth && !lines[i\
+].trim()) i++;\x0a \
+           if (i\
+ >= lines.length\
+) { log(`#${rid}\
+ first-line: onl\
+y whitespace`); \
 return { lang: '\
 ', content: raw,\
  isOutput: false\
  }; }\x0a          \
-  log(`#${rid} f\
+  let first = st\
+ripBOM(lines[i])\
+.trim();\x0a       \
+     first = fir\
+st.replace(/^\x5cs*\
+lang(?:uage)?\x5cs*\
+[:=]\x5cs*/i, '').t\
+rim();\x0a         \
+   let token = f\
+irst.split(/\x5cs+/\
+)[0].replace(/:$\
+/, '');\x0a        \
+    if (!/^[A-Za\
+-z][\x5cw#+\x5c-\x5c.]{0,\
+30}$/.test(token\
+)) { log(`#${rid\
+} first-line: no\
+ token match`, {\
+ first }); retur\
+n { lang: '', co\
+ntent: raw, isOu\
+tput: false }; }\
+\x0a            let\
+ cand = normLang\
+(token);\x0a       \
+     if (cand ==\
+= 'output') {\x0a  \
+            cons\
+t content = line\
+s.slice(i + 1).j\
+oin('\x5cn');\x0a     \
+         log(`#$\
+{rid} first-line\
+: output header`\
+);\x0a             \
+ return { lang: \
+'python', header\
+Label: 'output',\
+ content, isOutp\
+ut: true };\x0a    \
+        }\x0a      \
+      const rest\
+ = lines.slice(i\
+ + 1).join('\x5cn')\
+;\x0a            if\
+ (!rest.trim()) \
+{ log(`#${rid} f\
 irst-line: direc\
-tive accepted`, \
-{ cand, restLen:\
- rest.length, hl\
-js: isSupportedB\
-yHLJS(cand) });\x0a\
+tive but no cont\
+ent after, ignor\
+e`, { cand }); r\
+eturn { lang: ''\
+, content: raw, \
+isOutput: false \
+}; }\x0a           \
+ log(`#${rid} fi\
+rst-line: direct\
+ive accepted`, {\
+ cand, restLen: \
+rest.length, hlj\
+s: isSupportedBy\
+HLJS(cand) });\x0a \
+           retur\
+n { lang: cand, \
+headerLabel: can\
+d, content: rest\
+, isOutput: fals\
+e };\x0a          }\
+\x0a\x0a          md.r\
+enderer.rules.fe\
+nce = (tokens, i\
+dx) => renderFen\
+ce(tokens[idx]);\
+\x0a          md.re\
+nderer.rules.cod\
+e_block = (token\
+s, idx) => rende\
+rFence({ info: '\
+', content: toke\
+ns[idx].content \
+|| '' });\x0a\x0a     \
+     function re\
+solveLanguageAnd\
+Content(info, ra\
+w, rid) {\x0a      \
+      const info\
+LangRaw = (info \
+|| '').trim().sp\
+lit(/\x5cs+/)[0] ||\
+ '';\x0a           \
+ let cand = norm\
+Lang(infoLangRaw\
+);\x0a            i\
+f (cand === 'out\
+put') {\x0a        \
+      log(`#${ri\
+d} info: output \
+header`);\x0a      \
+        return {\
+ lang: 'python',\
+ headerLabel: 'o\
+utput', content:\
+ raw, isOutput: \
+true };\x0a        \
+    }\x0a          \
+  if (cand) {\x0a  \
+            log(\
+`#${rid} info: t\
+oken`, { infoLan\
+gRaw, cand, hljs\
+: isSupportedByH\
+LJS(cand) });\x0a  \
             retu\
 rn { lang: cand,\
  headerLabel: ca\
-nd, content: res\
-t, isOutput: fal\
-se };\x0a          \
-}\x0a\x0a          md.\
-renderer.rules.f\
-ence = (tokens, \
-idx) => renderFe\
-nce(tokens[idx])\
-;\x0a          md.r\
-enderer.rules.co\
-de_block = (toke\
-ns, idx) => rend\
-erFence({ info: \
-'', content: tok\
-ens[idx].content\
- || '' });\x0a\x0a    \
-      function r\
-esolveLanguageAn\
-dContent(info, r\
-aw, rid) {\x0a     \
-       const inf\
-oLangRaw = (info\
- || '').trim().s\
-plit(/\x5cs+/)[0] |\
-| '';\x0a          \
-  let cand = nor\
-mLang(infoLangRa\
-w);\x0a            \
-if (cand === 'ou\
-tput') {\x0a       \
-       log(`#${r\
-id} info: output\
- header`);\x0a     \
-         return \
-{ lang: 'python'\
-, headerLabel: '\
-output', content\
-: raw, isOutput:\
- true };\x0a       \
-     }\x0a         \
-   if (cand) {\x0a \
-             log\
-(`#${rid} info: \
-token`, { infoLa\
-ngRaw, cand, hlj\
-s: isSupportedBy\
-HLJS(cand) });\x0a \
-             ret\
-urn { lang: cand\
-, headerLabel: c\
-and, content: ra\
-w, isOutput: fal\
-se };\x0a          \
-  }\x0a            \
-const det = dete\
-ctFromFirstLine(\
-raw, rid);\x0a     \
-       if (det &\
-& (det.lang || d\
-et.isOutput)) re\
-turn det;\x0a      \
-      log(`#${ri\
-d} resolve: fall\
-back`);\x0a        \
-    return { lan\
-g: '', headerLab\
-el: 'code', cont\
-ent: raw, isOutp\
-ut: false };\x0a   \
-       }\x0a\x0a      \
-    function ren\
-derFence(token) \
-{\x0a            co\
-nst raw = token.\
-content || '';\x0a \
-           const\
- rid = String(CO\
-DE_IDX + '');\x0a  \
+nd, content: raw\
+, isOutput: fals\
+e };\x0a           \
+ }\x0a            c\
+onst det = detec\
+tFromFirstLine(r\
+aw, rid);\x0a      \
+      if (det &&\
+ (det.lang || de\
+t.isOutput)) ret\
+urn det;\x0a       \
+     log(`#${rid\
+} resolve: fallb\
+ack`);\x0a         \
+   return { lang\
+: '', headerLabe\
+l: 'code', conte\
+nt: raw, isOutpu\
+t: false };\x0a    \
+      }\x0a\x0a       \
+   function rend\
+erFence(token) {\
+\x0a            con\
+st raw = token.c\
+ontent || '';\x0a  \
           const \
-fp = makeFP(toke\
-n.info || '', ra\
-w);\x0a            \
-const canLog = !\
-DEDUP || !seenFP\
-.has(fp);\x0a      \
-      if (canLog\
-) log(`FENCE_ENT\
-ER #${rid}`, { i\
-nfo: (token.info\
- || ''), rawHead\
-: logger.pv(raw)\
- });\x0a\x0a          \
-  const res = re\
-solveLanguageAnd\
-Content(token.in\
-fo || '', raw, r\
-id);\x0a           \
- const isOutput \
-= !!res.isOutput\
-;\x0a\x0a            /\
-/ Choose class a\
-nd a safe header\
- label (avoid 'o\
-n', 'ml', 's' et\
-c.)\x0a            \
-const rawToken =\
- (res.lang || ''\
-).trim();\x0a      \
-      const lang\
-Class = isOutput\
- ? 'python' : cl\
-assForHighlight(\
-rawToken);\x0a\x0a    \
-        // Guard\
- against tiny un\
-supported tokens\
- \xe2\x80\x93 show tempor\
-ary 'code' inste\
-ad of partial su\
-ffix.\x0a          \
-  let headerLabe\
-l = isOutput ? '\
-output' : (res.h\
-eaderLabel || (r\
-awToken || 'code\
-'));\x0a           \
- if (!isOutput) \
-{\x0a              \
-if (rawToken && \
-!isSupportedByHL\
-JS(rawToken) && \
-rawToken.length \
-< 3) {\x0a         \
-       headerLab\
-el = 'code';\x0a   \
-           }\x0a   \
+rid = String(COD\
+E_IDX + '');\x0a   \
+         const f\
+p = makeFP(token\
+.info || '', raw\
+);\x0a            c\
+onst canLog = !D\
+EDUP || !seenFP.\
+has(fp);\x0a       \
+     if (canLog)\
+ log(`FENCE_ENTE\
+R #${rid}`, { in\
+fo: (token.info \
+|| ''), rawHead:\
+ logger.pv(raw) \
+});\x0a\x0a           \
+ const res = res\
+olveLanguageAndC\
+ontent(token.inf\
+o || '', raw, ri\
+d);\x0a            \
+const isOutput =\
+ !!res.isOutput;\
+\x0a\x0a            //\
+ Choose class an\
+d a safe header \
+label (avoid 'on\
+', 'ml', 's' etc\
+.)\x0a            c\
+onst rawToken = \
+(res.lang || '')\
+.trim();\x0a       \
+     const langC\
+lass = isOutput \
+? 'python' : cla\
+ssForHighlight(r\
+awToken);\x0a\x0a     \
+       // Guard \
+against tiny uns\
+upported tokens \
+\xe2\x80\x93 show tempora\
+ry 'code' instea\
+d of partial suf\
+fix.\x0a           \
+ let headerLabel\
+ = isOutput ? 'o\
+utput' : (res.he\
+aderLabel || (ra\
+wToken || 'code'\
+));\x0a            \
+if (!isOutput) {\
+\x0a              i\
+f (rawToken && !\
+isSupportedByHLJ\
+S(rawToken) && r\
+awToken.length <\
+ 3) {\x0a          \
+      headerLabe\
+l = 'code';\x0a    \
+          }\x0a    \
+        }\x0a\x0a     \
+       if (canLo\
+g) {\x0a           \
+   log(`FENCE_RE\
+SOLVE #${rid}`, \
+{ headerLabel, l\
+angToken: (res.l\
+ang || ''), lang\
+Class, hljsSuppo\
+rted: isSupporte\
+dByHLJS(res.lang\
+ || ''), content\
+Len: (res.conten\
+t || '').length \
+});\x0a            \
+  if (DEDUP) see\
+nFP.add(fp);\x0a   \
          }\x0a\x0a    \
-        if (canL\
-og) {\x0a          \
-    log(`FENCE_R\
-ESOLVE #${rid}`,\
- { headerLabel, \
-langToken: (res.\
-lang || ''), lan\
-gClass, hljsSupp\
-orted: isSupport\
-edByHLJS(res.lan\
-g || ''), conten\
-tLen: (res.conte\
-nt || '').length\
- });\x0a           \
-   if (DEDUP) se\
-enFP.add(fp);\x0a  \
-          }\x0a\x0a   \
-         // prec\
-ompute code meta\
- to avoid expens\
-ive .textContent\
- on next phases\x0a\
+        // preco\
+mpute code meta\x0a\
             cons\
 t content = res.\
 content || '';\x0a \
@@ -90997,91 +91523,83 @@ head);\x0a         \
    const tailEsc\
  = Utils.escapeH\
 tml(tail);\x0a     \
-       // Note: \
-for full rendere\
-r we will also p\
-ersist data-code\
--nl (see below).\
-\x0a\x0a            co\
-nst inner = Util\
-s.escapeHtml(con\
-tent);\x0a         \
-   const idxLoca\
-l = CODE_IDX++;\x0a\
-\x0a            let\
- actions = '';\x0a \
-           if (l\
-angClass === 'ht\
-ml') {\x0a         \
-     actions += \
-`<a href=\x22empty:\
-${idxLocal}\x22 cla\
-ss=\x22code-header-\
-action code-head\
-er-preview\x22><img\
- src=\x22${cfg.ICON\
-S.CODE_PREVIEW}\x22\
- class=\x22action-i\
-mg\x22 data-id=\x22${i\
-dxLocal}\x22><span>\
-${Utils.escapeHt\
-ml(cfg.LOCALE.PR\
-EVIEW)}</span></\
-a>`;\x0a           \
- } else if (lang\
-Class === 'pytho\
-n' && headerLabe\
-l !== 'output') \
-{\x0a              \
-actions += `<a h\
-ref=\x22empty:${idx\
-Local}\x22 class=\x22c\
-ode-header-actio\
-n code-header-ru\
-n\x22><img src=\x22${c\
-fg.ICONS.CODE_RU\
-N}\x22 class=\x22actio\
-n-img\x22 data-id=\x22\
-${idxLocal}\x22><sp\
-an>${Utils.escap\
-eHtml(cfg.LOCALE\
-.RUN)}</span></a\
+       const nl \
+= Utils.countNew\
+lines(content);\x0a\
+\x0a            con\
+st inner = Utils\
+.escapeHtml(cont\
+ent);\x0a          \
+  const idxLocal\
+ = CODE_IDX++;\x0a\x0a\
+            let \
+actions = '';\x0a  \
+          if (la\
+ngClass === 'htm\
+l') {\x0a          \
+    actions += `\
+<a href=\x22empty:$\
+{idxLocal}\x22 clas\
+s=\x22code-header-a\
+ction code-heade\
+r-preview\x22><img \
+src=\x22${cfg.ICONS\
+.CODE_PREVIEW}\x22 \
+class=\x22action-im\
+g\x22 data-id=\x22${id\
+xLocal}\x22><span>$\
+{Utils.escapeHtm\
+l(cfg.LOCALE.PRE\
+VIEW)}</span></a\
 >`;\x0a            \
-}\x0a            ac\
-tions += `<a hre\
-f=\x22empty:${idxLo\
-cal}\x22 class=\x22cod\
-e-header-action \
-code-header-coll\
-apse\x22><img src=\x22\
-${cfg.ICONS.CODE\
-_MENU}\x22 class=\x22a\
-ction-img\x22 data-\
-id=\x22${idxLocal}\x22\
-><span>${Utils.e\
-scapeHtml(cfg.LO\
-CALE.COLLAPSE)}<\
-/span></a>`;\x0a   \
-         actions\
- += `<a href=\x22em\
-pty:${idxLocal}\x22\
- class=\x22code-hea\
-der-action code-\
-header-copy\x22><im\
-g src=\x22${cfg.ICO\
-NS.CODE_COPY}\x22 c\
-lass=\x22action-img\
-\x22 data-id=\x22${idx\
-Local}\x22><span>${\
-Utils.escapeHtml\
-(cfg.LOCALE.COPY\
-)}</span></a>`;\x0a\
-\x0a            // \
-attach precomput\
-ed meta (len/hea\
-d/tail) on wrapp\
-er for downstrea\
-m optimizations\x0a\
+} else if (langC\
+lass === 'python\
+' && headerLabel\
+ !== 'output') {\
+\x0a              a\
+ctions += `<a hr\
+ef=\x22empty:${idxL\
+ocal}\x22 class=\x22co\
+de-header-action\
+ code-header-run\
+\x22><img src=\x22${cf\
+g.ICONS.CODE_RUN\
+}\x22 class=\x22action\
+-img\x22 data-id=\x22$\
+{idxLocal}\x22><spa\
+n>${Utils.escape\
+Html(cfg.LOCALE.\
+RUN)}</span></a>\
+`;\x0a            }\
+\x0a            act\
+ions += `<a href\
+=\x22empty:${idxLoc\
+al}\x22 class=\x22code\
+-header-action c\
+ode-header-colla\
+pse\x22><img src=\x22$\
+{cfg.ICONS.CODE_\
+MENU}\x22 class=\x22ac\
+tion-img\x22 data-i\
+d=\x22${idxLocal}\x22>\
+<span>${Utils.es\
+capeHtml(cfg.LOC\
+ALE.COLLAPSE)}</\
+span></a>`;\x0a    \
+        actions \
++= `<a href=\x22emp\
+ty:${idxLocal}\x22 \
+class=\x22code-head\
+er-action code-h\
+eader-copy\x22><img\
+ src=\x22${cfg.ICON\
+S.CODE_COPY}\x22 cl\
+ass=\x22action-img\x22\
+ data-id=\x22${idxL\
+ocal}\x22><span>${U\
+tils.escapeHtml(\
+cfg.LOCALE.COPY)\
+}</span></a>`;\x0a\x0a\
             retu\
 rn (\x0a           \
    `<div class=\x22\
@@ -91099,1442 +91617,899 @@ ing(len)}\x22 data-\
 code-head=\x22${hea\
 dEsc}\x22 data-code\
 -tail=\x22${tailEsc\
-}\x22` + // meta (n\
-o nl here \xe2\x80\x93 on\
-ly in full rende\
-rer)\x0a           \
-   ` data-locale\
--collapse=\x22${Uti\
-ls.escapeHtml(cf\
-g.LOCALE.COLLAPS\
-E)}\x22 data-locale\
--expand=\x22${Utils\
+}\x22 data-code-nl=\
+\x22${String(nl)}\x22`\
+ +\x0a             \
+ ` data-locale-c\
+ollapse=\x22${Utils\
 .escapeHtml(cfg.\
-LOCALE.EXPAND)}\x22\
-` +\x0a            \
-  ` data-locale-\
-copy=\x22${Utils.es\
-capeHtml(cfg.LOC\
-ALE.COPY)}\x22 data\
--locale-copied=\x22\
-${Utils.escapeHt\
-ml(cfg.LOCALE.CO\
-PIED)}\x22 data-sty\
-le=\x22${Utils.esca\
-peHtml(cfg.CODE_\
-STYLE)}\x22>` +\x0a   \
-             `<p\
- class=\x22code-hea\
-der-wrapper\x22><sp\
-an><span class=\x22\
-code-header-lang\
-\x22>${Utils.escape\
-Html(headerLabel\
-)}   </span>${ac\
-tions}</span></p\
->` +\x0a           \
-     `<pre><code\
- class=\x22language\
--${Utils.escapeH\
-tml(langClass)} \
-hljs\x22>${inner}</\
-code></pre>` +\x0a \
-             `</\
-div>`\x0a          \
-  );\x0a          }\
-\x0a        })(this\
-.MD_STREAM, this\
-.logger);\x0a\x0a     \
-   // FULL rende\
-rer wrapper plug\
-in (modified hea\
-der label guard)\
-\x0a        (functi\
-on codeWrapperPl\
-ugin(md, logger)\
- {\x0a          // \
-identical core l\
-ogic \xe2\x80\x93 augment\
-ed with data-cod\
-e-nl for full re\
-nderer\x0a         \
- let CODE_IDX = \
-1;\x0a          con\
-st log = (line, \
-ctx) => logger.d\
-ebug('MD_LANG', \
-line, ctx);\x0a\x0a   \
-       const DED\
-UP = (window.MD_\
-LANG_LOG_DEDUP !\
-== false);\x0a     \
-     const seenF\
-P = new Set();\x0a \
-         const m\
-akeFP = (info, r\
-aw) => {\x0a       \
-     const head \
-= (raw || '').sl\
-ice(0, 96);\x0a    \
-        return S\
-tring(info || ''\
-) + '|' + String\
-((raw || '').len\
-gth) + '|' + hea\
-d;\x0a          };\x0a\
-\x0a          const\
- ALIAS = {\x0a     \
-       txt: 'pla\
-intext', text: '\
-plaintext', plai\
-ntext: 'plaintex\
-t',\x0a            \
-sh: 'bash', shel\
-l: 'bash', zsh: \
-'bash', 'shell-s\
-ession': 'bash',\
-\x0a            py:\
- 'python', pytho\
-n3: 'python', py\
-3: 'python',\x0a   \
-         js: 'ja\
-vascript', node:\
- 'javascript', n\
-odejs: 'javascri\
-pt',\x0a           \
- ts: 'typescript\
-', 'ts-node': 't\
-ypescript',\x0a    \
-        yml: 'ya\
-ml', kt: 'kotlin\
-', rs: 'rust',\x0a \
-           cshar\
-p: 'csharp', 'c#\
-': 'csharp', 'c+\
-+': 'cpp',\x0a     \
-       ps: 'powe\
-rshell', ps1: 'p\
-owershell', pwsh\
-: 'powershell', \
-powershell7: 'po\
-wershell',\x0a     \
-       docker: '\
-dockerfile'\x0a    \
-      };\x0a       \
-   function norm\
-Lang(s) { if (!s\
-) return ''; con\
-st v = String(s)\
-.trim().toLowerC\
-ase(); return AL\
-IAS[v] || v; }\x0a \
-         functio\
-n isSupportedByH\
-LJS(lang) { try \
-{ return !!(wind\
-ow.hljs && hljs.\
-getLanguage && h\
-ljs.getLanguage(\
-lang)); } catch \
-(_) { return fal\
-se; } }\x0a        \
-  function class\
-ForHighlight(lan\
-g) { if (!lang) \
-return 'plaintex\
-t'; return isSup\
-portedByHLJS(lan\
-g) ? lang : 'pla\
-intext'; }\x0a     \
-     function st\
-ripBOM(s) { retu\
-rn (s && s.charC\
-odeAt(0) === 0xF\
-EFF) ? s.slice(1\
-) : s; }\x0a\x0a      \
-    function det\
-ectFromFirstLine\
-(raw, rid) {\x0a   \
-         if (!ra\
-w) return { lang\
-: '', content: r\
-aw, isOutput: fa\
-lse };\x0a         \
-   const lines =\
- raw.split(/\x5cr?\x5c\
-n/);\x0a           \
- if (!lines.leng\
-th) return { lan\
-g: '', content: \
-raw, isOutput: f\
-alse };\x0a        \
-    let i = 0; w\
-hile (i < lines.\
-length && !lines\
-[i].trim()) i++;\
-\x0a            if \
-(i >= lines.leng\
-th) { log(`#${ri\
-d} first-line: o\
-nly whitespace`)\
-; return { lang:\
- '', content: ra\
-w, isOutput: fal\
-se }; }\x0a        \
-    let first = \
-stripBOM(lines[i\
-]).trim();\x0a     \
-       first = f\
-irst.replace(/^\x5c\
-s*lang(?:uage)?\x5c\
-s*[:=]\x5cs*/i, '')\
-.trim();\x0a       \
-     let token =\
- first.split(/\x5cs\
-+/)[0].replace(/\
-:$/, '');\x0a      \
-      if (!/^[A-\
-Za-z][\x5cw#+\x5c-\x5c.]{\
-0,30}$/.test(tok\
-en)) { log(`#${r\
-id} first-line: \
-no token match`,\
- { first }); ret\
-urn { lang: '', \
-content: raw, is\
-Output: false };\
- }\x0a            l\
-et cand = normLa\
-ng(token);\x0a     \
-       if (cand \
-=== 'output') {\x0a\
-              co\
-nst content = li\
-nes.slice(i + 1)\
-.join('\x5cn');\x0a   \
-           log(`\
-#${rid} first-li\
-ne: output heade\
-r`);\x0a           \
-   return { lang\
-: 'python', head\
-erLabel: 'output\
-', content, isOu\
-tput: true };\x0a  \
-          }\x0a    \
-        const re\
-st = lines.slice\
-(i + 1).join('\x5cn\
-');\x0a            \
-if (!rest.trim()\
-) { log(`#${rid}\
- first-line: dir\
-ective but no co\
-ntent after, ign\
-ore`, { cand });\
- return { lang: \
-'', content: raw\
-, isOutput: fals\
-e }; }\x0a         \
-   log(`#${rid} \
-first-line: dire\
-ctive accepted`,\
- { cand, restLen\
-: rest.length, h\
-ljs: isSupported\
-ByHLJS(cand) });\
-\x0a            ret\
-urn { lang: cand\
-, headerLabel: c\
-and, content: re\
-st, isOutput: fa\
-lse };\x0a         \
- }\x0a\x0a          md\
-.renderer.rules.\
-fence = (tokens,\
- idx) => renderF\
-ence(tokens[idx]\
-);\x0a          md.\
-renderer.rules.c\
-ode_block = (tok\
-ens, idx) => ren\
-derFence({ info:\
- '', content: to\
-kens[idx].conten\
-t || '' });\x0a\x0a   \
-       function \
-resolveLanguageA\
-ndContent(info, \
-raw, rid) {\x0a    \
-        const in\
-foLangRaw = (inf\
-o || '').trim().\
-split(/\x5cs+/)[0] \
-|| '';\x0a         \
-   let cand = no\
-rmLang(infoLangR\
-aw);\x0a           \
- if (cand === 'o\
-utput') {\x0a      \
-        log(`#${\
-rid} info: outpu\
-t header`);\x0a    \
-          return\
- { lang: 'python\
-', headerLabel: \
-'output', conten\
-t: raw, isOutput\
-: true };\x0a      \
-      }\x0a        \
-    if (cand) {\x0a\
-              lo\
-g(`#${rid} info:\
- token`, { infoL\
-angRaw, cand, hl\
-js: isSupportedB\
-yHLJS(cand) });\x0a\
-              re\
-turn { lang: can\
-d, headerLabel: \
-cand, content: r\
-aw, isOutput: fa\
-lse };\x0a         \
-   }\x0a           \
- const det = det\
-ectFromFirstLine\
-(raw, rid);\x0a    \
-        if (det \
-&& (det.lang || \
-det.isOutput)) r\
-eturn det;\x0a     \
-       log(`#${r\
-id} resolve: fal\
-lback`);\x0a       \
-     return { la\
-ng: '', headerLa\
-bel: 'code', con\
-tent: raw, isOut\
-put: false };\x0a  \
-        }\x0a\x0a     \
-     function re\
-nderFence(token)\
- {\x0a            c\
-onst raw = token\
-.content || '';\x0a\
-            cons\
-t rid = String(C\
-ODE_IDX + '');\x0a \
-           const\
- fp = makeFP(tok\
-en.info || '', r\
-aw);\x0a           \
- const canLog = \
-!DEDUP || !seenF\
-P.has(fp);\x0a     \
-       if (canLo\
-g) log(`FENCE_EN\
-TER #${rid}`, { \
-info: (token.inf\
-o || ''), rawHea\
-d: logger.pv(raw\
-) });\x0a\x0a         \
-   const res = r\
-esolveLanguageAn\
-dContent(token.i\
-nfo || '', raw, \
-rid);\x0a          \
-  const isOutput\
- = !!res.isOutpu\
-t;\x0a\x0a            \
-// Choose class \
-and a safe heade\
-r label (avoid '\
-on', 'ml', 's' e\
-tc.)\x0a           \
- const rawToken \
-= (res.lang || '\
-').trim();\x0a     \
-       const lan\
-gClass = isOutpu\
-t ? 'python' : c\
-lassForHighlight\
-(rawToken);\x0a\x0a   \
-         // Guar\
-d against tiny u\
-nsupported token\
-s \xe2\x80\x93 show tempo\
-rary 'code' inst\
-ead of partial s\
-uffix.\x0a         \
-   let headerLab\
-el = isOutput ? \
-'output' : (res.\
-headerLabel || (\
-rawToken || 'cod\
-e'));\x0a          \
-  if (!isOutput)\
- {\x0a             \
- if (rawToken &&\
- !isSupportedByH\
-LJS(rawToken) &&\
- rawToken.length\
- < 3) {\x0a        \
-        headerLa\
-bel = 'code';\x0a  \
-            }\x0a  \
-          }\x0a\x0a   \
-         if (can\
-Log) {\x0a         \
-     log(`FENCE_\
-RESOLVE #${rid}`\
-, { headerLabel,\
- langToken: (res\
-.lang || ''), la\
-ngClass, hljsSup\
-ported: isSuppor\
-tedByHLJS(res.la\
-ng || ''), conte\
-ntLen: (res.cont\
-ent || '').lengt\
-h });\x0a          \
-    if (DEDUP) s\
-eenFP.add(fp);\x0a \
-           }\x0a\x0a  \
-          // pre\
-compute code met\
-a\x0a            co\
-nst content = re\
-s.content || '';\
-\x0a            con\
-st len = content\
-.length;\x0a       \
-     const head \
-= content.slice(\
-0, 64);\x0a        \
-    const tail =\
- content.slice(-\
-64);\x0a           \
- const headEsc =\
- Utils.escapeHtm\
-l(head);\x0a       \
-     const tailE\
-sc = Utils.escap\
-eHtml(tail);\x0a   \
-         const n\
-l = Utils.countN\
-ewlines(content)\
-;\x0a\x0a            c\
-onst inner = Uti\
-ls.escapeHtml(co\
-ntent);\x0a        \
-    const idxLoc\
-al = CODE_IDX++;\
-\x0a\x0a            le\
-t actions = '';\x0a\
-            if (\
-langClass === 'h\
-tml') {\x0a        \
-      actions +=\
- `<a href=\x22empty\
-:${idxLocal}\x22 cl\
-ass=\x22code-header\
--action code-hea\
-der-preview\x22><im\
-g src=\x22${cfg.ICO\
-NS.CODE_PREVIEW}\
-\x22 class=\x22action-\
-img\x22 data-id=\x22${\
-idxLocal}\x22><span\
->${Utils.escapeH\
-tml(cfg.LOCALE.P\
-REVIEW)}</span><\
-/a>`;\x0a          \
-  } else if (lan\
-gClass === 'pyth\
-on' && headerLab\
-el !== 'output')\
- {\x0a             \
- actions += `<a \
-href=\x22empty:${id\
-xLocal}\x22 class=\x22\
-code-header-acti\
-on code-header-r\
-un\x22><img src=\x22${\
-cfg.ICONS.CODE_R\
-UN}\x22 class=\x22acti\
-on-img\x22 data-id=\
-\x22${idxLocal}\x22><s\
-pan>${Utils.esca\
+LOCALE.COLLAPSE)\
+}\x22 data-locale-e\
+xpand=\x22${Utils.e\
+scapeHtml(cfg.LO\
+CALE.EXPAND)}\x22` \
++\x0a              \
+` data-locale-co\
+py=\x22${Utils.esca\
 peHtml(cfg.LOCAL\
-E.RUN)}</span></\
-a>`;\x0a           \
- }\x0a            a\
-ctions += `<a hr\
-ef=\x22empty:${idxL\
-ocal}\x22 class=\x22co\
-de-header-action\
- code-header-col\
-lapse\x22><img src=\
-\x22${cfg.ICONS.COD\
-E_MENU}\x22 class=\x22\
-action-img\x22 data\
--id=\x22${idxLocal}\
-\x22><span>${Utils.\
-escapeHtml(cfg.L\
-OCALE.COLLAPSE)}\
-</span></a>`;\x0a  \
-          action\
-s += `<a href=\x22e\
-mpty:${idxLocal}\
-\x22 class=\x22code-he\
-ader-action code\
--header-copy\x22><i\
-mg src=\x22${cfg.IC\
-ONS.CODE_COPY}\x22 \
-class=\x22action-im\
-g\x22 data-id=\x22${id\
-xLocal}\x22><span>$\
-{Utils.escapeHtm\
-l(cfg.LOCALE.COP\
-Y)}</span></a>`;\
-\x0a\x0a            re\
-turn (\x0a         \
-     `<div class\
-=\x22code-wrapper h\
-ighlight\x22 data-i\
-ndex=\x22${idxLocal\
-}\x22` +\x0a          \
-    ` data-code-\
-lang=\x22${Utils.es\
-capeHtml(res.lan\
-g || '')}\x22` +\x0a  \
-            ` da\
-ta-code-len=\x22${S\
-tring(len)}\x22 dat\
-a-code-head=\x22${h\
-eadEsc}\x22 data-co\
-de-tail=\x22${tailE\
-sc}\x22 data-code-n\
-l=\x22${String(nl)}\
-\x22` +\x0a           \
-   ` data-locale\
--collapse=\x22${Uti\
-ls.escapeHtml(cf\
-g.LOCALE.COLLAPS\
-E)}\x22 data-locale\
--expand=\x22${Utils\
-.escapeHtml(cfg.\
-LOCALE.EXPAND)}\x22\
-` +\x0a            \
-  ` data-locale-\
-copy=\x22${Utils.es\
-capeHtml(cfg.LOC\
-ALE.COPY)}\x22 data\
--locale-copied=\x22\
+E.COPY)}\x22 data-l\
+ocale-copied=\x22${\
+Utils.escapeHtml\
+(cfg.LOCALE.COPI\
+ED)}\x22 data-style\
+=\x22${Utils.escape\
+Html(cfg.CODE_ST\
+YLE)}\x22>` +\x0a     \
+           `<p c\
+lass=\x22code-heade\
+r-wrapper\x22><span\
+><span class=\x22co\
+de-header-lang\x22>\
 ${Utils.escapeHt\
-ml(cfg.LOCALE.CO\
-PIED)}\x22 data-sty\
-le=\x22${Utils.esca\
-peHtml(cfg.CODE_\
-STYLE)}\x22>` +\x0a   \
-             `<p\
- class=\x22code-hea\
-der-wrapper\x22><sp\
-an><span class=\x22\
-code-header-lang\
-\x22>${Utils.escape\
-Html(headerLabel\
-)}   </span>${ac\
-tions}</span></p\
->` +\x0a           \
-     `<pre><code\
- class=\x22language\
--${Utils.escapeH\
-tml(langClass)} \
-hljs\x22>${inner}</\
-code></pre>` +\x0a \
-             `</\
-div>`\x0a          \
-  );\x0a          }\
-\x0a        })(this\
-.MD, this.logger\
-);\x0a      }\x0a     \
- // Replace \x22san\
-dbox:\x22 links wit\
-h file:// in mar\
-kdown source (ho\
-st policy).\x0a    \
-  preprocessMD(s\
-) { return (s ||\
- '').replace(/\x5c]\
-\x5c(sandbox:/g, ']\
-(file://'); }\x0a  \
-    // Decode ba\
-se64 UTF-8 to st\
-ring (shared Tex\
-tDecoder).\x0a     \
- b64ToUtf8(b64) \
-{\x0a        const \
-bin = atob(b64);\
-\x0a        const b\
-ytes = new Uint8\
-Array(bin.length\
-);\x0a        for (\
-let i = 0; i < b\
-in.length; i++) \
-bytes[i] = bin.c\
-harCodeAt(i);\x0a  \
-      return Uti\
-ls.utf8Decode(by\
-tes);\x0a      }\x0a\x0a \
-     // Apply cu\
-stom markup for \
-bot messages onl\
-y (method name k\
-ept for API).\x0a  \
-    applyCustomM\
-arkupForBots(roo\
-t) {\x0a        con\
-st MD = this.MD;\
-\x0a        try {\x0a \
-         const s\
-cope = root || d\
-ocument;\x0a       \
-   const targets\
- = [];\x0a\x0a        \
-  // If scope it\
-self is a bot me\
-ssage box\x0a      \
-    if (scope &&\
- scope.nodeType \
-=== 1 && scope.c\
-lassList && scop\
-e.classList.cont\
-ains('msg-box') \
-&&\x0a             \
- scope.classList\
-.contains('msg-b\
-ot')) {\x0a        \
-    targets.push\
-(scope);\x0a       \
-   }\x0a\x0a          \
-// Collect bot m\
-essage boxes wit\
-hin the scope\x0a  \
-        if (scop\
-e && typeof scop\
-e.querySelectorA\
-ll === 'function\
-') {\x0a           \
- const list = sc\
-ope.querySelecto\
-rAll('.msg-box.m\
-sg-bot');\x0a      \
-      for (let i\
- = 0; i < list.l\
-ength; i++) targ\
-ets.push(list[i]\
-);\x0a          }\x0a\x0a\
-          // If \
-scope is inside \
-a bot message, i\
-nclude the close\
-st ancestor as w\
-ell\x0a          if\
- (scope && scope\
-.nodeType === 1 \
+ml(headerLabel)}\
+   </span>${acti\
+ons}</span></p>`\
+ +\x0a             \
+   `<pre><code c\
+lass=\x22language-$\
+{Utils.escapeHtm\
+l(langClass)} hl\
+js\x22>${inner}</co\
+de></pre>` +\x0a   \
+           `</di\
+v>`\x0a            \
+);\x0a          }\x0a \
+       })(this.M\
+D, this.logger);\
+\x0a      }\x0a      /\
+/ Replace \x22sandb\
+ox:\x22 links with \
+file:// in markd\
+own source (host\
+ policy).\x0a      \
+preprocessMD(s) \
+{ return (s || '\
+').replace(/\x5c]\x5c(\
+sandbox:/g, '](f\
+ile://'); }\x0a    \
+  // Decode base\
+64 UTF-8 to stri\
+ng (shared TextD\
+ecoder).\x0a      b\
+64ToUtf8(b64) {\x0a\
+        const bi\
+n = atob(b64);\x0a \
+       const byt\
+es = new Uint8Ar\
+ray(bin.length);\
+\x0a        for (le\
+t i = 0; i < bin\
+.length; i++) by\
+tes[i] = bin.cha\
+rCodeAt(i);\x0a    \
+    return Utils\
+.utf8Decode(byte\
+s);\x0a      }\x0a\x0a   \
+   // Apply cust\
+om markup for bo\
+t messages only \
+(method name kep\
+t for API).\x0a    \
+  applyCustomMar\
+kupForBots(root)\
+ {\x0a        const\
+ MD = this.MD;\x0a \
+       try {\x0a   \
+       const sco\
+pe = root || doc\
+ument;\x0a         \
+ const targets =\
+ [];\x0a\x0a          \
+// If scope itse\
+lf is a bot mess\
+age box\x0a        \
+  if (scope && s\
+cope.nodeType ==\
+= 1 && scope.cla\
+ssList && scope.\
+classList.contai\
+ns('msg-box') &&\
+\x0a              s\
+cope.classList.c\
+ontains('msg-bot\
+')) {\x0a          \
+  targets.push(s\
+cope);\x0a         \
+ }\x0a\x0a          //\
+ Collect bot mes\
+sage boxes withi\
+n the scope\x0a    \
+      if (scope \
 && typeof scope.\
-closest === 'fun\
-ction') {\x0a      \
-      const clos\
-estMsg = scope.c\
-losest('.msg-box\
-.msg-bot');\x0a    \
-        if (clos\
-estMsg) targets.\
-push(closestMsg)\
-;\x0a          }\x0a\x0a \
-         // Dedu\
-plicate and appl\
-y rules only to \
-bot messages\x0a   \
-       const see\
-n = new Set();\x0a \
-         for (co\
-nst el of target\
-s) {\x0a           \
- if (!el || !el.\
-isConnected || s\
-een.has(el)) con\
-tinue;\x0a         \
-   seen.add(el);\
-\x0a            thi\
-s.customMarkup.a\
-pply(el, MD);\x0a  \
-        }\x0a      \
-  } catch (_) {\x0a\
-          // Kee\
-p render path re\
-silient\x0a        \
-}\x0a      }\x0a\x0a     \
- // Helper: choo\
-se renderer (hot\
- vs full) for sn\
-apshot use.\x0a    \
-  _md(streamingH\
-int) {\x0a        r\
-eturn streamingH\
-int ? (this.MD_S\
-TREAM || this.MD\
-) : (this.MD || \
-this.MD_STREAM);\
-\x0a      }\x0a\x0a      \
-// Async, batche\
-d processing of \
-[data-md64] / [m\
-d-block-markdown\
-] to keep UI res\
-ponsive on heavy\
- loads.\x0a      //\
- Note: user mess\
-ages are rendere\
-d as plain text \
-(no markdown-it,\
- no custom marku\
-p, no KaTeX).\x0a  \
-    async render\
-PendingMarkdown(\
-root) {\x0a        \
-const MD = this.\
-MD; if (!MD) ret\
-urn;\x0a        con\
-st scope = root \
-|| document;\x0a\x0a  \
-      // Collect\
- both legacy bas\
-e64 holders and \
-new native Markd\
-own holders\x0a    \
-    const nodes \
-= Array.from(sco\
-pe.querySelector\
-All('[data-md64]\
-, [md-block-mark\
-down]'));\x0a      \
-  if (nodes.leng\
-th === 0) {\x0a    \
-      // Nothing\
- to materialize \
-right now. Avoid\
- arming rAF work\
- unless there is\
-\x0a          // ac\
-tually something\
- present that ne\
-eds highlight/sc\
-roll/math.\x0a     \
-     try {\x0a     \
-       const has\
-Bots = !!(scope \
-&& scope.querySe\
-lector && scope.\
-querySelector('.\
-msg-box.msg-bot'\
-));\x0a            \
-const hasWrapper\
-s = !!(scope && \
+querySelectorAll\
+ === 'function')\
+ {\x0a            c\
+onst list = scop\
+e.querySelectorA\
+ll('.msg-box.msg\
+-bot');\x0a        \
+    for (let i =\
+ 0; i < list.len\
+gth; i++) target\
+s.push(list[i]);\
+\x0a          }\x0a\x0a  \
+        // If sc\
+ope is inside a \
+bot message, inc\
+lude the closest\
+ ancestor as wel\
+l\x0a          if (\
+scope && scope.n\
+odeType === 1 &&\
+ typeof scope.cl\
+osest === 'funct\
+ion') {\x0a        \
+    const closes\
+tMsg = scope.clo\
+sest('.msg-box.m\
+sg-bot');\x0a      \
+      if (closes\
+tMsg) targets.pu\
+sh(closestMsg);\x0a\
+          }\x0a\x0a   \
+       // Dedupl\
+icate and apply \
+rules only to bo\
+t messages\x0a     \
+     const seen \
+= new Set();\x0a   \
+       for (cons\
+t el of targets)\
+ {\x0a            i\
+f (!el || !el.is\
+Connected || see\
+n.has(el)) conti\
+nue;\x0a           \
+ seen.add(el);\x0a \
+           this.\
+customMarkup.app\
+ly(el, MD);\x0a    \
+      }\x0a        \
+} catch (_) {\x0a  \
+        // Keep \
+render path resi\
+lient\x0a        }\x0a\
+      }\x0a\x0a      /\
+/ Helper: choose\
+ renderer (hot v\
+s full) for snap\
+shot use.\x0a      \
+_md(streamingHin\
+t) {\x0a        ret\
+urn streamingHin\
+t ? (this.MD_STR\
+EAM || this.MD) \
+: (this.MD || th\
+is.MD_STREAM);\x0a \
+     }\x0a\x0a      //\
+ Async, batched \
+processing of [d\
+ata-md64] / [md-\
+block-markdown] \
+to keep UI respo\
+nsive on heavy l\
+oads.\x0a      // N\
+ote: user messag\
+es are rendered \
+as plain text (n\
+o markdown-it, n\
+o custom markup,\
+ no KaTeX).\x0a    \
+  async renderPe\
+ndingMarkdown(ro\
+ot) {\x0a        co\
+nst MD = this.MD\
+; if (!MD) retur\
+n;\x0a        const\
+ scope = root ||\
+ document;\x0a\x0a    \
+    // Collect b\
+oth legacy base6\
+4 holders and ne\
+w native Markdow\
+n holders\x0a      \
+  const nodes = \
+Array.from(scope\
+.querySelectorAl\
+l('[data-md64], \
+[md-block-markdo\
+wn]'));\x0a        \
+if (nodes.length\
+ === 0) {\x0a      \
+    // Nothing t\
+o materialize ri\
+ght now. Avoid a\
+rming rAF work u\
+nless there is\x0a \
+         // actu\
+ally something p\
+resent that need\
+s highlight/scro\
+ll/math.\x0a       \
+   try {\x0a       \
+     const hasBo\
+ts = !!(scope &&\
+ scope.querySele\
+ctor && scope.qu\
+erySelector('.ms\
+g-box.msg-bot'))\
+;\x0a            co\
+nst hasWrappers \
+= !!(scope && sc\
+ope.querySelecto\
+r && scope.query\
+Selector('.code-\
+wrapper'));\x0a    \
+        const ha\
+sCodes = !!(scop\
+e && scope.query\
+Selector && scop\
+e.querySelector(\
+'.msg-box.msg-bo\
+t pre code'));\x0a \
+           const\
+ hasUnhighlighte\
+d = !!(scope && \
 scope.querySelec\
 tor && scope.que\
-rySelector('.cod\
-e-wrapper'));\x0a  \
-          const \
-hasCodes = !!(sc\
-ope && scope.que\
-rySelector && sc\
-ope.querySelecto\
-r('.msg-box.msg-\
-bot pre code'));\
-\x0a            con\
-st hasUnhighligh\
-ted = !!(scope &\
-& scope.querySel\
-ector && scope.q\
-uerySelector('.m\
-sg-box.msg-bot p\
-re code:not([dat\
-a-highlighted=\x22y\
-es\x22])'));\x0a      \
-      const hasM\
-ath = !!(scope &\
-& scope.querySel\
-ector && scope.q\
-uerySelector('sc\
-ript[type^=\x22math\
-/tex\x22]'));\x0a\x0a    \
-        // Apply\
- Custom Markup o\
-nly if bot messa\
-ges are present.\
-\x0a            if \
-(hasBots) { this\
-.applyCustomMark\
-upForBots(scope)\
-; }\x0a\x0a           \
- // Restore coll\
-apsed state only\
- if we can actua\
-lly find wrapper\
-s.\x0a            i\
-f (hasWrappers) \
-{ this.restoreCo\
-llapsedCode(scop\
-e); }\x0a\x0a         \
-   // Initialize\
- code scroll hel\
-pers for current\
- root.\x0a         \
-   this.hooks.co\
-deScrollInit(sco\
-pe);\x0a\x0a          \
-  // Init code-s\
-croll/highlight \
-observers only w\
-hen there are co\
-des in DOM.\x0a    \
-        if (hasC\
-odes) {\x0a        \
-      this.hooks\
-.observeMsgBoxes\
-(scope);\x0a       \
-       this.hook\
-s.observeNewCode\
-(scope, {\x0a      \
-          deferL\
-astIfStreaming: \
-true,\x0a          \
-      minLinesFo\
-rLast: this.cfg.\
-PROFILE_CODE.min\
-LinesForHL,\x0a    \
-            minC\
-harsForLast: thi\
-s.cfg.PROFILE_CO\
-DE.minCharsForHL\
-\x0a              }\
-);\x0a             \
- if (hasUnhighli\
-ghted && typeof \
-runtime !== 'und\
-efined' && runti\
-me.highlighter) \
-{\x0a              \
-  runtime.highli\
-ghter.scanVisibl\
-eCodesInRoot(sco\
-pe, runtime.stre\
-am.activeCode ||\
- null);\x0a        \
-      }\x0a        \
-    }\x0a\x0a         \
-   // Schedule K\
-aTeX render only\
- if there are ma\
-th scripts prese\
-nt.\x0a            \
-if (hasMath) { t\
-his.hooks.schedu\
-leMathRender(sco\
-pe); }\x0a         \
-   this.hooks.co\
-deScrollInit(sco\
-pe);\x0a\x0a          \
-} catch (_) { /*\
- swallow: keep i\
-dle path safe */\
- }\x0a\x0a          re\
-turn;\x0a        }\x0a\
-\x0a        // Trac\
-k which bot mess\
-age boxes actual\
-ly changed to av\
-oid a heavy glob\
-al Custom Markup\
- pass.\x0a        c\
-onst touchedBoxe\
-s = new Set();\x0a\x0a\
-        // Budge\
-ted, cooperative\
- loop: process n\
-odes one-by-one \
-with per-frame y\
-ield when needed\
-.\x0a        const \
-perSlice = (this\
-.cfg.ASYNC && th\
-is.cfg.ASYNC.MD_\
-NODES_PER_SLICE)\
- || 12; // upper\
- bound per frame\
-\x0a        let sli\
-ceCount = 0;\x0a   \
-     let started\
-At = Utils.now()\
-;\x0a\x0a        for (\
-let j = 0; j < n\
-odes.length; j++\
-) {\x0a          co\
-nst el = nodes[j\
-];\x0a          if \
-(!el || !el.isCo\
-nnected) continu\
-e;\x0a\x0a          le\
-t md = '';\x0a     \
-     const isNat\
-ive = el.hasAttr\
-ibute('md-block-\
-markdown');\x0a    \
-      const msgB\
-ox = (el.closest\
- && el.closest('\
-.msg-box.msg-bot\
-, .msg-box.msg-u\
-ser')) || null;\x0a\
-          const \
-isUserMsg = !!(m\
-sgBox && msgBox.\
-classList.contai\
-ns('msg-user'));\
-\x0a          const\
- isBotMsg = !!(m\
-sgBox && msgBox.\
-classList.contai\
-ns('msg-bot'));\x0a\
-\x0a          // Re\
-ad source text (\
-do not preproces\
-s for user messa\
-ges to keep it r\
-aw)\x0a          if\
- (isNative) {\x0a  \
-          try { \
-md = isUserMsg ?\
- (el.textContent\
- || '') : this.p\
-reprocessMD(el.t\
-extContent || ''\
-); } catch (_) {\
- md = ''; }\x0a    \
-        try { el\
-.removeAttribute\
-('md-block-markd\
-own'); } catch (\
-_) {}\x0a          \
-} else {\x0a       \
-     const b64 =\
- el.getAttribute\
-('data-md64'); i\
-f (!b64) continu\
-e;\x0a            t\
-ry { md = this.b\
-64ToUtf8(b64); }\
- catch (_) { md \
-= ''; }\x0a        \
-    el.removeAtt\
-ribute('data-md6\
-4');\x0a           \
- if (!isUserMsg)\
- { try { md = th\
-is.preprocessMD(\
-md); } catch (_)\
- {} }\x0a          \
-}\x0a\x0a          if \
-(isUserMsg) {\x0a  \
-          // Use\
-r message: repla\
-ce placeholder w\
-ith raw plain te\
-xt only.\x0a       \
-     const span \
-= document.creat\
-eElement('span')\
-;\x0a            sp\
-an.textContent =\
- md;\x0a           \
- el.replaceWith(\
-span);\x0a         \
-   // Intentiona\
-lly do NOT add t\
-o touchedBoxes; \
-no Custom Markup\
- for user.\x0a     \
-     } else if (\
-isBotMsg) {\x0a    \
-        // Bot m\
-essage: full mar\
-kdown-it render \
-with Custom Mark\
-up.\x0a            \
-let html = '';\x0a \
-             try\
- {\x0a             \
-   let src = md;\
-\x0a               \
- // Pre-md trans\
-forms for source\
--phase rules\x0a   \
-             if \
-(this.customMark\
-up && typeof thi\
-s.customMarkup.t\
-ransformSource =\
-== 'function') {\
-\x0a               \
-   src = this.cu\
-stomMarkup.trans\
-formSource(src, \
-{ streaming: fal\
-se });\x0a         \
-       }\x0a       \
-         html = \
-MD.render(src);\x0a\
-              } \
-catch (_) { html\
- = Utils.escapeH\
-tml(md); }\x0a\x0a    \
-        // build\
- fragment direct\
-ly (avoid interm\
-ediate container\
- allocations).\x0a \
-           let f\
-rag = null;\x0a    \
-        try {\x0a  \
-            cons\
-t range = docume\
-nt.createRange()\
-;\x0a              \
-const ctx = el.p\
-arentNode || doc\
-ument.body || do\
-cument.documentE\
-lement;\x0a        \
-      range.sele\
-ctNode(ctx);\x0a   \
-           frag \
-= range.createCo\
-ntextualFragment\
-(html);\x0a        \
-    } catch (_) \
-{\x0a              \
-const tmp = docu\
-ment.createEleme\
-nt('div');\x0a     \
-         tmp.inn\
-erHTML = html;\x0a \
-             fra\
-g = document.cre\
-ateDocumentFragm\
-ent();\x0a         \
-     while (tmp.\
-firstChild) frag\
-.appendChild(tmp\
-.firstChild);\x0a  \
-          }\x0a\x0a   \
-         // Appl\
-y Custom Markup \
-on a lightweight\
- DocumentFragmen\
-t\x0a            tr\
-y { this.customM\
-arkup.apply(frag\
-, MD); } catch (\
-_) {}\x0a\x0a         \
-   el.replaceWit\
-h(frag);\x0a       \
-     touchedBoxe\
-s.add(msgBox);\x0a \
-         } else \
-{\x0a            //\
- Outside of any \
-message box: mat\
-erialize as plai\
-n text.\x0a        \
-    const span =\
- document.create\
-Element('span');\
-\x0a            spa\
-n.textContent = \
-md;\x0a            \
-el.replaceWith(s\
-pan);\x0a          \
-}\x0a\x0a          sli\
-ceCount++;\x0a     \
-     // Yield by\
- time budget or \
-by count to keep\
- frame short and\
- reactive.\x0a     \
-     if (sliceCo\
-unt >= perSlice \
-|| this.asyncer.\
-shouldYield(star\
-tedAt)) {\x0a      \
-      await this\
-.asyncer.yield()\
-;\x0a            st\
-artedAt = Utils.\
-now();\x0a         \
-   sliceCount = \
-0;\x0a          }\x0a \
-       }\x0a\x0a      \
-  // Apply Custo\
-m Markup only to\
- actually modifi\
-ed BOT messages \
-(keeps this pass\
- light).\x0a       \
- try {\x0a         \
- touchedBoxes.fo\
-rEach(box => { t\
-ry { this.custom\
-Markup.apply(box\
-, MD); } catch (\
-_) {} });\x0a      \
-  } catch (_) {}\
-\x0a\x0a        // Sam\
-e post-processin\
-g as before (ide\
-mpotent with ext\
-ernal calls).\x0a  \
-      this.resto\
-reCollapsedCode(\
-scope);\x0a        \
-this.hooks.obser\
-veNewCode(scope,\
- {\x0a          def\
-erLastIfStreamin\
-g: true,\x0a       \
-   minLinesForLa\
-st: this.cfg.PRO\
-FILE_CODE.minLin\
-esForHL,\x0a       \
-   minCharsForLa\
-st: this.cfg.PRO\
-FILE_CODE.minCha\
-rsForHL\x0a        \
-});\x0a        this\
-.hooks.observeMs\
-gBoxes(scope);\x0a \
-       this.hook\
-s.scheduleMathRe\
-nder(scope);\x0a   \
-     this.hooks.\
-codeScrollInit(s\
-cope);\x0a\x0a        \
-if (typeof runti\
-me !== 'undefine\
-d' && runtime.hi\
-ghlighter) {\x0a   \
-      runtime.hi\
-ghlighter.scanVi\
-sibleCodesInRoot\
-(scope, runtime.\
-stream.activeCod\
-e || null);\x0a    \
-    }\x0a      }\x0a\x0a \
-     // Render s\
-treaming snapsho\
-t.\x0a      renderS\
-treamingSnapshot\
-(src) {\x0a        \
-const md = this.\
-_md(true);\x0a     \
-   if (!md) retu\
-rn '';\x0a        t\
-ry {\x0a          l\
-et s = String(sr\
-c || '');\x0a      \
-    // Pre-markd\
-own custom trans\
-forms (e.g. [!ex\
-ec]/<execute> =>\
- ```python fence\
-s)\x0a          if \
-(this.customMark\
-up && typeof thi\
-s.customMarkup.t\
-ransformSource =\
-== 'function') {\
-\x0a            s =\
- this.customMark\
-up.transformSour\
-ce(s, { streamin\
-g: true });\x0a    \
-      }\x0a        \
-  return md.rend\
-er(s);\x0a        }\
- catch (_) { ret\
-urn Utils.escape\
-Html(src); }\x0a   \
-   }\x0a\x0a      rend\
-erFinalSnapshot(\
-src) {\x0a        c\
-onst md = this._\
-md(false);\x0a     \
-   if (!md) retu\
-rn '';\x0a        t\
-ry {\x0a          l\
-et s = String(sr\
-c || '');\x0a      \
-    if (this.cus\
-tomMarkup && typ\
-eof this.customM\
-arkup.transformS\
-ource === 'funct\
-ion') {\x0a        \
-    s = this.cus\
-tomMarkup.transf\
-ormSource(s, { s\
-treaming: false \
-});\x0a          }\x0a\
-          return\
- md.render(s);\x0a \
-       } catch (\
-_) { return Util\
-s.escapeHtml(src\
-); }\x0a      }\x0a\x0a  \
-    // Restore c\
-ollapse/expand s\
-tate of code blo\
-cks after DOM up\
-dates.\x0a      res\
-toreCollapsedCod\
-e(root) {\x0a      \
-  const scope = \
-root || document\
-;\x0a        const \
-wrappers = scope\
-.querySelectorAl\
-l('.code-wrapper\
-');\x0a        wrap\
-pers.forEach((wr\
-apper) => {\x0a    \
-      const inde\
-x = wrapper.getA\
-ttribute('data-i\
-ndex');\x0a        \
-  const localeCo\
-llapse = wrapper\
-.getAttribute('d\
-ata-locale-colla\
-pse');\x0a         \
- const localeExp\
-and = wrapper.ge\
-tAttribute('data\
--locale-expand')\
-;\x0a          cons\
-t source = wrapp\
-er.querySelector\
-('code');\x0a      \
-    const isColl\
-apsed = (window.\
-__collapsed_idx \
-|| []).includes(\
-index);\x0a        \
-  if (!source) r\
-eturn;\x0a         \
- const btn = wra\
-pper.querySelect\
-or('.code-header\
--collapse');\x0a   \
-       if (isCol\
-lapsed) {\x0a      \
-      source.sty\
-le.display = 'no\
-ne';\x0a           \
- if (btn) { cons\
-t span = btn.que\
-rySelector('span\
-'); if (span) sp\
-an.textContent =\
- localeExpand; }\
-\x0a          } els\
-e {\x0a            \
-source.style.dis\
-play = 'block';\x0a\
-            if (\
-btn) { const spa\
-n = btn.querySel\
-ector('span'); i\
-f (span) span.te\
-xtContent = loca\
-leCollapse; }\x0a  \
-        }\x0a      \
-  });\x0a      }\x0a  \
-  }\x0a  window.__c\
-ollapsed_idx = w\
-indow.__collapse\
-d_idx || [];\x0a\x0a  \
-// =============\
-================\
-================\
-================\
-=============\x0a  \
-// 6) Math rende\
-rer (async, chun\
-ked)\x0a  // ======\
-================\
-================\
-================\
-================\
-====\x0a  class Mat\
-hRenderer {\x0a    \
-constructor(cfg,\
- raf, asyncer) {\
-\x0a      this.cfg \
-= cfg; this.raf \
-= raf; this.asyn\
-cer = asyncer;\x0a \
-     this.schedu\
-led = false;\x0a\x0a  \
-    // rAF key u\
-sed by the centr\
-al pump (do not \
-change \xe2\x80\x93 API c\
-ompatibility).\x0a \
-     this.rafKey\
- = { t: 'Math:re\
-nder' };\x0a\x0a      \
-// Pending roots\
- aggregation: if\
- document-level \
-render is reques\
-ted, it supersed\
-es others.\x0a     \
- this._pendingRo\
-ots = new Set();\
-\x0a      this._pen\
-dingDoc = false;\
-\x0a    }\x0a\x0a    // A\
-sync, cooperativ\
-e KaTeX renderin\
-g to avoid long \
-blocking on many\
- formulas.\x0a    a\
-sync renderAsync\
-(root) {\x0a      i\
-f (typeof katex \
-=== 'undefined')\
- return;\x0a      c\
-onst scope = roo\
-t || document;\x0a \
-     const scrip\
-ts = Array.from(\
+rySelector('.msg\
+-box.msg-bot pre\
+ code:not([data-\
+highlighted=\x22yes\
+\x22])'));\x0a        \
+    const hasMat\
+h = !!(scope && \
 scope.querySelec\
-torAll('script[t\
-ype^=\x22math/tex\x22]\
-'));\x0a      const\
- useToString = (\
-typeof katex.ren\
-derToString === \
-'function');\x0a\x0a  \
-    const batchF\
-n = async (scrip\
-t) => {\x0a        \
-if (!script || !\
-script.isConnect\
-ed) return;\x0a    \
-    // Only rend\
-er math in bot m\
-essages\x0a        \
-if (!script.clos\
-est('.msg-box.ms\
-g-bot')) return;\
-\x0a        const t\
- = script.getAtt\
-ribute('type') |\
-| '';\x0a        co\
-nst displayMode \
-= t.indexOf('mod\
-e=display') > -1\
-;\x0a        // avo\
-id innerText (it\
- may trigger lay\
-out). textConten\
-t is sufficient \
-here.\x0a        co\
-nst mathContent \
-= script.textCon\
-tent || '';\x0a    \
-    const parent\
- = script.parent\
-Node; if (!paren\
-t) return;\x0a\x0a    \
-    try {\x0a      \
-    if (useToStr\
-ing) {\x0a         \
-   let html = ''\
-;\x0a            tr\
-y {\x0a            \
-  html = katex.r\
-enderToString(ma\
-thContent, { dis\
-playMode, throwO\
-nError: false })\
-;\x0a            } \
-catch (_) {\x0a    \
-          const \
-fb = displayMode\
- ? `\x5c\x5c[${mathCon\
-tent}\x5c\x5c]` : `\x5c\x5c(\
-${mathContent}\x5c\x5c\
-)`;\x0a            \
-  html = (displa\
-yMode ? `<div>${\
-Utils.escapeHtml\
-(fb)}</div>` : `\
-<span>${Utils.es\
-capeHtml(fb)}</s\
-pan>`);\x0a        \
+tor && scope.que\
+rySelector('scri\
+pt[type^=\x22math/t\
+ex\x22]'));\x0a\x0a      \
+      // Apply C\
+ustom Markup onl\
+y if bot message\
+s are present.\x0a \
+           if (h\
+asBots) { this.a\
+pplyCustomMarkup\
+ForBots(scope); \
+}\x0a\x0a            /\
+/ Restore collap\
+sed state only i\
+f we can actuall\
+y find wrappers.\
+\x0a            if \
+(hasWrappers) { \
+this.restoreColl\
+apsedCode(scope)\
+; }\x0a\x0a           \
+ // Initialize c\
+ode scroll helpe\
+rs for current r\
+oot.\x0a           \
+ this.hooks.code\
+ScrollInit(scope\
+);\x0a\x0a            \
+// Init code-scr\
+oll/highlight ob\
+servers only whe\
+n there are code\
+s in DOM.\x0a      \
+      if (hasCod\
+es) {\x0a          \
+    this.hooks.o\
+bserveMsgBoxes(s\
+cope);\x0a         \
+     this.hooks.\
+observeNewCode(s\
+cope, {\x0a        \
+        deferLas\
+tIfStreaming: tr\
+ue,\x0a            \
+    minLinesForL\
+ast: this.cfg.PR\
+OFILE_CODE.minLi\
+nesForHL,\x0a      \
+          minCha\
+rsForLast: this.\
+cfg.PROFILE_CODE\
+.minCharsForHL\x0a \
+             });\
+\x0a              i\
+f (hasUnhighligh\
+ted && typeof ru\
+ntime !== 'undef\
+ined' && runtime\
+.highlighter) {\x0a\
+                \
+runtime.highligh\
+ter.scanVisibleC\
+odesInRoot(scope\
+, runtime.stream\
+.activeCode || n\
+ull);\x0a          \
     }\x0a          \
-  const host = d\
-ocument.createEl\
-ement(displayMod\
-e ? 'div' : 'spa\
-n');\x0a           \
- host.innerHTML \
-= html;\x0a        \
-    const el = h\
-ost.firstElement\
-Child || host;\x0a \
-           if (p\
-arent.classList \
-&& parent.classL\
-ist.contains('ma\
-th-pending')) pa\
-rent.replaceWith\
-(el);\x0a          \
-  else parent.re\
-placeChild(el, s\
-cript);\x0a        \
-  } else {\x0a     \
-       const el \
+  }\x0a\x0a           \
+ // Schedule KaT\
+eX render only i\
+f there are math\
+ scripts present\
+.\x0a            if\
+ (hasMath) { thi\
+s.hooks.schedule\
+MathRender(scope\
+); }\x0a           \
+ this.hooks.code\
+ScrollInit(scope\
+);\x0a\x0a          } \
+catch (_) { /* s\
+wallow: keep idl\
+e path safe */ }\
+\x0a\x0a          retu\
+rn;\x0a        }\x0a\x0a \
+       // Track \
+which bot messag\
+e boxes actually\
+ changed to avoi\
+d a heavy global\
+ Custom Markup p\
+ass.\x0a        con\
+st touchedBoxes \
+= new Set();\x0a\x0a  \
+      // Budgete\
+d, cooperative l\
+oop: process nod\
+es one-by-one wi\
+th per-frame yie\
+ld when needed.\x0a\
+        const pe\
+rSlice = (this.c\
+fg.ASYNC && this\
+.cfg.ASYNC.MD_NO\
+DES_PER_SLICE) |\
+| 12; // upper b\
+ound per frame\x0a \
+       let slice\
+Count = 0;\x0a     \
+   let startedAt\
+ = Utils.now();\x0a\
+\x0a        for (le\
+t j = 0; j < nod\
+es.length; j++) \
+{\x0a          cons\
+t el = nodes[j];\
+\x0a          if (!\
+el || !el.isConn\
+ected) continue;\
+\x0a\x0a          let \
+md = '';\x0a       \
+   const isNativ\
+e = el.hasAttrib\
+ute('md-block-ma\
+rkdown');\x0a      \
+    const msgBox\
+ = (el.closest &\
+& el.closest('.m\
+sg-box.msg-bot, \
+.msg-box.msg-use\
+r')) || null;\x0a  \
+        const is\
+UserMsg = !!(msg\
+Box && msgBox.cl\
+assList.contains\
+('msg-user'));\x0a \
+         const i\
+sBotMsg = !!(msg\
+Box && msgBox.cl\
+assList.contains\
+('msg-bot'));\x0a\x0a \
+         // Read\
+ source text (do\
+ not preprocess \
+for user message\
+s to keep it raw\
+)\x0a          if (\
+isNative) {\x0a    \
+        try { md\
+ = isUserMsg ? (\
+el.textContent |\
+| '') : this.pre\
+processMD(el.tex\
+tContent || '');\
+ } catch (_) { m\
+d = ''; }\x0a      \
+      try { el.r\
+emoveAttribute('\
+md-block-markdow\
+n'); } catch (_)\
+ {}\x0a          } \
+else {\x0a         \
+   const b64 = e\
+l.getAttribute('\
+data-md64'); if \
+(!b64) continue;\
+\x0a            try\
+ { md = this.b64\
+ToUtf8(b64); } c\
+atch (_) { md = \
+''; }\x0a          \
+  el.removeAttri\
+bute('data-md64'\
+);\x0a            i\
+f (!isUserMsg) {\
+ try { md = this\
+.preprocessMD(md\
+); } catch (_) {\
+} }\x0a          }\x0a\
+\x0a          if (i\
+sUserMsg) {\x0a    \
+        // User \
+message: replace\
+ placeholder wit\
+h raw plain text\
+ only.\x0a         \
+   const span = \
+document.createE\
+lement('span');\x0a\
+            span\
+.textContent = m\
+d;\x0a            e\
+l.replaceWith(sp\
+an);\x0a           \
+ // Intentionall\
+y do NOT add to \
+touchedBoxes; no\
+ Custom Markup f\
+or user.\x0a       \
+   } else if (is\
+BotMsg) {\x0a      \
+      // Bot mes\
+sage: full markd\
+own-it render wi\
+th Custom Markup\
+.\x0a            le\
+t html = '';\x0a   \
+           try {\
+\x0a               \
+ let src = md;\x0a \
+               /\
+/ Pre-md transfo\
+rms for source-p\
+hase rules\x0a     \
+           if (t\
+his.customMarkup\
+ && typeof this.\
+customMarkup.tra\
+nsformSource ===\
+ 'function') {\x0a \
+                \
+ src = this.cust\
+omMarkup.transfo\
+rmSource(src, { \
+streaming: false\
+ });\x0a           \
+     }\x0a         \
+       html = MD\
+.render(src);\x0a  \
+            } ca\
+tch (_) { html =\
+ Utils.escapeHtm\
+l(md); }\x0a\x0a      \
+      // build f\
+ragment directly\
+ (avoid intermed\
+iate container a\
+llocations).\x0a   \
+         let fra\
+g = null;\x0a      \
+      try {\x0a    \
+          const \
+range = document\
+.createRange();\x0a\
+              co\
+nst ctx = el.par\
+entNode || docum\
+ent.body || docu\
+ment.documentEle\
+ment;\x0a          \
+    range.select\
+Node(ctx);\x0a     \
+         frag = \
+range.createCont\
+extualFragment(h\
+tml);\x0a          \
+  } catch (_) {\x0a\
+              co\
+nst tmp = docume\
+nt.createElement\
+('div');\x0a       \
+       tmp.inner\
+HTML = html;\x0a   \
+           frag \
 = document.creat\
-eElement(display\
-Mode ? 'div' : '\
-span');\x0a        \
-    try { katex.\
-render(mathConte\
-nt, el, { displa\
-yMode, throwOnEr\
-ror: false }); }\
-\x0a            cat\
-ch (_) { el.text\
-Content = (displ\
-ayMode ? `\x5c\x5c[${m\
-athContent}\x5c\x5c]` \
-: `\x5c\x5c(${mathCont\
-ent}\x5c\x5c)`); }\x0a   \
+eDocumentFragmen\
+t();\x0a           \
+   while (tmp.fi\
+rstChild) frag.a\
+ppendChild(tmp.f\
+irstChild);\x0a    \
+        }\x0a\x0a     \
+       // Apply \
+Custom Markup on\
+ a lightweight D\
+ocumentFragment\x0a\
+            try \
+{ this.customMar\
+kup.apply(frag, \
+MD); } catch (_)\
+ {}\x0a\x0a           \
+ el.replaceWith(\
+frag);\x0a         \
+   touchedBoxes.\
+add(msgBox);\x0a   \
+       } else {\x0a\
+            // O\
+utside of any me\
+ssage box: mater\
+ialize as plain \
+text.\x0a          \
+  const span = d\
+ocument.createEl\
+ement('span');\x0a \
+           span.\
+textContent = md\
+;\x0a            el\
+.replaceWith(spa\
+n);\x0a          }\x0a\
+\x0a          slice\
+Count++;\x0a       \
+   // Yield by t\
+ime budget or by\
+ count to keep f\
+rame short and r\
+eactive.\x0a       \
+   if (sliceCoun\
+t >= perSlice ||\
+ this.asyncer.sh\
+ouldYield(starte\
+dAt)) {\x0a        \
+    await this.a\
+syncer.yield();\x0a\
+            star\
+tedAt = Utils.no\
+w();\x0a           \
+ sliceCount = 0;\
+\x0a          }\x0a   \
+     }\x0a\x0a        \
+// Apply Custom \
+Markup only to a\
+ctually modified\
+ BOT messages (k\
+eeps this pass l\
+ight).\x0a        t\
+ry {\x0a          t\
+ouchedBoxes.forE\
+ach(box => { try\
+ { this.customMa\
+rkup.apply(box, \
+MD); } catch (_)\
+ {} });\x0a        \
+} catch (_) {}\x0a\x0a\
+        // Same \
+post-processing \
+as before (idemp\
+otent with exter\
+nal calls).\x0a    \
+    this.restore\
+CollapsedCode(sc\
+ope);\x0a        th\
+is.hooks.observe\
+NewCode(scope, {\
+\x0a          defer\
+LastIfStreaming:\
+ true,\x0a         \
+ minLinesForLast\
+: this.cfg.PROFI\
+LE_CODE.minLines\
+ForHL,\x0a         \
+ minCharsForLast\
+: this.cfg.PROFI\
+LE_CODE.minChars\
+ForHL\x0a        })\
+;\x0a        this.h\
+ooks.observeMsgB\
+oxes(scope);\x0a   \
+     this.hooks.\
+scheduleMathRend\
+er(scope);\x0a     \
+   this.hooks.co\
+deScrollInit(sco\
+pe);\x0a\x0a        if\
+ (typeof runtime\
+ !== 'undefined'\
+ && runtime.high\
+lighter) {\x0a     \
+    runtime.high\
+lighter.scanVisi\
+bleCodesInRoot(s\
+cope, runtime.st\
+ream.activeCode \
+|| null);\x0a      \
+  }\x0a      }\x0a\x0a   \
+   // Render str\
+eaming snapshot.\
+\x0a      renderStr\
+eamingSnapshot(s\
+rc) {\x0a        co\
+nst md = this._m\
+d(true);\x0a       \
+ if (!md) return\
+ '';\x0a        try\
+ {\x0a          let\
+ s = String(src \
+|| '');\x0a        \
+  // Pre-markdow\
+n custom transfo\
+rms (e.g. [!exec\
+]/<execute> => `\
+``python fences)\
+\x0a          if (t\
+his.customMarkup\
+ && typeof this.\
+customMarkup.tra\
+nsformSource ===\
+ 'function') {\x0a \
+           s = t\
+his.customMarkup\
+.transformSource\
+(s, { streaming:\
+ true });\x0a      \
+    }\x0a          \
+return md.render\
+(s);\x0a        } c\
+atch (_) { retur\
+n Utils.escapeHt\
+ml(src); }\x0a     \
+ }\x0a\x0a      render\
+FinalSnapshot(sr\
+c) {\x0a        con\
+st md = this._md\
+(false);\x0a       \
+ if (!md) return\
+ '';\x0a        try\
+ {\x0a          let\
+ s = String(src \
+|| '');\x0a        \
+  if (this.custo\
+mMarkup && typeo\
+f this.customMar\
+kup.transformSou\
+rce === 'functio\
+n') {\x0a          \
+  s = this.custo\
+mMarkup.transfor\
+mSource(s, { str\
+eaming: false })\
+;\x0a          }\x0a  \
+        return m\
+d.render(s);\x0a   \
+     } catch (_)\
+ { return Utils.\
+escapeHtml(src);\
+ }\x0a      }\x0a\x0a    \
+  // Restore col\
+lapse/expand sta\
+te of code block\
+s after DOM upda\
+tes.\x0a      resto\
+reCollapsedCode(\
+root) {\x0a        \
+const scope = ro\
+ot || document;\x0a\
+        const wr\
+appers = scope.q\
+uerySelectorAll(\
+'.code-wrapper')\
+;\x0a        wrappe\
+rs.forEach((wrap\
+per) => {\x0a      \
+    const index \
+= wrapper.getAtt\
+ribute('data-ind\
+ex');\x0a          \
+const localeColl\
+apse = wrapper.g\
+etAttribute('dat\
+a-locale-collaps\
+e');\x0a          c\
+onst localeExpan\
+d = wrapper.getA\
+ttribute('data-l\
+ocale-expand');\x0a\
+          const \
+source = wrapper\
+.querySelector('\
+code');\x0a        \
+  const isCollap\
+sed = (window.__\
+collapsed_idx ||\
+ []).includes(in\
+dex);\x0a          \
+if (!source) ret\
+urn;\x0a          c\
+onst btn = wrapp\
+er.querySelector\
+('.code-header-c\
+ollapse');\x0a     \
+     if (isColla\
+psed) {\x0a        \
+    source.style\
+.display = 'none\
+';\x0a            i\
+f (btn) { const \
+span = btn.query\
+Selector('span')\
+; if (span) span\
+.textContent = l\
+ocaleExpand; }\x0a \
+         } else \
+{\x0a            so\
+urce.style.displ\
+ay = 'block';\x0a  \
+          if (bt\
+n) { const span \
+= btn.querySelec\
+tor('span'); if \
+(span) span.text\
+Content = locale\
+Collapse; }\x0a    \
+      }\x0a        \
+});\x0a      }\x0a    \
+}\x0a  window.__col\
+lapsed_idx = win\
+dow.__collapsed_\
+idx || [];\x0a\x0a  //\
+ ===============\
+================\
+================\
+================\
+===========\x0a  //\
+ 6) Math rendere\
+r (async, chunke\
+d)\x0a  // ========\
+================\
+================\
+================\
+================\
+==\x0a  class MathR\
+enderer {\x0a    co\
+nstructor(cfg, r\
+af, asyncer) {\x0a \
+     this.cfg = \
+cfg; this.raf = \
+raf; this.asynce\
+r = asyncer;\x0a   \
+   this.schedule\
+d = false;\x0a\x0a    \
+  // rAF key use\
+d by the central\
+ pump (do not ch\
+ange \xe2\x80\x93 API com\
+patibility).\x0a   \
+   this.rafKey =\
+ { t: 'Math:rend\
+er' };\x0a\x0a      //\
+ Pending roots a\
+ggregation: if d\
+ocument-level re\
+nder is requeste\
+d, it supersedes\
+ others.\x0a      t\
+his._pendingRoot\
+s = new Set();\x0a \
+     this._pendi\
+ngDoc = false;\x0a \
+   }\x0a\x0a    // Asy\
+nc, cooperative \
+KaTeX rendering \
+to avoid long bl\
+ocking on many f\
+ormulas.\x0a    asy\
+nc renderAsync(r\
+oot) {\x0a      if \
+(typeof katex ==\
+= 'undefined') r\
+eturn;\x0a      con\
+st scope = root \
+|| document;\x0a   \
+   const scripts\
+ = Array.from(sc\
+ope.querySelecto\
+rAll('script[typ\
+e^=\x22math/tex\x22]')\
+);\x0a      const u\
+seToString = (ty\
+peof katex.rende\
+rToString === 'f\
+unction');\x0a\x0a    \
+  const batchFn \
+= async (script)\
+ => {\x0a        if\
+ (!script || !sc\
+ript.isConnected\
+) return;\x0a      \
+  // Only render\
+ math in bot mes\
+sages\x0a        if\
+ (!script.closes\
+t('.msg-box.msg-\
+bot')) return;\x0a \
+       const t =\
+ script.getAttri\
+bute('type') || \
+'';\x0a        cons\
+t displayMode = \
+t.indexOf('mode=\
+display') > -1;\x0a\
+        // avoid\
+ innerText (it m\
+ay trigger layou\
+t). textContent \
+is sufficient he\
+re.\x0a        cons\
+t mathContent = \
+script.textConte\
+nt || '';\x0a      \
+  const parent =\
+ script.parentNo\
+de; if (!parent)\
+ return;\x0a\x0a      \
+  try {\x0a        \
+  if (useToStrin\
+g) {\x0a           \
+ let html = '';\x0a\
+            try \
+{\x0a              \
+html = katex.ren\
+derToString(math\
+Content, { displ\
+ayMode, throwOnE\
+rror: false });\x0a\
+            } ca\
+tch (_) {\x0a      \
+        const fb\
+ = displayMode ?\
+ `\x5c\x5c[${mathConte\
+nt}\x5c\x5c]` : `\x5c\x5c(${\
+mathContent}\x5c\x5c)`\
+;\x0a              \
+html = (displayM\
+ode ? `<div>${Ut\
+ils.escapeHtml(f\
+b)}</div>` : `<s\
+pan>${Utils.esca\
+peHtml(fb)}</spa\
+n>`);\x0a          \
+  }\x0a            \
+const host = doc\
+ument.createElem\
+ent(displayMode \
+? 'div' : 'span'\
+);\x0a            h\
+ost.innerHTML = \
+html;\x0a          \
+  const el = hos\
+t.firstElementCh\
+ild || host;\x0a   \
          if (par\
 ent.classList &&\
  parent.classLis\
@@ -92545,977 +92520,1027 @@ l);\x0a            \
 else parent.repl\
 aceChild(el, scr\
 ipt);\x0a          \
-}\x0a        } catc\
-h (_) {\x0a        \
-  // Keep fallba\
-ck text intact o\
-n any error\x0a    \
-    }\x0a      };\x0a\x0a\
-      // Process\
- formulas cooper\
-atively (rAF yie\
-lds).\x0a      awai\
-t this.asyncer.f\
-orEachChunk(scri\
-pts, batchFn, 'M\
-athRenderer');\x0a \
-   }\x0a\x0a    // Sch\
-edule math rende\
-ring for a root.\
- Coalesces multi\
-ple calls.\x0a    s\
-chedule(root, _d\
-elayIgnored = 0,\
- forceNow = fals\
-e) {\x0a      // If\
- KaTeX is not av\
-ailable, honor n\
-o-op. API stays \
-intact.\x0a      if\
- (typeof katex =\
-== 'undefined') \
-return;\x0a\x0a      /\
-/ Normalize root\
- (default to who\
-le document).\x0a  \
-    const target\
-Root = root || d\
-ocument;\x0a\x0a      \
-// Fast existenc\
-e check to avoid\
- arming rAF when\
- nothing to do, \
-but still\x0a      \
-// keep aggregat\
-ion semantics: i\
-f a job is alrea\
-dy scheduled we \
-can still\x0a      \
-// merge new roo\
-ts into the pend\
-ing set when the\
-y actually conta\
-in math.\x0a      l\
-et hasMath = tru\
-e;\x0a      if (!fo\
-rceNow) {\x0a      \
-  try {\x0a        \
-  hasMath = !!(t\
-argetRoot && tar\
-getRoot.querySel\
-ector && targetR\
-oot.querySelecto\
-r('script[type^=\
-\x22math/tex\x22]'));\x0a\
+} else {\x0a       \
+     const el = \
+document.createE\
+lement(displayMo\
+de ? 'div' : 'sp\
+an');\x0a          \
+  try { katex.re\
+nder(mathContent\
+, el, { displayM\
+ode, throwOnErro\
+r: false }); }\x0a \
+           catch\
+ (_) { el.textCo\
+ntent = (display\
+Mode ? `\x5c\x5c[${mat\
+hContent}\x5c\x5c]` : \
+`\x5c\x5c(${mathConten\
+t}\x5c\x5c)`); }\x0a     \
+       if (paren\
+t.classList && p\
+arent.classList.\
+contains('math-p\
+ending')) parent\
+.replaceWith(el)\
+;\x0a            el\
+se parent.replac\
+eChild(el, scrip\
+t);\x0a          }\x0a\
         } catch \
-(_) { hasMath = \
-false; }\x0a       \
- if (!hasMath) r\
-eturn; // nothin\
-g to render for \
-this root; safe \
-early exit\x0a     \
- }\x0a\x0a      // Agg\
-regate roots so \
-nothing is lost \
-while one job is\
- already schedul\
-ed.\x0a      if (ta\
-rgetRoot === doc\
-ument || targetR\
-oot === document\
-.documentElement\
- || targetRoot =\
-== document.body\
-) {\x0a        this\
-._pendingDoc = t\
-rue;            \
-     // promote \
-to a full-docume\
-nt sweep\x0a       \
- this._pendingRo\
-ots.clear();    \
-          // sma\
-ll optimization \
-(document covers\
- all)\x0a      } el\
-se if (!this._pe\
-ndingDoc) {\x0a    \
-    this._pendin\
-gRoots.add(targe\
-tRoot);\x0a      }\x0a\
-\x0a      // If a t\
-ask is already s\
-cheduled, do not\
- arm another \xe2\x80\x93\
- coalescing will\
- take care of it\
-.\x0a      if (this\
-.scheduled && th\
-is.raf && typeof\
- this.raf.isSche\
-duled === 'funct\
-ion' && this.raf\
-.isScheduled(thi\
-s.rafKey)) retur\
-n;\x0a\x0a      this.s\
-cheduled = true;\
-\x0a      const pri\
-ority = forceNow\
- ? 0 : 2;\x0a\x0a     \
- // Single rAF j\
-ob drains all pe\
-nding roots; ren\
-derAsync remains\
- public and unch\
-anged.\x0a      thi\
-s.raf.schedule(t\
-his.rafKey, () =\
-> {\x0a        this\
-.scheduled = fal\
-se;\x0a\x0a        con\
-st useDoc = this\
-._pendingDoc;\x0a  \
-      const root\
-s = [];\x0a\x0a       \
- if (useDoc) {\x0a \
-         roots.p\
-ush(document);\x0a \
-       } else {\x0a\
-          this._\
-pendingRoots.for\
-Each((r) => {\x0a  \
-          // Onl\
-y keep connected\
- elements to avo\
-id useless work.\
-\x0a            try\
- {\x0a             \
- if (r && (r.isC\
-onnected === und\
-efined || r.isCo\
-nnected)) roots.\
-push(r);\x0a       \
-     } catch (_)\
- {\x0a             \
- // Conservative\
-: keep the root;\
- renderAsync gua\
-rds internally.\x0a\
-              ro\
-ots.push(r);\x0a   \
-         }\x0a     \
-     });\x0a       \
- }\x0a\x0a        // R\
-eset aggregation\
- state before ru\
-nning (new calls\
- can aggregate a\
-fresh).\x0a        \
-this._pendingDoc\
- = false;\x0a      \
+(_) {\x0a          \
+// Keep fallback\
+ text intact on \
+any error\x0a      \
+  }\x0a      };\x0a\x0a  \
+    // Process f\
+ormulas cooperat\
+ively (rAF yield\
+s).\x0a      await \
+this.asyncer.for\
+EachChunk(script\
+s, batchFn, 'Mat\
+hRenderer');\x0a   \
+ }\x0a\x0a    // Sched\
+ule math renderi\
+ng for a root. C\
+oalesces multipl\
+e calls.\x0a    sch\
+edule(root, _del\
+ayIgnored = 0, f\
+orceNow = false)\
+ {\x0a      // If K\
+aTeX is not avai\
+lable, honor no-\
+op. API stays in\
+tact.\x0a      if (\
+typeof katex ===\
+ 'undefined') re\
+turn;\x0a\x0a      // \
+Normalize root (\
+default to whole\
+ document).\x0a    \
+  const targetRo\
+ot = root || doc\
+ument;\x0a\x0a      //\
+ Fast existence \
+check to avoid a\
+rming rAF when n\
+othing to do, bu\
+t still\x0a      //\
+ keep aggregatio\
+n semantics: if \
+a job is already\
+ scheduled we ca\
+n still\x0a      //\
+ merge new roots\
+ into the pendin\
+g set when they \
+actually contain\
+ math.\x0a      let\
+ hasMath = true;\
+\x0a      if (!forc\
+eNow) {\x0a        \
+try {\x0a          \
+hasMath = !!(tar\
+getRoot && targe\
+tRoot.querySelec\
+tor && targetRoo\
+t.querySelector(\
+'script[type^=\x22m\
+ath/tex\x22]'));\x0a  \
+      } catch (_\
+) { hasMath = fa\
+lse; }\x0a        i\
+f (!hasMath) ret\
+urn; // nothing \
+to render for th\
+is root; safe ea\
+rly exit\x0a      }\
+\x0a\x0a      // Aggre\
+gate roots so no\
+thing is lost wh\
+ile one job is a\
+lready scheduled\
+.\x0a      if (targ\
+etRoot === docum\
+ent || targetRoo\
+t === document.d\
+ocumentElement |\
+| targetRoot ===\
+ document.body) \
+{\x0a        this._\
+pendingDoc = tru\
+e;              \
+   // promote to\
+ a full-document\
+ sweep\x0a        t\
+his._pendingRoot\
+s.clear();      \
+        // small\
+ optimization (d\
+ocument covers a\
+ll)\x0a      } else\
+ if (!this._pend\
+ingDoc) {\x0a      \
   this._pendingR\
-oots.clear();\x0a\x0a \
-       // Fire-a\
-nd-forget async \
-drain; keep rend\
-erAsync API inta\
-ct.\x0a        (asy\
-nc () => {\x0a     \
-     for (let i \
-= 0; i < roots.l\
-ength; i++) {\x0a  \
-          try { \
-await this.rende\
-rAsync(roots[i])\
-; } catch (_) { \
-/* swallow \xe2\x80\x93 r\
-esilient */ }\x0a  \
-        }\x0a      \
-  })();\x0a      },\
- 'Math', priorit\
-y);\x0a    }\x0a    //\
- Cleanup pending\
- work and state.\
-\x0a    cleanup() {\
-\x0a      try { thi\
-s.raf.cancelGrou\
-p('Math'); } cat\
-ch (_) {}\x0a      \
-this.scheduled =\
- false;\x0a\x0a      /\
-/ Ensure pending\
- state is fully \
-cleared on clean\
-up.\x0a      try { \
-this._pendingRoo\
-ts.clear(); } ca\
-tch (_) {}\x0a     \
- this._pendingDo\
-c = false;\x0a    }\
-\x0a  }\x0a\x0a  // =====\
-================\
-================\
-================\
-================\
-=====\x0a  // 7) Sc\
-roll manager + F\
-AB\x0a  // ========\
-================\
-================\
-================\
-================\
-==\x0a\x0a  class Scro\
-llManager {\x0a    \
-constructor(cfg,\
- dom, raf) {\x0a   \
-   this.cfg = cf\
-g; this.dom = do\
-m; this.raf = ra\
-f;\x0a      this.au\
-toFollow = true;\
- this.userIntera\
-cted = false;\x0a  \
-    this.lastScr\
-ollTop = 0; this\
-.prevScroll = 0;\
-\x0a      this.curr\
-entFabAction = '\
-none'; this.fabF\
-reezeUntil = 0;\x0a\
-      this.scrol\
-lScheduled = fal\
-se; this.scrollF\
-abUpdateSchedule\
-d = false;\x0a     \
- this.scrollRAF \
-= 0; this.scroll\
-FabRAF = 0;\x0a    \
-}\x0a    // Is page\
- near the bottom\
- by given margin\
-?\x0a    isNearBott\
-om(marginPx = 10\
-0) {\x0a      const\
- el = Utils.SE; \
-const distance =\
- el.scrollHeight\
- - el.clientHeig\
-ht - el.scrollTo\
-p;\x0a      return \
-distance <= marg\
-inPx;\x0a    }\x0a    \
-// Schedule a pa\
-ge scroll to bot\
-tom if auto-foll\
-ow allows it.\x0a  \
-  scheduleScroll\
-(live = false) {\
-\x0a      if (live \
-=== true && this\
-.autoFollow !== \
-true) return;\x0a  \
-    if (this.scr\
-ollScheduled) re\
-turn;\x0a      this\
-.scrollScheduled\
- = true;\x0a      t\
-his.raf.schedule\
-('SM:scroll', ()\
- => { this.scrol\
-lScheduled = fal\
-se; this.scrollT\
-oBottom(live); t\
-his.scheduleScro\
-llFabUpdate(); }\
-, 'ScrollManager\
-', 1);\x0a    }\x0a   \
- // Cancel any p\
-ending page scro\
-ll.\x0a    cancelPe\
-ndingScroll() {\x0a\
-      try { this\
-.raf.cancelGroup\
-('ScrollManager'\
-); } catch (_) {\
-}\x0a      this.scr\
-ollScheduled = f\
-alse;\x0a      this\
-.scrollFabUpdate\
-Scheduled = fals\
-e;\x0a      this.sc\
-rollRAF = 0; thi\
-s.scrollFabRAF =\
- 0;\x0a    }\x0a    //\
- Jump to bottom \
-immediately (no \
-smooth behavior)\
-.\x0a    forceScrol\
-lToBottomImmedia\
-te() {\x0a      con\
-st el = Utils.SE\
-; el.scrollTop =\
- el.scrollHeight\
-; this.prevScrol\
-l = el.scrollHei\
-ght;\x0a    }\x0a    /\
-/ Scroll window \
-to bottom based \
-on auto-follow a\
-nd margins.\x0a    \
-scrollToBottom(l\
-ive = false, for\
-ce = false) {\x0a  \
-    const el = U\
-tils.SE; const m\
-arginPx = this.c\
-fg.UI.SCROLL_NEA\
-R_MARGIN_PX; con\
-st behavior = 'i\
-nstant';\x0a      i\
-f (live === true\
- && this.autoFol\
-low !== true) { \
-this.prevScroll \
-= el.scrollHeigh\
-t; return; }\x0a   \
-   if ((live ===\
- true && this.us\
-erInteracted ===\
- false) || this.\
-isNearBottom(mar\
-ginPx) || live =\
-== false || forc\
-e) {\x0a        try\
- { el.scrollTo({\
- top: el.scrollH\
-eight, behavior \
-}); } catch (_) \
-{ el.scrollTop =\
- el.scrollHeight\
-; }\x0a      }\x0a    \
-  this.prevScrol\
-l = el.scrollHei\
-ght;\x0a    }\x0a    /\
-/ Check if windo\
-w has vertical s\
-croll bar.\x0a    h\
-asVerticalScroll\
-() { const el = \
-Utils.SE; return\
- (el.scrollHeigh\
-t - el.clientHei\
-ght) > 1; }\x0a    \
-// Compute the c\
-urrent FAB actio\
-n (none/up/down)\
-.\x0a    computeFab\
-Action() {\x0a     \
- const el = Util\
-s.SE; const hasS\
-croll = (el.scro\
-llHeight - el.cl\
-ientHeight) > 1;\
-\x0a      if (!hasS\
-croll) return 'n\
-one';\x0a      cons\
-t dist = el.scro\
-llHeight - el.cl\
-ientHeight - el.\
-scrollTop;\x0a     \
- if (dist <= 2) \
-return 'up';\x0a   \
-   if (dist >= t\
-his.cfg.FAB.SHOW\
-_DOWN_THRESHOLD_\
-PX) return 'down\
-';\x0a      return \
-'none';\x0a    }\x0a  \
-  // Update FAB \
-to show correct \
-direction and la\
-bel.\x0a    updateS\
-crollFab(force =\
- false, actionOv\
-erride = null, b\
-ypassFreeze = fa\
-lse) {\x0a      con\
-st btn = this.do\
-m.get('scrollFab\
-'); const icon =\
- this.dom.get('s\
-crollFabIcon');\x0a\
-      if (!btn |\
-| !icon) return;\
-\x0a      const now\
- = Utils.now(); \
-const action = a\
-ctionOverride ||\
- this.computeFab\
-Action();\x0a      \
-if (!force && !b\
-ypassFreeze && n\
-ow < this.fabFre\
-ezeUntil && acti\
-on !== this.curr\
-entFabAction) re\
-turn;\x0a      if (\
-action === 'none\
-') {\x0a        if \
-(this.currentFab\
-Action !== 'none\
-' || force) { bt\
-n.classList.remo\
-ve('visible'); t\
-his.currentFabAc\
-tion = 'none'; }\
-\x0a        return;\
-\x0a      }\x0a      i\
-f (action !== th\
-is.currentFabAct\
-ion || force) {\x0a\
-        if (acti\
-on === 'up') {\x0a \
-         if (ico\
-n.dataset.dir !=\
-= 'up') { icon.s\
-rc = this.cfg.IC\
-ONS.COLLAPSE; ic\
-on.dataset.dir =\
- 'up'; }\x0a       \
-   btn.title = \x22\
-Go to top\x22;\x0a    \
-    } else {\x0a   \
-       if (icon.\
-dataset.dir !== \
-'down') { icon.s\
-rc = this.cfg.IC\
-ONS.EXPAND; icon\
-.dataset.dir = '\
-down'; }\x0a       \
-   btn.title = \x22\
-Go to bottom\x22;\x0a \
-       }\x0a       \
- btn.setAttribut\
-e('aria-label', \
-btn.title);\x0a    \
-    this.current\
-FabAction = acti\
-on; btn.classLis\
-t.add('visible')\
-;\x0a      } else i\
-f (!btn.classLis\
-t.contains('visi\
-ble')) btn.class\
-List.add('visibl\
-e');\x0a    }\x0a    /\
-/ Schedule a FAB\
- state refresh.\x0a\
-    scheduleScro\
-llFabUpdate() {\x0a\
+oots.add(targetR\
+oot);\x0a      }\x0a\x0a \
+     // If a tas\
+k is already sch\
+eduled, do not a\
+rm another \xe2\x80\x93 c\
+oalescing will t\
+ake care of it.\x0a\
       if (this.s\
-crollFabUpdateSc\
-heduled) return;\
-\x0a      this.scro\
-llFabUpdateSched\
-uled = true;\x0a   \
-   this.raf.sche\
-dule('SM:fab', (\
-) => {\x0a        t\
-his.scrollFabUpd\
-ateScheduled = f\
-alse;\x0a        co\
-nst action = thi\
-s.computeFabActi\
-on(); if (action\
- !== this.curren\
-tFabAction) this\
-.updateScrollFab\
-(false, action);\
-\x0a      }, 'Scrol\
-lManager', 2);\x0a \
-   }\x0a    // If u\
-ser is near bott\
-om, enable auto-\
-follow again.\x0a  \
-  maybeEnableAut\
-oFollowByProximi\
-ty() {\x0a      con\
-st el = Utils.SE\
-;\x0a      if (!thi\
-s.autoFollow) {\x0a\
-        const di\
-st = el.scrollHe\
-ight - el.client\
-Height - el.scro\
-llTop;\x0a        i\
-f (dist <= this.\
-cfg.UI.AUTO_FOLL\
-OW_REENABLE_PX) \
-this.autoFollow \
-= true;\x0a      }\x0a\
-    }\x0a    // Use\
-r-triggered scro\
-ll to top; disab\
-les auto-follow.\
-\x0a    scrollToTop\
-User() {\x0a      t\
-his.userInteract\
-ed = true; this.\
-autoFollow = fal\
-se;\x0a      try { \
-const el = Utils\
-.SE; el.scrollTo\
-({ top: 0, behav\
-ior: 'instant' }\
-); this.lastScro\
-llTop = el.scrol\
-lTop; }\x0a      ca\
-tch (_) { const \
-el = Utils.SE; e\
-l.scrollTop = 0;\
- this.lastScroll\
-Top = 0; }\x0a    }\
-\x0a    // User-tri\
-ggered scroll to\
- bottom; may re-\
-enable auto-foll\
-ow if near botto\
-m.\x0a    scrollToB\
-ottomUser() {\x0a  \
-    this.userInt\
-eracted = true; \
-this.autoFollow \
-= false;\x0a      t\
-ry { const el = \
-Utils.SE; el.scr\
-ollTo({ top: el.\
-scrollHeight, be\
-havior: 'instant\
-' }); this.lastS\
-crollTop = el.sc\
-rollTop; }\x0a     \
- catch (_) { con\
-st el = Utils.SE\
-; el.scrollTop =\
- el.scrollHeight\
-; this.lastScrol\
-lTop = el.scroll\
-Top; }\x0a      thi\
-s.maybeEnableAut\
-oFollowByProximi\
-ty();\x0a    }\x0a  }\x0a\
+cheduled && this\
+.raf && typeof t\
+his.raf.isSchedu\
+led === 'functio\
+n' && this.raf.i\
+sScheduled(this.\
+rafKey)) return;\
+\x0a\x0a      this.sch\
+eduled = true;\x0a \
+     const prior\
+ity = forceNow ?\
+ 0 : 2;\x0a\x0a      /\
+/ Single rAF job\
+ drains all pend\
+ing roots; rende\
+rAsync remains p\
+ublic and unchan\
+ged.\x0a      this.\
+raf.schedule(thi\
+s.rafKey, () => \
+{\x0a        this.s\
+cheduled = false\
+;\x0a\x0a        const\
+ useDoc = this._\
+pendingDoc;\x0a    \
+    const roots \
+= [];\x0a\x0a        i\
+f (useDoc) {\x0a   \
+       roots.pus\
+h(document);\x0a   \
+     } else {\x0a  \
+        this._pe\
+ndingRoots.forEa\
+ch((r) => {\x0a    \
+        // Only \
+keep connected e\
+lements to avoid\
+ useless work.\x0a \
+           try {\
+\x0a              i\
+f (r && (r.isCon\
+nected === undef\
+ined || r.isConn\
+ected)) roots.pu\
+sh(r);\x0a         \
+   } catch (_) {\
+\x0a              /\
+/ Conservative: \
+keep the root; r\
+enderAsync guard\
+s internally.\x0a  \
+            root\
+s.push(r);\x0a     \
+       }\x0a       \
+   });\x0a        }\
+\x0a\x0a        // Res\
+et aggregation s\
+tate before runn\
+ing (new calls c\
+an aggregate afr\
+esh).\x0a        th\
+is._pendingDoc =\
+ false;\x0a        \
+this._pendingRoo\
+ts.clear();\x0a\x0a   \
+     // Fire-and\
+-forget async dr\
+ain; keep render\
+Async API intact\
+.\x0a        (async\
+ () => {\x0a       \
+   for (let i = \
+0; i < roots.len\
+gth; i++) {\x0a    \
+        try { aw\
+ait this.renderA\
+sync(roots[i]); \
+} catch (_) { /*\
+ swallow \xe2\x80\x93 res\
+ilient */ }\x0a    \
+      }\x0a        \
+})();\x0a      }, '\
+Math', priority)\
+;\x0a    }\x0a    // C\
+leanup pending w\
+ork and state.\x0a \
+   cleanup() {\x0a \
+     try { this.\
+raf.cancelGroup(\
+'Math'); } catch\
+ (_) {}\x0a      th\
+is.scheduled = f\
+alse;\x0a\x0a      // \
+Ensure pending s\
+tate is fully cl\
+eared on cleanup\
+.\x0a      try { th\
+is._pendingRoots\
+.clear(); } catc\
+h (_) {}\x0a      t\
+his._pendingDoc \
+= false;\x0a    }\x0a \
+ }\x0a\x0a  // =======\
+================\
+================\
+================\
+================\
+===\x0a  // 7) Scro\
+ll manager + FAB\
 \x0a  // ==========\
 ================\
 ================\
 ================\
 ================\
-\x0a  // 8) Tips ma\
-nager\x0a  // =====\
-================\
-================\
-================\
-================\
-=====\x0a\x0a  // Tips\
- manager (drop-i\
-n replacement): \
-rotates small hi\
-nt messages in a\
- top overlay.\x0a  \
-class TipsManage\
-r {\x0a    // Light\
-weight tips rota\
-tor that works w\
-ith your CSS (.t\
-ips/.visible)\x0a  \
-  // and is back\
-ward-compatible \
-with legacy `let\
- tips = [...]` i\
-njection.\x0a    co\
-nstructor(dom) {\
-\x0a      this.dom \
-= dom;\x0a      thi\
-s.hidden = false\
-;\x0a      this._ti\
-mers = [];\x0a     \
- this._running =\
- false;\x0a      th\
-is._idx = 0;\x0a   \
- }\x0a\x0a    // Resol\
-ve tips list fro\
-m multiple legac\
-y/new sources.\x0a \
-   _getList() {\x0a\
-      // New pre\
-ferred: window.T\
-IPS (array)\x0a    \
-  const upper = \
-(typeof window !\
-== 'undefined') \
-? window.TIPS : \
-undefined;\x0a     \
- if (Array.isArr\
-ay(upper) && upp\
-er.length) retur\
-n upper;\x0a\x0a      \
-// Legacy inline\
-: window.tips (a\
-rray or JSON str\
-ing)\x0a      const\
- lower = (typeof\
- window !== 'und\
-efined') ? windo\
-w.tips : undefin\
-ed;\x0a      if (Ar\
-ray.isArray(lowe\
-r) && lower.leng\
-th) return lower\
-;\x0a      if (type\
-of lower === 'st\
-ring' && lower.t\
-rim().length) {\x0a\
-        try { co\
-nst arr = JSON.p\
-arse(lower); if \
-(Array.isArray(a\
-rr)) return arr;\
+\x0a\x0a  class Scroll\
+Manager {\x0a    co\
+nstructor(cfg, d\
+om, raf) {\x0a     \
+ this.cfg = cfg;\
+ this.dom = dom;\
+ this.raf = raf;\
+\x0a      this.auto\
+Follow = true; t\
+his.userInteract\
+ed = false;\x0a    \
+  this.lastScrol\
+lTop = 0; this.p\
+revScroll = 0;\x0a \
+     this.curren\
+tFabAction = 'no\
+ne'; this.fabFre\
+ezeUntil = 0;\x0a  \
+    this.scrollS\
+cheduled = false\
+; this.scrollFab\
+UpdateScheduled \
+= false;\x0a      t\
+his.scrollRAF = \
+0; this.scrollFa\
+bRAF = 0;\x0a    }\x0a\
+    // Is page n\
+ear the bottom b\
+y given margin?\x0a\
+    isNearBottom\
+(marginPx = 100)\
+ {\x0a      const e\
+l = Utils.SE; co\
+nst distance = e\
+l.scrollHeight -\
+ el.clientHeight\
+ - el.scrollTop;\
+\x0a      return di\
+stance <= margin\
+Px;\x0a    }\x0a    //\
+ Schedule a page\
+ scroll to botto\
+m if auto-follow\
+ allows it.\x0a    \
+scheduleScroll(l\
+ive = false) {\x0a \
+     if (live ==\
+= true && this.a\
+utoFollow !== tr\
+ue) return;\x0a    \
+  if (this.scrol\
+lScheduled) retu\
+rn;\x0a      this.s\
+crollScheduled =\
+ true;\x0a      thi\
+s.raf.schedule('\
+SM:scroll', () =\
+> { this.scrollS\
+cheduled = false\
+; this.scrollToB\
+ottom(live); thi\
+s.scheduleScroll\
+FabUpdate(); }, \
+'ScrollManager',\
+ 1);\x0a    }\x0a    /\
+/ Cancel any pen\
+ding page scroll\
+.\x0a    cancelPend\
+ingScroll() {\x0a  \
+    try { this.r\
+af.cancelGroup('\
+ScrollManager');\
  } catch (_) {}\x0a\
-      }\x0a\x0a      /\
-/ Optional: data\
--tips='[\x22...\x22,\x22.\
-..\x22]' on #tips\x0a \
-     const host \
-= this._host();\x0a\
-      if (host &\
-& host.dataset &\
-& typeof host.da\
-taset.tips === '\
-string') {\x0a     \
-   try { const a\
-rr = JSON.parse(\
-host.dataset.tip\
-s); if (Array.is\
-Array(arr)) retu\
-rn arr; } catch \
-(_) {}\x0a      }\x0a\x0a\
-      return [];\
-\x0a    }\x0a\x0a    _hos\
-t() {\x0a      retu\
-rn this.dom.get(\
-'tips') || docum\
-ent.getElementBy\
-Id('tips');\x0a    \
-}\x0a\x0a    _clearTim\
-ers() {\x0a      fo\
-r (const t of th\
-is._timers) { tr\
-y { clearTimeout\
-(t); } catch (_)\
- {} }\x0a      this\
-._timers.length \
-= 0;\x0a    }\x0a\x0a    \
-// Stop any runn\
-ing rotation tim\
-ers.\x0a    stopTim\
-ers() {\x0a      th\
-is._clearTimers(\
-);\x0a      this._r\
-unning = false;\x0a\
-    }\x0a\x0a    _appl\
-yBaseStyle(el) {\
-\x0a      if (!el) \
-return;\x0a      //\
- Keep your flex \
-layout and sizin\
-g; do not overwr\
-ite width/height\
-.\x0a      // Ensur\
-e it renders abo\
-ve other layers.\
-\x0a      const z =\
- (typeof window \
-!== 'undefined' \
-&& typeof window\
-.TIPS_ZINDEX !==\
- 'undefined')\x0a  \
-      ? String(w\
-indow.TIPS_ZINDE\
-X) : '2147483000\
-';\x0a      el.styl\
-e.zIndex = z;\x0a  \
-  }\x0a\x0a    // Hide\
- tips layer and \
-stop rotation.\x0a \
-   hide() {\x0a    \
-  if (this.hidde\
-n) return;\x0a     \
- this.stopTimers\
-();\x0a      const \
-el = this._host(\
-);\x0a      if (el)\
- {\x0a        // Re\
-move visibility \
-class and hide h\
-ard (used when s\
-tream starts etc\
-.)\x0a        el.cl\
-assList.remove('\
-visible');\x0a     \
-   el.classList.\
-remove('hidden')\
-; // in case it \
-was set elsewher\
-e\x0a        el.sty\
-le.display = 'no\
-ne';\x0a      }\x0a   \
-   this.hidden =\
- true;\x0a    }\x0a\x0a  \
-  // Show tips l\
-ayer (does not s\
-tart rotation).\x0a\
-    show() {\x0a   \
-   const list = \
-this._getList();\
- if (!list.lengt\
-h) return;\x0a     \
- const el = this\
-._host(); if (!e\
-l) return;\x0a\x0a    \
-  this.hidden = \
-false;\x0a      thi\
-s._applyBaseStyl\
-e(el);\x0a      el.\
+      this.scrol\
+lScheduled = fal\
+se;\x0a      this.s\
+crollFabUpdateSc\
+heduled = false;\
+\x0a      this.scro\
+llRAF = 0; this.\
+scrollFabRAF = 0\
+;\x0a    }\x0a    // J\
+ump to bottom im\
+mediately (no sm\
+ooth behavior).\x0a\
+    forceScrollT\
+oBottomImmediate\
+() {\x0a      const\
+ el = Utils.SE; \
+el.scrollTop = e\
+l.scrollHeight; \
+this.prevScroll \
+= el.scrollHeigh\
+t;\x0a    }\x0a    // \
+Scroll window to\
+ bottom based on\
+ auto-follow and\
+ margins.\x0a    sc\
+rollToBottom(liv\
+e = false, force\
+ = false) {\x0a    \
+  const el = Uti\
+ls.SE; const mar\
+ginPx = this.cfg\
+.UI.SCROLL_NEAR_\
+MARGIN_PX; const\
+ behavior = 'ins\
+tant';\x0a      if \
+(live === true &\
+& this.autoFollo\
+w !== true) { th\
+is.prevScroll = \
+el.scrollHeight;\
+ return; }\x0a     \
+ if ((live === t\
+rue && this.user\
+Interacted === f\
+alse) || this.is\
+NearBottom(margi\
+nPx) || live ===\
+ false || force)\
+ {\x0a        try {\
+ el.scrollTo({ t\
+op: el.scrollHei\
+ght, behavior })\
+; } catch (_) { \
+el.scrollTop = e\
+l.scrollHeight; \
+}\x0a      }\x0a      \
+this.prevScroll \
+= el.scrollHeigh\
+t;\x0a    }\x0a    // \
+Check if window \
+has vertical scr\
+oll bar.\x0a    has\
+VerticalScroll()\
+ { const el = Ut\
+ils.SE; return (\
+el.scrollHeight \
+- el.clientHeigh\
+t) > 1; }\x0a    //\
+ Compute the cur\
+rent FAB action \
+(none/up/down).\x0a\
+    computeFabAc\
+tion() {\x0a      c\
+onst el = Utils.\
+SE; const hasScr\
+oll = (el.scroll\
+Height - el.clie\
+ntHeight) > 1;\x0a \
+     if (!hasScr\
+oll) return 'non\
+e';\x0a      const \
+dist = el.scroll\
+Height - el.clie\
+ntHeight - el.sc\
+rollTop;\x0a      i\
+f (dist <= 2) re\
+turn 'up';\x0a     \
+ if (dist >= thi\
+s.cfg.FAB.SHOW_D\
+OWN_THRESHOLD_PX\
+) return 'down';\
+\x0a      return 'n\
+one';\x0a    }\x0a    \
+// Update FAB to\
+ show correct di\
+rection and labe\
+l.\x0a    updateScr\
+ollFab(force = f\
+alse, actionOver\
+ride = null, byp\
+assFreeze = fals\
+e) {\x0a      const\
+ btn = this.dom.\
+get('scrollFab')\
+; const icon = t\
+his.dom.get('scr\
+ollFabIcon');\x0a  \
+    if (!btn || \
+!icon) return;\x0a \
+     const now =\
+ Utils.now(); co\
+nst action = act\
+ionOverride || t\
+his.computeFabAc\
+tion();\x0a      if\
+ (!force && !byp\
+assFreeze && now\
+ < this.fabFreez\
+eUntil && action\
+ !== this.curren\
+tFabAction) retu\
+rn;\x0a      if (ac\
+tion === 'none')\
+ {\x0a        if (t\
+his.currentFabAc\
+tion !== 'none' \
+|| force) { btn.\
 classList.remove\
-('hidden');\x0a    \
-  el.style.displ\
-ay = 'block'; //\
- CSS handles opa\
-city via .tips/.\
-visible\x0a      //\
- Do not add 'vis\
-ible' yet \xe2\x80\x93 cy\
-cle() takes care\
- of fade-in step\
-s.\x0a    }\x0a\x0a    //\
- Show one tip (b\
-y index) and fad\
-e it in next fra\
-me.\x0a    _showOne\
-(idx) {\x0a      co\
-nst list = this.\
-_getList(); if (\
-!list.length) re\
-turn;\x0a      cons\
-t el = this._hos\
-t(); if (!el || \
-this.hidden) ret\
-urn;\x0a\x0a      this\
-._applyBaseStyle\
-(el);\x0a      el.i\
-nnerHTML = list[\
-idx % list.lengt\
-h];\x0a\x0a      // Ce\
-ntralize \x22next-f\
-rame\x22 visibility\
- toggle through \
-RafManager to gu\
-arantee CSS tran\
-sition.\x0a      tr\
-y {\x0a        if (\
-typeof runtime !\
-== 'undefined' &\
-& runtime.raf &&\
- typeof runtime.\
-raf.schedule ===\
- 'function') {\x0a \
-         const k\
-ey = { t: 'Tips:\
-show', el, i: Ma\
-th.random() };\x0a \
-         runtime\
-.raf.schedule(ke\
-y, () => {\x0a     \
-       if (this.\
-hidden || !el.is\
-Connected) retur\
-n;\x0a            e\
-l.classList.add(\
-'visible');\x0a    \
-      }, 'Tips',\
- 2);\x0a        } e\
-lse {\x0a          \
-// Fallback: no \
-frame delay \xe2\x80\x93 \
-still functional\
-, transition may\
- not play.\x0a     \
-     el.classLis\
-t.add('visible')\
-;\x0a        }\x0a    \
-  } catch (_) {\x0a\
-        el.class\
-List.add('visibl\
-e');\x0a      }\x0a   \
- }\x0a\x0a    // Inter\
-nal loop: show, \
-wait, hide, wait\
- fade, next.\x0a   \
- _cycleLoop() {\x0a\
-      if (this.h\
-idden) return;\x0a \
-     const el = \
-this._host(); if\
- (!el) return;\x0a\x0a\
-      const VISI\
-BLE_MS = (typeof\
- window !== 'und\
-efined' && windo\
-w.TIPS_VISIBLE_M\
-S) ? window.TIPS\
-_VISIBLE_MS : 15\
-000;\x0a      const\
- FADE_MS    = (t\
+('visible'); thi\
+s.currentFabActi\
+on = 'none'; }\x0a \
+       return;\x0a \
+     }\x0a      if \
+(action !== this\
+.currentFabActio\
+n || force) {\x0a  \
+      if (action\
+ === 'up') {\x0a   \
+       if (icon.\
+dataset.dir !== \
+'up') { icon.src\
+ = this.cfg.ICON\
+S.COLLAPSE; icon\
+.dataset.dir = '\
+up'; }\x0a         \
+ btn.title = \x22Go\
+ to top\x22;\x0a      \
+  } else {\x0a     \
+     if (icon.da\
+taset.dir !== 'd\
+own') { icon.src\
+ = this.cfg.ICON\
+S.EXPAND; icon.d\
+ataset.dir = 'do\
+wn'; }\x0a         \
+ btn.title = \x22Go\
+ to bottom\x22;\x0a   \
+     }\x0a        b\
+tn.setAttribute(\
+'aria-label', bt\
+n.title);\x0a      \
+  this.currentFa\
+bAction = action\
+; btn.classList.\
+add('visible');\x0a\
+      } else if \
+(!btn.classList.\
+contains('visibl\
+e')) btn.classLi\
+st.add('visible'\
+);\x0a    }\x0a    // \
+Schedule a FAB s\
+tate refresh.\x0a  \
+  scheduleScroll\
+FabUpdate() {\x0a  \
+    if (this.scr\
+ollFabUpdateSche\
+duled) return;\x0a \
+     this.scroll\
+FabUpdateSchedul\
+ed = true;\x0a     \
+ this.raf.schedu\
+le('SM:fab', () \
+=> {\x0a        thi\
+s.scrollFabUpdat\
+eScheduled = fal\
+se;\x0a        cons\
+t action = this.\
+computeFabAction\
+(); if (action !\
+== this.currentF\
+abAction) this.u\
+pdateScrollFab(f\
+alse, action);\x0a \
+     }, 'ScrollM\
+anager', 2);\x0a   \
+ }\x0a    // If use\
+r is near bottom\
+, enable auto-fo\
+llow again.\x0a    \
+maybeEnableAutoF\
+ollowByProximity\
+() {\x0a      const\
+ el = Utils.SE;\x0a\
+      if (!this.\
+autoFollow) {\x0a  \
+      const dist\
+ = el.scrollHeig\
+ht - el.clientHe\
+ight - el.scroll\
+Top;\x0a        if \
+(dist <= this.cf\
+g.UI.AUTO_FOLLOW\
+_REENABLE_PX) th\
+is.autoFollow = \
+true;\x0a      }\x0a  \
+  }\x0a    // User-\
+triggered scroll\
+ to top; disable\
+s auto-follow.\x0a \
+   scrollToTopUs\
+er() {\x0a      thi\
+s.userInteracted\
+ = true; this.au\
+toFollow = false\
+;\x0a      try { co\
+nst el = Utils.S\
+E; el.scrollTo({\
+ top: 0, behavio\
+r: 'instant' });\
+ this.lastScroll\
+Top = el.scrollT\
+op; }\x0a      catc\
+h (_) { const el\
+ = Utils.SE; el.\
+scrollTop = 0; t\
+his.lastScrollTo\
+p = 0; }\x0a    }\x0a \
+   // User-trigg\
+ered scroll to b\
+ottom; may re-en\
+able auto-follow\
+ if near bottom.\
+\x0a    scrollToBot\
+tomUser() {\x0a    \
+  this.userInter\
+acted = true; th\
+is.autoFollow = \
+false;\x0a      try\
+ { const el = Ut\
+ils.SE; el.scrol\
+lTo({ top: el.sc\
+rollHeight, beha\
+vior: 'instant' \
+}); this.lastScr\
+ollTop = el.scro\
+llTop; }\x0a      c\
+atch (_) { const\
+ el = Utils.SE; \
+el.scrollTop = e\
+l.scrollHeight; \
+this.lastScrollT\
+op = el.scrollTo\
+p; }\x0a      this.\
+maybeEnableAutoF\
+ollowByProximity\
+();\x0a    }\x0a  }\x0a\x0a \
+ // ============\
+================\
+================\
+================\
+==============\x0a \
+ // 8) Tips mana\
+ger\x0a  // =======\
+================\
+================\
+================\
+================\
+===\x0a\x0a  // Tips m\
+anager (drop-in \
+replacement): ro\
+tates small hint\
+ messages in a t\
+op overlay.\x0a  cl\
+ass TipsManager \
+{\x0a    // Lightwe\
+ight tips rotato\
+r that works wit\
+h your CSS (.tip\
+s/.visible)\x0a    \
+// and is backwa\
+rd-compatible wi\
+th legacy `let t\
+ips = [...]` inj\
+ection.\x0a    cons\
+tructor(dom) {\x0a \
+     this.dom = \
+dom;\x0a      this.\
+hidden = false;\x0a\
+      this._time\
+rs = [];\x0a      t\
+his._running = f\
+alse;\x0a      this\
+._idx = 0;\x0a    }\
+\x0a\x0a    // Resolve\
+ tips list from \
+multiple legacy/\
+new sources.\x0a   \
+ _getList() {\x0a  \
+    // New prefe\
+rred: window.TIP\
+S (array)\x0a      \
+const upper = (t\
 ypeof window !==\
+ 'undefined') ? \
+window.TIPS : un\
+defined;\x0a      i\
+f (Array.isArray\
+(upper) && upper\
+.length) return \
+upper;\x0a\x0a      //\
+ Legacy inline: \
+window.tips (arr\
+ay or JSON strin\
+g)\x0a      const l\
+ower = (typeof w\
+indow !== 'undef\
+ined') ? window.\
+tips : undefined\
+;\x0a      if (Arra\
+y.isArray(lower)\
+ && lower.length\
+) return lower;\x0a\
+      if (typeof\
+ lower === 'stri\
+ng' && lower.tri\
+m().length) {\x0a  \
+      try { cons\
+t arr = JSON.par\
+se(lower); if (A\
+rray.isArray(arr\
+)) return arr; }\
+ catch (_) {}\x0a  \
+    }\x0a\x0a      // \
+Optional: data-t\
+ips='[\x22...\x22,\x22...\
+\x22]' on #tips\x0a   \
+   const host = \
+this._host();\x0a  \
+    if (host && \
+host.dataset && \
+typeof host.data\
+set.tips === 'st\
+ring') {\x0a       \
+ try { const arr\
+ = JSON.parse(ho\
+st.dataset.tips)\
+; if (Array.isAr\
+ray(arr)) return\
+ arr; } catch (_\
+) {}\x0a      }\x0a\x0a  \
+    return [];\x0a \
+   }\x0a\x0a    _host(\
+) {\x0a      return\
+ this.dom.get('t\
+ips') || documen\
+t.getElementById\
+('tips');\x0a    }\x0a\
+\x0a    _clearTimer\
+s() {\x0a      for \
+(const t of this\
+._timers) { try \
+{ clearTimeout(t\
+); } catch (_) {\
+} }\x0a      this._\
+timers.length = \
+0;\x0a    }\x0a\x0a    //\
+ Stop any runnin\
+g rotation timer\
+s.\x0a    stopTimer\
+s() {\x0a      this\
+._clearTimers();\
+\x0a      this._run\
+ning = false;\x0a  \
+  }\x0a\x0a    _applyB\
+aseStyle(el) {\x0a \
+     if (!el) re\
+turn;\x0a      // K\
+eep your flex la\
+yout and sizing;\
+ do not overwrit\
+e width/height.\x0a\
+      // Ensure \
+it renders above\
+ other layers.\x0a \
+     const z = (\
+typeof window !=\
+= 'undefined' &&\
+ typeof window.T\
+IPS_ZINDEX !== '\
+undefined')\x0a    \
+    ? String(win\
+dow.TIPS_ZINDEX)\
+ : '2147483000';\
+\x0a      el.style.\
+zIndex = z;\x0a    \
+}\x0a\x0a    // Hide t\
+ips layer and st\
+op rotation.\x0a   \
+ hide() {\x0a      \
+if (this.hidden)\
+ return;\x0a      t\
+his.stopTimers()\
+;\x0a      const el\
+ = this._host();\
+\x0a      if (el) {\
+\x0a        // Remo\
+ve visibility cl\
+ass and hide har\
+d (used when str\
+eam starts etc.)\
+\x0a        el.clas\
+sList.remove('vi\
+sible');\x0a       \
+ el.classList.re\
+move('hidden'); \
+// in case it wa\
+s set elsewhere\x0a\
+        el.style\
+.display = 'none\
+';\x0a      }\x0a     \
+ this.hidden = t\
+rue;\x0a    }\x0a\x0a    \
+// Show tips lay\
+er (does not sta\
+rt rotation).\x0a  \
+  show() {\x0a     \
+ const list = th\
+is._getList(); i\
+f (!list.length)\
+ return;\x0a      c\
+onst el = this._\
+host(); if (!el)\
+ return;\x0a\x0a      \
+this.hidden = fa\
+lse;\x0a      this.\
+_applyBaseStyle(\
+el);\x0a      el.cl\
+assList.remove('\
+hidden');\x0a      \
+el.style.display\
+ = 'block'; // C\
+SS handles opaci\
+ty via .tips/.vi\
+sible\x0a      // D\
+o not add 'visib\
+le' yet \xe2\x80\x93 cycl\
+e() takes care o\
+f fade-in steps.\
+\x0a    }\x0a\x0a    // S\
+how one tip (by \
+index) and fade \
+it in next frame\
+.\x0a    _showOne(i\
+dx) {\x0a      cons\
+t list = this._g\
+etList(); if (!l\
+ist.length) retu\
+rn;\x0a      const \
+el = this._host(\
+); if (!el || th\
+is.hidden) retur\
+n;\x0a\x0a      this._\
+applyBaseStyle(e\
+l);\x0a      el.inn\
+erHTML = list[id\
+x % list.length]\
+;\x0a\x0a      // Cent\
+ralize \x22next-fra\
+me\x22 visibility t\
+oggle through Ra\
+fManager to guar\
+antee CSS transi\
+tion.\x0a      try \
+{\x0a        if (ty\
+peof runtime !==\
  'undefined' && \
-window.TIPS_FADE\
-_MS) ? window.TI\
-PS_FADE_MS : 100\
-0;\x0a\x0a      this._\
-showOne(this._id\
-x);\x0a\x0a      // Se\
-quence: visible \
--> wait -> remov\
-e 'visible' -> w\
-ait fade -> next\
-\x0a      this._tim\
-ers.push(setTime\
-out(() => {\x0a    \
+runtime.raf && t\
+ypeof runtime.ra\
+f.schedule === '\
+function') {\x0a   \
+       const key\
+ = { t: 'Tips:sh\
+ow', el, i: Math\
+.random() };\x0a   \
+       runtime.r\
+af.schedule(key,\
+ () => {\x0a       \
+     if (this.hi\
+dden || !el.isCo\
+nnected) return;\
+\x0a            el.\
+classList.add('v\
+isible');\x0a      \
+    }, 'Tips', 2\
+);\x0a        } els\
+e {\x0a          //\
+ Fallback: no fr\
+ame delay \xe2\x80\x93 st\
+ill functional, \
+transition may n\
+ot play.\x0a       \
+   el.classList.\
+add('visible');\x0a\
+        }\x0a      \
+} catch (_) {\x0a  \
+      el.classLi\
+st.add('visible'\
+);\x0a      }\x0a    }\
+\x0a\x0a    // Interna\
+l loop: show, wa\
+it, hide, wait f\
+ade, next.\x0a    _\
+cycleLoop() {\x0a  \
     if (this.hid\
 den) return;\x0a   \
-     el.classLis\
-t.remove('visibl\
-e');\x0a        thi\
-s._timers.push(s\
-etTimeout(() => \
-{\x0a          if (\
-this.hidden) ret\
-urn;\x0a          c\
-onst list = this\
-._getList(); if \
-(!list.length) r\
-eturn;\x0a         \
- this._idx = (th\
-is._idx + 1) % l\
-ist.length;\x0a    \
-      this._cycl\
-eLoop();\x0a       \
- }, FADE_MS));\x0a \
-     }, VISIBLE_\
-MS));\x0a    }\x0a\x0a   \
- // Start rotati\
-on with initial \
-delay.\x0a    cycle\
-() {\x0a      const\
- list = this._ge\
-tList(); if (!li\
-st.length || thi\
-s._running) retu\
-rn;\x0a      this._\
-running = true; \
-this._idx = 0;\x0a \
-     this.show()\
-; // make sure t\
-he host is visib\
-le and centered\x0a\
-\x0a      const INI\
-T_DELAY = (typeo\
-f window !== 'un\
-defined' && wind\
-ow.TIPS_INIT_DEL\
-AY_MS) ? window.\
-TIPS_INIT_DELAY_\
-MS : 10000;\x0a    \
-  this._timers.p\
-ush(setTimeout((\
-) => {\x0a        i\
-f (this.hidden) \
-return;\x0a        \
-this._cycleLoop(\
-);\x0a      }, Math\
-.max(0, INIT_DEL\
-AY)));\x0a    }\x0a\x0a  \
-  // Stop and re\
-set.\x0a    cleanup\
-() {\x0a      this.\
-stopTimers();\x0a  \
-    const el = t\
-his._host();\x0a   \
-   if (el) el.cl\
-assList.remove('\
-visible');\x0a    }\
-\x0a  }\x0a\x0a  // =====\
+   const el = th\
+is._host(); if (\
+!el) return;\x0a\x0a  \
+    const VISIBL\
+E_MS = (typeof w\
+indow !== 'undef\
+ined' && window.\
+TIPS_VISIBLE_MS)\
+ ? window.TIPS_V\
+ISIBLE_MS : 1500\
+0;\x0a      const F\
+ADE_MS    = (typ\
+eof window !== '\
+undefined' && wi\
+ndow.TIPS_FADE_M\
+S) ? window.TIPS\
+_FADE_MS : 1000;\
+\x0a\x0a      this._sh\
+owOne(this._idx)\
+;\x0a\x0a      // Sequ\
+ence: visible ->\
+ wait -> remove \
+'visible' -> wai\
+t fade -> next\x0a \
+     this._timer\
+s.push(setTimeou\
+t(() => {\x0a      \
+  if (this.hidde\
+n) return;\x0a     \
+   el.classList.\
+remove('visible'\
+);\x0a        this.\
+_timers.push(set\
+Timeout(() => {\x0a\
+          if (th\
+is.hidden) retur\
+n;\x0a          con\
+st list = this._\
+getList(); if (!\
+list.length) ret\
+urn;\x0a          t\
+his._idx = (this\
+._idx + 1) % lis\
+t.length;\x0a      \
+    this._cycleL\
+oop();\x0a        }\
+, FADE_MS));\x0a   \
+   }, VISIBLE_MS\
+));\x0a    }\x0a\x0a    /\
+/ Start rotation\
+ with initial de\
+lay.\x0a    cycle()\
+ {\x0a      const l\
+ist = this._getL\
+ist(); if (!list\
+.length || this.\
+_running) return\
+;\x0a      this._ru\
+nning = true; th\
+is._idx = 0;\x0a   \
+   this.show(); \
+// make sure the\
+ host is visible\
+ and centered\x0a\x0a \
+     const INIT_\
+DELAY = (typeof \
+window !== 'unde\
+fined' && window\
+.TIPS_INIT_DELAY\
+_MS) ? window.TI\
+PS_INIT_DELAY_MS\
+ : 10000;\x0a      \
+this._timers.pus\
+h(setTimeout(() \
+=> {\x0a        if \
+(this.hidden) re\
+turn;\x0a        th\
+is._cycleLoop();\
+\x0a      }, Math.m\
+ax(0, INIT_DELAY\
+)));\x0a    }\x0a\x0a    \
+// Stop and rese\
+t.\x0a    cleanup()\
+ {\x0a      this.st\
+opTimers();\x0a    \
+  const el = thi\
+s._host();\x0a     \
+ if (el) el.clas\
+sList.remove('vi\
+sible');\x0a    }\x0a \
+ }\x0a\x0a  // =======\
 ================\
 ================\
 ================\
 ================\
-=====\x0a  // 9) To\
-ol output + Node\
-s manager\x0a  // =\
+===\x0a  // 9) Tool\
+ output + Nodes \
+manager\x0a  // ===\
 ================\
 ================\
 ================\
 ================\
-=========\x0a\x0a  cla\
-ss ToolOutput {\x0a\
-    // Placehold\
-er for loader sh\
-ow (can be exten\
-ded by host).\x0a  \
-  showLoader() {\
- return; }\x0a    /\
-/ Hide spinner e\
-lements in bot m\
-essages.\x0a    hid\
-eLoader() {\x0a    \
-  const elements\
- = document.quer\
-ySelectorAll('.m\
-sg-bot');\x0a      \
-if (elements.len\
-gth > 0) element\
-s.forEach(el => \
-{ const s = el.q\
-uerySelector('.s\
-pinner'); if (s)\
- s.style.display\
- = 'none'; });\x0a \
-   }\x0a    begin()\
- { this.showLoad\
-er(); }\x0a    end(\
-) { this.hideLoa\
-der(); }\x0a    ena\
-ble() { const el\
-s = document.que\
-rySelectorAll('.\
-tool-output'); i\
-f (els.length) e\
-ls[els.length - \
-1].style.display\
- = 'block'; }\x0a  \
-  disable() { co\
-nst els = docume\
-nt.querySelector\
-All('.tool-outpu\
-t'); if (els.len\
-gth) els[els.len\
-gth - 1].style.d\
-isplay = 'none';\
- }\x0a    // Append\
- HTML into the l\
+=======\x0a\x0a  class\
+ ToolOutput {\x0a  \
+  // Placeholder\
+ for loader show\
+ (can be extende\
+d by host).\x0a    \
+showLoader() { r\
+eturn; }\x0a    // \
+Hide spinner ele\
+ments in bot mes\
+sages.\x0a    hideL\
+oader() {\x0a      \
+const elements =\
+ document.queryS\
+electorAll('.msg\
+-bot');\x0a      if\
+ (elements.lengt\
+h > 0) elements.\
+forEach(el => { \
+const s = el.que\
+rySelector('.spi\
+nner'); if (s) s\
+.style.display =\
+ 'none'; });\x0a   \
+ }\x0a    begin() {\
+ this.showLoader\
+(); }\x0a    end() \
+{ this.hideLoade\
+r(); }\x0a    enabl\
+e() { const els \
+= document.query\
+SelectorAll('.to\
+ol-output'); if \
+(els.length) els\
+[els.length - 1]\
+.style.display =\
+ 'block'; }\x0a    \
+disable() { cons\
+t els = document\
+.querySelectorAl\
+l('.tool-output'\
+); if (els.lengt\
+h) els[els.lengt\
+h - 1].style.dis\
+play = 'none'; }\
+\x0a    // Append H\
+TML into the lat\
+est tool-output \
+content area.\x0a  \
+  append(content\
+) {\x0a      this.h\
+ideLoader(); thi\
+s.enable();\x0a    \
+  const els = do\
+cument.querySele\
+ctorAll('.tool-o\
+utput');\x0a      i\
+f (els.length) {\
+ const contentEl\
+ = els[els.lengt\
+h - 1].querySele\
+ctor('.content')\
+; if (contentEl)\
+ contentEl.inser\
+tAdjacentHTML('b\
+eforeend', conte\
+nt); }\x0a    }\x0a   \
+ // Replace inne\
+r HTML for the l\
 atest tool-outpu\
 t content area.\x0a\
-    append(conte\
+    update(conte\
 nt) {\x0a      this\
 .hideLoader(); t\
 his.enable();\x0a  \
@@ -93529,608 +93554,702 @@ El = els[els.len\
 gth - 1].querySe\
 lector('.content\
 '); if (contentE\
-l) contentEl.ins\
-ertAdjacentHTML(\
-'beforeend', con\
-tent); }\x0a    }\x0a \
-   // Replace in\
-ner HTML for the\
- latest tool-out\
-put content area\
-.\x0a    update(con\
-tent) {\x0a      th\
-is.hideLoader();\
- this.enable();\x0a\
-      const els \
-= document.query\
-SelectorAll('.to\
-ol-output');\x0a   \
-   if (els.lengt\
-h) { const conte\
-ntEl = els[els.l\
-ength - 1].query\
-Selector('.conte\
-nt'); if (conten\
-tEl) contentEl.i\
-nnerHTML = conte\
-nt; }\x0a    }\x0a    \
-// Remove childr\
-en from the late\
-st tool-output c\
-ontent area.\x0a   \
- clear() {\x0a     \
- this.hideLoader\
-(); this.enable(\
-);\x0a      const e\
-ls = document.qu\
-erySelectorAll('\
-.tool-output');\x0a\
-      if (els.le\
-ngth) { const co\
-ntentEl = els[el\
-s.length - 1].qu\
-erySelector('.co\
-ntent'); if (con\
-tentEl) contentE\
-l.replaceChildre\
-n(); }\x0a    }\x0a   \
- // Toggle visib\
-ility of a speci\
-fic tool output \
-block by message\
- id.\x0a    toggle(\
-id) {\x0a      cons\
-t el = document.\
-getElementById('\
-msg-bot-' + id);\
- if (!el) return\
-;\x0a      const ou\
-tputEl = el.quer\
-ySelector('.tool\
--output'); if (!\
-outputEl) return\
-;\x0a      const co\
-ntentEl = output\
-El.querySelector\
-('.content');\x0a  \
-    if (contentE\
-l) contentEl.sty\
-le.display = (co\
-ntentEl.style.di\
-splay === 'none'\
-) ? 'block' : 'n\
-one';\x0a      cons\
-t toggleEl = out\
-putEl.querySelec\
-tor('.toggle-cmd\
--output img'); i\
-f (toggleEl) tog\
-gleEl.classList.\
-toggle('toggle-e\
-xpanded');\x0a    }\
-\x0a  }\x0a\x0a    // Use\
-rCollapseManager\
- \xe2\x80\x93 collapsible\
- user messages (\
-msg-box.msg-user\
-)\x0a    class User\
-CollapseManager \
-{\x0a      construc\
-tor(cfg) {\x0a     \
-   this.cfg = cf\
-g || {};\x0a       \
- // Collapse thr\
-eshold in pixels\
- (can be overrid\
-den via window.U\
-SER_MSG_COLLAPSE\
-_HEIGHT_PX).\x0a   \
-     this.thresh\
-old = Utils.g('U\
-SER_MSG_COLLAPSE\
-_HEIGHT_PX', 100\
-0);\x0a        // T\
-rack processed .\
-msg elements to \
-allow cheap reme\
-asure on resize \
-if needed.\x0a     \
-   this._process\
-ed = new Set();\x0a\
-\x0a        // Visu\
-al indicator att\
-ached while coll\
-apsed (does not \
-modify original \
-text).\x0a        t\
-his.ellipsisText\
- = ' [...]';\x0a   \
-   }\x0a\x0a      _ico\
-ns() {\x0a        c\
-onst I = (this.c\
-fg && this.cfg.I\
-CONS) || {};\x0a   \
-     return { ex\
-pand: I.EXPAND |\
-| '', collapse: \
-I.COLLAPSE || ''\
- };\x0a      }\x0a    \
-  _labels() {\x0a  \
-      const L = \
-(this.cfg && thi\
-s.cfg.LOCALE) ||\
- {};\x0a        ret\
-urn { expand: L.\
-EXPAND || 'Expan\
-d', collapse: L.\
-COLLAPSE || 'Col\
-lapse' };\x0a      \
-}\x0a\x0a      // Sche\
-dule a function \
-for next frame (\
-ensures layout i\
-s up-to-date bef\
-ore scrolling).\x0a\
-      _afterLayo\
-ut(fn) {\x0a       \
- try {\x0a         \
- if (typeof runt\
-ime !== 'undefin\
-ed' && runtime.r\
-af && typeof run\
-time.raf.schedul\
-e === 'function'\
-) {\x0a            \
-const key = { t:\
- 'UC:afterLayout\
-', i: Math.rando\
-m() };\x0a         \
-   runtime.raf.s\
-chedule(key, () \
-=> { try { fn &&\
- fn(); } catch (\
-_) {} }, 'UserCo\
-llapse', 0);\x0a   \
-         return;\
-\x0a          }\x0a   \
-     } catch (_)\
- {}\x0a        try \
-{ requestAnimati\
-onFrame(() => { \
-try { fn && fn()\
-; } catch (_) {}\
- }); }\x0a        c\
-atch (_) { setTi\
-meout(() => { tr\
-y { fn && fn(); \
-} catch (__){ } \
-}, 0); }\x0a      }\
-\x0a\x0a      // Bring\
- toggle into vie\
-w with minimal s\
-croll (upwards i\
-f it moved above\
- after collapse)\
-.\x0a      _scrollT\
-oggleIntoView(to\
-ggleEl) {\x0a      \
-  if (!toggleEl \
-|| !toggleEl.isC\
-onnected) return\
-;\x0a        try { \
-if (runtime && r\
-untime.scrollMgr\
-) { runtime.scro\
-llMgr.userIntera\
-cted = true; run\
-time.scrollMgr.a\
-utoFollow = fals\
-e; } } catch (_)\
- {}\x0a        this\
-._afterLayout(()\
- => {\x0a          \
-try {\x0a          \
-  if (toggleEl.s\
-crollIntoView) {\
-\x0a              /\
-/ Prefer minimal\
- movement; keep \
-behavior non-ani\
-mated and predic\
-table.\x0a         \
-     try { toggl\
-eEl.scrollIntoVi\
-ew({ block: 'nea\
-rest', inline: '\
-nearest', behavi\
-or: 'instant' })\
-; }\x0a            \
-  catch (_) { to\
-ggleEl.scrollInt\
-oView(false); }\x0a\
-            }\x0a  \
-        } catch \
-(_) {}\x0a        }\
-);\x0a      }\x0a\x0a    \
-  // Ensure wrap\
-per and toggle e\
-xist for a given\
- .msg element.\x0a \
-     _ensureStru\
-cture(msg) {\x0a   \
-     if (!msg ||\
- !msg.isConnecte\
-d) return null;\x0a\
-\x0a        // Wrap\
- all direct chil\
-dren into a dedi\
-cated content co\
-ntainer to measu\
-re height accura\
-tely.\x0a        le\
-t content = msg.\
-querySelector('.\
-uc-content');\x0a  \
-      if (!conte\
-nt) {\x0a          \
-content = docume\
-nt.createElement\
-('div');\x0a       \
-   content.class\
-Name = 'uc-conte\
-nt';\x0a          c\
-onst frag = docu\
-ment.createDocum\
-entFragment();\x0a \
-         while (\
-msg.firstChild) \
-frag.appendChild\
-(msg.firstChild)\
-;\x0a          cont\
-ent.appendChild(\
-frag);\x0a         \
- msg.appendChild\
-(content);\x0a     \
-   }\x0a\x0a        //\
- Ensure a single\
- toggle exists (\
-click and keyboa\
-rd accessible).\x0a\
-        let togg\
-le = msg.querySe\
-lector('.uc-togg\
-le');\x0a        if\
- (!toggle) {\x0a   \
-       const ico\
-ns = this._icons\
-();\x0a          co\
-nst labels = thi\
-s._labels();\x0a\x0a  \
-        toggle =\
- document.create\
-Element('div');\x0a\
-          toggle\
-.className = 'uc\
--toggle';\x0a      \
-    toggle.tabIn\
-dex = 0;\x0a       \
-   toggle.setAtt\
-ribute('role', '\
-button');\x0a      \
-    toggle.setAt\
-tribute('aria-ex\
-panded', 'false'\
-);\x0a          tog\
-gle.title = labe\
-ls.expand;\x0a\x0a    \
-      const img \
-= document.creat\
-eElement('img');\
-\x0a          img.c\
-lassName = 'uc-t\
-oggle-icon';\x0a   \
-       img.alt =\
- labels.expand;\x0a\
-          img.sr\
-c = icons.expand\
-;\x0a\x0a          // \
-Provide a sane d\
-efault size even\
- if CSS did not \
-load yet (CSS wi\
-ll override when\
- present).\x0a     \
-     img.width =\
- 26;   // keep i\
-n sync with CSS \
-fallback var(--u\
-c-toggle-icon-si\
-ze, 26px)\x0a      \
-    img.height =\
- 26;  // ensures\
- a consistent, n\
-on-tiny control \
-from the first p\
-aint\x0a\x0a          \
-toggle.appendChi\
-ld(img);\x0a\x0a      \
-    // Attach lo\
-cal listeners (n\
-o global handler\
- change; product\
-ion-safe).\x0a     \
-     toggle.addE\
-ventListener('cl\
-ick', (ev) => {\x0a\
-            ev.p\
-reventDefault();\
-\x0a            ev.\
-stopPropagation(\
-);\x0a            t\
-his.toggleFromTo\
-ggle(toggle);\x0a  \
-        });\x0a    \
-      toggle.add\
-EventListener('k\
-eydown', (ev) =>\
- {\x0a            i\
-f (ev.key === 'E\
-nter' || ev.key \
-=== ' ') {\x0a     \
-         ev.prev\
-entDefault();\x0a  \
-            ev.s\
-topPropagation()\
-;\x0a              \
-this.toggleFromT\
-oggle(toggle);\x0a \
-           }\x0a   \
-       }, { pass\
-ive: false });\x0a\x0a\
-          msg.ap\
-pendChild(toggle\
-);\x0a        }\x0a\x0a  \
-      this._proc\
-essed.add(msg);\x0a\
-        msg.data\
-set.ucInit = '1'\
-;\x0a        return\
- { content, togg\
-le };\x0a      }\x0a\x0a \
-     // Create o\
-r update the ell\
-ipsis indicator \
-inside content (\
-absolute in the \
-bottom-right cor\
-ner).\x0a      _ens\
-ureEllipsisEl(ms\
-g, contentEl) {\x0a\
-        const co\
-ntent = contentE\
-l || (msg && msg\
+l) contentEl.inn\
+erHTML = content\
+; }\x0a    }\x0a    //\
+ Remove children\
+ from the latest\
+ tool-output con\
+tent area.\x0a    c\
+lear() {\x0a      t\
+his.hideLoader()\
+; this.enable();\
+\x0a      const els\
+ = document.quer\
+ySelectorAll('.t\
+ool-output');\x0a  \
+    if (els.leng\
+th) { const cont\
+entEl = els[els.\
+length - 1].quer\
+ySelector('.cont\
+ent'); if (conte\
+ntEl) contentEl.\
+replaceChildren(\
+); }\x0a    }\x0a    /\
+/ Toggle visibil\
+ity of a specifi\
+c tool output bl\
+ock by message i\
+d.\x0a    toggle(id\
+) {\x0a      const \
+el = document.ge\
+tElementById('ms\
+g-bot-' + id); i\
+f (!el) return;\x0a\
+      const outp\
+utEl = el.queryS\
+elector('.tool-o\
+utput'); if (!ou\
+tputEl) return;\x0a\
+      const cont\
+entEl = outputEl\
 .querySelector('\
-.uc-content'));\x0a\
-        if (!con\
-tent) return nul\
-l;\x0a\x0a        // E\
-nsure the conten\
-t becomes a posi\
-tioning context \
-only when needed\
-.\x0a        if (ge\
-tComputedStyle(c\
-ontent).position\
- === 'static') {\
-\x0a          conte\
-nt.style.positio\
-n = 'relative';\x0a\
-        }\x0a\x0a     \
-   let dot = con\
+.content');\x0a    \
+  if (contentEl)\
+ contentEl.style\
+.display = (cont\
+entEl.style.disp\
+lay === 'none') \
+? 'block' : 'non\
+e';\x0a      const \
+toggleEl = outpu\
+tEl.querySelecto\
+r('.toggle-cmd-o\
+utput img'); if \
+(toggleEl) toggl\
+eEl.classList.to\
+ggle('toggle-exp\
+anded');\x0a    }\x0a \
+ }\x0a\x0a    // UserC\
+ollapseManager \xe2\
+\x80\x93 collapsible u\
+ser messages (ms\
+g-box.msg-user)\x0a\
+    class UserCo\
+llapseManager {\x0a\
+      constructo\
+r(cfg) {\x0a       \
+ this.cfg = cfg \
+|| {};\x0a        /\
+/ Collapse thres\
+hold in pixels (\
+can be overridde\
+n via window.USE\
+R_MSG_COLLAPSE_H\
+EIGHT_PX).\x0a     \
+   this.threshol\
+d = Utils.g('USE\
+R_MSG_COLLAPSE_H\
+EIGHT_PX', 1000)\
+;\x0a        // Tra\
+ck processed .ms\
+g elements to al\
+low cheap remeas\
+ure on resize if\
+ needed.\x0a       \
+ this._processed\
+ = new Set();\x0a\x0a \
+       // Visual\
+ indicator attac\
+hed while collap\
+sed (does not mo\
+dify original te\
+xt).\x0a        thi\
+s.ellipsisText =\
+ ' [...]';\x0a     \
+ }\x0a\x0a      _icons\
+() {\x0a        con\
+st I = (this.cfg\
+ && this.cfg.ICO\
+NS) || {};\x0a     \
+   return { expa\
+nd: I.EXPAND || \
+'', collapse: I.\
+COLLAPSE || '' }\
+;\x0a      }\x0a      \
+_labels() {\x0a    \
+    const L = (t\
+his.cfg && this.\
+cfg.LOCALE) || {\
+};\x0a        retur\
+n { expand: L.EX\
+PAND || 'Expand'\
+, collapse: L.CO\
+LLAPSE || 'Colla\
+pse' };\x0a      }\x0a\
+\x0a      // Schedu\
+le a function fo\
+r next frame (en\
+sures layout is \
+up-to-date befor\
+e scrolling).\x0a  \
+    _afterLayout\
+(fn) {\x0a        t\
+ry {\x0a          i\
+f (typeof runtim\
+e !== 'undefined\
+' && runtime.raf\
+ && typeof runti\
+me.raf.schedule \
+=== 'function') \
+{\x0a            co\
+nst key = { t: '\
+UC:afterLayout',\
+ i: Math.random(\
+) };\x0a           \
+ runtime.raf.sch\
+edule(key, () =>\
+ { try { fn && f\
+n(); } catch (_)\
+ {} }, 'UserColl\
+apse', 0);\x0a     \
+       return;\x0a \
+         }\x0a     \
+   } catch (_) {\
+}\x0a        try { \
+requestAnimation\
+Frame(() => { tr\
+y { fn && fn(); \
+} catch (_) {} }\
+); }\x0a        cat\
+ch (_) { setTime\
+out(() => { try \
+{ fn && fn(); } \
+catch (__){ } },\
+ 0); }\x0a      }\x0a\x0a\
+      // Bring t\
+oggle into view \
+with minimal scr\
+oll (upwards if \
+it moved above a\
+fter collapse).\x0a\
+      _scrollTog\
+gleIntoView(togg\
+leEl) {\x0a        \
+if (!toggleEl ||\
+ !toggleEl.isCon\
+nected) return;\x0a\
+        try { if\
+ (runtime && run\
+time.scrollMgr) \
+{ runtime.scroll\
+Mgr.userInteract\
+ed = true; runti\
+me.scrollMgr.aut\
+oFollow = false;\
+ } } catch (_) {\
+}\x0a        this._\
+afterLayout(() =\
+> {\x0a          tr\
+y {\x0a            \
+if (toggleEl.scr\
+ollIntoView) {\x0a \
+             // \
+Prefer minimal m\
+ovement; keep be\
+havior non-anima\
+ted and predicta\
+ble.\x0a           \
+   try { toggleE\
+l.scrollIntoView\
+({ block: 'neare\
+st', inline: 'ne\
+arest', behavior\
+: 'instant' }); \
+}\x0a              \
+catch (_) { togg\
+leEl.scrollIntoV\
+iew(false); }\x0a  \
+          }\x0a    \
+      } catch (_\
+) {}\x0a        });\
+\x0a      }\x0a\x0a      \
+// Ensure wrappe\
+r and toggle exi\
+st for a given .\
+msg element.\x0a   \
+   _ensureStruct\
+ure(msg) {\x0a     \
+   if (!msg || !\
+msg.isConnected)\
+ return null;\x0a\x0a \
+       // Wrap a\
+ll direct childr\
+en into a dedica\
+ted content cont\
+ainer to measure\
+ height accurate\
+ly.\x0a        let \
+content = msg.qu\
+erySelector('.uc\
+-content');\x0a    \
+    if (!content\
+) {\x0a          co\
+ntent = document\
+.createElement('\
+div');\x0a         \
+ content.classNa\
+me = 'uc-content\
+';\x0a          con\
+st frag = docume\
+nt.createDocumen\
+tFragment();\x0a   \
+       while (ms\
+g.firstChild) fr\
+ag.appendChild(m\
+sg.firstChild);\x0a\
+          conten\
+t.appendChild(fr\
+ag);\x0a          m\
+sg.appendChild(c\
+ontent);\x0a       \
+ }\x0a\x0a        // E\
+nsure a single t\
+oggle exists (cl\
+ick and keyboard\
+ accessible).\x0a  \
+      let toggle\
+ = msg.querySele\
+ctor('.uc-toggle\
+');\x0a        if (\
+!toggle) {\x0a     \
+     const icons\
+ = this._icons()\
+;\x0a          cons\
+t labels = this.\
+_labels();\x0a\x0a    \
+      toggle = d\
+ocument.createEl\
+ement('div');\x0a  \
+        toggle.c\
+lassName = 'uc-t\
+oggle';\x0a        \
+  toggle.tabInde\
+x = 0;\x0a         \
+ toggle.setAttri\
+bute('role', 'bu\
+tton');\x0a        \
+  toggle.setAttr\
+ibute('aria-expa\
+nded', 'false');\
+\x0a          toggl\
+e.title = labels\
+.expand;\x0a\x0a      \
+    const img = \
+document.createE\
+lement('img');\x0a \
+         img.cla\
+ssName = 'uc-tog\
+gle-icon';\x0a     \
+     img.alt = l\
+abels.expand;\x0a  \
+        img.src \
+= icons.expand;\x0a\
+\x0a          // Pr\
+ovide a sane def\
+ault size even i\
+f CSS did not lo\
+ad yet (CSS will\
+ override when p\
+resent).\x0a       \
+   img.width = 2\
+6;   // keep in \
+sync with CSS fa\
+llback var(--uc-\
+toggle-icon-size\
+, 26px)\x0a        \
+  img.height = 2\
+6;  // ensures a\
+ consistent, non\
+-tiny control fr\
+om the first pai\
+nt\x0a\x0a          to\
+ggle.appendChild\
+(img);\x0a\x0a        \
+  // Attach loca\
+l listeners (no \
+global handler c\
+hange; productio\
+n-safe).\x0a       \
+   toggle.addEve\
+ntListener('clic\
+k', (ev) => {\x0a  \
+          ev.pre\
+ventDefault();\x0a \
+           ev.st\
+opPropagation();\
+\x0a            thi\
+s.toggleFromTogg\
+le(toggle);\x0a    \
+      });\x0a      \
+    toggle.addEv\
+entListener('key\
+down', (ev) => {\
+\x0a            if \
+(ev.key === 'Ent\
+er' || ev.key ==\
+= ' ') {\x0a       \
+       ev.preven\
+tDefault();\x0a    \
+          ev.sto\
+pPropagation();\x0a\
+              th\
+is.toggleFromTog\
+gle(toggle);\x0a   \
+         }\x0a     \
+     }, { passiv\
+e: false });\x0a\x0a  \
+        msg.appe\
+ndChild(toggle);\
+\x0a        }\x0a\x0a    \
+    this._proces\
+sed.add(msg);\x0a  \
+      msg.datase\
+t.ucInit = '1';\x0a\
+        return {\
+ content, toggle\
+ };\x0a      }\x0a\x0a   \
+   // Create or \
+update the ellip\
+sis indicator in\
+side content (ab\
+solute in the bo\
+ttom-right corne\
+r).\x0a      _ensur\
+eEllipsisEl(msg,\
+ contentEl) {\x0a  \
+      const cont\
+ent = contentEl \
+|| (msg && msg.q\
+uerySelector('.u\
+c-content'));\x0a  \
+      if (!conte\
+nt) return null;\
+\x0a\x0a        // Ens\
+ure the content \
+becomes a positi\
+oning context on\
+ly when needed.\x0a\
+        if (getC\
+omputedStyle(con\
+tent).position =\
+== 'static') {\x0a \
+         content\
+.style.position \
+= 'relative';\x0a  \
+      }\x0a\x0a       \
+ let dot = conte\
+nt.querySelector\
+('.uc-ellipsis')\
+;\x0a        if (!d\
+ot) {\x0a          \
+dot = document.c\
+reateElement('sp\
+an');\x0a          \
+dot.className = \
+'uc-ellipsis';\x0a \
+         dot.tex\
+tContent = this.\
+ellipsisText;\x0a  \
+        // Inlin\
+e, theme-agnosti\
+c styles; kept m\
+inimal and non-i\
+nteractive.\x0a    \
+      dot.style.\
+position = 'abso\
+lute';\x0a         \
+ dot.style.right\
+ = '0';\x0a        \
+  dot.style.bott\
+om = '0';\x0a      \
+    dot.style.pa\
+ddingLeft = '6px\
+';\x0a          dot\
+.style.pointerEv\
+ents = 'none';\x0a \
+         dot.sty\
+le.zIndex = '1';\
+\x0a          dot.s\
+tyle.fontWeight \
+= '500';\x0a       \
+   dot.style.opa\
+city = '0.75';\x0a\x0a\
+          conten\
+t.appendChild(do\
+t);\x0a        }\x0a  \
+      return dot\
+;\x0a      }\x0a\x0a     \
+ // Show ellipsi\
+s only when ther\
+e is hidden over\
+flow (collapsed)\
+.\x0a      _showEll\
+ipsis(msg, conte\
+ntEl) {\x0a        \
+const dot = this\
+._ensureEllipsis\
+El(msg, contentE\
+l);\x0a        if (\
+dot) dot.style.d\
+isplay = 'inline\
+';\x0a      }\x0a     \
+ // Hide and cle\
+an ellipsis when\
+ not needed (exp\
+anded or short c\
+ontent).\x0a      _\
+hideEllipsis(msg\
+) {\x0a        cons\
+t content = msg \
+&& msg.querySele\
+ctor('.uc-conten\
+t');\x0a        if \
+(!content) retur\
+n;\x0a        const\
+ dot = content.q\
+uerySelector('.u\
+c-ellipsis');\x0a  \
+      if (dot &&\
+ dot.parentNode)\
+ {\x0a          // \
+Remove the indic\
+ator to avoid ac\
+cidental copy/se\
+lect and keep DO\
+M lean.\x0a        \
+  dot.parentNode\
+.removeChild(dot\
+);\x0a        }\x0a   \
+     // Drop pos\
+itioning context\
+ when no indicat\
+or is present (k\
+eep styles minim\
+al).\x0a        try\
+ {\x0a          if \
+(content && cont\
+ent.style && con\
 tent.querySelect\
 or('.uc-ellipsis\
-');\x0a        if (\
-!dot) {\x0a        \
-  dot = document\
-.createElement('\
-span');\x0a        \
-  dot.className \
-= 'uc-ellipsis';\
-\x0a          dot.t\
-extContent = thi\
-s.ellipsisText;\x0a\
-          // Inl\
-ine, theme-agnos\
-tic styles; kept\
- minimal and non\
--interactive.\x0a  \
-        dot.styl\
-e.position = 'ab\
-solute';\x0a       \
-   dot.style.rig\
-ht = '0';\x0a      \
-    dot.style.bo\
-ttom = '0';\x0a    \
-      dot.style.\
-paddingLeft = '6\
-px';\x0a          d\
-ot.style.pointer\
-Events = 'none';\
-\x0a          dot.s\
-tyle.zIndex = '1\
-';\x0a          dot\
-.style.fontWeigh\
-t = '500';\x0a     \
-     dot.style.o\
-pacity = '0.75';\
-\x0a\x0a          cont\
-ent.appendChild(\
-dot);\x0a        }\x0a\
-        return d\
-ot;\x0a      }\x0a\x0a   \
-   // Show ellip\
-sis only when th\
-ere is hidden ov\
-erflow (collapse\
-d).\x0a      _showE\
-llipsis(msg, con\
-tentEl) {\x0a      \
-  const dot = th\
-is._ensureEllips\
-isEl(msg, conten\
-tEl);\x0a        if\
- (dot) dot.style\
-.display = 'inli\
-ne';\x0a      }\x0a   \
-   // Hide and c\
-lean ellipsis wh\
-en not needed (e\
-xpanded or short\
- content).\x0a     \
- _hideEllipsis(m\
-sg) {\x0a        co\
-nst content = ms\
+') == null) {\x0a  \
+          conten\
+t.style.position\
+ = '';\x0a         \
+ }\x0a        } cat\
+ch (_) {}\x0a      \
+}\x0a\x0a      // Appl\
+y collapse to al\
+l user messages \
+under root.\x0a    \
+  apply(root) {\x0a\
+        const sc\
+ope = root || do\
+cument;\x0a        \
+let list;\x0a      \
+  if (scope.node\
+Type === 1) list\
+ = scope.querySe\
+lectorAll('.msg-\
+box.msg-user .ms\
+g');\x0a        els\
+e list = documen\
+t.querySelectorA\
+ll('.msg-box.msg\
+-user .msg');\x0a  \
+      if (!list \
+|| !list.length)\
+ return;\x0a\x0a      \
+  for (let i = 0\
+; i < list.lengt\
+h; i++) {\x0a      \
+    const msg = \
+list[i];\x0a       \
+   const st = th\
+is._ensureStruct\
+ure(msg);\x0a      \
+    if (!st) con\
+tinue;\x0a         \
+ this._update(ms\
+g, st.content, s\
+t.toggle);\x0a     \
+   }\x0a      }\x0a\x0a  \
+    // Update co\
+llapsed/expanded\
+ state depending\
+ on content heig\
+ht.\x0a      _updat\
+e(msg, contentEl\
+, toggleEl) {\x0a  \
+      const c = \
+contentEl || (ms\
 g && msg.querySe\
 lector('.uc-cont\
-ent');\x0a        i\
-f (!content) ret\
-urn;\x0a        con\
-st dot = content\
-.querySelector('\
-.uc-ellipsis');\x0a\
-        if (dot \
-&& dot.parentNod\
-e) {\x0a          /\
-/ Remove the ind\
-icator to avoid \
-accidental copy/\
-select and keep \
-DOM lean.\x0a      \
-    dot.parentNo\
-de.removeChild(d\
-ot);\x0a        }\x0a \
-       // Drop p\
-ositioning conte\
-xt when no indic\
-ator is present \
-(keep styles min\
-imal).\x0a        t\
-ry {\x0a          i\
-f (content && co\
-ntent.style && c\
-ontent.querySele\
-ctor('.uc-ellips\
-is') == null) {\x0a\
-            cont\
-ent.style.positi\
-on = '';\x0a       \
-   }\x0a        } c\
-atch (_) {}\x0a    \
-  }\x0a\x0a      // Ap\
-ply collapse to \
-all user message\
-s under root.\x0a  \
-    apply(root) \
-{\x0a        const \
-scope = root || \
-document;\x0a      \
-  let list;\x0a    \
-    if (scope.no\
-deType === 1) li\
-st = scope.query\
-SelectorAll('.ms\
-g-box.msg-user .\
-msg');\x0a        e\
-lse list = docum\
-ent.querySelecto\
-rAll('.msg-box.m\
-sg-user .msg');\x0a\
-        if (!lis\
-t || !list.lengt\
-h) return;\x0a\x0a    \
-    for (let i =\
- 0; i < list.len\
-gth; i++) {\x0a    \
-      const msg \
-= list[i];\x0a     \
-     const st = \
-this._ensureStru\
-cture(msg);\x0a    \
-      if (!st) c\
-ontinue;\x0a       \
-   this._update(\
-msg, st.content,\
- st.toggle);\x0a   \
-     }\x0a      }\x0a\x0a\
-      // Update \
-collapsed/expand\
-ed state dependi\
-ng on content he\
-ight.\x0a      _upd\
-ate(msg, content\
-El, toggleEl) {\x0a\
-        const c \
-= contentEl || (\
-msg && msg.query\
-Selector('.uc-co\
-ntent'));\x0a      \
-  if (!msg || !c\
-) return;\x0a\x0a     \
-   // Special-ca\
-se: when thresho\
-ld = 0 (or '0'),\
- auto-collapse i\
-s globally disab\
-led.\x0a        // \
-We avoid any mea\
-surement, force \
-the content to b\
-e fully expanded\
-, and ensure the\
- toggle is hidde\
-n.\x0a        // Th\
-is preserves pub\
-lic API while pr\
-oviding an expli\
-cit opt-out, wit\
-hout impacting e\
-xisting behavior\
-.\x0a        if (th\
-is.threshold ===\
- 0 || this.thres\
-hold === '0') {\x0a\
-          const \
-t = toggleEl || \
-msg.querySelecto\
-r('.uc-toggle');\
-\x0a          const\
+ent'));\x0a        \
+if (!msg || !c) \
+return;\x0a\x0a       \
+ // Special-case\
+: when threshold\
+ = 0 (or '0'), a\
+uto-collapse is \
+globally disable\
+d.\x0a        // We\
+ avoid any measu\
+rement, force th\
+e content to be \
+fully expanded, \
+and ensure the t\
+oggle is hidden.\
+\x0a        // This\
+ preserves publi\
+c API while prov\
+iding an explici\
+t opt-out, witho\
+ut impacting exi\
+sting behavior.\x0a\
+        if (this\
+.threshold === 0\
+ || this.thresho\
+ld === '0') {\x0a  \
+        const t \
+= toggleEl || ms\
+g.querySelector(\
+'.uc-toggle');\x0a \
+         const l\
+abels = this._la\
+bels();\x0a\x0a       \
+   // Ensure exp\
+anded state and \
+remove any limit\
+ing classes.\x0a   \
+       c.classLi\
+st.remove('uc-co\
+llapsed');\x0a     \
+     c.classList\
+.remove('uc-expa\
+nded'); // No cl\
+ass => fully exp\
+anded by default\
+ CSS.\x0a          \
+msg.dataset.ucSt\
+ate = 'expanded'\
+;\x0a\x0a          // \
+Hide ellipsis in\
+ disabled mode.\x0a\
+          this._\
+hideEllipsis(msg\
+);\x0a\x0a          //\
+ Hide toggle in \
+disabled mode to\
+ avoid user inte\
+raction.\x0a       \
+   if (t) {\x0a    \
+        t.classL\
+ist.remove('visi\
+ble');\x0a         \
+   t.setAttribut\
+e('aria-expanded\
+', 'false');\x0a   \
+         t.title\
+ = labels.expand\
+;\x0a            co\
+nst img = t.quer\
+ySelector('img')\
+;\x0a            if\
+ (img) { img.alt\
+ = labels.expand\
+; }\x0a          }\x0a\
+          return\
+; // Do not proc\
+eed with measuri\
+ng or collapsing\
+.\x0a        }\x0a\x0a   \
+     // Temporar\
+ily remove limit\
+ing classes for \
+precise measurem\
+ent.\x0a        c.c\
+lassList.remove(\
+'uc-collapsed');\
+\x0a        c.class\
+List.remove('uc-\
+expanded');\x0a\x0a   \
+     const fullH\
+eight = Math.cei\
+l(c.scrollHeight\
+);\x0a        const\
  labels = this._\
-labels();\x0a\x0a     \
-     // Ensure e\
-xpanded state an\
-d remove any lim\
-iting classes.\x0a \
+labels();\x0a      \
+  const icons = \
+this._icons();\x0a \
+       const t =\
+ toggleEl || msg\
+.querySelector('\
+.uc-toggle');\x0a\x0a \
+       if (fullH\
+eight > this.thr\
+eshold) {\x0a      \
+    if (t) t.cla\
+ssList.add('visi\
+ble');\x0a         \
+ const desired =\
+ msg.dataset.ucS\
+tate || 'collaps\
+ed';\x0a          c\
+onst expand = (d\
+esired === 'expa\
+nded');\x0a\x0a       \
+   if (expand) {\
+\x0a            c.c\
+lassList.add('uc\
+-expanded');\x0a   \
+         this._h\
+ideEllipsis(msg)\
+; // Expanded =>\
+ no ellipsis\x0a   \
+       } else {\x0a\
+            c.cl\
+assList.add('uc-\
+collapsed');\x0a   \
+         this._s\
+howEllipsis(msg,\
+ c); // Collapse\
+d => show ellips\
+is overlay\x0a     \
+     }\x0a\x0a        \
+  if (t) {\x0a     \
+       const img\
+ = t.querySelect\
+or('img');\x0a     \
+       if (img) \
+{\x0a              \
+if (expand) { im\
+g.src = icons.co\
+llapse; img.alt \
+= labels.collaps\
+e; }\x0a           \
+   else { img.sr\
+c = icons.expand\
+; img.alt = labe\
+ls.expand; }\x0a   \
+         }\x0a     \
+       t.setAttr\
+ibute('aria-expa\
+nded', expand ? \
+'true' : 'false'\
+);\x0a            t\
+.title = expand \
+? labels.collaps\
+e : labels.expan\
+d;\x0a          }\x0a \
+       } else {\x0a\
+          // Sho\
+rt content \xe2\x80\x93 e\
+nsure fully expa\
+nded and hide to\
+ggle + ellipsis.\
+\x0a          c.cla\
+ssList.remove('u\
+c-collapsed');\x0a \
          c.class\
 List.remove('uc-\
-collapsed');\x0a   \
-       c.classLi\
-st.remove('uc-ex\
-panded'); // No \
-class => fully e\
-xpanded by defau\
-lt CSS.\x0a        \
-  msg.dataset.uc\
-State = 'expande\
-d';\x0a\x0a          /\
-/ Hide ellipsis \
-in disabled mode\
-.\x0a          this\
-._hideEllipsis(m\
-sg);\x0a\x0a          \
-// Hide toggle i\
-n disabled mode \
-to avoid user in\
-teraction.\x0a     \
+expanded');\x0a    \
+      msg.datase\
+t.ucState = 'exp\
+anded';\x0a        \
+  this._hideElli\
+psis(msg);\x0a     \
      if (t) {\x0a  \
           t.clas\
 sList.remove('vi\
@@ -94140,624 +94259,373 @@ ute('aria-expand\
 ed', 'false');\x0a \
            t.tit\
 le = labels.expa\
-nd;\x0a            \
-const img = t.qu\
-erySelector('img\
-');\x0a            \
-if (img) { img.a\
-lt = labels.expa\
-nd; }\x0a          \
-}\x0a          retu\
-rn; // Do not pr\
-oceed with measu\
-ring or collapsi\
-ng.\x0a        }\x0a\x0a \
-       // Tempor\
-arily remove lim\
-iting classes fo\
-r precise measur\
-ement.\x0a        c\
+nd;\x0a          }\x0a\
+        }\x0a      \
+}\x0a\x0a      // Togg\
+le handler via t\
+he toggle elemen\
+t (div.uc-toggle\
+).\x0a      toggleF\
+romToggle(toggle\
+El) {\x0a        co\
+nst msg = toggle\
+El && toggleEl.c\
+losest ? toggleE\
+l.closest('.msg-\
+box.msg-user .ms\
+g') : null;\x0a    \
+    if (!msg) re\
+turn;\x0a        th\
+is.toggle(msg);\x0a\
+      }\x0a\x0a      /\
+/ Core toggle lo\
+gic.\x0a      toggl\
+e(msg) {\x0a       \
+ if (!msg || !ms\
+g.isConnected) r\
+eturn;\x0a        c\
+onst c = msg.que\
+rySelector('.uc-\
+content'); if (!\
+c) return;\x0a     \
+   const t = msg\
+.querySelector('\
+.uc-toggle');\x0a  \
+      const labe\
+ls = this._label\
+s();\x0a        con\
+st icons = this.\
+_icons();\x0a\x0a     \
+   const isColla\
+psed = c.classLi\
+st.contains('uc-\
+collapsed');\x0a   \
+     if (isColla\
+psed) {\x0a        \
+  // Expand \xe2\x80\x93 \
+leave scroll as-\
+is; remove ellip\
+sis.\x0a          c\
 .classList.remov\
 e('uc-collapsed'\
-);\x0a        c.cla\
-ssList.remove('u\
-c-expanded');\x0a\x0a \
-       const ful\
-lHeight = Math.c\
-eil(c.scrollHeig\
-ht);\x0a        con\
-st labels = this\
-._labels();\x0a    \
-    const icons \
-= this._icons();\
-\x0a        const t\
- = toggleEl || m\
-sg.querySelector\
-('.uc-toggle');\x0a\
-\x0a        if (ful\
-lHeight > this.t\
-hreshold) {\x0a    \
-      if (t) t.c\
-lassList.add('vi\
-sible');\x0a       \
-   const desired\
- = msg.dataset.u\
-cState || 'colla\
-psed';\x0a         \
- const expand = \
-(desired === 'ex\
-panded');\x0a\x0a     \
-     if (expand)\
- {\x0a            c\
-.classList.add('\
-uc-expanded');\x0a \
-           this.\
-_hideEllipsis(ms\
-g); // Expanded \
-=> no ellipsis\x0a \
-         } else \
-{\x0a            c.\
-classList.add('u\
-c-collapsed');\x0a \
-           this.\
-_showEllipsis(ms\
-g, c); // Collap\
-sed => show elli\
-psis overlay\x0a   \
-       }\x0a\x0a      \
-    if (t) {\x0a   \
-         const i\
-mg = t.querySele\
-ctor('img');\x0a   \
-         if (img\
-) {\x0a            \
-  if (expand) { \
-img.src = icons.\
-collapse; img.al\
-t = labels.colla\
-pse; }\x0a         \
-     else { img.\
-src = icons.expa\
-nd; img.alt = la\
-bels.expand; }\x0a \
-           }\x0a   \
-         t.setAt\
-tribute('aria-ex\
-panded', expand \
-? 'true' : 'fals\
-e');\x0a           \
- t.title = expan\
-d ? labels.colla\
-pse : labels.exp\
-and;\x0a          }\
-\x0a        } else \
-{\x0a          // S\
-hort content \xe2\x80\x93\
- ensure fully ex\
-panded and hide \
-toggle + ellipsi\
-s.\x0a          c.c\
-lassList.remove(\
-'uc-collapsed');\
-\x0a          c.cla\
-ssList.remove('u\
-c-expanded');\x0a  \
-        msg.data\
-set.ucState = 'e\
-xpanded';\x0a      \
-    this._hideEl\
-lipsis(msg);\x0a   \
-       if (t) {\x0a\
-            t.cl\
-assList.remove('\
-visible');\x0a     \
-       t.setAttr\
-ibute('aria-expa\
-nded', 'false');\
-\x0a            t.t\
-itle = labels.ex\
-pand;\x0a          \
-}\x0a        }\x0a    \
-  }\x0a\x0a      // To\
-ggle handler via\
- the toggle elem\
-ent (div.uc-togg\
-le).\x0a      toggl\
-eFromToggle(togg\
-leEl) {\x0a        \
-const msg = togg\
-leEl && toggleEl\
-.closest ? toggl\
-eEl.closest('.ms\
-g-box.msg-user .\
-msg') : null;\x0a  \
-      if (!msg) \
-return;\x0a        \
-this.toggle(msg)\
-;\x0a      }\x0a\x0a     \
- // Core toggle \
-logic.\x0a      tog\
-gle(msg) {\x0a     \
-   if (!msg || !\
-msg.isConnected)\
- return;\x0a       \
- const c = msg.q\
-uerySelector('.u\
-c-content'); if \
-(!c) return;\x0a   \
-     const t = m\
-sg.querySelector\
-('.uc-toggle');\x0a\
-        const la\
-bels = this._lab\
-els();\x0a        c\
-onst icons = thi\
-s._icons();\x0a\x0a   \
-     const isCol\
-lapsed = c.class\
-List.contains('u\
-c-collapsed');\x0a \
-       if (isCol\
-lapsed) {\x0a      \
-    // Expand \xe2\x80\
-\x93 leave scroll a\
-s-is; remove ell\
-ipsis.\x0a         \
- c.classList.rem\
-ove('uc-collapse\
-d');\x0a          c\
-.classList.add('\
-uc-expanded');\x0a \
-         msg.dat\
-aset.ucState = '\
-expanded';\x0a     \
-     this._hideE\
-llipsis(msg);\x0a  \
-        if (t) {\
-\x0a            t.s\
-etAttribute('ari\
-a-expanded', 'tr\
-ue');\x0a          \
-  t.title = labe\
-ls.collapse;\x0a   \
-         const i\
-mg = t.querySele\
-ctor('img'); if \
-(img) { img.src \
-= icons.collapse\
-; img.alt = labe\
-ls.collapse; }\x0a \
-         }\x0a     \
-   } else {\x0a    \
-      // Collaps\
-e \xe2\x80\x93 apply clas\
-ses, show ellips\
-is, then bring t\
-oggle into view \
-(scroll up if ne\
-eded).\x0a         \
- c.classList.rem\
-ove('uc-expanded\
-');\x0a          c.\
-classList.add('u\
-c-collapsed');\x0a \
-         msg.dat\
-aset.ucState = '\
-collapsed';\x0a    \
-      this._show\
-Ellipsis(msg, c)\
-;\x0a          if (\
-t) {\x0a           \
- t.setAttribute(\
-'aria-expanded',\
- 'false');\x0a     \
-       t.title =\
- labels.expand;\x0a\
-            cons\
-t img = t.queryS\
-elector('img'); \
-if (img) { img.s\
-rc = icons.expan\
-d; img.alt = lab\
-els.expand; }\x0a  \
-          // Fol\
-low the collapsi\
-ng content upwar\
-d \xe2\x80\x93 keep the t\
-oggle visible.\x0a \
-           this.\
-_scrollToggleInt\
-oView(t);\x0a      \
-    }\x0a        }\x0a\
-      }\x0a\x0a      /\
-/ Optional publi\
-c method to re-e\
-valuate height a\
-fter layout/resi\
-ze.\x0a      remeas\
-ureAll() {\x0a     \
-   const arr = A\
-rray.from(this._\
-processed || [])\
-;\x0a        for (l\
-et i = 0; i < ar\
-r.length; i++) {\
-\x0a          const\
- msg = arr[i];\x0a \
-         if (!ms\
-g || !msg.isConn\
-ected) { this._p\
-rocessed.delete(\
-msg); continue; \
-}\x0a          this\
-._update(msg);\x0a \
-       }\x0a      }\
-\x0a    }\x0a\x0a  class \
-NodesManager {\x0a \
-     constructor\
-(dom, renderer, \
-highlighter, mat\
-h) {\x0a        thi\
-s.dom = dom;\x0a   \
-     this.render\
-er = renderer;\x0a \
-       this.high\
-lighter = highli\
-ghter;\x0a        t\
-his.math = math;\
-\x0a        // User\
- message collaps\
-e manager\x0a      \
-  this._userColl\
-apse = new UserC\
-ollapseManager(t\
-his.renderer.cfg\
-);\x0a      }\x0a\x0a    \
-  // Check if HT\
-ML contains only\
- user messages w\
-ithout any markd\
-own or code feat\
-ures.\x0a      _isU\
-serOnlyContent(h\
-tml) {\x0a        t\
-ry {\x0a          c\
-onst tmp = docum\
-ent.createElemen\
-t('div');\x0a      \
-    tmp.innerHTM\
-L = html;\x0a      \
-    const hasBot\
- = !!tmp.querySe\
-lector('.msg-box\
-.msg-bot');\x0a    \
-      const hasU\
-ser = !!tmp.quer\
-ySelector('.msg-\
-box.msg-user');\x0a\
+);\x0a          c.c\
+lassList.add('uc\
+-expanded');\x0a   \
+       msg.datas\
+et.ucState = 'ex\
+panded';\x0a       \
+   this._hideEll\
+ipsis(msg);\x0a    \
+      if (t) {\x0a \
+           t.set\
+Attribute('aria-\
+expanded', 'true\
+');\x0a            \
+t.title = labels\
+.collapse;\x0a     \
+       const img\
+ = t.querySelect\
+or('img'); if (i\
+mg) { img.src = \
+icons.collapse; \
+img.alt = labels\
+.collapse; }\x0a   \
+       }\x0a       \
+ } else {\x0a      \
+    // Collapse \
+\xe2\x80\x93 apply classe\
+s, show ellipsis\
+, then bring tog\
+gle into view (s\
+croll up if need\
+ed).\x0a          c\
+.classList.remov\
+e('uc-expanded')\
+;\x0a          c.cl\
+assList.add('uc-\
+collapsed');\x0a   \
+       msg.datas\
+et.ucState = 'co\
+llapsed';\x0a      \
+    this._showEl\
+lipsis(msg, c);\x0a\
+          if (t)\
+ {\x0a            t\
+.setAttribute('a\
+ria-expanded', '\
+false');\x0a       \
+     t.title = l\
+abels.expand;\x0a  \
           const \
-hasMD64 = !!tmp.\
-querySelector('[\
-data-md64]');\x0a  \
+img = t.querySel\
+ector('img'); if\
+ (img) { img.src\
+ = icons.expand;\
+ img.alt = label\
+s.expand; }\x0a    \
+        // Follo\
+w the collapsing\
+ content upward \
+\xe2\x80\x93 keep the tog\
+gle visible.\x0a   \
+         this._s\
+crollToggleIntoV\
+iew(t);\x0a        \
+  }\x0a        }\x0a  \
+    }\x0a\x0a      // \
+Optional public \
+method to re-eva\
+luate height aft\
+er layout/resize\
+.\x0a      remeasur\
+eAll() {\x0a       \
+ const arr = Arr\
+ay.from(this._pr\
+ocessed || []);\x0a\
+        for (let\
+ i = 0; i < arr.\
+length; i++) {\x0a \
+         const m\
+sg = arr[i];\x0a   \
+       if (!msg \
+|| !msg.isConnec\
+ted) { this._pro\
+cessed.delete(ms\
+g); continue; }\x0a\
+          this._\
+update(msg);\x0a   \
+     }\x0a      }\x0a \
+   }\x0a\x0a  class No\
+desManager {\x0a   \
+   constructor(d\
+om, renderer, hi\
+ghlighter, math)\
+ {\x0a        this.\
+dom = dom;\x0a     \
+   this.renderer\
+ = renderer;\x0a   \
+     this.highli\
+ghter = highligh\
+ter;\x0a        thi\
+s.math = math;\x0a \
+       // User m\
+essage collapse \
+manager\x0a        \
+this._userCollap\
+se = new UserCol\
+lapseManager(thi\
+s.renderer.cfg);\
+\x0a      }\x0a\x0a      \
+// Check if HTML\
+ contains only u\
+ser messages wit\
+hout any markdow\
+n or code featur\
+es.\x0a      _isUse\
+rOnlyContent(htm\
+l) {\x0a        try\
+ {\x0a          con\
+st tmp = documen\
+t.createElement(\
+'div');\x0a        \
+  tmp.innerHTML \
+= html;\x0a        \
+  const hasBot =\
+ !!tmp.querySele\
+ctor('.msg-box.m\
+sg-bot');\x0a      \
+    const hasUse\
+r = !!tmp.queryS\
+elector('.msg-bo\
+x.msg-user');\x0a  \
         const ha\
-sMDNative = !!tm\
-p.querySelector(\
-'[md-block-markd\
-own]');\x0a        \
-  const hasCode \
-= !!tmp.querySel\
-ector('pre code'\
-);\x0a          con\
-st hasMath = !!t\
-mp.querySelector\
-('script[type^=\x22\
-math/tex\x22]');\x0a  \
-        return h\
-asUser && !hasBo\
-t && !hasMD64 &&\
- !hasMDNative &&\
- !hasCode && !ha\
-sMath;\x0a        }\
- catch (_) { ret\
-urn false; }\x0a   \
-   }\x0a\x0a      // C\
-onvert user mark\
-down placeholder\
-s into plain tex\
-t nodes.\x0a      _\
-materializeUserM\
-dAsPlainText(sco\
-peEl) {\x0a        \
-try {\x0a          \
-const nodes = sc\
-opeEl.querySelec\
-torAll('.msg-box\
-.msg-user [data-\
-md64], .msg-box.\
-msg-user [md-blo\
-ck-markdown]');\x0a\
-          nodes.\
-forEach(el => {\x0a\
-            let \
-txt = '';\x0a      \
-      if (el.has\
-Attribute('data-\
-md64')) {\x0a      \
-        const b6\
-4 = el.getAttrib\
-ute('data-md64')\
- || '';\x0a        \
-      el.removeA\
-ttribute('data-m\
-d64');\x0a         \
-     try { txt =\
- this.renderer.b\
-64ToUtf8(b64); }\
- catch (_) { txt\
- = ''; }\x0a       \
-     } else {\x0a  \
-            // N\
-ative Markdown b\
-lock in user mes\
-sage: keep as pl\
-ain text (no mar\
-kdown-it)\x0a      \
-        try { tx\
-t = el.textConte\
-nt || ''; } catc\
-h (_) { txt = ''\
-; }\x0a            \
-  try { el.remov\
-eAttribute('md-b\
-lock-markdown');\
- } catch (_) {}\x0a\
-            }\x0a  \
-          const \
-span = document.\
-createElement('s\
-pan'); span.text\
-Content = txt; e\
-l.replaceWith(sp\
-an);\x0a          }\
-);\x0a        } cat\
-ch (_) {}\x0a      \
-}\x0a\x0a      // Appe\
-nd HTML/text int\
-o the message in\
-put container.\x0a \
-       // If pla\
-in text is provi\
-ded, wrap it int\
-o a minimal msg-\
-user box to keep\
- layout consiste\
-nt.\x0a        appe\
-ndToInput(conten\
-t) {\x0a          c\
-onst el = this.d\
-om.get('_append_\
-input_'); if (!e\
-l) return;\x0a\x0a    \
-      let html =\
- String(content \
-|| '');\x0a        \
-  const trimmed \
-= html.trim();\x0a\x0a\
-          // If \
-already a full m\
-sg-user wrapper,\
- append as-is; o\
-therwise wrap th\
-e plain text.\x0a  \
-        const is\
-Wrapped = (trimm\
-ed.startsWith('<\
-div') && /class=\
-[\x22']msg-box msg-\
-user[\x22']/.test(t\
-rimmed));\x0a      \
-    if (!isWrapp\
-ed) {\x0a          \
-  // Treat incom\
-ing payload as p\
-lain text (escap\
-e + convert newl\
-ines to <br>).\x0a \
-           const\
- safe = (typeof \
-Utils !== 'undef\
-ined' && Utils.e\
-scapeHtml)\x0a     \
-         ? Utils\
-.escapeHtml(html\
-)\x0a              \
-: String(html).r\
-eplace(/[&<>\x22']/\
-g, m => ({'&':'&\
-amp;','<':'&lt;'\
-,'>':'&gt;','\x22':\
-'&quot;',\x22'\x22:'&#\
-039;'}[m]));\x0a   \
-         const b\
-ody = safe.repla\
-ce(/\x5cr?\x5cn/g, '<b\
-r>');\x0a          \
-  // Minimal, ma\
-rgin-less user m\
-essage (no empty\
- msg-extra to av\
-oid extra spacin\
-g).\x0a            \
-html = `<div cla\
-ss=\x22msg-box msg-\
-user\x22><div class\
-=\x22msg\x22><p style=\
-\x22margin:0\x22>${bod\
-y}</p></div></di\
-v>`;\x0a          }\
-\x0a\x0a          // S\
-ynchronous DOM u\
-pdate.\x0a         \
- el.insertAdjace\
-ntHTML('beforeen\
-d', html);\x0a\x0a    \
-      // Apply c\
-ollapse to any u\
-ser messages in \
-input area (now \
-or later).\x0a     \
-     try { this.\
-_userCollapse.ap\
-ply(el); } catch\
- (_) {}\x0a        \
-}\x0a\x0a      // Appe\
-nd nodes into me\
-ssages list and \
-perform post-pro\
-cessing (markdow\
-n, code, math).\x0a\
-      appendNode\
-(content, scroll\
-Mgr) {\x0a        /\
-/ Keep scroll be\
-havior consisten\
-t with existing \
-logic\x0a        sc\
-rollMgr.userInte\
-racted = false; \
-scrollMgr.prevSc\
-roll = 0;\x0a      \
-  this.dom.clear\
-StreamBefore();\x0a\
-\x0a        const e\
-l = this.dom.get\
-('_nodes_'); if \
-(!el) return;\x0a  \
-      el.classLi\
-st.remove('empty\
-_list');\x0a\x0a      \
-  const userOnly\
- = this._isUserO\
-nlyContent(conte\
-nt);\x0a        if \
-(userOnly) {\x0a   \
-       el.insert\
-AdjacentHTML('be\
-foreend', conten\
-t);\x0a          th\
-is._materializeU\
-serMdAsPlainText\
-(el);\x0a          \
-// Collapse befo\
-re scrolling to \
-ensure final hei\
-ght is used for \
-scroll computati\
-ons.\x0a          t\
-ry { this._userC\
-ollapse.apply(el\
-); } catch (_) {\
-}\x0a          scro\
-llMgr.scrollToBo\
-ttom(false);\x0a   \
-       scrollMgr\
-.scheduleScrollF\
-abUpdate();\x0a    \
-      return;\x0a  \
-      }\x0a\x0a       \
- el.insertAdjace\
-ntHTML('beforeen\
-d', content);\x0a\x0a \
-       try {\x0a   \
-       // Defer \
-post-processing \
-(highlight/math/\
-collapse) and pe\
-rform scroll AFT\
-ER collapse.\x0a   \
-       const may\
-bePromise = this\
-.renderer.render\
-PendingMarkdown(\
-el);\x0a          c\
-onst post = () =\
-> {\x0a            \
-// Viewport high\
-light scheduling\
-\x0a            try\
- { this.highligh\
-ter.scheduleScan\
-VisibleCodes(nul\
-l); } catch (_) \
-{}\x0a\x0a            \
-// In finalize-o\
-nly mode we must\
- explicitly sche\
-dule KaTeX\x0a     \
-       try { if \
-(getMathMode() =\
-== 'finalize-onl\
-y') this.math.sc\
-hedule(el, 0, tr\
-ue); } catch (_)\
- {}\x0a\x0a           \
- // Collapse use\
-r messages now t\
-hat DOM is mater\
-ialized (ensures\
- correct height)\
-.\x0a            tr\
-y { this._userCo\
-llapse.apply(el)\
-; } catch (_) {}\
-\x0a\x0a            //\
- Only now scroll\
- to bottom and u\
-pdate FAB \xe2\x80\x93 us\
-es post-collapse\
- heights.\x0a      \
-      scrollMgr.\
-scrollToBottom(f\
-alse);\x0a         \
-   scrollMgr.sch\
-eduleScrollFabUp\
-date();\x0a        \
-  };\x0a\x0a          \
-if (maybePromise\
- && typeof maybe\
-Promise.then ===\
- 'function') {\x0a \
-           maybe\
-Promise.then(pos\
-t);\x0a          } \
-else {\x0a         \
-   post();\x0a     \
-     }\x0a        }\
- catch (_) {\x0a   \
-       // In cas\
-e of error, do a\
- conservative sc\
-roll to keep UX \
-responsive.\x0a    \
-      scrollMgr.\
-scrollToBottom(f\
-alse);\x0a         \
- scrollMgr.sched\
-uleScrollFabUpda\
-te();\x0a        }\x0a\
-      }\x0a\x0a      /\
-/ Replace messag\
-es list content \
-entirely and re-\
-run post-process\
-ing.\x0a      repla\
-ceNodes(content,\
- scrollMgr) {\x0a  \
-      // Same se\
-mantics as appen\
-dNode, but using\
- a hard clone re\
-set\x0a        scro\
+sMD64 = !!tmp.qu\
+erySelector('[da\
+ta-md64]');\x0a    \
+      const hasM\
+DNative = !!tmp.\
+querySelector('[\
+md-block-markdow\
+n]');\x0a          \
+const hasCode = \
+!!tmp.querySelec\
+tor('pre code');\
+\x0a          const\
+ hasMath = !!tmp\
+.querySelector('\
+script[type^=\x22ma\
+th/tex\x22]');\x0a    \
+      return has\
+User && !hasBot \
+&& !hasMD64 && !\
+hasMDNative && !\
+hasCode && !hasM\
+ath;\x0a        } c\
+atch (_) { retur\
+n false; }\x0a     \
+ }\x0a\x0a      // Con\
+vert user markdo\
+wn placeholders \
+into plain text \
+nodes.\x0a      _ma\
+terializeUserMdA\
+sPlainText(scope\
+El) {\x0a        tr\
+y {\x0a          co\
+nst nodes = scop\
+eEl.querySelecto\
+rAll('.msg-box.m\
+sg-user [data-md\
+64], .msg-box.ms\
+g-user [md-block\
+-markdown]');\x0a  \
+        nodes.fo\
+rEach(el => {\x0a  \
+          let tx\
+t = '';\x0a        \
+    if (el.hasAt\
+tribute('data-md\
+64')) {\x0a        \
+      const b64 \
+= el.getAttribut\
+e('data-md64') |\
+| '';\x0a          \
+    el.removeAtt\
+ribute('data-md6\
+4');\x0a           \
+   try { txt = t\
+his.renderer.b64\
+ToUtf8(b64); } c\
+atch (_) { txt =\
+ ''; }\x0a         \
+   } else {\x0a    \
+          // Nat\
+ive Markdown blo\
+ck in user messa\
+ge: keep as plai\
+n text (no markd\
+own-it)\x0a        \
+      try { txt \
+= el.textContent\
+ || ''; } catch \
+(_) { txt = ''; \
+}\x0a              \
+try { el.removeA\
+ttribute('md-blo\
+ck-markdown'); }\
+ catch (_) {}\x0a  \
+          }\x0a    \
+        const sp\
+an = document.cr\
+eateElement('spa\
+n'); span.textCo\
+ntent = txt; el.\
+replaceWith(span\
+);\x0a          });\
+\x0a        } catch\
+ (_) {}\x0a      }\x0a\
+\x0a      // Append\
+ HTML/text into \
+the message inpu\
+t container.\x0a   \
+     // If plain\
+ text is provide\
+d, wrap it into \
+a minimal msg-us\
+er box to keep l\
+ayout consistent\
+.\x0a        append\
+ToInput(content)\
+ {\x0a          con\
+st el = this.dom\
+.get('_append_in\
+put_'); if (!el)\
+ return;\x0a\x0a      \
+    let html = S\
+tring(content ||\
+ '');\x0a          \
+const trimmed = \
+html.trim();\x0a\x0a  \
+        // If al\
+ready a full msg\
+-user wrapper, a\
+ppend as-is; oth\
+erwise wrap the \
+plain text.\x0a    \
+      const isWr\
+apped = (trimmed\
+.startsWith('<di\
+v') && /class=[\x22\
+']msg-box msg-us\
+er[\x22']/.test(tri\
+mmed));\x0a        \
+  if (!isWrapped\
+) {\x0a            \
+// Treat incomin\
+g payload as pla\
+in text (escape \
++ convert newlin\
+es to <br>).\x0a   \
+         const s\
+afe = (typeof Ut\
+ils !== 'undefin\
+ed' && Utils.esc\
+apeHtml)\x0a       \
+       ? Utils.e\
+scapeHtml(html)\x0a\
+              : \
+String(html).rep\
+lace(/[&<>\x22']/g,\
+ m => ({'&':'&am\
+p;','<':'&lt;','\
+>':'&gt;','\x22':'&\
+quot;',\x22'\x22:'&#03\
+9;'}[m]));\x0a     \
+       const bod\
+y = safe.replace\
+(/\x5cr?\x5cn/g, '<br>\
+');\x0a            \
+// Minimal, marg\
+in-less user mes\
+sage (no empty m\
+sg-extra to avoi\
+d extra spacing)\
+.\x0a            ht\
+ml = `<div class\
+=\x22msg-box msg-us\
+er\x22><div class=\x22\
+msg\x22><p style=\x22m\
+argin:0\x22>${body}\
+</p></div></div>\
+`;\x0a          }\x0a\x0a\
+          // Syn\
+chronous DOM upd\
+ate.\x0a          e\
+l.insertAdjacent\
+HTML('beforeend'\
+, html);\x0a\x0a      \
+    // Apply col\
+lapse to any use\
+r messages in in\
+put area (now or\
+ later).\x0a       \
+   try { this._u\
+serCollapse.appl\
+y(el); } catch (\
+_) {}\x0a        }\x0a\
+\x0a      // Append\
+ nodes into mess\
+ages list and pe\
+rform post-proce\
+ssing (markdown,\
+ code, math).\x0a  \
+    appendNode(c\
+ontent, scrollMg\
+r) {\x0a        // \
+Keep scroll beha\
+vior consistent \
+with existing lo\
+gic\x0a        scro\
 llMgr.userIntera\
 cted = false; sc\
 rollMgr.prevScro\
@@ -94765,3558 +94633,1790 @@ ll = 0;\x0a        \
 this.dom.clearSt\
 reamBefore();\x0a\x0a \
        const el \
-= this.dom.hardR\
-eplaceByClone('_\
-nodes_'); if (!e\
-l) return;\x0a     \
-   el.classList.\
-remove('empty_li\
-st');\x0a\x0a        c\
-onst userOnly = \
-this._isUserOnly\
-Content(content)\
-;\x0a        if (us\
-erOnly) {\x0a      \
-    el.insertAdj\
-acentHTML('befor\
-eend', content);\
-\x0a          this.\
-_materializeUser\
-MdAsPlainText(el\
-);\x0a          // \
-Collapse before \
-scrolling to ens\
-ure final height\
- is used for scr\
-oll computations\
-.\x0a          try \
+= this.dom.get('\
+_nodes_'); if (!\
+el) return;\x0a    \
+    el.classList\
+.remove('empty_l\
+ist');\x0a\x0a        \
+const userOnly =\
+ this._isUserOnl\
+yContent(content\
+);\x0a        if (u\
+serOnly) {\x0a     \
+     el.insertAd\
+jacentHTML('befo\
+reend', content)\
+;\x0a          this\
+._materializeUse\
+rMdAsPlainText(e\
+l);\x0a          //\
+ Collapse before\
+ scrolling to en\
+sure final heigh\
+t is used for sc\
+roll computation\
+s.\x0a          try\
+ { this._userCol\
+lapse.apply(el);\
+ } catch (_) {}\x0a\
+          scroll\
+Mgr.scrollToBott\
+om(false);\x0a     \
+     scrollMgr.s\
+cheduleScrollFab\
+Update();\x0a      \
+    return;\x0a    \
+    }\x0a\x0a        e\
+l.insertAdjacent\
+HTML('beforeend'\
+, content);\x0a\x0a   \
+     try {\x0a     \
+     // Defer po\
+st-processing (h\
+ighlight/math/co\
+llapse) and perf\
+orm scroll AFTER\
+ collapse.\x0a     \
+     const maybe\
+Promise = this.r\
+enderer.renderPe\
+ndingMarkdown(el\
+);\x0a          con\
+st post = () => \
+{\x0a            //\
+ Viewport highli\
+ght scheduling\x0a \
+           try {\
+ this.highlighte\
+r.scheduleScanVi\
+sibleCodes(null)\
+; } catch (_) {}\
+\x0a\x0a            //\
+ In finalize-onl\
+y mode we must e\
+xplicitly schedu\
+le KaTeX\x0a       \
+     try { if (g\
+etMathMode() ===\
+ 'finalize-only'\
+) this.math.sche\
+dule(el, 0, true\
+); } catch (_) {\
+}\x0a\x0a            /\
+/ Collapse user \
+messages now tha\
+t DOM is materia\
+lized (ensures c\
+orrect height).\x0a\
+            try \
 { this._userColl\
 apse.apply(el); \
-} catch (_) {}\x0a \
+} catch (_) {}\x0a\x0a\
+            // O\
+nly now scroll t\
+o bottom and upd\
+ate FAB \xe2\x80\x93 uses\
+ post-collapse h\
+eights.\x0a        \
+    scrollMgr.sc\
+rollToBottom(fal\
+se);\x0a           \
+ scrollMgr.sched\
+uleScrollFabUpda\
+te();\x0a          \
+};\x0a\x0a          if\
+ (maybePromise &\
+& typeof maybePr\
+omise.then === '\
+function') {\x0a   \
+         maybePr\
+omise.then(post)\
+;\x0a          } el\
+se {\x0a           \
+ post();\x0a       \
+   }\x0a        } c\
+atch (_) {\x0a     \
+     // In case \
+of error, do a c\
+onservative scro\
+ll to keep UX re\
+sponsive.\x0a      \
+    scrollMgr.sc\
+rollToBottom(fal\
+se);\x0a          s\
+crollMgr.schedul\
+eScrollFabUpdate\
+();\x0a        }\x0a  \
+    }\x0a\x0a      // \
+Replace messages\
+ list content en\
+tirely and re-ru\
+n post-processin\
+g.\x0a      replace\
+Nodes(content, s\
+crollMgr) {\x0a    \
+    // Same sema\
+ntics as appendN\
+ode, but using a\
+ hard clone rese\
+t\x0a        scroll\
+Mgr.userInteract\
+ed = false; scro\
+llMgr.prevScroll\
+ = 0;\x0a        th\
+is.dom.clearStre\
+amBefore();\x0a\x0a   \
+     const el = \
+this.dom.hardRep\
+laceByClone('_no\
+des_'); if (!el)\
+ return;\x0a       \
+ el.classList.re\
+move('empty_list\
+');\x0a\x0a        con\
+st userOnly = th\
+is._isUserOnlyCo\
+ntent(content);\x0a\
+        if (user\
+Only) {\x0a        \
+  el.insertAdjac\
+entHTML('beforee\
+nd', content);\x0a \
+         this._m\
+aterializeUserMd\
+AsPlainText(el);\
+\x0a          // Co\
+llapse before sc\
+rolling to ensur\
+e final height i\
+s used for scrol\
+l computations.\x0a\
+          try { \
+this._userCollap\
+se.apply(el); } \
+catch (_) {}\x0a   \
+       scrollMgr\
+.scrollToBottom(\
+false, true);\x0a  \
+        scrollMg\
+r.scheduleScroll\
+FabUpdate();\x0a   \
+       return;\x0a \
+       }\x0a\x0a      \
+  el.insertAdjac\
+entHTML('beforee\
+nd', content);\x0a\x0a\
+        try {\x0a  \
+        // Defer\
+ KaTeX schedule \
+to post-Markdown\
+ to avoid races \
+and collapse bef\
+ore scroll.\x0a    \
+      const mayb\
+ePromise = this.\
+renderer.renderP\
+endingMarkdown(e\
+l);\x0a          co\
+nst post = () =>\
+ {\x0a            t\
+ry { this.highli\
+ghter.scheduleSc\
+anVisibleCodes(n\
+ull); } catch (_\
+) {}\x0a           \
+ try { if (getMa\
+thMode() === 'fi\
+nalize-only') th\
+is.math.schedule\
+(el, 0, true); }\
+ catch (_) {}\x0a\x0a \
+           // Co\
+llapse after mat\
+erialization to \
+compute final he\
+ights correctly.\
+\x0a            try\
+ { this._userCol\
+lapse.apply(el);\
+ } catch (_) {}\x0a\
+\x0a            // \
+Now scroll and u\
+pdate FAB using \
+the collapsed la\
+yout.\x0a          \
+  scrollMgr.scro\
+llToBottom(false\
+, true);\x0a       \
+     scrollMgr.s\
+cheduleScrollFab\
+Update();\x0a      \
+    };\x0a\x0a        \
+  if (maybePromi\
+se && typeof may\
+bePromise.then =\
+== 'function') {\
+\x0a            may\
+bePromise.then(p\
+ost);\x0a          \
+} else {\x0a       \
+     post();\x0a   \
+       }\x0a       \
+ } catch (_) {\x0a \
          scrollM\
 gr.scrollToBotto\
 m(false, true);\x0a\
           scroll\
 Mgr.scheduleScro\
 llFabUpdate();\x0a \
-         return;\
-\x0a        }\x0a\x0a    \
-    el.insertAdj\
-acentHTML('befor\
-eend', content);\
-\x0a\x0a        try {\x0a\
-          // Def\
-er KaTeX schedul\
-e to post-Markdo\
-wn to avoid race\
-s and collapse b\
-efore scroll.\x0a  \
-        const ma\
-ybePromise = thi\
-s.renderer.rende\
-rPendingMarkdown\
-(el);\x0a          \
-const post = () \
-=> {\x0a           \
- try { this.high\
-lighter.schedule\
-ScanVisibleCodes\
-(null); } catch \
-(_) {}\x0a         \
-   try { if (get\
-MathMode() === '\
-finalize-only') \
-this.math.schedu\
-le(el, 0, true);\
- } catch (_) {}\x0a\
-\x0a            // \
-Collapse after m\
-aterialization t\
-o compute final \
-heights correctl\
-y.\x0a            t\
-ry { this._userC\
-ollapse.apply(el\
-); } catch (_) {\
-}\x0a\x0a            /\
-/ Now scroll and\
- update FAB usin\
-g the collapsed \
-layout.\x0a        \
-    scrollMgr.sc\
-rollToBottom(fal\
-se, true);\x0a     \
-       scrollMgr\
-.scheduleScrollF\
-abUpdate();\x0a    \
-      };\x0a\x0a      \
-    if (maybePro\
-mise && typeof m\
-aybePromise.then\
- === 'function')\
- {\x0a            m\
-aybePromise.then\
-(post);\x0a        \
-  } else {\x0a     \
-       post();\x0a \
-         }\x0a     \
-   } catch (_) {\
-\x0a          scrol\
-lMgr.scrollToBot\
-tom(false, true)\
-;\x0a          scro\
-llMgr.scheduleSc\
-rollFabUpdate();\
-\x0a        }\x0a     \
- }\x0a\x0a      // App\
-end \x22extra\x22 cont\
-ent into a speci\
-fic bot message \
-and post-process\
- locally.\x0a      \
-appendExtra(id, \
-content, scrollM\
-gr) {\x0a        co\
-nst el = documen\
-t.getElementById\
-('msg-bot-' + id\
-); if (!el) retu\
-rn;\x0a        cons\
-t extra = el.que\
-rySelector('.msg\
--extra'); if (!e\
-xtra) return;\x0a\x0a \
-       extra.ins\
-ertAdjacentHTML(\
-'beforeend', con\
-tent);\x0a\x0a        \
-try {\x0a          \
-const maybePromi\
-se = this.render\
-er.renderPending\
-Markdown(extra);\
-\x0a\x0a          cons\
-t post = () => {\
-\x0a            con\
-st activeCode = \
-(typeof runtime \
-!== 'undefined' \
-&& runtime.strea\
-m) ? runtime.str\
-eam.activeCode :\
- null;\x0a\x0a        \
-    // Attach ob\
-servers after Ma\
-rkdown produced \
-the nodes\x0a      \
-      try {\x0a    \
-          this.h\
-ighlighter.obser\
-veNewCode(extra,\
- {\x0a             \
-   deferLastIfSt\
-reaming: true,\x0a \
-               m\
-inLinesForLast: \
-this.renderer.cf\
-g.PROFILE_CODE.m\
-inLinesForHL,\x0a  \
-              mi\
-nCharsForLast: t\
-his.renderer.cfg\
-.PROFILE_CODE.mi\
-nCharsForHL\x0a    \
-          }, act\
-iveCode);\x0a      \
-        this.hig\
-hlighter.observe\
-MsgBoxes(extra, \
-(box) => this._o\
-nBox(box));\x0a    \
-        } catch \
-(_) {}\x0a\x0a        \
-    // KaTeX: ho\
-nor stream mode;\
- in finalize-onl\
-y force immediat\
-e schedule\x0a     \
-       try {\x0a   \
-           const\
- mm = getMathMod\
-e();\x0a           \
-   if (mm === 'f\
-inalize-only') t\
-his.math.schedul\
-e(extra, 0, true\
-);\x0a             \
- else this.math.\
-schedule(extra);\
-\x0a            } c\
-atch (_) {}\x0a    \
-      };\x0a\x0a      \
-    if (maybePro\
-mise && typeof m\
-aybePromise.then\
- === 'function')\
- {\x0a            m\
-aybePromise.then\
-(post);\x0a        \
-  } else {\x0a     \
-       post();\x0a \
-         }\x0a     \
-   } catch (_) {\
- /* swallow */ }\
-\x0a\x0a        scroll\
-Mgr.scheduleScro\
-ll(true);\x0a      \
-}\x0a\x0a      // When\
- a new message b\
-ox appears, hook\
- up code/highlig\
-ht handlers.\x0a   \
-   _onBox(box) {\
-\x0a        const a\
-ctiveCode = (typ\
-eof runtime !== \
-'undefined' && r\
-untime.stream) ?\
- runtime.stream.\
-activeCode : nul\
-l;\x0a        this.\
-highlighter.obse\
-rveNewCode(box, \
-{\x0a          defe\
-rLastIfStreaming\
-: true,\x0a        \
-  minLinesForLas\
-t: this.renderer\
-.cfg.PROFILE_COD\
-E.minLinesForHL,\
-\x0a          minCh\
-arsForLast: this\
-.renderer.cfg.PR\
-OFILE_CODE.minCh\
-arsForHL\x0a       \
- }, activeCode);\
-\x0a        this.re\
-nderer.hooks.cod\
-eScrollInit(box)\
-;\x0a      }\x0a\x0a     \
- // Remove messa\
-ge by id and kee\
-p scroll consist\
-ent.\x0a      remov\
-eNode(id, scroll\
-Mgr) {\x0a        s\
-crollMgr.prevScr\
-oll = 0;\x0a       \
- let el = docume\
-nt.getElementByI\
-d('msg-user-' + \
-id); if (el) el.\
-remove();\x0a      \
-  el = document.\
+       }\x0a      }\
+\x0a\x0a      // Appen\
+d \x22extra\x22 conten\
+t into a specifi\
+c bot message an\
+d post-process l\
+ocally.\x0a      ap\
+pendExtra(id, co\
+ntent, scrollMgr\
+) {\x0a        cons\
+t el = document.\
 getElementById('\
 msg-bot-' + id);\
- if (el) el.remo\
-ve();\x0a        th\
-is.dom.resetEphe\
-meral();\x0a       \
- try { this.rend\
-erer.renderPendi\
-ngMarkdown(); } \
-catch (_) {}\x0a   \
-     scrollMgr.s\
-cheduleScroll(tr\
-ue);\x0a      }\x0a\x0a  \
-    // Remove al\
-l messages from \
-(and including) \
-a given message \
-id.\x0a      remove\
-NodesFromId(id, \
-scrollMgr) {\x0a   \
-     scrollMgr.p\
-revScroll = 0;\x0a \
-       const con\
-tainer = this.do\
-m.get('_nodes_')\
-; if (!container\
-) return;\x0a      \
-  const elements\
- = container.que\
-rySelectorAll('.\
-msg-box');\x0a     \
-   let remove = \
-false;\x0a        e\
-lements.forEach(\
-(element) => {\x0a \
-         if (ele\
-ment.id && eleme\
-nt.id.endsWith('\
--' + id)) remove\
- = true;\x0a       \
-   if (remove) e\
-lement.remove();\
-\x0a        });\x0a   \
-     this.dom.re\
-setEphemeral();\x0a\
-        try { th\
-is.renderer.rend\
-erPendingMarkdow\
-n(container); } \
-catch (_) {}\x0a   \
-     scrollMgr.s\
-cheduleScroll(tr\
-ue);\x0a      }\x0a   \
- }\x0a\x0a   // ======\
+ if (!el) return\
+;\x0a        const \
+extra = el.query\
+Selector('.msg-e\
+xtra'); if (!ext\
+ra) return;\x0a\x0a   \
+     extra.inser\
+tAdjacentHTML('b\
+eforeend', conte\
+nt);\x0a\x0a        tr\
+y {\x0a          co\
+nst maybePromise\
+ = this.renderer\
+.renderPendingMa\
+rkdown(extra);\x0a\x0a\
+          const \
+post = () => {\x0a \
+           const\
+ activeCode = (t\
+ypeof runtime !=\
+= 'undefined' &&\
+ runtime.stream)\
+ ? runtime.strea\
+m.activeCode : n\
+ull;\x0a\x0a          \
+  // Attach obse\
+rvers after Mark\
+down produced th\
+e nodes\x0a        \
+    try {\x0a      \
+        this.hig\
+hlighter.observe\
+NewCode(extra, {\
+\x0a               \
+ deferLastIfStre\
+aming: true,\x0a   \
+             min\
+LinesForLast: th\
+is.renderer.cfg.\
+PROFILE_CODE.min\
+LinesForHL,\x0a    \
+            minC\
+harsForLast: thi\
+s.renderer.cfg.P\
+ROFILE_CODE.minC\
+harsForHL\x0a      \
+        }, activ\
+eCode);\x0a        \
+      this.highl\
+ighter.observeMs\
+gBoxes(extra, (b\
+ox) => this._onB\
+ox(box));\x0a      \
+      } catch (_\
+) {}\x0a\x0a          \
+  // KaTeX: hono\
+r stream mode; i\
+n finalize-only \
+force immediate \
+schedule\x0a       \
+     try {\x0a     \
+         const m\
+m = getMathMode(\
+);\x0a             \
+ if (mm === 'fin\
+alize-only') thi\
+s.math.schedule(\
+extra, 0, true);\
+\x0a              e\
+lse this.math.sc\
+hedule(extra);\x0a \
+           } cat\
+ch (_) {}\x0a      \
+    };\x0a\x0a        \
+  if (maybePromi\
+se && typeof may\
+bePromise.then =\
+== 'function') {\
+\x0a            may\
+bePromise.then(p\
+ost);\x0a          \
+} else {\x0a       \
+     post();\x0a   \
+       }\x0a       \
+ } catch (_) { /\
+* swallow */ }\x0a\x0a\
+        scrollMg\
+r.scheduleScroll\
+(true);\x0a      }\x0a\
+\x0a      // When a\
+ new message box\
+ appears, hook u\
+p code/highlight\
+ handlers.\x0a     \
+ _onBox(box) {\x0a \
+       const act\
+iveCode = (typeo\
+f runtime !== 'u\
+ndefined' && run\
+time.stream) ? r\
+untime.stream.ac\
+tiveCode : null;\
+\x0a        this.hi\
+ghlighter.observ\
+eNewCode(box, {\x0a\
+          deferL\
+astIfStreaming: \
+true,\x0a          \
+minLinesForLast:\
+ this.renderer.c\
+fg.PROFILE_CODE.\
+minLinesForHL,\x0a \
+         minChar\
+sForLast: this.r\
+enderer.cfg.PROF\
+ILE_CODE.minChar\
+sForHL\x0a        }\
+, activeCode);\x0a \
+       this.rend\
+erer.hooks.codeS\
+crollInit(box);\x0a\
+      }\x0a\x0a      /\
+/ Remove message\
+ by id and keep \
+scroll consisten\
+t.\x0a      removeN\
+ode(id, scrollMg\
+r) {\x0a        scr\
+ollMgr.prevScrol\
+l = 0;\x0a        l\
+et el = document\
+.getElementById(\
+'msg-user-' + id\
+); if (el) el.re\
+move();\x0a        \
+el = document.ge\
+tElementById('ms\
+g-bot-' + id); i\
+f (el) el.remove\
+();\x0a        this\
+.dom.resetEpheme\
+ral();\x0a        t\
+ry { this.render\
+er.renderPending\
+Markdown(); } ca\
+tch (_) {}\x0a     \
+   scrollMgr.sch\
+eduleScroll(true\
+);\x0a      }\x0a\x0a    \
+  // Remove all \
+messages from (a\
+nd including) a \
+given message id\
+.\x0a      removeNo\
+desFromId(id, sc\
+rollMgr) {\x0a     \
+   scrollMgr.pre\
+vScroll = 0;\x0a   \
+     const conta\
+iner = this.dom.\
+get('_nodes_'); \
+if (!container) \
+return;\x0a        \
+const elements =\
+ container.query\
+SelectorAll('.ms\
+g-box');\x0a       \
+ let remove = fa\
+lse;\x0a        ele\
+ments.forEach((e\
+lement) => {\x0a   \
+       if (eleme\
+nt.id && element\
+.id.endsWith('-'\
+ + id)) remove =\
+ true;\x0a         \
+ if (remove) ele\
+ment.remove();\x0a \
+       });\x0a     \
+   this.dom.rese\
+tEphemeral();\x0a  \
+      try { this\
+.renderer.render\
+PendingMarkdown(\
+container); } ca\
+tch (_) {}\x0a     \
+   scrollMgr.sch\
+eduleScroll(true\
+);\x0a      }\x0a    }\
+\x0a\x0a   // ========\
 ================\
 ================\
 ================\
 ================\
-====\x0a  // 9a) Te\
-mplate engine fo\
-r JSON nodes\x0a  /\
+==\x0a  // 9a) Temp\
+late engine for \
+JSON nodes\x0a  // \
+================\
+================\
+================\
+================\
+==========\x0a\x0a  cl\
+ass NodeTemplate\
+Engine {\x0a    // \
+JS-side template\
+s for nodes rend\
+ered from JSON p\
+ayload (RenderBl\
+ock).\x0a    constr\
+uctor(cfg, logge\
+r) {\x0a      this.\
+cfg = cfg || {};\
+\x0a      this.logg\
+er = logger || {\
+ debug: () => {}\
+ };\x0a    }\x0a\x0a    _\
+esc(s) { return \
+(s == null) ? ''\
+ : String(s); }\x0a\
+    _escapeHtml(\
+s) { return (typ\
+eof Utils !== 'u\
+ndefined') ? Uti\
+ls.escapeHtml(s)\
+ : String(s).rep\
+lace(/[&<>\x22']/g,\
+ m => ({'&':'&am\
+p;','<':'&lt;','\
+>':'&gt;','\x22':'&\
+quot;',\x22'\x22:'&#03\
+9;'}[m])); }\x0a\x0a  \
+  // Render name\
+ header given ro\
+le\x0a    _nameHead\
+er(role, name, a\
+vatarUrl) {\x0a    \
+  if (!name && !\
+avatarUrl) retur\
+n '';\x0a      cons\
+t cls = (role ==\
+= 'user') ? 'nam\
+e-user' : 'name-\
+bot';\x0a      cons\
+t img = avatarUr\
+l ? `<img src=\x22$\
+{this._esc(avata\
+rUrl)}\x22 class=\x22a\
+vatar\x22> ` : '';\x0a\
+      return `<d\
+iv class=\x22name-h\
+eader ${cls}\x22>${\
+img}${this._esc(\
+name || '')}</di\
+v>`;\x0a    }\x0a\x0a    \
+// Render user m\
+essage block\x0a   \
+ _renderUser(blo\
+ck) {\x0a      cons\
+t id = block.id;\
+\x0a      const inp\
+ = block.input |\
+| {};\x0a      cons\
+t msgId = `msg-u\
+ser-${id}`;\x0a\x0a   \
+   // NOTE: time\
+stamps intention\
+ally disabled on\
+ frontend\x0a      \
+// let ts = '';\x0a\
+      // if (inp\
+.timestamp) { ..\
+. }\x0a\x0a      const\
+ personalize = !\
+!(block && block\
+.extra && block.\
+extra.personaliz\
+e === true);\x0a   \
+   const nameHea\
+der = personaliz\
+e ? this._nameHe\
+ader('user', inp\
+.name || '', inp\
+.avatar_img || n\
+ull) : '';\x0a\x0a    \
+  const content \
+= this._escapeHt\
+ml(inp.text || '\
+').replace(/\x5cr?\x5c\
+n/g, '<br>');\x0a  \
+    return `<div\
+ class=\x22msg-box \
+msg-user\x22 id=\x22${\
+msgId}\x22>${nameHe\
+ader}<div class=\
+\x22msg\x22><p style=\x22\
+margin:0\x22>${cont\
+ent}</p></div></\
+div>`;\x0a    }\x0a\x0a  \
+  // Render extr\
+a blocks (images\
+/files/urls/docs\
+/tool-extra)\x0a   \
+ _renderExtras(b\
+lock) {\x0a      co\
+nst parts = [];\x0a\
+\x0a      // images\
+\x0a      const ima\
+ges = block.imag\
+es || {};\x0a      \
+const keysI = Ob\
+ject.keys(images\
+);\x0a      if (key\
+sI.length) {\x0a   \
+     keysI.forEa\
+ch((k) => {\x0a    \
+      const it =\
+ images[k];\x0a    \
+      if (!it) r\
+eturn;\x0a         \
+ const url = thi\
+s._esc(it.url); \
+const path = thi\
+s._esc(it.path);\
+ const bn = this\
+._esc(it.basenam\
+e || '');\x0a      \
+    if (it.is_vi\
+deo) {\x0a         \
+   const src = (\
+it.ext === '.web\
+m' || !it.webm_p\
+ath) ? path : th\
+is._esc(it.webm_\
+path);\x0a         \
+   const ext = (\
+src.endsWith('.w\
+ebm') ? 'webm' :\
+ (path.split('.'\
+).pop() || 'mp4'\
+));\x0a            \
+parts.push(\x0a    \
+          `<div \
+class=\x22extra-src\
+-video-box\x22 titl\
+e=\x22${url}\x22>` +\x0a \
+               `\
+<video class=\x22vi\
+deo-player\x22 cont\
+rols>` +\x0a       \
+           `<sou\
+rce src=\x22${src}\x22\
+ type=\x22video/${e\
+xt}\x22>` +\x0a       \
+         `</vide\
+o>` +\x0a          \
+      `<p><a hre\
+f=\x22bridge://play\
+_video/${url}\x22 c\
+lass=\x22title\x22>${t\
+his._escapeHtml(\
+bn)}</a></p>` +\x0a\
+              `<\
+/div>`\x0a         \
+   );\x0a          \
+} else {\x0a       \
+     parts.push(\
+\x0a              `\
+<div class=\x22extr\
+a-src-img-box\x22 t\
+itle=\x22${url}\x22>` \
++\x0a              \
+  `<div class=\x22i\
+mg-outer\x22><div c\
+lass=\x22img-wrappe\
+r\x22><a href=\x22${ur\
+l}\x22><img src=\x22${\
+path}\x22 class=\x22im\
+age\x22></a></div>`\
+ +\x0a             \
+   `<a href=\x22${u\
+rl}\x22 class=\x22titl\
+e\x22>${this._escap\
+eHtml(bn)}</a></\
+div>` +\x0a        \
+      `</div><br\
+/>`\x0a            \
+);\x0a          }\x0a \
+       });\x0a     \
+ }\x0a\x0a      // fil\
+es\x0a      const f\
+iles = block.fil\
+es || {};\x0a      \
+const kF = Objec\
+t.keys(files);\x0a \
+     if (kF.leng\
+th) {\x0a        co\
+nst rows = [];\x0a \
+       kF.forEac\
+h((k) => {\x0a     \
+     const it = \
+files[k]; if (!i\
+t) return;\x0a     \
+     const url =\
+ this._esc(it.ur\
+l); const path =\
+ this._esc(it.pa\
+th);\x0a          c\
+onst icon = (typ\
+eof window !== '\
+undefined' && wi\
+ndow.ICON_ATTACH\
+MENTS) ? `<img s\
+rc=\x22${window.ICO\
+N_ATTACHMENTS}\x22 \
+class=\x22extra-src\
+-icon\x22>` : '';\x0a \
+         rows.pu\
+sh(`${icon} <b> \
+[${k}] </b> <a h\
+ref=\x22${url}\x22>${p\
+ath}</a>`);\x0a    \
+    });\x0a        \
+if (rows.length)\
+ parts.push(`<di\
+v>${rows.join(\x22<\
+br/><br/>\x22)}</di\
+v>`);\x0a      }\x0a\x0a \
+     // urls\x0a   \
+   const urls = \
+block.urls || {}\
+;\x0a      const kU\
+ = Object.keys(u\
+rls);\x0a      if (\
+kU.length) {\x0a   \
+     const rows \
+= [];\x0a        kU\
+.forEach((k) => \
+{\x0a          cons\
+t it = urls[k]; \
+if (!it) return;\
+\x0a          const\
+ url = this._esc\
+(it.url);\x0a      \
+    const icon =\
+ (typeof window \
+!== 'undefined' \
+&& window.ICON_U\
+RL) ? `<img src=\
+\x22${window.ICON_U\
+RL}\x22 class=\x22extr\
+a-src-icon\x22>` : \
+'';\x0a          ro\
+ws.push(`${icon}\
+<a href=\x22${url}\x22\
+ title=\x22${url}\x22>\
+${url}</a> <smal\
+l> [${k}] </smal\
+l>`);\x0a        })\
+;\x0a        if (ro\
+ws.length) parts\
+.push(`<div>${ro\
+ws.join(\x22<br/><b\
+r/>\x22)}</div>`);\x0a\
+      }\x0a\x0a      /\
+/ docs (render o\
+n JS) or fallbac\
+k to docs_html\x0a \
+     const extra\
+ = block.extra |\
+| {};\x0a      cons\
+t docsRaw = Arra\
+y.isArray(extra.\
+docs) ? extra.do\
+cs : null;\x0a\x0a    \
+  if (docsRaw &&\
+ docsRaw.length)\
+ {\x0a        const\
+ icon = (typeof \
+window !== 'unde\
+fined' && window\
+.ICON_DB) ? `<im\
+g src=\x22${window.\
+ICON_DB}\x22 class=\
+\x22extra-src-icon\x22\
+>` : '';\x0a       \
+ const prefix = \
+(typeof window !\
+== 'undefined' &\
+& window.LOCALE_\
+DOC_PREFIX) ? St\
+ring(window.LOCA\
+LE_DOC_PREFIX) :\
+ 'Doc:';\x0a       \
+ const limit = 3\
+;\x0a\x0a        // no\
+rmalize: [{uuid,\
+ meta}] OR [{ uu\
+id: {...} }]\x0a   \
+     const norma\
+lized = [];\x0a    \
+    docsRaw.forE\
+ach((it) => {\x0a  \
+        if (!it \
+|| typeof it !==\
+ 'object') retur\
+n;\x0a          if \
+('uuid' in it &&\
+ 'meta' in it &&\
+ typeof it.meta \
+=== 'object') {\x0a\
+            norm\
+alized.push({ uu\
+id: String(it.uu\
+id), meta: it.me\
+ta || {} });\x0a   \
+       } else {\x0a\
+            cons\
+t keys = Object.\
+keys(it);\x0a      \
+      if (keys.l\
+ength === 1) {\x0a \
+             con\
+st uuid = keys[0\
+];\x0a             \
+ const meta = it\
+[uuid];\x0a        \
+      if (meta &\
+& typeof meta ==\
+= 'object') {\x0a  \
+              no\
+rmalized.push({ \
+uuid: String(uui\
+d), meta });\x0a   \
+           }\x0a   \
+         }\x0a     \
+     }\x0a        }\
+);\x0a\x0a        cons\
+t rows = [];\x0a   \
+     for (let i \
+= 0; i < Math.mi\
+n(limit, normali\
+zed.length); i++\
+) {\x0a          co\
+nst d = normaliz\
+ed[i];\x0a         \
+ const meta = d.\
+meta || {};\x0a    \
+      const entr\
+ies = Object.key\
+s(meta).map(k =>\
+ `<b>${this._esc\
+apeHtml(k)}:</b>\
+ ${this._escapeH\
+tml(String(meta[\
+k]))}`).join(', \
+');\x0a          ro\
+ws.push(`<p><sma\
+ll>[${i + 1}] ${\
+this._escapeHtml\
+(d.uuid)}: ${ent\
+ries}</small></p\
+>`);\x0a        }\x0a \
+       if (rows.\
+length) {\x0a      \
+    parts.push(`\
+<p>${icon}<small\
+><b>${this._esca\
+peHtml(prefix)}:\
+</b></small></p>\
+`);\x0a          pa\
+rts.push(`<div c\
+lass=\x22cmd\x22><p>${\
+rows.join('')}</\
+p></div>`);\x0a    \
+    }\x0a      } el\
+se {\x0a        // \
+backward compat\x0a\
+        const do\
+cs_html = extra \
+&& extra.docs_ht\
+ml ? String(extr\
+a.docs_html) : '\
+';\x0a        if (d\
+ocs_html) parts.\
+push(docs_html);\
+\x0a      }\x0a\x0a      \
+// plugin-driven\
+ tool extra HTML\
+\x0a      const too\
+l_extra_html = e\
+xtra && extra.to\
+ol_extra_html ? \
+String(extra.too\
+l_extra_html) : \
+'';\x0a      if (to\
+ol_extra_html) p\
+arts.push(`<div \
+class=\x22msg-extra\
+\x22>${tool_extra_h\
+tml}</div>`);\x0a\x0a \
+     return part\
+s.join('');\x0a    \
+}\x0a\x0a    // Render\
+ message-level a\
+ctions\x0a    _rend\
+erActions(block)\
+ {\x0a      const e\
+xtra = block.ext\
+ra || {};\x0a      \
+const actions = \
+extra.actions ||\
+ [];\x0a      if (!\
+actions || !acti\
+ons.length) retu\
+rn '';\x0a      con\
+st parts = actio\
+ns.map((a) => {\x0a\
+        const hr\
+ef = this._esc(a\
+.href || '#');\x0a \
+       const tit\
+le = this._esc(a\
+.title || '');\x0a \
+       const ico\
+n = this._esc(a.\
+icon || '');\x0a   \
+     const id = \
+this._esc(a.id |\
+| block.id);\x0a   \
+     return `<a \
+href=\x22${href}\x22 c\
+lass=\x22action-ico\
+n\x22 data-id=\x22${id\
+}\x22 role=\x22button\x22\
+><span class=\x22cm\
+d\x22><img src=\x22${i\
+con}\x22 class=\x22act\
+ion-img\x22 title=\x22\
+${title}\x22 alt=\x22$\
+{title}\x22 data-id\
+=\x22${id}\x22></span>\
+</a>`;\x0a      });\
+\x0a      return `<\
+div class=\x22actio\
+n-icons\x22 data-id\
+=\x22${this._esc(bl\
+ock.id)}\x22>${part\
+s.join('')}</div\
+>`;\x0a    }\x0a\x0a    /\
+/ Render tool ou\
+tput wrapper (al\
+ways collapsed b\
+y default; wrapp\
+er visibility de\
+pends on flag)\x0a \
+   // Inside cla\
+ss NodeTemplateE\
+ngine\x0a    _rende\
+rToolOutputWrapp\
+er(block) {\x0a    \
+  const extra = \
+block.extra || {\
+};\x0a\x0a      // IMP\
+ORTANT: keep ini\
+tial tool output\
+ verbatim (HTML-\
+ready).\x0a      //\
+ Do NOT HTML-esc\
+ape here \xe2\x80\x93 the\
+ host already pr\
+ovides a safe/HT\
+ML-ready string.\
+\x0a      // Escapi\
+ng again would d\
+ouble-encode ent\
+ities (e.g. \x22 ->\
+ \x22), which\x0a     \
+ // caused visib\
+le \x22\x22\x22 in the UI\
+ instead of quot\
+es.\x0a      const \
+tool_output_html\
+ = (extra.tool_o\
+utput != null) ?\
+ String(extra.to\
+ol_output) : '';\
+\x0a\x0a      // Wrapp\
+er visibility: s\
+how/hide based o\
+n tool_output_vi\
+sible...\x0a      c\
+onst wrapperDisp\
+lay = (extra.too\
+l_output_visible\
+ === true) ? '' \
+: 'display:none'\
+;\x0a\x0a      const t\
+oggleTitle = (ty\
+peof trans !== '\
+undefined' && tr\
+ans) ? trans('ac\
+tion.cmd.expand'\
+) : 'Expand';\x0a  \
+    const expIco\
+n = (typeof wind\
+ow !== 'undefine\
+d' && window.ICO\
+N_EXPAND) ? wind\
+ow.ICON_EXPAND :\
+ '';\x0a\x0a      retu\
+rn (\x0a        `<d\
+iv class='tool-o\
+utput' style='${\
+wrapperDisplay}'\
+>` +\x0a          `\
+<span class='tog\
+gle-cmd-output' \
+onclick='toggleT\
+oolOutput(${this\
+._esc(block.id)}\
+);' ` +\x0a        \
+  `title='${this\
+._escapeHtml(tog\
+gleTitle)}' role\
+='button'>` +\x0a  \
+          `<img \
+src='${this._esc\
+(expIcon)}' widt\
+h='25' height='2\
+5' valign='middl\
+e'>` +\x0a         \
+ `</span>` +\x0a   \
+       // Conten\
+t is initially c\
+ollapsed. We int\
+entionally do NO\
+T escape here,\x0a \
+         // to k\
+eep behavior con\
+sistent with Too\
+lOutput.append/u\
+pdate (HTML-in).\
+\x0a          `<div\
+ class='content'\
+ style='display:\
+none' data-trust\
+ed='1'>${tool_ou\
+tput_html}</div>\
+` +\x0a        `</d\
+iv>`\x0a      );\x0a  \
+  }\x0a\x0a    // Rend\
+er bot message b\
+lock (md-block-m\
+arkdown)\x0a   _ren\
+derBot(block) {\x0a\
+      const id =\
+ block.id;\x0a     \
+ const out = blo\
+ck.output || {};\
+\x0a      const msg\
+Id = `msg-bot-${\
+id}`;\x0a\x0a      // \
+NOTE: timestamps\
+ intentionally d\
+isabled on front\
+end\x0a      // let\
+ ts = '';\x0a      \
+// if (out.times\
+tamp) { ... }\x0a\x0a \
+     const perso\
+nalize = !!(bloc\
+k && block.extra\
+ && block.extra.\
+personalize === \
+true);\x0a      con\
+st nameHeader = \
+personalize ? th\
+is._nameHeader('\
+bot', out.name |\
+| '', out.avatar\
+_img || null) : \
+'';\x0a\x0a      const\
+ mdText = this._\
+escapeHtml(out.t\
+ext || '');\x0a    \
+  const toolWrap\
+ = this._renderT\
+oolOutputWrapper\
+(block);\x0a      c\
+onst extras = th\
+is._renderExtras\
+(block);\x0a      c\
+onst actions = (\
+block.extra && b\
+lock.extra.foote\
+r_icons) ? this.\
+_renderActions(b\
+lock) : '';\x0a    \
+  const debug = \
+(block.extra && \
+block.extra.debu\
+g_html) ? String\
+(block.extra.deb\
+ug_html) : '';\x0a\x0a\
+      return (\x0a \
+       `<div cla\
+ss='msg-box msg-\
+bot' id='${msgId\
+}'>` +\x0a         \
+ `${nameHeader}`\
+ +\x0a          `<d\
+iv class='msg'>`\
+ +\x0a            `\
+<div class='md-b\
+lock' md-block-m\
+arkdown='1'>${md\
+Text}</div>` +\x0a \
+           `<div\
+ class='msg-tool\
+-extra'></div>` \
++\x0a            `$\
+{toolWrap}` +\x0a  \
+          `<div \
+class='msg-extra\
+'>${extras}</div\
+>` +\x0a           \
+ `${actions}${de\
+bug}` +\x0a        \
+  `</div>` +\x0a   \
+     `</div>`\x0a  \
+    );\x0a    }\x0a\x0a  \
+  // Render one \
+RenderBlock into\
+ HTML (may produ\
+ce 1 or 2 messag\
+es \xe2\x80\x93 input and\
+/or output)\x0a    \
+renderNode(block\
+) {\x0a      const \
+parts = [];\x0a    \
+  if (block && b\
+lock.input && bl\
+ock.input.text) \
+parts.push(this.\
+_renderUser(bloc\
+k));\x0a      if (b\
+lock && block.ou\
+tput && block.ou\
+tput.text) parts\
+.push(this._rend\
+erBot(block));\x0a \
+     return part\
+s.join('');\x0a    \
+}\x0a\x0a    // Render\
+ array of blocks\
+\x0a    renderNodes\
+(blocks) {\x0a     \
+ if (!Array.isAr\
+ray(blocks)) ret\
+urn '';\x0a      co\
+nst out = [];\x0a  \
+    for (let i =\
+ 0; i < blocks.l\
+ength; i++) {\x0a  \
+      const b = \
+blocks[i] || nul\
+l;\x0a        if (!\
+b) continue;\x0a   \
+     out.push(th\
+is.renderNode(b)\
+);\x0a      }\x0a     \
+ return out.join\
+('');\x0a    }\x0a  }\x0a\
+\x0a  // ==========\
+================\
+================\
+================\
+================\
+\x0a  // 9b) Data r\
+eceiver for appe\
+nd/replace nodes\
+\x0a  // ==========\
+================\
+================\
+================\
+================\
+\x0a\x0a  class DataRe\
+ceiver {\x0a    // \
+Normalizes paylo\
+ad (HTML string \
+or JSON) and del\
+egates to NodesM\
+anager.\x0a    cons\
+tructor(cfg, tem\
+plates, nodes, s\
+crollMgr) {\x0a    \
+  this.cfg = cfg\
+ || {};\x0a      th\
+is.templates = t\
+emplates;\x0a      \
+this.nodes = nod\
+es;\x0a      this.s\
+crollMgr = scrol\
+lMgr;\x0a    }\x0a\x0a   \
+ _tryParseJSON(s\
+) {\x0a      if (ty\
+peof s !== 'stri\
+ng') return s;\x0a \
+     const t = s\
+.trim();\x0a      i\
+f (!t) return nu\
+ll;\x0a      // If \
+it's like HTML, \
+don't parse as J\
+SON\x0a      if (t[\
+0] === '<') retu\
+rn null;\x0a      t\
+ry { return JSON\
+.parse(t); } cat\
+ch (_) { return \
+null; }\x0a    }\x0a\x0a \
+   _normalizeToB\
+locks(obj) {\x0a   \
+   if (!obj) ret\
+urn [];\x0a      if\
+ (Array.isArray(\
+obj)) return obj\
+;\x0a      if (obj.\
+node) return [ob\
+j.node];\x0a      i\
+f (obj.nodes) re\
+turn (Array.isAr\
+ray(obj.nodes) ?\
+ obj.nodes : [])\
+;\x0a      // singl\
+e node-like obje\
+ct\x0a      if (typ\
+eof obj === 'obj\
+ect' && (obj.inp\
+ut || obj.output\
+ || obj.id)) ret\
+urn [obj];\x0a     \
+ return [];\x0a    \
+}\x0a\x0a    append(pa\
+yload) {\x0a      /\
+/ Legacy HTML st\
+ring?\x0a      if (\
+typeof payload =\
+== 'string' && p\
+ayload.trim().st\
+artsWith('<')) {\
+\x0a        this.no\
+des.appendNode(p\
+ayload, this.scr\
+ollMgr);\x0a       \
+ return;\x0a      }\
+\x0a      // Try JS\
+ON\x0a      const o\
+bj = this._tryPa\
+rseJSON(payload)\
+;\x0a      if (!obj\
+) {\x0a        // N\
+ot JSON \xe2\x80\x93 pass\
+ through\x0a       \
+ this.nodes.appe\
+ndNode(String(pa\
+yload), this.scr\
+ollMgr);\x0a       \
+ return;\x0a      }\
+\x0a      const blo\
+cks = this._norm\
+alizeToBlocks(ob\
+j);\x0a      if (!b\
+locks.length) {\x0a\
+        this.nod\
+es.appendNode(''\
+, this.scrollMgr\
+);\x0a        retur\
+n;\x0a      }\x0a     \
+ const html = th\
+is.templates.ren\
+derNodes(blocks)\
+;\x0a      this.nod\
+es.appendNode(ht\
+ml, this.scrollM\
+gr);\x0a    }\x0a\x0a    \
+replace(payload)\
+ {\x0a      // Lega\
+cy HTML string?\x0a\
+      if (typeof\
+ payload === 'st\
+ring' && payload\
+.trim().startsWi\
+th('<')) {\x0a     \
+   this.nodes.re\
+placeNodes(paylo\
+ad, this.scrollM\
+gr);\x0a        ret\
+urn;\x0a      }\x0a   \
+   // Try JSON\x0a \
+     const obj =\
+ this._tryParseJ\
+SON(payload);\x0a  \
+    if (!obj) {\x0a\
+        this.nod\
+es.replaceNodes(\
+String(payload),\
+ this.scrollMgr)\
+;\x0a        return\
+;\x0a      }\x0a      \
+const blocks = t\
+his._normalizeTo\
+Blocks(obj);\x0a   \
+   if (!blocks.l\
+ength) {\x0a       \
+ this.nodes.repl\
+aceNodes('', thi\
+s.scrollMgr);\x0a  \
+      return;\x0a  \
+    }\x0a      cons\
+t html = this.te\
+mplates.renderNo\
+des(blocks);\x0a   \
+   this.nodes.re\
+placeNodes(html,\
+ this.scrollMgr)\
+;\x0a    }\x0a  }\x0a\x0a  /\
 / ==============\
 ================\
 ================\
 ================\
-============\x0a\x0a  \
-class NodeTempla\
-teEngine {\x0a    /\
-/ JS-side templa\
-tes for nodes re\
-ndered from JSON\
- payload (Render\
-Block).\x0a    cons\
-tructor(cfg, log\
-ger) {\x0a      thi\
-s.cfg = cfg || {\
-};\x0a      this.lo\
-gger = logger ||\
- { debug: () => \
-{} };\x0a    }\x0a\x0a   \
- _esc(s) { retur\
-n (s == null) ? \
-'' : String(s); \
-}\x0a    _escapeHtm\
-l(s) { return (t\
-ypeof Utils !== \
-'undefined') ? U\
-tils.escapeHtml(\
-s) : String(s).r\
-eplace(/[&<>\x22']/\
-g, m => ({'&':'&\
-amp;','<':'&lt;'\
-,'>':'&gt;','\x22':\
-'&quot;',\x22'\x22:'&#\
-039;'}[m])); }\x0a\x0a\
-    // Render na\
-me header given \
-role\x0a    _nameHe\
-ader(role, name,\
- avatarUrl) {\x0a  \
-    if (!name &&\
- !avatarUrl) ret\
-urn '';\x0a      co\
-nst cls = (role \
-=== 'user') ? 'n\
-ame-user' : 'nam\
-e-bot';\x0a      co\
-nst img = avatar\
-Url ? `<img src=\
-\x22${this._esc(ava\
-tarUrl)}\x22 class=\
-\x22avatar\x22> ` : ''\
-;\x0a      return `\
-<div class=\x22name\
--header ${cls}\x22>\
-${img}${this._es\
-c(name || '')}</\
-div>`;\x0a    }\x0a\x0a  \
-  // Render user\
- message block\x0a \
-   _renderUser(b\
-lock) {\x0a      co\
-nst id = block.i\
-d;\x0a      const i\
-np = block.input\
- || {};\x0a      co\
-nst msgId = `msg\
--user-${id}`;\x0a\x0a \
-     // NOTE: ti\
-mestamps intenti\
-onally disabled \
-on frontend\x0a    \
-  // let ts = ''\
-;\x0a      // if (i\
-np.timestamp) { \
-... }\x0a\x0a      con\
-st personalize =\
- !!(block && blo\
-ck.extra && bloc\
-k.extra.personal\
-ize === true);\x0a \
-     const nameH\
-eader = personal\
-ize ? this._name\
-Header('user', i\
-np.name || '', i\
-np.avatar_img ||\
- null) : '';\x0a\x0a  \
-    const conten\
-t = this._escape\
-Html(inp.text ||\
- '').replace(/\x5cr\
-?\x5cn/g, '<br>');\x0a\
-      return `<d\
-iv class=\x22msg-bo\
-x msg-user\x22 id=\x22\
-${msgId}\x22>${name\
-Header}<div clas\
-s=\x22msg\x22><p style\
-=\x22margin:0\x22>${co\
-ntent}</p></div>\
-</div>`;\x0a    }\x0a\x0a\
-    // Render ex\
-tra blocks (imag\
-es/files/urls/do\
-cs/tool-extra)\x0a \
-   _renderExtras\
-(block) {\x0a      \
-const parts = []\
-;\x0a\x0a      // imag\
-es\x0a      const i\
-mages = block.im\
-ages || {};\x0a    \
-  const keysI = \
-Object.keys(imag\
-es);\x0a      if (k\
-eysI.length) {\x0a \
-       keysI.for\
-Each((k) => {\x0a  \
-        const it\
- = images[k];\x0a  \
-        if (!it)\
- return;\x0a       \
-   const url = t\
-his._esc(it.url)\
-; const path = t\
-his._esc(it.path\
-); const bn = th\
-is._esc(it.basen\
-ame || '');\x0a    \
-      if (it.is_\
-video) {\x0a       \
-     const src =\
- (it.ext === '.w\
-ebm' || !it.webm\
-_path) ? path : \
-this._esc(it.web\
-m_path);\x0a       \
-     const ext =\
- (src.endsWith('\
-.webm') ? 'webm'\
- : (path.split('\
-.').pop() || 'mp\
-4'));\x0a          \
-  parts.push(\x0a  \
-            `<di\
-v class=\x22extra-s\
-rc-video-box\x22 ti\
-tle=\x22${url}\x22>` +\
-\x0a               \
- `<video class=\x22\
-video-player\x22 co\
-ntrols>` +\x0a     \
-             `<s\
-ource src=\x22${src\
-}\x22 type=\x22video/$\
-{ext}\x22>` +\x0a     \
-           `</vi\
-deo>` +\x0a        \
-        `<p><a h\
-ref=\x22bridge://pl\
-ay_video/${url}\x22\
- class=\x22title\x22>$\
-{this._escapeHtm\
-l(bn)}</a></p>` \
-+\x0a              \
-`</div>`\x0a       \
-     );\x0a        \
-  } else {\x0a     \
-       parts.pus\
-h(\x0a             \
- `<div class=\x22ex\
-tra-src-img-box\x22\
- title=\x22${url}\x22>\
-` +\x0a            \
-    `<div class=\
-\x22img-outer\x22><div\
- class=\x22img-wrap\
-per\x22><a href=\x22${\
-url}\x22><img src=\x22\
-${path}\x22 class=\x22\
-image\x22></a></div\
->` +\x0a           \
-     `<a href=\x22$\
-{url}\x22 class=\x22ti\
-tle\x22>${this._esc\
-apeHtml(bn)}</a>\
-</div>` +\x0a      \
-        `</div><\
-br/>`\x0a          \
-  );\x0a          }\
-\x0a        });\x0a   \
-   }\x0a\x0a      // f\
-iles\x0a      const\
- files = block.f\
-iles || {};\x0a    \
-  const kF = Obj\
-ect.keys(files);\
-\x0a      if (kF.le\
-ngth) {\x0a        \
-const rows = [];\
-\x0a        kF.forE\
-ach((k) => {\x0a   \
-       const it \
-= files[k]; if (\
-!it) return;\x0a   \
-       const url\
- = this._esc(it.\
-url); const path\
- = this._esc(it.\
-path);\x0a         \
- const icon = (t\
-ypeof window !==\
- 'undefined' && \
-window.ICON_ATTA\
-CHMENTS) ? `<img\
- src=\x22${window.I\
-CON_ATTACHMENTS}\
-\x22 class=\x22extra-s\
-rc-icon\x22>` : '';\
-\x0a          rows.\
-push(`${icon} <b\
-> [${k}] </b> <a\
- href=\x22${url}\x22>$\
-{path}</a>`);\x0a  \
-      });\x0a      \
-  if (rows.lengt\
-h) parts.push(`<\
-div>${rows.join(\
-\x22<br/><br/>\x22)}</\
-div>`);\x0a      }\x0a\
-\x0a      // urls\x0a \
-     const urls \
-= block.urls || \
-{};\x0a      const \
-kU = Object.keys\
-(urls);\x0a      if\
- (kU.length) {\x0a \
-       const row\
-s = [];\x0a        \
-kU.forEach((k) =\
-> {\x0a          co\
-nst it = urls[k]\
-; if (!it) retur\
-n;\x0a          con\
-st url = this._e\
-sc(it.url);\x0a    \
-      const icon\
- = (typeof windo\
-w !== 'undefined\
-' && window.ICON\
-_URL) ? `<img sr\
-c=\x22${window.ICON\
-_URL}\x22 class=\x22ex\
-tra-src-icon\x22>` \
-: '';\x0a          \
-rows.push(`${ico\
-n}<a href=\x22${url\
-}\x22 title=\x22${url}\
-\x22>${url}</a> <sm\
-all> [${k}] </sm\
-all>`);\x0a        \
-});\x0a        if (\
-rows.length) par\
-ts.push(`<div>${\
-rows.join(\x22<br/>\
-<br/>\x22)}</div>`)\
-;\x0a      }\x0a\x0a     \
- // docs (render\
- on JS) or fallb\
-ack to docs_html\
-\x0a      const ext\
-ra = block.extra\
- || {};\x0a      co\
-nst docsRaw = Ar\
-ray.isArray(extr\
-a.docs) ? extra.\
-docs : null;\x0a\x0a  \
-    if (docsRaw \
-&& docsRaw.lengt\
-h) {\x0a        con\
-st icon = (typeo\
-f window !== 'un\
-defined' && wind\
-ow.ICON_DB) ? `<\
-img src=\x22${windo\
-w.ICON_DB}\x22 clas\
-s=\x22extra-src-ico\
-n\x22>` : '';\x0a     \
-   const prefix \
-= (typeof window\
- !== 'undefined'\
- && window.LOCAL\
-E_DOC_PREFIX) ? \
-String(window.LO\
-CALE_DOC_PREFIX)\
- : 'Doc:';\x0a     \
-   const limit =\
- 3;\x0a\x0a        // \
-normalize: [{uui\
-d, meta}] OR [{ \
-uuid: {...} }]\x0a \
-       const nor\
-malized = [];\x0a  \
-      docsRaw.fo\
-rEach((it) => {\x0a\
-          if (!i\
-t || typeof it !\
-== 'object') ret\
-urn;\x0a          i\
-f ('uuid' in it \
-&& 'meta' in it \
-&& typeof it.met\
-a === 'object') \
-{\x0a            no\
-rmalized.push({ \
-uuid: String(it.\
-uuid), meta: it.\
-meta || {} });\x0a \
-         } else \
-{\x0a            co\
-nst keys = Objec\
-t.keys(it);\x0a    \
-        if (keys\
-.length === 1) {\
-\x0a              c\
-onst uuid = keys\
-[0];\x0a           \
-   const meta = \
-it[uuid];\x0a      \
-        if (meta\
- && typeof meta \
-=== 'object') {\x0a\
-                \
-normalized.push(\
-{ uuid: String(u\
-uid), meta });\x0a \
-             }\x0a \
-           }\x0a   \
-       }\x0a       \
- });\x0a\x0a        co\
-nst rows = [];\x0a \
-       for (let \
-i = 0; i < Math.\
-min(limit, norma\
-lized.length); i\
-++) {\x0a          \
-const d = normal\
-ized[i];\x0a       \
-   const meta = \
-d.meta || {};\x0a  \
-        const en\
-tries = Object.k\
-eys(meta).map(k \
-=> `<b>${this._e\
-scapeHtml(k)}:</\
-b> ${this._escap\
-eHtml(String(met\
-a[k]))}`).join('\
-, ');\x0a          \
-rows.push(`<p><s\
-mall>[${i + 1}] \
-${this._escapeHt\
-ml(d.uuid)}: ${e\
-ntries}</small><\
-/p>`);\x0a        }\
-\x0a        if (row\
-s.length) {\x0a    \
-      parts.push\
-(`<p>${icon}<sma\
-ll><b>${this._es\
-capeHtml(prefix)\
-}:</b></small></\
-p>`);\x0a          \
-parts.push(`<div\
- class=\x22cmd\x22><p>\
-${rows.join('')}\
-</p></div>`);\x0a  \
-      }\x0a      } \
-else {\x0a        /\
-/ backward compa\
-t\x0a        const \
-docs_html = extr\
-a && extra.docs_\
-html ? String(ex\
-tra.docs_html) :\
- '';\x0a        if \
-(docs_html) part\
-s.push(docs_html\
-);\x0a      }\x0a\x0a    \
-  // plugin-driv\
-en tool extra HT\
-ML\x0a      const t\
-ool_extra_html =\
- extra && extra.\
-tool_extra_html \
-? String(extra.t\
-ool_extra_html) \
-: '';\x0a      if (\
-tool_extra_html)\
- parts.push(`<di\
-v class=\x22msg-ext\
-ra\x22>${tool_extra\
-_html}</div>`);\x0a\
-\x0a      return pa\
-rts.join('');\x0a  \
-  }\x0a\x0a    // Rend\
-er message-level\
- actions\x0a    _re\
-nderActions(bloc\
-k) {\x0a      const\
- extra = block.e\
-xtra || {};\x0a    \
-  const actions \
-= extra.actions \
-|| [];\x0a      if \
-(!actions || !ac\
-tions.length) re\
-turn '';\x0a      c\
-onst parts = act\
-ions.map((a) => \
-{\x0a        const \
-href = this._esc\
-(a.href || '#');\
-\x0a        const t\
-itle = this._esc\
-(a.title || '');\
-\x0a        const i\
-con = this._esc(\
-a.icon || '');\x0a \
-       const id \
-= this._esc(a.id\
- || block.id);\x0a \
-       return `<\
-a href=\x22${href}\x22\
- class=\x22action-i\
-con\x22 data-id=\x22${\
-id}\x22 role=\x22butto\
-n\x22><span class=\x22\
-cmd\x22><img src=\x22$\
-{icon}\x22 class=\x22a\
-ction-img\x22 title\
-=\x22${title}\x22 alt=\
-\x22${title}\x22 data-\
-id=\x22${id}\x22></spa\
-n></a>`;\x0a      }\
-);\x0a      return \
-`<div class=\x22act\
-ion-icons\x22 data-\
-id=\x22${this._esc(\
-block.id)}\x22>${pa\
-rts.join('')}</d\
-iv>`;\x0a    }\x0a\x0a   \
- // Render tool \
-output wrapper (\
-always collapsed\
- by default; wra\
-pper visibility \
-depends on flag)\
-\x0a    // Inside c\
-lass NodeTemplat\
-eEngine\x0a    _ren\
-derToolOutputWra\
-pper(block) {\x0a  \
-    const extra \
-= block.extra ||\
- {};\x0a\x0a      // I\
-MPORTANT: keep i\
-nitial tool outp\
-ut verbatim (HTM\
-L-ready).\x0a      \
-// Do NOT HTML-e\
-scape here \xe2\x80\x93 t\
-he host already \
-provides a safe/\
-HTML-ready strin\
-g.\x0a      // Esca\
-ping again would\
- double-encode e\
-ntities (e.g. \x22 \
--> \x22), which\x0a   \
-   // caused vis\
-ible \x22\x22\x22 in the \
-UI instead of qu\
-otes.\x0a      cons\
-t tool_output_ht\
-ml = (extra.tool\
-_output != null)\
- ? String(extra.\
-tool_output) : '\
-';\x0a\x0a      // Wra\
-pper visibility:\
- show/hide based\
- on tool_output_\
-visible...\x0a     \
- const wrapperDi\
-splay = (extra.t\
-ool_output_visib\
-le === true) ? '\
-' : 'display:non\
-e';\x0a\x0a      const\
- toggleTitle = (\
-typeof trans !==\
- 'undefined' && \
-trans) ? trans('\
-action.cmd.expan\
-d') : 'Expand';\x0a\
-      const expI\
-con = (typeof wi\
-ndow !== 'undefi\
-ned' && window.I\
-CON_EXPAND) ? wi\
-ndow.ICON_EXPAND\
- : '';\x0a\x0a      re\
-turn (\x0a        `\
-<div class='tool\
--output' style='\
-${wrapperDisplay\
-}'>` +\x0a         \
- `<span class='t\
-oggle-cmd-output\
-' onclick='toggl\
-eToolOutput(${th\
-is._esc(block.id\
-)});' ` +\x0a      \
-    `title='${th\
-is._escapeHtml(t\
-oggleTitle)}' ro\
-le='button'>` +\x0a\
-            `<im\
-g src='${this._e\
-sc(expIcon)}' wi\
-dth='25' height=\
-'25' valign='mid\
-dle'>` +\x0a       \
-   `</span>` +\x0a \
-         // Cont\
-ent is initially\
- collapsed. We i\
-ntentionally do \
-NOT escape here,\
-\x0a          // to\
- keep behavior c\
-onsistent with T\
-oolOutput.append\
-/update (HTML-in\
-).\x0a          `<d\
-iv class='conten\
-t' style='displa\
-y:none' data-tru\
-sted='1'>${tool_\
-output_html}</di\
-v>` +\x0a        `<\
-/div>`\x0a      );\x0a\
-    }\x0a\x0a    // Re\
-nder bot message\
- block (md-block\
--markdown)\x0a   _r\
-enderBot(block) \
-{\x0a      const id\
- = block.id;\x0a   \
-   const out = b\
-lock.output || {\
-};\x0a      const m\
-sgId = `msg-bot-\
-${id}`;\x0a\x0a      /\
-/ NOTE: timestam\
-ps intentionally\
- disabled on fro\
-ntend\x0a      // l\
-et ts = '';\x0a    \
-  // if (out.tim\
-estamp) { ... }\x0a\
-\x0a      const per\
-sonalize = !!(bl\
-ock && block.ext\
-ra && block.extr\
-a.personalize ==\
-= true);\x0a      c\
-onst nameHeader \
-= personalize ? \
-this._nameHeader\
-('bot', out.name\
- || '', out.avat\
-ar_img || null) \
-: '';\x0a\x0a      con\
-st mdText = this\
-._escapeHtml(out\
-.text || '');\x0a  \
-    const toolWr\
-ap = this._rende\
-rToolOutputWrapp\
-er(block);\x0a     \
- const extras = \
-this._renderExtr\
-as(block);\x0a     \
- const actions =\
- (block.extra &&\
- block.extra.foo\
-ter_icons) ? thi\
-s._renderActions\
-(block) : '';\x0a  \
-    const debug \
-= (block.extra &\
-& block.extra.de\
-bug_html) ? Stri\
-ng(block.extra.d\
-ebug_html) : '';\
-\x0a\x0a      return (\
-\x0a        `<div c\
-lass='msg-box ms\
-g-bot' id='${msg\
-Id}'>` +\x0a       \
-   `${nameHeader\
-}` +\x0a          `\
-<div class='msg'\
->` +\x0a           \
- `<div class='md\
--block' md-block\
--markdown='1'>${\
-mdText}</div>` +\
-\x0a            `<d\
-iv class='msg-to\
-ol-extra'></div>\
-` +\x0a            \
-`${toolWrap}` +\x0a\
-            `<di\
-v class='msg-ext\
-ra'>${extras}</d\
-iv>` +\x0a         \
-   `${actions}${\
-debug}` +\x0a      \
-    `</div>` +\x0a \
-       `</div>`\x0a\
-      );\x0a    }\x0a\x0a\
-    // Render on\
-e RenderBlock in\
-to HTML (may pro\
-duce 1 or 2 mess\
-ages \xe2\x80\x93 input a\
-nd/or output)\x0a  \
-  renderNode(blo\
-ck) {\x0a      cons\
-t parts = [];\x0a  \
-    if (block &&\
- block.input && \
-block.input.text\
-) parts.push(thi\
-s._renderUser(bl\
-ock));\x0a      if \
-(block && block.\
-output && block.\
-output.text) par\
-ts.push(this._re\
-nderBot(block));\
-\x0a      return pa\
-rts.join('');\x0a  \
-  }\x0a\x0a    // Rend\
-er array of bloc\
-ks\x0a    renderNod\
-es(blocks) {\x0a   \
-   if (!Array.is\
-Array(blocks)) r\
-eturn '';\x0a      \
-const out = [];\x0a\
-      for (let i\
- = 0; i < blocks\
-.length; i++) {\x0a\
-        const b \
-= blocks[i] || n\
-ull;\x0a        if \
-(!b) continue;\x0a \
-       out.push(\
-this.renderNode(\
-b));\x0a      }\x0a   \
-   return out.jo\
-in('');\x0a    }\x0a  \
-}\x0a\x0a  // ========\
+============\x0a  /\
+/ 10) UI manager\
+\x0a  // ==========\
 ================\
 ================\
 ================\
 ================\
-==\x0a  // 9b) Data\
- receiver for ap\
-pend/replace nod\
-es\x0a  // ========\
-================\
-================\
-================\
-================\
-==\x0a\x0a  class Data\
-Receiver {\x0a    /\
-/ Normalizes pay\
-load (HTML strin\
-g or JSON) and d\
-elegates to Node\
-sManager.\x0a    co\
-nstructor(cfg, t\
-emplates, nodes,\
- scrollMgr) {\x0a  \
-    this.cfg = c\
-fg || {};\x0a      \
-this.templates =\
- templates;\x0a    \
-  this.nodes = n\
-odes;\x0a      this\
-.scrollMgr = scr\
-ollMgr;\x0a    }\x0a\x0a \
-   _tryParseJSON\
-(s) {\x0a      if (\
-typeof s !== 'st\
-ring') return s;\
-\x0a      const t =\
- s.trim();\x0a     \
- if (!t) return \
-null;\x0a      // I\
-f it's like HTML\
-, don't parse as\
- JSON\x0a      if (\
-t[0] === '<') re\
-turn null;\x0a     \
- try { return JS\
-ON.parse(t); } c\
-atch (_) { retur\
-n null; }\x0a    }\x0a\
-\x0a    _normalizeT\
-oBlocks(obj) {\x0a \
-     if (!obj) r\
-eturn [];\x0a      \
-if (Array.isArra\
-y(obj)) return o\
-bj;\x0a      if (ob\
-j.node) return [\
-obj.node];\x0a     \
- if (obj.nodes) \
-return (Array.is\
-Array(obj.nodes)\
- ? obj.nodes : [\
-]);\x0a      // sin\
-gle node-like ob\
-ject\x0a      if (t\
-ypeof obj === 'o\
-bject' && (obj.i\
-nput || obj.outp\
-ut || obj.id)) r\
-eturn [obj];\x0a   \
-   return [];\x0a  \
-  }\x0a\x0a    append(\
-payload) {\x0a     \
- // Legacy HTML \
-string?\x0a      if\
- (typeof payload\
- === 'string' &&\
- payload.trim().\
-startsWith('<'))\
- {\x0a        this.\
-nodes.appendNode\
-(payload, this.s\
-crollMgr);\x0a     \
-   return;\x0a     \
- }\x0a      // Try \
-JSON\x0a      const\
- obj = this._try\
-ParseJSON(payloa\
-d);\x0a      if (!o\
-bj) {\x0a        //\
- Not JSON \xe2\x80\x93 pa\
-ss through\x0a     \
-   this.nodes.ap\
-pendNode(String(\
-payload), this.s\
-crollMgr);\x0a     \
-   return;\x0a     \
- }\x0a      const b\
-locks = this._no\
-rmalizeToBlocks(\
-obj);\x0a      if (\
-!blocks.length) \
-{\x0a        this.n\
-odes.appendNode(\
-'', this.scrollM\
-gr);\x0a        ret\
-urn;\x0a      }\x0a   \
-   const html = \
-this.templates.r\
-enderNodes(block\
-s);\x0a      this.n\
-odes.appendNode(\
-html, this.scrol\
-lMgr);\x0a    }\x0a\x0a  \
-  replace(payloa\
-d) {\x0a      // Le\
-gacy HTML string\
-?\x0a      if (type\
-of payload === '\
-string' && paylo\
-ad.trim().starts\
-With('<')) {\x0a   \
-     this.nodes.\
-replaceNodes(pay\
-load, this.scrol\
-lMgr);\x0a        r\
-eturn;\x0a      }\x0a \
-     // Try JSON\
-\x0a      const obj\
- = this._tryPars\
-eJSON(payload);\x0a\
-      if (!obj) \
-{\x0a        this.n\
-odes.replaceNode\
-s(String(payload\
-), this.scrollMg\
-r);\x0a        retu\
-rn;\x0a      }\x0a    \
-  const blocks =\
- this._normalize\
-ToBlocks(obj);\x0a \
-     if (!blocks\
-.length) {\x0a     \
-   this.nodes.re\
-placeNodes('', t\
-his.scrollMgr);\x0a\
-        return;\x0a\
-      }\x0a      co\
-nst html = this.\
-templates.render\
-Nodes(blocks);\x0a \
-     this.nodes.\
-replaceNodes(htm\
-l, this.scrollMg\
-r);\x0a    }\x0a  }\x0a\x0a \
- // ============\
-================\
-================\
-================\
-==============\x0a \
- // 10) UI manag\
-er\x0a  // ========\
-================\
-================\
-================\
-================\
-==\x0a\x0a  class UIMa\
-nager {\x0a      //\
- Replace or inse\
-rt app-level CSS\
- in a <style> ta\
-g.\x0a      updateC\
-SS(styles) {\x0a   \
-     let style =\
- document.getEle\
-mentById('app-st\
-yle');\x0a        i\
-f (!style) { sty\
-le = document.cr\
-eateElement('sty\
-le'); style.id =\
- 'app-style'; do\
-cument.head.appe\
-ndChild(style); \
-}\x0a        style.\
-textContent = st\
-yles;\x0a      }\x0a  \
-    // Ensure ba\
-se styles for co\
-de header sticky\
- behavior exist.\
-\x0a      ensureSti\
-ckyHeaderStyle()\
- {\x0a        let s\
-tyle = document.\
-getElementById('\
-code-sticky-styl\
+\x0a\x0a  class UIMana\
+ger {\x0a      // R\
+eplace or insert\
+ app-level CSS i\
+n a <style> tag.\
+\x0a      updateCSS\
+(styles) {\x0a     \
+   let style = d\
+ocument.getEleme\
+ntById('app-styl\
 e');\x0a        if \
-(style) return;\x0a\
-        style = \
-document.createE\
-lement('style');\
- style.id = 'cod\
-e-sticky-style';\
-\x0a        style.t\
-extContent = [\x0a \
-         '.code-\
-wrapper { positi\
-on: relative; }'\
-,\x0a          '.co\
-de-wrapper .code\
--header-wrapper \
-{ position: stic\
-ky; top: var(--c\
-ode-header-stick\
-y-top, 0px); z-i\
-ndex: 2; box-sha\
-dow: 0 1px 0 rgb\
-a(0,0,0,.06); }'\
-,\x0a          '.co\
-de-wrapper pre {\
- overflow: visib\
-le; margin-top: \
-0; }',\x0a         \
- '.code-wrapper \
-pre code { displ\
-ay: block; white\
--space: pre; max\
--height: 100dvh;\
- overflow: auto;\
-',\x0a          '  \
-overscroll-behav\
-ior: contain; -w\
-ebkit-overflow-s\
-crolling: touch;\
- overflow-anchor\
-: none; scrollba\
-r-gutter: stable\
- both-edges; scr\
-oll-behavior: au\
-to; }',\x0a        \
-  '#_loader_.hid\
-den { display: n\
-one !important; \
-visibility: hidd\
-en !important; }\
-',\x0a          '#_\
-loader_.visible \
-{ display: block\
-; visibility: vi\
-sible; }',\x0a\x0a    \
-      /* User me\
-ssage collapse (\
-uc-*) */\x0a       \
-   '.msg-box.msg\
--user .msg { pos\
-ition: relative;\
+(!style) { style\
+ = document.crea\
+teElement('style\
+'); style.id = '\
+app-style'; docu\
+ment.head.append\
+Child(style); }\x0a\
+        style.te\
+xtContent = styl\
+es;\x0a      }\x0a    \
+  // Ensure base\
+ styles for code\
+ header sticky b\
+ehavior exist.\x0a \
+     ensureStick\
+yHeaderStyle() {\
+\x0a        let sty\
+le = document.ge\
+tElementById('co\
+de-sticky-style'\
+);\x0a        if (s\
+tyle) return;\x0a  \
+      style = do\
+cument.createEle\
+ment('style'); s\
+tyle.id = 'code-\
+sticky-style';\x0a \
+       style.tex\
+tContent = [\x0a   \
+       '.code-wr\
+apper { position\
+: relative; }',\x0a\
+          '.code\
+-wrapper .code-h\
+eader-wrapper { \
+position: sticky\
+; top: var(--cod\
+e-header-sticky-\
+top, 0px); z-ind\
+ex: 2; box-shado\
+w: 0 1px 0 rgba(\
+0,0,0,.06); }',\x0a\
+          '.code\
+-wrapper pre { o\
+verflow: visible\
+; margin-top: 0;\
  }',\x0a          '\
-.msg-box.msg-use\
-r .msg > .uc-con\
-tent { display: \
-block; overflow:\
- visible; }',\x0a  \
-        '.msg-bo\
-x.msg-user .msg \
-> .uc-content.uc\
--collapsed { max\
--height: 1000px;\
- overflow: hidde\
-n; }',\x0a         \
+.code-wrapper pr\
+e code { display\
+: block; white-s\
+pace: pre; max-h\
+eight: 100dvh; o\
+verflow: auto;',\
+\x0a          '  ov\
+erscroll-behavio\
+r: contain; -web\
+kit-overflow-scr\
+olling: touch; o\
+verflow-anchor: \
+none; scrollbar-\
+gutter: stable b\
+oth-edges; scrol\
+l-behavior: auto\
+; }',\x0a          \
+'#_loader_.hidde\
+n { display: non\
+e !important; vi\
+sibility: hidden\
+ !important; }',\
+\x0a          '#_lo\
+ader_.visible { \
+display: block; \
+visibility: visi\
+ble; }',\x0a\x0a      \
+    /* User mess\
+age collapse (uc\
+-*) */\x0a         \
  '.msg-box.msg-u\
-ser .msg > .uc-t\
-oggle { display:\
- none; margin-to\
-p: 8px; text-ali\
-gn: center; curs\
-or: pointer; use\
-r-select: none; \
-}',\x0a          '.\
-msg-box.msg-user\
- .msg > .uc-togg\
-le.visible { dis\
-play: block; }',\
-\x0a\x0a          /* I\
-ncreased toggle \
-icon size to a c\
-omfortable/defau\
-lt size.\x0a       \
-      Overridabl\
-e via CSS var --\
-uc-toggle-icon-s\
-ize to keep host\
--level control. \
-*/\x0a          '.m\
+ser .msg { posit\
+ion: relative; }\
+',\x0a          '.m\
 sg-box.msg-user \
-.msg > .uc-toggl\
-e img { width: v\
-ar(--uc-toggle-i\
-con-size, 26px);\
- height: var(--u\
-c-toggle-icon-si\
-ze, 26px); opaci\
-ty: .8; }',\x0a    \
+.msg > .uc-conte\
+nt { display: bl\
+ock; overflow: v\
+isible; }',\x0a    \
       '.msg-box.\
 msg-user .msg > \
-.uc-toggle:hover\
- img { opacity: \
-1; }'\x0a        ].\
-join('\x5cn');\x0a    \
-    document.hea\
-d.appendChild(st\
-yle);\x0a      }\x0a  \
-    // Toggle cl\
-asses controllin\
-g optional UI fe\
-atures.\x0a      en\
-ableEditIcons() \
-{ document.body \
-&& document.body\
-.classList.add('\
-display-edit-ico\
-ns'); }\x0a      di\
-sableEditIcons()\
+.uc-content.uc-c\
+ollapsed { max-h\
+eight: 1000px; o\
+verflow: hidden;\
+ }',\x0a          '\
+.msg-box.msg-use\
+r .msg > .uc-tog\
+gle { display: n\
+one; margin-top:\
+ 8px; text-align\
+: center; cursor\
+: pointer; user-\
+select: none; }'\
+,\x0a          '.ms\
+g-box.msg-user .\
+msg > .uc-toggle\
+.visible { displ\
+ay: block; }',\x0a\x0a\
+          /* Inc\
+reased toggle ic\
+on size to a com\
+fortable/default\
+ size.\x0a         \
+    Overridable \
+via CSS var --uc\
+-toggle-icon-siz\
+e to keep host-l\
+evel control. */\
+\x0a          '.msg\
+-box.msg-user .m\
+sg > .uc-toggle \
+img { width: var\
+(--uc-toggle-ico\
+n-size, 26px); h\
+eight: var(--uc-\
+toggle-icon-size\
+, 26px); opacity\
+: .8; }',\x0a      \
+    '.msg-box.ms\
+g-user .msg > .u\
+c-toggle:hover i\
+mg { opacity: 1;\
+ }'\x0a        ].jo\
+in('\x5cn');\x0a      \
+  document.head.\
+appendChild(styl\
+e);\x0a      }\x0a    \
+  // Toggle clas\
+ses controlling \
+optional UI feat\
+ures.\x0a      enab\
+leEditIcons() { \
+document.body &&\
+ document.body.c\
+lassList.add('di\
+splay-edit-icons\
+'); }\x0a      disa\
+bleEditIcons() {\
+ document.body &\
+& document.body.\
+classList.remove\
+('display-edit-i\
+cons'); }\x0a      \
+enableTimestamp(\
+) { document.bod\
+y && document.bo\
+dy.classList.add\
+('display-timest\
+amp'); }\x0a      d\
+isableTimestamp(\
+) { document.bod\
+y && document.bo\
+dy.classList.rem\
+ove('display-tim\
+estamp'); }\x0a    \
+  enableBlocks()\
  { document.body\
  && document.bod\
-y.classList.remo\
-ve('display-edit\
--icons'); }\x0a    \
-  enableTimestam\
-p() { document.b\
-ody && document.\
-body.classList.a\
-dd('display-time\
-stamp'); }\x0a     \
- disableTimestam\
-p() { document.b\
-ody && document.\
-body.classList.r\
-emove('display-t\
-imestamp'); }\x0a  \
-    enableBlocks\
-() { document.bo\
-dy && document.b\
-ody.classList.ad\
-d('display-block\
-s'); }\x0a      dis\
-ableBlocks() { d\
-ocument.body && \
-document.body.cl\
-assList.remove('\
-display-blocks')\
-; }\x0a    }\x0a\x0a  // \
+y.classList.add(\
+'display-blocks'\
+); }\x0a      disab\
+leBlocks() { doc\
+ument.body && do\
+cument.body.clas\
+sList.remove('di\
+splay-blocks'); \
+}\x0a    }\x0a\x0a  // ==\
 ================\
 ================\
 ================\
 ================\
-==========\x0a  // \
-11) Stream snaps\
-hot engine + inc\
-remental code st\
-reaming\x0a  // ===\
+========\x0a  // 11\
+) Stream snapsho\
+t engine + incre\
+mental code stre\
+aming\x0a  // =====\
 ================\
 ================\
 ================\
 ================\
-=======\x0a\x0a  class\
- StreamEngine {\x0a\
-    constructor(\
-cfg, dom, render\
-er, math, highli\
-ghter, codeScrol\
-l, scrollMgr, ra\
-f, asyncer, logg\
-er) {\x0a      this\
-.cfg = cfg; this\
-.dom = dom; this\
-.renderer = rend\
-erer; this.math \
-= math;\x0a      th\
-is.highlighter =\
- highlighter; th\
-is.codeScroll = \
-codeScroll; this\
-.scrollMgr = scr\
-ollMgr; this.raf\
- = raf;\x0a      th\
-is.asyncer = asy\
-ncer;\x0a      this\
-.logger = logger\
- || new Logger(c\
-fg);\x0a\x0a      // S\
-treaming buffer \
-(rope-like) \xe2\x80\x93 \
-avoids O(n^2) st\
-ring concatenati\
-on when many sma\
-ll chunks arrive\
-.\x0a      // strea\
-mBuf holds the a\
-lready materiali\
-zed prefix; _sbP\
-arts keeps recen\
-t tail parts; _s\
-bLen tracks thei\
-r length.\x0a      \
-this.streamBuf =\
- '';     // mate\
-rialized prefix \
-(string used by \
-render)\x0a      th\
-is._sbParts = []\
-;      // pendin\
-g string chunks \
-(array) not yet \
-joined\x0a      thi\
-s._sbLen = 0;   \
-      // length \
-of pending chunk\
-s\x0a\x0a      this.fe\
-nceOpen = false;\
- this.fenceMark \
-= '`'; this.fenc\
-eLen = 3;\x0a      \
-this.fenceTail =\
- ''; this.fenceB\
-uf = '';\x0a      t\
-his.lastSnapshot\
-Ts = 0; this.nex\
-tSnapshotStep = \
-cfg.PROFILE_TEXT\
-.base;\x0a      thi\
-s.snapshotSchedu\
-led = false; thi\
-s.snapshotRAF = \
-0;\x0a\x0a      this.c\
-odeStream = { op\
-en: false, lines\
-: 0, chars: 0 };\
-\x0a      this.acti\
-veCode = null;\x0a\x0a\
-      this.suppr\
-essPostFinalizeP\
-ass = false;\x0a\x0a  \
-    this._promot\
-eScheduled = fal\
-se;\x0a\x0a      // Gu\
-ard to ensure fi\
-rst fence-open i\
-s materialized i\
-mmediately when \
-stream starts wi\
-th code.\x0a      t\
-his._firstCodeOp\
-enSnapDone = fal\
-se;\x0a\x0a      // St\
-reaming mode fla\
-g \xe2\x80\x93 controls r\
-educed rendering\
- (no linkify etc\
-.) on hot path.\x0a\
-      this.isStr\
-eaming = false;\x0a\
-\x0a      // Tracks\
- whether renderS\
-napshot injected\
- a one-off synth\
-etic EOL for par\
-sing an open fen\
-ce\x0a      // (use\
-d to strip it fr\
-om the initial s\
-treaming tail to\
- avoid \x22#\x5cn foo\x22\
- on first line).\
-\x0a      this._las\
-tInjectedEOL = f\
-alse;\x0a\x0a      thi\
-s._customFenceSp\
-ecs = [];   // [\
-{ open, close },\
- ...]\x0a      this\
-._fenceCustom = \
-null;      // cu\
-rrently active c\
-ustom fence spec\
- or null\x0a    }\x0a \
-   _d(tag, data)\
- { this.logger.d\
-ebug('STREAM', t\
-ag, data); }\x0a\x0a  \
-  setCustomFence\
-Specs(specs) {\x0a \
-     this._custo\
-mFenceSpecs = Ar\
-ray.isArray(spec\
-s) ? specs.slice\
-() : [];\x0a    }\x0a\x0a\
-    // --- Rope \
-buffer helpers (\
-internal) ---\x0a\x0a \
-   // Append a c\
-hunk into the ro\
-pe without immed\
-iately touching \
-the large string\
-.\x0a    _appendChu\
-nk(s) {\x0a      if\
- (!s) return;\x0a  \
-    this._sbPart\
-s.push(s);\x0a     \
- this._sbLen += \
-s.length;\x0a    }\x0a\
-    // Current l\
-ogical length of\
- the stream text\
- (materialized p\
-refix + pending \
-tail).\x0a    getSt\
-reamLength() {\x0a \
-     return (thi\
-s.streamBuf.leng\
-th + this._sbLen\
-);\x0a    }\x0a    // \
-Materialize the \
-rope into a sing\
-le string for re\
-ndering (cheap i\
-f nothing pendin\
-g).\x0a    getStrea\
-mText() {\x0a      \
-if (this._sbLen \
-> 0) {\x0a        /\
-/ Join pending p\
-arts into the ma\
-terialized prefi\
-x and clear the \
-tail.\x0a        //\
- Single-part fas\
-t path avoids a \
-temporary array \
-join.\x0a        th\
-is.streamBuf += \
-(this._sbParts.l\
-ength === 1 ? th\
-is._sbParts[0] :\
- this._sbParts.j\
-oin(''));\x0a      \
-  this._sbParts.\
-length = 0;\x0a    \
-    this._sbLen \
-= 0;\x0a      }\x0a   \
-   return this.s\
-treamBuf;\x0a    }\x0a\
-    // Reset the\
- rope to an empt\
-y state.\x0a    _cl\
-earStreamBuffer(\
-) {\x0a      this.s\
-treamBuf = '';\x0a \
-     this._sbPar\
-ts.length = 0;\x0a \
-     this._sbLen\
- = 0;\x0a    }\x0a\x0a   \
- // Reset all st\
-reaming state an\
-d counters.\x0a    \
-reset() {\x0a      \
-this._clearStrea\
-mBuffer();\x0a     \
- this.fenceOpen \
-= false; this.fe\
-nceMark = '`'; t\
-his.fenceLen = 3\
-;\x0a      this.fen\
-ceTail = ''; thi\
-s.fenceBuf = '';\
-\x0a      this.last\
-SnapshotTs = 0; \
-this.nextSnapsho\
-tStep = this.pro\
-file().base;\x0a   \
-   this.snapshot\
-Scheduled = fals\
-e; this.snapshot\
-RAF = 0;\x0a      t\
-his.codeStream =\
- { open: false, \
-lines: 0, chars:\
- 0 };\x0a      this\
-.activeCode = nu\
-ll; this.suppres\
+=====\x0a\x0a  class S\
+treamEngine {\x0a  \
+  constructor(cf\
+g, dom, renderer\
+, math, highligh\
+ter, codeScroll,\
+ scrollMgr, raf,\
+ asyncer, logger\
+) {\x0a      this.c\
+fg = cfg; this.d\
+om = dom; this.r\
+enderer = render\
+er; this.math = \
+math;\x0a      this\
+.highlighter = h\
+ighlighter; this\
+.codeScroll = co\
+deScroll; this.s\
+crollMgr = scrol\
+lMgr; this.raf =\
+ raf;\x0a      this\
+.asyncer = async\
+er;\x0a      this.l\
+ogger = logger |\
+| new Logger(cfg\
+);\x0a\x0a      // Str\
+eaming buffer (r\
+ope-like) \xe2\x80\x93 av\
+oids O(n^2) stri\
+ng concatenation\
+ when many small\
+ chunks arrive.\x0a\
+      // streamB\
+uf holds the alr\
+eady materialize\
+d prefix; _sbPar\
+ts keeps recent \
+tail parts; _sbL\
+en tracks their \
+length.\x0a      th\
+is.streamBuf = '\
+';     // materi\
+alized prefix (s\
+tring used by re\
+nder)\x0a      this\
+._sbParts = []; \
+     // pending \
+string chunks (a\
+rray) not yet jo\
+ined\x0a      this.\
+_sbLen = 0;     \
+    // length of\
+ pending chunks\x0a\
+\x0a      this.fenc\
+eOpen = false; t\
+his.fenceMark = \
+'`'; this.fenceL\
+en = 3;\x0a      th\
+is.fenceTail = '\
+'; this.fenceBuf\
+ = '';\x0a      thi\
+s.lastSnapshotTs\
+ = 0; this.nextS\
+napshotStep = cf\
+g.PROFILE_TEXT.b\
+ase;\x0a      this.\
+snapshotSchedule\
+d = false; this.\
+snapshotRAF = 0;\
+\x0a\x0a      this.cod\
+eStream = { open\
+: false, lines: \
+0, chars: 0 };\x0a \
+     this.active\
+Code = null;\x0a\x0a  \
+    this.suppres\
 sPostFinalizePas\
-s = false;\x0a     \
- this._promoteSc\
-heduled = false;\
-\x0a      this._fir\
-stCodeOpenSnapDo\
-ne = false;\x0a\x0a   \
-   // Clear any \
-previous synthet\
-ic EOL marker.\x0a \
+s = false;\x0a\x0a    \
+  this._promoteS\
+cheduled = false\
+;\x0a\x0a      // Guar\
+d to ensure firs\
+t fence-open is \
+materialized imm\
+ediately when st\
+ream starts with\
+ code.\x0a      thi\
+s._firstCodeOpen\
+SnapDone = false\
+;\x0a\x0a      // Stre\
+aming mode flag \
+\xe2\x80\x93 controls red\
+uced rendering (\
+no linkify etc.)\
+ on hot path.\x0a  \
+    this.isStrea\
+ming = false;\x0a\x0a \
+     // Tracks w\
+hether renderSna\
+pshot injected a\
+ one-off synthet\
+ic EOL for parsi\
+ng an open fence\
+\x0a      // (used \
+to strip it from\
+ the initial str\
+eaming tail to a\
+void \x22#\x5cn foo\x22 o\
+n first line).\x0a \
      this._lastI\
 njectedEOL = fal\
-se;\x0a      this._\
+se;\x0a\x0a      this.\
+_customFenceSpec\
+s = [];   // [{ \
+open, close }, .\
+..]\x0a      this._\
 fenceCustom = nu\
-ll;\x0a\x0a      this.\
-_d('RESET', { })\
-;\x0a    }\x0a    // T\
-urn active strea\
-ming code block \
-into plain text \
-(safety on abort\
-).\x0a    defuseAct\
-iveToPlain() {\x0a \
-     if (!this.a\
-ctiveCode || !th\
-is.activeCode.co\
-deEl || !this.ac\
-tiveCode.codeEl.\
-isConnected) ret\
-urn;\x0a      const\
- codeEl = this.a\
-ctiveCode.codeEl\
-;\x0a      const fu\
-llText = (this.a\
-ctiveCode.frozen\
-El?.textContent \
-|| '') + (this.a\
-ctiveCode.tailEl\
-?.textContent ||\
- '');\x0a      try \
-{\x0a        codeEl\
-.textContent = f\
-ullText;\x0a       \
- codeEl.removeAt\
-tribute('data-hi\
-ghlighted');\x0a   \
-     codeEl.clas\
-sList.remove('hl\
-js');\x0a        co\
-deEl.dataset._ac\
-tive_stream = '0\
-';\x0a        const\
- st = this.codeS\
-croll.state(code\
-El); st.autoFoll\
-ow = false;\x0a    \
-  } catch (_) {}\
-\x0a      this._d('\
-DEFUSE_ACTIVE_TO\
-_PLAIN', { len: \
-fullText.length \
-});\x0a      this.a\
-ctiveCode = null\
-;\x0a    }\x0a    // I\
-f there are orph\
-an streaming cod\
-e blocks in DOM,\
- finalize them a\
-s plain text.\x0a  \
-  defuseOrphanAc\
-tiveBlocks(root)\
- {\x0a      try {\x0a \
-       const sco\
-pe = root || doc\
-ument;\x0a        c\
-onst nodes = sco\
-pe.querySelector\
-All('pre code[da\
-ta-_active_strea\
-m=\x221\x22]');\x0a      \
-  let n = 0;\x0a   \
-     nodes.forEa\
-ch(codeEl => {\x0a \
-         if (!co\
-deEl.isConnected\
-) return;\x0a      \
-    let text = '\
-';\x0a          con\
-st frozen = code\
-El.querySelector\
-('.hl-frozen');\x0a\
-          const \
-tail = codeEl.qu\
-erySelector('.hl\
--tail');\x0a       \
-   if (frozen ||\
- tail) text = (f\
-rozen?.textConte\
-nt || '') + (tai\
-l?.textContent |\
-| '');\x0a         \
- else text = cod\
-eEl.textContent \
-|| '';\x0a         \
- codeEl.textCont\
-ent = text;\x0a    \
-      codeEl.rem\
-oveAttribute('da\
-ta-highlighted')\
-;\x0a          code\
-El.classList.rem\
-ove('hljs');\x0a   \
-       codeEl.da\
-taset._active_st\
-ream = '0';\x0a    \
-      try { this\
-.codeScroll.atta\
-chHandlers(codeE\
-l); } catch (_) \
-{}\x0a          n++\
-;\x0a        });\x0a  \
-      if (n) thi\
-s._d('DEFUSE_ORP\
-HAN_ACTIVE_BLOCK\
-S', { count: n }\
-);\x0a      } catch\
- (e) { this._d('\
-DEFUSE_ORPHAN_AC\
-TIVE_ERR', Strin\
-g(e)); }\x0a    }\x0a \
-   // Abort stre\
-aming and clear \
-state with optio\
-ns.\x0a    abortAnd\
-Reset(opts) {\x0a  \
-    const o = Ob\
-ject.assign({\x0a  \
-      finalizeAc\
-tive: true,\x0a    \
-    clearBuffer:\
- true,\x0a        c\
-learMsg: false,\x0a\
-        defuseOr\
-phans: true,\x0a   \
-     reason: '',\
-\x0a        suppres\
-sLog: false\x0a    \
-  }, (opts || {}\
-));\x0a\x0a      try {\
- this.raf.cancel\
-Group('StreamEng\
-ine'); } catch (\
-_) {}\x0a      try \
-{ this.raf.cance\
-l('SE:snapshot')\
-; } catch (_) {}\
-\x0a      this.snap\
-shotScheduled = \
-false; this.snap\
-shotRAF = 0;\x0a\x0a  \
-    const hadAct\
-ive = !!this.act\
-iveCode;\x0a      t\
-ry {\x0a        if \
-(this.activeCode\
-) {\x0a          if\
- (o.finalizeActi\
-ve === true) thi\
-s.finalizeActive\
-Code();\x0a        \
-  else this.defu\
-seActiveToPlain(\
-);\x0a        }\x0a   \
-   } catch (e) {\
-\x0a        this._d\
-('ABORT_FINALIZE\
-_ERR', String(e)\
-);\x0a      }\x0a\x0a    \
-  if (o.defuseOr\
-phans) {\x0a       \
- try { this.defu\
-seOrphanActiveBl\
-ocks(); }\x0a      \
-  catch (e) { th\
-is._d('ABORT_DEF\
-USE_ORPHANS_ERR'\
-, String(e)); }\x0a\
-      }\x0a\x0a      i\
-f (o.clearBuffer\
-) {\x0a        this\
-._clearStreamBuf\
-fer();\x0a        t\
+ll;      // curr\
+ently active cus\
+tom fence spec o\
+r null\x0a    }\x0a   \
+ _d(tag, data) {\
+ this.logger.deb\
+ug('STREAM', tag\
+, data); }\x0a\x0a    \
+setCustomFenceSp\
+ecs(specs) {\x0a   \
+   this._customF\
+enceSpecs = Arra\
+y.isArray(specs)\
+ ? specs.slice()\
+ : [];\x0a    }\x0a\x0a  \
+  // --- Rope bu\
+ffer helpers (in\
+ternal) ---\x0a\x0a   \
+ // Append a chu\
+nk into the rope\
+ without immedia\
+tely touching th\
+e large string.\x0a\
+    _appendChunk\
+(s) {\x0a      if (\
+!s) return;\x0a    \
+  this._sbParts.\
+push(s);\x0a      t\
+his._sbLen += s.\
+length;\x0a    }\x0a  \
+  // Current log\
+ical length of t\
+he stream text (\
+materialized pre\
+fix + pending ta\
+il).\x0a    getStre\
+amLength() {\x0a   \
+   return (this.\
+streamBuf.length\
+ + this._sbLen);\
+\x0a    }\x0a    // Ma\
+terialize the ro\
+pe into a single\
+ string for rend\
+ering (cheap if \
+nothing pending)\
+.\x0a    getStreamT\
+ext() {\x0a      if\
+ (this._sbLen > \
+0) {\x0a        // \
+Join pending par\
+ts into the mate\
+rialized prefix \
+and clear the ta\
+il.\x0a        // S\
+ingle-part fast \
+path avoids a te\
+mporary array jo\
+in.\x0a        this\
+.streamBuf += (t\
+his._sbParts.len\
+gth === 1 ? this\
+._sbParts[0] : t\
+his._sbParts.joi\
+n(''));\x0a        \
+this._sbParts.le\
+ngth = 0;\x0a      \
+  this._sbLen = \
+0;\x0a      }\x0a     \
+ return this.str\
+eamBuf;\x0a    }\x0a  \
+  // Reset the r\
+ope to an empty \
+state.\x0a    _clea\
+rStreamBuffer() \
+{\x0a      this.str\
+eamBuf = '';\x0a   \
+   this._sbParts\
+.length = 0;\x0a   \
+   this._sbLen =\
+ 0;\x0a    }\x0a\x0a    /\
+/ Reset all stre\
+aming state and \
+counters.\x0a    re\
+set() {\x0a      th\
+is._clearStreamB\
+uffer();\x0a      t\
 his.fenceOpen = \
 false; this.fenc\
 eMark = '`'; thi\
 s.fenceLen = 3;\x0a\
-        this.fen\
-ceTail = ''; thi\
-s.fenceBuf = '';\
-\x0a        this.co\
-deStream.open = \
-false; this.code\
-Stream.lines = 0\
-; this.codeStrea\
-m.chars = 0;\x0a   \
-     window.__la\
-stSnapshotLen = \
-0;\x0a      }\x0a     \
- if (o.clearMsg \
-=== true) {\x0a    \
-    try { this.d\
-om.resetEphemera\
-l(); } catch (_)\
- {}\x0a      }\x0a    \
-  if (!o.suppres\
-sLog) this._d('A\
-BORT_AND_RESET',\
- { hadActive, ..\
-.o });\x0a    }\x0a   \
- // Select profi\
-le for current s\
-tream state (cod\
-e vs text).\x0a    \
-profile() { retu\
-rn this.fenceOpe\
-n ? this.cfg.PRO\
-FILE_CODE : this\
-.cfg.PROFILE_TEX\
-T; }\x0a    // Rese\
-t adaptive snaps\
-hot budget to ba\
-se.\x0a    resetBud\
-get() { this.nex\
-tSnapshotStep = \
-this.profile().b\
-ase; }\x0a    // Ch\
-eck whether [fro\
-m, end) contains\
- only spaces/tab\
-s.\x0a    onlyTrail\
-ingWhitespace(s,\
- from, end) {\x0a  \
-    for (let i =\
- from; i < end; \
-i++) { const c =\
- s.charCodeAt(i)\
-; if (c !== 0x20\
- && c !== 0x09) \
-return false; }\x0a\
-      return tru\
-e;\x0a    }\x0a    // \
-Update fence sta\
-te based on a fr\
-esh chunk and bu\
-ffer tail; detec\
-t openings and c\
-losings.\x0a    upd\
-ateFenceHeuristi\
-c(chunk) {\x0a     \
- const prev = (t\
-his.fenceBuf || \
-'');\x0a      const\
- s = prev + (chu\
-nk || '');\x0a     \
- const preLen = \
-prev.length;\x0a   \
-   const n = s.l\
-ength; let i = 0\
-;\x0a      let open\
-ed = false; let \
-closed = false; \
-let splitAt = -1\
-;\x0a      let atLi\
-neStart = (preLe\
-n === 0) ? true \
-: /[\x5cn\x5cr]$/.test\
-(prev);\x0a\x0a      c\
-onst inNewOrCros\
-ses = (j, k) => \
-(j >= preLen) ||\
- (k > preLen);\x0a\x0a\
-      while (i <\
- n) {\x0a        co\
-nst ch = s[i];\x0a \
-       if (ch ==\
-= '\x5cr' || ch ===\
- '\x5cn') { atLineS\
-tart = true; i++\
-; continue; }\x0a  \
-      if (!atLin\
-eStart) { i++; c\
-ontinue; }\x0a     \
-   atLineStart =\
- false;\x0a\x0a       \
- // Skip list/bl\
-ockquote/indent \
-normalization (e\
-xisting logic)\x0a \
-       let j = i\
-;\x0a        while \
-(j < n) {\x0a      \
-    let localSpa\
-ces = 0;\x0a       \
-   while (j < n \
-&& (s[j] === ' '\
- || s[j] === '\x5ct\
-')) { localSpace\
-s += (s[j] === '\
-\x5ct') ? 4 : 1; j+\
-+; if (localSpac\
-es > 3) break; }\
-\x0a          if (j\
- < n && s[j] ===\
- '>') { j++; if \
-(j < n && s[j] =\
-== ' ') j++; con\
-tinue; }\x0a\x0a      \
-    let saved = \
-j;\x0a          if \
-(j < n && (s[j] \
-=== '-' || s[j] \
-=== '*' || s[j] \
-=== '+')) {\x0a    \
-        let jj =\
- j + 1; if (jj <\
- n && s[jj] === \
-' ') { j = jj + \
-1; } else { j = \
-saved; }\x0a       \
-   } else {\x0a    \
-        let k2 =\
- j; let hasDigit\
- = false;\x0a      \
-      while (k2 \
-< n && s[k2] >= \
-'0' && s[k2] <= \
-'9') { hasDigit \
-= true; k2++; }\x0a\
-            if (\
-hasDigit && k2 <\
- n && (s[k2] ===\
- '.' || s[k2] ==\
-= ')')) {\x0a      \
-        k2++; if\
- (k2 < n && s[k2\
-] === ' ') { j =\
- k2 + 1; } else \
-{ j = saved; }\x0a \
-           } els\
-e { j = saved; }\
-\x0a          }\x0a   \
-       break;\x0a  \
-      }\x0a\x0a       \
- let indent = 0;\
-\x0a        while (\
-j < n && (s[j] =\
-== ' ' || s[j] =\
-== '\x5ct')) {\x0a    \
-      indent += \
-(s[j] === '\x5ct') \
-? 4 : 1; j++; if\
- (indent > 3) br\
-eak;\x0a        }\x0a \
-       if (inden\
-t > 3) { i = j; \
-continue; }\x0a\x0a   \
-     // 1) Custo\
-m fences first (\
-e.g. [!exec] ...\
- [/!exec], <exec\
-ute>...</execute\
->)\x0a        if (!\
-this.fenceOpen &\
-& this._customFe\
-nceSpecs && this\
-._customFenceSpe\
-cs.length) {\x0a   \
-       for (let \
-ci = 0; ci < thi\
-s._customFenceSp\
-ecs.length; ci++\
-) {\x0a            \
-const spec = thi\
-s._customFenceSp\
-ecs[ci];\x0a       \
-     const open \
-= spec && spec.o\
-pen ? spec.open \
-: '';\x0a          \
-  if (!open) con\
-tinue;\x0a         \
-   const k = j +\
- open.length;\x0a  \
-          if (k \
-<= n && s.slice(\
-j, k) === open) \
-{\x0a              \
-if (!inNewOrCros\
-ses(j, k)) { /* \
-seen fully in pr\
-evious prefix */\
- }\x0a             \
- else {\x0a        \
-        this.fen\
-ceOpen = true; t\
-his._fenceCustom\
- = spec; opened \
-= true; i = k;\x0a \
-               t\
-his._d('FENCE_OP\
-EN_DETECTED_CUST\
-OM', { open, idx\
-Start: j, idxEnd\
-: k, region: (j \
->= preLen) ? 'ne\
-w' : 'cross' });\
-\x0a               \
- continue; // ma\
-in while\x0a       \
-       }\x0a       \
-     }\x0a         \
- }\x0a        } els\
-e if (this.fence\
-Open && this._fe\
-nceCustom && thi\
-s._fenceCustom.c\
-lose) {\x0a        \
-  const close = \
-this._fenceCusto\
-m.close;\x0a       \
-   const k = j +\
- close.length;\x0a \
-         if (k <\
-= n && s.slice(j\
-, k) === close) \
-{\x0a            //\
- Require only tr\
-ailing whitespac\
-e on the line (c\
-onsistent with `\
-`` logic)\x0a      \
-      let eol = \
-k; while (eol < \
-n && s[eol] !== \
-'\x5cn' && s[eol] !\
-== '\x5cr') eol++;\x0a\
-            cons\
-t onlyWS = this.\
-onlyTrailingWhit\
-espace(s, k, eol\
-);\x0a            i\
-f (onlyWS) {\x0a   \
-           if (!\
-inNewOrCrosses(j\
-, k)) { /* seen \
-in previous pref\
-ix */ }\x0a        \
-      else {\x0a   \
-             thi\
-s.fenceOpen = fa\
-lse; this._fence\
-Custom = null; c\
-losed = true;\x0a  \
-              co\
-nst endInS = k;\x0a\
-                \
-const rel = endI\
-nS - preLen;\x0a   \
-             spl\
-itAt = Math.max(\
-0, Math.min((chu\
-nk ? chunk.lengt\
-h : 0), rel));\x0a \
-               i\
- = k;\x0a          \
-      this._d('F\
-ENCE_CLOSE_DETEC\
-TED_CUSTOM', { c\
-lose, idxStart: \
-j, idxEnd: k, sp\
-litAt, region: (\
-j >= preLen) ? '\
-new' : 'cross' }\
-);\x0a             \
-   continue; // \
-main while\x0a     \
-         }\x0a     \
-       } else {\x0a\
-              th\
-is._d('FENCE_CLO\
-SE_REJECTED_CUST\
-OM_NON_WS_AFTER'\
-, { close, idxSt\
-art: j, idxEnd: \
-k });\x0a          \
-  }\x0a          }\x0a\
-        }\x0a\x0a     \
-   // 2) Standar\
-d markdown-it fe\
-nces (``` or ~~~\
-) \xe2\x80\x93 leave your\
- original logic \
-intact\x0a        i\
-f (j < n && (s[j\
-] === '`' || s[j\
-] === '~')) {\x0a  \
-        const ma\
-rk = s[j]; let k\
- = j; while (k <\
- n && s[k] === m\
-ark) k++; const \
-run = k - j;\x0a\x0a  \
-        if (!thi\
-s.fenceOpen) {\x0a \
-           if (r\
-un >= 3) {\x0a     \
-         if (!in\
-NewOrCrosses(j, \
-k)) { i = k; con\
-tinue; }\x0a       \
-       this.fenc\
-eOpen = true; th\
-is.fenceMark = m\
-ark; this.fenceL\
-en = run; opened\
- = true; i = k;\x0a\
-              th\
-is._d('FENCE_OPE\
-N_DETECTED', { m\
-ark, run, idxSta\
-rt: j, idxEnd: k\
-, region: (j >= \
-preLen) ? 'new' \
-: 'cross' });\x0a  \
-            cont\
-inue;\x0a          \
-  }\x0a          } \
-else if (!this._\
-fenceCustom) {\x0a \
-           if (m\
-ark === this.fen\
-ceMark && run >=\
- this.fenceLen) \
-{\x0a              \
-if (!inNewOrCros\
-ses(j, k)) { i =\
- k; continue; }\x0a\
-              le\
-t eol = k; while\
- (eol < n && s[e\
-ol] !== '\x5cn' && \
-s[eol] !== '\x5cr')\
- eol++;\x0a        \
-      if (this.o\
-nlyTrailingWhite\
-space(s, k, eol)\
-) {\x0a            \
-    this.fenceOp\
-en = false; clos\
-ed = true;\x0a     \
-           const\
- endInS = k;\x0a   \
-             con\
-st rel = endInS \
-- preLen;\x0a      \
-          splitA\
-t = Math.max(0, \
-Math.min((chunk \
-? chunk.length :\
- 0), rel));\x0a    \
-            i = \
-k;\x0a             \
-   this._d('FENC\
-E_CLOSE_DETECTED\
-', { mark, run, \
-idxStart: j, idx\
-End: k, splitAt,\
- region: (j >= p\
-reLen) ? 'new' :\
- 'cross' });\x0a   \
-             con\
-tinue;\x0a         \
-     } else {\x0a  \
-              th\
-is._d('FENCE_CLO\
-SE_REJECTED_NON_\
-WS_AFTER', { mar\
-k, run, idxStart\
-: j, idxEnd: k }\
-);\x0a             \
- }\x0a            }\
-\x0a          }\x0a   \
-     }\x0a\x0a        \
-i = j + 1;\x0a     \
- }\x0a\x0a      const \
-MAX_TAIL = 512;\x0a\
       this.fence\
-Buf = s.slice(-M\
-AX_TAIL);\x0a      \
-this.fenceTail =\
- s.slice(-3);\x0a  \
-    return { ope\
-ned, closed, spl\
-itAt };\x0a    }\x0a\x0a \
-   // Ensure mes\
-sage snapshot co\
-ntainer exists.\x0a\
-    getMsgSnapsh\
-otRoot(msg) {\x0a  \
-    if (!msg) re\
-turn null;\x0a     \
- let snap = msg.\
-querySelector('.\
-md-snapshot-root\
-');\x0a      if (!s\
-nap) { snap = do\
-cument.createEle\
-ment('div'); sna\
-p.className = 'm\
-d-snapshot-root'\
-; msg.appendChil\
-d(snap); }\x0a     \
- return snap;\x0a  \
-  }\x0a    // Detec\
-t structural bou\
-ndaries in a chu\
-nk (for snapshot\
- decisions).\x0a   \
- hasStructuralBo\
-undary(chunk) { \
-if (!chunk) retu\
-rn false; return\
- /\x5cn(\x5cn|[-*]\x5cs|\x5c\
-d+\x5c.\x5cs|#{1,6}\x5cs|\
->\x5cs)/.test(chunk\
-); }\x0a    // Deci\
-de whether we sh\
-ould snapshot on\
- this chunk.\x0a   \
- shouldSnapshotO\
-nChunk(chunk, ch\
-unkHasNL, hasBou\
-ndary) {\x0a      c\
-onst prof = this\
-.profile(); cons\
-t now = Utils.no\
-w();\x0a      if (t\
-his.activeCode &\
-& this.fenceOpen\
-) return false;\x0a\
-      if ((now -\
- this.lastSnapsh\
-otTs) < prof.min\
-Interval) return\
- false;\x0a      if\
- (hasBoundary) r\
-eturn true;\x0a\x0a   \
-   const delta =\
- Math.max(0, thi\
-s.getStreamLengt\
-h() - (window.__\
-lastSnapshotLen \
-|| 0));\x0a      if\
- (this.fenceOpen\
-) { if (chunkHas\
-NL && delta >= t\
-his.nextSnapshot\
-Step) return tru\
-e; return false;\
- }\x0a      if (del\
-ta >= this.nextS\
-napshotStep) ret\
-urn true;\x0a      \
-return false;\x0a  \
-  }\x0a    // If we\
- are getting slo\
-w, schedule a so\
-ft snapshot base\
-d on time.\x0a    m\
-aybeScheduleSoft\
-Snapshot(msg, ch\
-unkHasNL) {\x0a    \
-  const prof = t\
-his.profile(); c\
-onst now = Utils\
-.now();\x0a      if\
- (this.activeCod\
-e && this.fenceO\
-pen) return;\x0a   \
-   if (this.fenc\
-eOpen && this.co\
-deStream.lines <\
- 1 && !chunkHasN\
-L) return;\x0a     \
- if ((now - this\
-.lastSnapshotTs)\
- >= prof.softLat\
-ency) this.sched\
-uleSnapshot(msg)\
-;\x0a    }\x0a    // S\
-chedule snapshot\
- rendering (coal\
-esced via rAF).\x0a\
-    scheduleSnap\
-shot(msg, force \
-= false) {\x0a     \
- if (this.snapsh\
-otScheduled && !\
-this.raf.isSched\
-uled('SE:snapsho\
-t')) this.snapsh\
-otScheduled = fa\
-lse;\x0a      if (!\
-force) {\x0a       \
- if (this.snapsh\
-otScheduled) ret\
-urn;\x0a        if \
-(this.activeCode\
- && this.fenceOp\
-en) return;\x0a    \
-  } else {\x0a     \
-   if (this.snap\
-shotScheduled &&\
- this.raf.isSche\
-duled('SE:snapsh\
-ot')) return;\x0a  \
-    }\x0a      this\
-.snapshotSchedul\
-ed = true;\x0a     \
- this.raf.schedu\
-le('SE:snapshot'\
-, () => { this.s\
-napshotScheduled\
- = false; this.r\
-enderSnapshot(ms\
-g); }, 'StreamEn\
-gine', 0);\x0a    }\
-\x0a    // Split co\
-de element into \
-frozen and tail \
-spans if needed.\
-\x0a    ensureSplit\
-CodeEl(codeEl) {\
-\x0a      if (!code\
-El) return null;\
-\x0a      let froze\
-n = codeEl.query\
-Selector('.hl-fr\
-ozen'); let tail\
- = codeEl.queryS\
-elector('.hl-tai\
-l');\x0a      if (f\
-rozen && tail) r\
-eturn { codeEl, \
-frozenEl: frozen\
-, tailEl: tail }\
-;\x0a      const te\
-xt = codeEl.text\
-Content || ''; c\
-odeEl.innerHTML \
-= '';\x0a      froz\
-en = document.cr\
-eateElement('spa\
-n'); frozen.clas\
-sName = 'hl-froz\
-en';\x0a      tail \
-= document.creat\
-eElement('span')\
-; tail.className\
- = 'hl-tail';\x0a  \
-    codeEl.appen\
-dChild(frozen); \
-codeEl.appendChi\
-ld(tail);\x0a      \
-if (text) tail.t\
-extContent = tex\
-t; return { code\
-El, frozenEl: fr\
-ozen, tailEl: ta\
-il };\x0a    }\x0a    \
-// Create active\
- code context fr\
-om the latest sn\
-apshot.\x0a    setu\
-pActiveCodeFromS\
-napshot(snap) {\x0a\
-      const code\
-s = snap.querySe\
-lectorAll('pre c\
-ode'); if (!code\
-s.length) return\
- null;\x0a      con\
-st last = codes[\
-codes.length - 1\
-];\x0a      const c\
-ls = Array.from(\
-last.classList).\
-find(c => c.star\
-tsWith('language\
--')) || 'languag\
-e-plaintext';\x0a  \
-    const lang =\
- (cls.replace('l\
-anguage-', '') |\
-| 'plaintext');\x0a\
-      const part\
-s = this.ensureS\
-plitCodeEl(last)\
-; if (!parts) re\
-turn null;\x0a\x0a    \
-  // If we injec\
-ted a synthetic \
-EOL for parsing \
-an open fence, r\
-emove it from th\
-e streaming tail\
- now.\x0a      // T\
-his prevents bre\
-aking the very f\
-irst code line i\
-nto \x22#\x5cn foo\x22 wh\
-en the next chun\
-k starts with \x22 \
-foo\x22.\x0a      if (\
-this._lastInject\
-edEOL && parts.t\
-ailEl && parts.t\
-ailEl.textConten\
-t && parts.tailE\
-l.textContent.en\
-dsWith('\x5cn')) {\x0a\
-        parts.ta\
-ilEl.textContent\
- = parts.tailEl.\
-textContent.slic\
-e(0, -1);\x0a      \
-  // Reset the m\
-arker so we don'\
-t accidentally t\
-rim again in thi\
-s snapshot lifec\
-ycle.\x0a        th\
-is._lastInjected\
-EOL = false;\x0a   \
-   }\x0a\x0a      cons\
-t st = this.code\
-Scroll.state(par\
-ts.codeEl); st.a\
-utoFollow = true\
-; st.userInterac\
-ted = false;\x0a   \
-   parts.codeEl.\
-dataset._active_\
-stream = '1';\x0a  \
-    const baseFr\
-ozenNL = Utils.c\
-ountNewlines(par\
-ts.frozenEl.text\
-Content || ''); \
-const baseTailNL\
- = Utils.countNe\
-wlines(parts.tai\
-lEl.textContent \
-|| '');\x0a      co\
-nst ac = { codeE\
-l: parts.codeEl,\
- frozenEl: parts\
-.frozenEl, tailE\
-l: parts.tailEl,\
- lang, frozenLen\
-: parts.frozenEl\
-.textContent.len\
-gth, lastPromote\
-Ts: 0,\x0a         \
-          lines:\
- 0, tailLines: b\
-aseTailNL, lines\
-SincePromote: 0,\
- initialLines: b\
-aseFrozenNL + ba\
-seTailNL, haltHL\
-: false, plainSt\
-ream: false };\x0a \
-     this._d('AC\
-TIVE_CODE_SETUP'\
-, { lang, frozen\
-Len: ac.frozenLe\
-n, tailLines: ac\
-.tailLines, init\
-ialLines: ac.ini\
-tialLines });\x0a  \
-    return ac;\x0a \
-   }\x0a    // Copy\
- previous active\
- code state into\
- the new one (af\
-ter snapshot).\x0a \
-   rehydrateActi\
-veCode(oldAC, ne\
-wAC) {\x0a      if \
-(!oldAC || !newA\
-C) return;\x0a     \
- newAC.frozenEl.\
-innerHTML = oldA\
-C.frozenEl ? old\
-AC.frozenEl.inne\
-rHTML : '';\x0a    \
-  const fullText\
- = newAC.codeEl.\
-textContent || '\
-'; const remaind\
-er = fullText.sl\
-ice(oldAC.frozen\
-Len);\x0a      newA\
-C.tailEl.textCon\
-tent = remainder\
-;\x0a      newAC.fr\
-ozenLen = oldAC.\
-frozenLen; newAC\
-.lang = oldAC.la\
-ng;\x0a      newAC.\
-lines = oldAC.li\
-nes; newAC.tailL\
-ines = Utils.cou\
-ntNewlines(remai\
-nder);\x0a      new\
-AC.lastPromoteTs\
- = oldAC.lastPro\
-moteTs; newAC.li\
-nesSincePromote \
-= oldAC.linesSin\
-cePromote || 0;\x0a\
-      newAC.init\
-ialLines = oldAC\
-.initialLines ||\
- 0; newAC.haltHL\
- = !!oldAC.haltH\
-L;\x0a      newAC.p\
-lainStream = !!o\
-ldAC.plainStream\
-;\x0a      this._d(\
-'ACTIVE_CODE_REH\
-YDRATE', { lang:\
- newAC.lang, fro\
-zenLen: newAC.fr\
-ozenLen, tailLin\
-es: newAC.tailLi\
-nes, initialLine\
-s: newAC.initial\
-Lines, halted: n\
-ewAC.haltHL, pla\
-inStream: newAC.\
-plainStream });\x0a\
-    }\x0a    // App\
-end text to acti\
-ve tail span and\
- update counters\
-.\x0a    appendToAc\
-tiveTail(text) {\
-\x0a      if (!this\
-.activeCode || !\
-this.activeCode.\
-tailEl || !text)\
- return;\x0a      t\
-his.activeCode.t\
-ailEl.insertAdja\
-centText('before\
-end', text);\x0a   \
-   const nl = Ut\
-ils.countNewline\
-s(text);\x0a      t\
-his.activeCode.t\
-ailLines += nl; \
-this.activeCode.\
-linesSincePromot\
-e += nl;\x0a      t\
-his.codeScroll.s\
-cheduleScroll(th\
-is.activeCode.co\
-deEl, true, fals\
-e);\x0a      if (th\
-is.logger.isEnab\
-led('STREAM') &&\
- (nl > 0 || text\
-.length >= 64)) \
-{\x0a        this._\
-d('TAIL_APPEND',\
- { addLen: text.\
-length, addNL: n\
-l, totalTailNL: \
-this.activeCode.\
-tailLines });\x0a  \
-    }\x0a    }\x0a    \
-// Enforce budge\
-ts: stop increme\
-ntal hljs and sw\
-itch to plain st\
-reaming if neede\
-d.\x0a    enforceHL\
-StopBudget() {\x0a \
-     if (!this.a\
-ctiveCode) retur\
-n;\x0a      // If g\
-lobal disable wa\
-s requested, hal\
-t early and swit\
-ch to plain stre\
-aming.\x0a      if \
-(this.cfg.HL.DIS\
-ABLE_ALL) { this\
-.activeCode.halt\
-HL = true; this.\
-activeCode.plain\
-Stream = true; r\
-eturn; }\x0a      c\
-onst stop = (thi\
-s.cfg.PROFILE_CO\
-DE.stopAfterLine\
-s | 0);\x0a      co\
-nst streamPlainL\
-ines = (this.cfg\
-.PROFILE_CODE.st\
-reamPlainAfterLi\
-nes | 0);\x0a      \
-const streamPlai\
-nChars = (this.c\
-fg.PROFILE_CODE.\
-streamPlainAfter\
-Chars | 0);\x0a    \
-  const maxFroze\
-nChars = (this.c\
-fg.PROFILE_CODE.\
-maxFrozenChars |\
- 0);\x0a\x0a      cons\
-t totalLines = (\
-this.activeCode.\
-initialLines || \
-0) + (this.activ\
-eCode.lines || 0\
-);\x0a      const f\
-rozenChars = thi\
-s.activeCode.fro\
-zenLen | 0;\x0a    \
-  const tailChar\
-s = (this.active\
-Code.tailEl?.tex\
-tContent || '').\
-length | 0;\x0a    \
-  const totalStr\
-eamedChars = fro\
-zenChars + tailC\
-hars;\x0a\x0a      // \
-Switch to plain \
-streaming after \
-budgets \xe2\x80\x93 no i\
-ncremental hljs\x0a\
-      if ((strea\
-mPlainLines > 0 \
-&& totalLines >=\
- streamPlainLine\
-s) ||\x0a          \
-(streamPlainChar\
-s > 0 && totalSt\
-reamedChars >= s\
-treamPlainChars)\
- ||\x0a          (m\
-axFrozenChars > \
-0 && frozenChars\
- >= maxFrozenCha\
-rs)) {\x0a        t\
-his.activeCode.h\
-altHL = true;\x0a  \
-      this.activ\
-eCode.plainStrea\
-m = true;\x0a      \
-  try { this.act\
-iveCode.codeEl.d\
-ataset.hlStreamS\
-uspended = '1'; \
-} catch (_) {}\x0a \
-       this._d('\
-STREAM_HL_SUSPEN\
-DED', { totalLin\
-es, totalStreame\
-dChars, frozenCh\
-ars, reason: 'bu\
-dget' });\x0a      \
-  return;\x0a      \
-}\x0a\x0a      if (sto\
-p > 0 && totalLi\
-nes >= stop) {\x0a \
-       this.acti\
-veCode.haltHL = \
-true;\x0a        th\
-is.activeCode.pl\
-ainStream = true\
-;\x0a        try { \
-this.activeCode.\
-codeEl.dataset.h\
-lStreamSuspended\
- = '1'; } catch \
-(_) {}\x0a        t\
-his._d('STREAM_H\
-L_SUSPENDED', { \
-totalLines, stop\
-After: stop, rea\
-son: 'stopAfterL\
-ines' });\x0a      \
-}\x0a    }\x0a    _ali\
-asLang(token) {\x0a\
-      const ALIA\
-S = {\x0a        tx\
-t: 'plaintext', \
-text: 'plaintext\
-', plaintext: 'p\
-laintext',\x0a     \
-   sh: 'bash', s\
-hell: 'bash', zs\
-h: 'bash', 'shel\
-l-session': 'bas\
-h',\x0a        py: \
-'python', python\
-3: 'python', py3\
-: 'python',\x0a    \
-    js: 'javascr\
-ipt', node: 'jav\
-ascript', nodejs\
-: 'javascript',\x0a\
-        ts: 'typ\
-escript', 'ts-no\
-de': 'typescript\
-',\x0a        yml: \
-'yaml', kt: 'kot\
-lin', rs: 'rust'\
-,\x0a        csharp\
-: 'csharp', 'c#'\
-: 'csharp', 'c++\
-': 'cpp',\x0a      \
-  ps: 'powershel\
-l', ps1: 'powers\
-hell', pwsh: 'po\
-wershell', power\
-shell7: 'powersh\
-ell',\x0a        do\
-cker: 'dockerfil\
-e'\x0a      };\x0a    \
-  const v = Stri\
-ng(token || '').\
-trim().toLowerCa\
-se();\x0a      retu\
-rn ALIAS[v] || v\
-;\x0a    }\x0a    _isH\
-LJSSupported(lan\
-g) {\x0a      try {\
- return !!(windo\
-w.hljs && hljs.g\
-etLanguage && hl\
-js.getLanguage(l\
-ang)); } catch (\
-_) { return fals\
-e; }\x0a    }\x0a    /\
-/ Try to detect \
-language from a \
-\x22language: X\x22 st\
-yle first line d\
-irective.\x0a    _d\
-etectDirectiveLa\
-ngFromText(text)\
- {\x0a      if (!te\
-xt) return null;\
-\x0a      let s = S\
-tring(text);\x0a   \
-   if (s.charCod\
-eAt(0) === 0xFEF\
-F) s = s.slice(1\
-);\x0a      const l\
-ines = s.split(/\
-\x5cr?\x5cn/);\x0a      l\
-et i = 0; while \
-(i < lines.lengt\
-h && !lines[i].t\
-rim()) i++;\x0a    \
-  if (i >= lines\
-.length) return \
-null;\x0a      let \
-first = lines[i]\
-.trim();\x0a      f\
-irst = first.rep\
-lace(/^\x5cs*lang(?\
-:uage)?\x5cs*[:=]\x5cs\
-*/i, '').trim();\
-\x0a      let token\
- = first.split(/\
-\x5cs+/)[0].replace\
-(/:$/, '');\x0a    \
-  if (!/^[A-Za-z\
-][\x5cw#+\x5c-\x5c.]{0,30\
-}$/.test(token))\
- return null;\x0a\x0a \
-     let cand = \
-this._aliasLang(\
-token);\x0a      co\
-nst rest = lines\
-.slice(i + 1).jo\
-in('\x5cn');\x0a      \
-if (!rest.trim()\
-) return null;\x0a\x0a\
-      let pos = \
-0, seen = 0;\x0a   \
-   while (seen <\
- i && pos < s.le\
-ngth) { const nl\
- = s.indexOf('\x5cn\
-', pos); if (nl \
-=== -1) return n\
-ull; pos = nl + \
-1; seen++; }\x0a   \
-   let end = s.i\
-ndexOf('\x5cn', pos\
-);\x0a      if (end\
- === -1) end = s\
-.length; else en\
-d = end + 1;\x0a   \
-   return { lang\
-: cand, deleteUp\
-to: end };\x0a    }\
-\x0a    // Update c\
-ode element clas\
-s to reflect new\
- lang (language-\
-xxx).\x0a    _updat\
-eCodeLangClass(c\
-odeEl, newLang) \
-{\x0a      try {\x0a  \
-      Array.from\
-(codeEl.classLis\
-t).forEach(c => \
-{ if (c.startsWi\
-th('language-'))\
- codeEl.classLis\
-t.remove(c); });\
-\x0a        codeEl.\
-classList.add('l\
-anguage-' + (new\
-Lang || 'plainte\
-xt'));\x0a      } c\
-atch (_) {}\x0a    \
-}\x0a    // Update \
-code header labe\
-l and data attri\
-bute.\x0a    _updat\
-eCodeHeaderLabel\
-(codeEl, newLabe\
-l, newLangToken)\
- {\x0a      try {\x0a \
-       const wra\
-p = codeEl.close\
-st('.code-wrappe\
-r');\x0a        if \
-(!wrap) return;\x0a\
-        const sp\
-an = wrap.queryS\
-elector('.code-h\
-eader-lang');\x0a  \
-      if (span) \
-span.textContent\
- = newLabel || (\
-newLangToken || \
-'code');\x0a       \
- wrap.setAttribu\
-te('data-code-la\
-ng', newLangToke\
-n || '');\x0a      \
-} catch (_) {}\x0a \
-   }\x0a    // Try \
-to promote langu\
-age from a direc\
-tive and remove \
-its header line.\
-\x0a    maybePromot\
-eLanguageFromDir\
-ective() {\x0a     \
- if (!this.activ\
-eCode || !this.a\
-ctiveCode.codeEl\
-) return;\x0a      \
-if (this.activeC\
-ode.lang && this\
-.activeCode.lang\
- !== 'plaintext'\
-) return;\x0a\x0a     \
- const frozenTxt\
- = this.activeCo\
-de.frozenEl ? th\
-is.activeCode.fr\
-ozenEl.textConte\
-nt : '';\x0a      c\
-onst tailTxt = t\
-his.activeCode.t\
-ailEl ? this.act\
-iveCode.tailEl.t\
-extContent : '';\
-\x0a      const com\
-bined = frozenTx\
-t + tailTxt;\x0a   \
-   if (!combined\
-) return;\x0a\x0a     \
- const det = thi\
-s._detectDirecti\
-veLangFromText(c\
-ombined);\x0a      \
-if (!det || !det\
-.lang) return;\x0a\x0a\
-      const newL\
-ang = det.lang;\x0a\
-      const newC\
-ombined = combin\
-ed.slice(det.del\
-eteUpto);\x0a\x0a     \
- try {\x0a        c\
-onst codeEl = th\
-is.activeCode.co\
-deEl;\x0a        co\
-deEl.innerHTML =\
- '';\x0a        con\
-st frozen = docu\
-ment.createEleme\
-nt('span'); froz\
-en.className = '\
-hl-frozen';\x0a    \
-    const tail =\
- document.create\
-Element('span');\
- tail.className \
-= 'hl-tail';\x0a   \
-     tail.textCo\
-ntent = newCombi\
-ned;\x0a        cod\
-eEl.appendChild(\
-frozen); codeEl.\
-appendChild(tail\
-);\x0a        this.\
-activeCode.froze\
-nEl = frozen; th\
-is.activeCode.ta\
-ilEl = tail;\x0a   \
-     this.active\
-Code.frozenLen =\
- 0;\x0a        this\
-.activeCode.tail\
-Lines = Utils.co\
-untNewlines(newC\
-ombined);\x0a      \
-  this.activeCod\
-e.linesSinceProm\
-ote = 0;\x0a\x0a      \
-  this.activeCod\
-e.lang = newLang\
-;\x0a        this._\
-updateCodeLangCl\
-ass(codeEl, newL\
-ang);\x0a        th\
-is._updateCodeHe\
-aderLabel(codeEl\
-, newLang, newLa\
-ng);\x0a\x0a        th\
-is._d('LANG_PROM\
-OTE', { to: newL\
-ang, removedChar\
-s: det.deleteUpt\
-o, tailLines: th\
-is.activeCode.ta\
-ilLines });\x0a    \
-    this.schedul\
-ePromoteTail(tru\
-e);\x0a      } catc\
-h (e) {\x0a        \
-this._d('LANG_PR\
-OMOTE_ERR', Stri\
-ng(e));\x0a      }\x0a\
-    }\x0a    // Hig\
-hlight a small p\
-iece of text bas\
-ed on language (\
-safe fallback to\
- escapeHtml).\x0a  \
-  highlightDelta\
-Text(lang, text)\
- {\x0a      if (thi\
-s.cfg.HL.DISABLE\
-_ALL) return Uti\
-ls.escapeHtml(te\
-xt);\x0a      if (w\
-indow.hljs && la\
-ng && hljs.getLa\
-nguage && hljs.g\
-etLanguage(lang)\
-) {\x0a        try \
-{ return hljs.hi\
-ghlight(text, { \
-language: lang, \
-ignoreIllegals: \
-true }).value; }\
-\x0a        catch (\
-_) { return Util\
-s.escapeHtml(tex\
-t); }\x0a      }\x0a  \
-    return Utils\
-.escapeHtml(text\
-);\x0a    }\x0a    // \
-Schedule coopera\
-tive tail promot\
-ion (async) to a\
-void blocking UI\
- on each chunk.\x0a\
-    scheduleProm\
-oteTail(force = \
-false) {\x0a      i\
-f (!this.activeC\
-ode || !this.act\
-iveCode.tailEl) \
-return;\x0a      if\
- (this._promoteS\
-cheduled) return\
-;\x0a      this._pr\
-omoteScheduled =\
- true;\x0a      thi\
-s.raf.schedule('\
-SE:promoteTail',\
- () => {\x0a       \
- this._promoteSc\
+Tail = ''; this.\
+fenceBuf = '';\x0a \
+     this.lastSn\
+apshotTs = 0; th\
+is.nextSnapshotS\
+tep = this.profi\
+le().base;\x0a     \
+ this.snapshotSc\
 heduled = false;\
-\x0a        this._p\
-romoteTailWork(f\
-orce);\x0a      }, \
-'StreamEngine', \
-1);\x0a    }\x0a    //\
- Move a full-lin\
-e part of tail i\
-nto frozen regio\
-n (with highligh\
-t if budgets all\
-ow).\x0a    async _\
-promoteTailWork(\
-force = false) {\
-\x0a      if (!this\
-.activeCode || !\
-this.activeCode.\
-tailEl) return;\x0a\
-\x0a      // If pla\
-in streaming mod\
-e is on, or incr\
-emental hljs is \
-disabled, promot\
-e as plain text \
-only.\x0a      cons\
-t now = Utils.no\
-w(); const prof \
-= this.cfg.PROFI\
-LE_CODE;\x0a      c\
-onst tailText0 =\
- this.activeCode\
-.tailEl.textCont\
-ent || ''; if (!\
-tailText0) retur\
-n;\x0a\x0a      if (!f\
-orce) {\x0a        \
-if ((now - this.\
-activeCode.lastP\
-romoteTs) < prof\
-.promoteMinInter\
-val) return;\x0a   \
-     const enoug\
-hLines = (this.a\
-ctiveCode.linesS\
-incePromote || 0\
-) >= (prof.promo\
-teMinLines || 10\
-);\x0a        const\
- enoughChars = t\
-ailText0.length \
->= prof.minChars\
-ForHL;\x0a        i\
-f (!enoughLines \
-&& !enoughChars)\
- return;\x0a      }\
-\x0a\x0a      // Cut a\
-t last full line\
- to avoid moving\
- partial tokens\x0a\
-      const idx \
-= tailText0.last\
-IndexOf('\x5cn');\x0a \
-     if (idx <= \
--1 && !force) re\
-turn;\x0a      cons\
-t cut = (idx >= \
-0) ? (idx + 1) :\
- tailText0.lengt\
-h;\x0a      const d\
-elta = tailText0\
-.slice(0, cut); \
-if (!delta) retu\
-rn;\x0a\x0a      // Re\
--evaluate budget\
-s before perform\
-ing any heavy wo\
-rk\x0a      this.en\
-forceHLStopBudge\
-t();\x0a      const\
- usePlain = this\
-.activeCode.halt\
-HL || this.activ\
-eCode.plainStrea\
-m || !this._isHL\
-JSSupported(this\
-.activeCode.lang\
-);\x0a\x0a      // Coo\
-perative rAF yie\
-ld before heavy \
-highlight\x0a      \
-if (!usePlain) a\
-wait this.asynce\
-r.yield();\x0a\x0a    \
-  // If tail cha\
-nged since we ca\
-ptured it, valid\
-ate prefix to av\
-oid duplication\x0a\
-      if (!this.\
-activeCode || !t\
-his.activeCode.t\
-ailEl) return;\x0a \
-     const tailN\
-ow = this.active\
-Code.tailEl.text\
-Content || '';\x0a \
-     if (!tailNo\
-w.startsWith(del\
-ta)) {\x0a        /\
-/ New data arriv\
-ed; reschedule f\
-or next frame wi\
-thout touching D\
-OM\x0a        this.\
-schedulePromoteT\
-ail(false);\x0a    \
-    return;\x0a    \
-  }\x0a\x0a      // Ap\
-ply DOM updates:\
- either highligh\
-ted HTML delta o\
-r plain text\x0a   \
-   if (usePlain)\
- {\x0a        // Pl\
-ain text promoti\
-on \xe2\x80\x93 extremely\
- cheap, no spans\
- created.\x0a      \
-  this.activeCod\
-e.frozenEl.inser\
-tAdjacentText('b\
-eforeend', delta\
-);\x0a      } else \
-{\x0a        // Hig\
-hlighted promoti\
-on \xe2\x80\x93 still cap\
-ped by budgets a\
-bove.\x0a        le\
-t html = Utils.e\
-scapeHtml(delta)\
-;\x0a        try { \
-html = this.high\
-lightDeltaText(t\
-his.activeCode.l\
-ang, delta); } c\
-atch (_) { html \
-= Utils.escapeHt\
-ml(delta); }\x0a   \
-     this.active\
-Code.frozenEl.in\
-sertAdjacentHTML\
-('beforeend', ht\
-ml);\x0a      }\x0a\x0a  \
-    // Update ta\
-il and counters\x0a\
-      this.activ\
-eCode.tailEl.tex\
-tContent = tailN\
-ow.slice(delta.l\
-ength);\x0a      th\
-is.activeCode.fr\
-ozenLen += delta\
-.length;\x0a      c\
-onst promotedLin\
-es = Utils.count\
-Newlines(delta);\
-\x0a      this.acti\
-veCode.tailLines\
- = Math.max(0, (\
-this.activeCode.\
-tailLines || 0) \
-- promotedLines)\
-;\x0a      this.act\
-iveCode.linesSin\
-cePromote = Math\
-.max(0, (this.ac\
-tiveCode.linesSi\
-ncePromote || 0)\
- - promotedLines\
-);\x0a      this.ac\
-tiveCode.lastPro\
-moteTs = Utils.n\
-ow();\x0a      this\
-.codeScroll.sche\
-duleScroll(this.\
-activeCode.codeE\
-l, true, false);\
-\x0a      this._d(u\
-sePlain ? 'TAIL_\
-PROMOTE_PLAIN' :\
- 'TAIL_PROMOTE_A\
-SYNC', { cut, pr\
-omotedLines, lan\
-g: this.activeCo\
-de.lang, plain: \
-usePlain });\x0a   \
- }\x0a    // Finali\
-ze the current a\
-ctive code block\
-. Keep it plain \
-for now and sche\
-dule highlight l\
-azily.\x0a    final\
-izeActiveCode() \
-{\x0a      if (!thi\
-s.activeCode) re\
-turn;\x0a      cons\
-t codeEl = this.\
-activeCode.codeE\
-l;\x0a      const f\
-romBottomBefore \
-= Math.max(0, co\
-deEl.scrollHeigh\
-t - codeEl.clien\
-tHeight - codeEl\
-.scrollTop);\x0a   \
-   const wasNear\
-Bottom = this.co\
-deScroll.isNearB\
-ottomEl(codeEl, \
-this.cfg.CODE_SC\
-ROLL.NEAR_MARGIN\
-_PX);\x0a      cons\
-t fullText = (th\
-is.activeCode.fr\
-ozenEl.textConte\
-nt || '') + (thi\
-s.activeCode.tai\
-lEl.textContent \
-|| '');\x0a\x0a      /\
-/ Non-blocking f\
-inalize: place p\
-lain text now, s\
-chedule highligh\
-t via Highlighte\
-r later.\x0a      t\
-ry {\x0a        cod\
-eEl.innerHTML = \
-'';\x0a        code\
-El.textContent =\
- fullText;\x0a     \
+ this.snapshotRA\
+F = 0;\x0a      thi\
+s.codeStream = {\
+ open: false, li\
+nes: 0, chars: 0\
+ };\x0a      this.a\
+ctiveCode = null\
+; this.suppressP\
+ostFinalizePass \
+= false;\x0a      t\
+his._promoteSche\
+duled = false;\x0a \
+     this._first\
+CodeOpenSnapDone\
+ = false;\x0a\x0a     \
+ // Clear any pr\
+evious synthetic\
+ EOL marker.\x0a   \
+   this._lastInj\
+ectedEOL = false\
+;\x0a      this._fe\
+nceCustom = null\
+;\x0a\x0a      this._d\
+('RESET', { });\x0a\
+    }\x0a    // Tur\
+n active streami\
+ng code block in\
+to plain text (s\
+afety on abort).\
+\x0a    defuseActiv\
+eToPlain() {\x0a   \
+   if (!this.act\
+iveCode || !this\
+.activeCode.code\
+El || !this.acti\
+veCode.codeEl.is\
+Connected) retur\
+n;\x0a      const c\
+odeEl = this.act\
+iveCode.codeEl;\x0a\
+      const full\
+Text = (this.act\
+iveCode.frozenEl\
+?.textContent ||\
+ '') + (this.act\
+iveCode.tailEl?.\
+textContent || '\
+');\x0a      try {\x0a\
+        codeEl.t\
+extContent = ful\
+lText;\x0a        c\
+odeEl.removeAttr\
+ibute('data-high\
+lighted');\x0a     \
    codeEl.classL\
-ist.add('hljs');\
-           // ke\
-ep visual parity\
- until highlight\
- applies\x0a       \
- codeEl.removeAt\
-tribute('data-hi\
-ghlighted');\x0a   \
-   } catch (_) {\
-}\x0a\x0a      const s\
+ist.remove('hljs\
+');\x0a        code\
+El.dataset._acti\
+ve_stream = '0';\
+\x0a        const s\
 t = this.codeScr\
 oll.state(codeEl\
 ); st.autoFollow\
  = false;\x0a      \
-const maxScrollT\
-op = Math.max(0,\
- codeEl.scrollHe\
-ight - codeEl.cl\
-ientHeight);\x0a   \
-   const target \
-= wasNearBottom \
-? maxScrollTop :\
- Math.max(0, max\
-ScrollTop - from\
-BottomBefore);\x0a \
-     try { codeE\
-l.scrollTop = ta\
-rget; } catch (_\
-) {}\x0a      st.la\
-stScrollTop = co\
-deEl.scrollTop;\x0a\
-      codeEl.dat\
-aset._active_str\
-eam = '0';\x0a\x0a    \
-  try { codeEl.d\
-ataset.justFinal\
-ized = '1'; } ca\
-tch (_) {}\x0a     \
- this.codeScroll\
-.scheduleScroll(\
-codeEl, false, t\
-rue);\x0a\x0a      // \
-Schedule async h\
-ighlight on the \
-finalized elemen\
-t (viewport-awar\
-e).\x0a      try { \
-if (!this.cfg.HL\
-.DISABLE_ALL) th\
-is.highlighter.q\
-ueue(codeEl, nul\
-l); } catch (_) \
-{}\x0a\x0a      this.s\
-uppressPostFinal\
-izePass = true;\x0a\
-\x0a      this._d('\
-FINALIZE_CODE_NO\
-NBLOCK', { lang:\
- this.activeCode\
-.lang, len: full\
-Text.length, hig\
-hlighted: false \
-});\x0a      this.a\
-ctiveCode = null\
-;\x0a    }\x0a    // M\
-ake a simple fin\
-gerprint to reus\
-e identical clos\
-ed code blocks b\
-etween snapshots\
-.\x0a    codeFinger\
-print(codeEl) {\x0a\
-      const cls \
-= Array.from(cod\
-eEl.classList).f\
-ind(c => c.start\
-sWith('language-\
-')) || 'language\
--plaintext';\x0a   \
-   const lang = \
-cls.replace('lan\
-guage-', '') || \
-'plaintext';\x0a   \
-   const t = cod\
-eEl.textContent \
-|| ''; const len\
- = t.length; con\
-st head = t.slic\
-e(0, 64); const \
-tail = t.slice(-\
-64);\x0a      retur\
-n `${lang}|${len\
-}|${head}|${tail\
-}`;\x0a    }\x0a    //\
- fingerprint usi\
-ng precomputed m\
-eta on wrapper (\
-avoids .textCont\
-ent for heavy bl\
-ocks).\x0a    codeF\
-ingerprintFromWr\
-apper(codeEl) {\x0a\
-      try {\x0a    \
-    const wrap =\
- codeEl.closest(\
-'.code-wrapper')\
-; if (!wrap) ret\
-urn null;\x0a      \
-  const cls = Ar\
-ray.from(codeEl.\
-classList).find(\
-c => c.startsWit\
-h('language-')) \
-|| 'language-pla\
-intext';\x0a       \
- const lang = (c\
-ls.replace('lang\
-uage-', '') || '\
-plaintext');\x0a   \
-     const len =\
- wrap.getAttribu\
-te('data-code-le\
-n') || '';\x0a     \
-   const head = \
-wrap.getAttribut\
-e('data-code-hea\
-d') || '';\x0a     \
-   const tail = \
-wrap.getAttribut\
-e('data-code-tai\
-l') || '';\x0a     \
-   if (!len) ret\
-urn null; // ens\
-ure at least len\
-gth exists\x0a     \
-   return `${lan\
-g}|${len}|${head\
-}|${tail}`;\x0a    \
-  } catch (_) {\x0a\
-        return n\
-ull;\x0a      }\x0a   \
- }\x0a    // Try to\
- reuse old final\
-ized code block \
-DOM nodes to avo\
-id re-highlighti\
-ng.\x0a    preserve\
-StableClosedCode\
-s(oldSnap, newRo\
-ot, skipLastIfSt\
-reaming) {\x0a     \
- try {\x0a        c\
-onst oldCodes = \
-Array.from(oldSn\
-ap.querySelector\
-All('pre code'))\
-; if (!oldCodes.\
-length) return;\x0a\
-        // Safet\
-y guard: avoid h\
-eavy fingerprint\
- work on extreme\
-ly large outputs\
-\x0a        const n\
-ewCodesPre = Arr\
-ay.from(newRoot.\
-querySelectorAll\
-('pre code'));\x0a \
-       if (newCo\
-desPre.length > \
-this.cfg.STREAM.\
-PRESERVE_CODES_M\
-AX || oldCodes.l\
-ength > this.cfg\
-.STREAM.PRESERVE\
-_CODES_MAX) retu\
-rn;\x0a\x0a        con\
-st map = new Map\
-();\x0a        for \
-(const el of old\
-Codes) {\x0a       \
-   if (el.queryS\
-elector('.hl-fro\
-zen')) continue;\
-               /\
-/ skip streaming\
- blocks\x0a        \
-  if (this.activ\
-eCode && el === \
-this.activeCode.\
-codeEl) continue\
-;\x0a          // T\
-ry wrapper-based\
- fingerprint fir\
-st, fallback to \
-text-based\x0a     \
-     let fp = th\
-is.codeFingerpri\
-ntFromWrapper(el\
-);\x0a          if \
-(!fp) fp = el.da\
-taset.fp || (el.\
-dataset.fp = thi\
-s.codeFingerprin\
-t(el));\x0a        \
-  const arr = ma\
-p.get(fp) || [];\
- arr.push(el); m\
-ap.set(fp, arr);\
-\x0a        }\x0a     \
-   const newCode\
-s = newCodesPre;\
-\x0a        const e\
-nd = (skipLastIf\
-Streaming && new\
-Codes.length > 0\
-) ? (newCodes.le\
-ngth - 1) : newC\
-odes.length;\x0a   \
-     let reuseCo\
-unt = 0;\x0a       \
- for (let i = 0;\
- i < end; i++) {\
-\x0a          const\
- nc = newCodes[i\
-];\x0a          if \
-(nc.getAttribute\
-('data-highlight\
-ed') === 'yes') \
-continue;\x0a      \
-    // Fingerpri\
-nt new code: pre\
-fer wrapper meta\
- (no .textConten\
-t read)\x0a        \
-  let fp = this.\
-codeFingerprintF\
-romWrapper(nc);\x0a\
-          if (!f\
-p) fp = this.cod\
-eFingerprint(nc)\
-;\x0a          cons\
-t arr = map.get(\
-fp);\x0a          i\
-f (arr && arr.le\
-ngth) {\x0a        \
-    const oldEl \
-= arr.shift();\x0a \
-           if (o\
-ldEl && oldEl.is\
-Connected) {\x0a   \
-           try {\
-\x0a               \
- nc.replaceWith(\
-oldEl);\x0a        \
-        this.cod\
-eScroll.attachHa\
-ndlers(oldEl);\x0a \
-               /\
-/ Preserve whate\
-ver final state \
-the old element \
-had\x0a            \
-    if (!oldEl.g\
-etAttribute('dat\
-a-highlighted'))\
- oldEl.setAttrib\
-ute('data-highli\
-ghted', 'yes');\x0a\
-                \
-const st = this.\
-codeScroll.state\
-(oldEl); st.auto\
-Follow = false;\x0a\
-                \
-reuseCount++;\x0a  \
-            } ca\
-tch (_) {}\x0a     \
-       }\x0a       \
-     if (!arr.le\
-ngth) map.delete\
-(fp);\x0a          \
-}\x0a        }\x0a    \
-    if (reuseCou\
-nt) this._d('PRE\
-SERVE_CODES_REUS\
-ED', { reuseCoun\
-t, skipLastIfStr\
-eaming });\x0a     \
- } catch (e) {\x0a \
-       this._d('\
-PRESERVE_CODES_E\
-RROR', String(e)\
-);\x0a      }\x0a    }\
-\x0a    // Ensure b\
-locks marked as \
-just-finalized a\
-re scrolled to b\
-ottom.\x0a    _ensu\
-reBottomForJustF\
-inalized(root) {\
+} catch (_) {}\x0a \
+     this._d('DE\
+FUSE_ACTIVE_TO_P\
+LAIN', { len: fu\
+llText.length })\
+;\x0a      this.act\
+iveCode = null;\x0a\
+    }\x0a    // If \
+there are orphan\
+ streaming code \
+blocks in DOM, f\
+inalize them as \
+plain text.\x0a    \
+defuseOrphanActi\
+veBlocks(root) {\
 \x0a      try {\x0a   \
      const scope\
  = root || docum\
@@ -98324,2896 +96424,2340 @@ ent;\x0a        con\
 st nodes = scope\
 .querySelectorAl\
 l('pre code[data\
--just-finalized=\
+-_active_stream=\
 \x221\x22]');\x0a        \
-if (!nodes || !n\
-odes.length) ret\
-urn;\x0a        nod\
-es.forEach((code\
-El) => {\x0a       \
-   this.codeScro\
-ll.scheduleScrol\
-l(codeEl, false,\
- true);\x0a        \
-  const key = { \
-t: 'JF:forceBott\
-om', el: codeEl,\
- n: Math.random(\
-) };\x0a          t\
-his.raf.schedule\
-(key, () => {\x0a  \
-          this.c\
-odeScroll.scroll\
-ToBottom(codeEl,\
- false, true);\x0a \
-           try {\
- codeEl.dataset.\
-justFinalized = \
-'0'; } catch (_)\
- {}\x0a          },\
- 'CodeScroll', 2\
-);\x0a        });\x0a \
-     } catch (_)\
- {}\x0a    }\x0a    //\
- If stream is vi\
-sible but someth\
-ing got stuck, f\
-orce a quick ref\
-resh.\x0a    kickVi\
-sibility() {\x0a   \
-   const msg = t\
-his.getMsg(false\
-, '');\x0a      if \
-(!msg) return;\x0a \
-     if (this.co\
-deStream.open &&\
- !this.activeCod\
-e) {\x0a        thi\
-s.scheduleSnapsh\
-ot(msg, true);\x0a \
-       return;\x0a \
-     }\x0a      con\
-st needSnap = (t\
-his.getStreamLen\
-gth() !== (windo\
-w.__lastSnapshot\
-Len || 0));\x0a    \
-  if (needSnap) \
-this.scheduleSna\
-pshot(msg, true)\
-;\x0a      if (this\
-.activeCode && t\
-his.activeCode.c\
-odeEl) {\x0a       \
- this.codeScroll\
-.scheduleScroll(\
-this.activeCode.\
-codeEl, true, fa\
-lse);\x0a        th\
-is.schedulePromo\
-teTail(true);\x0a  \
-    }\x0a    }\x0a    \
-  // Keep langua\
-ge header stable\
- across snapshot\
-s for the active\
- streaming code.\
-\x0a      // If the\
- current snapsho\
-t produced a tin\
-y/unsupported to\
-ken (e.g. 'on', \
-'ml', 's'),\x0a    \
-  // reuse the l\
-ast known good l\
-anguage (from pr\
-evious active st\
-ate or sticky at\
-tribute).\x0a      \
-stabilizeHeaderL\
-abel(prevAC, new\
-AC) {\x0a        tr\
-y {\x0a          if\
- (!newAC || !new\
-AC.codeEl || !ne\
-wAC.codeEl.isCon\
-nected) return;\x0a\
+let n = 0;\x0a     \
+   nodes.forEach\
+(codeEl => {\x0a   \
+       if (!code\
+El.isConnected) \
+return;\x0a        \
+  let text = '';\
 \x0a          const\
- wrap = newAC.co\
-deEl.closest('.c\
-ode-wrapper');\x0a \
-         if (!wr\
-ap) return;\x0a\x0a   \
-       const spa\
-n = wrap.querySe\
-lector('.code-he\
-ader-lang');\x0a   \
-       const cur\
-Label = (span &&\
- span.textConten\
-t ? span.textCon\
-tent.trim() : ''\
-).toLowerCase();\
-\x0a\x0a          // D\
-o not touch tool\
-/output blocks\x0a \
-         if (cur\
-Label === 'outpu\
-t') return;\x0a\x0a   \
-       const tok\
-Now = (wrap.getA\
-ttribute('data-c\
-ode-lang') || ''\
-).trim().toLower\
-Case();\x0a        \
-  const sticky =\
- (wrap.getAttrib\
-ute('data-lang-s\
-ticky') || '').t\
-rim().toLowerCas\
-e();\x0a          c\
-onst prev = (pre\
-vAC && prevAC.la\
-ng && prevAC.lan\
-g !== 'plaintext\
-') ? prevAC.lang\
-.toLowerCase() :\
- '';\x0a\x0a          \
-const valid = (t\
-) => !!t && t !=\
-= 'plaintext' &&\
- this._isHLJSSup\
-ported(t);\x0a\x0a    \
-      let finalT\
-ok = '';\x0a       \
-   if (valid(tok\
-Now)) finalTok =\
- tokNow;\x0a       \
-   else if (vali\
-d(prev)) finalTo\
-k = prev;\x0a      \
-    else if (val\
-id(sticky)) fina\
-lTok = sticky;\x0a\x0a\
-          if (fi\
-nalTok) {\x0a      \
-      // Update \
-code class and h\
-eader label cons\
-istently\x0a       \
-     this._updat\
-eCodeLangClass(n\
-ewAC.codeEl, fin\
-alTok);\x0a        \
-    this._update\
-CodeHeaderLabel(\
-newAC.codeEl, fi\
-nalTok, finalTok\
-);\x0a            t\
-ry { wrap.setAtt\
-ribute('data-cod\
-e-lang', finalTo\
-k); } catch (_) \
-{}\x0a            t\
-ry { wrap.setAtt\
-ribute('data-lan\
-g-sticky', final\
-Tok); } catch (_\
-) {}\x0a           \
- newAC.lang = fi\
-nalTok; // keep \
-AC state in sync\
-\x0a          } els\
-e {\x0a            \
-// If current la\
-bel looks like a\
- tiny/incomplete\
- token, normaliz\
-e to 'code'\x0a    \
-        if (span\
- && curLabel && \
-curLabel.length \
-< 3) {\x0a         \
-     span.textCo\
-ntent = 'code';\x0a\
-            }\x0a  \
-        }\x0a      \
-  } catch (_) { \
-/* defensive: ne\
-ver break stream\
-ing path */ }\x0a  \
-    }\x0a    // Ren\
-der a snapshot o\
-f current stream\
- buffer into the\
- DOM.\x0a    render\
-Snapshot(msg) {\x0a\
-      const stre\
-aming = !!this.i\
-sStreaming;\x0a    \
-  const snap = t\
-his.getMsgSnapsh\
-otRoot(msg); if \
-(!snap) return;\x0a\
-\x0a      // No-op \
-if nothing chang\
-ed and no active\
- code\x0a      cons\
-t prevLen = (win\
-dow.__lastSnapsh\
-otLen || 0);\x0a   \
-   const curLen \
-= this.getStream\
-Length();\x0a      \
-if (!this.fenceO\
-pen && !this.act\
-iveCode && curLe\
-n === prevLen) {\
-\x0a        this.la\
-stSnapshotTs = U\
-tils.now();\x0a    \
-    this._d('SNA\
-PSHOT_SKIPPED_NO\
-_DELTA', { bufLe\
-n: curLen });\x0a  \
-      return;\x0a  \
-    }\x0a\x0a      con\
-st t0 = Utils.no\
-w();\x0a\x0a      // W\
-hen an open fenc\
-e is present, ap\
-pend a synthetic\
- EOL only if the\
- current buffer\x0a\
-      // does no\
-t already end wi\
-th EOL. This sta\
-bilizes markdown\
--it parsing with\
-out polluting\x0a  \
-    // the real \
-code tail (we wi\
-ll strip this EO\
-L from the activ\
-e tail right aft\
-er snapshot).\x0a  \
-    const allTex\
-t = this.getStre\
-amText();\x0a      \
-const needSynthe\
-ticEOL = (this.f\
-enceOpen && !/[\x5c\
-r\x5cn]$/.test(allT\
-ext));\x0a      thi\
-s._lastInjectedE\
-OL = !!needSynth\
-eticEOL;\x0a      c\
-onst src = needS\
-yntheticEOL ? (a\
-llText + '\x5cn') :\
- allText;\x0a\x0a     \
- // Use streamin\
-g renderer (no l\
-inkify) on hot p\
-ath to reduce CP\
-U/allocs\x0a      c\
-onst html = stre\
-aming ? this.ren\
-derer.renderStre\
-amingSnapshot(sr\
-c) : this.render\
-er.renderFinalSn\
-apshot(src);\x0a\x0a  \
-    // parse HTM\
-L into a Documen\
-tFragment direct\
-ly to avoid inte\
-rmediate contain\
-er allocations.\x0a\
-      let frag =\
- null;\x0a      try\
- {\x0a        const\
- range = documen\
-t.createRange();\
-\x0a        range.s\
-electNodeContent\
-s(snap);\x0a       \
- frag = range.cr\
-eateContextualFr\
-agment(html);\x0a  \
-    } catch (_) \
-{\x0a        const \
-tmp = document.c\
-reateElement('di\
-v');\x0a        tmp\
-.innerHTML = htm\
-l;\x0a        frag \
-= document.creat\
-eDocumentFragmen\
-t();\x0a        whi\
-le (tmp.firstChi\
-ld) frag.appendC\
-hild(tmp.firstCh\
-ild);\x0a      }\x0a\x0a \
-     // (stream-\
-aware custom mar\
-kup):\x0a      // A\
-pply Custom Mark\
-up on the fragme\
-nt only if at le\
-ast one rule opt\
-ed-in for stream\
-.\x0a      try {\x0a  \
-      if (this.r\
-enderer && this.\
-renderer.customM\
-arkup && this.re\
-nderer.customMar\
-kup.hasStreamRul\
-es()) {\x0a        \
-  const MDinline\
- = this.renderer\
-.MD_STREAM || th\
-is.renderer.MD |\
-| null;\x0a        \
-  this.renderer.\
-customMarkup.app\
-lyStream(frag, M\
-Dinline);\x0a      \
-  }\x0a      } catc\
-h (_) { /* keep \
-snapshot path re\
-silient */ }\x0a\x0a  \
-    // Reuse clo\
-sed, stable code\
- blocks from pre\
-vious snapshot t\
-o avoid re-highl\
-ighting\x0a      th\
-is.preserveStabl\
-eClosedCodes(sna\
-p, frag, this.fe\
-nceOpen === true\
-);\x0a\x0a      // Rep\
-lace content\x0a   \
-   snap.replaceC\
-hildren(frag);\x0a\x0a\
-      // Restore\
- code UI state a\
-nd ensure bottom\
-ing for freshly \
-finalized elemen\
-ts\x0a      this.re\
-nderer.restoreCo\
-llapsedCode(snap\
-);\x0a      this._e\
-nsureBottomForJu\
-stFinalized(snap\
-);\x0a\x0a      // Set\
-up active stream\
-ing code if fenc\
-e is open, other\
-wise clear activ\
-e state\x0a        \
-const prevAC = t\
-his.activeCode; \
-// remember prev\
-ious active stre\
-aming state (if \
-any)\x0a\x0a        if\
- (this.fenceOpen\
-) {\x0a          co\
-nst newAC = this\
-.setupActiveCode\
-FromSnapshot(sna\
-p);\x0a\x0a          /\
-/ preserve previ\
-ous frozen/tail \
-state and stable\
- lang/header acr\
-oss snapshots\x0a  \
-        if (prev\
-AC && newAC) {\x0a \
-           this.\
-rehydrateActiveC\
-ode(prevAC, newA\
-C);\x0a            \
-this.stabilizeHe\
-aderLabel(prevAC\
-, newAC);\x0a      \
-    }\x0a\x0a         \
- this.activeCode\
- = newAC || null\
-;\x0a        } else\
- {\x0a          thi\
-s.activeCode = n\
-ull;\x0a        }\x0a\x0a\
-      // Attach \
-scroll/highlight\
- observers (view\
-port aware)\x0a    \
-  if (!this.fenc\
-eOpen) {\x0a       \
- this.codeScroll\
-.initScrollableB\
-locks(snap);\x0a   \
-   }\x0a      this.\
-highlighter.obse\
-rveNewCode(snap,\
- {\x0a        defer\
-LastIfStreaming:\
- true,\x0a        m\
-inLinesForLast: \
-this.cfg.PROFILE\
-_CODE.minLinesFo\
-rHL,\x0a        min\
-CharsForLast: th\
-is.cfg.PROFILE_C\
-ODE.minCharsForH\
-L\x0a      }, this.\
-activeCode);\x0a   \
-   this.highligh\
-ter.observeMsgBo\
-xes(snap, (box) \
-=> {\x0a        thi\
-s.highlighter.ob\
-serveNewCode(box\
-, {\x0a          de\
-ferLastIfStreami\
-ng: true,\x0a      \
-    minLinesForL\
-ast: this.cfg.PR\
-OFILE_CODE.minLi\
-nesForHL,\x0a      \
-    minCharsForL\
-ast: this.cfg.PR\
-OFILE_CODE.minCh\
-arsForHL\x0a       \
- }, this.activeC\
-ode);\x0a        th\
-is.codeScroll.in\
-itScrollableBloc\
-ks(box);\x0a      }\
-);\x0a\x0a      // Sch\
-edule math rende\
-r according to m\
-ode; keep \x22final\
-ize-only\x22 cheap \
-on hot path\x0a    \
-  const mm = get\
-MathMode();\x0a    \
-  if (!this.supp\
-ressPostFinalize\
-Pass) {\x0a        \
-if (mm === 'idle\
-') this.math.sch\
-edule(snap);\x0a   \
-     else if (mm\
- === 'always') t\
-his.math.schedul\
-e(snap, 0, true)\
-;\x0a      }\x0a\x0a     \
- // If streaming\
- code is visible\
-, keep it glued \
-to bottom\x0a      \
-if (this.fenceOp\
-en && this.activ\
-eCode && this.ac\
-tiveCode.codeEl)\
- {\x0a        this.\
-codeScroll.attac\
-hHandlers(this.a\
-ctiveCode.codeEl\
-);\x0a        this.\
-codeScroll.sched\
-uleScroll(this.a\
-ctiveCode.codeEl\
-, true, false);\x0a\
-      } else if \
-(!this.fenceOpen\
-) {\x0a        this\
-.codeScroll.init\
-ScrollableBlocks\
-(snap);\x0a      }\x0a\
-\x0a      // Advanc\
-e snapshot budge\
-t and remember p\
-rogress\x0a      wi\
-ndow.__lastSnaps\
-hotLen = this.ge\
-tStreamLength();\
-\x0a      this.last\
-SnapshotTs = Uti\
-ls.now();\x0a\x0a     \
- const prof = th\
-is.profile();\x0a  \
-    if (prof.ada\
-ptiveStep) {\x0a   \
-     const maxSt\
-ep = this.cfg.ST\
-REAM.SNAPSHOT_MA\
-X_STEP || 8000;\x0a\
-        this.nex\
-tSnapshotStep = \
-Math.min(Math.ce\
-il(this.nextSnap\
-shotStep * prof.\
-growth), maxStep\
-);\x0a      } else \
-{\x0a        this.n\
-extSnapshotStep \
-= prof.base;\x0a   \
-   }\x0a\x0a      // K\
-eep page scroll/\
-fab in sync\x0a    \
-  this.scrollMgr\
-.scheduleScroll(\
-true);\x0a      thi\
-s.scrollMgr.fabF\
-reezeUntil = Uti\
-ls.now() + this.\
-cfg.FAB.TOGGLE_D\
-EBOUNCE_MS;\x0a    \
-  this.scrollMgr\
-.scheduleScrollF\
-abUpdate();\x0a\x0a   \
-   if (this.supp\
-ressPostFinalize\
-Pass) this.suppr\
-essPostFinalizeP\
-ass = false;\x0a\x0a  \
-    const dt = U\
-tils.now() - t0;\
-\x0a      this._d('\
-SNAPSHOT', { fen\
-ceOpen: this.fen\
-ceOpen, activeCo\
-de: !!this.activ\
-eCode, bufLen: t\
-his.getStreamLen\
-gth(), timeMs: M\
-ath.round(dt), s\
-treaming });\x0a   \
- }\x0a\x0a    // Get c\
-urrent message c\
-ontainer (.msg) \
-or create if all\
-owed.\x0a    getMsg\
-(create, name_he\
-ader) { return t\
-his.dom.getStrea\
-mMsg(create, nam\
-e_header); }\x0a   \
- // Start a new \
-streaming sessio\
-n (clear state a\
-nd display loade\
-r, if any).\x0a    \
-beginStream(chun\
-k = false) {\x0a   \
-   this.isStream\
-ing = true; // e\
-ngage streaming \
-mode (no linkify\
- etc.)\x0a      if \
-(chunk) runtime.\
-loading.hide();\x0a\
-      this.scrol\
-lMgr.userInterac\
-ted = false;\x0a   \
-   this.dom.clea\
-rOutput();\x0a     \
- this.reset();\x0a \
-     this.scroll\
-Mgr.forceScrollT\
-oBottomImmediate\
-();\x0a      this.s\
-crollMgr.schedul\
-eScroll();\x0a     \
- this._d('BEGIN_\
-STREAM', { chunk\
-Flag: !!chunk })\
-;\x0a    }\x0a    // E\
-nd streaming ses\
-sion, finalize a\
-ctive code if pr\
-esent, and compl\
-ete math/highlig\
-ht.\x0a    endStrea\
-m() {\x0a      // S\
-witch to final m\
-ode before the l\
-ast snapshot to \
-allow full rende\
-rer (linkify etc\
-.)\x0a      this.is\
-Streaming = fals\
-e;\x0a\x0a      const \
-msg = this.getMs\
-g(false, '');\x0a  \
-    if (msg) thi\
-s.renderSnapshot\
-(msg);\x0a\x0a      th\
-is.snapshotSched\
-uled = false;\x0a  \
-    try { this.r\
-af.cancel('SE:sn\
-apshot'); } catc\
-h (_) {}\x0a      t\
-his.snapshotRAF \
-= 0;\x0a\x0a      cons\
-t hadActive = !!\
-this.activeCode;\
-\x0a      if (this.\
-activeCode) this\
-.finalizeActiveC\
-ode();\x0a\x0a      if\
- (!hadActive) {\x0a\
-        if (this\
-.highlighter.hlQ\
-ueue && this.hig\
-hlighter.hlQueue\
-.length) {\x0a     \
-     this.highli\
-ghter.flush(this\
-.activeCode);\x0a  \
-      }\x0a        \
-const snap = msg\
- ? this.getMsgSn\
-apshotRoot(msg) \
-: null;\x0a        \
-if (snap) this.m\
-ath.renderAsync(\
-snap); // ensure\
- math completes \
-eagerly but asyn\
-c\x0a      }\x0a\x0a     \
- this.fenceOpen \
-= false; this.co\
-deStream.open = \
-false; this.acti\
-veCode = null; t\
-his.lastSnapshot\
-Ts = Utils.now()\
-;\x0a      this.sup\
-pressPostFinaliz\
-ePass = false;\x0a \
-     this._d('EN\
-D_STREAM', { had\
-Active });\x0a    }\
-\x0a    // Apply in\
-coming chunk to \
-stream buffer an\
-d update DOM whe\
-n needed.\x0a    ap\
-plyStream(name_h\
-eader, chunk, al\
-readyBuffered = \
-false) {\x0a      i\
-f (!this.activeC\
-ode && !this.fen\
-ceOpen) {\x0a      \
-  try { if (docu\
-ment.querySelect\
-or('pre code[dat\
-a-_active_stream\
-=\x221\x22]')) this.de\
-fuseOrphanActive\
-Blocks(); } catc\
-h (_) {}\x0a      }\
-\x0a      if (this.\
-snapshotSchedule\
-d && !this.raf.i\
-sScheduled('SE:s\
-napshot')) this.\
-snapshotSchedule\
-d = false;\x0a\x0a    \
-  const msg = th\
-is.getMsg(true, \
-name_header); if\
- (!msg || !chunk\
-) return;\x0a      \
-const s = String\
-(chunk);\x0a      i\
-f (!alreadyBuffe\
-red) this._appen\
-dChunk(s);\x0a\x0a    \
-  const change =\
- this.updateFenc\
-eHeuristic(s);\x0a \
-     const nlCou\
-nt = Utils.count\
-Newlines(s); con\
-st chunkHasNL = \
-nlCount > 0;\x0a\x0a  \
-    this._d('APP\
-LY_CHUNK', { len\
-: s.length, nl: \
-nlCount, opened:\
- change.opened, \
-closed: change.c\
-losed, splitAt: \
-change.splitAt, \
-fenceOpenBefore:\
- this.fenceOpen \
-|| false, codeOp\
-enBefore: this.c\
-odeStream.open |\
-| false, rebroad\
-cast: !!alreadyB\
-uffered });\x0a\x0a   \
-   // Track if w\
-e just materiali\
-zed the first co\
-de-open snapshot\
- synchronously.\x0a\
-      let didImm\
-ediateOpenSnap =\
- false;\x0a\x0a      i\
-f (change.opened\
-) {\x0a        this\
-.codeStream.open\
- = true; this.co\
-deStream.lines =\
- 0; this.codeStr\
-eam.chars = 0;\x0a \
-       this.rese\
-tBudget();\x0a     \
-   this.schedule\
-Snapshot(msg);\x0a \
-       this._d('\
-CODE_STREAM_OPEN\
-', { });\x0a\x0a      \
-  // Fast-path: \
-if stream starts\
- with a code fen\
-ce and no snapsh\
-ot was made yet,\
-\x0a        // imme\
-diately material\
-ize the code blo\
-ck so tail strea\
-ming can proceed\
- without click.\x0a\
-        if (!thi\
-s._firstCodeOpen\
-SnapDone && !thi\
-s.activeCode && \
-((window.__lastS\
-napshotLen || 0)\
- === 0)) {\x0a     \
-     try {\x0a     \
-       this.rend\
-erSnapshot(msg);\
-\x0a            try\
- { this.raf.canc\
-el('SE:snapshot'\
-); } catch (_) {\
-}\x0a            th\
-is.snapshotSched\
-uled = false;\x0a  \
-          this._\
-firstCodeOpenSna\
-pDone = true;\x0a  \
-          didImm\
-ediateOpenSnap =\
- true;\x0a         \
-   this._d('CODE\
-_OPEN_IMMEDIATE_\
-SNAPSHOT', { buf\
-Len: this.getStr\
-eamLength() });\x0a\
-          } catc\
-h (_) {\x0a        \
-    // Keep goin\
-g; normal schedu\
-led snapshot wil\
-l land soon.\x0a   \
-       }\x0a       \
- }\x0a      }\x0a\x0a    \
-  if (this.codeS\
-tream.open) {\x0a  \
-      this.codeS\
-tream.lines += n\
-lCount; this.cod\
-eStream.chars +=\
- s.length;\x0a\x0a    \
-    if (this.act\
-iveCode && this.\
-activeCode.codeE\
-l && this.active\
-Code.codeEl.isCo\
-nnected) {\x0a     \
-     let partFor\
-Code = s; let re\
-mainder = '';\x0a\x0a \
-         if (did\
-ImmediateOpenSna\
-p) {\x0a           \
- partForCode = '\
-';\x0a          } e\
-lse {\x0a          \
-  if (change.clo\
-sed && change.sp\
-litAt >= 0 && ch\
-ange.splitAt <= \
-s.length) {\x0a    \
-          partFo\
-rCode = s.slice(\
-0, change.splitA\
-t); remainder = \
-s.slice(change.s\
-plitAt);\x0a       \
-     }\x0a         \
- }\x0a\x0a          if\
- (partForCode) {\
-\x0a            thi\
-s.appendToActive\
-Tail(partForCode\
-);\x0a            t\
-his.activeCode.l\
-ines += Utils.co\
-untNewlines(part\
-ForCode);\x0a\x0a     \
-       this.mayb\
-ePromoteLanguage\
-FromDirective();\
-\x0a            thi\
-s.enforceHLStopB\
-udget();\x0a\x0a      \
-      if (!this.\
-activeCode.haltH\
-L) {\x0a           \
-   if (partForCo\
-de.indexOf('\x5cn')\
- >= 0 || (this.a\
-ctiveCode.tailEl\
-.textContent || \
-'').length >= th\
-is.cfg.PROFILE_C\
-ODE.minCharsForH\
-L) {\x0a           \
-     this.schedu\
-lePromoteTail(fa\
-lse);\x0a          \
-    }\x0a          \
-  }\x0a          }\x0a\
-          this.s\
-crollMgr.scrollF\
-abUpdateSchedule\
-d = false;\x0a     \
-     this.scroll\
-Mgr.scheduleScro\
-ll(true);\x0a      \
-    this.scrollM\
-gr.fabFreezeUnti\
-l = Utils.now() \
-+ this.cfg.FAB.T\
-OGGLE_DEBOUNCE_M\
-S;\x0a          thi\
-s.scrollMgr.sche\
-duleScrollFabUpd\
-ate();\x0a\x0a        \
-  if (change.clo\
-sed) {\x0a         \
-   this.finalize\
-ActiveCode();\x0a  \
-          this.c\
-odeStream.open =\
- false; this.res\
-etBudget(); this\
-.scheduleSnapsho\
-t(msg);\x0a        \
-    this._d('COD\
-E_STREAM_CLOSE_F\
-INALIZED', { rem\
-ainderLen: remai\
-nder.length });\x0a\
-            if (\
-remainder && rem\
-ainder.length) {\
- this.applyStrea\
-m(name_header, r\
-emainder, true);\
- }\x0a          }\x0a \
-         return;\
-\x0a        } else \
-{\x0a          if (\
-!this.activeCode\
- && (this.codeSt\
-ream.lines >= 2 \
-|| this.codeStre\
-am.chars >= 80))\
- {\x0a            t\
-his.scheduleSnap\
-shot(msg, true);\
-\x0a            ret\
-urn;\x0a          }\
-\x0a          if (c\
-hange.closed) {\x0a\
-            this\
-.codeStream.open\
- = false; this.r\
-esetBudget(); th\
-is.scheduleSnaps\
-hot(msg);\x0a      \
-      this._d('C\
-ODE_CLOSED_WITHO\
-UT_ACTIVE', { si\
-nceLastSnapMs: M\
-ath.round(Utils.\
-now() - this.las\
-tSnapshotTs), sn\
-apshotScheduled:\
- this.snapshotSc\
-heduled });\x0a    \
-      } else {\x0a \
-           const\
- boundary = this\
-.hasStructuralBo\
-undary(s);\x0a     \
-       if (this.\
-shouldSnapshotOn\
-Chunk(s, chunkHa\
-sNL, boundary)) \
-this.scheduleSna\
-pshot(msg);\x0a    \
-        else thi\
-s.maybeScheduleS\
-oftSnapshot(msg,\
- chunkHasNL);\x0a  \
-        }\x0a      \
-    return;\x0a    \
-    }\x0a      }\x0a\x0a \
-     if (change.\
-closed) {\x0a      \
-  this.codeStrea\
-m.open = false; \
-this.resetBudget\
-(); this.schedul\
-eSnapshot(msg);\x0a\
-        this._d(\
-'CODE_STREAM_CLO\
-SE', { });\x0a     \
- } else {\x0a      \
-  const boundary\
- = this.hasStruc\
-turalBoundary(s)\
-;\x0a        if (th\
-is.shouldSnapsho\
-tOnChunk(s, chun\
-kHasNL, boundary\
-)) {\x0a          t\
-his.scheduleSnap\
-shot(msg);\x0a     \
-     this._d('SC\
-HEDULE_SNAPSHOT_\
-BOUNDARY', { bou\
-ndary });\x0a      \
-  } else {\x0a     \
-     this.maybeS\
-cheduleSoftSnaps\
-hot(msg, chunkHa\
-sNL);\x0a        }\x0a\
-      }\x0a    }\x0a  \
-}\x0a\x0a  // ========\
-================\
-================\
-================\
-================\
-==\x0a  // 12) Stre\
-am queue\x0a  // ==\
-================\
-================\
-================\
-================\
-========\x0a\x0a  clas\
-s StreamQueue {\x0a\
-    constructor(\
-cfg, engine, scr\
-ollMgr, raf) {\x0a \
-     this.cfg = \
-cfg; this.engine\
- = engine; this.\
-scrollMgr = scro\
-llMgr; this.raf \
-= raf;\x0a      thi\
-s.q = []; this.d\
-rainScheduled = \
-false;\x0a      thi\
-s.batching = fal\
-se; this.needScr\
-oll = false;\x0a   \
- }\x0a    // Coales\
-ce contiguous en\
-tries for the sa\
-me header to red\
-uce overhead.\x0a  \
-  _compactContig\
-uousSameName() {\
-\x0a      // Coales\
-ce contiguous en\
-tries for the sa\
-me message heade\
-r to reduce stri\
-ng objects count\
-.\x0a      if (this\
-.q.length < 2) r\
-eturn;\x0a      con\
-st out = [];\x0a   \
-   let last = th\
-is.q[0];\x0a      f\
-or (let i = 1; i\
- < this.q.length\
-; i++) {\x0a       \
- const cur = thi\
-s.q[i];\x0a        \
-if (cur.name_hea\
-der === last.nam\
-e_header) {\x0a    \
-      // Merge p\
-ayloads; reduce \
-object overhead \
-without changing\
- semantics\x0a     \
-     last.chunk \
-= (last.chunk ||\
- '') + (cur.chun\
-k || '');\x0a      \
-  }\x0a        else\
- {\x0a          out\
-.push(last);\x0a   \
-       last = cu\
-r;\x0a        }\x0a   \
-   }\x0a      out.p\
-ush(last);\x0a     \
- this.q = out;\x0a \
-   }\x0a    // Push\
- new chunk into \
-the queue and sc\
-hedule drain.\x0a  \
-  enqueue(name_h\
-eader, chunk) {\x0a\
-      this.q.pus\
-h({ name_header,\
- chunk });\x0a     \
- // Guard agains\
-t unbounded grow\
-th during bursts\
-\x0a      if (this.\
-q.length > this.\
-cfg.STREAM.EMERG\
-ENCY_COALESCE_LE\
-N) this._compact\
-ContiguousSameNa\
-me();\x0a      if (\
-this.q.length > \
-this.cfg.STREAM.\
-QUEUE_MAX_ITEMS)\
- this._compactCo\
-ntiguousSameName\
-();\x0a      if (!t\
-his.drainSchedul\
-ed) {\x0a        th\
-is.drainSchedule\
-d = true;\x0a      \
-  this.raf.sched\
-ule('SQ:drain', \
-() => this.drain\
-(), 'StreamQueue\
-', 0);\x0a      }\x0a \
-   }\x0a    // Drai\
-n a limited numb\
-er of chunks per\
- frame (adaptive\
- if configured).\
-\x0a    drain() {\x0a \
-     this.drainS\
-cheduled = false\
-; let processed \
-= 0;\x0a      const\
- adaptive = (thi\
-s.cfg.STREAM.COA\
-LESCE_MODE === '\
-adaptive');\x0a    \
-  const coalesce\
-Aggressive = ada\
-ptive && (this.q\
-.length >= this.\
-cfg.STREAM.EMERG\
-ENCY_COALESCE_LE\
-N);\x0a\x0a      // Ad\
-aptive per-frame\
- budget: increas\
-e throughput if \
-queue is long\x0a  \
-    const basePe\
-rFrame = this.cf\
-g.STREAM.MAX_PER\
-_FRAME | 0;\x0a    \
-  const perFrame\
- = adaptive ? Ma\
-th.min(basePerFr\
-ame + Math.floor\
-(this.q.length /\
- 20), basePerFra\
-me * 4) : basePe\
-rFrame;\x0a\x0a      t\
-his.batching = t\
-rue;\x0a      while\
- (this.q.length \
-&& processed < p\
-erFrame) {\x0a     \
-   let { name_he\
-ader, chunk } = \
-this.q.shift();\x0a\
-        if (chun\
-k && chunk.lengt\
-h > 0) {\x0a       \
-   const chunks \
-= [chunk];\x0a     \
-     while (this\
-.q.length) {\x0a   \
-         const n\
-ext = this.q[0];\
-\x0a            if \
-(next.name_heade\
-r === name_heade\
-r) {\x0a           \
-   chunks.push(n\
-ext.chunk); this\
-.q.shift();\x0a    \
-          if (!c\
-oalesceAggressiv\
-e) break;\x0a      \
-      } else bre\
-ak;\x0a          }\x0a\
-          chunk \
-= chunks.join(''\
-);\x0a        }\x0a   \
-     this.engine\
-.applyStream(nam\
-e_header, chunk)\
-;\x0a        proces\
-sed++;\x0a      }\x0a \
-     this.batchi\
-ng = false;\x0a    \
-  if (this.needS\
-croll) { this.sc\
-rollMgr.schedule\
-Scroll(true); th\
-is.needScroll = \
-false; }\x0a      i\
-f (this.q.length\
-) {\x0a        this\
-.drainScheduled \
-= true;\x0a        \
-this.raf.schedul\
-e('SQ:drain', ()\
- => this.drain()\
-, 'StreamQueue',\
- 0);\x0a      }\x0a   \
- }\x0a    // Force \
-a drain soon.\x0a  \
-  kick() {\x0a     \
- if (this.q.leng\
-th || this.drain\
-Scheduled) {\x0a   \
-     this.drainS\
-cheduled = true;\
-\x0a        this.ra\
-f.schedule('SQ:d\
-rain', () => thi\
-s.drain(), 'Stre\
-amQueue', 0);\x0a  \
-    }\x0a    }\x0a    \
-// Clear queued \
-work and cancel \
-scheduled drains\
-.\x0a    clear() {\x0a\
-      this.q.len\
-gth = 0;\x0a      t\
-ry { this.raf.ca\
-ncelGroup('Strea\
-mQueue'); } catc\
-h (_) {}\x0a      t\
-his.drainSchedul\
-ed = false;\x0a    \
-}\x0a  }\x0a\x0a  // ====\
-================\
-================\
-================\
-================\
-======\x0a  // 13) \
-Bridge manager (\
-QWebChannel)\x0a  /\
-/ ==============\
-================\
-================\
-================\
-============\x0a\x0a  \
-class BridgeMana\
-ger {\x0a    constr\
-uctor(cfg, logge\
-r) {\x0a      this.\
-cfg = cfg; this.\
-logger = logger \
-|| new Logger(cf\
-g);\x0a      this.b\
-ridge = null; th\
-is.connected = f\
-alse;\x0a    }\x0a    \
-log(text) { try \
-{ if (this.bridg\
-e && this.bridge\
-.log) this.bridg\
-e.log(text); } c\
-atch (_) {} }\x0a  \
-  connect(onChun\
-k, onNode, onNod\
-eReplace, onNode\
-Input) {\x0a      i\
-f (!this.bridge)\
- return false; i\
-f (this.connecte\
-d) return true;\x0a\
-      try {\x0a    \
-    if (this.bri\
-dge.chunk) this.\
-bridge.chunk.con\
-nect((name, chun\
-k, type) => onCh\
-unk(name, chunk,\
- type));\x0a       \
- if (this.bridge\
-.node) this.brid\
-ge.node.connect(\
-onNode);\x0a       \
- if (this.bridge\
-.nodeReplace) th\
-is.bridge.nodeRe\
-place.connect(on\
-NodeReplace);\x0a  \
-      if (this.b\
-ridge.nodeInput)\
- this.bridge.nod\
-eInput.connect(o\
-nNodeInput);\x0a   \
-     this.connec\
-ted = true; retu\
-rn true;\x0a      }\
- catch (e) { thi\
-s.log(e); return\
- false; }\x0a    }\x0a\
-    disconnect()\
- {\x0a      if (!th\
-is.bridge) retur\
-n false; if (!th\
-is.connected) re\
-turn true;\x0a     \
- try {\x0a        i\
-f (this.bridge.c\
-hunk) this.bridg\
-e.chunk.disconne\
-ct();\x0a        if\
- (this.bridge.no\
-de) this.bridge.\
-node.disconnect(\
-);\x0a        if (t\
-his.bridge.nodeR\
-eplace) this.bri\
-dge.nodeReplace.\
-disconnect();\x0a  \
-      if (this.b\
-ridge.nodeInput)\
- this.bridge.nod\
-eInput.disconnec\
-t();\x0a      } cat\
-ch (_) {}\x0a      \
-this.connected =\
- false; return t\
-rue;\x0a    }\x0a    i\
-nitQWebChannel(p\
-id, onReady) {\x0a \
-     try {\x0a     \
-   new QWebChann\
-el(qt.webChannel\
-Transport, (chan\
-nel) => {\x0a      \
-    this.bridge \
-= channel.object\
-s.bridge;\x0a      \
-    try { this.l\
-ogger.bindBridge\
-(this.bridge); }\
- catch (_) {}\x0a  \
-        onReady \
-&& onReady(this.\
-bridge);\x0a       \
-   if (this.brid\
-ge && this.bridg\
-e.js_ready) this\
-.bridge.js_ready\
-(pid);\x0a        }\
-);\x0a      } catch\
- (e) { /* swallo\
-w */ }\x0a    }\x0a   \
- copyCode(text) \
-{ if (this.bridg\
-e && this.bridge\
-.copy_text) this\
-.bridge.copy_tex\
-t(text); }\x0a    p\
-reviewCode(text)\
- { if (this.brid\
-ge && this.bridg\
-e.preview_text) \
-this.bridge.prev\
-iew_text(text); \
-}\x0a    runCode(te\
-xt) { if (this.b\
-ridge && this.br\
-idge.run_text) t\
-his.bridge.run_t\
-ext(text); }\x0a   \
- updateScrollPos\
-ition(pos) { if \
-(this.bridge && \
-this.bridge.upda\
-te_scroll_positi\
-on) this.bridge.\
-update_scroll_po\
-sition(pos); }\x0a \
- }\x0a\x0a  // =======\
-================\
-================\
-================\
-================\
-===\x0a  // 14) Loa\
-ding indicator\x0a \
- // ============\
-================\
-================\
-================\
-==============\x0a\x0a\
-  class Loading \
-{\x0a    constructo\
-r(dom) { this.do\
-m = dom; }\x0a    /\
-/ Show loader el\
-ement (and hide \
-tips if visible)\
-.\x0a    show() { i\
-f (typeof window\
-.hideTips === 'f\
-unction') { wind\
-ow.hideTips(); }\
- const el = this\
-.dom.get('_loade\
-r_'); if (!el) r\
-eturn; if (el.cl\
-assList.contains\
-('hidden')) el.c\
-lassList.remove(\
-'hidden'); el.cl\
-assList.add('vis\
-ible'); }\x0a    //\
- Hide loader ele\
-ment.\x0a    hide()\
- { const el = th\
-is.dom.get('_loa\
-der_'); if (!el)\
- return; if (el.\
-classList.contai\
-ns('visible')) e\
-l.classList.remo\
-ve('visible'); e\
-l.classList.add(\
-'hidden'); }\x0a  }\
-\x0a\x0a  // =========\
-================\
-================\
-================\
-================\
-=\x0a  // 15) Event\
- manager\x0a  // ==\
-================\
-================\
-================\
-================\
-========\x0a\x0a  clas\
-s EventManager {\
-\x0a    constructor\
-(cfg, dom, scrol\
-lMgr, highlighte\
-r, codeScroll, t\
-oolOutput, bridg\
-e) {\x0a      this.\
-cfg = cfg; this.\
-dom = dom; this.\
-scrollMgr = scro\
-llMgr; this.high\
-lighter = highli\
-ghter;\x0a      thi\
-s.codeScroll = c\
-odeScroll; this.\
-toolOutput = too\
-lOutput; this.br\
-idge = bridge;\x0a \
-     this.handle\
-rs = { wheel: nu\
-ll, scroll: null\
-, resize: null, \
-fabClick: null, \
-mouseover: null,\
- mouseout: null,\
- click: null, ke\
-ydown: null, doc\
-ClickFocus: null\
-, visibility: nu\
-ll, focus: null,\
- pageshow: null \
-};\x0a    }\x0a    _fi\
-ndWrapper(target\
-) { if (!target \
-|| typeof target\
-.closest !== 'fu\
-nction') return \
-null; return tar\
-get.closest('.co\
-de-wrapper'); }\x0a\
-    _getCodeEl(w\
-rapper) { if (!w\
-rapper) return n\
-ull; return wrap\
-per.querySelecto\
-r('pre > code');\
- }\x0a    _collectC\
-odeText(codeEl) \
-{\x0a      if (!cod\
-eEl) return '';\x0a\
-      const froz\
-en = codeEl.quer\
-ySelector('.hl-f\
-rozen'); const t\
-ail = codeEl.que\
-rySelector('.hl-\
-tail');\x0a      if\
- (frozen || tail\
-) return (frozen\
-?.textContent ||\
- '') + (tail?.te\
-xtContent || '')\
-;\x0a      return c\
-odeEl.textConten\
-t || '';\x0a    }\x0a \
-   // Copy to cl\
-ipboard via brid\
-ge if available,\
- otherwise use b\
-rowser APIs.\x0a   \
- async _copyText\
-Robust(text) {\x0a \
-     try { if (t\
-his.bridge && ty\
-peof this.bridge\
-.copyCode === 'f\
-unction') { this\
-.bridge.copyCode\
-(text); return t\
-rue; } } catch (\
-_) {}\x0a      try \
-{ if (navigator \
-&& navigator.cli\
-pboard && naviga\
-tor.clipboard.wr\
-iteText) { await\
- navigator.clipb\
-oard.writeText(t\
-ext); return tru\
-e; } } catch (_)\
- {}\x0a      try {\x0a\
+ frozen = codeEl\
+.querySelector('\
+.hl-frozen');\x0a  \
         const ta\
- = document.crea\
-teElement('texta\
-rea');\x0a        t\
-a.value = text; \
-ta.setAttribute(\
-'readonly', '');\
- ta.style.positi\
-on = 'fixed'; ta\
-.style.top = '-9\
-999px'; ta.style\
-.opacity = '0';\x0a\
-        document\
-.body.appendChil\
-d(ta); ta.select\
-(); const ok = d\
-ocument.execComm\
-and && document.\
-execCommand('cop\
-y'); document.bo\
-dy.removeChild(t\
-a); return !!ok;\
-\x0a      } catch (\
-_) { return fals\
-e; }\x0a    }\x0a    /\
-/ Flash \x22Copied\x22\
- feedback on the\
- copy button.\x0a  \
-  _flashCopied(b\
-tn, wrapper) {\x0a \
-     if (!btn ||\
- !wrapper) retur\
-n;\x0a      const s\
-pan = btn.queryS\
-elector('span');\
- if (!span) retu\
-rn;\x0a      const \
-L_COPY = wrapper\
-.getAttribute('d\
-ata-locale-copy'\
-) || 'Copy';\x0a   \
-   const L_COPIE\
-D = wrapper.getA\
-ttribute('data-l\
-ocale-copied') |\
-| 'Copied';\x0a    \
-  try { if (btn.\
-__copyTimer) { c\
-learTimeout(btn.\
-__copyTimer); bt\
-n.__copyTimer = \
-0; } } catch (_)\
- {}\x0a      span.t\
-extContent = L_C\
-OPIED; btn.class\
-List.add('copied\
-');\x0a      btn.__\
-copyTimer = setT\
-imeout(() => { t\
-ry { span.textCo\
-ntent = L_COPY; \
-btn.classList.re\
-move('copied'); \
-} catch (_) {} b\
-tn.__copyTimer =\
- 0; }, 1200);\x0a  \
-  }\x0a    // Toggl\
-e code collapse/\
-expand and remem\
-ber collapsed in\
-dices.\x0a    _togg\
-leCollapse(wrapp\
-er) {\x0a      if (\
-!wrapper) return\
-;\x0a      const co\
-deEl = this._get\
-CodeEl(wrapper);\
- if (!codeEl) re\
-turn;\x0a      cons\
-t btn = wrapper.\
-querySelector('.\
-code-header-coll\
-apse');\x0a      co\
-nst span = btn ?\
- btn.querySelect\
-or('span') : nul\
-l;\x0a      const L\
-_COLLAPSE = wrap\
-per.getAttribute\
-('data-locale-co\
-llapse') || 'Col\
-lapse';\x0a      co\
-nst L_EXPAND = w\
-rapper.getAttrib\
-ute('data-locale\
--expand') || 'Ex\
-pand';\x0a      con\
-st idx = String(\
-wrapper.getAttri\
-bute('data-index\
-') || '');\x0a     \
- const arr = win\
-dow.__collapsed_\
-idx || (window._\
-_collapsed_idx =\
- []);\x0a      cons\
-t isHidden = (co\
-deEl.style.displ\
-ay === 'none');\x0a\
-\x0a      if (isHid\
-den) {\x0a        c\
-odeEl.style.disp\
-lay = 'block';\x0a \
-       if (span)\
- span.textConten\
-t = L_COLLAPSE;\x0a\
-        const p \
-= arr.indexOf(id\
-x); if (p !== -1\
-) arr.splice(p, \
-1);\x0a      } else\
- {\x0a        codeE\
-l.style.display \
-= 'none';\x0a      \
-  if (span) span\
-.textContent = L\
-_EXPAND;\x0a       \
- if (!arr.includ\
-es(idx)) arr.pus\
-h(idx);\x0a      }\x0a\
-    }\x0a    // Att\
-ach global UI ev\
-ent handlers and\
- container-level\
- interactions.\x0a \
-   install() {\x0a \
-     try { histo\
-ry.scrollRestora\
-tion = \x22manual\x22;\
- } catch (_) {}\x0a\
-\x0a      this.hand\
-lers.keydown = (\
-event) => {\x0a    \
-    if (event.ct\
-rlKey && event.k\
-ey === 'f') { wi\
-ndow.location.hr\
-ef = 'bridge://o\
-pen_find:' + run\
-time.cfg.PID; ev\
-ent.preventDefau\
-lt(); }\x0a        \
-if (event.key ==\
-= 'Escape') { wi\
-ndow.location.hr\
-ef = 'bridge://e\
-scape'; event.pr\
-eventDefault(); \
-}\x0a      };\x0a     \
- document.addEve\
-ntListener('keyd\
-own', this.handl\
-ers.keydown, { p\
-assive: false })\
-;\x0a\x0a      // Remo\
-ved global click\
--to-focus naviga\
-tion and visibil\
-ity/focus wakeup\
-s to keep the pu\
-mp rAF-only and \
-click-agnostic.\x0a\
-\x0a      const con\
-tainer = this.do\
-m.get('container\
-');\x0a      const \
-addClassToMsg = \
-(id, className) \
-=> { const el = \
-document.getElem\
-entById('msg-bot\
--' + id); if (el\
-) el.classList.a\
-dd(className); }\
-;\x0a      const re\
-moveClassFromMsg\
- = (id, classNam\
-e) => { const el\
- = document.getE\
-lementById('msg-\
-bot-' + id); if \
-(el) el.classLis\
-t.remove(classNa\
-me); };\x0a\x0a      t\
-his.handlers.mou\
-seover = (event)\
- => { if (event.\
-target.classList\
-.contains('actio\
-n-img')) { const\
- id = event.targ\
-et.getAttribute(\
-'data-id'); addC\
-lassToMsg(id, 'm\
-sg-highlight'); \
-} };\x0a      this.\
-handlers.mouseou\
-t = (event) => {\
- if (event.targe\
-t.classList.cont\
-ains('action-img\
-')) { const id =\
- event.target.ge\
-tAttribute('data\
--id'); const el \
-= document.getEl\
-ementById('msg-b\
-ot-' + id); if (\
-el) el.classList\
-.remove('msg-hig\
-hlight'); } };\x0a \
-     if (contain\
-er) {\x0a        co\
-ntainer.addEvent\
-Listener('mouseo\
-ver', this.handl\
-ers.mouseover, {\
- passive: true }\
-);\x0a        conta\
-iner.addEventLis\
-tener('mouseout'\
-, this.handlers.\
-mouseout, { pass\
-ive: true });\x0a  \
-    }\x0a\x0a      thi\
-s.handlers.click\
- = async (ev) =>\
- {\x0a        const\
- a = ev.target &\
-& (ev.target.clo\
-sest ? ev.target\
-.closest('a.code\
--header-action')\
- : null);\x0a      \
-  if (!a) return\
-;\x0a        const \
-wrapper = this._\
-findWrapper(a);\x0a\
-        if (!wra\
-pper) return;\x0a\x0a \
-       ev.preven\
-tDefault();\x0a    \
-    ev.stopPropa\
-gation();\x0a\x0a     \
-   const isCopy \
-= a.classList.co\
-ntains('code-hea\
-der-copy');\x0a    \
-    const isColl\
-apse = a.classLi\
-st.contains('cod\
-e-header-collaps\
-e');\x0a        con\
-st isRun = a.cla\
-ssList.contains(\
-'code-header-run\
-');\x0a        cons\
-t isPreview = a.\
-classList.contai\
-ns('code-header-\
-preview');\x0a\x0a    \
-    let codeEl =\
- null, text = ''\
-;\x0a        if (is\
-Copy || isRun ||\
- isPreview) {\x0a  \
-        codeEl =\
- this._getCodeEl\
-(wrapper);\x0a     \
-     text = this\
-._collectCodeTex\
-t(codeEl);\x0a     \
-   }\x0a\x0a        tr\
-y {\x0a          if\
- (isCopy) {\x0a    \
-        const ok\
- = await this._c\
-opyTextRobust(te\
-xt);\x0a           \
- if (ok) this._f\
-lashCopied(a, wr\
-apper);\x0a        \
-  } else if (isC\
-ollapse) {\x0a     \
-       this._tog\
-gleCollapse(wrap\
-per);\x0a          \
-} else if (isRun\
-) {\x0a            \
-if (this.bridge \
-&& typeof this.b\
-ridge.runCode ==\
-= 'function') th\
-is.bridge.runCod\
-e(text);\x0a       \
-   } else if (is\
-Preview) {\x0a     \
-       if (this.\
-bridge && typeof\
- this.bridge.pre\
-viewCode === 'fu\
-nction') this.br\
-idge.previewCode\
-(text);\x0a        \
-  }\x0a        } ca\
-tch (_) { /* swa\
-llow */ }\x0a      \
-};\x0a      if (con\
-tainer) containe\
-r.addEventListen\
-er('click', this\
-.handlers.click,\
- { passive: fals\
-e });\x0a\x0a      thi\
-s.handlers.wheel\
- = (ev) => {\x0a   \
-     runtime.scr\
-ollMgr.userInter\
-acted = true;\x0a  \
-      if (ev.del\
-taY < 0) runtime\
-.scrollMgr.autoF\
-ollow = false;\x0a \
-       else runt\
-ime.scrollMgr.ma\
-ybeEnableAutoFol\
-lowByProximity()\
-;\x0a        this.h\
-ighlighter.sched\
-uleScanVisibleCo\
-des(runtime.stre\
-am.activeCode);\x0a\
-      };\x0a      d\
-ocument.addEvent\
-Listener('wheel'\
-, this.handlers.\
-wheel, { passive\
-: true });\x0a\x0a    \
-  this.handlers.\
-scroll = () => {\
-\x0a        const e\
-l = Utils.SE; co\
-nst top = el.scr\
-ollTop;\x0a        \
-if (top + 1 < ru\
-ntime.scrollMgr.\
-lastScrollTop) r\
-untime.scrollMgr\
-.autoFollow = fa\
-lse;\x0a        run\
-time.scrollMgr.m\
-aybeEnableAutoFo\
-llowByProximity(\
-);\x0a        runti\
-me.scrollMgr.las\
-tScrollTop = top\
-;\x0a        const \
-action = runtime\
-.scrollMgr.compu\
-teFabAction();\x0a \
-       if (actio\
-n !== runtime.sc\
-rollMgr.currentF\
-abAction) runtim\
-e.scrollMgr.upda\
-teScrollFab(fals\
-e, action, true)\
-;\x0a        this.h\
-ighlighter.sched\
-uleScanVisibleCo\
-des(runtime.stre\
-am.activeCode);\x0a\
-      };\x0a      w\
-indow.addEventLi\
-stener('scroll',\
- this.handlers.s\
-croll, { passive\
-: true });\x0a\x0a    \
-  const fab = th\
-is.dom.get('scro\
-llFab');\x0a      i\
-f (fab) {\x0a      \
-  this.handlers.\
-fabClick = (ev) \
-=> {\x0a          e\
-v.preventDefault\
-(); ev.stopPropa\
-gation();\x0a      \
-    const action\
- = runtime.scrol\
-lMgr.computeFabA\
-ction();\x0a       \
-   if (action ==\
-= 'up') runtime.\
-scrollMgr.scroll\
-ToTopUser();\x0a   \
-       else if (\
-action === 'down\
-') runtime.scrol\
-lMgr.scrollToBot\
-tomUser();\x0a     \
-     runtime.scr\
-ollMgr.fabFreeze\
-Until = Utils.no\
-w() + this.cfg.F\
-AB.TOGGLE_DEBOUN\
-CE_MS;\x0a         \
- runtime.scrollM\
-gr.updateScrollF\
-ab(true);\x0a      \
-  };\x0a        fab\
-.addEventListene\
-r('click', this.\
-handlers.fabClic\
-k, { passive: fa\
-lse });\x0a      }\x0a\
-\x0a      this.hand\
-lers.resize = ()\
- => {\x0a        ru\
-ntime.scrollMgr.\
-maybeEnableAutoF\
-ollowByProximity\
-();\x0a        runt\
-ime.scrollMgr.sc\
-heduleScrollFabU\
-pdate();\x0a       \
- this.highlighte\
-r.scheduleScanVi\
-sibleCodes(runti\
-me.stream.active\
-Code);\x0a      };\x0a\
-      window.add\
-EventListener('r\
-esize', this.han\
-dlers.resize, { \
-passive: true })\
-;\x0a\x0a      // Note\
-: visibility/foc\
-us/pageshow kick\
-ers removed inte\
-ntionally.\x0a    }\
-\x0a    // Detach a\
-ll installed han\
-dlers and reset \
-local refs.\x0a    \
-cleanup() {\x0a    \
-  const containe\
-r = this.dom.get\
-('container');\x0a \
-     if (this.ha\
-ndlers.wheel) do\
-cument.removeEve\
-ntListener('whee\
-l', this.handler\
-s.wheel);\x0a      \
-if (this.handler\
-s.scroll) window\
-.removeEventList\
-ener('scroll', t\
-his.handlers.scr\
-oll);\x0a      if (\
-this.handlers.re\
-size) window.rem\
-oveEventListener\
-('resize', this.\
-handlers.resize)\
-;\x0a      const fa\
-b = this.dom.get\
-('scrollFab'); i\
-f (fab && this.h\
-andlers.fabClick\
-) fab.removeEven\
-tListener('click\
-', this.handlers\
-.fabClick);\x0a    \
-  if (container \
-&& this.handlers\
-.mouseover) cont\
-ainer.removeEven\
-tListener('mouse\
-over', this.hand\
-lers.mouseover);\
-\x0a      if (conta\
-iner && this.han\
-dlers.mouseout) \
-container.remove\
-EventListener('m\
-ouseout', this.h\
-andlers.mouseout\
-);\x0a      if (con\
-tainer && this.h\
-andlers.click) c\
-ontainer.removeE\
-ventListener('cl\
-ick', this.handl\
-ers.click);\x0a    \
-  if (this.handl\
-ers.keydown) doc\
-ument.removeEven\
-tListener('keydo\
-wn', this.handle\
-rs.keydown);\x0a   \
-   if (this.hand\
-lers.docClickFoc\
-us) document.rem\
-oveEventListener\
-('click', this.h\
-andlers.docClick\
-Focus);\x0a      if\
- (this.handlers.\
-visibility) docu\
-ment.removeEvent\
-Listener('visibi\
-litychange', thi\
-s.handlers.visib\
-ility);\x0a      if\
- (this.handlers.\
-focus) window.re\
-moveEventListene\
-r('focus', this.\
-handlers.focus);\
-\x0a      if (this.\
-handlers.pagesho\
-w) window.remove\
-EventListener('p\
-ageshow', this.h\
-andlers.pageshow\
-);\x0a      this.ha\
-ndlers = {};\x0a   \
- }\x0a  }\x0a\x0a  // ===\
-================\
-================\
-================\
-================\
-=======\x0a  // 16)\
- Orchestrator ru\
-ntime\x0a  // =====\
-================\
-================\
-================\
-================\
-=====\x0a\x0a  class R\
-untime {\x0a    con\
-structor() {\x0a   \
-   this.cfg = ne\
-w Config();\x0a    \
-  this.logger = \
-new Logger(this.\
-cfg);\x0a\x0a      thi\
-s.dom = new DOMR\
-efs();\x0a      thi\
-s.customMarkup =\
- new CustomMarku\
-p(this.cfg, this\
-.logger);\x0a      \
-this.raf = new R\
-afManager(this.c\
-fg);\x0a\x0a      // E\
-nsure logger use\
-s central RafMan\
-ager for its int\
-ernal tick pump.\
-\x0a      try { thi\
-s.logger.bindRaf\
-(this.raf); } ca\
-tch (_) {}\x0a\x0a    \
-  this.async = n\
-ew AsyncRunner(t\
-his.cfg, this.ra\
-f);\x0a      this.r\
-enderer = new Ma\
-rkdownRenderer(t\
-his.cfg, this.cu\
-stomMarkup, this\
-.logger, this.as\
-ync, this.raf);\x0a\
-\x0a      this.math\
- = new MathRende\
-rer(this.cfg, th\
-is.raf, this.asy\
-nc);\x0a      this.\
-codeScroll = new\
- CodeScrollState\
-(this.cfg, this.\
-raf);\x0a      this\
-.highlighter = n\
-ew Highlighter(t\
-his.cfg, this.co\
-deScroll, this.r\
-af);\x0a      this.\
-scrollMgr = new \
-ScrollManager(th\
-is.cfg, this.dom\
-, this.raf);\x0a   \
-   this.toolOutp\
-ut = new ToolOut\
-put();\x0a      thi\
-s.loading = new \
-Loading(this.dom\
-);\x0a      this.no\
-des = new NodesM\
-anager(this.dom,\
- this.renderer, \
-this.highlighter\
-, this.math);\x0a  \
-    this.bridge \
-= new BridgeMana\
-ger(this.cfg, th\
-is.logger);\x0a    \
-  this.ui = new \
-UIManager();\x0a   \
-   this.stream =\
- new StreamEngin\
-e(this.cfg, this\
-.dom, this.rende\
-rer, this.math, \
-this.highlighter\
-, this.codeScrol\
-l, this.scrollMg\
-r, this.raf, thi\
-s.async, this.lo\
-gger);\x0a      thi\
-s.streamQ = new \
-StreamQueue(this\
-.cfg, this.strea\
-m, this.scrollMg\
-r, this.raf);\x0a  \
-    this.events \
-= new EventManag\
-er(this.cfg, thi\
-s.dom, this.scro\
-llMgr, this.high\
-lighter, this.co\
-deScroll, this.t\
-oolOutput, this.\
-bridge);\x0a\x0a      \
-try {\x0a        th\
-is.stream.setCus\
-tomFenceSpecs(th\
-is.customMarkup.\
-getSourceFenceSp\
-ecs());\x0a      } \
-catch (_) {}\x0a\x0a  \
-    this.templat\
-es = new NodeTem\
-plateEngine(this\
-.cfg, this.logge\
-r);\x0a      this.d\
-ata = new DataRe\
-ceiver(this.cfg,\
- this.templates,\
- this.nodes, thi\
-s.scrollMgr);\x0a\x0a \
-     this.tips =\
- null;\x0a      thi\
-s._lastHeavyRese\
-tMs = 0;\x0a\x0a      \
-this.renderer.ho\
-oks.observeNewCo\
-de = (root, opts\
-) => this.highli\
-ghter.observeNew\
-Code(root, opts,\
- this.stream.act\
-iveCode);\x0a      \
-this.renderer.ho\
-oks.observeMsgBo\
-xes = (root) => \
-this.highlighter\
-.observeMsgBoxes\
-(root, (box) => \
-{\x0a        this.h\
-ighlighter.obser\
-veNewCode(box, {\
-\x0a          defer\
-LastIfStreaming:\
- true,\x0a         \
- minLinesForLast\
-: this.cfg.PROFI\
-LE_CODE.minLines\
-ForHL,\x0a         \
- minCharsForLast\
-: this.cfg.PROFI\
-LE_CODE.minChars\
-ForHL\x0a        },\
- this.stream.act\
-iveCode);\x0a      \
-  this.codeScrol\
-l.initScrollable\
-Blocks(box);\x0a   \
-   });\x0a      thi\
-s.renderer.hooks\
-.scheduleMathRen\
-der = (root) => \
-{\x0a        const \
-mm = getMathMode\
-();\x0a        if (\
-mm === 'idle') t\
-his.math.schedul\
-e(root);\x0a       \
- else if (mm ===\
- 'always') this.\
-math.schedule(ro\
-ot, 0, true);\x0a  \
-    };\x0a      thi\
-s.renderer.hooks\
-.codeScrollInit \
-= (root) => this\
-.codeScroll.init\
-ScrollableBlocks\
-(root);\x0a    }\x0a\x0a \
-   // Reset stre\
-am state and opt\
-ionally perform \
-a heavy reset of\
- schedulers and \
-observers.\x0a    r\
-esetStreamState(\
-origin, opts) {\x0a\
-      try { this\
-.streamQ.clear()\
+il = codeEl.quer\
+ySelector('.hl-t\
+ail');\x0a         \
+ if (frozen || t\
+ail) text = (fro\
+zen?.textContent\
+ || '') + (tail?\
+.textContent || \
+'');\x0a          e\
+lse text = codeE\
+l.textContent ||\
+ '';\x0a          c\
+odeEl.textConten\
+t = text;\x0a      \
+    codeEl.remov\
+eAttribute('data\
+-highlighted');\x0a\
+          codeEl\
+.classList.remov\
+e('hljs');\x0a     \
+     codeEl.data\
+set._active_stre\
+am = '0';\x0a      \
+    try { this.c\
+odeScroll.attach\
+Handlers(codeEl)\
 ; } catch (_) {}\
-\x0a\x0a      const de\
-f = Object.assig\
-n({\x0a        fina\
-lizeActive: true\
-, clearBuffer: t\
-rue, clearMsg: f\
-alse, defuseOrph\
-ans: true, force\
-Heavy: false, re\
-ason: String(ori\
-gin || 'external\
--op')\x0a      }, (\
-opts || {}));\x0a\x0a \
-     const now =\
- Utils.now();\x0a  \
-    const within\
-Debounce = (now \
-- (this._lastHea\
-vyResetMs || 0))\
- <= (this.cfg.RE\
-SET.HEAVY_DEBOUN\
-CE_MS || 24);\x0a  \
-    const mustHe\
-avyByOrigin =\x0a  \
-      def.forceH\
-eavy === true ||\
- def.clearMsg ==\
-= true ||\x0a      \
-  origin === 'be\
-ginStream' || or\
-igin === 'nextSt\
-ream' ||\x0a       \
- origin === 'cle\
-arStream' || ori\
-gin === 'replace\
-Nodes' ||\x0a      \
-  origin === 'cl\
-earNodes' || ori\
-gin === 'clearOu\
-tput' ||\x0a       \
- origin === 'cle\
-arLive' || origi\
-n === 'clearInpu\
-t';\x0a      const \
-shouldHeavy = mu\
-stHeavyByOrigin \
-|| !withinDeboun\
-ce;\x0a      const \
-suppressLog = wi\
-thinDebounce && \
-origin !== 'begi\
-nStream';\x0a\x0a     \
- try { this.stre\
-am.abortAndReset\
-({ ...def, suppr\
-essLog }); } cat\
-ch (_) {}\x0a\x0a     \
- if (shouldHeavy\
-) {\x0a        try \
-{ this.highlight\
-er.cleanup(); } \
-catch (_) {}\x0a   \
-     try { this.\
-math.cleanup(); \
+\x0a          n++;\x0a\
+        });\x0a    \
+    if (n) this.\
+_d('DEFUSE_ORPHA\
+N_ACTIVE_BLOCKS'\
+, { count: n });\
+\x0a      } catch (\
+e) { this._d('DE\
+FUSE_ORPHAN_ACTI\
+VE_ERR', String(\
+e)); }\x0a    }\x0a   \
+ // Abort stream\
+ing and clear st\
+ate with options\
+.\x0a    abortAndRe\
+set(opts) {\x0a    \
+  const o = Obje\
+ct.assign({\x0a    \
+    finalizeActi\
+ve: true,\x0a      \
+  clearBuffer: t\
+rue,\x0a        cle\
+arMsg: false,\x0a  \
+      defuseOrph\
+ans: true,\x0a     \
+   reason: '',\x0a \
+       suppressL\
+og: false\x0a      \
+}, (opts || {}))\
+;\x0a\x0a      try { t\
+his.raf.cancelGr\
+oup('StreamEngin\
+e'); } catch (_)\
+ {}\x0a      try { \
+this.raf.cancel(\
+'SE:snapshot'); \
 } catch (_) {}\x0a \
-       try { thi\
-s.codeScroll.can\
-celAllScrolls();\
- } catch (_) {}\x0a\
-        try { th\
-is.scrollMgr.can\
-celPendingScroll\
-(); } catch (_) \
-{}\x0a        try {\
- this.raf.cancel\
-All(); } catch (\
-_) {}\x0a        th\
-is._lastHeavyRes\
-etMs = now;\x0a    \
-  } else {\x0a     \
-   try { this.ra\
-f.cancelGroup('S\
-treamQueue'); } \
-catch (_) {}\x0a   \
-   }\x0a\x0a      try \
-{ this.tips && t\
-his.tips.hide();\
- } catch (_) {}\x0a\
-    }\x0a    // API\
-: handle incomin\
-g chunk (from br\
-idge).\x0a    api_o\
-nChunk = (name, \
-chunk, type) => \
-{\x0a      const t \
-= String(type ||\
- 'text_delta');\x0a\
-      if (t === \
-'text_delta') {\x0a\
-        this.api\
-_appendStream(na\
-me, chunk);\x0a    \
-    return;\x0a    \
-  }\x0a      // Fut\
-ure-proof: add o\
-ther chunk types\
- here (attachmen\
-ts, status, etc.\
-)\x0a      // No-op\
- for unknown typ\
-es to keep curre\
-nt behavior.\x0a   \
-   this.logger.d\
-ebug('STREAM', '\
-IGNORED_NON_TEXT\
-_CHUNK', { type:\
- t, len: (chunk \
-? String(chunk).\
-length : 0) });\x0a\
-    };\x0a    // AP\
-I: begin stream.\
-\x0a    api_beginSt\
-ream = (chunk = \
-false) => { this\
-.tips && this.ti\
-ps.hide(); this.\
-resetStreamState\
-('beginStream', \
-{ clearMsg: true\
-, finalizeActive\
-: false, forceHe\
-avy: true }); th\
-is.stream.beginS\
-tream(chunk); };\
-\x0a    // API: end\
- stream.\x0a    api\
-_endStream = () \
-=> { this.stream\
-.endStream(); };\
-\x0a    // API: app\
-ly chunk.\x0a    ap\
-i_applyStream = \
-(name, chunk) =>\
- { this.stream.a\
-pplyStream(name,\
- chunk); };\x0a    \
-// API: enqueue \
-chunk (drained o\
-n rAF).\x0a    api_\
-appendStream = (\
-name, chunk) => \
-{ this.streamQ.e\
-nqueue(name, chu\
-nk); };\x0a    // A\
-PI: move current\
- output to \x22befo\
-re\x22 area and pre\
-pare for next st\
-ream.\x0a    api_ne\
-xtStream = () =>\
- {\x0a      this.ti\
-ps && this.tips.\
-hide();\x0a      co\
-nst element = th\
-is.dom.get('_app\
-end_output_'); c\
-onst before = th\
-is.dom.get('_app\
-end_output_befor\
-e_');\x0a      if (\
-element && befor\
-e) {\x0a        con\
-st frag = docume\
-nt.createDocumen\
-tFragment();\x0a   \
-     while (elem\
-ent.firstChild) \
-frag.appendChild\
-(element.firstCh\
-ild);\x0a        be\
-fore.appendChild\
-(frag);\x0a      }\x0a\
-      this.reset\
-StreamState('nex\
-tStream', { clea\
-rMsg: true, fina\
-lizeActive: fals\
-e, forceHeavy: t\
-rue });\x0a      th\
-is.scrollMgr.sch\
-eduleScroll();\x0a \
-   };\x0a    // API\
-: clear streamin\
-g output area en\
-tirely.\x0a    api_\
-clearStream = ()\
- => { this.tips \
-&& this.tips.hid\
-e(); this.resetS\
-treamState('clea\
-rStream', { clea\
-rMsg: true, forc\
-eHeavy: true });\
- const el = this\
-.dom.getStreamCo\
-ntainer(); if (!\
-el) return; el.r\
-eplaceChildren()\
-; };\x0a\x0a    // API\
-: append/replace\
- messages (non-s\
-treaming).\x0a    a\
-pi_appendNode = \
-(payload) => { t\
-his.resetStreamS\
-tate('appendNode\
-'); this.data.ap\
-pend(payload); }\
-;\x0a    api_replac\
-eNodes = (payloa\
-d) => { this.res\
-etStreamState('r\
-eplaceNodes', { \
-clearMsg: true, \
-forceHeavy: true\
- }); this.dom.cl\
-earNodes(); this\
-.data.replace(pa\
-yload); };\x0a\x0a    \
-// API: append t\
-o input area.\x0a  \
-    api_appendTo\
-Input = (payload\
-) => {\x0a        t\
-his.nodes.append\
-ToInput(payload)\
-;\x0a\x0a        // En\
-sure initial aut\
-o-follow is ON f\
-or the next stre\
-am that will sta\
-rt right after u\
-ser input.\x0a     \
-   // Rationale:\
- previously, if \
-the user had scr\
-olled up, autoFo\
-llow could remai\
-n false and the\x0a\
-        // live \
-stream would not\
- follow even tho\
-ugh we just sent\
- a new input.\x0a  \
-      this.scrol\
-lMgr.autoFollow \
-= true;       //\
- explicitly re-e\
-nable page auto-\
-follow\x0a        t\
-his.scrollMgr.us\
-erInteracted = f\
-alse;  // Reset \
-interaction so l\
-ive scroll is al\
-lowed\x0a\x0a        /\
-/ Keep lastScrol\
-lTop in sync to \
-avoid misclassif\
-ication in the n\
-ext onscroll han\
-dler.\x0a        tr\
-y { this.scrollM\
-gr.lastScrollTop\
- = Utils.SE.scro\
-llTop | 0; } cat\
-ch (_) {}\x0a\x0a     \
-   // Non-live s\
-croll to bottom \
-right away, inde\
-pendent of autoF\
-ollow state.\x0a   \
-     this.scroll\
-Mgr.scheduleScro\
-ll();\x0a        //\
- NOTE: No resetS\
-treamState() her\
-e to avoid flick\
-er/reflow issues\
- while previewin\
-g user input.\x0a  \
-    };\x0a\x0a    // A\
-PI: clear messag\
-es list.\x0a    api\
-_clearNodes = ()\
- => { this.dom.c\
-learNodes(); thi\
-s.resetStreamSta\
-te('clearNodes',\
- { clearMsg: tru\
-e, forceHeavy: t\
-rue }); };\x0a    /\
-/ API: clear inp\
-ut area.\x0a    api\
-_clearInput = ()\
- => { this.reset\
-StreamState('cle\
-arInput', { forc\
-eHeavy: true });\
- this.dom.clearI\
-nput(); };\x0a    /\
-/ API: clear out\
-put area.\x0a    ap\
-i_clearOutput = \
-() => { this.dom\
-.clearOutput(); \
-this.resetStream\
-State('clearOutp\
-ut', { clearMsg:\
- true, forceHeav\
-y: true }); };\x0a \
-   // API: clear\
- live area.\x0a    \
-api_clearLive = \
-() => { this.dom\
-.clearLive(); th\
-is.resetStreamSt\
-ate('clearLive',\
- { forceHeavy: t\
-rue }); };\x0a\x0a    \
-// API: tool out\
-put helpers.\x0a   \
- api_appendToolO\
-utput = (c) => t\
-his.toolOutput.a\
-ppend(c);\x0a    ap\
-i_updateToolOutp\
-ut = (c) => this\
-.toolOutput.upda\
-te(c);\x0a    api_c\
-learToolOutput =\
- () => this.tool\
-Output.clear();\x0a\
-    api_beginToo\
-lOutput = () => \
-this.toolOutput.\
-begin();\x0a    api\
-_endToolOutput =\
- () => this.tool\
-Output.end();\x0a  \
-  api_enableTool\
-Output = () => t\
-his.toolOutput.e\
-nable();\x0a    api\
-_disableToolOutp\
-ut = () => this.\
-toolOutput.disab\
-le();\x0a    api_to\
-ggleToolOutput =\
- (id) => this.to\
-olOutput.toggle(\
-id);\x0a\x0a    // API\
-: append extra c\
-ontent to a bot \
-message.\x0a    api\
-_appendExtra = (\
-id, c) => this.n\
-odes.appendExtra\
-(id, c, this.scr\
-ollMgr);\x0a    // \
-API: remove one \
-message by id.\x0a \
-   api_removeNod\
-e = (id) => this\
-.nodes.removeNod\
-e(id, this.scrol\
-lMgr);\x0a    // AP\
-I: remove all me\
-ssages starting \
-from id.\x0a    api\
-_removeNodesFrom\
-Id = (id) => thi\
-s.nodes.removeNo\
-desFromId(id, th\
-is.scrollMgr);\x0a\x0a\
-    // API: repl\
-ace live area co\
-ntent (with loca\
-l post-processin\
-g).\x0a    api_repl\
-aceLive = (conte\
-nt) => {\x0a      c\
-onst el = this.d\
-om.get('_append_\
-live_'); if (!el\
-) return;\x0a      \
-if (el.classList\
-.contains('hidde\
-n')) { el.classL\
-ist.remove('hidd\
-en'); el.classLi\
-st.add('visible'\
-); }\x0a      el.in\
-nerHTML = conten\
-t;\x0a\x0a      try {\x0a\
-        const ma\
-ybePromise = thi\
-s.renderer.rende\
-rPendingMarkdown\
-(el);\x0a\x0a        c\
-onst post = () =\
-> {\x0a          tr\
-y {\x0a            \
-this.highlighter\
-.observeNewCode(\
-el, {\x0a          \
-    deferLastIfS\
-treaming: true,\x0a\
-              mi\
-nLinesForLast: t\
-his.cfg.PROFILE_\
-CODE.minLinesFor\
-HL,\x0a            \
-  minCharsForLas\
-t: this.cfg.PROF\
-ILE_CODE.minChar\
-sForHL\x0a         \
-   }, this.strea\
-m.activeCode);\x0a\x0a\
-            this\
-.highlighter.obs\
-erveMsgBoxes(el,\
- (box) => {\x0a    \
-          this.h\
-ighlighter.obser\
-veNewCode(box, {\
+     this.snapsh\
+otScheduled = fa\
+lse; this.snapsh\
+otRAF = 0;\x0a\x0a    \
+  const hadActiv\
+e = !!this.activ\
+eCode;\x0a      try\
+ {\x0a        if (t\
+his.activeCode) \
+{\x0a          if (\
+o.finalizeActive\
+ === true) this.\
+finalizeActiveCo\
+de();\x0a          \
+else this.defuse\
+ActiveToPlain();\
+\x0a        }\x0a     \
+ } catch (e) {\x0a \
+       this._d('\
+ABORT_FINALIZE_E\
+RR', String(e));\
+\x0a      }\x0a\x0a      \
+if (o.defuseOrph\
+ans) {\x0a        t\
+ry { this.defuse\
+OrphanActiveBloc\
+ks(); }\x0a        \
+catch (e) { this\
+._d('ABORT_DEFUS\
+E_ORPHANS_ERR', \
+String(e)); }\x0a  \
+    }\x0a\x0a      if \
+(o.clearBuffer) \
+{\x0a        this._\
+clearStreamBuffe\
+r();\x0a        thi\
+s.fenceOpen = fa\
+lse; this.fenceM\
+ark = '`'; this.\
+fenceLen = 3;\x0a  \
+      this.fence\
+Tail = ''; this.\
+fenceBuf = '';\x0a \
+       this.code\
+Stream.open = fa\
+lse; this.codeSt\
+ream.lines = 0; \
+this.codeStream.\
+chars = 0;\x0a     \
+   window.__last\
+SnapshotLen = 0;\
+\x0a      }\x0a      i\
+f (o.clearMsg ==\
+= true) {\x0a      \
+  try { this.dom\
+.resetEphemeral(\
+); } catch (_) {\
+}\x0a      }\x0a      \
+if (!o.suppressL\
+og) this._d('ABO\
+RT_AND_RESET', {\
+ hadActive, ...o\
+ });\x0a    }\x0a    /\
+/ Select profile\
+ for current str\
+eam state (code \
+vs text).\x0a    pr\
+ofile() { return\
+ this.fenceOpen \
+? this.cfg.PROFI\
+LE_CODE : this.c\
+fg.PROFILE_TEXT;\
+ }\x0a    // Reset \
+adaptive snapsho\
+t budget to base\
+.\x0a    resetBudge\
+t() { this.nextS\
+napshotStep = th\
+is.profile().bas\
+e; }\x0a    // Chec\
+k whether [from,\
+ end) contains o\
+nly spaces/tabs.\
+\x0a    onlyTrailin\
+gWhitespace(s, f\
+rom, end) {\x0a    \
+  for (let i = f\
+rom; i < end; i+\
++) { const c = s\
+.charCodeAt(i); \
+if (c !== 0x20 &\
+& c !== 0x09) re\
+turn false; }\x0a  \
+    return true;\
+\x0a    }\x0a    // Up\
+date fence state\
+ based on a fres\
+h chunk and buff\
+er tail; detect \
+openings and clo\
+sings.\x0a    updat\
+eFenceHeuristic(\
+chunk) {\x0a      c\
+onst prev = (thi\
+s.fenceBuf || ''\
+);\x0a      const s\
+ = prev + (chunk\
+ || '');\x0a      c\
+onst preLen = pr\
+ev.length;\x0a     \
+ const n = s.len\
+gth; let i = 0;\x0a\
+      let opened\
+ = false; let cl\
+osed = false; le\
+t splitAt = -1;\x0a\
+      let atLine\
+Start = (preLen \
+=== 0) ? true : \
+/[\x5cn\x5cr]$/.test(p\
+rev);\x0a\x0a      con\
+st inNewOrCrosse\
+s = (j, k) => (j\
+ >= preLen) || (\
+k > preLen);\x0a\x0a  \
+    while (i < n\
+) {\x0a        cons\
+t ch = s[i];\x0a   \
+     if (ch === \
+'\x5cr' || ch === '\
+\x5cn') { atLineSta\
+rt = true; i++; \
+continue; }\x0a    \
+    if (!atLineS\
+tart) { i++; con\
+tinue; }\x0a       \
+ atLineStart = f\
+alse;\x0a\x0a        /\
+/ Skip list/bloc\
+kquote/indent no\
+rmalization (exi\
+sting logic)\x0a   \
+     let j = i;\x0a\
+        while (j\
+ < n) {\x0a        \
+  let localSpace\
+s = 0;\x0a         \
+ while (j < n &&\
+ (s[j] === ' ' |\
+| s[j] === '\x5ct')\
+) { localSpaces \
++= (s[j] === '\x5ct\
+') ? 4 : 1; j++;\
+ if (localSpaces\
+ > 3) break; }\x0a \
+         if (j <\
+ n && s[j] === '\
+>') { j++; if (j\
+ < n && s[j] ===\
+ ' ') j++; conti\
+nue; }\x0a\x0a        \
+  let saved = j;\
+\x0a          if (j\
+ < n && (s[j] ==\
+= '-' || s[j] ==\
+= '*' || s[j] ==\
+= '+')) {\x0a      \
+      let jj = j\
+ + 1; if (jj < n\
+ && s[jj] === ' \
+') { j = jj + 1;\
+ } else { j = sa\
+ved; }\x0a         \
+ } else {\x0a      \
+      let k2 = j\
+; let hasDigit =\
+ false;\x0a        \
+    while (k2 < \
+n && s[k2] >= '0\
+' && s[k2] <= '9\
+') { hasDigit = \
+true; k2++; }\x0a  \
+          if (ha\
+sDigit && k2 < n\
+ && (s[k2] === '\
+.' || s[k2] === \
+')')) {\x0a        \
+      k2++; if (\
+k2 < n && s[k2] \
+=== ' ') { j = k\
+2 + 1; } else { \
+j = saved; }\x0a   \
+         } else \
+{ j = saved; }\x0a \
+         }\x0a     \
+     break;\x0a    \
+    }\x0a\x0a        l\
+et indent = 0;\x0a \
+       while (j \
+< n && (s[j] ===\
+ ' ' || s[j] ===\
+ '\x5ct')) {\x0a      \
+    indent += (s\
+[j] === '\x5ct') ? \
+4 : 1; j++; if (\
+indent > 3) brea\
+k;\x0a        }\x0a   \
+     if (indent \
+> 3) { i = j; co\
+ntinue; }\x0a\x0a     \
+   // 1) Custom \
+fences first (e.\
+g. [!exec] ... [\
+/!exec], <execut\
+e>...</execute>)\
+\x0a        if (!th\
+is.fenceOpen && \
+this._customFenc\
+eSpecs && this._\
+customFenceSpecs\
+.length) {\x0a     \
+     for (let ci\
+ = 0; ci < this.\
+_customFenceSpec\
+s.length; ci++) \
+{\x0a            co\
+nst spec = this.\
+_customFenceSpec\
+s[ci];\x0a         \
+   const open = \
+spec && spec.ope\
+n ? spec.open : \
+'';\x0a            \
+if (!open) conti\
+nue;\x0a           \
+ const k = j + o\
+pen.length;\x0a    \
+        if (k <=\
+ n && s.slice(j,\
+ k) === open) {\x0a\
+              if\
+ (!inNewOrCrosse\
+s(j, k)) { /* se\
+en fully in prev\
+ious prefix */ }\
+\x0a              e\
+lse {\x0a          \
+      this.fence\
+Open = true; thi\
+s._fenceCustom =\
+ spec; opened = \
+true; i = k;\x0a   \
+             thi\
+s._d('FENCE_OPEN\
+_DETECTED_CUSTOM\
+', { open, idxSt\
+art: j, idxEnd: \
+k, region: (j >=\
+ preLen) ? 'new'\
+ : 'cross' });\x0a \
+               c\
+ontinue; // main\
+ while\x0a         \
+     }\x0a         \
+   }\x0a          }\
+\x0a        } else \
+if (this.fenceOp\
+en && this._fenc\
+eCustom && this.\
+_fenceCustom.clo\
+se) {\x0a          \
+const close = th\
+is._fenceCustom.\
+close;\x0a         \
+ const k = j + c\
+lose.length;\x0a   \
+       if (k <= \
+n && s.slice(j, \
+k) === close) {\x0a\
+            // R\
+equire only trai\
+ling whitespace \
+on the line (con\
+sistent with ```\
+ logic)\x0a        \
+    let eol = k;\
+ while (eol < n \
+&& s[eol] !== '\x5c\
+n' && s[eol] !==\
+ '\x5cr') eol++;\x0a  \
+          const \
+onlyWS = this.on\
+lyTrailingWhites\
+pace(s, k, eol);\
+\x0a            if \
+(onlyWS) {\x0a     \
+         if (!in\
+NewOrCrosses(j, \
+k)) { /* seen in\
+ previous prefix\
+ */ }\x0a          \
+    else {\x0a     \
+           this.\
+fenceOpen = fals\
+e; this._fenceCu\
+stom = null; clo\
+sed = true;\x0a    \
+            cons\
+t endInS = k;\x0a  \
+              co\
+nst rel = endInS\
+ - preLen;\x0a     \
+           split\
+At = Math.max(0,\
+ Math.min((chunk\
+ ? chunk.length \
+: 0), rel));\x0a   \
+             i =\
+ k;\x0a            \
+    this._d('FEN\
+CE_CLOSE_DETECTE\
+D_CUSTOM', { clo\
+se, idxStart: j,\
+ idxEnd: k, spli\
+tAt, region: (j \
+>= preLen) ? 'ne\
+w' : 'cross' });\
 \x0a               \
- deferLastIfStre\
-aming: true,\x0a   \
-             min\
+ continue; // ma\
+in while\x0a       \
+       }\x0a       \
+     } else {\x0a  \
+            this\
+._d('FENCE_CLOSE\
+_REJECTED_CUSTOM\
+_NON_WS_AFTER', \
+{ close, idxStar\
+t: j, idxEnd: k \
+});\x0a            \
+}\x0a          }\x0a  \
+      }\x0a\x0a       \
+ // 2) Standard \
+markdown-it fenc\
+es (``` or ~~~) \
+\xe2\x80\x93 leave your o\
+riginal logic in\
+tact\x0a        if \
+(j < n && (s[j] \
+=== '`' || s[j] \
+=== '~')) {\x0a    \
+      const mark\
+ = s[j]; let k =\
+ j; while (k < n\
+ && s[k] === mar\
+k) k++; const ru\
+n = k - j;\x0a\x0a    \
+      if (!this.\
+fenceOpen) {\x0a   \
+         if (run\
+ >= 3) {\x0a       \
+       if (!inNe\
+wOrCrosses(j, k)\
+) { i = k; conti\
+nue; }\x0a         \
+     this.fenceO\
+pen = true; this\
+.fenceMark = mar\
+k; this.fenceLen\
+ = run; opened =\
+ true; i = k;\x0a  \
+            this\
+._d('FENCE_OPEN_\
+DETECTED', { mar\
+k, run, idxStart\
+: j, idxEnd: k, \
+region: (j >= pr\
+eLen) ? 'new' : \
+'cross' });\x0a    \
+          contin\
+ue;\x0a            \
+}\x0a          } el\
+se if (!this._fe\
+nceCustom) {\x0a   \
+         if (mar\
+k === this.fence\
+Mark && run >= t\
+his.fenceLen) {\x0a\
+              if\
+ (!inNewOrCrosse\
+s(j, k)) { i = k\
+; continue; }\x0a  \
+            let \
+eol = k; while (\
+eol < n && s[eol\
+] !== '\x5cn' && s[\
+eol] !== '\x5cr') e\
+ol++;\x0a          \
+    if (this.onl\
+yTrailingWhitesp\
+ace(s, k, eol)) \
+{\x0a              \
+  this.fenceOpen\
+ = false; closed\
+ = true;\x0a       \
+         const e\
+ndInS = k;\x0a     \
+           const\
+ rel = endInS - \
+preLen;\x0a        \
+        splitAt \
+= Math.max(0, Ma\
+th.min((chunk ? \
+chunk.length : 0\
+), rel));\x0a      \
+          i = k;\
+\x0a               \
+ this._d('FENCE_\
+CLOSE_DETECTED',\
+ { mark, run, id\
+xStart: j, idxEn\
+d: k, splitAt, r\
+egion: (j >= pre\
+Len) ? 'new' : '\
+cross' });\x0a     \
+           conti\
+nue;\x0a           \
+   } else {\x0a    \
+            this\
+._d('FENCE_CLOSE\
+_REJECTED_NON_WS\
+_AFTER', { mark,\
+ run, idxStart: \
+j, idxEnd: k });\
+\x0a              }\
+\x0a            }\x0a \
+         }\x0a     \
+   }\x0a\x0a        i \
+= j + 1;\x0a      }\
+\x0a\x0a      const MA\
+X_TAIL = 512;\x0a  \
+    this.fenceBu\
+f = s.slice(-MAX\
+_TAIL);\x0a      th\
+is.fenceTail = s\
+.slice(-3);\x0a    \
+  return { opene\
+d, closed, split\
+At };\x0a    }\x0a\x0a   \
+ // Ensure messa\
+ge snapshot cont\
+ainer exists.\x0a  \
+  getMsgSnapshot\
+Root(msg) {\x0a    \
+  if (!msg) retu\
+rn null;\x0a      l\
+et snap = msg.qu\
+erySelector('.md\
+-snapshot-root')\
+;\x0a      if (!sna\
+p) { snap = docu\
+ment.createEleme\
+nt('div'); snap.\
+className = 'md-\
+snapshot-root'; \
+msg.appendChild(\
+snap); }\x0a      r\
+eturn snap;\x0a    \
+}\x0a    // Detect \
+structural bound\
+aries in a chunk\
+ (for snapshot d\
+ecisions).\x0a    h\
+asStructuralBoun\
+dary(chunk) { if\
+ (!chunk) return\
+ false; return /\
+\x5cn(\x5cn|[-*]\x5cs|\x5cd+\
+\x5c.\x5cs|#{1,6}\x5cs|>\x5c\
+s)/.test(chunk);\
+ }\x0a    // Decide\
+ whether we shou\
+ld snapshot on t\
+his chunk.\x0a    s\
+houldSnapshotOnC\
+hunk(chunk, chun\
+kHasNL, hasBound\
+ary) {\x0a      con\
+st prof = this.p\
+rofile(); const \
+now = Utils.now(\
+);\x0a      if (thi\
+s.activeCode && \
+this.fenceOpen) \
+return false;\x0a  \
+    if ((now - t\
+his.lastSnapshot\
+Ts) < prof.minIn\
+terval) return f\
+alse;\x0a      if (\
+hasBoundary) ret\
+urn true;\x0a\x0a     \
+ const delta = M\
+ath.max(0, this.\
+getStreamLength(\
+) - (window.__la\
+stSnapshotLen ||\
+ 0));\x0a      if (\
+this.fenceOpen) \
+{ if (chunkHasNL\
+ && delta >= thi\
+s.nextSnapshotSt\
+ep) return true;\
+ return false; }\
+\x0a      if (delta\
+ >= this.nextSna\
+pshotStep) retur\
+n true;\x0a      re\
+turn false;\x0a    \
+}\x0a    // If we a\
+re getting slow,\
+ schedule a soft\
+ snapshot based \
+on time.\x0a    may\
+beScheduleSoftSn\
+apshot(msg, chun\
+kHasNL) {\x0a      \
+const prof = thi\
+s.profile(); con\
+st now = Utils.n\
+ow();\x0a      if (\
+this.activeCode \
+&& this.fenceOpe\
+n) return;\x0a     \
+ if (this.fenceO\
+pen && this.code\
+Stream.lines < 1\
+ && !chunkHasNL)\
+ return;\x0a      i\
+f ((now - this.l\
+astSnapshotTs) >\
+= prof.softLaten\
+cy) this.schedul\
+eSnapshot(msg);\x0a\
+    }\x0a    // Sch\
+edule snapshot r\
+endering (coales\
+ced via rAF).\x0a  \
+  scheduleSnapsh\
+ot(msg, force = \
+false) {\x0a      i\
+f (this.snapshot\
+Scheduled && !th\
+is.raf.isSchedul\
+ed('SE:snapshot'\
+)) this.snapshot\
+Scheduled = fals\
+e;\x0a      if (!fo\
+rce) {\x0a        i\
+f (this.snapshot\
+Scheduled) retur\
+n;\x0a        if (t\
+his.activeCode &\
+& this.fenceOpen\
+) return;\x0a      \
+} else {\x0a       \
+ if (this.snapsh\
+otScheduled && t\
+his.raf.isSchedu\
+led('SE:snapshot\
+')) return;\x0a    \
+  }\x0a      this.s\
+napshotScheduled\
+ = true;\x0a      t\
+his.raf.schedule\
+('SE:snapshot', \
+() => { this.sna\
+pshotScheduled =\
+ false; this.ren\
+derSnapshot(msg)\
+; }, 'StreamEngi\
+ne', 0);\x0a    }\x0a \
+   // Split code\
+ element into fr\
+ozen and tail sp\
+ans if needed.\x0a \
+   ensureSplitCo\
+deEl(codeEl) {\x0a \
+     if (!codeEl\
+) return null;\x0a \
+     let frozen \
+= codeEl.querySe\
+lector('.hl-froz\
+en'); let tail =\
+ codeEl.querySel\
+ector('.hl-tail'\
+);\x0a      if (fro\
+zen && tail) ret\
+urn { codeEl, fr\
+ozenEl: frozen, \
+tailEl: tail };\x0a\
+      const text\
+ = codeEl.textCo\
+ntent || ''; cod\
+eEl.innerHTML = \
+'';\x0a      frozen\
+ = document.crea\
+teElement('span'\
+); frozen.classN\
+ame = 'hl-frozen\
+';\x0a      tail = \
+document.createE\
+lement('span'); \
+tail.className =\
+ 'hl-tail';\x0a    \
+  codeEl.appendC\
+hild(frozen); co\
+deEl.appendChild\
+(tail);\x0a      if\
+ (text) tail.tex\
+tContent = text;\
+ return { codeEl\
+, frozenEl: froz\
+en, tailEl: tail\
+ };\x0a    }\x0a    //\
+ Create active c\
+ode context from\
+ the latest snap\
+shot.\x0a    setupA\
+ctiveCodeFromSna\
+pshot(snap) {\x0a  \
+    const codes \
+= snap.querySele\
+ctorAll('pre cod\
+e'); if (!codes.\
+length) return n\
+ull;\x0a      const\
+ last = codes[co\
+des.length - 1];\
+\x0a      const cls\
+ = Array.from(la\
+st.classList).fi\
+nd(c => c.starts\
+With('language-'\
+)) || 'language-\
+plaintext';\x0a    \
+  const lang = (\
+cls.replace('lan\
+guage-', '') || \
+'plaintext');\x0a  \
+    const parts \
+= this.ensureSpl\
+itCodeEl(last); \
+if (!parts) retu\
+rn null;\x0a\x0a      \
+// If we injecte\
+d a synthetic EO\
+L for parsing an\
+ open fence, rem\
+ove it from the \
+streaming tail n\
+ow.\x0a      // Thi\
+s prevents break\
+ing the very fir\
+st code line int\
+o \x22#\x5cn foo\x22 when\
+ the next chunk \
+starts with \x22 fo\
+o\x22.\x0a      if (th\
+is._lastInjected\
+EOL && parts.tai\
+lEl && parts.tai\
+lEl.textContent \
+&& parts.tailEl.\
+textContent.ends\
+With('\x5cn')) {\x0a  \
+      parts.tail\
+El.textContent =\
+ parts.tailEl.te\
+xtContent.slice(\
+0, -1);\x0a        \
+// Reset the mar\
+ker so we don't \
+accidentally tri\
+m again in this \
+snapshot lifecyc\
+le.\x0a        this\
+._lastInjectedEO\
+L = false;\x0a     \
+ }\x0a\x0a      const \
+st = this.codeSc\
+roll.state(parts\
+.codeEl); st.aut\
+oFollow = true; \
+st.userInteracte\
+d = false;\x0a     \
+ parts.codeEl.da\
+taset._active_st\
+ream = '1';\x0a    \
+  const baseFroz\
+enNL = Utils.cou\
+ntNewlines(parts\
+.frozenEl.textCo\
+ntent || ''); co\
+nst baseTailNL =\
+ Utils.countNewl\
+ines(parts.tailE\
+l.textContent ||\
+ '');\x0a      cons\
+t ac = { codeEl:\
+ parts.codeEl, f\
+rozenEl: parts.f\
+rozenEl, tailEl:\
+ parts.tailEl, l\
+ang, frozenLen: \
+parts.frozenEl.t\
+extContent.lengt\
+h, lastPromoteTs\
+: 0,\x0a           \
+        lines: 0\
+, tailLines: bas\
+eTailNL, linesSi\
+ncePromote: 0, i\
+nitialLines: bas\
+eFrozenNL + base\
+TailNL, haltHL: \
+false, plainStre\
+am: false };\x0a   \
+   this._d('ACTI\
+VE_CODE_SETUP', \
+{ lang, frozenLe\
+n: ac.frozenLen,\
+ tailLines: ac.t\
+ailLines, initia\
+lLines: ac.initi\
+alLines });\x0a    \
+  return ac;\x0a   \
+ }\x0a    // Copy p\
+revious active c\
+ode state into t\
+he new one (afte\
+r snapshot).\x0a   \
+ rehydrateActive\
+Code(oldAC, newA\
+C) {\x0a      if (!\
+oldAC || !newAC)\
+ return;\x0a      n\
+ewAC.frozenEl.in\
+nerHTML = oldAC.\
+frozenEl ? oldAC\
+.frozenEl.innerH\
+TML : '';\x0a      \
+const fullText =\
+ newAC.codeEl.te\
+xtContent || '';\
+ const remainder\
+ = fullText.slic\
+e(oldAC.frozenLe\
+n);\x0a      newAC.\
+tailEl.textConte\
+nt = remainder;\x0a\
+      newAC.froz\
+enLen = oldAC.fr\
+ozenLen; newAC.l\
+ang = oldAC.lang\
+;\x0a      newAC.li\
+nes = oldAC.line\
+s; newAC.tailLin\
+es = Utils.count\
+Newlines(remaind\
+er);\x0a      newAC\
+.lastPromoteTs =\
+ oldAC.lastPromo\
+teTs; newAC.line\
+sSincePromote = \
+oldAC.linesSince\
+Promote || 0;\x0a  \
+    newAC.initia\
+lLines = oldAC.i\
+nitialLines || 0\
+; newAC.haltHL =\
+ !!oldAC.haltHL;\
+\x0a      newAC.pla\
+inStream = !!old\
+AC.plainStream;\x0a\
+      this._d('A\
+CTIVE_CODE_REHYD\
+RATE', { lang: n\
+ewAC.lang, froze\
+nLen: newAC.froz\
+enLen, tailLines\
+: newAC.tailLine\
+s, initialLines:\
+ newAC.initialLi\
+nes, halted: new\
+AC.haltHL, plain\
+Stream: newAC.pl\
+ainStream });\x0a  \
+  }\x0a    // Appen\
+d text to active\
+ tail span and u\
+pdate counters.\x0a\
+    appendToActi\
+veTail(text) {\x0a \
+     if (!this.a\
+ctiveCode || !th\
+is.activeCode.ta\
+ilEl || !text) r\
+eturn;\x0a      thi\
+s.activeCode.tai\
+lEl.insertAdjace\
+ntText('beforeen\
+d', text);\x0a     \
+ const nl = Util\
+s.countNewlines(\
+text);\x0a      thi\
+s.activeCode.tai\
+lLines += nl; th\
+is.activeCode.li\
+nesSincePromote \
++= nl;\x0a      thi\
+s.codeScroll.sch\
+eduleScroll(this\
+.activeCode.code\
+El, true, false)\
+;\x0a      if (this\
+.logger.isEnable\
+d('STREAM') && (\
+nl > 0 || text.l\
+ength >= 64)) {\x0a\
+        this._d(\
+'TAIL_APPEND', {\
+ addLen: text.le\
+ngth, addNL: nl,\
+ totalTailNL: th\
+is.activeCode.ta\
+ilLines });\x0a    \
+  }\x0a    }\x0a    //\
+ Enforce budgets\
+: stop increment\
+al hljs and swit\
+ch to plain stre\
+aming if needed.\
+\x0a    enforceHLSt\
+opBudget() {\x0a   \
+   if (!this.act\
+iveCode) return;\
+\x0a      // If glo\
+bal disable was \
+requested, halt \
+early and switch\
+ to plain stream\
+ing.\x0a      if (t\
+his.cfg.HL.DISAB\
+LE_ALL) { this.a\
+ctiveCode.haltHL\
+ = true; this.ac\
+tiveCode.plainSt\
+ream = true; ret\
+urn; }\x0a      con\
+st stop = (this.\
+cfg.PROFILE_CODE\
+.stopAfterLines \
+| 0);\x0a      cons\
+t streamPlainLin\
+es = (this.cfg.P\
+ROFILE_CODE.stre\
+amPlainAfterLine\
+s | 0);\x0a      co\
+nst streamPlainC\
+hars = (this.cfg\
+.PROFILE_CODE.st\
+reamPlainAfterCh\
+ars | 0);\x0a      \
+const maxFrozenC\
+hars = (this.cfg\
+.PROFILE_CODE.ma\
+xFrozenChars | 0\
+);\x0a\x0a      const \
+totalLines = (th\
+is.activeCode.in\
+itialLines || 0)\
+ + (this.activeC\
+ode.lines || 0);\
+\x0a      const fro\
+zenChars = this.\
+activeCode.froze\
+nLen | 0;\x0a      \
+const tailChars \
+= (this.activeCo\
+de.tailEl?.textC\
+ontent || '').le\
+ngth | 0;\x0a      \
+const totalStrea\
+medChars = froze\
+nChars + tailCha\
+rs;\x0a\x0a      // Sw\
+itch to plain st\
+reaming after bu\
+dgets \xe2\x80\x93 no inc\
+remental hljs\x0a  \
+    if ((streamP\
+lainLines > 0 &&\
+ totalLines >= s\
+treamPlainLines)\
+ ||\x0a          (s\
+treamPlainChars \
+> 0 && totalStre\
+amedChars >= str\
+eamPlainChars) |\
+|\x0a          (max\
+FrozenChars > 0 \
+&& frozenChars >\
+= maxFrozenChars\
+)) {\x0a        thi\
+s.activeCode.hal\
+tHL = true;\x0a    \
+    this.activeC\
+ode.plainStream \
+= true;\x0a        \
+try { this.activ\
+eCode.codeEl.dat\
+aset.hlStreamSus\
+pended = '1'; } \
+catch (_) {}\x0a   \
+     this._d('ST\
+REAM_HL_SUSPENDE\
+D', { totalLines\
+, totalStreamedC\
+hars, frozenChar\
+s, reason: 'budg\
+et' });\x0a        \
+return;\x0a      }\x0a\
+\x0a      if (stop \
+> 0 && totalLine\
+s >= stop) {\x0a   \
+     this.active\
+Code.haltHL = tr\
+ue;\x0a        this\
+.activeCode.plai\
+nStream = true;\x0a\
+        try { th\
+is.activeCode.co\
+deEl.dataset.hlS\
+treamSuspended =\
+ '1'; } catch (_\
+) {}\x0a        thi\
+s._d('STREAM_HL_\
+SUSPENDED', { to\
+talLines, stopAf\
+ter: stop, reaso\
+n: 'stopAfterLin\
+es' });\x0a      }\x0a\
+    }\x0a    _alias\
+Lang(token) {\x0a  \
+    const ALIAS \
+= {\x0a        txt:\
+ 'plaintext', te\
+xt: 'plaintext',\
+ plaintext: 'pla\
+intext',\x0a       \
+ sh: 'bash', she\
+ll: 'bash', zsh:\
+ 'bash', 'shell-\
+session': 'bash'\
+,\x0a        py: 'p\
+ython', python3:\
+ 'python', py3: \
+'python',\x0a      \
+  js: 'javascrip\
+t', node: 'javas\
+cript', nodejs: \
+'javascript',\x0a  \
+      ts: 'types\
+cript', 'ts-node\
+': 'typescript',\
+\x0a        yml: 'y\
+aml', kt: 'kotli\
+n', rs: 'rust',\x0a\
+        csharp: \
+'csharp', 'c#': \
+'csharp', 'c++':\
+ 'cpp',\x0a        \
+ps: 'powershell'\
+, ps1: 'powershe\
+ll', pwsh: 'powe\
+rshell', powersh\
+ell7: 'powershel\
+l',\x0a        dock\
+er: 'dockerfile'\
+\x0a      };\x0a      \
+const v = String\
+(token || '').tr\
+im().toLowerCase\
+();\x0a      return\
+ ALIAS[v] || v;\x0a\
+    }\x0a    _isHLJ\
+SSupported(lang)\
+ {\x0a      try { r\
+eturn !!(window.\
+hljs && hljs.get\
+Language && hljs\
+.getLanguage(lan\
+g)); } catch (_)\
+ { return false;\
+ }\x0a    }\x0a    // \
+Try to detect la\
+nguage from a \x22l\
+anguage: X\x22 styl\
+e first line dir\
+ective.\x0a    _det\
+ectDirectiveLang\
+FromText(text) {\
+\x0a      if (!text\
+) return null;\x0a \
+     let s = Str\
+ing(text);\x0a     \
+ if (s.charCodeA\
+t(0) === 0xFEFF)\
+ s = s.slice(1);\
+\x0a      const lin\
+es = s.split(/\x5cr\
+?\x5cn/);\x0a      let\
+ i = 0; while (i\
+ < lines.length \
+&& !lines[i].tri\
+m()) i++;\x0a      \
+if (i >= lines.l\
+ength) return nu\
+ll;\x0a      let fi\
+rst = lines[i].t\
+rim();\x0a      fir\
+st = first.repla\
+ce(/^\x5cs*lang(?:u\
+age)?\x5cs*[:=]\x5cs*/\
+i, '').trim();\x0a \
+     let token =\
+ first.split(/\x5cs\
++/)[0].replace(/\
+:$/, '');\x0a      \
+if (!/^[A-Za-z][\
+\x5cw#+\x5c-\x5c.]{0,30}$\
+/.test(token)) r\
+eturn null;\x0a\x0a   \
+   let cand = th\
+is._aliasLang(to\
+ken);\x0a      cons\
+t rest = lines.s\
+lice(i + 1).join\
+('\x5cn');\x0a      if\
+ (!rest.trim()) \
+return null;\x0a\x0a  \
+    let pos = 0,\
+ seen = 0;\x0a     \
+ while (seen < i\
+ && pos < s.leng\
+th) { const nl =\
+ s.indexOf('\x5cn',\
+ pos); if (nl ==\
+= -1) return nul\
+l; pos = nl + 1;\
+ seen++; }\x0a     \
+ let end = s.ind\
+exOf('\x5cn', pos);\
+\x0a      if (end =\
+== -1) end = s.l\
+ength; else end \
+= end + 1;\x0a     \
+ return { lang: \
+cand, deleteUpto\
+: end };\x0a    }\x0a \
+   // Update cod\
+e element class \
+to reflect new l\
+ang (language-xx\
+x).\x0a    _updateC\
+odeLangClass(cod\
+eEl, newLang) {\x0a\
+      try {\x0a    \
+    Array.from(c\
+odeEl.classList)\
+.forEach(c => { \
+if (c.startsWith\
+('language-')) c\
+odeEl.classList.\
+remove(c); });\x0a \
+       codeEl.cl\
+assList.add('lan\
+guage-' + (newLa\
+ng || 'plaintext\
+'));\x0a      } cat\
+ch (_) {}\x0a    }\x0a\
+    // Update co\
+de header label \
+and data attribu\
+te.\x0a    _updateC\
+odeHeaderLabel(c\
+odeEl, newLabel,\
+ newLangToken) {\
+\x0a      try {\x0a   \
+     const wrap \
+= codeEl.closest\
+('.code-wrapper'\
+);\x0a        if (!\
+wrap) return;\x0a  \
+      const span\
+ = wrap.querySel\
+ector('.code-hea\
+der-lang');\x0a    \
+    if (span) sp\
+an.textContent =\
+ newLabel || (ne\
+wLangToken || 'c\
+ode');\x0a        w\
+rap.setAttribute\
+('data-code-lang\
+', newLangToken \
+|| '');\x0a      } \
+catch (_) {}\x0a   \
+ }\x0a    // Try to\
+ promote languag\
+e from a directi\
+ve and remove it\
+s header line.\x0a \
+   maybePromoteL\
+anguageFromDirec\
+tive() {\x0a      i\
+f (!this.activeC\
+ode || !this.act\
+iveCode.codeEl) \
+return;\x0a      if\
+ (this.activeCod\
+e.lang && this.a\
+ctiveCode.lang !\
+== 'plaintext') \
+return;\x0a\x0a      c\
+onst frozenTxt =\
+ this.activeCode\
+.frozenEl ? this\
+.activeCode.froz\
+enEl.textContent\
+ : '';\x0a      con\
+st tailTxt = thi\
+s.activeCode.tai\
+lEl ? this.activ\
+eCode.tailEl.tex\
+tContent : '';\x0a \
+     const combi\
+ned = frozenTxt \
++ tailTxt;\x0a     \
+ if (!combined) \
+return;\x0a\x0a      c\
+onst det = this.\
+_detectDirective\
+LangFromText(com\
+bined);\x0a      if\
+ (!det || !det.l\
+ang) return;\x0a\x0a  \
+    const newLan\
+g = det.lang;\x0a  \
+    const newCom\
+bined = combined\
+.slice(det.delet\
+eUpto);\x0a\x0a      t\
+ry {\x0a        con\
+st codeEl = this\
+.activeCode.code\
+El;\x0a        code\
+El.innerHTML = '\
+';\x0a        const\
+ frozen = docume\
+nt.createElement\
+('span'); frozen\
+.className = 'hl\
+-frozen';\x0a      \
+  const tail = d\
+ocument.createEl\
+ement('span'); t\
+ail.className = \
+'hl-tail';\x0a     \
+   tail.textCont\
+ent = newCombine\
+d;\x0a        codeE\
+l.appendChild(fr\
+ozen); codeEl.ap\
+pendChild(tail);\
+\x0a        this.ac\
+tiveCode.frozenE\
+l = frozen; this\
+.activeCode.tail\
+El = tail;\x0a     \
+   this.activeCo\
+de.frozenLen = 0\
+;\x0a        this.a\
+ctiveCode.tailLi\
+nes = Utils.coun\
+tNewlines(newCom\
+bined);\x0a        \
+this.activeCode.\
+linesSincePromot\
+e = 0;\x0a\x0a        \
+this.activeCode.\
+lang = newLang;\x0a\
+        this._up\
+dateCodeLangClas\
+s(codeEl, newLan\
+g);\x0a        this\
+._updateCodeHead\
+erLabel(codeEl, \
+newLang, newLang\
+);\x0a\x0a        this\
+._d('LANG_PROMOT\
+E', { to: newLan\
+g, removedChars:\
+ det.deleteUpto,\
+ tailLines: this\
+.activeCode.tail\
+Lines });\x0a      \
+  this.scheduleP\
+romoteTail(true)\
+;\x0a      } catch \
+(e) {\x0a        th\
+is._d('LANG_PROM\
+OTE_ERR', String\
+(e));\x0a      }\x0a  \
+  }\x0a    // Highl\
+ight a small pie\
+ce of text based\
+ on language (sa\
+fe fallback to e\
+scapeHtml).\x0a    \
+highlightDeltaTe\
+xt(lang, text) {\
+\x0a      if (this.\
+cfg.HL.DISABLE_A\
+LL) return Utils\
+.escapeHtml(text\
+);\x0a      if (win\
+dow.hljs && lang\
+ && hljs.getLang\
+uage && hljs.get\
+Language(lang)) \
+{\x0a        try { \
+return hljs.high\
+light(text, { la\
+nguage: lang, ig\
+noreIllegals: tr\
+ue }).value; }\x0a \
+       catch (_)\
+ { return Utils.\
+escapeHtml(text)\
+; }\x0a      }\x0a    \
+  return Utils.e\
+scapeHtml(text);\
+\x0a    }\x0a    // Sc\
+hedule cooperati\
+ve tail promotio\
+n (async) to avo\
+id blocking UI o\
+n each chunk.\x0a  \
+  schedulePromot\
+eTail(force = fa\
+lse) {\x0a      if \
+(!this.activeCod\
+e || !this.activ\
+eCode.tailEl) re\
+turn;\x0a      if (\
+this._promoteSch\
+eduled) return;\x0a\
+      this._prom\
+oteScheduled = t\
+rue;\x0a      this.\
+raf.schedule('SE\
+:promoteTail', (\
+) => {\x0a        t\
+his._promoteSche\
+duled = false;\x0a \
+       this._pro\
+moteTailWork(for\
+ce);\x0a      }, 'S\
+treamEngine', 1)\
+;\x0a    }\x0a    // M\
+ove a full-line \
+part of tail int\
+o frozen region \
+(with highlight \
+if budgets allow\
+).\x0a    async _pr\
+omoteTailWork(fo\
+rce = false) {\x0a \
+     if (!this.a\
+ctiveCode || !th\
+is.activeCode.ta\
+ilEl) return;\x0a\x0a \
+     // If plain\
+ streaming mode \
+is on, or increm\
+ental hljs is di\
+sabled, promote \
+as plain text on\
+ly.\x0a      const \
+now = Utils.now(\
+); const prof = \
+this.cfg.PROFILE\
+_CODE;\x0a      con\
+st tailText0 = t\
+his.activeCode.t\
+ailEl.textConten\
+t || ''; if (!ta\
+ilText0) return;\
+\x0a\x0a      if (!for\
+ce) {\x0a        if\
+ ((now - this.ac\
+tiveCode.lastPro\
+moteTs) < prof.p\
+romoteMinInterva\
+l) return;\x0a     \
+   const enoughL\
+ines = (this.act\
+iveCode.linesSin\
+cePromote || 0) \
+>= (prof.promote\
+MinLines || 10);\
+\x0a        const e\
+noughChars = tai\
+lText0.length >=\
+ prof.minCharsFo\
+rHL;\x0a        if \
+(!enoughLines &&\
+ !enoughChars) r\
+eturn;\x0a      }\x0a\x0a\
+      // Cut at \
+last full line t\
+o avoid moving p\
+artial tokens\x0a  \
+    const idx = \
+tailText0.lastIn\
+dexOf('\x5cn');\x0a   \
+   if (idx <= -1\
+ && !force) retu\
+rn;\x0a      const \
+cut = (idx >= 0)\
+ ? (idx + 1) : t\
+ailText0.length;\
+\x0a      const del\
+ta = tailText0.s\
+lice(0, cut); if\
+ (!delta) return\
+;\x0a\x0a      // Re-e\
+valuate budgets \
+before performin\
+g any heavy work\
+\x0a      this.enfo\
+rceHLStopBudget(\
+);\x0a      const u\
+sePlain = this.a\
+ctiveCode.haltHL\
+ || this.activeC\
+ode.plainStream \
+|| !this._isHLJS\
+Supported(this.a\
+ctiveCode.lang);\
+\x0a\x0a      // Coope\
+rative rAF yield\
+ before heavy hi\
+ghlight\x0a      if\
+ (!usePlain) awa\
+it this.asyncer.\
+yield();\x0a\x0a      \
+// If tail chang\
+ed since we capt\
+ured it, validat\
+e prefix to avoi\
+d duplication\x0a  \
+    if (!this.ac\
+tiveCode || !thi\
+s.activeCode.tai\
+lEl) return;\x0a   \
+   const tailNow\
+ = this.activeCo\
+de.tailEl.textCo\
+ntent || '';\x0a   \
+   if (!tailNow.\
+startsWith(delta\
+)) {\x0a        // \
+New data arrived\
+; reschedule for\
+ next frame with\
+out touching DOM\
+\x0a        this.sc\
+hedulePromoteTai\
+l(false);\x0a      \
+  return;\x0a      \
+}\x0a\x0a      // Appl\
+y DOM updates: e\
+ither highlighte\
+d HTML delta or \
+plain text\x0a     \
+ if (usePlain) {\
+\x0a        // Plai\
+n text promotion\
+ \xe2\x80\x93 extremely c\
+heap, no spans c\
+reated.\x0a        \
+this.activeCode.\
+frozenEl.insertA\
+djacentText('bef\
+oreend', delta);\
+\x0a      } else {\x0a\
+        // Highl\
+ighted promotion\
+ \xe2\x80\x93 still cappe\
+d by budgets abo\
+ve.\x0a        let \
+html = Utils.esc\
+apeHtml(delta);\x0a\
+        try { ht\
+ml = this.highli\
+ghtDeltaText(thi\
+s.activeCode.lan\
+g, delta); } cat\
+ch (_) { html = \
+Utils.escapeHtml\
+(delta); }\x0a     \
+   this.activeCo\
+de.frozenEl.inse\
+rtAdjacentHTML('\
+beforeend', html\
+);\x0a      }\x0a\x0a    \
+  // Update tail\
+ and counters\x0a  \
+    this.activeC\
+ode.tailEl.textC\
+ontent = tailNow\
+.slice(delta.len\
+gth);\x0a      this\
+.activeCode.froz\
+enLen += delta.l\
+ength;\x0a      con\
+st promotedLines\
+ = Utils.countNe\
+wlines(delta);\x0a \
+     this.active\
+Code.tailLines =\
+ Math.max(0, (th\
+is.activeCode.ta\
+ilLines || 0) - \
+promotedLines);\x0a\
+      this.activ\
+eCode.linesSince\
+Promote = Math.m\
+ax(0, (this.acti\
+veCode.linesSinc\
+ePromote || 0) -\
+ promotedLines);\
+\x0a      this.acti\
+veCode.lastPromo\
+teTs = Utils.now\
+();\x0a      this.c\
+odeScroll.schedu\
+leScroll(this.ac\
+tiveCode.codeEl,\
+ true, false);\x0a \
+     this._d(use\
+Plain ? 'TAIL_PR\
+OMOTE_PLAIN' : '\
+TAIL_PROMOTE_ASY\
+NC', { cut, prom\
+otedLines, lang:\
+ this.activeCode\
+.lang, plain: us\
+ePlain });\x0a    }\
+\x0a    // Finalize\
+ the current act\
+ive code block. \
+Keep it plain fo\
+r now and schedu\
+le highlight laz\
+ily.\x0a    finaliz\
+eActiveCode() {\x0a\
+      if (!this.\
+activeCode) retu\
+rn;\x0a      const \
+codeEl = this.ac\
+tiveCode.codeEl;\
+\x0a      const fro\
+mBottomBefore = \
+Math.max(0, code\
+El.scrollHeight \
+- codeEl.clientH\
+eight - codeEl.s\
+crollTop);\x0a     \
+ const wasNearBo\
+ttom = this.code\
+Scroll.isNearBot\
+tomEl(codeEl, th\
+is.cfg.CODE_SCRO\
+LL.NEAR_MARGIN_P\
+X);\x0a      const \
+fullText = (this\
+.activeCode.froz\
+enEl.textContent\
+ || '') + (this.\
+activeCode.tailE\
+l.textContent ||\
+ '');\x0a\x0a      // \
+Non-blocking fin\
+alize: place pla\
+in text now, sch\
+edule highlight \
+via Highlighter \
+later.\x0a      try\
+ {\x0a        codeE\
+l.innerHTML = ''\
+;\x0a        codeEl\
+.textContent = f\
+ullText;\x0a       \
+ codeEl.classLis\
+t.add('hljs');  \
+         // keep\
+ visual parity u\
+ntil highlight a\
+pplies\x0a        c\
+odeEl.removeAttr\
+ibute('data-high\
+lighted');\x0a     \
+ } catch (_) {}\x0a\
+\x0a      const st \
+= this.codeScrol\
+l.state(codeEl);\
+ st.autoFollow =\
+ false;\x0a      co\
+nst maxScrollTop\
+ = Math.max(0, c\
+odeEl.scrollHeig\
+ht - codeEl.clie\
+ntHeight);\x0a     \
+ const target = \
+wasNearBottom ? \
+maxScrollTop : M\
+ath.max(0, maxSc\
+rollTop - fromBo\
+ttomBefore);\x0a   \
+   try { codeEl.\
+scrollTop = targ\
+et; } catch (_) \
+{}\x0a      st.last\
+ScrollTop = code\
+El.scrollTop;\x0a  \
+    codeEl.datas\
+et._active_strea\
+m = '0';\x0a\x0a      \
+try { codeEl.dat\
+aset.justFinaliz\
+ed = '1'; } catc\
+h (_) {}\x0a      t\
+his.codeScroll.s\
+cheduleScroll(co\
+deEl, false, tru\
+e);\x0a\x0a      // Sc\
+hedule async hig\
+hlight on the fi\
+nalized element \
+(viewport-aware)\
+.\x0a      try { if\
+ (!this.cfg.HL.D\
+ISABLE_ALL) this\
+.highlighter.que\
+ue(codeEl, null)\
+; } catch (_) {}\
+\x0a\x0a      this.sup\
+pressPostFinaliz\
+ePass = true;\x0a\x0a \
+     this._d('FI\
+NALIZE_CODE_NONB\
+LOCK', { lang: t\
+his.activeCode.l\
+ang, len: fullTe\
+xt.length, highl\
+ighted: false })\
+;\x0a      this.act\
+iveCode = null;\x0a\
+    }\x0a    // Mak\
+e a simple finge\
+rprint to reuse \
+identical closed\
+ code blocks bet\
+ween snapshots.\x0a\
+    codeFingerpr\
+int(codeEl) {\x0a  \
+    const cls = \
+Array.from(codeE\
+l.classList).fin\
+d(c => c.startsW\
+ith('language-')\
+) || 'language-p\
+laintext';\x0a     \
+ const lang = cl\
+s.replace('langu\
+age-', '') || 'p\
+laintext';\x0a     \
+ const t = codeE\
+l.textContent ||\
+ ''; const len =\
+ t.length; const\
+ head = t.slice(\
+0, 64); const ta\
+il = t.slice(-64\
+);\x0a      return \
+`${lang}|${len}|\
+${head}|${tail}`\
+;\x0a    }\x0a    // f\
+ingerprint using\
+ precomputed met\
+a on wrapper (av\
+oids .textConten\
+t for heavy bloc\
+ks).\x0a    codeFin\
+gerprintFromWrap\
+per(codeEl) {\x0a  \
+    try {\x0a      \
+  const wrap = c\
+odeEl.closest('.\
+code-wrapper'); \
+if (!wrap) retur\
+n null;\x0a        \
+const cls = Arra\
+y.from(codeEl.cl\
+assList).find(c \
+=> c.startsWith(\
+'language-')) ||\
+ 'language-plain\
+text';\x0a        c\
+onst lang = (cls\
+.replace('langua\
+ge-', '') || 'pl\
+aintext');\x0a     \
+   const len = w\
+rap.getAttribute\
+('data-code-len'\
+) || '';\x0a       \
+ const head = wr\
+ap.getAttribute(\
+'data-code-head'\
+) || '';\x0a       \
+ const tail = wr\
+ap.getAttribute(\
+'data-code-tail'\
+) || '';\x0a       \
+ if (!len) retur\
+n null; // ensur\
+e at least lengt\
+h exists\x0a       \
+ return `${lang}\
+|${len}|${head}|\
+${tail}`;\x0a      \
+} catch (_) {\x0a  \
+      return nul\
+l;\x0a      }\x0a    }\
+\x0a    // Try to r\
+euse old finaliz\
+ed code block DO\
+M nodes to avoid\
+ re-highlighting\
+.\x0a    preserveSt\
+ableClosedCodes(\
+oldSnap, newRoot\
+, skipLastIfStre\
+aming) {\x0a      t\
+ry {\x0a        con\
+st oldCodes = Ar\
+ray.from(oldSnap\
+.querySelectorAl\
+l('pre code')); \
+if (!oldCodes.le\
+ngth) return;\x0a  \
+      // Safety \
+guard: avoid hea\
+vy fingerprint w\
+ork on extremely\
+ large outputs\x0a \
+       const new\
+CodesPre = Array\
+.from(newRoot.qu\
+erySelectorAll('\
+pre code'));\x0a   \
+     if (newCode\
+sPre.length > th\
+is.cfg.STREAM.PR\
+ESERVE_CODES_MAX\
+ || oldCodes.len\
+gth > this.cfg.S\
+TREAM.PRESERVE_C\
+ODES_MAX) return\
+;\x0a\x0a        const\
+ map = new Map()\
+;\x0a        for (c\
+onst el of oldCo\
+des) {\x0a         \
+ if (el.querySel\
+ector('.hl-froze\
+n')) continue;  \
+             // \
+skip streaming b\
+locks\x0a          \
+if (this.activeC\
+ode && el === th\
+is.activeCode.co\
+deEl) continue;\x0a\
+          // Try\
+ wrapper-based f\
+ingerprint first\
+, fallback to te\
+xt-based\x0a       \
+   let fp = this\
+.codeFingerprint\
+FromWrapper(el);\
+\x0a          if (!\
+fp) fp = el.data\
+set.fp || (el.da\
+taset.fp = this.\
+codeFingerprint(\
+el));\x0a          \
+const arr = map.\
+get(fp) || []; a\
+rr.push(el); map\
+.set(fp, arr);\x0a \
+       }\x0a       \
+ const newCodes \
+= newCodesPre;\x0a \
+       const end\
+ = (skipLastIfSt\
+reaming && newCo\
+des.length > 0) \
+? (newCodes.leng\
+th - 1) : newCod\
+es.length;\x0a     \
+   let reuseCoun\
+t = 0;\x0a        f\
+or (let i = 0; i\
+ < end; i++) {\x0a \
+         const n\
+c = newCodes[i];\
+\x0a          if (n\
+c.getAttribute('\
+data-highlighted\
+') === 'yes') co\
+ntinue;\x0a        \
+  // Fingerprint\
+ new code: prefe\
+r wrapper meta (\
+no .textContent \
+read)\x0a          \
+let fp = this.co\
+deFingerprintFro\
+mWrapper(nc);\x0a  \
+        if (!fp)\
+ fp = this.codeF\
+ingerprint(nc);\x0a\
+          const \
+arr = map.get(fp\
+);\x0a          if \
+(arr && arr.leng\
+th) {\x0a          \
+  const oldEl = \
+arr.shift();\x0a   \
+         if (old\
+El && oldEl.isCo\
+nnected) {\x0a     \
+         try {\x0a \
+               n\
+c.replaceWith(ol\
+dEl);\x0a          \
+      this.codeS\
+croll.attachHand\
+lers(oldEl);\x0a   \
+             // \
+Preserve whateve\
+r final state th\
+e old element ha\
+d\x0a              \
+  if (!oldEl.get\
+Attribute('data-\
+highlighted')) o\
+ldEl.setAttribut\
+e('data-highligh\
+ted', 'yes');\x0a  \
+              co\
+nst st = this.co\
+deScroll.state(o\
+ldEl); st.autoFo\
+llow = false;\x0a  \
+              re\
+useCount++;\x0a    \
+          } catc\
+h (_) {}\x0a       \
+     }\x0a         \
+   if (!arr.leng\
+th) map.delete(f\
+p);\x0a          }\x0a\
+        }\x0a      \
+  if (reuseCount\
+) this._d('PRESE\
+RVE_CODES_REUSED\
+', { reuseCount,\
+ skipLastIfStrea\
+ming });\x0a      }\
+ catch (e) {\x0a   \
+     this._d('PR\
+ESERVE_CODES_ERR\
+OR', String(e));\
+\x0a      }\x0a    }\x0a \
+   // Ensure blo\
+cks marked as ju\
+st-finalized are\
+ scrolled to bot\
+tom.\x0a    _ensure\
+BottomForJustFin\
+alized(root) {\x0a \
+     try {\x0a     \
+   const scope =\
+ root || documen\
+t;\x0a        const\
+ nodes = scope.q\
+uerySelectorAll(\
+'pre code[data-j\
+ust-finalized=\x221\
+\x22]');\x0a        if\
+ (!nodes || !nod\
+es.length) retur\
+n;\x0a        nodes\
+.forEach((codeEl\
+) => {\x0a         \
+ this.codeScroll\
+.scheduleScroll(\
+codeEl, false, t\
+rue);\x0a          \
+const key = { t:\
+ 'JF:forceBottom\
+', el: codeEl, n\
+: Math.random() \
+};\x0a          thi\
+s.raf.schedule(k\
+ey, () => {\x0a    \
+        this.cod\
+eScroll.scrollTo\
+Bottom(codeEl, f\
+alse, true);\x0a   \
+         try { c\
+odeEl.dataset.ju\
+stFinalized = '0\
+'; } catch (_) {\
+}\x0a          }, '\
+CodeScroll', 2);\
+\x0a        });\x0a   \
+   } catch (_) {\
+}\x0a    }\x0a    // I\
+f stream is visi\
+ble but somethin\
+g got stuck, for\
+ce a quick refre\
+sh.\x0a    kickVisi\
+bility() {\x0a     \
+ const msg = thi\
+s.getMsg(false, \
+'');\x0a      if (!\
+msg) return;\x0a   \
+   if (this.code\
+Stream.open && !\
+this.activeCode)\
+ {\x0a        this.\
+scheduleSnapshot\
+(msg, true);\x0a   \
+     return;\x0a   \
+   }\x0a      const\
+ needSnap = (thi\
+s.getStreamLengt\
+h() !== (window.\
+__lastSnapshotLe\
+n || 0));\x0a      \
+if (needSnap) th\
+is.scheduleSnaps\
+hot(msg, true);\x0a\
+      if (this.a\
+ctiveCode && thi\
+s.activeCode.cod\
+eEl) {\x0a        t\
+his.codeScroll.s\
+cheduleScroll(th\
+is.activeCode.co\
+deEl, true, fals\
+e);\x0a        this\
+.schedulePromote\
+Tail(true);\x0a    \
+  }\x0a    }\x0a      \
+// Keep language\
+ header stable a\
+cross snapshots \
+for the active s\
+treaming code.\x0a \
+     // If the c\
+urrent snapshot \
+produced a tiny/\
+unsupported toke\
+n (e.g. 'on', 'm\
+l', 's'),\x0a      \
+// reuse the las\
+t known good lan\
+guage (from prev\
+ious active stat\
+e or sticky attr\
+ibute).\x0a      st\
+abilizeHeaderLab\
+el(prevAC, newAC\
+) {\x0a        try \
+{\x0a          if (\
+!newAC || !newAC\
+.codeEl || !newA\
+C.codeEl.isConne\
+cted) return;\x0a\x0a \
+         const w\
+rap = newAC.code\
+El.closest('.cod\
+e-wrapper');\x0a   \
+       if (!wrap\
+) return;\x0a\x0a     \
+     const span \
+= wrap.querySele\
+ctor('.code-head\
+er-lang');\x0a     \
+     const curLa\
+bel = (span && s\
+pan.textContent \
+? span.textConte\
+nt.trim() : '').\
+toLowerCase();\x0a\x0a\
+          // Do \
+not touch tool/o\
+utput blocks\x0a   \
+       if (curLa\
+bel === 'output'\
+) return;\x0a\x0a     \
+     const tokNo\
+w = (wrap.getAtt\
+ribute('data-cod\
+e-lang') || '').\
+trim().toLowerCa\
+se();\x0a          \
+const sticky = (\
+wrap.getAttribut\
+e('data-lang-sti\
+cky') || '').tri\
+m().toLowerCase(\
+);\x0a          con\
+st prev = (prevA\
+C && prevAC.lang\
+ && prevAC.lang \
+!== 'plaintext')\
+ ? prevAC.lang.t\
+oLowerCase() : '\
+';\x0a\x0a          co\
+nst valid = (t) \
+=> !!t && t !== \
+'plaintext' && t\
+his._isHLJSSuppo\
+rted(t);\x0a\x0a      \
+    let finalTok\
+ = '';\x0a         \
+ if (valid(tokNo\
+w)) finalTok = t\
+okNow;\x0a         \
+ else if (valid(\
+prev)) finalTok \
+= prev;\x0a        \
+  else if (valid\
+(sticky)) finalT\
+ok = sticky;\x0a\x0a  \
+        if (fina\
+lTok) {\x0a        \
+    // Update co\
+de class and hea\
+der label consis\
+tently\x0a         \
+   this._updateC\
+odeLangClass(new\
+AC.codeEl, final\
+Tok);\x0a          \
+  this._updateCo\
+deHeaderLabel(ne\
+wAC.codeEl, fina\
+lTok, finalTok);\
+\x0a            try\
+ { wrap.setAttri\
+bute('data-code-\
+lang', finalTok)\
+; } catch (_) {}\
+\x0a            try\
+ { wrap.setAttri\
+bute('data-lang-\
+sticky', finalTo\
+k); } catch (_) \
+{}\x0a            n\
+ewAC.lang = fina\
+lTok; // keep AC\
+ state in sync\x0a \
+         } else \
+{\x0a            //\
+ If current labe\
+l looks like a t\
+iny/incomplete t\
+oken, normalize \
+to 'code'\x0a      \
+      if (span &\
+& curLabel && cu\
+rLabel.length < \
+3) {\x0a           \
+   span.textCont\
+ent = 'code';\x0a  \
+          }\x0a    \
+      }\x0a        \
+} catch (_) { /*\
+ defensive: neve\
+r break streamin\
+g path */ }\x0a    \
+  }\x0a    // Rende\
+r a snapshot of \
+current stream b\
+uffer into the D\
+OM.\x0a    renderSn\
+apshot(msg) {\x0a  \
+    const stream\
+ing = !!this.isS\
+treaming;\x0a      \
+const snap = thi\
+s.getMsgSnapshot\
+Root(msg); if (!\
+snap) return;\x0a\x0a \
+     // No-op if\
+ nothing changed\
+ and no active c\
+ode\x0a      const \
+prevLen = (windo\
+w.__lastSnapshot\
+Len || 0);\x0a     \
+ const curLen = \
+this.getStreamLe\
+ngth();\x0a      if\
+ (!this.fenceOpe\
+n && !this.activ\
+eCode && curLen \
+=== prevLen) {\x0a \
+       this.last\
+SnapshotTs = Uti\
+ls.now();\x0a      \
+  this._d('SNAPS\
+HOT_SKIPPED_NO_D\
+ELTA', { bufLen:\
+ curLen });\x0a    \
+    return;\x0a    \
+  }\x0a\x0a      const\
+ t0 = Utils.now(\
+);\x0a\x0a      // Whe\
+n an open fence \
+is present, appe\
+nd a synthetic E\
+OL only if the c\
+urrent buffer\x0a  \
+    // does not \
+already end with\
+ EOL. This stabi\
+lizes markdown-i\
+t parsing withou\
+t polluting\x0a    \
+  // the real co\
+de tail (we will\
+ strip this EOL \
+from the active \
+tail right after\
+ snapshot).\x0a    \
+  const allText \
+= this.getStream\
+Text();\x0a      co\
+nst needSyntheti\
+cEOL = (this.fen\
+ceOpen && !/[\x5cr\x5c\
+n]$/.test(allTex\
+t));\x0a      this.\
+_lastInjectedEOL\
+ = !!needSynthet\
+icEOL;\x0a      con\
+st src = needSyn\
+theticEOL ? (all\
+Text + '\x5cn') : a\
+llText;\x0a\x0a      /\
+/ Use streaming \
+renderer (no lin\
+kify) on hot pat\
+h to reduce CPU/\
+allocs\x0a      con\
+st html = stream\
+ing ? this.rende\
+rer.renderStream\
+ingSnapshot(src)\
+ : this.renderer\
+.renderFinalSnap\
+shot(src);\x0a\x0a    \
+  // parse HTML \
+into a DocumentF\
+ragment directly\
+ to avoid interm\
+ediate container\
+ allocations.\x0a  \
+    let frag = n\
+ull;\x0a      try {\
+\x0a        const r\
+ange = document.\
+createRange();\x0a \
+       range.sel\
+ectNodeContents(\
+snap);\x0a        f\
+rag = range.crea\
+teContextualFrag\
+ment(html);\x0a    \
+  } catch (_) {\x0a\
+        const tm\
+p = document.cre\
+ateElement('div'\
+);\x0a        tmp.i\
+nnerHTML = html;\
+\x0a        frag = \
+document.createD\
+ocumentFragment(\
+);\x0a        while\
+ (tmp.firstChild\
+) frag.appendChi\
+ld(tmp.firstChil\
+d);\x0a      }\x0a\x0a   \
+   // (stream-aw\
+are custom marku\
+p):\x0a      // App\
+ly Custom Markup\
+ on the fragment\
+ only if at leas\
+t one rule opted\
+-in for stream.\x0a\
+      try {\x0a    \
+    if (this.ren\
+derer && this.re\
+nderer.customMar\
+kup && this.rend\
+erer.customMarku\
+p.hasStreamRules\
+()) {\x0a          \
+const MDinline =\
+ this.renderer.M\
+D_STREAM || this\
+.renderer.MD || \
+null;\x0a          \
+this.renderer.cu\
+stomMarkup.apply\
+Stream(frag, MDi\
+nline);\x0a        \
+}\x0a      } catch \
+(_) { /* keep sn\
+apshot path resi\
+lient */ }\x0a\x0a    \
+  // Reuse close\
+d, stable code b\
+locks from previ\
+ous snapshot to \
+avoid re-highlig\
+hting\x0a      this\
+.preserveStableC\
+losedCodes(snap,\
+ frag, this.fenc\
+eOpen === true);\
+\x0a\x0a      // Repla\
+ce content\x0a     \
+ snap.replaceChi\
+ldren(frag);\x0a\x0a  \
+    // Restore c\
+ode UI state and\
+ ensure bottomin\
+g for freshly fi\
+nalized elements\
+\x0a      this.rend\
+erer.restoreColl\
+apsedCode(snap);\
+\x0a      this._ens\
+ureBottomForJust\
+Finalized(snap);\
+\x0a\x0a      // Setup\
+ active streamin\
+g code if fence \
+is open, otherwi\
+se clear active \
+state\x0a        co\
+nst prevAC = thi\
+s.activeCode; //\
+ remember previo\
+us active stream\
+ing state (if an\
+y)\x0a\x0a        if (\
+this.fenceOpen) \
+{\x0a          cons\
+t newAC = this.s\
+etupActiveCodeFr\
+omSnapshot(snap)\
+;\x0a\x0a          // \
+preserve previou\
+s frozen/tail st\
+ate and stable l\
+ang/header acros\
+s snapshots\x0a    \
+      if (prevAC\
+ && newAC) {\x0a   \
+         this.re\
+hydrateActiveCod\
+e(prevAC, newAC)\
+;\x0a            th\
+is.stabilizeHead\
+erLabel(prevAC, \
+newAC);\x0a        \
+  }\x0a\x0a          t\
+his.activeCode =\
+ newAC || null;\x0a\
+        } else {\
+\x0a          this.\
+activeCode = nul\
+l;\x0a        }\x0a\x0a  \
+    // Attach sc\
+roll/highlight o\
+bservers (viewpo\
+rt aware)\x0a      \
+if (!this.fenceO\
+pen) {\x0a        t\
+his.codeScroll.i\
+nitScrollableBlo\
+cks(snap);\x0a     \
+ }\x0a      this.hi\
+ghlighter.observ\
+eNewCode(snap, {\
+\x0a        deferLa\
+stIfStreaming: t\
+rue,\x0a        min\
 LinesForLast: th\
 is.cfg.PROFILE_C\
 ODE.minLinesForH\
-L,\x0a             \
-   minCharsForLa\
-st: this.cfg.PRO\
-FILE_CODE.minCha\
-rsForHL\x0a        \
-      }, this.st\
-ream.activeCode)\
-;\x0a              \
-this.codeScroll.\
-initScrollableBl\
-ocks(box);\x0a     \
-       });\x0a     \
-     } catch (_)\
- {}\x0a\x0a          t\
-ry {\x0a           \
- const mm = getM\
-athMode();\x0a     \
-       // In fin\
-alize-only we mu\
-st force now; ot\
-herwise normal s\
-chedule is fine.\
-\x0a            if \
-(mm === 'finaliz\
-e-only') this.ma\
-th.schedule(el, \
-0, true);\x0a      \
-      else this.\
-math.schedule(el\
-);\x0a          } c\
-atch (_) {}\x0a\x0a   \
-       this.scro\
-llMgr.scheduleSc\
-roll();\x0a        \
-};\x0a\x0a        if (\
-maybePromise && \
-typeof maybeProm\
-ise.then === 'fu\
-nction') {\x0a     \
-     maybePromis\
-e.then(post);\x0a  \
-      } else {\x0a \
-         post();\
-\x0a        }\x0a     \
- } catch (_) {\x0a \
-       // Worst-\
-case: keep UX re\
-sponsive even if\
- something throw\
-s before post-pr\
-ocessing\x0a       \
- this.scrollMgr.\
-scheduleScroll()\
-;\x0a      }\x0a    };\
-\x0a\x0a    // API: up\
-date footer cont\
-ent.\x0a    api_upd\
-ateFooter = (htm\
-l) => { const el\
- = this.dom.get(\
-'_footer_'); if \
-(el) el.innerHTM\
-L = html; };\x0a\x0a  \
-  // API: toggle\
- UI features.\x0a  \
-  api_enableEdit\
-Icons = () => th\
-is.ui.enableEdit\
-Icons();\x0a    api\
-_disableEditIcon\
-s = () => this.u\
-i.disableEditIco\
-ns();\x0a    api_en\
-ableTimestamp = \
-() => this.ui.en\
-ableTimestamp();\
-\x0a    api_disable\
-Timestamp = () =\
-> this.ui.disabl\
-eTimestamp();\x0a  \
-  api_enableBloc\
-ks = () => this.\
-ui.enableBlocks(\
-);\x0a    api_disab\
-leBlocks = () =>\
- this.ui.disable\
-Blocks();\x0a    ap\
-i_updateCSS = (s\
-tyles) => this.u\
-i.updateCSS(styl\
-es);\x0a\x0a    // API\
-: sync scroll po\
-sition with host\
-.\x0a    api_getScr\
-ollPosition = ()\
- => { this.bridg\
-e.updateScrollPo\
-sition(window.sc\
-rollY); };\x0a    a\
-pi_setScrollPosi\
-tion = (pos) => \
-{ try { window.s\
-crollTo(0, pos);\
- this.scrollMgr.\
-prevScroll = par\
-seInt(pos); } ca\
-tch (_) {} };\x0a\x0a \
-   // API: show/\
-hide loading ove\
-rlay.\x0a    api_sh\
-owLoading = () =\
-> this.loading.s\
-how();\x0a    api_h\
-ideLoading = () \
-=> this.loading.\
-hide();\x0a\x0a    // \
-API: restore col\
-lapsed state of \
-codes in a given\
- root.\x0a    api_r\
-estoreCollapsedC\
-ode = (root) => \
-this.renderer.re\
-storeCollapsedCo\
-de(root);\x0a\x0a    /\
-/ API: user-trig\
-gered page scrol\
-l.\x0a    api_scrol\
-lToTopUser = () \
-=> this.scrollMg\
-r.scrollToTopUse\
-r();\x0a    api_scr\
-ollToBottomUser \
-= () => this.scr\
-ollMgr.scrollToB\
-ottomUser();\x0a\x0a  \
-  // API: tips v\
-isibility contro\
-l.\x0a    api_showT\
-ips = () => this\
-.tips.show();\x0a  \
-  api_hideTips =\
- () => this.tips\
-.hide();\x0a\x0a    //\
- API: custom mar\
-kup rules contro\
-l.\x0a    api_getCu\
-stomMarkupRules \
-= () => this.cus\
-tomMarkup.getRul\
-es();\x0a    api_se\
-tCustomMarkupRul\
-es = (rules) => \
-{\x0a      this.cus\
-tomMarkup.setRul\
-es(rules);\x0a     \
- // Keep StreamE\
-ngine in sync wi\
-th rules produci\
-ng fenced code\x0a \
-     try { this.\
-stream.setCustom\
-FenceSpecs(this.\
-customMarkup.get\
-SourceFenceSpecs\
-()); } catch (_)\
- {}\x0a    };\x0a\x0a    \
-// Initialize ru\
-ntime (called on\
- DOMContentLoade\
-d).\x0a    init() {\
-\x0a      this.high\
-lighter.initHLJS\
-();\x0a      this.d\
-om.init();\x0a     \
- this.ui.ensureS\
-tickyHeaderStyle\
-();\x0a\x0a      this.\
-tips = new TipsM\
-anager(this.dom)\
-;\x0a      this.eve\
-nts.install();\x0a\x0a\
-      this.bridg\
-e.initQWebChanne\
-l(this.cfg.PID, \
-(bridge) => {\x0a  \
-      const onCh\
-unk = (name, chu\
-nk, type) => thi\
-s.api_onChunk(na\
-me, chunk, type)\
-;\x0a        const \
-onNode = (payloa\
-d) => this.api_a\
-ppendNode(payloa\
-d);\x0a        cons\
-t onNodeReplace \
-= (payload) => t\
-his.api_replaceN\
-odes(payload);\x0a \
-       const onN\
-odeInput = (html\
-) => this.api_ap\
-pendToInput(html\
-);\x0a        this.\
-bridge.connect(o\
-nChunk, onNode, \
-onNodeReplace, o\
-nNodeInput);\x0a   \
-     try { this.\
-logger.bindBridg\
-e(this.bridge.br\
-idge || this.bri\
-dge); } catch (_\
-) {}\x0a      });\x0a\x0a\
-      this.rende\
-rer.init();\x0a    \
-  try { this.ren\
-derer.renderPend\
-ingMarkdown(docu\
-ment); } catch (\
-_) {}\x0a\x0a      thi\
-s.highlighter.ob\
-serveMsgBoxes(do\
-cument, (box) =>\
+L,\x0a        minCh\
+arsForLast: this\
+.cfg.PROFILE_COD\
+E.minCharsForHL\x0a\
+      }, this.ac\
+tiveCode);\x0a     \
+ this.highlighte\
+r.observeMsgBoxe\
+s(snap, (box) =>\
  {\x0a        this.\
 highlighter.obse\
 rveNewCode(box, \
@@ -101228,286 +98772,2745 @@ sForHL,\x0a        \
 t: this.cfg.PROF\
 ILE_CODE.minChar\
 sForHL\x0a        }\
-, this.stream.ac\
-tiveCode);\x0a     \
-   this.codeScro\
-ll.initScrollabl\
-eBlocks(box);\x0a  \
-    });\x0a      th\
+, this.activeCod\
+e);\x0a        this\
+.codeScroll.init\
+ScrollableBlocks\
+(box);\x0a      });\
+\x0a\x0a      // Sched\
+ule math render \
+according to mod\
+e; keep \x22finaliz\
+e-only\x22 cheap on\
+ hot path\x0a      \
+const mm = getMa\
+thMode();\x0a      \
+if (!this.suppre\
+ssPostFinalizePa\
+ss) {\x0a        if\
+ (mm === 'idle')\
+ this.math.sched\
+ule(snap);\x0a     \
+   else if (mm =\
+== 'always') thi\
+s.math.schedule(\
+snap, 0, true);\x0a\
+      }\x0a\x0a      /\
+/ If streaming c\
+ode is visible, \
+keep it glued to\
+ bottom\x0a      if\
+ (this.fenceOpen\
+ && this.activeC\
+ode && this.acti\
+veCode.codeEl) {\
+\x0a        this.co\
+deScroll.attachH\
+andlers(this.act\
+iveCode.codeEl);\
+\x0a        this.co\
+deScroll.schedul\
+eScroll(this.act\
+iveCode.codeEl, \
+true, false);\x0a  \
+    } else if (!\
+this.fenceOpen) \
+{\x0a        this.c\
+odeScroll.initSc\
+rollableBlocks(s\
+nap);\x0a      }\x0a\x0a \
+     // Advance \
+snapshot budget \
+and remember pro\
+gress\x0a      wind\
+ow.__lastSnapsho\
+tLen = this.getS\
+treamLength();\x0a \
+     this.lastSn\
+apshotTs = Utils\
+.now();\x0a\x0a      c\
+onst prof = this\
+.profile();\x0a    \
+  if (prof.adapt\
+iveStep) {\x0a     \
+   const maxStep\
+ = this.cfg.STRE\
+AM.SNAPSHOT_MAX_\
+STEP || 8000;\x0a  \
+      this.nextS\
+napshotStep = Ma\
+th.min(Math.ceil\
+(this.nextSnapsh\
+otStep * prof.gr\
+owth), maxStep);\
+\x0a      } else {\x0a\
+        this.nex\
+tSnapshotStep = \
+prof.base;\x0a     \
+ }\x0a\x0a      // Kee\
+p page scroll/fa\
+b in sync\x0a      \
+this.scrollMgr.s\
+cheduleScroll(tr\
+ue);\x0a      this.\
+scrollMgr.fabFre\
+ezeUntil = Utils\
+.now() + this.cf\
+g.FAB.TOGGLE_DEB\
+OUNCE_MS;\x0a      \
+this.scrollMgr.s\
+cheduleScrollFab\
+Update();\x0a\x0a     \
+ if (this.suppre\
+ssPostFinalizePa\
+ss) this.suppres\
+sPostFinalizePas\
+s = false;\x0a\x0a    \
+  const dt = Uti\
+ls.now() - t0;\x0a \
+     this._d('SN\
+APSHOT', { fence\
+Open: this.fence\
+Open, activeCode\
+: !!this.activeC\
+ode, bufLen: thi\
+s.getStreamLengt\
+h(), timeMs: Mat\
+h.round(dt), str\
+eaming });\x0a    }\
+\x0a\x0a    // Get cur\
+rent message con\
+tainer (.msg) or\
+ create if allow\
+ed.\x0a    getMsg(c\
+reate, name_head\
+er) { return thi\
+s.dom.getStreamM\
+sg(create, name_\
+header); }\x0a    /\
+/ Start a new st\
+reaming session \
+(clear state and\
+ display loader,\
+ if any).\x0a    be\
+ginStream(chunk \
+= false) {\x0a     \
+ this.isStreamin\
+g = true; // eng\
+age streaming mo\
+de (no linkify e\
+tc.)\x0a      if (c\
+hunk) runtime.lo\
+ading.hide();\x0a  \
+    this.scrollM\
+gr.userInteracte\
+d = false;\x0a     \
+ this.dom.clearO\
+utput();\x0a      t\
+his.reset();\x0a   \
+   this.scrollMg\
+r.forceScrollToB\
+ottomImmediate()\
+;\x0a      this.scr\
+ollMgr.scheduleS\
+croll();\x0a      t\
+his._d('BEGIN_ST\
+REAM', { chunkFl\
+ag: !!chunk });\x0a\
+    }\x0a    // End\
+ streaming sessi\
+on, finalize act\
+ive code if pres\
+ent, and complet\
+e math/highlight\
+.\x0a    endStream(\
+) {\x0a      // Swi\
+tch to final mod\
+e before the las\
+t snapshot to al\
+low full rendere\
+r (linkify etc.)\
+\x0a      this.isSt\
+reaming = false;\
+\x0a\x0a      const ms\
+g = this.getMsg(\
+false, '');\x0a    \
+  if (msg) this.\
+renderSnapshot(m\
+sg);\x0a\x0a      this\
+.snapshotSchedul\
+ed = false;\x0a    \
+  try { this.raf\
+.cancel('SE:snap\
+shot'); } catch \
+(_) {}\x0a      thi\
+s.snapshotRAF = \
+0;\x0a\x0a      const \
+hadActive = !!th\
+is.activeCode;\x0a \
+     if (this.ac\
+tiveCode) this.f\
+inalizeActiveCod\
+e();\x0a\x0a      if (\
+!hadActive) {\x0a  \
+      if (this.h\
+ighlighter.hlQue\
+ue && this.highl\
+ighter.hlQueue.l\
+ength) {\x0a       \
+   this.highligh\
+ter.flush(this.a\
+ctiveCode);\x0a    \
+    }\x0a        co\
+nst snap = msg ?\
+ this.getMsgSnap\
+shotRoot(msg) : \
+null;\x0a        if\
+ (snap) this.mat\
+h.renderAsync(sn\
+ap); // ensure m\
+ath completes ea\
+gerly but async\x0a\
+      }\x0a\x0a      t\
+his.fenceOpen = \
+false; this.code\
+Stream.open = fa\
+lse; this.active\
+Code = null; thi\
+s.lastSnapshotTs\
+ = Utils.now();\x0a\
+      this.suppr\
+essPostFinalizeP\
+ass = false;\x0a   \
+   this._d('END_\
+STREAM', { hadAc\
+tive });\x0a    }\x0a \
+   // Apply inco\
+ming chunk to st\
+ream buffer and \
+update DOM when \
+needed.\x0a    appl\
+yStream(name_hea\
+der, chunk, alre\
+adyBuffered = fa\
+lse) {\x0a      if \
+(!this.activeCod\
+e && !this.fence\
+Open) {\x0a        \
+try { if (docume\
+nt.querySelector\
+('pre code[data-\
+_active_stream=\x22\
+1\x22]')) this.defu\
+seOrphanActiveBl\
+ocks(); } catch \
+(_) {}\x0a      }\x0a \
+     if (this.sn\
+apshotScheduled \
+&& !this.raf.isS\
+cheduled('SE:sna\
+pshot')) this.sn\
+apshotScheduled \
+= false;\x0a\x0a      \
+const msg = this\
+.getMsg(true, na\
+me_header); if (\
+!msg || !chunk) \
+return;\x0a      co\
+nst s = String(c\
+hunk);\x0a      if \
+(!alreadyBuffere\
+d) this._appendC\
+hunk(s);\x0a\x0a      \
+const change = t\
+his.updateFenceH\
+euristic(s);\x0a   \
+   const nlCount\
+ = Utils.countNe\
+wlines(s); const\
+ chunkHasNL = nl\
+Count > 0;\x0a\x0a    \
+  this._d('APPLY\
+_CHUNK', { len: \
+s.length, nl: nl\
+Count, opened: c\
+hange.opened, cl\
+osed: change.clo\
+sed, splitAt: ch\
+ange.splitAt, fe\
+nceOpenBefore: t\
+his.fenceOpen ||\
+ false, codeOpen\
+Before: this.cod\
+eStream.open || \
+false, rebroadca\
+st: !!alreadyBuf\
+fered });\x0a\x0a     \
+ // Track if we \
+just materialize\
+d the first code\
+-open snapshot s\
+ynchronously.\x0a  \
+    let didImmed\
+iateOpenSnap = f\
+alse;\x0a\x0a      if \
+(change.opened) \
+{\x0a        this.c\
+odeStream.open =\
+ true; this.code\
+Stream.lines = 0\
+; this.codeStrea\
+m.chars = 0;\x0a   \
+     this.resetB\
+udget();\x0a       \
+ this.scheduleSn\
+apshot(msg);\x0a   \
+     this._d('CO\
+DE_STREAM_OPEN',\
+ { });\x0a\x0a        \
+// Fast-path: if\
+ stream starts w\
+ith a code fence\
+ and no snapshot\
+ was made yet,\x0a \
+       // immedi\
+ately materializ\
+e the code block\
+ so tail streami\
+ng can proceed w\
+ithout click.\x0a  \
+      if (!this.\
+_firstCodeOpenSn\
+apDone && !this.\
+activeCode && ((\
+window.__lastSna\
+pshotLen || 0) =\
+== 0)) {\x0a       \
+   try {\x0a       \
+     this.render\
+Snapshot(msg);\x0a \
+           try {\
+ this.raf.cancel\
+('SE:snapshot');\
+ } catch (_) {}\x0a\
+            this\
+.snapshotSchedul\
+ed = false;\x0a    \
+        this._fi\
+rstCodeOpenSnapD\
+one = true;\x0a    \
+        didImmed\
+iateOpenSnap = t\
+rue;\x0a           \
+ this._d('CODE_O\
+PEN_IMMEDIATE_SN\
+APSHOT', { bufLe\
+n: this.getStrea\
+mLength() });\x0a  \
+        } catch \
+(_) {\x0a          \
+  // Keep going;\
+ normal schedule\
+d snapshot will \
+land soon.\x0a     \
+     }\x0a        }\
+\x0a      }\x0a\x0a      \
+if (this.codeStr\
+eam.open) {\x0a    \
+    this.codeStr\
+eam.lines += nlC\
+ount; this.codeS\
+tream.chars += s\
+.length;\x0a\x0a      \
+  if (this.activ\
+eCode && this.ac\
+tiveCode.codeEl \
+&& this.activeCo\
+de.codeEl.isConn\
+ected) {\x0a       \
+   let partForCo\
+de = s; let rema\
+inder = '';\x0a\x0a   \
+       if (didIm\
+mediateOpenSnap)\
+ {\x0a            p\
+artForCode = '';\
+\x0a          } els\
+e {\x0a            \
+if (change.close\
+d && change.spli\
+tAt >= 0 && chan\
+ge.splitAt <= s.\
+length) {\x0a      \
+        partForC\
+ode = s.slice(0,\
+ change.splitAt)\
+; remainder = s.\
+slice(change.spl\
+itAt);\x0a         \
+   }\x0a          }\
+\x0a\x0a          if (\
+partForCode) {\x0a \
+           this.\
+appendToActiveTa\
+il(partForCode);\
+\x0a            thi\
+s.activeCode.lin\
+es += Utils.coun\
+tNewlines(partFo\
+rCode);\x0a\x0a       \
+     this.maybeP\
+romoteLanguageFr\
+omDirective();\x0a \
+           this.\
+enforceHLStopBud\
+get();\x0a\x0a        \
+    if (!this.ac\
+tiveCode.haltHL)\
+ {\x0a             \
+ if (partForCode\
+.indexOf('\x5cn') >\
+= 0 || (this.act\
+iveCode.tailEl.t\
+extContent || ''\
+).length >= this\
+.cfg.PROFILE_COD\
+E.minCharsForHL)\
+ {\x0a             \
+   this.schedule\
+PromoteTail(fals\
+e);\x0a            \
+  }\x0a            \
+}\x0a          }\x0a  \
+        this.scr\
+ollMgr.scrollFab\
+UpdateScheduled \
+= false;\x0a       \
+   this.scrollMg\
+r.scheduleScroll\
+(true);\x0a        \
+  this.scrollMgr\
+.fabFreezeUntil \
+= Utils.now() + \
+this.cfg.FAB.TOG\
+GLE_DEBOUNCE_MS;\
+\x0a          this.\
+scrollMgr.schedu\
+leScrollFabUpdat\
+e();\x0a\x0a          \
+if (change.close\
+d) {\x0a           \
+ this.finalizeAc\
+tiveCode();\x0a    \
+        this.cod\
+eStream.open = f\
+alse; this.reset\
+Budget(); this.s\
+cheduleSnapshot(\
+msg);\x0a          \
+  this._d('CODE_\
+STREAM_CLOSE_FIN\
+ALIZED', { remai\
+nderLen: remaind\
+er.length });\x0a  \
+          if (re\
+mainder && remai\
+nder.length) { t\
+his.applyStream(\
+name_header, rem\
+ainder, true); }\
+\x0a          }\x0a   \
+       return;\x0a \
+       } else {\x0a\
+          if (!t\
+his.activeCode &\
+& (this.codeStre\
+am.lines >= 2 ||\
+ this.codeStream\
+.chars >= 80)) {\
+\x0a            thi\
+s.scheduleSnapsh\
+ot(msg, true);\x0a \
+           retur\
+n;\x0a          }\x0a \
+         if (cha\
+nge.closed) {\x0a  \
+          this.c\
+odeStream.open =\
+ false; this.res\
+etBudget(); this\
+.scheduleSnapsho\
+t(msg);\x0a        \
+    this._d('COD\
+E_CLOSED_WITHOUT\
+_ACTIVE', { sinc\
+eLastSnapMs: Mat\
+h.round(Utils.no\
+w() - this.lastS\
+napshotTs), snap\
+shotScheduled: t\
+his.snapshotSche\
+duled });\x0a      \
+    } else {\x0a   \
+         const b\
+oundary = this.h\
+asStructuralBoun\
+dary(s);\x0a       \
+     if (this.sh\
+ouldSnapshotOnCh\
+unk(s, chunkHasN\
+L, boundary)) th\
+is.scheduleSnaps\
+hot(msg);\x0a      \
+      else this.\
+maybeScheduleSof\
+tSnapshot(msg, c\
+hunkHasNL);\x0a    \
+      }\x0a        \
+  return;\x0a      \
+  }\x0a      }\x0a\x0a   \
+   if (change.cl\
+osed) {\x0a        \
+this.codeStream.\
+open = false; th\
+is.resetBudget()\
+; this.scheduleS\
+napshot(msg);\x0a  \
+      this._d('C\
+ODE_STREAM_CLOSE\
+', { });\x0a      }\
+ else {\x0a        \
+const boundary =\
+ this.hasStructu\
+ralBoundary(s);\x0a\
+        if (this\
+.shouldSnapshotO\
+nChunk(s, chunkH\
+asNL, boundary))\
+ {\x0a          thi\
+s.scheduleSnapsh\
+ot(msg);\x0a       \
+   this._d('SCHE\
+DULE_SNAPSHOT_BO\
+UNDARY', { bound\
+ary });\x0a        \
+} else {\x0a       \
+   this.maybeSch\
+eduleSoftSnapsho\
+t(msg, chunkHasN\
+L);\x0a        }\x0a  \
+    }\x0a    }\x0a  }\x0a\
+\x0a  // ==========\
+================\
+================\
+================\
+================\
+\x0a  // 12) Stream\
+ queue\x0a  // ====\
+================\
+================\
+================\
+================\
+======\x0a\x0a  class \
+StreamQueue {\x0a  \
+  constructor(cf\
+g, engine, scrol\
+lMgr, raf) {\x0a   \
+   this.cfg = cf\
+g; this.engine =\
+ engine; this.sc\
+rollMgr = scroll\
+Mgr; this.raf = \
+raf;\x0a      this.\
+q = []; this.dra\
+inScheduled = fa\
+lse;\x0a      this.\
+batching = false\
+; this.needScrol\
+l = false;\x0a    }\
+\x0a    // Coalesce\
+ contiguous entr\
+ies for the same\
+ header to reduc\
+e overhead.\x0a    \
+_compactContiguo\
+usSameName() {\x0a \
+     // Coalesce\
+ contiguous entr\
+ies for the same\
+ message header \
+to reduce string\
+ objects count.\x0a\
+      if (this.q\
+.length < 2) ret\
+urn;\x0a      const\
+ out = [];\x0a     \
+ let last = this\
+.q[0];\x0a      for\
+ (let i = 1; i <\
+ this.q.length; \
+i++) {\x0a        c\
+onst cur = this.\
+q[i];\x0a        if\
+ (cur.name_heade\
+r === last.name_\
+header) {\x0a      \
+    // Merge pay\
+loads; reduce ob\
+ject overhead wi\
+thout changing s\
+emantics\x0a       \
+   last.chunk = \
+(last.chunk || '\
+') + (cur.chunk \
+|| '');\x0a        \
+}\x0a        else {\
+\x0a          out.p\
+ush(last);\x0a     \
+     last = cur;\
+\x0a        }\x0a     \
+ }\x0a      out.pus\
+h(last);\x0a      t\
+his.q = out;\x0a   \
+ }\x0a    // Push n\
+ew chunk into th\
+e queue and sche\
+dule drain.\x0a    \
+enqueue(name_hea\
+der, chunk) {\x0a  \
+    this.q.push(\
+{ name_header, c\
+hunk });\x0a      /\
+/ Guard against \
+unbounded growth\
+ during bursts\x0a \
+     if (this.q.\
+length > this.cf\
+g.STREAM.EMERGEN\
+CY_COALESCE_LEN)\
+ this._compactCo\
+ntiguousSameName\
+();\x0a      if (th\
+is.q.length > th\
+is.cfg.STREAM.QU\
+EUE_MAX_ITEMS) t\
+his._compactCont\
+iguousSameName()\
+;\x0a      if (!thi\
+s.drainScheduled\
+) {\x0a        this\
+.drainScheduled \
+= true;\x0a        \
+this.raf.schedul\
+e('SQ:drain', ()\
+ => this.drain()\
+, 'StreamQueue',\
+ 0);\x0a      }\x0a   \
+ }\x0a    // Drain \
+a limited number\
+ of chunks per f\
+rame (adaptive i\
+f configured).\x0a \
+   drain() {\x0a   \
+   this.drainSch\
+eduled = false; \
+let processed = \
+0;\x0a      const a\
+daptive = (this.\
+cfg.STREAM.COALE\
+SCE_MODE === 'ad\
+aptive');\x0a      \
+const coalesceAg\
+gressive = adapt\
+ive && (this.q.l\
+ength >= this.cf\
+g.STREAM.EMERGEN\
+CY_COALESCE_LEN)\
+;\x0a\x0a      // Adap\
+tive per-frame b\
+udget: increase \
+throughput if qu\
+eue is long\x0a    \
+  const basePerF\
+rame = this.cfg.\
+STREAM.MAX_PER_F\
+RAME | 0;\x0a      \
+const perFrame =\
+ adaptive ? Math\
+.min(basePerFram\
+e + Math.floor(t\
+his.q.length / 2\
+0), basePerFrame\
+ * 4) : basePerF\
+rame;\x0a\x0a      thi\
+s.batching = tru\
+e;\x0a      while (\
+this.q.length &&\
+ processed < per\
+Frame) {\x0a       \
+ let { name_head\
+er, chunk } = th\
+is.q.shift();\x0a  \
+      if (chunk \
+&& chunk.length \
+> 0) {\x0a         \
+ const chunks = \
+[chunk];\x0a       \
+   while (this.q\
+.length) {\x0a     \
+       const nex\
+t = this.q[0];\x0a \
+           if (n\
+ext.name_header \
+=== name_header)\
+ {\x0a             \
+ chunks.push(nex\
+t.chunk); this.q\
+.shift();\x0a      \
+        if (!coa\
+lesceAggressive)\
+ break;\x0a        \
+    } else break\
+;\x0a          }\x0a  \
+        chunk = \
+chunks.join('');\
+\x0a        }\x0a     \
+   this.engine.a\
+pplyStream(name_\
+header, chunk);\x0a\
+        processe\
+d++;\x0a      }\x0a   \
+   this.batching\
+ = false;\x0a      \
+if (this.needScr\
+oll) { this.scro\
+llMgr.scheduleSc\
+roll(true); this\
+.needScroll = fa\
+lse; }\x0a      if \
+(this.q.length) \
+{\x0a        this.d\
+rainScheduled = \
+true;\x0a        th\
+is.raf.schedule(\
+'SQ:drain', () =\
+> this.drain(), \
+'StreamQueue', 0\
+);\x0a      }\x0a    }\
+\x0a    // Force a \
+drain soon.\x0a    \
+kick() {\x0a      i\
+f (this.q.length\
+ || this.drainSc\
+heduled) {\x0a     \
+   this.drainSch\
+eduled = true;\x0a \
+       this.raf.\
+schedule('SQ:dra\
+in', () => this.\
+drain(), 'Stream\
+Queue', 0);\x0a    \
+  }\x0a    }\x0a    //\
+ Clear queued wo\
+rk and cancel sc\
+heduled drains.\x0a\
+    clear() {\x0a  \
+    this.q.lengt\
+h = 0;\x0a      try\
+ { this.raf.canc\
+elGroup('StreamQ\
+ueue'); } catch \
+(_) {}\x0a      thi\
+s.drainScheduled\
+ = false;\x0a    }\x0a\
+  }\x0a\x0a  // ======\
+================\
+================\
+================\
+================\
+====\x0a  // 13) Br\
+idge manager (QW\
+ebChannel)\x0a  // \
+================\
+================\
+================\
+================\
+==========\x0a\x0a  cl\
+ass BridgeManage\
+r {\x0a    construc\
+tor(cfg, logger)\
+ {\x0a      this.cf\
+g = cfg; this.lo\
+gger = logger ||\
+ new Logger(cfg)\
+;\x0a      this.bri\
+dge = null; this\
+.connected = fal\
+se;\x0a    }\x0a    lo\
+g(text) { try { \
+if (this.bridge \
+&& this.bridge.l\
+og) this.bridge.\
+log(text); } cat\
+ch (_) {} }\x0a    \
+connect(onChunk,\
+ onNode, onNodeR\
+eplace, onNodeIn\
+put) {\x0a      if \
+(!this.bridge) r\
+eturn false; if \
+(this.connected)\
+ return true;\x0a  \
+    try {\x0a      \
+  if (this.bridg\
+e.chunk) this.br\
+idge.chunk.conne\
+ct((name, chunk,\
+ type) => onChun\
+k(name, chunk, t\
+ype));\x0a        i\
+f (this.bridge.n\
+ode) this.bridge\
+.node.connect(on\
+Node);\x0a        i\
+f (this.bridge.n\
+odeReplace) this\
+.bridge.nodeRepl\
+ace.connect(onNo\
+deReplace);\x0a    \
+    if (this.bri\
+dge.nodeInput) t\
+his.bridge.nodeI\
+nput.connect(onN\
+odeInput);\x0a     \
+   this.connecte\
+d = true; return\
+ true;\x0a      } c\
+atch (e) { this.\
+log(e); return f\
+alse; }\x0a    }\x0a  \
+  disconnect() {\
+\x0a      if (!this\
+.bridge) return \
+false; if (!this\
+.connected) retu\
+rn true;\x0a      t\
+ry {\x0a        if \
+(this.bridge.chu\
+nk) this.bridge.\
+chunk.disconnect\
+();\x0a        if (\
+this.bridge.node\
+) this.bridge.no\
+de.disconnect();\
+\x0a        if (thi\
+s.bridge.nodeRep\
+lace) this.bridg\
+e.nodeReplace.di\
+sconnect();\x0a    \
+    if (this.bri\
+dge.nodeInput) t\
+his.bridge.nodeI\
+nput.disconnect(\
+);\x0a      } catch\
+ (_) {}\x0a      th\
+is.connected = f\
+alse; return tru\
+e;\x0a    }\x0a    ini\
+tQWebChannel(pid\
+, onReady) {\x0a   \
+   try {\x0a       \
+ new QWebChannel\
+(qt.webChannelTr\
+ansport, (channe\
+l) => {\x0a        \
+  this.bridge = \
+channel.objects.\
+bridge;\x0a        \
+  try { this.log\
+ger.bindBridge(t\
+his.bridge); } c\
+atch (_) {}\x0a    \
+      onReady &&\
+ onReady(this.br\
+idge);\x0a         \
+ if (this.bridge\
+ && this.bridge.\
+js_ready) this.b\
+ridge.js_ready(p\
+id);\x0a        });\
+\x0a      } catch (\
+e) { /* swallow \
+*/ }\x0a    }\x0a    c\
+opyCode(text) { \
+if (this.bridge \
+&& this.bridge.c\
+opy_text) this.b\
+ridge.copy_text(\
+text); }\x0a    pre\
+viewCode(text) {\
+ if (this.bridge\
+ && this.bridge.\
+preview_text) th\
+is.bridge.previe\
+w_text(text); }\x0a\
+    runCode(text\
+) { if (this.bri\
+dge && this.brid\
+ge.run_text) thi\
+s.bridge.run_tex\
+t(text); }\x0a    u\
+pdateScrollPosit\
+ion(pos) { if (t\
+his.bridge && th\
+is.bridge.update\
+_scroll_position\
+) this.bridge.up\
+date_scroll_posi\
+tion(pos); }\x0a  }\
+\x0a\x0a  // =========\
+================\
+================\
+================\
+================\
+=\x0a  // 14) Loadi\
+ng indicator\x0a  /\
+/ ==============\
+================\
+================\
+================\
+============\x0a\x0a  \
+class Loading {\x0a\
+    constructor(\
+dom) { this.dom \
+= dom; }\x0a    // \
+Show loader elem\
+ent (and hide ti\
+ps if visible).\x0a\
+    show() { if \
+(typeof window.h\
+ideTips === 'fun\
+ction') { window\
+.hideTips(); } c\
+onst el = this.d\
+om.get('_loader_\
+'); if (!el) ret\
+urn; if (el.clas\
+sList.contains('\
+hidden')) el.cla\
+ssList.remove('h\
+idden'); el.clas\
+sList.add('visib\
+le'); }\x0a    // H\
+ide loader eleme\
+nt.\x0a    hide() {\
+ const el = this\
+.dom.get('_loade\
+r_'); if (!el) r\
+eturn; if (el.cl\
+assList.contains\
+('visible')) el.\
+classList.remove\
+('visible'); el.\
+classList.add('h\
+idden'); }\x0a  }\x0a\x0a\
+  // ===========\
+================\
+================\
+================\
+===============\x0a\
+  // 15) Event m\
+anager\x0a  // ====\
+================\
+================\
+================\
+================\
+======\x0a\x0a  class \
+EventManager {\x0a \
+   constructor(c\
+fg, dom, scrollM\
+gr, highlighter,\
+ codeScroll, too\
+lOutput, bridge)\
+ {\x0a      this.cf\
+g = cfg; this.do\
+m = dom; this.sc\
+rollMgr = scroll\
+Mgr; this.highli\
+ghter = highligh\
+ter;\x0a      this.\
+codeScroll = cod\
+eScroll; this.to\
+olOutput = toolO\
+utput; this.brid\
+ge = bridge;\x0a   \
+   this.handlers\
+ = { wheel: null\
+, scroll: null, \
+resize: null, fa\
+bClick: null, mo\
+useover: null, m\
+ouseout: null, c\
+lick: null, keyd\
+own: null, docCl\
+ickFocus: null, \
+visibility: null\
+, focus: null, p\
+ageshow: null };\
+\x0a    }\x0a    _find\
+Wrapper(target) \
+{ if (!target ||\
+ typeof target.c\
+losest !== 'func\
+tion') return nu\
+ll; return targe\
+t.closest('.code\
+-wrapper'); }\x0a  \
+  _getCodeEl(wra\
+pper) { if (!wra\
+pper) return nul\
+l; return wrappe\
+r.querySelector(\
+'pre > code'); }\
+\x0a    _collectCod\
+eText(codeEl) {\x0a\
+      if (!codeE\
+l) return '';\x0a  \
+    const frozen\
+ = codeEl.queryS\
+elector('.hl-fro\
+zen'); const tai\
+l = codeEl.query\
+Selector('.hl-ta\
+il');\x0a      if (\
+frozen || tail) \
+return (frozen?.\
+textContent || '\
+') + (tail?.text\
+Content || '');\x0a\
+      return cod\
+eEl.textContent \
+|| '';\x0a    }\x0a   \
+ // Copy to clip\
+board via bridge\
+ if available, o\
+therwise use bro\
+wser APIs.\x0a    a\
+sync _copyTextRo\
+bust(text) {\x0a   \
+   try { if (thi\
+s.bridge && type\
+of this.bridge.c\
+opyCode === 'fun\
+ction') { this.b\
+ridge.copyCode(t\
+ext); return tru\
+e; } } catch (_)\
+ {}\x0a      try { \
+if (navigator &&\
+ navigator.clipb\
+oard && navigato\
+r.clipboard.writ\
+eText) { await n\
+avigator.clipboa\
+rd.writeText(tex\
+t); return true;\
+ } } catch (_) {\
+}\x0a      try {\x0a  \
+      const ta =\
+ document.create\
+Element('textare\
+a');\x0a        ta.\
+value = text; ta\
+.setAttribute('r\
+eadonly', ''); t\
+a.style.position\
+ = 'fixed'; ta.s\
+tyle.top = '-999\
+9px'; ta.style.o\
+pacity = '0';\x0a  \
+      document.b\
+ody.appendChild(\
+ta); ta.select()\
+; const ok = doc\
+ument.execComman\
+d && document.ex\
+ecCommand('copy'\
+); document.body\
+.removeChild(ta)\
+; return !!ok;\x0a \
+     } catch (_)\
+ { return false;\
+ }\x0a    }\x0a    // \
+Flash \x22Copied\x22 f\
+eedback on the c\
+opy button.\x0a    \
+_flashCopied(btn\
+, wrapper) {\x0a   \
+   if (!btn || !\
+wrapper) return;\
+\x0a      const spa\
+n = btn.querySel\
+ector('span'); i\
+f (!span) return\
+;\x0a      const L_\
+COPY = wrapper.g\
+etAttribute('dat\
+a-locale-copy') \
+|| 'Copy';\x0a     \
+ const L_COPIED \
+= wrapper.getAtt\
+ribute('data-loc\
+ale-copied') || \
+'Copied';\x0a      \
+try { if (btn.__\
+copyTimer) { cle\
+arTimeout(btn.__\
+copyTimer); btn.\
+__copyTimer = 0;\
+ } } catch (_) {\
+}\x0a      span.tex\
+tContent = L_COP\
+IED; btn.classLi\
+st.add('copied')\
+;\x0a      btn.__co\
+pyTimer = setTim\
+eout(() => { try\
+ { span.textCont\
+ent = L_COPY; bt\
+n.classList.remo\
+ve('copied'); } \
+catch (_) {} btn\
+.__copyTimer = 0\
+; }, 1200);\x0a    \
+}\x0a    // Toggle \
+code collapse/ex\
+pand and remembe\
+r collapsed indi\
+ces.\x0a    _toggle\
+Collapse(wrapper\
+) {\x0a      if (!w\
+rapper) return;\x0a\
+      const code\
+El = this._getCo\
+deEl(wrapper); i\
+f (!codeEl) retu\
+rn;\x0a      const \
+btn = wrapper.qu\
+erySelector('.co\
+de-header-collap\
+se');\x0a      cons\
+t span = btn ? b\
+tn.querySelector\
+('span') : null;\
+\x0a      const L_C\
+OLLAPSE = wrappe\
+r.getAttribute('\
+data-locale-coll\
+apse') || 'Colla\
+pse';\x0a      cons\
+t L_EXPAND = wra\
+pper.getAttribut\
+e('data-locale-e\
+xpand') || 'Expa\
+nd';\x0a      const\
+ idx = String(wr\
+apper.getAttribu\
+te('data-index')\
+ || '');\x0a      c\
+onst arr = windo\
+w.__collapsed_id\
+x || (window.__c\
+ollapsed_idx = [\
+]);\x0a      const \
+isHidden = (code\
+El.style.display\
+ === 'none');\x0a\x0a \
+     if (isHidde\
+n) {\x0a        cod\
+eEl.style.displa\
+y = 'block';\x0a   \
+     if (span) s\
+pan.textContent \
+= L_COLLAPSE;\x0a  \
+      const p = \
+arr.indexOf(idx)\
+; if (p !== -1) \
+arr.splice(p, 1)\
+;\x0a      } else {\
+\x0a        codeEl.\
+style.display = \
+'none';\x0a        \
+if (span) span.t\
+extContent = L_E\
+XPAND;\x0a        i\
+f (!arr.includes\
+(idx)) arr.push(\
+idx);\x0a      }\x0a  \
+  }\x0a    // Attac\
+h global UI even\
+t handlers and c\
+ontainer-level i\
+nteractions.\x0a   \
+ install() {\x0a   \
+   try { history\
+.scrollRestorati\
+on = \x22manual\x22; }\
+ catch (_) {}\x0a\x0a \
+     this.handle\
+rs.keydown = (ev\
+ent) => {\x0a      \
+  if (event.ctrl\
+Key && event.key\
+ === 'f') { wind\
+ow.location.href\
+ = 'bridge://ope\
+n_find:' + runti\
+me.cfg.PID; even\
+t.preventDefault\
+(); }\x0a        if\
+ (event.key === \
+'Escape') { wind\
+ow.location.href\
+ = 'bridge://esc\
+ape'; event.prev\
+entDefault(); }\x0a\
+      };\x0a      d\
+ocument.addEvent\
+Listener('keydow\
+n', this.handler\
+s.keydown, { pas\
+sive: false });\x0a\
+\x0a      // Remove\
+d global click-t\
+o-focus navigati\
+on and visibilit\
+y/focus wakeups \
+to keep the pump\
+ rAF-only and cl\
+ick-agnostic.\x0a\x0a \
+     const conta\
+iner = this.dom.\
+get('container')\
+;\x0a      const ad\
+dClassToMsg = (i\
+d, className) =>\
+ { const el = do\
+cument.getElemen\
+tById('msg-bot-'\
+ + id); if (el) \
+el.classList.add\
+(className); };\x0a\
+      const remo\
+veClassFromMsg =\
+ (id, className)\
+ => { const el =\
+ document.getEle\
+mentById('msg-bo\
+t-' + id); if (e\
+l) el.classList.\
+remove(className\
+); };\x0a\x0a      thi\
+s.handlers.mouse\
+over = (event) =\
+> { if (event.ta\
+rget.classList.c\
+ontains('action-\
+img')) { const i\
+d = event.target\
+.getAttribute('d\
+ata-id'); addCla\
+ssToMsg(id, 'msg\
+-highlight'); } \
+};\x0a      this.ha\
+ndlers.mouseout \
+= (event) => { i\
+f (event.target.\
+classList.contai\
+ns('action-img')\
+) { const id = e\
+vent.target.getA\
+ttribute('data-i\
+d'); const el = \
+document.getElem\
+entById('msg-bot\
+-' + id); if (el\
+) el.classList.r\
+emove('msg-highl\
+ight'); } };\x0a   \
+   if (container\
+) {\x0a        cont\
+ainer.addEventLi\
+stener('mouseove\
+r', this.handler\
+s.mouseover, { p\
+assive: true });\
+\x0a        contain\
+er.addEventListe\
+ner('mouseout', \
+this.handlers.mo\
+useout, { passiv\
+e: true });\x0a    \
+  }\x0a\x0a      this.\
+handlers.click =\
+ async (ev) => {\
+\x0a        const a\
+ = ev.target && \
+(ev.target.close\
+st ? ev.target.c\
+losest('a.code-h\
+eader-action') :\
+ null);\x0a        \
+if (!a) return;\x0a\
+        const wr\
+apper = this._fi\
+ndWrapper(a);\x0a  \
+      if (!wrapp\
+er) return;\x0a\x0a   \
+     ev.preventD\
+efault();\x0a      \
+  ev.stopPropaga\
+tion();\x0a\x0a       \
+ const isCopy = \
+a.classList.cont\
+ains('code-heade\
+r-copy');\x0a      \
+  const isCollap\
+se = a.classList\
+.contains('code-\
+header-collapse'\
+);\x0a        const\
+ isRun = a.class\
+List.contains('c\
+ode-header-run')\
+;\x0a        const \
+isPreview = a.cl\
+assList.contains\
+('code-header-pr\
+eview');\x0a\x0a      \
+  let codeEl = n\
+ull, text = '';\x0a\
+        if (isCo\
+py || isRun || i\
+sPreview) {\x0a    \
+      codeEl = t\
+his._getCodeEl(w\
+rapper);\x0a       \
+   text = this._\
+collectCodeText(\
+codeEl);\x0a       \
+ }\x0a\x0a        try \
+{\x0a          if (\
+isCopy) {\x0a      \
+      const ok =\
+ await this._cop\
+yTextRobust(text\
+);\x0a            i\
+f (ok) this._fla\
+shCopied(a, wrap\
+per);\x0a          \
+} else if (isCol\
+lapse) {\x0a       \
+     this._toggl\
+eCollapse(wrappe\
+r);\x0a          } \
+else if (isRun) \
+{\x0a            if\
+ (this.bridge &&\
+ typeof this.bri\
+dge.runCode === \
+'function') this\
+.bridge.runCode(\
+text);\x0a         \
+ } else if (isPr\
+eview) {\x0a       \
+     if (this.br\
+idge && typeof t\
+his.bridge.previ\
+ewCode === 'func\
+tion') this.brid\
+ge.previewCode(t\
+ext);\x0a          \
+}\x0a        } catc\
+h (_) { /* swall\
+ow */ }\x0a      };\
+\x0a      if (conta\
+iner) container.\
+addEventListener\
+('click', this.h\
+andlers.click, {\
+ passive: false \
+});\x0a\x0a      this.\
+handlers.wheel =\
+ (ev) => {\x0a     \
+   runtime.scrol\
+lMgr.userInterac\
+ted = true;\x0a    \
+    if (ev.delta\
+Y < 0) runtime.s\
+crollMgr.autoFol\
+low = false;\x0a   \
+     else runtim\
+e.scrollMgr.mayb\
+eEnableAutoFollo\
+wByProximity();\x0a\
+        this.hig\
+hlighter.schedul\
+eScanVisibleCode\
+s(runtime.stream\
+.activeCode);\x0a  \
+    };\x0a      doc\
+ument.addEventLi\
+stener('wheel', \
+this.handlers.wh\
+eel, { passive: \
+true });\x0a\x0a      \
+this.handlers.sc\
+roll = () => {\x0a \
+       const el \
+= Utils.SE; cons\
+t top = el.scrol\
+lTop;\x0a        if\
+ (top + 1 < runt\
+ime.scrollMgr.la\
+stScrollTop) run\
+time.scrollMgr.a\
+utoFollow = fals\
+e;\x0a        runti\
+me.scrollMgr.may\
+beEnableAutoFoll\
+owByProximity();\
+\x0a        runtime\
+.scrollMgr.lastS\
+crollTop = top;\x0a\
+        const ac\
+tion = runtime.s\
+crollMgr.compute\
+FabAction();\x0a   \
+     if (action \
+!== runtime.scro\
+llMgr.currentFab\
+Action) runtime.\
+scrollMgr.update\
+ScrollFab(false,\
+ action, true);\x0a\
+        this.hig\
+hlighter.schedul\
+eScanVisibleCode\
+s(runtime.stream\
+.activeCode);\x0a  \
+    };\x0a      win\
+dow.addEventList\
+ener('scroll', t\
+his.handlers.scr\
+oll, { passive: \
+true });\x0a\x0a      \
+const fab = this\
+.dom.get('scroll\
+Fab');\x0a      if \
+(fab) {\x0a        \
+this.handlers.fa\
+bClick = (ev) =>\
+ {\x0a          ev.\
+preventDefault()\
+; ev.stopPropaga\
+tion();\x0a        \
+  const action =\
+ runtime.scrollM\
+gr.computeFabAct\
+ion();\x0a         \
+ if (action === \
+'up') runtime.sc\
+rollMgr.scrollTo\
+TopUser();\x0a     \
+     else if (ac\
+tion === 'down')\
+ runtime.scrollM\
+gr.scrollToBotto\
+mUser();\x0a       \
+   runtime.scrol\
+lMgr.fabFreezeUn\
+til = Utils.now(\
+) + this.cfg.FAB\
+.TOGGLE_DEBOUNCE\
+_MS;\x0a          r\
+untime.scrollMgr\
+.updateScrollFab\
+(true);\x0a        \
+};\x0a        fab.a\
+ddEventListener(\
+'click', this.ha\
+ndlers.fabClick,\
+ { passive: fals\
+e });\x0a      }\x0a\x0a \
+     this.handle\
+rs.resize = () =\
+> {\x0a        runt\
+ime.scrollMgr.ma\
+ybeEnableAutoFol\
+lowByProximity()\
+;\x0a        runtim\
+e.scrollMgr.sche\
+duleScrollFabUpd\
+ate();\x0a        t\
+his.highlighter.\
+scheduleScanVisi\
+bleCodes(runtime\
+.stream.activeCo\
+de);\x0a      };\x0a  \
+    window.addEv\
+entListener('res\
+ize', this.handl\
+ers.resize, { pa\
+ssive: true });\x0a\
+\x0a      // Note: \
+visibility/focus\
+/pageshow kicker\
+s removed intent\
+ionally.\x0a    }\x0a \
+   // Detach all\
+ installed handl\
+ers and reset lo\
+cal refs.\x0a    cl\
+eanup() {\x0a      \
+const container \
+= this.dom.get('\
+container');\x0a   \
+   if (this.hand\
+lers.wheel) docu\
+ment.removeEvent\
+Listener('wheel'\
+, this.handlers.\
+wheel);\x0a      if\
+ (this.handlers.\
+scroll) window.r\
+emoveEventListen\
+er('scroll', thi\
+s.handlers.scrol\
+l);\x0a      if (th\
+is.handlers.resi\
+ze) window.remov\
+eEventListener('\
+resize', this.ha\
+ndlers.resize);\x0a\
+      const fab \
+= this.dom.get('\
+scrollFab'); if \
+(fab && this.han\
+dlers.fabClick) \
+fab.removeEventL\
+istener('click',\
+ this.handlers.f\
+abClick);\x0a      \
+if (container &&\
+ this.handlers.m\
+ouseover) contai\
+ner.removeEventL\
+istener('mouseov\
+er', this.handle\
+rs.mouseover);\x0a \
+     if (contain\
+er && this.handl\
+ers.mouseout) co\
+ntainer.removeEv\
+entListener('mou\
+seout', this.han\
+dlers.mouseout);\
+\x0a      if (conta\
+iner && this.han\
+dlers.click) con\
+tainer.removeEve\
+ntListener('clic\
+k', this.handler\
+s.click);\x0a      \
+if (this.handler\
+s.keydown) docum\
+ent.removeEventL\
+istener('keydown\
+', this.handlers\
+.keydown);\x0a     \
+ if (this.handle\
+rs.docClickFocus\
+) document.remov\
+eEventListener('\
+click', this.han\
+dlers.docClickFo\
+cus);\x0a      if (\
+this.handlers.vi\
+sibility) docume\
+nt.removeEventLi\
+stener('visibili\
+tychange', this.\
+handlers.visibil\
+ity);\x0a      if (\
+this.handlers.fo\
+cus) window.remo\
+veEventListener(\
+'focus', this.ha\
+ndlers.focus);\x0a \
+     if (this.ha\
+ndlers.pageshow)\
+ window.removeEv\
+entListener('pag\
+eshow', this.han\
+dlers.pageshow);\
+\x0a      this.hand\
+lers = {};\x0a    }\
+\x0a  }\x0a\x0a  // =====\
+================\
+================\
+================\
+================\
+=====\x0a  // 16) O\
+rchestrator runt\
+ime\x0a  // =======\
+================\
+================\
+================\
+================\
+===\x0a\x0a  class Run\
+time {\x0a    const\
+ructor() {\x0a     \
+ this.cfg = new \
+Config();\x0a      \
+this.logger = ne\
+w Logger(this.cf\
+g);\x0a\x0a      this.\
+dom = new DOMRef\
+s();\x0a      this.\
+customMarkup = n\
+ew CustomMarkup(\
+this.cfg, this.l\
+ogger);\x0a      th\
+is.raf = new Raf\
+Manager(this.cfg\
+);\x0a\x0a      // Ens\
+ure logger uses \
+central RafManag\
+er for its inter\
+nal tick pump.\x0a \
+     try { this.\
+logger.bindRaf(t\
+his.raf); } catc\
+h (_) {}\x0a\x0a      \
+this.async = new\
+ AsyncRunner(thi\
+s.cfg, this.raf)\
+;\x0a      this.ren\
+derer = new Mark\
+downRenderer(thi\
+s.cfg, this.cust\
+omMarkup, this.l\
+ogger, this.asyn\
+c, this.raf);\x0a\x0a \
+     this.math =\
+ new MathRendere\
+r(this.cfg, this\
+.raf, this.async\
+);\x0a      this.co\
+deScroll = new C\
+odeScrollState(t\
+his.cfg, this.ra\
+f);\x0a      this.h\
+ighlighter = new\
+ Highlighter(thi\
+s.cfg, this.code\
+Scroll, this.raf\
+);\x0a      this.sc\
+rollMgr = new Sc\
+rollManager(this\
+.cfg, this.dom, \
+this.raf);\x0a     \
+ this.toolOutput\
+ = new ToolOutpu\
+t();\x0a      this.\
+loading = new Lo\
+ading(this.dom);\
+\x0a      this.node\
+s = new NodesMan\
+ager(this.dom, t\
+his.renderer, th\
+is.highlighter, \
+this.math);\x0a    \
+  this.bridge = \
+new BridgeManage\
+r(this.cfg, this\
+.logger);\x0a      \
+this.ui = new UI\
+Manager();\x0a     \
+ this.stream = n\
+ew StreamEngine(\
+this.cfg, this.d\
+om, this.rendere\
+r, this.math, th\
+is.highlighter, \
+this.codeScroll,\
+ this.scrollMgr,\
+ this.raf, this.\
+async, this.logg\
+er);\x0a      this.\
+streamQ = new St\
+reamQueue(this.c\
+fg, this.stream,\
+ this.scrollMgr,\
+ this.raf);\x0a    \
+  this.events = \
+new EventManager\
+(this.cfg, this.\
+dom, this.scroll\
+Mgr, this.highli\
+ghter, this.code\
+Scroll, this.too\
+lOutput, this.br\
+idge);\x0a\x0a      tr\
+y {\x0a        this\
+.stream.setCusto\
+mFenceSpecs(this\
+.customMarkup.ge\
+tSourceFenceSpec\
+s());\x0a      } ca\
+tch (_) {}\x0a\x0a    \
+  this.templates\
+ = new NodeTempl\
+ateEngine(this.c\
+fg, this.logger)\
+;\x0a      this.dat\
+a = new DataRece\
+iver(this.cfg, t\
+his.templates, t\
+his.nodes, this.\
+scrollMgr);\x0a\x0a   \
+   this.tips = n\
+ull;\x0a      this.\
+_lastHeavyResetM\
+s = 0;\x0a\x0a      th\
+is.renderer.hook\
+s.observeNewCode\
+ = (root, opts) \
+=> this.highligh\
+ter.observeNewCo\
+de(root, opts, t\
+his.stream.activ\
+eCode);\x0a      th\
+is.renderer.hook\
+s.observeMsgBoxe\
+s = (root) => th\
 is.highlighter.o\
-bserveNewCode(do\
-cument, {\x0a      \
+bserveMsgBoxes(r\
+oot, (box) => {\x0a\
+        this.hig\
+hlighter.observe\
+NewCode(box, {\x0a \
+         deferLa\
+stIfStreaming: t\
+rue,\x0a          m\
+inLinesForLast: \
+this.cfg.PROFILE\
+_CODE.minLinesFo\
+rHL,\x0a          m\
+inCharsForLast: \
+this.cfg.PROFILE\
+_CODE.minCharsFo\
+rHL\x0a        }, t\
+his.stream.activ\
+eCode);\x0a        \
+this.codeScroll.\
+initScrollableBl\
+ocks(box);\x0a     \
+ });\x0a      this.\
+renderer.hooks.s\
+cheduleMathRende\
+r = (root) => {\x0a\
+        const mm\
+ = getMathMode()\
+;\x0a        if (mm\
+ === 'idle') thi\
+s.math.schedule(\
+root);\x0a        e\
+lse if (mm === '\
+always') this.ma\
+th.schedule(root\
+, 0, true);\x0a    \
+  };\x0a      this.\
+renderer.hooks.c\
+odeScrollInit = \
+(root) => this.c\
+odeScroll.initSc\
+rollableBlocks(r\
+oot);\x0a    }\x0a\x0a   \
+ // Reset stream\
+ state and optio\
+nally perform a \
+heavy reset of s\
+chedulers and ob\
+servers.\x0a    res\
+etStreamState(or\
+igin, opts) {\x0a  \
+    try { this.s\
+treamQ.clear(); \
+} catch (_) {}\x0a\x0a\
+      const def \
+= Object.assign(\
+{\x0a        finali\
+zeActive: true, \
+clearBuffer: tru\
+e, clearMsg: fal\
+se, defuseOrphan\
+s: true, forceHe\
+avy: false, reas\
+on: String(origi\
+n || 'external-o\
+p')\x0a      }, (op\
+ts || {}));\x0a\x0a   \
+   const now = U\
+tils.now();\x0a    \
+  const withinDe\
+bounce = (now - \
+(this._lastHeavy\
+ResetMs || 0)) <\
+= (this.cfg.RESE\
+T.HEAVY_DEBOUNCE\
+_MS || 24);\x0a    \
+  const mustHeav\
+yByOrigin =\x0a    \
+    def.forceHea\
+vy === true || d\
+ef.clearMsg === \
+true ||\x0a        \
+origin === 'begi\
+nStream' || orig\
+in === 'nextStre\
+am' ||\x0a        o\
+rigin === 'clear\
+Stream' || origi\
+n === 'replaceNo\
+des' ||\x0a        \
+origin === 'clea\
+rNodes' || origi\
+n === 'clearOutp\
+ut' ||\x0a        o\
+rigin === 'clear\
+Live' || origin \
+=== 'clearInput'\
+;\x0a      const sh\
+ouldHeavy = must\
+HeavyByOrigin ||\
+ !withinDebounce\
+;\x0a      const su\
+ppressLog = with\
+inDebounce && or\
+igin !== 'beginS\
+tream';\x0a\x0a      t\
+ry { this.stream\
+.abortAndReset({\
+ ...def, suppres\
+sLog }); } catch\
+ (_) {}\x0a\x0a      i\
+f (shouldHeavy) \
+{\x0a        try { \
+this.highlighter\
+.cleanup(); } ca\
+tch (_) {}\x0a     \
+   try { this.ma\
+th.cleanup(); } \
+catch (_) {}\x0a   \
+     try { this.\
+codeScroll.cance\
+lAllScrolls(); }\
+ catch (_) {}\x0a  \
+      try { this\
+.scrollMgr.cance\
+lPendingScroll()\
+; } catch (_) {}\
+\x0a        try { t\
+his.raf.cancelAl\
+l(); } catch (_)\
+ {}\x0a        this\
+._lastHeavyReset\
+Ms = now;\x0a      \
+} else {\x0a       \
+ try { this.raf.\
+cancelGroup('Str\
+eamQueue'); } ca\
+tch (_) {}\x0a     \
+ }\x0a\x0a      try { \
+this.tips && thi\
+s.tips.hide(); }\
+ catch (_) {}\x0a  \
+  }\x0a    // API: \
+handle incoming \
+chunk (from brid\
+ge).\x0a    api_onC\
+hunk = (name, ch\
+unk, type) => {\x0a\
+      const t = \
+String(type || '\
+text_delta');\x0a  \
+    if (t === 't\
+ext_delta') {\x0a  \
+      this.api_a\
+ppendStream(name\
+, chunk);\x0a      \
+  return;\x0a      \
+}\x0a      // Futur\
+e-proof: add oth\
+er chunk types h\
+ere (attachments\
+, status, etc.)\x0a\
+      // No-op f\
+or unknown types\
+ to keep current\
+ behavior.\x0a     \
+ this.logger.deb\
+ug('STREAM', 'IG\
+NORED_NON_TEXT_C\
+HUNK', { type: t\
+, len: (chunk ? \
+String(chunk).le\
+ngth : 0) });\x0a  \
+  };\x0a    // API:\
+ begin stream.\x0a \
+   api_beginStre\
+am = (chunk = fa\
+lse) => { this.t\
+ips && this.tips\
+.hide(); this.re\
+setStreamState('\
+beginStream', { \
+clearMsg: true, \
+finalizeActive: \
+false, forceHeav\
+y: true }); this\
+.stream.beginStr\
+eam(chunk); };\x0a \
+   // API: end s\
+tream.\x0a    api_e\
+ndStream = () =>\
+ { this.stream.e\
+ndStream(); };\x0a \
+   // API: apply\
+ chunk.\x0a    api_\
+applyStream = (n\
+ame, chunk) => {\
+ this.stream.app\
+lyStream(name, c\
+hunk); };\x0a    //\
+ API: enqueue ch\
+unk (drained on \
+rAF).\x0a    api_ap\
+pendStream = (na\
+me, chunk) => { \
+this.streamQ.enq\
+ueue(name, chunk\
+); };\x0a    // API\
+: move current o\
+utput to \x22before\
+\x22 area and prepa\
+re for next stre\
+am.\x0a    api_next\
+Stream = () => {\
+\x0a      this.tips\
+ && this.tips.hi\
+de();\x0a      cons\
+t element = this\
+.dom.get('_appen\
+d_output_'); con\
+st before = this\
+.dom.get('_appen\
+d_output_before_\
+');\x0a      if (el\
+ement && before)\
+ {\x0a        const\
+ frag = document\
+.createDocumentF\
+ragment();\x0a     \
+   while (elemen\
+t.firstChild) fr\
+ag.appendChild(e\
+lement.firstChil\
+d);\x0a        befo\
+re.appendChild(f\
+rag);\x0a      }\x0a  \
+    this.resetSt\
+reamState('nextS\
+tream', { clearM\
+sg: true, finali\
+zeActive: false,\
+ forceHeavy: tru\
+e });\x0a      this\
+.scrollMgr.sched\
+uleScroll();\x0a   \
+ };\x0a    // API: \
+clear streaming \
+output area enti\
+rely.\x0a    api_cl\
+earStream = () =\
+> { this.tips &&\
+ this.tips.hide(\
+); this.resetStr\
+eamState('clearS\
+tream', { clearM\
+sg: true, forceH\
+eavy: true }); c\
+onst el = this.d\
+om.getStreamCont\
+ainer(); if (!el\
+) return; el.rep\
+laceChildren(); \
+};\x0a\x0a    // API: \
+append/replace m\
+essages (non-str\
+eaming).\x0a    api\
+_appendNode = (p\
+ayload) => { thi\
+s.resetStreamSta\
+te('appendNode')\
+; this.data.appe\
+nd(payload); };\x0a\
+    api_replaceN\
+odes = (payload)\
+ => { this.reset\
+StreamState('rep\
+laceNodes', { cl\
+earMsg: true, fo\
+rceHeavy: true }\
+); this.dom.clea\
+rNodes(); this.d\
+ata.replace(payl\
+oad); };\x0a\x0a    //\
+ API: append to \
+input area.\x0a    \
+  api_appendToIn\
+put = (payload) \
+=> {\x0a        thi\
+s.nodes.appendTo\
+Input(payload);\x0a\
+\x0a        // Ensu\
+re initial auto-\
+follow is ON for\
+ the next stream\
+ that will start\
+ right after use\
+r input.\x0a       \
+ // Rationale: p\
+reviously, if th\
+e user had scrol\
+led up, autoFoll\
+ow could remain \
+false and the\x0a  \
+      // live st\
+ream would not f\
+ollow even thoug\
+h we just sent a\
+ new input.\x0a    \
+    this.scrollM\
+gr.autoFollow = \
+true;       // e\
+xplicitly re-ena\
+ble page auto-fo\
+llow\x0a        thi\
+s.scrollMgr.user\
+Interacted = fal\
+se;  // Reset in\
+teraction so liv\
+e scroll is allo\
+wed\x0a\x0a        // \
+Keep lastScrollT\
+op in sync to av\
+oid misclassific\
+ation in the nex\
+t onscroll handl\
+er.\x0a        try \
+{ this.scrollMgr\
+.lastScrollTop =\
+ Utils.SE.scroll\
+Top | 0; } catch\
+ (_) {}\x0a\x0a       \
+ // Non-live scr\
+oll to bottom ri\
+ght away, indepe\
+ndent of autoFol\
+low state.\x0a     \
+   this.scrollMg\
+r.scheduleScroll\
+();\x0a        // N\
+OTE: No resetStr\
+eamState() here \
+to avoid flicker\
+/reflow issues w\
+hile previewing \
+user input.\x0a    \
+  };\x0a\x0a    // API\
+: clear messages\
+ list.\x0a    api_c\
+learNodes = () =\
+> { this.dom.cle\
+arNodes(); this.\
+resetStreamState\
+('clearNodes', {\
+ clearMsg: true,\
+ forceHeavy: tru\
+e }); };\x0a    // \
+API: clear input\
+ area.\x0a    api_c\
+learInput = () =\
+> { this.resetSt\
+reamState('clear\
+Input', { forceH\
+eavy: true }); t\
+his.dom.clearInp\
+ut(); };\x0a    // \
+API: clear outpu\
+t area.\x0a    api_\
+clearOutput = ()\
+ => { this.dom.c\
+learOutput(); th\
+is.resetStreamSt\
+ate('clearOutput\
+', { clearMsg: t\
+rue, forceHeavy:\
+ true }); };\x0a   \
+ // API: clear l\
+ive area.\x0a    ap\
+i_clearLive = ()\
+ => { this.dom.c\
+learLive(); this\
+.resetStreamStat\
+e('clearLive', {\
+ forceHeavy: tru\
+e }); };\x0a\x0a    //\
+ API: tool outpu\
+t helpers.\x0a    a\
+pi_appendToolOut\
+put = (c) => thi\
+s.toolOutput.app\
+end(c);\x0a    api_\
+updateToolOutput\
+ = (c) => this.t\
+oolOutput.update\
+(c);\x0a    api_cle\
+arToolOutput = (\
+) => this.toolOu\
+tput.clear();\x0a  \
+  api_beginToolO\
+utput = () => th\
+is.toolOutput.be\
+gin();\x0a    api_e\
+ndToolOutput = (\
+) => this.toolOu\
+tput.end();\x0a    \
+api_enableToolOu\
+tput = () => thi\
+s.toolOutput.ena\
+ble();\x0a    api_d\
+isableToolOutput\
+ = () => this.to\
+olOutput.disable\
+();\x0a    api_togg\
+leToolOutput = (\
+id) => this.tool\
+Output.toggle(id\
+);\x0a\x0a    // API: \
+append extra con\
+tent to a bot me\
+ssage.\x0a    api_a\
+ppendExtra = (id\
+, c) => this.nod\
+es.appendExtra(i\
+d, c, this.scrol\
+lMgr);\x0a    // AP\
+I: remove one me\
+ssage by id.\x0a   \
+ api_removeNode \
+= (id) => this.n\
+odes.removeNode(\
+id, this.scrollM\
+gr);\x0a    // API:\
+ remove all mess\
+ages starting fr\
+om id.\x0a    api_r\
+emoveNodesFromId\
+ = (id) => this.\
+nodes.removeNode\
+sFromId(id, this\
+.scrollMgr);\x0a\x0a  \
+  // API: replac\
+e live area cont\
+ent (with local \
+post-processing)\
+.\x0a    api_replac\
+eLive = (content\
+) => {\x0a      con\
+st el = this.dom\
+.get('_append_li\
+ve_'); if (!el) \
+return;\x0a      if\
+ (el.classList.c\
+ontains('hidden'\
+)) { el.classLis\
+t.remove('hidden\
+'); el.classList\
+.add('visible');\
+ }\x0a      el.inne\
+rHTML = content;\
+\x0a\x0a      try {\x0a  \
+      const mayb\
+ePromise = this.\
+renderer.renderP\
+endingMarkdown(e\
+l);\x0a\x0a        con\
+st post = () => \
+{\x0a          try \
+{\x0a            th\
+is.highlighter.o\
+bserveNewCode(el\
+, {\x0a            \
   deferLastIfStr\
 eaming: true,\x0a  \
-      minLinesFo\
-rLast: this.cfg.\
-PROFILE_CODE.min\
-LinesForHL,\x0a    \
-    minCharsForL\
-ast: this.cfg.PR\
-OFILE_CODE.minCh\
-arsForHL\x0a      }\
-, this.stream.ac\
-tiveCode);\x0a     \
- this.highlighte\
-r.scheduleScanVi\
-sibleCodes(this.\
-stream.activeCod\
-e);\x0a\x0a      this.\
-tips.cycle();\x0a  \
-    this.scrollM\
-gr.updateScrollF\
-ab(true);\x0a    }\x0a\
-\x0a    // Cleanup \
-runtime and deta\
-ch from DOM/brid\
-ge.\x0a    cleanup(\
-) {\x0a      this.t\
-ips.cleanup();\x0a \
-     try { this.\
-bridge.disconnec\
-t(); } catch (_)\
- {}\x0a      this.e\
-vents.cleanup();\
-\x0a      this.high\
-lighter.cleanup(\
-);\x0a      this.ma\
-th.cleanup();\x0a  \
-    this.streamQ\
-.clear();\x0a      \
-this.dom.cleanup\
-();\x0a    }\x0a  }\x0a\x0a \
- // Ensure RafMa\
-nager.cancel use\
-s the correct gr\
-oup key cleanup.\
-\x0a    if (typeof \
-RafManager !== '\
-undefined' && Ra\
-fManager.prototy\
-pe && typeof Raf\
-Manager.prototyp\
-e.cancel === 'fu\
-nction') {\x0a     \
-   RafManager.pr\
-ototype.cancel =\
- function(key) {\
-\x0a          const\
- t = this.tasks.\
-get(key);\x0a      \
-    if (!t) retu\
-rn;\x0a          th\
-is.tasks.delete(\
-key);\x0a          \
-if (t.group) {\x0a \
-           const\
- set = this.grou\
-ps.get(t.group);\
-\x0a            if \
-(set) { set.dele\
-te(key); if (set\
-.size === 0) thi\
-s.groups.delete(\
-t.group); }\x0a    \
-      }\x0a        \
-};\x0a      }\x0a\x0a  co\
-nst runtime = ne\
-w Runtime();\x0a\x0a  \
-document.addEven\
-tListener('DOMCo\
-ntentLoaded', ()\
- => runtime.init\
-());\x0a\x0a  Object.d\
-efineProperty(wi\
-ndow, 'SE', { ge\
-t() { return Uti\
-ls.SE; } });\x0a\x0a  \
-window.beginStre\
-am = (chunk) => \
-runtime.api_begi\
-nStream(chunk);\x0a\
-  window.endStre\
-am = () => runti\
-me.api_endStream\
-();\x0a  window.app\
-lyStream = (name\
-, chunk) => runt\
-ime.api_applyStr\
-eam(name, chunk)\
-;\x0a  window.appen\
-dStream = (name,\
- chunk) => runti\
-me.api_appendStr\
-eam(name, chunk)\
-;\x0a  window.appen\
-dStreamTyped = (\
-type, name, chun\
-k) => runtime.ap\
-i_onChunk(name, \
-chunk, type);\x0a  \
-window.nextStrea\
-m = () => runtim\
-e.api_nextStream\
-();\x0a  window.cle\
-arStream = () =>\
- runtime.api_cle\
-arStream();\x0a\x0a  w\
-indow.appendNode\
- = (payload) => \
-runtime.api_appe\
-ndNode(payload);\
-\x0a  window.replac\
-eNodes = (payloa\
-d) => runtime.ap\
-i_replaceNodes(p\
-ayload);\x0a  windo\
-w.appendToInput \
-= (html) => runt\
-ime.api_appendTo\
-Input(html);\x0a\x0a  \
-window.clearNode\
-s = () => runtim\
-e.api_clearNodes\
-();\x0a  window.cle\
-arInput = () => \
-runtime.api_clea\
-rInput();\x0a  wind\
-ow.clearOutput =\
- () => runtime.a\
-pi_clearOutput()\
-;\x0a  window.clear\
-Live = () => run\
-time.api_clearLi\
-ve();\x0a\x0a  window.\
-appendToolOutput\
- = (c) => runtim\
-e.api_appendTool\
-Output(c);\x0a  win\
-dow.updateToolOu\
-tput = (c) => ru\
-ntime.api_update\
-ToolOutput(c);\x0a \
- window.clearToo\
-lOutput = () => \
-runtime.api_clea\
-rToolOutput();\x0a \
- window.beginToo\
-lOutput = () => \
-runtime.api_begi\
-nToolOutput();\x0a \
- window.endToolO\
-utput = () => ru\
-ntime.api_endToo\
-lOutput();\x0a  win\
-dow.enableToolOu\
-tput = () => run\
-time.api_enableT\
-oolOutput();\x0a  w\
-indow.disableToo\
-lOutput = () => \
-runtime.api_disa\
-bleToolOutput();\
-\x0a  window.toggle\
-ToolOutput = (id\
-) => runtime.api\
-_toggleToolOutpu\
-t(id);\x0a\x0a  window\
-.appendExtra = (\
-id, c) => runtim\
-e.api_appendExtr\
-a(id, c);\x0a  wind\
-ow.removeNode = \
-(id) => runtime.\
-api_removeNode(i\
-d);\x0a  window.rem\
-oveNodesFromId =\
- (id) => runtime\
-.api_removeNodes\
-FromId(id);\x0a\x0a  w\
-indow.replaceLiv\
-e = (c) => runti\
-me.api_replaceLi\
-ve(c);\x0a  window.\
-updateFooter = (\
-c) => runtime.ap\
-i_updateFooter(c\
-);\x0a\x0a  window.ena\
-bleEditIcons = (\
-) => runtime.api\
-_enableEditIcons\
-();\x0a  window.dis\
-ableEditIcons = \
-() => runtime.ap\
-i_disableEditIco\
-ns();\x0a  window.e\
-nableTimestamp =\
- () => runtime.a\
-pi_enableTimesta\
-mp();\x0a  window.d\
-isableTimestamp \
-= () => runtime.\
-api_disableTimes\
-tamp();\x0a  window\
-.enableBlocks = \
-() => runtime.ap\
-i_enableBlocks()\
-;\x0a  window.disab\
-leBlocks = () =>\
- runtime.api_dis\
-ableBlocks();\x0a  \
-window.updateCSS\
- = (s) => runtim\
-e.api_updateCSS(\
-s);\x0a\x0a  window.ge\
-tScrollPosition \
-= () => runtime.\
-api_getScrollPos\
-ition();\x0a  windo\
-w.setScrollPosit\
-ion = (pos) => r\
-untime.api_setSc\
-rollPosition(pos\
-);\x0a\x0a  window.sho\
-wLoading = () =>\
- runtime.api_sho\
-wLoading();\x0a  wi\
-ndow.hideLoading\
- = () => runtime\
-.api_hideLoading\
-();\x0a\x0a  window.re\
-storeCollapsedCo\
-de = (root) => r\
-untime.api_resto\
-reCollapsedCode(\
-root);\x0a  window.\
-scrollToTopUser \
-= () => runtime.\
-api_scrollToTopU\
-ser();\x0a  window.\
-scrollToBottomUs\
-er = () => runti\
-me.api_scrollToB\
-ottomUser();\x0a\x0a  \
-window.showTips \
-= () => runtime.\
-api_showTips();\x0a\
-  window.hideTip\
-s = () => runtim\
-e.api_hideTips()\
-;\x0a\x0a  window.getC\
+            minL\
+inesForLast: thi\
+s.cfg.PROFILE_CO\
+DE.minLinesForHL\
+,\x0a              \
+minCharsForLast:\
+ this.cfg.PROFIL\
+E_CODE.minCharsF\
+orHL\x0a           \
+ }, this.stream.\
+activeCode);\x0a\x0a  \
+          this.h\
+ighlighter.obser\
+veMsgBoxes(el, (\
+box) => {\x0a      \
+        this.hig\
+hlighter.observe\
+NewCode(box, {\x0a \
+               d\
+eferLastIfStream\
+ing: true,\x0a     \
+           minLi\
+nesForLast: this\
+.cfg.PROFILE_COD\
+E.minLinesForHL,\
+\x0a               \
+ minCharsForLast\
+: this.cfg.PROFI\
+LE_CODE.minChars\
+ForHL\x0a          \
+    }, this.stre\
+am.activeCode);\x0a\
+              th\
+is.codeScroll.in\
+itScrollableBloc\
+ks(box);\x0a       \
+     });\x0a       \
+   } catch (_) {\
+}\x0a\x0a          try\
+ {\x0a            c\
+onst mm = getMat\
+hMode();\x0a       \
+     // In final\
+ize-only we must\
+ force now; othe\
+rwise normal sch\
+edule is fine.\x0a \
+           if (m\
+m === 'finalize-\
+only') this.math\
+.schedule(el, 0,\
+ true);\x0a        \
+    else this.ma\
+th.schedule(el);\
+\x0a          } cat\
+ch (_) {}\x0a\x0a     \
+     this.scroll\
+Mgr.scheduleScro\
+ll();\x0a        };\
+\x0a\x0a        if (ma\
+ybePromise && ty\
+peof maybePromis\
+e.then === 'func\
+tion') {\x0a       \
+   maybePromise.\
+then(post);\x0a    \
+    } else {\x0a   \
+       post();\x0a \
+       }\x0a      }\
+ catch (_) {\x0a   \
+     // Worst-ca\
+se: keep UX resp\
+onsive even if s\
+omething throws \
+before post-proc\
+essing\x0a        t\
+his.scrollMgr.sc\
+heduleScroll();\x0a\
+      }\x0a    };\x0a\x0a\
+    // API: upda\
+te footer conten\
+t.\x0a    api_updat\
+eFooter = (html)\
+ => { const el =\
+ this.dom.get('_\
+footer_'); if (e\
+l) el.innerHTML \
+= html; };\x0a\x0a    \
+// API: toggle U\
+I features.\x0a    \
+api_enableEditIc\
+ons = () => this\
+.ui.enableEditIc\
+ons();\x0a    api_d\
+isableEditIcons \
+= () => this.ui.\
+disableEditIcons\
+();\x0a    api_enab\
+leTimestamp = ()\
+ => this.ui.enab\
+leTimestamp();\x0a \
+   api_disableTi\
+mestamp = () => \
+this.ui.disableT\
+imestamp();\x0a    \
+api_enableBlocks\
+ = () => this.ui\
+.enableBlocks();\
+\x0a    api_disable\
+Blocks = () => t\
+his.ui.disableBl\
+ocks();\x0a    api_\
+updateCSS = (sty\
+les) => this.ui.\
+updateCSS(styles\
+);\x0a\x0a    // API: \
+sync scroll posi\
+tion with host.\x0a\
+    api_getScrol\
+lPosition = () =\
+> { this.bridge.\
+updateScrollPosi\
+tion(window.scro\
+llY); };\x0a    api\
+_setScrollPositi\
+on = (pos) => { \
+try { window.scr\
+ollTo(0, pos); t\
+his.scrollMgr.pr\
+evScroll = parse\
+Int(pos); } catc\
+h (_) {} };\x0a\x0a   \
+ // API: show/hi\
+de loading overl\
+ay.\x0a    api_show\
+Loading = () => \
+this.loading.sho\
+w();\x0a    api_hid\
+eLoading = () =>\
+ this.loading.hi\
+de();\x0a\x0a    // AP\
+I: restore colla\
+psed state of co\
+des in a given r\
+oot.\x0a    api_res\
+toreCollapsedCod\
+e = (root) => th\
+is.renderer.rest\
+oreCollapsedCode\
+(root);\x0a\x0a    // \
+API: user-trigge\
+red page scroll.\
+\x0a    api_scrollT\
+oTopUser = () =>\
+ this.scrollMgr.\
+scrollToTopUser(\
+);\x0a    api_scrol\
+lToBottomUser = \
+() => this.scrol\
+lMgr.scrollToBot\
+tomUser();\x0a\x0a    \
+// API: tips vis\
+ibility control.\
+\x0a    api_showTip\
+s = () => this.t\
+ips.show();\x0a    \
+api_hideTips = (\
+) => this.tips.h\
+ide();\x0a\x0a    // A\
+PI: custom marku\
+p rules control.\
+\x0a    api_getCust\
+omMarkupRules = \
+() => this.custo\
+mMarkup.getRules\
+();\x0a    api_setC\
 ustomMarkupRules\
+ = (rules) => {\x0a\
+      this.custo\
+mMarkup.setRules\
+(rules);\x0a      /\
+/ Keep StreamEng\
+ine in sync with\
+ rules producing\
+ fenced code\x0a   \
+   try { this.st\
+ream.setCustomFe\
+nceSpecs(this.cu\
+stomMarkup.getSo\
+urceFenceSpecs()\
+); } catch (_) {\
+}\x0a    };\x0a\x0a    //\
+ Initialize runt\
+ime (called on D\
+OMContentLoaded)\
+.\x0a    init() {\x0a \
+     this.highli\
+ghter.initHLJS()\
+;\x0a      this.dom\
+.init();\x0a      t\
+his.ui.ensureSti\
+ckyHeaderStyle()\
+;\x0a\x0a      this.ti\
+ps = new TipsMan\
+ager(this.dom);\x0a\
+      this.event\
+s.install();\x0a\x0a  \
+    this.bridge.\
+initQWebChannel(\
+this.cfg.PID, (b\
+ridge) => {\x0a    \
+    const onChun\
+k = (name, chunk\
+, type) => this.\
+api_onChunk(name\
+, chunk, type);\x0a\
+        const on\
+Node = (payload)\
+ => this.api_app\
+endNode(payload)\
+;\x0a        const \
+onNodeReplace = \
+(payload) => thi\
+s.api_replaceNod\
+es(payload);\x0a   \
+     const onNod\
+eInput = (html) \
+=> this.api_appe\
+ndToInput(html);\
+\x0a        this.br\
+idge.connect(onC\
+hunk, onNode, on\
+NodeReplace, onN\
+odeInput);\x0a     \
+   try { this.lo\
+gger.bindBridge(\
+this.bridge.brid\
+ge || this.bridg\
+e); } catch (_) \
+{}\x0a      });\x0a\x0a  \
+    this.rendere\
+r.init();\x0a      \
+try { this.rende\
+rer.renderPendin\
+gMarkdown(docume\
+nt); } catch (_)\
+ {}\x0a\x0a      this.\
+highlighter.obse\
+rveMsgBoxes(docu\
+ment, (box) => {\
+\x0a        this.hi\
+ghlighter.observ\
+eNewCode(box, {\x0a\
+          deferL\
+astIfStreaming: \
+true,\x0a          \
+minLinesForLast:\
+ this.cfg.PROFIL\
+E_CODE.minLinesF\
+orHL,\x0a          \
+minCharsForLast:\
+ this.cfg.PROFIL\
+E_CODE.minCharsF\
+orHL\x0a        }, \
+this.stream.acti\
+veCode);\x0a       \
+ this.codeScroll\
+.initScrollableB\
+locks(box);\x0a    \
+  });\x0a      this\
+.highlighter.obs\
+erveNewCode(docu\
+ment, {\x0a        \
+deferLastIfStrea\
+ming: true,\x0a    \
+    minLinesForL\
+ast: this.cfg.PR\
+OFILE_CODE.minLi\
+nesForHL,\x0a      \
+  minCharsForLas\
+t: this.cfg.PROF\
+ILE_CODE.minChar\
+sForHL\x0a      }, \
+this.stream.acti\
+veCode);\x0a      t\
+his.highlighter.\
+scheduleScanVisi\
+bleCodes(this.st\
+ream.activeCode)\
+;\x0a\x0a      this.ti\
+ps.cycle();\x0a    \
+  this.scrollMgr\
+.updateScrollFab\
+(true);\x0a    }\x0a\x0a \
+   // Cleanup ru\
+ntime and detach\
+ from DOM/bridge\
+.\x0a    cleanup() \
+{\x0a      this.tip\
+s.cleanup();\x0a   \
+   try { this.br\
+idge.disconnect(\
+); } catch (_) {\
+}\x0a      this.eve\
+nts.cleanup();\x0a \
+     this.highli\
+ghter.cleanup();\
+\x0a      this.math\
+.cleanup();\x0a    \
+  this.streamQ.c\
+lear();\x0a      th\
+is.dom.cleanup()\
+;\x0a    }\x0a  }\x0a\x0a  /\
+/ Ensure RafMana\
+ger.cancel uses \
+the correct grou\
+p key cleanup.\x0a \
+   if (typeof Ra\
+fManager !== 'un\
+defined' && RafM\
+anager.prototype\
+ && typeof RafMa\
+nager.prototype.\
+cancel === 'func\
+tion') {\x0a       \
+ RafManager.prot\
+otype.cancel = f\
+unction(key) {\x0a \
+         const t\
+ = this.tasks.ge\
+t(key);\x0a        \
+  if (!t) return\
+;\x0a          this\
+.tasks.delete(ke\
+y);\x0a          if\
+ (t.group) {\x0a   \
+         const s\
+et = this.groups\
+.get(t.group);\x0a \
+           if (s\
+et) { set.delete\
+(key); if (set.s\
+ize === 0) this.\
+groups.delete(t.\
+group); }\x0a      \
+    }\x0a        };\
+\x0a      }\x0a\x0a  cons\
+t runtime = new \
+Runtime();\x0a\x0a  do\
+cument.addEventL\
+istener('DOMCont\
+entLoaded', () =\
+> runtime.init()\
+);\x0a\x0a  Object.def\
+ineProperty(wind\
+ow, 'SE', { get(\
+) { return Utils\
+.SE; } });\x0a\x0a  wi\
+ndow.beginStream\
+ = (chunk) => ru\
+ntime.api_beginS\
+tream(chunk);\x0a  \
+window.endStream\
  = () => runtime\
-.api_getCustomMa\
-rkupRules();\x0a  w\
-indow.setCustomM\
-arkupRules = (ru\
-les) => runtime.\
-api_setCustomMar\
-kupRules(rules);\
-\x0a\x0a  window.__pyg\
-pt_cleanup = () \
-=> runtime.clean\
-up();\x0a\x0a})();\
+.api_endStream()\
+;\x0a  window.apply\
+Stream = (name, \
+chunk) => runtim\
+e.api_applyStrea\
+m(name, chunk);\x0a\
+  window.appendS\
+tream = (name, c\
+hunk) => runtime\
+.api_appendStrea\
+m(name, chunk);\x0a\
+  window.appendS\
+treamTyped = (ty\
+pe, name, chunk)\
+ => runtime.api_\
+onChunk(name, ch\
+unk, type);\x0a  wi\
+ndow.nextStream \
+= () => runtime.\
+api_nextStream()\
+;\x0a  window.clear\
+Stream = () => r\
+untime.api_clear\
+Stream();\x0a\x0a  win\
+dow.appendNode =\
+ (payload) => ru\
+ntime.api_append\
+Node(payload);\x0a \
+ window.replaceN\
+odes = (payload)\
+ => runtime.api_\
+replaceNodes(pay\
+load);\x0a  window.\
+appendToInput = \
+(html) => runtim\
+e.api_appendToIn\
+put(html);\x0a\x0a  wi\
+ndow.clearNodes \
+= () => runtime.\
+api_clearNodes()\
+;\x0a  window.clear\
+Input = () => ru\
+ntime.api_clearI\
+nput();\x0a  window\
+.clearOutput = (\
+) => runtime.api\
+_clearOutput();\x0a\
+  window.clearLi\
+ve = () => runti\
+me.api_clearLive\
+();\x0a\x0a  window.ap\
+pendToolOutput =\
+ (c) => runtime.\
+api_appendToolOu\
+tput(c);\x0a  windo\
+w.updateToolOutp\
+ut = (c) => runt\
+ime.api_updateTo\
+olOutput(c);\x0a  w\
+indow.clearToolO\
+utput = () => ru\
+ntime.api_clearT\
+oolOutput();\x0a  w\
+indow.beginToolO\
+utput = () => ru\
+ntime.api_beginT\
+oolOutput();\x0a  w\
+indow.endToolOut\
+put = () => runt\
+ime.api_endToolO\
+utput();\x0a  windo\
+w.enableToolOutp\
+ut = () => runti\
+me.api_enableToo\
+lOutput();\x0a  win\
+dow.disableToolO\
+utput = () => ru\
+ntime.api_disabl\
+eToolOutput();\x0a \
+ window.toggleTo\
+olOutput = (id) \
+=> runtime.api_t\
+oggleToolOutput(\
+id);\x0a\x0a  window.a\
+ppendExtra = (id\
+, c) => runtime.\
+api_appendExtra(\
+id, c);\x0a  window\
+.removeNode = (i\
+d) => runtime.ap\
+i_removeNode(id)\
+;\x0a  window.remov\
+eNodesFromId = (\
+id) => runtime.a\
+pi_removeNodesFr\
+omId(id);\x0a\x0a  win\
+dow.replaceLive \
+= (c) => runtime\
+.api_replaceLive\
+(c);\x0a  window.up\
+dateFooter = (c)\
+ => runtime.api_\
+updateFooter(c);\
+\x0a\x0a  window.enabl\
+eEditIcons = () \
+=> runtime.api_e\
+nableEditIcons()\
+;\x0a  window.disab\
+leEditIcons = ()\
+ => runtime.api_\
+disableEditIcons\
+();\x0a  window.ena\
+bleTimestamp = (\
+) => runtime.api\
+_enableTimestamp\
+();\x0a  window.dis\
+ableTimestamp = \
+() => runtime.ap\
+i_disableTimesta\
+mp();\x0a  window.e\
+nableBlocks = ()\
+ => runtime.api_\
+enableBlocks();\x0a\
+  window.disable\
+Blocks = () => r\
+untime.api_disab\
+leBlocks();\x0a  wi\
+ndow.updateCSS =\
+ (s) => runtime.\
+api_updateCSS(s)\
+;\x0a\x0a  window.getS\
+crollPosition = \
+() => runtime.ap\
+i_getScrollPosit\
+ion();\x0a  window.\
+setScrollPositio\
+n = (pos) => run\
+time.api_setScro\
+llPosition(pos);\
+\x0a\x0a  window.showL\
+oading = () => r\
+untime.api_showL\
+oading();\x0a  wind\
+ow.hideLoading =\
+ () => runtime.a\
+pi_hideLoading()\
+;\x0a\x0a  window.rest\
+oreCollapsedCode\
+ = (root) => run\
+time.api_restore\
+CollapsedCode(ro\
+ot);\x0a  window.sc\
+rollToTopUser = \
+() => runtime.ap\
+i_scrollToTopUse\
+r();\x0a  window.sc\
+rollToBottomUser\
+ = () => runtime\
+.api_scrollToBot\
+tomUser();\x0a\x0a  wi\
+ndow.showTips = \
+() => runtime.ap\
+i_showTips();\x0a  \
+window.hideTips \
+= () => runtime.\
+api_hideTips();\x0a\
+\x0a  window.getCus\
+tomMarkupRules =\
+ () => runtime.a\
+pi_getCustomMark\
+upRules();\x0a  win\
+dow.setCustomMar\
+kupRules = (rule\
+s) => runtime.ap\
+i_setCustomMarku\
+pRules(rules);\x0a\x0a\
+  window.__pygpt\
+_cleanup = () =>\
+ runtime.cleanup\
+();\x0a\x0a})();\
 \x00\x01\xe2\xe2\
 /\
 *! markdown-it 1\
@@ -109496,12 +109499,12 @@ qt_resource_name = b"\
 qt_resource_struct = b"\
 \x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x01\
 \x00\x00\x00\x00\x00\x02\x00\x00\x00\x06\x00\x00\x00\x02\
-\x00\x00\x00\x96\x00\x00\x00\x00\x00\x01\x00\x18\xc7Q\
+\x00\x00\x00\x96\x00\x00\x00\x00\x00\x01\x00\x18\xc7\x7f\
 \x00\x00\x00\x84\x00\x00\x00\x00\x00\x01\x00\x14\xb5\xf0\
 \x00\x00\x00f\x00\x00\x00\x00\x00\x01\x00\x10|\xd7\
 \x00\x00\x00\x0a\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\
 \x00\x00\x000\x00\x00\x00\x00\x00\x01\x00\x10s\xea\
-\x00\x00\x00\xc0\x00\x00\x00\x00\x00\x01\x00\x1a\xaa7\
+\x00\x00\x00\xc0\x00\x00\x00\x00\x00\x01\x00\x1a\xaae\
 "
 
 def qInitResources():

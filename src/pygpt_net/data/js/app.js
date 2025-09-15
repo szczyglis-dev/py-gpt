@@ -461,147 +461,151 @@
   // ==========================================================================
 
   class Config {
-    constructor() {
-      // Process identifier (passed from host).
-      this.PID = Utils.g('PID', 0);
+      constructor() {
+        // Process identifier (passed from host).
+        this.PID = Utils.g('PID', 0);
 
-      // UI: scroll behavior and busy/zoom signalling thresholds (milliseconds / pixels).
-      this.UI = {
-        AUTO_FOLLOW_REENABLE_PX: Utils.g('AUTO_FOLLOW_REENABLE_PX', 8),     // Enable auto-follow when near bottom
-        SCROLL_NEAR_MARGIN_PX: Utils.g('SCROLL_NEAR_MARGIN_PX', 450),      // How close to bottom is considered "near"
-        INTERACTION_BUSY_MS: Utils.g('UI_INTERACTION_BUSY_MS', 140),       // Minimum busy time for interactions
-        ZOOM_BUSY_MS: Utils.g('UI_ZOOM_BUSY_MS', 300)                      // Minimum busy time for zoom
-      };
+        // UI: scroll behavior and busy/zoom signalling thresholds (milliseconds / pixels).
+        this.UI = {
+          AUTO_FOLLOW_REENABLE_PX: Utils.g('AUTO_FOLLOW_REENABLE_PX', 8),
+          SCROLL_NEAR_MARGIN_PX: Utils.g('SCROLL_NEAR_MARGIN_PX', 450),
+          INTERACTION_BUSY_MS: Utils.g('UI_INTERACTION_BUSY_MS', 140),
+          ZOOM_BUSY_MS: Utils.g('UI_ZOOM_BUSY_MS', 300)
+        };
 
-      // FAB (floating action button) visibility and debounce.
-      this.FAB = {
-        SHOW_DOWN_THRESHOLD_PX: Utils.g('SHOW_DOWN_THRESHOLD_PX', 0),      // Show "down" arrow when scroll distance is large
-        TOGGLE_DEBOUNCE_MS: Utils.g('FAB_TOGGLE_DEBOUNCE_MS', 100)         // Debounce for icon/text toggles
-      };
+        // FAB (floating action button) visibility and debounce.
+        this.FAB = {
+          SHOW_DOWN_THRESHOLD_PX: Utils.g('SHOW_DOWN_THRESHOLD_PX', 0),
+          TOGGLE_DEBOUNCE_MS: Utils.g('FAB_TOGGLE_DEBOUNCE_MS', 100)
+        };
 
-      // Highlighting controls and per-frame budget.
-      this.HL = {
-        PER_FRAME: Utils.g('HL_PER_FRAME', 2),                             // How many code blocks to highlight per frame
-        DISABLE_ALL: Utils.g('DISABLE_SYNTAX_HIGHLIGHT', false)            // Global off switch for hljs
-      };
+        // Highlighting controls and per-frame budget.
+        this.HL = {
+          PER_FRAME: Utils.g('HL_PER_FRAME', 2),
+          DISABLE_ALL: Utils.g('DISABLE_SYNTAX_HIGHLIGHT', false)
+        };
 
-      // Intersection-like margins (we do our own scan, but these guide budgets).
-      this.OBSERVER = {
-        CODE_ROOT_MARGIN: Utils.g('CODE_ROOT_MARGIN', '1000px 0px 1000px 0px'),
-        BOX_ROOT_MARGIN: Utils.g('BOX_ROOT_MARGIN', '1500px 0px 1500px 0px'),
-        CODE_THRESHOLD: [0, 0.001], BOX_THRESHOLD: 0
-      };
+        // Intersection-like margins (we do our own scan, but these guide budgets).
+        this.OBSERVER = {
+          CODE_ROOT_MARGIN: Utils.g('CODE_ROOT_MARGIN', '1000px 0px 1000px 0px'),
+          BOX_ROOT_MARGIN: Utils.g('BOX_ROOT_MARGIN', '1500px 0px 1500px 0px'),
+          CODE_THRESHOLD: [0, 0.001], BOX_THRESHOLD: 0
+        };
 
-      // Viewport scan preload distance (in pixels).
-      this.SCAN = { PRELOAD_PX: Utils.g('SCAN_PRELOAD_PX', 1000) };
+        // Viewport scan preload distance (in pixels).
+        this.SCAN = { PRELOAD_PX: Utils.g('SCAN_PRELOAD_PX', 1000) };
 
-      // Code scroll behavior (auto-follow re-enable margin and near-bottom margin).
-      this.CODE_SCROLL = {
-        AUTO_FOLLOW_REENABLE_PX: Utils.g('CODE_AUTO_FOLLOW_REENABLE_PX', 8),
-        NEAR_MARGIN_PX: Utils.g('CODE_SCROLL_NEAR_MARGIN_PX', 48)
-      };
+        // Code scroll behavior (auto-follow re-enable margin and near-bottom margin).
+        this.CODE_SCROLL = {
+          AUTO_FOLLOW_REENABLE_PX: Utils.g('CODE_AUTO_FOLLOW_REENABLE_PX', 8),
+          NEAR_MARGIN_PX: Utils.g('CODE_SCROLL_NEAR_MARGIN_PX', 48)
+        };
 
-      // Stream (snapshot) budgets and queue limits.
-      this.STREAM = {
-        MAX_PER_FRAME: Utils.g('STREAM_MAX_PER_FRAME', 8),                 // How many chunks to process per frame
-        EMERGENCY_COALESCE_LEN: Utils.g('STREAM_EMERGENCY_COALESCE_LEN', 300), // If queue grows beyond, coalesce
-        COALESCE_MODE: Utils.g('STREAM_COALESCE_MODE', 'fixed'),           // fixed | adaptive
-        SNAPSHOT_MAX_STEP: Utils.g('STREAM_SNAPSHOT_MAX_STEP', 8000),      // Upper bound for adaptive step
-        // Bounds for queue to prevent memory growth on bursty streams
-        QUEUE_MAX_ITEMS: Utils.g('STREAM_QUEUE_MAX_ITEMS', 1200),
-        PRESERVE_CODES_MAX: Utils.g('STREAM_PRESERVE_CODES_MAX', 120)      // Max code blocks to attempt reuse
-      };
+        // Stream (snapshot) budgets and queue limits.
+        this.STREAM = {
+          MAX_PER_FRAME: Utils.g('STREAM_MAX_PER_FRAME', 8),
+          EMERGENCY_COALESCE_LEN: Utils.g('STREAM_EMERGENCY_COALESCE_LEN', 300),
+          COALESCE_MODE: Utils.g('STREAM_COALESCE_MODE', 'fixed'),
+          SNAPSHOT_MAX_STEP: Utils.g('STREAM_SNAPSHOT_MAX_STEP', 8000),
+          QUEUE_MAX_ITEMS: Utils.g('STREAM_QUEUE_MAX_ITEMS', 1200),
+          PRESERVE_CODES_MAX: Utils.g('STREAM_PRESERVE_CODES_MAX', 120)
+        };
 
-      // Math (KaTeX) idle batching and per-batch hint.
-      this.MATH = {
-        IDLE_TIMEOUT_MS: Utils.g('MATH_IDLE_TIMEOUT_MS', 800),
-        BATCH_HINT: Utils.g('MATH_BATCH_HINT', 24)
-      };
+        // Math (KaTeX) idle batching and per-batch hint.
+        this.MATH = {
+          IDLE_TIMEOUT_MS: Utils.g('MATH_IDLE_TIMEOUT_MS', 800),
+          BATCH_HINT: Utils.g('MATH_BATCH_HINT', 24)
+        };
 
-      // Icon URLs (provided by host app).
-      this.ICONS = {
-        EXPAND: Utils.g('ICON_EXPAND', ''), COLLAPSE: Utils.g('ICON_COLLAPSE', ''),
-        CODE_MENU: Utils.g('ICON_CODE_MENU', ''), CODE_COPY: Utils.g('ICON_CODE_COPY', ''),
-        CODE_RUN: Utils.g('ICON_CODE_RUN', ''), CODE_PREVIEW: Utils.g('ICON_CODE_PREVIEW', '')
-      };
+        // Icon URLs (provided by host app).
+        this.ICONS = {
+          EXPAND: Utils.g('ICON_EXPAND', ''), COLLAPSE: Utils.g('ICON_COLLAPSE', ''),
+          CODE_MENU: Utils.g('ICON_CODE_MENU', ''), CODE_COPY: Utils.g('ICON_CODE_COPY', ''),
+          CODE_RUN: Utils.g('ICON_CODE_RUN', ''), CODE_PREVIEW: Utils.g('ICON_CODE_PREVIEW', '')
+        };
 
-      // Localized UI strings.
-      this.LOCALE = {
-        PREVIEW: Utils.g('LOCALE_PREVIEW', 'Preview'),
-        RUN: Utils.g('LOCALE_RUN', 'Run'),
-        COLLAPSE: Utils.g('LOCALE_COLLAPSE', 'Collapse'),
-        EXPAND: Utils.g('LOCALE_EXPAND', 'Expand'),
-        COPY: Utils.g('LOCALE_COPY', 'Copy'),
-        COPIED: Utils.g('LOCALE_COPIED', 'Copied')
-      };
+        // Localized UI strings.
+        this.LOCALE = {
+          PREVIEW: Utils.g('LOCALE_PREVIEW', 'Preview'),
+          RUN: Utils.g('LOCALE_RUN', 'Run'),
+          COLLAPSE: Utils.g('LOCALE_COLLAPSE', 'Collapse'),
+          EXPAND: Utils.g('LOCALE_EXPAND', 'Expand'),
+          COPY: Utils.g('LOCALE_COPY', 'Copy'),
+          COPIED: Utils.g('LOCALE_COPIED', 'Copied')
+        };
 
-      // Code block styling theme (hljs theme key or custom).
-      this.CODE_STYLE = Utils.g('CODE_SYNTAX_STYLE', 'default');
+        // Code block styling theme (hljs theme key or custom).
+        this.CODE_STYLE = Utils.g('CODE_SYNTAX_STYLE', 'default');
 
-      // Adaptive snapshot profile for plain text.
-      this.PROFILE_TEXT = {
-        base: Utils.g('PROFILE_TEXT_BASE', 4),                 // Base step (chars) between snapshots
-        growth: Utils.g('PROFILE_TEXT_GROWTH', 1.28),          // Growth factor for adaptive
-        minInterval: Utils.g('PROFILE_TEXT_MIN_INTERVAL', 4),  // Minimum time between snapshots (ms)
-        softLatency: Utils.g('PROFILE_TEXT_SOFT_LATENCY', 60), // If idle for this long, force a snapshot
-        adaptiveStep: Utils.g('PROFILE_TEXT_ADAPTIVE_STEP', false)
-      };
+        // Adaptive snapshot profile for plain text.
+        this.PROFILE_TEXT = {
+          base: Utils.g('PROFILE_TEXT_BASE', 4),
+          growth: Utils.g('PROFILE_TEXT_GROWTH', 1.28),
+          minInterval: Utils.g('PROFILE_TEXT_MIN_INTERVAL', 4),
+          softLatency: Utils.g('PROFILE_TEXT_SOFT_LATENCY', 60),
+          adaptiveStep: Utils.g('PROFILE_TEXT_ADAPTIVE_STEP', false)
+        };
 
-      // Adaptive snapshot profile for code (line-aware).
-      this.PROFILE_CODE = {
-        base: 2048,                 // Fewer snapshots during fence-open warm-up (reduce transient fragments)
-        growth: 2.6,                // Ramp step quickly if adaptive is enabled
-        minInterval: 500,           // Minimum time between snapshots (ms) to avoid churn
-        softLatency: 1200,          // Force snapshot only after a noticeable idle (ms)
-        minLinesForHL: Utils.g('PROFILE_CODE_HL_N_LINE', 25),
-        minCharsForHL: Utils.g('PROFILE_CODE_HL_N_CHARS', 5000),
-        promoteMinInterval: 300, promoteMaxLatency: 800, promoteMinLines: Utils.g('PROFILE_CODE_HL_N_LINE', 25),
-        adaptiveStep: Utils.g('PROFILE_CODE_ADAPTIVE_STEP', true),
-        // Hard switches to plain streaming (no incremental hljs, minimal DOM churn)
-        stopAfterLines: Utils.g('PROFILE_CODE_STOP_HL_AFTER_LINES', 300),   // Stop incremental hljs after this many lines
-        streamPlainAfterLines: 0,   // Belt-and-suspenders: enforce plain mode soon after
-        streamPlainAfterChars: 0,   // Also guard huge single-line code (chars cap)
-        maxFrozenChars: 32000,      // If promotions slipped through, cap before spans grow too large
-        finalHighlightMaxLines: Utils.g('PROFILE_CODE_FINAL_HL_MAX_LINES', 1500),
-        finalHighlightMaxChars: Utils.g('PROFILE_CODE_FINAL_HL_MAX_CHARS', 350000)
-      };
+        // Adaptive snapshot profile for code (line-aware).
+        this.PROFILE_CODE = {
+          base: 2048,
+          growth: 2.6,
+          minInterval: 500,
+          softLatency: 1200,
+          minLinesForHL: Utils.g('PROFILE_CODE_HL_N_LINE', 25),
+          minCharsForHL: Utils.g('PROFILE_CODE_HL_N_CHARS', 5000),
+          promoteMinInterval: 300, promoteMaxLatency: 800, promoteMinLines: Utils.g('PROFILE_CODE_HL_N_LINE', 25),
+          adaptiveStep: Utils.g('PROFILE_CODE_ADAPTIVE_STEP', true),
+          stopAfterLines: Utils.g('PROFILE_CODE_STOP_HL_AFTER_LINES', 300),
+          streamPlainAfterLines: 0,
+          streamPlainAfterChars: 0,
+          maxFrozenChars: 32000,
+          finalHighlightMaxLines: Utils.g('PROFILE_CODE_FINAL_HL_MAX_LINES', 1500),
+          finalHighlightMaxChars: Utils.g('PROFILE_CODE_FINAL_HL_MAX_CHARS', 350000)
+        };
 
-      // Debounce for heavy resets (ms).
-      this.RESET = {
-        HEAVY_DEBOUNCE_MS: Utils.g('RESET_HEAVY_DEBOUNCE_MS', 24)
-      };
+        // Debounce for heavy resets (ms).
+        this.RESET = {
+          HEAVY_DEBOUNCE_MS: Utils.g('RESET_HEAVY_DEBOUNCE_MS', 24)
+        };
 
-      // Logging caps (used by Logger).
-      this.LOG = {
-        MAX_QUEUE: Utils.g('LOG_MAX_QUEUE', 400),
-        MAX_BYTES: Utils.g('LOG_MAX_BYTES', 256 * 1024),
-        BATCH_MAX: Utils.g('LOG_BATCH_MAX', 64),
-        RATE_LIMIT_PER_SEC: Utils.g('LOG_RATE_LIMIT_PER_SEC', 0)
-      };
+        // Logging caps (used by Logger).
+        this.LOG = {
+          MAX_QUEUE: Utils.g('LOG_MAX_QUEUE', 400),
+          MAX_BYTES: Utils.g('LOG_MAX_BYTES', 256 * 1024),
+          BATCH_MAX: Utils.g('LOG_BATCH_MAX', 64),
+          RATE_LIMIT_PER_SEC: Utils.g('LOG_RATE_LIMIT_PER_SEC', 0)
+        };
 
-      // Async tuning for background work.
-      this.ASYNC = {
-        SLICE_MS: Utils.g('ASYNC_SLICE_MS', 12),
-        MIN_YIELD_MS: Utils.g('ASYNC_MIN_YIELD_MS', 0),
-        MD_NODES_PER_SLICE: Utils.g('ASYNC_MD_NODES_PER_SLICE', 12)
-      };
+        // Async tuning for background work.
+        this.ASYNC = {
+          SLICE_MS: Utils.g('ASYNC_SLICE_MS', 12),
+          MIN_YIELD_MS: Utils.g('ASYNC_MIN_YIELD_MS', 0),
+          MD_NODES_PER_SLICE: Utils.g('ASYNC_MD_NODES_PER_SLICE', 12)
+        };
 
-      // RAF pump tuning (budget per frame).
-      this.RAF = {
-        FLUSH_BUDGET_MS: Utils.g('RAF_FLUSH_BUDGET_MS', 7),
-        MAX_TASKS_PER_FLUSH: Utils.g('RAF_MAX_TASKS_PER_FLUSH', 120)
-      };
+        // RAF pump tuning (budget per frame).
+        this.RAF = {
+          FLUSH_BUDGET_MS: Utils.g('RAF_FLUSH_BUDGET_MS', 7),
+          MAX_TASKS_PER_FLUSH: Utils.g('RAF_MAX_TASKS_PER_FLUSH', 120)
+        };
 
-      // Markdown tuning – allow/disallow indented code blocks.
-      this.MD = {
-        ALLOW_INDENTED_CODE: Utils.g('MD_ALLOW_INDENTED_CODE', false)
-      };
+        // Markdown tuning – allow/disallow indented code blocks.
+        this.MD = {
+          ALLOW_INDENTED_CODE: Utils.g('MD_ALLOW_INDENTED_CODE', false)
+        };
 
-      // Custom markup rules for simple tags in text.
-      this.CUSTOM_MARKUP_RULES = Utils.g('CUSTOM_MARKUP_RULES', [
+        // Custom markup rules for simple tags in text.
+        // NOTE: added nl2br + allowBr for think rules; rest unchanged.
+        this.CUSTOM_MARKUP_RULES = Utils.g('CUSTOM_MARKUP_RULES', [
           { name: 'cmd',        open: '[!cmd]',     close: '[/!cmd]',     tag: 'div',   className: 'cmd', innerMode: 'text' },
-          { name: 'think_md',   open: '[!think]',   close: '[/!think]',   tag: 'think', className: '',    innerMode: 'text' },
-          { name: 'think_html', open: '<think>',    close: '</think>',    tag: 'think', className: '',    innerMode: 'text', stream: true },
+
+          // Think (Markdown-style) – convert newlines to <br>, allow real <br> tokens; safe-escape everything else.
+          { name: 'think_md',   open: '[!think]',   close: '[/!think]',   tag: 'think', className: '',    innerMode: 'text', nl2br: true, allowBr: true },
+
+          // Think (HTML-style, streaming-friendly)
+          { name: 'think_html', open: '<think>',    close: '</think>',    tag: 'think', className: '',    innerMode: 'text', stream: true, nl2br: true, allowBr: true },
+
           { name: 'tool', open: '<tool>',    close: '</tool>',    tag: 'div', className: 'cmd',    innerMode: 'text', stream: true },
 
           // Streams+final: convert [!exec]... into fenced python code BEFORE markdown-it
@@ -612,8 +616,8 @@
           { name: 'exec_html',  open: '<execute>',  close: '</execute>',  innerMode: 'text', stream: true,
             openReplace: '```python\n', closeReplace: '\n```', phase: 'source' }
         ]);
+      }
     }
-  }
 
   // ==========================================================================
   // 1) DOM references
@@ -1236,6 +1240,30 @@
         }
       }
 
+      // Escape-all-but-<br> helper for rules that want real line breaks without leaking HTML.
+      // - Preserves existing <br>, <br/> and <br /> tokens (case-insensitive)
+      // - Escapes everything else
+      // - Optionally converts newlines to <br>
+      _escapeHtmlAllowBr(text, { convertNewlines = true } = {}) {
+        const PLACEHOLDER = '\u0001__BR__\u0001';
+        let s = String(text || '');
+
+        // Preserve existing BR tokens using a placeholder to survive escaping.
+        s = s.replace(/<br\s*\/?>/gi, PLACEHOLDER);
+
+        // Escape the rest safely.
+        s = this._escHtml(s);
+
+        // Convert newlines to real <br> if requested.
+        if (convertNewlines) {
+          s = s.replace(/\r\n|\r|\n/g, '<br>');
+        }
+
+        // Restore placeholders to canonical <br>.
+        s = s.replace(new RegExp(PLACEHOLDER, 'g'), '<br>');
+        return s;
+      }
+
       // quick check if any rule's open token is present in text (used to skip expensive work early)
       hasAnyOpenToken(text, rules) {
         if (!text || !rules || !rules.length) return false;
@@ -1248,14 +1276,25 @@
       }
 
       // Build inner HTML from text according to rule's mode (markdown-inline | text) with optional entity decode.
+      // Extended: if rule.nl2br/allowBr is set, we use _escapeHtmlAllowBr to materialize safe HTML with real <br>.
       _materializeInnerHTML(rule, text, MD) {
         let payload = String(text || '');
+        const wantsBr = !!(rule && (rule.nl2br || rule.allowBr));
+
         if (rule && rule.decodeEntities && payload && payload.indexOf('&') !== -1) {
           try { payload = this.decodeEntitiesOnce(payload); } catch (_) { /* keep original */ }
         }
+
+        if (wantsBr) {
+          // Produce safe HTML with <br> preserved/converted; never run markdown here.
+          try { return this._escapeHtmlAllowBr(payload, { convertNewlines: !!rule.nl2br }); }
+          catch (_) { return this._escHtml(payload); }
+        }
+
         if (rule && rule.innerMode === 'markdown-inline' && MD && typeof MD.renderInline === 'function') {
           try { return MD.renderInline(payload); } catch (_) { return this._escHtml(payload); }
         }
+
         return this._escHtml(payload);
       }
 
@@ -1283,11 +1322,9 @@
         const parent = el.parentNode;
         const frag = this._fragmentFromHTML(html, el);
         try {
-          // Insert new nodes before the old element, then remove the old element (widely supported).
           parent.insertBefore(frag, el);
           parent.removeChild(el);
         } catch (_) {
-          // Conservative fallback: wrap in a span if direct fragment insertion failed for some reason.
           const tmp = document.createElement('span');
           tmp.innerHTML = String(html || '');
           while (tmp.firstChild) parent.insertBefore(tmp.firstChild, el);
@@ -1323,13 +1360,16 @@
           // - 'both'
           let phaseRaw = (typeof r.phase === 'string') ? r.phase.toLowerCase() : '';
           if (phaseRaw !== 'source' && phaseRaw !== 'html' && phaseRaw !== 'both') phaseRaw = '';
-          // Heuristic: if replacement contains fenced code backticks, default to 'source'
           const looksLikeFence = (openReplace.indexOf('```') !== -1) || (closeReplace.indexOf('```') !== -1);
           const phase = phaseRaw || (looksLikeFence ? 'source' : 'html');
 
           const re = new RegExp(Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close), 'g');
           const reFull = new RegExp('^' + Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close) + '$');
           const reFullTrim = new RegExp('^\\s*' + Utils.reEscape(r.open) + '([\\s\\S]*?)' + Utils.reEscape(r.close) + '\\s*$');
+
+          // Extended flags (safe line-break handling for think-like rules)
+          const nl2br = !!r.nl2br;
+          const allowBr = !!r.allowBr;
 
           const item = {
             name: r.name || tag,
@@ -1339,12 +1379,13 @@
             re, reFull, reFullTrim,
             stream,
             openReplace, closeReplace,
-            phase,                 // where this rule should be applied
-            isSourceFence: looksLikeFence // hints StreamEngine to treat as custom fence
+            phase,
+            isSourceFence: looksLikeFence,
+            nl2br, allowBr
           };
           compiled.push(item);
           if (stream) hasStream = true;
-          this._d('COMPILE_RULE', { name: item.name, phase: item.phase, stream: item.stream });
+          this._d('COMPILE_RULE', { name: item.name, phase: item.phase, stream: item.stream, nl2br: item.nl2br, allowBr: item.allowBr });
         }
 
         if (compiled.length === 0) {
@@ -1357,7 +1398,8 @@
             reFullTrim: new RegExp('^\\s*' + Utils.reEscape(open) + '([\\s\\S]*?)' + Utils.reEscape(close) + '\\s*$'),
             stream: false,
             openReplace: '', closeReplace: '',
-            phase: 'html', isSourceFence: false
+            phase: 'html', isSourceFence: false,
+            nl2br: false, allowBr: false
           };
           compiled.push(item);
           this._d('COMPILE_RULE_FALLBACK', { name: item.name });
@@ -1376,7 +1418,6 @@
         const rules = this.__compiled;
         if (!rules || !rules.length) return s;
 
-        // Pick only source-phase rules with explicit replacements
         const candidates = [];
         for (let i = 0; i < rules.length; i++) {
           const r = rules[i];
@@ -1385,14 +1426,11 @@
         }
         if (!candidates.length) return s;
 
-        // Compute fenced-code ranges once to exclude them from replacements (production-safe).
         const fences = this._findFenceRanges(s);
         if (!fences.length) {
-          // No code fences in source; apply top-level guarded replacements globally.
           return this._applySourceReplacementsInChunk(s, s, 0, candidates);
         }
 
-        // Apply replacements only in segments outside fenced code.
         let out = '';
         let last = 0;
         for (let k = 0; k < fences.length; k++) {
@@ -1401,7 +1439,7 @@
             const chunk = s.slice(last, a);
             out += this._applySourceReplacementsInChunk(s, chunk, last, candidates);
           }
-          out += s.slice(a, b); // pass fenced code verbatim
+          out += s.slice(a, b);
           last = b;
         }
         if (last < s.length) {
@@ -1419,7 +1457,6 @@
         for (let i = 0; i < rules.length; i++) {
           const r = rules[i];
           if (!r || !r.isSourceFence) continue;
-          // Only expose when they actually look like fences in source phase
           if (r.phase !== 'source' && r.phase !== 'both') continue;
           out.push({ open: r.open, close: r.close });
         }
@@ -1454,6 +1491,24 @@
       hasStreamRules() {
         this.ensureCompiled();
         return !!this.__hasStreamRules;
+      }
+
+      // Lightweight detector used by StreamEngine to force an early snapshot when a stream
+      // starts with a custom stream-enabled opener (e.g. "<think>").
+      hasStreamOpenerAtStart(text) {
+        if (!text) return false;
+        this.ensureCompiled();
+        const rules = (this.__compiled || []).filter(r => !!r.stream);
+        if (!rules.length) return false;
+
+        // Trim only leading whitespace to check "start" semantics.
+        const t = String(text).trimStart();
+        for (let i = 0; i < rules.length; i++) {
+          const r = rules[i];
+          if (!r || !r.open) continue;
+          if (t.startsWith(r.open)) return true;
+        }
+        return false;
       }
 
       // Context guards
@@ -1501,10 +1556,19 @@
       }
 
       // Set inner content according to the rule's mode, with optional entity decode (element mode).
-      setInnerByMode(el, mode, text, MD, decodeEntities = false) {
+      // Extended: if rule.nl2br/allowBr – use innerHTML with safe <br> handling.
+      setInnerByMode(el, mode, text, MD, decodeEntities = false, rule = null) {
         let payload = String(text || '');
+        const wantsBr = !!(rule && (rule.nl2br || rule.allowBr));
+
         if (decodeEntities && payload && payload.indexOf('&') !== -1) {
           try { payload = this.decodeEntitiesOnce(payload); } catch (_) {}
+        }
+
+        if (wantsBr) {
+          // Inject as HTML because we intentionally want <br> to render as real HTML.
+          el.innerHTML = this._escapeHtmlAllowBr(payload, { convertNewlines: !!(rule && rule.nl2br) });
+          return;
         }
 
         if (mode === 'markdown-inline' && typeof window.markdownit !== 'undefined') {
@@ -1548,7 +1612,7 @@
           const out = document.createElement(outTag === 'p' ? 'p' : outTag);
           if (rule.className) out.className = rule.className;
           out.setAttribute('data-cm', rule.name);
-          this.setInnerByMode(out, rule.innerMode, innerText, MD, !!rule.decodeEntities);
+          this.setInnerByMode(out, rule.innerMode, innerText, MD, !!rule.decodeEntities, rule);
 
           try { el.replaceWith(out); } catch (_) {
             const par = el.parentNode; if (par) par.replaceChild(out, el);
@@ -1577,7 +1641,6 @@
               if (p && p.getAttribute && p.getAttribute('data-cm')) continue;
               const tc = p && (p.textContent || '');
               if (!tc || !this.hasAnyOpenToken(tc, rules)) continue;
-              // Skip paragraphs inside forbidden contexts (includes lists now)
               if (this.isInsideForbiddenElement(p)) continue;
               this._tryReplaceFullParagraph(p, rules, MD);
             }
@@ -1621,7 +1684,7 @@
                 const out = document.createElement('p');
                 if (fm.rule.className) out.className = fm.rule.className;
                 out.setAttribute('data-cm', fm.rule.name);
-                this.setInnerByMode(out, fm.rule.innerMode, fm.inner, MD, !!fm.rule.decodeEntities);
+                this.setInnerByMode(out, fm.rule.innerMode, fm.inner, MD, !!fm.rule.decodeEntities, fm.rule);
                 try { parent.replaceWith(out); } catch (_) {
                   const par = parent.parentNode; if (par) par.replaceChild(out, parent);
                 }
@@ -1656,18 +1719,17 @@
 
             // If rule is not html-phase, do NOT inject open/close replacements here (source-only rules are handled pre-md).
             if (m.rule.openReplace || m.rule.closeReplace) {
-              // Source-only replacement met in DOM pass – keep original text verbatim for this match.
               frag.appendChild(document.createTextNode(text.slice(m.start, m.end)));
               this._d('WALKER_INLINE_SKIP_SOURCE_PHASE_HTML', { rule: m.rule.name, start: m.start, end: m.end });
               i = m.end; didReplace = true; continue;
             }
 
-            // Element-based inline replacement (original behavior).
+            // Element-based inline replacement (original behavior), extended with safe <br> handling.
             const tag = (m.rule.tag === 'p') ? 'span' : m.rule.tag;
             const el = document.createElement(tag);
             if (m.rule.className) el.className = m.rule.className;
             el.setAttribute('data-cm', m.rule.name);
-            this.setInnerByMode(el, m.rule.innerMode, m.inner, MD, !!m.rule.decodeEntities);
+            this.setInnerByMode(el, m.rule.innerMode, m.inner, MD, !!m.rule.decodeEntities, m.rule);
             frag.appendChild(el);
             this._d('WALKER_INLINE_MATCH', { rule: m.rule.name, start: m.start, end: m.end });
 
@@ -1721,8 +1783,6 @@
         if (!root) return;
 
         // Consider only DOM-phase element rules (html/both) without explicit HTML replacements.
-        // Source-phase rules (e.g. exec fences) are intentionally excluded here to avoid changing
-        // code streaming semantics (handled by transformSource/StreamEngine).
         const rules = (rulesAll || []).filter(r =>
           (r && (r.phase === 'html' || r.phase === 'both') && !(r.openReplace || r.closeReplace))
         );
@@ -1751,12 +1811,9 @@
             const r = rules[i];
             if (!r || !r.open || !r.close) continue;
 
-            // Find last occurrence for better UX on multiple openers; keeps earlier content intact.
             const idx = text.lastIndexOf(r.open);
             if (idx === -1) continue;
 
-            // If a closing token for this rule exists after this opener within the same node,
-            // let the standard pass handle it (we only want truly unmatched opens).
             const after = text.indexOf(r.close, idx + r.open.length);
             if (after !== -1) continue;
 
@@ -1781,8 +1838,8 @@
           el.setAttribute('data-cm', r.name);
           el.setAttribute('data-cm-pending', '1'); // allows styling/debug on "open-but-not-closed"
 
-          // Populate inner according to innerMode and decode policy.
-          this.setInnerByMode(el, r.innerMode, tail, MD, !!r.decodeEntities);
+          // Populate inner; for think we allow real <br>.
+          this.setInnerByMode(el, r.innerMode, tail, MD, !!r.decodeEntities, r);
           frag.appendChild(el);
 
           try {
@@ -1796,7 +1853,7 @@
 
       // Scan source and return ranges [start, end) of fenced code blocks (``` or ~~~).
       // Matches Markdown fences at line-start with up to 3 spaces/tabs indentation.
-      _findFenceRanges(s) {
+      _findFenceRanges(s) { /* unchanged – omitted for brevity here in comment; keep original body */
         const ranges = [];
         const n = s.length;
         let i = 0;
@@ -1872,10 +1929,7 @@
       }
 
       // Check if match starts at "top-level" of a line:
-      // - up to 3 leading spaces/tabs allowed
-      // - not a list item marker ("- ", "+ ", "* ", "1. ", "1) ") and not a blockquote ("> ")
-      // - nothing else precedes the token on the same line
-      _isTopLevelLineInSource(s, absIdx) {
+      _isTopLevelLineInSource(s, absIdx) { /* unchanged – keep original body */
         let ls = absIdx;
         while (ls > 0) {
           const ch = s.charCodeAt(ls - 1);
@@ -1884,7 +1938,6 @@
         }
         const prefix = s.slice(ls, absIdx);
 
-        // Strip up to 3 leading "spaces" (tabs treated as 1 – acceptable heuristic)
         let i = 0, indent = 0;
         while (i < prefix.length) {
           const c = prefix.charCodeAt(i);
@@ -1895,19 +1948,17 @@
         if (indent > 3) return false;
         const rest = prefix.slice(i);
 
-        // Reject lists/blockquote
         if (/^>\s?/.test(rest)) return false;
         if (/^[-+*]\s/.test(rest)) return false;
         if (/^\d+[.)]\s/.test(rest)) return false;
 
-        // If any other non-whitespace text precedes the token on this line – not top-level
         if (rest.trim().length > 0) return false;
 
         return true;
       }
 
       // Apply source-phase replacements to one outside-of-fence chunk with top-level guard.
-      _applySourceReplacementsInChunk(full, chunk, baseOffset, rules) {
+      _applySourceReplacementsInChunk(full, chunk, baseOffset, rules) { /* unchanged – keep original body */
         let t = chunk;
         for (let i = 0; i < rules.length; i++) {
           const r = rules[i];
@@ -1916,7 +1967,6 @@
             r.re.lastIndex = 0;
             t = t.replace(r.re, (match, inner, offset /*, ...rest*/) => {
               const abs = baseOffset + (offset | 0);
-              // Only apply when opener is at top-level on that line (not in lists/blockquote)
               if (!this._isTopLevelLineInSource(full, abs)) return match;
               const open = r.openReplace || '';
               const close = r.closeReplace || '';
