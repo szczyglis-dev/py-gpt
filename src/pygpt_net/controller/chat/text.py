@@ -92,7 +92,8 @@ class Text:
 
         # create ctx item
         meta = core.ctx.get_current_meta()
-        meta.preset = config.get("preset")  # current preset
+        if meta:
+            meta.preset = config.get("preset")  # current preset
 
         ctx = CtxItem()
         ctx.meta = meta  # CtxMeta (owner object)
