@@ -7,421 +7,42 @@
   src: url('file:///%fonts%/MonaspaceNeon/MonaspaceNeon-Regular.otf');
 }}
 * {{
-    font-family: 'Lato'; 
+  font-family: 'Lato'; 
 }}
 body {{ 
-    word-wrap: break-word;
-    padding: 6px;
-    line-height: 1.25;
-    margin: 4px;
-    padding: 0;
-    max-width: 100%;
+  word-wrap: break-word;
+  padding: 6px;
+  line-height: 1.25;
+  margin: 4px;
+  padding: 0;
+  max-width: 100%;
 }}
 ::-webkit-scrollbar {{
-    height: 12px;
-    width: 12px;
+  height: 12px;
+  width: 12px;
 }}
 ::-webkit-scrollbar-thumb {{
-    -webkit-border-radius: 1ex;
-    -webkit-box-shadow: none;
+  -webkit-border-radius: 1ex;
+  -webkit-box-shadow: none;
 }}
 #container {{
-    will-change: transform, opacity;
-}}
-.ts {{
-    display: none;
+  will-change: transform, opacity;  
+  margin-bottom: 20px;
 }}
 /* base */
 a {{
-    text-decoration: none;
-    color: #a1b5c4 !important;
+  text-decoration: none;
+  color: #a1b5c4 !important;
 }}
 a:hover {{
-    cursor: pointer !important;
-    text-decoration: underline;
+  cursor: pointer !important;
+  text-decoration: underline;
 }}
 p {{ 
-    margin-top: 5px;
-    margin-bottom: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }}
-
-/* images */
-.image {{
-    max-width: 400px;
-}}
-
-/* cmd */
-.cmd {{
-    font-family: 'Lato';
-    text-decoration: none;
-    padding-bottom: 0px;
-    font-size: 0.9rem;
-}}
-
 /* lists, code */
-ul, ol, .list {{
-    margin-top: 0px;
-    margin-bottom: 0px;
-}}
-pre {{
-    font-family: 'Monaspace Neon';
-    display: block;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    text-align: left;
-    padding: 0;
-}}
-code {{
-    font-family: 'Monaspace Neon';
-    word-wrap: break-word;
-}}
-.code-header-wrapper {{
-    text-align: right;
-    width: auto;
-    padding: 10px;
-    padding-top: 10px;
-    margin: 0;
-    font-size: 0.9rem;
-}}
-.code-header {{
-    text-align: right;
-    width: 90%;
-    padding: 0px;
-}}
-.code-header-lang {{
-    float: left;
-    padding-left: .25rem;
-    padding-top: 4px;
-}}
-.code-header-copy {{
-    text-align: right;
-    text-decoration: none;
-    font-weight: bold;
-    display: inline-block;
-    color: #6e6e6e;
-    padding-right: .25rem;
-}}
-.code-header-copy img {{
-    vertical-align: middle;
-    padding-right: 5px;
-}}
-.code-header-copy:hover {{
-    text-decoration: none;
-    cursor: pointer;
-}}
-.code-header-copy:hover img {{
-    filter: brightness(130%);
-}}
-.code-wrapper {{
-    padding: 0px;
-    margin: 0px;
-    margin-bottom: 1rem;
-}}
-.code-wrapper pre {{
-    padding: 0;
-    padding-bottom: 0;
-    margin-bottom: 0;
-    margin-top: 0;
-}}
-.highlight span {{
-    font-family: 'Monaspace Neon';
-}}
-
-/* action icons */
-.action-icons {{
-    margin-top: 20px;
-}}
-.action-icons a {{
-    text-decoration: none;
-}}
-.action-icons a:hover {{
-    filter: brightness(120%);
-}}
-.action-img {{
-    width: 20px;
-    height: 20px;
-}}
-.edit-icon {{
-    display: inline;
-}}
-.theme-blocks.display-timestamp .ts {{
-    display: inline;
-}}
-
-/* message box */
-.msg-box {{
-    max-width: 100%;
-    border-radius: 10px;
-    padding: 10px;
-    margin-right: 10px;
-}}
-.msg-user {{
-    white-space: pre-wrap;
-    width: auto;
-    max-width: 100%;
-    padding-top: 10px;
-    padding-bottom: 5px;
-    padding-left: 10px;
-    margin-top: 10px;
-    margin-left: 0px;
-    margin-bottom: 5px;
-}}
-.msg-bot {{
-    white-space: pre-wrap;
-    width: auto;
-    max-width: 100%;
-    margin-top: 10px;
-    margin-bottom: 0px;
-    padding-bottom: 0px;
-}}
-.msg-box:not(first-child) {{
-    margin-top: 20px !important;
-}}
-.msg-box:first-child {{
-    margin-top: 0px;
-}}
-.msg-box .name-header.name-bot {{
-    display: block;
-    margin-left: -10px;
-    margin-bottom: 1rem;
-    color: #cfcfcf;
-}}
-.msg-box .name-header.name-bot .avatar {{
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: inline;
-    vertical-align: middle;
-    object-fit: cover;
-    margin-right: 10px;
-}}
-.msg-box .name-header::before {{
-    content: '';
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 8px;
-    vertical-align: middle;
-}}
-.msg-extra {{
-    margin-top: 10px;
-    margin-bottom: 0px;
-    color: gray;
-}}
-.msg-extra a {{
-    color: gray;
-}}
-.msg-user .msg-extra {{
-    font-weight: bold;
-    padding-top: 5px;
-}}
-.msg-box .msg {{
-    margin: 0;
-    padding: 15px;
-}}
-
-/* tool output */
-.tool-output-header {{
-    margin-top: 15px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: gray;
-}}
-.tool-output .content {{
-    padding: 10px;
-    color: gray !important;
-    font-size: 0.9rem;
-}}
-.tool-output .toggle-cmd-output {{
-    cursor: pointer;
-    padding-top: 10px;
-    display: block;
-    color: gray;
-}}
-
-/* extra source */
-.extra-src-icon {{
-    padding-right: 2px;
-    width: 25px;
-    height: 25px;
-    vertical-align: middle;
-}}
-.extra-src-img-box {{
-    display: inline-block;
-    text-align: center;
-    padding: 5px;
-    margin: 5px;
-    max-width: 400px;
-    height: auto;
-    white-space: pre-wrap;
-    word-break: break-all !important;
-}}
-.extra-src-img-box:hover {{
-    cursor: pointer;
-}}
-.extra-src-img-box .title {{
-    width: 400px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: block;
-    text-align: center;
-    padding: 0;
-    margin: 0;
-    padding-top: 10px;
-    display: block;
-    font-size: 0.95rem;
-}}
-.extra-src-img-box .img-outer {{
-    display: flex;
-    flex-direction: column;
-}}
-.extra-src-img-box .img-wrapper {{
-    position: relative;
-    overflow: hidden;
-    border: 1px solid #000;
-    background: #000;
-    width: 400px;
-    height: 280px;
-    margin: 0;
-    margin-bottom: 0px !important;
-    border-radius: 5px;
-    -webkit-box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
-    -moz-box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
-    box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
-}}
-.extra-src-img-box .img-wrapper:hover {{
-    border: 1px solid gray;
-}}
-.extra-src-img-box img {{
-    margin-bottom: 2px;
-    padding-bottom: 0px;
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}}
-
-/* common */
-.toggle-expanded {{
-    transform: rotateX(180deg);
-}}
-.append_input {{
-    margin: 0;
-    padding: 0;
-}}
-.append_output {{
-    margin: 0;
-    padding: 0;
-}}
-.empty_list {{
-}}
-
-.spinner {{
-  display: inline-block;
-  animation: spin 2s linear infinite;
-  margin: auto !important;
-  padding: 0 !important;
-  margin-top: 8px !important;
-  width:30px !important;
-  height:30px !important;
-}}
-.spinner .img {{
-  margin: auto;
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-}}
-think {{
-  border-left: 4px solid silver;
-  display: block;
-  padding-left: 1rem;
-  margin-top: 0;
-  padding-top: 0;
-  font-size: 0.8rem;
-}}
-
-/* anims */
-@keyframes spin {{
-  from {{
-    transform: rotate(0deg);
-  }}
-  to {{
-    transform: rotate(360deg);
-  }}
-}}
-
-/* debug */
-.debug {{
-    color: orange !important;
-    background: #0d1117;
-    padding: 10px;
-    font-size: 0.9rem;
-}}
-
-/* loader */
-.loader-global {{
-   text-align: center;
-   margin-top: 2rem;
-   margin-bottom: 2rem;
-}}
-.lds-ring {{
-   opacity: 0.75;
-}}
-.loader-global .lds-ring {{
-  width: 40px;
-  height: 40px;
-}}
-.loader-global .lds-ring div {{
-  width: 32px;
-  height: 32px;
-  border-width: 5px;
-}}
-.append_live {{
-  font-size: 0.8rem;
-}}
-.hidden {{
-  display: block;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
-}}
-
-.visible {{
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
-}}
-
-.tips {{
- opacity: 0;
- transition: opacity 1s ease-in-out;
- text-align: center;
- font-size: 0.8rem;
- height: 100vh;
- min-height: 100%;
- bottom: 10px;
-}}
-
-.tips p {{
- display: block;
- position: fixed;
- top: 50%;
- margin: auto;
- width: 100%;
- text-align: center;
-}}
-.tips.visible {{
- opacity: 1;
-}}
-
-.extra-src-video-box,
-.video-player {{
-  max-width: 400px;
-  text-align: left;
-}}
-
 ol,
 ul {{
   list-style-position: outside  !important;
@@ -441,12 +62,375 @@ li + li {{
 li div:first-child {{
  margin-top: 1rem;
 }}
+pre {{
+  font-family: 'Monaspace Neon';
+  display: block;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  text-align: left;
+  padding: 0;
+}}
+code {{
+  font-family: 'Monaspace Neon';
+  word-wrap: break-word;
+}}
 
+think {{
+  border-left: 4px solid silver;
+  display: block;
+  padding-left: 1rem;
+  margin-top: 0;
+  padding-top: 0;
+  font-size: 0.8rem;
+}}
+
+/* code wrapper */
+.code-header-wrapper {{
+  text-align: right;
+  width: auto;
+  padding: 10px;
+  padding-top: 10px;
+  margin: 0;
+  font-size: 0.9rem;
+}}
+.code-header {{
+  text-align: right;
+  width: 90%;
+  padding: 0px;
+}}
+.code-header-lang {{
+  float: left;
+  padding-left: .25rem;
+  padding-top: 4px;
+}}
+.code-header-copy {{
+  text-align: right;
+  text-decoration: none;
+  font-weight: bold;
+  display: inline-block;
+  color: #6e6e6e;
+  padding-right: .25rem;
+}}
+.code-header-copy img {{
+  vertical-align: middle;
+  padding-right: 5px;
+}}
+.code-header-copy:hover {{
+  text-decoration: none;
+  cursor: pointer;
+}}
+.code-header-copy:hover img {{
+  filter: brightness(130%);
+}}
+.code-wrapper {{
+  padding: 0px;
+  margin: 0px;
+  margin-bottom: 1rem;
+}}
+.code-wrapper pre {{
+  padding: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  margin-top: 0;
+}}
 .code-wrapper pre code {{
  max-height: 1000px;
  overflow-y: auto;
+ padding: 1.5rem;
+}}
+.highlight span {{
+  font-family: 'Monaspace Neon';
 }}
 
+/* action icons */
+.action-icons {{
+  margin-top: 20px;
+}}
+.action-icons a {{
+  text-decoration: none;
+}}
+.action-icons a:hover {{
+  filter: brightness(120%);
+}}
+.action-img {{
+  width: 20px;
+  height: 20px;
+}}
+.edit-icon {{
+  display: inline;
+}}
+.theme-blocks.display-timestamp .ts {{
+  display: inline;
+}}
+
+/* message box */
+.msg-box {{
+  max-width: 100%;
+  border-radius: 10px;
+  padding: 10px;
+  margin-right: 10px;
+}}
+.msg-user {{
+  white-space: pre-wrap;
+  width: auto;
+  max-width: 100%;
+  padding-top: 10px;
+  padding-bottom: 5px;
+  padding-left: 10px;
+  margin-top: 10px;
+  margin-left: 0px;
+  margin-bottom: 5px;
+}}
+.msg-bot {{
+  white-space: pre-wrap;
+  width: auto;
+  max-width: 100%;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+}}
+.msg-box .name-header.name-bot {{
+  display: block;
+  margin-left: -10px;
+  margin-bottom: 1rem;
+  color: #cfcfcf;
+}}
+.msg-box .name-header.name-bot .avatar {{
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: inline;
+  vertical-align: middle;
+  object-fit: cover;
+  margin-right: 10px;
+}}
+.msg-box .name-header::before {{
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}}
+.msg-extra {{
+  margin-top: 10px;
+  margin-bottom: 0px;
+  color: gray;
+}}
+.msg-extra a {{
+  color: gray;
+}}
+.msg-user .msg-extra {{
+  font-weight: bold;
+  padding-top: 5px;
+}}
+.msg-box .msg {{
+  margin: 0;
+  padding: 15px;
+}}
+.ts {{
+  display: none;
+}}
 #_append_output_ .msg-bot {{
- margin-top: 0px !important;
+ margin-top: 5px !important;
+}}
+
+/* images */
+.image {{
+  max-width: 400px;
+}}
+
+/* cmd */
+.cmd {{
+  font-family: 'Lato';
+  text-decoration: none;
+  padding-bottom: 0px;
+  font-size: 0.9rem;
+}}
+
+/* tool output */
+.tool-output-header {{
+  margin-top: 15px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: gray;
+}}
+.tool-output .content {{
+  padding: 10px;
+  color: gray !important;
+  font-size: 0.9rem;
+}}
+.tool-output .toggle-cmd-output {{
+  cursor: pointer;
+  padding-top: 10px;
+  display: block;
+  color: gray;
+}}
+
+/* extra source */
+.extra-src-icon {{
+  padding-right: 2px;
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+}}
+.extra-src-img-box {{
+  display: inline-block;
+  text-align: center;
+  padding: 5px;
+  margin: 5px;
+  max-width: 400px;
+  height: auto;
+  white-space: pre-wrap;
+  word-break: break-all !important;
+}}
+.extra-src-img-box:hover {{
+  cursor: pointer;
+}}
+.extra-src-img-box .title {{
+  width: 400px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  padding-top: 10px;
+  display: block;
+  font-size: 0.95rem;
+}}
+.extra-src-img-box .img-outer {{
+  display: flex;
+  flex-direction: column;
+}}
+.extra-src-img-box .img-wrapper {{
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #000;
+  background: #000;
+  width: 400px;
+  height: 280px;
+  margin: 0;
+  margin-bottom: 0px !important;
+  border-radius: 5px;
+  -webkit-box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
+  -moz-box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
+  box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
+}}
+.extra-src-img-box .img-wrapper:hover {{
+  border: 1px solid gray;
+}}
+.extra-src-img-box img {{
+  margin-bottom: 2px;
+  padding-bottom: 0px;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}}
+.extra-src-video-box,
+.video-player {{
+  max-width: 400px;
+  text-align: left;
+}}
+
+/* common */
+.toggle-expanded {{
+  transform: rotateX(180deg);
+}}
+.append_input {{
+  margin: 0;
+  padding: 0;
+}}
+.append_output {{
+  margin: 0;
+  padding: 0;
+}}
+.append_live {{
+  font-size: 0.8rem;
+}}
+.hidden {{
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}}
+.visible {{
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}}
+.empty_list {{
+}}
+.debug {{
+  color: orange !important;
+  background: #0d1117;
+  padding: 10px;
+  font-size: 0.9rem;
+}}
+
+/* loaders */
+@keyframes spin {{
+  from {{
+  transform: rotate(0deg);
+  }}
+  to {{
+  transform: rotate(360deg);
+  }}
+}}
+.spinner {{
+  display: inline-block;
+  animation: spin 2s linear infinite;
+  margin: auto !important;
+  padding: 0 !important;
+  margin-top: 8px !important;
+  width:30px !important;
+  height:30px !important;
+}}
+.spinner .img {{
+  margin: auto;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}}
+.loader-global {{
+   text-align: center;
+   margin-top: 2rem;
+   margin-bottom: 2rem;
+}}
+.lds-ring {{
+   opacity: 0.75;
+}}
+.loader-global .lds-ring {{
+  width: 40px;
+  height: 40px;
+}}
+.loader-global .lds-ring div {{
+  width: 32px;
+  height: 32px;
+  border-width: 5px;
+}}
+
+/* tips */
+.tips {{
+ opacity: 0;
+ transition: opacity 1s ease-in-out;
+ text-align: center;
+ font-size: 0.8rem;
+ height: 100vh;
+ min-height: 100%;
+ bottom: 10px;
+}}
+.tips p {{
+ display: block;
+ position: fixed;
+ top: 50%;
+ margin: auto;
+ width: 100%;
+ text-align: center;
+}}
+.tips.visible {{
+ opacity: 1;
 }}

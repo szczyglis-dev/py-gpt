@@ -7,342 +7,397 @@
   src: url('file:///%fonts%/MonaspaceNeon/MonaspaceNeon-Regular.otf');
 }}
 * {{
-    font-family: 'Lato'; 
+  font-family: 'Lato'; 
 }}
 body {{ 
-    word-wrap: break-word;
-    padding: 6px;
-    line-height: 1.25;
-    padding: 0;
-    margin: auto;
-    max-width: 720px;
-    border-radius: .25rem;
+  word-wrap: break-word;
+  padding: 6px;
+  line-height: 1.25;
+  padding: 0;
+  margin: auto;
+  max-width: 720px;
+  border-radius: .25rem;
 }}
 ::-webkit-scrollbar {{
-    height: 12px;
-    width: 12px;
+  height: 12px;
+  width: 12px;
 }}
 ::-webkit-scrollbar-thumb {{
-    -webkit-border-radius: 1ex;
-    -webkit-box-shadow: none;
+  -webkit-border-radius: 1ex;
+  -webkit-box-shadow: none;
 }}
 #container {{
-    will-change: transform, opacity;
-}}
-.ts {{
-    display: none;
+  will-change: transform, opacity;
+  margin-bottom: 20px;
 }}
 
 /* base */
 a {{
-    text-decoration: none;
-    color: #a1b5c4 !important;
+  text-decoration: none;
+  color: #a1b5c4 !important;
 }}
 a:hover {{
-    cursor: pointer !important;
-    text-decoration: underline;
+  cursor: pointer !important;
+  text-decoration: underline;
 }}
 p {{ 
-    margin-top: 0px;
-    margin-bottom:0px;
-}}
-.msg {{
-   margin-top: 5px;
-}}
-
-/* images */
-.image {{
-    max-width: 250px;
-}}
-
-/* cmd */
-.cmd {{
-    font-family: 'Monaspace Neon';
-    text-decoration: none;
-    padding-top: 5px;
-    padding-bottom: 0px;
-    font-size: 0.75rem;
+  margin-top: 0px;
+  margin-bottom:0px;
 }}
 
 /* lists, code */
-ul, ol, .list {{
-    margin-top: 0px;
-    margin-bottom: 0px;
+ol,
+ul {{
+  list-style-position: outside  !important;
+  padding-inline-start: 2rem;
+  margin: 0 0 0 0;
+}}
+li > p:first-child {{
+  margin: 0;
+  margin-top: -1.25rem;
+}}
+li + li {{
+  margin-top: .35em;
+}}
+li div:first-child {{
+ margin-top: 1rem;
 }}
 pre {{
-    font-family: 'Monaspace Neon';
-    display: block;
-    text-align: left;
-    padding: 0;
-    overflow-y: auto;
+  font-family: 'Monaspace Neon';
+  display: block;
+  text-align: left;
+  padding: 0;
+  overflow-y: auto;
 }}
 code {{
-    font-family: 'Monaspace Neon';
-    overflow-y: auto;
-    font-size: 0.8rem;
+  font-family: 'Monaspace Neon';
+  overflow-y: auto;
+  font-size: 0.8rem;
 }}
+think {{
+  border-left: 4px solid silver;
+  display: block;
+  padding-left: 1rem;
+  margin-top: 0;
+  padding-top: 0;
+  font-size: 0.8rem;
+}}
+
+/* code wrapper */
 .code-header-wrapper {{
-    text-align: right;
-    width: auto;
-    height: 20px;
-    padding: 10px;
-    padding-top: 10px;
-    margin: 0;
-    font-size: 0.75rem;
-    -webkit-border-top-left-radius: .25rem;
-    -webkit-border-top-right-radius: .25rem;
-    -moz-border-radius-topleft: .25rem;
-    -moz-border-radius-topright: .25rem;
-    border-top-left-radius: .25rem;
-    border-top-right-radius: .25rem;
+  text-align: right;
+  width: auto;
+  height: 20px;
+  padding: 10px;
+  padding-top: 10px;
+  margin: 0;
+  font-size: 0.75rem;
+  -webkit-border-top-left-radius: .25rem;
+  -webkit-border-top-right-radius: .25rem;
+  -moz-border-radius-topleft: .25rem;
+  -moz-border-radius-topright: .25rem;
+  border-top-left-radius: .25rem;
+  border-top-right-radius: .25rem;
 }}
 .code-header {{
-    text-align: right;
-    width: 90%;
-    padding: 0px;
-    font-size: 0.75rem;
+  text-align: right;
+  width: 90%;
+  padding: 0px;
+  font-size: 0.75rem;
 }}
 .code-header-lang {{
-    float: left;
-    padding-top: 4px;
-    padding-left: .25rem;
+  float: left;
+  padding-top: 4px;
+  padding-left: .25rem;
 }}
 .code-header-action {{
-    text-align: right;
-    text-decoration: none;
-    font-weight: bold;
-    display: inline-block;
-    color: #6e6e6e;
-    padding-right: .25rem;
-    vertical-align: middle;
-    padding-left: 5px;
-    padding-right: 5px;
+  text-align: right;
+  text-decoration: none;
+  font-weight: bold;
+  display: inline-block;
+  color: #6e6e6e;
+  padding-right: .25rem;
+  vertical-align: middle;
+  padding-left: 5px;
+  padding-right: 5px;
 }}
 .code-header-action span {{
-    font-family: "Lato" !important;
+  font-family: "Lato" !important;
 }}
 .code-header-action img {{
-    vertical-align: middle;
-    padding-right: 5px;
-    padding-bottom: 3px;
+  vertical-align: middle;
+  padding-right: 5px;
+  padding-bottom: 3px;
 }}
 .code-header-action:hover, {{
-    text-decoration: none;
-    cursor: pointer;
+  text-decoration: none;
+  cursor: pointer;
 }}
 .code-header-action:hover img {{
-    filter: brightness(130%);
+  filter: brightness(130%);
 }}
 .code-wrapper {{
-    padding: 0px;
-    margin: 0px;
-    border: none;
-    border-radius: .25rem;
-    margin-bottom: 1rem;
+  padding: 0px;
+  margin: 0px;
+  border: none;
+  border-radius: .25rem;
+  margin-bottom: 1rem;
 }}
 .code-wrapper pre {{
-    padding: 0;
-    padding-bottom: 0;
-    margin-bottom: 0;
-    margin-top: 0;
-    width: 100%;
+  padding: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  margin-top: 0;
+  width: 100%;
 }}
-.code-wrapper code {{
-    padding: 1.5rem;
+.code-wrapper pre code {{
+ max-height: 1000px;
+ overflow-y: auto;
+ padding: 1.5rem;
 }}
 .highlight span {{
-    font-family: 'Monaspace Neon';
+  font-family: 'Monaspace Neon';
 }}
 
 /* action icons */
 .action-icons {{
-    margin-top: 20px;
+  margin-top: 20px;
 }}
 .action-icons a {{
-    text-decoration: none;
+  text-decoration: none;
 }}
 .action-icons a:hover {{
-    filter: brightness(120%);
+  filter: brightness(120%);
 }}
 .action-img {{
-    width: 20px;
-    height: 20px;
+  width: 20px;
+  height: 20px;
 }}
 .edit-icon {{
-    display: inline;
+  display: inline;
 }}
 .theme-blocks.display-timestamp .ts {{
-    display: inline;
+  display: inline;
 }}
 
 /* message box */
 .msg-box {{
-    max-width: 100%;
-    border-radius: 10px;
-    padding: 10px;
-    margin-right: 10px;
+  max-width: 100%;
+  border-radius: 10px;
+  padding: 10px;
+  margin-right: 10px;
+  margin-top: 0px;
 }}
 .msg-user {{
-    white-space: pre-wrap;
-    width: fit-content;
-    min-width: 10px;
-    max-width: 75%;
-    padding: 10px;
-    margin-top: 10px;
-    margin-left: auto;
-    margin-bottom: 5px;
-    border: none;
+  white-space: pre-wrap;
+  width: fit-content;
+  min-width: 10px;
+  max-width: 75%;
+  padding: 10px;
+  margin-top: 10px;
+  margin-left: auto;
+  margin-bottom: 5px;
+  border: none;
 }}
 .msg-bot {{
-    white-space: pre-wrap;
-    width: auto;
-    max-width: 100%;
-    margin-top: 10px;
-    margin-bottom: 0px;
-    padding-bottom: 0px;
-    background: none;
-    border: none;
-}}
-.msg-box:not(first-child) {{
-    margin-top: 20px !important;
-}}
-.msg-box:first-child {{
-    margin-top: 0px;
-}}
-.msg-box:last-child {{
-    margin-bottom: 20px !important;
+  white-space: pre-wrap;
+  width: auto;
+  max-width: 100%;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+  background: none;
+  border: none;
 }}
 .msg-box .name-header.name-bot {{
-    display: block;
-    margin-left: -10px;
-    margin-bottom: 1rem;
-    color: #cfcfcf;
+  display: block;
+  margin-left: -10px;
+  margin-bottom: 1rem;
+  color: #cfcfcf;
 }}
 .msg-box .name-header.name-bot .avatar {{
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: inline;
-    vertical-align: middle;
-    object-fit: cover;
-    margin-right: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: inline;
+  vertical-align: middle;
+  object-fit: cover;
+  margin-right: 10px;
 }}
 .msg-extra {{
-    margin-top: 10px;
-    margin-bottom: 0px;
-    color: gray;
-    font-size: 0.8rem;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  color: gray;
+  font-size: 0.8rem;
 }}
 .msg-extra a {{
-    color: gray;
+  color: gray;
 }}
 .msg-user .msg-extra {{
-    display: none;
+  display: none;
 }}
 .msg-box .msg {{
-    margin: 0;
-    padding: 5px;
-    width: auto;
+  margin: 0;
+  padding: 5px;
+  width: auto;
+}}
+.name-user {{
+  display: none;
+}}
+.ts {{
+  display: none;
+}}
+#_append_output_ .msg-bot {{
+ margin-top: 5px !important;
+}}
+
+/* images */
+.image {{
+  max-width: 250px;
+}}
+
+/* cmd */
+.cmd {{
+  font-family: 'Monaspace Neon';
+  text-decoration: none;
+  padding-top: 5px;
+  padding-bottom: 0px;
+  font-size: 0.75rem;
 }}
 
 /* tool output */
 .tool-output-header {{
-    margin-top: 15px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: gray;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: gray;
 }}
 .tool-output .content {{
-    font-family: 'Monaspace Neon';
-    padding: 10px;
-    color: #4d4d4d !important;
-    font-size: 0.75rem;
+  font-family: 'Monaspace Neon';
+  padding: 10px;
+  color: #4d4d4d !important;
+  font-size: 0.75rem;
 }}
 .tool-output .toggle-cmd-output {{
-    cursor: pointer;
-    padding-top: 0px;
-    display: block;
-    color: gray;
+  cursor: pointer;
+  padding-top: 0px;
+  display: block;
+  color: gray;
 }}
 
 /* extra source */
 .extra-src-icon {{
-    padding-right: 4px;
-    width: 20px;
-    height: 20px;
-    vertical-align: middle;
+  padding-right: 4px;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
 }}
 .extra-src-img-box {{
-    display: inline-block;
-    text-align: center;
-    padding: 5px;
-    margin: 5px;
-    max-width: 250px;
-    height: auto;
-    white-space: pre-wrap;
-    word-break: break-all !important;
+  display: inline-block;
+  text-align: center;
+  padding: 5px;
+  margin: 5px;
+  max-width: 250px;
+  height: auto;
+  white-space: pre-wrap;
+  word-break: break-all !important;
 }}
 .extra-src-img-box:hover {{
-    cursor: pointer;
+  cursor: pointer;
 }}
 .extra-src-img-box .title {{
-    max-width: 150px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: block;
-    text-align: center;
-    padding: 0;
-    margin: auto;
-    padding-top: 10px;
-    display: block;
-    font-size: 0.75rem;
-    width: auto;
+  max-width: 150px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  text-align: center;
+  padding: 0;
+  margin: auto;
+  padding-top: 10px;
+  display: block;
+  font-size: 0.75rem;
+  width: auto;
 }}
 .extra-src-img-box .img-outer {{
-    display: flex;
-    flex-direction: column;
-    width: auto;
+  display: flex;
+  flex-direction: column;
+  width: auto;
 }}
 .extra-src-img-box .img-wrapper {{
-    position: relative;
-    overflow: hidden;
-    border: none;
-    background: transparent;
-    max-width: 250px;
-    height: 150px;
-    margin: 0;
-    margin-bottom: 0px !important;
-    border-radius: 0;
-    width: auto;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  background: transparent;
+  max-width: 250px;
+  height: 150px;
+  margin: 0;
+  margin-bottom: 0px !important;
+  border-radius: 0;
+  width: auto;
 }}
 .extra-src-img-box .img-wrapper:hover {{
-    cursor: pointer;
-    border: none;
-    filter: brightness(105%);
+  cursor: pointer;
+  border: none;
+  filter: brightness(105%);
 }}
 .extra-src-img-box img {{
-    margin-bottom: 2px;
-    padding-bottom: 0px;
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+  margin-bottom: 2px;
+  padding-bottom: 0px;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}}
+.extra-src-video-box,
+.video-player {{
+  max-width: 400px;
+  text-align: left;
 }}
 
 /* common */
 .toggle-expanded {{
-    transform: rotateX(180deg);
+  transform: rotateX(180deg);
 }}
 .append_input {{
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }}
 .append_output {{
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
+}}
+.append_live {{
+  font-size: 0.8rem;
 }}
 .empty_list {{
+}}
+.hidden {{
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}}
+.visible {{
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}}
+.debug {{
+  color: orange !important;
+  background: #0d1117;
+  padding: 10px;
+  font-size: 0.9rem;
+}}
+
+/* loaders */
+@keyframes spin {{
+  from {{
+  transform: rotate(0deg);
+  }}
+  to {{
+  transform: rotate(360deg);
+  }}
 }}
 .spinner {{
   display: inline-block;
@@ -359,34 +414,6 @@ code {{
   width: 100% !important;
   height: 100% !important;
 }}
-think {{
-  border-left: 4px solid silver;
-  display: block;
-  padding-left: 1rem;
-  margin-top: 0;
-  padding-top: 0;
-  font-size: 0.8rem;
-}}
-
-/* anims */
-@keyframes spin {{
-  from {{
-    transform: rotate(0deg);
-  }}
-  to {{
-    transform: rotate(360deg);
-  }}
-}}
-
-/* debug */
-.debug {{
-    color: orange !important;
-    background: #0d1117;
-    padding: 10px;
-    font-size: 0.9rem;
-}}
-
-/* loader */
 .loader-global {{
    text-align: center;
    margin-top: 2rem;
@@ -404,22 +431,8 @@ think {{
   height: 32px;
   border-width: 5px;
 }}
-.append_live {{
-  font-size: 0.8rem;
-}}
-.hidden {{
-  display: block;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
-}}
 
-.visible {{
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
-}}
-
+/* tips */
 .tips {{
  opacity: 0;
  transition: opacity 1s ease-in-out;
@@ -440,44 +453,4 @@ think {{
 }}
 .tips.visible {{
  opacity: 1;
-}}
-
-
-.name-user {{
-  display: none;
-}}
-
-.extra-src-video-box,
-.video-player {{
-  max-width: 400px;
-  text-align: left;
-}}
-
-ol,
-ul {{
-  list-style-position: outside  !important;
-  padding-inline-start: 2rem;
-  margin: 0 0 0 0;
-}}
-
-li > p:first-child {{
-  margin: 0;
-  margin-top: -1.25rem;
-}}
-
-li + li {{
-  margin-top: .35em;
-}}
-
-li div:first-child {{
- margin-top: 1rem;
-}}
-
-.code-wrapper pre code {{
- max-height: 1000px;
- overflow-y: auto;
-}}
-
-#_append_output_ .msg-bot {{
- margin-top: 0px !important;
 }}
