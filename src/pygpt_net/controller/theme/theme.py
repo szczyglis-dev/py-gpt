@@ -34,6 +34,7 @@ class Theme:
         self.markdown = Markdown(window)
         self.menu = Menu(window)
         self.nodes = Nodes(window)
+        self.current_theme = None
 
     def setup(self):
         """Setup theme"""
@@ -192,7 +193,8 @@ class Theme:
 
         :param force: force theme change (manual trigger)
         """
-        self.toggle(self.window.core.config.get('theme'), force=force)
+        self.current_theme = self.window.core.config.get('theme')
+        self.toggle(self.current_theme, force=force)
 
     def update_syntax(self):
         """Update syntax menu"""
@@ -280,13 +282,11 @@ class Theme:
         """
         return self.common.get_style(element)
 
-    def reload_all(self, prev_theme: Optional[str] = None):
+    def reload_all(self):
         """
         Reload all
-
-        :param prev_theme: previous theme name
         """
-        if not prev_theme or prev_theme != self.window.core.config.get('theme'):
+        if self.current_theme != self.window.core.config.get('theme'):
             self.setup()
             self.update_style()
         self.update_syntax()

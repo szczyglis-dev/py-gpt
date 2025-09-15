@@ -149,7 +149,6 @@ class Tabs:
                     if tab.type == Tab.TAB_CHAT:
                         node = self.window.ui.nodes['output'].get(tab.pid)
                         if node:
-                            print("unloading tab", tab.pid)
                             node.hide()
                             p = node.page()
                             p.triggerAction(QWebEnginePage.Stop)
@@ -168,7 +167,7 @@ class Tabs:
                             layout.removeWidget(node_plain)
                             self.window.ui.nodes['output_plain'].pop(pid, None)
                             node_plain.on_delete()
-                    tab.on_delete()
+                    tab.cleanup()
                 except Exception as e:
                     print(f"Error unloading tab {pid}: {e}")
         try:

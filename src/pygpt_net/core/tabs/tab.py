@@ -109,7 +109,7 @@ class Tab:
     def cleanup(self):
         """Clean up on delete"""
         try:
-            if self.on_delete:
+            if self.on_delete and callable(self.on_delete):
                 self.on_delete(self)
             self.delete_refs()
         except Exception as e:
@@ -131,7 +131,7 @@ class Tab:
         Delete all references to widgets in this tab
         """
         # cleanup children
-        if self.child:
+        if self.child and hasattr(self.child, 'cleanup'):
             self.child.cleanup()
 
         # cleanup parent

@@ -105,8 +105,6 @@ class Notepad:
         :param body: TabBody instance
         """
         tab = body.owner
-        if not tab.owner:
-            return
         if tab.type != Tab.TAB_NOTEPAD:
             return
         idx = tab.data_id

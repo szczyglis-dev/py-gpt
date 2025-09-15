@@ -120,10 +120,6 @@ class NotepadOutput(QTextEdit):
         if self.finder:
             self.finder.disconnect()  # disconnect finder
             self.finder = None  # delete finder
-        try:
-            self._vscroll.valueChanged.disconnect(self._on_scrollbar_value_changed)
-        except Exception:
-            pass
         self.deleteLater()
 
     def showEvent(self, event):

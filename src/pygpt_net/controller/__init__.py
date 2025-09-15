@@ -154,8 +154,6 @@ class Controller:
 
         print(trans("status.reloading.profile.begin"))
 
-        prev_theme = self.window.core.config.get("theme")
-
         self.window.core.reload()  # db, config, patch, etc.
         self.ui.tabs.reload()
         self.ctx.reload()
@@ -183,7 +181,7 @@ class Controller:
         self.ctx.reload_after()
         self.ui.tabs.restore_data()  # restore opened tabs data
         self.kernel.restart()
-        self.theme.reload_all(prev_theme=prev_theme)  # do not reload theme if no change
+        self.theme.reload_all()  # do not reload theme if no change
 
         self.reloading = False  # unlock
         self.presets.unlock()

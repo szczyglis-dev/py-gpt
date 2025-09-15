@@ -210,6 +210,8 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         """
         node = self.get_output_node(meta)
+        if not node:
+            return
         node.set_meta(meta)
         self.reset(meta)
         try:
