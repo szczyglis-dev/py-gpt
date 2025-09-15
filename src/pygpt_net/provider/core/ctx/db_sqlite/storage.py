@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.09.15 22:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -109,6 +109,12 @@ class Storage:
                     continue
                 mode = filter.get('mode', '=')
                 value = filter.get('value', '')
+
+                # handle special case for "ungrouped" (group_id IS NULL OR = 0)
+                if key == 'group_id' and str(mode).upper() == 'NULL_OR_ZERO':
+                    where_clauses.append("(m.group_id IS NULL OR m.group_id = 0)")
+                    continue
+
                 key_name = 'm.' + key
                 if isinstance(value, int):
                     where_clauses.append(f"{key_name} {mode} :{key}")
@@ -116,7 +122,7 @@ class Storage:
                 elif isinstance(value, str):
                     where_clauses.append(f"{key_name} {mode} :{key}")
                     bind_params[key] = f"%{value}%"
-                elif isinstance(value, list):
+                elif isinstance(value, list) and len(value) > 0:
                     values = "(" + ",".join([str(x) for x in value]) + ")"
                     where_clauses.append(f"{key_name} {mode} {values}")
 
@@ -148,15 +154,21 @@ class Storage:
         :return: dict of CtxMeta
         """
         limit_suffix = ""
-        if limit is not None and limit > 0:
-            limit_suffix = " LIMIT {}".format(limit)
-
         where_statement, join_statement, bind_params = self.prepare_query(
             search_string=search_string,
             filters=filters,
             search_content=search_content,
             append_date_ranges=True,
         )
+
+        # Build LIMIT/OFFSET only when limit > 0; LIMIT 0 would mean "no rows"
+        if limit is not None and int(limit) > 0:
+            limit_suffix = " LIMIT :limit"
+            bind_params['limit'] = int(limit)
+            if offset is not None and int(offset) > 0:
+                limit_suffix += " OFFSET :offset"
+                bind_params['offset'] = int(offset)
+
         stmt_text = f"""
             SELECT 
                 m.*,
@@ -168,6 +180,8 @@ class Storage:
                 {join_statement} 
             WHERE 
                 {where_statement}
+            GROUP BY 
+                m.id
             ORDER BY 
                 m.updated_ts DESC {limit_suffix}
         """

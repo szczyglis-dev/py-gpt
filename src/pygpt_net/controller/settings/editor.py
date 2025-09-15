@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.09.15 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -163,6 +163,7 @@ class Editor:
                 self.config_changed('ctx.records.groups.separators') or
                 self.config_changed('ctx.records.pinned.separators') or
                 self.config_changed('ctx.records.separators')):
+            self.window.controller.ctx.reset_loaded_total()  # reset paging
             self.window.controller.ctx.update()
 
         # syntax highlighter style
@@ -320,6 +321,7 @@ class Editor:
         # update ctx limit
         elif key.startswith('ctx.records.limit') and caller == "slider":
             self.window.core.config.set(key, value)
+            self.window.controller.ctx.reset_loaded_total()  # reset paging
             QTimer.singleShot(1000, lambda: self.window.controller.ctx.update(True, False))
 
         # update layout density

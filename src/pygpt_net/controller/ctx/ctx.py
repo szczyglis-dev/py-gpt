@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.15 22:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -47,6 +47,7 @@ class Ctx:
         # current group ID
         self.group_id = None
         self.selected = []
+        self._infinite_scroll_refresh = False
 
     def handle(self, event: BaseEvent):
         """
@@ -110,7 +111,9 @@ class Ctx:
             self.new()
         else:
             id = core.config.get('ctx')
-            if id is not None and core.ctx.has(id):
+            if id is not None:
+                # Keep previously selected id; if it's not in the current page
+                # we will inject a placeholder into the list (see update_list).
                 core.ctx.set_current(id)
             else:
                 core.ctx.set_current(core.ctx.get_first())
@@ -395,13 +398,57 @@ class Ctx:
         :param reload: reload ctx list items
         :param restore_scroll: restore scroll position
         """
+        view = self.window.ui.nodes['ctx.list']
+
+        # Read raw scrollbar state BEFORE model rebuild
+        sb = None
+        prev_val = None
+        if restore_scroll:
+            try:
+                sb = view.verticalScrollBar()
+                prev_val = sb.value()
+            except Exception:
+                sb = None
+                prev_val = None
+
+            # In infinite-scroll mode do NOT call store/restore helpers to avoid collisions.
+            # Instead, schedule a pending scroll that will be applied while updates are disabled.
+            if self._infinite_scroll_refresh:
+                if prev_val is not None:
+                    try:
+                        view.set_pending_v_scroll(prev_val)
+                    except Exception:
+                        pass
+            else:
+                # Normal mode: keep existing helpers
+                try:
+                    view.store_scroll_position()
+                except Exception:
+                    pass
+
+        # Prepare data (with placeholder injection if current is outside of the page)
+        data = self.window.core.ctx.get_meta(reload)
+        data = self._inject_current_if_missing(data)
+
+        # Rebuild list (CtxList.update will apply pending scroll before enabling updates)
         self.window.ui.contexts.ctx_list.update(
             'ctx.list',
-            self.window.core.ctx.get_meta(reload),
+            data,
             expand=False,
         )
+
+        # Post-fix: in normal mode let helpers restore; in infinite mode we already applied pending
         if restore_scroll:
-            self.window.ui.nodes['ctx.list'].restore_scroll_position()
+            if self._infinite_scroll_refresh:
+                # Optional safety re-apply to the same value after layout settles
+                if sb is not None and prev_val is not None:
+                    QTimer.singleShot(0, lambda: sb.setValue(prev_val))
+            else:
+                try:
+                    view.restore_scroll_position()
+                    QTimer.singleShot(0, view.restore_scroll_position)
+                except Exception:
+                    pass
 
     def refresh(self, restore_model: bool = True):
         """
@@ -820,6 +867,7 @@ class Ctx:
 
         :param text: search string
         """
+        self.reset_loaded_total()  # reset paging on new search
         self.window.core.ctx.clear_tmp_meta()
         self.window.core.ctx.set_search_string(text)
         self.window.core.config.set('ctx.search.string', text)
@@ -845,6 +893,7 @@ class Ctx:
 
         :param labels: list of labels
         """
+        self.reset_loaded_total()  # reset paging on label filter change
         self.window.core.ctx.clear_tmp_meta()
         self.window.core.ctx.filters_labels = labels
         self.window.core.config.set('ctx.records.filter.labels', labels)
@@ -1235,6 +1284,7 @@ class Ctx:
 
     def reload(self):
         """Reload ctx"""
+        self.reset_loaded_total()  # reset paging
         self.window.core.ctx.reset()
         self.setup()
         self.update()
@@ -1306,3 +1356,116 @@ class Ctx:
         }
         event = RenderEvent(RenderEvent.ON_LOAD, data)
         self.window.dispatch(event)
+
+    def get_package_limit(self) -> int:
+        """Return base package size from config."""
+        try:
+            return int(self.window.core.config.get('ctx.records.limit') or 0)
+        except Exception:
+            return 0
+
+    def get_loaded_total_limit(self) -> int:
+        """Return persisted total loaded size; fallback to base package size."""
+        base = self.get_package_limit()
+        try:
+            val = int(self.window.core.config.get('ctx.records.limit.total') or 0)
+        except Exception:
+            val = 0
+        return val if val > 0 else base
+
+    def reset_loaded_total(self):
+        """Reset total loaded to base package; used on filter/search changes."""
+        base = self.get_package_limit()
+        # If base is 0 (unlimited), keep total as 0 which means "unlimited"
+        self.window.core.config.set('ctx.records.limit.total', base if base > 0 else 0)
+        self.window.core.config.save()
+
+    def load_more(self, packages: int = 1):
+        """
+        Increase total loaded limit and append new ungrouped records without rebuilding the list.
+        """
+        base = self.get_package_limit()
+        if base <= 0:
+            # Unlimited mode – nothing to do
+            return
+
+        current_total = self.get_loaded_total_limit()
+        new_total = current_total + max(1, int(packages)) * base
+        self.window.core.config.set('ctx.records.limit.total', new_total)
+        self.window.core.config.save()
+
+        # If folders are at top (default), we can safely append without rebuilding.
+        # Otherwise, fall back to safe rebuild with stable scroll restore.
+        folders_top = bool(self.window.core.config.get("ctx.records.folders.top"))
+
+        # Pull fresh meta with increased total
+        data = self.window.core.ctx.get_meta(reload=True)
+
+        if folders_top:
+            # compute which ungrouped & not pinned IDs are already visible
+            view = self.window.ui.nodes['ctx.list']
+            visible_ids = set()
+            try:
+                visible_ids = view.get_visible_unpaged_ids()
+            except Exception:
+                pass
+
+            # build candidate list in provider order
+            candidates = []
+            for mid, meta in data.items():
+                if (meta.group_id is None or meta.group_id == 0) and not meta.important:
+                    candidates.append(mid)
+
+            # filter only new ones (keep order)
+            add_ids = [mid for mid in candidates if mid not in visible_ids]
+
+            # append without rebuilding
+            self.window.ui.contexts.ctx_list.append_unpaginated('ctx.list', data, add_ids)
+        else:
+            # Fallback: rare config where groups are placed after items – do a stable rebuild
+            view = self.window.ui.nodes['ctx.list']
+            try:
+                sb = view.verticalScrollBar()
+                prev_val = sb.value()
+                # mark special refresh to avoid collisions with helpers
+                self._infinite_scroll_refresh = True
+                # set pending to preserve old position during rebuild
+                view.set_pending_v_scroll(prev_val)
+            except Exception:
+                prev_val = None
+
+            try:
+                self.update_list(reload=True, restore_scroll=True)
+            finally:
+                self._infinite_scroll_refresh = False
+
+    def _inject_current_if_missing(self, data: dict) -> dict:
+        """
+        Inject currently selected meta at the end of the list if it's not in the current page.
+        This produces a 'placeholder' entry that will be replaced by the real one once loaded.
+        """
+        try:
+            cur_id = self.window.core.ctx.get_current()
+            if cur_id is None:
+                cur_id = self.window.core.config.get('ctx')
+            if not cur_id or cur_id in data:
+                return data
+
+            provider = self.window.core.ctx.get_provider()
+            meta = provider.get_meta_by_id(cur_id)
+            if meta is None:
+                return data  # nothing to inject
+
+            # Mark as placeholder in 'extra' for potential future diagnostics; UI ignores this flag.
+            try:
+                if meta.extra is None:
+                    meta.extra = {}
+                meta.extra['__placeholder'] = True
+            except Exception:
+                pass
+
+            injected = dict(data)  # keep original ordering, append at the end
+            injected[meta.id] = meta
+            return injected
+        except Exception:
+            return data

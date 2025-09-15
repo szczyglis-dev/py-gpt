@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.09.15 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -1003,7 +1003,7 @@ class Ctx:
         for item in reversed(history_items):
             num = from_ctx(item, mode, model)
             new_total = tokens + num
-            if max_tokens > 0 and new_total > max_tokens:
+            if 0 < max_tokens < new_total:
                 break
             tokens = new_total
             context_tokens += num
@@ -1240,48 +1240,101 @@ class Ctx:
         return len(self.filters_labels) < num_all
 
     def load_meta(self):
-        """Load ctx list from provider"""
-        limit = 0
+        """Load ctx list: pinned and grouped unlimited; ungrouped not pinned paginated directly in SQL."""
+        # base package size (per page)
+        base_limit = 0
         if self.window.core.config.has('ctx.records.limit'):
-            limit = int(self.window.core.config.get('ctx.records.limit') or 0)
+            try:
+                base_limit = int(self.window.core.config.get('ctx.records.limit') or 0)
+            except Exception:
+                base_limit = 0
 
-        if "is_important" not in self.filters and "indexed_ts" not in self.filters:
-            filters_pinned = self.get_parsed_filters()
-            filters_pinned['is_important'] = {
-                "mode": "=",
-                "value": 1,
-            }
-            meta_pinned = self.provider.get_meta(
-                search_string=self.search_string,
-                order_by='updated_ts',
-                order_direction='DESC',
-                limit=0,
-                filters=filters_pinned,
-                search_content=self.is_search_content(),
-            )
+        # total loaded (persisted); fallback to base when missing
+        try:
+            loaded_total = int(self.window.core.config.get('ctx.records.limit.total') or 0)
+        except Exception:
+            loaded_total = 0
+        if loaded_total <= 0:
+            loaded_total = base_limit
 
-            filters = self.get_parsed_filters()
-            meta_unpinned = self.provider.get_meta(
-                search_string=self.search_string,
-                order_by='updated_ts',
-                order_direction='DESC',
-                limit=limit,
-                filters=filters,
-                search_content=self.is_search_content(),
-            )
+        # Common filters (labels etc.)
+        common_filters = self.get_parsed_filters()
 
-            self.meta = {**meta_pinned, **meta_unpinned}
-
-        else:
-            filters = self.get_parsed_filters()
+        # If explicit filters target a narrow subset (legacy path), keep old behavior
+        if "is_important" in self.filters or "indexed_ts" in self.filters:
+            limit = 0 if base_limit == 0 else loaded_total
             self.meta = self.provider.get_meta(
                 search_string=self.search_string,
                 order_by='updated_ts',
                 order_direction='DESC',
                 limit=limit,
-                filters=filters,
+                offset=0,
+                filters=common_filters,
                 search_content=self.is_search_content(),
             )
+            return
+
+        # 1) Pinned (important) – unlimited
+        filters_pinned = self.get_parsed_filters()
+        filters_pinned['is_important'] = {"mode": "=", "value": 1}
+        meta_pinned = self.provider.get_meta(
+            search_string=self.search_string,
+            order_by='updated_ts',
+            order_direction='DESC',
+            limit=0,
+            offset=0,
+            filters=filters_pinned,
+            search_content=self.is_search_content(),
+        )
+
+        # 2) Grouped – unlimited
+        filters_grouped = self.get_parsed_filters()
+        filters_grouped['group_id'] = {"mode": ">", "value": 0}
+        meta_grouped = self.provider.get_meta(
+            search_string=self.search_string,
+            order_by='updated_ts',
+            order_direction='DESC',
+            limit=0,
+            offset=0,
+            filters=filters_grouped,
+            search_content=self.is_search_content(),
+        )
+
+        # 3) Ungrouped & not pinned – paginate directly in SQL
+        #    If base_limit == 0 -> unlimited (no paging)
+        filters_ungrp = self.get_parsed_filters()
+        filters_ungrp['is_important'] = {"mode": "=", "value": 0}
+        filters_ungrp['group_id'] = {"mode": "NULL_OR_ZERO", "value": 0}  # special mode handled in Storage
+
+        if base_limit <= 0:
+            meta_ungrouped = self.provider.get_meta(
+                search_string=self.search_string,
+                order_by='updated_ts',
+                order_direction='DESC',
+                limit=0,         # unlimited
+                offset=0,
+                filters=filters_ungrp,
+                search_content=self.is_search_content(),
+            )
+        else:
+            # Always take the top-N ungrouped newest items directly from DB
+            take = max(0, int(loaded_total or 0))
+            meta_ungrouped = self.provider.get_meta(
+                search_string=self.search_string,
+                order_by='updated_ts',
+                order_direction='DESC',
+                limit=take,
+                offset=0,
+                filters=filters_ungrp,
+                search_content=self.is_search_content(),
+            )
+
+        # Compose final dict with deterministic order: pinned -> grouped -> ungrouped
+        combined = {}
+        combined.update(meta_pinned)
+        combined.update(meta_grouped)
+        combined.update(meta_ungrouped)
+        self.meta = combined
 
     def load_tmp_meta(self, meta_id: int):
         """

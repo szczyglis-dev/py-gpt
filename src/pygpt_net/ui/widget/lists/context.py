@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 23:47:47                  #
+# Updated Date: 2025.09.15 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -17,7 +17,7 @@ from PySide6.QtCore import Qt, QPoint, QItemSelectionModel
 from PySide6.QtGui import QIcon, QColor, QPixmap, QStandardItem
 from PySide6.QtWidgets import QMenu
 
-from pygpt_net.ui.widget.lists.base import BaseList
+from .base import BaseList
 from pygpt_net.utils import trans
 
 
@@ -66,6 +66,30 @@ class ContextList(BaseList):
         except Exception:
             # Safe no-op if the underlying view does not support setIndentation
             pass
+
+        self._loading_more = False  # guard to avoid multiple triggers while updating
+        try:
+            self.verticalScrollBar().valueChanged.connect(self._on_vertical_scroll)
+        except Exception:
+            pass  # safe no-op if view doesn't expose verticalScrollBar
+
+    def _on_vertical_scroll(self, value: int):
+        """
+        Trigger infinite scroll: when scrollbar reaches bottom, request the next page.
+        """
+        try:
+            sb = self.verticalScrollBar()
+        except Exception:
+            return
+        if sb.maximum() <= 0:
+            return  # nothing to scroll
+        # Close-to-bottom detection; keep a tiny threshold for stability
+        if not self._loading_more and value >= sb.maximum():
+            self._loading_more = True
+            # Ask controller to increase the total limit and refresh the list
+            self.window.controller.ctx.load_more()
+            # Release the guard shortly after model updates
+            QtCore.QTimer.singleShot(250, lambda: setattr(self, "_loading_more", False))
 
     @property
     def _model(self):
@@ -291,6 +315,25 @@ class ContextList(BaseList):
 
         self.restore_after_ctx_menu = True
         self.restore_scroll_position()
+
+    def get_visible_unpaged_ids(self) -> set:
+        """
+        Return a set of IDs for currently visible, ungrouped and not pinned items (top-level only).
+        """
+        ids = set()
+        model = self._model
+        for r in range(model.rowCount()):
+            it = model.item(r)
+            # skip groups and date sections
+            if isinstance(it, GroupItem) or isinstance(it, SectionItem):
+                continue
+            if isinstance(it, Item):
+                data = it.data(QtCore.Qt.ItemDataRole.UserRole) or {}
+                in_group = bool(data.get("in_group", False))
+                is_important = bool(data.get("is_important", False))
+                if not in_group and not is_important and hasattr(it, "id"):
+                    ids.add(int(it.id))
+        return ids
 
     def action_open(self, id: int, idx: int = None):
         """

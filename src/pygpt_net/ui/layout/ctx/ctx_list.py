@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 23:00:00                  #
+# Updated Date: 2025.09.15 22:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -113,8 +113,78 @@ class CtxList:
                     self.update_items_pinned(id, data)
                     self.update_items(id, data)
                     self.update_groups(id, data, expand=expand)
+
+                # APPLY PENDING SCROLL BEFORE RE-ENABLING UPDATES (prevents top flicker)
+                try:
+                    node.apply_pending_scroll()
+                    node.clear_pending_scroll()
+                except Exception:
+                    pass
             finally:
                 node.setUpdatesEnabled(True)
+
+    def _find_first_group_row(self, model) -> int:
+        """Find the row index of the first GroupItem; return -1 if none."""
+        for r in range(model.rowCount()):
+            it = model.item(r)
+            if isinstance(it, GroupItem):
+                return r
+        return -1
+
+    def append_unpaginated(self, id: str, data: dict, add_ids: list[int]):
+        """
+        Append more ungrouped and not pinned items without rebuilding the model.
+        Keeps scroll position perfectly stable.
+        """
+        if not add_ids:
+            return
+        node = self.window.ui.nodes[id]
+        model = self.window.ui.models[id]
+
+        folders_top = bool(self.window.core.config.get("ctx.records.folders.top"))
+        # decide insertion point: at the end, or just before the first group row
+        insert_pos = model.rowCount()
+        if not folders_top:
+            grp_idx = self._find_first_group_row(model)
+            insert_pos = grp_idx if grp_idx >= 0 else model.rowCount()
+
+        # find last dt of existing ungrouped area before insertion point (for date sections)
+        last_dt_str = None
+        for r in range(insert_pos - 1, -1, -1):
+            it = model.item(r)
+            if isinstance(it, Item):
+                data_role = it.data(QtCore.Qt.ItemDataRole.UserRole) or {}
+                if not data_role.get("in_group", False) and not data_role.get("is_important", False):
+                    last_dt_str = getattr(it, "dt", None)
+                    break
+            elif isinstance(it, GroupItem):
+                break  # hit groups boundary going upwards
+            else:
+                # SectionItem or others – skip
+                continue
+
+        node.setUpdatesEnabled(False)
+        try:
+            # append strictly in the order provided by add_ids (older first)
+            for mid in add_ids:
+                meta = data.get(mid)
+                if meta is None:
+                    continue
+                item = self.build_item(mid, meta, is_group=False)
+
+                # Optional date sections (same logic as in update_items)
+                if self._group_separators and (not item.isPinned or self._pinned_separators):
+                    if last_dt_str is None or last_dt_str != item.dt:
+                        section = self.build_date_section(item.dt, group=False)
+                        if section:
+                            model.insertRow(insert_pos, section)
+                            insert_pos += 1
+                        last_dt_str = item.dt
+
+                model.insertRow(insert_pos, item)
+                insert_pos += 1
+        finally:
+            node.setUpdatesEnabled(True)
 
     def update_items(self, id, data):
         """

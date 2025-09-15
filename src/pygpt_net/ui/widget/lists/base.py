@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.09.15 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QItemSelectionModel
@@ -35,6 +35,10 @@ class BaseList(QTreeView):
         self.header().hide()
         self.v_scroll_value = 0
         self.h_scroll_value = 0
+
+        # pending scroll values applied while updates are disabled (to avoid top flicker)
+        self._pending_v_scroll_value = None
+        self._pending_h_scroll_value = None
 
     def click(self, val):
         self.window.controller.mode.select(self.id)
@@ -103,3 +107,30 @@ class BaseList(QTreeView):
         """Restore scroll position"""
         self.verticalScrollBar().setValue(self.v_scroll_value)
         self.horizontalScrollBar().setValue(self.h_scroll_value)
+
+    def set_pending_v_scroll(self, value: int):
+        """
+        Set vertical scroll value to apply while updates are disabled.
+        This prevents a visible jump to the top during model rebuild.
+        """
+        self._pending_v_scroll_value = int(value)
+
+    def set_pending_h_scroll(self, value: int):
+        """Optional: set horizontal pending value."""
+        self._pending_h_scroll_value = int(value)
+
+    def clear_pending_scroll(self):
+        """Clear pending scroll values."""
+        self._pending_v_scroll_value = None
+        self._pending_h_scroll_value = None
+
+    def apply_pending_scroll(self):
+        """
+        Apply pending scroll values immediately.
+        IMPORTANT: Call this before re-enabling updates to avoid repaint at top.
+        """
+        if self._pending_v_scroll_value is not None:
+            self.verticalScrollBar().setValue(self._pending_v_scroll_value)
+        if self._pending_h_scroll_value is not None:
+            self.horizontalScrollBar().setValue(self._pending_h_scroll_value)
+        # do not clear here; let caller decide when to clear

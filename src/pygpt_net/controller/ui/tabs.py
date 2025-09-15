@@ -167,7 +167,7 @@ class Tabs:
                             layout.removeWidget(node_plain)
                             self.window.ui.nodes['output_plain'].pop(pid, None)
                             node_plain.on_delete()
-                    tab.cleanup()
+                    # tab.cleanup()
                 except Exception as e:
                     print(f"Error unloading tab {pid}: {e}")
         try:
