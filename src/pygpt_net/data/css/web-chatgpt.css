@@ -28,7 +28,6 @@ body {{
 }}
 #container {{
   will-change: transform, opacity;
-  margin-bottom: 20px;
 }}
 
 /* base */
