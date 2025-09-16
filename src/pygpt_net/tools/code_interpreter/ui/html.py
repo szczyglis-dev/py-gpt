@@ -114,13 +114,14 @@ class HtmlOutput(QWebEngineView):
         self._glwidget = None
         self._glwidget_filter_installed = False
         self._unloaded = False  # flag to check if unloaded
+        self._destroyed = False
 
-        self._profile = self._make_profile(self)
-        self.setPage(CustomWebEnginePage(self.window, self, profile=self._profile))
+        # self._profile = self._make_profile(self)
+        self.setPage(CustomWebEnginePage(self.window, self, profile=None))
 
     def _make_profile(self, parent=None) -> QWebEngineProfile:
         """Make profile"""
-        profile = QWebEngineProfile(parent)
+        profile = QWebEngineProfile()
         profile.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
         profile.setSpellCheckEnabled(False)
         return profile
@@ -160,6 +161,8 @@ class HtmlOutput(QWebEngineView):
 
     def on_delete(self):
         """Clean up on delete"""
+        if self._destroyed:
+            return
         if not self._unloaded:
             self.unload()
 
@@ -218,6 +221,8 @@ class HtmlOutput(QWebEngineView):
             QCoreApplication.processEvents(QEventLoop.AllEvents, 50)
         except Exception as e:
             self._on_delete_failed(e)
+
+        self._destroyed = True
 
     def init(self, force: bool = False):
         """
@@ -836,9 +841,6 @@ class CustomWebEnginePage(QWebEnginePage):
             except Exception:
                 pass
             self.signals = None
-
-        # delete the page object
-        self.deleteLater()
 
 
 class Bridge(QObject):
