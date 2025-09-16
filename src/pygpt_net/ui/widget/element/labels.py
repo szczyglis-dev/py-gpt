@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QTimer, QRect, Signal, QUrl, QEvent
@@ -34,7 +34,6 @@ class DescLabel(BaseLabel):
     def __init__(self, text, window=None):
         super().__init__(text, window)
         self.window = window
-        self.setMaximumHeight(80)
         self.setProperty('class', 'label-desc')
 
 

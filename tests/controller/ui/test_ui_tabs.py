@@ -144,7 +144,7 @@ def test_update_current(tabs, dummy_window):
 
 def test_reload(tabs, dummy_window):
     tabs.reload()
-    dummy_window.core.tabs.reload.assert_called_once()
+    dummy_window.core.tabs.load.assert_called_once()
     dummy_window.dispatch.assert_called_once()
 
 def test_reload_after(tabs, dummy_window):
@@ -405,7 +405,8 @@ def test_get_current_tab_name_for_audio(tabs, dummy_window):
 def test_update_tooltip(tabs, dummy_window):
     fake_tabs = MagicMock()
     fake_tabs.setTabToolTip = MagicMock()
-    dummy_window.ui.layout.get_active_tabs = MagicMock(return_value=fake_tabs)
+    fake_tabs.count = MagicMock(return_value=3)
+    dummy_window.ui.layout.get_tabs_by_idx = MagicMock(return_value=fake_tabs)
     tabs.current = 1
     tabs.update_tooltip("new tooltip")
     fake_tabs.setTabToolTip.assert_called_with(1, "new tooltip")
@@ -434,7 +435,7 @@ def test_update_title(tabs, dummy_window):
     dummy_window.core.tabs.get_order_by_idx_and_type.return_value = 1
     fake_tabs = MagicMock()
     fake_tabs.setTabToolTip = MagicMock()
-    dummy_window.ui.layout.get_active_tabs = MagicMock(return_value=fake_tabs)
+    dummy_window.ui.layout.get_tabs_by_idx = MagicMock(return_value=fake_tabs)
     tabs.current = 1
     tabs.update_title(1, "LongTabNameExtra")
     fake_tabs.setTabToolTip.assert_called_with(1, "LongTabNameExtra")

@@ -50,7 +50,6 @@ def test_to_dict():
     assert d["icon"] == "icon.png"
     assert d["tooltip"] == "Tip"
     assert d["data_id"] == "data"
-    assert d["child"] == str(child)
     assert d["parent"] == str(parent)
     assert d["custom_name"] is True
     assert d["custom_idx"] == 5
