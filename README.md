@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.48** | build: **2025-09-15** | Python: **>=3.10, <3.14**
+Release: **2.6.49** | build: **2025-09-16** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3495,6 +3495,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.49 (2025-09-16)**
+
+- Fixed: Occasional crashes when focusing on an output container unloaded from memory in the second column.
 
 **2.6.48 (2025-09-15)**
 
