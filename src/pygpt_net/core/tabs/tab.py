@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 20:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
+
+from PySide6.QtWidgets import QWidget
 
 
 @dataclass(slots=True)
@@ -146,12 +148,37 @@ class Tab:
 
         :param widget: widget reference
         """
-        for ref in self.refs:
-            if ref and ref is widget:
-                self.refs.remove(ref)
-                break
-        if self.child and hasattr(self.child, 'delete_ref'):
-            self.child.delete_ref(widget)
+        try:
+            for ref in self.refs:
+                if ref and ref is widget:
+                    self.refs.remove(ref)
+                    break
+        except Exception:
+            pass
+
+        try:
+            if self.child and hasattr(self.child, 'delete_ref'):
+                self.child.delete_ref(widget)
+        except Exception:
+            pass
+
+    def unwrap(self, widget: QWidget):
+        """
+        Unwrap widget from this tab
+
+        :param widget: widget reference
+        """
+        self.delete_ref(widget)
+        try:
+            if widget and hasattr(widget, 'on_delete'):
+                widget.on_delete()
+        except Exception:
+            pass
+        try:
+            if self.child and hasattr(self.child, 'unwrap'):
+                self.child.unwrap(widget)
+        except Exception:
+            pass
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -159,7 +186,7 @@ class Tab:
 
         :return: dict
         """
-        return {
+        data = {
             "uuid": str(self.uuid),
             "pid": self.pid,
             "idx": self.idx,
@@ -169,7 +196,6 @@ class Tab:
             "icon": self.icon,
             "tooltip": self.tooltip,
             "data_id": self.data_id,
-            "child": str(self.child),  # child widget
             "parent": str(self.parent),  # parent column
             "custom_name": self.custom_name,
             "custom_idx": self.new_idx,
@@ -179,6 +205,13 @@ class Tab:
             "tool_id": self.tool_id,
             "refs": [str(ref) for ref in self.refs],  # references to widgets
         }
+        if self.child:
+            try:
+                if hasattr(self.child, 'to_dict'):
+                    data['child'] = self.child.to_dict()
+            except Exception:
+                pass
+        return data
 
     def __str__(self) -> str:
         """

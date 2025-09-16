@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 23:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 from .access import Access
@@ -156,9 +156,12 @@ class Controller:
         print(trans("status.reloading.profile.begin"))
 
         try:
+            self.ui.tabs.locked = True  # lock tabs
             self.window.core.reload()  # db, config, patch, etc.
             self.ui.tabs.reload()
             self.ctx.reload()
+            self.ui.tabs.locked = False  # unlock tabs
+
             self.settings.reload()
             self.assistant.reload()
             self.attachment.reload()
@@ -181,7 +184,6 @@ class Controller:
             # post-reload
             self.ui.tabs.reload_after()
             self.ctx.reload_after()
-            self.ui.tabs.restore_data()  # restore opened tabs data
             self.kernel.restart()
             self.theme.reload_all()  # do not reload theme if no change
 

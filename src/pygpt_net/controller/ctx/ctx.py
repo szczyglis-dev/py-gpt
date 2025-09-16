@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -1289,14 +1289,19 @@ class Ctx:
 
     def reload(self):
         """Reload ctx"""
+        self.edit_meta_id = None
+        self.edit_item_id = None
+        self.group_id = None
+        self.selected = []
+        self._infinite_scroll_refresh = False
         self.reset_loaded_total()  # reset paging
         self.window.core.ctx.reset()
         self.setup()
-        self.update()
-        self.refresh()
 
     def reload_after(self):
         """After reload"""
+        self.update()
+        self.refresh()
         self.new_if_empty()
 
     def add_selected(self, id: int):

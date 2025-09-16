@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -40,12 +40,13 @@ class Tabs:
         self.create_new_on_tab = True
         self.col = {}
 
-    def setup(self):
+    def setup(self, reload: bool = False):
         """Setup tabs"""
         w = self.window
         w.core.tabs.load()
         w.controller.notepad.load()
-        self.setup_options()
+        if not reload:
+            self.setup_options()
         self.initialized = True
 
     def setup_options(self):
@@ -130,13 +131,31 @@ class Tabs:
             self.col[curr_column] = curr_tab.pid
         self.debug()
 
-    def reload(self):
-        """Reload tabs"""
+    def unload(self):
+        """Unload tabs"""
+        self.active_idx = 0
+        self.prev_idx = 0
+        self.appended = False
+        self.current = 0
+        self.column_idx = 0
+        self.tmp_column_idx = 0
+        self.create_new_on_tab = True
+        self.col = {}
         columns = self.window.ui.layout.columns
         for col in columns:
             col.setUpdatesEnabled(False)
         self.window.core.tabs.remove_all()
-        self.window.core.tabs.reload()
+        for col in columns:
+            col.setUpdatesEnabled(True)
+
+    def reload(self):
+        """Reload tabs"""
+        self.unload()
+        columns = self.window.ui.layout.columns
+        for col in columns:
+            col.setUpdatesEnabled(False)
+        self.setup(reload=True)
+        self.restore_data()
         self.window.dispatch(RenderEvent(RenderEvent.PREPARE))
         self.debug()
         for col in columns:
@@ -172,6 +191,9 @@ class Tabs:
         :param idx: tab index
         :param column_idx: column index
         """
+        if idx == -1:
+            return
+
         w = self.window
         core = w.core
         tabs_core = core.tabs
@@ -594,7 +616,9 @@ class Tabs:
 
         :param tooltip: tooltip text
         """
-        tabs = self.window.ui.layout.get_active_tabs()
+        tabs = self.window.ui.layout.get_tabs_by_idx(self.column_idx)
+        if tabs is not None and 0 <= self.current < tabs.count():
+            tabs.setTabToolTip(self.current, tooltip)
         tabs.setTabToolTip(self.current, tooltip)
         self.debug()
 
@@ -656,7 +680,7 @@ class Tabs:
         """
         if self.get_current_type() != Tab.TAB_CHAT:
             return
-        tabs = self.window.ui.layout.get_active_tabs()
+        tabs = self.window.ui.layout.get_tabs_by_idx(self.column_idx)
         tooltip = title
         tabs.setTabToolTip(idx, tooltip)
         if len(title) > self.TAB_CHAT_MAX_CHARS:

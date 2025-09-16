@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -71,7 +71,7 @@ class Output:
         col_idx = tab.column_idx
 
         col_map = self.mapping.get(col_idx)
-        if col_map is None:
+        if col_map is None or not isinstance(col_map, dict):
             col_map = self.mapping[col_idx] = {}
         last_map = self.last_pids.get(col_idx)
         if last_map is None:
@@ -175,6 +175,8 @@ class Output:
             return None
         col_idx = tab.column_idx
         col_map = self.mapping.get(col_idx, {})
+        if not isinstance(col_map, dict):
+            return None
 
         candidates = [pid for pid, meta_id in col_map.items() if meta_id == meta.id]
         for pid in candidates:

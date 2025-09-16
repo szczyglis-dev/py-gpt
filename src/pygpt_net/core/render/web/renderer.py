@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 import gc
@@ -1290,10 +1290,8 @@ class Renderer(BaseRenderer):
         """
         tab = node.get_tab()
         layout = tab.child.layout()
-        tab.child.remove_widget(node)
+        tab.unwrap(node)
         self.window.ui.nodes['output'].pop(tab.pid, None)
-
-        node.on_delete()
 
         view = ChatWebOutput(self.window)
         view.set_tab(tab)
@@ -1302,6 +1300,7 @@ class Renderer(BaseRenderer):
         view.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
 
         layout.addWidget(view)  # tab body layout
+        tab.add_ref(view)
         view.setVisible(True)
         self.window.ui.nodes['output'][tab.pid] = view
         try:
