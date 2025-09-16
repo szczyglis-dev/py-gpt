@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.51** | build: **2025-09-16** | Python: **>=3.10, <3.14**
+Release: **2.6.52** | build: **2025-09-17** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3504,6 +3504,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.52 (2025-09-17)**
+
+- Added MCP plugin: Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
+- Fixed: tab tooltips reload on profile switch.
 
 **2.6.51 (2025-09-16)**
 

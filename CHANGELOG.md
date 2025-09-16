@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.52 (2025-09-17)
+
+- Added MCP plugin: Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
+- Fixed: tab tooltips reload on profile switch.
+
 ## 2.6.51 (2025-09-16)
 
 - Fix: Automatically reloading calendar notes.

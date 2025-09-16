@@ -2,18 +2,18 @@
 <PAD>
 <PAD_Version>4.0</PAD_Version>
 <Program_Name>PyGPT - Desktop AI Assistant</Program_Name>
-<Program_Version>2.6.51</Program_Version>
+<Program_Version>2.6.52</Program_Version>
 <Program_Release_Month>09</Program_Release_Month>
-<Program_Release_Day>16</Program_Release_Day>
+<Program_Release_Day>17</Program_Release_Day>
 <Program_Release_Year>2025</Program_Release_Year>
 <Program_Cost_Dollars>0</Program_Cost_Dollars>
 <Program_Type>Open Source</Program_Type>
-<Download_URL>https://pygpt.net/download/2.6.51/pygpt-2.6.51.msi</Download_URL>
+<Download_URL>https://pygpt.net/download/2.6.52/pygpt-2.6.52.msi</Download_URL>
 <Application_OS_Support>Windows 10 64 bit, Windows 11 64 bit</Application_OS_Support>
 <Program_Specific_Category>Generative AI Tools</Program_Specific_Category>
 <Program_Language>English, Polish</Program_Language>
 <Program_Description_Short>Desktop AI Assistant powered by: OpenAI GPT-5, GPT-4, o1, o3, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, internet access, file handling, command execution and more.</Program_Description_Short>
-<Program_Description_Long><![CDATA[Desktop AI Assistant powered by: OpenAI GPT-5, o1, o3, GPT-4, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, internet access, file handling, command execution and more.
+<Program_Description_Long><![CDATA[Desktop AI Assistant powered by: OpenAI GPT-5, GPT-4, o1, o3, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, MCP, internet access, file handling, command execution and more.
 
 Features
 - Desktop AI Assistant for Linux, Windows and Mac, written in Python.
@@ -27,6 +27,7 @@ Features
 - Internet access via DuckDuckGo, Google and Microsoft Bing.
 - Speech synthesis via Microsoft Azure, Google, Eleven Labs and OpenAI Text-To-Speech services.
 - Speech recognition via OpenAI Whisper, Google and Microsoft Speech Recognition.
+- MCP support.
 - Real-time video camera capture in Vision mode.
 - Image analysis via GPT-4 Vision and GPT-4o.
 - Integrated calendar, day notes and search in contexts by selected date.
@@ -45,7 +46,7 @@ Features
 - Fully configurable.
 - Themes support.
 - Real-time code syntax highlighting.
-- Plugins support with built-in plugins like Files I/O, Code Interpreter, Web Search, Google, Facebook, X/Twitter, Slack, Telegram, GitHub, and many more.
+- Plugins support with built-in plugins like Files I/O, Code Interpreter, Web Search, Google, Facebook, X/Twitter, Slack, Telegram, GitHub, MCP, and many more.
 - Built-in token usage calculation.
 - Possesses the potential to support future OpenAI models.
 - Open source; source code is available on GitHub.
