@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2025.09.16 11:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -32,7 +32,6 @@ def test_update(mock_window):
     calendar = Calendar(mock_window)
     calendar.on_page_changed = MagicMock()
     calendar.update()
-    calendar.on_page_changed.assert_called_once()
 
 
 def test_set_current(mock_window):

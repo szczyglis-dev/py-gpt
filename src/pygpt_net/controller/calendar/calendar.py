@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.09.16 11:00:00                  #
 # ================================================== #
-
-from typing import Optional
 
 from pygpt_net.core.tabs.tab import Tab
 
@@ -42,7 +40,7 @@ class Calendar:
 
         :return: True if calendar is loaded
         """
-        return hasattr(self.window.ui, 'calendar') and hasattr(self.window.ui.calendar, 'select')
+        return hasattr(self.window.ui, 'calendar') and "select" in self.window.ui.calendar
 
     def update(self, all: bool = True):
         """

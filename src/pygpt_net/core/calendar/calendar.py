@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.09.16 11:00:00                  #
 # ================================================== #
 
 import datetime
@@ -102,7 +102,7 @@ class Calendar:
         dt_key = datetime.datetime(note.year, note.month, note.day).strftime("%Y-%m-%d")
         if dt_key not in self.items:
             return False
-        note.updated_at = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        note.updated = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         self.items[dt_key] = note
         self.save(note.year, note.month, note.day)
         return True
