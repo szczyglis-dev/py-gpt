@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -454,7 +454,6 @@ class Plugins:
             # cols_widget.setMaximumHeight(90)
 
             self.window.ui.nodes[desc_key] = DescLabel(txt_desc)
-            self.window.ui.nodes[desc_key].setMaximumHeight(40)
             # self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
 
             layout = QVBoxLayout()
@@ -473,7 +472,6 @@ class Plugins:
 
             if option['type'] not in no_desc_types:
                 self.window.ui.nodes[desc_key] = DescLabel(txt_desc)
-                self.window.ui.nodes[desc_key].setMaximumHeight(40)
                 # self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
                 layout.addWidget(self.window.ui.nodes[desc_key])
 

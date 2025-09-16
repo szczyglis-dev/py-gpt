@@ -38,6 +38,7 @@ Features
 * Internet access via ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
 * Speech synthesis via ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI`` Text-To-Speech services.
 * Speech recognition via ``OpenAI Whisper``, ``Google`` and ``Microsoft Speech Recognition``.
+* MCP support.
 * Real-time video camera capture in Vision mode.
 * Image analysis via ``GPT-5`` and ``GPT-4o``.
 * Integrated calendar, day notes and search in contexts by selected date.
@@ -57,7 +58,7 @@ Features
 * Fully configurable.
 * Themes support.
 * Real-time code syntax highlighting.
-* Plugins support with built-in plugins like ``Files I/O``, ``Code Interpreter``, ``Web Search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, and many more.
+* Plugins support with built-in plugins like ``Files I/O``, ``Code Interpreter``, ``Web Search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
 * Built-in token usage calculation.
 * Possesses the potential to support future OpenAI models.
 * **Open source**; source code is available on ``GitHub``.

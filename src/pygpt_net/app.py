@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.11 08:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 import os
@@ -96,6 +96,7 @@ from pygpt_net.plugin.bitbucket import Plugin as BitbucketPlugin
 from pygpt_net.plugin.server import Plugin as ServerPlugin
 from pygpt_net.plugin.tuya import Plugin as TuyaPlugin
 from pygpt_net.plugin.wikipedia import Plugin as WikipediaPlugin
+from pygpt_net.plugin.mcp import Plugin as MCPPlugin
 
 # agents (Llama-index)
 # from pygpt_net.provider.agents.llama_index.legacy.openai import OpenAIAgent
@@ -425,6 +426,7 @@ def run(**kwargs):
     launcher.add_plugin(ServerPlugin())
     launcher.add_plugin(TuyaPlugin())
     launcher.add_plugin(WikipediaPlugin())
+    launcher.add_plugin(MCPPlugin())
 
     # register custom plugins
     plugins = kwargs.get('plugins', None)

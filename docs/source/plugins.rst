@@ -25,6 +25,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Google`` - Access Gmail, Drive, Docs, Maps, Calendar, Contacts, Colab, YouTube, Keep - for managing emails, files, events, notes, video info, and contacts.
 * ``Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``+ Tools`` option to be enabled.
 * ``Mailer`` - Provides the ability to send, receive and read emails.
+* ``MCP`` - Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
 * ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
 * ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
 * ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
@@ -1664,6 +1665,144 @@ SMTP User, e.g. user@domain.com
 - ``SMTP Password`` *smtp_password*
 
 SMTP Password.
+
+MCP
+---
+
+With the ``MCP`` plugin, you can connect **PyGPT** to remote tools exposed by Model Context Protocol servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server and optionally cache discovery results for speed.
+
+.. image:: images/v2_mcp.png
+   :width: 800
+
+How it works
+^^^^^^^^^^^^
+
+- You define one or more MCP servers in the plugin settings.
+- For every active server, the plugin discovers its tools and exposes them to the model as commands.
+- Each exposed command name is derived from the server label and tool name in the form ``label__tool``.
+  - Names are sanitized to allowed characters ``[a-zA-Z0-9_-]`` and kept under 64 characters. The plugin truncates and adds a short hash if needed to ensure uniqueness.
+- If ``allowed_commands`` is set, only those tools are exposed (whitelist).
+- If ``disabled_commands`` is set, those tools are hidden (blacklist).
+- Discovery results can be cached (TTL) so you don’t re-fetch the list on every prompt.
+- When the model chooses a command, the plugin opens a session to the appropriate server and calls the tool with typed arguments mapped from JSON Schema.
+
+Adding a new MCP server
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Click the **ADD** button and fill in:
+
+1. label
+   - A short, human-friendly server name used in tool names (``label__tool``).
+   - It should be unique across servers. Only ``[a-zA-Z0-9_-]`` are used; other characters are replaced automatically.
+2. server_address
+   - Transport is detected from the address:
+     - stdio:
+       - ``stdio: uv run server fastmcp_quickstart stdio``
+       - ``stdio: python /path/to/your_mcp_server.py --stdio``
+     - Streamable HTTP:
+       - ``http://localhost:8000/mcp``
+       - ``https://your-host.tld/mcp``
+     - SSE:
+       - ``http://localhost:8000/sse``
+       - ``sse://your-host.tld/sse`` or ``sse+https://your-host.tld/sse``
+3. authorization (optional)
+   - Value for the ``Authorization`` header on HTTP/SSE (e.g., ``Bearer YOUR_TOKEN``).
+   - Not used for stdio.
+4. allowed_commands (optional)
+   - Comma-separated list of tool names to expose from this server (whitelist).
+   - Match the exact tool names reported by the MCP server (not titles).
+5. disabled_commands (optional)
+   - Comma-separated list of tool names to hide from this server (blacklist).
+6. active
+   - Enable/disable this server.
+
+After saving, open any chat. During the command syntax build step, the plugin discovers tools on all active servers and publishes them to the model.
+
+Example: quickstart via stdio
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- label: ``quickstart``
+- server_address: ``stdio: uv run server fastmcp_quickstart stdio``
+- allowed_commands: (leave empty)
+- disabled_commands: (leave empty)
+- active: ``ON``
+
+Discovered commands might look like:
+
+.. code-block:: json
+
+  [
+    {
+      "cmd": "quickstart__echo",
+      "instruction": "Echo a message back (server: quickstart)",
+      "params": [{ "name": "message", "type": "str", "description": "[required]" }],
+      "enabled": true
+    }
+  ]
+
+Example: remote docs server (HTTP/SSE)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- label: ``deepwiki``
+- server_address: ``https://example.com/mcp`` (or SSE: ``https://example.com/sse``)
+- authorization: ``Bearer YOUR_TOKEN`` (if required)
+- allowed_commands: ``read_wiki_structure, read_wiki_contents, ask_question``
+- active: ``ON``
+
+The model will see commands like:
+
+.. code-block:: json
+
+  [
+    {
+      "cmd": "deepwiki__read_wiki_structure",
+      "instruction": "Get a list of documentation topics for a GitHub repository (server: deepwiki)",
+      "params": [
+        { "name": "repoName", "type": "str", "description": "GitHub repository: owner/repo (e.g. \"facebook/react\") [required]" }
+      ],
+      "enabled": true
+    },
+    {
+      "cmd": "deepwiki__read_wiki_contents",
+      "instruction": "View documentation about a GitHub repository (server: deepwiki)",
+      "params": [
+        { "name": "repoName", "type": "str", "description": "GitHub repository: owner/repo (e.g. \"facebook/react\") [required]" }
+      ],
+      "enabled": true
+    },
+    {
+      "cmd": "deepwiki__ask_question",
+      "instruction": "Ask any question about a GitHub repository (server: deepwiki)",
+      "params": [
+        { "name": "repoName", "type": "str", "description": "GitHub repository: owner/repo (e.g. \"facebook/react\") [required]" },
+        { "name": "question", "type": "str", "description": "The question to ask about the repository [required]" }
+      ],
+      "enabled": true
+    }
+  ]
+
+Caching (Tools Cache)
+^^^^^^^^^^^^^^^^^^^^^
+
+- Enable “Cache tools list” to avoid discovering tools on every prompt.
+- TTL defines how long (in seconds) the cache stays valid per server (default: 300).
+- The plugin automatically invalidates the cache if you change server configuration (label, address, authorization, allow/deny lists).
+- To force refresh immediately, toggle a server off/on or modify any of its fields and save.
+
+Transports
+^^^^^^^^^^
+
+- stdio: best for local processes started by PyGPT; no network involved.
+- Streamable HTTP: recommended for production; uses a duplex HTTP stream.
+- SSE: fully supported; useful for servers exposing an SSE endpoint.
+- The plugin detects the transport from ``server_address`` automatically.
+
+Security notes
+^^^^^^^^^^^^^^
+
+- ``authorization`` is sent as the ``Authorization`` header to HTTP/SSE servers; put the exact value you need (e.g., ``Bearer <token>``).
+- Only connect to servers you trust. Tools can perform actions as implemented by the server.
+- Keep labels short and non-sensitive (labels are visible in tool names and logs).
 
 
 Mouse And Keyboard

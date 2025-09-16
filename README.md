@@ -51,6 +51,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Internet access via `DuckDuckGo`, `Google` and `Microsoft Bing`.
 - Speech synthesis via `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services.
 - Speech recognition via `OpenAI Whisper`, `Google` and `Microsoft Speech Recognition`.
+- MCP support.
 - Real-time video camera capture in Vision mode.
 - Image analysis via `GPT-5` and `GPT-4o`.
 - Integrated calendar, day notes and search in contexts by selected date.
@@ -70,7 +71,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Fully configurable.
 - Themes support.
 - Real-time code syntax highlighting.
-- Plugins support with built-in plugins like `Files I/O`, `Code Interpreter`, `Web Search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, and many more.
+- Plugins support with built-in plugins like `Files I/O`, `Code Interpreter`, `Web Search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
 - Built-in token usage calculation.
 - Possesses the potential to support future OpenAI models.
 - **Open source**; source code is available on `GitHub`.
@@ -1328,6 +1329,8 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Mailer` - Provides the ability to send, receive and read emails.
 
+- `MCP` - Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
+
 - `Mouse and Keyboard` - provides the ability to control the mouse and keyboard by the model.
 
 - `Real Time` - automatically appends the current date and time to the system prompt, informing the model about current time.
@@ -1649,6 +1652,12 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#image-generat
 Enables the sending, receiving, and reading of emails from the inbox. Currently, only SMTP is supported. More options coming soon.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
+
+## MCP (Model Context Protocol)
+
+With the `MCP` plugin, you can connect **PyGPT** to remote tools exposed by `Model Context Protocol` servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server and optionally cache discovery results for speed.
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
 
 ## Mouse And Keyboard
 

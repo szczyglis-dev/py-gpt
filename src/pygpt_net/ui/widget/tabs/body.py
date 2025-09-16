@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2025.09.16 22:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -35,7 +35,7 @@ class TabBody(QTabWidget):
             self.on_delete(self)
         self.delete_refs()
 
-    def remove_widget(self, widget: QWidget) -> None:
+    def unwrap(self, widget: QWidget) -> None:
         """
         Remove widget from tab body
 
@@ -46,7 +46,7 @@ class TabBody(QTabWidget):
             layout.removeWidget(widget)
         self.delete_ref(widget)
 
-    def remove_all_widgets(self) -> None:
+    def unwrap_all(self) -> None:
         """
         Remove all widgets from tab body
         """
@@ -55,7 +55,14 @@ class TabBody(QTabWidget):
             while layout.count():
                 item = layout.takeAt(0)
                 widget = item.widget()
-                layout.removeWidget(widget)
+                try:
+                    layout.removeWidget(widget)
+                except Exception:
+                    pass
+                try:
+                    self.delete_ref(widget)
+                except Exception:
+                    pass
 
     def add_ref(self, ref: Any) -> None:
         """
@@ -158,3 +165,15 @@ class TabBody(QTabWidget):
                 col_idx = self.owner.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)
+
+    def to_dict(self) -> dict:
+        """
+        Convert to dict
+
+        :return: dict
+        """
+        return {
+            "refs": [str(ref) for ref in self.refs],  # references to widgets
+            "body": [str(b) for b in self.body],  # body widgets
+            "len(layout)": self.layout().count() if self.layout() else 0,
+        }
