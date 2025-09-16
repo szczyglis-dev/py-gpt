@@ -140,3 +140,8 @@ QCalendarWidget QAbstractItemView::item:hover {{
   color: #000;
   selection-color: #000000;
 }}
+
+QCalendarWidget QMenu::item:selected:focus,
+QCalendarWidget QMenu::item:selected {{
+    background: #3a4045;
+}}
