@@ -6,6 +6,27 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent lobortis lorem
 b = 2
 c = a + b
 print(c)
+class ChatWebOutput(QWebEngineView):
+    def __init__(self, window=None):
+        """
+        HTML output (WebEngine)
+
+        :param window: Window instance
+        """
+        super(ChatWebOutput, self).__init__(window)
+        self.window = window
+        self.finder = WebFinder(window, self)
+        self.loadFinished.connect(self.on_page_loaded)
+        self.customContextMenuRequested.connect(self.on_context_menu)
+        self.signals = WebEngineSignals(self)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.filter = FocusEventFilter(self, self.on_focus)
+        self.installEventFilter(self)
+        self.plain = None
+        self.html_content = None
+        self.meta = None
+        self.tab = None
+        self.setProperty('class', 'layout-output-web')
 </execute>
 
 <tool>{"cmd": "fake_cmd", "params": {"foo": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."}}</tool>

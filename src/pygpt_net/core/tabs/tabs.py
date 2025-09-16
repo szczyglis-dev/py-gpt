@@ -17,7 +17,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QLayout
 
 from pygpt_net.ui.widget.tabs.body import TabBody
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, mem_clean
 
 from .tab import Tab
 
@@ -318,6 +318,7 @@ class Tabs:
             print(f"Error unloading tab {pid}: {e}")
             self.window.core.debug.log(e)
 
+        mem_clean(force=True)
         column_idx = tab.column_idx
         self.window.ui.layout.get_tabs_by_idx(column_idx).removeTab(tab.idx)
         del self.pids[pid]
@@ -325,7 +326,7 @@ class Tabs:
 
     def remove_all(self):
         """Remove all tabs"""
-        for pid in list(self.pids):
+        for pid in list(self.pids.keys()):
             self.remove(pid)  # delete from PIDs and UI
         self.pids = {}
         self.window.core.ctx.output.clear()  # clear mapping
