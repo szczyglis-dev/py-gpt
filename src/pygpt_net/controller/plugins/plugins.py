@@ -445,7 +445,7 @@ class Plugins:
         """Reload plugins"""
         self.window.core.plugins.reload_all()
         self.setup()
-        self.settings.setup()
+        self.settings.init()
         self.update()
 
     def save_all(self):
