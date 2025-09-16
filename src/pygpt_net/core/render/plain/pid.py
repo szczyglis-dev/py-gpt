@@ -23,6 +23,7 @@ class PidData:
     files_appended: list = field(default_factory=list)
     _buffer: io.StringIO = field(default_factory=io.StringIO)
     is_cmd: bool = False
+    loaded: bool = False
 
     def __init__(self, pid, meta=None):
         """Pid Data"""
@@ -33,6 +34,7 @@ class PidData:
         self.files_appended = []
         self._buffer = io.StringIO()
         self.is_cmd = False
+        self.loaded = False
 
     @property
     def buffer(self) -> str:
