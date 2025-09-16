@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.51 (2025-09-16)
+
+- Fix: Automatically reloading calendar notes.
+- Fix: Context menu CSS background color for calendar items.
+
 ## 2.6.50 (2025-09-16)
 
 - Optimized: Improved memory cleanup when switching profiles and unloading tabs.

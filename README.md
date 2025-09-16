@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.50** | build: **2025-09-16** | Python: **>=3.10, <3.14**
+Release: **2.6.51** | build: **2025-09-16** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3495,6 +3495,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.51 (2025-09-16)**
+
+- Fix: Automatically reloading calendar notes.
+- Fix: Context menu CSS background color for calendar items.
 
 **2.6.50 (2025-09-16)**
 
