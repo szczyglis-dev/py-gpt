@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.50 (2025-09-16)
+
+- Optimized: Improved memory cleanup when switching profiles and unloading tabs.
+- Fix: Resolved missing PID data in text output.
+- Fix: Enhanced real-time parsing of execute tags.
+
 ## 2.6.49 (2025-09-16)
 
 - Fixed: Occasional crashes when focusing on an output container unloaded from memory in the second column.

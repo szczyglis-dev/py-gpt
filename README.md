@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.49** | build: **2025-09-16** | Python: **>=3.10, <3.14**
+Release: **2.6.50** | build: **2025-09-16** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3495,6 +3495,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.50 (2025-09-16)**
+
+- Optimized: Improved memory cleanup when switching profiles and unloading tabs.
+- Fix: Resolved missing PID data in text output.
+- Fix: Enhanced real-time parsing of execute tags.
 
 **2.6.49 (2025-09-16)**
 
