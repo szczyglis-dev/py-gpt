@@ -1383,6 +1383,7 @@
         const rules = this.__compiled;
         if (!rules || !rules.length) return s;
 
+        // Candidates: rules that want source-phase replacements (``` fences)
         const candidates = [];
         for (let i = 0; i < rules.length; i++) {
           const r = rules[i];
@@ -1391,27 +1392,42 @@
         }
         if (!candidates.length) return s;
 
+        // Avoid touching content already inside Markdown code fences
         const fences = this._findFenceRanges(s);
+
+        let result = '';
         if (!fences.length) {
-          return this._applySourceReplacementsInChunk(s, s, 0, candidates);
+          result = this._applySourceReplacementsInChunk(s, s, 0, candidates);
+        } else {
+          let out = '';
+          let last = 0;
+          for (let k = 0; k < fences.length; k++) {
+            const [a, b] = fences[k];
+            if (a > last) {
+              const chunk = s.slice(last, a);
+              out += this._applySourceReplacementsInChunk(s, chunk, last, candidates);
+            }
+            out += s.slice(a, b);
+            last = b;
+          }
+          if (last < s.length) {
+            const tail = s.slice(last);
+            out += this._applySourceReplacementsInChunk(s, tail, last, candidates);
+          }
+          result = out;
         }
 
-        let out = '';
-        let last = 0;
-        for (let k = 0; k < fences.length; k++) {
-          const [a, b] = fences[k];
-          if (a > last) {
-            const chunk = s.slice(last, a);
-            out += this._applySourceReplacementsInChunk(s, chunk, last, candidates);
+        // NEW: streaming-aware partial injection for unmatched source-fence openers.
+        // If we are streaming and see a last opener without a closer, convert it to its openReplace
+        // (e.g., <execute> -> ```python\n) so the snapshot immediately materializes a code block.
+        if (opts && opts.streaming === true) {
+          const fenceRules = candidates.filter(r => !!r.isSourceFence);
+          if (fenceRules.length) {
+            result = this._injectUnmatchedSourceOpeners(result, fenceRules);
           }
-          out += s.slice(a, b);
-          last = b;
         }
-        if (last < s.length) {
-          const tail = s.slice(last);
-          out += this._applySourceReplacementsInChunk(s, tail, last, candidates);
-        }
-        return out;
+
+        return result;
       }
 
       getSourceFenceSpecs() {
@@ -1995,6 +2011,44 @@
           } catch (_) {}
         }
         return t;
+      }
+
+      // === NEW: streaming helper for unmatched source-fence openers ===
+      _injectUnmatchedSourceOpeners(text, fenceRules) {
+        // Production-grade guardrails
+        let s = String(text || '');
+        if (!s || !fenceRules || !fenceRules.length) return s;
+
+        // Find the last opener (closest to the end) that has no matching closer after it
+        let best = null; // { r, idx }
+        for (let i = 0; i < fenceRules.length; i++) {
+          const r = fenceRules[i];
+          if (!r || !r.open || !r.close || !r.openReplace) continue;
+
+          const idx = s.lastIndexOf(r.open);
+          if (idx === -1) continue;
+
+          // Must be top-level line (so that ``` can start a fenced block)
+          if (!this._isTopLevelLineInSource(s, idx)) continue;
+
+          // Ensure there is no closer after this opener in the current snapshot
+          const after = s.indexOf(r.close, idx + r.open.length);
+          if (after !== -1) continue;
+
+          if (!best || idx > best.idx) best = { r, idx };
+        }
+
+        if (!best) return s;
+
+        const r = best.r;
+        const i = best.idx;
+
+        // Replace the raw opener token with its source-fence open replacement (e.g. ```python\n)
+        // This is ephemeral per-snapshot; underlying buffer remains unchanged.
+        const before = s.slice(0, i);
+        const after = s.slice(i + r.open.length);
+        const injected = String(r.openReplace || '');
+        return before + injected + after;
       }
     }
 
