@@ -6,16 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.16 02:00:00                  #
 # ================================================== #
 
 import json
 import re
 from typing import Optional
 
-from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer
+from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer, QUrl, QCoreApplication, QEventLoop
 from PySide6.QtWebChannel import QWebChannel
-from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
+from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QMenu
@@ -24,6 +24,7 @@ from pygpt_net.item.ctx import CtxMeta, CtxItem
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.tools.code_interpreter.body import Body
 from pygpt_net.utils import trans
+
 
 class CodeBlock:
     def __init__(
@@ -109,32 +110,114 @@ class HtmlOutput(QWebEngineView):
         self.is_dialog = False
         self.nodes = []  # code blocks
 
+        # OpenGL widgets
+        self._glwidget = None
+        self._glwidget_filter_installed = False
+        self._unloaded = False  # flag to check if unloaded
+
+        self._profile = self._make_profile(self)
+        self.setPage(CustomWebEnginePage(self.window, self, profile=self._profile))
+
+    def _make_profile(self, parent=None) -> QWebEngineProfile:
+        """Make profile"""
+        profile = QWebEngineProfile(parent)
+        profile.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+        profile.setSpellCheckEnabled(False)
+        return profile
+
+    def _detach_gl_event_filter(self):
+        """Detach OpenGL widget event filter if installed"""
+        if self._glwidget and self._glwidget_filter_installed:
+            try:
+                self._glwidget.removeEventFilter(self)
+            except Exception as e:
+                self._on_delete_failed(e)
+        self._glwidget = None
+        self._glwidget_filter_installed = False
+
+    def _on_delete_failed(self, e):
+        """
+        Handle delete failure
+
+        :param e: Exception instance
+        """
+        pass
+        # self.window.core.debug.log(e)
+
+    def unload(self):
+        """Unload the current page and free resources"""
+        try:
+            self.hide()
+            p = self.page()
+            p.triggerAction(QWebEnginePage.Stop)
+            p.setUrl(QUrl("about:blank"))
+            p.history().clear()
+            p.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
+        except Exception as e:
+            self._on_delete_failed(e)
+        finally:
+            self._unloaded = True
+
     def on_delete(self):
         """Clean up on delete"""
+        if not self._unloaded:
+            self.unload()
+
+        self.hide()
+        self._detach_gl_event_filter()
+
         if self.finder:
-            self.finder.disconnect()  # disconnect finder
-            self.finder = None  # delete finder
+            try:
+                self.finder.disconnect()
+            except Exception as e:
+                self._on_delete_failed(e)
+            finally:
+                self.finder = None
 
-        self.tab = None  # clear tab reference
+        self.tab = None
+        self.meta = None
 
-        # delete page
         page = self.page()
-        if page:
-            if hasattr(page, 'bridge'):
-                page.bridge.deleteLater()
-            if hasattr(page, 'channel'):
-                page.channel.deleteLater()
-            if hasattr(page, 'signals') and page.signals:
-                page.signals.deleteLater()
-            page.deleteLater()  # delete page
+        prof = page.profile()
 
         # disconnect signals
-        self.loadFinished.disconnect(self.on_page_loaded)
-        self.customContextMenuRequested.disconnect(self.on_context_menu)
-        self.signals.save_as.disconnect(self.window.controller.chat.render.handle_save_as)
-        self.signals.audio_read.disconnect(self.window.controller.chat.render.handle_audio_read)
+        try:
+            self.loadFinished.disconnect()
+            self.customContextMenuRequested.disconnect()
+            self.signals.save_as.disconnect()
+            self.signals.audio_read.disconnect()
+        except Exception as e:
+            self._on_delete_failed(e)
 
-        self.deleteLater()  # delete widget
+        try:
+            if hasattr(page, "setWebChannel"):
+                page.setWebChannel(None)
+        except Exception as e:
+            self._on_delete_failed(e)
+
+        try:
+            page.cleanup()
+        except Exception as e:
+            self._on_delete_failed(e)
+
+        """
+        if prof is not None:
+            try:
+                prof.deleteLater()
+            except Exception as e:
+                self._on_delete_failed(e)
+        """
+
+        try:
+            self.deleteLater()
+        except Exception as e:
+            self._on_delete_failed(e)
+
+        try:
+            QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+            QCoreApplication.processEvents(QEventLoop.AllEvents, 50)
+        except Exception as e:
+            self._on_delete_failed(e)
 
     def init(self, force: bool = False):
         """
@@ -164,7 +247,7 @@ class HtmlOutput(QWebEngineView):
 
     def reload(self):
         """Reload HTML output"""
-        #return
+        # return
         self.reload_css()
 
     def get_nodes(self) -> list:
@@ -203,7 +286,7 @@ class HtmlOutput(QWebEngineView):
 
         :param text: text
         """
-        self.plain+= str(text)
+        self.plain += str(text)
 
     def set_plaintext(self, text: str):
         """
@@ -267,7 +350,7 @@ class HtmlOutput(QWebEngineView):
             if node.content != "":
                 self.nodes.append(node)
                 if self.loaded:
-                        self.insert_output(node)
+                    self.insert_output(node)
         self.update_current_content()
         QTimer.singleShot(100, self.scroll_to_bottom)  # wait for rendering to complete
 
@@ -508,7 +591,7 @@ class HtmlOutput(QWebEngineView):
         menu.addSeparator()
         action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
-        #action.setShortcut(QKeySequence("Ctrl+F"))
+        # action.setShortcut(QKeySequence("Ctrl+F"))
         menu.addAction(action)
 
         menu.exec_(self.mapToGlobal(position))
@@ -615,14 +698,20 @@ class HtmlOutput(QWebEngineView):
         if (event.type() == QEvent.ChildAdded and
                 source is self and
                 event.child().isWidgetType()):
+            self._detach_gl_event_filter()
             self._glwidget = event.child()
-            self._glwidget.installEventFilter(self)
+            try:
+                self._glwidget.installEventFilter(self)
+                self._glwidget_filter_installed = True
+            except Exception:
+                self._glwidget = None
+                self._glwidget_filter_installed = False
         elif event.type() == event.Type.MouseButtonPress:
             if self.tab:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
         elif event.type() == event.Type.FocusIn:
-            if self.tab is not None:
+            if self.tab:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
         elif event.type() == QEvent.KeyPress:
@@ -633,10 +722,17 @@ class HtmlOutput(QWebEngineView):
 
 class CustomWebEnginePage(QWebEnginePage):
     """Custom WebEnginePage to handle web events"""
-    def __init__(self, window, parent):
-        super(CustomWebEnginePage, self).__init__(window)
+
+    def __init__(self, window, view, profile: QWebEngineProfile = None):
+
+        # use the profile if provided, otherwise the default
+        if profile is not None:
+            super(CustomWebEnginePage, self).__init__(profile, view)
+        else:
+            super(CustomWebEnginePage, self).__init__(view)
+
         self.window = window
-        self.parent = parent
+        self.parent = view
         self.signals = WebEnginePageSignals()
         self.findTextFinished.connect(self.on_find_finished)
         self.zoomFactorChanged.connect(self.on_view_changed)
@@ -687,7 +783,7 @@ class CustomWebEnginePage(QWebEnginePage):
         """On selection changed"""
         pass
 
-    def acceptNavigationRequest(self, url,  _type, isMainFrame):
+    def acceptNavigationRequest(self, url, _type, isMainFrame):
         """
         On navigation (link click) event
 
@@ -698,7 +794,7 @@ class CustomWebEnginePage(QWebEnginePage):
         if _type == QWebEnginePage.NavigationTypeLinkClicked:
             self.window.core.filesystem.url.handle(url)
             return False
-        return super().acceptNavigationRequest(url,  _type, isMainFrame)
+        return super().acceptNavigationRequest(url, _type, isMainFrame)
 
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
         """
@@ -711,9 +807,43 @@ class CustomWebEnginePage(QWebEnginePage):
         """
         self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
 
+    def cleanup(self):
+        """Cleanup method to release resources"""
+        try:
+            self.findTextFinished.disconnect()
+            self.zoomFactorChanged.disconnect()
+            self.selectionChanged.disconnect()
+        except Exception:
+            pass
+
+        if self.bridge:
+            try:
+                self.bridge.cleanup()
+            except Exception:
+                pass
+            self.bridge = None
+
+        if self.channel:
+            try:
+                self.channel.unregisterObject("bridge")
+            except Exception:
+                pass
+            self.channel = None
+
+        if self.signals:
+            try:
+                self.signals.deleteLater()
+            except Exception:
+                pass
+            self.signals = None
+
+        # delete the page object
+        self.deleteLater()
+
 
 class Bridge(QObject):
     """Bridge between Python and JavaScript"""
+
     def __init__(self, window):
         super(Bridge, self).__init__(window)
         self.window = window
@@ -754,9 +884,22 @@ class Bridge(QObject):
         """
         self.window.controller.chat.render.scroll = pos
 
+    def cleanup(self):
+        """Cleanup method to release resources"""
+        if self.window:
+            try:
+                self.window = None
+            except Exception:
+                pass
+
+        # delete the bridge object
+        self.deleteLater()
+
+
 class WebEngineSignals(QObject):
     save_as = Signal(str, str)
     audio_read = Signal(str)
+
 
 class WebEnginePageSignals(QObject):
     js_message = Signal(int, str, str)  # on Javascript message

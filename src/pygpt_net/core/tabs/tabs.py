@@ -6,16 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.16 02:00:00                  #
 # ================================================== #
 
 import uuid
 from datetime import datetime
 from typing import Optional, Any, Dict, Tuple, Union
 
-from PySide6.QtCore import QUrl
 from PySide6.QtGui import QIcon
-from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QLayout
 
 from pygpt_net.ui.widget.tabs.body import TabBody
@@ -301,30 +299,24 @@ class Tabs:
             if tab.type == Tab.TAB_CHAT:
                 node = self.window.ui.nodes['output'].get(tab.pid)
                 if node:
-                    node.hide()
-                    p = node.page()
-                    p.triggerAction(QWebEnginePage.Stop)
-                    p.setUrl(QUrl("about:blank"))
-                    p.history().clear()
-                    p.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
-                    tab.delete_ref(node)
-                    layout = tab.child.layout()
-                    layout.removeWidget(node)
+                    node.unload()  # unload web page
+                    tab.child.remove_widget(node)
                     self.window.ui.nodes['output'].pop(pid, None)
                     node.on_delete()
                 node_plain = self.window.ui.nodes['output_plain'].get(tab.pid)
                 if node_plain:
-                    tab.delete_ref(node_plain)
-                    layout = tab.child.layout()
-                    layout.removeWidget(node_plain)
+                    tab.child.remove_widget(node_plain)
                     self.window.ui.nodes['output_plain'].pop(pid, None)
                     node_plain.on_delete()
 
             if tab.type in (Tab.TAB_CHAT, Tab.TAB_NOTEPAD, Tab.TAB_TOOL):
                 tab.cleanup()  # unload assigned data from memory
 
+            # tab.delete_refs()
+
         except Exception as e:
             print(f"Error unloading tab {pid}: {e}")
+            self.window.core.debug.log(e)
 
         column_idx = tab.column_idx
         self.window.ui.layout.get_tabs_by_idx(column_idx).removeTab(tab.idx)

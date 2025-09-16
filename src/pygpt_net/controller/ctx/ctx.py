@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 22:00:00                  #
+# Updated Date: 2025.09.16 02:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -479,7 +479,8 @@ class Ctx:
             id: int,
             restore_model: bool = True,
             select_idx: Optional[int] = None,
-            new_tab: Optional[bool] = False
+            new_tab: Optional[bool] = False,
+            no_fresh: bool = False
     ):
         """
         Load ctx data
@@ -488,6 +489,7 @@ class Ctx:
         :param restore_model: restore model if defined in ctx
         :param select_idx: select index on list after loading
         :param new_tab: open in new tab
+        :param no_fresh: do not fresh output
         """
         if new_tab:
             col_idx = self.window.controller.ui.tabs.column_idx
@@ -500,7 +502,7 @@ class Ctx:
         if meta is not None:
             self.set_group(meta.group_id)
 
-        if meta is not None:
+        if meta is not None and not no_fresh:
             self.fresh_output(meta)
 
         self.reload_config()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.11 08:00:00                  #
+# Updated Date: 2025.09.16 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QUrl, QCoreApplication, QEventLoop
@@ -21,6 +21,7 @@ from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.ui.widget.tabs.layout import FocusEventFilter
 from pygpt_net.utils import trans
+
 
 class ChatWebOutput(QWebEngineView):
     def __init__(self, window=None):
@@ -47,113 +48,167 @@ class ChatWebOutput(QWebEngineView):
         # OpenGL widgets
         self._glwidget = None
         self._glwidget_filter_installed = False
+        self._unloaded = False
 
         # set the page with a shared profile
         self.setUpdatesEnabled(False)  # disable updates until the page is set, re-enable in `on_page_loaded`
 
-        self._profile = QWebEngineProfile(self)
+        self._profile = self._make_profile(self)
+        self.setPage(CustomWebEnginePage(self.window, self, profile=self._profile))
+
+    def _make_profile(self, parent=None) -> QWebEngineProfile:
+        """Make profile"""
+        profile = QWebEngineProfile(parent)
         # self._profile.setHttpCacheType(QWebEngineProfile.MemoryHttpCache)
         # self._profile.setHttpCacheMaximumSize(32 * 1024 * 1024)  # 32MB
-        self._profile.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+        profile.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
         # self._profile.setHttpCacheType(QWebEngineProfile.NoCache)
-        self._profile.setSpellCheckEnabled(False)
-        # self._profile.setOffTheRecord(True)
-        self.setPage(CustomWebEnginePage(self.window, self, profile=self._profile))
+        profile.setSpellCheckEnabled(False)
+        return profile
+
 
     def _detach_gl_event_filter(self):
         """Detach OpenGL widget event filter if installed"""
         if self._glwidget and self._glwidget_filter_installed:
             try:
                 self._glwidget.removeEventFilter(self)
-            except Exception:
-                pass
+            except Exception as e:
+                self._on_delete_failed(e)
         self._glwidget = None
         self._glwidget_filter_installed = False
 
+    def _on_delete_failed(self, e):
+        """
+        Handle delete failure
+
+        :param e: Exception instance
+        """
+        pass
+        # self.window.core.debug.log(e)
+
+    def unload(self):
+        """Unload the current page and free resources"""
+        try:
+            self.hide()
+            p = self.page()
+            p.triggerAction(QWebEnginePage.Stop)
+            p.setUrl(QUrl("about:blank"))
+            p.history().clear()
+            p.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
+        except Exception as e:
+            self._on_delete_failed(e)
+        finally:
+            self._unloaded = True
+
     def on_delete(self):
         """Clean up on delete"""
+        if not self._unloaded:
+            self.unload()
+
+        try:
+            self.removeEventFilter(self)
+        except Exception:
+            pass
+
         self.hide()
         self._detach_gl_event_filter()
-        
+
+        try:
+            if getattr(self, "filter", None):
+                try:
+                    self.removeEventFilter(self.filter)
+                except Exception:
+                    pass
+                try:
+                    self.filter.deleteLater()
+                except Exception:
+                    pass
+                self.filter = None
+        except Exception:
+            pass
+
         if self.finder:
             try:
                 self.finder.disconnect()
-            except Exception:
-                pass
-            self.finder = None
+            except Exception as e:
+                self._on_delete_failed(e)
+            finally:
+                self.finder = None
 
         self.tab = None
         self.meta = None
 
         # safely unhook signals (may not have been hooked)
         for sig, slot in (
-            (self.loadFinished, self.on_page_loaded),
-            (self.customContextMenuRequested, self.on_context_menu),
-            (self.signals.save_as, getattr(self.window.controller.chat.render, "handle_save_as", None)),
-            (self.signals.audio_read, getattr(self.window.controller.chat.render, "handle_audio_read", None)),
+                (self.loadFinished, self.on_page_loaded),
+                (self.customContextMenuRequested, self.on_context_menu),
+                (self.signals.save_as, getattr(self.window.controller.chat.render, "handle_save_as", None)),
+                (self.signals.audio_read, getattr(self.window.controller.chat.render, "handle_audio_read", None)),
         ):
             if slot:
                 try:
                     sig.disconnect(slot)
-                except Exception:
-                    pass
+                except Exception as e:
+                    self._on_delete_failed(e)
 
         page = self.page()
         page.set_loaded(False)
 
         try:
             page.triggerAction(QWebEnginePage.Stop)
-        except Exception:
-            pass
+        except Exception as e:
+            self._on_delete_failed(e)
+
         try:
             page.setUrl(QUrl("about:blank"))
-        except Exception:
-            pass
+        except Exception as e:
+            self._on_delete_failed(e)
+
         try:
             page.history().clear()
-        except Exception:
-            pass
+        except Exception as e:
+            self._on_delete_failed(e)
+
         try:
             page.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
-        except Exception:
-            pass
+        except Exception as e:
+            self._on_delete_failed(e)
+
         try:
             if hasattr(page, "setWebChannel"):
                 page.setWebChannel(None)
-        except Exception:
-            pass
-        try:
-            self.disconnect()
-        except Exception:
-            pass
+        except Exception as e:
+            self._on_delete_failed(e)
 
         prof = None
         try:
             prof = page.profile()
-        except Exception:
-            pass
+        except Exception as e:
+            self._on_delete_failed(e)
 
         try:
             page.cleanup()
-        except Exception:
-            pass
+        except Exception as e:
+            self._on_delete_failed(e)
 
+        """
         if prof is not None:
             try:
                 prof.deleteLater()
-            except Exception:
-                pass
+            except Exception as e:
+                self._on_delete_failed(e)
+        """
 
         try:
             self.deleteLater()
-        except Exception:
-            pass
+        except Exception as e:
+            self._on_delete_failed(e)
 
         try:
             QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
             QCoreApplication.processEvents(QEventLoop.AllEvents, 50)
-        except Exception:
-            pass
+        except Exception as e:
+            self._on_delete_failed(e)
 
     def eventFilter(self, source, event):
         """
@@ -390,6 +445,7 @@ class ChatWebOutput(QWebEngineView):
 
 class CustomWebEnginePage(QWebEnginePage):
     """Custom WebEnginePage to handle web events"""
+
     def __init__(self, window, view, profile: QWebEngineProfile = None):
 
         # use the profile if provided, otherwise the default
@@ -501,6 +557,7 @@ class CustomWebEnginePage(QWebEnginePage):
 
 class Bridge(QObject):
     """Bridge between Python and JavaScript"""
+
     def __init__(self, window, parent=None):
         super(Bridge, self).__init__(parent)
         self.window = window

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 20:00:00                  #
+# Updated Date: 2025.09.16 02:00:00                  #
 # ================================================== #
 
 import gc
@@ -1274,12 +1274,7 @@ class Renderer(BaseRenderer):
                     pass
             self._bridge_ready[pid] = False
             self._pending_nodes[pid] = []
-            node.hide()
-            p = node.page()
-            p.triggerAction(QWebEnginePage.Stop)
-            p.setUrl(QUrl("about:blank"))
-            p.history().clear()
-            p.setLifecycleState(QWebEnginePage.LifecycleState.Discarded)
+            node.unload()  # unload web page
             self._stream_reset(pid)
             self.pids[pid].clear(all=True)
             self.pids[pid].loaded = False
@@ -1294,9 +1289,8 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         """
         tab = node.get_tab()
-        tab.delete_ref(node)
         layout = tab.child.layout()
-        layout.removeWidget(node)
+        tab.child.remove_widget(node)
         self.window.ui.nodes['output'].pop(tab.pid, None)
 
         node.on_delete()
@@ -1307,7 +1301,7 @@ class Renderer(BaseRenderer):
         view.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
         view.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
 
-        layout.addWidget(view)
+        layout.addWidget(view)  # tab body layout
         view.setVisible(True)
         self.window.ui.nodes['output'][tab.pid] = view
         try:

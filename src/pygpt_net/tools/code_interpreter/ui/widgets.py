@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.16 02:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -100,9 +100,6 @@ class ToolWidget:
         :return: QVBoxLayout
         """
         self.output = HtmlOutput(self.window, self.tool)
-        self.output.setPage(
-            CustomWebEnginePage(self.window, self.output)
-        )
         self.output.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
         self.output.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
 

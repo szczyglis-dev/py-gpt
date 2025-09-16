@@ -6,14 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.16 02:00:00                  #
 # ================================================== #
-import gc
+
 from typing import Any, Optional, Tuple
 
-from PySide6.QtCore import QTimer, QUrl
-from PySide6.QtWebEngineCore import QWebEnginePage
-
+from PySide6.QtCore import QTimer
 from pygpt_net.core.events import AppEvent, RenderEvent
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.ctx import CtxMeta
@@ -363,7 +361,7 @@ class Tabs:
         if tab.type == Tab.TAB_CHAT and self.column_idx == 1 and not getattr(tab, "loaded", False):
             meta = self.window.core.ctx.get_meta_by_id(tab.data_id)
             if meta is not None:
-                self.window.controller.ctx.load(meta.id)
+                self.window.controller.ctx.load(meta.id, no_fresh=True)
             tab.loaded = True
 
         current_ctx = self.window.core.ctx.get_current()

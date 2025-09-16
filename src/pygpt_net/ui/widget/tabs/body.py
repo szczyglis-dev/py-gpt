@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 20:00:00                  #
+# Updated Date: 2025.09.16 02:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -34,6 +34,28 @@ class TabBody(QTabWidget):
         if self.on_delete and callable(self.on_delete):
             self.on_delete(self)
         self.delete_refs()
+
+    def remove_widget(self, widget: QWidget) -> None:
+        """
+        Remove widget from tab body
+
+        :param widget: widget to remove
+        """
+        layout = self.layout()
+        if layout is not None:
+            layout.removeWidget(widget)
+        self.delete_ref(widget)
+
+    def remove_all_widgets(self) -> None:
+        """
+        Remove all widgets from tab body
+        """
+        layout = self.layout()
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                layout.removeWidget(widget)
 
     def add_ref(self, ref: Any) -> None:
         """
