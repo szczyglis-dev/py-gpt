@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2025.09.17 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -64,6 +64,8 @@ class Realtime:
 
         :param event: RealtimeEvent instance
         """
+        is_muted = self.window.controller.audio.is_muted()  # global mute state
+
         # check if mode is supported
         if not self.is_supported() and isinstance(event, RealtimeEvent):
             event.stop = True # stop further propagation
@@ -75,7 +77,7 @@ class Realtime:
         if event.name == RealtimeEvent.RT_OUTPUT_AUDIO_DELTA:
             self.set_idle()
             payload = event.data.get("payload", None)
-            if payload:
+            if payload and not is_muted:  # do not play if muted
                 self.window.core.audio.output.handle_realtime(payload, self.signals)
 
         # audio input chunk: send to the active realtime client
@@ -148,7 +150,10 @@ class Realtime:
 
         # volume change: update volume in audio output handler
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_VOLUME_CHANGED:
-            volume = event.data.get("volume", 1.0)
+            if not is_muted:
+                volume = event.data.get("volume", 1.0)
+            else:
+                volume = 0.0
             self.window.controller.audio.ui.on_output_volume_change(volume)
 
         # error: audio output error

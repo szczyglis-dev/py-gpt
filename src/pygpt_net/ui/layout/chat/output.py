@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2025.09.17 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -72,7 +72,7 @@ class Output:
 
         nodes['icon.audio.output'] = IconLabel(":/icons/volume.svg", window=self.window)
         nodes['icon.audio.output'].setToolTip(trans("icon.audio.output"))
-        nodes['icon.audio.output'].clicked.connect(lambda: ctrl.plugins.toggle('audio_output'))
+        nodes['icon.audio.output'].clicked.connect(lambda: ctrl.plugins.toggle_audio_output())  # special case for AUDIO mode
 
         nodes['icon.audio.input'] = IconLabel(":/icons/mic.svg", window=self.window)
         nodes['icon.audio.input'].setToolTip(trans("icon.audio.input"))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.17 07:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any, Optional
@@ -14,7 +14,7 @@ from typing import List, Dict, Any, Optional
 from PySide6.QtGui import QAction
 
 from pygpt_net.core.types import (
-    MODE_AGENT,
+    MODE_AGENT, MODE_AUDIO,
 )
 from pygpt_net.controller.plugins.presets import Presets
 from pygpt_net.controller.plugins.settings import Settings
@@ -194,18 +194,44 @@ class Plugins:
 
     def toggle(self, id: str):
         """
-        Toggle plugin
+        Toggle plugin (from menu)
 
         :param id: plugin id
         """
         if self.window.core.plugins.is_registered(id):
             if self.is_enabled(id):
                 self.disable(id)
+                if id == "audio_output":
+                    self.window.controller.audio.set_muted(True)
             else:
                 self.enable(id)
+                if id == "audio_output":
+                    self.window.controller.audio.set_muted(False)
 
         self.window.controller.ui.update_tokens()
         self.window.controller.attachment.update()
+        self.presets.save_current()
+
+    def toggle_audio_output(self):
+        """
+        Toggle plugin (from icon, audio output only)
+        """
+        id = "audio_output"
+        mode = self.window.core.config.get('mode')
+
+        if mode == MODE_AUDIO:
+            if not self.window.controller.audio.is_muted():
+                self.window.controller.audio.set_muted(True)
+            else:
+                self.window.controller.audio.set_muted(False)
+            return
+
+        if self.window.core.plugins.is_registered(id):
+            if self.is_enabled(id):
+                self.disable(id)
+            else:
+                self.enable(id)
+
         self.presets.save_current()
 
     def set_by_tab(self, idx: int):

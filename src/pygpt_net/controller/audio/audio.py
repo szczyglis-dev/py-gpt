@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2025.09.17 07:00:00                  #
 # ================================================== #
 
 import os
@@ -36,6 +36,7 @@ class Audio:
             Tab.TAB_CHAT,
             Tab.TAB_TOOL_CALENDAR,
         ]
+        self.muted = False
 
     def setup(self):
         """Setup controller"""
@@ -52,6 +53,26 @@ class Audio:
         # loop recording
         if self.window.core.config.get("audio.input.loop", False):
             self.window.ui.nodes['audio.loop'].box.setChecked(True)
+
+    def is_muted(self) -> bool:
+        """
+        Check if audio output is muted
+
+        :return: True if muted
+        """
+        return self.muted
+
+    def set_muted(self, state: bool):
+        """
+        Set audio output muted state
+
+        :param state: True to mute, False to unmute
+        """
+        self.muted = state
+        if state:
+            self.toggle_output_icon(False)
+        else:
+            self.toggle_output_icon(True)
 
     def execute_input_stop(self):
         """Execute input stop (from UI)"""

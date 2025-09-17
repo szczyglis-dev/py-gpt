@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.09.17 07:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
-    MODE_CHAT,
+    MODE_CHAT, MODE_AUDIO,
 )
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -91,6 +91,9 @@ class Mode:
                     c.assistant.select_by_id(assistant_id)
                 else:
                     c.assistant.select_current()
+
+            elif mode == MODE_AUDIO:
+                c.audio.set_muted(False) # un-mute and show audio output icon by default
 
             cfg.set('mode', mode)
 
