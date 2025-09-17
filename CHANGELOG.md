@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.53 (2025-09-17)
+
+- Added: An icon to enable/disable the web search remote tool in the icon bar, along with remote web search functionality in OpenRouter (#135).
+- Added: The ability to mute audio in real-time mode via the audio icon.
+
 ## 2.6.52 (2025-09-17)
 
 - Added MCP plugin: Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.

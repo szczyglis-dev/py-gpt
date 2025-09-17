@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.52** | build: **2025-09-17** | Python: **>=3.10, <3.14**
+Release: **2.6.53** | build: **2025-09-17** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3504,6 +3504,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.53 (2025-09-17)**
+
+- Added: An icon to enable/disable the web search remote tool in the icon bar, along with remote web search functionality in OpenRouter (#135).
+- Added: The ability to mute audio in real-time mode via the audio icon.
 
 **2.6.52 (2025-09-17)**
 
