@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2025.09.17 05:00:00                  #
 # ================================================== #
 
 import gc
@@ -1289,6 +1289,8 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         """
         tab = node.get_tab()
+        if tab is None:
+            return
         layout = tab.child.layout()
         tab.unwrap(node)
         self.window.ui.nodes['output'].pop(tab.pid, None)
