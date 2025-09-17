@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2025.09.17 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -59,6 +59,35 @@ class GoogleLLM(BaseLLM):
 
         window.core.api.google.setup_env()  # setup VertexAI if configured
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+
+        # -----------------------------------------------------------
+        # Remote built-in tools for Google GenAI via LlamaIndex:
+        # - Google Search grounding (Tool(google_search=GoogleSearch()))
+        # - Code Execution (Tool(code_execution=ToolCodeExecution()))
+        # - Url Context (Tool(url_context=UrlContext)) on 2.x+
+        # We reuse native builder and forward tools into LlamaIndex.
+        # If 1 tool -> use 'built_in_tool', if >1 -> pack into generation_config.tools
+        # -----------------------------------------------------------
+        built_tools = []
+        try:
+            built_tools = window.core.api.google.build_remote_tools(model=model) or []
+        except Exception as e:
+            window.core.debug.log(e)
+
+        if built_tools:
+            # Only attach if user didn't already pass their own config
+            if "built_in_tool" not in args and "generation_config" not in args:
+                if len(built_tools) == 1:
+                    args["built_in_tool"] = built_tools[0]
+                else:
+                    # If multiple tools are enabled, provide them via generation_config.tools
+                    try:
+                        args["generation_config"] = gtypes.GenerateContentConfig(tools=built_tools)
+                    except Exception as e:
+                        # Fallback to the first tool if GenerateContentConfig cannot be constructed
+                        window.core.debug.log(e)
+                        args["built_in_tool"] = built_tools[0]
+
         return GoogleGenAI(**args)
 
     def get_embeddings_model(

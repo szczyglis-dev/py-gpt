@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2025.09.17 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -89,6 +89,26 @@ class xAILLM(BaseLLM):
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+
+        # -----------------------------------------------------------
+        # xAI Live Search via search_parameters (Chat Completions)
+        # LlamaIndex OpenAILike supports 'additional_kwargs' passed to request body.
+        # -----------------------------------------------------------
+        try:
+            xai_remote = window.core.api.xai.remote.build(model=model) or {}
+        except Exception as e:
+            window.core.debug.log(e)
+            xai_remote = {}
+
+        search_http = xai_remote.get("http")
+        if search_http:
+            add_kwargs = dict(args.get("additional_kwargs") or {})
+            extra_body = dict(add_kwargs.get("extra_body") or {})
+            # Do not overwrite if user already set search_parameters manually
+            extra_body.setdefault("search_parameters", search_http)
+            add_kwargs["extra_body"] = extra_body
+            args["additional_kwargs"] = add_kwargs
+
         return OpenAILike(**args)
 
     def llama_multimodal(

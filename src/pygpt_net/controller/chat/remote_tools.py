@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2025.09.17 20:00:00                  #
 # ================================================== #
 
 from typing import Union
@@ -109,7 +109,7 @@ class RemoteTools:
             cfg_set("remote_tools.anthropic.web_search", state)
 
             # xAI has 3 modes: auto, on, off
-            cfg_set("remote_tools.xai.mode", "auto" if state else "off")
+            cfg_set("remote_tools.xai.mode", "on" if state else "off")
 
         # save config
         self.window.core.config.save()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2025.09.17 20:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Optional
@@ -77,6 +77,34 @@ class AnthropicLLM(BaseLLM):
             args["model"] = model.id
         if "api_key" not in args or args["api_key"] == "":
             args["api_key"] = window.core.config.get("api_key_anthropic", "")
+
+        # ---------------------------------------------
+        # Remote server tools (e.g., web_search_20250305)
+        # We forward provider-native server tools via Anthropic "tools" param.
+        # This keeps behavior identical to the native SDK configuration.
+        # ---------------------------------------------
+        try:
+            remote_tools = window.core.api.anthropic.tools.build_remote_tools(model=model) or []
+        except Exception as e:
+            # Do not break if config builder throws; just skip tools
+            window.core.debug.log(e)
+            remote_tools = []
+
+        if remote_tools:
+            # Merge with any user-supplied 'tools' (avoid duplicates by (type, name))
+            existing = args.get("tools") or []
+            if isinstance(existing, list):
+                def _key(d: dict) -> str:
+                    return f"{d.get('type')}::{d.get('name')}"
+                index = {_key(t): True for t in existing if isinstance(t, dict)}
+                for t in remote_tools:
+                    k = _key(t) if isinstance(t, dict) else None
+                    if k and k not in index:
+                        existing.append(t)
+                args["tools"] = existing
+            else:
+                # Defensive: if 'tools' was something unexpected, overwrite safely
+                args["tools"] = list(remote_tools)
 
         return AnthropicWithProxy(**args, proxy=proxy)
 

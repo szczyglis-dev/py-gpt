@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2025.09.17 20:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ class Remote:
 
         if mode == "off":
             if is_web:
-                mode = "auto"  # override off if global web_search enabled
+                mode = "on"  # override off if global web_search enabled
 
         # sources toggles
         s_web = bool(cfg.get("remote_tools.xai.sources.web", True))
