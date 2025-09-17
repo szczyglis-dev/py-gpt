@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.09.17 19:00:00                  #
 # ================================================== #
-import os
+
 from typing import List, Dict, Any
 
 from pygpt_net.core.types import MODE_CHAT
@@ -108,11 +108,18 @@ class Provider:
         from agents import (
             OpenAIChatCompletionsModel,
         )
-        if model.provider == "openai":
+        models = self.window.core.models
+        if isinstance(model, str):
+            model = models.get(model)
+
+        model_id = model.id
+        if model.provider in ("openai", "azure_openai"):
             return model.id
-        else:
-            args = self.window.core.models.prepare_client_args(MODE_CHAT, model)
-            return OpenAIChatCompletionsModel(
-                model=model.id,
-                openai_client=AsyncOpenAI(**args),
-            )
+        elif model.provider == "open_router":
+            model_id = models.get_openrouter_model(model)
+
+        args = models.prepare_client_args(MODE_CHAT, model)
+        return OpenAIChatCompletionsModel(
+            model=model_id,
+            openai_client=AsyncOpenAI(**args),
+        )

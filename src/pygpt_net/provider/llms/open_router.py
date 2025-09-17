@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2025.09.17 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, List
@@ -82,6 +82,8 @@ class OpenRouterLLM(BaseLLM):
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        if model:
+            args["model"] = window.core.models.get_openrouter_model(model)
         return OpenAILike(**args)
 
     def get_models(

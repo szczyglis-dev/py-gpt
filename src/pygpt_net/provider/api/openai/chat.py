@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2025.09.17 19:00:00                  #
 # ================================================== #
 
 import json
@@ -146,16 +146,9 @@ class Chat:
             response_kwargs['stream_options'] = {"include_usage": True}
 
         # OpenRouter: add web search remote tool (if enabled)
-        # https://openrouter.ai/docs/features/web-search
         model_id = model.id
         if model.provider == "open_router":
-            is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")  # web search config
-            if is_web:
-                if not model_id.endswith(":online"):
-                    model_id += ":online"
-            else:
-                if model_id.endswith(":online"):
-                    model_id = model_id.replace(":online", "")
+            model_id = self.window.core.models.get_openrouter_model(model)
 
         response = client.chat.completions.create(
             messages=messages,

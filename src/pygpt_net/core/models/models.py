@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 00:00:00                  #
+# Updated Date: 2025.09.17 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -525,6 +525,30 @@ class Models:
         else:
             self.window.core.debug.info("[api] No model provided, using default OpenAI client")
         return args
+
+    def get_openrouter_model(self, model: ModelItem) -> str:
+        """
+        Get OpenRouter model by model id
+
+        :param model: ModelItem
+        :return: OpenRouter model id
+        """
+        if isinstance(model, str):
+            model = self.get(model)
+        if not model or model.provider != "open_router":
+            return model.id if model else None
+
+        # OpenRouter: add web search remote tool (if enabled)
+        # https://openrouter.ai/docs/features/web-search
+        model_id = model.id
+        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")  # web search config
+        if is_web:
+            if not model_id.endswith(":online"):
+                model_id += ":online"
+        else:
+            if model_id.endswith(":online"):
+                model_id = model_id.replace(":online", "")
+        return model_id
 
     def is_tool_call_allowed(self, mode: str, model: ModelItem) -> bool:
         """

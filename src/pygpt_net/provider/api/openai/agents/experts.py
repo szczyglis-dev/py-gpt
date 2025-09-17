@@ -13,7 +13,7 @@ from agents import (
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+from .remote_tools import append_tools
 
 
 def get_experts(
