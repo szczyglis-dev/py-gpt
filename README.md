@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.53** | build: **2025-09-17** | Python: **>=3.10, <3.14**
+Release: **2.6.54** | build: **2025-09-18** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -1333,6 +1333,8 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Mouse and Keyboard` - provides the ability to control the mouse and keyboard by the model.
 
+- `OpenStreetMap` -  Search, geocode, plan routes, and generate static maps using OpenStreetMap services (Nominatim, OSRM, staticmap).
+
 - `Real Time` - automatically appends the current date and time to the system prompt, informing the model about current time.
 
 - `Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
@@ -1356,6 +1358,8 @@ The following plugins are currently available, and model can use them instantly:
 - `Web Search` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
 
 - `Wikipedia` - Search Wikipedia for information.
+
+- `Wolfram Alpha` - Compute and solve with Wolfram Alpha: short answers, full JSON pods, math (solve, derivatives, integrals), unit conversions, matrix operations, and plots.
 
 - `X/Twitter` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
 
@@ -1678,6 +1682,20 @@ Plugin capabilities include:
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mouse-and-keyboard
 
+## OpenStreetMap
+
+Provides everyday mapping utilities using OpenStreetMap services:
+
+- Forward and reverse geocoding via Nominatim
+- Search with optional near/bbox filters
+- Routing via OSRM (driving, walking, cycling)
+- Static map image generation via staticmap.openstreetmap.de (markers, paths, bbox)
+- Utility helpers: open an OSM website URL centered on a point; download a single XYZ tile
+
+Images are saved under `data/openstreetmap/` in the user data directory.
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#openstreetmap
+
 ## Real Time
 
 This plugin automatically adds the current date and time to each system prompt you send. 
@@ -1800,6 +1818,12 @@ The Wikipedia plugin allows for comprehensive interactions with Wikipedia, inclu
 * Open articles directly in your web browser.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#wikipedia
+
+## Wolfram Alpha
+
+Provides computational knowledge via Wolfram Alpha: short answers, full JSON pods, numeric and symbolic math (solve, derivatives, integrals), unit conversions, matrix operations, and plots rendered as images. Images are saved under `data/wolframalpha/` in the user data directory.
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#wolfram-alpha
 
 ## X/Twitter
 
@@ -3504,6 +3528,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.54 (2025-09-17)**
+
+- Added: Remote tools (such as web search, etc.) are now also available in Chat with Files and Agents (LlamaIndex) modes.
+- Added: 2 new plugins: Wolfram Alpha and OpenStreetMap.
+- Fixed: Allowed local file-like schemes in links/images in markdown-it parser.
 
 **2.6.53 (2025-09-17)**
 

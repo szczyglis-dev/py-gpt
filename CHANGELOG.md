@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.6.54 (2025-09-17)
+
+- Added: Remote tools (such as web search, etc.) are now also available in Chat with Files and Agents (LlamaIndex) modes.
 ## 2.6.53 (2025-09-17)
 
 - Added: An icon to enable/disable the web search remote tool in the icon bar, along with remote web search functionality in OpenRouter (#135).

@@ -27,6 +27,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Mailer`` - Provides the ability to send, receive and read emails.
 * ``MCP`` - Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
 * ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
+* ``OpenStreetMap`` -  Search, geocode, plan routes, and generate static maps using OpenStreetMap services (Nominatim, OSRM, staticmap).
 * ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
 * ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
 * ``Server (SSH/FTP)`` - Connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more.
@@ -39,6 +40,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Voice Control (inline)`` - provides voice control command execution within a conversation.
 * ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
 * ``Wikipedia`` - Search Wikipedia for information.
+* ``Wolfram Alpha`` - Compute and solve with Wolfram Alpha: short answers, full JSON pods, math (solve, derivatives, integrals), unit conversions, matrix operations, and plots.
 * ``X/Twitter`` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
 
 
@@ -1886,6 +1888,140 @@ Allows ``keyboard_key`` command execution. *Default:* `True`
 
 Allows ``keyboard_type`` command execution. *Default:* `True`
 
+OpenStreetMap
+-------------
+
+Provides everyday mapping utilities using OpenStreetMap services:
+
+* Forward and reverse geocoding via Nominatim
+* Search with optional near/bbox filters
+* Routing via OSRM (driving, walking, cycling)
+* Static map image generation via staticmap.openstreetmap.de (markers, paths, bbox)
+* Utility helpers: open an OSM website URL centered on a point; download a single XYZ tile
+
+Images are saved under ``data/openstreetmap/`` in the user data directory.
+
+**Important notes and usage etiquette**
+
+* Nominatim requires a proper User-Agent and recommends including a contact email. Set both in the plugin options.
+* Public endpoints (router.project-osrm.org, staticmap.openstreetmap.de) are community/demo services and not intended for heavy production use. If you need higher throughput, host your own services and set custom base URLs in options.
+* Always provide attribution to OpenStreetMap contributors where required by the data license. The static map imagery already includes the standard attribution.
+
+**Options**
+
+- ``HTTP timeout (s)`` *http_timeout*
+
+- ``User-Agent`` *user_agent*
+
+- ``Contact email (Nominatim)`` *contact_email*
+
+- ``Accept-Language`` *accept_language*
+
+- ``Nominatim base`` *nominatim_base*
+
+- ``OSRM base`` *osrm_base*
+
+- ``Static map base`` *staticmap_base*
+
+- ``Tile base`` *tile_base*
+
+- ``Default map type`` *map_type*
+
+- ``Default zoom`` *map_zoom*
+
+- ``Default width`` *map_width*
+
+- ``Default height`` *map_height*
+
+**Tools (Commands)**
+
+- ``Tool: osm_geocode``
+
+  Forward geocoding of free-text addresses/places using Nominatim. Supports optional country filtering and near/viewbox bounding.
+
+  Parameters:
+  - ``query`` (str, required)
+  - ``limit`` (int, optional)
+  - ``countrycodes`` (str, optional, e.g. ``pl,de``)
+  - ``viewbox`` (str|list, optional) — ``minlon,minlat,maxlon,maxlat``
+  - ``bounded`` (bool, optional)
+  - ``addressdetails`` (bool, optional)
+  - ``polygon_geojson`` (bool, optional)
+  - ``near`` (str, optional) — address or ``lat,lon`` to bias results (creates a viewbox)
+  - ``near_lat`` (float, optional), ``near_lon`` (float, optional), ``radius_m`` (int, optional)
+
+- ``Tool: osm_reverse``
+
+  Reverse geocoding for a given coordinate.
+
+  Parameters:
+  - ``lat`` (float) and ``lon`` (float) or ``point`` (str ``lat,lon``)
+  - ``zoom`` (int, optional), ``addressdetails`` (bool, optional)
+
+- ``Tool: osm_search``
+
+  Alias convenience wrapper for ``osm_geocode`` with the same parameters.
+
+- ``Tool: osm_route``
+
+  Plan a route via OSRM. Accepts addresses or coordinates for start/end and optional waypoints. Can optionally save a static map preview of the route (with markers).
+
+  Parameters:
+  - ``start`` (str) or ``start_lat``/``start_lon``
+  - ``end`` (str) or ``end_lat``/``end_lon``
+  - ``waypoints`` (list, optional)
+  - ``profile`` (str, optional) — ``driving`` | ``walking`` | ``cycling`` (default ``driving``)
+  - ``overview`` (str, optional, default ``full``), ``steps`` (bool, default true), ``alternatives`` (int)
+  - ``save_map`` (bool, optional), ``out`` (str, optional), ``width`` (int), ``height`` (int)
+  - ``color`` (str), ``weight`` (int), ``markers`` (list)
+
+- ``Tool: osm_staticmap``
+
+  Generate a static map image via staticmap.openstreetmap.de. Supports center/zoom or bbox, markers, and one or more paths.
+
+  Parameters:
+  - ``center`` (str) or ``lat``/``lon`` (optional), ``zoom`` (int, optional)
+  - ``bbox`` (list[4], optional) — ``minlon,minlat,maxlon,maxlat``
+  - ``markers`` (list, optional) — each marker can be:
+    - ``"lat,lon"`` or ``"lat,lon,color"``
+    - ``[lat,lon]``
+    - ``{"lat":..,"lon":..,"color":"red","label":"A"}``
+  - ``path`` (list, optional) — list of points; uses ``color`` and ``weight`` if provided
+  - ``paths`` (list, optional) — list of objects each with ``points`` list and optional ``color``/``weight``
+  - ``color`` (str, optional), ``weight`` (int, optional)
+  - ``width`` (int), ``height`` (int), ``maptype`` (str), ``out`` (str)
+
+- ``Tool: osm_bbox_map``
+
+  Shortcut to generate a static map from a bounding box.
+
+  Parameters:
+  - ``bbox`` (list[4], required) — ``minlon,minlat,maxlon,maxlat``
+  - plus optional ``markers``, ``path``, ``width``, ``height``, ``out``
+
+- ``Tool: osm_show_url``
+
+  Build an openstreetmap.org URL centered at a point with a marker.
+
+  Parameters:
+  - ``point`` (str) or ``lat``/``lon``
+  - ``zoom`` (int, optional)
+
+- ``Tool: osm_route_url``
+
+  Build an openstreetmap.org directions URL for a start/end.
+
+  Parameters:
+  - ``start`` (str) / ``end`` (str) or coordinate pairs
+  - ``mode`` (str, optional) — ``car`` | ``bike`` | ``foot``
+
+- ``Tool: osm_tile``
+
+  Download a single XYZ tile (z/x/y.png). Useful for diagnostics or custom composition.
+
+  Parameters:
+  - ``z`` (int), ``x`` (int), ``y`` (int), ``out`` (str, optional)
+
 
 Real Time
 ----------
@@ -2845,6 +2981,148 @@ The Wikipedia plugin allows for comprehensive interactions with Wikipedia, inclu
 - ``wp_open``
 
   Open articles in a web browser by title or URL.
+
+Wolfram Alpha
+-------------
+
+Provides computational knowledge via Wolfram Alpha: short answers, full JSON pods, numeric and symbolic math (solve, derivatives, integrals), unit conversions, matrix operations, and plots rendered as images. Images are saved under ``data/wolframalpha/`` in the user data directory.
+
+**Options**
+
+- ``API base`` *api_base*
+
+  Base API URL (default: ``https://api.wolframalpha.com``). Change only if you use a proxy/gateway.
+
+- ``HTTP timeout (s)`` *http_timeout*
+
+  Request timeout in seconds.
+
+- ``Wolfram Alpha AppID`` *wa_appid*
+
+  AppID used to authenticate requests. Stored as a secret. Get it from: https://developer.wolframalpha.com/portal/myapps/
+
+- ``Units`` *units*
+
+  Preferred unit system for supported endpoints: ``metric`` or ``nonmetric``.
+
+- ``Simple background`` *simple_background*
+
+  Background for Simple API images: ``white`` or ``transparent``.
+
+- ``Simple layout`` *simple_layout*
+
+  Layout for Simple API images, e.g., ``labelbar`` or ``inputonly``.
+
+- ``Simple width`` *simple_width*
+
+  Target width for Simple API images (pixels). Leave empty to use the service default.
+
+**Tools (Commands)**
+
+- ``Tool: wa_short`` *cmd.wa_short*
+
+  Returns a concise text answer suitable for quick facts and simple numeric results.
+
+  Parameters:
+  - ``query`` (str, required) — natural-language or math input.
+
+- ``Tool: wa_spoken`` *cmd.wa_spoken*
+
+  Returns a one-sentence, spoken-style answer.
+
+  Parameters:
+  - ``query`` (str, required)
+
+- ``Tool: wa_simple`` *cmd.wa_simple*
+
+  Renders a compact result image (PNG/GIF) via the Simple API and saves it to a file.
+
+  Parameters:
+  - ``query`` (str, required)
+  - ``out`` (str, optional) — output path; if relative, saved under ``data/wolframalpha/``.
+  - ``background`` (str, optional) — ``white`` | ``transparent``.
+  - ``layout`` (str, optional) — e.g., ``labelbar`` | ``inputonly``.
+  - ``width`` (int, optional) — target image width (px).
+
+- ``Tool: wa_query`` *cmd.wa_query*
+
+  Runs a full query and returns pods as JSON (``queryresult.pods``). Can optionally download pod images.
+
+  Parameters:
+  - ``query`` (str, required)
+  - ``format`` (str, optional) — e.g., ``plaintext,image``.
+  - ``assumptions`` (list[str], optional) — repeated ``assumption`` parameters.
+  - ``podstate`` (str, optional) — pod state id.
+  - ``scantimeout`` (int, optional), ``podtimeout`` (int, optional)
+  - ``maxwidth`` (int, optional) — max image width.
+  - ``download_images`` (bool, optional) — if true, downloads pod images.
+  - ``max_images`` (int, optional) — limit for downloaded images.
+
+- ``Tool: wa_calculate`` *cmd.wa_calculate*
+
+  Evaluates or simplifies an expression. Tries the short-answer endpoint first, then falls back to a full JSON query.
+
+  Parameters:
+  - ``expr`` (str, required)
+
+- ``Tool: wa_solve`` *cmd.wa_solve*
+
+  Solves one equation or a system of equations over a chosen domain.
+
+  Parameters:
+  - ``equation`` (str, optional) — single equation.
+  - ``equations`` (list[str], optional) — list of equations.
+  - ``var`` (str, optional) — single variable.
+  - ``variables`` (list[str], optional) — variables set.
+  - ``domain`` (str, optional) — ``reals`` | ``integers`` | ``complexes``.
+
+- ``Tool: wa_derivative`` *cmd.wa_derivative*
+
+  Computes a derivative (with optional evaluation at a point).
+
+  Parameters:
+  - ``expr`` (str, required)
+  - ``var`` (str, optional, default ``x``)
+  - ``order`` (int, optional, default ``1``)
+  - ``at`` (str, optional) — evaluation point, e.g., ``x=0``.
+
+- ``Tool: wa_integral`` *cmd.wa_integral*
+
+  Computes an indefinite or definite integral.
+
+  Parameters:
+  - ``expr`` (str, required)
+  - ``var`` (str, optional, default ``x``)
+  - ``a`` (str, optional) — lower bound (for definite integrals).
+  - ``b`` (str, optional) — upper bound.
+
+- ``Tool: wa_units_convert`` *cmd.wa_units_convert*
+
+  Converts numeric values between units.
+
+  Parameters:
+  - ``value`` (str, required) — numeric value.
+  - ``from`` (str, required) — source unit.
+  - ``to`` (str, required) — target unit.
+
+- ``Tool: wa_matrix`` *cmd.wa_matrix*
+
+  Performs matrix operations.
+
+  Parameters:
+  - ``op`` (str, optional, default ``determinant``) — ``determinant`` | ``inverse`` | ``eigenvalues`` | ``rank``.
+  - ``matrix`` (list[list], required) — e.g., ``[[1,2],[3,4]]``.
+
+- ``Tool: wa_plot`` *cmd.wa_plot*
+
+  Generates a function plot as an image via the Simple API and saves it to a file.
+
+  Parameters:
+  - ``func`` (str, required) — function, e.g., ``sin(x)``.
+  - ``var`` (str, optional, default ``x``)
+  - ``a`` (str, optional) — domain start.
+  - ``b`` (str, optional) — domain end.
+  - ``out`` (str, optional) — output path; relative paths go under ``data/wolframalpha/``.
 
 X/Twitter
 ----------
