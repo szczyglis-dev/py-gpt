@@ -2082,6 +2082,25 @@
         // Streaming renderer (no linkify) – hot path
         this.MD_STREAM = window.markdownit({ html: false, linkify: false, breaks: true, highlight: () => '' });
 
+        //allow local file-like schemes in links/images (markdown-it blocks file:// by default).
+        const installLinkValidator = (md) => {
+          const orig = (md && typeof md.validateLink === 'function') ? md.validateLink.bind(md) : null;
+          md.validateLink = (url) => {
+            try {
+              const s = String(url || '').trim().toLowerCase();
+              if (s.startsWith('file:'))   return true;   // local files
+              if (s.startsWith('qrc:'))    return true;   // Qt resources
+              if (s.startsWith('bridge:')) return true;   // app bridge scheme
+              if (s.startsWith('blob:'))   return true;   // blobs
+              if (s.startsWith('data:image/')) return true; // inline images
+            } catch (_) {}
+            return orig ? orig(url) : true;
+          };
+        };
+
+        installLinkValidator(this.MD);
+        installLinkValidator(this.MD_STREAM);
+
         // SAFETY: disable CommonMark "indented code blocks" unless explicitly enabled.
         if (!this.cfg.MD || this.cfg.MD.ALLOW_INDENTED_CODE !== true) {
           try { this.MD.block.ruler.disable('code'); } catch (_) {}
