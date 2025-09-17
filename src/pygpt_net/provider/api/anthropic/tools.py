@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 01:00:00                  #
+# Updated Date: 2025.09.17 05:00:00                  #
 # ================================================== #
 
 import json
@@ -177,8 +177,10 @@ class Tools:
         if model and model.id and model.id.startswith("claude-3-5"):
             return tools
 
+        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")  # get global config
+
         # Web Search tool
-        if cfg.get("remote_tools.anthropic.web_search"):
+        if is_web:
             ttype = cfg.get("remote_tools.anthropic.web_search.type", "web_search_20250305")  # stable as of docs
             tname = "web_search"
 

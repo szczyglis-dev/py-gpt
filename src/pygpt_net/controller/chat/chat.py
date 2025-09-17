@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.09.17 05:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -22,6 +22,7 @@ from .files import Files
 from .image import Image
 from .input import Input
 from .output import Output
+from .remote_tools import RemoteTools
 from .render import Render
 from .response import Response
 from .stream import Stream
@@ -46,6 +47,7 @@ class Chat:
         self.image = Image(w)
         self.input = Input(w)
         self.output = Output(w)
+        self.remote_tools = RemoteTools(w)
         self.render = Render(w)
         self.response = Response(w)
         self.stream = Stream(w)
@@ -60,12 +62,14 @@ class Chat:
         """Setup"""
         self.common.setup()
         self.attachment.setup()
+        self.remote_tools.setup()
 
     def reload(self) -> None:
         """Reload"""
         self.common.setup()
         self.render.reload()
         self.attachment.reload()
+        self.remote_tools.setup()
 
     def handle_error(self, err: Any) -> None:
         """

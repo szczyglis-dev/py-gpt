@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.09.17 05:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -423,6 +423,7 @@ class Mapping:
         tooltips['icon.video.capture'] = 'icon.video.capture'
         tooltips['icon.audio.output'] = 'icon.audio.output'
         tooltips['icon.audio.input'] = 'icon.audio.input'
+        tooltips['icon.remote_tool.web'] = 'icon.remote_tool.web'
         tooltips['assistant.store.btn.refresh_status'] = 'dialog.assistant.store.btn.refresh_status'
         tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
 

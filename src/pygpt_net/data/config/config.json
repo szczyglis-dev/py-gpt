@@ -417,6 +417,7 @@
   "remote_tools.computer_use.env": "",
   "remote_tools.file_search": false,
   "remote_tools.file_search.args": "",
+  "remote_tools.global.web_search": true,
   "remote_tools.google.code_interpreter": false,
   "remote_tools.google.url_ctx": false,
   "remote_tools.google.web_search": true,

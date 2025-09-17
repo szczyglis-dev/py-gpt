@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2025.09.17 05:00:00                  #
 # ================================================== #
 
 import os
@@ -260,9 +260,10 @@ class ApiGoogle:
         tools: list = []
         cfg = self.window.core.config
         model_id = (model.id if model and getattr(model, "id", None) else "").lower()
+        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")  # get global config
 
         # Google Search tool
-        if cfg.get("remote_tools.google.web_search") and "image" not in model.id:
+        if is_web and "image" not in model.id:
             try:
                 if not model_id.startswith("gemini-1.5") and not model_id.startswith("models/gemini-1.5"):
                     # Gemini 2.x uses GoogleSearch

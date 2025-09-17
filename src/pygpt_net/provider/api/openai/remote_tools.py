@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.09.17 05:00:00                  #
 # ================================================== #
 
 import json
@@ -87,10 +87,11 @@ class RemoteTools:
             "file_search": False,
             "computer_use": False,
         }
+        enabled_global = self.window.controller.chat.remote_tools.enabled  # get global config
 
         # from global config if not expert call
         if not is_expert_call:
-            enabled["web_search"] = self.window.core.config.get("remote_tools.web_search", False)
+            enabled["web_search"] = enabled_global(model, "web_search") # <-- from global config
             enabled["image"] = self.window.core.config.get("remote_tools.image", False)
             enabled["code_interpreter"] = self.window.core.config.get("remote_tools.code_interpreter", False)
             enabled["mcp"] = self.window.core.config.get("remote_tools.mcp", False)
@@ -101,6 +102,8 @@ class RemoteTools:
             if preset:
                 if preset.remote_tools:
                     tools_list = [preset_remote_tool.strip() for preset_remote_tool in preset.remote_tools.split(",") if preset_remote_tool.strip()]
+                    if "web_search" not in tools_list:
+                        enabled["web_search"] = enabled_global(model, "web_search") # <-- from global config
                     for item in tools_list:
                         if item in enabled:
                             enabled[item] = True

@@ -145,6 +145,8 @@
         <file alias="voice.svg">data/icons/voice.svg</file>
         <file alias="volume.svg">data/icons/volume.svg</file>
         <file alias="warning.svg">data/icons/warning.svg</file>
+        <file alias="web_off.svg">data/icons/web_off.svg</file>
+        <file alias="web_on.svg">data/icons/web_on.svg</file>
         <file alias="webcam.svg">data/icons/webcam.svg</file>
         <file alias="webcam_off.svg">data/icons/webcam_off.svg</file>
         <file alias="width.svg">data/icons/width.svg</file>

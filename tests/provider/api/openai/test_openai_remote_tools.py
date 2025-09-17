@@ -11,6 +11,8 @@
 
 import json
 from types import SimpleNamespace
+from unittest.mock import MagicMock
+
 import pytest
 from pygpt_net.core.types import MODE_COMPUTER
 import pygpt_net.provider.api.openai.remote_tools as remote_mod
@@ -26,7 +28,8 @@ def get_dummy_window(config_data):
     dummy_config = DummyConfig(config_data)
     dummy_computer = SimpleNamespace(get_tool=lambda: {"type": "computer_tool"})
     core = SimpleNamespace(config=dummy_config, api=SimpleNamespace(openai=SimpleNamespace(computer=dummy_computer)))
-    return SimpleNamespace(core=core)
+    controller = SimpleNamespace(chat=SimpleNamespace(remote_tools=SimpleNamespace(enabled=MagicMock(return_value=True))))
+    return SimpleNamespace(core=core, controller=controller)
 
 def set_disable(monkeypatch):
     monkeypatch.setattr(remote_mod, "OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE", [])

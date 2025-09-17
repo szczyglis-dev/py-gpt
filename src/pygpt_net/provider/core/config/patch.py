@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 11:00:00                  #
+# Updated Date: 2025.09.17 05:00:00                  #
 # ================================================== #
 
 import copy
@@ -102,6 +102,13 @@ class Patch:
                 print("Migrating config from < 2.6.51...")
                 # calendar css
                 patch_css('style.dark.css', True)
+                updated = True
+
+            # < 2.6.53
+            if old < parse_version("2.6.53"):
+                print("Migrating config from < 2.6.53...")
+                if "remote_tools.global.web_search" not in data:
+                    data["remote_tools.global.web_search"] = True
                 updated = True
 
         # update file

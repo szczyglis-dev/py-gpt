@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.08.10 00:00:00                  #
 # ================================================== #
+from unittest.mock import MagicMock
 
 import pytest
 import json
@@ -40,6 +41,7 @@ class DummyCore:
 class DummyWindow:
     def __init__(self, settings):
         self.core = DummyCore(settings)
+        self.controller = SimpleNamespace(chat=SimpleNamespace(remote_tools=SimpleNamespace(enabled=MagicMock(return_value=True))))
 
 def test_is_computer_tool_non_gpt():
     model = DummyModel("any", False)
@@ -192,6 +194,7 @@ def test_get_remote_tools_non_expert_disabled(monkeypatch):
        "remote_tools.file_search": False,
     }
     window = DummyWindow(settings)
+    window.controller.chat.remote_tools.enabled = MagicMock(return_value=False)
     model = DummyModel("normal-model", True)
     preset = DummyPreset("irrelevant")
     result = get_remote_tools(window, model, preset, False)

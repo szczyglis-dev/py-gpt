@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 01:00:00                  #
+# Updated Date: 2025.09.17 05:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -57,10 +57,15 @@ class Remote:
         :return: Dict with 'sdk' and 'http' keys
         """
         cfg = self.window.core.config
+        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")  # get global config
 
         mode = str(cfg.get("remote_tools.xai.mode") or "auto").lower()
         if mode not in ("auto", "on", "off"):
             mode = "auto"
+
+        if mode == "off":
+            if is_web:
+                mode = "auto"  # override off if global web_search enabled
 
         # sources toggles
         s_web = bool(cfg.get("remote_tools.xai.sources.web", True))
