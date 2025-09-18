@@ -727,9 +727,10 @@ class Ctx:
         :param id: ctx id
         :return: ctx meta object
         """
-        self.load_tmp_meta(id)
         if id in self.meta:
             return self.meta[id]
+        else:
+            self.load_tmp_meta(id)
 
     def get_last(self) -> Optional[CtxItem]:
         """
