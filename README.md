@@ -3529,11 +3529,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.6.54 (2025-09-17)**
+**2.6.54 (2025-09-18)**
 
-- Added: Remote tools (such as web search, etc.) are now also available in Chat with Files and Agents (LlamaIndex) modes.
-- Added: 2 new plugins: Wolfram Alpha and OpenStreetMap.
-- Fixed: Allowed local file-like schemes in links/images in markdown-it parser.
+- Added: Remote tools (like web search) are now also available in the Chat with Files and Agents (LlamaIndex) modes.
+- Added: Two new plugins: Wolfram Alpha and OpenStreetMap.
+- Fixed: Enabled local file-like schemes in links/images in the markdown-it parser.
 
 **2.6.53 (2025-09-17)**
 
