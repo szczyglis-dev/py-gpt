@@ -97,7 +97,7 @@
   "api_native_xai": true,
   "api_proxy": "",
   "api_use_responses": true,
-  "api_use_responses_llama": false,
+  "api_use_responses_llama": true,
   "app.env": [
     {
       "name": "OLLAMA_API_BASE",

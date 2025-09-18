@@ -190,7 +190,13 @@ class BaseWorker(QRunnable):
         :param item: item with parameters
         :return: request item
         """
-        return {"cmd": item["cmd"]}
+        append_params = ("path", "query")
+        data = {"cmd": item["cmd"]}
+        if "params" in item and isinstance(item["params"], dict):
+            for k in append_params:
+                if k in item["params"]:
+                    data[k] = str(item["params"][k])
+        return data
 
     def make_response(
             self,
