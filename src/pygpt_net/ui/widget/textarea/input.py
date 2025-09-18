@@ -106,8 +106,15 @@ class ChatInput(QTextEdit):
         self._auto_timer.setSingleShot(True)
         self._auto_timer.timeout.connect(self._auto_resize_tick)
 
-        # Trigger auto-resize on text changes (tokens update stays intact)
-        self.textChanged.connect(self._schedule_auto_resize)
+        self._tokens_timer = QTimer(self)
+        self._tokens_timer.setSingleShot(True)
+        self._tokens_timer.setInterval(500)
+        self._tokens_timer.timeout.connect(self.window.controller.ui.update_tokens)
+        self.textChanged.connect(self._on_text_changed_tokens)
+
+    def _on_text_changed_tokens(self):
+        """Schedule token count update with debounce."""
+        self._tokens_timer.start()
 
     def _apply_text_top_padding(self):
         """Apply extra top padding inside the text area by using viewport margins."""
