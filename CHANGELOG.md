@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.55 (2025-09-18)
+
+- Fixed: Unnecessary context loading from the database.
+- Optimized: Token count in the input field.
+
 ## 2.6.54 (2025-09-18)
 
 - Added: Remote tools (like web search) are now also available in the Chat with Files and Agents (LlamaIndex) modes.
