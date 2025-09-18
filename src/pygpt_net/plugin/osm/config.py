@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.18 00:37:10                  #
+# Updated Date: 2025.09.18 03:40:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -63,13 +63,6 @@ class Config(BaseConfig):
             description="Base URL for OSRM routing.",
         )
         plugin.add_option(
-            "staticmap_base",
-            type="text",
-            value="https://staticmap.openstreetmap.de",
-            label="Static map base",
-            description="Base URL for static map service.",
-        )
-        plugin.add_option(
             "tile_base",
             type="text",
             value="https://tile.openstreetmap.org",
@@ -77,34 +70,27 @@ class Config(BaseConfig):
             description="Base URL for XYZ tiles (z/x/y.png).",
         )
 
-        # Map defaults
-        plugin.add_option(
-            "map_type",
-            type="text",
-            value="mapnik",
-            label="Default map type",
-            description="Static map layer type (provider dependent).",
-        )
+        # Map defaults (used for URL zoom and bbox zoom estimation)
         plugin.add_option(
             "map_zoom",
             type="int",
             value=14,
             label="Default zoom",
-            description="Default zoom if not specified (for center-based maps).",
+            description="Default zoom if not specified (for OSM site URLs).",
         )
         plugin.add_option(
             "map_width",
             type="int",
             value=800,
             label="Default width",
-            description="Default static map width (px).",
+            description="Used only to estimate zoom for bbox (no image rendering).",
         )
         plugin.add_option(
             "map_height",
             type="int",
             value=600,
             label="Default height",
-            description="Default static map height (px).",
+            description="Used only to estimate zoom for bbox (no image rendering).",
         )
 
         # ---------------- Commands ----------------
@@ -124,9 +110,11 @@ class Config(BaseConfig):
                 {"name": "near_lat", "type": "float", "required": False, "description": "Near latitude (alternative to 'near')"},
                 {"name": "near_lon", "type": "float", "required": False, "description": "Near longitude"},
                 {"name": "radius_m", "type": "int", "required": False, "description": "Radius for near-based viewbox (m)"},
+                {"name": "zoom", "type": "int", "required": False, "description": "Zoom for returned map_url (defaults to 'Default zoom')"},
+                {"name": "layers", "type": "str", "required": False, "description": "Optional OSM site 'layers=' value for map_url"},
             ],
             enabled=True,
-            description="OSM: geocode",
+            description="OSM: geocode (results include map_url)",
             tab="map",
         )
 
@@ -137,11 +125,12 @@ class Config(BaseConfig):
                 {"name": "lat", "type": "float", "required": False, "description": "Latitude"},
                 {"name": "lon", "type": "float", "required": False, "description": "Longitude"},
                 {"name": "point", "type": "str", "required": False, "description": "Alternative 'lat,lon'"},
-                {"name": "zoom", "type": "int", "required": False, "description": "Detail level"},
+                {"name": "zoom", "type": "int", "required": False, "description": "Detail level (also used for map_url zoom)"},
                 {"name": "addressdetails", "type": "bool", "required": False, "description": "Include address details"},
+                {"name": "layers", "type": "str", "required": False, "description": "Optional OSM site 'layers=' value for map_url"},
             ],
             enabled=True,
-            description="OSM: reverse geocode",
+            description="OSM: reverse geocode (response includes map_url)",
             tab="map",
         )
 
@@ -156,15 +145,17 @@ class Config(BaseConfig):
                 {"name": "near_lat", "type": "float", "required": False, "description": "Near latitude"},
                 {"name": "near_lon", "type": "float", "required": False, "description": "Near longitude"},
                 {"name": "radius_m", "type": "int", "required": False, "description": "Radius for near viewbox (m)"},
+                {"name": "zoom", "type": "int", "required": False, "description": "Zoom for returned map_url"},
+                {"name": "layers", "type": "str", "required": False, "description": "Optional OSM site 'layers=' value for map_url"},
             ],
             enabled=True,
-            description="OSM: search",
+            description="OSM: search (results include map_url)",
             tab="map",
         )
 
         plugin.add_cmd(
             "osm_route",
-            instruction="OpenStreetMap: Routing via OSRM (driving/walking/cycling).",
+            instruction="OpenStreetMap: Routing via OSRM (driving/walking/cycling). Lightweight by default.",
             params=[
                 {"name": "start", "type": "str", "required": False, "description": "Address or 'lat,lon'"},
                 {"name": "start_lat", "type": "float", "required": False, "description": "Latitude (alternative)"},
@@ -173,60 +164,59 @@ class Config(BaseConfig):
                 {"name": "end_lat", "type": "float", "required": False, "description": "Latitude (alternative)"},
                 {"name": "end_lon", "type": "float", "required": False, "description": "Longitude (alternative)"},
                 {"name": "waypoints", "type": "list", "required": False, "description": "Optional intermediate points"},
+
                 {"name": "profile", "type": "str", "required": False, "description": "driving|walking|cycling"},
-                {"name": "overview", "type": "str", "required": False, "description": "full|simplified|false"},
-                {"name": "steps", "type": "bool", "required": False, "description": "Include step-by-step"},
-                {"name": "alternatives", "type": "int", "required": False, "description": "Number of alternatives"},
-                {"name": "save_map", "type": "bool", "required": False, "description": "Generate a static map image"},
-                {"name": "out", "type": "str", "required": False, "description": "Output file path (if saving map)"},
-                {"name": "width", "type": "int", "required": False, "description": "Map width (px)"},
-                {"name": "height", "type": "int", "required": False, "description": "Map height (px)"},
-                {"name": "color", "type": "str", "required": False, "description": "Path color"},
-                {"name": "weight", "type": "int", "required": False, "description": "Path weight"},
-                {"name": "markers", "type": "list", "required": False, "description": "Markers list for map"},
+                {"name": "mode", "type": "str", "required": False, "description": "url|summary|full (default: summary)"},
+                {"name": "include_geometry", "type": "bool", "required": False, "description": "Include compact geometry (polyline6) in 'full' mode"},
+                {"name": "include_steps", "type": "bool", "required": False, "description": "Include step-by-step (only in 'full' mode)"},
+                {"name": "alternatives", "type": "int", "required": False, "description": "0|1; if >0 treated as 'true' for OSRM alternatives"},
+                {"name": "max_polyline_chars", "type": "int", "required": False, "description": "Limit geometry string length (default 5000)"},
+                {"name": "debug_url", "type": "bool", "required": False, "description": "Include OSRM request URL in the response"},
+
+                {"name": "save_map", "type": "bool", "required": False, "description": "Build an OSM map URL focused on route bbox/center"},
+                {"name": "zoom", "type": "int", "required": False, "description": "Zoom for preview URL (when applicable)"},
+                {"name": "layers", "type": "str", "required": False, "description": "Optional OSM site 'layers=' for preview"},
+                {"name": "width", "type": "int", "required": False, "description": "Used only to estimate zoom for bbox"},
+                {"name": "height", "type": "int", "required": False, "description": "Used only to estimate zoom for bbox"},
+
+                {"name": "markers", "type": "list", "required": False, "description": "Optional list of points; first used as marker in preview"},
             ],
             enabled=True,
-            description="OSM: route",
+            description="OSM: route (returns distance/duration and map_url; geometry optional in 'full')",
             tab="route",
         )
 
         plugin.add_cmd(
             "osm_staticmap",
-            instruction="OpenStreetMap: Generate static map image (center/zoom or bbox, markers, path).",
+            instruction="OpenStreetMap: Build a map URL on openstreetmap.org (center/zoom or bbox; optional single marker).",
             params=[
                 {"name": "center", "type": "str", "required": False, "description": "Address or 'lat,lon'"},
                 {"name": "lat", "type": "float", "required": False, "description": "Latitude (alternative)"},
                 {"name": "lon", "type": "float", "required": False, "description": "Longitude (alternative)"},
                 {"name": "zoom", "type": "int", "required": False, "description": "Zoom level"},
                 {"name": "bbox", "type": "list", "required": False, "description": "minlon,minlat,maxlon,maxlat"},
-                {"name": "markers", "type": "list", "required": False, "description": "Markers list"},
-                {"name": "path", "type": "list", "required": False, "description": "List of points for one path"},
-                {"name": "paths", "type": "list", "required": False, "description": "Multiple paths"},
-                {"name": "color", "type": "str", "required": False, "description": "Path color"},
-                {"name": "weight", "type": "int", "required": False, "description": "Path weight"},
-                {"name": "width", "type": "int", "required": False, "description": "Image width"},
-                {"name": "height", "type": "int", "required": False, "description": "Image height"},
-                {"name": "maptype", "type": "str", "required": False, "description": "Static map type/layer"},
-                {"name": "out", "type": "str", "required": False, "description": "Output file path"},
+                {"name": "markers", "type": "list", "required": False, "description": "List of candidate points; first valid becomes the marker"},
+                {"name": "marker", "type": "bool", "required": False, "description": "If true and no markers given, place marker at center"},
+                {"name": "layers", "type": "str", "required": False, "description": "Optional OSM site 'layers=' value"},
+                {"name": "width", "type": "int", "required": False, "description": "Used only to estimate zoom for bbox"},
+                {"name": "height", "type": "int", "required": False, "description": "Used only to estimate zoom for bbox"},
             ],
             enabled=True,
-            description="OSM: static map",
+            description="OSM: build map URL (openstreetmap.org)",
             tab="map",
         )
 
         plugin.add_cmd(
             "osm_bbox_map",
-            instruction="OpenStreetMap: Generate static map for a bounding box.",
+            instruction="OpenStreetMap: Shortcut to build a map URL for a given bbox (openstreetmap.org).",
             params=[
                 {"name": "bbox", "type": "list", "required": True, "description": "minlon,minlat,maxlon,maxlat"},
-                {"name": "markers", "type": "list", "required": False, "description": "Markers"},
-                {"name": "path", "type": "list", "required": False, "description": "Path points"},
-                {"name": "width", "type": "int", "required": False, "description": "Width"},
-                {"name": "height", "type": "int", "required": False, "description": "Height"},
-                {"name": "out", "type": "str", "required": False, "description": "Output file path"},
+                {"name": "markers", "type": "list", "required": False, "description": "Markers (first will be used for OSM site marker)"},
+                {"name": "width", "type": "int", "required": False, "description": "Used only to estimate zoom"},
+                {"name": "height", "type": "int", "required": False, "description": "Used only to estimate zoom"},
             ],
             enabled=True,
-            description="OSM: bbox static map",
+            description="OSM: bbox URL",
             tab="map",
         )
 
@@ -238,6 +228,7 @@ class Config(BaseConfig):
                 {"name": "lat", "type": "float", "required": False, "description": "Latitude"},
                 {"name": "lon", "type": "float", "required": False, "description": "Longitude"},
                 {"name": "zoom", "type": "int", "required": False, "description": "Zoom"},
+                {"name": "layers", "type": "str", "required": False, "description": "Optional OSM site 'layers=' value"},
             ],
             enabled=True,
             description="OSM: show URL",

@@ -1896,16 +1896,16 @@ Provides everyday mapping utilities using OpenStreetMap services:
 * Forward and reverse geocoding via Nominatim
 * Search with optional near/bbox filters
 * Routing via OSRM (driving, walking, cycling)
-* Static map image generation via staticmap.openstreetmap.de (markers, paths, bbox)
+* Generate openstreetmap.org URL (center/zoom or bbox; optional marker)
 * Utility helpers: open an OSM website URL centered on a point; download a single XYZ tile
 
-Images are saved under ``data/openstreetmap/`` in the user data directory.
+By default no images are downloaded; commands return URLs. The ``osm_tile`` command saves tiles under ``data/openstreetmap/`` in the user data directory.
 
 **Important notes and usage etiquette**
 
 * Nominatim requires a proper User-Agent and recommends including a contact email. Set both in the plugin options.
-* Public endpoints (router.project-osrm.org, staticmap.openstreetmap.de) are community/demo services and not intended for heavy production use. If you need higher throughput, host your own services and set custom base URLs in options.
-* Always provide attribution to OpenStreetMap contributors where required by the data license. The static map imagery already includes the standard attribution.
+* Public endpoints are community/demo services and not intended for heavy production use. If you need higher throughput, host your own services and set custom base URLs in options.
+* Always provide attribution to OpenStreetMap contributors where required by the data license.
 
 **Options**
 
@@ -1921,23 +1921,21 @@ Images are saved under ``data/openstreetmap/`` in the user data directory.
 
 - ``OSRM base`` *osrm_base*
 
-- ``Static map base`` *staticmap_base*
-
 - ``Tile base`` *tile_base*
-
-- ``Default map type`` *map_type*
 
 - ``Default zoom`` *map_zoom*
 
-- ``Default width`` *map_width*
+- ``Default width`` *map_width*  
+  Used only to estimate zoom for bbox (no image rendering).
 
-- ``Default height`` *map_height*
+- ``Default height`` *map_height*  
+  Used only to estimate zoom for bbox (no image rendering).
 
 **Tools (Commands)**
 
 - ``Tool: osm_geocode``
 
-  Forward geocoding of free-text addresses/places using Nominatim. Supports optional country filtering and near/viewbox bounding.
+  Forward geocoding of free-text addresses/places using Nominatim. Supports optional country filtering and near/viewbox bounding. Each result includes ``map_url`` (openstreetmap.org link centered on the result with a marker).
 
   Parameters:
   - ``query`` (str, required)
@@ -1949,55 +1947,70 @@ Images are saved under ``data/openstreetmap/`` in the user data directory.
   - ``polygon_geojson`` (bool, optional)
   - ``near`` (str, optional) — address or ``lat,lon`` to bias results (creates a viewbox)
   - ``near_lat`` (float, optional), ``near_lon`` (float, optional), ``radius_m`` (int, optional)
+  - ``zoom`` (int, optional) — zoom used for ``map_url`` (defaults to option ``Default zoom``)
+  - ``layers`` (str, optional) — optional ``layers=`` value for OSM site URLs
 
 - ``Tool: osm_reverse``
 
-  Reverse geocoding for a given coordinate.
+  Reverse geocoding for a given coordinate. Response includes ``map_url`` (openstreetmap.org link).
 
   Parameters:
   - ``lat`` (float) and ``lon`` (float) or ``point`` (str ``lat,lon``)
-  - ``zoom`` (int, optional), ``addressdetails`` (bool, optional)
+  - ``zoom`` (int, optional) — also used for ``map_url`` zoom
+  - ``addressdetails`` (bool, optional)
+  - ``layers`` (str, optional) — optional ``layers=`` value for OSM site URLs
 
 - ``Tool: osm_search``
 
-  Alias convenience wrapper for ``osm_geocode`` with the same parameters.
+  Alias convenience wrapper for ``osm_geocode`` with the same parameters (results also include ``map_url``).
 
 - ``Tool: osm_route``
 
-  Plan a route via OSRM. Accepts addresses or coordinates for start/end and optional waypoints. Can optionally save a static map preview of the route (with markers).
+  Plan a route via OSRM. Accepts addresses or coordinates for start/end and optional waypoints. Always returns ``map_url`` pointing to the openstreetmap.org Directions page (the route is drawn there). In addition:
+  - mode=url — no OSRM call; returns only ``map_url`` (Directions) and waypoints,
+  - mode=summary (default) — returns distance/duration (no geometry) + ``map_url``,
+  - mode=full — can include compact geometry (``geometry_polyline6``) and optionally steps.
+
+  If ``save_map`` is true, an additional ``preview_url`` (regular map view centered/bbox) is returned; it does not replace ``map_url``.
 
   Parameters:
   - ``start`` (str) or ``start_lat``/``start_lon``
   - ``end`` (str) or ``end_lat``/``end_lon``
   - ``waypoints`` (list, optional)
   - ``profile`` (str, optional) — ``driving`` | ``walking`` | ``cycling`` (default ``driving``)
-  - ``overview`` (str, optional, default ``full``), ``steps`` (bool, default true), ``alternatives`` (int)
-  - ``save_map`` (bool, optional), ``out`` (str, optional), ``width`` (int), ``height`` (int)
-  - ``color`` (str), ``weight`` (int), ``markers`` (list)
+  - ``mode`` (str, optional) — ``url`` | ``summary`` | ``full`` (default ``summary``)
+  - ``include_geometry`` (bool, optional) — include compact geometry (polyline6) in ``full`` mode
+  - ``include_steps`` (bool, optional) — include step-by-step (``full`` mode only)
+  - ``alternatives`` (int, optional) — 0|1; if >0 treated as true for OSRM alternatives
+  - ``max_polyline_chars`` (int, optional) — limit geometry string length (default 5000)
+  - ``debug_url`` (bool, optional) — include OSRM request URL in the response
+  - ``save_map`` (bool, optional) — build an additional ``preview_url`` (OSM map centered/bbox)
+  - ``zoom`` (int, optional) — zoom for ``preview_url`` when applicable
+  - ``layers`` (str, optional) — optional ``layers=`` for ``preview_url``
+  - ``width`` (int, optional), ``height`` (int, optional) — used only to estimate bbox zoom
+  - ``markers`` (list, optional) — for ``preview_url`` the first valid point is used as marker
+
+  Deprecated/no-op parameters (kept for backward compatibility): ``out``, ``color``, ``weight``.
 
 - ``Tool: osm_staticmap``
 
-  Generate a static map image via staticmap.openstreetmap.de. Supports center/zoom or bbox, markers, and one or more paths.
+  Build an openstreetmap.org URL (center/zoom or bbox; optional marker). Only the first valid marker is used. ``width``/``height`` are used only to estimate zoom when a bbox is provided.
 
   Parameters:
   - ``center`` (str) or ``lat``/``lon`` (optional), ``zoom`` (int, optional)
   - ``bbox`` (list[4], optional) — ``minlon,minlat,maxlon,maxlat``
-  - ``markers`` (list, optional) — each marker can be:
-    - ``"lat,lon"`` or ``"lat,lon,color"``
-    - ``[lat,lon]``
-    - ``{"lat":..,"lon":..,"color":"red","label":"A"}``
-  - ``path`` (list, optional) — list of points; uses ``color`` and ``weight`` if provided
-  - ``paths`` (list, optional) — list of objects each with ``points`` list and optional ``color``/``weight``
-  - ``color`` (str, optional), ``weight`` (int, optional)
-  - ``width`` (int), ``height`` (int), ``maptype`` (str), ``out`` (str)
+  - ``markers`` (list, optional) — candidates for a single marker; the first valid point is used
+  - ``marker`` (bool, optional) — if true and no markers provided, place a marker at center
+  - ``layers`` (str, optional) — optional ``layers=`` value
+  - ``width`` (int), ``height`` (int) — used only to estimate zoom for bbox
 
 - ``Tool: osm_bbox_map``
 
-  Shortcut to generate a static map from a bounding box.
+  Shortcut to build an openstreetmap.org URL from a bounding box.
 
   Parameters:
   - ``bbox`` (list[4], required) — ``minlon,minlat,maxlon,maxlat``
-  - plus optional ``markers``, ``path``, ``width``, ``height``, ``out``
+  - optional ``markers``, ``width``, ``height``
 
 - ``Tool: osm_show_url``
 
@@ -2006,10 +2019,11 @@ Images are saved under ``data/openstreetmap/`` in the user data directory.
   Parameters:
   - ``point`` (str) or ``lat``/``lon``
   - ``zoom`` (int, optional)
+  - ``layers`` (str, optional)
 
 - ``Tool: osm_route_url``
 
-  Build an openstreetmap.org directions URL for a start/end.
+  Build an openstreetmap.org Directions URL for start/end (the route is drawn on the page).
 
   Parameters:
   - ``start`` (str) / ``end`` (str) or coordinate pairs
@@ -2017,7 +2031,7 @@ Images are saved under ``data/openstreetmap/`` in the user data directory.
 
 - ``Tool: osm_tile``
 
-  Download a single XYZ tile (z/x/y.png). Useful for diagnostics or custom composition.
+  Download a single XYZ tile (z/x/y.png). Useful for diagnostics or custom composition. The file is saved under ``data/openstreetmap/`` by default.
 
   Parameters:
   - ``z`` (int), ``x`` (int), ``y`` (int), ``out`` (str, optional)

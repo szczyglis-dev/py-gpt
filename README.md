@@ -1689,7 +1689,7 @@ Provides everyday mapping utilities using OpenStreetMap services:
 - Forward and reverse geocoding via Nominatim
 - Search with optional near/bbox filters
 - Routing via OSRM (driving, walking, cycling)
-- Static map image generation via staticmap.openstreetmap.de (markers, paths, bbox)
+- Generate openstreetmap.org URL (center/zoom or bbox; optional marker)
 - Utility helpers: open an OSM website URL centered on a point; download a single XYZ tile
 
 Images are saved under `data/openstreetmap/` in the user data directory.
