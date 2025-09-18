@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 20:00:00                  #
+# Updated Date: 2025.09.19 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -39,6 +39,7 @@ class Debug:
             'attachments',
             'assistants',
             'agent',
+            'agent_builder',
             'events',
             'indexes',
             'ui',
@@ -61,6 +62,7 @@ class Debug:
                   'attachments',
                   'assistants',
                   'agent',
+                  'agent_builder',
                   'events',
                   'indexes',
                   'ui',
@@ -98,6 +100,7 @@ class Debug:
         menu.addActions(
             [
                 m['debug.agent'],
+                m['debug.agent_builder'],
                 m['debug.assistants'],
                 m['debug.attachments'],
                 m['debug.config'],

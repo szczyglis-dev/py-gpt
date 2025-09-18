@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 22:00:00                  #
+# Updated Date: 2025.09.19 00:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -285,6 +285,12 @@ class Confirm:
         elif type == 'prompt.custom.delete':
             self.window.controller.presets.delete_prompt(id, True)
 
+        elif type == 'agent.builder.agent.delete':
+            self.window.tools.get("agent_builder").delete_agent(id, True)
+
+        elif type == 'agent.builder.agent.clear':
+            self.window.tools.get("agent_builder").clear(True)
+
     def dismiss(
             self,
             type: str,
@@ -365,6 +371,10 @@ class Confirm:
         elif type == 'prompt.custom.new':
             self.window.controller.presets.save_prompt(name, True)
 
+        # tool: agent builder - create new agent
+        elif type == 'agent.builder.agent':
+            self.window.tools.get("agent_builder").rename_agent(id, name)
+
     def accept_create(
             self,
             type: str,
@@ -393,6 +403,10 @@ class Confirm:
         # ctx groups
         elif type == 'ctx.group':
             self.window.controller.ctx.create_group(name, id)
+
+        # tool: agent builder - create new agent
+        elif type == 'agent.builder.agent':
+            self.window.tools.get("agent_builder").add_agent(name)
 
     def accept_url(
             self,

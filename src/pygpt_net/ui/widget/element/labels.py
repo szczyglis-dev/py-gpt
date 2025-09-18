@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2025.09.19 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QTimer, QRect, Signal, QUrl, QEvent
@@ -124,15 +124,16 @@ class CmdLabel(QLineEdit):
 class IconLabel(QLabel):
     clicked = Signal()
 
-    def __init__(self, icon: str, window=None):
+    def __init__(self, icon: str, window=None, hover=True):
         super().__init__("", window)
         self.window = window
         self.setWordWrap(True)
         self.setAlignment(Qt.AlignRight)
         self.setProperty('class', 'label-chat-status')
         self.setContentsMargins(0, 0, 0, 0)
-        self.setMouseTracking(True)
-
+        self.hover = hover
+        if hover:
+            self.setMouseTracking(True)
         self.original_pixmap = None
         self.hover_pixmap = None
         self.set_icon(icon)
@@ -181,6 +182,8 @@ class IconLabel(QLabel):
         return recolored
 
     def enterEvent(self, event: QEvent):
+        if not self.hover:
+            return
         self.setCursor(Qt.PointingHandCursor)
         self.hover_pixmap = self.create_hover_icon(self.original_pixmap)
         if self.hover_pixmap is not None and not self.hover_pixmap.isNull():
@@ -190,6 +193,8 @@ class IconLabel(QLabel):
         super().enterEvent(event)
 
     def leaveEvent(self, event: QEvent):
+        if not self.hover:
+            return
         self.unsetCursor()
         self.setPixmap(self.original_pixmap)
         super().leaveEvent(event)

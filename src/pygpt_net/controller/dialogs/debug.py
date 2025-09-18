@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
 
 from pygpt_net.core.debug.agent import AgentDebug
+from pygpt_net.core.debug.agent_builder import AgentBuilderDebug
 from pygpt_net.core.debug.assistants import AssistantsDebug
 from pygpt_net.core.debug.attachments import AttachmentsDebug
 from pygpt_net.core.debug.config import ConfigDebug
@@ -45,6 +46,7 @@ class Debug:
         # setup workers
         self.workers = {
             'agent': AgentDebug(self.window),
+            'agent_builder': AgentBuilderDebug(self.window),
             'assistants': AssistantsDebug(self.window),
             'attachments': AttachmentsDebug(self.window),
             'config': ConfigDebug(self.window),

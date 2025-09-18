@@ -9,26 +9,21 @@
 # Updated Date: 2025.09.19 00:00:00                  #
 # ================================================== #
 
-from .custom import Custom
-from .legacy import Legacy
-from .memory import Memory
-from .observer import Observer
-from .provider import Provider
-from .runner import Runner
-from .tools import Tools
-
-class Agents:
+class AgentBuilderDebug:
     def __init__(self, window=None):
         """
-        Agents core
+        Agent debug
 
         :param window: Window instance
         """
         self.window = window
-        self.custom = Custom(window)
-        self.legacy = Legacy(window)
-        self.memory = Memory(window)
-        self.observer = Observer(window)
-        self.provider = Provider(window)
-        self.runner = Runner(window)
-        self.tools = Tools(window)
+        self.id = 'agent_builder'
+
+    def update(self):
+        """Update debug window"""
+        debug = self.window.core.debug
+        editor = self.window.ui.editor["agent.builder"]
+
+        debug.begin(self.id)
+        debug.add(self.id, 'nodes', str(editor.debug_state()))
+        debug.end(self.id)
