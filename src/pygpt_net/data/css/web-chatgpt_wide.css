@@ -43,8 +43,8 @@ a:hover {{
   text-decoration: underline;
 }}
 p {{ 
-  margin-top: 0px;
-  margin-bottom:0px;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }}
 /* lists, code */
 ol,
@@ -101,7 +101,7 @@ think {{
   -moz-border-radius-topleft: .25rem;
   -moz-border-radius-topright: .25rem;
   border-top-left-radius: .25rem;
-  border-top-right-radius: .25rem;
+  border-top-right-radius: 0;
 }}
 .code-header {{
   text-align: right;
@@ -124,18 +124,25 @@ think {{
   vertical-align: middle;
   padding-left: 5px;
   padding-right: 5px;
+  margin-top: -3px;
 }}
 .code-header-action img {{
   vertical-align: middle;
-  padding-right: 5px;
-  padding-bottom: 3px;
 }}
-.code-header-action:hover, {{
+.code-header-action:hover {{
   text-decoration: none;
   cursor: pointer;
 }}
 .code-header-action:hover img {{
   filter: brightness(130%);
+}}
+.code-header-preview span {{
+  padding-left: 6px;
+  padding-right: 2px;
+}}
+.code-header-run span {{
+  padding-left: 2px;
+  padding-right: 2px;
 }}
 .code-wrapper {{
   padding: 0px;

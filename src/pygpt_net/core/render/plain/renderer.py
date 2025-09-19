@@ -383,12 +383,16 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         """
         node = self.get_output_node(meta)
+        follow = getattr(node, "was_at_bottom", None)
+        follow = node.was_at_bottom() if callable(follow) else True
         cursor = node.textCursor()
         cursor.movePosition(QTextCursor.End)
         block_format = QTextBlockFormat()
         block_format.setIndent(0)
         cursor.insertBlock(block_format)
-        node.setTextCursor(cursor)
+        if follow or (hasattr(node, "is_auto_scroll_enabled") and node.is_auto_scroll_enabled()):
+            node.setTextCursor(cursor)
+            node.ensureCursorVisible()
 
     def append_raw(
             self,
@@ -404,12 +408,16 @@ class Renderer(BaseRenderer):
         :param text: text to append
         """
         node = self.get_output_node(meta)
+        follow = getattr(node, "was_at_bottom", None)
+        follow = node.was_at_bottom() if callable(follow) else True
         cur = node.textCursor()
         cur.movePosition(QTextCursor.End)
         if not node.document().isEmpty():
             cur.insertText("\n\n")
         cur.insertText(text.strip())
-        node.setTextCursor(cur)
+        if follow or (hasattr(node, "is_auto_scroll_enabled") and node.is_auto_scroll_enabled()):
+            node.setTextCursor(cur)
+            node.ensureCursorVisible()
 
     def append_chunk_start(self, meta: CtxMeta, ctx: CtxItem):
         """
@@ -419,9 +427,13 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         """
         node = self.get_output_node(meta)
+        follow = getattr(node, "was_at_bottom", None)
+        follow = node.was_at_bottom() if callable(follow) else True
         cursor = node.textCursor()
         cursor.movePosition(QTextCursor.End)
-        node.setTextCursor(cursor)
+        if follow or (hasattr(node, "is_auto_scroll_enabled") and node.is_auto_scroll_enabled()):
+            node.setTextCursor(cursor)
+            node.ensureCursorVisible()
 
     def append_context_item(
             self,
@@ -454,10 +466,14 @@ class Renderer(BaseRenderer):
         :param end: end of the line character
         """
         node = self.get_output_node(meta)
+        follow = getattr(node, "was_at_bottom", None)
+        follow = node.was_at_bottom() if callable(follow) else True
         cur = node.textCursor()
         cur.movePosition(QTextCursor.End)
         cur.insertText(f"{str(text)}{end}")
-        node.setTextCursor(cur)
+        if follow or (hasattr(node, "is_auto_scroll_enabled") and node.is_auto_scroll_enabled()):
+            node.setTextCursor(cur)
+            node.ensureCursorVisible()
 
     def append_timestamp(
             self,
@@ -514,9 +530,15 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         """
         node = self.get_output_node(meta)
+        was_bottom = getattr(node, "was_at_bottom", None)
+        was_bottom = node.was_at_bottom() if callable(was_bottom) else True
+        allow = was_bottom or (hasattr(node, "is_auto_scroll_enabled") and node.is_auto_scroll_enabled())
+        if not allow:
+            return
         cursor = node.textCursor()
         cursor.movePosition(QTextCursor.End)
         node.setTextCursor(cursor)
+        node.ensureCursorVisible()
 
     def is_timestamp_enabled(self) -> bool:
         """

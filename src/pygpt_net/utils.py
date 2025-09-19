@@ -78,6 +78,46 @@ def sizeof_fmt(num: Any, suffix: str = 'B'):
         num /= 1024.0
     return f"{num:.1f} Yi{suffix}".replace('.', ',')
 
+def set_env(key: str, value: Any, append: bool = False, allow_overwrite: bool = False):
+    """
+    Setup environment flag / variable
+
+    :param key: env key
+    :param value: env value
+    :param append: append to existing value
+    :param allow_overwrite: allow overwrite value before setting
+    """
+    if allow_overwrite and key in os.environ:
+        return
+    if append:
+        if key in os.environ and os.environ[key]:
+            os.environ[key] = f"{os.environ[key]} {value}"
+        else:
+            os.environ[key] = str(value)
+    else:
+        os.environ[key] = str(value)
+
+def has_env(key: str) -> bool:
+    """
+    Check if environment variable is set
+
+    :param key: env key
+    :return: True if env variable is set
+    """
+    return key in os.environ and os.environ[key] != ""
+
+def get_env(key: str, default: Any = None) -> Any:
+    """
+    Get environment variable
+
+    :param key: env key
+    :param default: default value if env variable is not set
+    :return: env variable value or default
+    """
+    if key in os.environ and os.environ[key]:
+        return os.environ[key]
+    return default
+
 
 @contextmanager
 def freeze_updates(widget):

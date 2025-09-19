@@ -39,7 +39,7 @@ class Debug:
             'attachments',
             'assistants',
             'agent',
-            'agent_builder',
+            # 'agent_builder',
             'events',
             'indexes',
             'ui',
@@ -62,7 +62,7 @@ class Debug:
                   'attachments',
                   'assistants',
                   'agent',
-                  'agent_builder',
+                  # 'agent_builder',
                   'events',
                   'indexes',
                   'ui',
@@ -100,7 +100,7 @@ class Debug:
         menu.addActions(
             [
                 m['debug.agent'],
-                m['debug.agent_builder'],
+                # m['debug.agent_builder'],
                 m['debug.assistants'],
                 m['debug.attachments'],
                 m['debug.config'],

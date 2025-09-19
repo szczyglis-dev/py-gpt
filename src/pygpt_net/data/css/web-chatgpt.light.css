@@ -66,6 +66,12 @@ code {{
 .code-header-lang {{
     color: #5c5c5c;
 }}
+.code-wrapper .code-header-action.code-header-copy:hover, 
+.code-wrapper .code-header-action.code-header-collapse:hover {{
+    transform: scale(1.06);
+    background: var(--copy-btn-bg-hover, rgb(225 225 225 / 76%));
+    border-color: var(--copy-btn-border, rgba(0, 0, 0, .08));
+}}
 .msg-user {{
     background-color: #f3f3f3;
     color: #000;

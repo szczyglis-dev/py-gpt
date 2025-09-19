@@ -1,10 +1,33 @@
 <RCC>
     <qresource prefix="/js">
-        <file alias="app.js">data/js/app.js</file>
+        <file alias="app-async.js">data/js/app/async.js</file>
+        <file alias="app-bridge.js">data/js/app/bridge.js</file>
+        <file alias="app-common.js">data/js/app/common.js</file>
+        <file alias="app-config.js">data/js/app/config.js</file>
+        <file alias="app-custom.js">data/js/app/custom.js</file>
+        <file alias="app-data.js">data/js/app/data.js</file>
+        <file alias="app-dom.js">data/js/app/dom.js</file>
+        <file alias="app-events.js">data/js/app/events.js</file>
+        <file alias="app-highlight.js">data/js/app/highlight.js</file>
+        <file alias="app-logger.js">data/js/app/logger.js</file>
+        <file alias="app-markdown.js">data/js/app/markdown.js</file>
+        <file alias="app-math.js">data/js/app/math.js</file>
+        <file alias="app-nodes.js">data/js/app/nodes.js</file>
+        <file alias="app-raf.js">data/js/app/raf.js</file>
+        <file alias="app-runtime.js">data/js/app/runtime.js</file>
+        <file alias="app-scroll.js">data/js/app/scroll.js</file>
+        <file alias="app-stream.js">data/js/app/stream.js</file>
+        <file alias="app-queue.js">data/js/app/queue.js</file>
+        <file alias="app-template.js">data/js/app/template.js</file>
+        <file alias="app-tool.js">data/js/app/tool.js</file>
+        <file alias="app-ui.js">data/js/app/ui.js</file>
+        <file alias="app-user.js">data/js/app/user.js</file>
+        <file alias="app-utils.js">data/js/app/utils.js</file>
         <file alias="auto-render.min.js">data/js/katex/auto-render.min.js</file>
         <file alias="highlight.min.js">data/js/highlight/highlight.min.js</file>
         <file alias="katex.min.js">data/js/katex/katex.min.js</file>
         <file alias="markdown-it-katex.min.js">data/js/markdown-it/markdown-it-katex.min.js</file>
         <file alias="markdown-it.min.js">data/js/markdown-it/markdown-it.min.js</file>
+        <file alias="app.min.js">data/js/app.min.js</file>
     </qresource>
 </RCC>

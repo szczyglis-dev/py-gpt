@@ -45,6 +45,9 @@ class ChatOutput(QTextBrowser):
         self.tab = None
         self.installEventFilter(self)
         self.setProperty('class', 'layout-output-plain')
+        self._auto_scroll = True
+        self._auto_scroll_margin = None
+        self.verticalScrollBar().valueChanged.connect(self._on_vsb_value_changed)
 
     def on_delete(self):
         """Clean up on delete"""
@@ -198,3 +201,20 @@ class ChatOutput(QTextBrowser):
         """
         super().focusInEvent(e)
         self.window.controller.finder.focus_in(self.finder)
+
+    def _calc_auto_scroll_margin(self) -> int:
+        vsb = self.verticalScrollBar()
+        ps = vsb.pageStep()
+        if ps <= 0:
+            return 2
+        return max(2, min(64, ps // 10))
+
+    def _on_vsb_value_changed(self, value: int):
+        self._auto_scroll = self.was_at_bottom()
+
+    def was_at_bottom(self) -> bool:
+        vsb = self.verticalScrollBar()
+        return (vsb.maximum() - vsb.value()) <= self._calc_auto_scroll_margin()
+
+    def is_auto_scroll_enabled(self) -> bool:
+        return self._auto_scroll

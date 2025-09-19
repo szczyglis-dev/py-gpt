@@ -16,30 +16,32 @@ import platform
 
 import pygpt_net.icons_rc
 
+from .utils import set_env
+
+# app env
+set_env("PYGPT_APP_ENV", "prod", allow_overwrite=True) # dev | prod
+
+# debug
+# set_env("QTWEBENGINE_REMOTE_DEBUGGING", 9222)
+# set_env("QT_LOGGING_RULES", "*.debug=true")
+# set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-logging=stderr", True)
+# set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--v=1", True)
+# set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--renderer-process-limit=1", True)
+# set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--process-per-site", "", True)
+# set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-precise-memory-info", "", True)
+# set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--js-flags=--expose-gc", "", True)
+
+# by default, optimize for low-end devices
+set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-low-end-device-mode", True)
+set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-gpu-rasterization", True)
+set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist", True)
+
 # disable warnings
-os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
-os.environ["QT_LOGGING_RULES"] = "qt.multimedia.ffmpeg=false;qt.qpa.fonts=false"
+set_env("TRANSFORMERS_NO_ADVISORY_WARNINGS", 1)
+set_env("QT_LOGGING_RULES", "qt.multimedia.ffmpeg=false;qt.qpa.fonts=false", allow_overwrite=True)
 
 if platform.system() == 'Windows':
-    # fix ffmpeg bug: [SWR] Output channel layout "" is invalid or unsupported.
-    os.environ['QT_MEDIA_BACKEND'] = 'windows'
-
-# enable debug logging
-# os.environ["QT_LOGGING_RULES"] = "*.debug=true"
-# os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
-"""
-os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
-    "--renderer-process-limit=1 "
-    "--process-per-site "
-    "--enable-precise-memory-info "
-    "--js-flags=--expose-gc"
-)
-"""
-# by default, optimize for low-end devices
-os.environ.setdefault(
-    "QTWEBENGINE_CHROMIUM_FLAGS",
-    "--enable-low-end-device-mode"
-)
+    set_env("QT_MEDIA_BACKEND", "windows")
 
 _original_open = builtins.open
 
@@ -201,7 +203,7 @@ from pygpt_net.tools.media_player import MediaPlayer as MediaPlayerTool
 from pygpt_net.tools.text_editor import TextEditor as TextEditorTool
 from pygpt_net.tools.html_canvas import HtmlCanvas as HtmlCanvasTool
 from pygpt_net.tools.translator import Translator as TranslatorTool
-from pygpt_net.tools.agent_builder import AgentBuilder as AgentBuilderTool
+# from pygpt_net.tools.agent_builder import AgentBuilder as AgentBuilderTool
 
 def run(**kwargs):
     """
@@ -509,7 +511,7 @@ def run(**kwargs):
     launcher.add_tool(CodeInterpreterTool())
     launcher.add_tool(HtmlCanvasTool())
     launcher.add_tool(TranslatorTool())
-    launcher.add_tool(AgentBuilderTool())
+    # launcher.add_tool(AgentBuilderTool())
 
     # register custom tools
     tools = kwargs.get('tools', None)

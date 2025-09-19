@@ -200,7 +200,8 @@ def process_api_chat_responses(ctx, core, state, chunk, etype: Optional[str]) ->
             if state.citations is None:
                 state.citations = []
             url_citation = ann['url']
-            state.citations.append(url_citation)
+            if url_citation not in state.citations:
+                state.citations.append(url_citation)
             ctx.urls = state.citations
         elif ann['type'] == "container_file_citation":
             state.files.append({

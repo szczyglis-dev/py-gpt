@@ -108,7 +108,7 @@ class ChatInput(QTextEdit):
 
         self._tokens_timer = QTimer(self)
         self._tokens_timer.setSingleShot(True)
-        self._tokens_timer.setInterval(500)
+        self._tokens_timer.setInterval(1500)
         self._tokens_timer.timeout.connect(self.window.controller.ui.update_tokens)
         self.textChanged.connect(self._on_text_changed_tokens)
 
@@ -221,27 +221,29 @@ class ChatInput(QTextEdit):
     def keyPressEvent(self, event):
         """
         Key press event
-
-        :param event: key event
         """
         handled = False
         key = event.key()
+
         if key in (Qt.Key_Return, Qt.Key_Enter):
             mode = self.window.core.config.get('send_mode')
             if mode > 0:
-                modifiers = event.modifiers()
+                mods = event.modifiers()
+                has_shift_or_ctrl = bool(mods & (Qt.ShiftModifier | Qt.ControlModifier))
+
                 if mode == 2:
-                    if modifiers == Qt.ShiftModifier or modifiers == Qt.ControlModifier:
+                    if has_shift_or_ctrl:
                         self.window.controller.chat.input.send_input()
                         handled = True
                 else:
-                    if modifiers != Qt.ShiftModifier and modifiers != Qt.ControlModifier:
+                    if not has_shift_or_ctrl:
                         self.window.controller.chat.input.send_input()
                         handled = True
+
                 self.setFocus()
-                # Collapse to minimum after sending
                 if handled:
                     QTimer.singleShot(0, self.collapse_to_min)
+
         elif key == Qt.Key_Escape and self.window.controller.ctx.extra.is_editing():
             self.window.controller.ctx.extra.edit_cancel()
             handled = True

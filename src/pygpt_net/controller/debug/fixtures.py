@@ -87,7 +87,7 @@ class Fixtures:
         path = os.path.join(self.window.core.config.get_app_path(), "data", "fixtures", "fake_stream.txt")
         return FakeOpenAIStream(code_path=path).stream(
             api="raw",
-            chunk="code",
+            chunk="code",  # str | code
         )
 
     def setup(self):

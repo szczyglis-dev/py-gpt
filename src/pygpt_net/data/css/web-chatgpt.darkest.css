@@ -65,6 +65,12 @@ code {{
 .code-header-lang {{
     color: #686868;
 }}
+.code-wrapper .code-header-action.code-header-copy:hover, 
+.code-wrapper .code-header-action.code-header-collapse:hover {{
+    transform: scale(1.06);
+    background: var(--copy-btn-bg-hover, rgb(0 0 0 / 76%));
+    border-color: var(--copy-btn-border, rgba(0, 0, 0, .08));
+}}
 .action-icons a:hover {{
     filter: brightness(130%);
 }}

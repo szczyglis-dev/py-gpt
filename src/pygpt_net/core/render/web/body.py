@@ -72,11 +72,39 @@ class Body:
                     // tips
                     """
 
-    _HTML_P6 = """
-                </script>            
-                <script type="text/javascript" src="qrc:///js/app.js"></script>
+    _HTML_P6_DEV = """
+                </script>     
+                <script type="text/javascript" src="qrc:///js/app-async.js"></script>       
+                <script type="text/javascript" src="qrc:///js/app-bridge.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-common.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-config.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-custom.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-data.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-dom.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-events.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-highlight.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-logger.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-markdown.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-math.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-nodes.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-raf.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-scroll.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-stream.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-queue.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-template.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-tool.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-ui.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-user.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-utils.js"></script>
+                <script type="text/javascript" src="qrc:///js/app-runtime.js"></script>
             </head>
             <body """
+
+    _HTML_P6_PROD = """
+                    </script>     
+                    <script type="text/javascript" src="qrc:///js/app.min.js"></script>
+                </head>
+                <body """
 
     _HTML_P7 = """>
             <div id="container">
@@ -204,6 +232,16 @@ class Body:
         }
         .msg {
             text-rendering: optimizeSpeed;
+        }
+        pre > code,
+        .hl-tail,
+        .hl-frozen {
+            contain: layout paint;
+            content-visibility: auto;
+            backface-visibility: hidden;
+            contain-intrinsic-size: 1px 600px;
+            transform: translateZ(0);
+            filter: none !important;
         }
         """
 
@@ -724,6 +762,7 @@ class Body:
         )
 
         tips_js = f'window.TIPS={tips_json};'
+        app_env = os.environ.get("PYGPT_APP_ENV", "prod").lower()
 
         return ''.join((
             self._HTML_P0,
@@ -738,7 +777,7 @@ class Body:
             style_js,
             self._HTML_P5,
             tips_js,
-            self._HTML_P6,
+            self._HTML_P6_DEV if app_env == "dev" else self._HTML_P6_PROD,
             classes_str,
             self._HTML_P7,
         ))

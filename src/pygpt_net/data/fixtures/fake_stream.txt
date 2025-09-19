@@ -1,8 +1,21 @@
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent lobortis lorem sapien, eu viverra tellus auctor nec. Nulla aliquet iaculis tellus, in tempus massa eleifend a. Vestibulum viverra, massa nec aliquet ultrices, felis libero eleifend est, eu elementum sapien libero vitae lectus. Quisque rhoncus mollis felis, sed finibus ex pharetra ultricies. Praesent viverra nulla id congue ullamcorper.
 
+# Header 1
+
+## Header 2
+
+**Lorem** ipsum.
+
+- list1
+- list2
+- list3
+
+`var a = 1;`
+
 <think>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent lobortis lorem sapien, eu viverra tellus auctor nec. Nulla aliquet iaculis tellus, in tempus massa eleifend a. Vestibulum viverra, massa nec aliquet ultrices, felis libero eleifend est, eu elementum sapien libero vitae lectus. Quisque rhoncus mollis felis, sed finibus ex pharetra ultricies. Praesent viverra nulla id congue ullamcorper.</think>
 
-<execute>a = 1
+<execute>
+a = 1
 b = 2
 c = a + b
 print(c)

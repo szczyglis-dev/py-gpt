@@ -111,6 +111,24 @@ class Patch:
                     data["remote_tools.global.web_search"] = True
                 updated = True
 
+            # < 2.6.56
+            if old < parse_version("2.6.56"):
+                print("Migrating config from < 2.6.56...")
+                # copy btn header
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt_wide.css', True)
+                patch_css('web-blocks.css', True)
+                patch_css('web-blocks.light.css', True)
+                patch_css('web-chatgpt.light.css', True)
+                patch_css('web-chatgpt_wide.light.css', True)
+                patch_css('web-blocks.dark.css', True)
+                patch_css('web-chatgpt.dark.css', True)
+                patch_css('web-chatgpt_wide.dark.css', True)
+                patch_css('web-blocks.darkest.css', True)
+                patch_css('web-chatgpt.darkest.css', True)
+                patch_css('web-chatgpt_wide.darkest.css', True)
+                updated = True
+
         # update file
         migrated = False
         if updated:

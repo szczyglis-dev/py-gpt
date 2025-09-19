@@ -30,6 +30,7 @@ if __name__ == '__main__':
     icons_output_file = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'icons.qrc')
     generate_resource_file([icons_source_dir], icons_output_file, '.svg', '/icons')
 
+    """
     # javascript
     js_source_dirs = [
         os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'data', 'js', 'highlight'),
@@ -42,6 +43,7 @@ if __name__ == '__main__':
         "highlight.js" # exclude to leave only highlight.min.js
     ]
     generate_resource_file(js_source_dirs, js_output_file, '.js', '/js', excluded)
+    """
 
     # CSS
     css_source_dirs = [

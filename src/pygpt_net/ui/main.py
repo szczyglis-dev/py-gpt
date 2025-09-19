@@ -22,7 +22,7 @@ from pygpt_net.controller import Controller
 from pygpt_net.tools import Tools
 from pygpt_net.ui import UI
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
-from pygpt_net.utils import get_app_meta, freeze_updates
+from pygpt_net.utils import get_app_meta, freeze_updates, set_env, has_env, get_env
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -112,20 +112,21 @@ class MainWindow(QMainWindow, QtStyleTools):
             render_debug = True
 
         # disable/enable logging web engine context
+        CHROMIUM_FLAGS = "QTWEBENGINE_CHROMIUM_FLAGS"
+
         if not render_debug:
             QLoggingCategory.setFilterRules("*.info=false")
         else:
-            if "QTWEBENGINE_CHROMIUM_FLAGS" in os.environ:
-                os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] += " --enable-logging --log-level=0"
-            else:
-                os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --log-level=0"
+            set_env(CHROMIUM_FLAGS, "--enable-logging", True)
+            set_env(CHROMIUM_FLAGS, "--log-level=0", True)
 
         # OpenGL disable
         if self.core.config.get("render.open_gl") is False:
-            if "QTWEBENGINE_CHROMIUM_FLAGS" in os.environ:
-                os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] += " --disable-gpu"
-            else:
-                os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
+            set_env(CHROMIUM_FLAGS, "--disable-gpu", True)
+
+        # log chromium flags
+        if (has_env(CHROMIUM_FLAGS) and get_env("PYGPT_APP_ENV") == "dev") or render_debug:
+            print("Running with Chromium flags:", get_env(CHROMIUM_FLAGS))
 
     def add_plugin(self, plugin):
         """

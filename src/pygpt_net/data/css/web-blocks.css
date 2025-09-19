@@ -124,6 +124,14 @@ think {{
 .code-header-copy:hover img {{
   filter: brightness(130%);
 }}
+.code-header-preview span {{
+  padding-left: 6px;
+  padding-right: 2px;
+}}
+.code-header-run span {{
+  padding-left: 2px;
+  padding-right: 2px;
+}}
 .code-wrapper {{
   padding: 0px;
   margin: 0px;
