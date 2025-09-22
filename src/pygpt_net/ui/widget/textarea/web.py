@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.09.16 02:00:00                  #
 # ================================================== #
-
+from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QUrl, QCoreApplication, QEventLoop
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
@@ -44,6 +44,7 @@ class ChatWebOutput(QWebEngineView):
         self.meta = None
         self.tab = None
         self.setProperty('class', 'layout-output-web')
+        self.setMouseTracking(True)
 
         # OpenGL widgets
         self._glwidget = None

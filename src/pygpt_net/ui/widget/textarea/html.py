@@ -41,6 +41,7 @@ class HtmlOutput(QWebEngineView):
         self.html_content = ""
         self.meta = None
         self.tab = None
+        self.setMouseTracking(True)
         self.installEventFilter(self)
 
     def on_delete(self):
