@@ -173,6 +173,7 @@ think {{
 }}
 .action-icons a {{
   text-decoration: none;
+  transition: filter 0.3s ease;
 }}
 .action-icons a:hover {{
   filter: brightness(120%);

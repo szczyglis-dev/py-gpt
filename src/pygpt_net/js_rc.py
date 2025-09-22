@@ -78545,315 +78545,447 @@ treamQueue');\x0a\x09\x09\
 \x09this.drainSched\
 uled = false;\x0a\x09}\
 \x0a}\
-\x00\x009\x88\
+\x00\x009z\
 /\
-/ events.js\x0a\x0a// \
+/ ==============\
 ================\
 ================\
 ================\
-================\
-==========\x0a// Ev\
-ent manager\x0a// =\
-================\
-================\
+============\x0a// \
+Event manager\x0a//\
+ ===============\
 ================\
 ================\
-=========\x0a\x0aclass\
- EventManager {\x0a\
-\x0a\x09// Initializes\
- the event manag\
-er.\x0a\x09constructor\
-(cfg, dom, scrol\
-lMgr, highlighte\
-r, codeScroll, t\
-oolOutput, bridg\
-e) {\x0a\x09\x09this.cfg \
-= cfg;\x0a\x09\x09this.do\
-m = dom;\x0a\x09\x09this.\
-scrollMgr = scro\
-llMgr;\x0a\x09\x09this.hi\
-ghlighter = high\
-lighter;\x0a\x09\x09this.\
-codeScroll = cod\
-eScroll;\x0a\x09\x09this.\
-toolOutput = too\
-lOutput;\x0a\x09\x09this.\
-bridge = bridge;\
-\x0a\x09\x09this.handlers\
- = {\x0a\x09\x09\x09wheel: n\
-ull,\x0a\x09\x09\x09scroll: \
-null,\x0a\x09\x09\x09resize:\
- null,\x0a\x09\x09\x09fabCli\
-ck: null,\x0a\x09\x09\x09mou\
-seover: null,\x0a\x09\x09\
-\x09mouseout: null,\
-\x0a\x09\x09\x09click: null,\
-\x0a\x09\x09\x09keydown: nul\
-l,\x0a\x09\x09\x09docClickFo\
-cus: null,\x0a\x09\x09\x09vi\
-sibility: null,\x0a\
-\x09\x09\x09focus: null,\x0a\
-\x09\x09\x09pageshow: nul\
-l\x0a\x09\x09};\x0a\x09}\x0a\x0a\x09// F\
-inds the closest\
- code wrapper el\
-ement.\x0a\x09_findWra\
-pper(target) {\x0a\x09\
-\x09if (!target || \
-typeof target.cl\
-osest !== 'funct\
-ion') return nul\
-l;\x0a\x09\x09return targ\
-et.closest('.cod\
-e-wrapper');\x0a\x09}\x0a\
-\x0a\x09// Gets the co\
-de element insid\
-e a wrapper.\x0a\x09_g\
-etCodeEl(wrapper\
-) {\x0a\x09\x09if (!wrapp\
-er) return null;\
-\x0a\x09\x09return wrappe\
-r.querySelector(\
-'pre > code');\x0a\x09\
-}\x0a\x0a\x09// Collects \
-the text content\
- from a code ele\
-ment.\x0a\x09_collectC\
-odeText(codeEl) \
-{\x0a\x09\x09if (!codeEl)\
- return '';\x0a\x09\x09co\
-nst frozen = cod\
-eEl.querySelecto\
-r('.hl-frozen');\
-\x0a\x09\x09const tail = \
-codeEl.querySele\
-ctor('.hl-tail')\
-;\x0a\x09\x09if (frozen |\
-| tail) return (\
-frozen?.textCont\
-ent || '') + (ta\
-il?.textContent \
-|| '');\x0a\x09\x09return\
- codeEl.textCont\
-ent || '';\x0a\x09}\x0a\x0a\x09\
-// Collect plain\
- text from a use\
-r message, ignor\
-ing helper UI (e\
-llipsis/toggle/i\
-con).\x0a\x09_collectU\
-serText(msgBox) \
-{\x0a\x09\x09if (!msgBox)\
- return '';\x0a\x09\x09co\
-nst msg = msgBox\
-.querySelector('\
-.msg');\x0a\x09\x09if (!m\
-sg) return '';\x0a\x09\
-\x09// Prefer the c\
-ontent container\
- if present.\x0a\x09\x09c\
-onst root = msg.\
-querySelector('.\
-uc-content') || \
-msg;\x0a\x0a\x09\x09let out \
-= '';\x0a\x09\x09const wa\
-lker = document.\
-createTreeWalker\
-(\x0a\x09\x09\x09root,\x0a\x09\x09\x09No\
-deFilter.SHOW_EL\
-EMENT | NodeFilt\
-er.SHOW_TEXT,\x0a\x09\x09\
-\x09{\x0a\x09\x09\x09\x09acceptNod\
-e: (node) => {\x0a\x09\
-\x09\x09\x09\x09if (node.nod\
-eType === Node.E\
-LEMENT_NODE) {\x0a\x09\
-\x09\x09\x09\x09\x09const el = \
-node;\x0a\x09\x09\x09\x09\x09\x09// S\
-kip helper UI an\
-d prune subtree.\
-\x0a\x09\x09\x09\x09\x09\x09if (el.ma\
-tches('.uc-ellip\
-sis,[data-copy-i\
-gnore=\x221\x22],.msg-\
-copy-btn,.uc-tog\
-gle')) {\x0a\x09\x09\x09\x09\x09\x09\x09\
-return NodeFilte\
-r.FILTER_REJECT;\
-\x0a\x09\x09\x09\x09\x09\x09}\x0a\x09\x09\x09\x09\x09\x09/\
-/ Convert <br> i\
-nto newlines.\x0a\x09\x09\
-\x09\x09\x09\x09if (el.tagNa\
-me === 'BR') {\x0a\x09\
-\x09\x09\x09\x09\x09\x09out += '\x5cn\
-';\x0a\x09\x09\x09\x09\x09\x09\x09return\
+================\
+===========\x0a\x0acla\
+ss EventManager \
+{\x0a\x0a\x09// Initializ\
+es the event man\
+ager.\x0a\x09construct\
+or(cfg, dom, scr\
+ollMgr, highligh\
+ter, codeScroll,\
+ toolOutput, bri\
+dge) {\x0a\x09\x09this.cf\
+g = cfg;\x0a\x09\x09this.\
+dom = dom;\x0a\x09\x09thi\
+s.scrollMgr = sc\
+rollMgr;\x0a\x09\x09this.\
+highlighter = hi\
+ghlighter;\x0a\x09\x09thi\
+s.codeScroll = c\
+odeScroll;\x0a\x09\x09thi\
+s.toolOutput = t\
+oolOutput;\x0a\x09\x09thi\
+s.bridge = bridg\
+e;\x0a\x09\x09this.handle\
+rs = {\x0a\x09\x09\x09wheel:\
+ null,\x0a\x09\x09\x09scroll\
+: null,\x0a\x09\x09\x09resiz\
+e: null,\x0a\x09\x09\x09fabC\
+lick: null,\x0a\x09\x09\x09m\
+ouseover: null,\x0a\
+\x09\x09\x09mouseout: nul\
+l,\x0a\x09\x09\x09click: nul\
+l,\x0a\x09\x09\x09keydown: n\
+ull,\x0a\x09\x09\x09docClick\
+Focus: null,\x0a\x09\x09\x09\
+visibility: null\
+,\x0a\x09\x09\x09focus: null\
+,\x0a\x09\x09\x09pageshow: n\
+ull\x0a\x09\x09};\x0a\x09}\x0a\x0a\x09//\
+ Finds the close\
+st code wrapper \
+element.\x0a\x09_findW\
+rapper(target) {\
+\x0a\x09\x09if (!target |\
+| typeof target.\
+closest !== 'fun\
+ction') return n\
+ull;\x0a\x09\x09return ta\
+rget.closest('.c\
+ode-wrapper');\x0a\x09\
+}\x0a\x0a\x09// Gets the \
+code element ins\
+ide a wrapper.\x0a\x09\
+_getCodeEl(wrapp\
+er) {\x0a\x09\x09if (!wra\
+pper) return nul\
+l;\x0a\x09\x09return wrap\
+per.querySelecto\
+r('pre > code');\
+\x0a\x09}\x0a\x0a\x09// Collect\
+s the text conte\
+nt from a code e\
+lement.\x0a\x09_collec\
+tCodeText(codeEl\
+) {\x0a\x09\x09if (!codeE\
+l) return '';\x0a\x09\x09\
+const frozen = c\
+odeEl.querySelec\
+tor('.hl-frozen'\
+);\x0a\x09\x09const tail \
+= codeEl.querySe\
+lector('.hl-tail\
+');\x0a\x09\x09if (frozen\
+ || tail) return\
+ (frozen?.textCo\
+ntent || '') + (\
+tail?.textConten\
+t || '');\x0a\x09\x09retu\
+rn codeEl.textCo\
+ntent || '';\x0a\x09}\x0a\
+\x0a\x09// Collect pla\
+in text from a u\
+ser message, ign\
+oring helper UI \
+(ellipsis/toggle\
+/icon).\x0a\x09_collec\
+tUserText(msgBox\
+) {\x0a\x09\x09if (!msgBo\
+x) return '';\x0a\x09\x09\
+const msg = msgB\
+ox.querySelector\
+('.msg');\x0a\x09\x09if (\
+!msg) return '';\
+\x0a\x09\x09// Prefer the\
+ content contain\
+er if present.\x0a\x09\
+\x09const root = ms\
+g.querySelector(\
+'.uc-content') |\
+| msg;\x0a\x0a\x09\x09let ou\
+t = '';\x0a\x09\x09const \
+walker = documen\
+t.createTreeWalk\
+er(\x0a\x09\x09\x09root,\x0a\x09\x09\x09\
+NodeFilter.SHOW_\
+ELEMENT | NodeFi\
+lter.SHOW_TEXT,\x0a\
+\x09\x09\x09{\x0a\x09\x09\x09\x09acceptN\
+ode: (node) => {\
+\x0a\x09\x09\x09\x09\x09if (node.n\
+odeType === Node\
+.ELEMENT_NODE) {\
+\x0a\x09\x09\x09\x09\x09\x09const el \
+= node;\x0a\x09\x09\x09\x09\x09\x09//\
+ Skip helper UI \
+and prune subtre\
+e.\x0a\x09\x09\x09\x09\x09\x09if (el.\
+matches('.uc-ell\
+ipsis,[data-copy\
+-ignore=\x221\x22],.ms\
+g-copy-btn,.uc-t\
+oggle')) {\x0a\x09\x09\x09\x09\x09\
+\x09\x09return NodeFil\
+ter.FILTER_REJEC\
+T;\x0a\x09\x09\x09\x09\x09\x09}\x0a\x09\x09\x09\x09\x09\
+\x09// Convert <br>\
+ into newlines.\x0a\
+\x09\x09\x09\x09\x09\x09if (el.tag\
+Name === 'BR') {\
+\x0a\x09\x09\x09\x09\x09\x09\x09out += '\
+\x5cn';\x0a\x09\x09\x09\x09\x09\x09\x09retu\
+rn NodeFilter.FI\
+LTER_SKIP;\x0a\x09\x09\x09\x09\x09\
+\x09}\x0a\x09\x09\x09\x09\x09}\x0a\x09\x09\x09\x09\x09i\
+f (node.nodeType\
+ === Node.TEXT_N\
+ODE) {\x0a\x09\x09\x09\x09\x09\x09ret\
+urn NodeFilter.F\
+ILTER_ACCEPT;\x0a\x09\x09\
+\x09\x09\x09}\x0a\x09\x09\x09\x09\x09return\
  NodeFilter.FILT\
-ER_SKIP;\x0a\x09\x09\x09\x09\x09\x09}\
-\x0a\x09\x09\x09\x09\x09}\x0a\x09\x09\x09\x09\x09if \
-(node.nodeType =\
-== Node.TEXT_NOD\
-E) {\x0a\x09\x09\x09\x09\x09\x09retur\
-n NodeFilter.FIL\
-TER_ACCEPT;\x0a\x09\x09\x09\x09\
-\x09}\x0a\x09\x09\x09\x09\x09return N\
-odeFilter.FILTER\
-_SKIP;\x0a\x09\x09\x09\x09}\x0a\x09\x09\x09\
-},\x0a\x09\x09\x09false\x0a\x09\x09);\
-\x0a\x0a\x09\x09let n;\x0a\x09\x09whi\
-le ((n = walker.\
-nextNode())) {\x0a\x09\
-\x09\x09out += n.nodeV\
-alue;\x0a\x09\x09}\x0a\x09\x09retu\
-rn String(out ||\
- '').replace(/\x5cr\
-\x5cn?/g, '\x5cn');\x0a\x09}\
-\x0a\x0a\x09// Copy to cl\
-ipboard via brid\
-ge if available,\
- otherwise use b\
-rowser APIs.\x0a\x09as\
-ync _copyTextRob\
-ust(text) {\x0a\x09\x09tr\
-y {\x0a\x09\x09\x09if (this.\
-bridge && typeof\
- this.bridge.cop\
-yCode === 'funct\
-ion') {\x0a\x09\x09\x09\x09this\
-.bridge.copyCode\
-(text);\x0a\x09\x09\x09\x09retu\
-rn true;\x0a\x09\x09\x09}\x0a\x09\x09\
-} catch (_) {}\x0a\x09\
-\x09try {\x0a\x09\x09\x09if (na\
-vigator && navig\
-ator.clipboard &\
-& navigator.clip\
-board.writeText)\
- {\x0a\x09\x09\x09\x09await nav\
+ER_SKIP;\x0a\x09\x09\x09\x09}\x0a\x09\
+\x09\x09},\x0a\x09\x09\x09false\x0a\x09\x09\
+);\x0a\x0a\x09\x09let n;\x0a\x09\x09w\
+hile ((n = walke\
+r.nextNode())) {\
+\x0a\x09\x09\x09out += n.nod\
+eValue;\x0a\x09\x09}\x0a\x09\x09re\
+turn String(out \
+|| '').replace(/\
+\x5cr\x5cn?/g, '\x5cn');\x0a\
+\x09}\x0a\x0a\x09// Copy to \
+clipboard via br\
+idge if availabl\
+e, otherwise use\
+ browser APIs.\x0a\x09\
+async _copyTextR\
+obust(text) {\x0a\x09\x09\
+try {\x0a\x09\x09\x09if (thi\
+s.bridge && type\
+of this.bridge.c\
+opyCode === 'fun\
+ction') {\x0a\x09\x09\x09\x09th\
+is.bridge.copyCo\
+de(text);\x0a\x09\x09\x09\x09re\
+turn true;\x0a\x09\x09\x09}\x0a\
+\x09\x09} catch (_) {}\
+\x0a\x09\x09try {\x0a\x09\x09\x09if (\
+navigator && nav\
 igator.clipboard\
-.writeText(text)\
-;\x0a\x09\x09\x09\x09return tru\
-e;\x0a\x09\x09\x09}\x0a\x09\x09} catc\
-h (_) {}\x0a\x09\x09try {\
-\x0a\x09\x09\x09const ta = d\
-ocument.createEl\
-ement('textarea'\
-);\x0a\x09\x09\x09ta.value =\
- text;\x0a\x09\x09\x09ta.set\
-Attribute('reado\
-nly', '');\x0a\x09\x09\x09ta\
-.style.position \
-= 'fixed';\x0a\x09\x09\x09ta\
-.style.top = '-9\
-999px';\x0a\x09\x09\x09ta.st\
-yle.opacity = '0\
-';\x0a\x09\x09\x09document.b\
-ody.appendChild(\
-ta);\x0a\x09\x09\x09ta.selec\
-t();\x0a\x09\x09\x09const ok\
- = document.exec\
-Command && docum\
-ent.execCommand(\
-'copy');\x0a\x09\x09\x09docu\
-ment.body.remove\
-Child(ta);\x0a\x09\x09\x09re\
-turn !!ok;\x0a\x09\x09} c\
-atch (_) {\x0a\x09\x09\x09re\
-turn false;\x0a\x09\x09}\x0a\
-\x09}\x0a\x0a\x09// Flash \x22C\
-opied\x22 feedback \
-on the copy butt\
-on.\x0a    _flashCo\
-pied(btn, wrappe\
-r) {\x0a        if \
-(!btn) return;\x0a \
-       const DUR\
- = 1200;\x0a\x0a      \
-  // Try to find\
- an icon to swap\
- (works for both\
- code-header and\
- msg copy button\
-s)\x0a        const\
- img = btn.query\
-Selector('img.co\
-py-img') || btn.\
-querySelector('i\
-mg.action-img') \
-|| btn.querySele\
-ctor('img');\x0a\x0a  \
-      // Clear p\
-ending timers to\
- avoid races on \
-rapid clicks\x0a   \
-     try { if (b\
-tn.__copyTimer) \
-{ clearTimeout(b\
-tn.__copyTimer);\
- btn.__copyTimer\
- = 0; } } catch \
-(_) {}\x0a        t\
-ry { if (btn.__i\
-conTimer) { clea\
-rTimeout(btn.__i\
-conTimer); btn._\
-_iconTimer = 0; \
-} } catch (_) {}\
-\x0a\x0a        // Ico\
-n swap to succes\
-s (window.ICON_D\
-ONE), then resto\
-re\x0a        if (t\
-ypeof window !==\
- 'undefined' && \
-window.ICON_DONE\
- && img) {\x0a     \
-       // Cache \
-original icon on\
-ce\x0a            i\
-f (!btn.__origIc\
-onSrc) {\x0a       \
-         try { b\
-tn.__origIconSrc\
- = img.getAttrib\
-ute('src') || ''\
-; } catch (_) { \
-btn.__origIconSr\
-c = ''; }\x0a      \
-      }\x0a        \
-    try { img.se\
-tAttribute('src'\
-, String(window.\
-ICON_DONE)); } c\
-atch (_) {}\x0a    \
-        btn.__ic\
-onTimer = setTim\
-eout(() => {\x0a   \
-             try\
- {\x0a             \
-       const ori\
-g = btn.__origIc\
-onSrc || '';\x0a   \
-                \
- if (orig) img.s\
-etAttribute('src\
-', orig);\x0a      \
-          } catc\
+ && navigator.cl\
+ipboard.writeTex\
+t) {\x0a\x09\x09\x09\x09await n\
+avigator.clipboa\
+rd.writeText(tex\
+t);\x0a\x09\x09\x09\x09return t\
+rue;\x0a\x09\x09\x09}\x0a\x09\x09} ca\
+tch (_) {}\x0a\x09\x09try\
+ {\x0a\x09\x09\x09const ta =\
+ document.create\
+Element('textare\
+a');\x0a\x09\x09\x09ta.value\
+ = text;\x0a\x09\x09\x09ta.s\
+etAttribute('rea\
+donly', '');\x0a\x09\x09\x09\
+ta.style.positio\
+n = 'fixed';\x0a\x09\x09\x09\
+ta.style.top = '\
+-9999px';\x0a\x09\x09\x09ta.\
+style.opacity = \
+'0';\x0a\x09\x09\x09document\
+.body.appendChil\
+d(ta);\x0a\x09\x09\x09ta.sel\
+ect();\x0a\x09\x09\x09const \
+ok = document.ex\
+ecCommand && doc\
+ument.execComman\
+d('copy');\x0a\x09\x09\x09do\
+cument.body.remo\
+veChild(ta);\x0a\x09\x09\x09\
+return !!ok;\x0a\x09\x09}\
+ catch (_) {\x0a\x09\x09\x09\
+return false;\x0a\x09\x09\
+}\x0a\x09}\x0a\x0a\x09// Flash \
+\x22Copied\x22 feedbac\
+k on the copy bu\
+tton.\x0a    _flash\
+Copied(btn, wrap\
+per) {\x0a        i\
+f (!btn) return;\
+\x0a        const D\
+UR = 1200;\x0a\x0a    \
+    // Try to fi\
+nd an icon to sw\
+ap (works for bo\
+th code-header a\
+nd msg copy butt\
+ons)\x0a        con\
+st img = btn.que\
+rySelector('img.\
+copy-img') || bt\
+n.querySelector(\
+'img.action-img'\
+) || btn.querySe\
+lector('img');\x0a\x0a\
+        // Clear\
+ pending timers \
+to avoid races o\
+n rapid clicks\x0a \
+       try { if \
+(btn.__copyTimer\
+) { clearTimeout\
+(btn.__copyTimer\
+); btn.__copyTim\
+er = 0; } } catc\
 h (_) {}\x0a       \
-         btn.__i\
-conTimer = 0;\x0a  \
-          }, DUR\
-);\x0a        }\x0a\x0a  \
-      const span\
- = btn.querySele\
-ctor('span');\x0a  \
-      // Icon-on\
-ly fallback (no \
-label)\x0a        i\
-f (!span) {\x0a    \
-        btn.clas\
-sList.add('copie\
-d');\x0a           \
- btn.__copyTimer\
+ try { if (btn._\
+_iconTimer) { cl\
+earTimeout(btn._\
+_iconTimer); btn\
+.__iconTimer = 0\
+; } } catch (_) \
+{}\x0a\x0a        // I\
+con swap to succ\
+ess (window.ICON\
+_DONE), then res\
+tore\x0a        if \
+(typeof window !\
+== 'undefined' &\
+& window.ICON_DO\
+NE && img) {\x0a   \
+         // Cach\
+e original icon \
+once\x0a           \
+ if (!btn.__orig\
+IconSrc) {\x0a     \
+           try {\
+ btn.__origIconS\
+rc = img.getAttr\
+ibute('src') || \
+''; } catch (_) \
+{ btn.__origIcon\
+Src = ''; }\x0a    \
+        }\x0a      \
+      try { img.\
+setAttribute('sr\
+c', String(windo\
+w.ICON_DONE)); }\
+ catch (_) {}\x0a  \
+          btn.__\
+iconTimer = setT\
+imeout(() => {\x0a \
+               t\
+ry {\x0a           \
+         const o\
+rig = btn.__orig\
+IconSrc || '';\x0a \
+                \
+   if (orig) img\
+.setAttribute('s\
+rc', orig);\x0a    \
+            } ca\
+tch (_) {}\x0a     \
+           btn._\
+_iconTimer = 0;\x0a\
+            }, D\
+UR);\x0a        }\x0a\x0a\
+        const sp\
+an = btn.querySe\
+lector('span');\x0a\
+        // Icon-\
+only fallback (n\
+o label)\x0a       \
+ if (!span) {\x0a  \
+          btn.cl\
+assList.add('cop\
+ied');\x0a         \
+   btn.__copyTim\
+er = setTimeout(\
+() => {\x0a        \
+        try { bt\
+n.classList.remo\
+ve('copied'); } \
+catch (_) {}\x0a   \
+             btn\
+.__copyTimer = 0\
+;\x0a            },\
+ DUR);\x0a         \
+   return;\x0a     \
+   }\x0a\x0a        co\
+nst L_COPY = (wr\
+apper && wrapper\
+.getAttribute('d\
+ata-locale-copy'\
+)) || 'Copy';\x0a  \
+      const L_CO\
+PIED = (wrapper \
+&& wrapper.getAt\
+tribute('data-lo\
+cale-copied')) |\
+| 'Copied';\x0a    \
+    span.textCon\
+tent = L_COPIED;\
+\x0a        btn.cla\
+ssList.add('copi\
+ed');\x0a        bt\
+n.__copyTimer = \
+setTimeout(() =>\
+ {\x0a            t\
+ry {\x0a           \
+     span.textCo\
+ntent = L_COPY;\x0a\
+                \
+btn.classList.re\
+move('copied');\x0a\
+            } ca\
+tch (_) {}\x0a     \
+       btn.__cop\
+yTimer = 0;\x0a    \
+    }, DUR);\x0a   \
+ }\x0a\x0a\x09// Toggle c\
+ode collapse/exp\
+and and remember\
+ collapsed indic\
+es.\x0a    _toggleC\
+ollapse(wrapper)\
+ {\x0a        if (!\
+wrapper) return;\
+\x0a        const c\
+odeEl = this._ge\
+tCodeEl(wrapper)\
+;\x0a        if (!c\
+odeEl) return;\x0a \
+       const btn\
+ = wrapper.query\
+Selector('.code-\
+header-collapse'\
+);\x0a        const\
+ span = btn ? bt\
+n.querySelector(\
+'span') : null;\x0a\
+        const L_\
+COLLAPSE = wrapp\
+er.getAttribute(\
+'data-locale-col\
+lapse') || 'Coll\
+apse';\x0a        c\
+onst L_EXPAND = \
+wrapper.getAttri\
+bute('data-local\
+e-expand') || 'E\
+xpand';\x0a        \
+const idx = Stri\
+ng(wrapper.getAt\
+tribute('data-in\
+dex') || '');\x0a  \
+      const arr \
+= window.__colla\
+psed_idx || (win\
+dow.__collapsed_\
+idx = []);\x0a     \
+   const isHidde\
+n = (codeEl.styl\
+e.display === 'n\
+one');\x0a\x0a        \
+if (isHidden) {\x0a\
+            code\
+El.style.display\
+ = 'block';\x0a    \
+        if (span\
+) span.textConte\
+nt = L_COLLAPSE;\
+\x0a            con\
+st p = arr.index\
+Of(idx);\x0a       \
+     if (p !== -\
+1) arr.splice(p,\
+ 1);\x0a           \
+ if (btn) btn.se\
+tAttribute('titl\
+e', L_COLLAPSE);\
+\x0a        } else \
+{\x0a            co\
+deEl.style.displ\
+ay = 'none';\x0a   \
+         if (spa\
+n) span.textCont\
+ent = L_EXPAND;\x0a\
+            if (\
+!arr.includes(id\
+x)) arr.push(idx\
+);\x0a            i\
+f (btn) btn.setA\
+ttribute('title'\
+, L_EXPAND);\x0a   \
+     }\x0a\x0a        \
+// Click feedbac\
+k (same \x22pop\x22 ef\
+fect as input)\x0a \
+       if (btn) \
+{\x0a            tr\
+y { if (btn.__po\
+pTimer) { clearT\
+imeout(btn.__pop\
+Timer); btn.__po\
+pTimer = 0; } } \
+catch (_) {}\x0a   \
+         btn.cla\
+ssList.add('copi\
+ed');\x0a          \
+  btn.__popTimer\
  = setTimeout(()\
  => {\x0a          \
       try { btn.\
@@ -78861,613 +78993,480 @@ classList.remove\
 ('copied'); } ca\
 tch (_) {}\x0a     \
            btn._\
-_copyTimer = 0;\x0a\
-            }, D\
-UR);\x0a           \
- return;\x0a       \
- }\x0a\x0a        cons\
-t L_COPY = (wrap\
-per && wrapper.g\
-etAttribute('dat\
-a-locale-copy'))\
- || 'Copy';\x0a    \
-    const L_COPI\
-ED = (wrapper &&\
- wrapper.getAttr\
-ibute('data-loca\
-le-copied')) || \
-'Copied';\x0a      \
-  span.textConte\
-nt = L_COPIED;\x0a \
-       btn.class\
-List.add('copied\
-');\x0a        btn.\
-__copyTimer = se\
-tTimeout(() => {\
-\x0a            try\
- {\x0a             \
-   span.textCont\
-ent = L_COPY;\x0a  \
-              bt\
-n.classList.remo\
-ve('copied');\x0a  \
-          } catc\
-h (_) {}\x0a       \
-     btn.__copyT\
-imer = 0;\x0a      \
-  }, DUR);\x0a    }\
-\x0a\x0a\x09// Toggle cod\
-e collapse/expan\
-d and remember c\
-ollapsed indices\
-.\x0a    _toggleCol\
-lapse(wrapper) {\
-\x0a        if (!wr\
-apper) return;\x0a \
-       const cod\
-eEl = this._getC\
-odeEl(wrapper);\x0a\
-        if (!cod\
-eEl) return;\x0a   \
-     const btn =\
- wrapper.querySe\
-lector('.code-he\
-ader-collapse');\
-\x0a        const s\
-pan = btn ? btn.\
-querySelector('s\
-pan') : null;\x0a  \
-      const L_CO\
-LLAPSE = wrapper\
-.getAttribute('d\
-ata-locale-colla\
-pse') || 'Collap\
-se';\x0a        con\
-st L_EXPAND = wr\
-apper.getAttribu\
-te('data-locale-\
-expand') || 'Exp\
-and';\x0a        co\
-nst idx = String\
-(wrapper.getAttr\
-ibute('data-inde\
-x') || '');\x0a    \
-    const arr = \
-window.__collaps\
-ed_idx || (windo\
-w.__collapsed_id\
-x = []);\x0a       \
- const isHidden \
-= (codeEl.style.\
-display === 'non\
-e');\x0a\x0a        if\
- (isHidden) {\x0a  \
-          codeEl\
-.style.display =\
- 'block';\x0a      \
-      if (span) \
-span.textContent\
- = L_COLLAPSE;\x0a \
-           const\
- p = arr.indexOf\
-(idx);\x0a         \
-   if (p !== -1)\
- arr.splice(p, 1\
-);\x0a            i\
-f (btn) btn.setA\
-ttribute('title'\
-, L_COLLAPSE);\x0a \
-       } else {\x0a\
-            code\
-El.style.display\
- = 'none';\x0a     \
-       if (span)\
- span.textConten\
-t = L_EXPAND;\x0a  \
-          if (!a\
-rr.includes(idx)\
-) arr.push(idx);\
-\x0a            if \
-(btn) btn.setAtt\
-ribute('title', \
-L_EXPAND);\x0a     \
-   }\x0a\x0a        //\
- Click feedback \
-(same \x22pop\x22 effe\
-ct as input)\x0a   \
-     if (btn) {\x0a\
-            try \
-{ if (btn.__popT\
-imer) { clearTim\
-eout(btn.__popTi\
-mer); btn.__popT\
-imer = 0; } } ca\
-tch (_) {}\x0a     \
-       btn.class\
-List.add('copied\
-');\x0a            \
-btn.__popTimer =\
- setTimeout(() =\
-> {\x0a            \
-    try { btn.cl\
-assList.remove('\
-copied'); } catc\
-h (_) {}\x0a       \
-         btn.__p\
-opTimer = 0;\x0a   \
-         }, 1200\
-);\x0a        }\x0a   \
- }\x0a\x0a\x09// Attach g\
-lobal UI event h\
-andlers and cont\
-ainer-level inte\
-ractions.\x0a\x09insta\
-ll() {\x0a\x09\x09try {\x0a\x09\
-\x09\x09history.scroll\
-Restoration = \x22m\
-anual\x22;\x0a\x09\x09} catc\
-h (_) {}\x0a\x0a\x09\x09this\
-.handlers.keydow\
-n = (event) => {\
-\x0a\x09\x09\x09if (event.ct\
-rlKey && event.k\
-ey === 'f') {\x0a\x09\x09\
-\x09\x09window.locatio\
-n.href = 'bridge\
-://open_find:' +\
- runtime.cfg.PID\
-;\x0a\x09\x09\x09\x09event.prev\
-entDefault();\x0a\x09\x09\
-\x09}\x0a\x09\x09\x09if (event.\
-key === 'Escape'\
-) {\x0a\x09\x09\x09\x09window.l\
-ocation.href = '\
-bridge://escape'\
-;\x0a\x09\x09\x09\x09event.prev\
-entDefault();\x0a\x09\x09\
-\x09}\x0a\x09\x09};\x0a\x09\x09docume\
-nt.addEventListe\
-ner('keydown', t\
-his.handlers.key\
-down, { passive:\
- false });\x0a\x0a\x09\x09//\
- Removed global \
-click-to-focus n\
-avigation and vi\
-sibility/focus w\
-akeups to keep t\
-he pump rAF-only\
- and click-agnos\
-tic.\x0a\x0a\x09\x09const co\
-ntainer = this.d\
-om.get('containe\
-r');\x0a\x09\x09const inp\
-utArea = this.do\
-m.get('_append_i\
-nput_');\x0a\x0a\x09\x09cons\
-t addClassToMsg \
-= (id, className\
-) => {\x0a\x09\x09\x09const \
+_popTimer = 0;\x0a \
+           }, 12\
+00);\x0a        }\x0a \
+   }\x0a\x0a\x09// Attach\
+ global UI event\
+ handlers and co\
+ntainer-level in\
+teractions.\x0a\x09ins\
+tall() {\x0a\x09\x09try {\
+\x0a\x09\x09\x09history.scro\
+llRestoration = \
+\x22manual\x22;\x0a\x09\x09} ca\
+tch (_) {}\x0a\x0a\x09\x09th\
+is.handlers.keyd\
+own = (event) =>\
+ {\x0a\x09\x09\x09if (event.\
+ctrlKey && event\
+.key === 'f') {\x0a\
+\x09\x09\x09\x09window.locat\
+ion.href = 'brid\
+ge://open_find:'\
+ + runtime.cfg.P\
+ID;\x0a\x09\x09\x09\x09event.pr\
+eventDefault();\x0a\
+\x09\x09\x09}\x0a\x09\x09\x09if (even\
+t.key === 'Escap\
+e') {\x0a\x09\x09\x09\x09window\
+.location.href =\
+ 'bridge://escap\
+e';\x0a\x09\x09\x09\x09event.pr\
+eventDefault();\x0a\
+\x09\x09\x09}\x0a\x09\x09};\x0a\x09\x09docu\
+ment.addEventLis\
+tener('keydown',\
+ this.handlers.k\
+eydown, { passiv\
+e: false });\x0a\x0a\x09\x09\
+// Removed globa\
+l click-to-focus\
+ navigation and \
+visibility/focus\
+ wakeups to keep\
+ the pump rAF-on\
+ly and click-agn\
+ostic.\x0a\x0a\x09\x09const \
+container = this\
+.dom.get('contai\
+ner');\x0a\x09\x09const i\
+nputArea = this.\
+dom.get('_append\
+_input_');\x0a\x0a\x09\x09co\
+nst addClassToMs\
+g = (id, classNa\
+me) => {\x0a\x09\x09\x09cons\
+t el = document.\
+getElementById('\
+msg-bot-' + id);\
+\x0a\x09\x09\x09if (el) el.c\
+lassList.add(cla\
+ssName);\x0a\x09\x09};\x0a\x09\x09\
+const removeClas\
+sFromMsg = (id, \
+className) => {\x0a\
+\x09\x09\x09const el = do\
+cument.getElemen\
+tById('msg-bot-'\
+ + id);\x0a\x09\x09\x09if (e\
+l) el.classList.\
+remove(className\
+);\x0a\x09\x09};\x0a\x0a\x09\x09this.\
+handlers.mouseov\
+er = (event) => \
+{\x0a\x09\x09\x09if (event.t\
+arget.classList.\
+contains('action\
+-img')) {\x0a\x09\x09\x09\x09co\
+nst id = event.t\
+arget.getAttribu\
+te('data-id');\x0a\x09\
+\x09\x09\x09addClassToMsg\
+(id, 'msg-highli\
+ght');\x0a\x09\x09\x09}\x0a\x09\x09};\
+\x0a\x09\x09this.handlers\
+.mouseout = (eve\
+nt) => {\x0a\x09\x09\x09if (\
+event.target.cla\
+ssList.contains(\
+'action-img')) {\
+\x0a\x09\x09\x09\x09const id = \
+event.target.get\
+Attribute('data-\
+id');\x0a\x09\x09\x09\x09const \
 el = document.ge\
 tElementById('ms\
 g-bot-' + id);\x0a\x09\
-\x09\x09if (el) el.cla\
-ssList.add(class\
-Name);\x0a\x09\x09};\x0a\x09\x09co\
-nst removeClassF\
-romMsg = (id, cl\
-assName) => {\x0a\x09\x09\
-\x09const el = docu\
-ment.getElementB\
-yId('msg-bot-' +\
- id);\x0a\x09\x09\x09if (el)\
- el.classList.re\
-move(className);\
-\x0a\x09\x09};\x0a\x0a\x09\x09this.ha\
+\x09\x09\x09if (el) el.cl\
+assList.remove('\
+msg-highlight');\
+\x0a\x09\x09\x09}\x0a\x09\x09};\x0a\x09\x09if \
+(container) {\x0a\x09\x09\
+\x09container.addEv\
+entListener('mou\
+seover', this.ha\
 ndlers.mouseover\
- = (event) => {\x0a\
-\x09\x09\x09if (event.tar\
-get.classList.co\
-ntains('action-i\
-mg')) {\x0a\x09\x09\x09\x09cons\
-t id = event.tar\
-get.getAttribute\
-('data-id');\x0a\x09\x09\x09\
-\x09addClassToMsg(i\
-d, 'msg-highligh\
-t');\x0a\x09\x09\x09}\x0a\x09\x09};\x0a\x09\
-\x09this.handlers.m\
-ouseout = (event\
-) => {\x0a\x09\x09\x09if (ev\
-ent.target.class\
-List.contains('a\
-ction-img')) {\x0a\x09\
-\x09\x09\x09const id = ev\
-ent.target.getAt\
-tribute('data-id\
-');\x0a\x09\x09\x09\x09const el\
- = document.getE\
-lementById('msg-\
-bot-' + id);\x0a\x09\x09\x09\
-\x09if (el) el.clas\
-sList.remove('ms\
-g-highlight');\x0a\x09\
-\x09\x09}\x0a\x09\x09};\x0a\x09\x09if (c\
-ontainer) {\x0a\x09\x09\x09c\
-ontainer.addEven\
-tListener('mouse\
-over', this.hand\
-lers.mouseover, \
-{ passive: true \
-});\x0a\x09\x09\x09container\
-.addEventListene\
-r('mouseout', th\
-is.handlers.mous\
-eout, { passive:\
- true });\x0a\x09\x09}\x0a\x0a\x09\
-\x09this.handlers.c\
-lick = async (ev\
-) => {\x0a\x09\x09\x09// Cod\
-e block header a\
-ctions\x0a\x09\x09\x09const \
-aCode = ev.targe\
-t && (ev.target.\
-closest ? ev.tar\
-get.closest('a.c\
-ode-header-actio\
-n') : null) || n\
-ull;\x0a\x09\x09\x09// User \
-message copy act\
-ion\x0a\x09\x09\x09const aUs\
-erCopy = ev.targ\
-et && (ev.target\
-.closest ? ev.ta\
-rget.closest('a.\
-msg-copy-btn') :\
- null) || null;\x0a\
-\x0a\x09\x09\x09if (!aCode &\
-& !aUserCopy) re\
-turn;\x0a\x0a\x09\x09\x09ev.pre\
-ventDefault();\x0a\x09\
-\x09\x09ev.stopPropaga\
-tion();\x0a\x0a\x09\x09\x09// H\
-andle code heade\
-r actions first \
-(unchanged behav\
-ior)\x0a\x09\x09\x09if (aCod\
-e) {\x0a\x09\x09\x09\x09const w\
-rapper = this._f\
-indWrapper(aCode\
-);\x0a\x09\x09\x09\x09if (!wrap\
-per) return;\x0a\x0a\x09\x09\
-\x09\x09const isCopy =\
- aCode.classList\
-.contains('code-\
-header-copy');\x0a\x09\
-\x09\x09\x09const isColla\
-pse = aCode.clas\
-sList.contains('\
-code-header-coll\
-apse');\x0a\x09\x09\x09\x09cons\
-t isRun = aCode.\
-classList.contai\
-ns('code-header-\
-run');\x0a\x09\x09\x09\x09const\
- isPreview = aCo\
-de.classList.con\
-tains('code-head\
-er-preview');\x0a\x0a\x09\
-\x09\x09\x09let codeEl = \
-null, text = '';\
-\x0a\x09\x09\x09\x09if (isCopy \
-|| isRun || isPr\
-eview) {\x0a\x09\x09\x09\x09\x09co\
-deEl = this._get\
-CodeEl(wrapper);\
-\x0a\x09\x09\x09\x09\x09text = thi\
-s._collectCodeTe\
-xt(codeEl);\x0a\x09\x09\x09\x09\
-}\x0a\x0a\x09\x09\x09\x09try {\x0a\x09\x09\x09\
-\x09\x09if (isCopy) {\x0a\
-\x09\x09\x09\x09\x09\x09const ok =\
- await this._cop\
-yTextRobust(text\
-);\x0a\x09\x09\x09\x09\x09\x09if (ok)\
- this._flashCopi\
-ed(aCode, wrappe\
-r);\x0a\x09\x09\x09\x09\x09} else \
-if (isCollapse) \
-{\x0a\x09\x09\x09\x09\x09\x09this._to\
-ggleCollapse(wra\
-pper);\x0a\x09\x09\x09\x09\x09} el\
-se if (isRun) {\x0a\
-\x09\x09\x09\x09\x09\x09if (this.b\
-ridge && typeof \
-this.bridge.runC\
-ode === 'functio\
-n') this.bridge.\
-runCode(text);\x0a\x09\
-\x09\x09\x09\x09} else if (i\
-sPreview) {\x0a\x09\x09\x09\x09\
-\x09\x09if (this.bridg\
-e && typeof this\
-.bridge.previewC\
-ode === 'functio\
-n') this.bridge.\
-previewCode(text\
-);\x0a\x09\x09\x09\x09\x09}\x0a\x09\x09\x09\x09} \
-catch (_) {\x0a\x09\x09\x09\x09\
-\x09/* swallow */\x0a\x09\
-\x09\x09\x09}\x0a\x09\x09\x09\x09return;\
-\x0a\x09\x09\x09}\x0a\x0a\x09\x09\x09// Han\
-dle user message\
- copy button (ic\
-on-only)\x0a\x09\x09\x09if (\
-aUserCopy) {\x0a\x09\x09\x09\
-\x09try {\x0a\x09\x09\x09\x09\x09cons\
-t msgBox = aUser\
-Copy.closest('.m\
-sg-box.msg-user'\
-);\x0a\x09\x09\x09\x09\x09const te\
-xt = this._colle\
-ctUserText(msgBo\
-x);\x0a\x09\x09\x09\x09\x09const o\
-k = await this._\
-copyTextRobust(t\
-ext);\x0a\x0a\x09\x09\x09\x09\x09// L\
-ocalized tooltip\
- swap and visual\
- feedback\x0a\x09\x09\x09\x09\x09c\
-onst L = (this.c\
-fg && this.cfg.L\
-OCALE) || {};\x0a\x09\x09\
-\x09\x09\x09const L_COPY \
-= L.COPY || 'Cop\
-y';\x0a\x09\x09\x09\x09\x09const L\
-_COPIED = L.COPI\
-ED || 'Copied';\x0a\
-\x0a\x09\x09\x09\x09\x09// Visual \
-feedback only (n\
-o tooltip) + tem\
-porary icon swap\
- handled central\
-ly\x0a\x09\x09\x09\x09\x09if (ok) \
-{\x0a\x09\x09\x09\x09\x09\x09this._fl\
-ashCopied(aUserC\
-opy, null);\x0a\x09\x09\x09\x09\
-\x09}\x0a\x09\x09\x09\x09} catch (\
-_) {\x0a\x09\x09\x09\x09\x09/* swa\
-llow */\x0a\x09\x09\x09\x09}\x0a\x09\x09\
-\x09}\x0a\x09\x09};\x0a\x0a\x09\x09// De\
-legate clicks fr\
-om both main con\
-tainer and input\
- area to support\
- copy icons ever\
-ywhere.\x0a\x09\x09if (co\
-ntainer) contain\
+, { passive: tru\
+e });\x0a\x09\x09\x09contain\
 er.addEventListe\
-ner('click', thi\
-s.handlers.click\
-, { passive: fal\
-se });\x0a\x09\x09if (inp\
-utArea) inputAre\
-a.addEventListen\
-er('click', this\
-.handlers.click,\
- { passive: fals\
-e });\x0a\x0a\x09\x09this.ha\
-ndlers.wheel = (\
-ev) => {\x0a\x09\x09\x09runt\
-ime.scrollMgr.us\
-erInteracted = t\
-rue;\x0a\x09\x09\x09if (ev.d\
-eltaY < 0) runti\
-me.scrollMgr.aut\
-oFollow = false;\
-\x0a\x09\x09\x09else runtime\
-.scrollMgr.maybe\
-EnableAutoFollow\
-ByProximity();\x0a\x09\
-\x09\x09this.highlight\
-er.scheduleScanV\
-isibleCodes(runt\
-ime.stream.activ\
-eCode);\x0a\x09\x09};\x0a\x09\x09d\
-ocument.addEvent\
-Listener('wheel'\
-, this.handlers.\
-wheel, { passive\
-: true });\x0a\x0a\x09\x09th\
-is.handlers.scro\
-ll = () => {\x0a\x09\x09\x09\
-const el = Utils\
-.SE;\x0a\x09\x09\x09const to\
-p = el.scrollTop\
-;\x0a\x09\x09\x09if (top + 1\
- < runtime.scrol\
-lMgr.lastScrollT\
-op) runtime.scro\
-llMgr.autoFollow\
- = false;\x0a\x09\x09\x09run\
-time.scrollMgr.m\
-aybeEnableAutoFo\
-llowByProximity(\
-);\x0a\x09\x09\x09runtime.sc\
-rollMgr.lastScro\
-llTop = top;\x0a\x09\x09\x09\
-const action = r\
-untime.scrollMgr\
-.computeFabActio\
-n();\x0a\x09\x09\x09if (acti\
-on !== runtime.s\
-crollMgr.current\
-FabAction) runti\
-me.scrollMgr.upd\
-ateScrollFab(fal\
-se, action, true\
-);\x0a\x09\x09\x09this.highl\
-ighter.scheduleS\
-canVisibleCodes(\
-runtime.stream.a\
-ctiveCode);\x0a\x09\x09};\
-\x0a\x09\x09window.addEve\
-ntListener('scro\
-ll', this.handle\
-rs.scroll, { pas\
-sive: true });\x0a\x0a\
-\x09\x09const fab = th\
-is.dom.get('scro\
-llFab');\x0a\x09\x09if (f\
-ab) {\x0a\x09\x09\x09this.ha\
-ndlers.fabClick \
-= (ev) => {\x0a\x09\x09\x09\x09\
-ev.preventDefaul\
-t();\x0a\x09\x09\x09\x09ev.stop\
-Propagation();\x0a\x09\
-\x09\x09\x09const action \
-= runtime.scroll\
-Mgr.computeFabAc\
-tion();\x0a\x09\x09\x09\x09if (\
-action === 'up')\
- runtime.scrollM\
-gr.scrollToTopUs\
-er();\x0a\x09\x09\x09\x09else i\
-f (action === 'd\
-own') runtime.sc\
-rollMgr.scrollTo\
-BottomUser();\x0a\x09\x09\
-\x09\x09runtime.scroll\
-Mgr.fabFreezeUnt\
-il = Utils.now()\
- + this.cfg.FAB.\
-TOGGLE_DEBOUNCE_\
-MS;\x0a\x09\x09\x09\x09runtime.\
-scrollMgr.update\
-ScrollFab(true);\
-\x0a\x09\x09\x09};\x0a\x09\x09\x09fab.ad\
-dEventListener('\
-click', this.han\
-dlers.fabClick, \
-{ passive: false\
- });\x0a\x09\x09}\x0a\x0a\x09\x09this\
-.handlers.resize\
- = () => {\x0a\x09\x09\x09ru\
-ntime.scrollMgr.\
-maybeEnableAutoF\
-ollowByProximity\
-();\x0a\x09\x09\x09runtime.s\
-crollMgr.schedul\
-eScrollFabUpdate\
-();\x0a\x09\x09\x09this.high\
-lighter.schedule\
-ScanVisibleCodes\
-(runtime.stream.\
-activeCode);\x0a\x09\x09}\
-;\x0a\x09\x09window.addEv\
-entListener('res\
-ize', this.handl\
-ers.resize, { pa\
-ssive: true });\x0a\
-\x0a\x09\x09// Note: visi\
-bility/focus/pag\
-eshow kickers re\
-moved intentiona\
-lly.\x0a\x09}\x0a\x0a\x09// Det\
-ach all installe\
-d handlers and r\
-eset local refs.\
-\x0a\x09cleanup() {\x0a\x09\x09\
-const container \
-= this.dom.get('\
-container');\x0a\x09\x09c\
-onst inputArea =\
- this.dom.get('_\
-append_input_');\
-\x0a\x0a\x09\x09if (this.han\
-dlers.wheel) doc\
-ument.removeEven\
-tListener('wheel\
-', this.handlers\
-.wheel);\x0a\x09\x09if (t\
-his.handlers.scr\
-oll) window.remo\
-veEventListener(\
-'scroll', this.h\
-andlers.scroll);\
-\x0a\x09\x09if (this.hand\
-lers.resize) win\
-dow.removeEventL\
-istener('resize'\
-, this.handlers.\
-resize);\x0a\x09\x09const\
- fab = this.dom.\
-get('scrollFab')\
-;\x0a\x09\x09if (fab && t\
-his.handlers.fab\
-Click) fab.remov\
-eEventListener('\
-click', this.han\
-dlers.fabClick);\
-\x0a\x09\x09if (container\
- && this.handler\
-s.mouseover) con\
-tainer.removeEve\
-ntListener('mous\
-eover', this.han\
-dlers.mouseover)\
-;\x0a\x09\x09if (containe\
-r && this.handle\
-rs.mouseout) con\
-tainer.removeEve\
-ntListener('mous\
-eout', this.hand\
-lers.mouseout);\x0a\
-\x09\x09if (container \
-&& this.handlers\
-.click) containe\
-r.removeEventLis\
+ner('mouseout', \
+this.handlers.mo\
+useout, { passiv\
+e: true });\x0a\x09\x09}\x0a\
+\x0a\x09\x09this.handlers\
+.click = async (\
+ev) => {\x0a\x09\x09\x09// C\
+ode block header\
+ actions\x0a\x09\x09\x09cons\
+t aCode = ev.tar\
+get && (ev.targe\
+t.closest ? ev.t\
+arget.closest('a\
+.code-header-act\
+ion') : null) ||\
+ null;\x0a\x09\x09\x09// Use\
+r message copy a\
+ction\x0a\x09\x09\x09const a\
+UserCopy = ev.ta\
+rget && (ev.targ\
+et.closest ? ev.\
+target.closest('\
+a.msg-copy-btn')\
+ : null) || null\
+;\x0a\x0a\x09\x09\x09if (!aCode\
+ && !aUserCopy) \
+return;\x0a\x0a\x09\x09\x09ev.p\
+reventDefault();\
+\x0a\x09\x09\x09ev.stopPropa\
+gation();\x0a\x0a\x09\x09\x09//\
+ Handle code hea\
+der actions firs\
+t (unchanged beh\
+avior)\x0a\x09\x09\x09if (aC\
+ode) {\x0a\x09\x09\x09\x09const\
+ wrapper = this.\
+_findWrapper(aCo\
+de);\x0a\x09\x09\x09\x09if (!wr\
+apper) return;\x0a\x0a\
+\x09\x09\x09\x09const isCopy\
+ = aCode.classLi\
+st.contains('cod\
+e-header-copy');\
+\x0a\x09\x09\x09\x09const isCol\
+lapse = aCode.cl\
+assList.contains\
+('code-header-co\
+llapse');\x0a\x09\x09\x09\x09co\
+nst isRun = aCod\
+e.classList.cont\
+ains('code-heade\
+r-run');\x0a\x09\x09\x09\x09con\
+st isPreview = a\
+Code.classList.c\
+ontains('code-he\
+ader-preview');\x0a\
+\x0a\x09\x09\x09\x09let codeEl \
+= null, text = '\
+';\x0a\x09\x09\x09\x09if (isCop\
+y || isRun || is\
+Preview) {\x0a\x09\x09\x09\x09\x09\
+codeEl = this._g\
+etCodeEl(wrapper\
+);\x0a\x09\x09\x09\x09\x09text = t\
+his._collectCode\
+Text(codeEl);\x0a\x09\x09\
+\x09\x09}\x0a\x0a\x09\x09\x09\x09try {\x0a\x09\
+\x09\x09\x09\x09if (isCopy) \
+{\x0a\x09\x09\x09\x09\x09\x09const ok\
+ = await this._c\
+opyTextRobust(te\
+xt);\x0a\x09\x09\x09\x09\x09\x09if (o\
+k) this._flashCo\
+pied(aCode, wrap\
+per);\x0a\x09\x09\x09\x09\x09} els\
+e if (isCollapse\
+) {\x0a\x09\x09\x09\x09\x09\x09this._\
+toggleCollapse(w\
+rapper);\x0a\x09\x09\x09\x09\x09} \
+else if (isRun) \
+{\x0a\x09\x09\x09\x09\x09\x09if (this\
+.bridge && typeo\
+f this.bridge.ru\
+nCode === 'funct\
+ion') this.bridg\
+e.runCode(text);\
+\x0a\x09\x09\x09\x09\x09} else if \
+(isPreview) {\x0a\x09\x09\
+\x09\x09\x09\x09if (this.bri\
+dge && typeof th\
+is.bridge.previe\
+wCode === 'funct\
+ion') this.bridg\
+e.previewCode(te\
+xt);\x0a\x09\x09\x09\x09\x09}\x0a\x09\x09\x09\x09\
+} catch (_) {\x0a\x09\x09\
+\x09\x09\x09/* swallow */\
+\x0a\x09\x09\x09\x09}\x0a\x09\x09\x09\x09retur\
+n;\x0a\x09\x09\x09}\x0a\x0a\x09\x09\x09// H\
+andle user messa\
+ge copy button (\
+icon-only)\x0a\x09\x09\x09if\
+ (aUserCopy) {\x0a\x09\
+\x09\x09\x09try {\x0a\x09\x09\x09\x09\x09co\
+nst msgBox = aUs\
+erCopy.closest('\
+.msg-box.msg-use\
+r');\x0a\x09\x09\x09\x09\x09const \
+text = this._col\
+lectUserText(msg\
+Box);\x0a\x09\x09\x09\x09\x09const\
+ ok = await this\
+._copyTextRobust\
+(text);\x0a\x0a\x09\x09\x09\x09\x09//\
+ Localized toolt\
+ip swap and visu\
+al feedback\x0a\x09\x09\x09\x09\
+\x09const L = (this\
+.cfg && this.cfg\
+.LOCALE) || {};\x0a\
+\x09\x09\x09\x09\x09const L_COP\
+Y = L.COPY || 'C\
+opy';\x0a\x09\x09\x09\x09\x09const\
+ L_COPIED = L.CO\
+PIED || 'Copied'\
+;\x0a\x0a\x09\x09\x09\x09\x09// Visua\
+l feedback only \
+(no tooltip) + t\
+emporary icon sw\
+ap handled centr\
+ally\x0a\x09\x09\x09\x09\x09if (ok\
+) {\x0a\x09\x09\x09\x09\x09\x09this._\
+flashCopied(aUse\
+rCopy, null);\x0a\x09\x09\
+\x09\x09\x09}\x0a\x09\x09\x09\x09} catch\
+ (_) {\x0a\x09\x09\x09\x09\x09/* s\
+wallow */\x0a\x09\x09\x09\x09}\x0a\
+\x09\x09\x09}\x0a\x09\x09};\x0a\x0a\x09\x09// \
+Delegate clicks \
+from both main c\
+ontainer and inp\
+ut area to suppo\
+rt copy icons ev\
+erywhere.\x0a\x09\x09if (\
+container) conta\
+iner.addEventLis\
 tener('click', t\
 his.handlers.cli\
-ck);\x0a\x09\x09if (input\
-Area && this.han\
-dlers.click) inp\
-utArea.removeEve\
-ntListener('clic\
-k', this.handler\
-s.click);\x0a\x09\x09if (\
-this.handlers.ke\
-ydown) document.\
-removeEventListe\
-ner('keydown', t\
-his.handlers.key\
-down);\x0a\x09\x09if (thi\
-s.handlers.docCl\
-ickFocus) docume\
-nt.removeEventLi\
-stener('click', \
-this.handlers.do\
-cClickFocus);\x0a\x09\x09\
-if (this.handler\
-s.visibility) do\
-cument.removeEve\
-ntListener('visi\
-bilitychange', t\
-his.handlers.vis\
-ibility);\x0a\x09\x09if (\
-this.handlers.fo\
-cus) window.remo\
-veEventListener(\
-'focus', this.ha\
-ndlers.focus);\x0a\x09\
-\x09if (this.handle\
-rs.pageshow) win\
-dow.removeEventL\
-istener('pagesho\
-w', this.handler\
-s.pageshow);\x0a\x09\x09t\
-his.handlers = {\
-};\x0a\x09}\x0a}\
+ck, { passive: f\
+alse });\x0a\x09\x09if (i\
+nputArea) inputA\
+rea.addEventList\
+ener('click', th\
+is.handlers.clic\
+k, { passive: fa\
+lse });\x0a\x0a\x09\x09this.\
+handlers.wheel =\
+ (ev) => {\x0a\x09\x09\x09ru\
+ntime.scrollMgr.\
+userInteracted =\
+ true;\x0a\x09\x09\x09if (ev\
+.deltaY < 0) run\
+time.scrollMgr.a\
+utoFollow = fals\
+e;\x0a\x09\x09\x09else runti\
+me.scrollMgr.may\
+beEnableAutoFoll\
+owByProximity();\
+\x0a\x09\x09\x09this.highlig\
+hter.scheduleSca\
+nVisibleCodes(ru\
+ntime.stream.act\
+iveCode);\x0a\x09\x09};\x0a\x09\
+\x09document.addEve\
+ntListener('whee\
+l', this.handler\
+s.wheel, { passi\
+ve: true });\x0a\x0a\x09\x09\
+this.handlers.sc\
+roll = () => {\x0a\x09\
+\x09\x09const el = Uti\
+ls.SE;\x0a\x09\x09\x09const \
+top = el.scrollT\
+op;\x0a\x09\x09\x09if (top +\
+ 1 < runtime.scr\
+ollMgr.lastScrol\
+lTop) runtime.sc\
+rollMgr.autoFoll\
+ow = false;\x0a\x09\x09\x09r\
+untime.scrollMgr\
+.maybeEnableAuto\
+FollowByProximit\
+y();\x0a\x09\x09\x09runtime.\
+scrollMgr.lastSc\
+rollTop = top;\x0a\x09\
+\x09\x09const action =\
+ runtime.scrollM\
+gr.computeFabAct\
+ion();\x0a\x09\x09\x09if (ac\
+tion !== runtime\
+.scrollMgr.curre\
+ntFabAction) run\
+time.scrollMgr.u\
+pdateScrollFab(f\
+alse, action, tr\
+ue);\x0a\x09\x09\x09this.hig\
+hlighter.schedul\
+eScanVisibleCode\
+s(runtime.stream\
+.activeCode);\x0a\x09\x09\
+};\x0a\x09\x09window.addE\
+ventListener('sc\
+roll', this.hand\
+lers.scroll, { p\
+assive: true });\
+\x0a\x0a\x09\x09const fab = \
+this.dom.get('sc\
+rollFab');\x0a\x09\x09if \
+(fab) {\x0a\x09\x09\x09this.\
+handlers.fabClic\
+k = (ev) => {\x0a\x09\x09\
+\x09\x09ev.preventDefa\
+ult();\x0a\x09\x09\x09\x09ev.st\
+opPropagation();\
+\x0a\x09\x09\x09\x09const actio\
+n = runtime.scro\
+llMgr.computeFab\
+Action();\x0a\x09\x09\x09\x09if\
+ (action === 'up\
+') runtime.scrol\
+lMgr.scrollToTop\
+User();\x0a\x09\x09\x09\x09else\
+ if (action === \
+'down') runtime.\
+scrollMgr.scroll\
+ToBottomUser();\x0a\
+\x09\x09\x09\x09runtime.scro\
+llMgr.fabFreezeU\
+ntil = Utils.now\
+() + this.cfg.FA\
+B.TOGGLE_DEBOUNC\
+E_MS;\x0a\x09\x09\x09\x09runtim\
+e.scrollMgr.upda\
+teScrollFab(true\
+);\x0a\x09\x09\x09};\x0a\x09\x09\x09fab.\
+addEventListener\
+('click', this.h\
+andlers.fabClick\
+, { passive: fal\
+se });\x0a\x09\x09}\x0a\x0a\x09\x09th\
+is.handlers.resi\
+ze = () => {\x0a\x09\x09\x09\
+runtime.scrollMg\
+r.maybeEnableAut\
+oFollowByProximi\
+ty();\x0a\x09\x09\x09runtime\
+.scrollMgr.sched\
+uleScrollFabUpda\
+te();\x0a\x09\x09\x09this.hi\
+ghlighter.schedu\
+leScanVisibleCod\
+es(runtime.strea\
+m.activeCode);\x0a\x09\
+\x09};\x0a\x09\x09window.add\
+EventListener('r\
+esize', this.han\
+dlers.resize, { \
+passive: true })\
+;\x0a\x0a\x09\x09// Note: vi\
+sibility/focus/p\
+ageshow kickers \
+removed intentio\
+nally.\x0a\x09}\x0a\x0a\x09// D\
+etach all instal\
+led handlers and\
+ reset local ref\
+s.\x0a\x09cleanup() {\x0a\
+\x09\x09const containe\
+r = this.dom.get\
+('container');\x0a\x09\
+\x09const inputArea\
+ = this.dom.get(\
+'_append_input_'\
+);\x0a\x0a\x09\x09if (this.h\
+andlers.wheel) d\
+ocument.removeEv\
+entListener('whe\
+el', this.handle\
+rs.wheel);\x0a\x09\x09if \
+(this.handlers.s\
+croll) window.re\
+moveEventListene\
+r('scroll', this\
+.handlers.scroll\
+);\x0a\x09\x09if (this.ha\
+ndlers.resize) w\
+indow.removeEven\
+tListener('resiz\
+e', this.handler\
+s.resize);\x0a\x09\x09con\
+st fab = this.do\
+m.get('scrollFab\
+');\x0a\x09\x09if (fab &&\
+ this.handlers.f\
+abClick) fab.rem\
+oveEventListener\
+('click', this.h\
+andlers.fabClick\
+);\x0a\x09\x09if (contain\
+er && this.handl\
+ers.mouseover) c\
+ontainer.removeE\
+ventListener('mo\
+useover', this.h\
+andlers.mouseove\
+r);\x0a\x09\x09if (contai\
+ner && this.hand\
+lers.mouseout) c\
+ontainer.removeE\
+ventListener('mo\
+useout', this.ha\
+ndlers.mouseout)\
+;\x0a\x09\x09if (containe\
+r && this.handle\
+rs.click) contai\
+ner.removeEventL\
+istener('click',\
+ this.handlers.c\
+lick);\x0a\x09\x09if (inp\
+utArea && this.h\
+andlers.click) i\
+nputArea.removeE\
+ventListener('cl\
+ick', this.handl\
+ers.click);\x0a\x09\x09if\
+ (this.handlers.\
+keydown) documen\
+t.removeEventLis\
+tener('keydown',\
+ this.handlers.k\
+eydown);\x0a\x09\x09if (t\
+his.handlers.doc\
+ClickFocus) docu\
+ment.removeEvent\
+Listener('click'\
+, this.handlers.\
+docClickFocus);\x0a\
+\x09\x09if (this.handl\
+ers.visibility) \
+document.removeE\
+ventListener('vi\
+sibilitychange',\
+ this.handlers.v\
+isibility);\x0a\x09\x09if\
+ (this.handlers.\
+focus) window.re\
+moveEventListene\
+r('focus', this.\
+handlers.focus);\
+\x0a\x09\x09if (this.hand\
+lers.pageshow) w\
+indow.removeEven\
+tListener('pages\
+how', this.handl\
+ers.pageshow);\x0a\x09\
+\x09this.handlers =\
+ {};\x0a\x09}\x0a}\
 \x00\x00\x07\x02\
 /\
 / ==============\
@@ -98113,7 +98112,7 @@ arkdown tokens\x0a\x09\
 _AFTER_LINES: Ut\
 ils.g('STREAM_PL\
 AIN_ACTIVATE_AFT\
-ER_LINES', 30),\x0a\
+ER_LINES', 80),\x0a\
 \x09\x09};\x0a\x0a\x09\x09// Math \
 (KaTeX) idle bat\
 ching and per-ba\
@@ -113508,8 +113507,8 @@ ros||{},d(e,r)}}\
 /\
 * app.min.js \xe2\x80\x94\
  generated on 20\
-25-09-22 04:43:2\
-9 by bin/minify_\
+25-09-22 04:44:2\
+6 by bin/minify_\
 js.py using rjsm\
 in */\x0a\x0a/* data/j\
 s/app/async.js *\
@@ -126936,30 +126935,30 @@ qt_resource_struct = b"\
 \x00\x00\x01V\x00\x00\x00\x00\x00\x01\x00\x12\xc4T\
 \x00\x00\x00p\x00\x00\x00\x00\x00\x01\x00\x10\xde9\
 \x00\x00\x01r\x00\x00\x00\x00\x00\x01\x00\x12\xda\x22\
-\x00\x00\x02h\x00\x00\x00\x00\x00\x01\x00\x17\xe8\x0c\
+\x00\x00\x02h\x00\x00\x00\x00\x00\x01\x00\x17\xe7\xfe\
 \x00\x00\x000\x00\x00\x00\x00\x00\x01\x00\x10s\xea\
-\x00\x00\x02\x88\x00\x00\x00\x00\x00\x01\x00\x18\x02\xeb\
-\x00\x00\x030\x00\x00\x00\x00\x00\x01\x00\x1b+'\
-\x00\x00\x02\x0e\x00\x00\x00\x00\x00\x01\x00\x13kR\
-\x00\x00\x03\x9c\x00\x00\x00\x00\x00\x01\x00\x1b\xb1\xab\
+\x00\x00\x02\x88\x00\x00\x00\x00\x00\x01\x00\x18\x02\xdd\
+\x00\x00\x030\x00\x00\x00\x00\x00\x01\x00\x1b+\x19\
+\x00\x00\x02\x0e\x00\x00\x00\x00\x00\x01\x00\x13kD\
+\x00\x00\x03\x9c\x00\x00\x00\x00\x00\x01\x00\x1b\xb1\x9d\
 \x00\x00\x01\xb2\x00\x00\x00\x00\x00\x01\x00\x13\x0dY\
 \x00\x00\x00\xf8\x00\x00\x00\x00\x00\x01\x00\x11H\xf7\
-\x00\x00\x01\xf0\x00\x00\x00\x00\x00\x01\x00\x13dL\
+\x00\x00\x01\xf0\x00\x00\x00\x00\x00\x01\x00\x13d>\
 \x00\x00\x00J\x00\x00\x00\x00\x00\x01\x00\x10\x8c-\
 \x00\x00\x016\x00\x00\x00\x00\x00\x01\x00\x11j\xda\
-\x00\x00\x02\xb2\x00\x00\x00\x00\x00\x01\x00\x19\xe5\xd1\
-\x00\x00\x03R\x00\x00\x00\x00\x00\x01\x00\x1bu\x88\
-\x00\x00\x02\xd0\x00\x00\x00\x00\x00\x01\x00\x1a\x15=\
+\x00\x00\x02\xb2\x00\x00\x00\x00\x00\x01\x00\x19\xe5\xc3\
+\x00\x00\x03R\x00\x00\x00\x00\x00\x01\x00\x1buz\
+\x00\x00\x02\xd0\x00\x00\x00\x00\x00\x01\x00\x1a\x15/\
 \x00\x00\x01\x96\x00\x00\x00\x00\x00\x01\x00\x13\x04\x0b\
-\x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x13\x82h\
+\x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x13\x82Z\
 \x00\x00\x00\x0a\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\
-\x00\x00\x03\x14\x00\x00\x00\x00\x00\x01\x00\x1b!P\
-\x00\x00\x02L\x00\x00\x00\x00\x00\x01\x00\x17\xbb\x81\
+\x00\x00\x03\x14\x00\x00\x00\x00\x00\x01\x00\x1b!B\
+\x00\x00\x02L\x00\x00\x00\x00\x00\x01\x00\x17\xbbs\
 \x00\x00\x01\xd0\x00\x00\x00\x00\x00\x01\x00\x13*\xc0\
 \x00\x00\x00\x8a\x00\x00\x00\x00\x00\x01\x00\x11\x07\xcf\
-\x00\x00\x02\xf0\x00\x00\x00\x00\x00\x01\x00\x1a\x8d\x0f\
+\x00\x00\x02\xf0\x00\x00\x00\x00\x00\x01\x00\x1a\x8d\x01\
 \x00\x00\x00\xc2\x00\x00\x00\x00\x00\x01\x00\x11Bm\
-\x00\x00\x03r\x00\x00\x00\x00\x00\x01\x00\x1b\xa4\x11\
+\x00\x00\x03r\x00\x00\x00\x00\x00\x01\x00\x1b\xa4\x03\
 \x00\x00\x01\x16\x00\x00\x00\x00\x00\x01\x00\x11a&\
 "
 

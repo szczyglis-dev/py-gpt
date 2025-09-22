@@ -57,7 +57,7 @@ class Config {
 			PRESERVE_CODES_MAX: Utils.g('STREAM_PRESERVE_CODES_MAX', 120),
 
 			// switch to plain text after this many lines without markdown tokens
-			PLAIN_ACTIVATE_AFTER_LINES: Utils.g('STREAM_PLAIN_ACTIVATE_AFTER_LINES', 30),
+			PLAIN_ACTIVATE_AFTER_LINES: Utils.g('STREAM_PLAIN_ACTIVATE_AFTER_LINES', 80),
 		};
 
 		// Math (KaTeX) idle batching and per-batch hint.
