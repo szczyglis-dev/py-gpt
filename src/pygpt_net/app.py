@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.19 00:00:00                  #
+# Updated Date: 2025.09.22 09:00:00                  #
 # ================================================== #
 
 import os
@@ -16,7 +16,7 @@ import platform
 
 import pygpt_net.icons_rc
 
-from .utils import set_env
+from pygpt_net.utils import set_env
 
 # app env
 set_env("PYGPT_APP_ENV", "prod", allow_overwrite=True) # dev | prod
@@ -34,7 +34,7 @@ set_env("PYGPT_APP_ENV", "prod", allow_overwrite=True) # dev | prod
 # by default, optimize for low-end devices
 set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-low-end-device-mode", True)
 set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-gpu-rasterization", True)
-set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist", True)
+# set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist", True)
 
 # disable warnings
 set_env("TRANSFORMERS_NO_ADVISORY_WARNINGS", 1)
