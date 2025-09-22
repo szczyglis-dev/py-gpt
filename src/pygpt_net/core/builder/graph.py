@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from uuid import uuid4
 from PySide6.QtCore import QObject, Signal
+import re
 
 
 def gen_uuid() -> str:
@@ -26,7 +27,7 @@ def gen_uuid() -> str:
 class PropertyModel:
     uuid: str
     id: str
-    type: str  # "slot", "str", "int", "float", "bool", "combo"
+    type: str  # "slot", "str", "int", "float", "bool", "combo", "text"
     name: str
     editable: bool = True
     value: Any = None
@@ -134,7 +135,10 @@ class NodeTypeSpec:
     type_name: str
     title: Optional[str] = None
     properties: List[PropertySpec] = field(default_factory=list)
-
+    # Below are optional extensions for agent-flow needs:
+    base_id: Optional[str] = None        # base prefix for friendly ids, e.g. "agent"
+    export_kind: Optional[str] = None    # short kind for export, e.g. "agent", "start"
+    bg_color: Optional[str] = None       # optional per-type background color (CSS/hex)
 
 class NodeTypeRegistry:
     """Registry for node type specifications. Extend/override in subclasses."""
@@ -152,6 +156,7 @@ class NodeTypeRegistry:
         return self._types.get(type_name)
 
     def _install_default_types(self):
+        # Example/basic nodes kept intact
         self.register(NodeTypeSpec(
             type_name="Value/Float",
             title="Float",
@@ -171,6 +176,60 @@ class NodeTypeRegistry:
         ))
         # Tip: to allow multiple connections to an input or output, set allowed_inputs/allowed_outputs to -1.
 
+        # Agent-flow nodes
+        # Start
+        self.register(NodeTypeSpec(
+            type_name="Flow/Start",
+            title="Start",
+            base_id="start",
+            export_kind="start",
+            bg_color="#2D5A27",
+            properties=[
+                PropertySpec(id="output", type="flow", name="Output", editable=False, allowed_inputs=0, allowed_outputs=1),
+                # base_id will be auto-injected as read-only property at creation
+            ],
+        ))
+        # Agent
+        self.register(NodeTypeSpec(
+            type_name="Flow/Agent",
+            title="Agent",
+            base_id="agent",
+            export_kind="agent",
+            bg_color="#304A6E",
+            properties=[
+                PropertySpec(id="name", type="str", name="Name", editable=True, value=""),
+                PropertySpec(id="instruction", type="text", name="Instruction", editable=True, value=""),
+                PropertySpec(id="remote_tools", type="bool", name="Remote tools", editable=True, value=True),
+                PropertySpec(id="local_tools", type="bool", name="Local tools", editable=True, value=True),
+                PropertySpec(id="input", type="flow", name="Input", editable=False, allowed_inputs=-1, allowed_outputs=0),
+                PropertySpec(id="output", type="flow", name="Output", editable=False, allowed_inputs=0, allowed_outputs=1),
+                PropertySpec(id="memory", type="memory", name="Memory", editable=False, allowed_inputs=0, allowed_outputs=1),
+            ],
+        ))
+        # Memory
+        self.register(NodeTypeSpec(
+            type_name="Flow/Memory",
+            title="Memory",
+            base_id="mem",
+            export_kind="memory",
+            bg_color="#593E78",
+            properties=[
+                PropertySpec(id="name", type="str", name="Name", editable=True, value=""),
+                PropertySpec(id="input", type="memory", name="Input", editable=False, allowed_inputs=-1, allowed_outputs=0),
+            ],
+        ))
+        # End
+        self.register(NodeTypeSpec(
+            type_name="Flow/End",
+            title="End",
+            base_id="end",
+            export_kind="end",
+            bg_color="#6B2E2E",
+            properties=[
+                PropertySpec(id="input", type="flow", name="Input", editable=False, allowed_inputs=1, allowed_outputs=0),
+            ],
+        ))
+
 
 # ------------------------ Graph (Qt QObject + signals) ------------------------
 
@@ -189,13 +248,49 @@ class NodeGraph(QObject):
         self.nodes: Dict[str, NodeModel] = {}
         self.connections: Dict[str, ConnectionModel] = {}
         self._node_counter = 1
+        # Per-base_id counters for friendly IDs (persisted with layout)
+        self._id_counters: Dict[str, int] = {}
+
+    # -------- ID helpers (friendly unique IDs per base prefix) --------
+
+    @staticmethod
+    def _slug_from_type_name(type_name: str) -> str:
+        # fallback base id from type name: last segment lowercased, non-words to underscore
+        base = type_name.split("/")[-1].lower()
+        base = re.sub(r"\W+", "_", base).strip("_")
+        return base or "node"
+
+    def _next_id_for_base(self, base: str) -> str:
+        n = self._id_counters.get(base, 0) + 1
+        self._id_counters[base] = n
+        return f"{base}_{n}"
+
+    def _seed_counters_from_existing(self):
+        # Scan existing node ids like 'agent_12' and seed counters to max per base
+        for node in self.nodes.values():
+            m = re.match(r"^([a-zA-Z0-9]+)_(\d+)$", node.id)
+            if not m:
+                continue
+            base, num = m.group(1), int(m.group(2))
+            cur = self._id_counters.get(base, 0)
+            if num > cur:
+                self._id_counters[base] = num
+
+    # -------- Creation / mutation --------
 
     def create_node_from_type(self, type_name: str, name: Optional[str] = None) -> NodeModel:
         spec = self.registry.get(type_name)
         if not spec:
             raise ValueError(f"Unknown node type: {type_name}")
-        nid = f"Node-{self._node_counter}"
-        self._node_counter += 1
+
+        base_id = spec.base_id or self._slug_from_type_name(type_name)
+        # Generate friendly id if base configured; otherwise fallback to generic Node-#
+        if spec.base_id:
+            nid = self._next_id_for_base(base_id)
+        else:
+            nid = f"Node-{self._node_counter}"
+            self._node_counter += 1
+
         props: Dict[str, PropertyModel] = {}
         for ps in spec.properties:
             props[ps.id] = PropertyModel(
@@ -204,11 +299,24 @@ class NodeGraph(QObject):
                 allowed_inputs=ps.allowed_inputs, allowed_outputs=ps.allowed_outputs,
                 options=ps.options
             )
+        # Auto inject read-only 'base_id' property for visibility if base_id defined and not present
+        if spec.base_id and "base_id" not in props:
+            props["base_id"] = PropertyModel(
+                uuid=gen_uuid(), id="base_id", type="str", name="Base ID",
+                editable=False, value=base_id, allowed_inputs=0, allowed_outputs=0
+            )
+
         node = NodeModel(uuid=gen_uuid(), id=nid, name=name or spec.title or nid, type=type_name, properties=props)
         return node
 
     def add_node(self, node: NodeModel):
         self.nodes[node.uuid] = node
+        # Ensure counters are aware of externally provided nodes
+        m = re.match(r"^([a-zA-Z0-9]+)_(\d+)$", node.id)
+        if m:
+            base, num = m.group(1), int(m.group(2))
+            if self._id_counters.get(base, 0) < num:
+                self._id_counters[base] = num
         self.nodeAdded.emit(node)
 
     def remove_node(self, node_uuid: str):
@@ -288,6 +396,7 @@ class NodeGraph(QObject):
             "nodes": {nuuid: n.to_dict() for nuuid, n in self.nodes.items()},
             "connections": {c.uuid: c.to_dict() for c in self.connections.values()},
             "_node_counter": self._node_counter,
+            "_id_counters": dict(self._id_counters),
         }
 
     def to_schema(self) -> dict:
@@ -303,6 +412,45 @@ class NodeGraph(QObject):
                      for c in self.connections.values()]
         return {"nodes": nodes_out, "connections": conns_out}
 
+    # --- Export to requested agent schema (list of nodes with slots/in-out) ---
+    def to_agent_schema(self) -> List[dict]:
+        # Build helper maps
+        uuid_to_node: Dict[str, NodeModel] = dict(self.nodes)
+        uuid_to_id: Dict[str, str] = {u: n.id for u, n in uuid_to_node.items()}
+        # Pre-index connections by (node_uuid, prop_id)
+        incoming: Dict[Tuple[str, str], List[str]] = {}
+        outgoing: Dict[Tuple[str, str], List[str]] = {}
+        for c in self.connections.values():
+            outgoing.setdefault((c.src_node, c.src_prop), []).append(uuid_to_id.get(c.dst_node, c.dst_node))
+            incoming.setdefault((c.dst_node, c.dst_prop), []).append(uuid_to_id.get(c.src_node, c.src_node))
+
+        result: List[dict] = []
+        for n in uuid_to_node.values():
+            spec = self.registry.get(n.type)
+            kind = spec.export_kind if spec and spec.export_kind else n.type.split("/")[-1].lower()
+            slots: Dict[str, Any] = {}
+            for pid, prop in n.properties.items():
+                is_port = (prop.allowed_inputs != 0) or (prop.allowed_outputs != 0)
+                if is_port:
+                    slots[pid] = {
+                        "in": list(incoming.get((n.uuid, pid), [])),
+                        "out": list(outgoing.get((n.uuid, pid), [])),
+                    }
+                else:
+                    # Skip internal helper fields if needed
+                    if pid == "base_id":
+                        continue
+                    slots[pid] = prop.value
+            result.append({
+                "type": kind,
+                "id": n.id,
+                "slots": slots,
+            })
+
+        # Stable order by id
+        result.sort(key=lambda d: d["id"])
+        return result
+
     def from_dict(self, d: dict):
         self.clear(silent=True)
         nodes_d = d.get("nodes", {})
@@ -314,6 +462,10 @@ class NodeGraph(QObject):
             conn = ConnectionModel.from_dict(cd)
             self.connections[conn.uuid] = conn
         self._node_counter = d.get("_node_counter", len(self.nodes) + 1)
+        self._id_counters = dict(d.get("_id_counters", {}))
+        # Seed counters from existing node ids if counters were not present
+        if not self._id_counters:
+            self._seed_counters_from_existing()
         for n in self.nodes.values():
             self.nodeAdded.emit(n)
         for c in self.connections.values():

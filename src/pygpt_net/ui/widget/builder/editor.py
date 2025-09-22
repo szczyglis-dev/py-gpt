@@ -10,18 +10,18 @@
 # ================================================== #
 
 from __future__ import annotations
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, Optional, List, Tuple, Any
 from PySide6.QtCore import Qt, QPoint, QPointF, QRectF, QSizeF, QObject, Signal, Property, QEvent
 from PySide6.QtGui import (
     QAction, QBrush, QColor, QPainter, QPainterPath, QPen, QTransform,
     QUndoStack, QUndoCommand, QPalette, QPainterPathStroker, QCursor,
-    QKeySequence, QShortcut
+    QKeySequence, QShortcut, QFont
 )
 from PySide6.QtWidgets import (
     QWidget, QApplication, QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsPathItem,
     QGraphicsObject, QGraphicsWidget, QGraphicsProxyWidget, QStyleOptionGraphicsItem,
     QMenu, QMessageBox, QFormLayout, QLineEdit, QSpinBox, QDoubleSpinBox,
-    QCheckBox, QComboBox, QLabel
+    QCheckBox, QComboBox, QLabel, QGraphicsSimpleTextItem, QTextEdit
 )
 
 # Safety: check C++ pointer validity to avoid calling methods on deleted Qt objects
@@ -193,9 +193,72 @@ class PortItem(QGraphicsObject):
         self._can_accept = False
         self.setZValue(3)
 
-    def boundingRect(self) -> QRectF:
+        # Small labels for IN/OUT and capacity
+        self._label_io = QGraphicsSimpleTextItem(self)
+        self._label_cap = QGraphicsSimpleTextItem(self)
+        self._font_small = QFont()
+        self._font_small.setPixelSize(9)
+        self._label_io.setFont(self._font_small)
+        self._label_cap.setFont(self._font_small)
+        self._update_label_texts()
+        self._update_label_colors()
+        self._update_label_positions()
+
+    def _update_label_texts(self):
+        # IN/OUT
+        self._label_io.setText("IN" if self.side == "input" else "OUT")
+        # Capacity: show max allowed for this port side
+        pm: PropertyModel = self.node_item.node.properties.get(self.prop_id)
+        cap_val = None
+        if pm:
+            if self.side == "input":
+                cap_val = pm.allowed_inputs
+            else:
+                cap_val = pm.allowed_outputs
+        text = ""
+        if isinstance(cap_val, int) and cap_val != 0:
+            if cap_val < 0:
+                text = "\u221E"
+            else:
+                text = str(cap_val)
+        self._label_cap.setText(text)
+
+    def _update_label_colors(self):
+        editor: NodeEditor = self.node_item.editor
+        self._label_io.setBrush(QBrush(editor._port_label_color))
+        self._label_cap.setBrush(QBrush(editor._port_capacity_color))
+
+    def _update_label_positions(self):
         r = self.radius
-        return QRectF(-r, -r, 2 * r, 2 * r)
+        # Capacity above the port, slightly left/right
+        cap_rect = self._label_cap.boundingRect()
+        io_rect = self._label_io.boundingRect()
+        gap = 3.0
+
+        if self.side == "input":
+            # IO label left of the port
+            self._label_io.setPos(-r - gap - io_rect.width(), -io_rect.height() / 2.0)
+            # Cap above-left
+            self._label_cap.setPos(-r - gap - cap_rect.width(), -r - cap_rect.height() - 1.0)
+        else:
+            # IO label right of the port
+            self._label_io.setPos(r + gap, -io_rect.height() / 2.0)
+            # Cap above-right
+            self._label_cap.setPos(r + gap, -r - cap_rect.height() - 1.0)
+
+    def notify_theme_changed(self):
+        self._update_label_colors()
+        self.update()
+
+    def boundingRect(self) -> QRectF:
+        # Expand bounding rect to include labels
+        r = self.radius
+        cap_rect = self._label_cap.boundingRect()
+        io_rect = self._label_io.boundingRect()
+        extra_w = max(cap_rect.width(), io_rect.width()) + 8.0
+        w = 2 * r + 2 * extra_w
+        h = 2 * r + cap_rect.height() + 8.0
+        return QRectF(-w/2.0, -h/2.0, w, h)
 
     def shape(self) -> QPainterPath:
         pick_r = float(getattr(self.node_item.editor, "_port_pick_radius", 10.0)) or 10.0
@@ -212,13 +275,15 @@ class PortItem(QGraphicsObject):
         p.setRenderHint(QPainter.Antialiasing, True)
         p.setPen(Qt.NoPen)
         p.setBrush(QBrush(color))
-        p.drawEllipse(self.boundingRect())
+        p.drawEllipse(QRectF(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius))
         if self._can_accept:
             ring = QPen(editor._port_accept_color, 3.0)
             ring.setCosmetic(True)
             p.setPen(ring)
             p.setBrush(Qt.NoBrush)
-            p.drawEllipse(self.boundingRect().adjusted(-2, -2, 2, 2))
+            p.drawEllipse(QRectF(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius))
+        # Labels are child items; positions recalculated if needed
+        # Nothing else to paint here.
 
     def hoverEnterEvent(self, e):
         self._hover = True
@@ -247,6 +312,11 @@ class PortItem(QGraphicsObject):
             self._can_accept = enabled
             self.update()
 
+    # Keep labels aligned when port moves due to node resize
+    def update_labels(self):
+        self._update_label_texts()
+        self._update_label_positions()
+        self.update()
 
 class EdgeItem(QGraphicsPathItem):
     def __init__(self, src_port: PortItem, dst_port: PortItem, temporary: bool = False):
@@ -368,6 +438,15 @@ class NodeContentWidget(QWidget):
                     w.setText(str(pm.value))
                 w.setReadOnly(not pm.editable)
                 w.textEdited.connect(lambda v, pid=pid: self.valueChanged.emit(pid, v))
+            elif pm.type == "text":
+                # Multiline text editor (textarea)
+                te = QTextEdit()
+                if pm.value is not None:
+                    te.setPlainText(str(pm.value))
+                te.setReadOnly(not pm.editable)
+                # Emit value on change (debounced nature of QTextEdit is fine here)
+                te.textChanged.connect(lambda pid=pid, te=te: self.valueChanged.emit(pid, te.toPlainText()))
+                w = te
             elif pm.type == "int":
                 w = QSpinBox()
                 w.setRange(-10**9, 10**9)
@@ -398,6 +477,7 @@ class NodeContentWidget(QWidget):
                 w.setEnabled(pm.editable)
                 w.currentTextChanged.connect(lambda v, pid=pid: self.valueChanged.emit(pid, v))
             else:
+                # Non-editable or slot types -> just a placeholder label
                 w = QLabel("-")
                 w.setEnabled(False)
             self.form.addRow(pm.name, w)
@@ -515,8 +595,10 @@ class NodeItem(QGraphicsWidget):
         for pid in self.node.properties.keys():
             if pid in self._in_ports:
                 self._in_ports[pid].setPos(-10, yoff + 8)
+                self._in_ports[pid].update_labels()
             if pid in self._out_ports:
                 self._out_ports[pid].setPos(self.size().width() + 10, yoff + 8)
+                self._out_ports[pid].update_labels()
             yoff += row_h
         for e in self._edges:
             e.update_path()
@@ -551,7 +633,18 @@ class NodeItem(QGraphicsWidget):
         path = QPainterPath()
         path.addRoundedRect(r, self._radius, self._radius)
         p.setRenderHint(QPainter.Antialiasing, True)
+
+        # Per-type background color override
         bg = self.editor._node_bg_color
+        try:
+            spec = self.graph.registry.get(self.node.type)
+            if spec and spec.bg_color:
+                c = QColor(spec.bg_color)
+                if c.isValid():
+                    bg = c
+        except Exception:
+            pass
+
         border = self.editor._node_border_color
         if self.isSelected():
             border = self.editor._node_selection_color
@@ -800,7 +893,6 @@ class NodeItem(QGraphicsWidget):
         except Exception:
             pass
 
-
 # ------------------------ Undo/Redo Commands ------------------------
 
 class AddNodeCommand(QUndoCommand):
@@ -824,7 +916,6 @@ class AddNodeCommand(QUndoCommand):
         if self._node_uuid:
             self.editor._remove_node_by_uuid(self._node_uuid)
 
-
 class MoveNodeCommand(QUndoCommand):
     def __init__(self, item: NodeItem, old_pos: QPointF, new_pos: QPointF):
         super().__init__("Move Node")
@@ -837,7 +928,6 @@ class MoveNodeCommand(QUndoCommand):
 
     def undo(self):
         self.item.setPos(self.old_pos)
-
 
 class ResizeNodeCommand(QUndoCommand):
     def __init__(self, item: NodeItem, old_size: QSizeF, new_size: QSizeF):
@@ -974,6 +1064,10 @@ class NodeEditor(QWidget):
     _grid_back_color = QColor(35, 35, 38)
     _grid_pen_color = QColor(55, 55, 60)
 
+    # New: colors for tiny port labels
+    _port_label_color = QColor(220, 220, 220)
+    _port_capacity_color = QColor(200, 200, 200)
+
     _edge_pick_width: float = 12.0
     _resize_grip_margin: float = 12.0
     _resize_grip_hit_inset: float = 5.0
@@ -993,6 +1087,10 @@ class NodeEditor(QWidget):
     edgeSelectedColor = Property(QColor, lambda self: self._edge_selected_color, lambda self, v: self._q_set("_edge_selected_color", v))
     gridBackColor = Property(QColor, lambda self: self._grid_back_color, lambda self, v: self._q_set("_grid_back_color", v))
     gridPenColor = Property(QColor, lambda self: self._grid_pen_color, lambda self, v: self._q_set("_grid_pen_color", v))
+
+    # New: expose colors for labels
+    portLabelColor = Property(QColor, lambda self: self._port_label_color, lambda self, v: self._q_set("_port_label_color", v))
+    portCapacityColor = Property(QColor, lambda self: self._port_capacity_color, lambda self, v: self._q_set("_port_capacity_color", v))
 
     edgePickWidth = Property(float, lambda self: self._edge_pick_width, lambda self, v: self._set_edge_pick_width(v))
     resizeGripMargin = Property(float, lambda self: self._resize_grip_margin, lambda self, v: self._q_set("_resize_grip_margin", float(v)))
@@ -1226,6 +1324,10 @@ class NodeEditor(QWidget):
     def export_schema(self) -> dict:
         return self.graph.to_schema()
 
+    # New: export to requested agent schema (list)
+    def export_agent_schema(self) -> List[dict]:
+        return self.graph.to_agent_schema()
+
     def debug_state(self) -> dict:
         return self.save_layout()
 
@@ -1433,6 +1535,10 @@ class NodeEditor(QWidget):
             if _qt_is_valid(item):
                 item._apply_resize(item.size(), clamp=True)
                 item.update()
+                # Update port labels colors
+                for p in list(item._in_ports.values()) + list(item._out_ports.values()):
+                    if _qt_is_valid(p):
+                        p.notify_theme_changed()
         for edge in self._conn_uuid_to_edge.values():
             if _qt_is_valid(edge):
                 edge._update_pen()
@@ -1533,9 +1639,11 @@ class NodeEditor(QWidget):
                 return False
             skip_uuid = self._rewire_conn_uuid
             src_count = sum(1 for c in self.graph.connections.values()
-                            if c.src_node == src.node_item.node.uuid and c.src_prop == src.prop_id and c.uuid != skip_uuid)
+                            if
+                            c.src_node == src.node_item.node.uuid and c.src_prop == src.prop_id and c.uuid != skip_uuid)
             dst_count = sum(1 for c in self.graph.connections.values()
-                            if c.dst_node == dst.node_item.node.uuid and c.dst_prop == dst.prop_id and c.uuid != skip_uuid)
+                            if
+                            c.dst_node == dst.node_item.node.uuid and c.dst_prop == dst.prop_id and c.uuid != skip_uuid)
             if sp.allowed_outputs > 0 and src_count >= sp.allowed_outputs:
                 return False
             if dp.allowed_inputs > 0 and dst_count >= dp.allowed_inputs:
@@ -1574,15 +1682,16 @@ class NodeEditor(QWidget):
             pp = it.scenePos()
             dx = scene_pos.x() - pp.x()
             dy = scene_pos.y() - pp.y()
-            d2 = dx*dx + dy*dy
+            d2 = dx * dx + dy * dy
             if d2 < best_d2:
                 best_d2 = d2
                 best = it
         if best:
-            self._dbg(f"_find_compatible_port_at: FOUND port={best.prop_id}/{best.side} on node={best.node_item.node.name}")
+            self._dbg(
+                f"_find_compatible_port_at: FOUND port={best.prop_id}/{best.side} on node={best.node_item.node.name}")
         return best
 
-    # ---------- Wire interaction (new + rewire) ----------
+        # ---------- Wire interaction (new + rewire) ----------
 
     def _enter_wire_drag_mode(self):
         try:
@@ -1600,7 +1709,8 @@ class NodeEditor(QWidget):
         self._saved_drag_mode = None
 
     def _on_port_clicked(self, port: PortItem):
-        self._dbg(f"_on_port_clicked: side={port.side}, prop={port.prop_id}, connected={self._port_has_connections(port)}")
+        self._dbg(
+            f"_on_port_clicked: side={port.side}, prop={port.prop_id}, connected={self._port_has_connections(port)}")
         mods = QApplication.keyboardModifiers()
         force_new = bool(mods & Qt.ShiftModifier)
         if not force_new and self._port_has_connections(port):
@@ -1678,15 +1788,16 @@ class NodeEditor(QWidget):
             if self._wire_state == "rewire-primed" and et == QEvent.GraphicsSceneMouseMove:
                 pos = event.scenePos()
                 if self._rewire_press_scene_pos is not None:
-                    dist = abs(pos.x() - self._rewire_press_scene_pos.x()) + abs(pos.y() - self._rewire_press_scene_pos.y())
+                    dist = abs(pos.x() - self._rewire_press_scene_pos.x()) + abs(
+                        pos.y() - self._rewire_press_scene_pos.y())
                 else:
                     dist = 9999
                 if dist > 6 and self._rewire_fixed_src is not None:
                     if self._rewire_hidden_edge and _qt_is_valid(self._rewire_hidden_edge):
                         self._rewire_hidden_edge.setVisible(False)
                     self._interactive_edge = EdgeItem(src_port=self._rewire_fixed_src,
-                                                       dst_port=self._rewire_fixed_src,
-                                                       temporary=True)
+                                                      dst_port=self._rewire_fixed_src,
+                                                      temporary=True)
                     self.scene.addItem(self._interactive_edge)
                     self._interactive_edge.update_path(end_pos=pos)
                     self._enter_wire_drag_mode()
@@ -1750,7 +1861,7 @@ class NodeEditor(QWidget):
 
         return super().eventFilter(obj, event)
 
-    # -------- Interaction reset helpers --------
+        # -------- Interaction reset helpers --------
 
     def _reset_interaction_states(self, remove_hidden_edges: bool):
         self._set_hover_candidate(None)
@@ -1784,7 +1895,15 @@ class NodeEditor(QWidget):
     def _cancel_interactive_connection(self):
         self._reset_interaction_states(remove_hidden_edges=False)
 
-    # ---------- Delete helpers ----------
+        # ---------- Delete helpers ----------
+
+    def _delete_node_item(self, item: "NodeItem"):
+        try:
+            if _qt_is_valid(item):
+                self._dbg(f"_delete_node_item -> node={item.node.uuid}")
+                self._remove_node_by_uuid(item.node.uuid)
+        except Exception:
+            pass
 
     def _detach_edge_item(self, edge: EdgeItem):
         try:
@@ -1821,7 +1940,7 @@ class NodeEditor(QWidget):
                 self._delete_edge(it)
         self.view.viewport().update()
 
-    # ---------- Clear helpers required by load/close ----------
+        # ---------- Clear helpers required by load/close ----------
 
     def _remove_all_edge_items_from_scene(self):
         if not _qt_is_valid(self.scene):
@@ -1865,7 +1984,7 @@ class NodeEditor(QWidget):
         self._clear_scene_only(hard=True)
         self.graph.clear(silent=True)
 
-    # ---------- View centering ----------
+        # ---------- View centering ----------
 
     def content_bounding_rect(self) -> Optional[QRectF]:
         rect: Optional[QRectF] = None
