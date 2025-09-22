@@ -126,20 +126,44 @@ class EventManager {
 	// Flash "Copied" feedback on the copy button.
     _flashCopied(btn, wrapper) {
         if (!btn) return;
+        const DUR = 1200;
+
+        // Try to find an icon to swap (works for both code-header and msg copy buttons)
+        const img = btn.querySelector('img.copy-img') || btn.querySelector('img.action-img') || btn.querySelector('img');
+
+        // Clear pending timers to avoid races on rapid clicks
+        try { if (btn.__copyTimer) { clearTimeout(btn.__copyTimer); btn.__copyTimer = 0; } } catch (_) {}
+        try { if (btn.__iconTimer) { clearTimeout(btn.__iconTimer); btn.__iconTimer = 0; } } catch (_) {}
+
+        // Icon swap to success (window.ICON_DONE), then restore
+        if (typeof window !== 'undefined' && window.ICON_DONE && img) {
+            // Cache original icon once
+            if (!btn.__origIconSrc) {
+                try { btn.__origIconSrc = img.getAttribute('src') || ''; } catch (_) { btn.__origIconSrc = ''; }
+            }
+            try { img.setAttribute('src', String(window.ICON_DONE)); } catch (_) {}
+            btn.__iconTimer = setTimeout(() => {
+                try {
+                    const orig = btn.__origIconSrc || '';
+                    if (orig) img.setAttribute('src', orig);
+                } catch (_) {}
+                btn.__iconTimer = 0;
+            }, DUR);
+        }
+
         const span = btn.querySelector('span');
         // Icon-only fallback (no label)
         if (!span) {
-            try { if (btn.__copyTimer) { clearTimeout(btn.__copyTimer); btn.__copyTimer = 0; } } catch (_) {}
             btn.classList.add('copied');
             btn.__copyTimer = setTimeout(() => {
                 try { btn.classList.remove('copied'); } catch (_) {}
                 btn.__copyTimer = 0;
-            }, 1200);
+            }, DUR);
             return;
         }
+
         const L_COPY = (wrapper && wrapper.getAttribute('data-locale-copy')) || 'Copy';
         const L_COPIED = (wrapper && wrapper.getAttribute('data-locale-copied')) || 'Copied';
-        try { if (btn.__copyTimer) { clearTimeout(btn.__copyTimer); btn.__copyTimer = 0; } } catch (_) {}
         span.textContent = L_COPIED;
         btn.classList.add('copied');
         btn.__copyTimer = setTimeout(() => {
@@ -148,7 +172,7 @@ class EventManager {
                 btn.classList.remove('copied');
             } catch (_) {}
             btn.__copyTimer = 0;
-        }, 1200);
+        }, DUR);
     }
 
 	// Toggle code collapse/expand and remember collapsed indices.
@@ -294,23 +318,10 @@ class EventManager {
 					const L_COPY = L.COPY || 'Copy';
 					const L_COPIED = L.COPIED || 'Copied';
 
-					// Visual feedback only (no tooltip)
-                    try {
-                      if (aUserCopy.__copyTimer) {
-                        clearTimeout(aUserCopy.__copyTimer);
-                        aUserCopy.__copyTimer = 0;
-                      }
-                    } catch (_) {}
-
-                    if (ok) {
-                      try {
-                        aUserCopy.classList.add('copied');
-                        aUserCopy.__copyTimer = setTimeout(() => {
-                          try { aUserCopy.classList.remove('copied'); } catch (_) {}
-                          aUserCopy.__copyTimer = 0;
-                        }, 1200);
-                      } catch (_) {}
-                    }
+					// Visual feedback only (no tooltip) + temporary icon swap handled centrally
+					if (ok) {
+						this._flashCopied(aUserCopy, null);
+					}
 				} catch (_) {
 					/* swallow */
 				}

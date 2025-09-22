@@ -719,6 +719,8 @@ class Body:
         attach_path = os.path.join(app_path, "data", "icons", "attachments.svg").replace("\\", "/")
         db_path = os.path.join(app_path, "data", "icons", "db.svg").replace("\\", "/")
 
+        done_path = os.path.join(app_path, "data", "icons", "done.svg").replace("\\", "/")
+
         icons_js = (
             f'window.ICON_EXPAND="file://{expand_path}";'
             f'window.ICON_COLLAPSE="file://{collapse_path}";'
@@ -729,6 +731,7 @@ class Body:
             f'window.ICON_URL="file://{url_path}";'
             f'window.ICON_ATTACHMENTS="file://{attach_path}";'
             f'window.ICON_DB="file://{db_path}";'
+            f'window.ICON_DONE="file://{done_path}";'
         )
 
         t_copy = trans('ctx.extra.copy_code')
