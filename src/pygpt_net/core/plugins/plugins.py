@@ -357,6 +357,66 @@ class Plugins:
         """Load presets"""
         self.presets = self.provider.load()
 
+    def remove_plugin_param_from_presets(self, plugin_id: str, param: str = None) -> bool:
+        """
+        Remove plugin param from all presets
+
+        :param plugin_id: plugin id
+        :param param: param key
+        :return: True if updated
+        """
+        updated = False
+        if self.presets is None:
+            self.load_presets()
+
+        if self.presets is None:
+            return False
+
+        if param is None:
+            # remove all params for plugin
+            for _preset_id, preset in self.presets.items():
+                preset_config = preset["config"]
+                if plugin_id in preset_config:
+                    preset_config.pop(plugin_id)
+                    updated = True
+            if updated:
+                self.save_presets()
+            return updated
+
+        for _preset_id, preset in self.presets.items():
+            preset_config = preset["config"]
+            if plugin_id in preset_config and param in preset_config[plugin_id]:
+                preset_config[plugin_id].pop(param)
+                updated = True
+        if updated:
+            self.save_presets()
+        return updated
+
+    def update_param_in_presets(self, plugin_id: str, param: str, value: Any) -> bool:
+        """
+        Update plugin param in all presets
+
+        :param plugin_id: plugin id
+        :param param: param key
+        :param value: param value
+        :return: True if updated
+        """
+        updated = False
+        if self.presets is None:
+            self.load_presets()
+
+        if self.presets is None:
+            return False
+
+        for _preset_id, preset in self.presets.items():
+            preset_config = preset["config"]
+            if plugin_id in preset_config and param in preset_config[plugin_id]:
+                preset_config[plugin_id][param] = value
+                updated = True
+        if updated:
+            self.save_presets()
+        return updated
+
     def get_presets(self) -> Dict[str, Any]:
         """
         Return all presets

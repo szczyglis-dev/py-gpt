@@ -31,6 +31,7 @@ class Patch:
         """
         data = self.window.core.config.all()
         cfg_get_base = self.window.core.config.get_base
+        remove_plugin_config = self.window.core.config.remove_plugin_config
         patch_css = self.window.core.updater.patch_css
         current = "0.0.0"
         updated = False
@@ -127,6 +128,16 @@ class Patch:
                 patch_css('web-blocks.darkest.css', True)
                 patch_css('web-chatgpt.darkest.css', True)
                 patch_css('web-chatgpt_wide.darkest.css', True)
+                updated = True
+
+            # < 2.6.57
+            if old < parse_version("2.6.57"):
+                print("Migrating config from < 2.6.57...")
+                remove_plugin_config("cmd_web", "max_open_urls")
+                remove_plugin_config("cmd_web", "cmd.web_url_open")
+                remove_plugin_config("cmd_web", "cmd.web_url_raw")
+                remove_plugin_config("cmd_web", "cmd.web_extract_links")
+                remove_plugin_config("cmd_web", "cmd.web_extract_images")
                 updated = True
 
         # update file

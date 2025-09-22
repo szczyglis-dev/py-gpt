@@ -208,6 +208,50 @@ class Config:
             workdir = "/data"
         return workdir
 
+    def remove_plugin_config(self, plugin: str, key: str = None) -> bool:
+        """
+        Remove plugin config or specific key
+
+        :param plugin: plugin name
+        :param key: key name (optional)
+        :return: True if removed
+        """
+        try:
+            if plugin not in self.data['plugins']:
+                return False
+            if key is None:
+                del self.data['plugins'][plugin]
+                self.window.core.plugins.remove_plugin_param_from_presets(plugin)
+                return True
+            if plugin in self.data['plugins'] \
+                    and key in self.data['plugins'][plugin]:
+                del self.data['plugins'][plugin][key]
+                self.window.core.plugins.remove_plugin_param_from_presets(plugin, key)
+            return True
+        except Exception as e:
+            print(f"Error removing plugin config: {e}")
+            return False
+
+    def update_plugin_config(self, plugin: str, key: str, value: any) -> bool:
+        """
+        Update plugin config key with value
+
+        :param plugin: plugin name
+        :param key: key name
+        :param value: value
+        :return: True if updated
+        """
+        try:
+            if 'plugins' not in self.data:
+                self.data['plugins'] = {}
+            if plugin not in self.data['plugins']:
+                self.data['plugins'][plugin] = {}
+            self.data['plugins'][plugin][key] = value
+            return True
+        except Exception as e:
+            print(f"Error updating plugin config: {e}")
+            return False
+
     def get_app_path(self) -> str:
         """
         Return app data path

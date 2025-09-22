@@ -29,6 +29,7 @@ class Patch:
         """
         data = self.window.core.config.all()
         cfg_get_base = self.window.core.config.get_base
+        remove_plugin_config = self.window.core.config.remove_plugin_config
         patch_css = self.window.core.updater.patch_css
         current = "0.0.0"
         updated = False
