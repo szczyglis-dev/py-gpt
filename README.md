@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.57** | build: **2025-09-22** | Python: **>=3.10, <3.14**
+Release: **2.6.58** | build: **2025-09-22** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3542,6 +3542,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.58 (2025-09-22)**
+
+- Added: internal Web Browser tool.
 
 **2.6.57 (2025-09-22)**
 

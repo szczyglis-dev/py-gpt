@@ -13,6 +13,8 @@ PyGPT features several useful tools, including:
 * Transcribe Audio/Video Files
 * Python Code Interpreter
 * HTML/JS Canvas (built-in HTML renderer)
+* Translator
+* Web Browser (Chromium)
 
 .. image:: images/v2_tool_menu.png
    :width: 400
@@ -99,8 +101,8 @@ Translator
 
 Enables translation between multiple languages using an AI model.
 
-Web Browser
-------------
+Web Browser (Chromium)
+----------------------
 
 A built-in web browser based on Chromium, allowing you to open webpages directly within the app. 
 

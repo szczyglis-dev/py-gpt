@@ -208,9 +208,9 @@ from pygpt_net.tools.web_browser import WebBrowser as WebBrowserTool
 
 def run(**kwargs):
     """
-    PyGPT launcher.
+    PyGPT Launcher
 
-    :param kwargs: keyword arguments for launcher
+    :param kwargs: Keyword arguments for the launcher.
 
     PyGPT can be extended with:
 
@@ -224,46 +224,48 @@ def run(**kwargs):
     - Custom tools
     - Custom agents
 
-    - You can pass custom plugin instances, LLM wrappers, vector store providers and more to the launcher.
-    - This is useful if you want to extend PyGPT with your own plugins, vector storage, LLMs, or other data providers.
+    You can provide custom plugin instances, LLM wrappers, vector store providers, and more to the launcher.
+    This is useful for extending PyGPT with your own plugins, vector storage, LLMs, or other data providers.
 
-    First, create a custom launcher file, for example, "custom_launcher.py," and register your extensions in it.
+    --- HOW TO REGISTER CUSTOM EXTENSIONS ---
 
-    To register a custom plugin - create the custom launcher, e.g. "custom_launcher.py" and:
+    1. First, create a custom launcher file, such as "custom_launcher.py," and register your extensions in it.
 
-    - Pass a list with the plugin instances as the 'plugins' keyword argument.
+    To register a custom plugin, create the custom launcher (e.g., "custom_launcher.py") and:
+
+    - Pass a list containing the plugin instances as the `plugins` keyword argument.
 
     To register a custom LLM wrapper:
 
-    - Pass a list with the LLM wrapper instances as the 'llms' keyword argument.
+    - Pass a list containing the LLM wrapper instances as the `llms` keyword argument.
 
     To register a custom vector store provider:
 
-    - Pass a list with the vector store provider instances as the 'vector_stores' keyword argument.
+    - Pass a list containing the vector store provider instances as the `vector_stores` keyword argument.
 
     To register a custom data loader:
 
-    - Pass a list with the data loader instances as the 'loaders' keyword argument.
+    - Pass a list containing the data loader instances as the `loaders` keyword argument.
 
     To register a custom audio input provider:
 
-    - Pass a list with the audio input provider instances as the 'audio_input' keyword argument.
+    - Pass a list containing the audio input provider instances as the `audio_input` keyword argument.
 
     To register a custom audio output provider:
 
-    - Pass a list with the audio output provider instances as the 'audio_output' keyword argument.
+    - Pass a list containing the audio output provider instances as the `audio_output` keyword argument.
 
     To register a custom web provider:
 
-    - Pass a list with the web provider instances as the 'web' keyword argument.
+    - Pass a list containing the web provider instances as the `web` keyword argument.
 
     To register a custom agent:
 
-    - Pass a list with the agent instances as the 'agents' keyword argument.
+    - Pass a list containing the agent instances as the `agents` keyword argument.
 
     To register a custom tool:
 
-    - Pass a list with the tool instances as the 'tools' keyword argument.
+    - Pass a list containing the tool instances as the `tools` keyword argument.
 
     Example:
     --------
@@ -272,15 +274,16 @@ def run(**kwargs):
         # custom_launcher.py
 
         from pygpt_net.app import run
-        from plugins import CustomPlugin, OtherCustomPlugin
-        from llms import CustomLLM
-        from vector_stores import CustomVectorStore
-        from loaders import CustomLoader
-        from audio_input import CustomAudioInput
-        from audio_output import CustomAudioOutput
-        from web import CustomWebSearch
-        from tools import CustomTool
-        from agents import CustomAgent
+
+        from .my_plugins import CustomPlugin, OtherCustomPlugin
+        from .my_llms import CustomLLM
+        from .my_vector_stores import CustomVectorStore
+        from .my_loaders import CustomLoader
+        from .my_audio_input import CustomAudioInput
+        from .my_audio_output import CustomAudioOutput
+        from .my_web import CustomWebSearch
+        from .my_tools import CustomTool
+        from .my_agents import CustomAgent
 
         plugins = [
             CustomPlugin(),

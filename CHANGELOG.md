@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.6.58 (2025-09-22)
+
+- Added: internal Web Browser tool.
+
 ## 2.6.57 (2025-09-22)
 
 - Changed: The web search icon has been moved to the input area.
