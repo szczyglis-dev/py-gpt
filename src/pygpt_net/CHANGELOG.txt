@@ -1,3 +1,9 @@
+2.6.56 (2025-09-22)
+
+- Optimized: Memory usage and performance in streaming and rendering large contexts.
+- Added: Copy to clipboard functionality in user messages.
+- Added: Manual scroll in plain-text mode.
+
 2.6.55 (2025-09-18)
 
 - Fixed: Unnecessary context loading from the database.

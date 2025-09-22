@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.55** | build: **2025-09-18** | Python: **>=3.10, <3.14**
+Release: **2.6.56** | build: **2025-09-22** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3528,6 +3528,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.56 (2025-09-22)**
+
+- Optimized: Memory usage and performance in streaming and rendering large contexts.
+- Added: Copy to clipboard functionality in user messages.
+- Added: Manual scroll in plain-text mode.
 
 **2.6.55 (2025-09-18)**
 
