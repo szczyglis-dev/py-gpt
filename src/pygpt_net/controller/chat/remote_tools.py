@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 20:00:00                  #
+# Updated Date: 2025.09.22 12:00:00                  #
 # ================================================== #
 
 from typing import Union
@@ -87,9 +87,11 @@ class RemoteTools:
         """
         state = self.enabled_global["web_search"]
         if state:
-            self.window.ui.nodes['icon.remote_tool.web'].set_icon(":/icons/web_on.svg")
+            self.window.ui.nodes['input'].set_icon_state("web", True)
+            # self.window.ui.nodes['icon.remote_tool.web'].set_icon(":/icons/web_on.svg")
         else:
-            self.window.ui.nodes['icon.remote_tool.web'].set_icon(":/icons/web_off.svg")
+            self.window.ui.nodes['input'].set_icon_state("web", False)
+            # self.window.ui.nodes['icon.remote_tool.web'].set_icon(":/icons/web_off.svg")
 
     def toggle(self, tool_name: str):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.03 00:00:00                  #
+# Updated Date: 2025.09.22 12:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -30,10 +30,12 @@ class ChatInput(QTextEdit):
     ICON_PASTE = QIcon(":/icons/paste.svg")
     ICON_VOLUME = QIcon(":/icons/volume.svg")
     ICON_SAVE = QIcon(":/icons/save.svg")
-    ICON_ATTACHMENT = QIcon(":/icons/add.svg")
-    #ICON_ATTACHMENT = QIcon(":/icons/attachment.svg")
+    # ICON_ATTACHMENT = QIcon(":/icons/add.svg")
+    ICON_ATTACHMENT = QIcon(":/icons/attachment.svg")
     ICON_MIC_ON = QIcon(":/icons/mic.svg")
     ICON_MIC_OFF = QIcon(":/icons/mic_off.svg")
+    ICON_WEB_ON = QIcon(":/icons/web_on.svg")
+    ICON_WEB_OFF = QIcon(":/icons/web_off.svg")
 
     def __init__(self, window=None):
         """
@@ -86,6 +88,16 @@ class ChatInput(QTextEdit):
             alt_tooltip=trans('audio.speak.btn.stop.tooltip'),
             callback=self.action_toggle_mic,
             visible=False,
+        )
+        # Add a web search toggle button
+        self.add_icon(
+            key="web",
+            icon=self.ICON_WEB_OFF,
+            alt_icon=self.ICON_WEB_ON,
+            tooltip=trans('icon.remote_tool.web'),
+            alt_tooltip=trans('icon.remote_tool.web'),
+            callback=self.action_toggle_web,
+            visible=True,
         )
 
         # Apply initial margins (top padding + left space for icons)
@@ -289,6 +301,10 @@ class ChatInput(QTextEdit):
     def action_toggle_mic(self):
         """Toggle microphone (button click)."""
         self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
+
+    def action_toggle_web(self):
+        """Toggle web search (button click)."""
+        self.window.controller.chat.remote_tools.toggle('web_search')
 
     # -------------------- Left icon bar  --------------------
     # - Add icons: add_icon(...) or add_icons([...])
