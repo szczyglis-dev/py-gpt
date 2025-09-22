@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.15 01:00:00                  #
+# Updated Date: 2025.09.22 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -45,7 +45,7 @@ class Config(BaseConfig):
         plugin.add_option(
             "max_open_urls",
             type="int",
-            value=1,
+            value=3,
             label="Number of max URLs to open at once",
             description="Number of max URLs to open at once",
             min=1,
@@ -193,12 +193,12 @@ class Config(BaseConfig):
         # commands
         plugin.add_cmd(
             "web_url_open",
-            instruction="read and get text content from ANY website URL. Always open a max of {max_urls} URLs at a time.",
+            instruction="read and get text content from ANY website URLs. Always open a max of {max_urls} URLs at a time.",
             params=[
                 {
-                    "name": "url",
-                    "type": "str",
-                    "description": "URL to website",
+                    "name": "urls",
+                    "type": "list",
+                    "description": "List of URLs to websites",
                     "required": True,
                 },
             ],
@@ -207,12 +207,12 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "web_url_raw",
-            instruction="read and get raw HTML body from ANY website URL. Always open a max of {max_urls} URLs at a time.",
+            instruction="read and get raw HTML body from ANY website URLs. Always open a max of {max_urls} URLs at a time.",
             params=[
                 {
-                    "name": "url",
-                    "type": "str",
-                    "description": "URL to website",
+                    "name": "urls",
+                    "type": "list",
+                    "description": "List of URLs to websites",
                     "required": True,
                 },
             ],
@@ -318,12 +318,12 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "web_extract_links",
-            instruction="open webpage and get list of all links from it",
+            instruction="open webpages and get list of all links from it",
             params=[
                 {
-                    "name": "url",
-                    "type": "str",
-                    "description": "URL to website",
+                    "name": "urls",
+                    "type": "list",
+                    "description": "List of URLs to websites",
                     "required": True,
                 },
             ],
@@ -335,9 +335,9 @@ class Config(BaseConfig):
             instruction="open webpage and get list of all images from it",
             params=[
                 {
-                    "name": "url",
-                    "type": "str",
-                    "description": "URL to website",
+                    "name": "urls",
+                    "type": "list",
+                    "description": "List of URLs to websites",
                     "required": True,
                 },
                 {
