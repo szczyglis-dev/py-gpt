@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.57 (2025-09-22)
+
+- Changed: The web search icon has been moved to the input area.
+- Improved: The local web search plugin has been enhanced to retrieve multiple URLs at once.
+
 ## 2.6.56 (2025-09-22)
 
 - Optimized: Memory usage and performance in streaming and rendering large contexts.
