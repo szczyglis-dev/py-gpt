@@ -116,4 +116,34 @@ class Debug:
             ]
         )
 
+        # add separator and sub-menu with Chrome debug
+        menu.addSeparator()
+
+        # Sub-menu "Chrome"
+        m['menu.debug.chrome'] = menu.addMenu("Chromium")
+        chrome_urls = {
+            'sandbox': ('Sandbox', 'chrome://sandbox'),
+            'gpu': ('GPU', 'chrome://gpu'),
+            'version': ('Version', 'chrome://version'),
+            'flags': ('Flags', 'chrome://flags'),
+            'components': ('Components', 'chrome://components'),
+            'policy': ('Policy', 'chrome://policy'),
+            'dns': ('DNS', 'chrome://dns'),
+            'net_export': ('Net Export', 'chrome://net-export'),
+            'media_internals': ('Media Internals', 'chrome://media-internals'),
+            'webrtc_internals': ('WebRTC Internals', 'chrome://webrtc-internals'),
+            'discards': ('Discards (Tab Discarding)', 'chrome://discards'),
+            'crashes': ('Crashes', 'chrome://crashes'),
+            'histograms': ('Histograms', 'chrome://histograms'),
+            'process_internals': ('Process Internals', 'chrome://process-internals'),
+            'tracing': ('Tracing', 'chrome://tracing'),
+            'chrome_urls': ('All Chrome URLs', 'chrome://chrome-urls'),
+        }
+
+        for key, (label, url) in chrome_urls.items():
+            action_key = f"debug.chrome.{key}"
+            m[action_key] = QAction(label, win)
+            m[action_key].triggered.connect(lambda _=False, u=url: dbg.open_chrome_debug(u))
+            m['menu.debug.chrome'].addAction(m[action_key])
+
         m['debug.render'].setChecked(bool(win.core.config.get('debug.render')))

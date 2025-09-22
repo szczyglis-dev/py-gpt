@@ -112,6 +112,14 @@ class HtmlCanvas(BaseTool):
             self.signals.reload.emit(path)
         self.signals.update.emit(output)
 
+    def set_url(self, url: str):
+        """
+        Set output URL
+
+        :param url: URL to load
+        """
+        self.signals.url.emit(url)
+
     def reload_output(self):
         """Reload output data"""
         self.load_output()
@@ -172,18 +180,27 @@ class HtmlCanvas(BaseTool):
         """Clear input and output"""
         self.clear_output()
 
-    def open(self):
-        """Open HTML canvas dialog"""
+    def open(self, load: bool = True):
+        """
+        Open HTML canvas dialog
+
+        :param load: Load output data
+        """
         if not self.opened:
             self.opened = True
             self.auto_opened = False
-            self.load_output()
+            if load:
+                self.load_output()
             self.window.ui.dialogs.open(self.dialog_id, width=800, height=600)
             self.dialog.widget.on_open()
             self.update()
 
-    def auto_open(self):
-        """Auto open canvas dialog or tab"""
+    def auto_open(self, load: bool = True):
+        """
+        Auto open canvas dialog or tab
+
+        :param load: Load output data
+        """
         if self.window.controller.ui.tabs.is_current_tool(self.id):
             tool_col = self.window.controller.ui.tabs.get_tool_column(self.id)
             current_col = self.window.controller.ui.tabs.column_idx
@@ -201,7 +218,7 @@ class HtmlCanvas(BaseTool):
                 return
         if not self.auto_opened:
             self.auto_opened = True
-            self.open()
+            self.open(load=load)
 
     def open_file(self):
         """Open file dialog"""

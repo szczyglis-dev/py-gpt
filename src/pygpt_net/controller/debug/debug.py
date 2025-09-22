@@ -65,6 +65,15 @@ class Debug(QObject):
         state = self.window.core.config.get('debug')
         self.window.ui.menu['menu.debug'].menuAction().setVisible(state)
 
+    def open_chrome_debug(self, url: str = "about:blank"):
+        """
+        Open Chrome debug URL
+
+        :param url: debug URL
+        """
+        self.window.tools.get("html_canvas").set_url(url)
+        self.window.tools.get("html_canvas").auto_open(load=False)
+
     def toggle_render(self):
         """Toggle render debug"""
         value = self.window.ui.menu['debug.render'].isChecked()
