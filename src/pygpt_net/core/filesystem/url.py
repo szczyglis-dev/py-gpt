@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2025.09.22 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -85,7 +85,10 @@ class Url:
         elif url.scheme() == 'extra-code-copy':  # copy code block
             id = url.toString().split(':')[1]
             self.window.controller.ctx.extra.copy_code_block(int(id))
-
         else:
             # external link
+            if url.scheme().startswith('http'):
+                self.window.controller.dialogs.info.open_url(url.toString())
+                return
+
             QDesktopServices.openUrl(url)

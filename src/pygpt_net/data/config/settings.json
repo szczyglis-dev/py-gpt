@@ -1139,7 +1139,19 @@
         "step": null,
         "advanced": false
     },
-
+    "ctx.urls.internal": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.urls.internal",
+        "description": "settings.ctx.urls.internal.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false
+    },
     "ctx.convert_lists": {
         "section": "ctx",
         "type": "bool",

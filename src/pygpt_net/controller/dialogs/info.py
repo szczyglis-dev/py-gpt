@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.09.22 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -69,7 +69,11 @@ class Info:
         :param url: URL to open
         """
         if url:
-            QDesktopServices.openUrl(QUrl(url))
+            if self.window.core.config.get("ctx.urls.internal", False):
+                self.window.tools.get("web_browser").set_url(url)
+                self.window.tools.get("web_browser").auto_open(load=False)
+            else:
+                QDesktopServices.openUrl(QUrl(url))
 
     def goto_website(self):
         """Open project website"""

@@ -1971,6 +1971,8 @@ PyGPT features several useful tools, including:
 - Transcribe audio/video files
 - Python Code Interpreter
 - HTML/JS Canvas (built-in HTML renderer)
+- Translator
+- Web Browser (Chromium)
 
 ![v2_tool_menu](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_menu.png)
 
@@ -2039,6 +2041,14 @@ This tool allows you to run Python code directly from within the app. It is inte
 ## HTML/JS Canvas
 
 Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Code Interpreter` plugin.
+
+## Translator
+
+Enables translation between multiple languages using an AI model.
+
+## Web Browser
+
+A built-in web browser based on Chromium, allowing you to open webpages directly within the app. **SECURITY NOTICE:** For your protection, avoid using the built-in browser for sensitive or critical tasks. It is intended for basic use only.
 
 
 # Token usage calculation
@@ -2329,6 +2339,8 @@ Config -> Settings...
 - `Show code interpreter output`: If enabled, output from the code interpreter in the Assistant API will be displayed in real-time (in stream mode), Default: True.
 
 - `Use extra context output`: If enabled, plain text output (if available) from command results will be displayed alongside the JSON output, Default: True.
+
+- `Open URLs in built-in browser`: Enable this option to open all URLs in the built-in browser (Chromium) instead of an external browser. Default: False.
 
 - `Convert lists to paragraphs`: If enabled, lists (ul, ol) will be converted to paragraphs (p), Default: True.
 

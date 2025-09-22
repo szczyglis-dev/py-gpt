@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.09.22 19:00:00                  #
 # ================================================== #
 
 import copy
 from typing import Optional, Any, Dict, List
 
-from PySide6.QtCore import QObject, Slot, QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtCore import QObject, Slot
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event, KernelEvent
@@ -554,5 +553,4 @@ class BasePlugin(QObject):
 
         :param url: URL to open
         """
-        if url:
-            QDesktopServices.openUrl(QUrl(url))
+        self.window.controller.dialogs.info.open_url(url)

@@ -164,6 +164,7 @@
   "ctx.search_content": true,
   "ctx.search.string": "",
   "ctx.sources": true,
+  "ctx.urls.internal": false,
   "ctx.use_extra": true,
   "current_model": {
     "assistant": "gpt-4o",

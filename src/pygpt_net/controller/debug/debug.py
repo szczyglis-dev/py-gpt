@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 20:00:00                  #
+# Updated Date: 2025.09.22 19:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -74,8 +74,8 @@ class Debug(QObject):
 
         :param url: debug URL
         """
-        self.window.tools.get("html_canvas").set_url(url)
-        self.window.tools.get("html_canvas").auto_open(load=False)
+        self.window.tools.get("web_browser").set_url(url)
+        self.window.tools.get("web_browser").auto_open(load=False)
 
     def open_dev_tools(self) -> None:
         """

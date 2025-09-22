@@ -93,3 +93,17 @@ HTML/JS Canvas
 ---------------
 
 Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the ``Code Interpreter`` plugin.
+
+Translator
+----------
+
+Enables translation between multiple languages using an AI model.
+
+Web Browser
+------------
+
+A built-in web browser based on Chromium, allowing you to open webpages directly within the app. 
+
+.. warning::
+
+   **SECURITY NOTICE:** For your protection, avoid using the built-in browser for sensitive or critical tasks. It is intended for basic use only.

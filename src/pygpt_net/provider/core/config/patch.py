@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2025.09.22 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -142,6 +142,13 @@ class Patch:
                     data["api_proxy.enabled"] = False
                 if "api_proxy" in data and data["api_proxy"]:
                     data["api_proxy.enabled"] = True
+                updated = True
+
+            # < 2.6.58
+            if old < parse_version("2.6.58"):
+                print("Migrating config from < 2.6.58...")
+                if "ctx.urls.internal" not in data:
+                    data["ctx.urls.internal"] = False
                 updated = True
 
         # update file
