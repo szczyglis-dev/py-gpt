@@ -14,7 +14,7 @@ from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenu
+from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout
 
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
@@ -86,6 +86,33 @@ class ChatWebOutput(QWebEngineView):
         """
         pass
         # self.window.core.debug.log(e)
+
+    def show_devtools(self, modal: bool = False, title: str = "DevTools"):
+        """Show DevTools window"""
+        if getattr(self, "_devtools_dlg", None) is None:
+            dlg = QDialog(self.window)
+            dlg.setWindowTitle(title)
+            dlg.setModal(modal)
+            dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+            dlg.resize(1100, 750)
+
+            layout = QVBoxLayout(dlg)
+            view = QWebEngineView(dlg)
+            layout.addWidget(view)
+
+            profile = self.page().profile()
+            view.setPage(QWebEnginePage(profile, view))
+
+            self.page().setDevToolsPage(view.page())
+
+            dlg.destroyed.connect(lambda: setattr(self, "_devtools_dlg", None))
+
+            self._devtools_dlg = dlg
+            self._devtools_view = view
+
+        self._devtools_dlg.show()
+        self._devtools_dlg.raise_()
+        self._devtools_dlg.activateWindow()
 
     def unload(self):
         """Unload the current page and free resources"""

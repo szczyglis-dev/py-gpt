@@ -45,10 +45,13 @@ class Debug(QObject):
     def update_menu(self):
         """Update debug menu"""
         for id in self.window.controller.dialogs.debug.get_ids():
+            key = f"debug.{id}"
+            if key not in self.window.ui.menu:
+                continue
             if self.window.controller.dialogs.debug.is_active(id):
-                self.window.ui.menu['debug.' + id].setChecked(True)
+                self.window.ui.menu[key].setChecked(True)
             else:
-                self.window.ui.menu['debug.' + id].setChecked(False)
+                self.window.ui.menu[key].setChecked(False)
 
         if self.is_logger:
             self.window.ui.menu['debug.logger'].setChecked(True)
@@ -73,6 +76,18 @@ class Debug(QObject):
         """
         self.window.tools.get("html_canvas").set_url(url)
         self.window.tools.get("html_canvas").auto_open(load=False)
+
+    def open_dev_tools(self) -> None:
+        """
+        Open dev tools for given PID (Web renderer only)
+
+        :param pid: PID
+        """
+        meta = self.window.core.ctx.get_current_meta()
+        if meta:
+            node = self.window.core.ctx.output.get_current(meta)
+            if node:
+                node.show_devtools()
 
     def toggle_render(self):
         """Toggle render debug"""

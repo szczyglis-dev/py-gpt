@@ -1324,7 +1324,7 @@ class Renderer(BaseRenderer):
         :return: output node or None
         """
         if self._get_output_node_by_meta is None:
-            self._get_output_node_by_meta = self.window.core.ctx.output.get_output_node_by_meta
+            self._get_output_node_by_meta = self.window.core.ctx.output.get_current
         return self._get_output_node_by_meta(meta)
 
     def get_output_node_by_pid(self, pid: Optional[int]) -> Optional[ChatWebOutput]:
@@ -1335,7 +1335,7 @@ class Renderer(BaseRenderer):
         :return: output node or None
         """
         if self._get_output_node_by_pid is None:
-            self._get_output_node_by_pid = self.window.core.ctx.output.get_output_node_by_pid
+            self._get_output_node_by_pid = self.window.core.ctx.output.get_by_pid
         return self._get_output_node_by_pid(pid)
 
     def get_input_node(self) -> ChatInput:

@@ -146,4 +146,9 @@ class Debug:
             m[action_key].triggered.connect(lambda _=False, u=url: dbg.open_chrome_debug(u))
             m['menu.debug.chrome'].addAction(m[action_key])
 
+        # add open devtools action
+        m['debug.chrome.devtools'] = QAction("Open DevTools", win)
+        m['debug.chrome.devtools'].triggered.connect(dbg.open_dev_tools)
+        menu.addAction(m['debug.chrome.devtools'])
+
         m['debug.render'].setChecked(bool(win.core.config.get('debug.render')))
