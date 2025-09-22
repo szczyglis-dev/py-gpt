@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2025.09.22 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize
@@ -41,7 +41,7 @@ class ToolWidget:
         self.edit = None  # canvas edit
         self.btn_edit = None  # edit checkbox
 
-        # --- Navigation bar state (added) ---
+        # --- Navigation bar state ---
         # This toolbar is shown only when opening via URL (open_url),
         # and hidden when using set_output/load_output.
         self.nav_bar = None
@@ -50,7 +50,7 @@ class ToolWidget:
         self.btn_back = None
         self.btn_next = None
         self.btn_reload = None
-        self.btn_go = None  # "Go" button (text)
+        self.btn_go = None
 
     def on_open(self):
         """On open"""
@@ -88,7 +88,7 @@ class ToolWidget:
             lambda: self.tool.save_output()
         )
 
-        # ---- Navigation bar (added) ----
+        # ---- Navigation bar ----
         # Visible only when navigating URLs via open_url or address bar.
         self.nav_bar = QWidget()
         self.nav_layout = QHBoxLayout(self.nav_bar)
@@ -101,14 +101,14 @@ class ToolWidget:
         nav_height = max(32, min(44, icon_size_px + 16))  # compact, never half-screen
         self.nav_bar.setFixedHeight(nav_height)
 
-        # Buttons (use QPushButton with icons from resources)
+        # Buttons
         self.btn_back = QPushButton()
         self.btn_back.setToolTip("Back")
         self.btn_back.setIcon(QIcon(":/icons/back.svg"))
         self.btn_back.setIconSize(QSize(icon_size_px, icon_size_px))
         self.btn_back.setFixedHeight(nav_height - 8)
         self.btn_back.setEnabled(False)
-        self.btn_back.setAutoDefault(False)  # prevent Enter from triggering this (added)
+        self.btn_back.setAutoDefault(False)  # prevent Enter from triggering this
         try:
             self.btn_back.setDefault(False)
         except Exception:
@@ -116,11 +116,11 @@ class ToolWidget:
 
         self.btn_next = QPushButton()
         self.btn_next.setToolTip("Next")
-        self.btn_next.setIcon(QIcon(":/icons/redo.svg"))  # use redo.svg as "next"
+        self.btn_next.setIcon(QIcon(":/icons/forward.svg"))
         self.btn_next.setIconSize(QSize(icon_size_px, icon_size_px))
         self.btn_next.setFixedHeight(nav_height - 8)
         self.btn_next.setEnabled(False)
-        self.btn_next.setAutoDefault(False)  # (added)
+        self.btn_next.setAutoDefault(False)
         try:
             self.btn_next.setDefault(False)
         except Exception:
@@ -131,17 +131,19 @@ class ToolWidget:
         self.btn_reload.setIcon(QIcon(":/icons/reload.svg"))
         self.btn_reload.setIconSize(QSize(icon_size_px, icon_size_px))
         self.btn_reload.setFixedHeight(nav_height - 8)
-        self.btn_reload.setAutoDefault(False)  # (added)
+        self.btn_reload.setAutoDefault(False)
         try:
             self.btn_reload.setDefault(False)
         except Exception:
             pass
 
-        # "Go" button is text-only as requested
-        self.btn_go = QPushButton("GO")
+        # "Go" button
+        self.btn_go = QPushButton()
         self.btn_go.setToolTip("Open URL")
+        self.btn_go.setIcon(QIcon(":/icons/redo.svg"))
+        self.btn_go.setIconSize(QSize(icon_size_px, icon_size_px))
         self.btn_go.setFixedHeight(nav_height - 8)
-        self.btn_go.setAutoDefault(False)  # avoid stealing Enter (added)
+        self.btn_go.setAutoDefault(False)  # avoid stealing Enter
         try:
             self.btn_go.setDefault(False)
         except Exception:
@@ -185,7 +187,7 @@ class ToolWidget:
 
         output_layout = QVBoxLayout()
         # put navigation bar above the web output
-        output_layout.addWidget(self.nav_bar)  # added
+        output_layout.addWidget(self.nav_bar)
         output_layout.addWidget(self.output)
         output_layout.addWidget(self.edit)
         output_layout.setContentsMargins(0, 0, 0, 0)
@@ -256,9 +258,9 @@ class ToolWidget:
         # Hide navigation bar when loading from local file/path
         self._show_navbar(False)
 
-    # ----------------------
-    # Navigation helpers (added)
-    # ----------------------
+    # ------------------
+    # Navigation helpers
+    # ------------------
     def _show_navbar(self, show: bool):
         """Show/hide the navigation bar."""
         if self.nav_bar:
@@ -287,7 +289,6 @@ class ToolWidget:
         text = self.address_bar.text().strip()
         if not text:
             return
-        # Use fromUserInput to accept entries like 'example.com'
         url = QUrl.fromUserInput(text)
         if url.isValid():
             self._show_navbar(True)
@@ -371,7 +372,7 @@ class CanvasEdit(BaseCodeEditor):
         return super().eventFilter(source, event)
 
 
-# --- Address bar input widget (added) ---
+# --- Address bar input widget ---
 class AddressLineEdit(QLineEdit):
     """
     Custom QLineEdit that ensures Enter triggers opening the typed URL
