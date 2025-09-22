@@ -14,7 +14,7 @@
             "bold": true
         },
         "urls": {
-            "OpenAI API Keys": "https://platform.openai.com/account/api-keys"
+            "API Keys": "https://platform.openai.com/account/api-keys"
         },
         "secret": true,
         "persist": true,
@@ -97,6 +97,9 @@
         "step": null,
         "extra": {
             "bold": true
+        },
+        "urls": {
+            "API Keys": "https://aistudio.google.com/app/apikey"
         },
         "secret": true,
         "persist": true,
@@ -207,6 +210,9 @@
         "extra": {
             "bold": true
         },
+        "urls": {
+            "API Keys": "https://platform.claude.com/settings/keys"
+        },
         "secret": true,
         "persist": true,
         "advanced": false,
@@ -256,6 +262,9 @@
         "extra": {
             "bold": true
         },
+        "urls": {
+            "API Keys": "https://huggingface.co/settings/tokens"
+        },
         "secret": true,
         "persist": true,
         "advanced": false,
@@ -290,6 +299,9 @@
         "extra": {
             "bold": true
         },
+        "urls": {
+            "API Keys": "https://platform.deepseek.com/api_keys"
+        },
         "secret": true,
         "persist": true,
         "advanced": false,
@@ -323,6 +335,9 @@
         "step": null,
         "extra": {
             "bold": true
+        },
+        "urls": {
+            "API Keys": "https://console.x.ai"
         },
         "secret": true,
         "persist": true,
@@ -405,6 +420,9 @@
         "extra": {
             "bold": true
         },
+        "urls": {
+            "API Keys": "https://www.perplexity.ai/account/api/keys"
+        },
         "secret": true,
         "persist": true,
         "advanced": false,
@@ -438,6 +456,9 @@
         "step": null,
         "extra": {
             "bold": true
+        },
+        "urls": {
+            "API Keys": "https://admin.mistral.ai/organization/api-keys"
         },
         "secret": true,
         "persist": true,
@@ -473,6 +494,9 @@
         "extra": {
             "bold": true
         },
+        "urls": {
+            "API Keys": "https://dashboard.voyageai.com/organization/api-keys"
+        },
         "secret": true,
         "persist": true,
         "advanced": false,
@@ -491,6 +515,9 @@
         "step": null,
         "extra": {
             "bold": true
+        },
+        "urls": {
+            "API Keys": "https://openrouter.ai/settings/keys"
         },
         "secret": true,
         "persist": true,
