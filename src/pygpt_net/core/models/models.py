@@ -475,7 +475,8 @@ class Models:
 
         if cfg.has('api_proxy'):
             proxy = cfg.get('api_proxy')
-            if proxy:
+            if proxy and cfg.get('api_proxy.enabled', False):
+                args["api_proxy"] = proxy
                 transport = SyncProxyTransport.from_url(proxy)
                 args["http_client"] = DefaultHttpxClient(transport=transport)
 

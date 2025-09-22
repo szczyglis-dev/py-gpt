@@ -140,6 +140,8 @@ class GoogleLLM(BaseLLM):
 
     def inject_llamaindex_http_clients(self, args: dict, cfg) -> dict:
         proxy = cfg.get("api_proxy")
+        if not cfg.get("api_proxy.enabled", False):
+            proxy = ""
         if proxy:
             http_options = gtypes.HttpOptions(
                 client_args={"proxy": proxy},

@@ -73,6 +73,8 @@ class AnthropicLLM(BaseLLM):
 
         args = self.parse_args(model.llama_index, window)
         proxy = window.core.config.get("api_proxy", None)
+        if not window.core.config.get("api_proxy.enabled", False):
+            proxy = None
         if "model" not in args:
             args["model"] = model.id
         if "api_key" not in args or args["api_key"] == "":
@@ -136,6 +138,8 @@ class AnthropicLLM(BaseLLM):
         timeout = window.core.config.get("api_native_voyage.timeout")
         max_retries = window.core.config.get("api_native_voyage.max_retries")
         proxy = window.core.config.get("api_proxy")
+        if not window.core.config.get("api_proxy.enabled", False):
+            proxy = ""
         return VoyageEmbeddingWithProxy(
             **args,
             proxy=proxy,

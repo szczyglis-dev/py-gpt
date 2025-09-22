@@ -158,6 +158,8 @@ class xAILLM(BaseLLM):
             args["api_base"] = cfg.get("api_endpoint_xai", "https://api.x.ai/v1")
 
         proxy = cfg.get("api_proxy") or cfg.get("api_native_xai.proxy")
+        if not cfg.get("api_proxy.enabled", False):
+            proxy = ""
         timeout = cfg.get("api_native_xai.timeout")
 
         # 1) REST (OpenAI-compatible)

@@ -117,6 +117,8 @@ class HuggingFaceApiLLM(BaseLLM):
 
         # proxy + trust_env (async)
         proxy = cfg.get("api_proxy") or cfg.get("api_native_hf.proxy")
+        if not cfg.get("api_proxy.enabled", False):
+            proxy = ""
         trust_env = cfg.get("api_native_hf.trust_env", False)
 
         return HuggingFaceInferenceAPIWithProxy(proxy=proxy, trust_env=trust_env, **args)
@@ -152,6 +154,8 @@ class HuggingFaceApiLLM(BaseLLM):
 
         # proxy + trust_env (async)
         proxy = window.core.config.get("api_proxy") or window.core.config.get("api_native_hf.proxy")
+        if not window.core.config.get("api_proxy.enabled", False):
+            proxy = ""
         trust_env = window.core.config.get("api_native_hf.trust_env", False)
 
         return HFEmbed(proxy=proxy, trust_env=trust_env, **args)

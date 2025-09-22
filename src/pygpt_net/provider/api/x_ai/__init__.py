@@ -75,6 +75,8 @@ class ApiXAI:
         api_key = cfg.get("api_key_xai") or os.environ.get("XAI_API_KEY") or ""
         timeout = cfg.get("api_native_xai.timeout")  # optional
         proxy = cfg.get("api_proxy") or ""
+        if not cfg.get("api_proxy.enabled"):
+            proxy = ""
 
         kwargs: Dict[str, Any] = {}
         if api_key:

@@ -96,6 +96,7 @@
   "api_native_google.use_vertex": false,
   "api_native_xai": true,
   "api_proxy": "",
+  "api_proxy.enabled": false,
   "api_use_responses": true,
   "api_use_responses_llama": true,
   "app.env": [

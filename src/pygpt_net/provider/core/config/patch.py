@@ -138,6 +138,10 @@ class Patch:
                 remove_plugin_config("cmd_web", "cmd.web_url_raw")
                 remove_plugin_config("cmd_web", "cmd.web_extract_links")
                 remove_plugin_config("cmd_web", "cmd.web_extract_images")
+                if "api_proxy.enabled" not in data:
+                    data["api_proxy.enabled"] = False
+                if "api_proxy" in data and data["api_proxy"]:
+                    data["api_proxy.enabled"] = True
                 updated = True
 
         # update file

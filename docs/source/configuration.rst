@@ -23,6 +23,8 @@ The following basic options can be modified directly within the application:
 
 * ``OpenGL hardware acceleration``: enables hardware acceleration in `WebEngine / Chromium` renderer.  Default: False.
 
+* ``Use proxy``: Enable this option to use a proxy for connections to APIs. Default: False.
+
 * ``Proxy address``: Proxy address to be used for connection in API SDKs; supports HTTP/SOCKS, e.g. http://proxy.example.com or socks5://user:pass@host:port
 
 * ``Application environment (os.environ)``: Additional environment vars to set on application start.

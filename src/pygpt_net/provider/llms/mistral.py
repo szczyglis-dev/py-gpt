@@ -74,6 +74,8 @@ class MistralAILLM(BaseLLM):
 
         args = self.parse_args(model.llama_index, window)
         proxy = window.core.config.get("api_proxy") or None
+        if not window.core.config.get("api_proxy.enabled", False):
+            proxy = None
         if "model" not in args:
             args["model"] = model.id
         if "api_key" not in args or args["api_key"] == "":
@@ -130,6 +132,8 @@ class MistralAILLM(BaseLLM):
             args["model_name"] = args.pop("model")
 
         proxy = window.core.config.get("api_proxy") or None
+        if not window.core.config.get("api_proxy.enabled", False):
+            proxy = None
         return MistralAIEmbeddingWithProxy(**args, proxy=proxy)
 
     def init_embeddings(

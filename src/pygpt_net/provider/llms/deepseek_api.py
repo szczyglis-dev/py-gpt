@@ -80,6 +80,8 @@ class DeepseekApiLLM(BaseLLM):
         timeout = window.core.config.get("api_native_voyage.timeout")
         max_retries = window.core.config.get("api_native_voyage.max_retries")
         proxy = window.core.config.get("api_proxy")
+        if not window.core.config.get("api_proxy.enabled", False):
+            proxy = ""
         return VoyageEmbeddingWithProxy(
             **args,
             proxy=proxy,

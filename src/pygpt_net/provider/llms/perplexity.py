@@ -101,6 +101,8 @@ class PerplexityLLM(BaseLLM):
         # -----------------------------------
         # TODO: fallback
         proxy = cfg.get("api_proxy") or cfg.get("api_native_perplexity.proxy")
+        if not cfg.get("api_proxy.enabled", False):
+            proxy = ""
 
         class PerplexityWithProxy(LlamaPerplexity):
             def __init__(self, *a, **kw):

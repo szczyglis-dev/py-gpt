@@ -231,6 +231,8 @@ class BaseLLM:
     def inject_llamaindex_http_clients(self, args: dict, cfg) -> dict:
         import httpx
         proxy = (cfg.get("api_proxy") or "").strip()  # e.g. "http://user:pass@host:3128"
+        if not cfg.get("api_proxy.enabled", False):
+            proxy = ""
         common_kwargs = dict(timeout=60.0, follow_redirects=True)
         if proxy:
             common_kwargs["proxy"] = proxy  # httpx>=0.28

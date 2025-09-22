@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QRect, QSize, QPoint, QEvent
+from PySide6.QtCore import QRect, QSize, QPoint, QEvent, Qt
 from PySide6.QtWidgets import QDialog
 
 
@@ -26,6 +26,9 @@ class BaseDialog(QDialog):
         self.window = window
         self.id = id
         self.disable_geometry_store = False
+        self.setWindowFlags(
+            self.windowFlags() | Qt.WindowMaximizeButtonHint
+        )
 
     def showEvent(self, event):
         """

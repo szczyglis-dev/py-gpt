@@ -2,6 +2,7 @@
 
 - Changed: The web search icon has been moved to the input area.
 - Improved: The local web search plugin has been enhanced to retrieve multiple URLs at once.
+- Added: Use proxy switch in Settings.
 
 2.6.56 (2025-09-22)
 

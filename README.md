@@ -2204,6 +2204,8 @@ Config -> Settings...
 
 - `OpenGL hardware acceleration`: enables hardware acceleration in `WebEngine / Chromium` renderer.  Default: False.
 
+- `Use proxy`: Enable this option to use a proxy for connections to APIs. Default: False.
+
 - `Proxy address`: Proxy address to be used for connection in API SDKs; supports HTTP/SOCKS, e.g. http://proxy.example.com or socks5://user:pass@host:port
 
 - `Application environment (os.environ)`: Additional environment vars to set on application start.
@@ -3533,6 +3535,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Changed: The web search icon has been moved to the input area.
 - Improved: The local web search plugin has been enhanced to retrieve multiple URLs at once.
+- Added: Use proxy switch in Settings.
 
 **2.6.56 (2025-09-22)**
 
