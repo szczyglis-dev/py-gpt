@@ -688,6 +688,23 @@ class Tabs:
         self.window.core.tabs.update_title(idx, title, tooltip)
         self.debug()
 
+    def update_title_by_tab(self, tab: Tab, title: str):
+        """
+        Update tab title by Tab instance
+
+        :param tab: Tab instance
+        :param title: new title
+        """
+        if tab is None:
+            return
+        tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
+        tooltip = title
+        tabs.setTabToolTip(tab.idx, tooltip)
+        if len(title) > self.TAB_CHAT_MAX_CHARS:
+            title = title[:self.TAB_CHAT_MAX_CHARS] + '...'
+        tabs.setTabText(tab.idx, title)
+        self.debug()
+
     def update_title_current(self, title: str):
         """
         Update current tab title

@@ -54,6 +54,13 @@ class ToolWidget:
         """On delete"""
         if self.tool:
             self.tool.signals.url.disconnect(self.open_url)  # keep connections clean
+        try:
+            if hasattr(self.output, 'titleChanged'):
+                self.output.titleChanged.disconnect(self.on_update_title)
+            elif hasattr(self.output, 'page') and self.output.page() and hasattr(self.output.page(), 'titleChanged'):
+                self.output.page().titleChanged.disconnect(self.on_update_title)
+        except Exception:
+            pass
         if self.output:
             self.output.on_delete()
 
@@ -73,6 +80,30 @@ class ToolWidget:
         :return: QVBoxLayout
         """
         self.output = BrowserOutput(self.window)
+        if hasattr(self.output, 'titleChanged'):
+            try:
+                self.output.titleChanged.connect(self.on_update_title)
+            except TypeError:
+                pass
+        elif hasattr(self.output, 'page') and self.output.page() and hasattr(self.output.page(), 'titleChanged'):
+            try:
+                self.output.page().titleChanged.connect(self.on_update_title)
+            except TypeError:
+                pass
+        else:
+            def _emit_title_from_load(ok: bool):
+                if not ok:
+                    return
+                title = ""
+                try:
+                    if hasattr(self.output, 'title'):
+                        title = self.output.title()
+                    elif hasattr(self.output, 'page') and self.output.page():
+                        title = self.output.page().title()
+                except Exception:
+                    title = ""
+                if title and title.strip() and title != "about:blank":
+                    self.on_update_title(title)
 
         # ---- Navigation bar ----
         self.nav_bar = QWidget()
@@ -154,11 +185,11 @@ class ToolWidget:
         self.nav_layout.addWidget(self.address_bar, 1)
         self.nav_layout.addWidget(self.btn_go)
 
-        path_label = HelpLabel(trans("tool.web_browser.security.footer"))
-        path_label.setAlignment(Qt.AlignCenter)
+        sec_label = HelpLabel(trans("tool.web_browser.security.footer"))
+        sec_label.setAlignment(Qt.AlignCenter)
 
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(path_label)
+        bottom_layout.addWidget(sec_label)
 
         output_layout = QVBoxLayout()
         # put navigation bar above the web output
@@ -268,6 +299,20 @@ class ToolWidget:
                 # If history is not available, keep safe defaults
                 self.btn_back.setEnabled(False)
                 self.btn_next.setEnabled(False)
+
+    @Slot(str)
+    def on_update_title(self, title: str):
+        """Update tab title when the page title changes."""
+        if not self.output:
+            return
+        tab = self.output.tab
+        if tab is None:
+            return
+        if self.window and title and title.strip() and title != "about:blank":
+            try:
+                self.window.controller.ui.tabs.update_title_by_tab(tab, title)
+            except Exception:
+                pass
 
 
 class BrowserOutput(HtmlOutput):
