@@ -46,7 +46,7 @@ class UIManager {
 			'.msg-box.msg-user .msg .msg-copy-btn { position: absolute; top: 2px; right: 0px; z-index: 3;',
 			'  opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease, background-color .15s ease, border-color .15s ease;',
 			'  border-radius: 6px; padding: 4px; line-height: 0; border: 1px solid transparent; background: transparent; }',
-			'.msg-box.msg-user:hover .msg .msg-copy-btn, .msg-box.msg-user .msg:focus-within .msg-copy-btn { opacity: 1; pointer-events: auto; }',
+			'.msg-box.msg-user .msg:hover .msg-copy-btn, .msg-box.msg-user .msg:focus-within .msg-copy-btn { opacity: 1; pointer-events: auto; }',
 			'.msg-box.msg-user .msg .msg-copy-btn:hover { transform: scale(1.06); background: var(--copy-btn-bg-hover, rgba(0,0,0,.86)); border-color: var(--copy-btn-border, rgba(0,0,0,.08)); }',
 			'.msg-box.msg-user .msg .msg-copy-btn.copied { background: var(--copy-btn-bg-copied, rgba(150,150,150,.12)); border-color: var(--copy-btn-border-copied, rgba(150,150,150,.35)); animation: msg-copy-pop .25s ease; }',
 			'.msg-box.msg-user .msg .msg-copy-btn img { display: block; width: 18px; height: 18px; }',

@@ -70566,8 +70566,8 @@ eight: 0; border\
 sparent; backgro\
 und: transparent\
 ; }',\x0a\x09\x09\x09'.msg-b\
-ox.msg-user:hove\
-r .msg .msg-copy\
+ox.msg-user .msg\
+:hover .msg-copy\
 -btn, .msg-box.m\
 sg-user .msg:foc\
 us-within .msg-c\
@@ -113507,8 +113507,8 @@ ros||{},d(e,r)}}\
 /\
 * app.min.js \xe2\x80\x94\
  generated on 20\
-25-09-22 04:44:2\
-6 by bin/minify_\
+25-09-22 09:05:0\
+8 by bin/minify_\
 js.py using rjsm\
 in */\x0a\x0a/* data/j\
 s/app/async.js *\
@@ -114086,7 +114086,7 @@ VE_CODES_MAX',12\
 E_AFTER_LINES:Ut\
 ils.g('STREAM_PL\
 AIN_ACTIVATE_AFT\
-ER_LINES',30),};\
+ER_LINES',80),};\
 this.MATH={IDLE_\
 TIMEOUT_MS:Utils\
 .g('MATH_IDLE_TI\
