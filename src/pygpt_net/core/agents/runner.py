@@ -81,7 +81,7 @@ class Runner:
 
         try:
             # first, check if agent exists
-            if not self.window.core.agents.provider.has(agent_id):
+            if not self.window.core.agents.provider.has(agent_id, context.mode):
                 raise Exception(f"Agent not found: {agent_id}")
 
             # prepare input ctx
@@ -155,6 +155,8 @@ class Runner:
                     )
                     history.insert(0, msg)
 
+            # append custom schema if available
+            schema = self.window.core.agents.custom.get_schema(agent_id)
             agent_kwargs = {
                 "context": context,
                 "tools": tools,
@@ -171,9 +173,9 @@ class Runner:
                 "are_commands": is_cmd,
                 "workdir": workdir,
                 "preset": context.preset if context else None,
+                "schema": schema,
             }
-
-            provider = self.window.core.agents.provider.get(agent_id)
+            provider = self.window.core.agents.provider.get(agent_id, context.mode)
             agent = provider.get_agent(self.window, agent_kwargs)
             agent_run = provider.run
             if verbose:
@@ -188,6 +190,8 @@ class Runner:
                 "signals": signals,
                 "verbose": verbose,
             }
+            if schema:
+                kwargs["schema"] = schema
 
             if mode == AGENT_MODE_PLAN:
                 return self.llama_plan.run(**kwargs)
@@ -291,7 +295,6 @@ class Runner:
                 "workdir": workdir,
                 "preset": context.preset if context else None,
             }
-
             provider = self.window.core.agents.provider.get(agent_id)
             agent = provider.get_agent(self.window, agent_kwargs)
             if verbose:

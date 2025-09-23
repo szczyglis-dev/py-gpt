@@ -9,7 +9,6 @@
 # Updated Date: 2025.09.17 05:00:00                  #
 # ================================================== #
 
-import gc
 import json
 import os
 import re
@@ -21,7 +20,7 @@ from typing import Optional, List, Any, Dict, Tuple
 from time import monotonic
 from io import StringIO
 
-from PySide6.QtCore import QTimer, QUrl
+from PySide6.QtCore import QTimer, QUrl, QCoreApplication, QEventLoop, QEvent
 from PySide6.QtWebEngineCore import QWebEnginePage
 
 from pygpt_net.core.render.base import BaseRenderer
@@ -496,9 +495,10 @@ class Renderer(BaseRenderer):
 
         Soft cleanup, called after each context is done.
         """
-        try:
-            gc.collect()
+        def cleanup():
             malloc_trim_linux()
+        try:
+            QTimer.singleShot(0, cleanup)
         except Exception:
             pass
 
@@ -1300,6 +1300,12 @@ class Renderer(BaseRenderer):
         tab.unwrap(node)
         self.window.ui.nodes['output'].pop(tab.pid, None)
 
+        try:
+            QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+            QCoreApplication.processEvents(QEventLoop.AllEvents, 0)
+        except Exception:
+            pass
+
         view = ChatWebOutput(self.window)
         view.set_tab(tab)
         view.set_meta(meta)
@@ -1310,10 +1316,6 @@ class Renderer(BaseRenderer):
         tab.add_ref(view)
         view.setVisible(True)
         self.window.ui.nodes['output'][tab.pid] = view
-        try:
-            gc.collect()
-        except Exception:
-            pass
         self.auto_cleanup_soft(meta)
 
     def get_output_node(self, meta: Optional[CtxMeta] = None) -> Optional[ChatWebOutput]:

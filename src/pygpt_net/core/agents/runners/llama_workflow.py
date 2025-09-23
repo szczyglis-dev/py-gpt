@@ -48,6 +48,7 @@ class LlamaWorkflow(BaseRunner):
             verbose: bool = False,
             history: List[CtxItem] = None,
             llm: Any = None,
+            schema: Optional[List] = None,
     ) -> bool:
         """
         Run agent workflow
@@ -59,6 +60,7 @@ class LlamaWorkflow(BaseRunner):
         :param verbose: verbose mode
         :param history: chat history
         :param llm: LLM instance
+        :param schema: custom agent flow schema
         :return: True if success
         """
         if self.is_stopped():
@@ -253,6 +255,7 @@ class LlamaWorkflow(BaseRunner):
         item_ctx.stream = ""  # for stream
 
         async for event in handler.stream_events():
+            print(event)
             if self.is_stopped():
                 # persist current output on stop
                 item_ctx.output = item_ctx.live_output

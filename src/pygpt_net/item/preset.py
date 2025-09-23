@@ -215,10 +215,28 @@ class PresetItem:
         if "user_name" in data:
             self.user_name = data["user_name"]
         if "uuid" in data:
-            self.uuid = uuid.UUID(data["uuid"])
+            self.uuid = str(uuid.UUID(data["uuid"]))
         if "vision" in data:
             self.vision = data["vision"]
         return self
+
+    def reset_modes(self):
+        """
+        Reset  modes
+        """
+        self.agent = False
+        self.agent_llama = False
+        self.agent_openai = False
+        self.audio = False
+        self.assistant = False
+        self.chat = False
+        self.completion = False
+        self.computer = False
+        self.expert = False
+        self.langchain = False
+        self.llama_index = False
+        self.research = False
+        self.vision = False
 
     def add_function(self, name: str, parameters: str, desc: str):
         """

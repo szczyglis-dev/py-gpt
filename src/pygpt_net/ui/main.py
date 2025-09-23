@@ -356,7 +356,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.core.presets.save_all()
         print("Exiting...")
         print("")
-        print("Have a nice day! :)")
+        print("Do you like PyGPT? Support the development of the project: https://pygpt.net/#donate")
 
     def changeEvent(self, event):
         """

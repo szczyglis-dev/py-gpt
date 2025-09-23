@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.24 00:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -19,7 +19,7 @@ from pygpt_net.utils import trans
 
 
 class AgentsWidget:
-    def __init__(self, window=None, tool=None):
+    def __init__(self, window=None, tool=None, parent=None):
         """
         Agents select widget
 
@@ -27,6 +27,7 @@ class AgentsWidget:
         :param tool: tool instance
         """
         self.window = window
+        self.parent = parent
         self.tool = tool
         self.id = "agent.builder.list"
         self.list = None
@@ -37,20 +38,41 @@ class AgentsWidget:
 
         :return: QWidget
         """
-        new_btn = QPushButton(QIcon(":/icons/add.svg"), "")
+        new_btn = QPushButton(QIcon(":/icons/add.svg"), "", self.parent)
         new_btn.clicked.connect(self.action_new)
 
-        self.list = AgentsList(self.window, tool=self.tool, id=self.id)
+        self.list = AgentsList(self.parent, tool=self.tool, id=self.id)
         layout = QVBoxLayout()
         layout.addWidget(new_btn)
         layout.addWidget(self.list)
 
-        self.window.ui.models[self.id] = self.create_model(self.window)
+        self.window.ui.models[self.id] = self.create_model(self.parent)
         self.list.setModel(self.window.ui.models[self.id])
 
         widget = QWidget()
         widget.setLayout(layout)
         return widget
+
+    def cleanup(self):
+        """Cleanup agents list widget"""
+        # Defensively detach the model and schedule deletion only if the view still exists
+        try:
+            if self.list is not None:
+                try:
+                    self.list.setModel(None)
+                except Exception:
+                    pass
+                try:
+                    self.list.deleteLater()
+                except Exception:
+                    pass
+        finally:
+            # Drop model reference in UI registry
+            try:
+                self.window.ui.models.pop(self.id, None)
+            except Exception:
+                pass
+            self.list = None
 
     def action_new(self):
         """
@@ -64,7 +86,7 @@ class AgentsWidget:
         :param parent: parent widget
         :return: QStandardItemModel
         """
-        return QStandardItemModel(0, 1, parent)
+        return QStandardItemModel(0, 1, parent=parent)
 
     def update_list(self, data):
         """
@@ -75,13 +97,18 @@ class AgentsWidget:
         nodes = self.window.ui.nodes
         models = self.window.ui.models
 
-        view = nodes[self.id]
-        model = models.get(self.id)
+        # Guard: dialog may be closed; widget/list may not exist anymore
+        widget = nodes.get(self.id)
+        if widget is None or widget.list is None:
+            return
 
+        model = models.get(self.id)
         if model is None:
-            model = self.create_model(self.window)
+            # When reopened after cleanup, re-create model and re-bind it to the view
+            model = self.create_model(self.parent)
             models[self.id] = model
-            view.setModel(model)
+            widget.list.setModel(model)
+
         try:
             if not data:
                 model.setRowCount(0)

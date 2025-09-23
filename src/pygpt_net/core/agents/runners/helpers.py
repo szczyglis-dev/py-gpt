@@ -100,7 +100,7 @@ class Helpers:
         """
         if signals is None:
             return
-        chunk = ctx.stream.replace("<execute>", "\n```python\n").replace("</execute>", "\n```\n")
+        chunk = ctx.stream.replace("<execute>", "\n```python\n").replace("</execute>", "\n```\n") if ctx.stream else ""
         data = {
             "meta": ctx.meta,
             "ctx": ctx,

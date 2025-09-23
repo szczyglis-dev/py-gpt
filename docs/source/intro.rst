@@ -52,6 +52,7 @@ Features
 * Provides an intuitive operation and interface.
 * Includes a notepad.
 * Includes simple painter / drawing tool.
+* Includes an node-based Agents Builder.
 * Supports multiple languages.
 * Requires no previous knowledge of using AI models.
 * Simplifies image generation using image models like `DALL-E` and `Imagen`.

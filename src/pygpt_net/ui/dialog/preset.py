@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy, \
     QTabWidget, QFileDialog
 
@@ -202,9 +203,23 @@ class Preset(BaseConfigDialog):
             "ai_personalize",
         ]
         for key in left_keys:
+            option_layout = options[key]
+            if key in ["agent_provider", "agent_provider_openai"]:
+                # special case with settings icon on right
+                node_layout = QHBoxLayout()
+                builder_btn = QPushButton(QIcon(":/icons/robot.svg"), "")
+                builder_btn.setToolTip("Open Agents Builder (beta)")
+                builder_btn.clicked.connect(lambda: self.window.tools.get("agent_builder").toggle())
+                node_layout.setContentsMargins(0, 0, 0, 0)
+                node_layout.addLayout(options[key])
+                node_layout.addWidget(builder_btn)
+                # align top right
+                node_layout.setAlignment(builder_btn, Qt.AlignTop | Qt.AlignRight)
+                option_layout = node_layout
+
             node_key = f"preset.editor.{key}"
             node = QWidget()
-            node.setLayout(options[key])
+            node.setLayout(option_layout)
             node.setContentsMargins(0, 0, 0, 0)
             rows.addWidget(node)
             self.window.ui.nodes[node_key] = node

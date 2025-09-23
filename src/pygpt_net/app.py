@@ -103,15 +103,15 @@ from pygpt_net.plugin.wolfram import Plugin as WolframPlugin
 from pygpt_net.plugin.osm import Plugin as OSMPlugin
 
 # agents (Llama-index)
-# from pygpt_net.provider.agents.llama_index.legacy.openai import OpenAIAgent
 from pygpt_net.provider.agents.llama_index.legacy.openai_assistant import OpenAIAssistantAgent
-# from pygpt_net.provider.agents.llama_index.legacy.planner import PlannerAgent
 from pygpt_net.provider.agents.llama_index.planner_workflow import PlannerAgent as PlannerWorkflowAgent
 from pygpt_net.provider.agents.llama_index.openai_workflow import OpenAIAgent as OpenAIWorkflowAgent
-# from pygpt_net.provider.agents.llama_index.legacy.react import ReactAgent
 from pygpt_net.provider.agents.llama_index.react_workflow import ReactWorkflowAgent
 from pygpt_net.provider.agents.llama_index.codeact_workflow import CodeActAgent
 from pygpt_net.provider.agents.llama_index.supervisor_workflow import SupervisorAgent as LlamaSupervisorAgent
+from pygpt_net.provider.agents.llama_index.flow_from_schema import Agent as LlamaCustomAgent  # builder schema
+
+# agents (OpenAI-Agents)
 from pygpt_net.provider.agents.openai.agent import Agent as OpenAIAgentsBase
 from pygpt_net.provider.agents.openai.agent_with_experts import Agent as OpenAIAgentsExperts
 from pygpt_net.provider.agents.openai.agent_with_experts_feedback import Agent as OpenAIAgentsExpertsFeedback
@@ -121,6 +121,8 @@ from pygpt_net.provider.agents.openai.agent_planner import Agent as OpenAIAgentP
 from pygpt_net.provider.agents.openai.evolve import Agent as OpenAIAgentsEvolve
 from pygpt_net.provider.agents.openai.agent_b2b import Agent as OpenAIAgentsB2B
 from pygpt_net.provider.agents.openai.supervisor import Agent as OpenAIAgentSupervisor
+from pygpt_net.provider.agents.openai.flow_from_schema import Agent as OpenAICustomAgent  # builder schema
+
 
 # LLM wrapper providers (langchain, llama-index, embeddings)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
@@ -204,7 +206,7 @@ from pygpt_net.tools.text_editor import TextEditor as TextEditorTool
 from pygpt_net.tools.html_canvas import HtmlCanvas as HtmlCanvasTool
 from pygpt_net.tools.translator import Translator as TranslatorTool
 from pygpt_net.tools.web_browser import WebBrowser as WebBrowserTool
-# from pygpt_net.tools.agent_builder import AgentBuilder as AgentBuilderTool
+from pygpt_net.tools.agent_builder import AgentBuilder as AgentBuilderTool
 
 def run(**kwargs):
     """
@@ -490,6 +492,7 @@ def run(**kwargs):
     launcher.add_agent(ReactWorkflowAgent())  # llama-index
     launcher.add_agent(CodeActAgent())  # llama-index
     launcher.add_agent(LlamaSupervisorAgent())  # llama-index
+    launcher.add_agent(LlamaCustomAgent())  # llama-index
     launcher.add_agent(OpenAIAgentsBase())  # openai-agents
     launcher.add_agent(OpenAIAgentsExperts())  # openai-agents
     launcher.add_agent(OpenAIAgentFeedback())  # openai-agents
@@ -499,6 +502,7 @@ def run(**kwargs):
     launcher.add_agent(OpenAIAgentsEvolve())  # openai-agents
     launcher.add_agent(OpenAIAgentsB2B())  # openai-agents
     launcher.add_agent(OpenAIAgentSupervisor())  # openai-agents
+    launcher.add_agent(OpenAICustomAgent())  # openai-agents
 
     # register custom agents
     agents = kwargs.get('agents', None)
@@ -516,7 +520,7 @@ def run(**kwargs):
     launcher.add_tool(HtmlCanvasTool())
     launcher.add_tool(TranslatorTool())
     launcher.add_tool(WebBrowserTool())
-    # launcher.add_tool(AgentBuilderTool())
+    launcher.add_tool(AgentBuilderTool())
 
     # register custom tools
     tools = kwargs.get('tools', None)

@@ -6,7 +6,5 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.19 00:00:00                  #
+# Updated Date: 2025.09.24 23:00:00                  #
 # ================================================== #
-
-from .editor import NodeEditor

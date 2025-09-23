@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.09.24 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -206,6 +206,7 @@ class Editor:
         }
         self.id = "preset"
         self.current = None
+        self.current_id = None
 
     def get_options(self) -> Dict[str, Dict[str, Any]]:
         """
@@ -246,12 +247,7 @@ class Editor:
         """Setup preset editor"""
         # update after agents register
         self.append_extra_config()
-        self.window.ui.config[self.id]['agent_provider'].set_keys(
-            self.window.controller.config.placeholder.apply_by_id('agent_provider_llama')
-        )
-        self.window.ui.config[self.id]['agent_provider_openai'].set_keys(
-            self.window.controller.config.placeholder.apply_by_id('agent_provider_openai')
-        )
+        self.update_providers_list()
 
         # add hooks for config update in real-time
         self.window.ui.add_hook("update.preset.prompt", self.hook_update)
@@ -268,63 +264,74 @@ class Editor:
             tabs.setTabVisible(0, True)  # show base prompt
             for opt_id in self.tab_options_idx:  # hide all tabs
                 for tab_idx in self.tab_options_idx[opt_id]:
-                    if tabs.count() >= tab_idx:
+                    if tabs.count() > tab_idx:
                         tabs.setTabVisible(tab_idx, False)
             return
         else:
             for opt_id in self.tab_options_idx:  # hide all tabs
                 for tab_idx in self.tab_options_idx[opt_id]:
-                    if tabs.count() >= tab_idx:
+                    if tabs.count() > tab_idx:
                         tabs.setTabVisible(tab_idx, False)
 
             self.toggle_extra_options_by_provider()
 
     def toggle_extra_options_by_provider(self):
         """Toggle extra options in preset editor by provider"""
+        tabs = self.window.ui.tabs['preset.editor.extra']
+
         if not self.tab_options_idx:
-            self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)   # show base prompt
+            tabs.setTabVisible(0, True)  # base prompt
             return
 
         mode = self.window.core.config.get('mode')
-        tabs = self.window.ui.tabs['preset.editor.extra']
         key_agent = ""
 
         if mode in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
-            # get current provider
-            if mode == MODE_AGENT_LLAMA:
-                key_agent = "agent_provider"
-            elif mode == MODE_AGENT_OPENAI:
-                key_agent = "agent_provider_openai"
+            key_agent = "agent_provider_openai" if mode == MODE_AGENT_OPENAI else "agent_provider"
 
+            # 1) try from UI
             current_provider = self.window.controller.config.get_value(
                 parent_id=self.id,
                 key=key_agent,
                 option=self.options[key_agent],
             )
-            if current_provider is None or current_provider == "":
-                tabs.setTabVisible(0, True)  # show base prompt
+
+            # 2) fallback to current preset
+            if not current_provider or current_provider == "_":
+                preset = self.window.core.presets.get_by_uuid(self.current)
+                if preset:
+                    current_provider = getattr(preset, key_agent, None)
+
+            # 3) if still not set -> show base prompt
+            if not current_provider or current_provider == "_":
+                tabs.setTabVisible(0, True)
                 return
 
-            # show all tabs for current provider
+            # first hide all tabs
             for opt_id in self.tab_options_idx:
-                tabs.setTabVisible(0, False)
-                if opt_id != current_provider:
-                    for tab_idx in self.tab_options_idx[opt_id]:
-                        if tabs.count() >= tab_idx:
-                            tabs.setTabVisible(tab_idx, False)
-                else:
-                    for tab_idx in self.tab_options_idx[opt_id]:
-                        if tabs.count() >= tab_idx:
-                            tabs.setTabVisible(tab_idx, True)
+                for tab_idx in self.tab_options_idx[opt_id]:
+                    if tabs.count() > tab_idx:
+                        tabs.setTabVisible(tab_idx, False)
 
-            # show base prompt if no custom options in current agent
-            agent = self.window.core.agents.provider.get(current_provider)
+            # hide base prompt
+            tabs.setTabVisible(0, False)
+
+            # show tabs for current provider
+            for tab_idx in self.tab_options_idx.get(current_provider, []):
+                if tabs.count() > tab_idx:
+                    tabs.setTabVisible(tab_idx, True)
+
+            # if not found, show base prompt
+            agent = self.window.core.agents.provider.get(current_provider, mode)
             if not agent:
                 tabs.setTabVisible(0, True)
                 return
             option_tabs = agent.get_options()
-            if not option_tabs or len(option_tabs) == 0:
+            if not option_tabs:
                 tabs.setTabVisible(0, True)
+        else:
+            # not agent mode -> show base prompt
+            tabs.setTabVisible(0, True)
 
     def load_extra_options(self, preset: PresetItem):
         """
@@ -345,7 +352,7 @@ class Editor:
             return
 
         # update options in UI
-        agent = self.window.core.agents.provider.get(id)
+        agent = self.window.core.agents.provider.get(id, mode)
         if not agent:
             return
         if not preset.extra or id not in preset.extra:
@@ -398,7 +405,7 @@ class Editor:
 
         # load defaults for all tabs
         for id in self.tab_options_idx:
-            agent = self.window.core.agents.provider.get(id)
+            agent = self.window.core.agents.provider.get(id, mode)
             if not agent:
                 continue
             option_tabs = agent.get_options()
@@ -483,7 +490,6 @@ class Editor:
         exclude_ids = [
             "__prompt__",
         ]
-        id = None
         if mode == MODE_AGENT_OPENAI:
             id = preset.agent_provider_openai
         elif mode == MODE_AGENT_LLAMA:
@@ -493,7 +499,7 @@ class Editor:
 
         get_value = self.window.controller.config.get_value
         options = {}
-        agent = self.window.core.agents.provider.get(id)
+        agent = self.window.core.agents.provider.get(id, mode)
         if not agent:
             return options
         option_tabs = agent.get_options()
@@ -574,6 +580,217 @@ class Editor:
 
         self.built = True
 
+    def _ensure_agent_tab_properties(self):
+        """
+        Ensure every existing extra tab has the 'agent_id' property set,
+        based on current self.tab_options_idx mapping.
+        This makes it possible to rebuild the mapping after insertions/removals.
+        """
+        tabs = self.window.ui.tabs['preset.editor.extra']
+        if not tabs:
+            return
+        for a_id, indices in self.tab_options_idx.items():
+            for idx in indices:
+                if 0 < idx < tabs.count():
+                    w = tabs.widget(idx)
+                    if w is not None and not w.property("agent_id"):
+                        w.setProperty("agent_id", a_id)
+
+    def _rebuild_tab_index_mapping(self):
+        """
+        Rebuild self.tab_options_idx by scanning actual tabs and grouping by 'agent_id' property.
+        Base prompt tab (index 0) is ignored.
+        """
+        tabs = self.window.ui.tabs['preset.editor.extra']
+        new_map = {}
+        if not tabs:
+            self.tab_options_idx = new_map
+            return
+
+        for i in range(1, tabs.count()):
+            w = tabs.widget(i)
+            if w is None:
+                continue
+            a_id = w.property("agent_id")
+            if not a_id:
+                # If a tab has no agent tag, we skip it; it's not an "agent extra" tab.
+                continue
+            if a_id not in new_map:
+                new_map[a_id] = []
+            new_map[a_id].append(i)
+
+        self.tab_options_idx = new_map
+
+    def update_custom_agent_options(self, agent_id: str):
+        """
+        Rebuild extra option tabs for a given agent_id at runtime, keeping indices consistent.
+
+        What it does:
+        - Removes all existing tabs for this agent (and their UI config groups).
+        - If agent exists, creates fresh tabs from agent.get_options().
+          - Applies saved values from current preset.extra[agent_id] when available.
+          - Otherwise applies defaults defined in option schema.
+        - If agent does not exist, simply clears tabs and config for this agent.
+        - Recomputes self.tab_options_idx so it always matches the current QTabWidget.
+        - Finally, re-runs visibility logic so only relevant tabs are shown.
+
+        Notes:
+        - Base prompt tab is index 0 and remains untouched.
+        - This method must be called in the UI thread (Qt).
+        """
+        tabs = self.window.ui.tabs['preset.editor.extra']
+        if not tabs:
+            return
+
+        # Make sure existing tabs have proper metadata to allow safe remapping later.
+        self._ensure_agent_tab_properties()
+
+        mode = self.window.core.config.get('mode')
+        exclude_ids = ["__prompt__"]
+
+        # Old indices for this agent (if any), sorted to compute insertion position and to remove safely.
+        old_indices = sorted(self.tab_options_idx.get(agent_id, []))
+        # Prefer to keep the first old index as insertion anchor to preserve overall ordering.
+        insertion_index = old_indices[0] if old_indices else tabs.count()
+
+        # 1) Remove old tabs for this agent (descending order to avoid index shifts).
+        for idx in sorted(old_indices, reverse=True):
+            if 0 < idx < tabs.count():
+                w = tabs.widget(idx)
+                tabs.removeTab(idx)
+                if w is not None:
+                    w.deleteLater()
+
+        # Remove old UI config groups for this agent (they will be rebuilt).
+        # We assume self.window.ui.config is a dict-like structure holding per-parent groups.
+        cfg = self.window.ui.config
+        for key in list(cfg.keys()):
+            if isinstance(key, str) and key.startswith(f"agent.{agent_id}."):
+                try:
+                    del cfg[key]
+                except Exception:
+                    pass
+
+        # Clear mapping entry for this agent; we will rebuild mapping from scratch later.
+        if agent_id in self.tab_options_idx:
+            del self.tab_options_idx[agent_id]
+
+        # 2) Fetch fresh options from provider.
+        agent = self.window.core.agents.provider.get(agent_id, mode)
+        if not agent:
+            # Agent no longer exists -> just rebuild mapping for remaining tabs and update visibility.
+            self._rebuild_tab_index_mapping()
+            self.toggle_extra_options_by_provider()
+            return
+
+        option_tabs = agent.get_options() or {}
+
+        # If agent has no custom option tabs -> nothing to add (base prompt will be used).
+        # Still need to rebuild mapping and visibility.
+        if len(option_tabs) == 0:
+            self._rebuild_tab_index_mapping()
+            self.toggle_extra_options_by_provider()
+            return
+
+        build_option_widgets = self.window.ui.dialogs.preset.build_option_widgets
+        apply_value = self.window.controller.config.apply_value
+
+        # Try to load saved values for current preset (if this agent is used in it).
+        preset = self.window.core.presets.get_by_uuid(self.current)
+        saved_data = None
+        if preset and preset.extra and agent_id in preset.extra:
+            # Expected structure: preset.extra[agent_id][option_tab_id][key] = value
+            saved_data = preset.extra.get(agent_id, None)
+
+        # Figure out if this agent is the currently selected provider for the active mode.
+        # If yes, we will prefer saved values from preset.extra; otherwise we apply defaults.
+        selected_provider_id = None
+        if mode in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
+            key_agent = "agent_provider_openai" if mode == MODE_AGENT_OPENAI else "agent_provider"
+            selected_provider_id = self.window.controller.config.get_value(
+                parent_id=self.id,
+                key=key_agent,
+                option=self.options[key_agent],
+            )
+
+        # 3) Create new tabs from fresh schema and insert them at the computed anchor.
+        new_indices = []
+        for option_tab_id, option_desc in option_tabs.items():
+            if option_tab_id in exclude_ids:
+                continue
+
+            title = option_desc.get('label', '')
+            config_id = f"agent.{agent_id}.{option_tab_id}"
+            schema_options = option_desc.get('options', {}) or {}
+
+            # Build new option widgets into UI config under config_id.
+            widgets, options_layouts = build_option_widgets(config_id, schema_options)
+
+            # Create layouts similar to initial build (checkboxes at bottom row).
+            layout = QVBoxLayout()
+            layout.setContentsMargins(0, 10, 0, 10)
+
+            checkbox_layout = QHBoxLayout()
+            for key, opt_layout in options_layouts.items():
+                opt_schema = schema_options.get(key, {})
+                if opt_schema.get('type') == 'bool':
+                    checkbox_layout.addLayout(opt_layout)
+                else:
+                    layout.addLayout(opt_layout)
+            layout.addStretch(1)
+            layout.addLayout(checkbox_layout)
+
+            # Assemble tab widget and tag it with metadata.
+            tab_widget = QWidget()
+            tab_widget.setLayout(layout)
+            tab_widget.setProperty('agent_id', agent_id)
+            tab_widget.setProperty('option_tab_id', option_tab_id)
+
+            # Insert at a stable anchor to preserve general ordering between agents.
+            insertion_index = min(insertion_index, tabs.count())
+            tabs.insertTab(insertion_index, tab_widget, title)
+            new_indices.append(insertion_index)
+            insertion_index += 1
+
+            # Apply values:
+            # - If this agent is currently selected for the active mode and we have saved_data,
+            #   prefer saved values from preset.extra.
+            # - Otherwise apply defaults from schema (when provided).
+            group_cfg = self.window.ui.config.get(config_id, {})
+            if selected_provider_id == agent_id and saved_data and option_tab_id in saved_data:
+                data_dict = saved_data[option_tab_id] or {}
+                for key, opt_schema in schema_options.items():
+                    if key in data_dict:
+                        apply_value(
+                            parent_id=config_id,
+                            key=key,
+                            option=opt_schema,
+                            value=data_dict[key],
+                        )
+                    elif 'default' in opt_schema:
+                        apply_value(
+                            parent_id=config_id,
+                            key=key,
+                            option=opt_schema,
+                            value=opt_schema.get('default'),
+                        )
+            else:
+                # Apply defaults only (do not overwrite elsewhere).
+                for key, opt_schema in schema_options.items():
+                    if 'default' in opt_schema:
+                        apply_value(
+                            parent_id=config_id,
+                            key=key,
+                            option=opt_schema,
+                            value=opt_schema.get('default'),
+                        )
+
+        # 4) Recompute mapping fully based on actual tabs and their 'agent_id' properties.
+        self._rebuild_tab_index_mapping()
+
+        # 5) Update visibility according to current mode/provider.
+        self.toggle_extra_options_by_provider()
+
     def append_default_prompt(self):
         """Append default prompt to the preset editor"""
         mode = self.window.core.config.get('mode')
@@ -614,6 +831,15 @@ class Editor:
             key="prompt",
             option=self.options["prompt"],
             value=default_prompt,
+        )
+
+    def update_providers_list(self):
+        """Update providers list in the preset editor"""
+        self.window.ui.config[self.id]['agent_provider'].set_keys(
+            self.window.controller.config.placeholder.apply_by_id('agent_provider_llama')
+        )
+        self.window.ui.config[self.id]['agent_provider_openai'].set_keys(
+            self.window.controller.config.placeholder.apply_by_id('agent_provider_openai')
         )
 
     def hook_update(
@@ -660,6 +886,17 @@ class Editor:
         self.init(preset)
         self.window.ui.dialogs.open_editor('editor.preset.presets', idx, width=800)
 
+    def reload_all(self, all: bool = False):
+        """
+        Reload all data in the preset editor
+
+        :param all: reload all custom agent options
+        """
+        self.update_providers_list()
+        if all:
+            self.reload_all_custom_agent_options()
+            if self.opened:
+                self.init(self.current_id)
     def init(self, id: Optional[str] = None):
         """
         Initialize preset editor
@@ -667,6 +904,9 @@ class Editor:
         :param id: preset id (filename)
         """
         self.opened = True
+        self.current_id = id
+        self.reload_all()
+
         data = PresetItem()
         data.name = ""
         data.filename = ""
@@ -683,6 +923,10 @@ class Editor:
         else:
             self.load_extra_defaults()
 
+        mode = self.window.core.config.get("mode")
+        if mode in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
+            self.reload_all_custom_agent_options()
+
         if data.name is None:
             data.name = ""
         if data.ai_name is None:
@@ -696,7 +940,6 @@ class Editor:
 
         # set current mode at start
         if id is None:
-            mode = self.window.core.config.get("mode")
             if mode == MODE_CHAT:
                 data.chat = True
             elif mode == MODE_COMPLETION:
@@ -865,11 +1108,17 @@ class Editor:
         # if agent, assign experts and select only agent mode
         curr_mode = self.window.core.config.get('mode')
         if curr_mode == MODE_AGENT:
-            self.window.core.presets.items[preset_id].mode = [MODE_AGENT]
+            itm = self.window.core.presets.items[preset_id]
+            itm.reset_modes()
+            itm.agent = True
         elif curr_mode == MODE_AGENT_LLAMA:
-            self.window.core.presets.items[preset_id].mode = [MODE_AGENT_LLAMA]
+            itm = self.window.core.presets.items[preset_id]
+            itm.reset_modes()
+            itm.agent_llama = True
         elif curr_mode == MODE_AGENT_OPENAI:
-            self.window.core.presets.items[preset_id].mode = [MODE_AGENT_OPENAI]
+            itm = self.window.core.presets.items[preset_id]
+            itm.reset_modes()
+            itm.agent_openai = True
 
         # apply changes to current active preset
         current = self.window.core.config.get('preset')
@@ -1126,3 +1375,157 @@ class Editor:
             else:
                 tabs.setTabEnabled(idx, False)
                 tabs.setTabVisible(idx, False)
+
+    def reload_all_custom_agent_options(self, purge_missing_from_preset: bool = False):
+        """
+        Full, safe rebuild of all agent-specific option tabs.
+
+        When to use:
+        - Call this at editor opening or whenever multiple agent configs may have changed at once.
+
+        What it does:
+        - Updates provider combos (in case providers changed).
+        - Removes ALL existing "agent extra" tabs (keeps base prompt tab at index 0).
+        - Removes all UI config groups prefixed with 'agent.' (will be rebuilt).
+        - Rebuilds tabs from the current provider registry order (provider.all()).
+        - Applies saved values from current preset.extra[agent_id] when available; otherwise applies defaults.
+        - Recomputes self.tab_options_idx from the real QTabWidget.
+        - Restores visibility according to current mode/provider.
+
+        Notes:
+        - Must be called in the Qt GUI thread.
+        - Does not persist changes to preset files; it's a UI rebuild.
+        - Set purge_missing_from_preset=True if you also want to drop missing agents from preset.extra.
+        """
+        tabs = self.window.ui.tabs['preset.editor.extra']
+        if not tabs:
+            return
+
+        # 0) Provider combos might need to be refreshed (e.g., new agents installed)
+        self.update_providers_list()
+
+        # Make sure existing tabs have agent_id metadata (for older builds).
+        self._ensure_agent_tab_properties()
+
+        mode = self.window.core.config.get('mode')
+        exclude_ids = ["__prompt__"]
+
+        # 1) Snapshot saved values from current preset (if any)
+        preset = self.window.core.presets.get_by_uuid(self.current)
+        saved_all = {}
+        if preset and preset.extra:
+            # expected: preset.extra[agent_id][option_tab_id][key] = value
+            # shallow copy is sufficient (we only read and apply)
+            for a_id, data in preset.extra.items():
+                if isinstance(data, dict):
+                    saved_all[a_id] = dict(data)
+
+        # 2) Freeze UI to avoid flicker while we rebuild
+        tabs.setUpdatesEnabled(False)
+        try:
+            # 3) Remove all agent extra tabs (keep base prompt at 0)
+            for i in range(tabs.count() - 1, 1 - 1, -1):
+                w = tabs.widget(i)
+                if w is None:
+                    continue
+                if w.property('agent_id'):
+                    tabs.removeTab(i)
+                    w.deleteLater()
+
+            # 4) Remove all UI config groups for agents (they will be re-created)
+            cfg = self.window.ui.config
+            for key in list(cfg.keys()):
+                if isinstance(key, str) and key.startswith('agent.'):
+                    try:
+                        del cfg[key]
+                    except Exception:
+                        pass
+
+            # 5) Optionally purge preset.extra entries for missing agents
+            agents_dict = self.window.core.agents.provider.all() or {}
+            existing_ids = set(agents_dict.keys())
+            if purge_missing_from_preset and preset and isinstance(preset.extra, dict):
+                for a_id in list(preset.extra.keys()):
+                    if a_id not in existing_ids:
+                        try:
+                            del preset.extra[a_id]
+                        except Exception:
+                            pass
+                # You may call self.window.core.presets.save(preset.filename) later if you want to persist.
+
+            # 6) Rebuild tabs from current registry, in a deterministic order
+            build_option_widgets = self.window.ui.dialogs.preset.build_option_widgets
+            apply_value = self.window.controller.config.apply_value
+
+            insertion_index = 1  # index 0 is the base prompt
+            for a_id, agent in agents_dict.items():
+                if not agent:
+                    continue
+                option_tabs = agent.get_options() or {}
+                if not option_tabs:
+                    # agent with no custom tabs -> only base prompt applies
+                    continue
+
+                for option_tab_id, option_desc in option_tabs.items():
+                    if option_tab_id in exclude_ids:
+                        continue
+
+                    title = option_desc.get('label', '')
+                    schema_options = option_desc.get('options', {}) or {}
+                    config_id = f"agent.{a_id}.{option_tab_id}"
+
+                    # Build UI widgets for this option group
+                    widgets, options_layouts = build_option_widgets(config_id, schema_options)
+
+                    # Layout: non-bool vertically, bools grouped in bottom row
+                    layout = QVBoxLayout()
+                    layout.setContentsMargins(0, 10, 0, 10)
+                    checkbox_layout = QHBoxLayout()
+                    for key, opt_layout in options_layouts.items():
+                        opt_schema = schema_options.get(key, {})
+                        if opt_schema.get('type') == 'bool':
+                            checkbox_layout.addLayout(opt_layout)
+                        else:
+                            layout.addLayout(opt_layout)
+                    layout.addStretch(1)
+                    layout.addLayout(checkbox_layout)
+
+                    # Create tab widget and tag with metadata
+                    tab_widget = QWidget()
+                    tab_widget.setLayout(layout)
+                    tab_widget.setProperty('agent_id', a_id)
+                    tab_widget.setProperty('option_tab_id', option_tab_id)
+
+                    # Insert tab and advance anchor
+                    insertion_index = min(insertion_index, tabs.count())
+                    tabs.insertTab(insertion_index, tab_widget, title)
+                    insertion_index += 1
+
+                    # Apply saved values (if present) or defaults
+                    saved_agent = saved_all.get(a_id, {})
+                    saved_tab = saved_agent.get(option_tab_id, {}) if isinstance(saved_agent, dict) else {}
+
+                    for key, opt_schema in schema_options.items():
+                        if key in saved_tab:
+                            apply_value(
+                                parent_id=config_id,
+                                key=key,
+                                option=opt_schema,
+                                value=saved_tab[key],
+                            )
+                        elif 'default' in opt_schema:
+                            apply_value(
+                                parent_id=config_id,
+                                key=key,
+                                option=opt_schema,
+                                value=opt_schema.get('default'),
+                            )
+
+            # 7) Recompute the index mapping strictly from the QTabWidget
+            self._rebuild_tab_index_mapping()
+
+            # 8) Restore proper visibility for the current mode/provider
+            self.toggle_extra_options_by_provider()
+
+        finally:
+            tabs.setUpdatesEnabled(True)

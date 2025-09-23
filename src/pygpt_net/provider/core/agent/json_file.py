@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.19 00:00:00                  #
+# Updated Date: 2025.09.24 00:00:00                  #
 # ================================================== #
 
 import json
@@ -60,7 +60,10 @@ class JsonFileProvider(BaseProvider):
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
-                    data = json.load(file)
+                    try:
+                        data = json.load(file)
+                    except json.JSONDecodeError:
+                        data = {}
                     if data == "" or data is None:
                         return {}
                     if "layout" in data:
@@ -143,6 +146,7 @@ class JsonFileProvider(BaseProvider):
             'id': item.id,
             'name': item.name,
             'layout': item.layout,
+            'schema': item.schema,
         }
 
     @staticmethod
@@ -159,6 +163,8 @@ class JsonFileProvider(BaseProvider):
             item.name = data['name']
         if "layout" in data:
             item.layout = data['layout']
+        if "schema" in data:
+            item.schema = data['schema']
 
     @staticmethod
     def serialize_layout(item: BuilderLayoutItem) -> Dict[str, Any]:
@@ -169,9 +175,9 @@ class JsonFileProvider(BaseProvider):
         :return: serialized item
         """
         return {
-            'id': item.id,
-            'name': item.name,
-            'data': item.data,
+            'id': item.id if item else "",
+            'name': item.name if item else "",
+            'data': item.data if item else {},
         }
 
     @staticmethod

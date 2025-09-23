@@ -52,6 +52,7 @@ def dummy_window():
     win.core.agents.tools.get_plugin_specs.return_value = ["pspec"]
     win.core.agents.tools.get_retriever_tool.return_value = "retriever"
     win.core.agents.provider = MagicMock()
+    win.core.agents.custom = MagicMock()
     win.core.debug = MagicMock()
     win.core.debug.error = MagicMock()
     return win
@@ -65,6 +66,7 @@ def dummy_context():
         model=SimpleNamespace(id="dummy_model"),
         system_prompt="dummy system prompt",
         preset=MagicMock(),
+        mode="agent_llama",
     )
 
 # Fixture for signals

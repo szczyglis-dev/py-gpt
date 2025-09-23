@@ -6,229 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.19 00:00:00                  #
+# Updated Date: 2025.09.24 00:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
 from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-from uuid import uuid4
-from PySide6.QtCore import QObject, Signal
 import re
 
+from PySide6.QtCore import QObject, Signal
 
-def gen_uuid() -> str:
-    return str(uuid4())
-
-
-# ------------------------ Data models (pure data) ------------------------
-
-@dataclass
-class PropertyModel:
-    uuid: str
-    id: str
-    type: str  # "slot", "str", "int", "float", "bool", "combo", "text"
-    name: str
-    editable: bool = True
-    value: Any = None
-    allowed_inputs: int = 0   # 0 none, -1 unlimited, >0 limit
-    allowed_outputs: int = 0  # 0 none, -1 unlimited, >0 limit
-    options: Optional[List[str]] = None  # for combo
-
-    def to_dict(self) -> dict:
-        return {
-            "uuid": self.uuid,
-            "id": self.id,
-            "type": self.type,
-            "name": self.name,
-            "editable": self.editable,
-            "value": self.value,
-            "allowed_inputs": self.allowed_inputs,
-            "allowed_outputs": self.allowed_outputs,
-            "options": self.options or [],
-        }
-
-    @staticmethod
-    def from_dict(d: dict) -> "PropertyModel":
-        return PropertyModel(
-            uuid=d.get("uuid", gen_uuid()),
-            id=d["id"],
-            type=d["type"],
-            name=d.get("name", d["id"]),
-            editable=d.get("editable", True),
-            value=d.get("value"),
-            allowed_inputs=d.get("allowed_inputs", 0),
-            allowed_outputs=d.get("allowed_outputs", 0),
-            options=d.get("options") or None,
-        )
-
-
-@dataclass
-class NodeModel:
-    uuid: str
-    id: str
-    name: str
-    type: str
-    properties: Dict[str, PropertyModel] = field(default_factory=dict)
-
-    def to_dict(self) -> dict:
-        return {
-            "uuid": self.uuid,
-            "id": self.id,
-            "name": self.name,
-            "type": self.type,
-            "properties": {pid: p.to_dict() for pid, p in self.properties.items()},
-        }
-
-    @staticmethod
-    def from_dict(d: dict) -> "NodeModel":
-        props = {pid: PropertyModel.from_dict(pd) for pid, pd in d.get("properties", {}).items()}
-        return NodeModel(
-            uuid=d.get("uuid", gen_uuid()),
-            id=d["id"],
-            name=d.get("name", d["id"]),
-            type=d["type"],
-            properties=props,
-        )
-
-
-@dataclass
-class ConnectionModel:
-    uuid: str
-    src_node: str
-    src_prop: str
-    dst_node: str
-    dst_prop: str
-
-    def to_dict(self) -> dict:
-        return {
-            "uuid": self.uuid,
-            "src_node": self.src_node, "src_prop": self.src_prop,
-            "dst_node": self.dst_node, "dst_prop": self.dst_prop,
-        }
-
-    @staticmethod
-    def from_dict(d: dict) -> "ConnectionModel":
-        return ConnectionModel(
-            uuid=d.get("uuid", gen_uuid()),
-            src_node=d["src_node"], src_prop=d["src_prop"],
-            dst_node=d["dst_node"], dst_prop=d["dst_prop"],
-        )
-
-
-# ------------------------ Types registry (templates) ------------------------
-
-@dataclass
-class PropertySpec:
-    id: str
-    type: str
-    name: Optional[str] = None
-    editable: bool = True
-    value: Any = None
-    allowed_inputs: int = 0
-    allowed_outputs: int = 0
-    options: Optional[List[str]] = None
-
-
-@dataclass
-class NodeTypeSpec:
-    type_name: str
-    title: Optional[str] = None
-    properties: List[PropertySpec] = field(default_factory=list)
-    # Below are optional extensions for agent-flow needs:
-    base_id: Optional[str] = None        # base prefix for friendly ids, e.g. "agent"
-    export_kind: Optional[str] = None    # short kind for export, e.g. "agent", "start"
-    bg_color: Optional[str] = None       # optional per-type background color (CSS/hex)
-
-class NodeTypeRegistry:
-    """Registry for node type specifications. Extend/override in subclasses."""
-    def __init__(self):
-        self._types: Dict[str, NodeTypeSpec] = {}
-        self._install_default_types()
-
-    def register(self, spec: NodeTypeSpec):
-        self._types[spec.type_name] = spec
-
-    def types(self) -> List[str]:
-        return list(self._types.keys())
-
-    def get(self, type_name: str) -> Optional[NodeTypeSpec]:
-        return self._types.get(type_name)
-
-    def _install_default_types(self):
-        # Example/basic nodes kept intact
-        self.register(NodeTypeSpec(
-            type_name="Value/Float",
-            title="Float",
-            properties=[
-                PropertySpec(id="value", type="float", name="Value", editable=True, value=0.0,
-                             allowed_inputs=0, allowed_outputs=1),
-            ]
-        ))
-        self.register(NodeTypeSpec(
-            type_name="Math/Add",
-            title="Add",
-            properties=[
-                PropertySpec(id="A", type="float", name="A", editable=True, value=0.0, allowed_inputs=1, allowed_outputs=0),
-                PropertySpec(id="B", type="float", name="B", editable=True, value=0.0, allowed_inputs=1, allowed_outputs=0),
-                PropertySpec(id="result", type="float", name="Result", editable=False, value=None, allowed_inputs=0, allowed_outputs=1),
-            ]
-        ))
-        # Tip: to allow multiple connections to an input or output, set allowed_inputs/allowed_outputs to -1.
-
-        # Agent-flow nodes
-        # Start
-        self.register(NodeTypeSpec(
-            type_name="Flow/Start",
-            title="Start",
-            base_id="start",
-            export_kind="start",
-            bg_color="#2D5A27",
-            properties=[
-                PropertySpec(id="output", type="flow", name="Output", editable=False, allowed_inputs=0, allowed_outputs=1),
-                # base_id will be auto-injected as read-only property at creation
-            ],
-        ))
-        # Agent
-        self.register(NodeTypeSpec(
-            type_name="Flow/Agent",
-            title="Agent",
-            base_id="agent",
-            export_kind="agent",
-            bg_color="#304A6E",
-            properties=[
-                PropertySpec(id="name", type="str", name="Name", editable=True, value=""),
-                PropertySpec(id="instruction", type="text", name="Instruction", editable=True, value=""),
-                PropertySpec(id="remote_tools", type="bool", name="Remote tools", editable=True, value=True),
-                PropertySpec(id="local_tools", type="bool", name="Local tools", editable=True, value=True),
-                PropertySpec(id="input", type="flow", name="Input", editable=False, allowed_inputs=-1, allowed_outputs=0),
-                PropertySpec(id="output", type="flow", name="Output", editable=False, allowed_inputs=0, allowed_outputs=1),
-                PropertySpec(id="memory", type="memory", name="Memory", editable=False, allowed_inputs=0, allowed_outputs=1),
-            ],
-        ))
-        # Memory
-        self.register(NodeTypeSpec(
-            type_name="Flow/Memory",
-            title="Memory",
-            base_id="mem",
-            export_kind="memory",
-            bg_color="#593E78",
-            properties=[
-                PropertySpec(id="name", type="str", name="Name", editable=True, value=""),
-                PropertySpec(id="input", type="memory", name="Input", editable=False, allowed_inputs=-1, allowed_outputs=0),
-            ],
-        ))
-        # End
-        self.register(NodeTypeSpec(
-            type_name="Flow/End",
-            title="End",
-            base_id="end",
-            export_kind="end",
-            bg_color="#6B2E2E",
-            properties=[
-                PropertySpec(id="input", type="flow", name="Input", editable=False, allowed_inputs=1, allowed_outputs=0),
-            ],
-        ))
+from .models import NodeModel, ConnectionModel, PropertyModel
+from .types import NodeTypeRegistry
+from .utils import gen_uuid
 
 
 # ------------------------ Graph (Qt QObject + signals) ------------------------
@@ -412,8 +201,8 @@ class NodeGraph(QObject):
                      for c in self.connections.values()]
         return {"nodes": nodes_out, "connections": conns_out}
 
-    # --- Export to requested agent schema (list of nodes with slots/in-out) ---
-    def to_agent_schema(self) -> List[dict]:
+    # --- Export to list schema (list of nodes with slots/in-out) ---
+    def to_list_schema(self) -> List[dict]:
         # Build helper maps
         uuid_to_node: Dict[str, NodeModel] = dict(self.nodes)
         uuid_to_id: Dict[str, str] = {u: n.id for u, n in uuid_to_node.items()}
@@ -474,5 +263,9 @@ class NodeGraph(QObject):
     def clear(self, silent: bool = False):
         self.nodes.clear()
         self.connections.clear()
+        # Reset counters to keep friendly IDs strictly per-layout.
+        # After a clear, numbering starts again from 1 for each base prefix.
+        self._node_counter = 1
+        self._id_counters.clear()
         if not silent:
             self.cleared.emit()

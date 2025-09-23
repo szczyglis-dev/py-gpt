@@ -21,6 +21,9 @@ class BaseAgent:
         self.type = ""
         self.mode = ""
         self.name = ""
+        self.custom_id = None
+        self.custom_options = None
+        self.custom_schema = None
 
     def get_mode(self) -> str:
         """
@@ -44,12 +47,39 @@ class BaseAgent:
         """
         pass
 
+    def set_id(self, id: str):
+        """
+        Set custom ID for the agent
+
+        :param id: Custom ID
+        """
+        self.custom_id = id
+
+    def set_schema(self, schema: list):
+        """
+        Set custom schema for the agent
+
+        :param schema: Custom schema
+        """
+        self.custom_schema = schema
+
+
+    def set_options(self, options: dict):
+        """
+        Set custom options for the agent
+
+        :param options: Custom options
+        """
+        self.custom_options = options
+
     def get_options(self) -> dict:
         """
         Return Agent options
 
         :return: Agent options
         """
+        if self.custom_options is not None:
+            return self.custom_options
         return {}
 
     async def run(
@@ -89,9 +119,10 @@ class BaseAgent:
             print("No preset provided, returning default option value")
             return None
         extra = preset.extra
-        if not isinstance(extra, dict) or self.id not in extra:
+        agent_id = self.custom_id if self.custom_id is not None else self.id
+        if not isinstance(extra, dict) or agent_id not in extra:
             return self.get_default(section, key)
-        options = extra[self.id]
+        options = extra[agent_id]
         if section not in options:
             return self.get_default(section, key)
         if key not in options[section]:

@@ -9,7 +9,7 @@
 # Updated Date: 2025.08.24 03:00:00                  #
 # ================================================== #
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
@@ -18,6 +18,7 @@ from pygpt_net.item.ctx import CtxItem
 
 from ..bridge import ConnectionContext
 from .base import BaseRunner
+from ..custom.logging import StdLogger
 
 
 class OpenAIWorkflow(BaseRunner):
@@ -41,6 +42,7 @@ class OpenAIWorkflow(BaseRunner):
             verbose: bool = False,
             history: List[CtxItem] = None,
             stream: bool = False,
+            schema: Optional[List] = None,
     ) -> bool:
         """
         Run OpenAI agents
@@ -54,6 +56,7 @@ class OpenAIWorkflow(BaseRunner):
         :param verbose: verbose mode
         :param history: chat history
         :param stream: use streaming
+        :param schema: custom agent flow schema
         :return: True if success
         """
         if self.is_stopped():
@@ -192,6 +195,10 @@ class OpenAIWorkflow(BaseRunner):
         }
         if previous_response_id:
             run_kwargs["previous_response_id"] = previous_response_id
+
+        # custom agent schema
+        if schema:
+            run_kwargs["schema"] = schema
 
         # split response messages to separated context items
         run_kwargs["use_partial_ctx"] = self.window.core.config.get("agent.openai.response.split", True)

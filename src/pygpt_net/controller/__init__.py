@@ -165,6 +165,7 @@ class Controller:
             self.settings.reload()
             self.assistant.reload()
             self.attachment.reload()
+            self.window.core.agents.custom.reload()
             self.presets.reload()
             self.idx.reload()
             self.agent.reload()

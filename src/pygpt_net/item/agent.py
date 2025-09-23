@@ -20,18 +20,21 @@ class AgentItem:
     id: Optional[object] = None
     name: Optional[object] = None
     layout: dict = field(default_factory=dict)
+    schema: list = field(default_factory=list)
 
     def __init__(self):
         """Custom agent item"""
         self.id = None
         self.name = None
         self.layout = {}
+        self.schema = []
 
     def reset(self):
         """Reset"""
         self.id = None
         self.name = None
         self.layout = {}
+        self.schema = {}
 
     def to_dict(self) -> dict:
         """
@@ -42,7 +45,8 @@ class AgentItem:
         return {
             "id": self.id,
             "name": self.name,
-            "layout": self.layout
+            "layout": self.layout,
+            "schema": self.schema,
         }
 
     def dump(self) -> str:

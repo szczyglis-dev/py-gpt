@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.59** | build: **2025-09-23** | Python: **>=3.10, <3.14**
+Release: **2.6.60** | build: **2025-09-25** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -65,6 +65,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Provides an intuitive operation and interface.
 - Includes a notepad.
 - Includes simple painter / drawing tool.
+- Includes an node-based Agents Builder.
 - Supports multiple languages.
 - Requires no previous knowledge of using AI models.
 - Simplifies image generation using image models like `DALL-E` and `Imagen`.
@@ -1973,6 +1974,7 @@ PyGPT features several useful tools, including:
 - HTML/JS Canvas (built-in HTML renderer)
 - Translator
 - Web Browser (Chromium)
+- Agents Builder (beta)
 
 ![v2_tool_menu](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_menu.png)
 
@@ -2049,6 +2051,70 @@ Enables translation between multiple languages using an AI model.
 ## Web Browser
 
 A built-in web browser based on Chromium, allowing you to open webpages directly within the app. **SECURITY NOTICE:** For your protection, avoid using the built-in browser for sensitive or critical tasks. It is intended for basic use only.
+
+# Agents Builder (beta)
+
+To launch the Agent Editor, navigate to:
+
+`Tools -> Agents Builder`
+
+![nodes](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/nodes.png)
+
+This tool allows you to create workflows for agents using a node editor, without writing any code. You can add a new agent type, and it will appear in the list of presets.
+
+To add a new element, right-click on the editor grid and select `Add` to insert a new node.
+
+**Types of Nodes:**
+
+- **Flow/Start**: The starting point for agents (user input).
+- **Flow/Agent**: A single agent with customizable default parameters, such as system instructions and tool usage. These settings can be overridden in the preset.
+- **Flow/Memory**: Shared memory between agents (shared Context).
+- **Flow/End**: The endpoint, returning control to the user.
+
+Agents with connected shared memory share it among themselves. Agents without shared memory only receive the latest output from the previous agent.
+
+The first agent in the sequence always receives the full context passed by the user.
+
+Connecting agents and memory is done using node connections via slots. To connect slots, simply drag from the input port to the output port (Ctrl + mouse button removes a connection).
+
+**Node Editor Navigation:**
+
+- **Right-click**: Add node, undo, redo, clear
+- **Middle-click + drag**: Pan view
+- **Ctrl + Mouse wheel**: Zoom
+- **Left-click a port**: Create connection
+- **Ctrl + Left-click a port**: Rewire or detach connection
+- **Right-click or DELETE a node/connection**: Remove node/connection
+
+**Tip:** Enable agent debugging in `Settings -> Debug -> Log Agents usage to console` to log the full workflow to the console.
+
+Agents built using this tool are compatible with both OpenAI Agents and LlamaIndex.
+
+**Notes:**
+
+Routing and system instruction: for every agent that has more than one connection leading to the next agent, a routing instruction is automatically injected just before your system prompt:
+
+```
+You are a routing-capable agent in a multi-agent flow.
+Your id is: <current_id>, name: <agent_name>.
+You MUST respond ONLY with a single JSON object and nothing else.
+Schema:
+{
+  "route": "<ID of the next agent from allowed_routes OR the string 'end'>",
+  "content": "<final response text for the user (or tool result)>"
+}
+Rules:
+- allowed_routes: [<allowed>]
+- If you want to finish the flow, set route to "end".
+- content must contain the user-facing answer (you may include structured data as JSON or Markdown inside content).
+- Do NOT add any commentary outside of the JSON. No leading or trailing text.
+- If using tools, still return the final JSON with tool results summarized in content.
+- Human-friendly route names: <friendly>
+
+<here begins your system instruction>
+```
+
+**INFO:** Agents Builder is in beta.
 
 
 # Token usage calculation
@@ -3542,6 +3608,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.60 (2025-09-25)**
+
+- Added a new tool: Agents Builder - allowing visual design of agent workflows using nodes - available in Tools -> Agents Builder (beta).
 
 **2.6.59 (2025-09-23)**
 
