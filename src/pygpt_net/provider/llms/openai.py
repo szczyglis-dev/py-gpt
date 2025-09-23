@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2025.09.22 08:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -89,8 +89,8 @@ class OpenAILLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        from .llama_index.openai import OpenAI as LlamaOpenAI
-        from .llama_index.openai import OpenAIResponses as LlamaOpenAIResponses
+        from llama_index.llms.openai import OpenAI as LlamaOpenAI
+        from llama_index.llms.openai import OpenAIResponses as LlamaOpenAIResponses
         args = self.parse_args(model.llama_index, window)
         if "api_key" not in args:
             args["api_key"] = window.core.config.get("api_key", "")
@@ -98,7 +98,9 @@ class OpenAILLM(BaseLLM):
             args["model"] = model.id
 
         args = self.inject_llamaindex_http_clients(args, window.core.config)
-        if window.core.config.get('api_use_responses_llama', False):
+        mode = window.core.config.get("mode")
+        # dont' use Responses in agent modes
+        if window.core.config.get('api_use_responses_llama', False) and mode == MODE_LLAMA_INDEX:
             tools = []
             tools = window.core.api.openai.remote_tools.append_to_tools(
                 mode=MODE_LLAMA_INDEX,
