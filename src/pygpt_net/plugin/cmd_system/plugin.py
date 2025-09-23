@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.09.23 07:00:00                  #
 # ================================================== #
+
+import platform
 
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
@@ -32,9 +34,45 @@ class Plugin(BasePlugin):
             'os',
         ]
         self.order = 100
+
+        # Core command(s)
+        self.winapi_cmds = [
+            # Windows window/query
+            "win_list",
+            "win_find",
+            "win_children",
+            "win_foreground",
+            "win_rect",
+            "win_get_state",
+            # Window control
+            "win_focus",
+            "win_move_resize",
+            "win_minimize",
+            "win_maximize",
+            "win_restore",
+            "win_close",
+            "win_show",
+            "win_hide",
+            "win_always_on_top",
+            "win_set_opacity",
+            # Screenshots
+            "win_screenshot",
+            "win_area_screenshot",
+            # Clipboard / input / cursor / monitors
+            "win_clipboard_get",
+            "win_clipboard_set",
+            "win_cursor_get",
+            "win_cursor_set",
+            "win_keys_text",
+            "win_keys_send",
+            "win_click",
+            "win_drag",
+            "win_monitors",
+        ]
         self.allowed_cmds = [
             "sys_exec",
-        ]
+        ] + self.winapi_cmds
+
         self.use_locale = True
         self.docker = Docker(self)
         self.runner = Runner(self)
@@ -81,20 +119,26 @@ class Plugin(BasePlugin):
         :param data: event data dict
         """
         # get current working directory
-        os = self.window.core.platforms.get_as_string(env_suffix=False)
+        os_name = self.window.core.platforms.get_as_string(env_suffix=False)
         cwd = self.window.core.config.get_user_dir('data')
-        if self.get_option_value("sandbox_docker"):
-            cwd = "/data (in docker sandbox, mapped on our host machine to: {})".format(cwd)
-            os = "Linux"  # docker image
+        is_windows = (platform.system() == "Windows")
+        winapi_enabled = self.get_option_value("winapi_enabled")
+
         for item in self.allowed_cmds:
+            # Gate WinAPI commands to Windows platform (and enabled flag)
+            if item in self.winapi_cmds:
+                if not is_windows or not winapi_enabled:
+                    continue
+
             if self.has_cmd(item):
                 cmd = self.get_cmd(item)
+                # Keep original sys_exec instruction enhancement
                 if self.get_option_value("auto_cwd") and item == "sys_exec":
                     cmd["instruction"] += "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing " \
                                           "ANY command to \"command\" param. Current workdir is: {cwd}. " \
                                           "Current OS is: {os}".format(
                         cwd=cwd,
-                        os=os)
+                        os=os_name)
                 data['cmd'].append(cmd)  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):
