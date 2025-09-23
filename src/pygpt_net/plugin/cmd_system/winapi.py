@@ -81,6 +81,16 @@ else:
         "F19": 0x82, "F20": 0x83, "F21": 0x84, "F22": 0x85, "F23": 0x86, "F24": 0x87,
     }
 
+    if hasattr(wintypes, "ULONG_PTR"):
+        ULONG_PTR = wintypes.ULONG_PTR
+    else:
+        ULONG_PTR = ctypes.c_ulonglong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_ulong
+
+    if ctypes.sizeof(ctypes.c_void_p) == 8:
+        LONG_PTR = ctypes.c_longlong
+    else:
+        LONG_PTR = ctypes.c_long
+
     # Structures
     class KEYBDINPUT(ctypes.Structure):
         _fields_ = [
@@ -88,7 +98,7 @@ else:
             ("wScan", wintypes.WORD),
             ("dwFlags", wintypes.DWORD),
             ("time", wintypes.DWORD),
-            ("dwExtraInfo", wintypes.ULONG_PTR),
+            ("dwExtraInfo", ULONG_PTR),
         ]
 
     class MOUSEINPUT(ctypes.Structure):
@@ -98,7 +108,7 @@ else:
             ("mouseData", wintypes.DWORD),
             ("dwFlags", wintypes.DWORD),
             ("time", wintypes.DWORD),
-            ("dwExtraInfo", wintypes.ULONG_PTR),
+            ("dwExtraInfo", ULONG_PTR),
         ]
 
     class HARDWAREINPUT(ctypes.Structure):
@@ -115,17 +125,25 @@ else:
         _fields_ = [("type", wintypes.DWORD), ("union", INPUT_union)]
 
     # Function prototypes (partial)
-    EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
-    EnumChildProc = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
+    EnumWindowsProc = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    EnumChildProc = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+
+    user32.EnumWindows.restype = wintypes.BOOL
+    user32.EnumWindows.argtypes = (EnumWindowsProc, wintypes.LPARAM)
+    user32.EnumChildWindows.restype = wintypes.BOOL
+    user32.EnumChildWindows.argtypes = (wintypes.HWND, EnumChildProc, wintypes.LPARAM)
+
+    user32.SendInput.restype = wintypes.UINT
+    user32.SendInput.argtypes = (wintypes.UINT, ctypes.POINTER(INPUT), ctypes.c_int)
 
     # Helpers for Get/SetWindowLongPtr
     try:
         GetWindowLongPtrW = user32.GetWindowLongPtrW
         SetWindowLongPtrW = user32.SetWindowLongPtrW
-        GetWindowLongPtrW.restype = ctypes.c_longlong
+        GetWindowLongPtrW.restype = LONG_PTR
         GetWindowLongPtrW.argtypes = (wintypes.HWND, ctypes.c_int)
-        SetWindowLongPtrW.restype = ctypes.c_longlong
-        SetWindowLongPtrW.argtypes = (wintypes.HWND, ctypes.c_int, ctypes.c_longlong)
+        SetWindowLongPtrW.restype = LONG_PTR
+        SetWindowLongPtrW.argtypes = (wintypes.HWND, ctypes.c_int, LONG_PTR)
         _use_long_ptr = True
     except AttributeError:
         GetWindowLongW = user32.GetWindowLongW
@@ -184,8 +202,6 @@ else:
         return bool(user32.IsIconic(wintypes.HWND(hwnd)))
 
     class WinAPI:
-        """Thin ctypes wrapper around common WinAPI tasks"""
-
         def enum_windows(self, visible_only: bool = True) -> List[Dict]:
             items: List[Dict] = []
 
@@ -347,15 +363,13 @@ else:
             return bool(user32.SetCursorPos(int(x), int(y)))
 
     class InputSender:
-        """Keyboard and mouse input sender using SendInput"""
-
         def __init__(self):
             pass
 
         def _send_input(self, inputs):
             n = len(inputs)
             arr = (INPUT * n)(*inputs)
-            sent = user32.SendInput(n, ctypes.byref(arr), ctypes.sizeof(INPUT))
+            sent = user32.SendInput(n, arr, ctypes.sizeof(INPUT))
             return sent == n
 
         # ---- Keyboard ----
@@ -381,14 +395,12 @@ else:
             def mk_up(vk):
                 return INPUT(type=INPUT_KEYBOARD, union=INPUT_union(ki=KEYBDINPUT(wVk=vk, wScan=0, dwFlags=KEYEVENTF_KEYUP, time=0, dwExtraInfo=0)))
 
-            # Press modifiers
             for mod in modifiers:
                 vk = VK.get(mod)
                 if vk is None: return False, f"Unsupported modifier: {mod}"
                 if not self._send_input([mk_down(vk)]):
                     return False, f"Failed to press modifier: {mod}"
 
-            # Tap normals
             for key in normals:
                 vk = None
                 if key in VK:
@@ -398,7 +410,6 @@ else:
                     if 'A' <= c <= 'Z' or '0' <= c <= '9':
                         vk = ord(c)
                 if vk is None:
-                    # Release modifiers before exit
                     for mod in reversed(modifiers):
                         vkmod = VK.get(mod)
                         if vkmod is not None:
@@ -406,7 +417,6 @@ else:
                     return False, f"Unsupported key token: {key}"
 
                 if not self._send_input([mk_down(vk), mk_up(vk)]):
-                    # Release modifiers before exit
                     for mod in reversed(modifiers):
                         vkmod = VK.get(mod)
                         if vkmod is not None:
@@ -415,7 +425,6 @@ else:
                 if gap_ms > 0:
                     kernel32.Sleep(gap_ms)
 
-            # Release modifiers
             for mod in reversed(modifiers):
                 vk = VK.get(mod)
                 if vk is not None:

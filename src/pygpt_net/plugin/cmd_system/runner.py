@@ -12,7 +12,6 @@
 import os.path
 import re
 import subprocess
-import docker
 import json
 import os
 import platform
@@ -23,8 +22,6 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtCore import QRect
 
 from pygpt_net.item.ctx import CtxItem
-
-from .winapi import WinAPI, InputSender
 
 
 class Runner:
@@ -37,6 +34,7 @@ class Runner:
         self.plugin = plugin
         self.signals = None
         self._winapi = None  # lazy
+        self._winapi_mod = None  # lazy
 
     def attach_signals(self, signals):
         """
@@ -98,12 +96,13 @@ class Runner:
         """
         return self.plugin.get_option_value('sandbox_docker')
 
-    def get_docker(self) -> docker.client.DockerClient:
+    def get_docker(self) -> Any:
         """
         Get docker client
 
         :return: docker client instance
         """
+        import docker
         return docker.from_env()
 
     def get_volumes(self) -> dict:
@@ -266,11 +265,23 @@ class Runner:
         if not self.plugin.get_option_value("winapi_enabled"):
             raise RuntimeError("WinAPI is disabled in plugin options.")
 
-    def _ensure_winapi(self) -> WinAPI:
+    def _load_winapi_module(self):
+        self._ensure_windows()
+        if self._winapi_mod is not None:
+            return self._winapi_mod
+        try:
+            from . import winapi as _win
+        except Exception as e:
+            raise RuntimeError("WinAPI backend unavailable: {}".format(e))
+        self._winapi_mod = _win
+        return self._winapi_mod
+
+    def _ensure_winapi(self) -> Any:
         """Get or create WinAPI helper"""
         self._ensure_windows()
         if self._winapi is None:
-            self._winapi = WinAPI()
+            _win = self._load_winapi_module()
+            self._winapi = _win.WinAPI()
         return self._winapi
 
     def _to_json(self, data: Any) -> str:
@@ -511,7 +522,6 @@ class Runner:
             return {"result": self._to_json(candidates), "context": "Multiple matches. Specify 'hwnd'."}
         if err:
             return {"result": err, "context": err}
-        # Normalize alpha
         if alpha is None:
             if opacity is None:
                 return {"result": "Missing 'alpha' or 'opacity'", "context": "Provide alpha (0..255) or opacity (0..1)."}
@@ -530,7 +540,6 @@ class Runner:
         try:
             os.makedirs(os.path.dirname(abspath), exist_ok=True)
         except Exception:
-            # in case no directory part provided
             pass
         ok = pix.save(abspath, "PNG")
         return ok, abspath
@@ -634,7 +643,8 @@ class Runner:
             return {"result": "No text", "context": "Param 'text' is required."}
         if per_char_delay_ms is None:
             per_char_delay_ms = int(self.plugin.get_option_value("win_keys_per_char_delay_ms"))
-        sender = InputSender()
+        _win = self._load_winapi_module()
+        sender = _win.InputSender()
         sender.send_unicode_text(text, per_char_delay_ms=per_char_delay_ms)
         return {"result": "OK", "context": f"Typed {len(text)} characters."}
 
@@ -649,7 +659,8 @@ class Runner:
             hold_ms = int(self.plugin.get_option_value("win_keys_hold_ms"))
         if gap_ms is None:
             gap_ms = int(self.plugin.get_option_value("win_keys_gap_ms"))
-        sender = InputSender()
+        _win = self._load_winapi_module()
+        sender = _win.InputSender()
         ok, msg = sender.send_keys(keys, hold_ms=hold_ms, gap_ms=gap_ms)
         return {"result": "OK" if ok else "FAILED", "context": msg}
 
@@ -675,7 +686,8 @@ class Runner:
             rect = self._ensure_winapi().get_window_rect(handle)
             x0 += int(rect["left"])
             y0 += int(rect["top"])
-        sender = InputSender()
+        _win = self._load_winapi_module()
+        sender = _win.InputSender()
         ok, msg = sender.click_at(x0, y0, button=button, double=bool(double))
         return {"result": "OK" if ok else "FAILED", "context": msg}
 
@@ -702,7 +714,8 @@ class Runner:
             sx, sy, ex, ey = sx + offx, sy + offy, ex + offx, ey + offy
         if hold_ms is None:
             hold_ms = int(self.plugin.get_option_value("win_drag_step_delay_ms"))
-        sender = InputSender()
+        _win = self._load_winapi_module()
+        sender = _win.InputSender()
         ok, msg = sender.drag_and_drop(sx, sy, ex, ey, steps=max(1, int(steps)), step_delay_ms=int(hold_ms))
         return {"result": "OK" if ok else "FAILED", "context": msg}
 
