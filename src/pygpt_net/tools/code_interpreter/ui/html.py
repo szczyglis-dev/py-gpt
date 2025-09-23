@@ -810,7 +810,8 @@ class CustomWebEnginePage(QWebEnginePage):
         :param line_number: line number
         :param source_id: source ID
         """
-        self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
+        pass
+        # self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
 
     def cleanup(self):
         """Cleanup method to release resources"""

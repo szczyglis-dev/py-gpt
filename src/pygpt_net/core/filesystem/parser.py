@@ -26,28 +26,44 @@ class Parser:
 
     def extract_data_paths(self, text: str) -> list:
         """
-        Extract file paths from text that contain 'data' segment.
-
-        :param text: input text
-        :return: list of file paths containing 'data' segment
+        Extract file paths from text that contain 'data' segment (case-insensitive).
+        Supports quoted and unquoted paths, POSIX/Windows, and ignores URLs.
         """
-        if text is None:
+        if not text:
             return []
-        path_pattern = r"(?:[A-Za-z]:)?(?:[\\/][^\s'\";]+)+"
-        candidates = re.findall(path_pattern, text)
-        filtered = [
-            p for p in candidates
-            if re.search(r"(?:^|[\\/])data(?:[\\/]|$)", p)
-        ]
-        return filtered
 
-    def extract_data_files(self, ctx: CtxItem, response: str) -> list:
+        def is_data_path(p: str) -> bool:
+            # 'data' (case-insensitive)
+            return re.search(r"(?i)(?:^|[\\/])data(?:[\\/]|$)", p) is not None
+
+        def is_url(p: str) -> bool:
+            return re.match(r"^[a-z][a-z0-9+.-]*://", p, re.I) is not None
+
+        results = []
+
+        quoted_pat = re.compile(r"(?P<q>['\"])(?P<p>(?:[A-Za-z]:)?[\\/](?:(?!\1).)+?)\1")
+        for m in quoted_pat.finditer(text):
+            p = m.group("p").strip()
+            if not is_url(p) and is_data_path(p):
+                results.append(p)
+
+        unquoted_pat = re.compile(r"(?P<p>(?:[A-Za-z]:)?(?:[\\/][^\s'\"),;]+)+)")
+        for m in unquoted_pat.finditer(text):
+            p = m.group("p").strip()
+            if not is_url(p) and is_data_path(p):
+                results.append(p)
+
+        seen = set()
+        out = []
+        for p in results:
+            if p not in seen:
+                seen.add(p)
+                out.append(p)
+        return out
+
+    def extract_data_files(self, ctx: "CtxItem", response: str) -> list:
         """
         Extract files from tool outputs and return list of file paths.
-
-        :param ctx: CtxItem
-        :param response: response text containing file paths
-        :return: list of file paths
         """
         if response is None:
             return []
@@ -58,14 +74,11 @@ class Parser:
         def replace_with_local(path):
             """
             Replace the path with local data directory path.
-
-            :param path: original path
-            :return: modified path
             """
             segments = re.split(r"[\\/]+", path)
-            try:
-                data_index = segments.index("data")
-            except ValueError:
+            # case-insensitive find of 'data'
+            data_index = next((i for i, s in enumerate(segments) if s.lower() == "data"), None)
+            if data_index is None:
                 return path
             tail = segments[data_index + 1:]
             new_path = os.path.join(local_data_dir, *tail) if tail else local_data_dir
