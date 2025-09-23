@@ -2441,6 +2441,85 @@ Automatically append current working directory to ``sys_exec`` command. *Default
 
 Allows ``sys_exec`` command execution. If enabled, provides system commands execution. *Default:* ``True``
 
+**Sandbox (Docker)**
+
+- ``Sandbox (docker container)`` *sandbox_docker*
+
+  Executes all ``sys_exec`` shell commands inside an isolated Docker container. Requires Docker to be installed and running. Default: ``False``
+
+- ``Dockerfile`` *dockerfile*
+
+  The Dockerfile used to build the sandbox image. You can customize it and rebuild via Tools → “Rebuild Docker sandbox Images”. Default: a minimal Python image with ``/data`` workdir.
+
+- ``Docker image name`` *image_name*
+
+  Name of the Docker image used by the sandbox. Default: ``pygpt_system``
+
+- ``Docker container name`` *container_name*
+
+  Name of the Docker container started for the sandbox. Default: ``pygpt_system_container``
+
+- ``Docker run command`` *docker_entrypoint*
+
+  Command executed when starting the container (keeps container alive). Default: ``tail -f /dev/null``
+
+- ``Docker volumes`` *docker_volumes*
+
+  Host ↔ container volume mappings. By default, user data directory on host (``{workdir}``) is mapped read/write to ``/data`` in the container.
+  
+  Structure of each item:
+  
+  - ``enabled`` (bool) – include this mapping
+  - ``docker`` (text) – container path (e.g. ``/data``)
+  - ``host`` (text) – host path (e.g. ``{workdir}``)
+  
+  Default: one mapping of ``{workdir}`` → ``/data``
+
+- ``Docker ports`` *docker_ports*
+
+  Host ↔ container port mappings. You can specify protocol on the container side (e.g. ``8888/tcp``), otherwise TCP is assumed.
+  
+  Structure of each item:
+  
+  - ``enabled`` (bool) – include this mapping
+  - ``docker`` (text) – container port (e.g. ``8888`` or ``8888/tcp``)
+  - ``host`` (int) – host port (e.g. ``8888``)
+  
+  Default: empty list (no ports exposed)
+
+Notes:
+
+- When sandboxing is enabled, relative paths passed in commands are resolved against the user data directory and mounted into the container at ``/data``.
+- The plugin checks for Docker availability and will prompt to build the image if it does not exist.
+
+**WinAPI (Windows)**
+
+- ``Enable WinAPI`` *winapi_enabled*
+
+  Enables Windows Desktop/WinAPI integration (window management, input, screenshots) on Microsoft Windows. Default: ``True``
+
+- ``Keys: per-char delay (ms)`` *win_keys_per_char_delay_ms*
+
+  Delay between characters when typing Unicode text with ``win_keys_text``. Default: ``2``
+
+- ``Keys: hold (ms)`` *win_keys_hold_ms*
+
+  Hold duration for modifier keys (e.g., CTRL/ALT/SHIFT) in ``win_keys_send``. Default: ``50``
+
+- ``Keys: gap (ms)`` *win_keys_gap_ms*
+
+  Gap between consecutive key taps in ``win_keys_send``. Default: ``30``
+
+- ``Drag: step delay (ms)`` *win_drag_step_delay_ms*
+
+  Delay between intermediate mouse-move steps during ``win_drag``. Default: ``10``
+
+Notes:
+
+- WinAPI features are available only on Microsoft Windows. On other platforms, WinAPI commands are not exposed.
+- WinAPI commands are added to the command syntax list only when ``platform == "Windows"`` and ``winapi_enabled`` is ``True``.
+- Window and area screenshots use Qt’s ``QScreen.grabWindow(...)``; images are saved as PNG files (non-absolute paths are stored under the user data directory).
+
 
 Telegram
 ---------
