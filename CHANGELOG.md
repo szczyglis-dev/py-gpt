@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.59 (2025-09-23)
+
+- LlamaIndex has been upgraded to v0.13.6.
+- The Responses API is disabled by default in Agents (LlamaIndex) for compatibility.
+- Added WinAPI support to the System (OS) plugin.
+
 ## 2.6.58 (2025-09-22)
 
 - Added: internal Web Browser tool.
