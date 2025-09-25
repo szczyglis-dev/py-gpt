@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 00:00:00                  #
+# Updated Date: 2025.09.25 12:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -140,20 +140,16 @@ class PortItem(QGraphicsObject):
         except Exception:
             pass
         cap_val = self._allowed_capacity()
+        cfg = self.node_item.editor.config
         if isinstance(cap_val, int):
             if cap_val < 0:
-                cap_str = "unlimited (∞)"
+                cap_str = cfg.cap_unlimited()
             else:
                 cap_str = str(cap_val)
         else:
-            cap_str = "n/a"
-        tip = (
-            f"Node: {node_name}\n"
-            f"Port: {self.side.upper()} • {self.prop_id}\n"
-            f"Allowed connections: {cap_str}\n\n"
-            f"Click: start a new connection\n"
-            f"Ctrl+Click: rewire/detach existing"
-        )
+            cap_str = cfg.cap_na()
+        side_label = cfg.side_label(self.side).upper()
+        tip = cfg.port_tooltip(node_name, side_label, self.prop_id, cap_str)
         self.setToolTip(tip)
         try:
             self._label_cap.setToolTip(tip)
@@ -225,6 +221,11 @@ class PortItem(QGraphicsObject):
     def mousePressEvent(self, e):
         """Emit portClicked on left click to begin a connection or rewire."""
         if e.button() == Qt.LeftButton:
+            try:
+                # Bring parent node to front when clicking the port
+                self.node_item.editor.raise_node_to_top(self.node_item)
+            except Exception:
+                pass
             self.node_item.editor._dbg(f"Port clicked: side={self.side}, node={self.node_item.node.name}({self.node_item.node.uuid}), prop={self.prop_id}, connected_count={self._connected_count}")
             self.portClicked.emit(self)
             e.accept()
@@ -355,7 +356,7 @@ class EdgeItem(QGraphicsPathItem):
         ss = self._editor.window().styleSheet()
         if ss:
             menu.setStyleSheet(ss)
-        act_del = QAction("Delete connection", menu)
+        act_del = QAction(self._editor.config.edge_context_delete(), menu)
         menu.addAction(act_del)
         chosen = menu.exec(event.screenPos())
         if chosen == act_del:

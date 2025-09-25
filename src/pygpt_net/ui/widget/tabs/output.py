@@ -311,7 +311,7 @@ class AddButton(QPushButton):
         )
         self.setObjectName('tab-add')
         self.setProperty('tabAdd', True)
-        self.setToolTip(trans('action.tab.add.chat'))
+        self.setToolTip(trans('action.tab.add.chat.tooltip'))
 
     def mousePressEvent(self, event):
         """

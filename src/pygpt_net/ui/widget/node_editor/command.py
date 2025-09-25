@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 00:00:00                  #
+# Updated Date: 2025.09.25 11:30:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ class AddNodeCommand(QUndoCommand):
             type_name: Registered node type name.
             scene_pos: Target scene position to place the node.
         """
-        super().__init__(f"Add {type_name}")
+        super().__init__(editor.config.cmd_add_node(type_name))
         self.editor = editor
         self.type_name = type_name
         self.scene_pos = scene_pos
@@ -67,7 +67,7 @@ class MoveNodeCommand(QUndoCommand):
 
     def __init__(self, item: "NodeItem", old_pos: QPointF, new_pos: QPointF):
         """Store references and positions for undo/redo."""
-        super().__init__("Move Node")
+        super().__init__(item.editor.config.cmd_move_node())
         self.item = item
         self.old_pos = old_pos
         self.new_pos = new_pos
@@ -86,7 +86,7 @@ class ResizeNodeCommand(QUndoCommand):
 
     def __init__(self, item: "NodeItem", old_size: QSizeF, new_size: QSizeF):
         """Store sizes for undo/redo (QSizeF copies kept)."""
-        super().__init__("Resize Node")
+        super().__init__(item.editor.config.cmd_resize_node())
         self.item = item
         self.old_size = QSizeF(old_size)
         self.new_size = QSizeF(new_size)
@@ -111,7 +111,7 @@ class ConnectCommand(QUndoCommand):
             src: Source PortItem (output).
             dst: Destination PortItem (input).
         """
-        super().__init__("Connect")
+        super().__init__(editor.config.cmd_connect())
         self.editor = editor
         self.src_port = src
         self.dst_port = dst
@@ -161,7 +161,7 @@ class RewireConnectionCommand(QUndoCommand):
             new_src: New source port (or None to delete).
             new_dst: New destination port (or None to delete).
         """
-        title = "Delete Connection" if (new_src is None or new_dst is None) else "Rewire Connection"
+        title = editor.config.cmd_delete_connection() if (new_src is None or new_dst is None) else editor.config.cmd_rewire_connection()
         super().__init__(title)
         self.editor = editor
         self.old_conn_data = old_conn.to_dict()
@@ -206,7 +206,7 @@ class ClearGraphCommand(QUndoCommand):
 
     def __init__(self, editor: "NodeEditor"):
         """Take an internal snapshot on first redo to enable undo restoration."""
-        super().__init__("Clear")
+        super().__init__(editor.config.cmd_clear())
         self.editor = editor
         self._snapshot: Optional[dict] = None
 
@@ -234,7 +234,7 @@ class DeleteConnectionCommand(QUndoCommand):
             editor: Owning NodeEditor.
             conn: Existing ConnectionModel to delete/restore.
         """
-        super().__init__("Delete Connection")
+        super().__init__(editor.config.cmd_delete_connection())
         self.editor = editor
         self.conn_uuid: Optional[str] = conn.uuid
         # Keep a serializable snapshot for undo
@@ -280,7 +280,7 @@ class DeleteNodeCommand(QUndoCommand):
             editor: Owning NodeEditor.
             item: NodeItem to delete (used only to take a snapshot at construction time).
         """
-        super().__init__("Delete Node")
+        super().__init__(editor.config.cmd_delete_node())
         self.editor = editor
         node = item.node
         self.node_uuid: str = node.uuid

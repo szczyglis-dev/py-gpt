@@ -94,8 +94,8 @@ class ChatInput(QTextEdit):
             key="web",
             icon=self.ICON_WEB_OFF,
             alt_icon=self.ICON_WEB_ON,
-            tooltip=trans('icon.remote_tool.web'),
-            alt_tooltip=trans('icon.remote_tool.web'),
+            tooltip=trans('icon.remote_tool.web.disabled'),
+            alt_tooltip=trans('icon.remote_tool.web.enabled'),
             callback=self.action_toggle_web,
             visible=True,
         )

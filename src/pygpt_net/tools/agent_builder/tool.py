@@ -312,6 +312,14 @@ class AgentBuilder(BaseTool):
                         next_id = idx.data(QtCore.Qt.UserRole)
                         self.edit_agent(next_id)
 
+    def editing_allowed(self) -> bool:
+        """
+        Check if editing is enabled (dialog is open and not closing/restoring)
+
+        :return: True if editing is enabled
+        """
+        return self.opened and not self._closing and not self._restoring and self.current_agent is not None
+
     def update_presets(self):
         """Update presets in the tools"""
         self.window.controller.presets.editor.reload_all(all=True)

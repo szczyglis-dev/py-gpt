@@ -6,17 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 00:00:00                  #
+# Updated Date: 2025.09.25 12:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
-from typing import Dict, Optional, List, Tuple, Any, Union
+from typing import Dict, Optional, List, Tuple, Any, Union, Callable
 
 from PySide6.QtCore import Qt, QPoint, QPointF, QRectF, QSizeF, Property, QEvent
-from PySide6.QtGui import  QAction, QColor, QUndoStack, QPalette,  QCursor, QKeySequence, QShortcut
+from PySide6.QtGui import QAction, QColor, QUndoStack, QPalette, QCursor, QKeySequence, QShortcut, QFont
 from PySide6.QtWidgets import (
     QWidget, QApplication, QGraphicsView, QMenu, QMessageBox, QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox,
-    QTextEdit, QPlainTextEdit
+    QTextEdit, QPlainTextEdit, QLabel
 )
 
 from pygpt_net.core.node_editor.graph import NodeGraph
@@ -28,8 +28,9 @@ from pygpt_net.utils import trans
 from .command import AddNodeCommand, ClearGraphCommand, RewireConnectionCommand, ConnectCommand, DeleteNodeCommand, DeleteConnectionCommand
 from .item import EdgeItem, PortItem
 from .node import NodeItem
-from .view import NodeGraphicsScene, NodeGraphicsView
+from .view import NodeGraphicsScene, NodeGraphicsView, NodeViewOverlayControls, NodeViewStatusLabel
 from .utils import _qt_is_valid
+from .config import EditorConfig
 
 
 # ------------------------ NodeEditor ------------------------
@@ -132,12 +133,15 @@ class NodeEditor(QWidget):
         if _qt_is_valid(self.view):
             self.view.viewport().update()
 
-    def __init__(self, parent: Optional[QWidget] = None, registry: Optional[NodeTypeRegistry] = None):
+    def __init__(self, parent: Optional[WIDGET] = None, registry: Optional[NodeTypeRegistry] = None, config: Optional[EditorConfig] = None):
         """Initialize the editor, scene, view, graph and interaction state."""
         super().__init__(parent)
         self.setObjectName("NodeEditor")
         self._debug = False
         self._dbg("INIT NodeEditor")
+
+        # Centralized strings
+        self.config: EditorConfig = config if isinstance(config, EditorConfig) else EditorConfig()
 
         self.graph = NodeGraph(registry)
         self.scene = NodeGraphicsScene(self)
@@ -162,6 +166,14 @@ class NodeEditor(QWidget):
         self._spawn_origin: Optional[QPointF] = None
         self._spawn_index: int = 0
         self._saved_drag_mode: Optional[QGraphicsView.DragMode] = None
+
+        # Collisions on/off flag
+        self.enable_collisions: bool = False
+        # Top Z counter for new nodes when collisions are disabled (keeps newest on top)
+        self._z_top: float = 2.0
+
+        # External guard for scene editing/menu (callable bool); when None -> allowed
+        self.editing_allowed: Optional[Callable[[], bool]] = None
 
         self.scene.sceneContextRequested.connect(self._on_scene_context_menu)
         self.graph.nodeAdded.connect(self._on_graph_node_added)
@@ -197,6 +209,17 @@ class NodeEditor(QWidget):
         self._base_id_max: Dict[str, Dict[str, int]] = {}
         self._reset_base_id_counters()
 
+        # Top-right overlay controls (Grab, Zoom Out, Zoom In)
+        self._controls = NodeViewOverlayControls(self)
+        self._controls.grabToggled.connect(self._on_grab_toggled)
+        self._controls.zoomInClicked.connect(self.zoom_in)
+        self._controls.zoomOutClicked.connect(self.zoom_out)
+        self._controls.raise_()
+
+        # Bottom-left fixed status label
+        self._status = NodeViewStatusLabel(self)
+        self._status.raise_()
+
     # ---------- Debug helper ----------
     def _dbg(self, msg: str):
         """Conditional debug logger (enabled by self._debug)."""
@@ -224,11 +247,6 @@ class NodeEditor(QWidget):
     def _on_focus_changed(self, old: Optional[QWidget], now: Optional[QWidget]):
         """Update internal flag when focus moves to/from text widgets."""
         self._text_input_active = self._is_text_entry_widget(now)
-
-    # Backward-compatible helper used by other parts
-    def _is_text_input_focused(self) -> bool:
-        """Return True if an input field is currently focused."""
-        return bool(self._text_input_active)
 
     # ---------- QWidget overrides ----------
 
@@ -357,16 +375,23 @@ class NodeEditor(QWidget):
                 pass
 
     def resizeEvent(self, e):
-        """Keep the view sized to the editor widget."""
+        """Keep the view sized to the editor widget and position overlays."""
         if _qt_is_valid(self.view):
             self.view.setGeometry(self.rect())
+        # Position overlays
+        self._position_overlay_controls()
+        self._position_status_label()
         super().resizeEvent(e)
 
     def showEvent(self, e):
-        """Cache the spawn origin and reapply stylesheets when shown."""
+        """Cache the spawn origin, reapply stylesheets and position overlays."""
         if self._spawn_origin is None and _qt_is_valid(self.view):
             self._spawn_origin = self.view.mapToScene(self.view.viewport().rect().center())
         self._reapply_stylesheets()
+        # Ensure overlays are placed after the widget becomes visible
+        self._position_overlay_controls()
+        self._position_status_label()
+        self._update_status_label()
         super().showEvent(e)
 
     def event(self, e):
@@ -380,6 +405,32 @@ class NodeEditor(QWidget):
             self._dbg("event -> focus out/window deactivate -> reset interaction")
             self._reset_interaction_states(remove_hidden_edges=False)
         return super().event(e)
+
+    def _position_overlay_controls(self):
+        """Place the top-right overlay controls with 10px margin."""
+        try:
+            if _qt_is_valid(self._controls):
+                sz = self._controls.sizeHint()
+                x = max(10, self.width() - sz.width() - 10)
+                y = 10
+                self._controls.move(x, y)
+                self._controls.raise_()
+                self._controls.show()
+        except Exception:
+            pass
+
+    def _position_status_label(self):
+        """Place bottom-left status label with 10px margin."""
+        try:
+            if _qt_is_valid(self._status):
+                s = self._status.sizeHint()
+                x = 10
+                y = max(10, self.height() - s.height() - 10)
+                self._status.move(x, y)
+                self._status.raise_()
+                self._status.show()
+        except Exception:
+            pass
 
     # ---------- Public API ----------
 
@@ -453,17 +504,6 @@ class NodeEditor(QWidget):
         Load layout using the live registry for node specs. Only values from the layout are applied,
         and only for properties that still exist in the current spec. Everything else falls back to
         the registry defaults. Connections are recreated only if ports still exist and can connect.
-
-        Example:
-            editor.load_layout({
-                "nodes": [
-                    {"uuid": "n1", "type": "Agent", "values": {"name": "Collector"}, "pos": [100, 120], "size": [220, 180]},
-                    {"uuid": "n2", "type": "Tool",  "values": {"kind": "Search"}}
-                ],
-                "connections": [
-                    {"uuid": "c1", "src_node": "n1", "src_prop": "out", "dst_node": "n2", "dst_prop": "in"}
-                ]
-            })
         """
         if not self._alive or self.scene is None or self.view is None:
             return False
@@ -495,12 +535,6 @@ class NodeEditor(QWidget):
                 nuuid = nd.get("uuid")
                 if not tname or not nuuid:
                     self._dbg(f"load_layout: skip node without type/uuid: {nd}")
-                    continue
-
-                # Ensure type exists in registry.
-                spec = self.graph.registry.get(tname) if self.graph and self.graph.registry else None
-                if spec is None:
-                    self._dbg(f"load_layout: skip node '{nuuid}' with unknown type '{tname}' (not in registry)")
                     continue
 
                 try:
@@ -538,9 +572,6 @@ class NodeEditor(QWidget):
                             pm.value = val
                         except Exception:
                             pass
-                    else:
-                        # Keep default from registry-created node.
-                        pass
 
                 # Schedule position (used in _on_graph_node_added) and add to graph.
                 pos_xy = positions.get(nuuid)
@@ -607,6 +638,7 @@ class NodeEditor(QWidget):
             self._rebuild_base_id_counters()
 
             self._reapply_stylesheets()
+            self._update_status_label()
 
             # Restore view state if present; otherwise center on content (backward compatible).
             vs = self._extract_view_state(data)
@@ -660,6 +692,7 @@ class NodeEditor(QWidget):
 
         # Keep Base ID counters in sync with newly added nodes.
         self._update_base_id_counters_from_node(node)
+        self._update_status_label()
 
     def _on_graph_node_removed(self, node_uuid: str):
         """Remove the NodeItem when model is removed from the graph."""
@@ -677,6 +710,7 @@ class NodeEditor(QWidget):
 
         # Rebuild Base ID counters after removal to reflect current layout state.
         self._rebuild_base_id_counters()
+        self._update_status_label()
 
     def _on_graph_connection_added(self, conn: ConnectionModel):
         """Create an EdgeItem when a ConnectionModel appears in the graph."""
@@ -707,34 +741,41 @@ class NodeEditor(QWidget):
         self._clear_scene_only(hard=True)
         # Reset Base ID counters on clear so next layout starts fresh.
         self._reset_base_id_counters()
+        self._update_status_label()
 
     # ---------- Scene helpers ----------
 
     def _scene_to_global(self, scene_pos: QPointF) -> QPoint:
         """Convert scene coordinates to a global screen QPoint."""
-        from PySide6.QtCore import QPoint as _QPoint
-        vp_pt = self.view.mapFromScene(scene_pos)
-        if isinstance(vp_pt, QPointF):
-            vp_pt = _QPoint(int(vp_pt.x()), int(vp_pt.y()))
+        # Correct mapping: scene -> viewport -> global
+        vp_pt = self.view.mapFromScene(scene_pos)  # QPoint
         return self.view.viewport().mapToGlobal(vp_pt)
 
     def _on_scene_context_menu(self, scene_pos: QPointF):
         """Show context menu for adding nodes and undo/redo/clear at empty scene position."""
+        # External permission check; when callable absent -> allowed
+        try:
+            allowed = True if self.editing_allowed is None else bool(self.editing_allowed())
+        except Exception:
+            allowed = False
+        if not allowed:
+            return
+
         menu = QMenu(self.window())
         ss = self.window().styleSheet()
         if ss:
             menu.setStyleSheet(ss)
 
-        add_menu = menu.addMenu("Add")
+        add_menu = menu.addMenu(self.config.menu_add())
         action_by_type: Dict[QAction, str] = {}
         for tname in self.graph.registry.types():
             act = add_menu.addAction(tname)
             action_by_type[act] = tname
 
         menu.addSeparator()
-        act_undo = QAction("Undo", menu)
-        act_redo = QAction("Redo", menu)
-        act_clear = QAction("Clear", menu)
+        act_undo = QAction(self.config.menu_undo(), menu)
+        act_redo = QAction(self.config.menu_redo(), menu)
+        act_clear = QAction(self.config.menu_clear(), menu)
         act_undo.setEnabled(self._undo.canUndo())
         act_redo.setEnabled(self._undo.canRedo())
         menu.addAction(act_undo)
@@ -756,6 +797,35 @@ class NodeEditor(QWidget):
             type_name = action_by_type[chosen]
             self._undo.push(AddNodeCommand(self, type_name, scene_pos))
 
+    # ---------- Z-order helpers ----------
+
+    def raise_node_to_top(self, item: NodeItem):
+        """Bring the given node item to the front (dynamic z-order).
+
+        Uses a monotonic counter so every 'active' node stacks above the previous one.
+        Safe to call from mouse/selection handlers.
+        """
+        if not _qt_is_valid(item):
+            return
+        if not getattr(self, "_alive", True) or getattr(self, "_closing", False):
+            return
+        try:
+            # Keep _z_top consistent and monotonic
+            self._z_top = float(self._z_top) if isinstance(self._z_top, (int, float)) else 2.0
+        except Exception:
+            self._z_top = 2.0
+        try:
+            cur = float(item.zValue())
+            if cur > self._z_top:
+                self._z_top = cur
+        except Exception:
+            pass
+        try:
+            self._z_top += 1.0
+            item.setZValue(self._z_top)
+        except Exception:
+            pass
+
     # ---------- Add/remove nodes/edges ----------
 
     def _add_node_model(self, node: NodeModel, scene_pos: QPointF):
@@ -767,9 +837,23 @@ class NodeEditor(QWidget):
         """Create and place a NodeItem for the given NodeModel."""
         item = NodeItem(self, node)
         self.scene.addItem(item)
-        free_pos = self._find_free_position(scene_pos, item.size())
-        item.setPos(free_pos)
+
+        # Place either at exact scene_pos (collisions disabled) or find nearest free spot
+        if not bool(self.enable_collisions):
+            pos = QPointF(scene_pos)
+        else:
+            pos = self._find_free_position(scene_pos, item.size())
+
+        item.setPos(pos)
         item.update_ports_positions()
+        # Ensure newest items are drawn above when collisions are disabled
+        if not bool(self.enable_collisions):
+            try:
+                self._z_top = float(self._z_top) + 1.0
+            except Exception:
+                self._z_top = 3.0
+            item.setZValue(self._z_top)
+
         # From now on it's safe for itemChange to touch the scene/edges
         item.mark_ready_for_scene_ops(True)
 
@@ -903,33 +987,55 @@ class NodeEditor(QWidget):
             return wnd.palette()
         return QApplication.instance().palette() if QApplication.instance() else self.palette()
 
+    def _current_font(self) -> QFont:
+        """Return the active application/widget font to keep NodeEditor consistent with the app."""
+        wnd = self.window()
+        if isinstance(wnd, QWidget):
+            return wnd.font()
+        app = QApplication.instance()
+        if app:
+            return app.font()
+        return self.font()
+
     def _apply_styles_to_content(self, content_widget: QWidget):
-        """Propagate palette and stylesheet to the embedded content widget subtree."""
+        """Propagate palette, font and stylesheet to the embedded content widget subtree."""
         if content_widget is None:
             return
         content_widget.setAttribute(Qt.WA_StyledBackground, True)
         stylesheet = self._current_stylesheet()
         pal = self._current_palette()
+        font = self._current_font()
         content_widget.setPalette(pal)
+        content_widget.setFont(font)
         if stylesheet:
             content_widget.setStyleSheet(stylesheet)
         content_widget.ensurePolished()
         for w in content_widget.findChildren(QWidget):
+            w.setPalette(pal)
+            w.setFont(font)
+            if stylesheet:
+                w.setStyleSheet(stylesheet)
             w.ensurePolished()
 
     def _reapply_stylesheets(self):
-        """Reapply palette and stylesheet to all NodeContentWidget instances."""
+        """Reapply palette, font and stylesheet to all NodeContentWidget instances."""
         if not getattr(self, "_alive", True) or getattr(self, "_closing", False):
             return
         stylesheet = self._current_stylesheet()
         pal = self._current_palette()
+        font = self._current_font()
         for item in self._uuid_to_item.values():
             if item._content and _qt_is_valid(item._content):
                 item._content.setPalette(pal)
+                item._content.setFont(font)
                 if stylesheet:
                     item._content.setStyleSheet(stylesheet)
                 item._content.ensurePolished()
                 for w in item._content.findChildren(QWidget):
+                    w.setPalette(pal)
+                    w.setFont(font)
+                    if stylesheet:
+                        w.setStyleSheet(stylesheet)
                     w.ensurePolished()
 
     # ---------- Edge/Port helpers + rewire ----------
@@ -1349,7 +1455,7 @@ class NodeEditor(QWidget):
             return
 
         self._dbg(f"Delete shortcut -> nodes={len(nodes)}, edges={len(edges)} (undoable)")
-        self._undo.beginMacro("Delete selection")
+        self._undo.beginMacro(self.config.macro_delete_selection())
         try:
             for n in nodes:
                 # Push per-node undoable deletion (restores its own connections)
@@ -2036,3 +2142,31 @@ class NodeEditor(QWidget):
             }
 
         return {"nodes": nodes_out, "connections": conns_out}
+
+    # ---------- Overlay controls handlers ----------
+
+    def _on_grab_toggled(self, enabled: bool):
+        """Enable/disable global grab mode (left-button panning anywhere)."""
+        if _qt_is_valid(self.view):
+            self.view.set_global_grab_mode(bool(enabled))
+        # Visual feedback is provided by the checkable state (style handles appearance)
+
+    # ---------- Status label ----------
+
+    def _update_status_label(self):
+        """Compute node counts by type and update bottom-left status label."""
+        try:
+            counts: Dict[str, int] = {}
+            unknown = self.config.type_unknown()
+            for n in self.graph.nodes.values():
+                t = getattr(n, "type", unknown) or unknown
+                counts[t] = counts.get(t, 0) + 1
+            if not counts:
+                text = self.config.status_no_nodes()
+            else:
+                parts = [f"{k}: {counts[k]}" for k in sorted(counts.keys(), key=lambda s: s.lower())]
+                text = ", ".join(parts)
+            self._status.set_text(text)
+            self._position_status_label()
+        except Exception:
+            pass

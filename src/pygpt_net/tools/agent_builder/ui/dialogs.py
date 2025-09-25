@@ -11,7 +11,7 @@
 
 from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QMenuBar, QSplitter, QSizePolicy
+from PySide6.QtWidgets import QVBoxLayout, QMenuBar, QSplitter, QSizePolicy, QWidget
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.node_editor.editor import NodeEditor
@@ -41,7 +41,7 @@ class Builder:
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
         t = self.tool
 
-        self.actions["open"] = QAction(QIcon(":/icons/reload.svg"), "Reload", self.menu_bar)
+        self.actions["open"] = QAction(QIcon(":/icons/reload.svg"), trans("action.reload"), self.menu_bar)
         self.actions["open"].triggered.connect(lambda checked=False, t=t: t.load())
 
         self.actions["save"] = QAction(QIcon(":/icons/save.svg"), trans("action.save"), self.menu_bar)
@@ -96,6 +96,7 @@ class Builder:
             }
             """)
         editor.on_clear = self.tool.clear
+        editor.editing_allowed = self.tool.editing_allowed
 
         u.editor[id] = editor
 
@@ -104,9 +105,28 @@ class Builder:
 
         agents_list = AgentsWidget(self.window, tool=self.tool, parent=dlg)
         list_widget = agents_list.setup()
-        list_widget.setFixedWidth(250)
+
+        # Left side container: list fills all space, help label stays at the bottom
+        left_side = QWidget(dlg)
+        left_layout = QVBoxLayout(left_side)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(6)
+
+        left_help_label = HelpLabel(trans("node.editor.list.tip"))
+        left_help_label.setWordWrap(True)
+        left_help_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        left_help_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        left_help_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+
+        left_layout.addWidget(list_widget)
+        left_layout.addWidget(left_help_label)
+        left_layout.setStretch(0, 1)  # list -> fills all vertical space
+
+        # Fix the width of the whole left panel (not only the list)
+        left_side.setFixedWidth(250)
+
         center_splitter = QSplitter(Qt.Horizontal)
-        center_splitter.addWidget(list_widget)
+        center_splitter.addWidget(left_side)
         center_splitter.addWidget(u.editor[id])
         center_splitter.setStretchFactor(0, 1)
         center_splitter.setStretchFactor(1, 8)
@@ -115,10 +135,7 @@ class Builder:
         layout.setStretch(0, 1)
 
         # Bottom legend as a compact, centered help label
-        legend_label = HelpLabel(
-            "Right-click: add node / undo / redo • Middle-click: pan view • Ctrl + Mouse wheel: zoom • "
-            "Left-click a port: create connection • Ctrl + Left-click a port: rewire or detach • Right-click or DEL a node/connection: remove"
-        )
+        legend_label = HelpLabel(trans("node.editor.bottom.tip"))
         legend_label.setAlignment(Qt.AlignCenter)
         legend_label.setWordWrap(True)
         legend_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
@@ -129,6 +146,7 @@ class Builder:
         u.nodes["agent.builder.splitter"] = center_splitter
         u.nodes["agent.builder.list"] = agents_list
         u.nodes["agent.builder.legend"] = legend_label
+        u.nodes["agent.builder.list.help"] = left_help_label
 
         dlg.setLayout(layout)
         dlg.setWindowTitle(trans("agent.builder.title"))
@@ -230,6 +248,15 @@ class BuilderDialog(BaseDialog):
                 legend.deleteLater()
             except Exception:
                 pass
+
+        # Dispose left-side help label safely
+        try:
+            help_lbl = u.nodes.pop("agent.builder.list.help", None)
+            if help_lbl is not None:
+                help_lbl.setParent(None)
+                help_lbl.deleteLater()
+        except Exception:
+            pass
 
         # Drop splitter reference
         try:
