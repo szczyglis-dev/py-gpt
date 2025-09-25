@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.09.25 13:04:51                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -156,6 +156,8 @@ class Preset(BaseConfigDialog):
         modes = QWidget()
         modes.setLayout(rows_mode)
         modes.setContentsMargins(0, 0, 0, 0)
+        # Ensure modes column never grows taller than its content; avoids creating vertical gap above the splitter.
+        modes.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         self.window.ui.nodes['preset.editor.modes'] = modes
 
         # experts
@@ -265,6 +267,8 @@ class Preset(BaseConfigDialog):
         widget_base = QWidget()
         widget_base.setLayout(rows)
         widget_base.setMinimumWidth(300)
+        # Keep base column at content height; do not stretch vertically.
+        widget_base.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
         self.window.ui.nodes['preset.editor.experts'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -274,12 +278,16 @@ class Preset(BaseConfigDialog):
 
         widget_main = QWidget()
         widget_main.setLayout(main)
+        # Critical: ensure the whole top pane (base + modes) stays at content height.
+        widget_main.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
 
         splitter = QSplitter(Qt.Vertical)
         splitter.addWidget(widget_main)
         splitter.addWidget(widget_prompt)
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 2)
+        splitter.setChildrenCollapsible(False)  # avoid accidental collapsing of any pane
+        # All extra vertical space goes to bottom (extra agent options); top stays at its sizeHint.
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
         self.window.ui.splitters['editor.presets'] = splitter
 
         widget_personalize = QWidget()
@@ -398,13 +406,17 @@ class AvatarWidget(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
 
         current_avatar_label = QLabel(trans("preset.personalize.avatar.current"))
+        # Center the section title for better visual balance.
+        current_avatar_label.setAlignment(Qt.AlignHCenter)
         main_layout.addWidget(current_avatar_label)
 
         self.avatar_preview = QLabel(self)
         self.avatar_preview.setFixedSize(200, 200)
-        self.avatar_preview.setStyleSheet("border: 1px solid gray;")
+        # Keep a visible border, but round it to visually indicate the circular avatar.
+        self.avatar_preview.setStyleSheet("border: 1px solid gray; border-radius: 100px; background: transparent;")
         self.avatar_preview.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(self.avatar_preview)
+        # Center the avatar widget within the column.
+        main_layout.addWidget(self.avatar_preview, 0, Qt.AlignHCenter)
 
         buttons_layout = QHBoxLayout()
 
@@ -417,6 +429,8 @@ class AvatarWidget(QWidget):
         self.remove_button.setEnabled(False)
         buttons_layout.addWidget(self.remove_button)
         buttons_layout.setContentsMargins(0, 10, 0, 0)
+        # Center the action buttons below the avatar.
+        buttons_layout.setAlignment(Qt.AlignCenter)
 
         main_layout.addLayout(buttons_layout)
         main_layout.setContentsMargins(0, 10, 0, 0)
@@ -440,7 +454,9 @@ class AvatarWidget(QWidget):
         pixmap = QPixmap(file_path)
         if not pixmap.isNull():
             cover_pix = self.get_cover_pixmap(pixmap, self.avatar_preview.width(), self.avatar_preview.height())
-            self.avatar_preview.setPixmap(cover_pix)
+            # Render the avatar as a circular pixmap.
+            circle_pix = self.get_circular_pixmap(cover_pix, self.avatar_preview.width(), self.avatar_preview.height())
+            self.avatar_preview.setPixmap(circle_pix)
         self.remove_button.setEnabled(True)
 
     def enable_remove_button(self, enabled: bool = True):
@@ -471,6 +487,29 @@ class AvatarWidget(QWidget):
         x = (scaled_pix.width() - target_width) // 2
         y = (scaled_pix.height() - target_height) // 2
         return scaled_pix.copy(x, y, target_width, target_height)
+
+    def get_circular_pixmap(self, pixmap, target_width: int, target_height: int):
+        """
+        Create a circular version of the given pixmap using an antialiased clip path.
+
+        :param pixmap: Source pixmap already scaled/cropped to target size
+        :param target_width: Target width
+        :param target_height: Target height
+        :return: Circular masked pixmap with transparent corners
+        """
+        from PySide6.QtGui import QPainter, QPainterPath, QPixmap  # local import to avoid altering global imports
+        result = QPixmap(target_width, target_height)
+        result.fill(Qt.transparent)
+
+        painter = QPainter(result)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        path = QPainterPath()
+        path.addEllipse(0, 0, target_width, target_height)
+        painter.setClipPath(path)
+        painter.drawPixmap(0, 0, pixmap)
+        painter.end()
+
+        return result
 
     def remove_avatar(self):
         """Remove the current avatar image."""
