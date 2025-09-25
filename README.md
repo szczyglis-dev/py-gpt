@@ -2109,7 +2109,8 @@ Rules:
 - content must contain the user-facing answer (you may include structured data as JSON or Markdown inside content).
 - Do NOT add any commentary outside of the JSON. No leading or trailing text.
 - If using tools, still return the final JSON with tool results summarized in content.
-- Human-friendly route names: <friendly>
+- Human-friendly route names: <names>
+- Human-friendly route roles (optional): <roles>
 
 <here begins your system instruction>
 ```

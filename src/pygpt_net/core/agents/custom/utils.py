@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 23:00:00                  #
+# Updated Date: 2025.09.25 14:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -116,6 +116,7 @@ def make_option_getter(base_agent, preset: Optional[PresetItem]) -> OptionGetter
 class NodeRuntime:
     model: ModelItem
     instructions: str
+    role: Optional[str]
     allow_local_tools: bool
     allow_remote_tools: bool
 
@@ -138,6 +139,7 @@ def resolve_node_runtime(
     Priority:
     - model:      get_option(node.id, "model") -> window.core.models.get(name) -> default_model
     - prompt:     get_option(node.id, "prompt") -> node.instruction -> base_prompt -> ""
+    - role:       get_option(node.id, "role") -> node.role -> None (only used if provided and non-empty)
     - allow_*:    get_option(node.id, "allow_local_tools"/"allow_remote_tools")
                   -> schema flags -> defaults
     """
@@ -156,6 +158,15 @@ def resolve_node_runtime(
     # Instructions resolve
     prompt_opt = option_get(node.id, "prompt", None)
     instructions = (prompt_opt or getattr(node, "instruction", None) or base_prompt or "").strip()
+
+    # Role resolve (optional)
+    role_opt = option_get(node.id, "role", None)
+    role_from_schema = getattr(node, "role", None) if hasattr(node, "role") else None
+    role: Optional[str] = None
+    if isinstance(role_opt, str) and role_opt.strip():
+        role = role_opt.strip()
+    elif isinstance(role_from_schema, str) and role_from_schema.strip():
+        role = role_from_schema.strip()
 
     # Tools flags resolve
     allow_local_tools = bool(
@@ -176,6 +187,7 @@ def resolve_node_runtime(
     return NodeRuntime(
         model=model_item,
         instructions=instructions,
+        role=role,
         allow_local_tools=allow_local_tools,
         allow_remote_tools=allow_remote_tools,
     )

@@ -47,7 +47,7 @@ class Builder:
         self.actions["save"] = QAction(QIcon(":/icons/save.svg"), trans("action.save"), self.menu_bar)
         self.actions["save"].triggered.connect(lambda checked=False, t=t: t.save())
 
-        self.actions["clear"] = QAction(QIcon(":/icons/clear.svg"), trans("action.clear"), self.menu_bar)
+        self.actions["clear"] = QAction(QIcon(":/icons/close.svg"), trans("action.clear"), self.menu_bar)
         self.actions["clear"].triggered.connect(lambda checked=False, t=t: t.clear())
 
         self.file_menu.addAction(self.actions["open"])

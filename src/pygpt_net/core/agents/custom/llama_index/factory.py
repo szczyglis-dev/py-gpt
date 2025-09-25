@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 23:00:00                  #
+# Updated Date: 2025.09.25 14:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -32,7 +32,6 @@ class BuiltAgentLI:
 class AgentFactoryLI:
     """
     Build LlamaIndex ReActAgent/FunctionAgent from AgentNode + NodeRuntime and explicit LLM/tools.
-    Best practice: chat_history/max_iterations przekazujemy do konstruktora agenta.
     """
     def __init__(self, window, logger) -> None:
         self.window = window
@@ -45,7 +44,7 @@ class AgentFactoryLI:
         node_runtime: NodeRuntime,
         llm: Any,                 # LLM instance (z appki lub resolve_llm)
         tools: List[Any],         # BaseTool list
-        friendly_map: Dict[str, str],
+        friendly_map: Dict[str, Any],
         force_router: bool = False,
         chat_history: List[Any] = None,
         max_iterations: int = 10,
@@ -62,23 +61,35 @@ class AgentFactoryLI:
 
         node_tools = tools if (node_runtime.allow_local_tools or node_runtime.allow_remote_tools) else []
 
+        # Prefer FunctionAgent if the underlying LLM supports function-calling (recommended by LI).
+        # This yields more direct compliance with system_prompt for simple single-output tasks.
+        is_fc_model = False
+        try:
+            is_fc_model = bool(getattr(getattr(llm, "metadata", None), "is_function_calling_model", False))
+        except Exception:
+            is_fc_model = False
+
         if multi_output:
-            agent_cls = FunctionAgent  # routers behave better with FunctionAgent (JSON compliance)
+            agent_cls = FunctionAgent  # routers: keep JSON compliance
         else:
-            agent_cls = FunctionAgent if node_tools else ReActAgent
+            agent_cls = FunctionAgent if is_fc_model else ReActAgent
+
         kwargs: Dict[str, Any] = {
             "name": agent_name,
             "system_prompt": instr,
             "llm": llm,
             "chat_history": chat_history or [],
             "max_iterations": int(max_iterations),
+            # Provide a short description to reinforce the agent's purpose (if role present).
+            "description": (node_runtime.role or agent_name),
         }
         if node_tools:
             kwargs["tools"] = coerce_li_tools(node_tools)
 
         instance = agent_cls(**kwargs)
         self.logger.debug(
-            f"[li] Built agent {node.id} ({agent_name}), multi_output={multi_output}, routes={allowed_routes}"
+            f"[li] Built agent {node.id} ({agent_name}), multi_output={multi_output}, "
+            f"routes={allowed_routes}, agent_cls={agent_cls.__name__}"
         )
         return BuiltAgentLI(
             instance=instance,

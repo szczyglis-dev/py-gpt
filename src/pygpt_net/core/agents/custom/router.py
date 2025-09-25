@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 23:00:00                  #
+# Updated Date: 2025.09.25 14:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Any
+from typing import List, Optional, Tuple, Any, Dict
 
 
 @dataclass
@@ -25,13 +25,46 @@ class RouteDecision:
     error: Optional[str] = None
 
 
-def build_router_instruction(agent_name: str, current_id: str, allowed_routes: List[str], friendly_map: dict[str, str]) -> str:
+def build_router_instruction(
+    agent_name: str,
+    current_id: str,
+    allowed_routes: List[str],
+    friendly_map: Dict[str, Any],
+) -> str:
     """
     Builds an instruction that forces the model to output JSON with next route and content.
+
+    Additionally, if the provided friendly_map contains role information for any of the
+    allowed routes (e.g. friendly_map[id] is a dict with a "role" key), these roles
+    are included in the instruction to improve routing. This is optional and included
+    only when present and non-empty.
     """
     allowed = ", ".join(allowed_routes)
-    friendly = {rid: friendly_map.get(rid, rid) for rid in allowed_routes}
-    return (
+
+    # Normalize human-friendly names: accept either a plain string or a dict with
+    # common name keys such as "name", "title" or "label".
+    def _extract_name(val: Any, default_name: str) -> str:
+        if isinstance(val, str):
+            return val
+        if isinstance(val, dict):
+            return str(val.get("name") or val.get("title") or val.get("label") or default_name)
+        return default_name
+
+    # Extract names and optional roles for allowed routes, without changing input map semantics.
+    friendly_names = {rid: _extract_name(friendly_map.get(rid), rid) for rid in allowed_routes}
+
+    # Roles are optional; include only non-empty strings.
+    friendly_roles: Dict[str, str] = {}
+    for rid in allowed_routes:
+        val = friendly_map.get(rid)
+        role_val: Optional[str] = None
+        if isinstance(val, dict):
+            role_val = val.get("role")
+        if isinstance(role_val, str) and role_val.strip():
+            friendly_roles[rid] = role_val.strip()
+
+    # Base instruction
+    instr = (
         "You are a routing-capable agent in a multi-agent flow.\n"
         f"Your id is: {current_id}, name: {agent_name}.\n"
         "You MUST respond ONLY with a single JSON object and nothing else.\n"
@@ -46,8 +79,14 @@ def build_router_instruction(agent_name: str, current_id: str, allowed_routes: L
         "- content must contain the user-facing answer (you may include structured data as JSON or Markdown inside content).\n"
         "- Do NOT add any commentary outside of the JSON. No leading or trailing text.\n"
         "- If using tools, still return the final JSON with tool results summarized in content.\n"
-        f"- Human-friendly route names: {json.dumps(friendly)}\n"
+        f"- Human-friendly route names: {json.dumps(friendly_names)}\n"
     )
+
+    # Append roles only if any are present (optional).
+    if friendly_roles:
+        instr += f"- Human-friendly route roles (optional): {json.dumps(friendly_roles)}\n"
+
+    return instr
 
 
 def _extract_json_block(text: str) -> Optional[str]:

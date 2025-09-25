@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 12:05:00                  #
+# Updated Date: 2025.09.25 12:35:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -133,7 +133,7 @@ class NodeEditor(QWidget):
         if _qt_is_valid(self.view):
             self.view.viewport().update()
 
-    def __init__(self, parent: Optional[WIDGET] = None, registry: Optional[NodeTypeRegistry] = None, config: Optional[EditorConfig] = None):
+    def __init__(self, parent: Optional[QWidget] = None, registry: Optional[NodeTypeRegistry] = None, config: Optional[EditorConfig] = None):
         """Initialize the editor, scene, view, graph and interaction state."""
         super().__init__(parent)
         self.setObjectName("NodeEditor")
@@ -248,6 +248,10 @@ class NodeEditor(QWidget):
         """Update internal flag when focus moves to/from text widgets."""
         self._text_input_active = self._is_text_entry_widget(now)
 
+    def _is_text_input_focused(self) -> bool:
+        """Return True if a text-like input currently has focus."""
+        return bool(self._text_input_active)
+
     # ---------- QWidget overrides ----------
 
     def _on_destroyed(self):
@@ -264,65 +268,44 @@ class NodeEditor(QWidget):
     def closeEvent(self, e):
         """Perform a thorough cleanup to prevent dangling Qt wrappers during shutdown."""
         self._dbg("closeEvent -> full cleanup")
-
-        # Make the editor effectively inert for any in-flight events
         self._closing = True
         self._alive = False
         self._ready_for_theme = False
-
-        # Stop listening to global focus changes
         try:
             app = QApplication.instance()
             if app:
                 app.focusChanged.disconnect(self._on_focus_changed)
         except Exception:
             pass
-
-        # Disconnect scene signals and filters
         try:
             if _qt_is_valid(self.scene):
                 self.scene.sceneContextRequested.disconnect(self._on_scene_context_menu)
         except Exception:
             pass
-
-        # Cancel any interactive wire state before clearing items
         self._reset_interaction_states(remove_hidden_edges=True)
-
         try:
             if _qt_is_valid(self.scene):
                 self.scene.removeEventFilter(self)
         except Exception:
             pass
-
-        # Disconnect graph signals early to prevent callbacks during teardown
         self._disconnect_graph_signals()
-
-        # Clear undo stack to drop references to scene items and widgets
         try:
             if self._undo is not None:
                 self._undo.clear()
         except Exception:
             pass
-
-        # Proxies/widgets first (prevents QWidget-in-scene dangling)
         self._cleanup_node_proxies()
-
-        # Remove edge items, then all remaining scene items
         try:
             self._remove_all_edge_items_from_scene()
             if _qt_is_valid(self.scene):
                 self.scene.clear()
         except Exception:
             pass
-
-        # Detach view from scene to break mutual references
         try:
             if _qt_is_valid(self.view):
                 self.view.setScene(None)
         except Exception:
             pass
-
-        # Drop internal maps to help GC
         try:
             self._uuid_to_item.clear()
             self._conn_uuid_to_edge.clear()
@@ -332,8 +315,6 @@ class NodeEditor(QWidget):
         self._interactive_src_port = None
         self._hover_candidate = None
         self._pending_node_positions.clear()
-
-        # Optionally schedule deletion of scene/view
         try:
             if _qt_is_valid(self.scene):
                 self.scene.deleteLater()
@@ -344,11 +325,8 @@ class NodeEditor(QWidget):
                 self.view.deleteLater()
         except Exception:
             pass
-
         self.scene = None
         self.view = None
-
-        # Force-flush all deferred deletions to avoid old wrappers lingering into the next open
         try:
             from PySide6.QtWidgets import QApplication
             from PySide6.QtCore import QEvent
@@ -357,7 +335,6 @@ class NodeEditor(QWidget):
                 QApplication.processEvents()
         except Exception:
             pass
-
         super().closeEvent(e)
 
     def _disconnect_graph_signals(self):
@@ -378,7 +355,6 @@ class NodeEditor(QWidget):
         """Keep the view sized to the editor widget and position overlays."""
         if _qt_is_valid(self.view):
             self.view.setGeometry(self.rect())
-        # Position overlays
         self._position_overlay_controls()
         self._position_status_label()
         super().resizeEvent(e)
@@ -388,7 +364,6 @@ class NodeEditor(QWidget):
         if self._spawn_origin is None and _qt_is_valid(self.view):
             self._spawn_origin = self.view.mapToScene(self.view.viewport().rect().center())
         self._reapply_stylesheets()
-        # Ensure overlays are placed after the widget becomes visible
         self._position_overlay_controls()
         self._position_status_label()
         self._update_status_label()
@@ -397,7 +372,6 @@ class NodeEditor(QWidget):
     def event(self, e):
         """React to global style/palette changes and reset interactions on focus loss."""
         et = e.type()
-        # Do not accept ShortcutOverride here; we rely on the editor-level QShortcut for Delete.
         if et in (QEvent.StyleChange, QEvent.PaletteChange, QEvent.FontChange,
                   QEvent.ApplicationPaletteChange, QEvent.ApplicationFontChange):
             self._reapply_stylesheets()
@@ -439,11 +413,7 @@ class NodeEditor(QWidget):
         self._undo.push(AddNodeCommand(self, type_name, scene_pos))
 
     def clear(self, ask_user: bool = True):
-        """Clear the entire editor (undoable), optionally asking the user for confirmation.
-
-        Returns:
-            bool: True if a clear operation was initiated.
-        """
+        """Clear the entire editor (undoable), optionally asking the user for confirmation."""
         if not self._alive or self.scene is None or self.view is None:
             return False
         if ask_user and self.on_clear and callable(self.on_clear):
@@ -467,20 +437,10 @@ class NodeEditor(QWidget):
         self._undo.redo()
 
     def save_layout(self) -> dict:
-        """Serialize the current layout into a compact, value-only dict.
-
-        Notes:
-            - Property specification (type, editable, allowed_inputs/outputs, etc.) is NOT exported.
-            - Only dynamic, value-carrying properties are persisted.
-            - Registry definitions are the single source of truth for property specs during load.
-        """
+        """Serialize the current layout into a compact, value-only dict."""
         if not self._alive or self.scene is None or self.view is None:
             return False
-
-        # Build compact graph payload (nodes + connections without specs)
         compact = self._serialize_layout_compact()
-
-        # Positions and sizes come from live scene items
         compact["positions"] = {
             nuuid: [self._uuid_to_item[nuuid].pos().x(), self._uuid_to_item[nuuid].pos().y()]
             for nuuid in self._uuid_to_item
@@ -490,60 +450,40 @@ class NodeEditor(QWidget):
                     float(self._uuid_to_item[nuuid].size().height())]
             for nuuid in self._uuid_to_item
         }
-
-        # Persist the current view (zoom and scrollbars)
         try:
             compact["view"] = self._save_view_state()
         except Exception:
             compact["view"] = {}
-
         return compact
 
     def load_layout(self, data: dict):
-        """
-        Load layout using the live registry for node specs. Only values from the layout are applied,
-        and only for properties that still exist in the current spec. Everything else falls back to
-        the registry defaults. Connections are recreated only if ports still exist and can connect.
-        """
+        """Load layout using the live registry for node specs (value-only merge)."""
         if not self._alive or self.scene is None or self.view is None:
             return False
-
-        # Guard: mark layout import phase to avoid auto-renumbering of Base ID on nodeAdded.
         self._is_loading_layout = True
         try:
             self._dbg("load_layout -> registry-first import with value-only merge")
-            # Reset interaction and clear both scene and graph (do not reuse graph.from_dict here).
             self._reset_interaction_states(remove_hidden_edges=True)
             self._clear_scene_only(hard=True)
             try:
                 self.graph.clear(silent=True)
             except Exception:
-                # Be defensive in case .clear is not available or raises
                 self.graph.nodes = {}
                 self.graph.connections = {}
 
-            # Also reset per-layout Base ID counters; they will be rebuilt from the loaded data.
             self._reset_base_id_counters()
-
-            # Extract normalized structures from possibly diverse layout shapes.
             nodes_norm, conns_norm, positions, sizes = self._normalize_layout_dict(data)
 
-            # 1) Create nodes from registry spec, preserve UUID, set values that match current spec.
             created: Dict[str, NodeModel] = {}
             for nd in nodes_norm:
                 tname = nd.get("type")
                 nuuid = nd.get("uuid")
                 if not tname or not nuuid:
-                    self._dbg(f"load_layout: skip node without type/uuid: {nd}")
                     continue
-
                 try:
                     node = self.graph.create_node_from_type(tname)
-                except Exception as ex:
-                    self._dbg(f"load_layout: create_node_from_type failed for '{tname}': {ex}")
+                except Exception:
                     continue
-
-                # Preserve UUID and optional name from layout (if present).
                 try:
                     node.uuid = nuuid
                 except Exception:
@@ -554,16 +494,12 @@ class NodeEditor(QWidget):
                         node.name = name
                     except Exception:
                         pass
-
-                # Preserve friendly node.id from layout if present (keeps per-layout numbering).
                 try:
                     fid = nd.get("id")
                     if isinstance(fid, str) and fid.strip():
                         node.id = fid.strip()
                 except Exception:
                     pass
-
-                # Apply property values only for properties that exist in the current spec.
                 values_map: Dict[str, Any] = nd.get("values", {})
                 for pid, pm in list(node.properties.items()):
                     if pid in values_map:
@@ -572,8 +508,6 @@ class NodeEditor(QWidget):
                             pm.value = val
                         except Exception:
                             pass
-
-                # Schedule position (used in _on_graph_node_added) and add to graph.
                 pos_xy = positions.get(nuuid)
                 if isinstance(pos_xy, (list, tuple)) and len(pos_xy) == 2:
                     try:
@@ -583,7 +517,6 @@ class NodeEditor(QWidget):
                 self.graph.add_node(node)
                 created[nuuid] = node
 
-            # 2) Apply sizes after items exist.
             for nuuid, wh in sizes.items():
                 item = self._uuid_to_item.get(nuuid)
                 if item and isinstance(wh, (list, tuple)) and len(wh) == 2:
@@ -593,54 +526,36 @@ class NodeEditor(QWidget):
                     except Exception:
                         pass
 
-            # 3) Recreate connections if possible.
             for cd in conns_norm:
                 cuuid = cd.get("uuid")
                 s_n = cd.get("src_node")
                 s_p = cd.get("src_prop")
                 d_n = cd.get("dst_node")
                 d_p = cd.get("dst_prop")
-
                 if not (s_n in created and d_n in created and isinstance(s_p, str) and isinstance(d_p, str)):
-                    self._dbg(f"load_layout: skip connection with missing nodes/props: {cd}")
                     continue
-
-                # Validate ports exist in current spec.
                 if s_p not in created[s_n].properties or d_p not in created[d_n].properties:
-                    self._dbg(f"load_layout: skip connection with non-existing port(s) in current spec: {cd}")
                     continue
-
-                # Check if connection is allowed in current graph state.
-                ok, reason = self.graph.can_connect((s_n, s_p), (d_n, d_p))
+                ok, _ = self.graph.can_connect((s_n, s_p), (d_n, d_p))
                 if not ok:
-                    self._dbg(f"load_layout: cannot connect ({s_n}.{s_p}) -> ({d_n}.{d_p}): {reason}")
                     continue
-
-                # Try to preserve original connection UUID if available.
                 conn_model = ConnectionModel(
                     uuid=cuuid if isinstance(cuuid, str) and cuuid else None,
                     src_node=s_n, src_prop=s_p,
                     dst_node=d_n, dst_prop=d_p
                 )
-                ok_add, reason_add = self.graph.add_connection(conn_model)
+                ok_add, _ = self.graph.add_connection(conn_model)
                 if not ok_add:
-                    # Fallback: let graph assign a fresh UUID (should rarely be needed).
-                    ok2, reason2, _ = self.graph.connect((s_n, s_p), (d_n, d_p))
-                    if not ok2:
-                        self._dbg(f"load_layout: failed to add connection even via connect(): {reason_add} / {reason2}")
+                    self.graph.connect((s_n, s_p), (d_n, d_p))
 
-            # 4) Sync ports after all nodes/connections are in place.
             for item in self._uuid_to_item.values():
                 if _qt_is_valid(item):
                     item.update_ports_positions()
 
-            # Rebuild Base ID counters based on the just-loaded layout.
             self._rebuild_base_id_counters()
-
             self._reapply_stylesheets()
             self._update_status_label()
 
-            # Restore view state if present; otherwise center on content (backward compatible).
             vs = self._extract_view_state(data)
             if vs:
                 self._apply_view_state(vs)
@@ -648,7 +563,6 @@ class NodeEditor(QWidget):
                 self.center_on_content()
             return True
         finally:
-            # Always clear the loading flag even if exceptions happen during import.
             self._is_loading_layout = False
 
     def export_schema(self, as_list: bool = False) -> Union[dict, List[dict]]:
@@ -681,16 +595,11 @@ class NodeEditor(QWidget):
         """Create a NodeItem when a NodeModel is added to the graph."""
         if node.uuid in self._uuid_to_item:
             return
-
-        # Do not auto-increment Base ID here to avoid double steps.
-        # Base ID assignment is handled at the command/model creation stage (e.g. AddNodeCommand).
         pos = self._pending_node_positions.pop(node.uuid, None)
         if pos is None:
             pos = self._next_spawn_pos()
         self._dbg(f"graph.nodeAdded -> add item for node={node.name}({node.uuid}) at {pos}")
         self._add_node_item(node, pos)
-
-        # Keep Base ID counters in sync with newly added nodes.
         self._update_base_id_counters_from_node(node)
         self._update_status_label()
 
@@ -707,8 +616,6 @@ class NodeEditor(QWidget):
                 self.scene.removeItem(item)
             except Exception:
                 pass
-
-        # Rebuild Base ID counters after removal to reflect current layout state.
         self._rebuild_base_id_counters()
         self._update_status_label()
 
@@ -739,7 +646,6 @@ class NodeEditor(QWidget):
         self._dbg("graph.cleared -> clear scene only")
         self._reset_interaction_states(remove_hidden_edges=True)
         self._clear_scene_only(hard=True)
-        # Reset Base ID counters on clear so next layout starts fresh.
         self._reset_base_id_counters()
         self._update_status_label()
 
@@ -747,13 +653,11 @@ class NodeEditor(QWidget):
 
     def _scene_to_global(self, scene_pos: QPointF) -> QPoint:
         """Convert scene coordinates to a global screen QPoint."""
-        # Correct mapping: scene -> viewport -> global
-        vp_pt = self.view.mapFromScene(scene_pos)  # QPoint
+        vp_pt = self.view.mapFromScene(scene_pos)
         return self.view.viewport().mapToGlobal(vp_pt)
 
     def _on_scene_context_menu(self, scene_pos: QPointF):
         """Show context menu for adding nodes and undo/redo/clear at empty scene position."""
-        # External permission check; when callable absent -> allowed
         try:
             allowed = True if self.editing_allowed is None else bool(self.editing_allowed())
         except Exception:
@@ -800,17 +704,12 @@ class NodeEditor(QWidget):
     # ---------- Z-order helpers ----------
 
     def raise_node_to_top(self, item: NodeItem):
-        """Bring the given node item to the front (dynamic z-order).
-
-        Uses a monotonic counter so every 'active' node stacks above the previous one.
-        Safe to call from mouse/selection handlers.
-        """
+        """Bring the given node item to the front (dynamic z-order)."""
         if not _qt_is_valid(item):
             return
         if not getattr(self, "_alive", True) or getattr(self, "_closing", False):
             return
         try:
-            # Keep _z_top consistent and monotonic
             self._z_top = float(self._z_top) if isinstance(self._z_top, (int, float)) else 2.0
         except Exception:
             self._z_top = 2.0
@@ -837,26 +736,16 @@ class NodeEditor(QWidget):
         """Create and place a NodeItem for the given NodeModel."""
         item = NodeItem(self, node)
         self.scene.addItem(item)
-
-        # Place either at exact scene_pos (collisions disabled) or find nearest free spot
-        if not bool(self.enable_collisions):
-            pos = QPointF(scene_pos)
-        else:
-            pos = self._find_free_position(scene_pos, item.size())
-
+        pos = scene_pos if not bool(self.enable_collisions) else self._find_free_position(scene_pos, item.size())
         item.setPos(pos)
         item.update_ports_positions()
-        # Ensure newest items are drawn above when collisions are disabled
         if not bool(self.enable_collisions):
             try:
                 self._z_top = float(self._z_top) + 1.0
             except Exception:
                 self._z_top = 3.0
             item.setZValue(self._z_top)
-
-        # From now on it's safe for itemChange to touch the scene/edges
         item.mark_ready_for_scene_ops(True)
-
         self._uuid_to_item[node.uuid] = item
         self._apply_styles_to_content(item._content)
 
@@ -872,10 +761,8 @@ class NodeEditor(QWidget):
                     if r.intersects(other):
                         return True
             return False
-
         if not collides(desired):
             return desired
-
         x = y = 0
         dx, dy = 1, 0
         segment_length = 1
@@ -918,7 +805,6 @@ class NodeEditor(QWidget):
         if ex and _qt_is_valid(ex):
             self._dbg(f"_add_edge_for_connection: guard skip duplicate for uuid={conn.uuid}")
             return
-
         src_item = self._uuid_to_item.get(conn.src_node)
         dst_item = self._uuid_to_item.get(conn.dst_node)
         if not src_item or not dst_item:

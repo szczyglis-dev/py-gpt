@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 23:00:00                  #
+# Updated Date: 2025.09.25 14:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -171,6 +171,7 @@ class FlowOrchestrator:
                     f"[runtime] model={getattr(node_rt.model,'name',str(node_rt.model))} "
                     f"allow_local={node_rt.allow_local_tools} allow_remote={node_rt.allow_remote_tools} "
                     f"instructions='{instr_preview}'"
+                    f" role='{node_rt.role}'"
                 )
 
             # Memory selection and INPUT BUILD (memory-first policy)

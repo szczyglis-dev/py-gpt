@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 23:00:00                  #
+# Updated Date: 2025.09.25 14:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -210,6 +210,34 @@ class DynamicFlowWorkflowLI(Workflow):
     def _friendly_map(self) -> Dict[str, str]:
         return {aid: a.name or aid for aid, a in self.fs.agents.items()}
 
+    def _friendly_map_for_routes(self, route_ids: List[str]) -> Dict[str, Any]:
+        """
+        Build a friendly map for the given route ids:
+        - Always include a human-friendly name.
+        - Include role only if provided in preset options or schema and non-empty.
+        """
+        out: Dict[str, Any] = {}
+        for rid in route_ids or []:
+            a = self.fs.agents.get(rid)
+            name = (a.name if a and a.name else rid)
+            # Prefer preset option, then schema role
+            role_opt = None
+            try:
+                role_opt = self.option_get(rid, "role", None)
+            except Exception:
+                role_opt = None
+            role_schema = getattr(a, "role", None) if a is not None else None
+            role_val = None
+            if isinstance(role_opt, str) and role_opt.strip():
+                role_val = role_opt.strip()
+            elif isinstance(role_schema, str) and role_schema.strip():
+                role_val = role_schema.strip()
+            item = {"name": name}
+            if role_val:
+                item["role"] = role_val
+            out[rid] = item
+        return out
+
     async def _emit(self, ctx: Context, ev: Any):
         if self.dbg.event_echo:
             self.logger.debug(f"[event] emit {ev.__class__.__name__}")
@@ -412,6 +440,7 @@ class DynamicFlowWorkflowLI(Workflow):
                 f"[runtime] model={getattr(node_rt.model,'name',str(node_rt.model))} "
                 f"allow_local={node_rt.allow_local_tools} allow_remote={node_rt.allow_remote_tools} "
                 f"instructions='{ellipsize(node_rt.instructions, self.dbg.preview_chars)}'"
+                f" role='{ellipsize(node_rt.role or '', self.dbg.preview_chars)}'"
             )
 
         llm_node = resolve_llm(self.window, node_rt.model, self.llm_base, self.stream)
@@ -430,13 +459,17 @@ class DynamicFlowWorkflowLI(Workflow):
                 f"user='{ellipsize(user_msg_text, self.dbg.preview_chars)}'"
             )
 
+        # Prepare friendly map with optional roles for this node's allowed routes
+        allowed_routes_now = list(node.outputs or [])
+        friendly_map = self._friendly_map_for_routes(allowed_routes_now)
+
         # Build agent (chat_history/max_iterations in ctor – best practice)
         built = self.factory.build(
             node=node,
             node_runtime=node_rt,
             llm=llm_node,
             tools=tools_node,
-            friendly_map=self._friendly_map(),
+            friendly_map=friendly_map,
             chat_history=chat_history_msgs,
             max_iterations=self.max_iterations,
         )

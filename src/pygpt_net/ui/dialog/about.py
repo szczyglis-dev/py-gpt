@@ -19,6 +19,9 @@ from pygpt_net.utils import trans
 
 
 class About:
+
+    RELEASE_YEAR = 2025
+
     def __init__(self, window=None):
         """
         About dialog
@@ -36,34 +39,65 @@ class About:
         """
         return self.window.core.updater.get_fetch_thanks()
 
+    def build_versions_str(self, lib_versions: dict, break_after: str = "LlamaIndex") -> str:
+        parts = []
+        line = []
+        for k, v in lib_versions.items():
+            line.append(f"{k}: {v}")
+            if k == break_after:
+                parts.append(", ".join(line))
+                line = []
+        if line:
+            parts.append(", ".join(line))
+        return "\n".join(parts)
+
     def prepare_content(self) -> str:
         """
         Get info text
 
         :return: info text
         """
-        llama_index_version = None
-        langchain_version = None
-        openai_version = None
-        versions = True
+        lib_versions = {}
 
         try:
-            from llama_index.core import __version__ as llama_index_version
-            # from langchain import __version__ as langchain_version
-            from openai.version import VERSION as openai_version
+            import platform
+            lib_versions['Python'] = platform.python_version()
         except ImportError:
             pass
 
-        lib_versions = ""
-        if llama_index_version is None or openai_version is None:
-            versions = False
+        try:
+            from openai.version import VERSION as openai_version
+            lib_versions['OpenAI API'] = openai_version
+        except ImportError:
+            pass
 
-        if versions:
-            lib_versions = "OpenAI API: {}, LlamaIndex: {}\n\n".format(
-                openai_version,
-                # langchain_version,
-                llama_index_version,
-            )
+        try:
+            from llama_index.core import __version__ as llama_index_version
+            lib_versions['LlamaIndex'] = llama_index_version
+        except ImportError:
+            pass
+
+        try:
+            from anthropic import __version__ as anthropic_version
+            lib_versions['Anthropic API'] = anthropic_version
+        except ImportError:
+            pass
+
+        try:
+            from google.genai import __version__ as google_genai_version
+            lib_versions['Google API'] = google_genai_version
+        except ImportError:
+            pass
+
+        try:
+            from xai_sdk import __version__ as xai_sdk_version
+            lib_versions['xAI API'] = xai_sdk_version
+        except ImportError:
+            pass
+
+        versions_str = ""
+        if lib_versions:
+            versions_str = self.build_versions_str(lib_versions, break_after="LlamaIndex")
 
         platform = self.window.core.platforms.get_as_string()
         version = self.window.meta['version']
@@ -80,29 +114,14 @@ class About:
         label_github = trans("dialog.about.github")
         label_docs = trans("dialog.about.docs")
 
-        data = "{label_version}: {version}, {platform}\n" \
-               "{label_build}: {build}\n" \
-               "{lib_versions}" \
-               "{label_website}: {website}\n" \
-               "{label_github}: {github}\n" \
-               "{label_docs}: {docs}\n\n" \
-               "(c) 2025 {author}\n" \
-               "{email}\n".format(
-                label_version=label_version,
-                version=version,
-                platform=platform,
-                label_build=label_build,
-                build=build.replace('.', '-'),
-                label_website=label_website,
-                website=website,
-                label_github=label_github,
-                github=github,
-                label_docs=label_docs,
-                docs=docs,
-                author=author,
-                email=email,
-                lib_versions=lib_versions,
-            )
+        data = f"{label_version}: {version}, {platform}\n" \
+               f"{label_build}: {build.replace('.', '-')}\n\n" \
+               f"{versions_str}\n\n" \
+               f"{label_website}: {website}\n" \
+               f"{label_github}: {github}\n" \
+               f"{label_docs}: {docs}\n\n" \
+               f"(c) {self.RELEASE_YEAR} {author}\n" \
+               f"{email}\n"
         return data
 
     def setup(self):
@@ -139,6 +158,7 @@ class About:
         string = self.prepare_content()
         content = QLabel(string)
         content.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        content.setWordWrap(True)
         self.window.ui.nodes['dialog.about.content'] = content
 
         thanks = QLabel(trans('about.thanks'))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 12:05:00                  #
+# Updated Date: 2025.09.25 15:32:39                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -144,7 +144,7 @@ class NodeContentWidget(QWidget):
     """Form-like widget that renders property editors for a node.
 
     The widget builds appropriate Qt editors based on PropertyModel.type:
-        - "str": QLineEdit
+        - "str": QLineEdit-like (SingleLineTextEdit with placeholder support)
         - "text": QTextEdit
         - "int": QSpinBox
         - "float": QDoubleSpinBox
@@ -156,6 +156,8 @@ class NodeContentWidget(QWidget):
 
     Notes:
         - For Base ID-like properties, the field is read-only; a composed display value is shown.
+        - Placeholder and description are applied when provided in the type spec or model
+          (description is shown as tooltip on both the editor and its label).
         - ShortcutOverride is handled so typing in editors does not trigger scene shortcuts.
 
     Signal:
@@ -178,7 +180,24 @@ class NodeContentWidget(QWidget):
         self._editors: Dict[str, QWidget] = {}
         for pid, pm in node.properties.items():
             editable = self._editable_from_spec(pid, pm)
+
+            # Resolve UI hints: placeholder and description from spec (fallback to model)
+            placeholder = self._spec_text_attr(pid, "placeholder")
+            try:
+                if not placeholder and hasattr(pm, "placeholder") and getattr(pm, "placeholder") not in (None, ""):
+                    placeholder = str(getattr(pm, "placeholder"))
+            except Exception:
+                pass
+            description = self._spec_text_attr(pid, "description")
+            try:
+                if not description and hasattr(pm, "description") and getattr(pm, "description") not in (None, ""):
+                    description = str(getattr(pm, "description"))
+            except Exception:
+                pass
+
             w: QWidget
+            extra_tooltip: Optional[str] = None  # used e.g. for capacity hints
+
             if pm.type == "str":
                 te = SingleLineTextEdit()
                 te.setFocusPolicy(Qt.StrongFocus)
@@ -198,19 +217,31 @@ class NodeContentWidget(QWidget):
                     te.setReadOnly(not editable)
 
                 te.setPlainText(txt)
+                if placeholder:
+                    try:
+                        te.setPlaceholderText(placeholder)
+                    except Exception:
+                        pass
                 te.textChanged.connect(lambda pid=pid, te=te: self.valueChanged.emit(pid, te.toPlainText()))
                 te.editingFinished.connect(lambda pid=pid, te=te: self.valueChanged.emit(pid, te.toPlainText()))
                 w = te
+
             elif pm.type == "text":
                 te = QTextEdit()
                 te.setFocusPolicy(Qt.StrongFocus)
                 if pm.value is not None:
                     te.setPlainText(str(pm.value))
                 te.setReadOnly(not editable)
+                if placeholder:
+                    try:
+                        te.setPlaceholderText(placeholder)
+                    except Exception:
+                        pass
                 te.textChanged.connect(lambda pid=pid, te=te: self.valueChanged.emit(pid, te.toPlainText()))
                 # Ensure context menu follows global (Material) style
                 self._install_styled_context_menu(te)
                 w = te
+
             elif pm.type == "int":
                 w = QSpinBox()
                 w.setFocusPolicy(Qt.StrongFocus)
@@ -218,7 +249,10 @@ class NodeContentWidget(QWidget):
                 if pm.value is not None:
                     w.setValue(int(pm.value))
                 w.setEnabled(editable)
+
+                # QSpinBox has no placeholder; use tooltip only
                 w.valueChanged.connect(lambda v, pid=pid: self.valueChanged.emit(pid, int(v)))
+
             elif pm.type == "float":
                 w = QDoubleSpinBox()
                 w.setFocusPolicy(Qt.StrongFocus)
@@ -228,6 +262,7 @@ class NodeContentWidget(QWidget):
                     w.setValue(float(pm.value))
                 w.setEnabled(editable)
                 w.valueChanged.connect(lambda v, pid=pid: self.valueChanged.emit(pid, float(v)))
+
             elif pm.type == "bool":
                 w = QCheckBox()
                 w.setFocusPolicy(Qt.StrongFocus)
@@ -235,6 +270,7 @@ class NodeContentWidget(QWidget):
                     w.setChecked(bool(pm.value))
                 w.setEnabled(editable)
                 w.toggled.connect(lambda v, pid=pid: self.valueChanged.emit(pid, bool(v)))
+
             elif pm.type == "combo":
                 w = QComboBox()
                 w.setFocusPolicy(Qt.StrongFocus)
@@ -243,19 +279,40 @@ class NodeContentWidget(QWidget):
                 if pm.value is not None and pm.value in (pm.options or []):
                     w.setCurrentText(pm.value)
                 w.setEnabled(editable)
+                # QComboBox placeholder works when editable; we keep non-editable by default
                 w.currentTextChanged.connect(lambda v, pid=pid: self.valueChanged.emit(pid, v))
+
             else:
                 # Render a read-only capacity placeholder for port-like properties ("input/output").
                 cap_text = self._capacity_text_for_property(pid, pm)
                 w = QLabel(cap_text)
                 w.setEnabled(False)
-                w.setToolTip(self.editor.config.port_capacity_tooltip(cap_text))
+                extra_tooltip = self.editor.config.port_capacity_tooltip(cap_text)
 
             name = self._display_name_for_property(pid, pm)
             if name == "Base ID":
                 name = self.editor.config.label_id()
             self.form.addRow(name, w)
             self._editors[pid] = w
+
+            # Apply tooltip(s) after the row is created so we can also set the label tooltip
+            if description or extra_tooltip:
+                final_tt_parts: List[str] = []
+                if description:
+                    final_tt_parts.append(description)
+                if extra_tooltip:
+                    final_tt_parts.append(extra_tooltip)
+                final_tt = "\n".join(final_tt_parts)
+                try:
+                    w.setToolTip(final_tt)
+                except Exception:
+                    pass
+                try:
+                    lbl = self.form.labelForField(w)
+                    if lbl is not None:
+                        lbl.setToolTip(description or "")
+                except Exception:
+                    pass
 
     def _install_styled_context_menu(self, te: QTextEdit):
         """Install a custom context menu handler that applies global styles."""
@@ -585,6 +642,55 @@ class NodeContentWidget(QWidget):
         except Exception:
             pass
 
+        return None
+
+    # --- Spec helpers for UI hints ---
+
+    def _get_prop_spec(self, pid: str) -> Optional[Any]:
+        """Return a property specification object from the registry for this node type."""
+        try:
+            reg = self.graph.registry
+            if not reg:
+                return None
+            type_spec = reg.get(self.node.type)
+            if not type_spec:
+                return None
+
+            for attr in ("properties", "props", "fields", "ports", "inputs", "outputs"):
+                try:
+                    cont = getattr(type_spec, attr, None)
+                    if isinstance(cont, dict) and pid in cont:
+                        return cont[pid]
+                except Exception:
+                    pass
+            for meth in ("get_property", "property_spec", "get_prop", "prop", "property"):
+                if hasattr(type_spec, meth):
+                    try:
+                        return getattr(type_spec, meth)(pid)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        return None
+
+    def _spec_text_attr(self, pid: str, key: str) -> Optional[str]:
+        """Get a string attribute (e.g., 'placeholder', 'description') from spec if available."""
+        obj = self._get_prop_spec(pid)
+        if obj is None:
+            return None
+        try:
+            v = getattr(obj, key, None)
+            if isinstance(v, str) and v != "":
+                return v
+        except Exception:
+            pass
+        try:
+            if isinstance(obj, dict):
+                v = obj.get(key)
+                if isinstance(v, str) and v != "":
+                    return v
+        except Exception:
+            pass
         return None
 
 

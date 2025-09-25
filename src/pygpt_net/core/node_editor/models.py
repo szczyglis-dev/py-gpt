@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 00:00:00                  #
+# Updated Date: 2025.09.25 00:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -22,13 +22,16 @@ from .utils import gen_uuid
 class PropertyModel:
     uuid: str
     id: str
-    type: str  # "slot", "str", "int", "float", "bool", "combo", "text"
+    type: str  # "slot", "str", "int", "float", "bool", "combo", "text", "HelpLabel"
     name: str
     editable: bool = True
     value: Any = None
     allowed_inputs: int = 0   # 0 none, -1 unlimited, >0 limit
     allowed_outputs: int = 0  # 0 none, -1 unlimited, >0 limit
     options: Optional[List[str]] = None  # for combo
+    # UI helpers
+    placeholder: Optional[str] = None
+    description: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -41,6 +44,8 @@ class PropertyModel:
             "allowed_inputs": self.allowed_inputs,
             "allowed_outputs": self.allowed_outputs,
             "options": self.options or [],
+            "placeholder": self.placeholder,
+            "description": self.description,
         }
 
     @staticmethod
@@ -55,6 +60,8 @@ class PropertyModel:
             allowed_inputs=d.get("allowed_inputs", 0),
             allowed_outputs=d.get("allowed_outputs", 0),
             options=d.get("options") or None,
+            placeholder=d.get("placeholder"),
+            description=d.get("description"),
         )
 
 

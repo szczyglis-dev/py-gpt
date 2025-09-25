@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 23:00:00                  #
+# Updated Date: 2025.09.25 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -182,6 +182,12 @@ class Custom:
                             slots = node["slots"]
                             if "name" in slots and slots["name"]:
                                 tab["label"] = slots["name"]
+                            if "role" in slots:
+                                opts["role"] = {
+                                    "type": "str",
+                                    "label": trans("agent.option.role"),
+                                    "default": slots["role"],
+                                }
                             if "instruction" in slots:
                                 opts["prompt"] = {
                                     "type": "textarea",

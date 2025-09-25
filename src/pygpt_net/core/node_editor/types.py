@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 00:00:00                  #
+# Updated Date: 2025.09.25 15:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -26,6 +26,8 @@ class PropertySpec:
     allowed_inputs: int = 0
     allowed_outputs: int = 0
     options: Optional[List[str]] = None
+    placeholder: Optional[str] = None      # hint text for text editors
+    description: Optional[str] = None      # tooltip/help text shown in UI
 
 
 @dataclass

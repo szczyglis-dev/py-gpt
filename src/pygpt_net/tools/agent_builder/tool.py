@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 00:00:00                  #
+# Updated Date: 2025.09.25 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -388,66 +388,74 @@ class AgentBuilder(BaseTool):
         :return: NodeTypeRegistry
         """
         registry = NodeTypeRegistry(empty=True)
-        # Tip: to allow multiple connections to an input or output, set allowed_inputs/allowed_outputs to -1.
 
         # Start
         registry.register(NodeTypeSpec(
             type_name="Flow/Start",
-            title="Start",
+            title=trans("node.editor.spec.start.title"),
             base_id="start",
             export_kind="start",
             bg_color="#2D5A27",
             properties=[
-                PropertySpec(id="output", type="flow", name="Output", editable=False, allowed_inputs=0,
-                             allowed_outputs=1),
-                PropertySpec(id="memory", type="memory", name="Memory", editable=False, allowed_inputs=0,
-                             allowed_outputs=-1),
-                # base_id will be auto-injected as read-only property at creation
+                PropertySpec(id="output", type="flow", name=trans("node.editor.property.output.name"), editable=False,
+                             allowed_inputs=0, allowed_outputs=1),
+                PropertySpec(id="memory", type="memory", name=trans("node.editor.property.memory.name"), editable=False,
+                             allowed_inputs=0, allowed_outputs=-1),
             ],
         ))
         # Agent
         registry.register(NodeTypeSpec(
             type_name="Flow/Agent",
-            title="Agent",
+            title=trans("node.editor.spec.agent.title"),
             base_id="agent",
             export_kind="agent",
             bg_color="#304A6E",
             properties=[
-                PropertySpec(id="name", type="str", name="Name", editable=True, value=""),
-                PropertySpec(id="instruction", type="text", name="Instruction", editable=True, value=""),
-                PropertySpec(id="remote_tools", type="bool", name="Remote tools", editable=True, value=True),
-                PropertySpec(id="local_tools", type="bool", name="Local tools", editable=True, value=True),
-                PropertySpec(id="input", type="flow", name="Input", editable=False, allowed_inputs=-1,
-                             allowed_outputs=0),
-                PropertySpec(id="output", type="flow", name="Output", editable=False, allowed_inputs=0,
-                             allowed_outputs=-1),
-                PropertySpec(id="memory", type="memory", name="Memory", editable=False, allowed_inputs=0,
-                             allowed_outputs=1),
+                PropertySpec(id="name", type="str", name=trans("node.editor.property.name.name"), editable=True,
+                             value="",
+                             placeholder=trans("node.editor.property.name.placeholder")),
+                PropertySpec(id="role", type="str", name=trans("node.editor.property.role.name"), editable=True,
+                             value="",
+                             placeholder=trans("node.editor.property.role.placeholder")),
+                PropertySpec(id="instruction", type="text", name=trans("node.editor.property.instruction.name"),
+                             editable=True, value="",
+                             placeholder=trans("node.editor.property.instruction.placeholder")),
+                PropertySpec(id="remote_tools", type="bool", name=trans("node.editor.property.remote_tools.name"),
+                             editable=True, value=True),
+                PropertySpec(id="local_tools", type="bool", name=trans("node.editor.property.local_tools.name"),
+                             editable=True, value=True),
+                PropertySpec(id="input", type="flow", name=trans("node.editor.property.input.name"), editable=False,
+                             allowed_inputs=-1, allowed_outputs=0),
+                PropertySpec(id="output", type="flow", name=trans("node.editor.property.output.name"), editable=False,
+                             allowed_inputs=0, allowed_outputs=-1),
+                PropertySpec(id="memory", type="memory", name=trans("node.editor.property.memory.name"), editable=False,
+                             allowed_inputs=0, allowed_outputs=1),
             ],
         ))
         # Memory
         registry.register(NodeTypeSpec(
             type_name="Flow/Memory",
-            title="Memory (Context)",
+            title=trans("node.editor.spec.memory.title"),
             base_id="mem",
             export_kind="memory",
             bg_color="#593E78",
             properties=[
-                PropertySpec(id="name", type="str", name="Name", editable=True, value=""),
-                PropertySpec(id="input", type="memory", name="Agent", editable=False, allowed_inputs=-1,
-                             allowed_outputs=0),
+                PropertySpec(id="name", type="str", name=trans("node.editor.property.name.name"), editable=True,
+                             value=""),
+                PropertySpec(id="input", type="memory", name=trans("node.editor.property.agent.name"), editable=False,
+                             allowed_inputs=-1, allowed_outputs=0),
             ],
         ))
         # End
         registry.register(NodeTypeSpec(
             type_name="Flow/End",
-            title="End",
+            title=trans("node.editor.spec.end.title"),
             base_id="end",
             export_kind="end",
             bg_color="#6B2E2E",
             properties=[
-                PropertySpec(id="input", type="flow", name="Input", editable=False, allowed_inputs=-1,
-                             allowed_outputs=0),
+                PropertySpec(id="input", type="flow", name=trans("node.editor.property.input.name"), editable=False,
+                             allowed_inputs=-1, allowed_outputs=0),
             ],
         ))
         return registry

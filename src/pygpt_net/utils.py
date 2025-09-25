@@ -392,7 +392,7 @@ def short_num(value,
               base: int = 1000,
               suffixes: Sequence[str] = ("", "k", "M", "B", "T", "P", "E"),
               max_decimals: int = 1,
-              decimal_sep: str = ".") -> str:
+              decimal_sep: str = ",") -> str:
     """
     Compact human-readable formatter for numbers with suffixes (k, M, B, ...).
 

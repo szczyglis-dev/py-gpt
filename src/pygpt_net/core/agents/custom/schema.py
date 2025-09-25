@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 23:00:00                  #
+# Updated Date: 2025.09.25 14:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -31,6 +31,7 @@ class AgentNode(BaseNode):
     inputs: List[str] = field(default_factory=list)
     memory_out: Optional[str] = None  # single mem by spec
     memory_in: List[str] = field(default_factory=list)  # not used, but kept for completeness
+    role: str = ""  # Optional short description of agent's purpose
 
 
 @dataclass
@@ -91,6 +92,7 @@ def parse_schema(schema: List[Dict[str, Any]]) -> FlowSchema:
                 inputs=list(_safe_get(slots, "input", "in", default=[])) or [],
                 memory_out=(_safe_get(slots, "memory", "out", default=[None]) or [None])[0],
                 memory_in=list(_safe_get(slots, "memory", "in", default=[])) or [],
+                role=_safe_get(slots, "role", default="") or "",
             )
             fs.agents[nid] = node
 

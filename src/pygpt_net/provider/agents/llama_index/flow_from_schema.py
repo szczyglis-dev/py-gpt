@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 23:00:00                  #
+# Updated Date: 2025.09.25 14:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -85,7 +85,7 @@ class Agent(BaseAgent):
             stream=stream,
             base_prompt=base_prompt,
             timeout=120,
-            verbose=True,
+            verbose=verbose,
         )
 
     async def run(self, *args, **kwargs) -> Tuple[Any, str, str]:

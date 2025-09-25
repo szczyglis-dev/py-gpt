@@ -210,7 +210,7 @@ class Preset(BaseConfigDialog):
                 # special case with settings icon on right
                 node_layout = QHBoxLayout()
                 builder_btn = QPushButton(QIcon(":/icons/robot.svg"), "")
-                builder_btn.setToolTip("Open Agents Builder (beta)")
+                builder_btn.setToolTip(trans("agent.builder.tooltip"))
                 builder_btn.clicked.connect(lambda: self.window.tools.get("agent_builder").toggle())
                 node_layout.setContentsMargins(0, 0, 0, 0)
                 node_layout.addLayout(options[key])

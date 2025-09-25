@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 00:00:00                  #
+# Updated Date: 2025.09.25 00:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -83,16 +83,24 @@ class NodeGraph(QObject):
         props: Dict[str, PropertyModel] = {}
         for ps in spec.properties:
             props[ps.id] = PropertyModel(
-                uuid=gen_uuid(), id=ps.id, type=ps.type, name=ps.name or ps.id,
-                editable=ps.editable, value=ps.value,
-                allowed_inputs=ps.allowed_inputs, allowed_outputs=ps.allowed_outputs,
-                options=ps.options
+                uuid=gen_uuid(),
+                id=ps.id,
+                type=ps.type,
+                name=ps.name or ps.id,
+                editable=ps.editable,
+                value=ps.value,
+                allowed_inputs=ps.allowed_inputs,
+                allowed_outputs=ps.allowed_outputs,
+                options=ps.options,
+                placeholder=getattr(ps, "placeholder", None),
+                description=getattr(ps, "description", None),
             )
         # Auto inject read-only 'base_id' property for visibility if base_id defined and not present
         if spec.base_id and "base_id" not in props:
             props["base_id"] = PropertyModel(
                 uuid=gen_uuid(), id="base_id", type="str", name="Base ID",
-                editable=False, value=base_id, allowed_inputs=0, allowed_outputs=0
+                editable=False, value=base_id, allowed_inputs=0, allowed_outputs=0,
+                placeholder=None, description="Internal base identifier (read-only)."
             )
 
         node = NodeModel(uuid=gen_uuid(), id=nid, name=name or spec.title or nid, type=type_name, properties=props)
@@ -195,7 +203,8 @@ class NodeGraph(QObject):
                 "type": n.type,
                 "id": n.id,
                 "name": n.name,
-                "values": {pid: p.value for pid, p in n.properties.items()},
+                # UI-only fields like HelpLabel are skipped
+                "values": {pid: p.value for pid, p in n.properties.items() if p.type != "HelpLabel"},
             }
         conns_out = [{"src": [c.src_node, c.src_prop], "dst": [c.dst_node, c.dst_prop]}
                      for c in self.connections.values()]
@@ -226,8 +235,8 @@ class NodeGraph(QObject):
                         "out": list(outgoing.get((n.uuid, pid), [])),
                     }
                 else:
-                    # Skip internal helper fields if needed
-                    if pid == "base_id":
+                    # Skip internal/helper and UI-only fields
+                    if pid == "base_id" or prop.type == "HelpLabel":
                         continue
                     slots[pid] = prop.value
             result.append({
