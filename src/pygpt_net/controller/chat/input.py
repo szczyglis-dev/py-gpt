@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.09.25 12:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any, Dict
@@ -205,6 +205,9 @@ class Input:
             'multimodal_ctx': multimodal_ctx,
             'mode': mode,
         }))
+
+        # start timer
+        self.window.controller.chat.common.start_counter()
 
         # send input to API
         if mode == MODE_IMAGE:

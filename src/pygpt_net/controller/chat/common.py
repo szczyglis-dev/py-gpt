@@ -10,6 +10,8 @@
 # ================================================== #
 
 import os
+from time import perf_counter
+from typing import Callable, Optional
 
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog, QApplication
@@ -30,6 +32,12 @@ class Common:
         """
         self.window = window
         self.initialized = False
+        # Counter (seconds, float) – current/last measured time
+        self.counter: float = 0.0
+        # Private start timestamp
+        self._t0: Optional[float] = None
+        # Optional number-shortening function (e.g., 10000 -> "10k"); if None, a fallback is used
+        self._shortener = None
 
     def setup(self):
         """Set up UI"""
@@ -310,6 +318,7 @@ class Common:
             dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
 
         self.stop_client()  # stop clients
+        self.reset_counter()
 
     def stop_client(self):
         """Stop all clients"""
@@ -457,15 +466,115 @@ class Common:
                 f.write(str(text).strip())
             self.window.update_status(f"{trans('status.saved')}: {os.path.basename(file_name)}")
 
+    # --- Timer control ---
+
+    def start_counter(self) -> None:
+        """Start the timer – call when send the request."""
+        self._t0 = perf_counter()
+
+    def stop_counter(self) -> float:
+        """
+        Stop the timer. Returns elapsed seconds and stores it in self.counter.
+        """
+        if self._t0 is None:
+            raise RuntimeError("Timer was not started (start_counter()).")
+        self.counter = perf_counter() - self._t0
+        self._t0 = None
+        return self.counter
+
+    def get_counter(self) -> float:
+        """
+        Current elapsed time (if running) or last measured time (in seconds).
+        """
+        if self._t0 is not None:
+            return perf_counter() - self._t0
+        return self.counter
+
+    def reset_counter(self) -> None:
+        """Reset the timer."""
+        self._t0 = None
+        self.counter = 0.0
+
+    # --- Calculation and formatting ---
+
+    def tokens_per_second(self, tokens_generated: int, seconds: Optional[float] = None) -> float:
+        """
+        Average tokens/s for the given token count and time (defaults to current/last).
+        """
+        sec = self.get_counter() if seconds is None else max(float(seconds), 0.0)
+        if sec <= 0.0:
+            return 0.0
+        return float(tokens_generated) / sec
+
+    def format_duration(self, seconds: Optional[float] = None, max_units: int = 2) -> str:
+        """
+        Pretty duration: e.g., 800ms, 12s, 1m 12s, 3h 5m, 1d 2h (by default up to 2 units).
+        """
+        sec = self.get_counter() if seconds is None else max(float(seconds), 0.0)
+
+        if sec < 1.0:
+            return f"{int(round(sec * 1000)):d}ms"
+
+        total = int(sec)  # floor to whole seconds
+        days, rem = divmod(total, 86400)
+        hours, rem = divmod(rem, 3600)
+        minutes, seconds = divmod(rem, 60)
+
+        parts = []
+        if days:
+            parts.append(f"{days}d")
+        if hours:
+            parts.append(f"{hours}h")
+        if minutes:
+            parts.append(f"{minutes}m")
+        if seconds or not parts:
+            parts.append(f"{seconds}s")
+
+        return " ".join(parts[:max_units])
+
+    def _fallback_shorten(self, value: float) -> str:
+        """
+        Simple fallback shortener (e.g., 15300 -> '15.3k').
+        """
+        n = abs(value)
+        sign = "-" if value < 0 else ""
+        if n < 1_000:
+            return f"{sign}{int(round(n))}"
+        elif n < 1_000_000:
+            v = n / 1_000
+            s = f"{v:.1f}".rstrip("0").rstrip(".")
+            return f"{sign}{s}k"
+        elif n < 1_000_000_000:
+            v = n / 1_000_000
+            s = f"{v:.1f}".rstrip("0").rstrip(".")
+            return f"{sign}{s}M"
+        else:
+            v = n / 1_000_000_000
+            s = f"{v:.1f}".rstrip("0").rstrip(".")
+            return f"{sign}{s}B"
+
+    def format_stats(self, tokens_generated: int) -> str:
+        """
+        Returns a string in the format: "<X> tokens/s - <duration>", e.g., "15k tokens/s - 1m 12s".
+        """
+        tps = self.tokens_per_second(tokens_generated)
+        if self._shortener:
+            tps_str = self._shortener(tps if isinstance(tps, (int, float)) else float(tps))
+        else:
+            tps_str = self._fallback_shorten(tps)
+        duration = self.format_duration()
+        return f"{tps_str} tokens/s - {duration}"
+
     def show_response_tokens(self, ctx: CtxItem):
         """
         Update response tokens
 
         :param ctx: CtxItem
         """
-        extra_data = ""
-        if ctx.is_vision:
-            extra_data = " (VISION)"
+        stats = ""
+        if ctx.output_tokens > 0 and self.get_counter() > 0:
+            stats = f" | {self.format_stats(ctx.output_tokens)}"
+        self.reset_counter()
         self.window.update_status(
-            f"{trans('status.tokens')}: {short_num(ctx.input_tokens)} + {short_num(ctx.output_tokens)} = {short_num(ctx.total_tokens)}{extra_data}"
+            f"{trans('status.tokens')}: {short_num(ctx.input_tokens)} + {short_num(ctx.output_tokens)} = {short_num(ctx.total_tokens)}{stats}"
         )
