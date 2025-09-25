@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.09.25 12:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -15,7 +15,7 @@ from PySide6.QtGui import QColor
 
 from pygpt_net.core.types import MODE_IMAGE
 from pygpt_net.core.events import BaseEvent, Event
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, short_num
 
 from .mode import Mode
 from .tabs import Tabs
@@ -156,15 +156,12 @@ class UI:
         attachments_tokens = self.window.controller.chat.attachment.get_current_tokens()
         sum_tokens += attachments_tokens
 
-        ctx_string = f"{ctx_len} / {ctx_len_all} - {ctx_tokens} {trans('ctx.tokens')}"
+        ctx_string = f"{short_num(ctx_len)} / {short_num(ctx_len_all)} - {short_num(ctx_tokens)} {trans('ctx.tokens')}"
         if ctx_string != self._last_ctx_string:
             ui_nodes['prompt.context'].setText(ctx_string)
             self._last_ctx_string = ctx_string
 
-        parsed_sum = self.format_tokens(sum_tokens)
-        parsed_max_current = self.format_tokens(max_current)
-
-        input_string = f"{input_tokens} + {system_tokens} + {ctx_tokens} + {extra_tokens} + {attachments_tokens} = {parsed_sum} / {parsed_max_current}"
+        input_string = f"{short_num(input_tokens)} + {short_num(system_tokens)} + {short_num(ctx_tokens)} + {short_num(extra_tokens)} + {short_num(attachments_tokens)} = {short_num(sum_tokens)} / {short_num(max_current)}"
         if input_string != self._last_input_string:
             ui_nodes['input.counter'].setText(input_string)
             self._last_input_string = input_string

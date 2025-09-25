@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.09.25 12:00:00                  #
 # ================================================== #
 
 import os
@@ -18,7 +18,7 @@ from pygpt_net.core.events import Event, AppEvent, RenderEvent, KernelEvent
 from pygpt_net.core.types import MODE_ASSISTANT, MODE_AUDIO
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, short_num
 
 
 class Common:
@@ -467,5 +467,5 @@ class Common:
         if ctx.is_vision:
             extra_data = " (VISION)"
         self.window.update_status(
-            f"{trans('status.tokens')}: {ctx.input_tokens} + {ctx.output_tokens} = {ctx.total_tokens}{extra_data}"
+            f"{trans('status.tokens')}: {short_num(ctx.input_tokens)} + {short_num(ctx.output_tokens)} = {short_num(ctx.total_tokens)}{extra_data}"
         )

@@ -6,15 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.09.25 12:00:00                  #
 # ================================================== #
 
 import json
 import os
 import re
+import math
+
 from datetime import datetime
 from contextlib import contextmanager
 from typing import Any
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
+from typing import Sequence
 
 from PySide6 import QtCore, QtGui
 from PySide6.QtWidgets import QApplication
@@ -382,3 +386,111 @@ def mem_clean(force: bool = False) -> bool:
     except Exception as e:
         print(e)
     return ok
+
+def short_num(value,
+              *,
+              base: int = 1000,
+              suffixes: Sequence[str] = ("", "k", "M", "B", "T", "P", "E"),
+              max_decimals: int = 1,
+              decimal_sep: str = ".") -> str:
+    """
+    Compact human-readable formatter for numbers with suffixes (k, M, B, ...).
+
+    Rules:
+      - abs(value) < base -> return the value without a suffix
+      - otherwise -> divide by base^n and append suffix
+      - decimals:
+           < 10   -> up to 2 (bounded by max_decimals)
+           < 100  -> up to 1 (bounded by max_decimals)
+           >= 100 -> 0
+      - rounding: ROUND_HALF_UP
+      - auto "carry" to the next suffix after rounding (e.g., 999.95k -> 1M)
+
+    Params:
+      - base: 1000 for general numbers, 1024 for bytes, etc.
+      - suffixes: first item must be "" (for < base)
+      - max_decimals: upper bound for fractional digits
+      - decimal_sep: decimal separator in the output
+    """
+
+    # --- helpers hidden inside (closure) ---
+
+    def _to_decimal(v) -> Decimal:
+        """Convert supported inputs to Decimal; keep NaN/Inf as-is."""
+        if isinstance(v, Decimal):
+            return v
+        if isinstance(v, int):
+            return Decimal(v)
+        if isinstance(v, float):
+            if math.isnan(v):
+                return Decimal("NaN")
+            if math.isinf(v):
+                return Decimal("Infinity") if v > 0 else Decimal("-Infinity")
+            # str() to avoid binary float artefacts
+            return Decimal(str(v))
+        try:
+            return Decimal(str(v))
+        except (InvalidOperation, ValueError, TypeError):
+            raise TypeError("short_num(value): value must be numeric (int/float/Decimal) "
+                            "or a string parsable to a number.")
+
+    def _decimals_for(scaled: Decimal) -> int:
+        """Pick number of decimals based on magnitude."""
+        if max_decimals <= 0:
+            return 0
+        if scaled < 10:
+            return min(2, max_decimals)
+        if scaled < 100:
+            return min(1, max_decimals)
+        return 0
+
+    def _round_dec(d: Decimal, decimals: int) -> Decimal:
+        """ROUND_HALF_UP to the requested decimals."""
+        if decimals <= 0:
+            return d.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        q = Decimal(1).scaleb(-decimals)  # 10**(-decimals)
+        return d.quantize(q, rounding=ROUND_HALF_UP)
+
+    def _strip_trailing_zeros(s: str) -> str:
+        """Remove trailing zeros and trailing decimal point if needed."""
+        if "." in s:
+            s = s.rstrip("0").rstrip(".")
+        return s
+
+    # --- main logic ---
+
+    d = _to_decimal(value)
+    if not d.is_finite():
+        # For NaN/Inf just echo back Python-ish text
+        return str(value)
+
+    sign = "-" if d < 0 else ""
+    d = abs(d)
+
+    # For values below base, return "as is" (normalized, no suffix)
+    if d < base:
+        s = _strip_trailing_zeros(f"{d.normalize():f}")
+        return (sign + s).replace(".", decimal_sep)
+
+    # Find initial suffix tier
+    idx = 0
+    last_idx = len(suffixes) - 1
+    while d >= base and idx < last_idx:
+        d = d / base
+        idx += 1
+
+    # Choose decimals, round, then handle possible carry to next suffix
+    decimals = _decimals_for(d)
+    d = _round_dec(d, decimals)
+
+    while d >= base and idx < last_idx:
+        # Carry over (e.g., 999.95k -> 1000.00k -> 1.00M)
+        d = d / base
+        idx += 1
+        decimals = _decimals_for(d)
+        d = _round_dec(d, decimals)
+
+    # Format, trim zeros, apply custom decimal separator, attach suffix
+    out = f"{d:.{decimals}f}"
+    out = _strip_trailing_zeros(out).replace(".", decimal_sep)
+    return f"{sign}{out}{suffixes[idx]}"
