@@ -27,7 +27,6 @@ def test_update(mock_window):
     theme.markdown.apply = MagicMock()
     theme.markdown.update(force=True)
     theme.window.controller.ui.store_state.assert_called()
-    theme.window.core.config.get.assert_called()
     theme.markdown.load.assert_called()
     theme.markdown.set_default.assert_not_called()
     theme.markdown.apply.assert_called()

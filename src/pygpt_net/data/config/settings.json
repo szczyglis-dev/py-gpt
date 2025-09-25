@@ -838,19 +838,6 @@
         "step": 1,
         "advanced": false
     },
-    "layout.animation.disable": {
-        "section": "layout",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.layout.animation.disable",
-        "description": "settings.layout.animation.disable.desc",
-        "value": false,
-        "min": 0,
-        "max": 0,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false
-    },
     "layout.dialog.geometry.store": {
         "section": "layout",
         "type": "bool",
@@ -863,18 +850,6 @@
         "step": 1,
         "advanced": false
     },
-    "theme.markdown": {
-        "section": "layout",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.theme.markdown",
-        "value": true,
-        "min": 0,
-        "max": 0,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false
-    },    
     "upload.store": {
         "section": "files",
         "type": "bool",
@@ -1178,19 +1153,6 @@
         "multiplier": null,
         "step": null,
         "secret": false
-    },
-    "ctx.convert_lists": {
-        "section": "ctx",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.ctx.convert_lists",
-        "description": "settings.ctx.convert_lists.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
     },
     "max_output_tokens": {
         "section": "model",

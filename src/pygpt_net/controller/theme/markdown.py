@@ -33,11 +33,8 @@ class Markdown:
         """
         if force:
             self.window.controller.ui.store_state()  # store state before theme change
-
-        if self.window.core.config.get('theme.markdown'):
-            self.load()
-        else:
-            self.set_default()
+        
+        self.load()
         self.apply()
 
         if force:

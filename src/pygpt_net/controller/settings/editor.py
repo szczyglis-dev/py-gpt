@@ -51,11 +51,9 @@ class Editor:
         self.window.ui.add_hook("update.config.font_size.ctx", self.hook_update)
         self.window.ui.add_hook("update.config.font_size.toolbox", self.hook_update)
         self.window.ui.add_hook("update.config.zoom", self.hook_update)
-        self.window.ui.add_hook("update.config.theme.markdown", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.enabled", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.auto", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
-        self.window.ui.add_hook("update.config.ctx.convert_lists", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.separators", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.groups.separators", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.pinned.separators", self.hook_update)
@@ -176,10 +174,6 @@ class Editor:
             value = self.window.core.config.get('theme.style')
             self.window.controller.theme.toggle_style(value)
 
-        # convert lists
-        if self.config_changed('ctx.convert_lists'):
-            self.window.controller.ctx.refresh()
-
         # access: voice control
         if self.config_changed('access.voice_control'):
             self.window.controller.access.voice.update()
@@ -266,18 +260,9 @@ class Editor:
             self.window.core.config.set(key, value)
             self.window.controller.ui.update_font_size()
 
-        # update markdown
-        elif key == "theme.markdown":
-            self.window.core.config.set(key, value)
-            self.window.controller.theme.markdown.update(force=True)
-
         elif key == "render.code_syntax":
             self.window.core.config.set(key, value)
             self.window.controller.theme.toggle_syntax(value, update_menu=True)
-
-        elif key == "ctx.convert_lists":
-            self.window.core.config.set(key, value)
-            self.window.controller.ctx.refresh()
 
         elif key == "ctx.records.separators":
             self.window.core.config.set(key, value)

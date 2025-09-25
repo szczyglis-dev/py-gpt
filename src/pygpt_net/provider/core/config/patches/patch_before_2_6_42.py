@@ -367,8 +367,6 @@ class Patch:
             # < 2.0.72
             if old < parse_version("2.0.72"):
                 print("Migrating config from < 2.0.72...")
-                if 'theme.markdown' not in data:
-                    data['theme.markdown'] = True
                 prompt = 'IMAGE GENERATION: Whenever I provide a basic idea or concept for an image, such as \'a picture of ' \
                          'mountains\', I want you to ALWAYS translate it into English and expand and elaborate on this idea. ' \
                          'Use your  knowledge and creativity to add details that would make the image more vivid and ' \
@@ -1301,8 +1299,6 @@ class Patch:
                     data["render.code_syntax"] = "github-dark"
                 if 'zoom' not in data:
                     data["zoom"] = 1.0
-                if 'ctx.convert_lists' not in data:
-                    data["ctx.convert_lists"] = False
                 if 'render.engine' not in data:
                     data["render.engine"] = "web"
                 if 'render.open_gl' not in data:
@@ -1668,8 +1664,6 @@ class Patch:
             # < 2.4.19
             if old < parse_version("2.4.19"):
                 print("Migrating config from < 2.4.19...")
-                if 'layout.animation.disable' not in data:
-                    data["layout.animation.disable"] = cfg_get_base('layout.animation.disable')
                 if 'cmd_code_interpreter' in data['plugins'] \
                         and 'cmd.ipython_execute' in data['plugins']['cmd_code_interpreter']:
                     # remove

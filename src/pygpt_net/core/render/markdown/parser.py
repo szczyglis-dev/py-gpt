@@ -63,8 +63,6 @@ class Parser:
             html = self.md.convert(text.strip())
             soup = BeautifulSoup(html, 'html.parser')
             self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
-            if self.window.core.config.get("ctx.convert_lists"):
-                self.convert_lists_to_paragraphs(soup)  # convert lists to paragraphs
             self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
             self.parse_code_blocks(soup)  # parse code blocks
             self.format_images(soup)  # add width to img tags

@@ -172,15 +172,13 @@ class UI:
 
     def show_loading(self):
         """Show loading"""
-        if self.window.core.config.get('layout.animation.disable', False):
-            return
+        return
         self.window.ui.nodes['anim.loading'].start_anim()
         self.window.ui.nodes['anim.loading'].show()
 
     def hide_loading(self):
         """Hide loading"""
-        if self.window.core.config.get('layout.animation.disable', False):
-            return
+        return
         self.window.ui.nodes['anim.loading'].stop_anim()
         self.window.ui.nodes['anim.loading'].hide()
 
