@@ -431,6 +431,7 @@ class NodeEditor(QWidget):
             if reply != QMessageBox.Yes:
                 return False
         self._undo.push(ClearGraphCommand(self))
+        self._update_status_label()
         return True
 
     def undo(self):
