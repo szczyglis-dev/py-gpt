@@ -34,6 +34,8 @@ class PropertySpec:
 class NodeTypeSpec:
     type_name: str
     title: Optional[str] = None
+    # UI-only human-readable label used for menus; never persisted nor used as an identifier
+    display_name: Optional[str] = None
     properties: List[PropertySpec] = field(default_factory=list)
     # Below are optional extensions for agent-flow needs:
     base_id: Optional[str] = None        # base prefix for friendly ids, e.g. "agent"
@@ -56,6 +58,15 @@ class NodeTypeRegistry:
 
     def get(self, type_name: str) -> Optional[NodeTypeSpec]:
         return self._types.get(type_name)
+
+    def display_name(self, type_name: str) -> str:
+        """Return UI label for a type: spec.display_name if non-empty, otherwise type_name."""
+        spec = self.get(type_name)
+        if spec:
+            dn = getattr(spec, "display_name", None)
+            if isinstance(dn, str) and dn.strip():
+                return dn
+        return type_name
 
     def _install_default_types(self):
         # Example/basic nodes kept intact

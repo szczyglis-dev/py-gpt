@@ -2068,10 +2068,10 @@ To add a new element, right-click on the editor grid and select `Add` to insert 
 
 **Types of Nodes:**
 
-- **Flow/Start**: The starting point for agents (user input).
-- **Flow/Agent**: A single agent with customizable default parameters, such as system instructions and tool usage. These settings can be overridden in the preset.
-- **Flow/Memory**: Shared memory between agents (shared Context).
-- **Flow/End**: The endpoint, returning control to the user.
+- **Start**: The starting point for agents (user input).
+- **Agent**: A single agent with customizable default parameters, such as system instructions and tool usage. These settings can be overridden in the preset.
+- **Memory**: Shared memory between agents (shared Context).
+- **End**: The endpoint, returning control to the user.
 
 Agents with connected shared memory share it among themselves. Agents without shared memory only receive the latest output from the previous agent.
 

@@ -392,6 +392,7 @@ class AgentBuilder(BaseTool):
         # Start
         registry.register(NodeTypeSpec(
             type_name="Flow/Start",
+            display_name=trans("node.editor.spec.start.title"),
             title=trans("node.editor.spec.start.title"),
             base_id="start",
             export_kind="start",
@@ -407,6 +408,7 @@ class AgentBuilder(BaseTool):
         # Agent
         registry.register(NodeTypeSpec(
             type_name="Flow/Agent",
+            display_name=trans("node.editor.spec.agent.title"),
             title=trans("node.editor.spec.agent.title"),
             base_id="agent",
             export_kind="agent",
@@ -436,6 +438,7 @@ class AgentBuilder(BaseTool):
         # Memory
         registry.register(NodeTypeSpec(
             type_name="Flow/Memory",
+            display_name=trans("node.editor.spec.memory.title"),
             title=trans("node.editor.spec.memory.title"),
             base_id="mem",
             export_kind="memory",
@@ -450,6 +453,7 @@ class AgentBuilder(BaseTool):
         # End
         registry.register(NodeTypeSpec(
             type_name="Flow/End",
+            display_name=trans("node.editor.spec.end.title"),
             title=trans("node.editor.spec.end.title"),
             base_id="end",
             export_kind="end",

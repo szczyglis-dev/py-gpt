@@ -707,7 +707,18 @@ class NodeEditor(QWidget):
         add_menu = menu.addMenu(self.config.menu_add())
         action_by_type: Dict[QAction, str] = {}
         for tname in self.graph.registry.types():
-            act = add_menu.addAction(tname)
+            # Prefer UI-only display name; fallback to identifier (type_name)
+            try:
+                label = self.graph.registry.display_name(tname)
+            except Exception:
+                label = tname
+            act = add_menu.addAction(label)
+            # Show the underlying identifier in tooltip to make UI/ID relation explicit
+            if label != tname:
+                try:
+                    act.setToolTip(tname)
+                except Exception:
+                    pass
             # Disable when limit reached (evaluated in real-time, per layout)
             if not self._can_add_node_of_type(tname):
                 act.setEnabled(False)
