@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 12:00:00                  #
+# Updated Date: 2025.09.26 12:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -62,8 +62,8 @@ class ChatInput(QTextEdit):
         self._icons_margin = 6           # inner left/right padding around the bar
         self._icons_spacing = 4          # spacing between buttons
         self._icons_offset_y = -4        # small upward shift (visual alignment)
-        self._icon_size = QSize(18, 18)  # icon size (matches your original)
-        self._btn_size = QSize(24, 24)   # button size (w x h), matches previous QPushButton
+        self._icon_size = QSize(18, 18)  # icon size (matches original)
+        self._btn_size = QSize(24, 24)   # button size (w x h), matches QPushButton
 
         # Storage for icon buttons and metadata
         self._icons = {}       # key -> QPushButton
@@ -124,6 +124,9 @@ class ChatInput(QTextEdit):
         self._tokens_timer.timeout.connect(self.window.controller.ui.update_tokens)
         self.textChanged.connect(self._on_text_changed_tokens)
 
+        # Paste/input safety limits
+        self._paste_max_chars = 100000000  # hard cap to prevent pathological pastes from freezing/crashing
+
     def _on_text_changed_tokens(self):
         """Schedule token count update with debounce."""
         self._tokens_timer.start()
@@ -142,15 +145,133 @@ class ChatInput(QTextEdit):
         self._text_top_padding = max(0, int(px))
         self._apply_margins()
 
+    def canInsertFromMimeData(self, source) -> bool:
+        """
+        Restrict accepted MIME types to safe, explicitly handled ones.
+        This prevents Qt from trying to parse unknown/broken formats.
+        """
+        try:
+            if source is None:
+                return False
+            return source.hasText() or source.hasUrls() or source.hasImage()
+        except Exception:
+            return False
+
     def insertFromMimeData(self, source):
         """
         Insert from mime data
 
         :param source: source
         """
-        self.handle_clipboard(source)
-        if not source.hasImage():
-            super().insertFromMimeData(source)
+        # Always process attachments first; never break input pipeline on errors.
+        try:
+            self.handle_clipboard(source)
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+
+        # If an image is present, we treat it as attachment-only and do not insert textual representation.
+        try:
+            if source and source.hasImage():
+                return
+        except Exception:
+            # fallback to text extraction below
+            pass
+
+        # Insert only sanitized plain text (no HTML, no custom formats).
+        try:
+            text = self._safe_text_from_mime(source)
+            if text:
+                self.insertPlainText(text)
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+
+    def _safe_text_from_mime(self, source) -> str:
+        """
+        Extracts plain text from QMimeData safely, normalizes and sanitizes it.
+        Falls back to URLs joined by space if textual content is not provided.
+        """
+        try:
+            if source is None:
+                return ""
+            if source.hasText():
+                return self._sanitize_text(source.text())
+            if source.hasUrls():
+                parts = []
+                for url in source.urls():
+                    try:
+                        if url.isLocalFile():
+                            parts.append(url.toLocalFile())
+                        else:
+                            parts.append(url.toString())
+                    except Exception:
+                        continue
+                return self._sanitize_text(" ".join([p for p in parts if p]))
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+        return ""
+
+    def _sanitize_text(self, text: str) -> str:
+        """
+        Sanitize pasted text:
+        - normalize newlines
+        - remove NUL and most control chars except tab/newline
+        - strip zero-width and bidi control characters
+        - hard-cap maximum length to avoid UI freeze
+        """
+        if not text:
+            return ""
+        if not isinstance(text, str):
+            try:
+                text = str(text)
+            except Exception:
+                return ""
+
+        # Normalize line breaks
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+        # Remove disallowed control chars, keep tab/newline
+        out = []
+        for ch in text:
+            code = ord(ch)
+            if code == 0:
+                continue  # NUL
+            if code < 32:
+                if ch in ("\n", "\t"):
+                    out.append(ch)
+                else:
+                    out.append(" ")
+                continue
+            if code == 0x7F:
+                continue  # DEL
+            # Remove zero-width and bidi controls
+            if (0x200B <= code <= 0x200F) or (0x202A <= code <= 0x202E) or (0x2066 <= code <= 0x2069):
+                continue
+            out.append(ch)
+
+        s = "".join(out)
+
+        # Cap very large pastes
+        try:
+            limit = int(self._paste_max_chars)
+        except Exception:
+            limit = 250000
+        if limit > 0 and len(s) > limit:
+            s = s[:limit]
+            try:
+                self.window.core.debug.log(f"Input paste truncated to {limit} chars")
+            except Exception:
+                pass
+
+        return s
 
     def handle_clipboard(self, source):
         """
@@ -158,20 +279,33 @@ class ChatInput(QTextEdit):
 
         :param source: source
         """
-        if source.hasImage():
-            image = source.imageData()
-            if isinstance(image, QImage):
-                self.window.controller.attachment.from_clipboard_image(image)
-        elif source.hasUrls():
-            urls = source.urls()
-            for url in urls:
-                if url.isLocalFile():
-                    local_path = url.toLocalFile()
-                    self.window.controller.attachment.from_clipboard_url(local_path)
-        elif source.hasText():
-            text = source.text()
-            if text:
-                self.window.controller.attachment.from_clipboard_text(text)
+        if source is None:
+            return
+        try:
+            if source.hasImage():
+                image = source.imageData()
+                if isinstance(image, QImage):
+                    self.window.controller.attachment.from_clipboard_image(image)
+            elif source.hasUrls():
+                urls = source.urls()
+                for url in urls:
+                    try:
+                        if url.isLocalFile():
+                            local_path = url.toLocalFile()
+                            self.window.controller.attachment.from_clipboard_url(local_path)
+                    except Exception:
+                        # Ignore broken URL entries
+                        continue
+            elif source.hasText():
+                text = self._sanitize_text(source.text())
+                if text:
+                    self.window.controller.attachment.from_clipboard_text(text)
+        except Exception as e:
+            # Never propagate clipboard errors to UI thread
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
 
     def contextMenuEvent(self, event):
         """
@@ -395,7 +529,7 @@ class ChatInput(QTextEdit):
         btn.setCursor(Qt.PointingHandCursor)
         btn.setToolTip(tooltip or key)
         btn.setFocusPolicy(Qt.NoFocus)
-        btn.setFlat(True)  # flat button style like your original
+        btn.setFlat(True)  # flat button style
         # optional: no text
         btn.setText("")
 
