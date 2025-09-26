@@ -396,6 +396,7 @@ class AgentBuilder(BaseTool):
             base_id="start",
             export_kind="start",
             bg_color="#2D5A27",
+            max_num=1,  # per-layout limit
             properties=[
                 PropertySpec(id="output", type="flow", name=trans("node.editor.property.output.name"), editable=False,
                              allowed_inputs=0, allowed_outputs=1),
@@ -453,6 +454,7 @@ class AgentBuilder(BaseTool):
             base_id="end",
             export_kind="end",
             bg_color="#6B2E2E",
+            max_num=1,  # per-layout limit
             properties=[
                 PropertySpec(id="input", type="flow", name=trans("node.editor.property.input.name"), editable=False,
                              allowed_inputs=-1, allowed_outputs=0),

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 12:35:00                  #
+# Updated Date: 2025.09.26 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -410,7 +410,12 @@ class NodeEditor(QWidget):
 
     def add_node(self, type_name: str, scene_pos: QPointF):
         """Add a new node of the given type at scene_pos (undoable)."""
+        # Enforce optional per-type limit configured in registry.
+        if not self._can_add_node_of_type(type_name):
+            self._dbg(f"add_node blocked: type='{type_name}' reached its max per-layout limit")
+            return False
         self._undo.push(AddNodeCommand(self, type_name, scene_pos))
+        return True
 
     def clear(self, ask_user: bool = True):
         """Clear the entire editor (undoable), optionally asking the user for confirmation."""
@@ -656,6 +661,35 @@ class NodeEditor(QWidget):
         vp_pt = self.view.mapFromScene(scene_pos)
         return self.view.viewport().mapToGlobal(vp_pt)
 
+    # ---------- Per-type limit helpers ----------
+
+    def _type_limit(self, type_name: str) -> Optional[int]:
+        """Return configured max_num for type or None if unlimited."""
+        spec = self.graph.registry.get(type_name) if self.graph and self.graph.registry else None
+        if not spec:
+            return None
+        try:
+            limit = getattr(spec, "max_num", None)
+            if isinstance(limit, int) and limit <= 0:
+                return None
+            return limit if isinstance(limit, int) else None
+        except Exception:
+            return None
+
+    def _count_nodes_of_type(self, type_name: str) -> int:
+        """Count current nodes of a given type in the live graph."""
+        try:
+            return sum(1 for n in self.graph.nodes.values() if getattr(n, "type", None) == type_name)
+        except Exception:
+            return 0
+
+    def _can_add_node_of_type(self, type_name: str) -> bool:
+        """Check whether adding another node of given type is allowed by max_num."""
+        limit = self._type_limit(type_name)
+        if limit is None:
+            return True
+        return self._count_nodes_of_type(type_name) < int(limit)
+
     def _on_scene_context_menu(self, scene_pos: QPointF):
         """Show context menu for adding nodes and undo/redo/clear at empty scene position."""
         try:
@@ -674,6 +708,9 @@ class NodeEditor(QWidget):
         action_by_type: Dict[QAction, str] = {}
         for tname in self.graph.registry.types():
             act = add_menu.addAction(tname)
+            # Disable when limit reached (evaluated in real-time, per layout)
+            if not self._can_add_node_of_type(tname):
+                act.setEnabled(False)
             action_by_type[act] = tname
 
         menu.addSeparator()
@@ -699,7 +736,8 @@ class NodeEditor(QWidget):
             self.clear(ask_user=True)
         elif chosen in action_by_type:
             type_name = action_by_type[chosen]
-            self._undo.push(AddNodeCommand(self, type_name, scene_pos))
+            # Route through editor.add_node() to enforce limit guards
+            self.add_node(type_name, scene_pos)
 
     # ---------- Z-order helpers ----------
 

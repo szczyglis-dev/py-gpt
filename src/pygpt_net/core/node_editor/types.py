@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 15:00:00                  #
+# Updated Date: 2025.09.26 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -39,6 +39,7 @@ class NodeTypeSpec:
     base_id: Optional[str] = None        # base prefix for friendly ids, e.g. "agent"
     export_kind: Optional[str] = None    # short kind for export, e.g. "agent", "start"
     bg_color: Optional[str] = None       # optional per-type background color (CSS/hex)
+    max_num: Optional[int] = None        # optional per-layout cap; None or <=0 means unlimited
 
 class NodeTypeRegistry:
     """Registry for node type specifications. Extend/override in subclasses."""
