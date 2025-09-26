@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.6.62 (2025-09-26)
+
+- Enhanced agent workflow execution.
+- Improved preset list handling by adding a drop field indicator and fixing auto-scroll.
+- Added middle-mouse button panning to Painter.
+- Added an input character counter.
+
 ## 2.6.61 (2025-09-26)
 
 - Enhanced the agents node editor, custom agent flow, and instruction following.

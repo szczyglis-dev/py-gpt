@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.61** | build: **2025-09-26** | Python: **>=3.10, <3.14**
+Release: **2.6.62** | build: **2025-09-26** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3607,6 +3607,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.62 (2025-09-26)**
+
+- Enhanced agent workflow execution.
+- Improved preset list handling by adding a drop field indicator and fixing auto-scroll.
+- Added middle-mouse button panning to Painter.
+- Added an input character counter.
 
 **2.6.61 (2025-09-26)**
 
