@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 15:00:00                  #
+# Updated Date: 2025.09.26 12:00:00                  #
 # ================================================== #
 
 import datetime
@@ -97,6 +97,11 @@ class PainterWidget(QWidget):
         self._autoScrollMargin = 36            # px from viewport edge to trigger autoscroll
         self._autoScrollMinSpeed = 2           # px per tick (min)
         self._autoScrollMaxSpeed = 18          # px per tick (max)
+
+        # Pan (middle mouse) state
+        self._panning = False
+        self._panLastGlobalPos = QPoint()
+        self._cursorBeforePan = None  # store/restore cursor shape while panning
 
         # Actions
         self._act_undo = QAction(QIcon(":/icons/undo.svg"), trans('action.undo'), self)
@@ -1084,6 +1089,69 @@ class PainterWidget(QWidget):
             if scrolled or dx != 0 or dy != 0:
                 self.update()
 
+    # ---------- Pan (middle mouse drag) ----------
+
+    def _can_pan(self) -> bool:
+        """
+        Return True if widget is inside a scroll area and content is scrollable.
+        """
+        self._find_scroll_area()
+        if self._scrollArea is None:
+            return False
+        hbar = self._scrollArea.horizontalScrollBar()
+        vbar = self._scrollArea.verticalScrollBar()
+        h_ok = hbar is not None and hbar.maximum() > hbar.minimum()
+        v_ok = vbar is not None and vbar.maximum() > vbar.minimum()
+        return h_ok or v_ok
+
+    def _start_pan(self, global_pos: QPoint):
+        """
+        Begin view panning with middle mouse button.
+        """
+        if self._panning:
+            return
+        self._panning = True
+        self._panLastGlobalPos = QPoint(global_pos)
+        # Store current cursor to restore later
+        self._cursorBeforePan = QCursor(self.cursor())
+        # Use a closed hand to indicate grabbing the canvas
+        self.setCursor(QCursor(Qt.ClosedHandCursor))
+        self.grabMouse()
+
+    def _update_pan(self, global_pos: QPoint):
+        """
+        Update scrollbars based on mouse movement delta in global coordinates.
+        """
+        if not self._panning or self._scrollArea is None:
+            return
+        dx = global_pos.x() - self._panLastGlobalPos.x()
+        dy = global_pos.y() - self._panLastGlobalPos.y()
+        self._panLastGlobalPos = QPoint(global_pos)
+
+        hbar = self._scrollArea.horizontalScrollBar()
+        vbar = self._scrollArea.verticalScrollBar()
+
+        # Dragging the content to the right should reveal the left side -> subtract deltas
+        if hbar is not None and hbar.maximum() > hbar.minimum():
+            hbar.setValue(int(max(hbar.minimum(), min(hbar.maximum(), hbar.value() - dx))))
+        if vbar is not None and vbar.maximum() > vbar.minimum():
+            vbar.setValue(int(max(vbar.minimum(), min(vbar.maximum(), vbar.value() - dy))))
+
+    def _end_pan(self):
+        """
+        End panning and restore previous cursor.
+        """
+        if not self._panning:
+            return
+        self._panning = False
+        self.releaseMouse()
+        try:
+            if self._cursorBeforePan is not None:
+                # Restore previous cursor (do not guess based on mode/crop)
+                self.setCursor(self._cursorBeforePan)
+        finally:
+            self._cursorBeforePan = None
+
     # ---------- Events ----------
 
     def wheelEvent(self, event):
@@ -1109,6 +1177,14 @@ class PainterWidget(QWidget):
 
         :param event: Event
         """
+        # Middle button: start panning if scrollable
+        if event.button() == Qt.MiddleButton:
+            if not (self.cropping and self._selecting) and not self.drawing and self._can_pan():
+                gp = event.globalPosition().toPoint()
+                self._start_pan(gp)
+                event.accept()
+                return
+
         if event.button() == Qt.LeftButton:
             self._mouseDown = True
             if self.cropping:
@@ -1146,6 +1222,13 @@ class PainterWidget(QWidget):
 
         :param event: Event
         """
+        # Update panning if active
+        if self._panning and (event.buttons() & Qt.MiddleButton):
+            gp = event.globalPosition().toPoint()
+            self._update_pan(gp)
+            event.accept()
+            return
+
         if self.cropping and self._selecting and (event.buttons() & Qt.LeftButton):
             self._selectionRect = QRect(self._selectionStart, self._to_canvas_point(event.position()))
             self.update()
@@ -1175,6 +1258,12 @@ class PainterWidget(QWidget):
 
         :param event: Event
         """
+        # End panning on middle button release
+        if event.button() == Qt.MiddleButton:
+            self._end_pan()
+            event.accept()
+            return
+
         if event.button() in (Qt.LeftButton, Qt.RightButton):
             self._mouseDown = False
             if self.cropping and self._selecting:
