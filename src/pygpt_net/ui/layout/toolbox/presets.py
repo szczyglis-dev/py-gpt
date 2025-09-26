@@ -1,3 +1,4 @@
+# ui/layout/presets.py
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -6,7 +7,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 03:00:00                  #
+# Updated Date: 2025.09.26 13:30:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -126,6 +127,16 @@ class Presets:
             models[self.id] = model
             view.setModel(model)
 
+        # Preserve current scroll position across model rebuild to avoid a visible jump to the top.
+        # This is applied while updates are disabled, then restored just before re-enabling them.
+        try:
+            v = view.verticalScrollBar().value()
+            h = view.horizontalScrollBar().value()
+            view.set_pending_v_scroll(v)
+            view.set_pending_h_scroll(h)
+        except Exception:
+            pass
+
         # Block user input during model rebuild to avoid crashes on quick clicks
         view.begin_model_update()
 
@@ -193,5 +204,6 @@ class Presets:
         # Force repaint in case Qt defers layout until next input
         view.viewport().update()
 
-        # Re-enable user interaction after the rebuild is fully done
+        # Clear one-shot pending scroll values and re-enable user interaction
+        view.clear_pending_scroll()
         view.end_model_update()

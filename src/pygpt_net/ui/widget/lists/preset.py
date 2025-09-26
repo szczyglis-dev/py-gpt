@@ -99,6 +99,12 @@ class PresetList(BaseList):
         self._drop_indicator_to_row = -1
         self._drop_indicator_padding = 6  # visual left/right padding
 
+        # Short-lived scroll freeze to prevent jumps during click-triggered model refresh
+        self._scroll_freeze_depth = 0
+        self._scroll_freeze_timer = None
+        self._pending_scroll_value = None
+        self._pending_refocus_role_id = None
+
     # -------- Public helpers to protect updates --------
 
     def begin_model_update(self):
@@ -110,8 +116,115 @@ class PresetList(BaseList):
         """Re-enable interaction after model/view rebuild is complete."""
         self.setEnabled(True)
         self._model_updating = False
+        # If there is a pending scroll/selection stabilization, apply it right after update
+        self._apply_pending_scroll()
+        self._apply_pending_refocus()
+        QTimer.singleShot(0, self._apply_pending_scroll)
+        QTimer.singleShot(0, self._apply_pending_refocus)
+        # Unfreeze shortly after everything settled in the event loop
+        QTimer.singleShot(50, self._unfreeze_scroll)
 
     # ---------------------------------------------------
+
+    # -------- Scroll freeze helpers (prevent accidental jumps on click) --------
+
+    def _freeze_scroll(self, ms: int = 250):
+        """
+        Freeze scrollTo() effects for a very short time and keep current scroll value.
+        This avoids jumps caused by programmatic scroll during selection/refresh.
+        """
+        try:
+            sb = self.verticalScrollBar()
+        except Exception:
+            sb = None
+        if sb is not None:
+            self._pending_scroll_value = sb.value()
+        self._scroll_freeze_depth += 1
+
+        # Apply stabilization now and on next frame(s)
+        QTimer.singleShot(0, self._apply_pending_scroll)
+        QTimer.singleShot(16, self._apply_pending_scroll)
+
+        # Auto-unfreeze after given duration
+        if self._scroll_freeze_timer:
+            try:
+                self._scroll_freeze_timer.stop()
+            except Exception:
+                pass
+        self._scroll_freeze_timer = QTimer(self)
+        self._scroll_freeze_timer.setSingleShot(True)
+        self._scroll_freeze_timer.timeout.connect(self._unfreeze_scroll)
+        self._scroll_freeze_timer.start(max(50, int(ms)))
+
+    def _apply_pending_scroll(self):
+        """Re-apply saved scroll position when frozen."""
+        if self._pending_scroll_value is None:
+            return
+        try:
+            sb = self.verticalScrollBar()
+        except Exception:
+            sb = None
+        if sb is not None:
+            sb.setValue(self._pending_scroll_value)
+
+    def _unfreeze_scroll(self):
+        """Release the temporary scroll freeze."""
+        if self._scroll_freeze_depth > 0:
+            self._scroll_freeze_depth -= 1
+        if self._scroll_freeze_depth <= 0:
+            self._scroll_freeze_depth = 0
+            self._pending_scroll_value = None
+
+    def scrollTo(self, index, hint=QAbstractItemView.EnsureVisible):
+        """
+        Temporarily suppress automatic scrolling while frozen.
+        This prevents list jumping when selection triggers scrollTo during refresh.
+        """
+        if self._scroll_freeze_depth > 0:
+            self._apply_pending_scroll()
+            return
+        return super().scrollTo(index, hint)
+
+    def _apply_pending_refocus(self):
+        """
+        Ensure selection stays on the intended item (by ROLE_ID) after a model refresh.
+        Does not force scrolling when scroll is frozen.
+        """
+        pid = self._pending_refocus_role_id
+        if not pid:
+            return
+        model = self.model()
+        if model is None:
+            return
+        target_idx = None
+        try:
+            for r in range(model.rowCount()):
+                ix = model.index(r, 0)
+                if ix.data(self.ROLE_ID) == pid:
+                    target_idx = ix
+                    break
+        except Exception:
+            target_idx = None
+
+        if target_idx is not None and target_idx.isValid():
+            try:
+                sel_model = self.selectionModel()
+                if sel_model:
+                    prev_unlocked = getattr(self, "unlocked", True)
+                    self.unlocked = True
+                    try:
+                        sel_model.clearSelection()
+                        sel_model.select(target_idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+                        self.setCurrentIndex(target_idx)
+                    finally:
+                        self.unlocked = prev_unlocked
+                # If refocus succeeded, clear the pending marker
+                self._pending_refocus_role_id = None
+            except Exception:
+                # Keep pending id for next attempt if apply failed
+                pass
+
+    # --------------------------------------------------------------------------
 
     def set_dnd_enabled(self, enabled: bool):
         """
@@ -195,12 +308,21 @@ class PresetList(BaseList):
             return
         preset_id = index.data(self.ROLE_ID)
         if preset_id:
+            # Freeze scroll and remember the intended selection to re-apply after any refresh
+            self._freeze_scroll(300)
+            self._pending_refocus_role_id = preset_id
             self.window.controller.presets.select_by_id(preset_id)
+            # Re-apply selection in next ticks to win races with late refresh
+            QTimer.singleShot(0, self._apply_pending_refocus)
+            QTimer.singleShot(50, self._apply_pending_refocus)
             self.selection = self.selectionModel().selection()
             return
         row = index.row()
         if row >= 0:
+            self._freeze_scroll(300)
             self.window.controller.presets.select(row)
+            QTimer.singleShot(0, self._apply_pending_refocus)
+            QTimer.singleShot(50, self._apply_pending_refocus)
             self.selection = self.selectionModel().selection()
 
     def dblclick(self, val):
@@ -716,6 +838,8 @@ class PresetList(BaseList):
             index = self.indexAt(self._mouse_event_point(event))
             if not index.isValid():
                 return
+            # Freeze scroll for a moment to prevent jumps caused by selection-triggered refresh
+            self._freeze_scroll(250)
             if self._dnd_enabled:
                 sel_model = self.selectionModel()
                 self._press_backup_selection = list(sel_model.selectedIndexes())
@@ -809,7 +933,12 @@ class PresetList(BaseList):
                     if idx.isValid():
                         pid = idx.data(self.ROLE_ID)
                         if pid:
+                            # Keep scroll stable also for this late selection path
+                            self._freeze_scroll(300)
+                            self._pending_refocus_role_id = pid
                             self.window.controller.presets.select_by_id(pid)
+                            QTimer.singleShot(0, self._apply_pending_refocus)
+                            QTimer.singleShot(50, self._apply_pending_refocus)
                         else:
                             self.setCurrentIndex(idx)
                             self.window.controller.presets.select(idx.row())
