@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 12:00:00                  #
+# Updated Date: 2025.09.26 12:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -50,6 +50,9 @@ class UI:
         self._last_input_string = None
         self._last_chat_model = None
         self._last_chat_label = None
+
+        # Cache for Input tab tooltip to avoid redundant updates
+        self._last_input_tab_tooltip = None
 
     def setup(self):
         """Setup UI"""
@@ -150,7 +153,11 @@ class UI:
     def update_tokens(self):
         """Update tokens counter in real-time"""
         ui_nodes = self.window.ui.nodes
-        prompt = ui_nodes['input'].toPlainText().strip()
+
+        # Read raw input for accurate character count (without trimming)
+        raw_text = ui_nodes['input'].toPlainText()
+        prompt = raw_text.strip()
+
         input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
             sum_tokens, max_current, threshold = self.window.core.tokens.get_current(prompt)
         attachments_tokens = self.window.controller.chat.attachment.get_current_tokens()
@@ -165,6 +172,22 @@ class UI:
         if input_string != self._last_input_string:
             ui_nodes['input.counter'].setText(input_string)
             self._last_input_string = input_string
+
+        # Update Input tab tooltip with live "<chars> chars (~<tokens> tokens)" string
+        try:
+            tabs = self.window.ui.tabs.get('input')
+        except Exception:
+            tabs = None
+
+        if tabs is not None:
+            try:
+                tooltip = trans("input.tab.tooltip").format(chars=short_num(len(raw_text)), tokens=short_num(input_tokens))
+            except Exception:
+                tooltip = ""
+            #tooltip = f"{short_num(len(raw_text))} chars (~{short_num(input_tokens)} tokens)"
+            if tooltip != self._last_input_tab_tooltip:
+                tabs.setTabToolTip(0, tooltip)
+                self._last_input_tab_tooltip = tooltip
 
     def store_state(self):
         """Store UI state"""
