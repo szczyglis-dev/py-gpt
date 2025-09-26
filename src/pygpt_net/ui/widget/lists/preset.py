@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 03:00:00                  #
+# Updated Date: 2025.09.26 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QPoint, QItemSelectionModel, Qt, QEventLoop, QTimer, QMimeData
@@ -65,6 +65,7 @@ class PresetList(BaseList):
         self.setDragDropMode(QAbstractItemView.NoDragDrop)  # switched dynamically
         self.setDefaultDropAction(Qt.MoveAction)
         self.setDragDropOverwriteMode(False)
+        # We use our own visual indicator for drop position
         self.setDropIndicatorShown(False)
 
         self._press_pos = None
@@ -92,6 +93,12 @@ class PresetList(BaseList):
         # One-shot forced selection after refresh (list of ROLE_ID)
         self._selection_override_ids = None
 
+        # Custom drop indicator (visual only)
+        self._drop_indicator_active = False
+        # seam row for indicator (row under which the line is drawn)
+        self._drop_indicator_to_row = -1
+        self._drop_indicator_padding = 6  # visual left/right padding
+
     # -------- Public helpers to protect updates --------
 
     def begin_model_update(self):
@@ -110,19 +117,21 @@ class PresetList(BaseList):
         """
         Toggle DnD behaviour at runtime.
         Using DragDrop (not InternalMove) to avoid implicit Qt reordering.
+        We also disable the native drop indicator and render our own line.
         """
         self._dnd_enabled = bool(enabled)
         if self._dnd_enabled:
             self.setDragEnabled(True)
             self.setAcceptDrops(True)
             self.setDragDropMode(QAbstractItemView.DragDrop)
-            self.setDropIndicatorShown(True)
+            self.setDropIndicatorShown(False)  # use custom indicator
         else:
             self.setDragEnabled(False)
             self.setAcceptDrops(False)
             self.setDragDropMode(QAbstractItemView.NoDragDrop)
             self.setDropIndicatorShown(False)
             self.unsetCursor()
+        self._clear_drop_indicator()  # ensure clean state
 
     def backup_selection(self):
         """
@@ -504,16 +513,13 @@ class PresetList(BaseList):
 
         self.store_scroll_position()
 
-        di_prev = self._dnd_enabled
-        self.setDropIndicatorShown(False)
+        # Use custom indicator only; do not re-enable native one here
         self.setUpdatesEnabled(False)
         try:
             self.window.controller.presets.update_list()
             self.restore_scroll_position()
         finally:
             self.setUpdatesEnabled(True)
-            if di_prev and self._dnd_enabled:
-                self.setDropIndicatorShown(True)
 
         # Clear helpers for context menu (layout will consume _selection_override_ids)
         self._ctx_menu_original_ids = None
@@ -555,6 +561,136 @@ class PresetList(BaseList):
             return
         moved_id = self._reorder_and_persist(from_row, to_row)
         self._refresh_after_order_change(moved_id, follow_selection=False)
+
+    # --- Custom drop indicator helpers ---
+
+    def _compute_drop_locations(self, pos: QPoint) -> tuple[int, int]:
+        """
+        Compute both:
+        - to_row_drop: final insertion row used for reordering (after 'moving-down' adjustment),
+        - seam_row: row under which the visual indicator line should be drawn
+                    in the current (pre-drop) view geometry.
+
+        This keeps visuals and the final insertion point perfectly aligned.
+
+        Returns: (to_row_drop, seam_row)
+        """
+        model = self.model()
+        if model is None:
+            return -1, -1
+
+        idx = self.indexAt(pos)
+
+        beyond_last = False
+        if not idx.isValid():
+            to_row_raw = model.rowCount()  # append at the end
+            if model.rowCount() > 0:
+                last_idx = model.index(model.rowCount() - 1, 0)
+                last_rect = self.visualRect(last_idx)
+                if last_rect.isValid() and pos.y() > last_rect.bottom():
+                    beyond_last = True
+        else:
+            rect = self.visualRect(idx)
+            to_row_raw = idx.row() + (1 if pos.y() > rect.center().y() else 0)
+
+        # Keep first row pinned (cannot insert above row 1)
+        if to_row_raw <= 1:
+            to_row_raw = 1
+
+        # seam row is always the boundary under the row at (to_row_raw - 1),
+        # except in explicit "beyond last" zone where we draw under the last row.
+        if model.rowCount() > 0:
+            if beyond_last:
+                seam_row = model.rowCount() - 1
+            else:
+                seam_row = max(0, min(model.rowCount() - 1, to_row_raw - 1))
+        else:
+            seam_row = -1
+
+        # Apply 'moving down' adjustment only to the logical insertion row,
+        # never to the visual seam (otherwise the line jumps one row up).
+        from_row = self._press_index.row() if (self._press_index and self._press_index.isValid()) else -1
+        to_row_drop = to_row_raw
+        if from_row >= 0 and to_row_raw > from_row and not beyond_last:
+            to_row_drop -= 1
+
+        # Clamp to valid ranges
+        to_row_drop = max(1, min(model.rowCount(), to_row_drop))
+        if seam_row >= 0:
+            seam_row = max(0, min(model.rowCount() - 1, seam_row))
+
+        return to_row_drop, seam_row
+
+    def _update_drop_indicator_from_pos(self, pos: QPoint):
+        """
+        Update custom drop indicator state based on cursor position.
+        Draws a single horizontal line under the row where the item will land.
+        """
+        if not self._dnd_enabled or self._model_updating:
+            self._clear_drop_indicator()
+            return
+
+        model = self.model()
+        if model is None or model.rowCount() <= 0:
+            self._clear_drop_indicator()
+            return
+
+        _, seam_row = self._compute_drop_locations(pos)
+        if seam_row < 0:
+            self._clear_drop_indicator()
+            return
+
+        if not self._drop_indicator_active or self._drop_indicator_to_row != seam_row:
+            self._drop_indicator_active = True
+            self._drop_indicator_to_row = seam_row
+            self.viewport().update()
+
+    def _clear_drop_indicator(self):
+        """Hide custom drop indicator."""
+        if self._drop_indicator_active or self._drop_indicator_to_row != -1:
+            self._drop_indicator_active = False
+            self._drop_indicator_to_row = -1
+            if self.viewport():
+                self.viewport().update()
+
+    def paintEvent(self, event):
+        """
+        Standard paint + overlay a clear drop indicator line at the computed insertion position.
+        """
+        super().paintEvent(event)
+
+        if not self._drop_indicator_active or not self._dnd_enabled:
+            return
+
+        model = self.model()
+        if model is None or model.rowCount() <= 0:
+            return
+
+        seam_row = self._drop_indicator_to_row
+        if seam_row < 0 or seam_row >= model.rowCount():
+            return
+
+        idx = model.index(seam_row, 0)
+        rect = self.visualRect(idx)
+        if not rect.isValid() or rect.height() <= 0:
+            return
+
+        # Line under the seam row
+        y = rect.bottom()
+        x1 = self._drop_indicator_padding
+        x2 = self.viewport().width() - self._drop_indicator_padding
+
+        painter = QPainter(self.viewport())
+        try:
+            # Use highlight color with good contrast; 1px thickness
+            color = self.palette().highlight().color()
+            color.setAlpha(220)
+            pen = QPen(color, 1)
+            pen.setCapStyle(Qt.RoundCap)
+            painter.setPen(pen)
+            painter.drawLine(x1, y, x2, y)
+        finally:
+            painter.end()
 
     # ----------------------------
     # Mouse / DnD events
@@ -657,6 +793,7 @@ class PresetList(BaseList):
 
         self._dragging = True
         self.setCursor(QCursor(Qt.ClosedHandCursor))
+        # Let base class proceed; it will trigger startDrag when needed.
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
@@ -666,6 +803,7 @@ class PresetList(BaseList):
         try:
             if self._dnd_enabled and event.button() == Qt.LeftButton:
                 self.unsetCursor()
+                self._clear_drop_indicator()
                 if not self._dragging:
                     idx = self.indexAt(self._mouse_event_point(event))
                     if idx.isValid():
@@ -693,12 +831,16 @@ class PresetList(BaseList):
             return
         event.setDropAction(Qt.MoveAction)
         event.acceptProposedAction()
+        super().dragEnterEvent(event)
+        # Show indicator immediately on enter
+        self._update_drop_indicator_from_pos(self._mouse_event_point(event))
 
     def dragLeaveEvent(self, event):
         if self._model_updating:
             event.ignore()
             return
         self.unsetCursor()
+        self._clear_drop_indicator()
         super().dragLeaveEvent(event)
 
     def dragMoveEvent(self, event):
@@ -707,7 +849,6 @@ class PresetList(BaseList):
             return
         if not self._dnd_enabled:
             return
-        event.setDropAction(Qt.MoveAction)
 
         pos = self._mouse_event_point(event)
         idx = self.indexAt(pos)
@@ -715,9 +856,17 @@ class PresetList(BaseList):
         if idx.isValid() and idx.row() == 0:
             rect = self.visualRect(idx)
             if pos.y() <= rect.center().y():
+                self._clear_drop_indicator()
                 event.ignore()
                 return
+
+        # Let base class process autoscroll and internal geometry first
+        event.setDropAction(Qt.MoveAction)
         event.acceptProposedAction()
+        super().dragMoveEvent(event)
+
+        # Update custom indicator based on current cursor and updated viewport
+        self._update_drop_indicator_from_pos(pos)
 
     def dropEvent(self, event):
         """
@@ -746,26 +895,11 @@ class PresetList(BaseList):
             event.ignore()
             self.unsetCursor()
             self._drag_selection_applied = False
+            self._clear_drop_indicator()
             return
 
-        # Target row
-        pos = self._mouse_event_point(event)
-        idx = self.indexAt(pos)
-        if not idx.isValid():
-            to_row = model.rowCount()  # append
-        else:
-            rect = self.visualRect(idx)
-            to_row = idx.row()
-            if pos.y() > rect.center().y():
-                to_row += 1
-
-        # Keep first row pinned
-        if to_row <= 1:
-            to_row = 1
-
-        # Adjust when moving down (Qt inserts before position)
-        if to_row > from_row:
-            to_row -= 1
+        # Target row computed exactly the same way as the indicator (but with 'moving down' adjustment)
+        to_row, _ = self._compute_drop_locations(self._mouse_event_point(event))
 
         moved_id = self._reorder_and_persist(from_row, to_row)
 
@@ -778,6 +912,7 @@ class PresetList(BaseList):
         event.acceptProposedAction()
         self.unsetCursor()
         self._drag_selection_applied = False
+        self._clear_drop_indicator()
 
     # ----------------------------
     # Legacy helper (not used in new path)
