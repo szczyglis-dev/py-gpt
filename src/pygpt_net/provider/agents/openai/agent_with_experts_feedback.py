@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -119,7 +119,7 @@ class Agent(BaseAgent):
         :return: Agent provider instance
         """
         kwargs = {
-            "name": "evaluator",
+            "name": "Evaluator",
             "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model),
             "output_type": EvaluationFeedback,
@@ -212,6 +212,7 @@ class Agent(BaseAgent):
                     bridge.on_stop(ctx)
                     break
 
+                ctx.set_agent_name(agent.name)
                 result = await Runner.run(
                     agent,
                     **kwargs
@@ -259,6 +260,7 @@ class Agent(BaseAgent):
             handler = StreamHandler(window, bridge)
             while True:
                 kwargs["input"] = input_items
+                ctx.set_agent_name(agent.name)
                 result = Runner.run_streamed(
                     agent,
                     **kwargs

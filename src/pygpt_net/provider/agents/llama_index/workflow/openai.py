@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.09.26 15:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -34,6 +34,7 @@ from llama_index.core.agent.workflow import (
     ToolCallResult,
     AgentStream,
     AgentOutput,
+    AgentInput,  # ensure AgentInput propagation includes agent name
 )
 
 # v12/v13 compatibility imports
@@ -167,6 +168,9 @@ class OpenAIWorkflowAgent(Workflow):
         self._on_stop = on_stop
         self.verbose = verbose
 
+        # human-friendly display name propagated to UI via workflow events
+        self._display_agent_name: str = "FunctionAgent"
+
         # construct FunctionAgent once, will override tools/system_prompt/memory per run
         self._agent = FunctionAgent(
             name="OpenAIWorkflowAgent",
@@ -287,9 +291,13 @@ class OpenAIWorkflowAgent(Workflow):
         :param total: Total number of steps (optional)
         :param meta: Optional metadata dictionary for the step event
         """
+        # Always include agent_name so UI can set it before first token arrives.
+        m = dict(meta or {})
+        m.setdefault("agent_name", self._display_agent_name)
+
         try:
             if StepEvent is not None:
-                ctx.write_event_to_stream(StepEvent(name=name, index=index, total=total, meta=meta or {}))
+                ctx.write_event_to_stream(StepEvent(name=name, index=index, total=total, meta=m))
                 return
         except Exception:
             pass
@@ -300,9 +308,9 @@ class OpenAIWorkflowAgent(Workflow):
                 AgentStream(
                     delta="",
                     response="",
-                    current_agent_name="OpenAIWorkflowAgent",
+                    current_agent_name=self._display_agent_name,
                     tool_calls=[],
-                    raw={"StepEvent": {"name": name, "index": index, "total": total, "meta": meta or {}}},
+                    raw={"StepEvent": {"name": name, "index": index, "total": total, "meta": m}},
                 )
             )
         except Exception:
@@ -499,14 +507,14 @@ class OpenAIWorkflowAgent(Workflow):
             self,
             ctx: Context,
             text: str,
-            agent_name: str = "OpenAIWorkflowAgent"
+            agent_name: str = "FunctionAgent"
     ):
         """
         Emit text to the context stream, handling validation errors gracefully.
 
         :param ctx: Context for the workflow
         :param text: Text to emit to the stream
-        :param agent_name: Name of the agent to set in the event (default: "OpenAIWorkflowAgent")
+        :param agent_name: Name of the agent to set in the event (default: "FunctionAgent")
         """
         try:
             ctx.write_event_to_stream(AgentStream(delta=text))
@@ -561,12 +569,31 @@ class OpenAIWorkflowAgent(Workflow):
                         pass
                     return last_answer
 
+                if isinstance(e, AgentInput):
+                    # Ensure the input event also carries the display name for UI
+                    try:
+                        e.current_agent_name = self._display_agent_name
+                    except Exception:
+                        pass
+                    ctx.write_event_to_stream(e)
+                    continue
+
                 if isinstance(e, AgentStream):
                     if getattr(e, "delta", None):
                         has_stream = True
-                    if not getattr(e, "current_agent_name", None):
+                    # Always enforce agent name for consistency in UI
+                    try:
+                        e.current_agent_name = self._display_agent_name
+                    except Exception:
+                        # If immutable, rebuild a compatible event object
                         try:
-                            e.current_agent_name = "OpenAIWorkflowAgent"
+                            e = AgentStream(
+                                delta=getattr(e, "delta", ""),
+                                response=getattr(e, "response", ""),
+                                current_agent_name=self._display_agent_name,
+                                tool_calls=getattr(e, "tool_calls", []),
+                                raw=getattr(e, "raw", {}),
+                            )
                         except Exception:
                             pass
                     ctx.write_event_to_stream(e)
@@ -581,9 +608,9 @@ class OpenAIWorkflowAgent(Workflow):
                             AgentStream(
                                 delta=content,
                                 response=content,
-                                current_agent_name="OpenAIWorkflowAgent",
-                                tool_calls=e.tool_calls,
-                                raw=e.raw,
+                                current_agent_name=self._display_agent_name,
+                                tool_calls=getattr(e, "tool_calls", []),
+                                raw=getattr(e, "raw", {}),
                             )
                         )
                     continue

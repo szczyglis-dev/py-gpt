@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List, Optional
@@ -237,6 +237,7 @@ class OpenAIWorkflow(BaseRunner):
         response_ctx.set_agent_final_response(output)  # always set to further use
         response_ctx.extra["agent_output"] = True  # mark as output response
         response_ctx.extra["agent_finish"] = True  # mark as finished
+        response_ctx.set_agent_name(ctx.get_agent_name()) # store last agent name
         response_ctx.msg_id = response_id  # set response id for OpenAI
 
         if ctx.agent_final_response:  # only if not empty

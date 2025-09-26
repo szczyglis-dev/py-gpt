@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 12:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -168,7 +168,12 @@ class UI:
             ui_nodes['prompt.context'].setText(ctx_string)
             self._last_ctx_string = ctx_string
 
-        input_string = f"{short_num(input_tokens)} + {short_num(system_tokens)} + {short_num(ctx_tokens)} + {short_num(extra_tokens)} + {short_num(attachments_tokens)} = {short_num(sum_tokens)} / {short_num(max_current)}"
+        if max_current > 0:
+            max_str = short_num(max_current)
+        else:
+            max_str = "∞"
+
+        input_string = f"{short_num(input_tokens)} + {short_num(system_tokens)} + {short_num(ctx_tokens)} + {short_num(extra_tokens)} + {short_num(attachments_tokens)} = {short_num(sum_tokens)} / {max_str}"
         if input_string != self._last_input_string:
             ui_nodes['input.counter'].setText(input_string)
             self._last_input_string = input_string

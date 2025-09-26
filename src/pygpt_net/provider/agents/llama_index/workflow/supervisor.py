@@ -1,3 +1,5 @@
+# workflow/supervisor.py
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -6,11 +8,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.17 02:00:00                  #
+# Updated Date: 2025.09.26 22:25:00                  #
 # ================================================== #
 
 import re
-from typing import Optional, Literal, List
+from typing import Optional, Literal, List, Callable, Any
 from pydantic import BaseModel, ValidationError
 from llama_index.core.workflow import Workflow, Context, StartEvent, StopEvent, Event, step
 from llama_index.core.agent.workflow import FunctionAgent, AgentStream
@@ -173,8 +175,6 @@ class SupervisorWorkflow(Workflow):
         :param agent_name: The name of the agent emitting the text (default: "PlannerWorkflow").
         """
         try:
-            ctx.write_event_to_stream(AgentStream(delta=text))
-        except ValidationError:
             ctx.write_event_to_stream(
                 AgentStream(
                     delta=text,
@@ -184,11 +184,47 @@ class SupervisorWorkflow(Workflow):
                     raw={},
                 )
             )
+        except ValidationError:
+            ctx.write_event_to_stream(AgentStream(delta=text))
+
+    async def _emit_step(self, ctx: Context, agent_name: str, index: int, total: int, meta: Optional[dict] = None):
+        """
+        Emit a StepEvent that your runner uses to split UI into blocks.
+        Mirrors the behavior used by the schema-driven workflow.
+        """
+        from pygpt_net.provider.agents.llama_index.workflow.events import StepEvent
+        try:
+            ctx.write_event_to_stream(
+                StepEvent(
+                    name="next",
+                    index=index,
+                    total=total,
+                    meta={"agent_name": agent_name, **(meta or {})},
+                )
+            )
+        except Exception:
+            pass
+
+    async def _run_muted(self, ctx: Context, awaitable) -> Any:
+        """
+        Execute an agent call while muting all events sent to ctx.
+        Matches schema-style emission: we control all UI events ourselves.
+        """
+        orig_write = ctx.write_event_to_stream
+
+        def _noop(ev: Any) -> None:
+            return None
+
+        ctx.write_event_to_stream = _noop
+        try:
+            return await awaitable
+        finally:
+            ctx.write_event_to_stream = orig_write
 
     @step
     async def supervisor_step(self, ctx: Context, ev: InputEvent) -> ExecuteEvent | OutputEvent:
         """
-        Supervisor step to process the user's input and generate an instruction for the Worker.
+        Supervisor step: run Supervisor silently, then emit exactly one UI block like schema.
 
         :param ctx: Context for the workflow
         :param ev: InputEvent containing the user's message and context.
@@ -206,21 +242,33 @@ class SupervisorWorkflow(Workflow):
             "Return ONE JSON following the schema.\n</control>"
         )
         sup_input = "\n".join(parts)
-        sup_resp = await self._supervisor.run(user_msg=sup_input, memory=self._supervisor_memory)
+
+        # Run Supervisor with stream muted to avoid extra blocks/finishes.
+        sup_resp = await self._run_muted(ctx, self._supervisor.run(user_msg=sup_input, memory=self._supervisor_memory))
         directive = parse_supervisor_json(str(sup_resp))
 
+        # Final/ask_user/max_rounds -> emit single Supervisor block and stop (schema-like).
         if directive.action == "final":
+            await self._emit_step(ctx, agent_name=self._supervisor.name, index=ev.round_idx + 1, total=ev.max_rounds)
             await self._emit_text(ctx, f"\n\n{directive.final_answer or str(sup_resp)}", agent_name=self._supervisor.name)
             return OutputEvent(status="final", final_answer=directive.final_answer or str(sup_resp), rounds_used=ev.round_idx)
+
         if directive.action == "ask_user" and ev.stop_on_ask_user:
+            await self._emit_step(ctx, agent_name=self._supervisor.name, index=ev.round_idx + 1, total=ev.max_rounds)
             q = directive.question or "I need more information, please clarify."
             await self._emit_text(ctx, f"\n\n{q}", agent_name=self._supervisor.name)
             return OutputEvent(status="ask_user", final_answer=q, rounds_used=ev.round_idx)
+
         if ev.round_idx >= ev.max_rounds:
+            await self._emit_step(ctx, agent_name=self._supervisor.name, index=ev.round_idx + 1, total=ev.max_rounds)
             await self._emit_text(ctx, "\n\nMax rounds exceeded.", agent_name=self._supervisor.name)
             return OutputEvent(status="max_rounds", final_answer="Exceeded maximum number of iterations.", rounds_used=ev.round_idx)
 
+        # Emit exactly one Supervisor block with the instruction (no JSON leakage, no duplicates).
         instruction = (directive.instruction or "").strip() or "Perform a step that gets closest to fulfilling the DoD."
+        await self._emit_step(ctx, agent_name=self._supervisor.name, index=ev.round_idx + 1, total=ev.max_rounds)
+        await self._emit_text(ctx, f"\n\n{instruction}", agent_name=self._supervisor.name)
+
         return ExecuteEvent(
             instruction=instruction,
             round_idx=ev.round_idx,
@@ -232,17 +280,19 @@ class SupervisorWorkflow(Workflow):
     @step
     async def worker_step(self, ctx: Context, ev: ExecuteEvent) -> InputEvent:
         """
-        Worker step to execute the Supervisor's instruction.
+        Worker step: run Worker silently and emit exactly one UI block like schema.
 
         :param ctx: Context for the workflow
         :param ev: ExecuteEvent containing the instruction and context.
         :return: InputEvent for the next round or final output.
         """
+        # Run Worker with stream muted; we will emit a single block with the final text.
         worker_input = f"Instruction from Supervisor:\n{ev.instruction}\n"
-        await self._emit_text(ctx, f"\n\n**Supervisor:** {ev.instruction}", agent_name=self._worker.name)
+        worker_resp = await self._run_muted(ctx, self._worker.run(user_msg=worker_input, memory=self._worker_memory))
 
-        worker_resp = await self._worker.run(user_msg=worker_input, memory=self._worker_memory)
-        await self._emit_text(ctx, f"\n\n**Worker:** {worker_resp}", agent_name=self._worker.name)
+        # Emit exactly one Worker block (schema-style: one AgentStream per node).
+        await self._emit_step(ctx, agent_name=self._worker.name, index=ev.round_idx + 1, total=ev.max_rounds)
+        await self._emit_text(ctx, f"\n\n{str(worker_resp)}", agent_name=self._worker.name)
 
         return InputEvent(
             user_msg="",

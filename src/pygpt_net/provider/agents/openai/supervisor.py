@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 import json
@@ -214,6 +214,7 @@ class Agent(BaseAgent):
         agent = self.get_agent(window, agent_kwargs)
 
         if not stream:
+            item_ctx.set_agent_name(agent.name)
             result = await Runner.run(
                 agent,
                 **kwargs
@@ -223,6 +224,7 @@ class Agent(BaseAgent):
             if verbose:
                 print("Final response:", result)
         else:
+            item_ctx.set_agent_name(agent.name)
             result = Runner.run_streamed(
                 agent,
                 **kwargs

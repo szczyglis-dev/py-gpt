@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 14:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -268,13 +268,28 @@ class DynamicFlowWorkflowLI(Workflow):
     async def _emit_header(self, ctx: Context, name: str):
         if self.dbg.event_echo:
             self.logger.debug(f"[event] header emit begin name='{name}'")
-        await self._emit_agent_text(ctx, f"\n\n**{name}**\n\n", agent_name=name)
+        await self._emit_agent_text(ctx, "", agent_name=name)
+        # await self._emit_agent_text(ctx, f"\n\n**{name}**\n\n", agent_name=name)
         if self.dbg.event_echo:
             self.logger.debug("[event] header emit done")
 
     async def _emit_step_sep(self, ctx: Context, node_id: str):
         try:
-            await self._emit(ctx, StepEvent(name="next", index=self._steps, total=self.max_iterations, meta={"node": node_id}))
+            # Include human-friendly agent name in StepEvent meta for downstream ctx propagation.
+            a = self.fs.agents.get(node_id)
+            friendly_name = (a.name if a and a.name else node_id)
+            await self._emit(
+                ctx,
+                StepEvent(
+                    name="next",
+                    index=self._steps,
+                    total=self.max_iterations,
+                    meta={
+                        "node": node_id,
+                        "agent_name": friendly_name,  # pass current agent display name
+                    },
+                ),
+            )
         except Exception as e:
             self.logger.error(f"[event] StepEvent emit failed: {e}")
 

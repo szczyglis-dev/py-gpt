@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 import json
@@ -16,15 +16,13 @@ import html as _html
 from dataclasses import dataclass, field
 
 from datetime import datetime
-from typing import Optional, List, Any, Dict, Tuple
+from typing import Optional, List, Any, Tuple
 from time import monotonic
 from io import StringIO
 
-from PySide6.QtCore import QTimer, QUrl, QCoreApplication, QEventLoop, QEvent
-from PySide6.QtWebEngineCore import QWebEnginePage
+from PySide6.QtCore import QTimer, QCoreApplication, QEventLoop, QEvent
 
 from pygpt_net.core.render.base import BaseRenderer
-from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
@@ -155,6 +153,7 @@ class Renderer(BaseRenderer):
         app_path = self.window.core.config.get_app_path() if self.window else ""
         self._icon_expand = os.path.join(app_path, "data", "icons", "expand.svg")
         self._icon_sync = os.path.join(app_path, "data", "icons", "sync.svg")
+        self._agent_avatar = os.path.join(app_path, "data", "icons", "robot.svg")
         self._file_prefix = 'file:///' if self.window and self.window.core.platforms.is_windows() else 'file://'
 
         # Bridge readiness for node append/replace path
@@ -377,6 +376,15 @@ class Renderer(BaseRenderer):
         self.reset_names(meta)
         self.tool_output_end()
         self.prev_chunk_replace = False
+
+        # Ensure stream header identity is up-to-date (agent/preset override)
+        try:
+            header = self.get_name_header(ctx, stream=True)
+            if pid is not None:
+                self.pids[pid].header = header
+                self._stream_header[pid] = header or ""
+        except Exception:
+            pass
 
     def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
@@ -1163,6 +1171,26 @@ class Renderer(BaseRenderer):
         meta = ctx.meta
         if meta is None:
             return ""
+
+        # Agent-provided display name override:
+        # If ctx.get_agent_name() returns a non-empty name, force "fake personalize":
+        # - use that name
+        # - optionally attach default avatar when enabled via config
+        # - treat as personalized header regardless of preset
+        agent_name = self._get_agent_name(ctx)
+        if agent_name:
+            avatar_html = ""
+            try:
+                use_default = self.window.core.config.get("agent.avatar.default", True)
+                if use_default and os.path.exists(self._agent_avatar):
+                    avatar_html = f"<img src=\"{self._file_prefix}{self._agent_avatar}\" class=\"avatar\"> "
+            except Exception:
+                pass
+            if stream:
+                return f"{avatar_html}{agent_name}"
+            else:
+                return f"<div class=\"name-header name-bot\">{avatar_html}{agent_name}</div>"
+
         preset_id = meta.preset
         if preset_id is None or preset_id == "":
             return ""
@@ -1904,23 +1932,60 @@ class Renderer(BaseRenderer):
 
     # ------------------------- Helpers: build JSON blocks -------------------------
 
+    def _get_agent_name(self, ctx: CtxItem) -> Optional[str]:
+        """
+        Resolve agent-provided name from ctx if available.
+
+        This is used to force "fake personalize" on the UI:
+        - when present and non-empty, we use this name,
+        - optionally attach default avatar when enabled via config,
+        - we set personalize flag to True in node payloads.
+        """
+        try:
+            if hasattr(ctx, "get_agent_name"):
+                name = ctx.get_agent_name()
+                if isinstance(name, str):
+                    name = name.strip()
+                return name or None
+        except Exception:
+            pass
+        return None
+
     def _output_identity(self, ctx: CtxItem) -> Tuple[str, Optional[str], bool]:
         """
-        Resolve output identity (name, avatar file:// path) based on preset.
+        Resolve output identity (name, avatar file:// path) based on preset or ctx-provided agent name.
 
         :param ctx: context item
         :return: (name, avatar, personalize)
         """
+        # 1) Agent-provided name override -> force personalize, optionally default avatar
+        agent_name = self._get_agent_name(ctx)
+        if agent_name:
+            avatar = None
+            try:
+                if self.window.core.config.get("agent.avatar.default", True) and os.path.exists(self._agent_avatar):
+                    avatar = f"{self._file_prefix}{self._agent_avatar}"
+            except Exception:
+                pass
+            return agent_name, avatar, True
+
+        # 2) Fallback to preset-based personalize
         meta = ctx.meta
         if meta is None:
-            return self.pids[self.get_or_create_pid(meta)].name_bot if meta else "", None, False
+            return "", None, False
+
+        pid = self.get_or_create_pid(meta)
+        default_name = self.pids[pid].name_bot if pid in self.pids else ""
+
         preset_id = meta.preset
         if not preset_id:
-            return self.pids[self.get_or_create_pid(meta)].name_bot, None, False
+            return default_name, None, False
+
         preset = self.window.core.presets.get(preset_id)
         if preset is None or not preset.ai_personalize:
-            return self.pids[self.get_or_create_pid(meta)].name_bot, None, False
-        name = preset.ai_name or self.pids[self.get_or_create_pid(meta)].name_bot
+            return default_name, None, False
+
+        name = preset.ai_name or default_name
         avatar = None
         if preset.ai_avatar:
             presets_dir = self.window.core.config.get_user_dir("presets")
@@ -1928,7 +1993,7 @@ class Renderer(BaseRenderer):
             avatar_path = os.path.join(avatars_dir, preset.ai_avatar)
             if os.path.exists(avatar_path):
                 avatar = f"{self._file_prefix}{avatar_path}"
-        return name, avatar, bool(preset.ai_personalize)
+        return name, avatar, True
 
     def _build_render_block(
             self,

@@ -5,7 +5,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2025.09.26 14:00:00                  #
 # ================================================== #
 
 # >>> Based on LlamaIndex CodeActAgent implementation, with custom plugin tool support <<<
@@ -123,6 +123,9 @@ class CodeActAgent(BaseWorkflowAgent):
     _plugin_specs: Optional[List] = PrivateAttr(default_factory=list)
     _plugin_tool_fn: Union[Callable, Awaitable] = PrivateAttr(default=None)
     _on_stop: Optional[Callable] = PrivateAttr(default=None)
+
+    # Always emit this human-friendly agent name in workflow events for UI consumption.
+    _display_agent_name: str = PrivateAttr(default="CodeAct")
 
     def __init__(
         self,
@@ -296,13 +299,13 @@ class CodeActAgent(BaseWorkflowAgent):
                 StepEvent(name=name, index=index, total=total, meta=meta or {})
             )
         except Exception:
-            # Fallback for older versions of AgentStream
+            # Fallback for environments lacking StepEvent wiring.
             try:
                 ctx.write_event_to_stream(
                     AgentStream(
                         delta="",
                         response="",
-                        current_agent_name="PlannerWorkflow",
+                        current_agent_name=self._display_agent_name,  # always "CodeAct"
                         tool_calls=[],
                         raw={"StepEvent": {"name": name, "index": index, "total": total, "meta": meta or {}}}
                     )
@@ -367,7 +370,7 @@ class CodeActAgent(BaseWorkflowAgent):
             current_llm_input.insert(0, ChatMessage(role="system", content=system_prompt))
 
         ctx.write_event_to_stream(
-            AgentInput(input=current_llm_input, current_agent_name=self.name)
+            AgentInput(input=current_llm_input, current_agent_name=self._display_agent_name)  # always "CodeAct"
         )
 
         if any(tool.metadata.name == "handoff" for tool in tools):
@@ -400,7 +403,7 @@ class CodeActAgent(BaseWorkflowAgent):
                     response=full_response_text,
                     tool_calls=[],
                     raw=raw,
-                    current_agent_name=self.name,
+                    current_agent_name=self._display_agent_name,  # always "CodeAct"
                 )
             )
 
@@ -443,7 +446,7 @@ class CodeActAgent(BaseWorkflowAgent):
             response=message,
             tool_calls=tool_calls,
             raw=raw,
-            current_agent_name=self.name,
+            current_agent_name=self._display_agent_name,  # always "CodeAct"
         )
 
     async def handle_tool_call_results(

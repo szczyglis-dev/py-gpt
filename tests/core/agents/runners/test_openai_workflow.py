@@ -33,6 +33,12 @@ class DummyCtx:
     def set_agent_final_response(self, text):
         self.agent_final_response_val = text
 
+    def set_agent_name(self, name):
+        pass
+
+    def get_agent_name(self):
+        return "DummyAgent"
+
 
 @pytest.fixture
 def dummy_window():

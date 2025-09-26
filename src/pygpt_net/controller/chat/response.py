@@ -36,6 +36,7 @@ class Response:
         """
         super(Response, self).__init__()
         self.window = window
+        self.last_response_id = None
 
     def handle(
             self,
@@ -273,9 +274,14 @@ class Response:
             self.window.update_status(trans("status.agent.reasoning"))
             controller.chat.common.lock_input()  # lock input, re-enable stop button
 
-        # agent final response
+        # agent final response, with fix for async delayed finish (prevent multiple calls for the same response)
         if ctx.extra is not None and (isinstance(ctx.extra, dict) and "agent_finish" in ctx.extra):
-            controller.agent.llama.on_finish(ctx)  # evaluate response and continue if needed
+            consume = False
+            if self.last_response_id is None or self.last_response_id < ctx.id:
+                consume = True
+            self.last_response_id = ctx.id
+            if consume:
+                controller.agent.llama.on_finish(ctx)  # evaluate response and continue if needed
 
     def end(
             self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple, Optional
@@ -133,6 +133,8 @@ class Agent(BaseAgent):
             "preset": preset,
             "is_expert_call": False,
         }
+
+        ctx.set_agent_name(agent.name)
         # call computer agent if computer tool is enabled
         if is_computer_tool(**tool_kwargs):
             computer = LocalComputer(window)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 03:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple, Optional
@@ -123,6 +123,7 @@ class Agent(BaseAgent):
             agent_kwargs["handoffs"] = experts
 
         agent = self.get_agent(window, agent_kwargs)
+        ctx.set_agent_name(agent.name)
 
         kwargs = {
             "input": messages,
@@ -137,6 +138,7 @@ class Agent(BaseAgent):
                 agent,
                 **kwargs
             )
+            ctx.set_agent_name(agent.name)
             final_output, last_response_id = window.core.api.openai.responses.unpack_agent_response(result, ctx)
             response_id = result.last_response_id
             if verbose:
@@ -152,6 +154,7 @@ class Agent(BaseAgent):
                     result.cancel()
                     bridge.on_stop(ctx)
                     break
+                ctx.set_agent_name(agent.name)
                 final_output, response_id = handler.handle(event, ctx)
 
         return ctx, final_output, response_id

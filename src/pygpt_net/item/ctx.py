@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -208,6 +208,28 @@ class CtxItem:
             src = getattr(p, f"{name}_before", None) or getattr(p, name, None)
             if src:
                 setattr(self, name, dp(src))
+
+    def set_agent_name(self, name: Optional[str]):
+        """
+        Set AI/agent name
+
+        :param name: name
+        """
+        self.ai_name = name
+        if name:
+            if self.extra is None:
+                self.extra = {}
+            self.extra['agent_name'] = name
+
+    def get_agent_name(self) -> Optional[str]:
+        """
+        Get AI/agent name
+
+        :return: name
+        """
+        if self.extra and isinstance(self.extra, dict):
+            return self.extra.get('agent_name', None)
+        return None
 
     def is_empty(self) -> bool:
         """

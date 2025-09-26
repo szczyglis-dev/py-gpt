@@ -163,6 +163,7 @@ class StreamHandler:
         elif event.type == "run_item_stream_event":
             if isinstance(event.item, HandoffOutputItem):
                 s = f"\n\n**Handoff to: {event.item.target_agent.name}**\n\n"
+                ctx.set_agent_name(event.item.target_agent.name)
                 self._emit(ctx, s, flush, buffer)
 
         if self.finished and not self.files_handled and self.files:

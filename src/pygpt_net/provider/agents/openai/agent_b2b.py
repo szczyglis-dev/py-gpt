@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -265,6 +265,7 @@ class Agent(BaseAgent):
                     break
 
                 kwargs = self.prepare_model(model, window, previous_response_id, kwargs)
+                ctx.set_agent_name(bot_1.name)
                 result = await Runner.run(
                     bot_1,
                     **kwargs
@@ -296,6 +297,7 @@ class Agent(BaseAgent):
                 # -------- bot 2 --------
                 kwargs["input"] = input_items
                 kwargs = self.prepare_model(model_2, window, previous_response_id, kwargs)
+                ctx.set_agent_name(bot_2.name)
                 result = await Runner.run(
                     bot_2,
                     **kwargs
@@ -329,6 +331,7 @@ class Agent(BaseAgent):
                 # -------- bot 1 --------
                 kwargs["input"] = input_items
                 kwargs = self.prepare_model(model, window, previous_response_id, kwargs)
+                ctx.set_agent_name(bot_1.name)
                 result = Runner.run_streamed(
                     bot_1,
                     **kwargs
@@ -337,13 +340,13 @@ class Agent(BaseAgent):
                 handler.reset()
 
                 # bot 1 title
-                title = f"\n\n**{bot_1_name}**\n\n"
-                ctx.stream = title
+                # title = f"\n\n**{bot_1_name}**\n\n"
+                # ctx.stream = title
                 bridge.on_step(ctx, begin)
                 begin = False
                 handler.begin = begin
-                if not use_partial_ctx:
-                    handler.to_buffer(title)
+                # if not use_partial_ctx:
+                    # handler.to_buffer(title)
                 async for event in result.stream_events():
                     if bridge.stopped():
                         result.cancel()
@@ -376,6 +379,7 @@ class Agent(BaseAgent):
                 # -------- bot 2 --------
                 kwargs["input"] = input_items
                 kwargs = self.prepare_model(model_2, window, previous_response_id, kwargs)
+                ctx.set_agent_name(bot_2.name)
                 result = Runner.run_streamed(
                     bot_2,
                     **kwargs
@@ -383,11 +387,11 @@ class Agent(BaseAgent):
                 handler.reset()
 
                 # bot 2 title
-                title = f"\n\n**{bot_2_name}**\n\n"
-                ctx.stream = title
+                # title = f"\n\n**{bot_2_name}**\n\n"
+                # ctx.stream = title
                 bridge.on_step(ctx, False)
-                if not use_partial_ctx:
-                    handler.to_buffer(title)
+                # if not use_partial_ctx:
+                    # handler.to_buffer(title)
                 async for event in result.stream_events():
                     if bridge.stopped():
                         result.cancel()

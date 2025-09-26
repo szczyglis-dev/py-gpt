@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 14:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -242,13 +242,14 @@ class FlowOrchestrator:
                 run_kwargs["trace_id"] = trace_id
 
             # Header for UI
-            title = f"\n\n**{built.name}**\n\n"
-            ctx.stream = title
+            ctx.set_agent_name(agent.name)
+            # title = f"\n\n**{built.name}**\n\n"
+            # ctx.stream = title
             bridge.on_step(ctx, begin)
             begin = False
             handler.begin = begin
-            if not use_partial_ctx:
-                handler.to_buffer(title)
+            # if not use_partial_ctx:
+                # handler.to_buffer(title)
 
             display_text = ""  # what we show to UI for this step
             next_id: Optional[str] = None
@@ -443,6 +444,10 @@ class FlowOrchestrator:
                 handler.new()
             else:
                 bridge.on_next(ctx)
+
+            # set next agent name if not at the end
+            if current_ids and current_ids[0] in fs.agents:
+                ctx.set_agent_name(fs.agents[current_ids[0]].name)
 
             # Step duration
             dur = perf_counter() - step_start

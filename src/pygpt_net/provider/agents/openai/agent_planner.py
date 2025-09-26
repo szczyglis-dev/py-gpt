@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -153,7 +153,7 @@ class Agent(BaseAgent):
         :return: Agent provider instance
         """
         kwargs = {
-            "name": "evaluator",
+            "name": "Evaluator",
             "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model),
             "output_type": EvaluationFeedback,
@@ -313,6 +313,7 @@ class Agent(BaseAgent):
         if not stream:
             while True:
                 kwargs["input"] = input_items
+                ctx.set_agent_name(agent.name)
                 if bridge.stopped():
                     bridge.on_stop(ctx)
                     break
@@ -333,6 +334,7 @@ class Agent(BaseAgent):
                     break
 
                 evaluator_result = await Runner.run(evaluator, input_items)
+                ctx.set_agent_name(evaluator.name)
                 result: EvaluationFeedback = evaluator_result.final_output
 
                 print(f"Evaluator score: {result.score}")
@@ -366,6 +368,7 @@ class Agent(BaseAgent):
             handler = StreamHandler(window, bridge, final_output)
             while True:
                 kwargs["input"] = input_items
+                ctx.set_agent_name(agent.name)
                 result = Runner.run_streamed(
                     agent,
                     **kwargs
@@ -386,6 +389,7 @@ class Agent(BaseAgent):
                     break
 
                 input_items = result.to_input_list()
+                ctx.set_agent_name(evaluator.name)
                 evaluator_result = await Runner.run(evaluator, input_items)
                 result: EvaluationFeedback = evaluator_result.final_output
 

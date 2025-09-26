@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -131,7 +131,7 @@ class Agent(BaseAgent):
         :return: Agent provider instance
         """
         kwargs = {
-            "name": "evaluator",
+            "name": "Evaluator",
             "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model),
             "output_type": EvaluationFeedback,
@@ -330,6 +330,7 @@ class Agent(BaseAgent):
                 choose_query = self.make_choose_query(results)
                 choose_items.append(choose_query)
 
+                ctx.set_agent_name(chooser.name)
                 chooser_result = await Runner.run(chooser, choose_items)
                 result: ChooseFeedback = chooser_result.final_output
                 choose = result.answer_number
@@ -347,6 +348,7 @@ class Agent(BaseAgent):
                     bridge.on_stop(ctx)
                     break
 
+                ctx.set_agent_name(evaluator.name)
                 evaluator_result = await Runner.run(evaluator, input_items)
                 result: EvaluationFeedback = evaluator_result.final_output
 
@@ -397,6 +399,7 @@ class Agent(BaseAgent):
                     j = i + 1
                     parent_kwargs = copy.deepcopy(kwargs)
                     parent_kwargs["input"]: list[TResponseInputItem] = copy.deepcopy(input_items)
+                    ctx.set_agent_name(f"{trans('agent.evolve.generation')} {num_generation}")
                     results[j] = Runner.run_streamed(
                         parents[j],
                         **parent_kwargs
@@ -440,6 +443,7 @@ class Agent(BaseAgent):
                 window.core.api.openai.responses.unpack_agent_response(results[choose], ctx)
                 input_items = results[choose].to_input_list()
 
+                ctx.set_agent_name(evaluator.name)
                 evaluator_result = await Runner.run(evaluator, input_items)
                 result: EvaluationFeedback = evaluator_result.final_output
 

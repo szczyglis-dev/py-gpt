@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2025.09.26 15:20:00                  #
 # ================================================== #
 
 from typing import List, Optional, Callable
@@ -134,6 +134,10 @@ class PlannerWorkflow(Workflow):
         self._memory_char_limit = memory_char_limit
         self._on_stop = on_stop
 
+        # Human-friendly display names propagated to UI via workflow events.
+        self._display_planner_name: str = "PlannerWorkflow"
+        self._display_executor_name: str = "FunctionAgent"
+
         self._executor = FunctionAgent(
             name="PlannerExecutor",
             description="Executes planner sub-tasks using available tools.",
@@ -184,9 +188,13 @@ class PlannerWorkflow(Workflow):
         :param total: The total number of steps (optional).
         :param meta: Additional metadata for the step (optional).
         """
+        # Always pass a friendly agent name; for 'subtask' we signal the executor agent to the UI.
+        m = dict(meta or {})
+        m.setdefault("agent_name", self._display_executor_name if name == "subtask" else self._display_planner_name)
+
         try:
             ctx.write_event_to_stream(
-                StepEvent(name=name, index=index, total=total, meta=meta or {})
+                StepEvent(name=name, index=index, total=total, meta=m)
             )
         except Exception:
             # fallback for older versions of AgentStream
@@ -195,9 +203,9 @@ class PlannerWorkflow(Workflow):
                     AgentStream(
                         delta="",
                         response="",
-                        current_agent_name="PlannerWorkflow",
+                        current_agent_name=m.get("agent_name", self._display_planner_name),
                         tool_calls=[],
-                        raw={"StepEvent": {"name": name, "index": index, "total": total, "meta": meta or {}}}
+                        raw={"StepEvent": {"name": name, "index": index, "total": total, "meta": m}}
                     )
                 )
             except Exception:
@@ -308,9 +316,8 @@ class PlannerWorkflow(Workflow):
         :param text: The text message to emit.
         :param agent_name: The name of the agent emitting the text (default: "PlannerWorkflow").
         """
+        # Always try to include agent name; fall back to minimal event for older validators.
         try:
-            ctx.write_event_to_stream(AgentStream(delta=text))
-        except ValidationError:
             ctx.write_event_to_stream(
                 AgentStream(
                     delta=text,
@@ -320,6 +327,8 @@ class PlannerWorkflow(Workflow):
                     raw={},
                 )
             )
+        except ValidationError:
+            ctx.write_event_to_stream(AgentStream(delta=text))
 
     def _to_text(self, resp) -> str:
         """
@@ -443,9 +452,18 @@ class PlannerWorkflow(Workflow):
                     if delta:
                         has_stream = True
                         stream_buf.append(str(delta))
-                    if not getattr(e, "current_agent_name", None):
+                    # Always enforce a stable display name for executor events.
+                    try:
+                        e.current_agent_name = self._display_executor_name
+                    except Exception:
                         try:
-                            e.current_agent_name = self._executor.name
+                            e = AgentStream(
+                                delta=getattr(e, "delta", ""),
+                                response=getattr(e, "response", ""),
+                                current_agent_name=self._display_executor_name,
+                                tool_calls=getattr(e, "tool_calls", []),
+                                raw=getattr(e, "raw", {}),
+                            )
                         except Exception:
                             pass
                     ctx.write_event_to_stream(e)
@@ -460,7 +478,7 @@ class PlannerWorkflow(Workflow):
                             AgentStream(
                                 delta=last_answer,
                                 response=last_answer,
-                                current_agent_name=f"{self._executor.name} (subtask)",
+                                current_agent_name=self._display_executor_name,
                                 tool_calls=e.tool_calls,
                                 raw=e.raw,
                             )
@@ -484,7 +502,7 @@ class PlannerWorkflow(Workflow):
         try:
             return await _stream()
         except Exception as ex:
-            await self._emit_text(ctx, f"\n`Sub-task failed: {ex}`")
+            await self._emit_text(ctx, f"\n`Sub-task failed: {ex}`", agent_name=self._display_executor_name)
             return last_answer or ("".join(stream_buf).strip() if stream_buf else "")
 
     @step
@@ -520,7 +538,7 @@ class PlannerWorkflow(Workflow):
                 f"Expected output: {st.expected_output}\n"
                 f"Dependencies: {st.dependencies}\n\n"
             )
-        await self._emit_text(ctx, "\n".join(lines))
+        await self._emit_text(ctx, "\n".join(lines), agent_name=self._display_planner_name)
         return PlanReady(plan=plan, query=ev.query)
 
     @step
@@ -537,7 +555,7 @@ class PlannerWorkflow(Workflow):
         last_answer = ""
         completed: list[tuple[str, str]] = []  # (name, output)
 
-        await self._emit_text(ctx, "\n\n`Executing plan...`")
+        await self._emit_text(ctx, "\n\n`Executing plan...`", agent_name=self._display_planner_name)
 
         for i, st in enumerate(plan_sub_tasks, 1):
             self._emit_step_event(
@@ -550,6 +568,8 @@ class PlannerWorkflow(Workflow):
                     "expected_output": st.expected_output,
                     "dependencies": st.dependencies,
                     "input": st.input,
+                    # Signal that the next stream will come from the executor.
+                    "agent_name": self._display_executor_name,
                 },
             )
 
@@ -561,10 +581,10 @@ class PlannerWorkflow(Workflow):
 
             # stop callback
             if self._stopped():
-                await self._emit_text(ctx, "\n`Plan execution stopped.`")
+                await self._emit_text(ctx, "\n`Plan execution stopped.`", agent_name=self._display_planner_name)
                 return FinalEvent(result=last_answer or "Plan execution stopped.")
 
-            await self._emit_text(ctx, header)
+            await self._emit_text(ctx, header, agent_name=self._display_planner_name)
 
             # build context for sub-task
             ctx_text = self._build_context_for_subtask(
@@ -588,7 +608,7 @@ class PlannerWorkflow(Workflow):
             sub_answer = await self._run_subtask(ctx, composed_prompt)
             sub_answer = (sub_answer or "").strip()
 
-            await self._emit_text(ctx, f"\n\n`Finished Sub Task {i}/{total}: {st.name}`")
+            await self._emit_text(ctx, f"\n\n`Finished Sub Task {i}/{total}: {st.name}`", agent_name=self._display_planner_name)
 
             # save completed sub-task
             completed.append((st.name, sub_answer))
@@ -597,5 +617,5 @@ class PlannerWorkflow(Workflow):
 
             # TODO: refine plan if needed
 
-        await self._emit_text(ctx, "\n\n`Plan execution finished.`")
+        await self._emit_text(ctx, "\n\n`Plan execution finished.`", agent_name=self._display_planner_name)
         return FinalEvent(result=last_answer or "Plan finished.")
