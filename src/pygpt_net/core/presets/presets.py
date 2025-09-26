@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.09.26 03:00:00                  #
 # ================================================== #
 
 import copy
 import uuid
-from typing import Optional, Tuple, Dict
+from collections import OrderedDict
+from typing import Optional, Tuple, Dict, List
 
 from packaging.version import Version
 from pygpt_net.core.types import (
@@ -165,10 +166,6 @@ class Presets:
             return MODE_COMPLETION
         if preset.img:
             return MODE_IMAGE
-        # if preset.vision:
-            # return MODE_VISION
-        # if preset.langchain:
-            # return MODE_LANGCHAIN
         if preset.assistant:
             return MODE_ASSISTANT
         if preset.llama_index:
@@ -214,12 +211,10 @@ class Presets:
         attr = self._MODE_TO_ATTR.get(mode)
         if not attr:
             return
-        i = 0
-        for key, item in self.items.items():
-            if getattr(item, attr, False):
-                if i == idx:
-                    return key
-                i += 1
+        ids = list(self.get_by_mode(mode).keys())
+        if idx < 0 or idx >= len(ids):
+            return
+        return ids[idx]
 
     def get_by_id(self, mode: str, id: str) -> Optional[PresetItem]:
         """
@@ -265,7 +260,19 @@ class Presets:
         attr = self._MODE_TO_ATTR.get(mode)
         if not attr:
             return {}
-        return {id: item for id, item in self.items.items() if getattr(item, attr, False)}
+        data = {id: item for id, item in self.items.items() if getattr(item, attr, False)}
+        if not self._dnd_enabled():
+            return data
+        ordered_ids = self._ordered_ids_for_mode(mode)
+        out = OrderedDict()
+        for pid in ordered_ids:
+            itm = data.get(pid)
+            if itm is not None:
+                out[pid] = itm
+        for pid, itm in data.items():
+            if pid not in out:
+                out[pid] = itm
+        return out
 
     def get_idx_by_id(self, mode: str, id: str) -> int:
         """
@@ -275,16 +282,13 @@ class Presets:
         :param id: preset id
         :return: preset idx
         """
-        attr = self._MODE_TO_ATTR.get(mode)
-        if not attr:
+        if id is None:
             return 0
-        i = 0
-        for key, item in self.items.items():
-            if getattr(item, attr, False):
-                if key == id:
-                    return i
-                i += 1
-        return 0
+        ids = list(self.get_by_mode(mode).keys())
+        try:
+            return ids.index(id)
+        except ValueError:
+            return 0
 
     def get_default(self, mode: str) -> Optional[str]:
         """
@@ -293,12 +297,9 @@ class Presets:
         :param mode: mode name
         :return: default prompt name
         """
-        attr = self._MODE_TO_ATTR.get(mode)
-        if not attr:
-            return None
-        for key, item in self.items.items():
-            if getattr(item, attr, False):
-                return key
+        data = self.get_by_mode(mode)
+        for key in data.keys():
+            return key
         return None
 
     def get_duplicate_name(self, id: str) -> Tuple[str, str]:
@@ -331,6 +332,7 @@ class Presets:
         self.items[id].filename = id
         self.items[id].uuid = str(uuid.uuid4())
         self.sort_by_name()
+        self._order_append_new_item(id)
         return id
 
     def remove(
@@ -345,7 +347,10 @@ class Presets:
         :param remove_file: also remove preset JSON config file
         """
         if id in self.items:
+            item = self.items[id]
+            rem_uuid = item.uuid
             self.items.pop(id)
+            self._order_remove_uuid(rem_uuid)
 
         if remove_file:
             self.provider.remove(id)
@@ -366,6 +371,7 @@ class Presets:
         :param preset: preset item
         """
         self.items[preset.filename] = preset
+        self._order_append_new_item(preset.filename)
 
     def update_and_save(self, preset: PresetItem):
         """
@@ -375,6 +381,7 @@ class Presets:
         """
         self.items[preset.filename] = preset
         self.save(preset.filename)
+        self._order_append_new_item(preset.filename)
 
     def get_all(self) -> Dict[str, PresetItem]:
         """
@@ -411,6 +418,7 @@ class Presets:
         self.patch_duplicated()
         self.sort_by_name()
         self.append_current()
+        self._order_sync_all()
 
     def save(self, id: str):
         """
@@ -485,3 +493,182 @@ class Presets:
             uuids.add(item.uuid)
         if patched:
             self.save_all()
+
+    # ----------------------------
+    # Ordering (drag & drop) logic
+    # ----------------------------
+
+    def _cfg_get(self, key, default=None):
+        try:
+            return self.window.core.config.get(key)
+        except Exception:
+            return default
+
+    def _cfg_set(self, key, value):
+        try:
+            self.window.core.config.set(key, value)
+        except Exception:
+            pass
+
+    def _dnd_enabled(self) -> bool:
+        """
+        Check global switch for DnD ordering.
+        """
+        v = self._cfg_get('presets.drag_and_drop.enabled', False)
+        return bool(v)
+
+    @staticmethod
+    def _is_special_id(pid: str) -> bool:
+        """
+        current.* presets are special and pinned at top; not movable.
+        """
+        return pid.startswith("current.")
+
+    def _uuid_to_id_map(self) -> Dict[str, str]:
+        return {item.uuid: pid for pid, item in self.items.items() if item.uuid}
+
+    def _visible_ids_for_mode(self, mode: str) -> List[str]:
+        attr = self._MODE_TO_ATTR.get(mode)
+        if not attr:
+            return []
+        return [pid for pid, it in self.items.items() if getattr(it, attr, False)]
+
+    def _visible_regular_ids_for_mode(self, mode: str) -> List[str]:
+        return [pid for pid in self._visible_ids_for_mode(mode) if not self._is_special_id(pid)]
+
+    def _visible_regular_uuids_for_mode(self, mode: str) -> List[str]:
+        ids = self._visible_regular_ids_for_mode(mode)
+        return [self.items[pid].uuid for pid in ids if pid in self.items and self.items[pid].uuid]
+
+    def _build_global_uuid_order(self) -> List[str]:
+        """
+        Rebuild 'global' order each time based on name-sorted presets (excluding current.*).
+        """
+        regs = [(pid, it) for pid, it in self.items.items() if not self._is_special_id(pid)]
+        regs.sort(key=lambda x: x[1].name)
+        return [it.uuid for pid, it in regs if it.uuid]
+
+    def _order_get_store(self) -> Dict[str, List[str]]:
+        store = self._cfg_get('presets_order', {}) or {}
+        fixed = {}
+        for k, v in store.items():
+            if isinstance(v, dict):
+                try:
+                    seq = [v[i] for i in sorted(v.keys(), key=lambda x: int(x))]
+                except Exception:
+                    seq = list(v.values())
+                fixed[k] = seq
+            elif isinstance(v, list):
+                fixed[k] = v
+        return fixed
+
+    def _order_set_store(self, store: Dict[str, List[str]]):
+        self._cfg_set('presets_order', store)
+
+    def _order_sync_mode(self, mode: str, store: Dict[str, List[str]]) -> List[str]:
+        """
+        Ensure mode order is valid:
+        - Start from mode order or fallback to global
+        - Drop unknown UUIDs
+        - Append missing visible UUIDs at the end
+        """
+        visible = self._visible_regular_uuids_for_mode(mode)
+        visible_set = set(visible)
+
+        base = list(store.get(mode) or [])
+        if not base:
+            base = [u for u in store.get('global', []) if u in visible_set]
+
+        base = [u for u in base if u in visible_set]
+
+        seen = set(base)
+        for u in visible:
+            if u not in seen:
+                base.append(u)
+                seen.add(u)
+
+        dedup = []
+        s = set()
+        for u in base:
+            if u not in s:
+                dedup.append(u)
+                s.add(u)
+
+        store[mode] = dedup
+        return dedup
+
+    def _order_sync_all(self):
+        """
+        Sync presets_order with current items and rebuild 'global' each time.
+        """
+        store = self._order_get_store()
+        store['global'] = self._build_global_uuid_order()
+
+        existing = set([it.uuid for it in self.items.values() if it.uuid])
+        for k, lst in list(store.items()):
+            if isinstance(lst, list):
+                store[k] = [u for u in lst if u in existing]
+
+        for mode in self._MODE_TO_ATTR.keys():
+            self._order_sync_mode(mode, store)
+
+        self._order_set_store(store)
+
+    def _ordered_ids_for_mode(self, mode: str) -> List[str]:
+        """
+        Produce ordered preset IDs for given mode:
+        - current.<mode> first (if exists)
+        - then remaining items by order stored as UUIDs
+        """
+        attr = self._MODE_TO_ATTR.get(mode)
+        if not attr:
+            return []
+        store = self._order_get_store()
+        ordered_uuids = self._order_sync_mode(mode, store)
+        self._order_set_store(store)
+
+        uuid_to_id = self._uuid_to_id_map()
+        head_id = f"current.{mode}"
+        out: List[str] = []
+        if head_id in self.items and getattr(self.items[head_id], attr, False):
+            out.append(head_id)
+        for u in ordered_uuids:
+            pid = uuid_to_id.get(u)
+            if pid and getattr(self.items.get(pid, PresetItem()), attr, False):
+                out.append(pid)
+        return out
+
+    def _order_append_new_item(self, pid: str):
+        """
+        Append new preset (by ID) to the end of all applicable mode orders.
+        """
+        if pid not in self.items:
+            return
+        if self._is_special_id(pid):
+            return
+        item = self.items[pid]
+        if not item.uuid:
+            return
+        store = self._order_get_store()
+        modes = [m for m, attr in self._MODE_TO_ATTR.items() if getattr(item, attr, False)]
+        for m in modes:
+            seq = list(store.get(m) or [])
+            if item.uuid not in seq:
+                seq.append(item.uuid)
+                store[m] = seq
+        self._order_set_store(store)
+
+    def _order_remove_uuid(self, rem_uuid: Optional[str]):
+        """
+        Remove a UUID from all order lists (including global).
+        """
+        if not rem_uuid:
+            return
+        store = self._order_get_store()
+        changed = False
+        for k, lst in list(store.items()):
+            if isinstance(lst, list) and rem_uuid in lst:
+                store[k] = [u for u in lst if u != rem_uuid]
+                changed = True
+        if changed:
+            self._order_set_store(store)

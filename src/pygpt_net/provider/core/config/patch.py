@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 19:00:00                  #
+# Updated Date: 2025.09.26 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -149,6 +149,15 @@ class Patch:
                 print("Migrating config from < 2.6.58...")
                 if "ctx.urls.internal" not in data:
                     data["ctx.urls.internal"] = False
+                updated = True
+
+            # < 2.6.61
+            if old < parse_version("2.6.61"):
+                print("Migrating config from < 2.6.61...")
+                if "presets.drag_and_drop.enabled" not in data:
+                    data["presets.drag_and_drop.enabled"] = True
+                if "presets_order" not in data:
+                    data["presets_order"] = {}
                 updated = True
 
         # update file

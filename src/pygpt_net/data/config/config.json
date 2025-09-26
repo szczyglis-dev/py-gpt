@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.6.60",
-    "app.version": "2.6.60",
-    "updated_at": "2025-09-25T00:00:00"
+    "version": "2.6.61",
+    "app.version": "2.6.61",
+    "updated_at": "2025-09-26T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -396,6 +396,8 @@
   "presence_penalty": 0.0,
   "preset": "current.chat",
   "preset.plugins": "",
+  "presets.drag_and_drop.enabled": true,
+  "presets_order": {},
   "prompt": "",
   "prompt.agent.continue": "Continue, or complete the run if the goal is fully achieved.",
   "prompt.agent.continue.always": "Continue reasoning...",

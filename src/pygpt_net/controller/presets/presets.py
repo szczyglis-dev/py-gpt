@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.26 03:00:00                  #
 # ================================================== #
 
 import re
@@ -24,12 +24,14 @@ from pygpt_net.core.types import (
     MODE_AGENT_OPENAI,
 )
 from pygpt_net.controller.presets.editor import Editor
+    # Editor controller
 from pygpt_net.core.events import AppEvent
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
 
 
 _FILENAME_SANITIZE_RE = re.compile(r'[^a-zA-Z0-9_\-\.]')
+# keep original validation (do not break other parts)
 _VALIDATE_FILENAME_RE = re.compile(r'[^\w\s\-\.]')
 
 
@@ -76,7 +78,7 @@ class Presets:
 
     def select(self, idx: int):
         """
-        Select preset
+        Select preset by list index (legacy)
 
         :param idx: value of the list (row idx)
         """
@@ -89,6 +91,32 @@ class Presets:
         w.controller.ui.update()
         w.controller.model.select_current()
         w.dispatch(AppEvent(AppEvent.PRESET_SELECTED))
+        self.set_selected(idx)
+        editor_ctrl = w.controller.presets.editor
+        if editor_ctrl.opened and editor_ctrl.current != preset_id:
+            self.editor.init(preset_id)
+
+    def select_by_id(self, preset_id: str):
+        """
+        Select preset by explicit ID (robust for DnD-ordered views).
+        """
+        if self.preset_change_locked():
+            return
+        if not preset_id:
+            return
+        w = self.window
+        mode = w.core.config.get('mode')
+        if not w.core.presets.has(mode, preset_id):
+            return
+        w.core.config.set("preset", preset_id)
+        if 'current_preset' not in w.core.config.data:
+            w.core.config.data['current_preset'] = {}
+        w.core.config.data['current_preset'][mode] = preset_id
+        self.select_model()
+        w.controller.ui.update()
+        w.controller.model.select_current()
+        w.dispatch(AppEvent(AppEvent.PRESET_SELECTED))
+        idx = w.core.presets.get_idx_by_id(mode, preset_id)
         self.set_selected(idx)
         editor_ctrl = w.controller.presets.editor
         if editor_ctrl.opened and editor_ctrl.current != preset_id:
@@ -584,6 +612,43 @@ class Presets:
         if mode == MODE_ASSISTANT:
             w.core.assistants.load()
 
+    def _nearest_id_after_delete(self, mode: str, idx: Optional[int], deleting_id: Optional[str]) -> Optional[str]:
+        """
+        Compute the nearest neighbor to select after deletion:
+        - Prefer the next item (below) if exists;
+        - Otherwise choose the previous one (above);
+        - Returns None when no neighbor can be determined.
+        This uses the current view order for the given mode, including pinned current.<mode> at index 0.
+        """
+        try:
+            w = self.window
+            data = w.core.presets.get_by_mode(mode) or {}
+            ids = list(data.keys())
+            if not ids:
+                return None
+
+            # If idx is invalid, try to resolve from deleting_id
+            if idx is None or idx < 0 or idx >= len(ids):
+                if deleting_id and deleting_id in ids:
+                    idx = ids.index(deleting_id)
+                else:
+                    return None
+
+            # Prefer below
+            if idx + 1 < len(ids):
+                cand = ids[idx + 1]
+                if cand and cand != deleting_id:
+                    return cand
+
+            # Otherwise above
+            if idx - 1 >= 0:
+                cand = ids[idx - 1]
+                if cand and cand != deleting_id:
+                    return cand
+        except Exception:
+            pass
+        return None
+
     def delete(
             self,
             idx: Optional[int] = None,
@@ -607,10 +672,31 @@ class Presets:
                         msg=trans('confirm.preset.delete'),
                     )
                     return
-                if preset_id == w.core.config.get('preset'):
-                    w.core.config.set('preset', None)
-                    w.ui.nodes['preset.prompt'].setPlainText("")
+
+                # Determine neighbor only if the deleted preset is currently active.
+                # This keeps API semantics untouched and prevents unexpected selection changes.
+                is_current = (preset_id == w.core.config.get('preset'))
+                target_id = None
+                if is_current:
+                    target_id = self._nearest_id_after_delete(mode, idx, preset_id)
+
+                # Remove from core (also removes file when True)
                 w.core.presets.remove(preset_id, True)
+
+                # When removing the active preset, jump to the nearest neighbor (below or above).
+                # If no neighbor can be determined, fall back to previous behavior (clear and let defaults apply).
+                if is_current:
+                    if target_id and target_id in w.core.presets.items:
+                        # Persist new selection in config (and keep current_preset mapping coherent)
+                        w.core.config.set('preset', target_id)
+                        if 'current_preset' not in w.core.config.data:
+                            w.core.config.data['current_preset'] = {}
+                        w.core.config.data['current_preset'][mode] = target_id
+                    else:
+                        # Fallback: clear selection to allow select_default() to pick the first available
+                        w.core.config.set('preset', None)
+                        w.ui.nodes['preset.prompt'].setPlainText("")
+
                 self.refresh(no_scroll=True)
                 w.update_status(trans('status.preset.deleted'))
 
@@ -716,3 +802,32 @@ class Presets:
     def clear_selected(self):
         """Clear selected list"""
         self.selected = []
+
+    # ----------------------------
+    # Drag & drop ordering helpers
+    # ----------------------------
+
+    def persist_order_for_mode(self, mode: str, uuids: List[str]):
+        """
+        Persist new order (by UUIDs) for given mode.
+
+        The special '*' preset (current.<mode>) is not included here and always pinned at index 0.
+        """
+        w = self.window
+        cfg = w.core.config
+        order = cfg.get('presets_order') or {}
+        # Normalize to lists
+        if isinstance(order.get(mode), dict):
+            mapped = order.get(mode)
+            order[mode] = [mapped[k] for k in sorted(mapped.keys(), key=lambda x: int(x))]
+        order[mode] = [u for u in uuids if u]
+        cfg.set('presets_order', order)
+
+    def dnd_enabled(self) -> bool:
+        """
+        Check if drag and drop is globally enabled in config.
+        """
+        try:
+            return bool(self.window.core.config.get('presets.drag_and_drop.enabled'))
+        except Exception:
+            return False
