@@ -143,6 +143,18 @@ class NodeEditor(QWidget):
         # Centralized strings
         self.config: EditorConfig = config if isinstance(config, EditorConfig) else EditorConfig()
 
+        # Theme and palette
+        """
+        if parent and hasattr(parent, "window"):
+            theme = parent.window.core.config.get("theme")
+            if theme.startswith("light"):
+                print("[NodeEditor] Detected light theme from parent")
+                self._grid_back_color = QColor(255, 255, 255)
+                self._grid_pen_color = QColor(230, 230, 230)
+                self.gridBackColor = Property(QColor, lambda self: self._grid_back_color, lambda self, v: self._q_set("_grid_back_color", v))
+                self.gridPenColor = Property(QColor, lambda self: self._grid_pen_color, lambda self, v: self._q_set("_grid_pen_color", v))
+        """
+
         self.graph = NodeGraph(registry)
         self.scene = NodeGraphicsScene(self)
         self.view = NodeGraphicsView(self.scene, self)

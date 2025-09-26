@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.60** | build: **2025-09-25** | Python: **>=3.10, <3.14**
+Release: **2.6.61** | build: **2025-09-26** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3606,6 +3606,13 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.6.61 (2025-09-26)**
+
+- Enhanced the agents node editor, custom agent flow, and instruction following.
+- Added drag-and-drop and reordering functionality to the presets list.
+- Added statistics for response tokens, including time elapsed and tokens per second.
+- Improved UI/UX.
+
 **2.6.60 (2025-09-25)**
 
 - Added a new tool: Agents Builder - allowing visual design of agent workflows using nodes - available in Tools -> Agents Builder (beta).
@@ -3625,93 +3632,6 @@ may consume additional tokens that are not displayed in the main window.
 - Changed: The web search icon has been moved to the input area.
 - Improved: The local web search plugin has been enhanced to retrieve multiple URLs at once.
 - Added: Use proxy switch in Settings.
-
-**2.6.56 (2025-09-22)**
-
-- Optimized: Memory usage and performance in streaming and rendering large contexts.
-- Added: Copy to clipboard functionality in user messages.
-- Added: Manual scroll in plain-text mode.
-
-**2.6.55 (2025-09-18)**
-
-- Fixed: Unnecessary context loading from the database.
-- Optimized: Token count in the input field.
-
-**2.6.54 (2025-09-18)**
-
-- Added: Remote tools (like web search) are now also available in the Chat with Files and Agents (LlamaIndex) modes.
-- Added: Two new plugins: Wolfram Alpha and OpenStreetMap.
-- Fixed: Enabled local file-like schemes in links/images in the markdown-it parser.
-
-**2.6.53 (2025-09-17)**
-
-- Added: An icon to enable/disable the web search remote tool in the icon bar, along with remote web search functionality in OpenRouter (#135).
-- Added: The ability to mute audio in real-time mode via the audio icon.
-
-**2.6.52 (2025-09-17)**
-
-- Added MCP plugin: Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
-- Fixed: tab tooltips reload on profile switch.
-
-**2.6.51 (2025-09-16)**
-
-- Fix: Automatically reloading calendar notes.
-- Fix: Context menu CSS background color for calendar items.
-
-**2.6.50 (2025-09-16)**
-
-- Optimized: Improved memory cleanup when switching profiles and unloading tabs.
-- Fix: Resolved missing PID data in text output.
-- Fix: Enhanced real-time parsing of execute tags.
-
-**2.6.49 (2025-09-16)**
-
-- Fixed: Occasional crashes when focusing on an output container unloaded from memory in the second column.
-
-**2.6.48 (2025-09-15)**
-
-- Added: auto-loading of next items to the list of contexts when scrolling to the end of the list.
-
-**2.6.47 (2025-09-15)**
-
-- Improved: Parsing of custom markup tags.
-- Optimized: Switching profiles.
-
-**2.6.46 (2025-09-15)**
-
-- Added: Global proxy settings for all API SDKs.
-- Fixed: xAI client configuration in Chat with Files.
-- Fixed: Top margin in streaming container.
-- Refactored: Debug workers.
-
-**2.6.45 (2025-09-13)**
-
-- Improved: Parsing of custom markup in the stream.
-- Improved: Message block parsing moved to JavaScript.
-
-**2.6.44 (2025-09-12)**
-
-- Added: Auto-collapse for large user input blocks.
-- Added: Configuration for syntax highlighting intervals.
-- Improved: Visibility of label icons.
-- Improved: Scrolling of code blocks.
-- Fixed: Parsing of quotes in custom markdown blocks.
-
-**2.6.43 (2025-09-12)**
-
-- Fixed: preset restoration when switching profiles.
-- Improved: faster application launch and exit.
-
-**2.6.42 (2025-09-11)**
-
-- Fixed: Save/load zoom factor in the chat window when switched via Ctrl + mouse wheel.
-- Fixed: Break the first line in code blocks.
-- Added: Configuration options for syntax highlight limits.
-- Updated: SVG icons.
-
-**2.6.41 (2025-09-11)**
-
-- Rendering engine optimizations: markdown parsing moved to JS, reduced CPU usage, added auto-memory clearing, and more.
 
 # Credits and links
 

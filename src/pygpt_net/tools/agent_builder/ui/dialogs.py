@@ -77,7 +77,28 @@ class Builder:
             registry=registry
         )  # parent == dialog
 
-        editor.setStyleSheet("""
+        theme = self.window.core.config.get("theme")
+        if theme.startswith("light"):
+            style = """
+            NodeEditor {
+                qproperty-gridBackColor: #ffffff;
+                qproperty-gridPenColor:  #eaeaea;
+
+                qproperty-nodeBackgroundColor: #2d2f34;
+                qproperty-nodeBorderColor:     #4b4f57;
+                qproperty-nodeSelectionColor:  #ff9900;
+                qproperty-nodeTitleColor:      #3a3d44;
+
+                qproperty-portInputColor:      #66b2ff;
+                qproperty-portOutputColor:     #70e070;
+                qproperty-portConnectedColor:  #ffd166;
+
+                qproperty-edgeColor:           #c0c0c0;
+                qproperty-edgeSelectedColor:   #ff8a5c;
+            }
+            """
+        else:
+            style = """
             NodeEditor {
                 qproperty-gridBackColor: #242629;
                 qproperty-gridPenColor:  #3b3f46;
@@ -94,7 +115,8 @@ class Builder:
                 qproperty-edgeColor:           #c0c0c0;
                 qproperty-edgeSelectedColor:   #ff8a5c;
             }
-            """)
+            """
+        editor.setStyleSheet(style)
         editor.on_clear = self.tool.clear
         editor.editing_allowed = self.tool.editing_allowed
 

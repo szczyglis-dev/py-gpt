@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.26 03:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QTimer, QSignalBlocker
+from PySide6.QtCore import Qt, QTimer, QSignalBlocker, QObject, QEvent
 from PySide6.QtGui import QAction, QIcon, QIntValidator
 from PySide6.QtWidgets import QGridLayout, QScrollArea, QSplitter, QComboBox, QLineEdit, QPushButton, \
-    QHBoxLayout, QVBoxLayout, QLabel, QWidget, QSizePolicy, QCheckBox, QMenuBar, QAbstractItemView, QHeaderView, QStyledItemDelegate
+    QHBoxLayout, QVBoxLayout, QLabel, QWidget, QSizePolicy, QCheckBox, QMenuBar, QAbstractItemView, QHeaderView, QStyledItemDelegate, QMenu, QApplication
 
 from pygpt_net.ui.widget.dialog.db import DatabaseDialog
 from pygpt_net.ui.widget.lists.db import DatabaseList, DatabaseTableModel
@@ -30,6 +30,98 @@ class _FastTextDelegate(QStyledItemDelegate):
         if len(s) > self.max_chars:
             return s[:self.max_chars] + "…"
         return s
+
+
+class _ContextMenuStyler(QObject):
+    """
+    Ensures that any QMenu spawned from the observed widgets adopts the same
+    application stylesheet, palette and font (e.g. Qt Material), even if
+    the menu is created without a parent or uses platform defaults.
+    The filter is installed only on specific widgets (no app-wide filters).
+    """
+
+    def __init__(self, style_source: QWidget):
+        super().__init__(style_source)
+        self._source = style_source
+        self._scan_timer = QTimer(self)
+        self._scan_timer.setInterval(50)  # fast enough to catch freshly spawned menus
+        self._scan_timer.timeout.connect(self._scan_and_style)
+        self._scan_ticks = 0
+        self._scan_ticks_max = 8  # up to ~400ms window
+
+    def eventFilter(self, obj, event):
+        # Trigger styling round right before/around menu show moments
+        if event.type() in (QEvent.ContextMenu, QEvent.MouseButtonPress, QEvent.KeyPress):
+            if event.type() == QEvent.ContextMenu:
+                self._start_scan()
+            elif event.type() == QEvent.MouseButtonPress and hasattr(event, "button") and event.button() == Qt.RightButton:
+                self._start_scan()
+            elif event.type() == QEvent.KeyPress:
+                key = getattr(event, "key", lambda: None)()
+                mods = getattr(event, "modifiers", lambda: Qt.NoModifier)()
+                if key == Qt.Key_Menu or (key == Qt.Key_F10 and (mods & Qt.ShiftModifier)):
+                    self._start_scan()
+        return False  # do not consume events
+
+    def _start_scan(self):
+        # Start a short, repeated scan to reliably catch the menu top-level window
+        self._scan_ticks = 0
+        if not self._scan_timer.isActive():
+            # immediate pass + scheduled ones
+            QTimer.singleShot(0, self._scan_and_style)
+            self._scan_timer.start()
+
+    def _scan_and_style(self):
+        self._scan_ticks += 1
+        app = QApplication.instance()
+        if app is None:
+            self._scan_timer.stop()
+            return
+
+        found_any = False
+        for w in app.topLevelWidgets():
+            if isinstance(w, QMenu):
+                found_any = True
+                self._ensure_menu_style(w)
+
+        # Stop once we scanned enough frames, or if no menus appear after a short while
+        if self._scan_ticks >= self._scan_ticks_max or (self._scan_ticks >= 2 and not found_any):
+            self._scan_timer.stop()
+
+    def _ensure_menu_style(self, menu: QMenu):
+        # Avoid re-styling the same widget repeatedly
+        if bool(menu.property("_pygpt_menu_styled")):
+            return
+
+        app = QApplication.instance()
+        try:
+            # Apply application-level stylesheet (covers Qt Material CSS selectors for QMenu)
+            if app is not None:
+                ss = app.styleSheet()
+                if ss:
+                    # Assign directly to the menu; do not append, to avoid duplication on repeated shows
+                    menu.setStyleSheet(ss)
+
+            # Copy palette, font and style from the source window to guarantee readable contrast
+            src = self._source.window() if self._source is not None else None
+            if src is None and app is not None:
+                src = app.activeWindow()
+
+            if src is not None:
+                menu.setPalette(src.palette())
+                menu.setFont(src.font())
+                # Also align QStyle to prevent platform defaults from clashing with stylesheet
+                menu.setStyle(src.style())
+
+            # Mark as processed
+            menu.setProperty("_pygpt_menu_styled", True)
+
+            # Update to reflect changes immediately if the menu is already visible
+            if menu.isVisible():
+                menu.update()
+        except Exception:
+            # Fail-safe: never break the context menu on styling issues
+            pass
 
 
 class Database:
@@ -94,6 +186,9 @@ class Database:
         self.batch_actions_menu.addAction(self.delete_all_action)
         self.batch_actions_menu.addAction(self.truncate_action)
 
+        # Ensure QMenu used by menu bar follows the application/theme styling
+        self._apply_menu_style(self.batch_actions_menu)
+
         layout = QGridLayout()
         layout.addWidget(splitter, 1, 0)
         layout.setMenuBar(self.menu_bar)
@@ -101,6 +196,22 @@ class Database:
         self.window.ui.dialog['debug.db'] = DatabaseDialog(self.window, id)
         self.window.ui.dialog['debug.db'].setLayout(layout)
         self.window.ui.dialog['debug.db'].setWindowTitle("Debug: Database (SQLite)")
+
+    def _apply_menu_style(self, menu: QMenu):
+        """Ensure QMenu follows application/theme styling consistently."""
+        try:
+            app = QApplication.instance()
+            if app is not None:
+                ss = app.styleSheet()
+                if ss:
+                    menu.setStyleSheet(ss)
+            if self.window is not None:
+                menu.setStyle(self.window.style())
+                menu.setPalette(self.window.palette())
+                menu.setFont(self.window.font())
+        except Exception:
+            # Never break UI if styling fails
+            pass
 
     def _on_splitter_moved(self, pos, index):
         if self._text_viewer is not None:
@@ -267,6 +378,34 @@ class DataBrowser(QWidget):
         self.setLayout(main_layout)
 
         view = self.get_list_widget()
+
+        # Robust, local-only context menu styling (no app-wide filters)
+        self._menu_styler = _ContextMenuStyler(self.window if self.window is not None else self)
+        if hasattr(view, "installEventFilter"):
+            view.installEventFilter(self._menu_styler)
+        # Context menu usually originates from the viewport in item views
+        if hasattr(view, "viewport") and callable(view.viewport):
+            vp = view.viewport()
+            if vp is not None and hasattr(vp, "installEventFilter"):
+                vp.installEventFilter(self._menu_styler)
+        # Also watch headers (they may expose their own context menus)
+        if hasattr(view, "horizontalHeader"):
+            hh = view.horizontalHeader()
+            if hh is not None:
+                hh.installEventFilter(self._menu_styler)
+                if hasattr(hh, "viewport"):
+                    hvp = hh.viewport()
+                    if hvp is not None:
+                        hvp.installEventFilter(self._menu_styler)
+        if hasattr(view, "verticalHeader"):
+            vh = view.verticalHeader()
+            if vh is not None:
+                vh.installEventFilter(self._menu_styler)
+                if hasattr(vh, "viewport"):
+                    vvp = vh.viewport()
+                    if vvp is not None:
+                        vvp.installEventFilter(self._menu_styler)
+
         if hasattr(view, "setUniformRowHeights"):
             view.setUniformRowHeights(True)
         if hasattr(view, "setWordWrap"):

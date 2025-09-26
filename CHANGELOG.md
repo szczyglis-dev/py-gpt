@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.6.61 (2025-09-26)
+
+- Enhanced the agents node editor, custom agent flow, and instruction following.
+- Added drag-and-drop and reordering functionality to the presets list.
+- Added statistics for response tokens, including time elapsed and tokens per second.
+- Improved UI/UX.
+
 ## 2.6.60 (2025-09-25)
 
 - Added a new tool: Agents Builder - allowing visual design of agent workflows using nodes - available in Tools -> Agents Builder (beta).
