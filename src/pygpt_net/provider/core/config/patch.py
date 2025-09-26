@@ -160,6 +160,14 @@ class Patch:
                     data["presets_order"] = {}
                 updated = True
 
+            # < 2.6.62
+            if old < parse_version("2.6.62"):
+                print("Migrating config from < 2.6.62...")
+                # add: node editor css
+                patch_css('style.light.css', True)
+                patch_css('style.dark.css', True)
+                updated = True
+
         # update file
         migrated = False
         if updated:

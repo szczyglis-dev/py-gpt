@@ -290,6 +290,8 @@ Includes built-in agents (Legacy):
 
 In the future, the list of built-in agents will be expanded.
 
+You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agents Builder``.
+
 You can also create your own agent by creating a new provider that inherits from ``pygpt_net.provider.agents.base``.
 
 **Tools and Plugins**
@@ -328,7 +330,7 @@ It allows running agents for OpenAI models and models compatible with the OpenAI
 
 In this mode, you can use pre-configured Experts in Expert mode presets - they will be launched as agents (in the ``openai_agents_experts`` type, which allows launching one main agent and subordinate agents to which queries will be appropriately directed).
 
-**Agent types:**
+**Agent types (workflows/patterns):**
 
 * ``Agent with experts`` - uses attached experts as sub-agents
 * ``Agent with experts + feedback`` - uses attached experts as sub-agents + feedback agent in a loop
@@ -340,7 +342,7 @@ In this mode, you can use pre-configured Experts in Expert mode presets - they w
 * ``B2B`` - bot-to-bot communication, involving two bots interacting with each other while keeping a human in the loop.
 * ``Supervisor + Worker`` - one agent (supervisor) acts as a bridge between the user and the second agent (worker). The user provides a query to the supervisor, who then sends instructions to the worker until the task is completed by the worker.
 
-More types will be available in the future.
+You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agents Builder``.
 
 There are also predefined presets added as examples:
 

@@ -248,7 +248,7 @@ QCalendarWidget QToolButton:hover {{
   height: 20px;
 }} 
 QMenu::indicator {{
-    border: 1px solid gray;   /* tu ustawiasz border */
+    border: 1px solid gray;
 }}
 QCalendarWidget QAbstractItemView::item:selected:focus,
 QCalendarWidget QAbstractItemView::item:selected {{
@@ -259,4 +259,22 @@ QCalendarWidget QAbstractItemView::item:hover {{
 }}
 .file-explorer QTreeView::branch {{
   background: #fff;
+}}
+
+/* Node editor */
+NodeEditor {{
+  qproperty-gridBackColor: #ffffff;
+  qproperty-gridPenColor: #eaeaea;
+
+  qproperty-nodeBackgroundColor: #2d2f34;
+  qproperty-nodeBorderColor: #4b4f57;
+  qproperty-nodeSelectionColor: #ff9900;
+  qproperty-nodeTitleColor: #3a3d44;
+
+  qproperty-portInputColor: #66b2ff;
+  qproperty-portOutputColor: #70e070;
+  qproperty-portConnectedColor: #ffd166;
+
+  qproperty-edgeColor: #c0c0c0;
+  qproperty-edgeSelectedColor: #ff8a5c;
 }}

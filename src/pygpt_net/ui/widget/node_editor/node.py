@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 15:32:39                  #
+# Updated Date: 2025.09.26 10:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -44,6 +44,9 @@ class SingleLineTextEdit(QTextEdit):
         self.setTabChangesFocus(True)
         self.setFrameStyle(QFrame.NoFrame)
         self.document().setDocumentMargin(2)
+        # Enforce line-edit-like behavior with no context menu
+        # (widget menus are disabled by design; only node menu remains)
+        self.setContextMenuPolicy(Qt.NoContextMenu)
         self._update_height()
 
     def _update_height(self):
@@ -86,58 +89,13 @@ class SingleLineTextEdit(QTextEdit):
             c.setPosition(min(pos, len(t2)))
             self.setTextCursor(c)
 
-    def _apply_menu_theme(self, menu: QMenu):
-        """Apply app/window stylesheet + palette + font to context menu."""
-        try:
-            wnd = self.window()
-        except Exception:
-            wnd = None
-        stylesheet = ""
-        pal = None
-        font = None
-        try:
-            if wnd:
-                stylesheet = wnd.styleSheet() or ""
-                pal = wnd.palette()
-                font = wnd.font()
-        except Exception:
-            pass
-        try:
-            app = QApplication.instance()
-            if app:
-                if not stylesheet and app.styleSheet():
-                    stylesheet = app.styleSheet()
-                if pal is None:
-                    pal = app.palette()
-                if font is None:
-                    font = app.font()
-        except Exception:
-            pass
-        try:
-            if pal:
-                menu.setPalette(pal)
-            if font:
-                menu.setFont(font)
-            if stylesheet:
-                menu.setStyleSheet(stylesheet)
-            menu.ensurePolished()
-        except Exception:
-            pass
-
     def contextMenuEvent(self, e):
-        """Ensure standard context menu follows app-wide (e.g., Qt Material) styling."""
+        """Widget-level context menu is intentionally disabled."""
         try:
-            menu = self.createStandardContextMenu()
+            e.ignore()
         except Exception:
-            return super().contextMenuEvent(e)
-        self._apply_menu_theme(menu)
-        try:
-            menu.exec(e.globalPos())
-        finally:
-            try:
-                menu.deleteLater()
-            except Exception:
-                pass
+            pass
+        return
 
 
 class NodeContentWidget(QWidget):
@@ -229,6 +187,8 @@ class NodeContentWidget(QWidget):
             elif pm.type == "text":
                 te = QTextEdit()
                 te.setFocusPolicy(Qt.StrongFocus)
+                # Disable widget-level context menu completely (only node menu is available)
+                te.setContextMenuPolicy(Qt.NoContextMenu)
                 if pm.value is not None:
                     te.setPlainText(str(pm.value))
                 te.setReadOnly(not editable)
@@ -238,8 +198,6 @@ class NodeContentWidget(QWidget):
                     except Exception:
                         pass
                 te.textChanged.connect(lambda pid=pid, te=te: self.valueChanged.emit(pid, te.toPlainText()))
-                # Ensure context menu follows global (Material) style
-                self._install_styled_context_menu(te)
                 w = te
 
             elif pm.type == "int":
@@ -313,57 +271,6 @@ class NodeContentWidget(QWidget):
                         lbl.setToolTip(description or "")
                 except Exception:
                     pass
-
-    def _install_styled_context_menu(self, te: QTextEdit):
-        """Install a custom context menu handler that applies global styles."""
-        try:
-            te.setContextMenuPolicy(Qt.CustomContextMenu)
-            te.customContextMenuRequested.connect(
-                lambda pos, _te=te: self._show_styled_standard_menu(_te, pos)
-            )
-        except Exception:
-            pass
-
-    def _show_styled_standard_menu(self, te: QTextEdit, pos):
-        """Create standard menu and apply app/window stylesheet + palette + font."""
-        try:
-            menu = te.createStandardContextMenu()
-        except Exception:
-            return
-        stylesheet = ""
-        pal = None
-        font = None
-        try:
-            # Prefer editor helpers (consistent with the rest of NodeEditor)
-            stylesheet = self.editor._current_stylesheet()
-            pal = self.editor._current_palette()
-            font = self.editor._current_font()
-        except Exception:
-            try:
-                wnd = te.window()
-                if wnd:
-                    stylesheet = wnd.styleSheet() or ""
-                    pal = wnd.palette()
-                    font = wnd.font()
-            except Exception:
-                pass
-        try:
-            if pal:
-                menu.setPalette(pal)
-            if font:
-                menu.setFont(font)
-            if stylesheet:
-                menu.setStyleSheet(stylesheet)
-            menu.ensurePolished()
-        except Exception:
-            pass
-        try:
-            menu.exec(te.mapToGlobal(pos))
-        finally:
-            try:
-                menu.deleteLater()
-            except Exception:
-                pass
 
     def event(self, e):
         """
@@ -825,7 +732,7 @@ class NodeItem(QGraphicsWidget):
     def _effective_hit_margin(self) -> float:
         """Return the effective resize-grip 'hit' margin (visual margin minus inset)."""
         margin = float(getattr(self.editor, "_resize_grip_margin", 12.0) or 12.0)
-        inset = float(getattr(self.editor, "_resize_grip_hit_inset", 3.0) or 0.0)
+        inset = float(getattr(self.editor, "_resize_grip_hit_inset", 5.0) or 0.0)
         hit = max(4.0, margin - inset)
         return hit
 
@@ -1216,6 +1123,77 @@ class NodeItem(QGraphicsWidget):
         """Filter events on proxy/content to keep hover/ports/overlay in sync."""
         et = e.type()
         try:
+            # Forward RMB on the proxy (covers all embedded editors) to node menu
+            if obj is self._proxy:
+                if et == QEvent.GraphicsSceneMousePress:
+                    try:
+                        if e.button() == Qt.RightButton:
+                            # Use screenPos if available; fallback to view mapping
+                            gp = e.screenPos() if hasattr(e, "screenPos") else None
+                            if gp is None:
+                                sp = e.scenePos()
+                                vp = self.editor.view.mapFromScene(sp)
+                                gp = self.editor.view.viewport().mapToGlobal(vp)
+                            # Reuse node menu logic here for consistency
+                            menu = QMenu(self.editor.window())
+                            ss = self.editor.window().styleSheet()
+                            if ss:
+                                menu.setStyleSheet(ss)
+                            act_rename = QAction(self.editor.config.node_context_rename(), menu)
+                            act_delete = QAction(self.editor.config.node_context_delete(), menu)
+                            menu.addAction(act_rename)
+                            menu.addSeparator()
+                            menu.addAction(act_delete)
+                            chosen = menu.exec(gp.toPoint() if hasattr(gp, "toPoint") else gp)
+                            if chosen == act_rename:
+                                from PySide6.QtWidgets import QInputDialog
+                                new_name, ok = QInputDialog.getText(
+                                    self.editor.window(),
+                                    self.editor.config.rename_dialog_title(),
+                                    self.editor.config.rename_dialog_label(),
+                                    text=self.node.name
+                                )
+                                if ok and new_name:
+                                    self.node.name = new_name
+                                    self.update()
+                            elif chosen == act_delete:
+                                self.editor._delete_node_item(self)
+                            e.accept()
+                            return True
+                    except Exception:
+                        pass
+
+                if et == QEvent.GraphicsSceneContextMenu:
+                    try:
+                        gp = e.screenPos() if hasattr(e, "screenPos") else None
+                        menu = QMenu(self.editor.window())
+                        ss = self.editor.window().styleSheet()
+                        if ss:
+                            menu.setStyleSheet(ss)
+                        act_rename = QAction(self.editor.config.node_context_rename(), menu)
+                        act_delete = QAction(self.editor.config.node_context_delete(), menu)
+                        menu.addAction(act_rename)
+                        menu.addSeparator()
+                        menu.addAction(act_delete)
+                        chosen = menu.exec(gp)
+                        if chosen == act_rename:
+                            from PySide6.QtWidgets import QInputDialog
+                            new_name, ok = QInputDialog.getText(
+                                self.editor.window(),
+                                self.editor.config.rename_dialog_title(),
+                                self.editor.config.rename_dialog_label(),
+                                text=self.node.name
+                            )
+                            if ok and new_name:
+                                self.node.name = new_name
+                                self.update()
+                        elif chosen == act_delete:
+                            self.editor._delete_node_item(self)
+                        e.accept()
+                        return True
+                    except Exception:
+                        pass
+
             if obj is self._proxy and et in (QEvent.GraphicsSceneMouseMove, QEvent.GraphicsSceneHoverMove):
                 local = self.mapFromScene(e.scenePos())
                 self._apply_hover_from_pos(local)

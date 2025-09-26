@@ -145,3 +145,21 @@ QCalendarWidget QMenu::item:selected:focus,
 QCalendarWidget QMenu::item:selected {{
     background: #3a4045;
 }}
+
+/* Node editor */
+NodeEditor {{
+  qproperty-gridBackColor: #242629;
+  qproperty-gridPenColor: #3b3f46;
+
+  qproperty-nodeBackgroundColor: #2d2f34;
+  qproperty-nodeBorderColor: #4b4f57;
+  qproperty-nodeSelectionColor: #ff9900;
+  qproperty-nodeTitleColor: #3a3d44;
+
+  qproperty-portInputColor: #66b2ff;
+  qproperty-portOutputColor: #70e070;
+  qproperty-portConnectedColor: #ffd166;
+
+  qproperty-edgeColor: #c0c0c0;
+  qproperty-edgeSelectedColor: #ff8a5c;
+}}

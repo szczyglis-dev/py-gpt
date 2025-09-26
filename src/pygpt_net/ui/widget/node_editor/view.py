@@ -254,7 +254,6 @@ class NodeViewOverlayControls(QWidget):
         self.setAttribute(Qt.WA_StyledBackground, True)
 
         layout = QHBoxLayout(self)
-        # Bigger spacing to visually add padding around buttons
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(8)
 
@@ -266,21 +265,21 @@ class NodeViewOverlayControls(QWidget):
         self.btnGrab.setToolTip(cfg.overlay_grab_tooltip())
         self.btnGrab.setIcon(QIcon(":/icons/drag.svg"))
         self.btnGrab.setIconSize(QSize(20, 20))
-        self.btnGrab.setMinimumSize(32, 32)
+        self.btnGrab.setMinimumSize(25, 25)
 
-        # Zoom Out (placed before Zoom In)
+        # Zoom Out
         self.btnZoomOut = QPushButton(self)
         self.btnZoomOut.setToolTip(cfg.overlay_zoom_out_tooltip())
         self.btnZoomOut.setIcon(QIcon(":/icons/zoom_out.svg"))
         self.btnZoomOut.setIconSize(QSize(20, 20))
-        self.btnZoomOut.setMinimumSize(32, 32)
+        self.btnZoomOut.setMinimumSize(25, 25)
 
         # Zoom In
         self.btnZoomIn = QPushButton(self)
         self.btnZoomIn.setToolTip(cfg.overlay_zoom_in_tooltip())
         self.btnZoomIn.setIcon(QIcon(":/icons/zoom_in.svg"))
         self.btnZoomIn.setIconSize(QSize(20, 20))
-        self.btnZoomIn.setMinimumSize(32, 32)
+        self.btnZoomIn.setMinimumSize(25, 25)
 
         layout.addWidget(self.btnGrab)
         layout.addWidget(self.btnZoomIn)        
