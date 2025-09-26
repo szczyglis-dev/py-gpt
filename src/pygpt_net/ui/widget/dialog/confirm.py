@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.12 10:00:00                  #
+# Updated Date: 2025.09.26 10:00:00                  #
 # ================================================== #
 
+import sys
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QVBoxLayout, QPushButton
 
@@ -32,6 +33,7 @@ class ConfirmDialog(QDialog):
         self.setWindowTitle(trans('dialog.confirm.title'))
         self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)  # always on top
 
+        # Buttons
         self.window.ui.nodes['dialog.confirm.btn.yes'] = QPushButton(trans('dialog.confirm.yes'))
         self.window.ui.nodes['dialog.confirm.btn.yes'].clicked.connect(
             lambda: self.window.controller.dialogs.confirm.accept(self.type, self.id, self.parent_object))
@@ -40,9 +42,24 @@ class ConfirmDialog(QDialog):
         self.window.ui.nodes['dialog.confirm.btn.no'].clicked.connect(
             lambda: self.window.controller.dialogs.confirm.dismiss(self.type, self.id))
 
+        # Always make the neutral action (No/Cancel) the default/active one.
+        # This ensures Enter triggers the safe option by default.
+        self.window.ui.nodes['dialog.confirm.btn.no'].setAutoDefault(True)
+        self.window.ui.nodes['dialog.confirm.btn.no'].setDefault(True)
+        self.window.ui.nodes['dialog.confirm.btn.no'].setFocus()
+        self.window.ui.nodes['dialog.confirm.btn.yes'].setAutoDefault(False)
+        self.window.ui.nodes['dialog.confirm.btn.yes'].setDefault(False)
+
+        # Bottom button row with platform-specific ordering
+        # Windows: affirmative on the left, neutral on the right
+        # Linux/macOS: neutral on the left, affirmative on the right
         bottom = QHBoxLayout()
-        bottom.addWidget(self.window.ui.nodes['dialog.confirm.btn.no'])
-        bottom.addWidget(self.window.ui.nodes['dialog.confirm.btn.yes'])
+        if self._affirmative_on_left():
+            bottom.addWidget(self.window.ui.nodes['dialog.confirm.btn.yes'])
+            bottom.addWidget(self.window.ui.nodes['dialog.confirm.btn.no'])
+        else:
+            bottom.addWidget(self.window.ui.nodes['dialog.confirm.btn.no'])
+            bottom.addWidget(self.window.ui.nodes['dialog.confirm.btn.yes'])
 
         self.layout = QVBoxLayout()
         self.message = QLabel("")
@@ -53,6 +70,13 @@ class ConfirmDialog(QDialog):
         self.layout.addWidget(self.message)
         self.layout.addLayout(bottom)
         self.setLayout(self.layout)
+
+    def _affirmative_on_left(self) -> bool:
+        """
+        Decide button order depending on the platform.
+        Returns True on Windows, False otherwise (Linux/macOS).
+        """
+        return sys.platform.startswith('win')
 
     def closeEvent(self, event):
         """
