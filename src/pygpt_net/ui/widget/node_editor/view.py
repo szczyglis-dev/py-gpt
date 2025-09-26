@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 11:35:00                  #
+# Updated Date: 2025.09.26 03:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -283,8 +283,8 @@ class NodeViewOverlayControls(QWidget):
         self.btnZoomIn.setMinimumSize(32, 32)
 
         layout.addWidget(self.btnGrab)
+        layout.addWidget(self.btnZoomIn)        
         layout.addWidget(self.btnZoomOut)
-        layout.addWidget(self.btnZoomIn)
 
         self.btnGrab.toggled.connect(self.grabToggled.emit)
         self.btnZoomIn.clicked.connect(self.zoomInClicked.emit)

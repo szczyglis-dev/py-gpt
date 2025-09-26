@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.09.26 03:00:00                  #
 # ================================================== #
 
 import json
@@ -154,14 +154,18 @@ class Viewer:
                 msg = f"[DB] Created DB backup: {backup_path}"
                 self.log(msg)
 
+        tables = self.database.get_tables()
+        primary_key = tables[data['table']]['primary_key']
+
         with self.database.get_db().begin() as conn:
             conn.execute(
-                text(f"DELETE FROM {data['table']} WHERE id = :row_id")
+                text(f"DELETE FROM {data['table']} WHERE {primary_key} = :row_id")
                 .bindparams(row_id=data['row_id'])
             )
             msg = f"[DB] Deleted row ID {data['row_id']} from table {data['table']}"
             self.log(msg)
-        self.database.window.ui.debug["db"].browser.update_table_view()
+        # Force refresh to invalidate caches and handle pagination edge cases
+        self.database.window.ui.debug["db"].browser.force_refresh()
 
     def update_row(self, data: Dict[str, Any]):
         """
@@ -207,7 +211,8 @@ class Viewer:
             )
             msg = f"[DB] Updated row ID {data['id']} in table {data['table']}"
             self.log(msg)
-        self.database.window.ui.debug["db"].browser.update_table_view()
+        # Force refresh to invalidate caches and handle pagination edge cases
+        self.database.window.ui.debug["db"].browser.force_refresh()
 
     def truncate_table(self, data: Dict[str, Any], reset: bool = False):
         """
@@ -230,7 +235,8 @@ class Viewer:
             else:
                 msg = f"[DB] Deleted all rows from table {data['table']}"
             self.log(msg)
-        self.database.window.ui.debug["db"].browser.update_table_view()
+        # Force refresh to invalidate caches and handle pagination edge cases
+        self.database.window.ui.debug["db"].browser.force_refresh()
 
     def log(self, msg: str):
         """
