@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.26 13:00:00                  #
 # ================================================== #
 
 import os
@@ -33,6 +33,8 @@ class Profile:
         self.height = 500
         self.initialized = False
         self.dialog_initialized = False
+        self.before_theme = None
+        self.before_language = None
 
     def setup(self):
         """Setup profile"""
@@ -54,7 +56,8 @@ class Profile:
             uuid: str,
             force: bool = False,
             save_current: bool = True,
-            on_finish: Optional[callable] = None
+            on_finish: Optional[callable] = None,
+            is_create: bool = False,
     ):
         """
         Switch profile
@@ -63,6 +66,7 @@ class Profile:
         :param force: Force switch
         :param save_current: Save current profile
         :param on_finish: Callback function to call after switch
+        :param is_create: Is called from create profile
         """
         current = self.window.core.config.profile.get_current()
         if uuid == current and not force:
@@ -85,7 +89,8 @@ class Profile:
             self.window.controller.settings.workdir.update(
                 path,
                 force=True,
-                profile_name=profile['name']
+                profile_name=profile['name'],
+                is_create=is_create,
             )
         else:
             self.after_update(profile['name'])
@@ -288,7 +293,14 @@ class Profile:
 
         :param uuid: profile UUID
         """
-        self.switch(uuid, force=True, on_finish=self.after_create_finish)
+        self.before_theme = self.window.core.config.get("theme")
+        self.before_language = self.window.core.config.get("lang")
+        self.switch(
+            uuid,
+            force=True,
+            on_finish=self.after_create_finish,
+            is_create=True
+        )
 
     def after_create_finish(self, uuid: str):
         """

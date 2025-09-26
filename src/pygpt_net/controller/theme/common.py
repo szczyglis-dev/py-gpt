@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.09.26 13:00:00                  #
 # ================================================== #
 
 import os
@@ -32,6 +32,8 @@ class Common:
         :return: custom css filename (e.g. style.dark.css)
         """
         # check per theme style css
+        if name is None:
+            name = ""
         filename = 'style.css'
         if filename is not None:
             # per theme mode (light / dark)
@@ -58,7 +60,7 @@ class Common:
 
         :return: True if light theme, False otherwise
         """
-        theme = self.window.core.config.get('theme')
+        theme = str(self.window.core.config.get('theme'))
         return theme.startswith('light_') or theme == 'light'
 
     def toggle_tooltips(self):

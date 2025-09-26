@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.27 00:00:00                  #
+# Updated Date: 2025.09.26 13:00:00                  #
 # ================================================== #
 
 import os
@@ -83,6 +83,7 @@ class Theme:
         :param name: theme name
         :param force: force theme change (manual trigger)
         """
+        self.current_theme = name
         window = self.window
         core = window.core
         controller = window.controller

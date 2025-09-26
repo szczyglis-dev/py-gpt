@@ -22,7 +22,7 @@ from pygpt_net.controller import Controller
 from pygpt_net.tools import Tools
 from pygpt_net.ui import UI
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
-from pygpt_net.utils import get_app_meta, freeze_updates, set_env, has_env, get_env
+from pygpt_net.utils import get_app_meta, freeze_updates, set_env, has_env, get_env, trans
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -356,7 +356,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.core.presets.save_all()
         print("Exiting...")
         print("")
-        print("Do you like PyGPT? Support the development of the project: https://pygpt.net/#donate")
+        print(f"{trans('exit.msg')} https://pygpt.net/#donate")
 
     def changeEvent(self, event):
         """

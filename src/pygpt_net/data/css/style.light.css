@@ -6,6 +6,7 @@
 QWidget {{
   color: #000;
   margin: 1px;
+  background-color: #eeeeee;
 }}
 
 QListView, 

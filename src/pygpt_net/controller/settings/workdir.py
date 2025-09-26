@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 23:00:00                  #
+# Updated Date: 2025.09.26 13:00:00                  #
 # ================================================== #
 
 import copy
@@ -288,13 +288,15 @@ class Workdir:
     def update_workdir(
             self,
             force: bool = False,
-            path: str = None
+            path: str = None,
+            is_create: bool = False,
     ):
         """
         Update working directory
 
         :param force: boolean indicating if update should be forced (confirm)
         :param path: new working directory to set
+        :param is_create: True if called on profile creation
         """
         print("\n====================")
         print(f"Changing workdir to: {path}")
@@ -313,8 +315,25 @@ class Workdir:
         # update path in current profile
         self.window.core.config.profile.update_current_workdir(path)
 
+        # save previous theme and language to retain them after workdir change
+        prev_theme = None
+        prev_lang = None
+        if is_create:
+            prev_theme = self.window.core.config.get('theme')
+            prev_lang = self.window.core.config.get('lang')
+
         # reload config
         self.window.core.config.set_workdir(path, reload=True)
+
+        # if profile is just created, use current theme and language
+        if is_create:
+            print("Using current theme and language: ", prev_theme, prev_lang)
+            if prev_theme is not None:
+                self.window.core.config.set('theme', prev_theme)
+            if prev_lang is not None:
+                self.window.core.config.set('lang', prev_lang)
+            self.window.core.config.save()
+
         self.window.core.config.set('license.accepted', True)  # accept license to prevent show dialog again
 
     @Slot(bool, str, str, str)
@@ -323,7 +342,8 @@ class Workdir:
             force: bool,
             profile_name: str,
             current_path: str,
-            new_path: str
+            new_path: str,
+            is_create: bool = False
     ) -> bool:
         """
         Update working directory
@@ -332,18 +352,20 @@ class Workdir:
         :param profile_name: profile name to update after workdir change
         :param current_path: current working directory before update
         :param new_path: new working directory to set
+        :param is_create: if True, skip check for existing workdir in path
         :return: boolean indicating if update was successful
         """
         self.update_workdir(
             force=force,
             path=new_path,
+            is_create=is_create,
         )
         rollback = False
         success = False
         if force:
             try:
                 self.window.ui.dialogs.workdir.show_status(trans("dialog.workdir.result.wait"))
-                self.window.controller.reload()
+                self.window.controller.reload()  # reload all
                 self.window.ui.dialogs.workdir.show_status(trans("dialog.workdir.result.wait"))
                 msg = trans("dialog.workdir.result.success").format(path=new_path)
                 self.window.ui.dialogs.workdir.show_status(msg)
@@ -498,7 +520,8 @@ class Workdir:
             self,
             path: str,
             force: bool = False,
-            profile_name: str = None
+            profile_name: str = None,
+            is_create: bool = False,
     ):
         """
         Switch working directory to the existing one
@@ -506,12 +529,14 @@ class Workdir:
         :param path: existing working directory
         :param force: force update (confirm)
         :param profile_name: profile name (optional, for future use)
+        :param is_create: if True, skip check for existing workdir in path
         """
         self.do_update(
             force=force,
             profile_name=profile_name,
             current_path=self.window.core.config.get_user_path(),
             new_path=path,
+            is_create=is_create,
         )
 
     def migrate(

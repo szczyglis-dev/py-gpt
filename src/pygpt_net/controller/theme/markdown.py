@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.09.26 13:00:00                  #
 # ================================================== #
 
 import os
@@ -92,7 +92,7 @@ class Markdown:
             if base_name == 'web':
                 suffix = "-" + web_style
                 self.web_style = web_style
-            theme = self.window.core.config.get('theme')
+            theme = str(self.window.core.config.get('theme'))
             name = str(base_name)
             if theme.startswith('light'):
                 color = '.light'
