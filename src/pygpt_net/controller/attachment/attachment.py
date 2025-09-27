@@ -579,19 +579,28 @@ class Attachment:
         if not os.path.exists(url):
             return
 
-        if not all:
-            image_ext = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
-            ext = os.path.splitext(url)[1].lower()
-            if ext not in image_ext:
-                return
+        is_image = False
+        image_ext = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
+        ext = os.path.splitext(url)[1].lower()
+        if ext in image_ext:
+            is_image = True
+
+        if not all and not is_image:
+            return
+
+        if is_image:
+            title = "attachments.paste.img"
+            status = "painter.capture.manual.captured.success"
+        else:
+            title = "attachments.paste.file"
+            status = "attachments.paste.success"
 
         mode = self.window.core.config.get('mode')
-        title = "Clipboard image"
-        self.window.core.attachments.new(mode, title, url, False)
+        self.window.core.attachments.new(mode, trans(title), url, False)
         self.window.core.attachments.save()
         self.window.controller.attachment.update()
         event = KernelEvent(KernelEvent.STATUS, {
-            'status': trans("painter.capture.manual.captured.success") + ' ' + os.path.basename(url),
+            'status': trans(status) + ' ' + os.path.basename(url),
         })
         self.window.dispatch(event)
 
