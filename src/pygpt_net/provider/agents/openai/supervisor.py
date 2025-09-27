@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.09.27 20:25:00                  #
 # ================================================== #
-
+import base64
 import json
 import re
 import io

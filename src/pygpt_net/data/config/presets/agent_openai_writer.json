@@ -31,21 +31,7 @@
     "enabled": true,
     "description": "",
     "remote_tools": "",
-    "extra": {
-        "openai_agent_feedback": {
-            "base": {
-                "prompt": "You generate a very short story outline based on the user's input. If there is any feedback provided, use it to improve the outline.",
-                "allow_local_tools": false,
-                "allow_remote_tools": false
-            },
-            "feedback": {
-                "model": "gpt-4o",
-                "prompt": "You evaluate a story outline and decide if it's good enough. \nIf it's not good enough, you provide feedback on what needs to be improved. \nNever give it a pass on the first try. After 5 attempts, you can give it a pass if the story outline is good enough - do not go for perfection.",
-                "allow_local_tools": false,
-                "allow_remote_tools": false
-            }
-        }
-    },
+    "extra": {},
     "__meta__": {
         "version": "2.5.81",
         "app.version": "2.5.81",
