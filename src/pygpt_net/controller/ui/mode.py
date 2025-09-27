@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 00:00:00                  #
+# Updated Date: 2025.09.27 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -60,10 +60,12 @@ class Mode:
 
         # enable/disable system prompt edit - disable in agents (prompts are defined per agent in presets)
         if not is_agent_openai and not is_agent_llama:
+            presets_editor.toggle_tab("personalize", True)
             if 'preset.prompt' in ui_nodes and ui_nodes['preset.prompt'].isReadOnly():
                 ui_nodes['preset.prompt'].setReadOnly(False)
                 ui_nodes['preset.prompt'].setPlaceholderText("")
         else:
+            presets_editor.toggle_tab("personalize", False)
             if 'preset.prompt' in ui_nodes and not ui_nodes['preset.prompt'].isReadOnly():
                 ui_nodes['preset.prompt'].setReadOnly(True)
                 ui_nodes['preset.prompt'].setPlaceholderText(trans("toolbox.agent.preset.placeholder"))
