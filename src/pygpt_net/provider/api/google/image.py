@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.29 20:40:00                  #
+# Updated Date: 2025.09.14 00:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -45,6 +45,16 @@ class Image:
         :param sync: run synchronously (blocking) if True
         :return: True if started
         """
+        # Music fast-path: delegate to Music flow if a music model is selected (e.g., Lyria).
+        # This keeps image flow unchanged while enabling music in the same "image" mode.
+        try:
+            model_id = (context.model.id if context and context.model else "") or ""
+            if self.window and hasattr(self.window.core.api.google, "music"):
+                if self.window.core.api.google.music.is_music_model(model_id):
+                    return self.window.core.api.google.music.generate(context=context, extra=extra, sync=sync)
+        except Exception:
+            pass
+
         extra = extra or {}
         ctx = context.ctx or CtxItem()
         model = context.model

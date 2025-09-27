@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2025.09.14 00:00:00                  #
 # ================================================== #
 
 import os
@@ -33,6 +33,7 @@ from .audio import Audio
 from .image import Image
 from .realtime import Realtime
 from .video import Video
+from .music import Music
 
 class ApiGoogle:
     def __init__(self, window=None):
@@ -49,6 +50,7 @@ class ApiGoogle:
         self.image = Image(window)
         self.realtime = Realtime(window)
         self.video = Video(window)
+        self.music = Music(window)
         self.client: Optional[genai.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
@@ -135,10 +137,14 @@ class ApiGoogle:
                 self.vision.append_images(ctx)
 
         elif mode == MODE_IMAGE:
+            # Route to video / music / image based on selected model.
             if context.model.is_video_output():
                 return self.video.generate(context=context, extra=extra)  # veo, etc.
-            else:
-                return self.image.generate(context=context, extra=extra) # imagen, etc.
+            # Lyria / music models
+            if self.music.is_music_model(model.id if model else ""):
+                return self.music.generate(context=context, extra=extra)   # lyria, etc.
+            # Default: image
+            return self.image.generate(context=context, extra=extra)       # imagen, etc.
 
         elif mode == MODE_ASSISTANT:
             return False  # not implemented for Google
