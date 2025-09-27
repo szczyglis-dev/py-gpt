@@ -293,21 +293,22 @@ Overall Task: {task}
     ) -> str:
         if step == "subtask":
             if index and total:
-                base = f"Sub-task {index}/{total}"
+                base = trans("agent.planner.label.subtask.index_total").format(index=index, total=total)
             elif index:
-                base = f"Sub-task {index}"
+                base = trans("agent.planner.label.subtask.index").format(index=index)
             else:
-                base = "Sub-task"
-            return f"{base}: {subtask_name}" if subtask_name else base
+                base = trans("agent.planner.label.subtask")
+            return trans("agent.planner.label.with_name").format(base=base, name=subtask_name) if subtask_name else base
         if step == "refine":
             if index and total:
-                return f"Refine {index}/{total}"
-            return "Refine" if not index else f"Refine {index}"
+                return trans("agent.planner.label.refine.index_total").format(index=index, total=total)
+            return trans("agent.planner.label.refine.index").format(index=index) if index else trans(
+                "agent.planner.label.refine")
         if step in {"make_plan", "plan"}:
-            return "Plan"
+            return trans("agent.planner.label.plan")
         if step in {"execute", "execute_plan"}:
-            return "Execute"
-        return step or "Step"
+            return trans("agent.planner.label.execute")
+        return trans("agent.planner.label.step")
 
     def prepare_model(
             self,
@@ -335,8 +336,9 @@ Overall Task: {task}
         """
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
-        # Keep a stable display name; fallback to 'Executor' if no preset
-        agent_name = (preset.name if preset and getattr(preset, "name", None) else "Executor")
+        # Keep a stable display name; fallback to translated 'Executor' if no preset
+        agent_name = (
+            preset.name if preset and getattr(preset, "name", None) else trans("agent.planner.display.executor"))
         model = kwargs.get("model", ModelItem())
         tools = kwargs.get("function_tools", [])
         handoffs = kwargs.get("handoffs", [])
@@ -565,12 +567,13 @@ Overall Task: {task}
             ])
 
         # Present current plan as a dedicated step
-        plan_lines = ["`Current plan:`"]
+        plan_lines = [f"`{trans('agent.planner.ui.current_plan')}`"]
         for i, st in enumerate(plan_obj.sub_tasks, 1):
+            header = trans("agent.planner.ui.subtask_header.one").format(index=i, name=st.name)
             plan_lines.append(
-                f"\n**===== Sub Task {i}: {st.name} =====**\n"
-                f"Expected output: {st.expected_output}\n"
-                f"Dependencies: {st.dependencies}\n\n"
+                f"\n{header}\n"
+                f"{trans('agent.planner.ui.expected_output')} {st.expected_output}\n"
+                f"{trans('agent.planner.ui.dependencies')} {st.dependencies}\n\n"
             )
         plan_text = "\n".join(plan_lines)
 
@@ -617,16 +620,19 @@ Overall Task: {task}
 
             # UI header for the sub-task
             subtask_label = self._agent_label("subtask", index=i + 1, total=total, subtask_name=st.name)
-            header = (
-                f"\n\n**===== Sub Task {i + 1}/{total}: {st.name} =====**\n"
-                f"Expected output: {st.expected_output}\n"
-                f"Dependencies: {st.dependencies}\n\n"
+            header = trans("agent.planner.ui.subtask_header.progress").format(
+                index=i + 1, total=total, name=st.name
+            )
+            header_block = (
+                f"\n\n{header}\n"
+                f"{trans('agent.planner.ui.expected_output')} {st.expected_output}\n"
+                f"{trans('agent.planner.ui.dependencies')} {st.dependencies}\n\n"
             )
 
             # Compose sub-task prompt and open a new persisted step
             composed_prompt = self._compose_subtask_prompt(st, completed)
             ctx.set_agent_name(subtask_label)
-            ctx.stream = header
+            ctx.stream = header_block
             bridge.on_step(ctx, False)  # open a new step block
 
             exec_kwargs = dict(common_kwargs)
@@ -643,7 +649,7 @@ Overall Task: {task}
                     sub_rid = getattr(result, "last_response_id", "") or ""
                     sub_answer = str(getattr(result, "final_output", "") or "")
                 except Exception as ex:
-                    sub_answer = f"Sub-task failed: {ex}"
+                    sub_answer = trans("agent.planner.ui.subtask_failed").format(error=ex)
 
                 if sub_answer:
                     ctx.stream = sub_answer
@@ -675,7 +681,7 @@ Overall Task: {task}
                 ctx = bridge.on_next_ctx(
                     ctx=ctx,
                     input="",
-                    output=sub_answer if sub_answer else header.strip(),
+                    output=sub_answer if sub_answer else header_block.strip(),
                     response_id=sub_rid,
                     finish=(is_last_subtask and not will_refine),
                     stream=stream,
@@ -696,7 +702,7 @@ Overall Task: {task}
                 refine_label = self._agent_label("refine", index=i, total=len(plan_sub_tasks))
 
                 # Start refine step
-                refine_display = "\n`Refining remaining plan...`"
+                refine_display = f"\n`{trans('agent.planner.ui.refining_remaining_plan')}`"
                 ctx.set_agent_name(refine_label)
                 ctx.stream = refine_display
                 bridge.on_step(ctx, False)
@@ -731,8 +737,8 @@ Overall Task: {task}
                     refinement = None
 
                 if refinement is None:
-                    refine_display += "\n`Refine step failed to parse; continuing without changes.`"
-                    ctx.stream = "\n`Refine step failed to parse; continuing without changes.`"
+                    refine_display += f"\n`{trans('agent.planner.ui.refine_failed_parse')}`"
+                    ctx.stream = f"\n`{trans('agent.planner.ui.refine_failed_parse')}`"
                     bridge.on_step(ctx, True)
                     # finalize refine step
                     if use_partial_ctx:
@@ -750,7 +756,7 @@ Overall Task: {task}
 
                 if getattr(refinement, "is_done", False):
                     reason = getattr(refinement, "reason", "") or "Planner judged the task as satisfied."
-                    done_msg = f"\n`Planner marked the plan as complete: {reason}`"
+                    done_msg = f"\n`{trans('agent.planner.ui.plan_marked_complete').format(reason=reason)}`"
                     refine_display += done_msg
                     ctx.stream = done_msg
                     bridge.on_step(ctx, True)
@@ -778,12 +784,15 @@ Overall Task: {task}
                     if new_remaining_repr.strip() != current_remaining_repr.strip():
                         plan_sub_tasks = plan_sub_tasks[:i] + new_remaining
                         # Present the updated tail of the plan
-                        lines = ["`Updated remaining plan:`"]
+                        lines = [f"`{trans('agent.planner.ui.updated_remaining_plan')}`"]
                         for k, st_upd in enumerate(new_remaining, i + 1):
+                            upd_header = trans("agent.planner.ui.subtask_header.progress").format(
+                                index=k, total=len(plan_sub_tasks), name=st_upd.name
+                            )
                             lines.append(
-                                f"\n**===== Sub Task {k}/{len(plan_sub_tasks)}: {st_upd.name} =====**\n"
-                                f"Expected output: {st_upd.expected_output}\n"
-                                f"Dependencies: {st_upd.dependencies}\n\n"
+                                f"\n{upd_header}\n"
+                                f"{trans('agent.planner.ui.expected_output')} {st_upd.expected_output}\n"
+                                f"{trans('agent.planner.ui.dependencies')} {st_upd.dependencies}\n\n"
                             )
                         upd_text = "\n".join(lines)
                         refine_display += "\n" + upd_text
@@ -804,7 +813,7 @@ Overall Task: {task}
                     bridge.on_next(ctx)
 
         # Return last answer (final block already closed in the loop)
-        return ctx, (last_answer or "Plan finished."), (response_id or "")
+        return ctx, (last_answer or trans("agent.planner.ui.plan_finished")), (response_id or "")
 
     def get_options(self) -> Dict[str, Any]:
         """
@@ -812,7 +821,19 @@ Overall Task: {task}
 
         :return: dict of options
         """
+        # step model -> from globals
         return {
+            "step": {
+                "label": trans("agent.planner.step.label"),
+                "options": {
+                    "prompt": {
+                        "type": "textarea",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.planner.step.prompt.desc"),
+                        "default": self.PROMPT,
+                    },
+                }
+            },
             "planner": {
                 "label": trans("agent.option.section.planner"),
                 "options": {
@@ -874,17 +895,6 @@ Overall Task: {task}
                         "label": trans("agent.option.tools.remote"),
                         "description": trans("agent.option.tools.remote.desc"),
                         "default": True,
-                    },
-                }
-            },
-            "step": {
-                "label": trans("agent.planner.step.label"),
-                "options": {
-                    "prompt": {
-                        "type": "textarea",
-                        "label": trans("agent.option.prompt"),
-                        "description": trans("agent.planner.step.prompt.desc"),
-                        "default": self.PROMPT,
                     },
                 }
             },

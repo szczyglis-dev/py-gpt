@@ -197,6 +197,7 @@ class Runtime {
 	api_appendNode = (payload) => {
 		this.resetStreamState('appendNode');
 		this.data.append(payload);
+		this.scrollMgr.scheduleScroll();
 	};
 
 	api_replaceNodes = (payload) => {
@@ -267,10 +268,7 @@ class Runtime {
 	api_updateToolOutput = (c) => this.toolOutput.update(c);
 	api_clearToolOutput = () => this.toolOutput.clear();
 	api_beginToolOutput = () => this.toolOutput.begin();
-	api_endToolOutput = () => {
-	    this.toolOutput.end();
-	    this.scrollMgr.scheduleScroll();
-	}
+	api_endToolOutput = () => this.toolOutput.end();
 	api_enableToolOutput = () => this.toolOutput.enable();
 	api_disableToolOutput = () => this.toolOutput.disable();
 	api_toggleToolOutput = (id) => this.toolOutput.toggle(id);
@@ -377,6 +375,12 @@ class Runtime {
 	api_showTips = () => this.tips.show();
 	api_hideTips = () => this.tips.hide();
 
+	// API: begin/end.
+	api_begin = () => {};
+	api_end = () => {
+	    this.scrollMgr.forceScrollToBottomImmediateAtEnd();
+	}
+
 	// API: custom markup rules control.
 	api_getCustomMarkupRules = () => this.customMarkup.getRules();
 	api_setCustomMarkupRules = (rules) => {
@@ -480,6 +484,9 @@ window.appendStream = (name, chunk) => runtime.api_appendStream(name, chunk);
 window.appendStreamTyped = (type, name, chunk) => runtime.api_onChunk(name, chunk, type);
 window.nextStream = () => runtime.api_nextStream();
 window.clearStream = () => runtime.api_clearStream();
+
+window.begin = () => runtime.api_begin();
+window.end = () => runtime.api_end();
 
 window.appendNode = (payload) => runtime.api_appendNode(payload);
 window.replaceNodes = (payload) => runtime.api_replaceNodes(payload);

@@ -386,6 +386,11 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
+        try:
+            self.get_output_node(meta).page().runJavaScript("if (typeof window.begin !== 'undefined') begin();")
+        except Exception:
+            pass
+
     def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render end
@@ -402,6 +407,12 @@ class Renderer(BaseRenderer):
             self.pids[pid].item = None
         else:
             self.reload()
+
+        try:
+            self.get_output_node(meta).page().runJavaScript("if (typeof window.end !== 'undefined') end();")
+        except Exception:
+            pass
+
         self.pids[pid].clear()
         self.auto_cleanup(meta)
 

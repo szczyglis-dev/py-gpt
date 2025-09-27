@@ -58,6 +58,20 @@ class ScrollManager {
 		this.prevScroll = el.scrollHeight;
 	}
 
+	// Jump to bottom immediately (no smooth behavior).
+	forceScrollToBottomImmediateAtEnd() {
+	    if (this.userInteracted === true || !this.isNearBottom(200)) return;
+		const el = Utils.SE;
+		setTimeout(() => {
+            el.scrollTo({
+                top: el.scrollHeight,
+                behavior: 'instant'
+            });
+            this.lastScrollTop = el.scrollTop;
+		    this.prevScroll = el.scrollHeight;
+        }, 100);
+	}
+
 	// Scroll window to bottom based on auto-follow and margins.
 	scrollToBottom(live = false, force = false) {
 		const el = Utils.SE;

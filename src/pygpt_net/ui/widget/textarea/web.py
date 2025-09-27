@@ -531,7 +531,7 @@ class CustomWebEnginePage(QWebEnginePage):
         return super().acceptNavigationRequest(url, _type, isMainFrame)
 
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
-        #  print("[JS CONSOLE] Line", line_number, ":", message)
+        print("[JS CONSOLE] Line", line_number, ":", message)
         self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
 
     def cleanup(self):

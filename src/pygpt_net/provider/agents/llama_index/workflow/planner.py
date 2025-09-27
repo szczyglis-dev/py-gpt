@@ -44,6 +44,10 @@ except Exception:
     except Exception:
         ChatMemoryBuffer = None
 
+# Translation utility
+from pygpt_net.utils import trans
+
+
 class SubTask(BaseModel):
     name: str = Field(..., description="The name of the sub-task.")
     input: str = Field(..., description="The input prompt for the sub-task.")
@@ -162,8 +166,8 @@ class PlannerWorkflow(Workflow):
         self._on_stop = on_stop
 
         # Human-friendly display names propagated to UI via workflow events.
-        self._display_planner_name: str = "PlannerWorkflow"
-        self._display_executor_name: str = "FunctionAgent"
+        self._display_planner_name: str = trans("agent.planner.display.planner")  # UI label
+        self._display_executor_name: str = trans("agent.planner.display.executor_agent")  # UI label
 
         self._executor = FunctionAgent(
             name="PlannerExecutor",
@@ -211,21 +215,21 @@ class PlannerWorkflow(Workflow):
     ) -> str:
         if step == "subtask":
             if index and total:
-                base = f"Sub-task {index}/{total}"
+                base = trans("agent.planner.label.subtask.index_total").format(index=index, total=total)
             elif index:
-                base = f"Sub-task {index}"
+                base = trans("agent.planner.label.subtask.index").format(index=index)
             else:
-                base = "Sub-task"
-            return f"{base}: {subtask_name}" if subtask_name else base
+                base = trans("agent.planner.label.subtask")
+            return trans("agent.planner.label.with_name").format(base=base, name=subtask_name) if subtask_name else base
         if step == "refine":
             if index and total:
-                return f"Refine {index}/{total}"
-            return "Refine" if not index else f"Refine {index}"
+                return trans("agent.planner.label.refine.index_total").format(index=index, total=total)
+            return trans("agent.planner.label.refine.index").format(index=index) if index else trans("agent.planner.label.refine")
         if step in {"make_plan", "plan"}:
-            return "Plan"
+            return trans("agent.planner.label.plan")
         if step in {"execute", "execute_plan"}:
-            return "Execute"
-        return step or "Step"
+            return trans("agent.planner.label.execute")
+        return trans("agent.planner.label.step")
 
     def _emit_step_event(
             self,
@@ -369,22 +373,23 @@ class PlannerWorkflow(Workflow):
             self,
             ctx: Context,
             text: str,
-            agent_name: str = "PlannerWorkflow"
+            agent_name: Optional[str] = None
     ):
         """
         Emit a text message to the context stream.
 
-        :param ctx: The context to write the event to
+        :param ctx: The context to write the event to.
         :param text: The text message to emit.
         :param agent_name: The name/label to display in UI (we pass per-step labels here).
         """
+        label = agent_name or self._display_planner_name
         # Always try to include agent name; fall back to minimal event for older validators.
         try:
             ctx.write_event_to_stream(
                 AgentStream(
                     delta=text,
                     response=text,
-                    current_agent_name=agent_name,
+                    current_agent_name=label,
                     tool_calls=[],
                     raw={},
                 )
@@ -565,7 +570,11 @@ class PlannerWorkflow(Workflow):
         try:
             return await _stream()
         except Exception as ex:
-            await self._emit_text(ctx, f"\n`Sub-task failed: {ex}`", agent_name=agent_label or self._display_executor_name)
+            await self._emit_text(
+                ctx,
+                f"\n`{trans('agent.planner.ui.subtask_failed').format(error=ex)}`",
+                agent_name=agent_label or self._display_executor_name,
+            )
             return last_answer or ("".join(stream_buf).strip() if stream_buf else "")
 
     # Helper to render sub-tasks into a readable string for prompts and UI.
@@ -607,7 +616,11 @@ class PlannerWorkflow(Workflow):
         remaining_text = self._format_subtasks(remaining)
 
         # Emit a lightweight status line to the UI.
-        await self._emit_text(ctx, "\n`Refining remaining plan...`", agent_name=agent_label or "Refine")
+        await self._emit_text(
+            ctx,
+            f"\n`{trans('agent.planner.ui.refining_remaining_plan')}`",
+            agent_name=agent_label or trans("agent.planner.label.refine"),
+        )
 
         try:
             refinement = await self._planner_llm.astructured_predict(
@@ -650,12 +663,13 @@ class PlannerWorkflow(Workflow):
         except (ValueError, ValidationError):
             plan = Plan(sub_tasks=[SubTask(name="default", input=ev.query, expected_output="", dependencies=[])])
 
-        lines = ["`Current plan:`"]
+        lines = [f"`{trans('agent.planner.ui.current_plan')}`"]
         for i, st in enumerate(plan.sub_tasks, 1):
+            header = trans("agent.planner.ui.subtask_header.one").format(index=i, name=st.name)
             lines.append(
-                f"\n**===== Sub Task {i}: {st.name} =====**\n"
-                f"Expected output: {st.expected_output}\n"
-                f"Dependencies: {st.dependencies}\n\n"
+                f"\n{header}\n"
+                f"{trans('agent.planner.ui.expected_output')} {st.expected_output}\n"
+                f"{trans('agent.planner.ui.dependencies')} {st.dependencies}\n\n"
             )
         # Use a per-step label for plan creation
         await self._emit_text(ctx, "\n".join(lines), agent_name=self._agent_label("make_plan"))
@@ -677,7 +691,7 @@ class PlannerWorkflow(Workflow):
 
         # Start executing with a per-step label
         execute_label = self._agent_label("execute")
-        await self._emit_text(ctx, "\n\n`Executing plan...`", agent_name=execute_label)
+        await self._emit_text(ctx, f"\n\n`{trans('agent.planner.ui.executing_plan')}`", agent_name=execute_label)
 
         # Prepare static prompt parts for refinement.
         tools_str = ""
@@ -708,18 +722,21 @@ class PlannerWorkflow(Workflow):
                 },
             )
 
-            header = (
-                f"\n\n**===== Sub Task {i + 1}/{total}: {st.name} =====**\n"
-                f"Expected output: {st.expected_output}\n"
-                f"Dependencies: {st.dependencies}\n\n"
+            header = trans("agent.planner.ui.subtask_header.progress").format(
+                index=i + 1, total=total, name=st.name
+            )
+            header_block = (
+                f"\n\n{header}\n"
+                f"{trans('agent.planner.ui.expected_output')} {st.expected_output}\n"
+                f"{trans('agent.planner.ui.dependencies')} {st.dependencies}\n\n"
             )
 
             # stop callback
             if self._stopped():
-                await self._emit_text(ctx, "\n`Plan execution stopped.`", agent_name=execute_label)
-                return FinalEvent(result=last_answer or "Plan execution stopped.")
+                await self._emit_text(ctx, f"\n`{trans('agent.planner.ui.execution_stopped')}`", agent_name=execute_label)
+                return FinalEvent(result=last_answer or trans("agent.planner.ui.execution_stopped"))
 
-            await self._emit_text(ctx, header, agent_name=subtask_label)
+            await self._emit_text(ctx, header_block, agent_name=subtask_label)
 
             # build context for sub-task
             ctx_text = self._build_context_for_subtask(
@@ -728,7 +745,7 @@ class PlannerWorkflow(Workflow):
                 char_limit=self._memory_char_limit,
             )
 
-            # make composed prompt for sub-task
+            # make composed prompt for sub-task (internal; do not translate)
             if ctx_text:
                 composed_prompt = (
                     f"{ctx_text}\n\n"
@@ -743,7 +760,11 @@ class PlannerWorkflow(Workflow):
             sub_answer = await self._run_subtask(ctx, composed_prompt, agent_label=subtask_label)
             sub_answer = (sub_answer or "").strip()
 
-            await self._emit_text(ctx, f"\n\n`Finished Sub Task {i + 1}/{total}: {st.name}`", agent_name=subtask_label)
+            await self._emit_text(
+                ctx,
+                f"\n\n`{trans('agent.planner.ui.subtask_finished').format(index=i + 1, total=total, name=st.name)}`",
+                agent_name=subtask_label,
+            )
 
             # save completed sub-task
             completed.append((st.name, sub_answer))
@@ -752,8 +773,8 @@ class PlannerWorkflow(Workflow):
 
             # Early stop check (external cancel)
             if self._stopped():
-                await self._emit_text(ctx, "\n`Plan execution stopped.`", agent_name=execute_label)
-                return FinalEvent(result=last_answer or "Plan execution stopped.")
+                await self._emit_text(ctx, f"\n`{trans('agent.planner.ui.execution_stopped')}`", agent_name=execute_label)
+                return FinalEvent(result=last_answer or trans("agent.planner.ui.execution_stopped"))
 
             # Optional legacy-style refine after each sub-task
             i += 1  # move pointer to the next item before potential replacement of tail
@@ -790,11 +811,15 @@ class PlannerWorkflow(Workflow):
                     reason = getattr(refinement, "reason", "") or "Planner judged the task as satisfied."
                     await self._emit_text(
                         ctx,
-                        f"\n`Planner marked the plan as complete: {reason}`",
+                        f"\n`{trans('agent.planner.ui.plan_marked_complete').format(reason=reason)}`",
                         agent_name=refine_label,
                     )
-                    await self._emit_text(ctx, "\n\n`Plan execution finished.`", agent_name=execute_label)
-                    return FinalEvent(result=last_answer or "Plan finished.")
+                    await self._emit_text(
+                        ctx,
+                        f"\n\n`{trans('agent.planner.ui.plan_execution_finished')}`",
+                        agent_name=execute_label,
+                    )
+                    return FinalEvent(result=last_answer or trans("agent.planner.ui.plan_finished"))
 
                 # If an updated plan was provided, replace the remaining sub-tasks.
                 if refinement.plan and refinement.plan.sub_tasks is not None:
@@ -808,14 +833,17 @@ class PlannerWorkflow(Workflow):
                     if new_remaining_repr.strip() != current_remaining_repr.strip():
                         plan_sub_tasks = plan_sub_tasks[:i] + new_remaining
                         # Present the updated tail of the plan to the UI.
-                        lines = ["`Updated remaining plan:`"]
+                        lines = [f"`{trans('agent.planner.ui.updated_remaining_plan')}`"]
                         for k, st_upd in enumerate(new_remaining, i + 1):
+                            upd_header = trans("agent.planner.ui.subtask_header.progress").format(
+                                index=k, total=len(plan_sub_tasks), name=st_upd.name
+                            )
                             lines.append(
-                                f"\n**===== Sub Task {k}/{len(plan_sub_tasks)}: {st_upd.name} =====**\n"
-                                f"Expected output: {st_upd.expected_output}\n"
-                                f"Dependencies: {st_upd.dependencies}\n\n"
+                                f"\n{upd_header}\n"
+                                f"{trans('agent.planner.ui.expected_output')} {st_upd.expected_output}\n"
+                                f"{trans('agent.planner.ui.dependencies')} {st_upd.dependencies}\n\n"
                             )
                         await self._emit_text(ctx, "\n".join(lines), agent_name=refine_label)
 
-        await self._emit_text(ctx, "\n\n`Plan execution finished.`", agent_name=execute_label)
-        return FinalEvent(result=last_answer or "Plan finished.")
+        await self._emit_text(ctx, f"\n\n`{trans('agent.planner.ui.plan_execution_finished')}`", agent_name=execute_label)
+        return FinalEvent(result=last_answer or trans("agent.planner.ui.plan_finished"))

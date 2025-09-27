@@ -84,7 +84,19 @@ class PlannerAgent(BaseAgent):
 
         :return: dict of options
         """
+        # step model -> from globals
         return {
+            "step": {
+                "label": trans("agent.planner.step.label"),
+                "options": {
+                    "prompt": {
+                        "type": "textarea",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.planner.step.prompt.desc"),
+                        "default": DEFAULT_EXECUTE_PROMPT,
+                    },
+                }
+            },
             "plan": {
                 "label": trans("agent.planner.plan.label"),
                 "options": {
@@ -110,17 +122,6 @@ class PlannerAgent(BaseAgent):
                         "label": trans("agent.option.refine.after_each"),
                         "description": trans("agent.option.refine.after_each.desc"),
                         "default": True,
-                    },
-                }
-            },
-            "step": {
-                "label": trans("agent.planner.step.label"),
-                "options": {
-                    "prompt": {
-                        "type": "textarea",
-                        "label": trans("agent.option.prompt"),
-                        "description": trans("agent.planner.step.prompt.desc"),
-                        "default": DEFAULT_EXECUTE_PROMPT,
                     },
                 }
             },
