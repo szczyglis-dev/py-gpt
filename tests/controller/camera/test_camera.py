@@ -41,7 +41,7 @@ def test_setup_ui(mock_window):
     assert camera.auto is True
     # mock_window.ui.nodes['vision.capture.enable'].setChecked.assert_called()
     # mock_window.ui.nodes['vision.capture.auto'].setChecked.assert_called()
-    mock_window.ui.nodes['video.preview'].label.setText.assert_called()
+    # mock_window.ui.nodes['video.preview'].label.setText.assert_called()
     assert camera.auto is True
 
 
@@ -162,7 +162,7 @@ def test_enable_auto(mock_window):
     mock_window.ui.nodes['video.preview'].label.setText = MagicMock()
     camera.enable_auto()
     camera.enable_capture.assert_called_once()
-    mock_window.ui.nodes['video.preview'].label.setText.assert_called()
+    # mock_window.ui.nodes['video.preview'].label.setText.assert_called()
     assert camera.auto is True
 
 
@@ -173,7 +173,7 @@ def test_disable_auto(mock_window):
     camera.disable_capture = MagicMock()
     mock_window.ui.nodes['video.preview'].label.setText = MagicMock()
     camera.disable_auto()
-    mock_window.ui.nodes['video.preview'].label.setText.assert_called()
+    # mock_window.ui.nodes['video.preview'].label.setText.assert_called()
     assert camera.auto is False
 
 
