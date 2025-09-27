@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2025.09.27 17:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -56,12 +56,16 @@ class PlannerAgent(BaseAgent):
         prompt_step = self.get_option(preset, "step", "prompt")
         prompt_plan_initial = self.get_option(preset, "plan", "prompt")
         prompt_plan_refine = self.get_option(preset, "plan_refine", "prompt")
+        prompt_plan_refine_each_step = self.get_option(preset, "plan_refine", "after_each_subtask")
         if not prompt_step:
             prompt_step = DEFAULT_EXECUTE_PROMPT
         if not prompt_plan_initial:
             prompt_plan_initial = DEFAULT_INITIAL_PLAN_PROMPT
         if not prompt_plan_refine:
             prompt_plan_refine = DEFAULT_PLAN_REFINE_PROMPT
+        if prompt_plan_refine_each_step is None:
+            prompt_plan_refine_each_step = True
+
 
         return PlannerWorkflow(
             tools=tools,
@@ -69,8 +73,9 @@ class PlannerAgent(BaseAgent):
             verbose=verbose,
             max_steps=max_steps,
             system_prompt=prompt_step,
-            initial_plan_prompt= prompt_plan_initial,
-            plan_refine_prompt= prompt_plan_refine,
+            initial_plan_prompt=prompt_plan_initial,
+            plan_refine_prompt=prompt_plan_refine,
+            refine_after_each_subtask=prompt_plan_refine_each_step,
         )
 
     def get_options(self) -> Dict[str, Any]:
@@ -80,17 +85,6 @@ class PlannerAgent(BaseAgent):
         :return: dict of options
         """
         return {
-            "step": {
-                "label": trans("agent.planner.step.label"),
-                "options": {
-                    "prompt": {
-                        "type": "textarea",
-                        "label": trans("agent.option.prompt"),
-                        "description": trans("agent.planner.step.prompt.desc"),
-                        "default": DEFAULT_EXECUTE_PROMPT,
-                    },
-                }
-            },
             "plan": {
                 "label": trans("agent.planner.plan.label"),
                 "options": {
@@ -110,6 +104,23 @@ class PlannerAgent(BaseAgent):
                         "label": trans("agent.option.prompt"),
                         "description": trans("agent.planner.refine.prompt.desc"),
                         "default": DEFAULT_PLAN_REFINE_PROMPT,
+                    },
+                    "after_each_subtask": {
+                        "type": "bool",
+                        "label": trans("agent.option.refine.after_each"),
+                        "description": trans("agent.option.refine.after_each.desc"),
+                        "default": True,
+                    },
+                }
+            },
+            "step": {
+                "label": trans("agent.planner.step.label"),
+                "options": {
+                    "prompt": {
+                        "type": "textarea",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.planner.step.prompt.desc"),
+                        "default": DEFAULT_EXECUTE_PROMPT,
                     },
                 }
             },

@@ -31,7 +31,21 @@
     "enabled": true,
     "description": "",
     "remote_tools": "",
-    "extra": {},
+    "extra": {
+        "openai_agent_feedback": {
+            "base": {
+                "prompt": "You are senior programmer and expert in coding. Use markdown for code blocks. If there is any feedback provided, use it to improve the code.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            },
+            "feedback": {
+                "model": "o3-mini-low",
+                "prompt": "You evaluate a code and decide if it's correct. If it's not correct, you provide feedback on what needs to be fixed and improved. Never give it a pass on the first try. After 5 attempts, you can give it a pass if the code is good enough. You can use tools for checking the code, running tests, etc.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            }
+        }
+    },
     "__meta__": {
         "version": "2.5.81",
         "app.version": "2.5.81",

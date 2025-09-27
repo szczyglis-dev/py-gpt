@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 14:40:00                  #
+# Updated Date: 2025.09.27 17:00:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -341,8 +341,9 @@ Overall Task: {task}
         tools = kwargs.get("function_tools", [])
         handoffs = kwargs.get("handoffs", [])
 
-        # Use internal default prompt, not options
-        base_instructions = self.PROMPT
+        # Use prompt from options if provided; fallback to internal default.
+        step_prompt = self.get_option(preset, "step", "prompt") if preset else None
+        base_instructions = step_prompt or self.PROMPT
 
         allow_local_tools = bool(kwargs.get("allow_local_tools", False))
         allow_remote_tools = bool(kwargs.get("allow_remote_tools", False))
@@ -842,7 +843,7 @@ Overall Task: {task}
                 }
             },
             "refine": {
-                "label": trans("agent.option.section.refine"),
+                "label": trans("agent.planner.refine.label"),
                 "options": {
                     "model": {
                         "label": trans("agent.option.model"),
@@ -873,6 +874,17 @@ Overall Task: {task}
                         "label": trans("agent.option.tools.remote"),
                         "description": trans("agent.option.tools.remote.desc"),
                         "default": True,
+                    },
+                }
+            },
+            "step": {
+                "label": trans("agent.planner.step.label"),
+                "options": {
+                    "prompt": {
+                        "type": "textarea",
+                        "label": trans("agent.option.prompt"),
+                        "description": trans("agent.planner.step.prompt.desc"),
+                        "default": self.PROMPT,
                     },
                 }
             },
