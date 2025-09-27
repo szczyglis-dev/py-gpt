@@ -68,9 +68,9 @@ class Custom:
 
         # camera capture
         if not self.window.core.config.get('vision.capture.auto'):
-            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
+            self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.label"))
         else:
-            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
+            self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.auto.label"))
 
         # files / indexes
         self.window.ui.nodes['output_files'].btn_upload.setText(trans('files.local.upload'))

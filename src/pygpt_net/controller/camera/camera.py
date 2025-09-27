@@ -67,9 +67,9 @@ class Camera(QObject):
 
         # update label
         if not self.window.core.config.get('vision.capture.auto'):
-            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
+            self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.label"))
         else:
-            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
+            self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.auto.label"))
 
     def update(self):
         """Update camera frame"""
@@ -381,7 +381,7 @@ class Camera(QObject):
             {'value': True}
         )
         """
-        self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
+        self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.auto.label"))
 
         if not self.window.core.config.get('vision.capture.enabled'):
             self.enable_capture()
@@ -403,7 +403,7 @@ class Camera(QObject):
             {'value': False}
         )
         """
-        self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
+        self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.label"))
 
     def toggle_auto(self, state: bool):
         """
