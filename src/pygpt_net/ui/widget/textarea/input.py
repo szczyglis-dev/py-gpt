@@ -125,7 +125,7 @@ class ChatInput(QTextEdit):
         self.textChanged.connect(self._on_text_changed_tokens)
 
         # Paste/input safety limits
-        self._paste_max_chars = 100000000  # hard cap to prevent pathological pastes from freezing/crashing
+        self._paste_max_chars = 1000000000  # hard cap to prevent pathological pastes from freezing/crashing
 
     def _on_text_changed_tokens(self):
         """Schedule token count update with debounce."""
