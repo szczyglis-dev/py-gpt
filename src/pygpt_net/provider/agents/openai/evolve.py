@@ -330,7 +330,6 @@ class Agent(BaseAgent):
                 choose_query = self.make_choose_query(results)
                 choose_items.append(choose_query)
 
-                ctx.set_agent_name(chooser.name)
                 chooser_result = await Runner.run(chooser, choose_items)
                 result: ChooseFeedback = chooser_result.final_output
                 choose = result.answer_number
@@ -348,7 +347,6 @@ class Agent(BaseAgent):
                     bridge.on_stop(ctx)
                     break
 
-                ctx.set_agent_name(evaluator.name)
                 evaluator_result = await Runner.run(evaluator, input_items)
                 result: EvaluationFeedback = evaluator_result.final_output
 
@@ -443,7 +441,6 @@ class Agent(BaseAgent):
                 window.core.api.openai.responses.unpack_agent_response(results[choose], ctx)
                 input_items = results[choose].to_input_list()
 
-                ctx.set_agent_name(evaluator.name)
                 evaluator_result = await Runner.run(evaluator, input_items)
                 result: EvaluationFeedback = evaluator_result.final_output
 
