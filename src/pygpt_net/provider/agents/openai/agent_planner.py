@@ -831,13 +831,13 @@ Overall Task: {task}
                         "type": "bool",
                         "label": trans("agent.option.tools.local"),
                         "description": trans("agent.option.tools.local.desc"),
-                        "default": False,
+                        "default": True,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
                         "label": trans("agent.option.tools.remote"),
                         "description": trans("agent.option.tools.remote.desc"),
-                        "default": False,
+                        "default": True,
                     },
                 }
             },
