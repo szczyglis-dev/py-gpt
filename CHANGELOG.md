@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.64 (2025-09-27)
+
+- Added translations to agent headers.
+- Improved presets tabs.
+- Added support for music (Lyria) in both image and video modes (beta).
+
 ## 2.6.63 (2025-09-27)
 
 - Improved agents' workflows.

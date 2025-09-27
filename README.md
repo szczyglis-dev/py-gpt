@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.63** | build: **2025-09-27** | Python: **>=3.10, <3.14**
+Release: **2.6.64** | build: **2025-09-27** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3607,6 +3607,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.64 (2025-09-27)**
+
+- Added translations to agent headers.
+- Improved presets tabs.
+- Added support for music (Lyria) in both image and video modes (beta).
 
 **2.6.63 (2025-09-27)**
 
