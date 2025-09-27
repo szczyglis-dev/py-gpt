@@ -31,29 +31,7 @@
     "enabled": true,
     "description": "",
     "remote_tools": "",
-    "extra": {
-        "openai_agent_evolve": {
-            "base": {
-                "num_parents": 2,
-                "max_generations": 10,
-                "prompt": "You generate a response based on the user's input. If there is any feedback provided, use it to improve the response.",
-                "allow_local_tools": false,
-                "allow_remote_tools": false
-            },
-            "chooser": {
-                "model": "gpt-4o",
-                "prompt": "I will give you a list of different answers to the given question. From the provided list, choose the best and most accurate answer and return the number of that answer to me, without any explanation, just the number of the answer.",
-                "allow_local_tools": false,
-                "allow_remote_tools": false
-            },
-            "feedback": {
-                "model": "gpt-4o",
-                "prompt": "You evaluate a result and decide if it's good enough. If it's not good enough, you provide feedback on what needs to be improved. Never give it a pass on the first try. After 5 attempts, you can give it a pass if the result is good enough - do not go for perfection.",
-                "allow_local_tools": false,
-                "allow_remote_tools": false
-            }
-        }
-    },
+    "extra": {},
     "__meta__": {
         "version": "2.5.85",
         "app.version": "2.5.85",

@@ -31,21 +31,7 @@
     "enabled": true,
     "description": "",
     "remote_tools": "",
-    "extra": {
-        "openai_agent_b2b": {
-            "bot_1": {
-                "prompt": "You're an advanced AI assistant and an expert in every field. Imagine that I am also such an AI assistant and converse with me in an expert manner. As two assistants, let's brainstorm and arrive at some advanced solutions.",
-                "allow_local_tools": false,
-                "allow_remote_tools": false
-            },
-            "bot_2": {
-                "model": "gpt-4o",
-                "prompt": "You're an advanced AI assistant and an expert in every field. Imagine that I am also such an AI assistant and converse with me in an expert manner. As two assistants, let's brainstorm and arrive at some advanced solutions.",
-                "allow_local_tools": false,
-                "allow_remote_tools": false
-            }
-        }
-    },
+    "extra": {},
     "__meta__": {
         "version": "2.5.94",
         "app.version": "2.5.94",

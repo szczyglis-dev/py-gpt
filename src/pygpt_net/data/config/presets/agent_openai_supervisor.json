@@ -33,19 +33,7 @@
     "enabled": true,
     "description": "",
     "remote_tools": "",
-    "extra": {
-        "openai_agent_supervisor": {
-            "supervisor": {
-                "prompt": "\n    You are the \u201cSupervisor\u201d (orchestrator). You never use tools directly except the tool that runs the Worker.\n    Process:\n    - Decompose the user's task into actionable instructions for the Worker.\n    - Do NOT pass your conversation history to the Worker. Pass ONLY a concise, self-contained instruction.\n    - After each Worker result, evaluate against a clear Definition of Done (DoD). If not met, call the Worker again with a refined instruction.\n    - Ask the user only if absolutely necessary. If you must, STOP and output a single JSON with:\n    {\"action\":\"ask_user\",\"question\":\"...\",\"reasoning\":\"...\"}\n    - When done, output a single JSON:\n    {\"action\":\"final\",\"final_answer\":\"...\",\"reasoning\":\"...\"}\n    - Otherwise, to run the Worker, call the run_worker tool with a short instruction.\n    Respond in the user's language. Keep outputs short and precise.\n    "
-            },
-            "worker": {
-                "model": "gpt-4o",
-                "prompt": "\n    You are the \u201cWorker\u201d. You execute Supervisor instructions strictly, using your tools.\n    - Keep your own memory across calls (Worker session).\n    - Return a concise result with key evidence/extracts from tools when applicable.\n    - Do not ask the user questions directly; if instruction is underspecified, clearly state what is missing.\n    Respond in the user's language.\n    ",
-                "allow_local_tools": true,
-                "allow_remote_tools": true
-            }
-        }
-    },
+    "extra": {},
     "__meta__": {
         "version": "2.6.8",
         "app.version": "2.6.8",

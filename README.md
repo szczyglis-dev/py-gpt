@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.62** | build: **2025-09-26** | Python: **>=3.10, <3.14**
+Release: **2.6.63** | build: **2025-09-27** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3607,6 +3607,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.63 (2025-09-27)**
+
+- Improved agents' workflows.
+- Enhanced the display of agents' steps in the UI.
 
 **2.6.62 (2025-09-26)**
 

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.63 (2025-09-27)
+
+- Improved agents' workflows.
+- Enhanced the display of agents' steps in the UI.
+
 ## 2.6.62 (2025-09-26)
 
 - Enhanced agent workflow execution.

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.28 12:10:00                  #
+# Updated Date: 2025.09.27 14:40:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -76,16 +76,16 @@ The tools available are:
 Overall Task: {task}
 
 Return a JSON object that matches this schema exactly:
-{{
+{
   "sub_tasks": [
-    {{
+    {
       "name": "string",
       "input": "string",
       "expected_output": "string",
       "dependencies": ["string", "..."]
-    }}
+    }
   ]
-}}
+}
 """
 
     DEFAULT_PLAN_REFINE_PROMPT = """\
@@ -109,20 +109,20 @@ Update policy:
 - Do NOT repeat any completed sub-task. New sub-tasks must replace only the "Remaining Sub-Tasks".
 
 Output schema (strict JSON):
-{{
+{
   "is_done": true|false,
   "reason": "string or null",
-  "plan": {{
+  "plan": {
     "sub_tasks": [
-      {{
+      {
         "name": "string",
         "input": "string",
         "expected_output": "string",
         "dependencies": ["string", "..."]
-      }}
+      }
     ]
-  }} | null
-}}
+  } | null
+}
 
 The tools available are:
 {tools_str}
@@ -137,8 +137,11 @@ Overall Task: {task}
 """
 
     # Base executor instruction used by the main execution agent (internal default).
+    # Note: keep this concise but explicit that tools must be used for any external action.
     PROMPT = (
-        "You are an execution agent. Follow the provided sub-task strictly and use tools if needed. "
+        "You are an execution agent. Follow each sub-task strictly and use the available tools to take actions. "
+        "Do not claim that you cannot access files or the web; instead, invoke the appropriate tool. "
+        "For local files prefer the sequence: cwd -> find (pattern, path, recursive=true) -> read_file(path). "
         "Return only the final output unless explicitly asked for intermediate thoughts."
     )
 
@@ -187,6 +190,12 @@ Overall Task: {task}
                     if name or desc:
                         out.append(f"{name}: {desc}")
                         continue
+                # Fallback for function-style tools
+                name = (getattr(t, "name", "") or "").strip()
+                desc = (getattr(t, "description", "") or "").strip()
+                if name or desc:
+                    out.append(f"{name}: {desc}")
+                    continue
                 if isinstance(t, dict):
                     name = (t.get("name") or "").strip()
                     desc = (t.get("description") or "").strip()
@@ -246,19 +255,34 @@ Overall Task: {task}
         return self._truncate(ctx_text, char_limit or 8000)
 
     def _compose_subtask_prompt(self, st: SubTask, completed: List[Tuple[str, str]]) -> str:
+        """
+        Compose the prompt for a single sub-task. Keep it explicit that tools should be used.
+        """
         ctx_text = self._build_context_for_subtask(
             completed=completed,
             dependencies=st.dependencies or [],
             char_limit=self._memory_char_limit,
         )
+
+        # Small, generic tool usage hint keeps the model from refusing actions.
+        tool_hint = (
+            "Use tools to take actions. For file operations use: "
+            "'cwd' -> 'find' (pattern, path, recursive=true) -> 'read_file(path)'."
+        )
+
         if ctx_text:
             return (
                 f"{ctx_text}\n\n"
+                f"{tool_hint}\n"
                 f"Now execute the next sub-task: {st.name}\n"
                 f"Instructions:\n{st.input}\n"
                 f"Return only the final output."
             )
-        return f"{st.input}\n\nReturn only the final output."
+        return (
+            f"{tool_hint}\n"
+            f"{st.input}\n\n"
+            f"Return only the final output."
+        )
 
     def _agent_label(
             self,
@@ -339,7 +363,21 @@ Overall Task: {task}
             allow_local_tools=allow_local_tools,
             allow_remote_tools=allow_remote_tools,
         )
-        cfg.update(tool_kwargs)  # update kwargs with tools
+        # NOTE: do not remove this update; it attaches tools so the agent can invoke them.
+        cfg.update(tool_kwargs)
+
+        # Optional: expose tool names inside instructions to gently steer the model.
+        try:
+            tool_names = [getattr(t, "name", "").strip() for t in tool_kwargs.get("tools", [])]
+            tool_names = [n for n in tool_names if n]
+            if tool_names:
+                cfg["instructions"] = (
+                    f"{cfg['instructions']} "
+                    f"Available tools: {', '.join(tool_names)}."
+                )
+        except Exception:
+            pass
+
         return OpenAIAgent(**cfg)
 
     def get_planner(
@@ -444,8 +482,20 @@ Overall Task: {task}
         if experts:
             agent_kwargs["handoffs"] = experts
 
+        # Executor must have access to the same tool set as planner/refiner.
+        # If not explicitly provided, inherit allow_* flags from planner options.
+        exec_allow_local_tools = agent_kwargs.get("allow_local_tools")
+        exec_allow_remote_tools = agent_kwargs.get("allow_remote_tools")
+        if exec_allow_local_tools is None:
+            exec_allow_local_tools = bool(self.get_option(preset, "planner", "allow_local_tools"))
+        if exec_allow_remote_tools is None:
+            exec_allow_remote_tools = bool(self.get_option(preset, "planner", "allow_remote_tools"))
+
         # executor agent (FunctionAgent equivalent)
-        agent = self.get_agent(window, agent_kwargs)
+        agent_exec_kwargs = dict(agent_kwargs)
+        agent_exec_kwargs["allow_local_tools"] = bool(exec_allow_local_tools)
+        agent_exec_kwargs["allow_remote_tools"] = bool(exec_allow_remote_tools)
+        agent = self.get_agent(window, agent_exec_kwargs)
 
         # options
         planner_model_name = self.get_option(preset, "planner", "model")
@@ -816,13 +866,13 @@ Overall Task: {task}
                         "type": "bool",
                         "label": trans("agent.option.tools.local"),
                         "description": trans("agent.option.tools.local.desc"),
-                        "default": False,
+                        "default": True,
                     },
                     "allow_remote_tools": {
                         "type": "bool",
                         "label": trans("agent.option.tools.remote"),
                         "description": trans("agent.option.tools.remote.desc"),
-                        "default": False,
+                        "default": True,
                     },
                 }
             },
