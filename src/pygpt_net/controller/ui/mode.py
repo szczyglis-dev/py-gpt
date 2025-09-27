@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 12:00:00                  #
+# Updated Date: 2025.09.14 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -58,6 +58,17 @@ class Mode:
         is_completion = mode == MODE_COMPLETION
         is_audio = mode == MODE_AUDIO
 
+        # enable/disable system prompt edit - disable in agents (prompts are defined per agent in presets)
+        if not is_agent_openai and not is_agent_llama:
+            if 'preset.prompt' in ui_nodes and ui_nodes['preset.prompt'].isReadOnly():
+                ui_nodes['preset.prompt'].setReadOnly(False)
+                ui_nodes['preset.prompt'].setPlaceholderText("")
+        else:
+            if 'preset.prompt' in ui_nodes and not ui_nodes['preset.prompt'].isReadOnly():
+                ui_nodes['preset.prompt'].setReadOnly(True)
+                ui_nodes['preset.prompt'].setPlaceholderText(trans("toolbox.agent.preset.placeholder"))
+
+        # audio options visibility
         if not is_audio:
             ui_nodes['audio.auto_turn'].setVisible(False)
             ui_nodes["audio.loop"].setVisible(False)
@@ -71,6 +82,7 @@ class Mode:
             else:
                 ctrl.audio.toggle_output_icon(False)
 
+        # presets/assistants visibility
         if not is_assistant:
             ui_nodes['presets.widget'].setVisible(True)
         else:
@@ -81,6 +93,7 @@ class Mode:
         else:
             ui_nodes['env.widget'].setVisible(True)
 
+        # agents/experts/presets label visibility
         show_agents_label = is_agent or is_agent_llama or is_agent_openai
         if show_agents_label:
             ui_nodes['preset.agents.label'].setVisible(True)
@@ -112,6 +125,7 @@ class Mode:
         else:
             ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
 
+        # prompt editor toolbox visibility
         if is_agent:
             presets_editor.toggle_tab("experts", True)
             ui_nodes['preset.editor.temperature'].setVisible(True)
@@ -145,6 +159,7 @@ class Mode:
             ui_nodes['preset.editor.modes'].setVisible(True)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
 
+        # image options visibility
         if is_image:
             ui_nodes['media.raw'].setVisible(True)
             if ctrl.media.is_video_model():
@@ -198,10 +213,8 @@ class Mode:
         # remote tools icon visibility
         if not is_image and not is_completion:
             self.window.ui.nodes['input'].set_icon_visible("web", True)
-            # ui_nodes['icon.remote_tool.web'].setVisible(True)
         else:
             self.window.ui.nodes['input'].set_icon_visible("web", False)
-            # ui_nodes['icon.remote_tool.web'].setVisible(False)
 
         ui_tabs['input'].setTabVisible(2, is_assistant)
         ui_tabs['input'].setTabVisible(3, (not is_assistant) and (not is_image))
