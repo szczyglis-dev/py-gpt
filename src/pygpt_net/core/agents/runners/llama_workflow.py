@@ -1,3 +1,5 @@
+# core/agents/runners/llama_workflow.py
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -6,7 +8,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 17:00:00                  #
+# Updated Date: 2025.09.27 06:00:00                  #
 # ================================================== #
 
 import re
@@ -260,6 +262,11 @@ class LlamaWorkflow(BaseRunner):
         # Keep last known agent name to avoid redundant ctx updates.
         last_agent_name: Optional[str] = None
 
+        # Track whether current block has already produced user-visible tokens.
+        # This prevents creating empty DB items and preserves order.
+        content_written: bool = False
+        block_open: bool = False  # logical "block" opened after first StepEvent
+
         async for event in handler.stream_events():
             if self.is_stopped():
                 # persist current output on stop
@@ -269,6 +276,7 @@ class LlamaWorkflow(BaseRunner):
                     self.end_stream(item_ctx, signals)
                 await handler.cancel_run()  # cancel, will raise WorkflowCancelledByUser
                 break
+
             if isinstance(event, ToolCallResult):
                 output = f"\n-----------\nExecution result:\n{event.tool_output}"
                 if verbose:
@@ -276,8 +284,11 @@ class LlamaWorkflow(BaseRunner):
                 formatted = "\n```output\n" + str(event.tool_output) + "\n```\n"
                 item_ctx.live_output += formatted
                 item_ctx.stream = formatted
+                content_written = True
                 if item_ctx.stream_agent_output and flush:
                     self.send_stream(item_ctx, signals, begin)
+                begin = False
+
             elif isinstance(event, ToolCall):
                 if "code" in event.tool_kwargs:
                     output = f"\n-----------\nTool call code:\n{event.tool_kwargs['code']}"
@@ -286,23 +297,19 @@ class LlamaWorkflow(BaseRunner):
                     formatted = "\n```python\n" + str(event.tool_kwargs['code']) + "\n```\n"
                     item_ctx.live_output += formatted
                     item_ctx.stream = formatted
+                    content_written = True
                     if item_ctx.stream_agent_output and flush:
                         self.send_stream(item_ctx, signals, begin)
+                    begin = False
+
             elif isinstance(event, StepEvent):
+                # UI splitting strategy aligned with OpenAI flow:
+                # - do NOT start a new DB item at the first StepEvent
+                # - only finalize the previous item if it already produced content
+                #   (prevents empty items and ordering glitches)
                 self.set_busy(signals)
                 if not use_partials:
-                    continue
-                if verbose:
-                    print("\n\n-----STEP-----\n\n")
-                    print(f"[{event.name}] {event.index}/{event.total} meta={event.meta}")
-                if flush:
-                    item_ctx = self.on_next_ctx(
-                        item_ctx,
-                        signals=signals,
-                        begin=begin,
-                        stream=True,
-                    )
-                    # Propagate agent name early based on StepEvent meta, if available.
+                    # We still want to propagate the name early if provided.
                     try:
                         meta = getattr(event, "meta", {}) or {}
                         next_name = meta.get("agent_name")
@@ -310,8 +317,46 @@ class LlamaWorkflow(BaseRunner):
                             last_agent_name = self._apply_agent_name_to_ctx(item_ctx, next_name, last_agent_name)
                     except Exception:
                         pass
-                # Optional: mark start of a new stream block
+                    begin = True
+                    continue
+
+                if verbose:
+                    print("\n\n-----STEP-----\n\n")
+                    print(f"[{event.name}] {event.index}/{event.total} meta={event.meta}")
+
+                # If there was an open block with content -> finalize it to a new DB item.
+                if block_open and content_written:
+                    if flush:
+                        item_ctx = self.on_next_ctx(
+                            item_ctx,
+                            signals=signals,
+                            begin=begin,
+                            stream=True,
+                        )
+                    # Apply next agent name on the fresh ctx (so UI header is correct from token #1).
+                    try:
+                        meta = getattr(event, "meta", {}) or {}
+                        next_name = meta.get("agent_name")
+                        if next_name:
+                            last_agent_name = self._apply_agent_name_to_ctx(item_ctx, next_name, last_agent_name)
+                    except Exception:
+                        pass
+                else:
+                    # First step or previous step had no visible content: just propagate the name.
+                    try:
+                        meta = getattr(event, "meta", {}) or {}
+                        next_name = meta.get("agent_name")
+                        if next_name:
+                            last_agent_name = self._apply_agent_name_to_ctx(item_ctx, next_name, last_agent_name)
+                    except Exception:
+                        pass
+
+                # Prepare for the upcoming tokens (new block begins).
+                block_open = True
+                content_written = False
                 begin = True
+                continue
+
             elif isinstance(event, AgentStream):
                 # Update agent name from event if present; fallback to header parsing.
                 name = getattr(event, "current_agent_name", None)
@@ -325,9 +370,11 @@ class LlamaWorkflow(BaseRunner):
                 if event.delta:
                     item_ctx.live_output += event.delta
                     item_ctx.stream = event.delta
+                    content_written = True
                     if item_ctx.stream_agent_output and flush:
                         self.send_stream(item_ctx, signals, begin)  # send stream to webview
                     begin = False
+
             elif isinstance(event, AgentOutput):
                 # Ensure final agent name is applied as well.
                 name = getattr(event, "current_agent_name", None)
@@ -338,6 +385,9 @@ class LlamaWorkflow(BaseRunner):
                     item_ctx.set_agent_final_response(answer)
                     if verbose:
                         print(f"\nFinal response: {answer}")
+                # Do not split the block here – we will either:
+                # - split on the next StepEvent, or
+                # - finalize once at the end (make_response), just like OpenAI flow does.
 
         return item_ctx
 

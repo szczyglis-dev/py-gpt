@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 17:00:00                  #
+# Updated Date: 2025.09.27 06:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -62,12 +62,132 @@ class FlowOrchestrator:
       - First agent (in the whole flow) gets full initial messages from the app.
       - Next agent WITHOUT memory gets only last step's displayed content as a single 'user' message.
       - Agent WITH memory:
-          * if memory has items -> use them;
-          * if memory empty -> seed input from last displayed content (or initial messages as fallback).
+          * if memory has items -> use base history (items[:-1]) and pass last displayed content as a single 'user' baton;
+          * if memory empty -> seed baton from last displayed content (or initial messages as fallback).
     """
     def __init__(self, window, logger: Optional[Logger] = None) -> None:
         self.window = window
         self.logger = logger or NullLogger()
+
+    # ---------- Helpers (production-ready) ----------
+
+    def _extract_text_from_item(self, item: TResponseInputItem) -> str:
+        """Best-effort extract plain text from TResponseInputItem."""
+        if isinstance(item, dict):
+            content = item.get("content", "")
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                parts = []
+                for p in content:
+                    if isinstance(p, dict):
+                        t = p.get("text")
+                        if isinstance(t, str):
+                            parts.append(t)
+                return "\n".join(parts)
+            return ""
+        if isinstance(item, str):
+            return item
+        return ""
+
+    def _build_baton_input(
+        self,
+        *,
+        node_id: str,
+        g: FlowGraph,
+        mem: MemoryManager,
+        initial_messages: List[TResponseInputItem],
+        first_dispatch_done: bool,
+        last_plain_output: str,
+        dbg: DebugConfig,
+    ) -> tuple[List[TResponseInputItem], str, Optional[str], Any, str]:
+        """
+        Returns: (prepared_items, baton_user_text, mem_id, mem_state, source_tag)
+        Mirrors LI baton/memory policy.
+        """
+        mem_id = g.agent_to_memory.get(node_id)
+        mem_state = mem.get(mem_id) if mem_id else None
+
+        baton_user_text = ""
+        source = ""
+
+        if mem_state and mem_state.items:
+            # memory with history -> base history + baton from last output (preferred)
+            base_items = list(mem_state.items[:-1]) if len(mem_state.items) >= 1 else []
+            if last_plain_output and last_plain_output.strip():
+                baton_user_text = last_plain_output
+                prepared = base_items + [{"role": "user", "content": baton_user_text}]
+                source = "memory:existing_to_user_baton"
+            else:
+                # fallback: use last assistant content as baton
+                last_ass = mem_state.items[-1] if isinstance(mem_state.items[-1], dict) else {}
+                if isinstance(last_ass.get("content"), str):
+                    baton_user_text = last_ass.get("content", "")
+                elif isinstance(last_ass.get("content"), list) and last_ass["content"]:
+                    baton_user_text = last_ass["content"][0].get("text", "") or ""
+                else:
+                    baton_user_text = ""
+                prepared = base_items + [{"role": "user", "content": baton_user_text}]
+                source = "memory:existing_to_last_assistant"
+            return sanitize_input_items(prepared), baton_user_text, mem_id, mem_state, source
+
+        if mem_state:
+            # memory attached but empty -> seed from last output else from initial (use last user msg as baton)
+            if last_plain_output and last_plain_output.strip():
+                baton_user_text = last_plain_output
+                prepared = [{"role": "user", "content": baton_user_text}]
+                source = "memory:seed_from_last_output"
+            else:
+                base_items = list(initial_messages[:-1]) if initial_messages else []
+                last_item = initial_messages[-1] if initial_messages else {"role": "user", "content": ""}
+                baton_user_text = self._extract_text_from_item(last_item)
+                prepared = base_items + [{"role": "user", "content": baton_user_text}]
+                source = "memory:seed_from_initial"
+            return sanitize_input_items(prepared), baton_user_text, mem_id, mem_state, source
+
+        # no memory attached
+        if not first_dispatch_done:
+            # first agent: pass initial messages as-is; baton is last user text (for potential external memory)
+            last_item = initial_messages[-1] if initial_messages else {"role": "user", "content": ""}
+            baton_user_text = self._extract_text_from_item(last_item)
+            return sanitize_input_items(list(initial_messages)), baton_user_text, None, None, "no-mem:first_initial"
+        else:
+            baton_user_text = last_plain_output if last_plain_output and last_plain_output.strip() else (
+                self._extract_text_from_item(initial_messages[-1]) if initial_messages else ""
+            )
+            prepared = [{"role": "user", "content": baton_user_text}]
+            return sanitize_input_items(prepared), baton_user_text, None, None, "no-mem:last_output"
+
+    def _update_memory_after_step(
+        self,
+        *,
+        node_id: str,
+        mem_state: Any,
+        baton_user_text: str,
+        display_text: str,
+        last_response_id: Optional[str],
+        dbg: DebugConfig,
+    ) -> None:
+        """Update memory strictly with [user baton, assistant display_text], mirroring LI semantics."""
+        if not mem_state:
+            return
+        base_items = list(mem_state.items[:-1]) if getattr(mem_state, "items", None) else []
+        new_mem = (base_items or []) + [
+            {"role": "user", "content": baton_user_text or ""},
+            {"role": "assistant", "content": [{"type": "output_text", "text": display_text or ""}]},
+        ]
+        try:
+            mem_state.set_from(new_mem, last_response_id)
+            if dbg.log_inputs:
+                self.logger.debug(
+                    f"[memory] {node_id} updated len {len(base_items)} -> {len(new_mem)} "
+                    f"user='{ellipsize(baton_user_text or '', dbg.preview_chars)}' "
+                    f"assist='{ellipsize(display_text or '', dbg.preview_chars)}'"
+                )
+        except Exception as e:
+            self.logger.error(f"[memory] update failed for {node_id}: {e}")
+
+    # ---------- Main flow ----------
 
     async def run_flow(
         self,
@@ -174,55 +294,34 @@ class FlowOrchestrator:
                     f" role='{node_rt.role}'"
                 )
 
-            # Memory selection and INPUT BUILD (memory-first policy)
-            mem_id = g.agent_to_memory.get(current_id)
-            mem_state = mem.get(mem_id) if mem_id else None
-            if dbg.log_runtime:
-                mem_info = f"{mem_id} (len={len(mem_state.items)})" if mem_state and mem_state.items else (mem_id or "-")
-                self.logger.debug(f"[memory] attached={bool(mem_id)} mem_id={mem_info}")
-
-            input_items: List[TResponseInputItem]
-            input_source = ""
-
-            if mem_state and not mem_state.is_empty():
-                # memory present and already has history
-                input_items = list(mem_state.items)
-                input_source = "memory:existing"
-            elif mem_state:
-                # memory present but empty -> seed from last output or initial messages
-                if last_plain_output and last_plain_output.strip():
-                    input_items = [{"role": "user", "content": last_plain_output}]
-                    input_source = "memory:seeded_from_last"
-                else:
-                    input_items = list(initial_messages)
-                    input_source = "memory:seeded_from_initial"
-            else:
-                # no memory -> first agent gets initial messages; others get only last output
-                if not first_dispatch_done:
-                    input_items = list(initial_messages)
-                    input_source = "no-mem:initial"
-                else:
-                    if last_plain_output and last_plain_output.strip():
-                        input_items = [{"role": "user", "content": last_plain_output}]
-                        input_source = "no-mem:last_output"
-                    else:
-                        input_items = list(initial_messages)
-                        input_source = "no-mem:fallback_initial"
-
-            prepared_items = sanitize_input_items(input_items)
+            # Input build using baton policy (LI parity)
+            prepared_items, baton_user_text, mem_id, mem_state, input_source = self._build_baton_input(
+                node_id=current_id,
+                g=g,
+                mem=mem,
+                initial_messages=initial_messages,
+                first_dispatch_done=first_dispatch_done,
+                last_plain_output=last_plain_output,
+                dbg=dbg,
+            )
 
             if dbg.log_inputs:
                 self.logger.debug(f"[input] source={input_source} items={len(prepared_items)} "
                                   f"preview={items_preview(prepared_items, dbg.preview_chars)}")
+                if mem_id:
+                    mem_info = f"{mem_id} (len={len(mem_state.items) if mem_state else 0})"
+                    self.logger.debug(f"[memory] attached={bool(mem_id)} mem_id={mem_info}")
 
             # Build agent with per-node runtime
+            # Restrict friendly_map only to allowed outgoing routes of current node
+            allowed_map = {rid: fs.agents[rid].name or rid for rid in (node.outputs or []) if rid in fs.agents}
             built = factory.build(
                 node=node,
                 node_runtime=node_rt,
                 preset=preset,
                 function_tools=function_tools,
                 force_router=False,  # auto on multi-output
-                friendly_map={aid: a.name or aid for aid, a in fs.agents.items()},
+                friendly_map=allowed_map,
                 handoffs_enabled=True,
                 context=agent_kwargs.get("context"),
             )
@@ -243,37 +342,42 @@ class FlowOrchestrator:
 
             # Header for UI
             ctx.set_agent_name(agent.name)
-            # title = f"\n\n**{built.name}**\n\n"
-            # ctx.stream = title
             bridge.on_step(ctx, begin)
             begin = False
             handler.begin = begin
-            # if not use_partial_ctx:
-                # handler.to_buffer(title)
 
             display_text = ""  # what we show to UI for this step
             next_id: Optional[str] = None
 
             # --- EXECUTION ---
             if stream and not multi_output:
-                # Full token streaming (single-output agent)
+                # Full token streaming (single-output agent) – collect full buffer for baton
                 result = Runner.run_streamed(agent, **run_kwargs)
                 handler.reset()
+                # Optional local accumulator; prefer handler.buffer after loop
+                last_chunk = ""
 
                 async for event in result.stream_events():
                     if bridge.stopped():
                         result.cancel()
                         bridge.on_stop(ctx)
                         break
-                    display_text, last_response_id = handler.handle(event, ctx)
+                    chunk, last_response_id = handler.handle(event, ctx)
+                    if chunk:
+                        last_chunk = chunk
 
-                # Prepare next inputs from result for memory update (if any)
-                input_items_next = result.to_input_list()
-                input_items_next = sanitize_input_items(input_items_next)
+                # Use full buffer if available (ensures baton sees complete output)
+                display_text = getattr(handler, "buffer", "") or last_chunk or ""
 
-                # Update memory only if attached
-                if mem_state:
-                    mem_state.update_from_result(input_items_next, last_response_id)
+                # Update memory strictly with baton + displayed text
+                self._update_memory_after_step(
+                    node_id=current_id,
+                    mem_state=mem_state,
+                    baton_user_text=baton_user_text,
+                    display_text=display_text,
+                    last_response_id=last_response_id,
+                    dbg=dbg,
+                )
 
                 # Route: first edge or END
                 outs = g.get_next(current_id)
@@ -308,13 +412,15 @@ class FlowOrchestrator:
                         decision = parse_route_output(raw_text, allowed_routes)
                         display_text = decision.content or ""
 
-                        # Prepare next inputs from streamed result, patch assistant content -> content
-                        input_items_next = result.to_input_list()
-                        input_items_next = patch_last_assistant_output(input_items_next, decision.content or "")
-
-                        # Update memory if attached
-                        if mem_state:
-                            mem_state.update_from_result(input_items_next, last_response_id)
+                        # Update memory with baton + displayed content
+                        self._update_memory_after_step(
+                            node_id=current_id,
+                            mem_state=mem_state,
+                            baton_user_text=baton_user_text,
+                            display_text=display_text,
+                            last_response_id=last_response_id,
+                            dbg=dbg,
+                        )
 
                         # Route decision
                         if decision.valid:
@@ -348,11 +454,15 @@ class FlowOrchestrator:
                             if not use_partial_ctx:
                                 handler.to_buffer(display_text)
 
-                        input_items_next = result.to_input_list()
-                        input_items_next = patch_last_assistant_output(input_items_next, display_text)
-
-                        if mem_state:
-                            mem_state.update_from_result(input_items_next, last_response_id)
+                        # Update memory with baton + displayed content
+                        self._update_memory_after_step(
+                            node_id=current_id,
+                            mem_state=mem_state,
+                            baton_user_text=baton_user_text,
+                            display_text=display_text,
+                            last_response_id=last_response_id,
+                            dbg=dbg,
+                        )
 
                         if decision.valid:
                             next_id = decision.route
@@ -373,11 +483,15 @@ class FlowOrchestrator:
                             if not use_partial_ctx:
                                 handler.to_buffer(display_text)
 
-                        input_items_next = result.to_input_list()
-                        input_items_next = patch_last_assistant_output(input_items_next, display_text)
-
-                        if mem_state:
-                            mem_state.update_from_result(input_items_next, last_response_id)
+                        # Update memory with baton + displayed content
+                        self._update_memory_after_step(
+                            node_id=current_id,
+                            mem_state=mem_state,
+                            baton_user_text=baton_user_text,
+                            display_text=display_text,
+                            last_response_id=last_response_id,
+                            dbg=dbg,
+                        )
 
                         if decision.valid:
                             next_id = decision.route
@@ -397,11 +511,15 @@ class FlowOrchestrator:
                         if not use_partial_ctx:
                             handler.to_buffer(display_text)
 
-                    input_items_next = result.to_input_list()
-                    input_items_next = sanitize_input_items(input_items_next)
-
-                    if mem_state:
-                        mem_state.update_from_result(input_items_next, last_response_id)
+                    # Update memory with baton + displayed text
+                    self._update_memory_after_step(
+                        node_id=current_id,
+                        mem_state=mem_state,
+                        baton_user_text=baton_user_text,
+                        display_text=display_text,
+                        last_response_id=last_response_id,
+                        dbg=dbg,
+                    )
 
                     outs = g.get_next(current_id)
                     next_id = outs[0] if outs else g.first_connected_end(current_id)

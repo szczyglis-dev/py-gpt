@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 15:20:00                  #
+# Updated Date: 2025.09.27 10:00:00                  #
 # ================================================== #
 
 from typing import List, Optional, Callable
@@ -22,6 +22,7 @@ from llama_index.core.workflow import (
     step,
 )
 from llama_index.core.llms.llm import LLM
+    # noqa
 from llama_index.core.prompts import PromptTemplate
 from llama_index.core.tools.types import BaseTool
 
@@ -56,6 +57,16 @@ class Plan(BaseModel):
     sub_tasks: List[SubTask] = Field(..., description="The sub-tasks in the plan.")
 
 
+# Structured refinement output to emulate the legacy Planner's refine behavior.
+class PlanRefinement(BaseModel):
+    is_done: bool = Field(..., description="Whether the overall task is already satisfied.")
+    reason: Optional[str] = Field(None, description="Short justification why the plan is complete or needs update.")
+    plan: Optional[Plan] = Field(
+        default=None,
+        description="An updated plan that replaces the remaining sub-tasks. Omit if is_done=True or no update is needed.",
+    )
+
+
 DEFAULT_INITIAL_PLAN_PROMPT = """\
 You have the following prior context/memory (may be empty):
 {memory_context}
@@ -70,14 +81,29 @@ The tools available are:
 Overall Task: {task}
 """
 
+# Refinement prompt tuned to prevent premature completion and enforce "final deliverable present" rule.
 DEFAULT_PLAN_REFINE_PROMPT = """\
 You have the following prior context/memory (may be empty):
 {memory_context}
 
-Think step-by-step. Given an overall task, a set of tools, and completed sub-tasks, update (if needed) the remaining sub-tasks so that the overall task can still be completed.
-The plan should end with a sub-task that can achieve and satisfy the overall task.
-If you do update the plan, only create new sub-tasks that will replace the remaining sub-tasks, do NOT repeat tasks that are already completed.
-If the remaining sub-tasks are enough to achieve the overall task, it is ok to skip this step, and instead explain why the plan is complete.
+Think step-by-step. Given an overall task, a set of tools, and completed sub-tasks, decide whether the overall task is already satisfied.
+If not, update the remaining sub-tasks so that the overall task can still be completed.
+
+Completion criteria (ALL must be true to set is_done=true):
+- A final, user-facing answer that directly satisfies "Overall Task" already exists within "Completed Sub-Tasks + Outputs".
+- The final answer matches any explicit format and language requested in "Overall Task".
+- No critical transformation/summarization/finalization step remains among "Remaining Sub-Tasks" (e.g., steps like: provide/present/report/answer/summarize/finalize/deliver the result).
+- The final answer does not rely on placeholders such as "will be provided later" or "see plan above".
+
+If ANY of the above is false, set is_done=false.
+
+Update policy:
+- If the remaining sub-tasks are already reasonable and correctly ordered, do not propose changes: set is_done=false and omit "plan".
+- Only propose a new "plan" if you need to REPLACE the "Remaining Sub-Tasks" (e.g., wrong order, missing critical steps, or new info from completed outputs).
+- Do NOT repeat any completed sub-task. New sub-tasks must replace only the "Remaining Sub-Tasks".
+
+Output schema:
+- Return a JSON object matching the schema with fields: is_done (bool), reason (string), and optional plan (Plan).
 
 The tools available are:
 {tools_str}
@@ -122,6 +148,7 @@ class PlannerWorkflow(Workflow):
         clear_executor_memory_between_subtasks: bool = False,
         executor_memory_factory: Optional[Callable[[], object]] = None,
         on_stop: Optional[Callable] = None,
+        refine_after_each_subtask: bool = True,
     ):
         super().__init__(timeout=None, verbose=verbose)
         self._planner_llm = llm
@@ -158,6 +185,9 @@ class PlannerWorkflow(Workflow):
 
         self._clear_exec_mem_between_subtasks = clear_executor_memory_between_subtasks
 
+        # Controls whether the legacy-style refine happens after every sub-task execution.
+        self._refine_after_each_subtask = refine_after_each_subtask
+
     def _stopped(self) -> bool:
         """
         Check if the workflow has been stopped.
@@ -170,6 +200,32 @@ class PlannerWorkflow(Workflow):
             except Exception:
                 return False
         return False
+
+    # Build human-friendly, step-scoped labels to display in the UI instead of agent names.
+    def _agent_label(
+        self,
+        step: str,
+        index: Optional[int] = None,
+        total: Optional[int] = None,
+        subtask_name: Optional[str] = None,
+    ) -> str:
+        if step == "subtask":
+            if index and total:
+                base = f"Sub-task {index}/{total}"
+            elif index:
+                base = f"Sub-task {index}"
+            else:
+                base = "Sub-task"
+            return f"{base}: {subtask_name}" if subtask_name else base
+        if step == "refine":
+            if index and total:
+                return f"Refine {index}/{total}"
+            return "Refine" if not index else f"Refine {index}"
+        if step in {"make_plan", "plan"}:
+            return "Plan"
+        if step in {"execute", "execute_plan"}:
+            return "Execute"
+        return step or "Step"
 
     def _emit_step_event(
             self,
@@ -188,9 +244,15 @@ class PlannerWorkflow(Workflow):
         :param total: The total number of steps (optional).
         :param meta: Additional metadata for the step (optional).
         """
-        # Always pass a friendly agent name; for 'subtask' we signal the executor agent to the UI.
+        # Always pass a friendly per-step label as "agent_name".
         m = dict(meta or {})
-        m.setdefault("agent_name", self._display_executor_name if name == "subtask" else self._display_planner_name)
+        label = self._agent_label(
+            step=name,
+            index=index,
+            total=total,
+            subtask_name=m.get("name"),
+        )
+        m["agent_name"] = label
 
         try:
             ctx.write_event_to_stream(
@@ -203,7 +265,7 @@ class PlannerWorkflow(Workflow):
                     AgentStream(
                         delta="",
                         response="",
-                        current_agent_name=m.get("agent_name", self._display_planner_name),
+                        current_agent_name=label,
                         tool_calls=[],
                         raw={"StepEvent": {"name": name, "index": index, "total": total, "meta": m}}
                     )
@@ -314,7 +376,7 @@ class PlannerWorkflow(Workflow):
 
         :param ctx: The context to write the event to
         :param text: The text message to emit.
-        :param agent_name: The name of the agent emitting the text (default: "PlannerWorkflow").
+        :param agent_name: The name/label to display in UI (we pass per-step labels here).
         """
         # Always try to include agent name; fall back to minimal event for older validators.
         try:
@@ -406,12 +468,13 @@ class PlannerWorkflow(Workflow):
         ctx_text = "Completed sub-tasks context:\n" + "\n".join(parts)
         return self._truncate(ctx_text, char_limit or 8000)
 
-    async def _run_subtask(self, ctx: Context, prompt: str) -> str:
+    async def _run_subtask(self, ctx: Context, prompt: str, agent_label: Optional[str] = None) -> str:
         """
         Run a sub-task using the executor agent.
 
         :param ctx: The context in which the sub-task is executed.
         :param prompt: The prompt for the sub-task.
+        :param agent_label: Per-step UI label (e.g., 'Sub-task 1/7: ...') used instead of agent name.
         """
         if self._clear_exec_mem_between_subtasks:
             self._reset_executor_memory()
@@ -452,15 +515,15 @@ class PlannerWorkflow(Workflow):
                     if delta:
                         has_stream = True
                         stream_buf.append(str(delta))
-                    # Always enforce a stable display name for executor events.
+                    # Force the per-step label for executor events.
                     try:
-                        e.current_agent_name = self._display_executor_name
+                        e.current_agent_name = agent_label or self._display_executor_name
                     except Exception:
                         try:
                             e = AgentStream(
                                 delta=getattr(e, "delta", ""),
                                 response=getattr(e, "response", ""),
-                                current_agent_name=self._display_executor_name,
+                                current_agent_name=agent_label or self._display_executor_name,
                                 tool_calls=getattr(e, "tool_calls", []),
                                 raw=getattr(e, "raw", {}),
                             )
@@ -478,7 +541,7 @@ class PlannerWorkflow(Workflow):
                             AgentStream(
                                 delta=last_answer,
                                 response=last_answer,
-                                current_agent_name=self._display_executor_name,
+                                current_agent_name=agent_label or self._display_executor_name,
                                 tool_calls=e.tool_calls,
                                 raw=e.raw,
                             )
@@ -502,8 +565,64 @@ class PlannerWorkflow(Workflow):
         try:
             return await _stream()
         except Exception as ex:
-            await self._emit_text(ctx, f"\n`Sub-task failed: {ex}`", agent_name=self._display_executor_name)
+            await self._emit_text(ctx, f"\n`Sub-task failed: {ex}`", agent_name=agent_label or self._display_executor_name)
             return last_answer or ("".join(stream_buf).strip() if stream_buf else "")
+
+    # Helper to render sub-tasks into a readable string for prompts and UI.
+    def _format_subtasks(self, sub_tasks: List[SubTask]) -> str:
+        parts = []
+        for i, st in enumerate(sub_tasks, 1):
+            parts.append(
+                f"[{i}] name={st.name}\n"
+                f"    input={st.input}\n"
+                f"    expected_output={st.expected_output}\n"
+                f"    dependencies={st.dependencies}"
+            )
+        return "\n".join(parts) if parts else "(none)"
+
+    # Helper to render completed outputs for refinement prompt.
+    def _format_completed(self, completed: list[tuple[str, str]]) -> str:
+        if not completed:
+            return "(none)"
+        parts = []
+        for i, (name, out) in enumerate(completed, 1):
+            parts.append(f"[{i}] {name} -> {self._truncate((out or '').strip(), 2000)}")
+        joined = "\n".join(parts)
+        return self._truncate(joined, self._memory_char_limit or 8000)
+
+    async def _refine_plan(
+        self,
+        ctx: Context,
+        task: str,
+        tools_str: str,
+        completed: list[tuple[str, str]],
+        remaining: List[SubTask],
+        memory_context: str,
+        agent_label: Optional[str] = None,
+    ) -> Optional[PlanRefinement]:
+        """
+        Ask the planner LLM to refine the plan. Returns a PlanRefinement or None on failure.
+        """
+        completed_text = self._format_completed(completed)
+        remaining_text = self._format_subtasks(remaining)
+
+        # Emit a lightweight status line to the UI.
+        await self._emit_text(ctx, "\n`Refining remaining plan...`", agent_name=agent_label or "Refine")
+
+        try:
+            refinement = await self._planner_llm.astructured_predict(
+                PlanRefinement,
+                self._plan_refine_prompt,
+                tools_str=tools_str,
+                task=task,
+                completed_outputs=completed_text,
+                remaining_sub_tasks=remaining_text,
+                memory_context=memory_context,
+            )
+            return refinement
+        except (ValueError, ValidationError):
+            # Graceful fallback if the model fails to conform to schema.
+            return None
 
     @step
     async def make_plan(self, ctx: Context, ev: QueryEvent) -> PlanReady:
@@ -538,7 +657,8 @@ class PlannerWorkflow(Workflow):
                 f"Expected output: {st.expected_output}\n"
                 f"Dependencies: {st.dependencies}\n\n"
             )
-        await self._emit_text(ctx, "\n".join(lines), agent_name=self._display_planner_name)
+        # Use a per-step label for plan creation
+        await self._emit_text(ctx, "\n".join(lines), agent_name=self._agent_label("make_plan"))
         return PlanReady(plan=plan, query=ev.query)
 
     @step
@@ -555,36 +675,51 @@ class PlannerWorkflow(Workflow):
         last_answer = ""
         completed: list[tuple[str, str]] = []  # (name, output)
 
-        await self._emit_text(ctx, "\n\n`Executing plan...`", agent_name=self._display_planner_name)
+        # Start executing with a per-step label
+        execute_label = self._agent_label("execute")
+        await self._emit_text(ctx, "\n\n`Executing plan...`", agent_name=execute_label)
 
-        for i, st in enumerate(plan_sub_tasks, 1):
+        # Prepare static prompt parts for refinement.
+        tools_str = ""
+        for t in self._tools:
+            tools_str += f"{(t.metadata.name or '').strip()}: {(t.metadata.description or '').strip()}\n"
+        memory_context = self._memory_to_text(self._memory)
+
+        i = 0  # manual index to allow in-place plan updates during refinement
+        while i < len(plan_sub_tasks):
+            st = plan_sub_tasks[i]
+            total = len(plan_sub_tasks)
+
+            # Compute label for this sub-task
+            subtask_label = self._agent_label("subtask", index=i + 1, total=total, subtask_name=st.name)
+
             self._emit_step_event(
                 ctx,
                 name="subtask",
-                index=i,
+                index=i + 1,
                 total=total,
                 meta={
                     "name": st.name,
                     "expected_output": st.expected_output,
                     "dependencies": st.dependencies,
                     "input": st.input,
-                    # Signal that the next stream will come from the executor.
-                    "agent_name": self._display_executor_name,
+                    # UI label for this sub-task step
+                    "agent_name": subtask_label,
                 },
             )
 
             header = (
-                f"\n\n**===== Sub Task {i}/{total}: {st.name} =====**\n"
+                f"\n\n**===== Sub Task {i + 1}/{total}: {st.name} =====**\n"
                 f"Expected output: {st.expected_output}\n"
                 f"Dependencies: {st.dependencies}\n\n"
             )
 
             # stop callback
             if self._stopped():
-                await self._emit_text(ctx, "\n`Plan execution stopped.`", agent_name=self._display_planner_name)
+                await self._emit_text(ctx, "\n`Plan execution stopped.`", agent_name=execute_label)
                 return FinalEvent(result=last_answer or "Plan execution stopped.")
 
-            await self._emit_text(ctx, header, agent_name=self._display_planner_name)
+            await self._emit_text(ctx, header, agent_name=subtask_label)
 
             # build context for sub-task
             ctx_text = self._build_context_for_subtask(
@@ -604,18 +739,83 @@ class PlannerWorkflow(Workflow):
             else:
                 composed_prompt = st.input
 
-            # run the sub-task
-            sub_answer = await self._run_subtask(ctx, composed_prompt)
+            # run the sub-task with the per-step label
+            sub_answer = await self._run_subtask(ctx, composed_prompt, agent_label=subtask_label)
             sub_answer = (sub_answer or "").strip()
 
-            await self._emit_text(ctx, f"\n\n`Finished Sub Task {i}/{total}: {st.name}`", agent_name=self._display_planner_name)
+            await self._emit_text(ctx, f"\n\n`Finished Sub Task {i + 1}/{total}: {st.name}`", agent_name=subtask_label)
 
             # save completed sub-task
             completed.append((st.name, sub_answer))
             if sub_answer:
                 last_answer = sub_answer
 
-            # TODO: refine plan if needed
+            # Early stop check (external cancel)
+            if self._stopped():
+                await self._emit_text(ctx, "\n`Plan execution stopped.`", agent_name=execute_label)
+                return FinalEvent(result=last_answer or "Plan execution stopped.")
 
-        await self._emit_text(ctx, "\n\n`Plan execution finished.`", agent_name=self._display_planner_name)
+            # Optional legacy-style refine after each sub-task
+            i += 1  # move pointer to the next item before potential replacement of tail
+            if self._refine_after_each_subtask and i < len(plan_sub_tasks):
+                remaining = plan_sub_tasks[i:]
+                # Label for refine step
+                refine_label = self._agent_label("refine", index=i, total=len(plan_sub_tasks))
+
+                # Emit a step event for refine to keep UI parity with the legacy Planner.
+                self._emit_step_event(
+                    ctx,
+                    name="refine",
+                    index=i,
+                    total=len(plan_sub_tasks),
+                    meta={"agent_name": refine_label},
+                )
+
+                refinement = await self._refine_plan(
+                    ctx=ctx,
+                    task=ev.query,
+                    tools_str=tools_str,
+                    completed=completed,
+                    remaining=remaining,
+                    memory_context=memory_context,
+                    agent_label=refine_label,
+                )
+
+                # If refinement failed to parse, skip gracefully.
+                if refinement is None:
+                    continue
+
+                # If the planner states the task is complete, stop early.
+                if getattr(refinement, "is_done", False):
+                    reason = getattr(refinement, "reason", "") or "Planner judged the task as satisfied."
+                    await self._emit_text(
+                        ctx,
+                        f"\n`Planner marked the plan as complete: {reason}`",
+                        agent_name=refine_label,
+                    )
+                    await self._emit_text(ctx, "\n\n`Plan execution finished.`", agent_name=execute_label)
+                    return FinalEvent(result=last_answer or "Plan finished.")
+
+                # If an updated plan was provided, replace the remaining sub-tasks.
+                if refinement.plan and refinement.plan.sub_tasks is not None:
+                    # Filter out any sub-tasks that repeat completed names to avoid loops.
+                    completed_names = {n for (n, _) in completed}
+                    new_remaining = [st for st in refinement.plan.sub_tasks if st.name not in completed_names]
+
+                    # If nothing changes, continue.
+                    current_remaining_repr = self._format_subtasks(remaining)
+                    new_remaining_repr = self._format_subtasks(new_remaining)
+                    if new_remaining_repr.strip() != current_remaining_repr.strip():
+                        plan_sub_tasks = plan_sub_tasks[:i] + new_remaining
+                        # Present the updated tail of the plan to the UI.
+                        lines = ["`Updated remaining plan:`"]
+                        for k, st_upd in enumerate(new_remaining, i + 1):
+                            lines.append(
+                                f"\n**===== Sub Task {k}/{len(plan_sub_tasks)}: {st_upd.name} =====**\n"
+                                f"Expected output: {st_upd.expected_output}\n"
+                                f"Dependencies: {st_upd.dependencies}\n\n"
+                            )
+                        await self._emit_text(ctx, "\n".join(lines), agent_name=refine_label)
+
+        await self._emit_text(ctx, "\n\n`Plan execution finished.`", agent_name=execute_label)
         return FinalEvent(result=last_answer or "Plan finished.")

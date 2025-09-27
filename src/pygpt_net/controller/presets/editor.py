@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.24 00:00:00                  #
+# Updated Date: 2025.09.27 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -393,6 +393,9 @@ class Editor:
                         value=extra_options[key].get('default', None),
                     )
 
+            # ensure combo defaults are effectively applied for this tab (only empty values are updated)
+            self._apply_combo_defaults_for_group(option_key, extra_options)
+
     def load_extra_defaults(self):
         """Load extra options defaults for preset editor"""
         if not self.tab_options_idx:
@@ -423,6 +426,8 @@ class Editor:
                             option=extra_options[key],
                             value=value,
                         )
+                # ensure combo defaults are effectively applied for this tab (only empty values are updated)
+                self._apply_combo_defaults_for_group(option_key, extra_options)
 
     def load_extra_defaults_current(self):
         """Load extra options defaults on mode change"""
@@ -479,6 +484,8 @@ class Editor:
                             option=extra_options[key],
                             value=value,
                         )
+                # ensure combo defaults are effectively applied for this tab (only empty values are updated)
+                self._apply_combo_defaults_for_group(option_key, extra_options)
 
     def append_extra_options(self, preset: PresetItem):
         """
@@ -784,6 +791,9 @@ class Editor:
                             option=opt_schema,
                             value=opt_schema.get('default'),
                         )
+
+            # ensure combo defaults are effectively applied for this tab (only empty values are updated)
+            self._apply_combo_defaults_for_group(config_id, schema_options)
 
         # 4) Recompute mapping fully based on actual tabs and their 'agent_id' properties.
         self._rebuild_tab_index_mapping()
@@ -1521,6 +1531,9 @@ class Editor:
                                 value=opt_schema.get('default'),
                             )
 
+                    # ensure combo defaults are effectively applied for this tab (only empty values are updated)
+                    self._apply_combo_defaults_for_group(config_id, schema_options)
+
             # 7) Recompute the index mapping strictly from the QTabWidget
             self._rebuild_tab_index_mapping()
 
@@ -1529,3 +1542,54 @@ class Editor:
 
         finally:
             tabs.setUpdatesEnabled(True)
+
+    # ---------- Helpers for reliable combo defaults in agent extra options ----------
+
+    def _apply_combo_defaults_for_group(self, parent_id: str, schema_options: Dict[str, Any]) -> None:
+        """
+        Ensure that combo-type inputs inside a given UI config group have their default values applied
+        when the current value is empty ("", None or "_"). This avoids the situation where combo boxes
+        remain uninitialized while other field types receive defaults correctly.
+
+        This function never overrides a non-empty value set by the user or loaded from a preset.
+        """
+        if not schema_options:
+            return
+
+        get_value = self.window.controller.config.get_value
+        apply_value = self.window.controller.config.apply_value
+
+        for key, opt_schema in schema_options.items():
+            if not isinstance(opt_schema, dict):
+                continue
+            if opt_schema.get('type') != 'combo':
+                continue
+
+            default_val = opt_schema.get('default', None)
+            if default_val is None:
+                continue
+
+            current_val = get_value(
+                parent_id=parent_id,
+                key=key,
+                option=opt_schema,
+            )
+
+            # Treat "_", "", None as empty and safe to replace with default
+            if current_val in (None, "", "_"):
+                # First try apply_value (standard path)
+                apply_value(
+                    parent_id=parent_id,
+                    key=key,
+                    option=opt_schema,
+                    value=default_val,
+                )
+                # Additionally set directly on widget if accessible to guard against timing of key population
+                try:
+                    widget_group = self.window.ui.config.get(parent_id, {})
+                    widget = widget_group.get(key)
+                    if widget and hasattr(widget, "set_value"):
+                        widget.set_value(default_val)
+                except Exception:
+                    # Silent fallback; apply_value above should already handle most cases
+                    pass

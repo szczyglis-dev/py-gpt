@@ -267,7 +267,10 @@ class Runtime {
 	api_updateToolOutput = (c) => this.toolOutput.update(c);
 	api_clearToolOutput = () => this.toolOutput.clear();
 	api_beginToolOutput = () => this.toolOutput.begin();
-	api_endToolOutput = () => this.toolOutput.end();
+	api_endToolOutput = () => {
+	    this.toolOutput.end();
+	    this.scrollMgr.scheduleScroll();
+	}
 	api_enableToolOutput = () => this.toolOutput.enable();
 	api_disableToolOutput = () => this.toolOutput.disable();
 	api_toggleToolOutput = (id) => this.toolOutput.toggle(id);

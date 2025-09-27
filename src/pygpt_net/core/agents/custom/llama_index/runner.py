@@ -1,3 +1,5 @@
+# core/agents/runners/llama_workflow.py
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -6,7 +8,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 17:00:00                  #
+# Updated Date: 2025.09.27 06:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -207,37 +209,6 @@ class DynamicFlowWorkflowLI(Workflow):
                 return False
         return False
 
-    def _friendly_map(self) -> Dict[str, str]:
-        return {aid: a.name or aid for aid, a in self.fs.agents.items()}
-
-    def _friendly_map_for_routes(self, route_ids: List[str]) -> Dict[str, Any]:
-        """
-        Build a friendly map for the given route ids:
-        - Always include a human-friendly name.
-        - Include role only if provided in preset options or schema and non-empty.
-        """
-        out: Dict[str, Any] = {}
-        for rid in route_ids or []:
-            a = self.fs.agents.get(rid)
-            name = (a.name if a and a.name else rid)
-            # Prefer preset option, then schema role
-            role_opt = None
-            try:
-                role_opt = self.option_get(rid, "role", None)
-            except Exception:
-                role_opt = None
-            role_schema = getattr(a, "role", None) if a is not None else None
-            role_val = None
-            if isinstance(role_opt, str) and role_opt.strip():
-                role_val = role_opt.strip()
-            elif isinstance(role_schema, str) and role_schema.strip():
-                role_val = role_schema.strip()
-            item = {"name": name}
-            if role_val:
-                item["role"] = role_val
-            out[rid] = item
-        return out
-
     async def _emit(self, ctx: Context, ev: Any):
         if self.dbg.event_echo:
             self.logger.debug(f"[event] emit {ev.__class__.__name__}")
@@ -245,8 +216,8 @@ class DynamicFlowWorkflowLI(Workflow):
 
     async def _emit_agent_text(self, ctx: Context, text: str, agent_name: str = "Agent"):
         """
-        Emit AgentStream(delta=text) robustly. If your env requires extra fields,
-        fall back to extended AgentStream like in your SupervisorWorkflow.
+        Emit AgentStream(delta=text) robustly. If env requires extra fields,
+        fall back to extended AgentStream.
         """
         try:
             if self.dbg.event_echo:
@@ -266,16 +237,11 @@ class DynamicFlowWorkflowLI(Workflow):
             )
 
     async def _emit_header(self, ctx: Context, name: str):
-        if self.dbg.event_echo:
-            self.logger.debug(f"[event] header emit begin name='{name}'")
+        # Lightweight header to ensure agent name is known before tokens.
         await self._emit_agent_text(ctx, "", agent_name=name)
-        # await self._emit_agent_text(ctx, f"\n\n**{name}**\n\n", agent_name=name)
-        if self.dbg.event_echo:
-            self.logger.debug("[event] header emit done")
 
     async def _emit_step_sep(self, ctx: Context, node_id: str):
         try:
-            # Include human-friendly agent name in StepEvent meta for downstream ctx propagation.
             a = self.fs.agents.get(node_id)
             friendly_name = (a.name if a and a.name else node_id)
             await self._emit(
@@ -350,6 +316,9 @@ class DynamicFlowWorkflowLI(Workflow):
             return user_msg, [], "no-mem:last_output"
 
     async def _update_memory_after_step(self, node_id: str, user_msg_text: str, display_text: str):
+        """
+        Update per-node memory after a step, storing baton user message and assistant output.
+        """
         mem_id = self.g.agent_to_memory.get(node_id)
         mem_state = self.mem.get(mem_id) if mem_id else None
         if not mem_state:
@@ -374,7 +343,7 @@ class DynamicFlowWorkflowLI(Workflow):
     # ============== Workflow steps ==============
 
     def run(self, query: str, ctx: Optional[Context] = None, memory: Any = None, verbose: bool = False, on_stop=None):
-        """Entry point used by your LlamaWorkflow runner."""
+        """Entry point used by LlamaWorkflow runner."""
         self._on_stop = on_stop
 
         # Build initial chat once
@@ -444,8 +413,9 @@ class DynamicFlowWorkflowLI(Workflow):
             return FlowTickEvent() if self._current_ids else FlowStopEvent(final_answer=self._last_plain_output or "")
 
         node: AgentNode = self.fs.agents[current_id]
-        if self._steps > 1:
-            await self._emit_step_sep(ctx, current_id)
+
+        # IMPORTANT: emit StepEvent also for the very first agent step.
+        await self._emit_step_sep(ctx, current_id)
         await self._emit_header(ctx, node.name or current_id)
 
         # Resolve runtime + per-node LLM/tools
@@ -474,11 +444,10 @@ class DynamicFlowWorkflowLI(Workflow):
                 f"user='{ellipsize(user_msg_text, self.dbg.preview_chars)}'"
             )
 
-        # Prepare friendly map with optional roles for this node's allowed routes
+        # Build agent
         allowed_routes_now = list(node.outputs or [])
-        friendly_map = self._friendly_map_for_routes(allowed_routes_now)
+        friendly_map = {rid: self.fs.agents.get(rid).name or rid for rid in allowed_routes_now if rid in self.fs.agents}
 
-        # Build agent (chat_history/max_iterations in ctor – best practice)
         built = self.factory.build(
             node=node,
             node_runtime=node_rt,
@@ -528,9 +497,6 @@ class DynamicFlowWorkflowLI(Workflow):
             display_text = decision.content or ""
             if display_text:
                 await self._emit_agent_text(ctx, display_text, agent_name=(node.name or current_id))
-            if self.dbg.log_memory_dump:
-                self.logger.debug(f"[mem.prep] node={current_id} save user='{ellipsize(user_msg_text, self.dbg.preview_chars)}' "
-                                  f"assist='{ellipsize(display_text, self.dbg.preview_chars)}'")
             await self._update_memory_after_step(current_id, user_msg_text, display_text)
             next_id = decision.route if decision.valid else (allowed_routes[0] if allowed_routes else None)
             if self.dbg.log_routes:
@@ -541,9 +507,6 @@ class DynamicFlowWorkflowLI(Workflow):
             display_text = raw_text_clean or ""
             if display_text:
                 await self._emit_agent_text(ctx, display_text, agent_name=(node.name or current_id))
-            if self.dbg.log_memory_dump:
-                self.logger.debug(f"[mem.prep] node={current_id} save user='{ellipsize(user_msg_text, self.dbg.preview_chars)}' "
-                                  f"assist='{ellipsize(display_text, self.dbg.preview_chars)}'")
             await self._update_memory_after_step(current_id, user_msg_text, display_text)
             outs = self.g.get_next(current_id)
             next_id = outs[0] if outs else self.g.first_connected_end(current_id)
