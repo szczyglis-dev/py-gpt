@@ -82,6 +82,13 @@ QListView::item {{
   padding: 4px;
   min-height: 20px;
 }}
+
+/* Subtle hover for list/tree items (non-selected) */
+QListView::item:hover:!selected,
+QTreeView::item:hover:!selected {{
+  background-color: #f6f8fb;
+}}
+
 QCalendarWidget QWidget {{
   background: #fff;
 }}

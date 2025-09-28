@@ -29,6 +29,13 @@ QListView::item {{
   padding: 4px;
   min-height: 20px;
 }}
+
+/* Subtle hover for list/tree items (non-selected) */
+QListView::item:hover:!selected,
+QTreeView::item:hover:!selected {{
+  background-color: rgba(255, 255, 255, 5);
+}}
+
 QListView::item:selected,
 QTreeView::item:selected {{
   color: #ffffff;
