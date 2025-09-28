@@ -93,6 +93,7 @@
         <file alias="photos.svg">data/icons/photos.svg</file>
         <file alias="pin.svg">data/icons/pin.svg</file>
         <file alias="pin2.svg">data/icons/pin2.svg</file>
+        <file alias="pin3.svg">data/icons/pin3.svg</file>
         <file alias="play.svg">data/icons/play.svg</file>
         <file alias="play_pause.svg">data/icons/play_pause.svg</file>
         <file alias="playlist_add.svg">data/icons/playlist_add.svg</file>

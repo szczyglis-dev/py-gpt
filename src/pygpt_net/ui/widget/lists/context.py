@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 22:00:00                  #
+# Updated Date: 2025.09.28 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -40,7 +40,7 @@ class ContextList(BaseList):
             'chat': QIcon(":/icons/chat.svg"),
             'copy': QIcon(":/icons/copy.svg"),
             'close': QIcon(":/icons/close.svg"),
-            'pin': QIcon(":/icons/pin.svg"),
+            'pin': QIcon(":/icons/pin3.svg"),
             'clock': QIcon(":/icons/clock.svg"),
             'db': QIcon(":/icons/db.svg"),
             'folder': QIcon(":/icons/folder_filled.svg"),
@@ -49,7 +49,8 @@ class ContextList(BaseList):
         self._color_icon_cache = {}
 
         # Use a custom delegate for labels/pinned/attachment indicators and group border indicator
-        self.setItemDelegate(ImportantItemDelegate(self, self._icons['attachment']))
+        # Pass both: attachment icon and pin icon (pin2.svg) for pinned indicator rendering
+        self.setItemDelegate(ImportantItemDelegate(self, self._icons['attachment'], self._icons['pin']))
 
         # Ensure context menu works as before
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -467,15 +468,17 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
     """
     Item delegate that paints:
     - Attachment icon on the right side (centered vertically),
-    - Pinned indicator (small circle) in the top-right corner (overlays if needed),
+    - Pinned indicator (pin.svg icon) in the top-right corner (overlays if needed),
     - Label color as a full-height vertical bar on the left for labeled items,
     - Group enclosure indicator for expanded groups:
         - thin vertical bar (default 2 px) on the left side of child rows area,
         - thin horizontal bar (default 2 px) at the bottom of the last child row.
     """
-    def __init__(self, parent=None, attachment_icon: QIcon = None):
+    def __init__(self, parent=None, attachment_icon: QIcon = None, pin_icon: QIcon = None):
         super().__init__(parent)
         self._attachment_icon = attachment_icon or QIcon(":/icons/attachment.svg")
+        # Use provided pin icon (transparent background) as pinned indicator
+        self._pin_icon = pin_icon or QIcon(":/icons/pin.svg")
 
         # Predefined label colors (status -> QColor)
         self._status_colors = {
@@ -490,8 +493,8 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         }
 
         # Visual tuning constants
-        self._pin_pen = QtGui.QPen(QtCore.Qt.black, 0.5, QtCore.Qt.SolidLine)
-        self._pin_diameter = 4            # Small pinned circle diameter
+        self._pin_pen = QtGui.QPen(QtCore.Qt.black, 0.5, QtCore.Qt.SolidLine)  # kept for compatibility
+        self._pin_diameter = 4            # legacy circle diameter (not used anymore)
         self._pin_margin = 3              # Margin from top and right edges
         self._attach_spacing = 4          # Kept for potential future layout tweaks
         self._label_bar_width = 4         # Full-height label bar width (left side)
@@ -506,6 +509,10 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         self._group_indicator_color = QColor(67, 75, 78)  # soft gray
         self._group_indicator_gap = 6  # gap between child content left and the vertical bar
         self._group_indicator_bottom_offset = 6
+
+        # Pinned icon sizing (kept deliberately small, similar to previous yellow dot)
+        # The actual painted size is min(max_size, availableHeightWithMargins)
+        self._pin_icon_max_size = 12  # px
 
         # Try to load customization from application config (safe if missing)
         self._init_group_indicator_from_config()
@@ -665,20 +672,23 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
                     )
                     self._attachment_icon.paint(painter, icon_rect, QtCore.Qt.AlignCenter)
 
-                # Pinned indicator (small circle) kept at a fixed top-right position.
-                # It does not shift left when the attachment is present; it overlays above it.
+                # Pinned indicator: small pin.svg painted at fixed top-right position.
+                # It overlays above any other right-side icons.
                 if is_important:
                     painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
                     painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceOver)
-                    color = self.get_color_for_status(3)
 
-                    x = option.rect.x() + option.rect.width() - self._pin_margin - self._pin_diameter
-                    y = option.rect.y() + self._pin_margin
-                    pin_rect = QtCore.QRect(x, y, self._pin_diameter, self._pin_diameter)
+                    # Compute a compact size similar in footprint to previous circle,
+                    # but readable for vector icon; clamp to available height.
+                    available = max(8, option.rect.height() - 2 * self._pin_margin)
+                    pin_size = min(self._pin_icon_max_size, available)
 
-                    painter.setBrush(color)
-                    painter.setPen(self._pin_pen)
-                    painter.drawEllipse(pin_rect)
+                    x = option.rect.right() - self._pin_margin - pin_size
+                    y = option.rect.top() + self._pin_margin
+                    pin_rect = QtCore.QRect(x, y, pin_size, pin_size)
+
+                    # Paint the pin icon (transparent background)
+                    self._pin_icon.paint(painter, pin_rect, QtCore.Qt.AlignCenter)
 
                 # Label bar on the left with 3px vertical margins
                 if label > 0:
