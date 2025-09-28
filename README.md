@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.64** | build: **2025-09-27** | Python: **>=3.10, <3.14**
+Release: **2.6.65** | build: **2025-09-28** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3607,6 +3607,16 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.65 (2025-09-28)**
+
+- Added drag and drop functionality for files and directories from the filesystem in attachments and file explorer.
+- Added automatic thumbnail generation when uploading avatars.
+- Added a last status timer.
+- Added a fade effect to collapsed user messages.
+- Added a scroll area to the agent options in the presets editor.
+- Added a hover effect to lists.
+- Improved UI/UX.
 
 **2.6.64 (2025-09-27)**
 
