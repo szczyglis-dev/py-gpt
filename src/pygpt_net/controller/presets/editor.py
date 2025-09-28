@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 00:00:00                  #
+# Updated Date: 2025.09.28 08:00:00                  #
 # ================================================== #
 
 import datetime
@@ -15,7 +15,7 @@ import shutil
 from typing import Any, Optional, Dict
 
 from PySide6.QtCore import Slot
-from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout, QScrollArea, QFrame
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -573,10 +573,19 @@ class Editor:
                 layout.addStretch(1)
                 layout.addLayout(checkbox_layout)
 
-                # as tab
-                tab_widget = QWidget()
-                tab_widget.setLayout(layout)
-                tabs.addTab(tab_widget, title)
+                # wrap the tab content in a scroll area to avoid vertical overlaps
+                tab_content = QWidget()
+                tab_content.setLayout(layout)
+
+                scroll = QScrollArea()
+                scroll.setWidgetResizable(True)
+                scroll.setFrameShape(QFrame.NoFrame)
+                scroll.setWidget(tab_content)
+                # Attach metadata on the tab widget itself for later mapping.
+                scroll.setProperty("agent_id", id)
+                scroll.setProperty("option_tab_id", option_tab_id)
+
+                tabs.addTab(scroll, title)
 
                 # store mapping: agent id -> [tab index]
                 if id not in self.tab_options_idx:
@@ -747,15 +756,20 @@ class Editor:
             layout.addStretch(1)
             layout.addLayout(checkbox_layout)
 
-            # Assemble tab widget and tag it with metadata.
-            tab_widget = QWidget()
-            tab_widget.setLayout(layout)
-            tab_widget.setProperty('agent_id', agent_id)
-            tab_widget.setProperty('option_tab_id', option_tab_id)
+            # Assemble tab widget wrapped into a scroll area.
+            tab_content = QWidget()
+            tab_content.setLayout(layout)
+
+            scroll = QScrollArea()
+            scroll.setWidgetResizable(True)
+            scroll.setFrameShape(QFrame.NoFrame)
+            scroll.setWidget(tab_content)
+            scroll.setProperty('agent_id', agent_id)
+            scroll.setProperty('option_tab_id', option_tab_id)
 
             # Insert at a stable anchor to preserve general ordering between agents.
             insertion_index = min(insertion_index, tabs.count())
-            tabs.insertTab(insertion_index, tab_widget, title)
+            tabs.insertTab(insertion_index, scroll, title)
             new_indices.append(insertion_index)
             insertion_index += 1
 
@@ -1500,15 +1514,20 @@ class Editor:
                     layout.addStretch(1)
                     layout.addLayout(checkbox_layout)
 
-                    # Create tab widget and tag with metadata
-                    tab_widget = QWidget()
-                    tab_widget.setLayout(layout)
-                    tab_widget.setProperty('agent_id', a_id)
-                    tab_widget.setProperty('option_tab_id', option_tab_id)
+                    # Create tab widget wrapped in a scroll area and tag with metadata
+                    tab_content = QWidget()
+                    tab_content.setLayout(layout)
+
+                    scroll = QScrollArea()
+                    scroll.setWidgetResizable(True)
+                    scroll.setFrameShape(QFrame.NoFrame)
+                    scroll.setWidget(tab_content)
+                    scroll.setProperty('agent_id', a_id)
+                    scroll.setProperty('option_tab_id', option_tab_id)
 
                     # Insert tab and advance anchor
                     insertion_index = min(insertion_index, tabs.count())
-                    tabs.insertTab(insertion_index, tab_widget, title)
+                    tabs.insertTab(insertion_index, scroll, title)
                     insertion_index += 1
 
                     # Apply saved values (if present) or defaults

@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 13:04:51                  #
+# Updated Date: 2025.09.28 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy, \
-    QTabWidget, QFileDialog
+    QTabWidget, QFileDialog, QScrollArea, QFrame
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -168,7 +168,6 @@ class Preset(BaseConfigDialog):
         desc.setLayout(options['description'])
         desc.setContentsMargins(0, 5, 0, 5)
         self.window.ui.nodes['preset.editor.description'] = desc
-
 
         # prompt + extra options
         prompt_layout = QVBoxLayout()
@@ -334,8 +333,14 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.editor.extra'] = {}
 
         tabs = QTabWidget()
+
+        # Make the prompt tab scrollable to avoid vertical overlap in narrow layouts.
+        scroll_prompt = QScrollArea()
+        scroll_prompt.setWidget(prompt_widget)
+        scroll_prompt.setWidgetResizable(True)
+        scroll_prompt.setFrameShape(QFrame.NoFrame)
         tabs.addTab(
-            prompt_widget,
+            scroll_prompt,
             trans("preset.prompt"),
         )
         tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
