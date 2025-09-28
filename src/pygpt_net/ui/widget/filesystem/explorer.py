@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.28 08:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 
-from PySide6.QtCore import Qt, QModelIndex, QDir
+from PySide6.QtCore import Qt, QModelIndex, QDir, QObject, QEvent
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
 from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel, QHBoxLayout, \
     QPushButton, QSizePolicy
@@ -21,6 +21,117 @@ from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.element.button import ContextMenuButton
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
+
+
+class ExplorerDropHandler(QObject):
+    """
+    Drag & drop handler for FileExplorer (uploads into target directory).
+    - Accepts local file and directory URLs.
+    - Determines target directory from drop position:
+      * directory item -> that directory
+      * file item      -> parent directory
+      * empty area     -> explorer root directory
+    - Uses Files controller to perform the actual copy and refresh view.
+    """
+    def __init__(self, explorer):
+        super().__init__(explorer)
+        self.explorer = explorer
+        self.view = explorer.treeView
+
+        # Enable drops on both the view and its viewport
+        try:
+            self.view.setAcceptDrops(True)
+        except Exception:
+            pass
+        vp = self.view.viewport()
+        if vp is not None:
+            try:
+                vp.setAcceptDrops(True)
+            except Exception:
+                pass
+            vp.installEventFilter(self)
+        self.view.installEventFilter(self)
+
+    def _mime_has_local_urls(self, md) -> bool:
+        try:
+            if md and md.hasUrls():
+                for url in md.urls():
+                    if url.isLocalFile():
+                        return True
+        except Exception:
+            pass
+        return False
+
+    def _local_paths_from_mime(self, md) -> list:
+        out = []
+        try:
+            if not (md and md.hasUrls()):
+                return out
+            for url in md.urls():
+                try:
+                    if url.isLocalFile():
+                        p = url.toLocalFile()
+                        if p:
+                            out.append(p)
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        return out
+
+    def _target_dir_from_pos(self, event) -> str:
+        # QDropEvent in Qt6: use position() -> QPointF
+        try:
+            pos = event.position().toPoint()
+        except Exception:
+            pos = event.pos()
+        idx = self.view.indexAt(pos)
+        if idx.isValid():
+            path = self.explorer.model.filePath(idx)
+            if os.path.isdir(path):
+                return path
+            return os.path.dirname(path)
+        # Fallback: explorer root directory
+        return self.explorer.directory
+
+    def eventFilter(self, obj, event):
+        et = event.type()
+
+        if et in (QEvent.DragEnter, QEvent.DragMove):
+            md = getattr(event, 'mimeData', lambda: None)()
+            if self._mime_has_local_urls(md):
+                try:
+                    event.setDropAction(Qt.CopyAction)
+                    event.acceptProposedAction()
+                except Exception:
+                    event.accept()
+                return True
+            return False
+
+        if et == QEvent.Drop:
+            md = getattr(event, 'mimeData', lambda: None)()
+            if not self._mime_has_local_urls(md):
+                return False
+
+            paths = self._local_paths_from_mime(md)
+            target_dir = self._target_dir_from_pos(event)
+            try:
+                self.explorer.window.controller.files.upload_paths(paths, target_dir)
+            except Exception as e:
+                try:
+                    self.explorer.window.core.debug.log(e)
+                except Exception:
+                    pass
+
+            try:
+                event.setDropAction(Qt.CopyAction)
+                event.acceptProposedAction()
+            except Exception:
+                event.accept()
+            # Swallow so the view does not try to handle the drop itself
+            return True
+
+        return False
 
 
 class FileExplorer(QWidget):
@@ -137,6 +248,9 @@ class FileExplorer(QWidget):
             'read': QIcon(":/icons/view.svg"),
             'db': QIcon(":/icons/db.svg"),
         }
+
+        # Drag & Drop upload support
+        self._dnd_handler = ExplorerDropHandler(self)
 
     def eventFilter(self, source, event):
         """

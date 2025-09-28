@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.25 18:00:00                  #
+# Updated Date: 2025.09.28 08:00:00                  #
 # ================================================== #
 
 import datetime
@@ -269,6 +269,75 @@ class Files:
                 if num > 0:
                     self.window.update_status(f"[OK] Uploaded: {num} files.")
                     self.update_explorer()
+
+    def upload_paths(
+            self,
+            paths: list,
+            target_directory: Optional[str] = None
+    ):
+        """
+        Upload provided local paths (files or directories) into target directory.
+        - Directories are copied recursively.
+        - Name collisions are resolved using timestamp prefix, consistent with upload_local().
+        - Skips copying directory into itself or its subdirectory.
+
+        :param paths: list of absolute local paths
+        :param target_directory: destination directory (defaults to user 'data' dir)
+        """
+        if not paths:
+            return
+        if target_directory is None:
+            target_directory = self.window.core.config.get_user_dir('data')
+
+        try:
+            if not os.path.exists(target_directory):
+                os.makedirs(target_directory, exist_ok=True)
+        except Exception as e:
+            self.window.core.debug.log(e)
+            return
+
+        copied = 0
+
+        def unique_dest(dest_path: str) -> str:
+            if not os.path.exists(dest_path):
+                return dest_path
+            base_dir = os.path.dirname(dest_path)
+            name = os.path.basename(dest_path)
+            new_name = self.make_ts_prefix() + "_" + name
+            return os.path.join(base_dir, new_name)
+
+        for src in paths:
+            try:
+                if not src or not os.path.exists(src):
+                    continue
+
+                # Prevent copying a directory into itself or its subdirectory
+                try:
+                    if os.path.isdir(src):
+                        common = os.path.commonpath([os.path.abspath(src), os.path.abspath(target_directory)])
+                        if common == os.path.abspath(src):
+                            # target is inside src; skip
+                            self.window.core.debug.log(f"Skipped copying directory into itself: {src} -> {target_directory}")
+                            continue
+                except Exception:
+                    pass
+
+                dest_base = os.path.join(target_directory, os.path.basename(src))
+                dest_path = unique_dest(dest_base)
+
+                if os.path.isdir(src):
+                    shutil.copytree(src, dest_path)
+                    copied += 1
+                else:
+                    copy2(src, dest_path)
+                    copied += 1
+            except Exception as e:
+                self.window.core.debug.log(e)
+                print(f"Error uploading path {src}: {e}")
+
+        if copied > 0:
+            self.window.update_status(f"[OK] Uploaded: {copied} files.")
+            self.update_explorer()
 
     def rename(self, path: str):
         """
