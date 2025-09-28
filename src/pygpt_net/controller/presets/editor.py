@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.28 08:00:00                  #
+# Updated Date: 2025.09.28 09:35:00                  #
 # ================================================== #
 
 import datetime
@@ -14,8 +14,9 @@ import os
 import shutil
 from typing import Any, Optional, Dict
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout, QScrollArea, QFrame
+from PySide6.QtGui import QImageReader
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -1311,17 +1312,26 @@ class Editor:
             os.remove(avatar_path)
         if os.path.exists(file_path):
             shutil.copy(file_path, avatar_path)
+
+            # create thumbnail next to original (max 350px on the longest side, prefix: thumb_)
+            thumb_path = self._create_avatar_thumbnail(avatar_path)
+
             if preset:
                 preset.ai_avatar = store_name
             else:
                 self.tmp_avatar = store_name
+
+            # keep storing original filename in config/preset (UI will prefer thumbnail only for preview if available)
             self.window.controller.config.apply_value(
                 parent_id=self.id,
                 key="ai_avatar",
                 option=self.options["ai_avatar"],
                 value=store_name,
             )
-            avatar_widget.load_avatar(avatar_path)
+
+            # prefer thumbnail in UI preview if it exists, fall back to original
+            preview_path = thumb_path if thumb_path and os.path.exists(thumb_path) else avatar_path
+            avatar_widget.load_avatar(preview_path)
             avatar_widget.enable_remove_button(True)
         return avatar_path
 
@@ -1339,11 +1349,19 @@ class Editor:
                 "avatars",
                 avatar_path,
             )
+            # prefer thumbnail in UI preview if available
+            thumb_path = os.path.join(
+                self.window.core.config.get_user_dir("presets"),
+                "avatars",
+                f"thumb_{avatar_path}",
+            )
+            preview_path = thumb_path if os.path.exists(thumb_path) else file_path
+
             if not os.path.exists(file_path):
                 avatar_widget.remove_avatar()
                 print("Avatar file does not exist:", file_path)
                 return
-            avatar_widget.load_avatar(file_path)
+            avatar_widget.load_avatar(preview_path)
             avatar_widget.enable_remove_button(True)
         else:
             avatar_widget.remove_avatar()
@@ -1368,10 +1386,25 @@ class Editor:
                 presets_dir = self.window.core.config.get_user_dir("presets")
                 avatars_dir = os.path.join(presets_dir, "avatars")
                 avatar_path = os.path.join(avatars_dir, current)
+                thumb_path = os.path.join(avatars_dir, f"thumb_{current}")
+                # remove original
                 if os.path.exists(avatar_path):
                     os.remove(avatar_path)
+                # remove thumbnail (if exists)
+                if os.path.exists(thumb_path):
+                    os.remove(thumb_path)
             preset.ai_avatar = ""
         else:
+            # if not yet persisted, also drop any staged temp avatar
+            if self.tmp_avatar:
+                presets_dir = self.window.core.config.get_user_dir("presets")
+                avatars_dir = os.path.join(presets_dir, "avatars")
+                avatar_path = os.path.join(avatars_dir, self.tmp_avatar)
+                thumb_path = os.path.join(avatars_dir, f"thumb_{self.tmp_avatar}")
+                if os.path.exists(avatar_path):
+                    os.remove(avatar_path)
+                if os.path.exists(thumb_path):
+                    os.remove(thumb_path)
             self.tmp_avatar = None
 
         self.window.ui.nodes['preset.editor.avatar'].remove_avatar()
@@ -1612,3 +1645,66 @@ class Editor:
                 except Exception:
                     # Silent fallback; apply_value above should already handle most cases
                     pass
+
+    # ---------- Avatar thumbnail helpers ----------
+
+    def _create_avatar_thumbnail(self, src_path: str, max_px: int = 350) -> Optional[str]:
+        """
+        Create a thumbnail next to the original avatar file with prefix 'thumb_'.
+
+        Notes:
+        - Respects EXIF orientation via QImageReader.setAutoTransform(True).
+        - Keeps aspect ratio; the longer side is limited to max_px.
+        - Saves using the same extension as the original (derived from destination filename).
+        - Returns full path to the thumbnail or None on failure.
+        """
+        try:
+            if not os.path.exists(src_path):
+                return None
+
+            dir_name, base_name = os.path.split(src_path)
+            thumb_name = f"thumb_{base_name}"
+            thumb_path = os.path.join(dir_name, thumb_name)
+
+            # Clean previous thumbnail (if any) to avoid stale previews
+            if os.path.exists(thumb_path):
+                try:
+                    os.remove(thumb_path)
+                except Exception:
+                    pass
+
+            reader = QImageReader(src_path)
+            reader.setAutoTransform(True)  # apply EXIF rotation if present
+            image = reader.read()
+            if image.isNull():
+                # If reading failed, fallback to copying original (not resized)
+                shutil.copy(src_path, thumb_path)
+                return thumb_path
+
+            w = image.width()
+            h = image.height()
+            if w <= 0 or h <= 0:
+                return None
+
+            # Scale down only when needed; always keep aspect ratio and smooth transformation
+            if max(w, h) > max_px:
+                scaled = image.scaled(max_px, max_px, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                ok = scaled.save(thumb_path)
+            else:
+                ok = image.save(thumb_path)
+
+            if ok:
+                return thumb_path
+
+            # Last resort: copy original
+            shutil.copy(src_path, thumb_path)
+            return thumb_path
+        except Exception as e:
+            # As a safe fallback try to copy the original; ignore errors silently
+            try:
+                dir_name, base_name = os.path.split(src_path)
+                thumb_path = os.path.join(dir_name, f"thumb_{base_name}")
+                shutil.copy(src_path, thumb_path)
+                return thumb_path
+            except Exception:
+                return None

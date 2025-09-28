@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 17:00:00                  #
+# Updated Date: 2025.09.28 10:00:00                  #
 # ================================================== #
 
 import json
@@ -1216,11 +1216,10 @@ class Renderer(BaseRenderer):
         if preset.ai_name:
             output_name = preset.ai_name
         if preset.ai_avatar:
-            presets_dir = self.window.core.config.get_user_dir("presets")
-            avatars_dir = os.path.join(presets_dir, "avatars")
-            avatar_path = os.path.join(avatars_dir, preset.ai_avatar)
-            if os.path.exists(avatar_path):
-                avatar_html = f"<img src=\"{self._file_prefix}{avatar_path}\" class=\"avatar\"> "
+            # prefer thumbnail "thumb_<name>" when available
+            avatar_fs = self._resolve_avatar_fs_path(preset.ai_avatar)
+            if avatar_fs:
+                avatar_html = f"<img src=\"{self._file_prefix}{avatar_fs}\" class=\"avatar\"> "
 
         if not output_name and not avatar_html:
             return ""
@@ -1962,6 +1961,30 @@ class Renderer(BaseRenderer):
             pass
         return None
 
+    def _resolve_avatar_fs_path(self, basename: str) -> Optional[str]:
+        """
+        Resolve avatar file system path preferring a local thumbnail named 'thumb_<basename>'.
+
+        Returns:
+        - Absolute path to thumbnail when exists,
+        - Otherwise absolute path to original when exists,
+        - Otherwise None.
+        """
+        if not basename:
+            return None
+        try:
+            presets_dir = self.window.core.config.get_user_dir("presets")
+            avatars_dir = os.path.join(presets_dir, "avatars")
+            thumb = os.path.join(avatars_dir, f"thumb_{basename}")
+            original = os.path.join(avatars_dir, basename)
+            if os.path.exists(thumb):
+                return thumb
+            if os.path.exists(original):
+                return original
+        except Exception:
+            pass
+        return None
+
     def _output_identity(self, ctx: CtxItem) -> Tuple[str, Optional[str], bool]:
         """
         Resolve output identity (name, avatar file:// path) based on preset or ctx-provided agent name.
@@ -1999,11 +2022,10 @@ class Renderer(BaseRenderer):
         name = preset.ai_name or default_name
         avatar = None
         if preset.ai_avatar:
-            presets_dir = self.window.core.config.get_user_dir("presets")
-            avatars_dir = os.path.join(presets_dir, "avatars")
-            avatar_path = os.path.join(avatars_dir, preset.ai_avatar)
-            if os.path.exists(avatar_path):
-                avatar = f"{self._file_prefix}{avatar_path}"
+            # prefer thumbnail URL if available
+            avatar_fs = self._resolve_avatar_fs_path(preset.ai_avatar)
+            if avatar_fs:
+                avatar = f"{self._file_prefix}{avatar_fs}"
         return name, avatar, True
 
     def _build_render_block(
