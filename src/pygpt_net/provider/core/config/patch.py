@@ -168,6 +168,14 @@ class Patch:
                 patch_css('style.dark.css', True)
                 updated = True
 
+            # < 2.6.65
+            if old < parse_version("2.6.65"):
+                print("Migrating config from < 2.6.65...")
+                # add: status bar css
+                patch_css('style.light.css', True)
+                patch_css('style.dark.css', True)
+                updated = True
+
         # update file
         migrated = False
         if updated:

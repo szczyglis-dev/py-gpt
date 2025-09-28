@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QLabel, QHBoxLayout, QSizePolicy, QPushButton
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.anims.loader import Loader
+from pygpt_net.ui.widget.element.status import BottomStatus
 from pygpt_net.utils import trans
 
 
@@ -34,8 +35,7 @@ class Status:
         """
         nodes = self.window.ui.nodes
 
-        nodes['status'] = QLabel(trans('status.started'))
-        nodes['status'].setParent(self.window)
+        nodes['status'] = BottomStatus(window=self.window)
 
         nodes['status.agent'] = HelpLabel("")
         nodes['status.agent'].setParent(self.window)
@@ -53,7 +53,7 @@ class Status:
         layout = QHBoxLayout()
         layout.addWidget(nodes['anim.loading.status'])
         layout.addWidget(nodes['status.agent'])
-        layout.addWidget(nodes['status'])
+        layout.addWidget(nodes['status'].setup())
         layout.addWidget(nodes['global.stop'])
         layout.setAlignment(Qt.AlignLeft)
 

@@ -163,3 +163,8 @@ NodeEditor {{
   qproperty-edgeColor: #c0c0c0;
   qproperty-edgeSelectedColor: #ff8a5c;
 }}
+
+/* Status Bar */
+#StatusBarTimer {{
+  color: #C0C0C0 !important;
+}}

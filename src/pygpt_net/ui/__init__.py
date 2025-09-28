@@ -113,6 +113,8 @@ class UI:
         """Set default sizes"""
         def set_initial_splitter_height():
             """Set initial splitter height"""
+            if 'main.output' not in self.window.ui.splitters:
+                return
             total_height = self.window.ui.splitters['main.output'].size().height()
             if total_height > 0:
                 size_output = int(total_height * 0.9)
@@ -124,6 +126,8 @@ class UI:
 
         def set_initial_splitter_width():
             """Set initial splitter width"""
+            if 'main' not in self.window.ui.splitters:
+                return
             total_width = self.window.ui.splitters['main'].size().width()
             if total_width > 0:
                 size_output = int(total_width * 0.75)
@@ -139,7 +143,8 @@ class UI:
         suffix = self.window.core.platforms.get_env_suffix()
         profile_name = self.window.core.config.profile.get_current_name()
         self.window.setWindowTitle(
-            f"PyGPT - Desktop AI Assistant {self.window.meta['version']} | build {self.window.meta['build'].replace('.', '-')}{suffix} ({profile_name})"
+            f"PyGPT - Desktop AI Assistant {self.window.meta['version']} | "
+            f"build {self.window.meta['build'].replace('.', '-')}{suffix} ({profile_name})"
         )
 
     def post_setup(self):
