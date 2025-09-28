@@ -337,8 +337,8 @@ class FlowOrchestrator:
                 "input": prepared_items,
                 "max_turns": int(agent_kwargs.get("max_iterations", max_iterations)),
             }
-            if trace_id:
-                run_kwargs["trace_id"] = trace_id
+            # if trace_id:
+                # run_kwargs["trace_id"] = trace_id
 
             # Header for UI
             ctx.set_agent_name(agent.name)

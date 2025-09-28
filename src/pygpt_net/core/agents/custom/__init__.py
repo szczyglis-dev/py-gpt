@@ -184,8 +184,9 @@ class Custom:
                                 tab["label"] = slots["name"]
                             if "role" in slots:
                                 opts["role"] = {
-                                    "type": "str",
-                                    "label": trans("agent.option.role"),
+                                    "type": "text",
+                                    "label": trans("agent.option.role.label"),
+                                    "description": trans("agent.option.role"),
                                     "default": slots["role"],
                                 }
                             if "instruction" in slots:
@@ -213,6 +214,21 @@ class Custom:
             except Exception as e:
                 self.window.core.debug.log(f"Failed to build options for custom agent '{agent_id}': {e}")
                 continue
+
+        # debug tab - trace_id, etc.
+        """
+        options["debug"] = {
+            "label": trans("agent.tab.debug"),
+            "options": {
+                "trace_id": {
+                    "type": "text",
+                    "label": trans("agent.option.debug.trace_id"),
+                    "description": trans("agent.option.debug.trace_id.desc"),
+                    "default": "",
+                }
+            }
+        }
+        """
         return options
 
     def new_agent(self, name: str):
