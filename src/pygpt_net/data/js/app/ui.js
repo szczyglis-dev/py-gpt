@@ -1,3 +1,5 @@
+// app/ui.js
+
 // ==========================================================================
 // UI manager
 // ==========================================================================
@@ -30,10 +32,25 @@ class UIManager {
 			'#_loader_.hidden { display: none !important; visibility: hidden !important; }',
 			'#_loader_.visible { display: block; visibility: visible; }',
 
-			/* User message collapse (uc-*) */
+			/* User message collapse (uc-*)
+			   Collapsed content now fades out towards the bottom using a CSS mask.
+			   This removes the need for an inline "..." overlay and works in light/dark themes. */
 			'.msg-box.msg-user .msg { position: relative; }',
 			'.msg-box.msg-user .msg > .uc-content { display: block; overflow: visible; }',
-			'.msg-box.msg-user .msg > .uc-content.uc-collapsed { max-height: 1000px; overflow: hidden; }',
+			'.msg-box.msg-user .msg > .uc-content.uc-collapsed {',
+			'  max-height: var(--user-msg-collapse-max-h, 1000px);',
+			'  overflow: hidden;',
+			'  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) calc(100% - var(--uc-fade-height, 64px)), rgba(0,0,0,0) 100%);',
+			'  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) calc(100% - var(--uc-fade-height, 64px)), rgba(0,0,0,0) 100%);',
+			'  -webkit-mask-size: 100% 100%;',
+			'  mask-size: 100% 100%;',
+			'  -webkit-mask-repeat: no-repeat;',
+			'  mask-repeat: no-repeat;',
+			'}',
+			'.msg-box.msg-user .msg > .uc-content.uc-expanded {',
+			'  -webkit-mask-image: none;',
+			'  mask-image: none;',
+			'}',
 			'.msg-box.msg-user .msg > .uc-toggle { display: none; margin-top: 8px; text-align: center; cursor: pointer; user-select: none; }',
 			'.msg-box.msg-user .msg > .uc-toggle.visible { display: block; }',
 

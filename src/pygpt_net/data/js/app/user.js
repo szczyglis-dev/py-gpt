@@ -1,3 +1,5 @@
+// app/user.js
+
 // ==========================================================================
 // User collapse manager
 // ==========================================================================
@@ -12,8 +14,7 @@ class UserCollapseManager {
 		// Track processed .msg elements to allow cheap remeasure on resize if needed.
 		this._processed = new Set();
 
-		// Visual indicator attached while collapsed (does not modify original text).
-		this.ellipsisText = ' [...]';
+		// Visual indicator is now purely CSS-based (mask fade) – no inline "..." text injected anymore.
 	}
 
 	// Icon paths for the collapse/expand buttons.
@@ -158,60 +159,27 @@ class UserCollapseManager {
 		};
 	}
 
-	// Create or update the ellipsis indicator inside content (absolute in the bottom-right corner).
+	// Previously created an inline "..." indicator; now acts as a no-op and cleans legacy nodes if present.
 	_ensureEllipsisEl(msg, contentEl) {
 		const content = contentEl || (msg && msg.querySelector('.uc-content'));
 		if (!content) return null;
-
-		// Ensure the content becomes a positioning context only when needed.
-		if (getComputedStyle(content).position === 'static') {
-			content.style.position = 'relative';
-		}
-
-		let dot = content.querySelector('.uc-ellipsis');
-		if (!dot) {
-			dot = document.createElement('span');
-			dot.className = 'uc-ellipsis';
-			dot.textContent = this.ellipsisText;
-			// Inline, theme-agnostic styles; kept minimal and non-interactive.
-			dot.style.position = 'absolute';
-			dot.style.right = '0';
-			dot.style.bottom = '0';
-			dot.style.paddingLeft = '6px';
-			dot.style.pointerEvents = 'none';
-			dot.style.zIndex = '1';
-			dot.style.fontWeight = '500';
-			dot.style.opacity = '0.75';
-			// Do not include in copy-to-clipboard.
-			dot.setAttribute('aria-hidden', 'true');
-			dot.setAttribute('data-copy-ignore', '1');
-
-			content.appendChild(dot);
-		}
-		return dot;
-	}
-
-	// Show ellipsis only when there is hidden overflow (collapsed).
-	_showEllipsis(msg, contentEl) {
-		const dot = this._ensureEllipsisEl(msg, contentEl);
-		if (dot) dot.style.display = 'inline';
-	}
-	
-	// Hide and clean ellipsis when not needed (expanded or short content).
-	_hideEllipsis(msg) {
-		const content = msg && msg.querySelector('.uc-content');
-		if (!content) return;
-		const dot = content.querySelector('.uc-ellipsis');
-		if (dot && dot.parentNode) {
-			// Remove the indicator to avoid accidental copy/select and keep DOM lean.
-			dot.parentNode.removeChild(dot);
-		}
-		// Drop positioning context when no indicator is present (keep styles minimal).
 		try {
-			if (content && content.style && content.querySelector('.uc-ellipsis') == null) {
-				content.style.position = '';
+			const legacy = content.querySelector('.uc-ellipsis');
+			if (legacy && legacy.parentNode) {
+				legacy.parentNode.removeChild(legacy);
 			}
 		} catch (_) {}
+		return null;
+	}
+
+	// No visual node is needed anymore; fade is applied via CSS on .uc-collapsed.
+	_showEllipsis(msg, contentEl) {
+		this._ensureEllipsisEl(msg, contentEl);
+	}
+
+	// No visual node is needed anymore; keep DOM lean and clean any legacy nodes.
+	_hideEllipsis(msg) {
+		this._ensureEllipsisEl(msg, null);
 	}
 
 	// Apply collapse to all user messages under root.
@@ -247,7 +215,7 @@ class UserCollapseManager {
 			c.classList.remove('uc-expanded'); // No class => fully expanded by default CSS.
 			msg.dataset.ucState = 'expanded';
 
-			// Hide ellipsis in disabled mode.
+			// Hide ellipsis in disabled mode (no-op, CSS fade not applied without .uc-collapsed).
 			this._hideEllipsis(msg);
 
 			// Hide toggle in disabled mode to avoid user interaction.
@@ -279,10 +247,10 @@ class UserCollapseManager {
 
 			if (expand) {
 				c.classList.add('uc-expanded');
-				this._hideEllipsis(msg); // Expanded => no ellipsis
+				this._hideEllipsis(msg); // Expanded => nothing to show (CSS fade applies only to .uc-collapsed)
 			} else {
 				c.classList.add('uc-collapsed');
-				this._showEllipsis(msg, c); // Collapsed => show ellipsis overlay
+				this._showEllipsis(msg, c); // Collapsed => CSS fade handled by stylesheet
 			}
 
 			if (t) {
@@ -300,7 +268,7 @@ class UserCollapseManager {
 				t.title = expand ? labels.collapse : labels.expand;
 			}
 		} else {
-			// Short content – ensure fully expanded and hide toggle + ellipsis.
+			// Short content – ensure fully expanded and hide toggle + (legacy) ellipsis cleanup.
 			c.classList.remove('uc-collapsed');
 			c.classList.remove('uc-expanded');
 			msg.dataset.ucState = 'expanded';
@@ -331,7 +299,7 @@ class UserCollapseManager {
 
 		const isCollapsed = c.classList.contains('uc-collapsed');
 		if (isCollapsed) {
-			// Expand – leave scroll as-is; remove ellipsis.
+			// Expand – leave scroll as-is.
 			c.classList.remove('uc-collapsed');
 			c.classList.add('uc-expanded');
 			msg.dataset.ucState = 'expanded';
@@ -346,7 +314,7 @@ class UserCollapseManager {
 				}
 			}
 		} else {
-			// Collapse – apply classes, show ellipsis, then bring toggle into view (scroll up if needed).
+			// Collapse – apply classes, then bring toggle into view (scroll up if needed).
 			c.classList.remove('uc-expanded');
 			c.classList.add('uc-collapsed');
 			msg.dataset.ucState = 'collapsed';

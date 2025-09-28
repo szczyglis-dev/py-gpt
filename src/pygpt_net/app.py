@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 19:00:00                  #
+# Updated Date: 2025.09.28 09:00:00                  #
 # ================================================== #
 
 import os
@@ -20,6 +20,8 @@ from pygpt_net.utils import set_env
 
 # app env
 set_env("PYGPT_APP_ENV", "prod", allow_overwrite=True) # dev | prod
+# IF dev, JS will be loaded from `data/js/app/*` [js_rc.py], not from `data/js/app.min.js`
+# recompile js_rc.py with: bin/resources.sh, minify to app.min.js with: bin/minify.sh
 
 # debug
 # set_env("QTWEBENGINE_REMOTE_DEBUGGING", 9222)
