@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.09.28 08:00:00                  #
 # ================================================== #
 
 import os
@@ -19,7 +19,9 @@ from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.attachment import AttachmentList
+from pygpt_net.core.attachments.clipboard import AttachmentDropHandler
 from pygpt_net.utils import trans
+
 
 class Attachments:
     def __init__(self, window=None):
@@ -30,6 +32,8 @@ class Attachments:
         """
         self.window = window
         self.id = 'attachments'
+        # Keep a strong reference to DnD handler(s)
+        self._dnd_handlers = {}
 
     def setup(self) -> QVBoxLayout:
         """
@@ -131,6 +135,19 @@ class Attachments:
         self.window.ui.nodes[self.id] = AttachmentList(self.window)
         self.window.ui.models[self.id] = self.create_model(self.window)
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
+
+        # Drag & Drop: allow dropping files/images/urls/text directly onto the list
+        try:
+            self._dnd_handlers[self.id] = AttachmentDropHandler(
+                self.window,
+                self.window.ui.nodes[self.id],
+                policy=AttachmentDropHandler.SWALLOW_ALL,
+            )
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
 
     def create_model(self, parent) -> QStandardItemModel:
         """

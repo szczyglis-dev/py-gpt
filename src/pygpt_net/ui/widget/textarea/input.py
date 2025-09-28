@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 12:00:00                  #
+# Updated Date: 2025.09.28 08:00:00                  #
 # ================================================== #
 
 from typing import Optional
 import math
+import os
 
 from PySide6.QtCore import Qt, QSize, QTimer, QEvent
 from PySide6.QtGui import QAction, QIcon, QImage
@@ -24,6 +25,8 @@ from PySide6.QtWidgets import (
 
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
+from pygpt_net.core.attachments.clipboard import AttachmentDropHandler
+
 
 class ChatInput(QTextEdit):
 
@@ -127,6 +130,12 @@ class ChatInput(QTextEdit):
         # Paste/input safety limits
         self._paste_max_chars = 1000000000  # hard cap to prevent pathological pastes from freezing/crashing
 
+        # One-shot guard to avoid duplicate attachment processing on drops that also insert text.
+        self._skip_clipboard_on_next_insert = False
+
+        # Drag & Drop: add as attachments; do not insert file paths into text
+        self._dnd_handler = AttachmentDropHandler(self.window, self, policy=AttachmentDropHandler.INPUT_MIX)
+
     def _on_text_changed_tokens(self):
         """Schedule token count update with debounce."""
         self._tokens_timer.start()
@@ -157,27 +166,46 @@ class ChatInput(QTextEdit):
         except Exception:
             return False
 
+    def _mime_has_local_file_urls(self, source) -> bool:
+        """
+        Detects whether mime data contains any local file/directory URLs.
+        """
+        try:
+            if source and source.hasUrls():
+                for url in source.urls():
+                    if url.isLocalFile():
+                        return True
+        except Exception:
+            pass
+        return False
+
     def insertFromMimeData(self, source):
         """
         Insert from mime data
 
         :param source: source
         """
-        # Always process attachments first; never break input pipeline on errors.
-        try:
-            self.handle_clipboard(source)
-        except Exception as e:
-            try:
-                self.window.core.debug.log(e)
-            except Exception:
-                pass
+        has_local_files = self._mime_has_local_file_urls(source)
 
-        # If an image is present, we treat it as attachment-only and do not insert textual representation.
+        # Avoid double-processing when drop is allowed to fall through to default insertion.
+        should_skip = bool(getattr(self, "_skip_clipboard_on_next_insert", False))
+        if should_skip:
+            self._skip_clipboard_on_next_insert = False
+        else:
+            # Always process attachments first; never break input pipeline on errors.
+            try:
+                self.handle_clipboard(source)
+            except Exception as e:
+                try:
+                    self.window.core.debug.log(e)
+                except Exception:
+                    pass
+
+        # Do not insert textual representation for images nor local file URLs (including directories).
         try:
-            if source and source.hasImage():
+            if source and (source.hasImage() or has_local_files):
                 return
         except Exception:
-            # fallback to text extraction below
             pass
 
         # Insert only sanitized plain text (no HTML, no custom formats).
@@ -194,24 +222,27 @@ class ChatInput(QTextEdit):
     def _safe_text_from_mime(self, source) -> str:
         """
         Extracts plain text from QMimeData safely, normalizes and sanitizes it.
-        Falls back to URLs joined by space if textual content is not provided.
+        Falls back to URLs joined by space only for non-local URLs.
         """
         try:
             if source is None:
                 return ""
+            # Prefer real text if present
             if source.hasText():
                 return self._sanitize_text(source.text())
+            # Fallback: for non-local URLs we allow insertion as text (e.g., http/https)
             if source.hasUrls():
                 parts = []
                 for url in source.urls():
                     try:
                         if url.isLocalFile():
-                            parts.append(url.toLocalFile())
-                        else:
-                            parts.append(url.toString())
+                            # Skip local files/dirs textual fallback; they are handled as attachments
+                            continue
+                        parts.append(url.toString())
                     except Exception:
                         continue
-                return self._sanitize_text(" ".join([p for p in parts if p]))
+                if parts:
+                    return self._sanitize_text(" ".join([p for p in parts if p]))
         except Exception as e:
             try:
                 self.window.core.debug.log(e)
@@ -286,13 +317,36 @@ class ChatInput(QTextEdit):
                 image = source.imageData()
                 if isinstance(image, QImage):
                     self.window.controller.attachment.from_clipboard_image(image)
+                else:
+                    # Some platforms provide QPixmap; convert to QImage if possible
+                    try:
+                        img = image.toImage()
+                        if isinstance(img, QImage):
+                            self.window.controller.attachment.from_clipboard_image(img)
+                    except Exception:
+                        pass
             elif source.hasUrls():
                 urls = source.urls()
                 for url in urls:
                     try:
                         if url.isLocalFile():
                             local_path = url.toLocalFile()
-                            self.window.controller.attachment.from_clipboard_url(local_path)
+                            if not local_path:
+                                continue
+                            if os.path.isdir(local_path):
+                                # Recursively add all files from the dropped directory
+                                for root, _, files in os.walk(local_path):
+                                    for name in files:
+                                        fpath = os.path.join(root, name)
+                                        try:
+                                            self.window.controller.attachment.from_clipboard_url(fpath, all=True)
+                                        except Exception:
+                                            continue
+                            else:
+                                self.window.controller.attachment.from_clipboard_url(local_path, all=True)
+                        else:
+                            # Non-local URLs are handled as text (if any) by _safe_text_from_mime
+                            pass
                     except Exception:
                         # Ignore broken URL entries
                         continue
