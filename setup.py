@@ -90,6 +90,7 @@ setup(
         'llama-index-vector-stores-chroma>=0.4.2,<0.5.0',
         'llama-index-vector-stores-elasticsearch==0.4.0',
         'llama-index-vector-stores-pinecone>=0.6.0,<0.7.0',
+        'llama-index-vector-stores-qdrant>=0.8.0,<0.9.0',
         'llama-index-vector-stores-redis>=0.4.0,<0.5.0',
         'llama-index-readers-chatgpt-plugin>=0.3.0,<0.4.0',
         'llama-index-readers-database>=0.3.0,<0.4.0',

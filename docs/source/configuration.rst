@@ -729,6 +729,7 @@ Vector stores
 * ChromaVectorStore
 * ElasticsearchStore
 * PinecodeVectorStore
+* QdrantVectorStore
 * RedisVectorStore
 * SimpleVectorStore
 
@@ -757,6 +758,15 @@ Keyword arguments for Pinecone(``**kwargs``):
 
 * ``api_key``
 * index_name (default: current index ID, already set, not required)
+
+**QdrantVectorStore**
+
+Keyword arguments for QdrantVectorStore(``**kwargs``):
+
+* ``url`` - str, default: `http://localhost:6333`
+* ``api_key`` - str, default: `None` (for Qdrant Cloud)
+* ``collection_name`` (default: current index ID, already set, not required)
+* any other keyword arguments provided on list
 
 **RedisVectorStore**
 

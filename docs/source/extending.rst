@@ -412,6 +412,7 @@ You can create a custom vector store provider or data loader for your data and d
     from pygpt_net.provider.vector_stores.chroma import ChromaProvider
     from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
     from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
+    from pygpt_net.provider.vector_stores.qdrant import QdrantProvider
     from pygpt_net.provider.vector_stores.redis import RedisProvider
     from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
@@ -421,6 +422,7 @@ You can create a custom vector store provider or data loader for your data and d
         launcher.add_vector_store(ChromaProvider())
         launcher.add_vector_store(ElasticsearchProvider())
         launcher.add_vector_store(PinecodeProvider())
+        launcher.add_vector_store(QdrantProvider())
         launcher.add_vector_store(RedisProvider())
         launcher.add_vector_store(SimpleProvider())
 
