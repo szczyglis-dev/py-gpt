@@ -68,15 +68,21 @@ class Patch:
                     "nano-banana-pro-preview",
                     "sora-2",
                     "veo-3.1-fast-generate-preview",
-                    "veo-3.1-generate-preview",
+                    "veo-3.1-generate-preview"
                 ]
                 for model in models_to_add:
                     if model not in data:
-                        data[model] = from_base(model)
-                        updated = True
+                        base_model = from_base(model)
+                        if base_model:
+                            data[model] = base_model
+                            updated = True
 
         # update file
         if updated:
+            # fix empty/broken data
+            for key in list(data.keys()):
+                if not data[key]:
+                    del data[key]
             data = dict(sorted(data.items()))
             self.window.core.models.items = data
             self.window.core.models.save()
