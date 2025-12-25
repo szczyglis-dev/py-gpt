@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 00:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 import os
@@ -89,7 +89,14 @@ class ApiGoogle:
             filtered["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
             # filtered["http_options"] = gtypes.HttpOptions(api_version="v1")
 
-        return genai.Client(**filtered)
+        # use previous client if args are the same
+        if self.client and self.last_client_args == filtered:
+            return self.client
+
+        self.last_client_args = filtered
+        self.client = genai.Client(**filtered)
+
+        return self.client
 
     def call(
             self,
@@ -138,13 +145,17 @@ class ApiGoogle:
 
         elif mode == MODE_IMAGE:
             # Route to video / music / image based on selected model.
-            if context.model.is_video_output():
-                return self.video.generate(context=context, extra=extra)  # veo, etc.
-            # Lyria / music models
-            if self.music.is_music_model(model.id if model else ""):
-                return self.music.generate(context=context, extra=extra)   # lyria, etc.
-            # Default: image
-            return self.image.generate(context=context, extra=extra)       # imagen, etc.
+            media_mode = self.window.controller.media.get_mode()
+            if media_mode == "video":
+                if context.model.is_video_output():
+                    return self.video.generate(context=context, extra=extra)  # veo, etc.
+            elif media_mode == "music":
+                # Lyria / music models
+                if self.music.is_music_model(model.id if model else ""):
+                    return self.music.generate(context=context, extra=extra)   # lyria, etc.
+            elif media_mode == "image":
+                # Default: image
+                return self.image.generate(context=context, extra=extra)       # imagen, etc.
 
         elif mode == MODE_ASSISTANT:
             return False  # not implemented for Google
