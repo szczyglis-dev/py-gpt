@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.6.65",
-        "app.version": "2.6.65",
-        "updated_at": "2025-09-28T00:00:00"
+        "version": "2.6.66",
+        "app.version": "2.6.66",
+        "updated_at": "2025-12-25T00:00:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -262,6 +262,47 @@
             "provider": "anthropic",
             "tool_calls": false
         },
+        "claude-opus-4-5": {
+            "id": "claude-opus-4-5",
+            "name": "claude-opus-4-5",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "claude-opus-4-5-20251101",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "ANTHROPIC_API_KEY",
+                        "value": "{api_key_anthropic}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "anthropic",
+            "tool_calls": true
+        },
         "claude-sonnet-4-0": {
             "id": "claude-sonnet-4-0",
             "name": "claude-sonnet-4-0",
@@ -303,6 +344,47 @@
             "imported": false,
             "provider": "anthropic",
             "tool_calls": false
+        },
+        "claude-sonnet-4-5": {
+            "id": "claude-sonnet-4-5",
+            "name": "claude-sonnet-4-5",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "claude-sonnet-4-5-20250929",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "ANTHROPIC_API_KEY",
+                        "value": "{api_key_anthropic}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "anthropic",
+            "tool_calls": true
         },
         "codellama": {
             "id": "codellama",
@@ -911,7 +993,7 @@
                 "image"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
             "provider": "google",
             "tool_calls": true
         },
@@ -949,7 +1031,130 @@
                 "audio"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        },
+        "gemini-3-flash-preview": {
+            "id": "gemini-3-flash-preview",
+            "name": "gemini-3-flash-preview",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-3-flash-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        },
+        "gemini-3-pro-image-preview": {
+            "id": "gemini-3-pro-image-preview",
+            "name": "gemini-3-pro-image-preview",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-3-pro-image-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        },
+        "gemini-3-pro-preview": {
+            "id": "gemini-3-pro-preview",
+            "name": "gemini-3-pro-preview",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-3-pro-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
             "provider": "google",
             "tool_calls": true
         },
@@ -1641,7 +1846,7 @@
                 "audio"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
             "provider": "openai",
             "tool_calls": true
         },
@@ -2152,6 +2357,181 @@
             "provider": "openai",
             "tool_calls": true
         },
+        "gpt-5.2-low": {
+            "id": "gpt-5.2",
+            "name": "gpt-5.2 (low)",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5.2",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {
+                "reasoning_effort": "low"
+            },
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "gpt-5.2-medium": {
+            "id": "gpt-5.2",
+            "name": "gpt-5.2 (medium)",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5.2",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {
+                "reasoning_effort": "medium"
+            },
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        
+        "gpt-5.2-high": {
+            "id": "gpt-5.2",
+            "name": "gpt-5.2 (high)",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5.2",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {
+                "reasoning_effort": "high"
+            },
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
         "gpt-image-1": {
             "id": "gpt-image-1",
             "name": "gpt-image-1",
@@ -2166,6 +2546,59 @@
             "tokens": 0,
             "default": true,
             "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "image"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "gpt-image-1.5": {
+            "id": "gpt-image-1.5",
+            "name": "gpt-image-1.5",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-image-1.5",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
                 "image"
             ],
             "output": [
@@ -2471,7 +2904,7 @@
                 "image"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
             "provider": "x_ai",
             "tool_calls": true
         },
@@ -3012,6 +3445,42 @@
             "imported": false,
             "provider": "ollama",
             "tool_calls": false
+        },
+        "nano-banana-pro-preview": {
+            "id": "nano-banana-pro-preview",
+            "name": "nano-banana-pro-preview",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/nano-banana-pro-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "image"
+            ],
+            "extra": {},
+            "imported": true,
+            "provider": "google",
+            "tool_calls": true
         },
         "o1": {
             "id": "o1",
@@ -4058,6 +4527,57 @@
             "provider": "perplexity",
             "tool_calls": true
         },
+        "sora-2": {
+            "id": "sora-2",
+            "name": "sora-2",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "sora-2",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "video"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
         "veo-3.0-fast-generate-preview": {
             "id": "veo-3.0-fast-generate-preview",
             "name": "veo-3.0-fast-generate-preview",
@@ -4090,7 +4610,7 @@
                 "video"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
             "provider": "google",
             "tool_calls": true
         },
@@ -4126,9 +4646,81 @@
                 "video"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
             "provider": "google",
             "tool_calls": true
         }
-    }
+    },
+    "veo-3.1-fast-generate-preview": {
+            "id": "veo-3.1-fast-generate-preview",
+            "name": "veo-3.1-fast-generate-preview",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/veo-3.1-fast-generate-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "video"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        },
+        "veo-3.1-generate-preview": {
+            "id": "veo-3.1-generate-preview",
+            "name": "veo-3.1-generate-preview",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/veo-3.1-generate-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "video"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        }
 }

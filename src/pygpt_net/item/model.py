@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 import json
@@ -274,9 +274,7 @@ class ModelItem:
 
         :return: True if supports image input
         """
-        if MULTIMODAL_IMAGE in self.input:
-            return True
-        return False
+        return MULTIMODAL_IMAGE in self.input
 
     def is_image_output(self) -> bool:
         """
@@ -284,9 +282,7 @@ class ModelItem:
 
         :return: True if supports image output
         """
-        if "image" in self.output or MODE_VISION in self.mode:
-            return True
-        return False
+        return "image" in self.output or MODE_VISION in self.mode
 
     def is_audio_input(self) -> bool:
         """
@@ -294,9 +290,7 @@ class ModelItem:
 
         :return: True if supports audio input
         """
-        if MULTIMODAL_AUDIO in self.input:
-            return True
-        return False
+        return MULTIMODAL_AUDIO in self.input
 
     def is_audio_output(self) -> bool:
         """
@@ -304,9 +298,7 @@ class ModelItem:
 
         :return: True if supports audio output
         """
-        if MULTIMODAL_AUDIO in self.output:
-            return True
-        return False
+        return MULTIMODAL_AUDIO in self.output
 
     def is_video_input(self) -> bool:
         """
@@ -314,9 +306,7 @@ class ModelItem:
 
         :return: True if supports video input
         """
-        if MULTIMODAL_VIDEO in self.input:
-            return True
-        return False
+        return MULTIMODAL_VIDEO in self.input
 
     def is_video_output(self) -> bool:
         """
@@ -324,9 +314,15 @@ class ModelItem:
 
         :return: True if supports video output
         """
-        if MULTIMODAL_VIDEO in self.output:
-            return True
-        return False
+        return MULTIMODAL_VIDEO in self.output
+
+    def is_music_output(self) -> bool:
+        """
+        Check if model supports music output
+
+        :return: True if supports music output
+        """
+        return MULTIMODAL_AUDIO in self.output
 
     def dump(self) -> str:
         """

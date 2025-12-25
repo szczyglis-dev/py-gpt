@@ -592,7 +592,10 @@ Plugin allows you to generate images in Chat mode:
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
 
-**Video generation**: From version `2.6.32`, video generation (using `Google Veo 3`) is also available.
+**Video generation**: 
+
+From version `2.6.32`, video generation (using `Google Veo 3`) is also available.
+From version `2.6.66`, video generation (using `OpenAI Sora 2`) is also available.
 
 ### Multiple variants
 

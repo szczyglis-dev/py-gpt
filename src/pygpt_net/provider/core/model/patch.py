@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 00:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -52,8 +52,28 @@ class Patch:
                 data, updated = patcher.execute(version)
             # --------------------------------------------
 
-            # > 2.6.42 below:
-            # pass
+            # <  2.6.66 <--- add models
+            if old < parse_version("2.6.66"):
+                print("Migrating models from < 2.6.66...")
+                models_to_add = [
+                    "claude-opus-4-5",
+                    "claude-sonnet-4-5",
+                    "gemini-3-flash-preview",
+                    "gemini-3-pro-image-preview",
+                    "gemini-3-pro-preview",
+                    "gpt-5.2-low",
+                    "gpt-5.2-medium",
+                    "gpt-5.2-high",
+                    "gpt-image-1.5",
+                    "nano-banana-pro-preview",
+                    "sora-2",
+                    "veo-3.1-fast-generate-preview",
+                    "veo-3.1-generate-preview",
+                ]
+                for model in models_to_add:
+                    if model not in data:
+                        data[model] = from_base(model)
+                        updated = True
 
         # update file
         if updated:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 15:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -39,7 +39,8 @@ class Mode:
     def update(self):
         """Update mode, model, preset and rest of the toolbox"""
 
-        mode = self.window.core.config.data['mode']
+        mode = self.window.core.config.get("mode")
+        model = self.window.core.config.get("model")
 
         ui_nodes = self.window.ui.nodes
         ui_tabs = self.window.ui.tabs
@@ -53,7 +54,7 @@ class Mode:
         is_agent_llama = mode == MODE_AGENT_LLAMA
         is_agent_openai = mode == MODE_AGENT_OPENAI
         is_expert = mode == MODE_EXPERT
-        is_image = mode == MODE_IMAGE
+        is_media = mode == MODE_IMAGE
         is_llama_index = mode == MODE_LLAMA_INDEX
         is_completion = mode == MODE_COMPLETION
         is_audio = mode == MODE_AUDIO
@@ -161,14 +162,17 @@ class Mode:
             ui_nodes['preset.editor.modes'].setVisible(True)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
 
-        # image options visibility
-        if is_image:
+        # media options visibility
+        if is_media:
             ui_nodes['media.raw'].setVisible(True)
-            if ctrl.media.is_video_model():
+            if ctrl.media.is_video_model() and ctrl.media.get_mode() == "video":
                 ui_nodes['video.options'].setVisible(True)
                 ui_nodes['dalle.options'].setVisible(False)
-            elif ctrl.media.is_image_model():
+            elif ctrl.media.is_image_model() and ctrl.media.get_mode() == "image":
                 ui_nodes['dalle.options'].setVisible(True)
+                ui_nodes['video.options'].setVisible(False)
+            elif ctrl.media.get_mode() == "music":
+                ui_nodes['dalle.options'].setVisible(False)
                 ui_nodes['video.options'].setVisible(False)
             else:
                 ui_nodes['media.raw'].setVisible(False)
@@ -199,7 +203,7 @@ class Mode:
         else:
             ui_nodes['idx.options'].setVisible(False)
 
-        if is_image:
+        if is_media:
             ui_nodes['input.stream'].setVisible(False)
         else:
             ui_nodes['input.stream'].setVisible(True)
@@ -213,13 +217,13 @@ class Mode:
         ui_tabs['input'].setTabVisible(1, show)
 
         # remote tools icon visibility
-        if not is_image and not is_completion:
+        if not is_media and not is_completion:
             self.window.ui.nodes['input'].set_icon_visible("web", True)
         else:
             self.window.ui.nodes['input'].set_icon_visible("web", False)
 
         ui_tabs['input'].setTabVisible(2, is_assistant)
-        ui_tabs['input'].setTabVisible(3, (not is_assistant) and (not is_image))
+        ui_tabs['input'].setTabVisible(3, (not is_assistant) and (not is_media))
 
         presets_editor.toggle_extra_options()
 

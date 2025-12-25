@@ -198,8 +198,10 @@ Plugin allows you to generate images in Chat mode:
 .. image:: images/v3_img_chat.png
    :width: 800
 
-**Video generation**: From version ``2.6.32``, video generation (using ``Google Veo 3``) is also available.
+**Video generation**: 
 
+From version ``2.6.32``, video generation (using ``Google Veo 3``) is also available.
+From version ``2.6.66``, video generation (using ``OpenAI Sora 2``) is also available.
 
 **Multiple variants**
 

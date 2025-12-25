@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 import uuid
@@ -157,6 +157,39 @@ class Image(QObject):
             "value": "1024x1024",
             "keys": self.get_available_resolutions(),
         }
+
+    def get_mode_option(self) -> dict:
+        """
+        Get image mode option for UI
+
+        :return: dict
+        """
+        return {
+            "type": "combo",
+            "slider": True,
+            "label": "img_mode",
+            "value": "image",
+            "keys": self.get_available_modes(),
+        }
+
+    def get_available_modes(self, model_name: str = None) -> Dict[str, str]:
+        """
+        Get available modes (image / video)
+
+        :param model_name: model name
+        :return: dict of available modes
+        """
+        options = {}
+        if model_name:
+            model = self.window.core.models.get(model_name)
+            if model:
+                if model.is_image_output():
+                    options["image"] = trans("mode.img.image")
+                if model.is_video_output():
+                    options["video"] = trans("mode.img.video")
+                if model.is_music_output():
+                    options["music"] = trans("mode.img.music")
+        return options
 
     def get_available_resolutions(self, model: str = None) -> Dict[str, str]:
         """

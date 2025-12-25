@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 00:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -39,14 +39,8 @@ class Image:
     ) -> bool:
         """
         Generate or edit image(s) using Google GenAI API (Developer API or Vertex AI).
-
-        :param context: BridgeContext with prompt, model, attachments
-        :param extra: extra parameters (num, inline)
-        :param sync: run synchronously (blocking) if True
-        :return: True if started
         """
         # Music fast-path: delegate to Music flow if a music model is selected (e.g., Lyria).
-        # This keeps image flow unchanged while enabling music in the same "image" mode.
         try:
             model_id = (context.model.id if context and context.model else "") or ""
             if self.window and hasattr(self.window.core.api.google, "music"):
@@ -66,7 +60,7 @@ class Image:
         sub_mode = self.MODE_GENERATE
         attachments = context.attachments
         if attachments and len(attachments) > 0:
-            pass # TODO: implement edit!
+            pass  # TODO: implement edit!
             # sub_mode = self.MODE_EDIT
 
         # model used to improve the prompt (not image model)
@@ -132,13 +126,28 @@ class ImageWorker(QRunnable):
         self.inline = False
         self.raw = False
         self.num = 1
-        self.resolution = "1024x1024"  # used to derive aspect ratio for Imagen
+        self.resolution = "1024x1024"  # used to derive aspect ratio or image_size
 
         # limits
         self.imagen_max_num = 4  # Imagen returns up to 4 images
 
         # fallbacks
-        self.DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation"
+        self.DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image"
+
+        # Canonical 1K dimensions for Nano Banana Pro (Gemini 3 Pro Image Preview).
+        # Used to infer 2K/4K by 2x/4x multiples and to normalize UI inputs.
+        self._NB_PRO_1K = {
+            "1024x1024",  # 1:1
+            "848x1264",   # 2:3
+            "1264x848",   # 3:2
+            "896x1200",   # 3:4
+            "1200x896",   # 4:3
+            "928x1152",   # 4:5
+            "1152x928",   # 5:4
+            "768x1376",   # 9:16
+            "1376x768",   # 16:9
+            "1584x672",   # 21:9
+        }
 
     @Slot()
     def run(self):
@@ -179,7 +188,7 @@ class ImageWorker(QRunnable):
                         if p:
                             paths.append(p)
                 else:
-                    # Developer API fallback via Gemini image model; force v1 to avoid 404
+                    # Gemini Developer API via Gemini image models (Nano Banana / Nano Banana Pro)
                     resp = self._gemini_edit(self.input_prompt, self.attachments, self.num)
                     saved = 0
                     for cand in getattr(resp, "candidates", []) or []:
@@ -208,14 +217,8 @@ class ImageWorker(QRunnable):
                         if p:
                             paths.append(p)
                 else:
-                    # Gemini Developer API image generation (needs response_modalities)
-                    resp = self.client.models.generate_content(
-                        model=self.model,
-                        contents=[self.input_prompt],
-                        config=gtypes.GenerateContentConfig(
-                            response_modalities=[gtypes.Modality.TEXT, gtypes.Modality.IMAGE],
-                        ),
-                    )
+                    # Gemini Developer API image generation (Nano Banana / Nano Banana Pro) with robust sizing
+                    resp = self._gemini_generate_image(self.input_prompt, self.model, self.resolution)
                     saved = 0
                     for cand in getattr(resp, "candidates", []) or []:
                         parts = getattr(getattr(cand, "content", None), "parts", None) or []
@@ -316,10 +319,88 @@ class ImageWorker(QRunnable):
             config=cfg,
         )
 
+    def _is_gemini_pro_image_model(self, model_id: str) -> bool:
+        """
+        Detect Gemini 3 Pro Image (Nano Banana Pro) by id or UI alias.
+        """
+        mid = (model_id or "").lower()
+        return any(s in mid for s in ("gemini-3-pro-image", "nano-banana-pro", "nb-pro"))
+
+    def _infer_nb_pro_size_for_dims(self, w: int, h: int) -> Optional[str]:
+        """
+        Infer '1K' | '2K' | '4K' for Nano Banana Pro from WxH.
+        """
+        dims = f"{w}x{h}"
+        if dims in self._NB_PRO_1K:
+            return "1K"
+        if (w % 2 == 0) and (h % 2 == 0):
+            if f"{w // 2}x{h // 2}" in self._NB_PRO_1K:
+                return "2K"
+        if (w % 4 == 0) and (h % 4 == 0):
+            if f"{w // 4}x{h // 4}" in self._NB_PRO_1K:
+                return "4K"
+        mx = max(w, h)
+        if mx >= 4000:
+            return "4K"
+        if mx >= 2000:
+            return "2K"
+        return "1K"
+
+    def _build_gemini_image_config(self, model_id: str, resolution: str) -> Optional[gtypes.ImageConfig]:
+        """
+        Build ImageConfig for Gemini image models.
+        """
+        try:
+            aspect = self._aspect_from_resolution(resolution)
+            cfg = gtypes.ImageConfig()
+            if aspect:
+                cfg.aspect_ratio = aspect
+
+            # Only Pro supports image_size; detect by id/alias and set 1K/2K/4K from WxH.
+            if self._is_gemini_pro_image_model(model_id):
+                w_str, h_str = resolution.lower().replace("×", "x").split("x")
+                w, h = int(w_str.strip()), int(h_str.strip())
+                k = self._infer_nb_pro_size_for_dims(w, h)
+                if k:
+                    cfg.image_size = k
+            return cfg
+        except Exception:
+            return None
+
+    def _gemini_generate_image(self, prompt: str, model_id: str, resolution: str):
+        """
+        Call Gemini generate_content with robust fallback for image_size.
+        """
+        cfg = self._build_gemini_image_config(model_id, resolution)
+
+        def _do_call(icfg: Optional[gtypes.ImageConfig]):
+            return self.client.models.generate_content(
+                model=model_id or self.DEFAULT_GEMINI_IMAGE_MODEL,
+                contents=[prompt],
+                config=gtypes.GenerateContentConfig(
+                    response_modalities=[gtypes.Modality.TEXT, gtypes.Modality.IMAGE],
+                    image_config=icfg,
+                ),
+            )
+
+        try:
+            return _do_call(cfg)
+        except Exception as e:
+            msg = str(e)
+            if "imageSize" in msg or "image_size" in msg or "Unrecognized" in msg or "unsupported" in msg:
+                try:
+                    if cfg and getattr(cfg, "image_size", None):
+                        cfg2 = gtypes.ImageConfig()
+                        cfg2.aspect_ratio = getattr(cfg, "aspect_ratio", None)
+                        return _do_call(cfg2)
+                except Exception:
+                    pass
+            raise
+
     def _gemini_edit(self, prompt: str, attachments: Dict[str, Any], num: int):
         """
-        Gemini image-to-image editing via generate_content (Developer/Vertex depending on client).
-        The first attachment is used as the input image.
+        Gemini image-to-image editing via generate_content.
+        The first attachment is used as the input image. Honors aspect_ratio and (for Pro) image_size.
         """
         paths = self._collect_attachment_paths(attachments)
         if len(paths) == 0:
@@ -330,10 +411,27 @@ class ImageWorker(QRunnable):
             img_bytes = f.read()
         mime = self._guess_mime(img_path)
 
-        return self.client.models.generate_content(
-            model=self.model,
-            contents=[prompt, gtypes.Part.from_bytes(data=img_bytes, mime_type=mime)],
-        )
+        cfg = self._build_gemini_image_config(self.model, self.resolution)
+
+        def _do_call(icfg: Optional[gtypes.ImageConfig]):
+            return self.client.models.generate_content(
+                model=self.model or self.DEFAULT_GEMINI_IMAGE_MODEL,
+                contents=[prompt, gtypes.Part.from_bytes(data=img_bytes, mime_type=mime)],
+                config=gtypes.GenerateContentConfig(
+                    image_config=icfg,
+                ),
+            )
+
+        try:
+            return _do_call(cfg)
+        except Exception as e:
+            msg = str(e)
+            if "imageSize" in msg or "image_size" in msg or "Unrecognized" in msg or "unsupported" in msg:
+                if cfg and getattr(cfg, "image_size", None):
+                    cfg2 = gtypes.ImageConfig()
+                    cfg2.aspect_ratio = getattr(cfg, "aspect_ratio", None)
+                    return _do_call(cfg2)
+            raise
 
     def _collect_attachment_paths(self, attachments: Dict[str, Any]) -> List[str]:
         """Extract file paths from attachments dict."""
@@ -347,7 +445,7 @@ class ImageWorker(QRunnable):
         return out
 
     def _aspect_from_resolution(self, resolution: str) -> Optional[str]:
-        """Derive aspect ratio for Imagen."""
+        """Derive aspect ratio from WxH across supported set."""
         try:
             from math import gcd
             tolerance = 0.08
@@ -357,10 +455,15 @@ class ImageWorker(QRunnable):
                 return None
             supported = {
                 "1:1": 1 / 1,
+                "2:3": 2 / 3,
+                "3:2": 3 / 2,
                 "3:4": 3 / 4,
                 "4:3": 4 / 3,
+                "4:5": 4 / 5,
+                "5:4": 5 / 4,
                 "9:16": 9 / 16,
                 "16:9": 16 / 9,
+                "21:9": 21 / 9,
             }
             g = gcd(w, h)
             key = f"{w // g}:{h // g}"
@@ -424,6 +527,8 @@ class ImageWorker(QRunnable):
             return 'image/jpeg'
         if ext == '.webp':
             return 'image/webp'
+        if ext in ('.heic', '.heif'):
+            return 'image/heic'
         return 'image/png'
 
     def _cleanup(self):

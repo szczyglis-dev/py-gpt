@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 import base64, datetime, os, requests
@@ -150,11 +150,10 @@ class VideoWorker(QRunnable):
         self.fps = 24
         self.seed: Optional[int] = None
         self.negative_prompt: Optional[str] = None
-        self.generate_audio: bool = False  # Veo 3 only
-        self.resolution: str = "720p"      # Veo 3 supports 720p/1080p
+        self.generate_audio: bool = False  # generation includes audio by default on Veo 3.x
+        self.resolution: str = "720p"      # Veo supports 720p/1080p depending on variant
 
         # limits / capabilities
-        # self.veo_max_num = 4  # Veo returns up to 4 videos
         self.veo_max_num = 1  # limit to 1 in Gemini API
 
         # fallbacks
@@ -187,42 +186,52 @@ class VideoWorker(QRunnable):
             num = min(self.num, self.veo_max_num)
             cfg_kwargs = {
                 "number_of_videos": num,
-                #"duration_seconds": self._duration_for_model(self.model, self.duration_seconds),
             }
-            if self.aspect_ratio:
-                cfg_kwargs["aspect_ratio"] = self.aspect_ratio
+
+            # normalize and set aspect ratio
+            ar = self._normalize_aspect_ratio(self.aspect_ratio)
+            if ar:
+                cfg_kwargs["aspect_ratio"] = ar
+
+            # normalize and set resolution if supported
+            res = self._normalize_resolution(self.resolution)
+            if res:
+                cfg_kwargs["resolution"] = res
+
+            # set optional controls
             if self.seed is not None:
                 cfg_kwargs["seed"] = int(self.seed)
             if self.negative_prompt:
                 cfg_kwargs["negative_prompt"] = self.negative_prompt
-            if self._is_veo3(self.model):
-                # Veo 3 supports audio and resolution
-                # WARN: but not Gemini API:
-                pass
-                """             
-                cfg_kwargs["generate_audio"] = bool(self.generate_audio)   
-                if self.resolution:
-                    cfg_kwargs["resolution"] = self.resolution
-                """
 
-            config = gtypes.GenerateVideosConfig(**cfg_kwargs)
-
-            # build request
-            req_kwargs = {
-                "model": self.model or self.DEFAULT_VEO_MODEL,
-                "prompt": self.input_prompt or "",
-                "config": config,
-            }
-
-            # image-to-video if an image attachment is present and supported
-            base_img = self._first_image_attachment(self.attachments)
-            if self.mode == Video.MODE_IMAGE_TO_VIDEO and base_img is not None and self._supports_image_to_video(self.model):
-                req_kwargs["image"] = gtypes.Image.from_file(location=base_img)
+            # set durationSeconds when supported; fall back gracefully if rejected by model
+            cfg_try = dict(cfg_kwargs)
+            cfg_try["duration_seconds"] = int(self._duration_for_model(self.model, self.duration_seconds))
 
             self.signals.status.emit(trans('vid.status.generating') + f": {self.input_prompt}...")
 
-            # start long-running operation
-            operation = self.client.models.generate_videos(**req_kwargs)
+            try:
+                config = gtypes.GenerateVideosConfig(**cfg_try)
+                operation = self.client.models.generate_videos(
+                    model=self.model or self.DEFAULT_VEO_MODEL,
+                    prompt=self.input_prompt or "",
+                    config=config,
+                    image=self._image_part_if_needed(),
+                    video=None,
+                )
+            except Exception as e:
+                if "durationSeconds isn't supported" in str(e) or "Unrecognized" in str(e):
+                    # retry without duration_seconds
+                    config = gtypes.GenerateVideosConfig(**cfg_kwargs)
+                    operation = self.client.models.generate_videos(
+                        model=self.model or self.DEFAULT_VEO_MODEL,
+                        prompt=self.input_prompt or "",
+                        config=config,
+                        image=self._image_part_if_needed(),
+                        video=None,
+                    )
+                else:
+                    raise
 
             # poll until done
             while not getattr(operation, "done", False):
@@ -258,6 +267,22 @@ class VideoWorker(QRunnable):
 
     # ---------- helpers ----------
 
+    def _normalize_aspect_ratio(self, ar: str) -> str:
+        """Normalize aspect ratio to Veo-supported values."""
+        val = (ar or "").strip()
+        return val if val in ("16:9", "9:16") else "16:9"
+
+    def _normalize_resolution(self, res: str) -> Optional[str]:
+        """Normalize resolution to '720p' or '1080p'."""
+        val = (res or "").lower().replace(" ", "")
+        if val in ("720p", "1080p"):
+            return val
+        if val in ("1280x720", "720x1280"):
+            return "720p"
+        if val in ("1920x1080", "1080x1920"):
+            return "1080p"
+        return None
+
     def _is_veo3(self, model_id: str) -> bool:
         mid = str(model_id or "").lower()
         return mid.startswith("veo-3.")
@@ -265,19 +290,31 @@ class VideoWorker(QRunnable):
     def _supports_image_to_video(self, model_id: str) -> bool:
         """Return True if the model supports image->video."""
         mid = str(model_id or "").lower()
-        # Official support for image-to-video on veo-2 and veo-3 preview; keep extendable.
-        return ("veo-2.0" in mid) or ("veo-3.0-generate-preview" in mid) or ("veo-3.0-fast-generate-preview" in mid)
+        return any(p in mid for p in (
+            "veo-2.0",
+            "veo-3.0-generate",
+            "veo-3.0-fast-generate",
+            "veo-3.1-generate",
+            "veo-3.1-fast-generate",
+        ))
 
     def _duration_for_model(self, model_id: str, requested: int) -> int:
         """Adjust duration constraints to model-specific limits."""
         mid = str(model_id or "").lower()
         if "veo-2.0" in mid:
-            # Veo 2 supports 5–8s, default 8s.
             return max(5, min(8, int(requested or 8)))
+        if "veo-3.1" in mid:
+            return max(4, min(8, int(requested or 8)))
         if "veo-3.0" in mid:
-            # Veo 3 commonly uses 8s clips; honor request if provided, otherwise 8s.
-            return int(requested or 8)
+            return max(4, min(8, int(requested or 8)))
         return int(requested or 8)
+
+    def _image_part_if_needed(self) -> Optional[gtypes.Image]:
+        """Return Image part when in image-to-video mode and supported."""
+        if self.mode != Video.MODE_IMAGE_TO_VIDEO:
+            return None
+        base_img = self._first_image_attachment(self.attachments)
+        return gtypes.Image.from_file(location=base_img) if base_img else None
 
     def _first_image_attachment(self, attachments: Dict[str, Any]) -> Optional[str]:
         """Return path of the first image attachment, if any."""
