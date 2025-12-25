@@ -91,7 +91,7 @@ datas += [
     ('venv/lib/python3.10/site-packages/llama_index/legacy/_static/nltk_cache/tokenizers/punkt/PY3/*', 'llama_index/legacy/_static/nltk_cache/tokenizers/punkt/PY3/'),
     ('venv/lib/python3.10/site-packages/llama_index/core/_static/nltk_cache/corpora/stopwords/*', 'llama_index/core/_static/nltk_cache/corpora/stopwords/'),
     ('venv/lib/python3.10/site-packages/llama_index/core/agent/react/templates/*', 'llama_index/core/agent/react/templates/'),
-    ('venv/lib/python3.10/site-packages/opentelemetry_sdk-1.36.0.dist-info/*', 'opentelemetry_sdk-1.36.0.dist-info'),
+    ('venv/lib/python3.10/site-packages/opentelemetry_sdk-1.39.1.dist-info/*', 'opentelemetry_sdk-1.39.1.dist-info'),
     ('venv/lib/python3.10/site-packages/pinecone/__version__', 'pinecone'),
 ]
 
