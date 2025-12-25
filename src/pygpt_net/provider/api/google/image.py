@@ -217,7 +217,7 @@ class ImageWorker(QRunnable):
                         if p:
                             paths.append(p)
                 else:
-                    # Gemini Developer API image generation (Nano Banana / Nano Banana Pro) with robust sizing
+                    # Gemini Developer API image generation (Nano Banana / Nano Banana Pro) with robust sizing + optional reference images
                     resp = self._gemini_generate_image(self.input_prompt, self.model, self.resolution)
                     saved = 0
                     for cand in getattr(resp, "candidates", []) or []:
@@ -324,7 +324,7 @@ class ImageWorker(QRunnable):
         Detect Gemini 3 Pro Image (Nano Banana Pro) by id or UI alias.
         """
         mid = (model_id or "").lower()
-        return any(s in mid for s in ("gemini-3-pro-image", "nano-banana-pro", "nb-pro"))
+        return mid.startswith("gemini-") or mid.startswith("nano-banana") or mid.startswith("nb-")
 
     def _infer_nb_pro_size_for_dims(self, w: int, h: int) -> Optional[str]:
         """
@@ -367,16 +367,42 @@ class ImageWorker(QRunnable):
         except Exception:
             return None
 
+    def _attachment_image_parts(self) -> List[gtypes.Part]:
+        """
+        Build image Parts from current attachments for Gemini models.
+        """
+        parts: List[gtypes.Part] = []
+        paths = self._collect_attachment_paths(self.attachments)
+        for p in paths:
+            try:
+                mime = self._guess_mime(p)
+                if not mime or not mime.startswith("image/"):
+                    continue
+                with open(p, "rb") as f:
+                    data = f.read()
+                parts.append(gtypes.Part.from_bytes(data=data, mime_type=mime))
+            except Exception:
+                continue
+        return parts
+
     def _gemini_generate_image(self, prompt: str, model_id: str, resolution: str):
         """
         Call Gemini generate_content with robust fallback for image_size.
+        Supports optional reference images uploaded as attachments.
         """
         cfg = self._build_gemini_image_config(model_id, resolution)
+        image_parts = self._attachment_image_parts()
 
         def _do_call(icfg: Optional[gtypes.ImageConfig]):
+            contents: List[Any] = []
+            # Always include the textual prompt (can be empty string).
+            contents.append(prompt or "")
+            # Append reference images, if any.
+            if image_parts:
+                contents.extend(image_parts)
             return self.client.models.generate_content(
                 model=model_id or self.DEFAULT_GEMINI_IMAGE_MODEL,
-                contents=[prompt],
+                contents=contents,
                 config=gtypes.GenerateContentConfig(
                     response_modalities=[gtypes.Modality.TEXT, gtypes.Modality.IMAGE],
                     image_config=icfg,
