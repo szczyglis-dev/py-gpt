@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 03:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 import re
@@ -497,8 +497,10 @@ class Presets:
 
         :param no_scroll: do not scroll to current
         """
+        self.locked = True
         w = self.window
         if w.core.config.get('mode') == MODE_ASSISTANT:
+            self.locked = False
             return
         if no_scroll:
             w.ui.nodes['preset.presets'].store_scroll_position()
@@ -511,6 +513,7 @@ class Presets:
         if no_scroll:
             w.ui.nodes['preset.presets'].restore_scroll_position()
         self.on_changed()
+        self.locked = False
 
     def update_list(self):
         """Update presets list"""
