@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QCheckBox
 
+from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.utils import trans
 
 
@@ -39,7 +40,12 @@ class Raw:
         conf_global['img_raw'] = QCheckBox(trans("img.raw"), parent=container)
         conf_global['img_raw'].toggled.connect(self.window.controller.media.toggle_raw)
 
+        conf_global = ui.config['global']
+        option_modes = self.window.core.image.get_available_modes()
+        conf_global['img_mode'] = OptionCombo(self.window, 'global', 'img_mode', option_modes)
+
         cols = QHBoxLayout()
+        cols.addWidget(conf_global['img_mode'])
         cols.addWidget(conf_global['img_raw'])
 
         rows = QVBoxLayout()

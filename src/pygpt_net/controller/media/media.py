@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -30,6 +30,15 @@ class Media:
         else:
             self.window.ui.config['global']['img_raw'].setChecked(False)
 
+        # mode (image|video|music)
+        mode = self.window.core.config.get('img_mode', 'image')
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="img_mode",
+            option=self.window.core.image.get_mode_option(),
+            value=mode,
+        )
+
         # image: resolution
         resolution = self.window.core.config.get('img_resolution', '1024x1024')
         self.window.controller.config.apply_value(
@@ -51,6 +60,7 @@ class Media:
         # -- add hooks --
         if not self.initialized:
             self.window.ui.add_hook("update.global.img_resolution", self.hook_update)
+            self.window.ui.add_hook("update.global.img_mode", self.hook_update)
             self.window.ui.add_hook("update.global.video.aspect_ratio", self.hook_update)
 
     def reload(self):
@@ -69,6 +79,11 @@ class Media:
             if not value:
                 return
             self.window.core.config.set('img_resolution', value)
+        elif key == "img_mode":
+            if not value:
+                return
+            self.window.core.config.set('img_mode', value)
+            self.window.controller.ui.mode.update() # switch image|video options
         elif key == "video.aspect_ratio":
             if not value:
                 return
@@ -91,6 +106,10 @@ class Media:
             self.disable_raw()
         else:
             self.enable_raw()
+
+    def get_mode(self) -> str:
+        """Get media generation mode (image/video/music)"""
+        return self.window.core.config.get("img_mode", "image")
 
     def is_image_model(self) -> bool:
         """

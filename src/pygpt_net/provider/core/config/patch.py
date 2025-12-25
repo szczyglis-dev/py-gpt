@@ -176,6 +176,13 @@ class Patch:
                 patch_css('style.dark.css', True)
                 updated = True
 
+            # < 2.6.66
+            if old < parse_version("2.6.66"):
+                print("Migrating config from < 2.6.66...")
+                if "img_mode" not in data:
+                    data["img_mode"] = "image"
+                updated = True
+
         # update file
         migrated = False
         if updated:

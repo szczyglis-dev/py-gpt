@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 17:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -68,6 +68,7 @@ class UI:
         self.update_tokens()
         self.vision.update()
         self.window.controller.agent.legacy.update()
+        self.img_update_available_modes()
         self.img_update_available_resolutions()
 
     def handle(self, event: BaseEvent):
@@ -257,5 +258,21 @@ class UI:
             parent_id="global",
             key="img_resolution",
             option=self.window.core.image.get_resolution_option(),
+            value=current,
+        )
+
+    def img_update_available_modes(self):
+        """Update available modes for images"""
+        mode = self.window.core.config.get('mode')
+        if mode != MODE_IMAGE:
+            return
+        model = self.window.core.config.get('model')
+        keys = self.window.core.image.get_available_modes(model)
+        current = self.window.core.config.get('img_mode', 'image')
+        self.window.ui.config['global']['img_mode'].set_keys(keys, lock=False)
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="img_mode",
+            option=self.window.core.image.get_mode_option(),
             value=current,
         )

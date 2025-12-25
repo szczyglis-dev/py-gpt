@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 20:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -38,6 +38,7 @@ from .store import Store
 from .summarizer import Summarizer
 from .tools import Tools
 from .vision import Vision
+from .video import Video
 
 
 class ApiOpenAI:
@@ -63,6 +64,7 @@ class ApiOpenAI:
         self.summarizer = Summarizer(window)
         self.tools = Tools(window)
         self.vision = Vision(window)
+        self.video = Video(window)
         self.client = None
         self.locked = False
         self.last_client_args = None  # last client args used, for debug purposes
@@ -87,7 +89,7 @@ class ApiOpenAI:
             self,
             context: BridgeContext,
             extra: dict = None,
-            rt_signals = None
+            rt_signals=None
     ) -> bool:
         """
         Call OpenAI API
@@ -157,7 +159,7 @@ class ApiOpenAI:
                 if is_realtime:
                     return True
 
-            if fixtures.is_enabled("stream"): # fake stream for testing
+            if fixtures.is_enabled("stream"):  # fake stream for testing
                 use_responses_api = False
                 response = fixtures.get_stream_generator(ctx)
             else:
@@ -181,12 +183,20 @@ class ApiOpenAI:
 
             self.vision.append_images(ctx)  # append images to ctx if provided
 
-        # image
+        # image / video
         elif mode == MODE_IMAGE:
-            return self.image.generate(
-                context=context,
-                extra=extra,
-            )  # return here, async handled
+            media_mode = self.window.controller.media.get_mode()
+            if media_mode == "video":
+                if context.model and context.model.is_video_output():
+                    return self.video.generate(
+                        context=context,
+                        extra=extra,
+                    )  # async handled if allowed
+            elif media_mode == "image":
+                return self.image.generate(
+                    context=context,
+                    extra=extra,
+                )
 
         # vision
         elif mode == MODE_VISION:
@@ -294,13 +304,13 @@ class ApiOpenAI:
         messages.append({"role": "user", "content": prompt})
         additional_kwargs = {}
         # if max_tokens > 0:
-            # additional_kwargs["max_tokens"] = max_tokens
+        # additional_kwargs["max_tokens"] = max_tokens
 
         # tools / functions
         tools = self.window.core.api.openai.tools.prepare(model, functions)
         if len(tools) > 0 and "disable_tools" not in extra:
             additional_kwargs["tools"] = tools
-        
+
         try:
             response = client.chat.completions.create(
                 messages=messages,

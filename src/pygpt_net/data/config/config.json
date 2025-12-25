@@ -207,6 +207,7 @@
   "font_size.toolbox": 12,
   "frequency_penalty": 0.0,
   "func_call.native": true,
+  "img_mode": "image",
   "img_prompt_model": "gpt-4o",
   "img_raw": true,
   "img_resolution": "1024x1024",
