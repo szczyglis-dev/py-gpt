@@ -535,6 +535,7 @@ Options for indexing existing context history or enabling real-time indexing new
 - ChromaVectorStore
 - ElasticsearchStore
 - PinecodeVectorStore
+- QdrantVectorStore
 - RedisVectorStore
 - SimpleVectorStore
 ```
@@ -2973,6 +2974,7 @@ You can provide a single URI in the form of: `{scheme}://{user}:{password}@{host
 - ChromaVectorStore
 - ElasticsearchStore
 - PinecodeVectorStore
+- QdrantVectorStore
 - RedisVectorStore
 - SimpleVectorStore
 ```
@@ -3002,6 +3004,15 @@ Keyword arguments for Pinecone(`**kwargs`):
 
 - `api_key`
 - index_name (default: current index ID, already set, not required)
+
+**QdrantVectorStore**
+
+Keyword arguments for QdrantVectorStore(`**kwargs`):
+
+- `url` - str, default: `http://localhost:6333`
+- `api_key` - str, default: `None` (for Qdrant Cloud)
+- `collection_name` (default: current index ID, already set, not required)
+- any other keyword arguments provided on list
 
 **RedisVectorStore**
 
@@ -3500,6 +3511,7 @@ You can create a custom vector store provider or data loader for your data and d
 from pygpt_net.provider.vector_stores.chroma import ChromaProvider
 from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
 from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
+from pygpt_net.provider.vector_stores.qdrant import QdrantProvider
 from pygpt_net.provider.vector_stores.redis import RedisProvider
 from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
@@ -3509,6 +3521,7 @@ def run(**kwargs):
     launcher.add_vector_store(ChromaProvider())
     launcher.add_vector_store(ElasticsearchProvider())
     launcher.add_vector_store(PinecodeProvider())
+    launcher.add_vector_store(QdrantProvider())
     launcher.add_vector_store(RedisProvider())
     launcher.add_vector_store(SimpleProvider())
 
