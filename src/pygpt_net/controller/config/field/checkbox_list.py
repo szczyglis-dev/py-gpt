@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict, List
@@ -85,6 +85,39 @@ class CheckboxList:
                         hook(key, value, 'bool_list')
                     except Exception as e:
                         self.window.core.debug.log(e)
+
+
+    def on_select_all(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ):
+        """
+        Event: select all checkboxes
+
+        :param parent_id: Options parent ID
+        :param key: Option key
+        :param option: Option data
+        """
+        ui = self.window.ui
+        cfg_parent = ui.config.get(parent_id)
+        if not cfg_parent:
+            return
+        entry = cfg_parent.get(key)
+        if entry is None or not hasattr(entry, "boxes"):
+            return
+        boxes = entry.boxes
+
+        mode = "unselect_all"
+
+        for name, cb in boxes.items():
+            if cb is not None and not cb.isChecked():
+                mode = "select_all"
+
+        for name, cb in boxes.items():
+            if cb is not None:
+                cb.setChecked(mode == "select_all")
 
     def get_value(
             self,

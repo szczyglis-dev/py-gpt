@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.12.25 20:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QCheckBox, QWidget
+from PySide6.QtWidgets import QCheckBox, QWidget, QPushButton
 
 from pygpt_net.ui.base.flow_layout import FlowLayout
 from pygpt_net.utils import trans
@@ -83,6 +83,18 @@ class OptionCheckboxList(QWidget):
         self.layout = FlowLayout()
         for widget in widgets:
             self.layout.addWidget(widget)
+
+        # select/unselect all button
+        btn_select = QPushButton("X", self)
+        btn_select.setToolTip(trans("action.select_unselect_all"))
+        btn_select.clicked.connect(
+            lambda: self.window.controller.config.checkbox_list.on_select_all(
+                self.parent_id,
+                self.id,
+                self.option
+            )
+        )
+        self.layout.addWidget(btn_select)
 
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
