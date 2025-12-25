@@ -59,9 +59,6 @@ class Image:
         # decide sub-mode based on attachments
         sub_mode = self.MODE_GENERATE
         attachments = context.attachments
-        if attachments and len(attachments) > 0:
-            pass  # TODO: implement edit!
-            # sub_mode = self.MODE_EDIT
 
         # model used to improve the prompt (not image model)
         prompt_model = self.window.core.models.from_defaults()
@@ -82,6 +79,11 @@ class Image:
         worker.raw = self.window.core.config.get('img_raw')
         worker.num = num
         worker.inline = inline
+
+        if attachments and len(attachments) > 0:
+            mid = str(model.id).lower()
+            if "imagen" in mid:
+                worker.mode = self.MODE_EDIT
 
         if self.window.core.config.has('img_resolution'):
             worker.resolution = self.window.core.config.get('img_resolution') or "1024x1024"
