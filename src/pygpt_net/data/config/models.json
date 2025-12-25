@@ -1080,12 +1080,7 @@
             "id": "gemini-3-pro-image-preview",
             "name": "gemini-3-pro-image-preview",
             "mode": [
-                "chat",
-                "llama_index",
-                "agent",
-                "agent_llama",
-                "agent_openai",
-                "expert"
+                "img"
             ],
             "llama_index": {
                 "args": [
@@ -1107,13 +1102,14 @@
             "tokens": 0,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
-                "text"
+                "image"
             ],
             "extra": {},
-            "imported": false,
+            "imported": true,
             "provider": "google",
             "tool_calls": true
         },
@@ -4649,9 +4645,8 @@
             "imported": false,
             "provider": "google",
             "tool_calls": true
-        }
-    },
-    "veo-3.1-fast-generate-preview": {
+        },
+        "veo-3.1-fast-generate-preview": {
             "id": "veo-3.1-fast-generate-preview",
             "name": "veo-3.1-fast-generate-preview",
             "mode": [
@@ -4723,4 +4718,5 @@
             "provider": "google",
             "tool_calls": true
         }
+    }
 }

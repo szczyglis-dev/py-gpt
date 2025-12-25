@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.65** | build: **2025-09-28** | Python: **>=3.10, <3.14**
+Release: **2.6.66** | build: **2025-12-25** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3623,6 +3623,17 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.66 (2025-12-25)**
+
+- Added Sora 2 support - #155.
+- Added Nano Banana support.
+- Added Qdrant Vector Store - merged PR #147 by @Anush008.
+- Added models: gpt-5.2, gpt-image-1.5, gemini-3, nano-banana-pro, sora-2, claude-sonnet-4.5, claude-opus-4.5, veo-3.1.
+- Added Select/unselect All option in checkbox lists.
+- OpenAI SDK upgraded to 2.14.0, Anthropic SDK upgraded to 0.75.0, xAI SDK upgraded to 1.5.0, Google GenAI upgraded to 1.56.0, LlamaIndex upgraded to 0.14.10, PySide6 upgraded to 6.10.1.
+- Fix: charset-normalizer 3.2.0 circular import - #152.
+- Fix: Google client closed state.
 
 **2.6.65 (2025-09-28)**
 
