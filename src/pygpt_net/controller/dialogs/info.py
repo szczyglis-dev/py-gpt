@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 19:00:00                  #
+# Updated Date: 2025.12.26 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -101,7 +101,7 @@ class Info:
 
     def goto_update(self):
         """Open update URL"""
-        self.open_url(self.window.meta['update'])
+        self.open_url(self.window.meta['website'])
 
     def goto_donate(self):
         """Open donate page"""
