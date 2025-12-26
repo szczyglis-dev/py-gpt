@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.26 12:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -57,11 +57,31 @@ class Media:
             value=aspect_ratio,
         )
 
+        # video: resolution
+        resolution = self.window.core.config.get('video.resolution', '720p')
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="video.resolution",
+            option=self.window.core.video.get_resolution_option(),
+            value=resolution,
+        )
+
+        # video: duration
+        duration = self.window.core.config.get('video.duration', 8)
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="video.duration",
+            option=self.window.core.video.get_duration_option(),
+            value=duration,
+        )
+
         # -- add hooks --
         if not self.initialized:
             self.window.ui.add_hook("update.global.img_resolution", self.hook_update)
             self.window.ui.add_hook("update.global.img_mode", self.hook_update)
             self.window.ui.add_hook("update.global.video.aspect_ratio", self.hook_update)
+            self.window.ui.add_hook("update.global.video.resolution", self.hook_update)
+            self.window.ui.add_hook("update.global.video.duration", self.hook_update)
 
     def reload(self):
         """Reload UI"""
@@ -88,6 +108,14 @@ class Media:
             if not value:
                 return
             self.window.core.config.set('video.aspect_ratio', value)
+        elif key == "video.resolution":
+            if not value:
+                return
+            self.window.core.config.set('video.resolution', value)
+        elif key == "video.duration":
+            if not value:
+                return
+            self.window.core.config.set('video.duration', value)
 
     def enable_raw(self):
         """Enable prompt enhancement for images"""

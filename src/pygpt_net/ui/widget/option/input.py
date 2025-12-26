@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.12.26 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -104,6 +104,8 @@ class OptionInput(QLineEdit):
                 self.real_time = self.option["real_time"]
             if "read_only" in self.option and self.option["read_only"]:
                 self.setReadOnly(True)
+            if "placeholder" in self.option and self.option["placeholder"]:
+                self.setPlaceholderText(self.option["placeholder"])
 
         # on update hook
         self.textChanged.connect(

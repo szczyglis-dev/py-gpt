@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.26 12:00:00                  #
 # ================================================== #
 
 import datetime
@@ -328,7 +328,7 @@ class VideoWorker(QRunnable):
         portrait = ar in ("9:16", "9x16", "portrait")
 
         if "sora-2-pro" in model:
-            if "1024" in res or "1792" in res or "hd" in res:
+            if "1024" in res or "1080" in res or "1792" in res or "hd" in res:
                 return "1024x1792" if portrait else "1792x1024"
 
         return "720x1280" if portrait else "1280x720"

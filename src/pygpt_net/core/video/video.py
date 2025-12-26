@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.12.26 12:00:00                  #
 # ================================================== #
 
 import uuid
@@ -18,7 +18,10 @@ from time import strftime
 
 from PySide6.QtCore import Slot, QObject
 
-from pygpt_net.core.types import VIDEO_AVAILABLE_ASPECT_RATIOS
+from pygpt_net.core.types import (
+    VIDEO_AVAILABLE_ASPECT_RATIOS,
+    VIDEO_AVAILABLE_RESOLUTIONS,
+)
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -267,7 +270,7 @@ class Video(QObject):
 
     def get_aspect_ratio_option(self) -> dict:
         """
-        Get image resolution option for UI
+        Get video aspect ratio option for UI
 
         :return: dict
         """
@@ -279,6 +282,34 @@ class Video(QObject):
             "keys": self.get_available_aspect_ratio(),
         }
 
+    def get_resolution_option(self) -> dict:
+        """
+        Get video resolution option for UI
+
+        :return: dict
+        """
+        return {
+            "type": "combo",
+            "slider": True,
+            "label": "video.resolution",
+            "value": "720p",
+            "keys": self.get_available_resolutions(),
+        }
+
+    def get_duration_option(self) -> dict:
+        """
+        Get video duration option for UI
+
+        :return: dict
+        """
+        return {
+            "type": "int",
+            "slider": False,
+            "label": "video.duration",
+            "value": 8,
+            "placeholder": "s",
+        }
+
     def get_available_aspect_ratio(self, model: str = None) -> Dict[str, str]:
         """
         Get available image resolutions
@@ -287,4 +318,13 @@ class Video(QObject):
         :return: dict of available resolutions
         """
         return VIDEO_AVAILABLE_ASPECT_RATIOS
+
+    def get_available_resolutions(self, model: str = None) -> Dict[str, str]:
+        """
+        Get available image resolutions
+
+        :param model: model name
+        :return: dict of available resolutions
+        """
+        return VIDEO_AVAILABLE_RESOLUTIONS
 
