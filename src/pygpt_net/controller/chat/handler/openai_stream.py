@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 00:00:00                  #
+# Updated Date: 2025.12.26 00:00:00                  #
 # ================================================== #
 
 import base64
@@ -15,6 +15,115 @@ import json
 from typing import Optional, Any
 
 from .utils import capture_openai_usage
+
+
+# v2: Support both dict and Pydantic objects returned by OpenAI Python SDK v2
+def _to_dict_safe(obj: Any) -> Optional[dict]:
+    """
+    Convert OpenAI SDK typed models (Pydantic) or plain objects to dict safely.
+
+    Returns:
+        dict or None
+    """
+    if obj is None:
+        return None
+    if isinstance(obj, dict):
+        return obj
+    # Pydantic v2
+    try:
+        if hasattr(obj, "model_dump"):
+            return obj.model_dump()
+    except Exception:
+        pass
+    # Pydantic v1 fallback
+    try:
+        if hasattr(obj, "dict"):
+            return obj.dict()
+    except Exception:
+        pass
+    # Generic best-effort
+    try:
+        return dict(obj)
+    except Exception:
+        pass
+    try:
+        return getattr(obj, "__dict__", None)
+    except Exception:
+        pass
+    return None
+
+
+# v2: Extract nested attribute or dict key chain (e.g. "url_citation.url")
+def _deep_get(obj: Any, path: str, default: Any = None) -> Any:
+    """
+    Best-effort nested getter that works for dicts and objects.
+    """
+    cur = obj
+    for part in path.split("."):
+        if cur is None:
+            return default
+        if isinstance(cur, dict):
+            cur = cur.get(part, None)
+        else:
+            cur = getattr(cur, part, None)
+    return cur if cur is not None else default
+
+
+# v2: Normalize annotation shape across SDK versions
+def _annotation_type(ann: Any) -> Optional[str]:
+    """
+    Return the annotation 'type' in a robust way.
+    """
+    t = getattr(ann, "type", None)
+    if t:
+        return t
+    if isinstance(ann, dict):
+        return ann.get("type")
+    # Try dictified view
+    ann_d = _to_dict_safe(ann)
+    if isinstance(ann_d, dict):
+        return ann_d.get("type")
+    return None
+
+
+# v2: Extract URL from url_citation annotation across shapes
+def _extract_url_from_annotation(ann: Any) -> Optional[str]:
+    """
+    Supports shapes:
+      - {"type":"url_citation","url":"..."}
+      - {"type":"url_citation","url_citation":{"url":"..."}}
+      - Typed models with attributes: ann.url OR ann.url_citation.url
+    """
+    # direct attribute
+    url = getattr(ann, "url", None)
+    if isinstance(url, str) and url:
+        return url
+
+    # dict direct
+    if isinstance(ann, dict):
+        url = ann.get("url")
+        if isinstance(url, str) and url:
+            return url
+        nested = ann.get("url_citation")
+        if isinstance(nested, dict):
+            url = nested.get("url")
+            if isinstance(url, str) and url:
+                return url
+
+    # typed nested or generic deep getters
+    for candidate in ("url_citation.url", "url_citation.href", "href", "source_url"):
+        url = _deep_get(ann, candidate)
+        if isinstance(url, str) and url:
+            return url
+
+    # try after dictify
+    ann_d = _to_dict_safe(ann)
+    if isinstance(ann_d, dict):
+        url = ann_d.get("url") or _deep_get(ann_d, "url_citation.url")
+        if isinstance(url, str) and url:
+            return url
+
+    return None
 
 
 def process_api_chat(ctx, state, chunk) -> Optional[str]:
@@ -196,17 +305,38 @@ def process_api_chat_responses(ctx, core, state, chunk, etype: Optional[str]) ->
 
     elif etype == "response.output_text.annotation.added":
         ann = chunk.annotation
-        if ann['type'] == "url_citation":
+
+        # v2: SDK v2 can return a typed model; support both dict and typed
+        a_type = _annotation_type(ann)
+
+        if a_type == "url_citation":
             if state.citations is None:
                 state.citations = []
-            url_citation = ann['url']
-            if url_citation not in state.citations:
+
+            # Extract URL across shapes and SDK versions
+            url_citation = _extract_url_from_annotation(ann)
+
+            if url_citation and url_citation not in state.citations:
                 state.citations.append(url_citation)
+
+            # keep ctx.urls always reflecting the current list
             ctx.urls = state.citations
-        elif ann['type'] == "container_file_citation":
+
+        elif a_type == "container_file_citation":
+            # container-created file (Code Interpreter)
+            ann_d = _to_dict_safe(ann) or {}
             state.files.append({
-                "container_id": ann['container_id'],
-                "file_id": ann['file_id'],
+                "container_id": ann_d.get("container_id", _deep_get(ann, "container_id")),
+                "file_id": ann_d.get("file_id", _deep_get(ann, "file_id")),
+            })
+
+        elif a_type == "file_citation":
+            # v2: Some SDKs emit plain 'file_citation' (non-container). Keep parity with container handling.
+            ann_d = _to_dict_safe(ann) or {}
+            # optional: store as generic file citation (without container)
+            state.files.append({
+                "container_id": ann_d.get("container_id", _deep_get(ann, "container_id")),  # may be None
+                "file_id": ann_d.get("file_id", _deep_get(ann, "file_id")),
             })
 
     elif etype == "response.reasoning_summary_text.delta":
