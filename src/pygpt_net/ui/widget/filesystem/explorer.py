@@ -6,16 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.28 08:00:00                  #
+# Updated Date: 2025.12.26 20:00:00                  #
 # ================================================== #
 
 import datetime
 import os
+import shutil
+import struct
+import sys
 
-from PySide6.QtCore import Qt, QModelIndex, QDir, QObject, QEvent
-from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
+from PySide6.QtCore import Qt, QModelIndex, QDir, QObject, QEvent, QUrl, QPoint, QMimeData, QTimer, QRect
+from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent, QGuiApplication, QKeySequence, QShortcut, QClipboard
 from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel, QHBoxLayout, \
-    QPushButton, QSizePolicy
+    QPushButton, QSizePolicy, QAbstractItemView, QFrame
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.element.button import ContextMenuButton
@@ -25,13 +28,18 @@ from pygpt_net.utils import trans
 
 class ExplorerDropHandler(QObject):
     """
-    Drag & drop handler for FileExplorer (uploads into target directory).
+    Drag & drop handler for FileExplorer (uploads and internal moves).
     - Accepts local file and directory URLs.
-    - Determines target directory from drop position:
-      * directory item -> that directory
-      * file item      -> parent directory
-      * empty area     -> explorer root directory
-    - Uses Files controller to perform the actual copy and refresh view.
+    - Target directory rules based on mouse position:
+      * hovering directory (not in left gutter) -> into that directory
+      * hovering a row in its left gutter       -> into parent directory (one level up)
+      * between two rows                        -> into their common parent (or explorer root if top-level)
+      * empty area                              -> explorer root
+    - Internal drags result in move; external drags result in copy/upload.
+    - Provides manual auto-scroll during drag.
+    - Visuals:
+      * highlight rectangle when targeting a directory row
+      * horizontal indicator line snapped between rows for "between" drops
     """
     def __init__(self, explorer):
         super().__init__(explorer)
@@ -51,6 +59,35 @@ class ExplorerDropHandler(QObject):
                 pass
             vp.installEventFilter(self)
         self.view.installEventFilter(self)
+
+        # Drop indicator (horizontal line snapped between rows)
+        self._indicator = QFrame(self.view.viewport())
+        self._indicator.setObjectName("drop-indicator-line")
+        self._indicator.setFrameShape(QFrame.NoFrame)
+        self._indicator.setStyleSheet("#drop-indicator-line { background-color: rgba(40,120,255,0.95); }")
+        self._indicator.hide()
+        self._indicator_height = 2
+
+        # Directory highlight (when target is "into directory")
+        self._dir_highlight = QFrame(self.view.viewport())
+        self._dir_highlight.setObjectName("drop-dir-highlight")
+        self._dir_highlight.setFrameShape(QFrame.NoFrame)
+        self._dir_highlight.setStyleSheet(
+            "#drop-dir-highlight { border: 2px solid rgba(40,120,255,0.95); border-radius: 3px; "
+            "background-color: rgba(40,120,255,0.10); }"
+        )
+        self._dir_highlight.hide()
+
+        # Manual auto-scroll while dragging (slower)
+        self._scroll_margin = 28
+        self._scroll_speed_max = 12
+        self._last_pos = None
+        self._auto_timer = QTimer(self)
+        self._auto_timer.setInterval(20)  # ~50 FPS, slower than before
+        self._auto_timer.timeout.connect(self._on_auto_scroll)
+
+        # Gutter to ease dropping "one level up" and easier "between" targeting
+        self._left_gutter_extra = 28  # px added to the item's left to count as "left gutter"
 
     def _mime_has_local_urls(self, md) -> bool:
         try:
@@ -79,44 +116,310 @@ class ExplorerDropHandler(QObject):
             pass
         return out
 
-    def _target_dir_from_pos(self, event) -> str:
-        # QDropEvent in Qt6: use position() -> QPointF
-        try:
-            pos = event.position().toPoint()
-        except Exception:
-            pos = event.pos()
+    def _nearest_row_index(self, pos: QPoint):
+        """
+        Return an index near 'pos' by probing up/down a small distance.
+        Helps when the cursor is between rows where indexAt() is invalid.
+        """
         idx = self.view.indexAt(pos)
         if idx.isValid():
+            return idx
+
+        vp = self.view.viewport()
+        h = vp.height()
+        for d in range(1, 65):
+            y_up = pos.y() - d
+            if y_up >= 0:
+                idx_up = self.view.indexAt(QPoint(pos.x(), y_up))
+                if idx_up.isValid():
+                    return idx_up
+            y_dn = pos.y() + d
+            if y_dn < h:
+                idx_dn = self.view.indexAt(QPoint(pos.x(), y_dn))
+                if idx_dn.isValid():
+                    return idx_dn
+        return QModelIndex()
+
+    def _indices_above_below(self, pos: QPoint):
+        """
+        Find closest row above and below 'pos' to detect a true gap between items.
+        """
+        vp = self.view.viewport()
+        h = vp.height()
+        above = QModelIndex()
+        below = QModelIndex()
+
+        # Scan upwards
+        for d in range(0, 80):
+            y_up = pos.y() - d
+            if y_up < 0:
+                break
+            idx_up = self.view.indexAt(QPoint(max(0, pos.x()), y_up))
+            if idx_up.isValid():
+                above = idx_up
+                break
+
+        # Scan downwards
+        for d in range(0, 80):
+            y_dn = pos.y() + d
+            if y_dn >= h:
+                break
+            idx_dn = self.view.indexAt(QPoint(max(0, pos.x()), y_dn))
+            if idx_dn.isValid():
+                below = idx_dn
+                break
+
+        return above, below
+
+    def _gap_parent_index(self, pos: QPoint) -> QModelIndex:
+        """
+        If pointer is between two rows, return their common parent index.
+        If not determinable, return invalid to signal root.
+        """
+        above, below = self._indices_above_below(pos)
+        if above.isValid() and below.isValid():
+            pa = above.parent()
+            pb = below.parent()
+            if pa == pb:
+                return pa
+            # Prefer the shallower of the two when different
+            if pa.isValid():
+                return pa
+            if pb.isValid():
+                return pb
+        elif above.isValid():
+            return above.parent()
+        elif below.isValid():
+            return below.parent()
+        return QModelIndex()
+
+    def _is_left_gutter(self, pos: QPoint, idx: QModelIndex) -> bool:
+        """
+        Return True if the cursor is in a left gutter area of the row,
+        making it easier to drop "one level up".
+        """
+        if not idx.isValid():
+            return False
+        rect = self.view.visualRect(idx)
+        return pos.x() < rect.left() + self._left_gutter_extra
+
+    def _snap_line_y(self, pos: QPoint) -> int:
+        """
+        Compute Y coordinate for indicator snapped to nearest row boundary.
+        """
+        vp = self.view.viewport()
+        y = max(0, min(pos.y(), vp.height() - 1))
+        idx = self._nearest_row_index(pos)
+        if idx.isValid():
+            rect = self.view.visualRect(idx)
+            if y < rect.center().y():
+                return rect.top()
+            return rect.bottom()
+        return y
+
+    def _calc_context(self, pos: QPoint):
+        """
+        Compute drop context at position:
+        Returns dict with:
+          type: 'into_dir' | 'into_parent' | 'gap_between' | 'empty'
+          idx:  QModelIndex related (directory row for 'into_dir', row for 'into_parent')
+          parent_idx: QModelIndex parent for 'gap_between' or 'into_parent'
+          line_y: int (for drawing indicator in 'gap_between' or 'into_parent')
+        """
+        vp = self.view.viewport()
+        if vp is None:
+            return {'type': 'empty'}
+
+        idx = self.view.indexAt(pos)
+        if idx.isValid():
+            # Left gutter -> parent directory
+            if self._is_left_gutter(pos, idx):
+                rect = self.view.visualRect(idx)
+                line_y = rect.top() if pos.y() < rect.center().y() else rect.bottom()
+                return {'type': 'into_parent', 'idx': idx, 'parent_idx': idx.parent(), 'line_y': line_y}
+
             path = self.explorer.model.filePath(idx)
             if os.path.isdir(path):
-                return path
-            return os.path.dirname(path)
-        # Fallback: explorer root directory
+                return {'type': 'into_dir', 'idx': idx}
+            # Over file -> parent directory
+            rect = self.view.visualRect(idx)
+            line_y = rect.top() if pos.y() < rect.center().y() else rect.bottom()
+            return {'type': 'into_parent', 'idx': idx, 'parent_idx': idx.parent(), 'line_y': line_y}
+
+        # Truly between rows -> compute common parent
+        parent_idx = self._gap_parent_index(pos)
+        return {'type': 'gap_between', 'parent_idx': parent_idx, 'line_y': self._snap_line_y(pos)}
+
+    def _update_visuals(self, ctx):
+        """
+        Update highlight/indicator visuals based on context.
+        - into_dir      -> highlight rect over the directory row
+        - gap_between   -> indicator line between rows
+        - into_parent   -> indicator line on top/bottom edge of hovered row
+        - empty         -> indicator line at current y
+        """
+        self._indicator.hide()
+        self._dir_highlight.hide()
+
+        if not isinstance(ctx, dict):
+            return
+
+        if ctx.get('type') == 'into_dir' and ctx.get('idx', QModelIndex()).isValid():
+            rect = self.view.visualRect(ctx['idx'])
+            # Expand highlight to full width
+            self._dir_highlight.setGeometry(QRect(0, rect.top(), self.view.viewport().width(), rect.height()))
+            self._dir_highlight.show()
+            return
+
+        if ctx.get('type') in ('gap_between', 'into_parent'):
+            y = ctx.get('line_y', None)
+            if y is None:
+                return
+            self._indicator.setGeometry(QRect(0, y, self.view.viewport().width(), self._indicator_height))
+            self._indicator.show()
+            return
+
+    def _on_auto_scroll(self):
+        """Gentle auto-scroll when dragging near top/bottom edges."""
+        if self._last_pos is None:
+            return
+        vp = self.view.viewport()
+        y = self._last_pos.y()
+        h = vp.height()
+        vbar = self.view.verticalScrollBar()
+        delta = 0
+
+        if y < self._scroll_margin:
+            strength = max(0.0, (self._scroll_margin - y) / self._scroll_margin)
+            delta = -max(1, int(strength * self._scroll_speed_max))
+        elif y > h - self._scroll_margin:
+            strength = max(0.0, (y - (h - self._scroll_margin)) / self._scroll_margin)
+            delta = max(1, int(strength * self._scroll_speed_max))
+
+        if delta != 0 and vbar is not None:
+            vbar.setValue(vbar.value() + delta)
+
+    def _target_dir_from_context(self, ctx) -> str:
+        """Resolve final target directory from computed context."""
+        t = ctx.get('type')
+        if t == 'into_dir':
+            idx = ctx.get('idx', QModelIndex())
+            if idx.isValid():
+                path = self.explorer.model.filePath(idx)
+                if os.path.isdir(path):
+                    return path
+        elif t in ('gap_between', 'into_parent'):
+            parent_idx = ctx.get('parent_idx', QModelIndex())
+            if parent_idx.isValid():
+                return self.explorer.model.filePath(parent_idx)
+            return self.explorer.directory
         return self.explorer.directory
+
+    def _is_internal_drag(self, event) -> bool:
+        try:
+            src = event.source()
+            return src is not None and (src is self.view or src is self.view.viewport())
+        except Exception:
+            return False
 
     def eventFilter(self, obj, event):
         et = event.type()
 
-        if et in (QEvent.DragEnter, QEvent.DragMove):
+        if et == QEvent.DragEnter:
             md = getattr(event, 'mimeData', lambda: None)()
             if self._mime_has_local_urls(md):
                 try:
-                    event.setDropAction(Qt.CopyAction)
+                    if self._is_internal_drag(event):
+                        event.setDropAction(Qt.MoveAction)
+                    else:
+                        event.setDropAction(Qt.CopyAction)
                     event.acceptProposedAction()
                 except Exception:
                     event.accept()
+                try:
+                    self._last_pos = event.position().toPoint()
+                except Exception:
+                    try:
+                        self._last_pos = event.pos()
+                    except Exception:
+                        self._last_pos = None
+                self._auto_timer.start()
+
+                # Show visuals
+                pos = self._last_pos or QPoint(0, 0)
+                ctx = self._calc_context(pos)
+                self._update_visuals(ctx)
                 return True
             return False
 
+        if et == QEvent.DragMove:
+            md = getattr(event, 'mimeData', lambda: None)()
+            if self._mime_has_local_urls(md):
+                try:
+                    if self._is_internal_drag(event):
+                        event.setDropAction(Qt.MoveAction)
+                    else:
+                        event.setDropAction(Qt.CopyAction)
+                    event.acceptProposedAction()
+                except Exception:
+                    event.accept()
+
+                try:
+                    self._last_pos = event.position().toPoint()
+                except Exception:
+                    try:
+                        self._last_pos = event.pos()
+                    except Exception:
+                        self._last_pos = None
+
+                # Update visuals (snap line or dir highlight)
+                pos = self._last_pos or QPoint(0, 0)
+                ctx = self._calc_context(pos)
+                self._update_visuals(ctx)
+                return True
+            return False
+
+        if et in (QEvent.DragLeave, QEvent.Leave):
+            self._auto_timer.stop()
+            self._indicator.hide()
+            self._dir_highlight.hide()
+            self._last_pos = None
+            return False
+
         if et == QEvent.Drop:
+            self._auto_timer.stop()
+            self._indicator.hide()
+            self._dir_highlight.hide()
+
             md = getattr(event, 'mimeData', lambda: None)()
             if not self._mime_has_local_urls(md):
                 return False
 
-            paths = self._local_paths_from_mime(md)
-            target_dir = self._target_dir_from_pos(event)
             try:
-                self.explorer.window.controller.files.upload_paths(paths, target_dir)
+                pos = event.position().toPoint()
+            except Exception:
+                pos = event.pos() if hasattr(event, "pos") else QPoint()
+
+            ctx = self._calc_context(pos)
+            target_dir = self._target_dir_from_context(ctx)
+
+            paths = self._local_paths_from_mime(md)
+            is_internal = self._is_internal_drag(event)
+
+            dest_paths = []
+            try:
+                if is_internal:
+                    dest_paths = self.explorer._move_paths(paths, target_dir)
+                else:
+                    try:
+                        self.explorer.window.controller.files.upload_paths(paths, target_dir)
+                        dest_paths = [os.path.join(target_dir, os.path.basename(p.rstrip(os.sep))) for p in paths]
+                    except Exception:
+                        dest_paths = self.explorer._copy_paths(paths, target_dir)
+                if os.path.isdir(target_dir):
+                    self.explorer._expand_dir(target_dir, center=False)
+                if dest_paths:
+                    self.explorer._reveal_paths(dest_paths, select_first=True)
             except Exception as e:
                 try:
                     self.explorer.window.core.debug.log(e)
@@ -124,11 +427,10 @@ class ExplorerDropHandler(QObject):
                     pass
 
             try:
-                event.setDropAction(Qt.CopyAction)
+                event.setDropAction(Qt.MoveAction if is_internal else Qt.CopyAction)
                 event.acceptProposedAction()
             except Exception:
                 event.accept()
-            # Swallow so the view does not try to handle the drop itself
             return True
 
         return False
@@ -245,11 +547,39 @@ class FileExplorer(QWidget):
             'delete': QIcon(":/icons/delete.svg"),
             'attachment': QIcon(":/icons/attachment.svg"),
             'copy': QIcon(":/icons/copy.svg"),
+            'cut': QIcon(":/icons/cut.svg"),
+            'paste': QIcon(":/icons/paste.svg"),
             'read': QIcon(":/icons/view.svg"),
             'db': QIcon(":/icons/db.svg"),
         }
 
-        # Drag & Drop upload support
+        # Drag & Drop: internal drag support, custom auto-scroll and visuals via handler
+        try:
+            self.treeView.setDragEnabled(True)
+            self.treeView.setAcceptDrops(True)
+            self.treeView.setDropIndicatorShown(False)  # custom indicator provided
+            self.treeView.setDragDropMode(QAbstractItemView.DragDrop)
+            self.treeView.setDefaultDropAction(Qt.MoveAction)
+            self.treeView.setAutoScroll(False)  # custom autoscroll
+        except Exception:
+            pass
+
+        # Internal clipboard state for virtual cut/copy
+        self._cb_paths = []
+        self._cb_mode = None  # 'copy' or 'cut'
+
+        # Keyboard shortcuts for copy/cut/paste
+        try:
+            sc_copy = QShortcut(QKeySequence.Copy, self.treeView, context=Qt.WidgetWithChildrenShortcut)
+            sc_copy.activated.connect(self.action_copy_selection)
+            sc_cut = QShortcut(QKeySequence.Cut, self.treeView, context=Qt.WidgetWithChildrenShortcut)
+            sc_cut.activated.connect(self.action_cut_selection)
+            sc_paste = QShortcut(QKeySequence.Paste, self.treeView, context=Qt.WidgetWithChildrenShortcut)
+            sc_paste.activated.connect(self.action_paste_into_current)
+        except Exception:
+            pass
+
+        # Drag & Drop upload/move support
         self._dnd_handler = ExplorerDropHandler(self)
 
     def eventFilter(self, source, event):
@@ -430,6 +760,15 @@ class FileExplorer(QWidget):
                 lambda: self.action_delete(path),
             )
 
+            # Copy / Cut / Paste
+            actions['copy'] = QAction(self._icons['copy'], trans('action.copy'), self)
+            actions['copy'].triggered.connect(self.action_copy_selection)
+            actions['cut'] = QAction(self._icons['cut'], trans('action.cut'), self)
+            actions['cut'].triggered.connect(self.action_cut_selection)
+            actions['paste'] = QAction(self._icons['paste'], trans('action.paste'), self)
+            actions['paste'].triggered.connect(lambda: self.action_paste_into(parent))
+            actions['paste'].setEnabled(self._can_paste())
+
             menu = QMenu(self)
             if preview_actions:
                 for action in preview_actions:
@@ -522,6 +861,12 @@ class FileExplorer(QWidget):
 
                 menu.addMenu(idx_menu)
 
+            menu.addSeparator()
+            menu.addAction(actions['copy'])
+            menu.addAction(actions['cut'])
+            menu.addAction(actions['paste'])
+            menu.addSeparator()
+
             menu.addAction(actions['download'])
             menu.addAction(actions['touch'])
             menu.addAction(actions['mkdir'])
@@ -556,11 +901,17 @@ class FileExplorer(QWidget):
                 lambda: self.window.controller.files.upload_local(),
             )
 
+            # Paste on empty area -> paste into current explorer root directory
+            actions['paste'] = QAction(self._icons['paste'], trans('action.paste'), self)
+            actions['paste'].triggered.connect(lambda: self.action_paste_into(self.directory))
+            actions['paste'].setEnabled(self._can_paste())
+
             menu = QMenu(self)
             menu.addAction(actions['touch'])
             menu.addAction(actions['open_dir'])
             menu.addAction(actions['mkdir'])
             menu.addAction(actions['upload'])
+            menu.addAction(actions['paste'])
             menu.exec(QCursor.pos())
 
     def action_open(self, path):
@@ -621,6 +972,375 @@ class FileExplorer(QWidget):
         """
         self.window.controller.files.delete(path)
 
+    # ===== Copy / Cut / Paste API =====
+
+    def _selected_paths(self) -> list:
+        """Return unique selected file system paths from first column."""
+        paths = []
+        try:
+            indexes = self.treeView.selectionModel().selectedRows(0)
+        except Exception:
+            indexes = []
+        for idx in indexes:
+            try:
+                p = self.model.filePath(idx)
+                if p and p not in paths:
+                    paths.append(p)
+            except Exception:
+                continue
+        return paths
+
+    def action_copy_selection(self):
+        """Copy currently selected files/dirs to system clipboard and internal buffer."""
+        paths = self._selected_paths()
+        if not paths:
+            return
+        self._set_clipboard_files(paths, mode='copy')
+
+    def action_cut_selection(self):
+        """Cut currently selected files/dirs to system clipboard and internal buffer (virtual until paste)."""
+        paths = self._selected_paths()
+        if not paths:
+            return
+        self._set_clipboard_files(paths, mode='cut')
+
+    def action_paste_into(self, target_dir: str):
+        """Paste clipboard files into given directory and expand/scroll to them."""
+        if not target_dir:
+            target_dir = self.directory
+        paths, mode = self._get_clipboard_files_and_mode()
+        if not paths:
+            return
+
+        dest_paths = []
+        try:
+            if mode == 'cut':
+                dest_paths = self._move_paths(paths, target_dir)
+            else:
+                dest_paths = self._copy_paths(paths, target_dir)
+        finally:
+            self._cb_paths = []
+            self._cb_mode = None
+
+        if os.path.isdir(target_dir):
+            self._expand_dir(target_dir, center=False)
+
+        try:
+            self.window.controller.files.update_explorer()
+        except Exception:
+            self.update_view()
+
+        if dest_paths:
+            self._reveal_paths(dest_paths, select_first=True)
+
+    def action_paste_into_current(self):
+        """Paste into directory derived from current selection or root when none."""
+        try:
+            sel = self.treeView.selectionModel()
+            indexes = sel.selectedRows(0) if sel is not None else []
+        except Exception:
+            indexes = []
+        if indexes:
+            path = self.model.filePath(indexes[0])
+            target = path if os.path.isdir(path) else os.path.dirname(path)
+        else:
+            target = self.directory
+        self.action_paste_into(target)
+
+    def _can_paste(self) -> bool:
+        """Check if there are files to paste either from system clipboard or internal."""
+        try:
+            md = QGuiApplication.clipboard().mimeData()
+            if md and md.hasUrls():
+                for url in md.urls():
+                    if url.isLocalFile():
+                        return True
+        except Exception:
+            pass
+        return bool(self._cb_paths)
+
+    # ===== Filesystem helpers =====
+
+    def _copy_paths(self, paths: list, target_dir: str):
+        """Copy each path into target_dir, directories are copied recursively. Returns list of new destinations."""
+        dests = []
+        if not os.path.isdir(target_dir):
+            os.makedirs(target_dir, exist_ok=True)
+        for src in paths:
+            try:
+                if not os.path.exists(src):
+                    continue
+                base_name = os.path.basename(src.rstrip(os.sep))
+                dst = self._unique_dest(target_dir, base_name)
+                if os.path.isdir(src):
+                    shutil.copytree(src, dst, copy_function=shutil.copy2)
+                else:
+                    shutil.copy2(src, dst)
+                dests.append(dst)
+            except Exception as e:
+                try:
+                    self.window.core.debug.log(e)
+                except Exception:
+                    pass
+        return dests
+
+    def _move_paths(self, paths: list, target_dir: str):
+        """Move each path into target_dir. Skips invalid moves (into itself). Returns list of new destinations."""
+        dests = []
+        if not os.path.isdir(target_dir):
+            os.makedirs(target_dir, exist_ok=True)
+        for src in paths:
+            try:
+                if not os.path.exists(src):
+                    continue
+                # Prevent moving into itself or its subdirectory
+                if os.path.isdir(src):
+                    try:
+                        sp = os.path.abspath(src)
+                        tp = os.path.abspath(target_dir)
+                        if os.path.commonpath([sp]) == os.path.commonpath([sp, tp]):
+                            continue
+                    except Exception:
+                        pass
+                base_name = os.path.basename(src.rstrip(os.sep))
+                dst = os.path.join(target_dir, base_name)
+                if os.path.abspath(dst) == os.path.abspath(src):
+                    continue
+                if os.path.exists(dst):
+                    dst = self._unique_dest(target_dir, base_name)
+                shutil.move(src, dst)
+                dests.append(dst)
+            except Exception as e:
+                try:
+                    self.window.core.debug.log(e)
+                except Exception:
+                    pass
+        return dests
+
+    def _unique_dest(self, target_dir: str, name: str) -> str:
+        """Return a unique destination path in target_dir based on name."""
+        root, ext = os.path.splitext(name)
+        candidate = os.path.join(target_dir, name)
+        if not os.path.exists(candidate):
+            return candidate
+        i = 1
+        while True:
+            suffix = " - Copy" if i == 1 else f" - Copy ({i})"
+            cand = os.path.join(target_dir, f"{root}{suffix}{ext}")
+            if not os.path.exists(cand):
+                return cand
+            i += 1
+
+    def _expand_dir(self, path: str, center: bool = False):
+        """Expand and optionally center on a directory index."""
+        try:
+            idx = self.model.index(path)
+            if idx.isValid():
+                if not self.treeView.isExpanded(idx):
+                    self.treeView.expand(idx)
+                if center:
+                    self.treeView.scrollTo(idx, QTreeView.PositionAtCenter)
+                else:
+                    self.treeView.scrollTo(idx, QTreeView.EnsureVisible)
+        except Exception:
+            pass
+
+    def _reveal_paths(self, paths: list, select_first: bool = True):
+        """
+        Reveal and optionally select the given paths in the view.
+        Tries a few times with small delays to wait for model refresh.
+        """
+        def do_reveal(attempts_left=6):
+            try:
+                sm = self.treeView.selectionModel()
+            except Exception:
+                sm = None
+            first_index = None
+            for p in paths:
+                dir_path = p if os.path.isdir(p) else os.path.dirname(p)
+                self._expand_dir(dir_path, center=False)
+                idx = self.model.index(p)
+                if idx.isValid():
+                    if first_index is None:
+                        first_index = idx
+                    self.treeView.scrollTo(idx, QTreeView.PositionAtCenter)
+            if first_index is not None and sm is not None and select_first:
+                try:
+                    sm.clearSelection()
+                    self.treeView.setCurrentIndex(first_index)
+                    self.treeView.scrollTo(first_index, QTreeView.PositionAtCenter)
+                except Exception:
+                    pass
+            elif attempts_left > 0:
+                QTimer.singleShot(150, lambda: do_reveal(attempts_left - 1))
+
+        QTimer.singleShot(100, do_reveal)
+
+    # ===== Clipboard integration (OS + internal) =====
+
+    def _urls_to_text_uri_list(self, urls):
+        """
+        Build RFC compliant text/uri-list payload (CRLF separated).
+        """
+        parts = []
+        for u in urls:
+            try:
+                parts.append(u.toString(QUrl.FullyEncoded))
+            except Exception:
+                parts.append(u.toString())
+        data = ("\r\n".join(parts) + "\r\n").encode("utf-8")
+        return data
+
+    def _build_gnome_payload(self, urls, verb: str):
+        """
+        Build x-special/gnome-copied-files payload:
+        copy|cut + newline + list of file:// URLs + trailing newline.
+        """
+        lines = [verb]
+        for u in urls:
+            try:
+                lines.append(u.toString(QUrl.FullyEncoded))
+            except Exception:
+                lines.append(u.toString())
+        return ("\n".join(lines) + "\n").encode("utf-8")
+
+    def _set_clipboard_files(self, paths: list, mode: str = 'copy'):
+        """
+        Set system clipboard with file urls and cut/copy semantics; keep internal buffer.
+        Designed to work across Linux (GNOME/KDE), Windows, and macOS as far as OS allows.
+        """
+        self._cb_paths = [os.path.abspath(p) for p in paths if p]
+        self._cb_mode = 'cut' if mode == 'cut' else 'copy'
+
+        try:
+            urls = [QUrl.fromLocalFile(p) for p in self._cb_paths]
+            md = QMimeData()
+
+            # text/uri-list (required by many file managers and desktop environments)
+            md.setData("text/uri-list", self._urls_to_text_uri_list(urls))
+
+            # Explicitly also set URLs (Qt will populate platform-native types, e.g., CF_HDROP on Windows)
+            md.setUrls(urls)
+
+            # KDE cut flag
+            try:
+                md.setData("application/x-kde-cutselection", b"1" if self._cb_mode == 'cut' else b"0")
+            except Exception:
+                pass
+
+            # GNOME/Nautilus clipboard semantics (two keys for compatibility)
+            try:
+                verb = "cut" if self._cb_mode == 'cut' else "copy"
+                payload = self._build_gnome_payload(urls, verb)
+                md.setData("x-special/gnome-copied-files", payload)
+                md.setData("x-special/nautilus-clipboard", payload)
+            except Exception:
+                pass
+
+            # Windows Explorer "Preferred DropEffect"
+            try:
+                effect = 2 if self._cb_mode == 'cut' else 1  # 2=move, 1=copy
+                data = struct.pack("<I", effect)
+                md.setData('application/x-qt-windows-mime;value="Preferred DropEffect"', data)
+                md.setData("application/x-qt-windows-mime;value=Preferred DropEffect", data)
+                md.setData("Preferred DropEffect", data)  # fallback
+            except Exception:
+                pass
+
+            cb = QGuiApplication.clipboard()
+            cb.setMimeData(md, QClipboard.Clipboard)
+            try:
+                cb.setMimeData(md, QClipboard.Selection)  # helps some X11 setups
+            except Exception:
+                pass
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+
+    def _get_clipboard_files_and_mode(self):
+        """
+        Read file urls and cut/copy mode from system clipboard.
+        Returns tuple (paths, mode) where mode in {'copy','cut'}.
+        Falls back to internal buffer if system clipboard does not provide file urls.
+        """
+        paths = []
+        mode = 'copy'
+        try:
+            md = QGuiApplication.clipboard().mimeData()
+        except Exception:
+            md = None
+
+        try:
+            if md:
+                urls = []
+                if md.hasUrls():
+                    urls = md.urls()
+                elif md.hasFormat("text/uri-list"):
+                    try:
+                        raw = bytes(md.data("text/uri-list")).decode("utf-8", "ignore")
+                        for line in raw.splitlines():
+                            line = line.strip()
+                            if line and not line.startswith("#"):
+                                u = QUrl(line)
+                                if u.isLocalFile():
+                                    urls.append(u)
+                    except Exception:
+                        pass
+
+                for u in urls:
+                    try:
+                        if u.isLocalFile():
+                            lf = u.toLocalFile()
+                            if lf:
+                                paths.append(lf)
+                    except Exception:
+                        continue
+
+                # Determine cut/copy flag from various platforms
+                try:
+                    if md.hasFormat("application/x-kde-cutselection"):
+                        data = bytes(md.data("application/x-kde-cutselection"))
+                        if data and (data.startswith(b'1') or data == b"\x01"):
+                            mode = 'cut'
+                except Exception:
+                    pass
+                try:
+                    if md.hasFormat("x-special/gnome-copied-files"):
+                        data = bytes(md.data("x-special/gnome-copied-files")).decode("utf-8", "ignore")
+                        if data.splitlines()[0].strip().lower().startswith("cut"):
+                            mode = 'cut'
+                    elif md.hasFormat("x-special/nautilus-clipboard"):
+                        data = bytes(md.data("x-special/nautilus-clipboard")).decode("utf-8", "ignore")
+                        if data.splitlines()[0].strip().lower().startswith("cut"):
+                            mode = 'cut'
+                except Exception:
+                    pass
+                try:
+                    # Windows MIME bridge format
+                    for key in ('application/x-qt-windows-mime;value="Preferred DropEffect"',
+                                "application/x-qt-windows-mime;value=Preferred DropEffect",
+                                "Preferred DropEffect"):
+                        if md.hasFormat(key):
+                            data = bytes(md.data(key))
+                            if data and len(data) >= 4:
+                                value = struct.unpack("<I", data[:4])[0]
+                                if value & 2:
+                                    mode = 'cut'
+                                    break
+                except Exception:
+                    pass
+        except Exception:
+            paths = []
+
+        # Fallback to internal buffer if system clipboard has no urls
+        if not paths and self._cb_paths:
+            paths = list(self._cb_paths)
+            mode = self._cb_mode or 'copy'
+
+        return paths, mode
+
 
 class IndexedFileSystemModel(QFileSystemModel):
     def __init__(self, window, index_dict, *args, **kwargs):
@@ -629,6 +1349,10 @@ class IndexedFileSystemModel(QFileSystemModel):
         self.index_dict = index_dict
         self._status_cache = {}
         self.directoryLoaded.connect(self.refresh_path)
+        try:
+            self.setReadOnly(False)
+        except Exception:
+            pass
 
     def refresh_path(self, path):
         index = self.index(path)
