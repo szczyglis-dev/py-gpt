@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.12.26 13:00:00                  #
 # ================================================== #
 
 import copy
@@ -33,6 +33,7 @@ class Editor:
         self.height = 500
         self.selected = []
         self.locked = False
+        self.provider = "-" # all providers by default
         self.options = {
             "id": {
                 "type": "text",
@@ -137,12 +138,40 @@ class Editor:
         if key in self.options:
             return self.options[key]
 
+    def get_provider_option(self) -> dict:
+        """
+        Get provider option
+
+        :return: provider option
+        """
+        return {
+            "type": "combo",
+            "use": "llm_providers",
+            "label": "model.provider",
+            "description": "model.provider.desc",
+        }
+
     def setup(self):
         """Set up editor"""
         idx = None
         self.window.model_settings.setup(idx)  # widget dialog setup
         self.window.ui.add_hook("update.model.name", self.hook_update)
         self.window.ui.add_hook("update.model.mode", self.hook_update)
+        self.update_provider(self.provider)
+        self.window.ui.add_hook("update.model.provider_global", self.hook_update)
+
+    def update_provider(self, provider: str):
+        """
+        Set provider
+
+        :param provider: provider name
+        """
+        self.window.controller.config.apply_value(
+            parent_id="model",
+            key="provider_global",
+            option=self.get_provider_option(),
+            value=provider,
+        )
 
     def hook_update(
             self,
@@ -163,6 +192,21 @@ class Editor:
         """
         if self.window.controller.reloading or self.locked:
             return  # ignore hooks during reloading process
+
+        if key == "provider_global":
+            # update provider option dynamically
+            if self.provider == value:
+                return
+            self.save(persist=False)
+            self.locked = True
+            self.current = None
+            self.provider = value
+            self.reload_items()
+            if self.current is None:
+                self.init()
+            self.locked = False
+            return
+
         if key in ["id", "name", "mode"]:
             self.save(persist=False)
             self.reload_items()
@@ -184,6 +228,7 @@ class Editor:
 
         :param force: force open dialog
         """
+        self.locked = True
         if not self.config_initialized:
             self.setup()
             self.config_initialized = True
@@ -197,6 +242,8 @@ class Editor:
                 height=self.height,
             )
             self.dialog = True
+            self.window.ui.nodes['models.editor.search'].setFocus()  # focus on search
+        self.locked = False
 
     def undo(self):
         """Undo last changes in models editor"""
@@ -219,15 +266,16 @@ class Editor:
         self.window.core.models.sort_items()
         self.reload_items()
 
-        # select the first plugin on list if no plugin selected yet
+        # select the first model on list if no model selected yet
+        items = self.prepare_items()
         if self.current is None:
-            if len(self.window.core.models.items) > 0:
-                self.current = list(self.window.core.models.items.keys())[0]
+            if len(items) > 0:
+                self.current = list(items.keys())[0]
 
         # assign model options to config dialog fields
         options = copy.deepcopy(self.get_options())  # copy options
-        if self.current in self.window.core.models.items:
-            model = self.window.core.models.items[self.current]
+        if self.current in items:
+            model = items[self.current]
             data_dict = model.to_dict()
             for key in options:
                 if key in data_dict:
@@ -237,7 +285,7 @@ class Editor:
             # custom fields
             options["extra_json"]["value"] = json.dumps(model.extra, indent=4) if model.extra else ""
 
-        if self.current is not None and self.current in self.window.core.models.items:
+        if self.current is not None and self.current in items:
             self.set_tab_by_id(self.current)
 
         # load and apply options to config dialog
@@ -313,10 +361,26 @@ class Editor:
         event = Event(Event.MODELS_CHANGED)
         self.window.dispatch(event, all=True)
 
+    def prepare_items(self) -> dict:
+        """
+        Prepare items by provider
+
+        :return: items by provider
+        """
+        items = self.window.core.models.items
+        if self.provider == "-":
+            return items # all providers
+        items_by_provider = {}
+        for model_id, model in items.items():
+            provider = model.provider
+            if provider != self.provider:
+                continue
+            items_by_provider[model_id] = model
+        return items_by_provider
+
     def reload_items(self):
         """Reload items"""
-        items = self.window.core.models.items
-        self.window.model_settings.update_list("models.list", items)
+        self.window.model_settings.update_list("models.list", self.prepare_items())
 
     def select(self, idx: int):
         """Select model"""
@@ -331,6 +395,7 @@ class Editor:
         self.locked = True
         self.save(persist=False)
         model = self.window.core.models.create_empty()
+        model.provider = self.provider
         self.window.core.models.sort_items()
         self.window.core.models.save()
         self.reload_items()

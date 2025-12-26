@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.12.26 13:00:00                  #
 # ================================================== #
 
 import copy
@@ -166,11 +166,20 @@ class Models:
         self.window.ui.nodes['models.editor.search'].on_search = self._on_search_models
         self.window.ui.nodes['models.editor.search'].on_clear = self._on_clear_models  # clear via "X" button
 
+        # provider select
+        option_provider = self.window.controller.model.editor.get_provider_option()
+        self.window.ui.config[parent_id]['provider_global'] = OptionCombo(self.window, parent_id, 'provider_global',
+                                                                          option_provider)
+        provider_keys = self.window.controller.config.placeholder.apply_by_id('llm_providers')
+        provider_keys.insert(0, {"-": trans("list.all")})  # add "All" option
+        self.window.ui.config[parent_id]['provider_global'].set_keys(provider_keys)
+
         # container for search + list (left panel)
         left_layout = QVBoxLayout()
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(6)
         left_layout.addWidget(self.window.ui.nodes['models.editor.search'])
+        left_layout.addWidget(self.window.ui.config[parent_id]['provider_global'])
         left_layout.addWidget(self.window.ui.nodes[id])
         left_widget = QWidget()
         left_widget.setLayout(left_layout)

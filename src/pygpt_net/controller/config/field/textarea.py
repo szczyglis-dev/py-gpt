@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.12.26 13:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict
@@ -38,7 +38,7 @@ class Textarea:
         field = parent.get(key)
         if field is None:
             return
-        new_text = str(option["value"])
+        new_text = str(option["value"]) if "value" in option else ""
         if hasattr(field, "toPlainText"):
             current = field.toPlainText()
         elif hasattr(field, "text"):
