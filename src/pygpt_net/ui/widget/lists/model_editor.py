@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.12.26 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -43,7 +43,12 @@ class ModelEditorList(BaseList):
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event))
 
+        actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('action.duplicate'), self)
+        actions['duplicate'].triggered.connect(
+            lambda: self.action_duplicate(event))
+
         menu = QMenu(self)
+        menu.addAction(actions['duplicate'])
         menu.addAction(actions['delete'])
 
         item = self.indexAt(event.pos())
@@ -61,4 +66,15 @@ class ModelEditorList(BaseList):
         idx = item.row()
         if idx >= 0:
             self.window.controller.model.editor.delete_by_idx(idx)
+
+    def action_duplicate(self, event):
+        """
+        Duplicate action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.model.editor.duplicate_by_idx(idx)
 

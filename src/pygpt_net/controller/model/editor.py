@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 13:00:00                  #
+# Updated Date: 2025.12.26 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -242,7 +242,8 @@ class Editor:
                 height=self.height,
             )
             self.dialog = True
-            self.window.ui.nodes['models.editor.search'].setFocus()  # focus on search
+            if "models.editor.search" in self.window.ui.nodes:
+                self.window.ui.nodes['models.editor.search'].setFocus()  # focus on search
         self.locked = False
 
     def undo(self):
@@ -394,15 +395,15 @@ class Editor:
         """Create new model"""
         self.locked = True
         self.save(persist=False)
-        model = self.window.core.models.create_empty()
-        model.provider = self.provider
+        model, new_id = self.window.core.models.create_empty()
+        if self.provider != "-":
+            model.provider = self.provider
         self.window.core.models.sort_items()
         self.window.core.models.save()
         self.reload_items()
 
         # switch to created model
         self.current = model.id
-        # sort here
         idx = self.get_tab_by_id(self.current)
         self.set_by_tab(idx)
         self.init()
@@ -419,8 +420,6 @@ class Editor:
         :param idx: model idx
         :param force: force delete
         """
-        self.locked = True
-        model = self.get_model_by_tab_idx(idx)
         if not force:
             self.window.ui.dialogs.confirm(
                 type="models.editor.delete",
@@ -428,12 +427,49 @@ class Editor:
                 msg=trans("dialog.models.editor.delete.confirm"),
             )
             return
+        self.locked = True
+        model = self.get_model_by_tab_idx(idx)
         self.window.core.models.delete(model)
         self.window.core.models.save()
         self.reload_items()
         if self.current == model:
             self.current = None
+
+        # switch to previous model if available
+        items = self.prepare_items()
+        if len(items) > 0:
+            model = self.get_model_by_tab_idx(idx - 1)
+            if model:
+                self.current = model
+
         self.init()
+        self.locked = False
+
+    def duplicate_by_idx(
+            self,
+            idx: int
+    ):
+        """
+        Duplicate model by idx
+
+        :param idx: model idx
+        """
+        self.locked = True
+        self.save(persist=False)
+        model = self.get_model_by_tab_idx(idx)
+        if model:
+            new_model, new_id = self.window.core.models.create_empty()
+            new_model.from_dict(self.window.core.models.items[model].to_dict())
+            new_model.name += " (Copy)"
+            self.window.core.models.sort_items()
+            self.window.core.models.save()
+            self.reload_items()
+
+            # switch to created model
+            self.current = new_id
+            idx = self.get_tab_by_id(self.current)
+            self.set_by_tab(idx)
+            self.init()
         self.locked = False
 
     def load_defaults_user(self, force: bool = False):

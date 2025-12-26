@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.12.26 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -328,7 +328,7 @@ class Importer:
             name = model.get('id')
             if "name" in model:
                 name = model.get('name')
-            m = self.window.core.models.create_empty(append=False)
+            m, _ = self.window.core.models.create_empty(append=False)
             m.id = id
             m.name = name
             m.mode = [
@@ -504,7 +504,7 @@ class Importer:
             else:
                 for model in ollama_models:
                     name = model.get('name')
-                    m = self.window.core.models.create_empty(append=False)
+                    m, _ = self.window.core.models.create_empty(append=False)
                     m.id = name
                     m.name = name
                     m.mode = [

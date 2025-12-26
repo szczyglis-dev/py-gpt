@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 19:00:00                  #
+# Updated Date: 2025.12.26 20:00:00                  #
 # ================================================== #
 
 import copy
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 
 from httpx_socks import SyncProxyTransport
 from openai import DefaultHttpxClient
@@ -272,7 +272,7 @@ class Models:
         """
         return self.multimodal
 
-    def create_empty(self, append: bool = True) -> ModelItem:
+    def create_empty(self, append: bool = True) -> Tuple[ModelItem, str]:
         """
         Create new empty model
 
@@ -288,7 +288,7 @@ class Models:
         model.output = ["text"]
         if append:
             self.items[id] = model
-        return model
+        return model, id
 
     def get_all(self) -> Dict[str, ModelItem]:
         """
