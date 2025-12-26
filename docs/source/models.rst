@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has a preconfigured list of models (as of 2025-08-31):
+PyGPT has a preconfigured list of models (as of 2025-12-25):
 
 - ``bielik-11b-v2.3-instruct:Q4_K_M`` (Ollama)
 - ``chatgpt-4o-latest`` (OpenAI)
@@ -14,6 +14,8 @@ PyGPT has a preconfigured list of models (as of 2025-08-31):
 - ``claude-3-opus`` (Anthropic)
 - ``claude-opus-4-0`` (Anthropic)
 - ``claude-sonnet-4-0`` (Anthropic)
+- ``claude-opus-4-5`` (Anthropic)
+- ``claude-sonnet-4-5`` (Anthropic)
 - ``codellama`` (Ollama)
 - ``codex-mini`` (OpenAI)
 - ``dall-e-2`` (OpenAI)
@@ -30,6 +32,9 @@ PyGPT has a preconfigured list of models (as of 2025-08-31):
 - ``gemini-2.5-flash`` (Google)
 - ``gemini-2.5-flash-preview-native-audio-dialog`` (Google, real-time)
 - ``gemini-2.5-pro`` (Google)
+- ``gemini-3-flash-preview`` (Google)
+- ``gemini-3-pro-image-preview`` (Google)
+- ``gemini-3-pro-preview`` (Google)
 - ``gpt-3.5-turbo`` (OpenAI)
 - ``gpt-3.5-turbo-16k`` (OpenAI)
 - ``gpt-3.5-turbo-instruct`` (OpenAI)
@@ -46,7 +51,9 @@ PyGPT has a preconfigured list of models (as of 2025-08-31):
 - ``gpt-5`` (OpenAI)
 - ``gpt-5-mini`` (OpenAI)
 - ``gpt-5-nano`` (OpenAI)
+- ``gpt-5.2`` (OpenAI)
 - ``gpt-image-1`` (OpenAI)
+- ``gpt-image-1.5`` (OpenAI)
 - ``gpt-oss:20b`` (OpenAI - via Ollama and HuggingFace Router)
 - ``gpt-oss:120b`` (OpenAI - via Ollama and HuggingFace Router)
 - ``gpt-realtime`` (OpenAI, real-time)
@@ -62,6 +69,7 @@ PyGPT has a preconfigured list of models (as of 2025-08-31):
 - ``mistral`` (Ollama)
 - ``mistral-large`` (Ollama)
 - ``mistral-small3.1`` (Ollama)
+- ``nano-banana-pro-preview`` (Google)
 - ``o1`` (OpenAI)
 - ``o1-mini`` (OpenAI)
 - ``o1-pro`` (OpenAI)
@@ -81,11 +89,14 @@ PyGPT has a preconfigured list of models (as of 2025-08-31):
 - ``sonar-pro`` (Perplexity)
 - ``sonar-reasoning`` (Perplexity)
 - ``sonar-reasoning-pro`` (Perplexity)
+- ``sora-2`` (OpenAI)
 - ``veo-3.0-generate-preview`` (Google)
 - ``veo-3.0-fast-generate-preview`` (Google)
+- ``veo-3.1-generate-preview`` (Google)
+- ``veo-3.1-fast-generate-preview`` (Google)
 
 All models are specified in the configuration file ``models.json``, which you can customize. 
-This file is located in your working directory. You can add new models provided directly by ``OpenAI API`` (or compatible) and those supported by ``LlamaIndex`` or ``Ollama`` to this file. Configuration for LlamaIndex in placed in ``llama_index`` key.
+This file is located in your working directory. You can add new models provided directly by ``OpenAI API`` (or compatible), ``Google Gen AI API``, ``Anthropic API``, ``xAI API``, and those supported by ``LlamaIndex`` or ``Ollama`` to this file. Configuration for LlamaIndex in placed in ``llama_index`` key.
 
 You can import new models by manually editing ``models.json`` or by using the model importer in the ``Config -> Models -> Import`` menu.
 

@@ -55,7 +55,8 @@ Features
 * Includes an node-based Agents Builder.
 * Supports multiple languages.
 * Requires no previous knowledge of using AI models.
-* Simplifies image generation using image models like `DALL-E` and `Imagen`.
+* Image generation via models like ``DALL-E``, ``gpt-image``, ``Imagen`` and ``Nano Banana``.
+* Video generation via models like ``Veo3`` and ``Sora2``.
 * Fully configurable.
 * Themes support.
 * Real-time code syntax highlighting.

@@ -277,7 +277,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "claude-opus-4-5-20251101",
+                        "value": "claude-opus-4-5",
                         "type": "str"
                     }
                 ],
@@ -290,7 +290,7 @@
                 ]
             },
             "ctx": 200000,
-            "tokens": 0,
+            "tokens": 64000,
             "default": false,
             "input": [
                 "text"
@@ -360,7 +360,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "claude-sonnet-4-5-20250929",
+                        "value": "claude-sonnet-4-5",
                         "type": "str"
                     }
                 ],
@@ -372,8 +372,8 @@
                     }
                 ]
             },
-            "ctx": 128000,
-            "tokens": 0,
+            "ctx": 200000,
+            "tokens": 64000,
             "default": false,
             "input": [
                 "text"
@@ -1109,7 +1109,7 @@
                 "image"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
             "provider": "google",
             "tool_calls": true
         },
@@ -3474,7 +3474,7 @@
                 "image"
             ],
             "extra": {},
-            "imported": true,
+            "imported": false,
             "provider": "google",
             "tool_calls": true
         },
