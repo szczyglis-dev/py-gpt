@@ -282,7 +282,7 @@ class ModelItem:
 
         :return: True if supports image output
         """
-        return "image" in self.output or MODE_VISION in self.mode
+        return MULTIMODAL_IMAGE in self.output or MODE_VISION in self.mode
 
     def is_audio_input(self) -> bool:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.26 11:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -75,6 +75,31 @@ class Patch:
                         base_model = from_base(model)
                         if base_model:
                             data[model] = base_model
+                            updated = True
+
+            # <  2.6.67 <--- add missing image input
+            if old < parse_version("2.6.67"):
+                print("Migrating models from < 2.6.67...")
+                models_to_update = [
+                    "claude-opus-4-5",
+                    "claude-sonnet-4-5",
+                    "gemini-3-flash-preview",
+                    "gemini-3-pro-image-preview",
+                    "gemini-3-pro-preview",
+                    "gpt-5.2-low",
+                    "gpt-5.2-medium",
+                    "gpt-5.2-high",
+                    "gpt-image-1.5",
+                    "nano-banana-pro-preview",
+                    "sora-2",
+                    "veo-3.1-fast-generate-preview",
+                    "veo-3.1-generate-preview"
+                ]
+                for model in models_to_update:
+                    if model in data:
+                        m = data[model]
+                        if not m.is_image_input():
+                            m.input.append("image")
                             updated = True
 
         # update file

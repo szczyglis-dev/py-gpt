@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.6.66",
-        "app.version": "2.6.66",
-        "updated_at": "2025-12-25T00:00:00"
+        "version": "2.6.67",
+        "app.version": "2.6.67",
+        "updated_at": "2025-12-26T00:00:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -293,7 +293,8 @@
             "tokens": 64000,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "text"
@@ -379,7 +380,8 @@
                 "text"
             ],
             "output": [
-                "text"
+                "text",
+                "image"
             ],
             "extra": {},
             "imported": false,
@@ -1066,7 +1068,8 @@
             "tokens": 0,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "text"
@@ -1144,7 +1147,8 @@
             "tokens": 0,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "text"
@@ -2399,7 +2403,8 @@
             "tokens": 128000,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "text"
@@ -2457,7 +2462,8 @@
             "tokens": 128000,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "text"
@@ -2516,7 +2522,8 @@
             "tokens": 128000,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "text"
@@ -3468,7 +3475,8 @@
             "tokens": 0,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "image"
@@ -4564,7 +4572,8 @@
             "tokens": 0,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "video"
@@ -4672,7 +4681,8 @@
             "tokens": 0,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "video"
@@ -4708,7 +4718,8 @@
             "tokens": 0,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "video"
