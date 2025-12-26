@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.6.67 (2025-12-26)
+
+- Added a provider filter to the models editor.
+- Added video options (resolution, duration) to the toolbox.
+- Updated the models configuration.
+
 ## 2.6.66 (2025-12-25)
 
 - Added Sora 2 support - #155.

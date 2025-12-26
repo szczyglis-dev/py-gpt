@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.66** | build: **2025-12-25** | Python: **>=3.10, <3.14**
+Release: **2.6.67** | build: **2025-12-26** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3635,6 +3635,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.6.67 (2025-12-26)**
+
+- Added a provider filter to the models editor.
+- Added video options (resolution, duration) to the toolbox.
+- Updated the models configuration.
 
 **2.6.66 (2025-12-25)**
 
