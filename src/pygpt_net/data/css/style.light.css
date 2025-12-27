@@ -291,3 +291,41 @@ NodeEditor {{
 #StatusBarTimer {{
   color: #5d5d5d !important;
 }}
+
+/* ComboBox */
+QComboBox QAbstractItemView {{
+  border: 1px solid rgba(0,0,0,0.18);
+  border-radius: 0;
+  outline: 0;
+}}
+
+QListView#ComboPopupList {{
+  border-radius: 0;
+  outline: 0;
+}}
+
+QComboBox QAbstractItemView::item,
+QListView#ComboPopupList::item {{
+  min-height: 20px;
+  padding: 8px 32px;
+  margin: 0;
+  color: #000;
+}}
+
+QComboBox QAbstractItemView::item:selected,
+QListView#ComboPopupList::item:selected {{
+   background: #fff;
+   color: #000;
+   selection-color: #000;
+   font-weight: bold;
+ }}
+
+QListView#ComboPopupList::item:disabled {{
+  color: #3f3f3f;
+  background: #d9d9d9;
+  padding: 15px;
+}}
+
+QComboBox QAbstractItemView::item:hover,
+QListView#ComboPopupList::item:hover {{ }}
+QListView#ComboPopupList > QWidget#ComboPopupViewport {{ }}

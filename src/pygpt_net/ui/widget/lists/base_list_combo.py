@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2025.12.27 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
@@ -29,7 +29,7 @@ class BaseListCombo(QWidget):
         self.current_id = None
         self.keys = []
         self.real_time = False
-        self.combo = NoScrollCombo()
+        self.combo = NoScrollCombo(parent=self.window)
         self.combo.currentIndexChanged.connect(self.on_combo_change)
         self.initialized = False
         self.locked = False

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 03:00:00                  #
+# Updated Date: 2025.12.27 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -181,6 +181,14 @@ class Patch:
                 print("Migrating config from < 2.6.66...")
                 if "img_mode" not in data:
                     data["img_mode"] = "image"
+                updated = True
+
+            # < 2.7.0
+            if old < parse_version("2.7.0"):
+                print("Migrating config from < 2.7.0...")
+                # add: combo boxes css
+                patch_css('style.light.css', True)
+                patch_css('style.dark.css', True)
                 updated = True
 
         # update file
