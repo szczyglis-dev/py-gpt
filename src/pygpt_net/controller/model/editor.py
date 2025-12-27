@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 20:00:00                  #
+# Updated Date: 2025.12.27 20:00:00                  #
 # ================================================== #
 
 import copy
 import json
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
@@ -411,13 +411,13 @@ class Editor:
 
     def delete_by_idx(
             self,
-            idx: int,
+            idx: Union[int, list],
             force: bool = False
     ):
         """
         Delete model by idx
 
-        :param idx: model idx
+        :param idx: model idx or list of idxs
         :param force: force delete
         """
         if not force:
@@ -427,18 +427,28 @@ class Editor:
                 msg=trans("dialog.models.editor.delete.confirm"),
             )
             return
+
         self.locked = True
-        model = self.get_model_by_tab_idx(idx)
-        self.window.core.models.delete(model)
-        self.window.core.models.save()
-        self.reload_items()
-        if self.current == model:
-            self.current = None
+        models = []
+        last_idx = None
+        ids = idx if isinstance(idx, list) else [idx]
+        for i in ids:
+            model = self.get_model_by_tab_idx(i)
+            if model:
+                models.append(model)
+            last_idx = i
+
+        for model in models:
+            self.window.core.models.delete(model)
+            self.window.core.models.save()
+            self.reload_items()
+            if self.current == model:
+                self.current = None
 
         # switch to previous model if available
         items = self.prepare_items()
         if len(items) > 0:
-            model = self.get_model_by_tab_idx(idx - 1)
+            model = self.get_model_by_tab_idx(last_idx - 1)
             if model:
                 self.current = model
 
@@ -447,29 +457,38 @@ class Editor:
 
     def duplicate_by_idx(
             self,
-            idx: int
+            idx: Union[int, list]
     ):
         """
         Duplicate model by idx
 
-        :param idx: model idx
+        :param idx: model idx or list of idxs
         """
         self.locked = True
         self.save(persist=False)
-        model = self.get_model_by_tab_idx(idx)
-        if model:
-            new_model, new_id = self.window.core.models.create_empty()
-            new_model.from_dict(self.window.core.models.items[model].to_dict())
-            new_model.name += " (Copy)"
-            self.window.core.models.sort_items()
-            self.window.core.models.save()
-            self.reload_items()
+        ids = idx if isinstance(idx, list) else [idx]
+        models = []
+        for i in ids:
+            model = self.get_model_by_tab_idx(i)
+            if model:
+                models.append(model)
 
-            # switch to created model
-            self.current = new_id
-            idx = self.get_tab_by_id(self.current)
-            self.set_by_tab(idx)
-            self.init()
+        for model in models:
+            if model:
+                new_model, new_id = self.window.core.models.create_empty()
+                new_model.from_dict(self.window.core.models.items[model].to_dict())
+                new_model.name += " (Copy)"
+                self.window.core.models.sort_items()
+                self.window.core.models.save()
+                self.reload_items()
+
+                # switch to created model if only one duplicated
+                if len(models) == 1:
+                    self.current = new_id
+                    idx = self.get_tab_by_id(self.current)
+                    self.set_by_tab(idx)
+                    self.init()
+
         self.locked = False
 
     def load_defaults_user(self, force: bool = False):
