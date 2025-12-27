@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.12.27 23:00:00                  #
 # ================================================== #
 
 from typing import Tuple
@@ -98,10 +98,10 @@ class CalendarSelect(QCalendarWidget):
         if theme != self._theme_cached:
             self._theme_cached = theme
             if isinstance(theme, str) and theme.startswith('dark'):
-                self._counter_bg = QColor(40, 40, 40)
+                self._counter_bg = QColor(70, 70, 70)
                 self._counter_font = QColor(255, 255, 255)
             else:
-                self._counter_bg = QColor(240, 240, 240)
+                self._counter_bg = QColor(200, 200, 200)
                 self._counter_font = QColor(0, 0, 0)
 
     def paintCell(self, painter, rect, date: QDate):
