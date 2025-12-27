@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 07:00:00                  #
+# Updated Date: 2025.12.27 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -29,6 +29,7 @@ class IndexWorker(QRunnable):
         self.replace = None
         self.recursive = None
         self.from_ts = 0
+        self.from_ts_batch = {}
         self.idx = None
         self.type = None
         self.silent = False
@@ -70,6 +71,17 @@ class IndexWorker(QRunnable):
                     self.content,
                     self.from_ts,
                 )
+            elif self.type == "db_meta_batch":
+                result = 0
+                errors = []
+                for meta_id in self.content:
+                    r, e = self.window.core.idx.index_db_by_meta_id(
+                        self.idx,
+                        meta_id,
+                        self.from_ts_batch[meta_id],
+                    )
+                    result += r
+                    errors.extend(e)
             elif self.type == "db_current":
                 result, errors = self.window.core.idx.index_db_from_updated_ts(
                     self.idx,

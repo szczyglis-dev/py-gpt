@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2025.12.27 21:00:00                  #
 # ================================================== #
 
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from PySide6.QtCore import QModelIndex, QTimer
 from PySide6.QtGui import QStandardItem
@@ -319,7 +319,7 @@ class Ctx:
     def new(
             self,
             force: bool = False,
-            group_id: Optional[int] = None
+            group_id: Optional[Union[int, list]] = None
     ):
         """
         Create new ctx
@@ -329,6 +329,15 @@ class Ctx:
         """
         if not force and self.context_change_locked():
             return
+
+        # if multiple group IDs provided, pick the first valid
+        if isinstance(group_id, list):
+            valid_group_id = None
+            for gid in group_id:
+                if self.window.core.ctx.has_group(gid):
+                    valid_group_id = gid
+                    break
+            group_id = valid_group_id
 
         if group_id is None:
             if self.group_id is not None and self.group_id > 0:
@@ -596,13 +605,13 @@ class Ctx:
 
     def delete(
             self,
-            id: int,
+            id: Union[int, list],
             force: bool = False
     ):
         """
         Delete ctx by idx
 
-        :param id: context meta idx on list
+        :param id: context meta idx on list or list of idxs
         :param force: force delete
         """
         if not force:
@@ -612,26 +621,31 @@ class Ctx:
                 msg=trans('ctx.delete.confirm'),
             )
             return
+        updated = False
+        ids = id if isinstance(id, list) else [id]
+        for id in ids:
+            try:
+                self.delete_meta_from_idx(id)
+            except Exception as e:
+                self.window.core.debug.log(e)
+                print("Error deleting ctx data from indexes", e)
 
-        try:
-            self.delete_meta_from_idx(id)
-        except Exception as e:
-            self.window.core.debug.log(e)
-            print("Error deleting ctx data from indexes", e)
+            if self.window.core.ctx.get_current() == id:
+                items = self.window.core.ctx.all()  # TODO: get by meta id(s)
+                self.window.core.history.remove_items(items)
+            self.window.core.attachments.context.delete_by_meta_id(id)
+            self.window.core.ctx.remove(id)
+            self.remove_selected(id)
 
-        items = self.window.core.ctx.all()
-        self.window.core.history.remove_items(items)
-        self.window.core.attachments.context.delete_by_meta_id(id)
-        self.window.core.ctx.remove(id)
-        self.remove_selected(id)
+            if self.window.core.ctx.get_current() == id:
+                self.window.core.ctx.clear_current()
+                event = RenderEvent(RenderEvent.CLEAR_OUTPUT)
+                self.window.dispatch(event)
+            updated = True
 
-        if self.window.core.ctx.get_current() == id:
-            self.window.core.ctx.clear_current()
-            event = RenderEvent(RenderEvent.CLEAR_OUTPUT)
-            self.window.dispatch(event)
-        self.update_and_restore()
-
-        self.window.controller.ui.tabs.update_title_current("...")
+        if updated:
+            self.update_and_restore()
+            self.window.controller.ui.tabs.update_title_current("...")
 
     def delete_meta_from_idx(self, id: int):
         """
@@ -738,13 +752,18 @@ class Ctx:
         if self.window.core.ctx.count_meta() == 0:
             self.new()
 
-    def rename(self, id: int):
+    def rename(self, id: Union[int, list]):
         """
         Ctx name rename by id (show dialog)
 
-        :param id: context id
+        :param id: context id or list of ids
         """
-        meta = self.window.core.ctx.get_meta_by_id(id)
+        first_id = id
+        if isinstance(id, list):
+            if len(id) == 0:
+                return
+            first_id = id[0]
+        meta = self.window.core.ctx.get_meta_by_id(first_id)
         self.window.ui.dialog['rename'].id = 'ctx'
         self.window.ui.dialog['rename'].input.setText(meta.name)
         self.window.ui.dialog['rename'].current = id
@@ -752,19 +771,24 @@ class Ctx:
 
     def set_important(
             self,
-            id: int,
+            id: Union[int, list],
             value: bool = True
     ):
         """
         Set as important
 
-        :param id: context idx
+        :param id: context idx or list of idxs
         :param value: important value
         """
-        meta = self.window.core.ctx.get_meta_by_id(id)
-        if meta is not None:
-            meta.important = value
-            self.window.core.ctx.save(id)
+        updated = False
+        ids = id if isinstance(id, list) else [id]
+        for id in ids:
+            meta = self.window.core.ctx.get_meta_by_id(id)
+            if meta is not None:
+                meta.important = value
+                self.window.core.ctx.save(id)
+                updated = True
+        if updated:
             self.update_and_restore()
 
     def is_important(self, idx: int) -> bool:
@@ -782,19 +806,25 @@ class Ctx:
 
     def set_label(
             self,
-            id: int,
+            id: Union[int, list],
             label_id: int
     ):
         """
         Set color label for ctx by idx
 
-        :param id: context idx
+        :param id: context idx or list of idxs
         :param label_id: label id
         """
-        meta = self.window.core.ctx.get_meta_by_id(id)
-        if meta is not None:
-            meta.label = label_id
-            self.window.core.ctx.save(id)
+        updated = False
+        ids = id if isinstance(id, list) else [id]
+        for id in ids:
+            meta = self.window.core.ctx.get_meta_by_id(id)
+            if meta is not None:
+                meta.label = label_id
+                self.window.core.ctx.save(id)
+                updated = True
+
+        if updated:
             QTimer.singleShot(
                 10,
                 lambda: self.update_and_restore()
@@ -808,7 +838,7 @@ class Ctx:
 
     def update_name(
             self,
-            id: int,
+            id: Union[int, list],
             name: str,
             close: bool = True,
             refresh: bool = True
@@ -816,16 +846,22 @@ class Ctx:
         """
         Update ctx name
 
-        :param id: context id
+        :param id: context id or list of ids
         :param name: context name
         :param close: close rename dialog
         :param refresh: refresh ctx list
         """
-        if id not in self.window.core.ctx.get_meta():
-            return
-        self.window.core.ctx.meta[id].name = name
-        self.window.core.ctx.set_initialized()
-        self.window.core.ctx.save(id)
+        ctx_id = id
+        if not isinstance(id, list):
+            ctx_id = [id]
+
+        for id in ctx_id:
+            if id not in self.window.core.ctx.get_meta():
+                continue
+            self.window.core.ctx.meta[id].name = name
+            self.window.core.ctx.set_initialized()
+            self.window.core.ctx.save(id)
+
         if close:
             self.window.ui.dialog['rename'].close()
 
@@ -834,10 +870,13 @@ class Ctx:
         else:
             self.update(reload=True, all=False, no_scroll=True)
 
-        meta = self.window.core.ctx.get_meta_by_id(id)
-        if meta is not None:
-            if id == self.window.core.ctx.get_current():
-                self.window.controller.ui.tabs.update_title_current(meta.name)
+        for id in ctx_id:
+            if id not in self.window.core.ctx.get_meta():
+                continue
+            meta = self.window.core.ctx.get_meta_by_id(id)
+            if meta is not None:
+                if id == self.window.core.ctx.get_current():
+                    self.window.controller.ui.tabs.update_title_current(meta.name)
 
     def update_name_current(self, name: str):
         """
@@ -1067,37 +1106,47 @@ class Ctx:
 
     def move_to_group(
             self,
-            meta_id: int,
+            meta_id: Union[int, list],
             group_id: int,
             update: bool = True
     ):
         """
         Move ctx to group
 
-        :param meta_id: int
+        :param meta_id: int or list of int
         :param group_id: int
         :param update: update ctx list
         """
-        self.window.core.ctx.update_meta_group_id(meta_id, group_id)
-        self.group_id = group_id
-        if update:
+        updated = False
+        ids = meta_id if isinstance(meta_id, list) else [meta_id]
+        for meta_id in ids:
+            self.window.core.ctx.update_meta_group_id(meta_id, group_id)
+            self.group_id = group_id
+            updated = True
+
+        if updated and update:
             QTimer.singleShot(
                 10,
                 lambda: self.update_and_restore()
             )
 
-    def remove_from_group(self, meta_id):
+    def remove_from_group(self, meta_id: Union[int, list]):
         """
         Remove ctx from group
 
-        :param meta_id: int
+        :param meta_id: int or list of int
         """
-        self.window.core.ctx.update_meta_group_id(meta_id, None)
-        self.group_id = None
-        QTimer.singleShot(
-            10,
-            lambda: self.update_and_restore()
-        )
+        updated = False
+        ids = meta_id if isinstance(meta_id, list) else [meta_id]
+        for meta_id in ids:
+            self.window.core.ctx.update_meta_group_id(meta_id, None)
+            updated = True
+        if updated:
+            self.group_id = None
+            QTimer.singleShot(
+                10,
+                lambda: self.update_and_restore()
+            )
 
     def new_group(
             self,
@@ -1117,13 +1166,13 @@ class Ctx:
     def create_group(
             self,
             name: Optional[str] = None,
-            meta_id: Optional[int] = None
+            meta_id: Optional[Union[int, list]] = None
     ):
         """
         Make directory
 
         :param name: name of directory
-        :param meta_id: int
+        :param meta_id: int or list of int
         """
         if name is None:
             self.window.update_status(
@@ -1133,53 +1182,69 @@ class Ctx:
         group = self.window.core.ctx.make_group(name)
         id = self.window.core.ctx.insert_group(group)
         if id is not None:
-            if meta_id is not None:
-                self.move_to_group(meta_id, id, update=False)
-            self.update()
-            self.window.update_status(
-                "Group '{}' created.".format(name)
-            )
-            self.window.ui.dialog['create'].close()
-            # self.select_group(id)
-            self.group_id = id
+            ids = meta_id if isinstance(meta_id, list) else [meta_id] if meta_id is not None else []
+            for meta_id in ids:
+                if meta_id is not None:
+                    self.move_to_group(meta_id, id, update=False)
+
+        self.update()
+        self.window.update_status(
+            "Group '{}' created.".format(name)
+        )
+        self.window.ui.dialog['create'].close()
+        # self.select_group(id)
+        self.group_id = id
 
     def rename_group(
             self,
-            id: int,
+            id: Union[int, list],
             force: bool = False
     ):
         """
         Rename group
 
-        :param id: group ID
+        :param id: group ID or list of IDs
         :param force: force rename
         """
+        ids = id if isinstance(id, list) else [id]
         if not force:
-            group = self.window.core.ctx.get_group_by_id(id)
-            if group is None:
+            is_group = False
+            name = ""
+            for tmp_id in ids:
+                group = self.window.core.ctx.get_group_by_id(tmp_id)
+                if group is not None:
+                    is_group = True
+                    name = group.name
+                    break
+            if not is_group:
                 return
             self.window.ui.dialog['rename'].id = 'ctx.group'
-            self.window.ui.dialog['rename'].input.setText(group.name)
+            self.window.ui.dialog['rename'].input.setText(name)
             self.window.ui.dialog['rename'].current = id
             self.window.ui.dialog['rename'].show()
 
     def update_group_name(
             self,
-            id: int,
+            id: Union[int, list],
             name: str,
             close: bool = True
     ):
         """
         Update group name
 
-        :param id: group ID
+        :param id: group ID or list of IDs
         :param name: group name
         :param close: close rename dialog
         """
-        group = self.window.core.ctx.get_group_by_id(id)
-        if group is not None:
-            group.name = name
-            self.window.core.ctx.update_group(group)
+        updated = False
+        ids = id if isinstance(id, list) else [id]
+        for id in ids:
+            group = self.window.core.ctx.get_group_by_id(id)
+            if group is not None:
+                group.name = name
+                self.window.core.ctx.update_group(group)
+                updated = True
+        if updated:
             if close:
                 self.window.ui.dialog['rename'].close()
             self.update_and_restore()
@@ -1211,13 +1276,13 @@ class Ctx:
 
     def delete_group(
             self,
-            id: int,
+            id: Union[int, list],
             force: bool = False
     ):
         """
         Delete group only
 
-        :param id: group ID
+        :param id: group ID or list of IDs
         :param force: force delete
         """
         if not force:
@@ -1227,22 +1292,28 @@ class Ctx:
                 msg=trans('confirm.ctx.delete')
             )
             return
-        group = self.window.core.ctx.get_group_by_id(id)
-        if group is not None:
-            self.window.core.ctx.remove_group(group, all=False)
-            if self.group_id == id:
-                self.group_id = None
+        updated = False
+        ids = id if isinstance(id, list) else [id]
+        for id in ids:
+            group = self.window.core.ctx.get_group_by_id(id)
+            if group is not None:
+                self.window.core.ctx.remove_group(group, all=False)
+                if self.group_id == id:
+                    self.group_id = None
+                updated = True
+
+        if updated:
             self.update_and_restore()
 
     def delete_group_all(
             self,
-            id: int,
+            id: Union[int, list],
             force: bool = False
     ):
         """
         Delete group with all items
 
-        :param id: group ID
+        :param id: group ID or list of IDs
         :param force: force delete
         """
         if not force:
@@ -1252,11 +1323,16 @@ class Ctx:
                 msg=trans('confirm.ctx.delete.all')
             )
             return
-        group = self.window.core.ctx.get_group_by_id(id)
-        if group is not None:
-            self.window.core.ctx.remove_group(group, all=True)
-            if self.group_id == id:
-                self.group_id = None
+        updated = False
+        ids = id if isinstance(id, list) else [id]
+        for id in ids:
+            group = self.window.core.ctx.get_group_by_id(id)
+            if group is not None:
+                self.window.core.ctx.remove_group(group, all=True)
+                if self.group_id == id:
+                    self.group_id = None
+                updated = True
+        if updated:
             self.update_and_restore()
 
     def prepare_summary(self, ctx: CtxItem) -> bool:

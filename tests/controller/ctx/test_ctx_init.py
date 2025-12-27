@@ -313,7 +313,7 @@ def test_update_name(mock_window):
     ctx.update_name(3, 'new_name', True)
 
     assert mock_window.core.ctx.meta[3].name == 'new_name'
-    mock_window.core.ctx.get_meta.assert_called_once()
+    mock_window.core.ctx.get_meta.assert_called()
     mock_window.core.ctx.set_initialized.assert_called_once()
     mock_window.core.ctx.save.assert_called_once_with(3)
     mock_window.ui.dialog['rename'].close.assert_called_once()

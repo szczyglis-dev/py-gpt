@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.12.27 19:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, Union
 
 from PySide6.QtCore import QTimer, QSignalBlocker
 from PySide6.QtWidgets import QApplication
@@ -75,16 +75,22 @@ class Common:
                 label = f'{label} ({assistant.name})'
         self.window.controller.ui.update_ctx_label(label)
 
-    def duplicate(self, meta_id: int):
+    def duplicate(self, meta_id: Union[int, list]):
         """
         Duplicate context by meta id
 
-        :param meta_id: context id
+        :param meta_id: context id or list of ids
         """
-        new_id = self.window.core.ctx.duplicate(meta_id)
-        if new_id is not None:
-            self.window.core.attachments.context.duplicate(meta_id, new_id)
-            self.window.update_status(f"Context duplicated, new ctx id: {new_id}")
+        is_updated = False
+        ids = meta_id if isinstance(meta_id, list) else [meta_id]
+        for meta_id in ids:
+            new_id = self.window.core.ctx.duplicate(meta_id)
+            if new_id is not None:
+                self.window.core.attachments.context.duplicate(meta_id, new_id)
+                self.window.update_status(f"Context duplicated, new ctx id: {new_id}")
+                is_updated = True
+
+        if is_updated:
             QTimer.singleShot(10, self._update_ctx_no_scroll)
 
     def dismiss_rename(self):
@@ -162,25 +168,27 @@ class Common:
         self.window.core.ctx.set_display_filters(filters)
         self.window.controller.ctx.update()
 
-    def copy_id(self, id: int):
+    def copy_id(self, id: Union[int, list]):
         """
         Copy id into clipboard and to iinput
 
-        :param id: context list idx
+        :param id: context list idx or list of ids
         """
-        value = f"@{id}"
+        ids = id if isinstance(id, list) else [id]
+        values = [f"@{i}" for i in ids]
+        value = " ".join(values)
         self.window.controller.chat.common.append_to_input(value, separator=" ")
         QApplication.clipboard().setText(value)
 
     def reset(
             self,
-            meta_id: int,
+            meta_id: Union[int, list],
             force: bool = False
     ):
         """
         Reset by meta id
 
-        :param meta_id: context id
+        :param meta_id: context id or list of ids
         :param force: True to force reset
         """
         if not force:
@@ -190,7 +198,9 @@ class Common:
                 msg=trans('ctx.reset_meta.confirm'),
             )
             return
-        self.window.core.ctx.reset_meta(meta_id)
-        self.window.core.attachments.context.reset_by_meta_id(meta_id, delete_files=True)
-        if self.window.core.ctx.get_current() == meta_id:
-            self.window.controller.ctx.load(meta_id)
+        ids = meta_id if isinstance(meta_id, list) else [meta_id]
+        for meta_id in ids:
+            self.window.core.ctx.reset_meta(meta_id)
+            self.window.core.attachments.context.reset_by_meta_id(meta_id, delete_files=True)
+            if self.window.core.ctx.get_current() == meta_id:
+                self.window.controller.ctx.load(meta_id)

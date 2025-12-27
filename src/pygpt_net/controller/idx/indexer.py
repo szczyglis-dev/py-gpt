@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 17:00:00                  #
+# Updated Date: 2025.12.27 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -70,14 +70,14 @@ class Indexer(QObject):
 
     def index_ctx_meta(
             self,
-            meta_id: int,
+            meta_id: Union[int, list],
             idx: str,
             force: bool = False
     ):
         """
         Index context meta (threaded)
 
-        :param meta_id: context meta id
+        :param meta_id: context meta id or list of ids
         :param idx: index name
         :param force: force index
         """
@@ -91,20 +91,36 @@ class Indexer(QObject):
             )
             return
 
-        meta = self.window.core.ctx.get_meta_by_id(meta_id)
-        self.window.update_status(trans('idx.status.indexing'))
-
         worker = IndexWorker()
         worker.window = self.window
-        worker.content = meta_id
-        worker.idx = idx
-        worker.type = "db_meta"
-        worker.from_ts = meta.indexed
+        self.window.update_status(trans('idx.status.indexing'))
+
+        # batch indexing
+        if isinstance(meta_id, list):
+            ts_batch = {}
+            ids = []
+            for mid in meta_id:
+                meta = self.window.core.ctx.get_meta_by_id(mid)
+                if meta is None:
+                    continue
+                ids.append(mid)
+                ts_batch[mid] = meta.indexed
+            worker.content = ids
+            worker.idx = idx
+            worker.type = "db_meta_batch"
+            worker.from_ts_batch = ts_batch
+        else:
+            # single indexing
+            meta = self.window.core.ctx.get_meta_by_id(meta_id)
+            worker.content = meta_id
+            worker.idx = idx
+            worker.type = "db_meta"
+            worker.from_ts = meta.indexed
+
         worker.signals.finished.connect(self.handle_finished_db_meta)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
         self.worker = worker
-
         self.window.controller.idx.on_idx_start()  # on start
 
     def index_ctx_current(
@@ -458,14 +474,14 @@ class Indexer(QObject):
     def index_ctx_meta_remove(
             self,
             idx: str,
-            meta_id: int,
+            meta_id: Union[int, list],
             force: bool = False
     ):
         """
         Remove ctx meta from index
 
         :param idx: index name
-        :param meta_id: meta id
+        :param meta_id: meta id or list of ids
         :param force: force index
         """
         if not force:
@@ -479,11 +495,16 @@ class Indexer(QObject):
             return
 
         store = self.window.core.idx.get_current_store()
-        if self.window.core.ctx.idx.remove_meta_from_indexed(store, meta_id, self.tmp_idx):
-            self.window.update_status(trans('status.deleted') + ": " + str(meta_id))
-            self.window.controller.ctx.update()  # update ctx list
+        ids = meta_id if isinstance(meta_id, list) else [meta_id]
+        updated = False
+        for meta_id in ids:
+            if self.window.core.ctx.idx.remove_meta_from_indexed(store, meta_id, self.tmp_idx):
+                self.window.update_status(trans('status.deleted') + ": " + str(meta_id))
+                updated = True
 
-        self.window.tools.get("indexer").refresh()
+        if updated:
+            self.window.controller.ctx.update()  # update ctx list
+            self.window.tools.get("indexer").refresh()
 
     def clear_by_idx(self, idx: int):
         """
