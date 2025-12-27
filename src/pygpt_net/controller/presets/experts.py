@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 13:00:00                  #
+# Updated Date: 2025.12.27 21:00:00                  #
 # ================================================== #
+
+from PySide6 import QtCore
 
 from pygpt_net.core.types import (
     MODE_EXPERT,
@@ -23,6 +25,8 @@ class Experts:
         :param window: Window instance
         """
         self.window = window
+        self.selected_available_uuids = []  # multi-selected available experts
+        self.selected_selected_uuids = []   # multi-selected selected experts
 
     def refresh(self):
         """Refresh presets"""
@@ -78,13 +82,43 @@ class Experts:
 
         self.update_tab()
 
+    def _selected_uuids_from_view(self, node_id: str, fallback_idx_resolver) -> list[str]:
+        """
+        Resolve selected expert UUIDs from a given list view using stored tooltip role,
+        falling back to idx -> uuid resolver when needed.
+
+        :param node_id: ui node id
+        :param fallback_idx_resolver: callable that maps row index -> uuid
+        :return: list of selected uuids
+        """
+        uuids = []
+        try:
+            view = self.window.ui.nodes[node_id]
+            sel_model = view.selectionModel()
+            rows = sel_model.selectedRows() if sel_model else []
+            for ix in rows:
+                uuid = ix.data(QtCore.Qt.ToolTipRole)
+                if not uuid:
+                    uuid = fallback_idx_resolver(ix.row())
+                if uuid and uuid not in uuids:
+                    uuids.append(uuid)
+        except Exception:
+            pass
+        return uuids
+
     def change_available(self):
-        """Change selected expert"""
-        pass
+        """Change selected expert(s) in available list"""
+        self.selected_available_uuids = self._selected_uuids_from_view(
+            "preset.experts.available",
+            self.get_available_by_idx
+        )
 
     def change_selected(self):
-        """Change selected expert"""
-        pass
+        """Change selected expert(s) in selected list"""
+        self.selected_selected_uuids = self._selected_uuids_from_view(
+            "preset.experts.selected",
+            self.get_selected_by_idx
+        )
 
     def get_current_available(self) -> str:
         """
@@ -138,27 +172,47 @@ class Experts:
             i += 1
 
     def add_expert(self):
-        """Add expert"""
+        """Add expert(s)"""
         agent_uuid = self.get_current_agent_id()
         if agent_uuid is None or not self.window.core.presets.exists_uuid(agent_uuid):
             self.window.controller.presets.editor.save(close=False)
             return
-        expert_uuid = self.get_current_available()
-        if expert_uuid is None:
+
+        uuids = self.selected_available_uuids[:]
+        if not uuids:
+            one = self.get_current_available()
+            if one:
+                uuids = [one]
+
+        if not uuids:
             return
-        self.window.core.presets.add_expert(agent_uuid, expert_uuid)
+
+        for expert_uuid in uuids:
+            if expert_uuid and not self.is_active(expert_uuid):
+                self.window.core.presets.add_expert(agent_uuid, expert_uuid)
+
         self.update_list()
 
     def remove_expert(self):
-        """Remove expert"""
+        """Remove expert(s)"""
         agent_uuid = self.get_current_agent_id()
         if agent_uuid is None or not self.window.core.presets.exists_uuid(agent_uuid):
             self.window.controller.presets.editor.save(close=False)
             return
-        expert_uuid = self.get_current_selected()
-        if expert_uuid is None:
+
+        uuids = self.selected_selected_uuids[:]
+        if not uuids:
+            one = self.get_current_selected()
+            if one:
+                uuids = [one]
+
+        if not uuids:
             return
-        self.window.core.presets.remove_expert(agent_uuid, expert_uuid)
+
+        for expert_uuid in uuids:
+            if expert_uuid and self.is_active(expert_uuid):
+                self.window.core.presets.remove_expert(agent_uuid, expert_uuid)
+
         self.update_list()
 
     def update_tab(self):
@@ -175,4 +229,3 @@ class Experts:
             tabs.setTabText(idx, trans("preset.tab.experts"))
         else:
             tabs.setTabText(idx, trans("preset.tab.experts") + f" ({num})")
-
