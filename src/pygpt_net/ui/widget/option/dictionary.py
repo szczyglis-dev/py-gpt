@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.12.27 21:00:00                  #
 # ================================================== #
+
+from typing import List
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu, QStyledItemDelegate, QComboBox, \
-    QCheckBox, QHeaderView, QHBoxLayout
+    QCheckBox, QHeaderView, QHBoxLayout, QAbstractItemView
 
 from pygpt_net.utils import trans
 
@@ -133,6 +135,15 @@ class OptionDict(QWidget):
             idx = index.row()
             self.window.controller.config.dictionary.delete_item(self, idx)
 
+    def delete_items(self, idxs: List[int]):
+        """
+        Delete multiple items (show confirm once)
+
+        :param idxs: list of row indices to delete
+        """
+        # delegate batch deletion and confirmation to controller
+        self.window.controller.config.dictionary.delete_item(self, list(idxs))
+
     def delete_item_execute(self, idx):
         """
         Delete item (execute)
@@ -187,6 +198,10 @@ class OptionDictItems(QTreeView):
         self.setIndentation(0)
         self.setHeaderHidden(False)
 
+        # enable row-based multi selection (Ctrl/Shift)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+
         header = self.header()
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
@@ -222,14 +237,27 @@ class OptionDictItems(QTreeView):
         :param event: context menu event
         """
         item = self.indexAt(event.pos())
-        if not item.isValid():
+        sel_model = self.selectionModel()
+        selected_rows = sel_model.selectedRows() if sel_model is not None else []
+        multi = len(selected_rows) > 1
+
+        # allow context menu on empty area only when multi-selection exists
+        if not item.isValid() and not multi:
             return
 
         menu = QMenu(self)
-        edit_action = menu.addAction(self._icon_edit, self._act_edit_text)
-        delete_action = menu.addAction(self._icon_delete, self._act_delete_text)
-        edit_action.triggered.connect(lambda: self.parent.edit_item(event))
-        delete_action.triggered.connect(lambda: self.parent.delete_item(event))
+        if multi:
+            # only Delete is available for multi-select
+            delete_action = menu.addAction(self._icon_delete, self._act_delete_text)
+            # collect row indices from current selection
+            idxs = [ix.row() for ix in selected_rows]
+            delete_action.triggered.connect(lambda: self.parent.delete_items(idxs))
+        else:
+            # single row actions
+            edit_action = menu.addAction(self._icon_edit, self._act_edit_text)
+            delete_action = menu.addAction(self._icon_delete, self._act_delete_text)
+            edit_action.triggered.connect(lambda: self.parent.edit_item(event))
+            delete_action.triggered.connect(lambda: self.parent.delete_item(event))
         menu.exec_(event.globalPos())
 
 

@@ -11,6 +11,9 @@
 import os
 import pytest
 from unittest.mock import MagicMock
+
+from qasync import QtCore
+
 from pygpt_net.controller.model.importer import Importer
 
 # A fake index used to simulate selection indexes
@@ -20,6 +23,13 @@ class FakeIndex:
 
     def row(self):
         return self._row
+
+def _make_index(row: int, key: str):
+    idx = MagicMock()
+    idx.row.return_value = row
+    # Return model key stored in ToolTipRole (as done in the view)
+    idx.data.side_effect = lambda role=None: key if role == QtCore.Qt.ToolTipRole else None
+    return idx
 
 @pytest.fixture
 def mock_window():
@@ -117,27 +127,34 @@ def test_change_available_no_selection(importer, mock_window):
 
 def test_change_available_valid_not_in_current(importer, mock_window):
     avail = mock_window.ui.nodes["models.importer.available"]
-    fake_index = MagicMock()
-    fake_index.row.return_value = 0
-    avail.selectionModel.return_value.currentIndex.return_value = fake_index
+    sel_model = avail.selectionModel.return_value
+    sel_model.selectedRows.return_value = [_make_index(0, "model1")]
+
     importer.items_available = {"model1": MagicMock()}
     importer.items_current = {}
+
     importer.change_available()
+
     assert importer.selected_available == "model1"
     mock_window.ui.nodes["models.importer.add"].setEnabled.assert_called_with(True)
 
+
 def test_change_available_valid_in_current(importer, mock_window):
     avail = mock_window.ui.nodes["models.importer.available"]
-    fake_index = MagicMock()
-    fake_index.row.return_value = 0
-    avail.selectionModel.return_value.currentIndex.return_value = fake_index
+    sel_model = avail.selectionModel.return_value
+    sel_model.selectedRows.return_value = [_make_index(0, "model1")]
+
     fake_model = type("FakeModel", (), {})()
     fake_model.id = "model1"
+
     importer.items_available = {"model1": MagicMock()}
     importer.items_current = {importer.provider: {"model1": fake_model}}
+
     importer.change_available()
+
     assert importer.selected_available == "model1"
     mock_window.ui.nodes["models.importer.add"].setEnabled.assert_called_with(False)
+
 
 def test_change_current_no_selection(importer, mock_window):
     curr = mock_window.ui.nodes["models.importer.current"]
@@ -151,23 +168,28 @@ def test_change_current_no_selection(importer, mock_window):
 
 def test_change_current_valid_in_available(importer, mock_window):
     curr = mock_window.ui.nodes["models.importer.current"]
-    fake_index = MagicMock()
-    fake_index.row.return_value = 0
-    curr.selectionModel.return_value.currentIndex.return_value = fake_index
+    sel_model = curr.selectionModel.return_value
+    sel_model.selectedRows.return_value = [_make_index(0, "model1")]
+
     importer.items_current = {importer.provider: {"model1": MagicMock()}}
     importer.items_available_all = {"model1": MagicMock()}
+
     importer.change_current()
+
     assert importer.selected_current == "model1"
     mock_window.ui.nodes["models.importer.remove"].setEnabled.assert_called_with(True)
 
+
 def test_change_current_valid_not_in_available(importer, mock_window):
     curr = mock_window.ui.nodes["models.importer.current"]
-    fake_index = MagicMock()
-    fake_index.row.return_value = 0
-    curr.selectionModel.return_value.currentIndex.return_value = fake_index
+    sel_model = curr.selectionModel.return_value
+    sel_model.selectedRows.return_value = [_make_index(0, "model1")]
+
     importer.items_current = {importer.provider: {"model1": MagicMock()}}
     importer.items_available_all = {}
+
     importer.change_current()
+
     assert importer.selected_current == "model1"
     mock_window.ui.nodes["models.importer.remove"].setEnabled.assert_called_with(False)
 

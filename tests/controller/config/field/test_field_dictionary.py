@@ -78,8 +78,8 @@ def test_delete_item(mock_window):
     field = Dictionary(mock_window)
     parent = MagicMock()
     parent.delete_item_execute = MagicMock()
-    field.delete_item(parent, 'id', True, False)
-    parent.delete_item_execute.assert_called_once_with('id')
+    field.delete_item(parent, 2, True, False)
+    parent.delete_item_execute.assert_called_once_with(2)
 
 
 def test_to_options(mock_window):

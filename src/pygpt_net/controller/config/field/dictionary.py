@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.12.27 21:00:00                  #
 # ================================================== #
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 
 from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.utils import trans
@@ -85,7 +85,7 @@ class Dictionary:
     def delete_item(
             self,
             parent_object: OptionDict,
-            id: str,
+            id,  # Union[int, list[int]]
             force: bool = False,
             hooks: bool = True
     ):
@@ -93,11 +93,12 @@ class Dictionary:
         Show delete item (from dict list) confirmation dialog or executes delete
 
         :param parent_object: parent object
-        :param id: item id
+        :param id: item id or list of ids (row indexes)
         :param force: force delete
         :param hooks: run hooks
         """
         if not force:
+            # Pass list as-is for batch confirmation
             self.window.ui.dialogs.confirm(
                 type="settings.dict.delete",
                 id=id,
@@ -107,16 +108,27 @@ class Dictionary:
             return
 
         if parent_object is not None:
-            parent_object.delete_item_execute(id)
-            if hooks:
-                hook_name = f"update.{parent_object}.{id}"
-                ui = self.window.ui
-                if ui.has_hook(hook_name):
-                    hook = ui.get_hook(hook_name)
-                    try:
-                        hook(id, {}, "dictionary")
-                    except Exception as e:
-                        self.window.core.debug.log(e)
+            # Normalize to unique integer indexes and sort descending to avoid index shift on delete
+            ids = id if isinstance(id, list) else [id]
+            normalized = []
+            for v in ids:
+                try:
+                    normalized.append(int(v))
+                except Exception:
+                    continue
+            normalized = sorted(set(normalized), reverse=True)
+
+            ui = self.window.ui
+            for idx in normalized:
+                parent_object.delete_item_execute(idx)
+                if hooks:
+                    hook_name = f"update.{parent_object}.{idx}"
+                    if ui.has_hook(hook_name):
+                        hook = ui.get_hook(hook_name)
+                        try:
+                            hook(idx, {}, "dictionary")
+                        except Exception as e:
+                            self.window.core.debug.log(e)
 
     def to_options(
             self,
