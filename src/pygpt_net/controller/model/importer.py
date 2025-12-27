@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 20:00:00                  #
+# Updated Date: 2025.12.27 21:00:00                  #
 # ================================================== #
 
 import copy
 import os
 from typing import List, Dict, Optional, Any
 
+from PySide6 import QtCore
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.events import Event
@@ -45,8 +46,10 @@ class Importer:
         self.items_current = {}  # current models in use
         self.pending = {}  # waiting to be imported models
         self.removed = {}  # waiting to be removed models
-        self.selected_available = None  # selected available model
-        self.selected_current = None  # selected current model
+        self.selected_available = None  # selected available model (single)
+        self.selected_current = None  # selected current model (single)
+        self.selected_available_ids: List[str] = []  # multi-selected available models
+        self.selected_current_ids: List[str] = []  # multi-selected current models
         self.all = False  # show all models, not only available for import
         self.provider = "_"  # default provider
 
@@ -69,43 +72,71 @@ class Importer:
 
     def change_available(self):
         """On change available model selection"""
-        val = self.window.ui.nodes["models.importer.available"].selectionModel().currentIndex()
-        idx = val.row()
-        if idx < 0:
+        view = self.window.ui.nodes["models.importer.available"]
+        sel_model = view.selectionModel()
+        rows = sel_model.selectedRows() if sel_model else []
+        # collect selected model keys by reading stored tooltip role (stable ID)
+        selected_ids = []
+        for ix in rows:
+            key = ix.data(QtCore.Qt.ToolTipRole)
+            if not key:
+                key = self.get_by_idx(ix.row(), self.items_available)
+            if key and key not in selected_ids:
+                selected_ids.append(key)
+
+        self.selected_available_ids = selected_ids
+        if not selected_ids:
             self.selected_available = None
             self.window.ui.nodes["models.importer.add"].setEnabled(False)
-        else:
-            self.selected_available = self.get_by_idx(idx, self.items_available)
-            if self.items_available.get(self.selected_available) is None:
-                self.selected_available = None
-                self.window.ui.nodes["models.importer.add"].setEnabled(False)
-            else:
-                # if not in current then enable add button
-                if not self.in_current(self.selected_available):
-                    self.window.ui.nodes["models.importer.add"].setEnabled(True)
-                else:
-                    self.window.ui.nodes["models.importer.add"].setEnabled(False)
+            return
+
+        # keep a single reference for backward compatibility (last selected)
+        self.selected_available = selected_ids[-1]
+
+        # enable add if any of selected can be added (not already in current)
+        can_add = False
+        for key in selected_ids:
+            if key is None:
+                continue
+            if not self.in_current(key) and self.items_available.get(key) is not None:
+                can_add = True
+                break
+        self.window.ui.nodes["models.importer.add"].setEnabled(can_add)
 
     def change_current(self):
         """On change current model selection"""
         if self.provider not in self.items_current:
             self.items_current[self.provider] = {}
-        val = self.window.ui.nodes["models.importer.current"].selectionModel().currentIndex()
-        idx = val.row()
-        if idx < 0:
+        view = self.window.ui.nodes["models.importer.current"]
+        sel_model = view.selectionModel()
+        rows = sel_model.selectedRows() if sel_model else []
+        # collect selected model keys by reading stored tooltip role (stable ID)
+        selected_ids = []
+        for ix in rows:
+            key = ix.data(QtCore.Qt.ToolTipRole)
+            if not key:
+                key = self.get_by_idx(ix.row(), self.items_current[self.provider])
+            if key and key not in selected_ids:
+                selected_ids.append(key)
+
+        self.selected_current_ids = selected_ids
+        if not selected_ids:
             self.selected_current = None
             self.window.ui.nodes["models.importer.remove"].setEnabled(False)
-        else:
-            self.selected_current = self.get_by_idx(idx, self.items_current[self.provider])
-            if self.items_current[self.provider].get(self.selected_current) is None:
-                self.selected_current = None
-                self.window.ui.nodes["models.importer.remove"].setEnabled(False)
-            else:
-                if (self.selected_current in self.items_current[self.provider]
-                        and self.in_available(self.selected_current)):
-                    self.window.ui.nodes["models.importer.remove"].setEnabled(True)
-                else:
-                    self.window.ui.nodes["models.importer.remove"].setEnabled(False)
+            return
+
+        # keep a single reference for backward compatibility (last selected)
+        self.selected_current = selected_ids[-1]
+
+        # enable remove if any of selected can be removed
+        can_remove = False
+        for key in selected_ids:
+            if key is None:
+                continue
+            if (key in self.items_current[self.provider]) and self.in_available(key):
+                can_remove = True
+                break
+        self.window.ui.nodes["models.importer.remove"].setEnabled(can_remove)
 
     def in_available(self, model: str) -> bool:
         """
@@ -122,43 +153,111 @@ class Importer:
                 return True
         return False
 
+    def _selected_keys_from_view(self, node_id: str, items: Dict) -> List[str]:
+        """
+        Resolve selected model keys from a given list view using stored tooltip role,
+        falling back to index->dict mapping when needed.
+
+        :param node_id: ui node id
+        :param items: dict used to build the view's model
+        :return: list of selected keys
+        """
+        keys: List[str] = []
+        try:
+            view = self.window.ui.nodes[node_id]
+            sel_model = view.selectionModel()
+            rows = sel_model.selectedRows() if sel_model else []
+            for ix in rows:
+                key = ix.data(QtCore.Qt.ToolTipRole)
+                if not key:
+                    key = self.get_by_idx(ix.row(), items)
+                if key and key not in keys:
+                    keys.append(key)
+        except Exception:
+            pass
+        return keys
+
     def add(self):
-        """Add model to current list"""
+        """Add model(s) to current list"""
         if self.provider not in self.items_current:
             self.items_current[self.provider] = {}
-        if self.selected_available is None:
+
+        # collect multi-selection; fallback to single selection
+        keys = self._selected_keys_from_view(
+            'models.importer.available',
+            self.items_available,
+        )
+        if not keys and self.selected_available is not None:
+            keys = [self.selected_available]
+
+        if not keys:
             self.set_status(trans('models.importer.error.add.no_model'))
             return
-        if self.in_current(self.selected_available):
+
+        any_added = False
+        for key in list(keys):
+            if key is None:
+                continue
+            if self.in_current(key):
+                continue
+            model = self.items_available.get(key)
+            if model is None:
+                continue
+            self.items_current[self.provider][key] = model
+            if key not in self.pending:
+                self.pending[key] = model
+            if key in self.removed:
+                del self.removed[key]
+            if not self.all and key in self.items_available:
+                del self.items_available[key]
+            any_added = True
+
+        if not any_added:
             self.set_status(trans('models.importer.error.add.not_exists'))
             return
-        model = self.items_available[self.selected_available]
-        self.items_current[self.provider][self.selected_available] = model
-        if self.selected_available not in self.pending:
-            self.pending[self.selected_available] = model
-        if self.selected_available in self.removed:
-            del self.removed[self.selected_available]
-        if not self.all:
-            del self.items_available[self.selected_available]
+
         self.refresh()
 
     def remove(self):
-        """Remove model from current list"""
+        """Remove model(s) from current list"""
         if self.provider not in self.items_current:
             self.items_current[self.provider] = {}
-        if self.selected_current is None:
+
+        # collect multi-selection; fallback to single selection
+        keys = self._selected_keys_from_view(
+            'models.importer.current',
+            self.items_current[self.provider],
+        )
+        if not keys and self.selected_current is not None:
+            keys = [self.selected_current]
+
+        if not keys:
             self.set_status(trans('models.importer.error.remove.no_model'))
             return
-        if not self.in_current(self.selected_current):
+
+        any_removed = False
+        for key in list(keys):
+            if key is None:
+                continue
+            if not self.in_current(key):
+                continue
+            model = self.items_current[self.provider].get(key)
+            if model is None:
+                continue
+            # return to available list
+            self.items_available[key] = model
+            if key not in self.removed:
+                self.removed[key] = model
+            if key in self.items_current[self.provider]:
+                del self.items_current[self.provider][key]
+            if key in self.pending:
+                del self.pending[key]
+            any_removed = True
+
+        if not any_removed:
             self.set_status(trans('models.importer.error.remove.not_exists'))
             return
-        model = self.items_current[self.provider][self.selected_current]
-        self.items_available[self.selected_current] = model
-        if self.selected_current not in self.removed:
-            self.removed[self.selected_current] = model
-        del self.items_current[self.provider][self.selected_current]
-        if self.selected_current in self.pending:
-            del self.pending[self.selected_current]
+
         self.refresh()
 
     def setup(self):
