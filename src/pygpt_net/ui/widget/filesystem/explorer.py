@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 20:00:00                  #
+# Updated Date: 2025.12.27 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,9 +14,10 @@ import os
 import shutil
 import struct
 import sys
+from typing import Union
 
 from PySide6.QtCore import Qt, QModelIndex, QDir, QObject, QEvent, QUrl, QPoint, QMimeData, QTimer, QRect
-from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent, QGuiApplication, QKeySequence, QShortcut, QClipboard
+from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent, QGuiApplication, QKeySequence, QShortcut, QClipboard, QDrag
 from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel, QHBoxLayout, \
     QPushButton, QSizePolicy, QAbstractItemView, QFrame
 
@@ -24,6 +25,140 @@ from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.element.button import ContextMenuButton
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
+
+
+class MultiDragTreeView(QTreeView):
+    """
+    QTreeView with improved multi-selection UX:
+    - When multiple rows are already selected and user presses left mouse (no modifiers),
+      a short press-release clears selection (global single-click to deselect),
+      but moving the mouse beyond the drag threshold starts a drag containing the whole selection
+      instead of altering selection.
+    - This avoids accidental selection changes when the intent was to drag many items.
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._md_pressed = False
+        self._md_drag_started = False
+        self._md_maybe_clear = False
+        self._md_press_pos = QPoint()
+
+    def _selected_count(self) -> int:
+        try:
+            return len(self.selectionModel().selectedRows(0))
+        except Exception:
+            return 0
+
+    def _make_urls_from_selection(self):
+        urls = []
+        try:
+            model = self.model()
+            rows = self.selectionModel().selectedRows(0)
+            seen = set()
+            for idx in rows:
+                p = model.filePath(idx)
+                if p and p not in seen:
+                    seen.add(p)
+                    urls.append(QUrl.fromLocalFile(p))
+        except Exception:
+            pass
+        return urls
+
+    def _start_multi_drag(self):
+        urls = self._make_urls_from_selection()
+        if not urls:
+            return
+        md = QMimeData()
+        # text/uri-list payload for cross-compatibility
+        try:
+            parts = []
+            for u in urls:
+                try:
+                    parts.append(u.toString(QUrl.FullyEncoded))
+                except Exception:
+                    parts.append(u.toString())
+            md.setData("text/uri-list", ("\r\n".join(parts) + "\r\n").encode("utf-8"))
+        except Exception:
+            pass
+        md.setUrls(urls)
+
+        drag = QDrag(self)
+        drag.setMimeData(md)
+        # Let target decide (internal -> move, external -> copy); prefer move
+        drag.exec(Qt.MoveAction | Qt.CopyAction, Qt.MoveAction)
+
+    def _drag_threshold(self) -> int:
+        """
+        Return platform drag threshold using style hints when available.
+        Compatible with Qt 6 where static startDragDistance() is not exposed on QGuiApplication.
+        """
+        try:
+            hints = QGuiApplication.styleHints()
+            if hints is not None:
+                getter = getattr(hints, "startDragDistance", None)
+                if callable(getter):
+                    return int(getter())
+                val = getattr(hints, "startDragDistance", 0)
+                if isinstance(val, int) and val > 0:
+                    return val
+        except Exception:
+            pass
+        try:
+            from PySide6.QtWidgets import QApplication
+            return int(QApplication.startDragDistance())
+        except Exception:
+            pass
+        return 10  # sensible default
+
+    def mousePressEvent(self, event):
+        try:
+            pos = event.position().toPoint()
+        except Exception:
+            pos = event.pos()
+        if event.button() == Qt.LeftButton and not (event.modifiers() & (Qt.ControlModifier | Qt.ShiftModifier)):
+            if self._selected_count() > 1:
+                # Prepare multi-drag/click-to-clear mode; block default selection changes
+                self._md_pressed = True
+                self._md_drag_started = False
+                self._md_maybe_clear = True
+                self._md_press_pos = pos
+                self.setFocus(Qt.MouseFocusReason)
+                event.accept()
+                return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._md_pressed and (event.buttons() & Qt.LeftButton):
+            try:
+                pos = event.position().toPoint()
+            except Exception:
+                pos = event.pos()
+            if (pos - self._md_press_pos).manhattanLength() >= self._drag_threshold():
+                # Start dragging the whole selection instead of altering selection
+                self._md_maybe_clear = False
+                self._md_drag_started = True
+                self._md_pressed = False
+                self._start_multi_drag()
+                event.accept()
+                return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self._md_pressed and event.button() == Qt.LeftButton:
+            # If there was no drag -> treat as "single-click anywhere to clear multi-selection"
+            if self._md_maybe_clear and not self._md_drag_started:
+                try:
+                    sm = self.selectionModel()
+                    if sm is not None:
+                        sm.clearSelection()
+                    self.setCurrentIndex(QModelIndex())
+                except Exception:
+                    pass
+                event.accept()
+                self._md_pressed = False
+                return
+        self._md_pressed = False
+        super().mouseReleaseEvent(event)
 
 
 class ExplorerDropHandler(QObject):
@@ -454,11 +589,18 @@ class FileExplorer(QWidget):
         self.model = IndexedFileSystemModel(self.window, self.index_data)
         self.model.setRootPath(self.directory)
         self.model.setFilter(self.model.filter() | QDir.Hidden)
-        self.treeView = QTreeView()
+        self.treeView = MultiDragTreeView()
         self.treeView.setModel(self.model)
         self.treeView.setRootIndex(self.model.index(self.directory))
         self.treeView.setUniformRowHeights(True)
         self.setProperty('class', 'file-explorer')
+
+        # Multi-selection support via Ctrl/Shift and row-based selection
+        try:
+            self.treeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
+            self.treeView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        except Exception:
+            pass
 
         header = QHBoxLayout()
 
@@ -533,6 +675,10 @@ class FileExplorer(QWidget):
        """)
         self.tab = None
         self.installEventFilter(self)
+        try:
+            self.treeView.viewport().installEventFilter(self)
+        except Exception:
+            pass
 
         self._icons = {
             'open': QIcon(":/icons/view.svg"),
@@ -694,71 +840,69 @@ class FileExplorer(QWidget):
 
         :param position: mouse position
         """
-        indexes = self.treeView.selectedIndexes()
-        if indexes:
-            index = indexes[0]
-            path = self.model.filePath(index)
+        paths = self._selected_paths()
+        if paths:
+            first_path = paths[0]
+            multiple = len(paths) > 1
+            target_multi = paths if multiple else first_path
             actions = {}
             preview_actions = []
             use_actions = []
 
-            if self.window.core.filesystem.actions.has_preview(path):
-                preview_actions = self.window.core.filesystem.actions.get_preview(self, path)
+            # Preview actions: allow list target for multi-selection; fallback-safe
+            can_preview = False
+            try:
+                can_preview = self.window.core.filesystem.actions.has_preview(target_multi)
+            except Exception:
+                try:
+                    can_preview = self.window.core.filesystem.actions.has_preview(first_path)
+                except Exception:
+                    can_preview = False
 
+            if can_preview:
+                try:
+                    preview_actions = self.window.core.filesystem.actions.get_preview(self, target_multi)
+                except Exception:
+                    try:
+                        preview_actions = self.window.core.filesystem.actions.get_preview(self, first_path)
+                    except Exception:
+                        preview_actions = []
+
+            # Compute parent directory for operations creating/pasting items
+            parent = self._parent_for_selection(paths)
+
+            # Open should accept list for multi-selection
             actions['open'] = QAction(self._icons['open'], trans('action.open'), self)
-            actions['open'].triggered.connect(
-                lambda: self.action_open(path),
-            )
+            actions['open'].triggered.connect(lambda: self.action_open(target_multi))
 
+            # Keep open_dir on first item (can be switched to target_multi if needed)
             actions['open_dir'] = QAction(self._icons['open_dir'], trans('action.open_dir'), self)
-            actions['open_dir'].triggered.connect(
-                lambda: self.action_open_dir(path),
-            )
+            actions['open_dir'].triggered.connect(lambda: self.action_open_dir(target_multi))
 
+            # Multi-capable actions accept list when multi-selected
             actions['download'] = QAction(self._icons['download'], trans('action.download'), self)
-            actions['download'].triggered.connect(
-                lambda: self.window.controller.files.download_local(path),
-            )
+            actions['download'].triggered.connect(lambda: self.window.controller.files.download_local(target_multi))
 
             actions['rename'] = QAction(self._icons['rename'], trans('action.rename'), self)
-            actions['rename'].triggered.connect(
-                lambda: self.action_rename(path),
-            )
+            actions['rename'].triggered.connect(lambda: self.action_rename(target_multi))
 
             actions['duplicate'] = QAction(self._icons['duplicate'], trans('action.duplicate'), self)
-            actions['duplicate'].triggered.connect(
-                lambda: self.window.controller.files.duplicate_local(path, ""),
-            )
-
-            if os.path.isdir(path):
-                parent = path
-            else:
-                parent = os.path.dirname(path)
+            actions['duplicate'].triggered.connect(lambda: self.window.controller.files.duplicate_local(target_multi, ""))
 
             actions['touch'] = QAction(self._icons['touch'], trans('action.touch'), self)
-            actions['touch'].triggered.connect(
-                lambda: self.window.controller.files.touch_file(parent),
-            )
+            actions['touch'].triggered.connect(lambda: self.window.controller.files.touch_file(parent))
 
             actions['mkdir'] = QAction(self._icons['mkdir'], trans('action.mkdir'), self)
-            actions['mkdir'].triggered.connect(
-                lambda: self.action_make_dir(parent),
-            )
+            actions['mkdir'].triggered.connect(lambda: self.action_make_dir(parent))
 
             actions['refresh'] = QAction(self._icons['refresh'], trans('action.refresh'), self)
-            actions['refresh'].triggered.connect(
-                lambda: self.window.controller.files.update_explorer(),
-            )
+            actions['refresh'].triggered.connect(lambda: self.window.controller.files.update_explorer())
 
             actions['upload'] = QAction(self._icons['upload'], trans('action.upload'), self)
-            actions['upload'].triggered.connect(
-                lambda: self.window.controller.files.upload_local(parent),
-            )
+            actions['upload'].triggered.connect(lambda: self.window.controller.files.upload_local(parent))
 
             actions['delete'] = QAction(self._icons['delete'], trans('action.delete'), self)
-            actions['delete'].triggered.connect(
-                lambda: self.action_delete(path),
-            )
+            actions['delete'].triggered.connect(lambda: self.action_delete(target_multi))
 
             # Copy / Cut / Paste
             actions['copy'] = QAction(self._icons['copy'], trans('action.copy'), self)
@@ -776,87 +920,73 @@ class FileExplorer(QWidget):
             menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
 
+            # Use menu; plugin-provided actions only for single selection retrieved by first_path,
+            # built-in attachment/copy path/read cmd accept list when multi-selected.
             use_menu = QMenu(trans('action.use'), self)
 
-            if not os.path.isdir(path):
-                actions['use_attachment'] = QAction(
-                    self._icons['attachment'],
-                    trans('action.use.attachment'),
-                    self,
-                )
+            files_only = all(os.path.isfile(p) for p in paths)
+            if files_only:
+                actions['use_attachment'] = QAction(self._icons['attachment'], trans('action.use.attachment'), self)
                 actions['use_attachment'].triggered.connect(
-                    lambda: self.window.controller.files.use_attachment(path),
+                    lambda: self.window.controller.files.use_attachment(target_multi)
                 )
-                if self.window.core.filesystem.actions.has_use(path):
-                    use_actions = self.window.core.filesystem.actions.get_use(self, path)
-
-            actions['use_copy_work_path'] = QAction(
-                self._icons['copy'],
-                trans('action.use.copy_work_path'),
-                self,
-            )
-            actions['use_copy_work_path'].triggered.connect(
-                lambda: self.window.controller.files.copy_work_path(path),
-            )
-
-            actions['use_copy_sys_path'] = QAction(
-                self._icons['copy'],
-                trans('action.use.copy_sys_path'),
-                self,
-            )
-            actions['use_copy_sys_path'].triggered.connect(
-                lambda: self.window.controller.files.copy_sys_path(path),
-            )
-
-            actions['use_read_cmd'] = QAction(self._icons['read'], trans('action.use.read_cmd'), self)
-            actions['use_read_cmd'].triggered.connect(
-                lambda: self.window.controller.files.make_read_cmd(path),
-            )
-
-            if not os.path.isdir(path):
                 use_menu.addAction(actions['use_attachment'])
+
+            if self.window.core.filesystem.actions.has_use(first_path):
+                use_actions = self.window.core.filesystem.actions.get_use(self, first_path)
 
             if use_actions:
                 for action in use_actions:
                     use_menu.addAction(action)
+
+            actions['use_copy_work_path'] = QAction(self._icons['copy'], trans('action.use.copy_work_path'), self)
+            actions['use_copy_work_path'].triggered.connect(
+                lambda: self.window.controller.files.copy_work_path(target_multi)
+            )
+
+            actions['use_copy_sys_path'] = QAction(self._icons['copy'], trans('action.use.copy_sys_path'), self)
+            actions['use_copy_sys_path'].triggered.connect(
+                lambda: self.window.controller.files.copy_sys_path(target_multi)
+            )
+
+            actions['use_read_cmd'] = QAction(self._icons['read'], trans('action.use.read_cmd'), self)
+            actions['use_read_cmd'].triggered.connect(
+                lambda: self.window.controller.files.make_read_cmd(target_multi)
+            )
 
             use_menu.addAction(actions['use_copy_work_path'])
             use_menu.addAction(actions['use_copy_sys_path'])
             use_menu.addAction(actions['use_read_cmd'])
             menu.addMenu(use_menu)
 
-            file_id = self.window.core.idx.files.get_id(path)
-            remove_actions = []
-            for idx in self.index_data:
-                items = self.index_data[idx]
-                if file_id in items:
-                    action = QAction(self._icons['delete'], trans("action.idx.remove") + ": " + idx, self)
-                    action.triggered.connect(
-                        lambda checked=False,
-                               idx=idx,
-                               file_id=file_id: self.action_idx_remove(file_id, idx)
-                    )
-                    remove_actions.append(action)
-
-            if self.window.core.idx.indexing.is_allowed(path):
+            # Index menu aggregated for multi-selection
+            allowed_any = any(self.window.core.idx.indexing.is_allowed(p) for p in paths)
+            if allowed_any:
                 idx_menu = QMenu(trans('action.idx'), self)
                 idx_list = self.window.core.config.get('llama.idx.list')
-                if len(idx_list) > 0 or len(remove_actions) > 0:
-                    if len(idx_list) > 0:
-                        for idx in idx_list:
-                            id = idx['id']
-                            name = f"{idx['name']} ({idx['id']})"
-                            action = QAction(self._icons['db'], f"IDX: {name}", self)
-                            action.triggered.connect(
-                                lambda checked=False,
-                                       id=id,
-                                       path=path: self.action_idx(path, id)
-                            )
-                            idx_menu.addAction(action)
+                if len(idx_list) > 0:
+                    for idx in idx_list:
+                        id = idx['id']
+                        name = f"{idx['name']} ({idx['id']})"
+                        action = QAction(self._icons['db'], f"IDX: {name}", self)
+                        action.triggered.connect(lambda checked=False, id=id, target=target_multi: self.action_idx(target, id))
+                        idx_menu.addAction(action)
 
-                if len(remove_actions) > 0:
+                # Determine indexes where any selected item is already indexed
+                remove_idx_set = set()
+                for p in paths:
+                    status = self.model.get_index_status(p)
+                    if status.get('indexed'):
+                        for ix in status.get('indexed_in', []):
+                            remove_idx_set.add(ix)
+
+                if len(remove_idx_set) > 0:
                     idx_menu.addSeparator()
-                    for action in remove_actions:
+                    for ix in sorted(remove_idx_set):
+                        action = QAction(self._icons['delete'], trans("action.idx.remove") + ": " + ix, self)
+                        action.triggered.connect(
+                            lambda checked=False, ix=ix, target=target_multi: self.action_idx_remove(target, ix)
+                        )
                         idx_menu.addAction(action)
 
                 menu.addMenu(idx_menu)
@@ -914,37 +1044,37 @@ class FileExplorer(QWidget):
             menu.addAction(actions['paste'])
             menu.exec(QCursor.pos())
 
-    def action_open(self, path):
+    def action_open(self, path: Union[str, list]):
         """
         Open action handler
 
-        :param path: path to open
+        :param path: path to open (str or list of str)
         """
         self.window.controller.files.open(path)
 
-    def action_idx(self, path: str, idx: str):
+    def action_idx(self, path: Union[str, list], idx: str):
         """
         Index file or dir handler
 
-        :param path: path to open
+        :param path: path to open (str or list of str)
         :param idx: index ID to use (name)
         """
         self.window.controller.idx.indexer.index_file(path, idx)
 
-    def action_idx_remove(self, path: str, idx: str):
+    def action_idx_remove(self, path: Union[str, list], idx: str):
         """
         Remove file or dir from index handler
 
-        :param path: path to open
+        :param path: path to open (str or list of str)
         :param idx: index ID to use (name)
         """
         self.window.controller.idx.indexer.index_file_remove(path, idx)
 
-    def action_open_dir(self, path: str):
+    def action_open_dir(self, path: Union[str, list]):
         """
         Open in directory action handler
 
-        :param path: path to open
+        :param path: path to open (str or list of str)
         """
         self.window.controller.files.open_dir(path, True)
 
@@ -956,19 +1086,19 @@ class FileExplorer(QWidget):
         """
         self.window.controller.files.make_dir_dialog(path)
 
-    def action_rename(self, path: str):
+    def action_rename(self, path: Union[str, list]):
         """
         Rename action handler
 
-        :param path: path to rename
+        :param path: path to rename (str or list of str)
         """
         self.window.controller.files.rename(path)
 
-    def action_delete(self, path: str):
+    def action_delete(self, path: Union[str, list]):
         """
         Delete action handler
 
-        :param path: path to delete
+        :param path: path to delete (str or list of str)
         """
         self.window.controller.files.delete(path)
 
@@ -989,6 +1119,24 @@ class FileExplorer(QWidget):
             except Exception:
                 continue
         return paths
+
+    def _parent_for_selection(self, paths: list) -> str:
+        """
+        Determine a sensible parent directory for operations like paste/touch/mkdir when selection may contain many items.
+        - For single selection: item if it is a directory; otherwise its parent directory.
+        - For multi selection: common parent directory of all selected items; falls back to explorer root if not determinable.
+        """
+        if not paths:
+            return self.directory
+        if len(paths) == 1:
+            p = paths[0]
+            return p if os.path.isdir(p) else os.path.dirname(p)
+        try:
+            parents = [p if os.path.isdir(p) else os.path.dirname(p) for p in paths]
+            cp = os.path.commonpath([os.path.abspath(x) for x in parents])
+            return cp if os.path.isdir(cp) else os.path.dirname(cp)
+        except Exception:
+            return self.directory
 
     def action_copy_selection(self):
         """Copy currently selected files/dirs to system clipboard and internal buffer."""

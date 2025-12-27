@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.28 08:00:00                  #
+# Updated Date: 2025.12.27 17:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 import shutil
-from typing import Optional
+from typing import Optional, Union
 from shutil import copy2
 
 from PySide6.QtWidgets import QFileDialog, QApplication
@@ -99,7 +99,7 @@ class Files:
 
     def delete(
             self,
-            path: str,
+            path: Union[str, list],
             force: bool = False
     ):
         """
@@ -114,6 +114,11 @@ class Files:
                 id=path,
                 msg=trans('files.delete.confirm'),
             )
+            return
+
+        if isinstance(path, list):
+            for p in path:
+                self.delete(p, True)
             return
 
         if os.path.isdir(path):
@@ -136,17 +141,27 @@ class Files:
 
     def duplicate_local(
             self,
-            path: str,
+            path: Union[str, list],
             name: str,
             force: bool = False
     ):
         """
         Duplicate file or directory
 
-        :param path: path to file
+        :param path: path to file or list of files
         :param name: new file name
         :param force: force duplicate
         """
+        if isinstance(path, list):
+            for p in path:
+                if os.path.isdir(p):
+                    new_name = os.path.basename(p) + "_copy"
+                else:
+                    new_name = os.path.splitext(os.path.basename(p))[0] \
+                               + "_copy" + os.path.splitext(p)[1]
+                self.duplicate_local(p, new_name, True)
+            return
+
         if not force:
             if os.path.isdir(path):
                 new_name = os.path.basename(path) + "_copy"
@@ -168,10 +183,10 @@ class Files:
             new_path = os.path.join(parent_dir, name)
 
             if os.path.exists(new_path):
-                self.window.update_status(
-                    f"[ERROR] File already exists: {os.path.basename(new_path)}"
-                )
-                return
+                # prefix with timestamp if file exists
+                ts_prefix = self.make_ts_prefix()
+                name = f"{ts_prefix}_{name}"
+                new_path = os.path.join(parent_dir, name)
 
             if os.path.isdir(path):
                 shutil.copytree(path, new_path)
@@ -185,12 +200,16 @@ class Files:
             self.window.core.debug.log(e)
             print(f"Error duplicating file: {path} - {e}")
 
-    def download_local(self, path: str):
+    def download_local(self, path: Union[str, list]):
         """
         Download (copy) file or directory to local filesystem
 
-        :param path: path to source file
+        :param path: path to source file or list of files
         """
+        if isinstance(path, list):
+            for p in path:
+                self.download_local(p)
+            return
         last_dir = self.window.core.config.get_last_used_dir()
         dialog = QFileDialog(self.window)
         dialog.setDirectory(last_dir)
@@ -339,12 +358,16 @@ class Files:
             self.window.update_status(f"[OK] Uploaded: {copied} files.")
             self.update_explorer()
 
-    def rename(self, path: str):
+    def rename(self, path: Union[str, list]):
         """
         Rename file or directory
 
-        :param path: path to file
+        :param path: path to file or list of files
         """
+        if isinstance(path, list):
+            for p in path:
+                self.rename(p)
+                return
         self.window.ui.dialog['rename'].id = 'output_file'
         self.window.ui.dialog['rename'].input.setText(os.path.basename(path))
         self.window.ui.dialog['rename'].current = path
@@ -377,23 +400,36 @@ class Files:
 
     def open_dir(
             self,
-            path: str,
+            path: Union[str, list],
             select: bool = False
     ):
         """
         Open file or directory in file manager
 
-        :param path: path to file or directory
+        :param path: path to file or directory or list of paths
         :param select: select file in file manager
         """
+        if isinstance(path, list):
+            parents = []
+            for p in path:
+                parent = os.path.dirname(p)
+                if parent not in parents:
+                    self.open_in_file_manager(p, select)
+                if parent not in parents:
+                    parents.append(parent)
+            return
         self.open_in_file_manager(path, select)
 
-    def open(self, path: str):
+    def open(self, path: Union[str, list]):
         """
         Open path in file manager or with default application
 
-        :param path: path to file or directory
+        :param path: path to file or directory or list of paths
         """
+        if isinstance(path, list):
+            for p in path:
+                self.open(p)
+            return
         path = self.window.core.filesystem.get_path(path)
         Opener.open_path(path, reveal=False)
 
@@ -468,52 +504,76 @@ class Files:
             self.window.ui.nodes['output_files'].path_label.setText(root)
         self.window.ui.nodes['output_files'].model.update_idx_status(data)
 
-    def use_attachment(self, path: str):
+    def use_attachment(self, path: Union[str, list]):
         """
         Use file as attachment
 
-        :param path: path to file
+        :param path: path to file or list of files
         """
-        title = os.path.basename(path)
-        mode = self.window.core.config.get("mode")
-        self.window.core.attachments.new(
-            mode=mode,
-            name=title,
-            path=path,
-            auto_save=False,
-        )
+        paths = path if isinstance(path, list) else [path]
+        for p in paths:
+            title = os.path.basename(p)
+            mode = self.window.core.config.get("mode")
+            self.window.core.attachments.new(
+                mode=mode,
+                name=title,
+                path=p,
+                auto_save=False,
+            )
         self.window.core.attachments.save()
         self.window.controller.attachment.update()
 
-    def copy_sys_path(self, path: str):
+    def copy_sys_path(self, path: Union[str, list]):
         """
         Copy system path to clipboard
 
-        :param path: path to file
+        :param path: path to file or list of files
         """
-        QApplication.clipboard().setText(path)
-        self.window.controller.chat.common.append_to_input(path)
+        if isinstance(path, list):
+            paths = [self.window.core.filesystem.get_path(p) for p in path]
+            path_str = "\n".join(paths)
+        else:
+            path_str = self.window.core.filesystem.get_path(path)
+        QApplication.clipboard().setText(path_str)
+        self.window.controller.chat.common.append_to_input(path_str)
 
-    def copy_work_path(self, path: str):
+    def copy_work_path(self, path: Union[str, list]):
         """
         Copy work path to clipboard
 
-        :param path: path to file
+        :param path: path to file  or list of files
         """
-        path = self.strip_work_path(path)
+        if isinstance(path, list):
+            paths = [self.strip_work_path(p) for p in path]
+            path = "\n".join(paths)
+        else:
+            path = self.strip_work_path(path)
         QApplication.clipboard().setText(path)
         self.window.controller.chat.common.append_to_input(path)
 
-    def make_read_cmd(self, path: str):
+    def make_read_cmd(self, path: Union[str, list]):
         """
         Make read command for file or directory and append to input
 
-        :param path: path to file
+        :param path: path to file or list of files
         """
-        if os.path.isdir(path):
-            cmd = f"Please list files from directory: {self.strip_work_path(path)}"
-        else:
-            cmd = f"Please read this file from current directory: {self.strip_work_path(path)}"
+        files_list = path if isinstance(path, list) else [path]
+        cmd = ""
+        cmd_dir = []
+        cmd_current = []
+        for path in files_list:
+            if os.path.isdir(path):
+                cmd_dir.append(self.strip_work_path(path))
+            else:
+                cmd_current.append(self.strip_work_path(path))
+        if len(cmd_dir) > 1:
+            cmd = "Please list files from directories: " + ", ".join(cmd_dir)
+        elif len(cmd_dir) == 1:
+            cmd = f"Please list files from directory: {cmd_dir[0]}"
+        if len(cmd_current) > 1:
+            cmd = "Please read these files from current directory: " + ", ".join(cmd_current)
+        elif len(cmd_current) == 1:
+            cmd = f"Please read this file from current directory: {cmd_current[0]}"
         self.window.controller.chat.common.append_to_input(cmd)
 
     def make_ts_prefix(self) -> str:

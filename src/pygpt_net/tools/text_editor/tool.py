@@ -112,6 +112,15 @@ class TextEditor(BaseTool):
         """Open new instance"""
         self.open()
 
+    def open_batch(self, files: list):
+        """
+        Open multiple files in editor instances
+
+        :param files: list of files to open
+        """
+        for file in files:
+            self.open(file, auto_close=False, force=True)
+
     def open(
             self,
             file: Optional[str] = None,

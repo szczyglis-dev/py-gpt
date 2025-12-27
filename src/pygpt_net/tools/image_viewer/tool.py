@@ -70,6 +70,23 @@ class ImageViewer(BaseTool):
         if path:
             self.open_preview(path, id, auto_close)
 
+    def open_preview_batch(
+            self,
+            paths: list,
+            current_id: str = None,
+            auto_close: bool = True):
+        """
+        Open image preview batch in dialog
+
+        :param paths:
+        :param current_id:
+        :param auto_close:
+        :return:
+        """
+        for path in paths:
+            self.open_preview(path, current_id, auto_close)
+
+
     def open_preview(
             self,
             path: str = None,

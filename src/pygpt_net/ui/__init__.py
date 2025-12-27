@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 20:00:00                  #
+# Updated Date: 2025.12.27 17:00:00                  #
 # ================================================== #
 
 import os
@@ -143,7 +143,7 @@ class UI:
         suffix = self.window.core.platforms.get_env_suffix()
         profile_name = self.window.core.config.profile.get_current_name()
         self.window.setWindowTitle(
-            f"PyGPT - Desktop AI Assistant {self.window.meta['version']} | "
+            f"PyGPT {self.window.meta['version']} | "
             f"build {self.window.meta['build'].replace('.', '-')}{suffix} ({profile_name})"
         )
 

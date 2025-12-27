@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.12.27 17:00:00                  #
 # ================================================== #
 
 import datetime
 import os
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Union
 
 from PySide6.QtCore import Slot, QObject
 from PySide6.QtWidgets import QApplication
@@ -306,34 +306,46 @@ class Indexer(QObject):
             return
         self.index_path(path, idx)
 
-    def index_file_confirm(self, path: str):
+    def index_file_confirm(self, path: Union[str, list]):
         """
         Index file (force execute)
 
-        :param path: path to file or directory
+        :param path: path to file or directory or list of paths
         """
         # get stored index name
         if self.tmp_idx is None:
             return
         self.window.update_status(trans('idx.status.indexing'))
+        if isinstance(path, list):
+            self.index_paths(
+                path,
+                self.tmp_idx,
+                replace=False,
+                recursive=False,
+            )
+            return
         self.index_path(path, self.tmp_idx)
 
     def index_file(
             self,
-            path: str,
+            path: Union[str, list],
             idx: str = "base",
             force: bool = False
     ):
         """
         Index file or directory (threaded)
 
-        :param path: path to file or directory
+        :param path: path to file or directory or list of paths
         :param idx: index name
         :param force: force index
         """
         self.tmp_idx = idx  # store tmp index name (for confirmation)
         if not force:
-            content = trans('idx.confirm.file.content').replace('{dir}', path) \
+            dir_srt = str(path)
+            # strip to max 50 chars
+            if len(dir_srt) > 50:
+                dir_srt = dir_srt[:25] + "..." + dir_srt[-25:]
+            content = trans('idx.confirm.file.content').replace('{dir}', dir_srt) \
                       + "\n" + trans('idx.token.warn')
             self.window.ui.dialogs.confirm(
                 type='idx.index.file',
@@ -341,23 +353,42 @@ class Indexer(QObject):
                 msg=content,
             )
             return
+        if isinstance(path, list):
+            self.index_paths(
+                path,
+                idx,
+                replace=False,
+                recursive=False,
+            )
+            return
         self.index_path(path, idx)
 
-    def index_file_remove_confirm(self, path: str):
+    def index_file_remove_confirm(self, path: Union[str, list]):
         """
         Remove file (force execute)
 
-        :param path: path to index
+        :param path: path to indexed file or directory or list of paths
         """
         # get stored index name
         if self.tmp_idx is None:
             return
 
-        self.window.core.idx.remove_file(
-            self.tmp_idx,
-            path,
-        )
-        self.window.update_status(trans('status.deleted') + ": " + path)
+        dir_srt = str(path)
+        # strip to max 50 chars
+        if len(dir_srt) > 50:
+            dir_srt = dir_srt[:25] + "..." + dir_srt[-25:]
+
+        paths = []
+        if isinstance(path, list):
+            paths = path
+        else:
+            paths = [path]
+        for path in paths:
+            self.window.core.idx.remove_file(
+                self.tmp_idx,
+                path,
+            )
+        self.window.update_status(trans('status.deleted') + ": " + dir_srt)
         self.tmp_idx = None
         self.update_explorer()  # update file status in explorer
 
@@ -376,7 +407,11 @@ class Indexer(QObject):
         """
         self.tmp_idx = idx  # store tmp index name (for confirmation)
         if not force:
-            content = trans('idx.confirm.file.remove.content').replace('{dir}', path)
+            dir_srt = str(path)
+            # strip to max 50 chars
+            if len(dir_srt) > 50:
+                dir_srt = dir_srt[:25] + "..." + dir_srt[-25:]
+            content = trans('idx.confirm.file.remove.content').replace('{dir}', dir_srt)
             self.window.ui.dialogs.confirm(
                 type='idx.index.file.remove',
                 id=path,

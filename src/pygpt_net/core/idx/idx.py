@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 07:00:00                  #
+# Updated Date: 2025.12.27 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -505,16 +505,17 @@ class Idx:
         self.llm.get_service_context(stream=False)  # init environment only (ENV API keys, etc.)
         store_id = self.get_current_store()
         if store_id in self.items and idx in self.items[store_id]:
-            if file in self.items[store_id][idx].items:
-                # remove from storage
-                doc_id = self.items[store_id][idx].items[file]["id"]
-                self.storage.remove_document(
-                    id=idx,
-                    doc_id=doc_id,
-                )
-                # remove from index data and db
-                del self.items[store_id][idx].items[file]
-                self.files.remove(store_id, idx, doc_id)
+            for basename in list(self.items[store_id][idx].items.keys()):
+                item = self.items[store_id][idx].items[basename]
+                if file == item["path"]:
+                    doc_id = item ["id"]
+                    self.storage.remove_document(
+                        id=idx,
+                        doc_id=doc_id,
+                    )
+                    # remove from index data and db
+                    del self.items[store_id][idx].items[basename]
+                    self.files.remove(store_id, idx, doc_id)
 
     def load(self):
         """Load indexes and indexed items"""
