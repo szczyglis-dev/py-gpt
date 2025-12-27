@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 12:00:00                  #
+# Updated Date: 2025.12.27 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QPoint, QItemSelectionModel, Qt, QEventLoop, QTimer, QMimeData
@@ -56,7 +56,8 @@ class PresetList(BaseList):
         self.setItemsExpandable(False)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        # ExtendedSelection enables Ctrl/Shift multi-select gestures
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # Drag & drop state
         self._dnd_enabled = False
@@ -74,6 +75,14 @@ class PresetList(BaseList):
         self._press_backup_current = None
         self._dragging = False
         self._dragged_was_selected = False
+
+        # Virtual multi-select: suppress single-item business click once (Ctrl/Shift)
+        self._suppress_item_click = False
+        # Flag for "virtual" Ctrl multi-select gesture
+        self._ctrl_multi_active = False
+        self._ctrl_multi_index = None
+        # Guard to detect Shift-click range selection and bypass single-select follow-ups
+        self._was_shift_click = False
 
         # Mark that we already applied selection at drag start (one-shot per DnD)
         self._drag_selection_applied = False
@@ -303,6 +312,16 @@ class PresetList(BaseList):
         """Row click handler; select by ID (stable under reordering)."""
         if self._model_updating:
             return
+
+        # Suppress business click after virtual Ctrl/Shift selection
+        if self._suppress_item_click:
+            self._suppress_item_click = False
+            return
+
+        # Ignore business click if multiple rows are selected
+        if self._has_multi_selection():
+            return
+
         index = val
         if not index.isValid():
             return
@@ -333,70 +352,178 @@ class PresetList(BaseList):
         if row >= 0:
             self.window.controller.presets.editor.edit(row)
 
+    # ----------------------------
+    # Selection helpers (multi / single)
+    # ----------------------------
+
+    def _selected_indexes(self):
+        """Return list of selected row indexes (column 0)."""
+        try:
+            return list(self.selectionModel().selectedRows())
+        except Exception:
+            return []
+
+    def _selected_rows(self) -> list[int]:
+        """Return list of selected row numbers."""
+        try:
+            return [ix.row() for ix in self.selectionModel().selectedRows()]
+        except Exception:
+            return []
+
+    def _selected_role_ids(self) -> list[str]:
+        """Return list of selected ROLE_ID (stable IDs)."""
+        try:
+            out = []
+            for ix in self.selectionModel().selectedRows():
+                pid = ix.data(self.ROLE_ID)
+                if pid:
+                    out.append(pid)
+            return out
+        except Exception:
+            return []
+
+    def _has_multi_selection(self) -> bool:
+        """Check whether more than one row is selected."""
+        try:
+            return len(self.selectionModel().selectedRows()) > 1
+        except Exception:
+            return False
+
+    # ----------------------------
+    # Context menu
+    # ----------------------------
+
     def show_context_menu(self, pos: QPoint):
         """Context menu event"""
         if self._model_updating:
             return
+
         global_pos = self.viewport().mapToGlobal(pos)
         mode = self.window.core.config.get('mode')
         index = self.indexAt(pos)
-        idx = index.row()
+        idx = index.row() if index.isValid() else -1
 
+        # Gather selection state
+        selected_idx_list = self._selected_indexes()
+        selected_ids = [ix.data(self.ROLE_ID) for ix in selected_idx_list if ix.data(self.ROLE_ID)]
+        selected_rows = [ix.row() for ix in selected_idx_list]
+        multi = len(selected_rows) > 1
+
+        # Allow menu on empty area only when multi-selection is active
+        if not index.isValid() and not multi:
+            return
+
+        # Resolve clicked item (for single)
         preset = None
-        preset_id = None
         if idx >= 0:
             preset_id = self.window.core.presets.get_by_idx(idx, mode)
             if preset_id:
                 preset = self.window.core.presets.items.get(preset_id)
 
-        is_current = idx >= 0 and self.window.controller.presets.is_current(idx)
-        is_special = bool(index.data(self.ROLE_IS_SPECIAL)) if index.isValid() else False
+        # Determine special/current flags for single target
+        is_current_single = idx >= 0 and self.window.controller.presets.is_current(idx)
+        is_special_single = bool(index.data(self.ROLE_IS_SPECIAL)) if index.isValid() else False
 
-        if idx >= 0:
-            menu = QMenu(self)
+        # Build menu
+        menu = QMenu(self)
 
-            edit_act = QAction(self._ICO_EDIT, trans('preset.action.edit'), menu)
-            edit_act.triggered.connect(lambda checked=False, it=index: self.action_edit(it))
-            menu.addAction(edit_act)
+        # Edit (only for single)
+        edit_act = QAction(self._ICO_EDIT, trans('preset.action.edit'), menu)
+        edit_act.triggered.connect(lambda checked=False, it=index: self.action_edit(it))
+        edit_act.setEnabled(idx >= 0 and not multi)
+        menu.addAction(edit_act)
 
-            if mode == MODE_EXPERT and preset and not preset.filename.startswith("current."):
-                if not preset.enabled:
+        # Enable / Disable (single or multi, expert mode; ignore current.*)
+        if mode == MODE_EXPERT:
+            if multi:
+                items = self.window.core.presets.items
+                any_enable = False
+                any_disable = False
+                for ix in selected_idx_list:
+                    pid = ix.data(self.ROLE_ID)
+                    if not pid:
+                        continue
+                    it = items.get(pid)
+                    if not it:
+                        continue
+                    if getattr(it, "filename", "").startswith("current."):
+                        continue
+                    if getattr(it, "enabled", False):
+                        any_disable = True
+                    else:
+                        any_enable = True
+                if any_enable:
                     enable_act = QAction(self._ICO_CHECK, trans('preset.action.enable'), menu)
-                    enable_act.triggered.connect(lambda checked=False, it=index: self.action_enable(it))
+                    enable_act.triggered.connect(lambda checked=False, ids=list(selected_ids): self.action_enable(ids))
                     menu.addAction(enable_act)
-                else:
+                if any_disable:
                     disable_act = QAction(self._ICO_CLOSE, trans('preset.action.disable'), menu)
-                    disable_act.triggered.connect(lambda checked=False, it=index: self.action_disable(it))
+                    disable_act.triggered.connect(lambda checked=False, ids=list(selected_ids): self.action_disable(ids))
                     menu.addAction(disable_act)
+            else:
+                if preset and not getattr(preset, "filename", "").startswith("current."):
+                    if not getattr(preset, "enabled", False):
+                        enable_act = QAction(self._ICO_CHECK, trans('preset.action.enable'), menu)
+                        enable_act.triggered.connect(lambda checked=False, it=index: self.action_enable(it))
+                        menu.addAction(enable_act)
+                    else:
+                        disable_act = QAction(self._ICO_CLOSE, trans('preset.action.disable'), menu)
+                        disable_act.triggered.connect(lambda checked=False, it=index: self.action_disable(it))
+                        menu.addAction(disable_act)
 
-            duplicate_act = QAction(self._ICO_COPY, trans('preset.action.duplicate'), menu)
+        # Duplicate (single or multi)
+        duplicate_act = QAction(self._ICO_COPY, trans('preset.action.duplicate'), menu)
+        if multi:
+            duplicate_act.triggered.connect(lambda checked=False, ids=list(selected_ids): self.action_duplicate(ids))
+        else:
             duplicate_act.triggered.connect(lambda checked=False, it=index: self.action_duplicate(it))
 
-            if self._dnd_enabled and not is_current and not is_special:
-                up_act = QAction(self._ICO_UP, trans('common.up'), menu)
-                down_act = QAction(self._ICO_DOWN, trans('common.down'), menu)
-                up_act.setEnabled(idx > 1)
-                down_act.setEnabled(idx < (self.model().rowCount() - 1))
-                up_act.triggered.connect(lambda checked=False, it=index: self.action_move_up(it))
-                down_act.triggered.connect(lambda checked=False, it=index: self.action_move_down(it))
-                menu.addAction(up_act)
-                menu.addAction(down_act)
+        # Up/Down only for single, non-current, non-special, and when DnD is on
+        if not multi and self._dnd_enabled and not is_current_single and not is_special_single and idx >= 0:
+            up_act = QAction(self._ICO_UP, trans('common.up'), menu)
+            down_act = QAction(self._ICO_DOWN, trans('common.down'), menu)
+            up_act.setEnabled(idx > 1)
+            down_act.setEnabled(idx < (self.model().rowCount() - 1))
+            up_act.triggered.connect(lambda checked=False, it=index: self.action_move_up(it))
+            down_act.triggered.connect(lambda checked=False, it=index: self.action_move_down(it))
+            menu.addAction(up_act)
+            menu.addAction(down_act)
 
-            if is_current:
-                edit_act.setEnabled(False)
-                restore_act = QAction(self._ICO_UNDO, trans('dialog.editor.btn.defaults'), menu)
-                restore_act.triggered.connect(lambda checked=False, it=index: self.action_restore(it))
-                menu.addAction(restore_act)
-                menu.addAction(duplicate_act)
+        # Restore / Delete depending on current / multi
+        if not multi and is_current_single:
+            edit_act.setEnabled(False)
+            restore_act = QAction(self._ICO_UNDO, trans('dialog.editor.btn.defaults'), menu)
+            restore_act.triggered.connect(lambda checked=False, it=index: self.action_restore(it))
+            menu.addAction(restore_act)
+            menu.addAction(duplicate_act)
+        else:
+            # In multi-selection: disable delete if any current.* or special in selection
+            can_delete_all = True
+            if multi:
+                for ix in selected_idx_list:
+                    pid = ix.data(self.ROLE_ID)
+                    if not pid:
+                        continue
+                    if pid.startswith("current.") or bool(ix.data(self.ROLE_IS_SPECIAL)):
+                        can_delete_all = False
+                        break
             else:
-                delete_act = QAction(self._ICO_DELETE, trans('preset.action.delete'), menu)
+                can_delete_all = idx >= 0 and not is_current_single
+
+            delete_act = QAction(self._ICO_DELETE, trans('preset.action.delete'), menu)
+            if multi:
+                delete_act.triggered.connect(lambda checked=False, ids=list(selected_ids): self.action_delete(ids))
+            else:
                 delete_act.triggered.connect(lambda checked=False, it=index: self.action_delete(it))
-                menu.addAction(duplicate_act)
-                menu.addAction(delete_act)
+            delete_act.setEnabled(can_delete_all)
 
-            self.selection = self.selectionModel().selection()
-            menu.exec_(global_pos)
+            menu.addAction(duplicate_act)
+            menu.addAction(delete_act)
 
+        self.selection = self.selectionModel().selection()
+        menu.exec_(global_pos)
+
+        # Restore selection after context menu if needed
         self.store_scroll_position()
         if self.restore_after_ctx_menu:
             if self._backup_selection is not None:
@@ -410,6 +537,12 @@ class PresetList(BaseList):
         self.restore_after_ctx_menu = True
         self.restore_scroll_position()
 
+    # ----------------------------
+    # Context actions (single or multi)
+    # If 'item' is a QModelIndex -> single row (int will be passed to external code).
+    # If 'item' is a list/tuple -> multi; pass list of ROLE_ID strings to external code.
+    # ----------------------------
+
     def action_edit(self, item):
         idx = item.row()
         if idx >= 0:
@@ -417,12 +550,20 @@ class PresetList(BaseList):
             self.window.controller.presets.editor.edit(idx)
 
     def action_duplicate(self, item):
+        if isinstance(item, (list, tuple)):
+            self.restore_after_ctx_menu = False
+            self.window.controller.presets.duplicate(list(item))
+            return
         idx = item.row()
         if idx >= 0:
             self.restore_after_ctx_menu = False
             self.window.controller.presets.duplicate(idx)
 
     def action_delete(self, item):
+        if isinstance(item, (list, tuple)):
+            self.restore_after_ctx_menu = False
+            self.window.controller.presets.delete(list(item))
+            return
         idx = item.row()
         if idx >= 0:
             self.restore_after_ctx_menu = False
@@ -432,11 +573,17 @@ class PresetList(BaseList):
         self.window.controller.presets.restore()
 
     def action_enable(self, item):
+        if isinstance(item, (list, tuple)):
+            self.window.controller.presets.enable(list(item))
+            return
         idx = item.row()
         if idx >= 0:
             self.window.controller.presets.enable(idx)
 
     def action_disable(self, item):
+        if isinstance(item, (list, tuple)):
+            self.window.controller.presets.disable(list(item))
+            return
         idx = item.row()
         if idx >= 0:
             self.window.controller.presets.disable(idx)
@@ -834,12 +981,48 @@ class PresetList(BaseList):
         if self._model_updating:
             event.ignore()
             return
+
+        # Ctrl+Left: virtual toggle without business click
+        if event.button() == Qt.LeftButton and (event.modifiers() & Qt.ControlModifier):
+            idx = self.indexAt(self._mouse_event_point(event))
+            if idx.isValid():
+                self._ctrl_multi_active = True
+                self._ctrl_multi_index = idx
+                self._suppress_item_click = True
+                event.accept()
+                return
+            self._suppress_item_click = True
+            event.accept()
+            return
+
+        # Shift+Left: let Qt perform range selection (anchor -> clicked), suppress business click
+        if event.button() == Qt.LeftButton and (event.modifiers() & Qt.ShiftModifier):
+            idx = self.indexAt(self._mouse_event_point(event))
+            if idx.isValid():
+                self._suppress_item_click = True
+                self._was_shift_click = True
+                super().mousePressEvent(event)  # default range selection
+                return
+            # Shift on empty area -> ignore silently
+            self._suppress_item_click = True
+            self._was_shift_click = True
+            event.accept()
+            return
+
         if event.button() == Qt.LeftButton:
             index = self.indexAt(self._mouse_event_point(event))
-            if not index.isValid():
-                return
+            # When multiple are selected, a single plain click clears the multi-selection
+            if self._has_multi_selection():
+                sel_model = self.selectionModel()
+                sel_model.clearSelection()
+                if not index.isValid():
+                    event.accept()
+                    return
+                # continue with default single selection for clicked row
+
             # Freeze scroll for a moment to prevent jumps caused by selection-triggered refresh
-            self._freeze_scroll(250)
+            if index.isValid():
+                self._freeze_scroll(250)
             if self._dnd_enabled:
                 sel_model = self.selectionModel()
                 self._press_backup_selection = list(sel_model.selectedIndexes())
@@ -859,22 +1042,29 @@ class PresetList(BaseList):
                 return
             else:
                 super().mousePressEvent(event)
+
         elif event.button() == Qt.RightButton:
             index = self.indexAt(self._mouse_event_point(event))
-            if index.isValid():
-                sel_model = self.selectionModel()
-                # Save original IDs (before we temporarily select right-click row)
-                self._ctx_menu_original_ids = []
-                for ix in sel_model.selectedRows():
-                    pid = ix.data(self.ROLE_ID)
-                    if pid:
-                        self._ctx_menu_original_ids.append(pid)
+            sel_model = self.selectionModel()
+            selected_rows = [ix.row() for ix in sel_model.selectedRows()]
+            multi = len(selected_rows) > 1
 
-                self._backup_selection = list(sel_model.selectedIndexes())
-                sel_model.clearSelection()
-                sel_model.select(
-                    index, QItemSelectionModel.Select | QItemSelectionModel.Rows
-                )
+            # Save original IDs only if we are going to change selection
+            if index.isValid():
+                if multi and index.row() in selected_rows:
+                    # Keep existing multi-selection; do not alter selection on right click
+                    self._backup_selection = None
+                    self._ctx_menu_original_ids = [ix.data(self.ROLE_ID) for ix in sel_model.selectedRows() if ix.data(self.ROLE_ID)]
+                else:
+                    # Right-click outside current selection (or not multi) -> select the clicked row temporarily
+                    self._ctx_menu_original_ids = []
+                    for ix in sel_model.selectedRows():
+                        pid = ix.data(self.ROLE_ID)
+                        if pid:
+                            self._ctx_menu_original_ids.append(pid)
+                    self._backup_selection = list(sel_model.selectedIndexes())
+                    sel_model.clearSelection()
+                    sel_model.select(index, QItemSelectionModel.Select | QItemSelectionModel.Rows)
             event.accept()
         else:
             super().mousePressEvent(event)
@@ -924,6 +1114,35 @@ class PresetList(BaseList):
         if self._model_updating:
             event.ignore()
             return
+
+        # If the click was a Shift-based range selection, bypass single-select synchronization
+        if event.button() == Qt.LeftButton and self._was_shift_click:
+            self._was_shift_click = False
+            # Let Qt finish its own release processing; do not run our single-select logic
+            super().mouseReleaseEvent(event)
+            return
+
+        # Finish "virtual" Ctrl toggle on same row
+        if event.button() == Qt.LeftButton and self._ctrl_multi_active:
+            try:
+                idx = self.indexAt(self._mouse_event_point(event))
+                if idx.isValid() and self._ctrl_multi_index and idx == self._ctrl_multi_index:
+                    sel_model = self.selectionModel()
+                    sel_model.select(idx, QItemSelectionModel.Toggle | QItemSelectionModel.Rows)
+            finally:
+                self._ctrl_multi_active = False
+                self._ctrl_multi_index = None
+                # do not emit business click after Ctrl path
+                self._press_pos = None
+                self._press_index = None
+                self._press_backup_selection = None
+                self._press_backup_current = None
+                self._dragging = False
+                self._dragged_was_selected = False
+                self._drag_selection_applied = False
+            event.accept()
+            return
+
         try:
             if self._dnd_enabled and event.button() == Qt.LeftButton:
                 self.unsetCursor()
@@ -931,17 +1150,21 @@ class PresetList(BaseList):
                 if not self._dragging:
                     idx = self.indexAt(self._mouse_event_point(event))
                     if idx.isValid():
-                        pid = idx.data(self.ROLE_ID)
-                        if pid:
-                            # Keep scroll stable also for this late selection path
-                            self._freeze_scroll(300)
-                            self._pending_refocus_role_id = pid
-                            self.window.controller.presets.select_by_id(pid)
-                            QTimer.singleShot(0, self._apply_pending_refocus)
-                            QTimer.singleShot(50, self._apply_pending_refocus)
+                        # Skip business selection if multi-selection is active (e.g., after Shift)
+                        if self._has_multi_selection():
+                            pass
                         else:
-                            self.setCurrentIndex(idx)
-                            self.window.controller.presets.select(idx.row())
+                            pid = idx.data(self.ROLE_ID)
+                            if pid:
+                                # Keep scroll stable also for this late selection path
+                                self._freeze_scroll(300)
+                                self._pending_refocus_role_id = pid
+                                self.window.controller.presets.select_by_id(pid)
+                                QTimer.singleShot(0, self._apply_pending_refocus)
+                                QTimer.singleShot(50, self._apply_pending_refocus)
+                            else:
+                                self.setCurrentIndex(idx)
+                                self.window.controller.presets.select(idx.row())
         finally:
             self._press_pos = None
             self._press_index = None
@@ -1064,6 +1287,11 @@ class PresetList(BaseList):
         self.window.controller.presets.persist_order_for_mode(mode, uuids)
 
     def selectionCommand(self, index, event=None):
+        """
+        Selection command
+        :param index: Index
+        :param event: Event
+        """
         # Prevent selection changes while model is updating (guards against stale indexes)
         if self._model_updating:
             return QItemSelectionModel.NoUpdate

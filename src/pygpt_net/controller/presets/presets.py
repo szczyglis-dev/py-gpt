@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.27 21:00:00                  #
 # ================================================== #
 
 import re
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QTextCursor
@@ -536,25 +536,39 @@ class Presets:
         """
         return _FILENAME_SANITIZE_RE.sub('_', name.lower())
 
-    def duplicate(self, idx: Optional[int] = None):
+    def duplicate(self, idx: Optional[Union[int, list]] = None):
         """
         Duplicate preset
 
-        :param idx: preset index (row index)
+        :param idx: preset ID (or list of IDs)
         """
-        if idx is not None:
-            w = self.window
-            mode = w.core.config.get('mode')
-            preset = w.core.presets.get_by_idx(idx, mode)
-            if preset:
-                if preset in w.core.presets.items:
-                    new_id = w.core.presets.duplicate(preset)
-                    self.update_list()
-                    self.refresh(no_scroll=True)
-                    idx = w.core.presets.get_idx_by_id(mode, new_id)
-                    self.editor.edit(idx)
-                    self.select(idx) # switch to the new preset
-                    w.update_status(trans('status.preset.duplicated'))
+        ids = idx if isinstance(idx, list) else [idx]
+        last_id = None
+        updated = False
+        w = self.window
+        mode = w.core.config.get('mode')
+        for idx in ids:
+            if idx is not None:
+                if len(ids) > 1:
+                    preset = w.core.presets.get_by_id(mode, idx)  # by ID, PresetItem
+                    preset_id = preset.filename if preset else None
+                else:
+                    preset = w.core.presets.get_by_idx(idx, mode) # by index, str
+                    preset_id = preset
+                if preset_id:
+                    new_id = w.core.presets.duplicate(preset_id)
+                    last_id = new_id
+                    updated = True
+
+        if updated:
+            self.update_list()
+            self.refresh(no_scroll=True)
+            if len(ids) == 1 and idx is not None:
+                idx = w.core.presets.get_idx_by_id(mode, last_id)
+                self.editor.edit(idx)
+                self.select(idx)  # switch to the new preset if only one was duplicated
+            w.update_status(trans('status.preset.duplicated'))
+
 
     def enable(self, idx: Optional[int] = None):
         """
@@ -654,30 +668,49 @@ class Presets:
 
     def delete(
             self,
-            idx: Optional[int] = None,
+            idx: Optional[Union[int, list]] = None,
             force: bool = False
     ):
         """
         Delete preset
 
-        :param idx: preset index (row index)
+        :param idx: preset index (row index) or list of indices
         :param force: force delete without confirmation
         """
-        if idx is not None:
-            w = self.window
-            mode = w.core.config.get('mode')
-            preset_id = w.core.presets.get_by_idx(idx, mode)
-            if preset_id and preset_id in w.core.presets.items:
-                if not force:
-                    w.ui.dialogs.confirm(
-                        type='preset_delete',
-                        id=idx,
-                        msg=trans('confirm.preset.delete'),
-                    )
-                    return
+        ids = idx if isinstance(idx, list) else [idx]
+        w = self.window
+        mode = w.core.config.get('mode')
+        is_preset = False
+        updated = False
+        for tmp_id in ids:
+            if len(ids) > 1:
+                preset = w.core.presets.get_by_id(mode, tmp_id)  # by ID, PresetItem
+            else:
+                preset = w.core.presets.get_by_idx(tmp_id, mode)  # by index, str
+            if preset:
+                is_preset = True
+                break
 
-                # Determine neighbor only if the deleted preset is currently active.
-                # This keeps API semantics untouched and prevents unexpected selection changes.
+        if ids and is_preset:
+            if not force:
+                w.ui.dialogs.confirm(
+                    type='preset_delete',
+                    id=idx,
+                    msg=trans('confirm.preset.delete'),
+                )
+                return
+
+            # Determine neighbor only if the deleted preset is currently active.
+            # This keeps API semantics untouched and prevents unexpected selection changes.
+            for idx in ids:
+                if len(ids) > 1:
+                    preset = w.core.presets.get_by_id(mode, idx) # by ID, PresetItem
+                    preset_id = preset.filename if preset else None
+                else:
+                    preset = w.core.presets.get_by_idx(idx, mode) # by index, str
+                    preset_id = preset
+                if not preset:
+                    continue
                 is_current = (preset_id == w.core.config.get('preset'))
                 target_id = None
                 if is_current:
@@ -700,8 +733,11 @@ class Presets:
                         w.core.config.set('preset', None)
                         w.ui.nodes['preset.prompt'].setPlainText("")
 
-                self.refresh(no_scroll=True)
-                w.update_status(trans('status.preset.deleted'))
+                updated = True
+
+        if updated:
+            self.refresh(no_scroll=True)
+            w.update_status(trans('status.preset.deleted'))
 
     def restore(self, force: bool = False):
         """
