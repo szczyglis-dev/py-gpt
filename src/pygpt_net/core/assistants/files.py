@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.12.27 00:00:00                  #
 # ================================================== #
 
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 
 from packaging.version import Version
 
@@ -231,30 +231,32 @@ class Files:
         """
         return self.provider.get_all_by_file_id(file_id)
 
-    def delete(self, file: AssistantFileItem) -> bool:
+    def delete(self, file: Union[AssistantFileItem, list]) -> bool:
         """
         Delete file and remove from vector stores if exists
 
         :param file: file item
         :return: True if file was deleted
         """
-        file_id = file.file_id
-        items = self.get_all_by_file_id(file_id)  # get store_ids
-        for id in items:
-            store_id = items[id].store_id
-            if store_id is None or store_id == "":
-                continue  # skip if no store_id
+        files = file if isinstance(file, list) else [file]
+        for file in files:
+            file_id = file.file_id
+            items = self.get_all_by_file_id(file_id)  # get store_ids
+            for id in items:
+                store_id = items[id].store_id
+                if store_id is None or store_id == "":
+                    continue  # skip if no store_id
+                try:
+                    self.window.core.api.openai.store.delete_store_file(store_id, file_id)  # remove from vector store
+                except Exception as e:
+                    self.window.core.debug.log("Failed to delete file from vector store: " + str(e))
+            self.provider.delete_by_id(file.record_id)  # delete file in DB
             try:
-                self.window.core.api.openai.store.delete_store_file(store_id, file_id)  # remove from vector store
+                self.window.core.api.openai.store.delete_file(file.file_id)  # delete file in API
             except Exception as e:
-                self.window.core.debug.log("Failed to delete file from vector store: " + str(e))
-        self.provider.delete_by_id(file.record_id)  # delete file in DB
-        try:
-            self.window.core.api.openai.store.delete_file(file.file_id)  # delete file in API
-        except Exception as e:
-            self.window.core.debug.log("Failed to delete remote file: " + str(e))
-        if file.record_id in self.items:
-            del self.items[file.record_id]
+                self.window.core.debug.log("Failed to delete remote file: " + str(e))
+            if file.record_id in self.items:
+                del self.items[file.record_id]
         return True
 
     def delete_by_file_id(self, file_id: str) -> bool:

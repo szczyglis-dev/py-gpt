@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.12.27 00:00:00                  #
 # ================================================== #
 
 import os
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 
 from PySide6.QtWidgets import QApplication
 
@@ -78,11 +78,11 @@ class Files:
         self.window.update_status("Importing files...please wait...")
         self.window.core.api.openai.assistants.importer.import_files(store_id)
 
-    def download(self, idx: int):
+    def download(self, idx: Union[int, list]):
         """
         Download file
 
-        :param idx: selected attachment index
+        :param idx: selected attachment index or list of indexes
         """
         id = self.window.core.config.get('assistant')
         if id is None or id == "":
@@ -93,10 +93,11 @@ class Files:
 
         # get file by list index
         thread_id = self.window.core.config.get('assistant_thread')
-        file_id = self.window.core.assistants.files.get_file_id_by_idx(idx, assistant.vector_store, thread_id)
 
-        # download file
-        self.window.controller.attachment.download(file_id)
+        ids = idx if isinstance(idx, list) else [idx]
+        for idx in ids:
+            file_id = self.window.core.assistants.files.get_file_id_by_idx(idx, assistant.vector_store, thread_id)
+            self.window.controller.attachment.download(file_id)  # download file
 
     def rename(self, idx: int):
         """
@@ -186,11 +187,11 @@ class Files:
 
         self.update()
 
-    def delete(self, idx: int, force: bool = False):
+    def delete(self, idx: Union[int, list], force: bool = False):
         """
         Delete file
 
-        :param idx: file idx
+        :param idx: file idx or list of idxs
         :param force: force delete without confirmation
         """
         if not force:
@@ -209,17 +210,21 @@ class Files:
         if assistant is None:
             return
 
-        # get file by list index
+        files = []
         thread_id = self.window.core.config.get('assistant_thread')
-        file = self.window.core.assistants.files.get_file_by_idx(idx, assistant.vector_store, thread_id)
-        if file is None:
-            return
+        # get files by list index
+        ids = idx if isinstance(idx, list) else [idx]
+        for idx in ids:
+            file = self.window.core.assistants.files.get_file_by_idx(idx, assistant.vector_store, thread_id)
+            if file is None:
+                continue
+            files.append(file)
 
         # delete file in API
         self.window.update_status(trans('status.sending'))
         QApplication.processEvents()
         try:
-            self.window.core.assistants.files.delete(file)  # delete from DB, API and vector stores
+            self.window.core.assistants.files.delete(files)  # delete from DB, API and vector stores
 
             # update store status
             if assistant.vector_store:

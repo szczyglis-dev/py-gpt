@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2025.12.27 21:00:00                  #
 # ================================================== #
 
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 from PySide6.QtCore import Slot, QObject
 
@@ -384,14 +384,14 @@ class Attachment(QObject):
 
     def delete_by_idx(
             self,
-            idx: int,
+            idx: Union[int, list],
             force: bool = False,
             remove_local: bool = True
     ):
         """
         Delete attachment by index
 
-        :param idx: Index on list
+        :param idx: Index on list or list of indices
         :param force: Force delete
         :param remove_local: Remove local copies
         """
@@ -406,9 +406,14 @@ class Attachment(QObject):
         if meta is None or not meta.has_additional_ctx():
             return
         items = self.window.core.attachments.context.get_all(meta)
-        if idx < len(items):
-            item = items[idx]
-            self.window.core.attachments.context.delete(meta, item, delete_files=remove_local)
+        ids = idx if isinstance(idx, list) else [idx]
+        updated = False
+        for idx in sorted(ids, reverse=True):
+            if idx < len(items):
+                item = items[idx]
+                self.window.core.attachments.context.delete(meta, item, delete_files=remove_local)
+                updated = True
+        if updated:
             self.update_list(meta)
             self.window.controller.ctx.update()
 
@@ -448,62 +453,68 @@ class Attachment(QObject):
         """
         pass
 
-    def open_by_idx(self, idx: int):
+    def open_by_idx(self, idx: Union[int, list]):
         """
         Open attachment by index
 
-        :param idx: Index on list
+        :param idx: Index on list or list of indices
         """
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return
         items = self.window.core.attachments.context.get_all(meta)
-        if idx < len(items):
-            item = items[idx]
-            path = item["path"]
-            if "real_path" in item:
-                path = item["real_path"]
-            if os.path.exists(path) and os.path.isfile(path):
-                print(f"Opening attachment: {path}")
-                self.window.controller.files.open(path)
+        ids = idx if isinstance(idx, list) else [idx]
+        for idx in ids:
+            if idx < len(items):
+                item = items[idx]
+                path = item["path"]
+                if "real_path" in item:
+                    path = item["real_path"]
+                if os.path.exists(path) and os.path.isfile(path):
+                    print(f"Opening attachment: {path}")
+                    self.window.controller.files.open(path)
 
-    def open_dir_src_by_idx(self, idx: int):
+    def open_dir_src_by_idx(self, idx: Union[int, list]):
         """
         Open source directory by index
 
-        :param idx: Index on list
+        :param idx: Index on list or list of indices
         """
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return
         items = self.window.core.attachments.context.get_all(meta)
-        if idx < len(items):
-            item = items[idx]
-            path = item["path"]
-            if "real_path" in item:
-                path = item["real_path"]
-            dir = os.path.dirname(path)
-            if os.path.exists(dir) and os.path.isdir(dir):
-                print(f"Opening source directory: {dir}")
-                self.window.controller.files.open(dir)
+        ids = idx if isinstance(idx, list) else [idx]
+        for idx in ids:
+            if idx < len(items):
+                item = items[idx]
+                path = item["path"]
+                if "real_path" in item:
+                    path = item["real_path"]
+                dir = os.path.dirname(path)
+                if os.path.exists(dir) and os.path.isdir(dir):
+                    print(f"Opening source directory: {dir}")
+                    self.window.controller.files.open(dir)
 
-    def open_dir_dest_by_idx(self, idx: int):
+    def open_dir_dest_by_idx(self, idx: Union[int, list]):
         """
         Open destination directory by index
 
-        :param idx: Index on list
+        :param idx: Index on list or list of indices
         """
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return
         items = self.window.core.attachments.context.get_all(meta)
-        if idx < len(items):
-            item = items[idx]
-            root_dir = self.window.core.attachments.context.get_dir(meta)
-            dir = os.path.join(root_dir, item["uuid"])
-            if os.path.exists(dir) and os.path.isdir(dir):
-                self.window.controller.files.open(dir)
-                print(f"Opening destination directory: {dir}")
+        ids = idx if isinstance(idx, list) else [idx]
+        for idx in ids:
+            if idx < len(items):
+                item = items[idx]
+                root_dir = self.window.core.attachments.context.get_dir(meta)
+                dir = os.path.join(root_dir, item["uuid"])
+                if os.path.exists(dir) and os.path.isdir(dir):
+                    self.window.controller.files.open(dir)
+                    print(f"Opening destination directory: {dir}")
 
     def has_file_by_idx(self, idx: int) -> bool:
         """

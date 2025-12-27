@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 22:00:00                  #
+# Updated Date: 2025.12.27 00:00:00                  #
 # ================================================== #
 
 import copy
 import json
-from typing import Optional
+from typing import Optional, Union
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QStandardItem
@@ -183,32 +183,44 @@ class VectorStore:
         if update and store.id == self.current:
             self.update_current()
 
-    def refresh_by_idx(self, idx: int):
+    def refresh_by_idx(self, idx: Union[int, list]):
         """
         Refresh store by idx
 
-        :param idx: store idx
+        :param idx: store idx or list of idxs
         """
-        store_id = self.get_by_tab_idx(idx)
-        if store_id is not None:
-            self.refresh_by_store_id(store_id)
+        store_ids = []
+        ids = idx if isinstance(idx, list) else [idx]
+        for i in ids:
+            store_id = self.get_by_tab_idx(i)
+            if store_id is not None:
+                store_ids.append(store_id)
+        self.refresh_by_store_id(store_ids)
 
-    def refresh_by_store_id(self, store_id: str):
+    def refresh_by_store_id(self, store_id: Union[str, list]):
         """
         Refresh store by ID
 
         :param store_id: store id
         """
-        if store_id is not None and store_id in self.window.core.assistants.store.items:
-            store = self.window.core.assistants.store.items[store_id]
-            if store is not None:
-                self.window.update_status(trans('status.sending'))
-                QApplication.processEvents()
-                self.refresh_store(store)
-                self.window.update_status(trans('status.assistant.saved'))
-                self.update()
-                if self.current == store_id:
-                    self.update_files_list()
+        ids = store_id if isinstance(store_id, list) else [store_id]
+        updated = False
+        is_current = False
+        for store_id in ids:
+            if store_id is not None and store_id in self.window.core.assistants.store.items:
+                store = self.window.core.assistants.store.items[store_id]
+                if store is not None:
+                    self.window.update_status(trans('status.sending'))
+                    QApplication.processEvents()
+                    self.refresh_store(store)
+                    updated = True
+                    if self.current == store_id:
+                        is_current = True
+        if updated:
+            self.window.update_status(trans('status.assistant.saved'))
+            self.update()
+            if is_current:
+                self.update_files_list()
 
     def update_current(self):
         """Update current store"""
@@ -327,27 +339,32 @@ class VectorStore:
 
     def delete_by_idx(
             self,
-            idx: int,
+            idx: Union[int, list],
             force: bool = False
     ):
         """
         Delete store by idx
 
-        :param idx: store idx
+        :param idx: store idx or list of idxs
         :param force: force delete
         """
-        store_id = self.get_by_tab_idx(idx)
-        self.delete(store_id, force=force)
+        store_ids = []
+        ids = idx if isinstance(idx, list) else [idx]
+        for i in ids:
+            store_id = self.get_by_tab_idx(i)
+            if store_id is not None:
+                store_ids.append(store_id)
+        self.delete(store_ids, force=force)
 
     def delete(
             self,
-            store_id: Optional[str] = None,
+            store_id: Optional[Union[str, list]] = None,
             force: bool = False
     ):
         """
         Delete store by idx
 
-        :param store_id: store id
+        :param store_id: store id or list of store ids
         :param force: force delete
         """
         if not force:
@@ -363,25 +380,30 @@ class VectorStore:
             return
 
         self.window.update_status(trans('status.sending'))
+        updated = False
         QApplication.processEvents()
-        if self.current == store_id:
-            self.current = None
-        try:
-            print("Deleting store: {}".format(store_id))
-            if self.window.core.assistants.store.delete(store_id):
-                self.window.controller.assistant.batch.remove_store_from_assistants(store_id)
-                self.window.update_status(trans('status.deleted'))
-                self.window.core.assistants.store.save()
-                self.window.controller.assistant.files.update()
-                self.update()  # update stores list in assistant dialog
-                self.init()
-                self.restore_selection()
-                self.update_files_list()
-            else:
+        ids = store_id if isinstance(store_id, list) else [store_id]
+        for store_id in ids:
+            if self.current == store_id:
+                self.current = None
+            try:
+                print("Deleting store: {}".format(store_id))
+                if self.window.core.assistants.store.delete(store_id):
+                    self.window.controller.assistant.batch.remove_store_from_assistants(store_id)
+                    self.window.update_status(trans('status.deleted'))
+                    self.window.core.assistants.store.save()
+                    updated = True
+                else:
+                    self.window.update_status(trans('status.error'))
+            except Exception as e:
                 self.window.update_status(trans('status.error'))
-        except Exception as e:
-            self.window.update_status(trans('status.error'))
-            self.window.ui.dialogs.alert(e)
+                self.window.ui.dialogs.alert(e)
+        if updated:
+            self.window.controller.assistant.files.update()
+            self.update()  # update stores list in assistant dialog
+            self.init()
+            self.restore_selection()
+            self.update_files_list()
 
     def set_by_tab(self, idx: int):
         """

@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2025.12.27 21:00:00                  #
 # ================================================== #
 
 import os
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from urllib.parse import urlparse
 
 from PySide6.QtGui import QImage
@@ -128,14 +128,14 @@ class Attachment:
 
     def delete(
             self,
-            idx: int,
+            idx: Union[int, list],
             force: bool = False,
             remove_local: bool = False
     ):
         """
         Delete attachment
 
-        :param idx: index of attachment
+        :param idx: index of attachment to delete (or list of indices)
         :param force: force delete
         :param remove_local: remove local file
         """
@@ -148,19 +148,25 @@ class Attachment:
             )
             return
 
-        file_id = self.window.core.attachments.get_id_by_idx(
-            mode=mode,
-            idx=idx,
-        )
-        self.window.core.attachments.delete(
-            mode=mode,
-            id=file_id,
-            remove_local=remove_local,
-        )
+        ids = idx if isinstance(idx, list) else [idx]
+        file_ids = []
+        for idx in ids:
+            file_id = self.window.core.attachments.get_id_by_idx(
+                mode=mode,
+                idx=idx,
+            )
+            file_ids.append(file_id)
 
-        # clear current if current == deleted
-        if self.window.core.attachments.current == file_id:
-            self.window.core.attachments.current = None
+        for file_id in file_ids:
+            self.window.core.attachments.delete(
+                mode=mode,
+                id=file_id,
+                remove_local=remove_local,
+            )
+
+            # clear current if current == deleted
+            if self.window.core.attachments.current == file_id:
+                self.window.core.attachments.current = None
 
         if not self.has(mode):
             self.window.controller.chat.vision.unavailable()
@@ -363,38 +369,42 @@ class Attachment:
         self.update()
         self.window.ui.dialog['url'].close()
 
-    def open_dir(self, mode: str, idx: int):
+    def open_dir(self, mode: str, idx: Union[int, list]):
         """
         Open in directory
 
         :param mode: mode
-        :param idx: index
+        :param idx: index or list of indices
         """
-        path = self.get_path_by_idx(
-            mode=mode,
-            idx=idx,
-        )
-        if path is not None and path != '' and os.path.exists(path):
-            self.window.controller.files.open_dir(
-                path=path,
-                select=True,
+        ids = idx if isinstance(idx, list) else [idx]
+        for idx in ids:
+            path = self.get_path_by_idx(
+                mode=mode,
+                idx=idx,
             )
+            if path is not None and path != '' and os.path.exists(path):
+                self.window.controller.files.open_dir(
+                    path=path,
+                    select=True,
+                )
 
-    def open(self, mode: str, idx: int):
+    def open(self, mode: str, idx: Union[int, list]):
         """
         Open attachment
 
         :param mode: mode
-        :param idx: index
+        :param idx: index or list of indices
         """
-        path = self.get_path_by_idx(
-            mode=mode,
-            idx=idx,
-        )
-        if path is not None and path != '' and os.path.exists(path):
-            self.window.controller.files.open(
-                path=path,
+        ids = idx if isinstance(idx, list) else [idx]
+        for idx in ids:
+            path = self.get_path_by_idx(
+                mode=mode,
+                idx=idx,
             )
+            if path is not None and path != '' and os.path.exists(path):
+                self.window.controller.files.open(
+                    path=path,
+                )
 
     def get_path_by_idx(self, mode: str, idx: int) -> str:
         """

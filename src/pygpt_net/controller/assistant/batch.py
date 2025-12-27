@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 22:00:00                  #
+# Updated Date: 2025.12.27 00:00:00                  #
 # ================================================== #
 
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QFileDialog, QApplication
@@ -143,17 +143,21 @@ class Batch:
         QApplication.processEvents()
         self.window.core.api.openai.assistants.importer.truncate_files()  # remove all files from API
 
-    def truncate_store_files_by_idx(self, idx: int, force: bool = False):
+    def truncate_store_files_by_idx(self, idx: Union[int, list], force: bool = False):
         """
         Truncate all files in API (store)
 
-        :param idx: store index
+        :param idx: store index or list of indexes
         :param force: if True, imports without confirmation
         """
-        store_id = self.window.controller.assistant.store.get_by_tab_idx(idx)
-        self.truncate_store_files(store_id, force)
+        store_ids = []
+        ids = idx if isinstance(idx, list) else [idx]
+        for i in ids:
+            store_id = self.window.controller.assistant.store.get_by_tab_idx(i)
+            store_ids.append(store_id)
+        self.truncate_store_files(store_ids, force)
 
-    def truncate_store_files(self, store_id: str, force: bool = False):
+    def truncate_store_files(self, store_id: Union[str, list], force: bool = False):
         """
         Truncate all files in API (store)
 
@@ -174,31 +178,37 @@ class Batch:
         # run asynchronous
         self.window.update_status("Removing files...please wait...")
         QApplication.processEvents()
-        self.window.core.api.openai.assistants.importer.truncate_files(store_id)  # remove all files from API
+        ids = store_id if isinstance(store_id, list) else [store_id]
+        for store_id in ids:
+            self.window.core.api.openai.assistants.importer.truncate_files(store_id)  # remove all files from API
 
     def clear_store_files_by_idx(
             self,
-            idx: int,
+            idx: Union[int, list],
             force: bool = False
     ):
         """
         Clear files (store, local only)
 
-        :param idx: store index
+        :param idx: store index or list of indexes
         :param force: if True, clears without confirmation
         """
-        store_id = self.window.controller.assistant.store.get_by_tab_idx(idx)
-        self.clear_store_files(store_id, force)
+        store_ids = []
+        ids = idx if isinstance(idx, list) else [idx]
+        for i in ids:
+            store_id = self.window.controller.assistant.store.get_by_tab_idx(i)
+            store_ids.append(store_id)
+        self.clear_store_files(store_ids, force)
 
     def clear_store_files(
             self,
-            store_id: Optional[str] = None,
+            store_id: Optional[Union[str, list]] = None,
             force: bool = False
     ):
         """
         Clear files (store, local only)
 
-        :param store_id: store ID
+        :param store_id: store ID or list of store IDs
         :param force: if True, clears without confirmation
         """
         if store_id is None:
@@ -214,7 +224,11 @@ class Batch:
             return
         self.window.update_status("Clearing store files...please wait...")
         QApplication.processEvents()
-        self.window.core.assistants.files.truncate_local(store_id)  # clear files local
+
+        ids = store_id if isinstance(store_id, list) else [store_id]
+        for store_id in ids:
+            self.window.core.assistants.files.truncate_local(store_id)  # clear files local
+
         self.window.controller.assistant.files.update()
         self.window.update_status("OK. All store files cleared.")
         self.window.ui.dialogs.alert(trans("status.finished"))
