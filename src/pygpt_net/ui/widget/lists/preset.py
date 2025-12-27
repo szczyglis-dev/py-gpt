@@ -17,6 +17,7 @@ from pygpt_net.core.types import (
     MODE_EXPERT,
 )
 from pygpt_net.ui.widget.lists.base import BaseList
+    # Keep imports minimal and unchanged
 from pygpt_net.utils import trans
 
 
@@ -114,6 +115,14 @@ class PresetList(BaseList):
         self._pending_scroll_value = None
         self._pending_refocus_role_id = None
 
+        # RMB-anchored scroll guard (preserve viewport after destructive updates from context menu)
+        self._rmb_anchor_scroll_value = None
+        self._scroll_guard_active = False
+        self._pre_update_scroll_value = 0
+        self._connected_model = None
+        self._model_signals_connected = False
+        self._connect_model_signals_safely()
+
     # -------- Public helpers to protect updates --------
 
     def begin_model_update(self):
@@ -166,7 +175,7 @@ class PresetList(BaseList):
         self._scroll_freeze_timer.start(max(50, int(ms)))
 
     def _apply_pending_scroll(self):
-        """Re-apply saved scroll position when frozen."""
+        """Re-apply saved scroll position when frozen or guard is active."""
         if self._pending_scroll_value is None:
             return
         try:
@@ -186,10 +195,10 @@ class PresetList(BaseList):
 
     def scrollTo(self, index, hint=QAbstractItemView.EnsureVisible):
         """
-        Temporarily suppress automatic scrolling while frozen.
+        Temporarily suppress automatic scrolling while frozen or guard is active.
         This prevents list jumping when selection triggers scrollTo during refresh.
         """
-        if self._scroll_freeze_depth > 0:
+        if self._scroll_freeze_depth > 0 or self._scroll_guard_active:
             self._apply_pending_scroll()
             return
         return super().scrollTo(index, hint)
@@ -232,6 +241,149 @@ class PresetList(BaseList):
             except Exception:
                 # Keep pending id for next attempt if apply failed
                 pass
+
+    # --------------------------------------------------------------------------
+    # RMB-anchored scroll guard: capture scroll at context open and restore after delete
+    # --------------------------------------------------------------------------
+
+    def _connect_model_signals_safely(self):
+        """Connect model change signals once to preserve scroll after updates."""
+        model = self.model()
+        if model is None:
+            return
+        if self._connected_model is model and self._model_signals_connected:
+            return
+
+        if self._connected_model is not None and self._connected_model is not model:
+            try:
+                self._connected_model.rowsAboutToBeRemoved.disconnect(self._on_rows_about_to_be_removed)
+            except Exception:
+                pass
+            try:
+                self._connected_model.rowsRemoved.disconnect(self._on_rows_removed)
+            except Exception:
+                pass
+            try:
+                self._connected_model.modelAboutToBeReset.disconnect(self._on_model_about_to_be_reset)
+            except Exception:
+                pass
+            try:
+                self._connected_model.modelReset.disconnect(self._on_model_reset)
+            except Exception:
+                pass
+            try:
+                self._connected_model.layoutAboutToBeChanged.disconnect(self._on_layout_about_to_change)
+            except Exception:
+                pass
+            try:
+                self._connected_model.layoutChanged.disconnect(self._on_layout_changed)
+            except Exception:
+                pass
+
+        try:
+            model.rowsAboutToBeRemoved.connect(self._on_rows_about_to_be_removed)
+        except Exception:
+            pass
+        try:
+            model.rowsRemoved.connect(self._on_rows_removed)
+        except Exception:
+            pass
+        try:
+            model.modelAboutToBeReset.connect(self._on_model_about_to_be_reset)
+        except Exception:
+            pass
+        try:
+            model.modelReset.connect(self._on_model_reset)
+        except Exception:
+            pass
+        try:
+            model.layoutAboutToBeChanged.connect(self._on_layout_about_to_change)
+        except Exception:
+            pass
+        try:
+            model.layoutChanged.connect(self._on_layout_changed)
+        except Exception:
+            pass
+
+        self._connected_model = model
+        self._model_signals_connected = True
+
+    def setModel(self, model):
+        """Reconnect model signals when the view's model is replaced."""
+        super().setModel(model)
+        self._connect_model_signals_safely()
+
+    def _activate_scroll_guard(self, override_value: int | None = None):
+        """Arm guard with provided anchor value (or current) and keep it until updates settle."""
+        try:
+            sb = self.verticalScrollBar()
+        except Exception:
+            sb = None
+        val = None
+        if override_value is not None:
+            val = int(override_value)
+        elif sb is not None:
+            val = sb.value()
+        if val is None:
+            val = 0
+        self._pre_update_scroll_value = val
+        self._pending_scroll_value = val
+        self._scroll_guard_active = True
+
+    def _schedule_scroll_restore(self):
+        """Restore anchored scroll repeatedly to outlast selection-driven scrolls."""
+        if not self._scroll_guard_active:
+            return
+
+        def apply():
+            try:
+                sb = self.verticalScrollBar()
+                if sb is None:
+                    return
+                target = min(self._pre_update_scroll_value, sb.maximum())
+                sb.setValue(target)
+                self._pending_scroll_value = target
+            except Exception:
+                pass
+
+        QTimer.singleShot(0, apply)
+        QTimer.singleShot(25, apply)
+        QTimer.singleShot(75, apply)
+        QTimer.singleShot(150, apply)
+        QTimer.singleShot(300, apply)
+        QTimer.singleShot(600, self._clear_scroll_guard)
+
+    def _clear_scroll_guard(self):
+        """Clear RMB anchor guard."""
+        self._scroll_guard_active = False
+        self._rmb_anchor_scroll_value = None
+
+    # Model signal handlers
+
+    def _on_rows_about_to_be_removed(self, parent, start, end):
+        if self._scroll_guard_active:
+            # guard already armed by action; nothing else to do
+            return
+
+    def _on_rows_removed(self, parent, start, end):
+        if self._scroll_guard_active:
+            self._schedule_scroll_restore()
+
+    def _on_model_about_to_be_reset(self):
+        if self._scroll_guard_active:
+            return
+
+    def _on_model_reset(self):
+        if self._scroll_guard_active:
+            self._schedule_scroll_restore()
+
+    def _on_layout_about_to_change(self):
+        if self._scroll_guard_active:
+            return
+
+    def _on_layout_changed(self):
+        if self._scroll_guard_active:
+            self._schedule_scroll_restore()
 
     # --------------------------------------------------------------------------
 
@@ -398,6 +550,12 @@ class PresetList(BaseList):
         if self._model_updating:
             return
 
+        # Capture RMB anchor scroll value at the moment of opening the context menu
+        try:
+            self._rmb_anchor_scroll_value = self.verticalScrollBar().value()
+        except Exception:
+            self._rmb_anchor_scroll_value = None
+
         global_pos = self.viewport().mapToGlobal(pos)
         mode = self.window.core.config.get('mode')
         index = self.indexAt(pos)
@@ -560,6 +718,9 @@ class PresetList(BaseList):
             self.window.controller.presets.duplicate(idx)
 
     def action_delete(self, item):
+        # Preserve scroll at the RMB anchor position before delete
+        self._activate_scroll_guard(self._rmb_anchor_scroll_value)
+
         if isinstance(item, (list, tuple)):
             self.restore_after_ctx_menu = False
             self.window.controller.presets.delete(list(item))
