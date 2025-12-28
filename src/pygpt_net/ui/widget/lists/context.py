@@ -1,3 +1,6 @@
+# context.py
+
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -82,6 +85,9 @@ class ContextList(BaseList):
             # Safe no-op if the underlying view does not support setIndentation
             pass
 
+        # Persist expanded state also when user uses the disclosure arrow or programmatic expand/collapse
+        self._connect_expand_collapse_signals()
+
         self._loading_more = False  # guard to avoid multiple triggers while updating
         try:
             self.verticalScrollBar().valueChanged.connect(self._on_vertical_scroll)
@@ -134,6 +140,40 @@ class ContextList(BaseList):
         self._drag_press_pos = QtCore.QPoint()
         self._drag_press_index: QPersistentModelIndex | None = None
         self._drag_pending_from_multi = False
+
+    def _connect_expand_collapse_signals(self):
+        """
+        Connect view expand/collapse signals to maintain persistent expanded_items state.
+        """
+        try:
+            if hasattr(self, 'expanded'):
+                self.expanded.connect(self._on_group_expanded)
+            if hasattr(self, 'collapsed'):
+                self.collapsed.connect(self._on_group_collapsed)
+        except Exception:
+            pass
+
+    def _on_group_expanded(self, index: QtCore.QModelIndex):
+        """
+        Remember expanded group id when group is expanded from UI or programmatically.
+        """
+        try:
+            item = self._model.itemFromIndex(index)
+            if isinstance(item, GroupItem) and hasattr(item, "id"):
+                self.expanded_items.add(item.id)
+        except Exception:
+            pass
+
+    def _on_group_collapsed(self, index: QtCore.QModelIndex):
+        """
+        Forget group id when collapsed.
+        """
+        try:
+            item = self._model.itemFromIndex(index)
+            if isinstance(item, GroupItem) and hasattr(item, "id"):
+                self.expanded_items.discard(item.id)
+        except Exception:
+            pass
 
     def _on_vertical_scroll(self, value: int):
         """
@@ -1241,7 +1281,7 @@ class ContextList(BaseList):
         """
         Delete group(s) with all items.
         """
-        # Preserve scroll around group deletion as well to avoid jump; anchor to RMB target if present
+        # Preserve scroll around group deletion as well to avoid jumps; anchor to RMB target if present
         anchor_val = self._context_menu_anchor_scroll_value
         self._deletion_initiated = True
         self._activate_scroll_guard("group_delete_all", anchor_val)
@@ -1418,11 +1458,11 @@ class ContextList(BaseList):
                 return []
             out = []
             for part in raw.split(","):
-                part = part.strip()
-                if not part:
+                part = strip = part.strip()
+                if not strip:
                     continue
                 try:
-                    out.append(int(part))
+                    out.append(int(strip))
                 except Exception:
                     continue
             return out

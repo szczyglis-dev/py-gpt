@@ -1,5 +1,7 @@
 # list.py
 
+# list.py
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -304,12 +306,11 @@ class CtxList:
 
             model.appendRow(group_item)
 
+            # Always reflect persisted expansion state so groups stay open after actions
             desired = group.id in node.expanded_items
             idx = group_item.index()
-            if node.isExpanded(idx) != desired and expand:
+            if node.isExpanded(idx) != desired:
                 node.setExpanded(idx, desired)
-            else:
-                node.setExpanded(idx, False)
 
     def count_in_group(self, group_id: int, data: dict) -> int:
         """
