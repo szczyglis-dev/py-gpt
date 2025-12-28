@@ -16,7 +16,7 @@ import struct
 import sys
 from typing import Union
 
-from PySide6.QtCore import Qt, QModelIndex, QDir, QObject, QEvent, QUrl, QPoint, QMimeData, QTimer, QRect
+from PySide6.QtCore import Qt, QModelIndex, QDir, QObject, QEvent, QUrl, QPoint, QMimeData, QTimer, QRect, QItemSelectionModel
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent, QGuiApplication, QKeySequence, QShortcut, QClipboard, QDrag
 from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel, QHBoxLayout, \
     QPushButton, QSizePolicy, QAbstractItemView, QFrame
@@ -35,6 +35,7 @@ class MultiDragTreeView(QTreeView):
       but moving the mouse beyond the drag threshold starts a drag containing the whole selection
       instead of altering selection.
     - This avoids accidental selection changes when the intent was to drag many items.
+    - Shift-range selection anchor is kept stable to avoid selecting the entire directory accidentally.
     """
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -42,6 +43,8 @@ class MultiDragTreeView(QTreeView):
         self._md_drag_started = False
         self._md_maybe_clear = False
         self._md_press_pos = QPoint()
+        self._md_press_index = QModelIndex()
+        self._sel_anchor_index = QModelIndex()
 
     def _selected_count(self) -> int:
         try:
@@ -69,7 +72,6 @@ class MultiDragTreeView(QTreeView):
         if not urls:
             return
         md = QMimeData()
-        # text/uri-list payload for cross-compatibility
         try:
             parts = []
             for u in urls:
@@ -84,7 +86,6 @@ class MultiDragTreeView(QTreeView):
 
         drag = QDrag(self)
         drag.setMimeData(md)
-        # Let target decide (internal -> move, external -> copy); prefer move
         drag.exec(Qt.MoveAction | Qt.CopyAction, Qt.MoveAction)
 
     def _drag_threshold(self) -> int:
@@ -108,33 +109,85 @@ class MultiDragTreeView(QTreeView):
             return int(QApplication.startDragDistance())
         except Exception:
             pass
-        return 10  # sensible default
+        return 10
+
+    def _event_point(self, event) -> QPoint:
+        """Return mouse point for Qt versions exposing either .position() or .pos()."""
+        try:
+            return event.position().toPoint()
+        except Exception:
+            try:
+                return event.pos()
+            except Exception:
+                return QPoint()
+
+    def _row_index_at(self, pos: QPoint) -> QModelIndex:
+        """
+        Return a model index for the row under 'pos' forced to column 0,
+        so row-based selection is consistent no matter which column is clicked.
+        """
+        try:
+            idx = self.indexAt(pos)
+            if idx.isValid():
+                try:
+                    return idx.siblingAtColumn(0)
+                except Exception:
+                    return self.model().index(idx.row(), 0, idx.parent())
+        except Exception:
+            pass
+        return QModelIndex()
 
     def mousePressEvent(self, event):
-        try:
-            pos = event.position().toPoint()
-        except Exception:
-            pos = event.pos()
-        if event.button() == Qt.LeftButton and not (event.modifiers() & (Qt.ControlModifier | Qt.ShiftModifier)):
-            if self._selected_count() > 1:
-                # Prepare multi-drag/click-to-clear mode; block default selection changes
-                self._md_pressed = True
-                self._md_drag_started = False
-                self._md_maybe_clear = True
-                self._md_press_pos = pos
-                self.setFocus(Qt.MouseFocusReason)
-                event.accept()
+        pos = self._event_point(event)
+        if event.button() == Qt.LeftButton:
+            ctrl = bool(event.modifiers() & Qt.ControlModifier)
+            shift = bool(event.modifiers() & Qt.ShiftModifier)
+
+            pressed_idx = self._row_index_at(pos)
+            self._md_press_index = pressed_idx
+
+            if shift:
+                try:
+                    sm = self.selectionModel()
+                except Exception:
+                    sm = None
+                if sm is not None:
+                    anchor = self._sel_anchor_index if self._sel_anchor_index.isValid() else sm.currentIndex()
+                    if not (anchor and anchor.isValid()):
+                        anchor = pressed_idx
+                        self._sel_anchor_index = pressed_idx
+                    try:
+                        sm.setCurrentIndex(anchor, QItemSelectionModel.NoUpdate)
+                    except Exception:
+                        pass
+                super().mousePressEvent(event)
                 return
+
+            if not ctrl and not shift:
+                if pressed_idx.isValid():
+                    self._sel_anchor_index = pressed_idx
+                    try:
+                        sm = self.selectionModel()
+                        if sm is not None:
+                            sm.setCurrentIndex(pressed_idx, QItemSelectionModel.NoUpdate)
+                    except Exception:
+                        pass
+
+                if self._selected_count() > 1:
+                    self._md_pressed = True
+                    self._md_drag_started = False
+                    self._md_maybe_clear = True
+                    self._md_press_pos = pos
+                    self.setFocus(Qt.MouseFocusReason)
+                    event.accept()
+                    return
+
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if self._md_pressed and (event.buttons() & Qt.LeftButton):
-            try:
-                pos = event.position().toPoint()
-            except Exception:
-                pos = event.pos()
+            pos = self._event_point(event)
             if (pos - self._md_press_pos).manhattanLength() >= self._drag_threshold():
-                # Start dragging the whole selection instead of altering selection
                 self._md_maybe_clear = False
                 self._md_drag_started = True
                 self._md_pressed = False
@@ -145,15 +198,22 @@ class MultiDragTreeView(QTreeView):
 
     def mouseReleaseEvent(self, event):
         if self._md_pressed and event.button() == Qt.LeftButton:
-            # If there was no drag -> treat as "single-click anywhere to clear multi-selection"
             if self._md_maybe_clear and not self._md_drag_started:
                 try:
                     sm = self.selectionModel()
-                    if sm is not None:
-                        sm.clearSelection()
-                    self.setCurrentIndex(QModelIndex())
                 except Exception:
-                    pass
+                    sm = None
+                if sm is not None:
+                    sm.clearSelection()
+                if self._md_press_index.isValid():
+                    try:
+                        self.setCurrentIndex(self._md_press_index)
+                    except Exception:
+                        pass
+                    self._sel_anchor_index = self._md_press_index
+                else:
+                    self.setCurrentIndex(QModelIndex())
+
                 event.accept()
                 self._md_pressed = False
                 return
@@ -181,7 +241,6 @@ class ExplorerDropHandler(QObject):
         self.explorer = explorer
         self.view = explorer.treeView
 
-        # Enable drops on both the view and its viewport
         try:
             self.view.setAcceptDrops(True)
         except Exception:
@@ -195,7 +254,6 @@ class ExplorerDropHandler(QObject):
             vp.installEventFilter(self)
         self.view.installEventFilter(self)
 
-        # Drop indicator (horizontal line snapped between rows)
         self._indicator = QFrame(self.view.viewport())
         self._indicator.setObjectName("drop-indicator-line")
         self._indicator.setFrameShape(QFrame.NoFrame)
@@ -203,7 +261,6 @@ class ExplorerDropHandler(QObject):
         self._indicator.hide()
         self._indicator_height = 2
 
-        # Directory highlight (when target is "into directory")
         self._dir_highlight = QFrame(self.view.viewport())
         self._dir_highlight.setObjectName("drop-dir-highlight")
         self._dir_highlight.setFrameShape(QFrame.NoFrame)
@@ -213,16 +270,14 @@ class ExplorerDropHandler(QObject):
         )
         self._dir_highlight.hide()
 
-        # Manual auto-scroll while dragging (slower)
         self._scroll_margin = 28
         self._scroll_speed_max = 12
         self._last_pos = None
         self._auto_timer = QTimer(self)
-        self._auto_timer.setInterval(20)  # ~50 FPS, slower than before
+        self._auto_timer.setInterval(20)
         self._auto_timer.timeout.connect(self._on_auto_scroll)
 
-        # Gutter to ease dropping "one level up" and easier "between" targeting
-        self._left_gutter_extra = 28  # px added to the item's left to count as "left gutter"
+        self._left_gutter_extra = 28
 
     def _mime_has_local_urls(self, md) -> bool:
         try:
@@ -252,10 +307,6 @@ class ExplorerDropHandler(QObject):
         return out
 
     def _nearest_row_index(self, pos: QPoint):
-        """
-        Return an index near 'pos' by probing up/down a small distance.
-        Helps when the cursor is between rows where indexAt() is invalid.
-        """
         idx = self.view.indexAt(pos)
         if idx.isValid():
             return idx
@@ -276,15 +327,11 @@ class ExplorerDropHandler(QObject):
         return QModelIndex()
 
     def _indices_above_below(self, pos: QPoint):
-        """
-        Find closest row above and below 'pos' to detect a true gap between items.
-        """
         vp = self.view.viewport()
         h = vp.height()
         above = QModelIndex()
         below = QModelIndex()
 
-        # Scan upwards
         for d in range(0, 80):
             y_up = pos.y() - d
             if y_up < 0:
@@ -294,7 +341,6 @@ class ExplorerDropHandler(QObject):
                 above = idx_up
                 break
 
-        # Scan downwards
         for d in range(0, 80):
             y_dn = pos.y() + d
             if y_dn >= h:
@@ -307,17 +353,12 @@ class ExplorerDropHandler(QObject):
         return above, below
 
     def _gap_parent_index(self, pos: QPoint) -> QModelIndex:
-        """
-        If pointer is between two rows, return their common parent index.
-        If not determinable, return invalid to signal root.
-        """
         above, below = self._indices_above_below(pos)
         if above.isValid() and below.isValid():
             pa = above.parent()
             pb = below.parent()
             if pa == pb:
                 return pa
-            # Prefer the shallower of the two when different
             if pa.isValid():
                 return pa
             if pb.isValid():
@@ -329,19 +370,12 @@ class ExplorerDropHandler(QObject):
         return QModelIndex()
 
     def _is_left_gutter(self, pos: QPoint, idx: QModelIndex) -> bool:
-        """
-        Return True if the cursor is in a left gutter area of the row,
-        making it easier to drop "one level up".
-        """
         if not idx.isValid():
             return False
         rect = self.view.visualRect(idx)
         return pos.x() < rect.left() + self._left_gutter_extra
 
     def _snap_line_y(self, pos: QPoint) -> int:
-        """
-        Compute Y coordinate for indicator snapped to nearest row boundary.
-        """
         vp = self.view.viewport()
         y = max(0, min(pos.y(), vp.height() - 1))
         idx = self._nearest_row_index(pos)
@@ -353,21 +387,12 @@ class ExplorerDropHandler(QObject):
         return y
 
     def _calc_context(self, pos: QPoint):
-        """
-        Compute drop context at position:
-        Returns dict with:
-          type: 'into_dir' | 'into_parent' | 'gap_between' | 'empty'
-          idx:  QModelIndex related (directory row for 'into_dir', row for 'into_parent')
-          parent_idx: QModelIndex parent for 'gap_between' or 'into_parent'
-          line_y: int (for drawing indicator in 'gap_between' or 'into_parent')
-        """
         vp = self.view.viewport()
         if vp is None:
             return {'type': 'empty'}
 
         idx = self.view.indexAt(pos)
         if idx.isValid():
-            # Left gutter -> parent directory
             if self._is_left_gutter(pos, idx):
                 rect = self.view.visualRect(idx)
                 line_y = rect.top() if pos.y() < rect.center().y() else rect.bottom()
@@ -376,23 +401,14 @@ class ExplorerDropHandler(QObject):
             path = self.explorer.model.filePath(idx)
             if os.path.isdir(path):
                 return {'type': 'into_dir', 'idx': idx}
-            # Over file -> parent directory
             rect = self.view.visualRect(idx)
             line_y = rect.top() if pos.y() < rect.center().y() else rect.bottom()
             return {'type': 'into_parent', 'idx': idx, 'parent_idx': idx.parent(), 'line_y': line_y}
 
-        # Truly between rows -> compute common parent
         parent_idx = self._gap_parent_index(pos)
         return {'type': 'gap_between', 'parent_idx': parent_idx, 'line_y': self._snap_line_y(pos)}
 
     def _update_visuals(self, ctx):
-        """
-        Update highlight/indicator visuals based on context.
-        - into_dir      -> highlight rect over the directory row
-        - gap_between   -> indicator line between rows
-        - into_parent   -> indicator line on top/bottom edge of hovered row
-        - empty         -> indicator line at current y
-        """
         self._indicator.hide()
         self._dir_highlight.hide()
 
@@ -401,7 +417,6 @@ class ExplorerDropHandler(QObject):
 
         if ctx.get('type') == 'into_dir' and ctx.get('idx', QModelIndex()).isValid():
             rect = self.view.visualRect(ctx['idx'])
-            # Expand highlight to full width
             self._dir_highlight.setGeometry(QRect(0, rect.top(), self.view.viewport().width(), rect.height()))
             self._dir_highlight.show()
             return
@@ -415,7 +430,6 @@ class ExplorerDropHandler(QObject):
             return
 
     def _on_auto_scroll(self):
-        """Gentle auto-scroll when dragging near top/bottom edges."""
         if self._last_pos is None:
             return
         vp = self.view.viewport()
@@ -435,7 +449,6 @@ class ExplorerDropHandler(QObject):
             vbar.setValue(vbar.value() + delta)
 
     def _target_dir_from_context(self, ctx) -> str:
-        """Resolve final target directory from computed context."""
         t = ctx.get('type')
         if t == 'into_dir':
             idx = ctx.get('idx', QModelIndex())
@@ -480,7 +493,6 @@ class ExplorerDropHandler(QObject):
                         self._last_pos = None
                 self._auto_timer.start()
 
-                # Show visuals
                 pos = self._last_pos or QPoint(0, 0)
                 ctx = self._calc_context(pos)
                 self._update_visuals(ctx)
@@ -507,7 +519,6 @@ class ExplorerDropHandler(QObject):
                     except Exception:
                         self._last_pos = None
 
-                # Update visuals (snap line or dir highlight)
                 pos = self._last_pos or QPoint(0, 0)
                 ctx = self._calc_context(pos)
                 self._update_visuals(ctx)
@@ -664,8 +675,23 @@ class FileExplorer(QWidget):
         self.header.setStretchLastSection(True)
         self.header.setContentsMargins(0, 0, 0, 0)
 
+        # Persisted column widths across model refreshes/layout changes
+        self._saved_column_widths = {}
+        self._is_restoring_columns = False
+
+        # Re-apply widths when user resizes columns or model refreshes
+        try:
+            self.header.sectionResized.connect(self._on_header_section_resized)
+            self.model.modelAboutToBeReset.connect(self._on_model_about_to_reset)
+            self.model.modelReset.connect(self._on_model_reset)
+            self.model.layoutAboutToBeChanged.connect(self._on_layout_about_to_change)
+            self.model.layoutChanged.connect(self._on_layout_changed)
+            self.model.directoryLoaded.connect(self._on_model_directory_loaded)
+        except Exception:
+            pass
+
         self.column_proportion = 0.3
-        self.adjustColumnWidths()
+        self.adjustColumnWidths()  # initial layout
 
         self.header.setStyleSheet("""
            QHeaderView::section {
@@ -699,22 +725,19 @@ class FileExplorer(QWidget):
             'db': QIcon(":/icons/db.svg"),
         }
 
-        # Drag & Drop: internal drag support, custom auto-scroll and visuals via handler
         try:
             self.treeView.setDragEnabled(True)
             self.treeView.setAcceptDrops(True)
-            self.treeView.setDropIndicatorShown(False)  # custom indicator provided
+            self.treeView.setDropIndicatorShown(False)
             self.treeView.setDragDropMode(QAbstractItemView.DragDrop)
             self.treeView.setDefaultDropAction(Qt.MoveAction)
-            self.treeView.setAutoScroll(False)  # custom autoscroll
+            self.treeView.setAutoScroll(False)
         except Exception:
             pass
 
-        # Internal clipboard state for virtual cut/copy
         self._cb_paths = []
-        self._cb_mode = None  # 'copy' or 'cut'
+        self._cb_mode = None
 
-        # Keyboard shortcuts for copy/cut/paste
         try:
             sc_copy = QShortcut(QKeySequence.Copy, self.treeView, context=Qt.WidgetWithChildrenShortcut)
             sc_copy.activated.connect(self.action_copy_selection)
@@ -725,8 +748,71 @@ class FileExplorer(QWidget):
         except Exception:
             pass
 
-        # Drag & Drop upload/move support
         self._dnd_handler = ExplorerDropHandler(self)
+
+    def _on_header_section_resized(self, logical_index: int, old: int, new: int):
+        """Track user-driven column width changes."""
+        if self._is_restoring_columns:
+            return
+        try:
+            self._saved_column_widths[logical_index] = int(new)
+        except Exception:
+            pass
+
+    def _on_model_about_to_reset(self):
+        """Save current widths before model reset."""
+        self._save_current_column_widths()
+
+    def _on_model_reset(self):
+        """Restore widths right after model reset."""
+        self._schedule_restore_columns()
+
+    def _on_layout_about_to_change(self):
+        """Save widths before layout changes."""
+        self._save_current_column_widths()
+
+    def _on_layout_changed(self):
+        """Restore widths after layout changes."""
+        self._schedule_restore_columns()
+
+    def _on_model_directory_loaded(self, path: str):
+        """Ensure widths are re-applied when a directory finishes loading."""
+        self._schedule_restore_columns()
+
+    def _save_current_column_widths(self):
+        """Persist current column widths."""
+        try:
+            count = self.model.columnCount()
+            for i in range(count):
+                w = self.treeView.columnWidth(i)
+                if w > 0:
+                    self._saved_column_widths[i] = int(w)
+        except Exception:
+            pass
+
+    def _restore_columns_now(self):
+        """Best-effort restoration of column widths with proportional fallback."""
+        try:
+            self._is_restoring_columns = True
+            col_count = self.model.columnCount()
+            self.adjustColumnWidths()  # apply proportional baseline
+            if self._saved_column_widths:
+                for i, w in list(self._saved_column_widths.items()):
+                    if 0 <= i < col_count and w > 0:
+                        try:
+                            self.treeView.setColumnWidth(i, int(w))
+                        except Exception:
+                            pass
+            try:
+                self.header.setStretchLastSection(True)
+            except Exception:
+                pass
+        finally:
+            self._is_restoring_columns = False
+
+    def _schedule_restore_columns(self, delay_ms: int = 0):
+        """Defer restoration to allow view/header to settle after reset."""
+        QTimer.singleShot(max(0, delay_ms), self._restore_columns_now)
 
     def eventFilter(self, source, event):
         """
@@ -766,11 +852,13 @@ class FileExplorer(QWidget):
         return self.owner
 
     def update_view(self):
-        """Update explorer view"""
+        """Update explorer view keeping column widths intact."""
+        self._save_current_column_widths()
         self.model.beginResetModel()
         self.model.setRootPath(self.directory)
         self.model.endResetModel()
         self.treeView.setRootIndex(self.model.index(self.directory))
+        self._schedule_restore_columns()
 
     def idx_context_menu(self, parent, pos):
         """
@@ -813,7 +901,7 @@ class FileExplorer(QWidget):
         menu.exec(parent.mapToGlobal(pos))
 
     def adjustColumnWidths(self):
-        """Adjust column widths"""
+        """Adjust column widths and persist them."""
         total_width = self.treeView.width()
         col_count = self.model.columnCount()
         first_column_width = int(total_width * self.column_proportion)
@@ -823,6 +911,7 @@ class FileExplorer(QWidget):
             per_col = remaining // (col_count - 1) if col_count > 1 else 0
             for column in range(1, col_count):
                 self.treeView.setColumnWidth(column, per_col)
+        self._save_current_column_widths()
 
     def resizeEvent(self, event: QResizeEvent):
         """
@@ -849,7 +938,6 @@ class FileExplorer(QWidget):
             preview_actions = []
             use_actions = []
 
-            # Preview actions: allow list target for multi-selection; fallback-safe
             can_preview = False
             try:
                 can_preview = self.window.core.filesystem.actions.has_preview(target_multi)
@@ -868,18 +956,14 @@ class FileExplorer(QWidget):
                     except Exception:
                         preview_actions = []
 
-            # Compute parent directory for operations creating/pasting items
             parent = self._parent_for_selection(paths)
 
-            # Open should accept list for multi-selection
             actions['open'] = QAction(self._icons['open'], trans('action.open'), self)
             actions['open'].triggered.connect(lambda: self.action_open(target_multi))
 
-            # Keep open_dir on first item (can be switched to target_multi if needed)
             actions['open_dir'] = QAction(self._icons['open_dir'], trans('action.open_dir'), self)
             actions['open_dir'].triggered.connect(lambda: self.action_open_dir(target_multi))
 
-            # Multi-capable actions accept list when multi-selected
             actions['download'] = QAction(self._icons['download'], trans('action.download'), self)
             actions['download'].triggered.connect(lambda: self.window.controller.files.download_local(target_multi))
 
@@ -904,7 +988,6 @@ class FileExplorer(QWidget):
             actions['delete'] = QAction(self._icons['delete'], trans('action.delete'), self)
             actions['delete'].triggered.connect(lambda: self.action_delete(target_multi))
 
-            # Copy / Cut / Paste
             actions['copy'] = QAction(self._icons['copy'], trans('action.copy'), self)
             actions['copy'].triggered.connect(self.action_copy_selection)
             actions['cut'] = QAction(self._icons['cut'], trans('action.cut'), self)
@@ -920,8 +1003,6 @@ class FileExplorer(QWidget):
             menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
 
-            # Use menu; plugin-provided actions only for single selection retrieved by first_path,
-            # built-in attachment/copy path/read cmd accept list when multi-selected.
             use_menu = QMenu(trans('action.use'), self)
 
             files_only = all(os.path.isfile(p) for p in paths)
@@ -959,7 +1040,6 @@ class FileExplorer(QWidget):
             use_menu.addAction(actions['use_read_cmd'])
             menu.addMenu(use_menu)
 
-            # Index menu aggregated for multi-selection
             allowed_any = any(self.window.core.idx.indexing.is_allowed(p) for p in paths)
             if allowed_any:
                 idx_menu = QMenu(trans('action.idx'), self)
@@ -972,7 +1052,6 @@ class FileExplorer(QWidget):
                         action.triggered.connect(lambda checked=False, id=id, target=target_multi: self.action_idx(target, id))
                         idx_menu.addAction(action)
 
-                # Determine indexes where any selected item is already indexed
                 remove_idx_set = set()
                 for p in paths:
                     status = self.model.get_index_status(p)
@@ -1031,7 +1110,6 @@ class FileExplorer(QWidget):
                 lambda: self.window.controller.files.upload_local(),
             )
 
-            # Paste on empty area -> paste into current explorer root directory
             actions['paste'] = QAction(self._icons['paste'], trans('action.paste'), self)
             actions['paste'].triggered.connect(lambda: self.action_paste_into(self.directory))
             actions['paste'].setEnabled(self._can_paste())
@@ -1241,7 +1319,6 @@ class FileExplorer(QWidget):
             try:
                 if not os.path.exists(src):
                     continue
-                # Prevent moving into itself or its subdirectory
                 if os.path.isdir(src):
                     try:
                         sp = os.path.abspath(src)
@@ -1364,19 +1441,14 @@ class FileExplorer(QWidget):
             urls = [QUrl.fromLocalFile(p) for p in self._cb_paths]
             md = QMimeData()
 
-            # text/uri-list (required by many file managers and desktop environments)
             md.setData("text/uri-list", self._urls_to_text_uri_list(urls))
-
-            # Explicitly also set URLs (Qt will populate platform-native types, e.g., CF_HDROP on Windows)
             md.setUrls(urls)
 
-            # KDE cut flag
             try:
                 md.setData("application/x-kde-cutselection", b"1" if self._cb_mode == 'cut' else b"0")
             except Exception:
                 pass
 
-            # GNOME/Nautilus clipboard semantics (two keys for compatibility)
             try:
                 verb = "cut" if self._cb_mode == 'cut' else "copy"
                 payload = self._build_gnome_payload(urls, verb)
@@ -1385,20 +1457,19 @@ class FileExplorer(QWidget):
             except Exception:
                 pass
 
-            # Windows Explorer "Preferred DropEffect"
             try:
-                effect = 2 if self._cb_mode == 'cut' else 1  # 2=move, 1=copy
+                effect = 2 if self._cb_mode == 'cut' else 1
                 data = struct.pack("<I", effect)
                 md.setData('application/x-qt-windows-mime;value="Preferred DropEffect"', data)
                 md.setData("application/x-qt-windows-mime;value=Preferred DropEffect", data)
-                md.setData("Preferred DropEffect", data)  # fallback
+                md.setData("Preferred DropEffect", data)
             except Exception:
                 pass
 
             cb = QGuiApplication.clipboard()
             cb.setMimeData(md, QClipboard.Clipboard)
             try:
-                cb.setMimeData(md, QClipboard.Selection)  # helps some X11 setups
+                cb.setMimeData(md, QClipboard.Selection)
             except Exception:
                 pass
         except Exception as e:
@@ -1446,7 +1517,6 @@ class FileExplorer(QWidget):
                     except Exception:
                         continue
 
-                # Determine cut/copy flag from various platforms
                 try:
                     if md.hasFormat("application/x-kde-cutselection"):
                         data = bytes(md.data("application/x-kde-cutselection"))
@@ -1466,7 +1536,6 @@ class FileExplorer(QWidget):
                 except Exception:
                     pass
                 try:
-                    # Windows MIME bridge format
                     for key in ('application/x-qt-windows-mime;value="Preferred DropEffect"',
                                 "application/x-qt-windows-mime;value=Preferred DropEffect",
                                 "Preferred DropEffect"):
@@ -1482,7 +1551,6 @@ class FileExplorer(QWidget):
         except Exception:
             paths = []
 
-        # Fallback to internal buffer if system clipboard has no urls
         if not paths and self._cb_paths:
             paths = list(self._cb_paths)
             mode = self._cb_mode or 'copy'
