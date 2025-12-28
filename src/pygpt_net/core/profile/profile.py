@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.12.28 04:00:00                  #
 # ================================================== #
 
 import json
@@ -116,9 +116,19 @@ class Profile:
             'profiles': self.profiles
         }
         json_data = json.dumps(config, indent=4)
+        f_lock = os.path.join(self.base_workdir, self.PROFILE_FILE + '.lock')
         f = os.path.join(self.base_workdir, self.PROFILE_FILE)
-        with open(f, 'w', encoding='utf-8') as f:
-            f.write(json_data)
+        # check lock first
+        if os.path.exists(f_lock):
+            print("WARNING: Profile save aborted, lock exists. Please remove lock file:", f_lock)
+            return  # abort if lock exists
+        with open(f_lock, 'w', encoding='utf-8') as file:
+            file.write('lock')
+        with open(f, 'w', encoding='utf-8') as file:
+            file.write(json_data)
+        # remove lock
+        if os.path.exists(f_lock):
+            os.remove(f_lock)
 
     def add(
             self,

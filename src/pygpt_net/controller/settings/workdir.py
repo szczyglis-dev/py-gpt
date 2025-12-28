@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 13:00:00                  #
+# Updated Date: 2025.12.28 04:00:00                  #
 # ================================================== #
 
 import copy
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from uuid import uuid4
 
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
@@ -50,9 +50,10 @@ class WorkdirWorker(QRunnable):
             force: bool = False,
             current: Optional[str] = None,
             profile_name: Optional[str] = None,
-            profile_uuid: Optional[str] = None,
+            profile_uuid: Optional[Union[str, list]] = None,
             profile_new_name: Optional[str] = None,
             profile_new_path: Optional[str] = None,
+            batch: bool = False,
     ):
         super().__init__()
         self.window = window
@@ -65,6 +66,7 @@ class WorkdirWorker(QRunnable):
         self.profile_new_name = profile_new_name
         self.profile_new_path = profile_new_path
         self.signals = WorkerSignals()
+        self.batch = batch
 
     @Slot()
     def run(self):
@@ -104,22 +106,34 @@ class WorkdirWorker(QRunnable):
         profiles = self.window.controller.settings.profile.get_profiles()
         remove_datadir = True
         remove_db = True
-        if uuid in profiles:
-            profile = profiles[uuid]
-            name = profile['name']
-            path = profile['workdir'].replace("%HOME%", str(Path.home()))
-            # remove profile
-            if self.window.core.config.profile.remove(uuid):
-                if not os.path.exists(path) or not os.path.isdir(path):
-                    self.signals.alert.emit(trans("dialog.profile.alert.path.not_exists"))
-                    return
-                print(f"Clearing workdir: {path}")
-                self.window.core.filesystem.clear_workdir(
-                    path,
-                    remove_db=remove_db,
-                    remove_datadir=remove_datadir,
-                )
-                self.signals.deleted.emit(name)
+        uuids = uuid if isinstance(uuid, list) else [uuid]
+        for uuid in uuids:
+            if uuid in profiles:
+                profile = profiles[uuid]
+                name = profile['name']
+                path = profile['workdir'].replace("%HOME%", str(Path.home()))
+                # remove profile
+                if self.window.core.config.profile.remove(uuid):
+                    if not os.path.exists(path) or not os.path.isdir(path):
+                        if not self.batch:
+                            self.signals.deleted.emit(name)
+                            self.signals.alert.emit(trans("dialog.profile.alert.path.not_exists"))
+                            return
+                        else:
+                            print("Directory not exists, ignoring: ", path)
+                            self.signals.updateGlobalStatus.emit(f"Directory not exists: {path}")
+                            self.signals.deleted.emit(name)
+                            return # nothing to delete
+                    print(f"Clearing workdir: {path}")
+                    try:
+                        self.window.core.filesystem.clear_workdir(
+                            path,
+                            remove_db=remove_db,
+                            remove_datadir=remove_datadir,
+                        )
+                    except Exception as e:
+                        print("Error deleting profile files: ", e)
+                    self.signals.deleted.emit(name)
 
     def worker_duplicate(self):
         """Duplicate profile"""
@@ -168,22 +182,30 @@ class WorkdirWorker(QRunnable):
         current = self.window.core.config.profile.get_current()
         remove_datadir = False
         remove_db = True
-        if uuid in profiles:
-            profile = profiles[uuid]
-            path = profile['workdir'].replace("%HOME%", str(Path.home()))
-            if not os.path.exists(path) or not os.path.isdir(path):
-                self.signals.alert.emit(f"Directory not exists: {path}")
-                return
-            print("Clearing workdir: ", path)
-            self.window.core.db.close()
-            self.window.core.filesystem.clear_workdir(
-                path,
-                remove_db=remove_db,
-                remove_datadir=remove_datadir,
-            )
-            if uuid == current:
-                self.signals.switch.emit(uuid)  # switch to profile
-            self.signals.updateGlobalStatus.emit(f"Profile cleared: {profile['name']}")
+        uuids = uuid if isinstance(uuid, list) else [uuid]
+        for uuid in uuids:
+            if uuid in profiles:
+                profile = profiles[uuid]
+                path = profile['workdir'].replace("%HOME%", str(Path.home()))
+                if not os.path.exists(path) or not os.path.isdir(path):
+                    if not self.batch:
+                        self.signals.alert.emit(f"Directory not exists: {path}")
+                        return
+                    else:
+                        print("Directory not exists, ignoring: ", path)
+                        self.signals.updateGlobalStatus.emit(f"Directory not exists: {path}")
+                        return
+                print("Clearing workdir: ", path)
+                if uuid == current:
+                    self.window.core.db.close()
+                self.window.core.filesystem.clear_workdir(
+                    path,
+                    remove_db=remove_db,
+                    remove_datadir=remove_datadir,
+                )
+                if uuid == current and not self.batch:
+                    self.signals.switch.emit(uuid)  # switch to profile
+                self.signals.updateGlobalStatus.emit(f"Profile cleared: {profile['name']}")
 
     def worker_migrate(self):
         """Migrate working directory"""
@@ -471,9 +493,10 @@ class Workdir:
             force: bool = False,
             current: str = None,
             profile_name: Optional[str] = None,
-            profile_uuid: Optional[str] = None,
+            profile_uuid: Optional[Union[str, list]] = None,
             profile_new_name: Optional[str] = None,
             profile_new_path: Optional[str] = None,
+            batch: bool = False,
     ):
         """
         Run action in thread
@@ -483,9 +506,10 @@ class Workdir:
         :param force: force action (confirm)
         :param current: current working directory (for restore action)
         :param profile_name: profile name (optional, for after update callback)
-        :param profile_uuid: profile UUID (optional, for delete files action)
+        :param profile_uuid: profile UUID (optional, for delete files action) or list of UUIDs
         :param profile_new_name: new profile name (optional, for duplicate action)
         :param profile_new_path: new profile path (optional, for duplicate action)
+        :param batch: if True, run in batch mode (no UI updates)
         """
         worker = WorkdirWorker(
             window=self.window,
@@ -497,6 +521,7 @@ class Workdir:
             profile_uuid=profile_uuid,
             profile_new_name=profile_new_name,
             profile_new_path=profile_new_path,
+            batch=batch,
         )
 
         # connect signals
@@ -569,16 +594,19 @@ class Workdir:
 
     def delete_files(
             self,
-            profile_uuid: str
+            profile_uuid: Union[str, list],
+            batch: bool = False
     ):
         """
         Delete files and directories associated with the profile
 
         :param profile_uuid: profile UUID
+        :param batch: if True, run in batch mode (no UI updates)
         """
         self.run_action(
             action="delete",
             profile_uuid=profile_uuid,
+            batch=batch,
         )
 
     def duplicate(
@@ -603,14 +631,17 @@ class Workdir:
 
     def reset(
             self,
-            profile_uuid: str
+            profile_uuid: Union[str, list],
+            batch: bool = False
     ):
         """
         Reset profile
 
         :param profile_uuid: profile UUID to reset
+        :param batch: if True, run in batch mode (no UI updates)
         """
         self.run_action(
             action="reset",
             profile_uuid=profile_uuid,
+            batch=batch,
         )

@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 13:00:00                  #
+# Updated Date: 2025.12.28 04:00:00                  #
 # ================================================== #
 
 import os
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 
 from PySide6.QtCore import Slot, QTimer
 from PySide6.QtGui import QAction
@@ -173,6 +173,8 @@ class Profile:
             self.setup()
             self.initialized = True
         if not self.dialog or force:
+            self.update_menu()
+            self.update_list()
             self.window.ui.dialogs.open(
                 'profile.editor',
                 width=self.width,
@@ -336,18 +338,26 @@ class Profile:
         uuid = self.get_id_by_idx(idx)
         self.switch(uuid)
 
-    def delete_by_idx(self, idx: int, force: bool = False):
+    def delete_by_idx(self, idx: Union[int, list], force: bool = False):
         """
         Delete profile by index
 
-        :param idx: profile index
+        :param idx: profile index or list of indexes
         :param force: force delete
         """
-        uuid = self.get_id_by_idx(idx)
+        uuids = []
+        ids = idx if isinstance(idx, list) else [idx]
+        for i in ids:
+            uuid = self.get_id_by_idx(i)
+            uuids.append(uuid)
         current = self.window.core.config.profile.get_current()
-        if uuid == current:
-            self.window.ui.dialogs.alert(trans("dialog.profile.alert.delete.current"))
-            return
+        for uuid in list(uuids):
+            if uuid == current:
+                if len(uuids) == 1:
+                    self.window.ui.dialogs.alert(trans("dialog.profile.alert.delete.current"))
+                    return
+                else:
+                    uuids.remove(uuid)  # skip current
         if not force:
             self.window.ui.dialogs.confirm(
                 type='profile.delete',
@@ -355,35 +365,48 @@ class Profile:
                 msg=trans('confirm.profile.delete'),
             )
             return
-        self.delete(uuid)
+        self.delete(uuids)
 
-    def delete(self, uuid: str):
+    def delete(self, uuid: Union[str, list]):
         """
         Delete profile (remove only)
 
-        :param uuid: profile ID
+        :param uuid: profile ID or list of IDs
         """
         profiles = self.get_profiles()
-        if uuid in profiles:
-            profile = profiles[uuid]
-            name = profile['name']
-            if self.window.core.config.profile.remove(uuid):
-                self.window.update_status(trans("dialog.profile.status.removed") + ": " + name)
-                self.update_list()
-                self.update_menu()
+        updated = False
+        ids = uuid if isinstance(uuid, list) else [uuid]
+        for uuid in ids:
+            if uuid in profiles:
+                profile = profiles[uuid]
+                name = profile['name']
+                if self.window.core.config.profile.remove(uuid):
+                    updated = True
+                    self.window.update_status(trans("dialog.profile.status.removed") + ": " + name)
+        if updated:
+            self.update_list()
+            self.update_menu()
 
-    def delete_all_by_idx(self, idx: int, force: bool = False):
+    def delete_all_by_idx(self, idx: Union[int, list], force: bool = False):
         """
         Delete profile with files by index
 
-        :param idx: profile index
+        :param idx: profile index or list of indexes
         :param force: force delete
         """
-        uuid = self.get_id_by_idx(idx)
+        uuids = []
+        ids = idx if isinstance(idx, list) else [idx]
+        for i in ids:
+            uuid = self.get_id_by_idx(i)
+            uuids.append(uuid)
         current = self.window.core.config.profile.get_current()
-        if uuid == current:
-            self.window.ui.dialogs.alert(trans("dialog.profile.alert.delete.current"))
-            return
+        for uuid in list(uuids):
+            if uuid == current:
+                if len(uuids) == 1:
+                    self.window.ui.dialogs.alert(trans("dialog.profile.alert.delete.current"))
+                    return
+                else:
+                    uuids.remove(uuid)  # skip current
         if not force:
             self.window.ui.dialogs.confirm(
                 type='profile.delete.all',
@@ -391,7 +414,7 @@ class Profile:
                 msg=trans('confirm.profile.delete_all'),
             )
             return
-        self.delete_all(uuid)
+        self.delete_all(uuids)
 
     def duplicate_by_idx(self, idx: int):
         """
@@ -416,13 +439,20 @@ class Profile:
         dialog.prepare()
         dialog.show()
 
-    def delete_all(self, uuid: str):
+    def delete_all(self, uuid: Union[str, list]):
         """
         Delete profile with files
 
-        :param uuid: profile ID
+        :param uuid: profile ID or list of IDs
         """
-        self.window.controller.settings.workdir.delete_files(uuid)
+        ids = uuid if isinstance(uuid, list) else [uuid]
+        batch = False
+        if len(ids) > 1:
+            batch = True
+        if not batch:
+            self.window.controller.settings.workdir.delete_files(uuid)
+        else:
+            self.window.controller.settings.workdir.delete_files(ids, batch=batch)
 
     @Slot(str)
     def after_delete(self, name: str):
@@ -468,22 +498,33 @@ class Profile:
         if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
             self.switch(uuid, force=True)
 
-    def reset(self, uuid: str):
+    def reset(self, uuid: Union[str, list]):
         """
         Reset profile
 
-        :param uuid: profile ID
+        :param uuid: profile ID or list of IDs
         """
-        self.window.controller.settings.workdir.reset(uuid)
+        ids = uuid if isinstance(uuid, list) else [uuid]
+        batch = False
+        if len(ids) > 1:
+            batch = True
+        if not batch:
+            self.window.controller.settings.workdir.reset(uuid)
+        else:
+            self.window.controller.settings.workdir.reset(ids, batch=batch)
 
-    def reset_by_idx(self, idx: int, force: bool = False):
+    def reset_by_idx(self, idx: Union[int, list], force: bool = False):
         """
         Reset profile by index
 
-        :param idx: profile index
+        :param idx: profile index or list of indexes
         :param force: force reset
         """
-        uuid = self.get_id_by_idx(idx)
+        uuids = []
+        ids = idx if isinstance(idx, list) else [idx]
+        for i in ids:
+            uuid = self.get_id_by_idx(i)
+            uuids.append(uuid)
         if not force:
             self.window.ui.dialogs.confirm(
                 type='profile.reset',
@@ -491,7 +532,7 @@ class Profile:
                 msg=trans('confirm.profile.reset'),
             )
             return
-        self.reset(uuid)
+        self.reset(uuids)
 
     def is_include_db(self):
         """Get include db"""
