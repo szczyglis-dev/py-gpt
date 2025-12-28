@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2025.12.28 00:00:00                  #
 # ================================================== #
 
 import os
@@ -335,6 +335,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.plugins.save_all()
         print("Saving tools...")
         self.tools.on_exit()
+        print("Closing clients...")
+        self.controller.kernel.close_clients()
         print("Saving layout state...")
         self.controller.layout.save()
         print("Stopping timers...")

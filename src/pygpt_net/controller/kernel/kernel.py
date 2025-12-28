@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2025.12.28 00:00:00                  #
 # ================================================== #
 
 import threading
@@ -402,3 +402,14 @@ class Kernel:
         :return: bool: True if the current thread is the main thread, False otherwise.
         """
         return threading.current_thread() is threading.main_thread()
+
+    def close_clients(self):
+        """
+        Close all active clients associated with the kernel.
+        """
+        w = self.window
+        try:
+            w.core.api.openai.safe_close()
+            w.core.api.google.safe_close()
+        except Exception:
+            pass

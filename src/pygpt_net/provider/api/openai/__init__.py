@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.28 00:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -83,7 +83,9 @@ class ApiOpenAI:
         """
         # prepare client args by mode and model provider
         args = self.window.core.models.prepare_client_args(mode, model)
-        return OpenAI(**args)
+        self.client = OpenAI(**args)
+        self.last_client_args = args  # store last args for debug
+        return self.client
 
     def call(
             self,
