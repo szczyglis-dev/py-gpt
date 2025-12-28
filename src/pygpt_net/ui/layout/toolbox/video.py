@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 12:00:00                  #
+# Updated Date: 2025.12.28 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QWidget, QHBoxLayout
@@ -44,6 +44,10 @@ class Video:
         conf_global['video.aspect_ratio'] = OptionCombo(self.window, 'global', 'video.aspect_ratio', option_ratio)
         conf_global['video.resolution'] = OptionCombo(self.window, 'global', 'video.resolution', option_resolution)
         conf_global['video.duration'] = OptionInput(self.window, 'global', 'video.duration', option_duration)
+
+        conf_global['video.aspect_ratio'].setMinimumWidth(120)
+        conf_global['video.resolution'].setMinimumWidth(120)
+        conf_global['video.duration'].setMinimumWidth(50)
 
         rows = QHBoxLayout()
         rows.addWidget(conf_global['video.resolution'], 2)

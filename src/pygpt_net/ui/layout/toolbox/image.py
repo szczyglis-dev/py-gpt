@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2025.12.28 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget
@@ -52,6 +52,7 @@ class Image:
 
         option_resolutions = self.window.core.image.get_resolution_option()
         conf_global['img_resolution'] = OptionCombo(self.window, 'global', 'img_resolution', option_resolutions)
+        conf_global['img_resolution'].setMinimumWidth(160)
 
         rows = QVBoxLayout()
         rows.addWidget(conf_global['img_variants'])
