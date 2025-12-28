@@ -1,3 +1,5 @@
+# ctx.py
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -6,7 +8,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 21:00:00                  #
+# Updated Date: 2025.12.28 13:40:00                  #
 # ================================================== #
 
 import datetime
@@ -1210,7 +1212,7 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         self._pin_pen = QtGui.QPen(QtCore.Qt.black, 0.5, QtCore.Qt.SolidLine)  # kept for compatibility
         self._pin_diameter = 4            # legacy circle diameter (not used anymore)
         self._pin_margin = 3              # Margin from top and right edges
-        self._attach_spacing = 4          # Kept for potential future layout tweaks
+        self._attach_spacing = 4          # Spacing between right-side icons and/or count
         self._label_bar_width = 4         # Full-height label bar width (left side)
         self._label_v_margin = 3          # 3px top/bottom margin for the label bar
 
@@ -1227,6 +1229,11 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         # Pinned icon sizing (kept deliberately small, similar to previous yellow dot)
         # The actual painted size is min(max_size, availableHeightWithMargins)
         self._pin_icon_max_size = 12  # px
+
+        # Right-aligned counter for group rows
+        self._group_count_left_gap = 12
+        self._group_count_right_margin = 8
+        self._group_count_color = QColor(128, 128, 128)  # hard-coded gray
 
         # Try to load customization from application config (safe if missing)
         self._init_group_indicator_from_config()
@@ -1326,19 +1333,74 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         except Exception:
             is_group = False
 
-        # Default painting:
-        # - For groups: translate painter -8 px to push folder/icon closer to the left edge.
-        # - For others: paint normally.
         if is_group:
+            # Fetch group metadata stored in UserRole
+            data = index.data(QtCore.Qt.ItemDataRole.UserRole) or {}
+            count = int(data.get("count", 0)) if isinstance(data, dict) and "count" in data else 0
+            has_attachment = bool(data.get("is_attachment", False))
+
+            # Prepare sizes and reserve space for right-side widgets (count and optional attachment icon)
+            fm = option.fontMetrics
+            icon_size = option.decorationSize or QtCore.QSize(16, 16)
+
+            count_text = str(count) if count > 0 else ""
+            count_w = fm.horizontalAdvance(count_text) if count_text else 0
+
+            reserve = 0
+            if count_text:
+                reserve += count_w + self._group_count_left_gap
+            if has_attachment:
+                # keep space for spacing between count and icon (if count exists), the icon itself and right margin
+                reserve += (self._attach_spacing if count_text else 0) + icon_size.width() + self._group_count_right_margin
+            else:
+                # with no attachment, keep the right margin next to the counter if counter exists
+                if count_text:
+                    reserve += self._group_count_right_margin
+
+            # Paint the standard cell content with a reduced rect (to avoid overlap with counter/icon)
+            opt = QtWidgets.QStyleOptionViewItem(option)
+            if reserve > 0:
+                opt.rect = opt.rect.adjusted(0, 0, -int(reserve), 0)
+
             painter.save()
             painter.translate(-2, 0)
-            super(ImportantItemDelegate, self).paint(painter, option, index)
+            super(ImportantItemDelegate, self).paint(painter, opt, index)
+            painter.restore()
+
+            # Draw right-side widgets: attachment icon (if any) at the far right, then the counter to its left
+            painter.save()
+
+            # Compute right edge baseline
+            right_edge = option.rect.right()
+            next_right = right_edge
+
+            # Draw attachment icon at the far right, vertically centered
+            if has_attachment:
+                icon_x = right_edge - self._group_count_right_margin - icon_size.width()
+                icon_y = option.rect.top() + (option.rect.height() - icon_size.height()) // 2
+                icon_rect = QtCore.QRect(icon_x, icon_y, icon_size.width(), icon_size.height())
+                self._attachment_icon.paint(painter, icon_rect, QtCore.Qt.AlignCenter)
+                next_right = icon_x - self._attach_spacing  # leave spacing before the counter
+
+            # Draw the counter to the left of either the icon or the right margin
+            if count_text:
+                left_edge_for_count = opt.rect.right() + self._group_count_left_gap
+                right_edge_for_count = next_right if has_attachment else (right_edge - self._group_count_right_margin)
+                count_rect = QtCore.QRect(
+                    left_edge_for_count,
+                    option.rect.top(),
+                    max(0, right_edge_for_count - left_edge_for_count),
+                    option.rect.height()
+                )
+                painter.setPen(self._group_count_color)
+                painter.drawText(count_rect, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight, count_text)
+
             painter.restore()
         else:
+            # Default painting for non-group rows
             super(ImportantItemDelegate, self).paint(painter, option, index)
 
-        # Group enclosure indicator (left bar + bottom bar on last child)
-        # This applies only to child rows (i.e., when a group is expanded).
+        # Group enclosure indicator (left bar) for child rows
         if self._group_indicator_enabled and not is_group and is_child and self._group_indicator_width > 0:
             try:
                 painter.save()

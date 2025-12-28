@@ -1,3 +1,5 @@
+# list.py
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -6,7 +8,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 22:00:00                  #
+# Updated Date: 2025.12.28 12:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -265,14 +267,17 @@ class CtxList:
             if c == 0 and search_string:
                 continue
 
-            suffix = f" ({c})" if c > 0 else ""
+            # Display only the group name; the counter is drawn by delegate on the right
             is_attachment = group.has_additional_ctx()
-            group_name = group.name + suffix
+            group_name = group.name
             group_item = GroupItem(folder_icon, group_name, group.id)
             group_item.hasAttachments = is_attachment
+
+            # Provide all metadata required by the delegate
             custom_data = {
                 "is_group": True,
                 "is_attachment": is_attachment,
+                "count": c,
             }
 
             if is_attachment:
