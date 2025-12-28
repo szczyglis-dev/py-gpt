@@ -258,6 +258,7 @@ class Preset(BaseConfigDialog):
         personalize_rows.addWidget(self.window.ui.nodes['preset.editor.avatar'])
         personalize_rows.addStretch(1)
         personalize_rows.addWidget(warn_label)
+        personalize_rows.setContentsMargins(10, 30, 10, 0)
 
         rows.setContentsMargins(0, 0, 0, 0)
         rows.addStretch(1)
