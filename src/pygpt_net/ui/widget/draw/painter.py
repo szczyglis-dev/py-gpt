@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 12:00:00                  #
+# Updated Date: 2025.12.28 14:30:00                  #
 # ================================================== #
 
 import datetime
 import os
 import bisect
+import math
 from collections import deque
 
 from PySide6.QtCore import Qt, QPoint, QPointF, QRect, QSize, QSaveFile, QIODevice, QTimer, Signal
@@ -154,6 +155,9 @@ class PainterWidget(QWidget):
         self._ctx_menu.addAction(self._act_paste)
         self._ctx_menu.addAction(self._act_save)
         self._ctx_menu.addAction(self._act_clear)
+
+        # Composite state: mark when self.image is out-of-date relative to layers
+        self._compositeDirty = True  # True => recomposition needed before exporting/copying
 
         # Allocate initial buffers
         self._ensure_layers()
@@ -411,6 +415,26 @@ class PainterWidget(QWidget):
         h = int(round(rc.height() * self.zoom))
         return QRect(x, y, w, h)
 
+    def _widget_rect_to_canvas_rect(self, rc: QRect) -> QRect:
+        """
+        Map a widget rect (in display pixels) to a canvas rect (in canvas pixels).
+        Uses floor/ceil to ensure coverage and clamps to canvas bounds.
+        """
+        if rc.isNull() or rc.width() <= 0 or rc.height() <= 0:
+            return QRect()
+        inv = 1.0 / max(1e-6, self.zoom)
+        x1 = int(math.floor(rc.x() * inv))
+        y1 = int(math.floor(rc.y() * inv))
+        x2 = int(math.ceil((rc.x() + rc.width()) * inv))
+        y2 = int(math.ceil((rc.y() + rc.height()) * inv))
+        x1 = max(0, min(self._canvasSize.width(), x1))
+        y1 = max(0, min(self._canvasSize.height(), y1))
+        x2 = max(0, min(self._canvasSize.width(), x2))
+        y2 = max(0, min(self._canvasSize.height(), y2))
+        w = max(0, x2 - x1)
+        h = max(0, y2 - y1)
+        return QRect(x1, y1, w, h)
+
     def _parse_percent(self, text: str) -> int | None:
         """
         Parse '150%' -> 150.
@@ -432,6 +456,19 @@ class PainterWidget(QWidget):
 
     # ---------- Layer & composition helpers ----------
 
+    def _mark_composite_dirty(self):
+        """Mark the composited image cache as dirty."""
+        self._compositeDirty = True
+
+    def _ensure_composited_image(self):
+        """
+        Ensure that self.image reflects current baseCanvas + drawingLayer.
+        This is used for exporting/copying, not for on-screen painting.
+        """
+        if self._compositeDirty:
+            self._recompose()
+            self._compositeDirty = False
+
     def _ensure_layers(self):
         """Ensure baseCanvas, drawingLayer, and image are allocated to current canvas size."""
         sz = self._canvasSize
@@ -441,14 +478,17 @@ class PainterWidget(QWidget):
         if self.baseCanvas is None or self.baseCanvas.size() != sz:
             self.baseCanvas = QImage(sz, QImage.Format_RGB32)
             self.baseCanvas.fill(Qt.white)
+            self._mark_composite_dirty()
 
         if self.drawingLayer is None or self.drawingLayer.size() != sz:
             self.drawingLayer = QImage(sz, QImage.Format_ARGB32_Premultiplied)
             self.drawingLayer.fill(Qt.transparent)
+            self._mark_composite_dirty()
 
         if self.image.size() != sz:
             self.image = QImage(sz, QImage.Format_RGB32)
             self.image.fill(Qt.white)
+            self._mark_composite_dirty()
 
     def _rescale_base_from_source(self):
         """Rebuild baseCanvas from sourceImageOriginal to fit current canvas, preserving aspect ratio."""
@@ -456,6 +496,7 @@ class PainterWidget(QWidget):
         self.baseCanvas.fill(Qt.white)
         self.baseTargetRect = QRect()
         if self.sourceImageOriginal is None or self.sourceImageOriginal.isNull():
+            self._mark_composite_dirty()
             return
 
         canvas_size = self._canvasSize
@@ -469,6 +510,7 @@ class PainterWidget(QWidget):
         p.setRenderHint(QPainter.SmoothPixmapTransform, True)
         p.drawImage(self.baseTargetRect, src)
         p.end()
+        self._mark_composite_dirty()
 
     def _recompose(self):
         """Compose final canvas image from baseCanvas + drawingLayer."""
@@ -526,48 +568,61 @@ class PainterWidget(QWidget):
             self.sourceImageOriginal = QImage(state['src']) if state['src'] is not None else None
             self.baseTargetRect = QRect(state['baseRect']) if state['baseRect'] is not None else QRect()
 
-            self._recompose()
+            self._mark_composite_dirty()
             self._update_widget_size_from_zoom()
             self.update()
 
     def _is_fit_available(self) -> bool:
         """
         Return True if there are letterbox margins that can be trimmed.
+        Uses lightweight checks to avoid heavy full-image scans during menu opening.
 
         :return: True if fit action is available
         """
-        self._recompose()
-
+        # If the scaled source does not cover the whole canvas, trimming is possible
         if self.baseTargetRect.isValid() and not self.baseTargetRect.isNull():
             if self.baseTargetRect.width() < self._canvasSize.width() or self.baseTargetRect.height() < self._canvasSize.height():
                 return True
 
-        bounds = self._detect_nonwhite_bounds(self.image)
+        # Otherwise, if there is any non-transparent stroke content that doesn't span entire canvas, fit may trim
+        bounds = self._detect_nontransparent_bounds(self.drawingLayer)
         if bounds is not None:
             return bounds.width() < self._canvasSize.width() or bounds.height() < self._canvasSize.height()
         return False
 
+    def _compute_fit_rect(self) -> QRect | None:
+        """
+        Compute a fit rectangle based on the scaled source rect and drawn content.
+        This avoids recomposing a full image and scanning all pixels in RGB.
+        """
+        if self._canvasSize.isEmpty():
+            return None
+        canvas_rect = QRect(0, 0, self._canvasSize.width(), self._canvasSize.height())
+        result = None
+
+        if self.baseTargetRect.isValid() and not self.baseTargetRect.isNull():
+            result = self.baseTargetRect.intersected(canvas_rect)
+
+        draw_bounds = self._detect_nontransparent_bounds(self.drawingLayer)
+        if draw_bounds is not None and not draw_bounds.isNull():
+            result = draw_bounds if result is None else result.united(draw_bounds)
+
+        if result is None or result.isNull():
+            return None
+        return result
+
     def action_fit(self):
         """Trim white letterbox margins and resize canvas to the scaled image area. Undo-safe."""
-        if not self._is_fit_available():
+        # Use lightweight fit computation
+        fit_rect = self._compute_fit_rect()
+        if fit_rect is None:
+            return
+
+        if fit_rect.width() == self._canvasSize.width() and fit_rect.height() == self._canvasSize.height():
             return
 
         self.saveForUndo()
         self._ensure_layers()
-        self._recompose()
-
-        fit_rect = None
-        if self.baseTargetRect.isValid() and not self.baseTargetRect.isNull():
-            canvas_rect = QRect(0, 0, self._canvasSize.width(), self._canvasSize.height())
-            fit_rect = self.baseTargetRect.intersected(canvas_rect)
-
-        if fit_rect is None or fit_rect.isNull() or fit_rect.width() <= 0 or fit_rect.height() <= 0:
-            fit_rect = self._detect_nonwhite_bounds(self.image)
-            if fit_rect is None or fit_rect.isNull() or fit_rect.width() <= 0 or fit_rect.height() <= 0:
-                return
-
-        if fit_rect.width() == self._canvasSize.width() and fit_rect.height() == self._canvasSize.height():
-            return
 
         new_base = self.baseCanvas.copy(fit_rect)
         new_draw = self.drawingLayer.copy(fit_rect)
@@ -576,6 +631,7 @@ class PainterWidget(QWidget):
             'base': QImage(new_base),
             'draw': QImage(new_draw),
         }
+        self._mark_composite_dirty()
 
         self.window.controller.painter.common.change_canvas_size(f"{fit_rect.width()}x{fit_rect.height()}")
         self.update()
@@ -651,6 +707,61 @@ class PainterWidget(QWidget):
 
         return QRect(left, top, right - left + 1, bottom - top + 1)
 
+    def _detect_nontransparent_bounds(self, img: QImage) -> QRect | None:
+        """
+        Fast bounds detection for drawing layer: scans alpha channel only.
+
+        :param img: ARGB image
+        :return: QRect of non-transparent content or None
+        """
+        if img is None or img.isNull():
+            return None
+        w, h = img.width(), img.height()
+        if w <= 0 or h <= 0:
+            return None
+
+        left = -1
+        for x in range(w):
+            for y in range(h):
+                if img.pixelColor(x, y).alpha() > 0:
+                    left = x
+                    break
+            if left != -1:
+                break
+        if left == -1:
+            return None
+
+        right = -1
+        for x in range(w - 1, -1, -1):
+            for y in range(h):
+                if img.pixelColor(x, y).alpha() > 0:
+                    right = x
+                    break
+            if right != -1:
+                break
+
+        top = -1
+        for y in range(h):
+            for x in range(left, right + 1):
+                if img.pixelColor(x, y).alpha() > 0:
+                    top = y
+                    break
+            if top != -1:
+                break
+
+        bottom = -1
+        for y in range(h - 1, -1, -1):
+            for x in range(left, right + 1):
+                if img.pixelColor(x, y).alpha() > 0:
+                    bottom = y
+                    break
+            if bottom != -1:
+                break
+
+        if right < left or bottom < top:
+            return None
+        return QRect(left, top, right - left + 1, bottom - top + 1)
+
     # ---------- Public API (clipboard, file, actions) ----------
 
     def handle_paste(self):
@@ -664,7 +775,7 @@ class PainterWidget(QWidget):
 
     def handle_copy(self):
         """Handle clipboard copy"""
-        self._recompose()
+        self._ensure_composited_image()
         clipboard = QApplication.clipboard()
         clipboard.setImage(self.image)
 
@@ -676,11 +787,14 @@ class PainterWidget(QWidget):
         """
         self._act_undo.setEnabled(self.has_undo())
         self._act_redo.setEnabled(self.has_redo())
-        self._act_fit.setEnabled(self._is_fit_available())
 
+        # Enable paste based on clipboard; avoid heavy 'fit' checks here to keep menu snappy
         clipboard = QApplication.clipboard()
         mime_data = clipboard.mimeData()
         self._act_paste.setEnabled(bool(mime_data.hasImage()))
+
+        # Keep Fit enabled; the action validates availability when executed
+        self._act_fit.setEnabled(True)
 
         self._ctx_menu.exec(event.globalPos())
 
@@ -702,7 +816,7 @@ class PainterWidget(QWidget):
 
     def action_save(self):
         """Save image to file"""
-        self._recompose()
+        self._ensure_composited_image()
         name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".png"
         path, _ = QFileDialog.getSaveFileName(
             self,
@@ -746,7 +860,7 @@ class PainterWidget(QWidget):
             self._ensure_layers()
             self._rescale_base_from_source()
             self.drawingLayer.fill(Qt.transparent)
-            self._recompose()
+            self._mark_composite_dirty()
         else:
             pass
 
@@ -768,7 +882,7 @@ class PainterWidget(QWidget):
             self._ensure_layers()
             self._rescale_base_from_source()
             self.drawingLayer.fill(Qt.transparent)
-            self._recompose()
+            self._mark_composite_dirty()
         self.update()
 
     def scale_to_fit(self, image):
@@ -784,7 +898,7 @@ class PainterWidget(QWidget):
     def saveForUndo(self):
         """Save current state for undo"""
         self._ensure_layers()
-        self._recompose()
+        self._ensure_composited_image()
         self.undoStack.append(self._snapshot_state())
         self.redoStack.clear()
 
@@ -871,7 +985,7 @@ class PainterWidget(QWidget):
 
             return self._save_image_atomic(result, path)
 
-        self._recompose()
+        self._ensure_composited_image()
         return self._save_image_atomic(self.image, path)
 
     def _save_image_atomic(self, img: QImage, path: str, fmt: str = None, quality: int = -1) -> bool:
@@ -951,7 +1065,7 @@ class PainterWidget(QWidget):
         self.sourceImageOriginal = None
         self.baseCanvas.fill(Qt.white)
         self.drawingLayer.fill(Qt.transparent)
-        self._recompose()
+        self._mark_composite_dirty()
         self.update()
 
     # ---------- Crop tool ----------
@@ -990,6 +1104,7 @@ class PainterWidget(QWidget):
             'base': QImage(new_base),
             'draw': QImage(new_draw),
         }
+        self._mark_composite_dirty()
 
         if self.sourceImageOriginal is not None and not self.baseTargetRect.isNull():
             inter = sel.intersected(self.baseTargetRect)
@@ -1211,6 +1326,20 @@ class PainterWidget(QWidget):
             return
         super().wheelEvent(event)
 
+    def _dirty_canvas_rect_for_point(self, pt_canvas: QPoint, pen_width: int) -> QRect:
+        """Compute dirty canvas rect around a single painted point."""
+        r = max(1, int(math.ceil(pen_width / 2))) + 2
+        return QRect(pt_canvas.x() - r, pt_canvas.y() - r, 2 * r + 1, 2 * r + 1)
+
+    def _dirty_canvas_rect_for_segment(self, a: QPoint, b: QPoint, pen_width: int) -> QRect:
+        """Compute dirty canvas rect for a line segment between two canvas points."""
+        x1 = min(a.x(), b.x())
+        y1 = min(a.y(), b.y())
+        x2 = max(a.x(), b.x())
+        y2 = max(a.y(), b.y())
+        pad = max(1, int(math.ceil(pen_width / 2))) + 2
+        return QRect(x1 - pad, y1 - pad, (x2 - x1) + 2 * pad + 1, (y2 - y1) + 2 * pad + 1)
+
     def mousePressEvent(self, event):
         """
         Mouse press event
@@ -1253,8 +1382,11 @@ class PainterWidget(QWidget):
                 p.setPen(self._pen)
             p.drawPoint(self.lastPointCanvas)
             p.end()
-            self._recompose()
-            self.update()
+            self._mark_composite_dirty()
+
+            # Update only the affected region
+            dirty_canvas = self._dirty_canvas_rect_for_point(self.lastPointCanvas, self.brushSize)
+            self.update(self._from_canvas_rect(dirty_canvas))
 
     def mouseMoveEvent(self, event):
         """
@@ -1288,9 +1420,12 @@ class PainterWidget(QWidget):
                 p.setPen(self._pen)
             p.drawLine(self.lastPointCanvas, cur)
             p.end()
+            self._mark_composite_dirty()
+
+            # Update only the affected region for this segment
+            dirty_canvas = self._dirty_canvas_rect_for_segment(self.lastPointCanvas, cur, self.brushSize)
             self.lastPointCanvas = cur
-            self._recompose()
-            self.update()
+            self.update(self._from_canvas_rect(dirty_canvas))
 
     def mouseReleaseEvent(self, event):
         """
@@ -1333,14 +1468,22 @@ class PainterWidget(QWidget):
 
         :param event: Event
         """
-        if self.image.size() != self._canvasSize:
+        # Ensure layers are valid; avoid recomposing the full image here.
+        if self.baseCanvas is None or self.drawingLayer is None:
             self._ensure_layers()
-            self._rescale_base_from_source()
-            self._recompose()
 
         p = QPainter(self)
-        # Draw composited canvas scaled to display rect
-        p.drawImage(self.rect(), self.image, self.image.rect())
+
+        # Paint only the region requested by Qt; map it to canvas to avoid scaling the whole image.
+        target_rect = event.rect()
+        if not target_rect.isNull():
+            src_rect = self._widget_rect_to_canvas_rect(target_rect)
+            if not src_rect.isNull():
+                # Draw base
+                p.drawImage(target_rect, self.baseCanvas, src_rect)
+                # Draw strokes on top
+                p.setCompositionMode(QPainter.CompositionMode_SourceOver)
+                p.drawImage(target_rect, self.drawingLayer, src_rect)
 
         # Draw crop overlay if active (convert canvas selection to display coords)
         if self.cropping and not self._selectionRect.isNull():
@@ -1362,7 +1505,7 @@ class PainterWidget(QWidget):
             p.drawRect(sel_view.adjusted(0, 0, -1, -1))
 
         p.end()
-        self.originalImage = self.image
+        # Leave self.image stale until explicitly requested; avoids recomposition on every frame.
 
     def resizeEvent(self, event):
         """
@@ -1433,6 +1576,7 @@ class PainterWidget(QWidget):
 
             self._pendingResizeApply = None
             self.baseTargetRect = QRect(0, 0, self.baseCanvas.width(), self.baseCanvas.height())
+            self._mark_composite_dirty()
         else:
             # Rebuild background from original source
             self._rescale_base_from_source()
@@ -1441,8 +1585,8 @@ class PainterWidget(QWidget):
             if old_size.isValid() and (old_size.width() > 0 and old_size.height() > 0) and \
                     (self.drawingLayer is not None) and (self.drawingLayer.size() != new_size):
                 self.drawingLayer = self.drawingLayer.scaled(new_size, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+                self._mark_composite_dirty()
 
-        self._recompose()
         self.update()
 
     def eventFilter(self, source, event):
