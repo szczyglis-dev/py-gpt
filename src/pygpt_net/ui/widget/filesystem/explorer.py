@@ -723,6 +723,8 @@ class FileExplorer(QWidget):
             'paste': QIcon(":/icons/paste.svg"),
             'read': QIcon(":/icons/view.svg"),
             'db': QIcon(":/icons/db.svg"),
+            'pack': QIcon(":/icons/upload.svg"),
+            'unpack': QIcon(":/icons/download.svg"),
         }
 
         try:
@@ -996,6 +998,16 @@ class FileExplorer(QWidget):
             actions['paste'].triggered.connect(lambda: self.action_paste_into(parent))
             actions['paste'].setEnabled(self._can_paste())
 
+            # Pack / Unpack availability
+            try:
+                can_unpack_all = all(
+                    os.path.isfile(p) and self.window.core.filesystem.packer.can_unpack(p)
+                    for p in paths
+                )
+            except Exception:
+                can_unpack_all = False
+
+            # Build menu
             menu = QMenu(self)
             if preview_actions:
                 for action in preview_actions:
@@ -1076,6 +1088,23 @@ class FileExplorer(QWidget):
             menu.addAction(actions['paste'])
             menu.addSeparator()
 
+            # Pack submenu (available for any selection)
+            pack_menu = QMenu(trans("action.pack"), self)
+            a_zip = QAction(self._icons['pack'], "ZIP (.zip)", self)
+            a_zip.triggered.connect(lambda: self.action_pack(target_multi, 'zip'))
+            a_tgz = QAction(self._icons['pack'], "Tar GZip (.tar.gz)", self)
+            a_tgz.triggered.connect(lambda: self.action_pack(target_multi, 'tar.gz'))
+            pack_menu.addAction(a_zip)
+            pack_menu.addAction(a_tgz)
+            menu.addMenu(pack_menu)
+
+            # Unpack (only when all selected are supported archives)
+            if can_unpack_all:
+                a_unpack = QAction(self._icons['unpack'], trans("action.unpack"), self)
+                a_unpack.triggered.connect(lambda: self.action_unpack(target_multi))
+                menu.addAction(a_unpack)
+
+            menu.addSeparator()
             menu.addAction(actions['download'])
             menu.addAction(actions['touch'])
             menu.addAction(actions['mkdir'])
@@ -1179,6 +1208,59 @@ class FileExplorer(QWidget):
         :param path: path to delete (str or list of str)
         """
         self.window.controller.files.delete(path)
+
+    def action_pack(self, path: Union[str, list], fmt: str):
+        """
+        Pack selected items into an archive.
+
+        :param path: path or list of paths to include
+        :param fmt: 'zip' or 'tar.gz'
+        """
+        paths = path if isinstance(path, list) else [path]
+        try:
+            dst = self.window.core.filesystem.packer.pack_paths(paths, fmt)
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+            dst = None
+
+        try:
+            self.window.controller.files.update_explorer()
+        except Exception:
+            self.update_view()
+
+        if dst and os.path.exists(dst):
+            self._reveal_paths([dst], select_first=True)
+
+    def action_unpack(self, path: Union[str, list]):
+        """
+        Unpack selected archives to sibling directories named after archives.
+
+        :param path: path or list of paths to archives
+        """
+        paths = path if isinstance(path, list) else [path]
+        created = []
+        for p in paths:
+            try:
+                if self.window.core.filesystem.packer.can_unpack(p):
+                    out_dir = self.window.core.filesystem.packer.unpack_to_sibling_dir(p)
+                    if out_dir:
+                        created.append(out_dir)
+            except Exception as e:
+                try:
+                    self.window.core.debug.log(e)
+                except Exception:
+                    pass
+
+        try:
+            self.window.controller.files.update_explorer()
+        except Exception:
+            self.update_view()
+
+        if created:
+            self._reveal_paths(created, select_first=True)
 
     # ===== Copy / Cut / Paste API =====
 

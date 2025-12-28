@@ -480,3 +480,73 @@ class Filesystem:
         else:
             files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
         return files
+
+    # ===== Helpers for pack/unpack =====
+
+    def common_parent_dir(self, paths: List[str]) -> str:
+        """
+        Return a sensible common parent directory for the given paths.
+        For a single directory selection returns that directory; for a single file returns its parent.
+        For multiple selections returns a common existing parent, if resolvable, otherwise the parent of the first path.
+        """
+        if not paths:
+            return self.window.core.config.get_user_path()
+        norm = []
+        for p in paths:
+            p = os.path.abspath(p)
+            norm.append(p if os.path.isdir(p) else os.path.dirname(p))
+        if len(norm) == 1:
+            return norm[0]
+        try:
+            cp = os.path.commonpath(norm)
+            if os.path.isdir(cp):
+                return cp
+            return os.path.dirname(cp)
+        except Exception:
+            return norm[0]
+
+    def unique_path(self, directory: str, base_name: str, ext: str) -> str:
+        """
+        Return a unique file path within 'directory' for 'base_name' and 'ext' (ext should include dot or be empty).
+        Uses 'name', 'name (1)', 'name (2)', ... scheme.
+        """
+        os.makedirs(directory, exist_ok=True)
+        candidate = os.path.join(directory, f"{base_name}{ext}")
+        if not os.path.exists(candidate):
+            return candidate
+        i = 1
+        while True:
+            cand = os.path.join(directory, f"{base_name} ({i}){ext}")
+            if not os.path.exists(cand):
+                return cand
+            i += 1
+
+    def unique_dir(self, directory: str, base_name: str) -> str:
+        """
+        Return a unique directory path 'directory/base_name', adding ' (n)' suffix when needed.
+        """
+        os.makedirs(directory, exist_ok=True)
+        candidate = os.path.join(directory, base_name)
+        if not os.path.exists(candidate):
+            return candidate
+        i = 1
+        while True:
+            cand = os.path.join(directory, f"{base_name} ({i})")
+            if not os.path.exists(cand):
+                return cand
+            i += 1
+
+    def strip_archive_name(self, filename: str) -> str:
+        """
+        Strip known archive extensions (.zip, .tar, .tar.gz, .tar.bz2, .tar.xz, .tgz, .tbz2, .txz) from a filename.
+        Returns filename without extension(s).
+        """
+        combos = ['.tar.gz', '.tar.bz2', '.tar.xz', '.tgz', '.tbz2', '.txz']
+        lower = filename.lower()
+        for suf in combos:
+            if lower.endswith(suf):
+                return filename[:-len(suf)]
+        root, ext = os.path.splitext(filename)
+        if ext.lower() in ('.zip', '.tar'):
+            return root
+        return root
