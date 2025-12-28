@@ -47,8 +47,12 @@ class Common:
         :param width: Canvas width
         :param height: Canvas height
         """
-        # Change logical canvas size explicitly (never via raw widget resize)
-        self.window.ui.painter.set_canvas_size_pixels(width, height)
+        painter = self.window.ui.painter
+        if hasattr(painter, "set_canvas_size_pixels"):
+            painter.set_canvas_size_pixels(width, height)
+        else:
+            # required on image open
+            self.window.ui.painter.setFixedSize(QSize(width, height))
 
     def set_brush_mode(self, enabled: bool):
         """
@@ -82,14 +86,21 @@ class Common:
         if self._changing_canvas_size:
             return
 
-        combo: QComboBox = self.window.ui.nodes['painter.select.canvas.size']
+        # Be resilient if combobox node is not present in a given UI layout
+        combo: Optional[QComboBox] = None
+        try:
+            if hasattr(self.window.ui, "nodes"):
+                combo = self.window.ui.nodes.get('painter.select.canvas.size', None)
+        except Exception:
+            combo = None
+
         painter = self.window.ui.painter
 
         # Heuristic to detect manual UI change vs programmatic call
         # - manual if: no arg, or int index (Qt int overload), or arg equals currentText/currentData
         raw_arg = selected
-        current_text = combo.currentText()
-        current_data = combo.currentData()
+        current_text = combo.currentText() if combo is not None else ""
+        current_data = combo.currentData() if combo is not None else None
         current_data_str = current_data if isinstance(current_data, str) else None
         is_manual = (
             raw_arg is None
@@ -106,12 +117,11 @@ class Common:
         if not selected_norm:
             return
 
-        # Compare against true logical canvas size (not the widget/display size)
+        # Use true logical canvas size when available
         if hasattr(painter, "get_canvas_size"):
             cur_sz = painter.get_canvas_size()
             cur_val = f"{cur_sz.width()}x{cur_sz.height()}"
         else:
-            # Fallback: widget size (may be display size under zoom)
             cur_val = f"{painter.width()}x{painter.height()}"
 
         # Save undo only for manual changes and only if size will change
@@ -133,9 +143,10 @@ class Common:
                     self._sticky_custom_value = selected_norm
 
             # Ensure combo reflects single custom at index 0 (sticky respected), then select current value
-            self._sync_canvas_size_combo(combo, selected_norm, sticky_to_keep=self._sticky_custom_value)
+            if combo is not None:
+                self._sync_canvas_size_combo(combo, selected_norm, sticky_to_keep=self._sticky_custom_value)
 
-            # Apply canvas size; PainterWidget handles rescaling internally
+            # Apply canvas size; PainterWidget handles rescaling in its own logic
             w, h = self.convert_to_size(selected_norm)
             self.set_canvas_size(w, h)
 
@@ -281,7 +292,13 @@ class Common:
         if self._changing_canvas_size:
             return
 
-        combo: QComboBox = self.window.ui.nodes['painter.select.canvas.size']
+        combo: Optional[QComboBox] = None
+        try:
+            if hasattr(self.window.ui, "nodes"):
+                combo = self.window.ui.nodes.get('painter.select.canvas.size', None)
+        except Exception:
+            combo = None
+
         painter = self.window.ui.painter
 
         # Use true logical canvas size, not widget size
@@ -307,7 +324,8 @@ class Common:
         try:
             self._changing_canvas_size = True
             self._sticky_custom_value = sticky
-            self._sync_canvas_size_combo(combo, canvas_norm, sticky_to_keep=sticky)
+            if combo is not None:
+                self._sync_canvas_size_combo(combo, canvas_norm, sticky_to_keep=sticky)
 
             # Persist canvas size only (do not change sticky config-scope)
             self.window.core.config.set('painter.canvas.size', canvas_norm)
@@ -424,7 +442,6 @@ class Common:
                 combo.setCurrentText(value)
         else:
             # Current value is custom: ensure it exists at index 0 and select it
-            # If sticky differs or is None, overwrite/create the custom at index 0 to reflect true current value.
             if not sticky_to_keep or sticky_to_keep != value:
                 self._ensure_custom_index0(combo, value, predef)
             if combo.currentIndex() != 0:
