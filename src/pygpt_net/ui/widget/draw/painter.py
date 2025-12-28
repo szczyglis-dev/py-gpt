@@ -42,6 +42,9 @@ class PainterWidget(QWidget):
         self._zoomSteps = [0.10, 0.25, 0.50, 0.75, 1.00, 1.50, 2.00, 5.00, 10.00]
         self._zoomResizeInProgress = False  # guard used during display-size updates caused by zoom
 
+        # Guard to mark an explicit logical canvas resize (controller-driven)
+        self._canvasResizeInProgress = False
+
         # Final composited image (canvas-sized). Kept for API compatibility.
         self.image = QImage(self._canvasSize, QImage.Format_RGB32)
 
@@ -165,6 +168,43 @@ class PainterWidget(QWidget):
         :param tab: Tab
         """
         self.tab = tab
+
+    # ---------- Canvas public API (explicit, zoom-independent) ----------
+
+    def set_canvas_size_pixels(self, width: int, height: int):
+        """
+        Explicitly set logical canvas size in pixels.
+        This never depends on view zoom and never uses parent/layout resizes.
+
+        :param width: canvas width in pixels
+        :param height: canvas height in pixels
+        """
+        w = max(1, int(width))
+        h = max(1, int(height))
+
+        if self._canvasSize.width() == w and self._canvasSize.height() == h:
+            # Keep display size consistent with current zoom
+            self._update_widget_size_from_zoom()
+            return
+
+        old_canvas = QSize(self._canvasSize)
+        self._canvasSize = QSize(w, h)
+
+        self._canvasResizeInProgress = True
+        try:
+            self._handle_canvas_resized(old_canvas, self._canvasSize)
+            # After logical resize, update the displayed size according to zoom
+            self._update_widget_size_from_zoom()
+        finally:
+            self._canvasResizeInProgress = False
+
+    def get_canvas_size(self) -> QSize:
+        """
+        Return current logical canvas size (pixels).
+
+        :return: QSize of canvas
+        """
+        return QSize(self._canvasSize)
 
     # ---------- Zoom public API ----------
 
@@ -1326,26 +1366,29 @@ class PainterWidget(QWidget):
 
     def resizeEvent(self, event):
         """
-        Update layers on canvas size change; ignore display-only resizes from zoom.
-
-        :param event: Event
+        Update layers on canvas size change; ignore layout/display resizes unless explicitly requested.
+        Only two kinds of resizes are acted upon:
+        - canvas resize requested via set_canvas_size_pixels() -> _canvasResizeInProgress
+        - display-only resizes initiated by zoom -> _zoomResizeInProgress
+        Any other widget/layout resize will be ignored for canvas logic.
         """
         new_widget_size = event.size()
-        expected_display = QSize(max(1, int(round(self._canvasSize.width() * self.zoom))),
-                                 max(1, int(round(self._canvasSize.height() * self.zoom))))
 
-        # External canvas resize (e.g. controller.change_canvas_size -> setFixedSize(canvas))
-        if new_widget_size != expected_display and not self._zoomResizeInProgress:
-            old_canvas = QSize(self._canvasSize)
-            # Adopt widget size as the new logical canvas size
-            self._canvasSize = QSize(new_widget_size)
-            self._handle_canvas_resized(old_canvas, self._canvasSize)
-            # After canvas change, enforce current zoom on the display size
+        # Explicit logical canvas resize requested by controller
+        if self._canvasResizeInProgress:
+            # Already updated _canvasSize in setter; ensure display size is in sync
             self._update_widget_size_from_zoom()
             super().resizeEvent(event)
             return
 
         # Display-only resize caused by zoom update: nothing to do with buffers
+        if self._zoomResizeInProgress:
+            self.update()
+            super().resizeEvent(event)
+            return
+
+        # Ignore stray layout-driven resizes; enforce current display size from zoom
+        self._update_widget_size_from_zoom()
         self.update()
         super().resizeEvent(event)
 

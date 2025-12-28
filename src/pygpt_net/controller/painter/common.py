@@ -47,7 +47,8 @@ class Common:
         :param width: Canvas width
         :param height: Canvas height
         """
-        self.window.ui.painter.setFixedSize(QSize(width, height))
+        # Change logical canvas size explicitly (never via raw widget resize)
+        self.window.ui.painter.set_canvas_size_pixels(width, height)
 
     def set_brush_mode(self, enabled: bool):
         """
@@ -105,8 +106,16 @@ class Common:
         if not selected_norm:
             return
 
+        # Compare against true logical canvas size (not the widget/display size)
+        if hasattr(painter, "get_canvas_size"):
+            cur_sz = painter.get_canvas_size()
+            cur_val = f"{cur_sz.width()}x{cur_sz.height()}"
+        else:
+            # Fallback: widget size (may be display size under zoom)
+            cur_val = f"{painter.width()}x{painter.height()}"
+
         # Save undo only for manual changes and only if size will change
-        will_change = selected_norm != f"{painter.width()}x{painter.height()}"
+        will_change = selected_norm != cur_val
         if is_manual and will_change:
             painter.saveForUndo()
 
@@ -126,7 +135,7 @@ class Common:
             # Ensure combo reflects single custom at index 0 (sticky respected), then select current value
             self._sync_canvas_size_combo(combo, selected_norm, sticky_to_keep=self._sticky_custom_value)
 
-            # Apply canvas size; PainterWidget handles rescaling in resizeEvent
+            # Apply canvas size; PainterWidget handles rescaling internally
             w, h = self.convert_to_size(selected_norm)
             self.set_canvas_size(w, h)
 
@@ -275,7 +284,13 @@ class Common:
         combo: QComboBox = self.window.ui.nodes['painter.select.canvas.size']
         painter = self.window.ui.painter
 
-        canvas_value = f"{painter.width()}x{painter.height()}"
+        # Use true logical canvas size, not widget size
+        if hasattr(painter, "get_canvas_size"):
+            sz = painter.get_canvas_size()
+            canvas_value = f"{sz.width()}x{sz.height()}"
+        else:
+            canvas_value = f"{painter.width()}x{painter.height()}"
+
         canvas_norm = self._normalize_canvas_value(canvas_value)
         if not canvas_norm:
             return
