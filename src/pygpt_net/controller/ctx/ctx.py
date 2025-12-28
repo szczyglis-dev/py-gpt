@@ -273,7 +273,7 @@ class Ctx:
             self.update()
             index = self.get_child_index_by_id(id)
             if index.isValid():
-                self.window.ui.nodes['ctx.list'].scrollTo(index)
+                self.window.ui.nodes['ctx.list'].force_scroll_to_current()
 
     def unselect(self):
         """Unselect ctx"""
@@ -973,7 +973,11 @@ class Ctx:
         index = self.get_child_index_by_id(id)
         nodes = self.window.ui.nodes
         nodes['ctx.list'].unlocked = True
+        if not index.isValid():
+            nodes['ctx.list'].unlocked = False
+            return
         nodes['ctx.list'].setCurrentIndex(index)
+        nodes['ctx.list'].force_scroll_to_current()
         nodes['ctx.list'].unlocked = False
 
     def find_index_by_id(
@@ -1272,6 +1276,7 @@ class Ctx:
         nodes = self.window.ui.nodes
         nodes['ctx.list'].unlocked = True
         nodes['ctx.list'].setCurrentIndex(index)
+        nodes['ctx.list'].force_scroll_to_current()
         nodes['ctx.list'].unlocked = False
 
     def delete_group(

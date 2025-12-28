@@ -1,7 +1,3 @@
-# list.py
-
-# list.py
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -72,6 +68,14 @@ class CtxList:
         model = self.create_model(self.window)
         models[ctx_id] = model
         ctx_list.setModel(model)
+
+        # Expose force scroll on model as a thin proxy to the view method for external callers
+        try:
+            def _model_force_scroll_to_current(*args, **kwargs):
+                return ctx_list.force_scroll_to_current(*args, **kwargs)
+            setattr(model, "force_scroll_to_current", _model_force_scroll_to_current)
+        except Exception:
+            pass
 
         ctx = self.window.controller.ctx
         ctx_list.selectionModel().selectionChanged.connect(lambda *_: ctx.selection_change())

@@ -1,6 +1,3 @@
-# context.py
-
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -140,6 +137,10 @@ class ContextList(BaseList):
         self._drag_press_pos = QtCore.QPoint()
         self._drag_press_index: QPersistentModelIndex | None = None
         self._drag_pending_from_multi = False
+
+        # Force-scroll runtime flags
+        self._force_scroll_lock_active = False  # when True, blocks other auto-scrolls (guard restores)
+        self._bypass_guard_once = False        # one-shot bypass for scroll guard
 
     def _connect_expand_collapse_signals(self):
         """
@@ -305,6 +306,9 @@ class ContextList(BaseList):
             return
 
         def apply():
+            # When force-scroll lock is active, skip guard-driven restoration to avoid bouncing
+            if getattr(self, "_force_scroll_lock_active", False):
+                return
             try:
                 sb = self.verticalScrollBar()
                 if sb is None:
@@ -388,10 +392,91 @@ class ContextList(BaseList):
         """
         Block automatic scrolling requests while scroll guard is active
         (e.g., selection changes executed by controller after delete).
+        Allow one-shot bypass for explicit force-scroll.
         """
-        if self._scroll_guard_active or self._deletion_initiated:
+        if self._deletion_initiated:
             return
+        if self._scroll_guard_active or self._deletion_initiated:
+            if not getattr(self, "_bypass_guard_once", False):
+                return
         super().scrollTo(index, hint)
+        self._bypass_guard_once = False  # consume bypass token
+
+    def _is_index_visible_in_viewport(self, index: QtCore.QModelIndex, fully: bool = False) -> bool:
+        """
+        Returns True if the given index is currently visible in the viewport.
+        When 'fully' is True, requires the whole rect to fit inside the viewport.
+        """
+        try:
+            if not index or not index.isValid():
+                return False
+            rect = self.visualRect(index)
+            if not rect.isValid():
+                return False
+            vp = self.viewport().rect()
+            return vp.contains(rect) if fully else rect.intersects(vp)
+        except Exception:
+            return False
+
+    def force_scroll_to_current(self, center: bool = True, duration_ms: int = 850):
+        """
+        Force-scroll to the current selection/index:
+        - Temporarily blocks any auto scroll (guard-based restore),
+        - One-shot bypasses scroll guard so this call cannot be blocked,
+        - Expands ancestors so the target is visible in tree views,
+        - If the target row is already visible in the current viewport, does nothing.
+
+        :param center: when True, centers row; otherwise ensures it's just visible
+        :param duration_ms: how long to block competing auto-scrolls (in ms)
+        """
+        try:
+            index = self.currentIndex()
+            if not index or not index.isValid():
+                # Fallback to first selected row if current index is invalid
+                sel = self.selectionModel()
+                if sel:
+                    rows = sel.selectedRows(0)
+                    if rows:
+                        index = rows[0]
+            if not index or not index.isValid():
+                return
+
+            # If row is already visible with the current scroll, skip any scrolling
+            if self._is_index_visible_in_viewport(index):
+                return
+
+            # Expand ancestors so index can become visible if it is currently hidden under a collapsed parent
+            parent = index.parent()
+            while parent.isValid():
+                try:
+                    if hasattr(self, "isExpanded") and not self.isExpanded(parent):
+                        self.setExpanded(parent, True)
+                except Exception:
+                    break
+                parent = parent.parent()
+
+            # Check visibility again after potential expansion to avoid unnecessary scroll
+            if self._is_index_visible_in_viewport(index):
+                return
+
+            # Arm force lock and guard bypass
+            self._force_scroll_lock_active = True
+            self._bypass_guard_once = True
+
+            hint = QAbstractItemView.PositionAtCenter if center else QAbstractItemView.EnsureVisible
+            self.scrollTo(index, hint)
+
+            # Auto-release the force lock after the requested duration
+            try:
+                QtCore.QTimer.singleShot(
+                    max(0, int(duration_ms)),
+                    lambda: setattr(self, "_force_scroll_lock_active", False)
+                )
+            except Exception:
+                # Fallback: ensure the flag is not left armed forever
+                self._force_scroll_lock_active = False
+        except Exception:
+            pass
 
     @property
     def _model(self):
