@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 07:00:00                  #
+# Updated Date: 2025.12.28 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
@@ -81,6 +81,8 @@ class Mode:
         c = w.controller
         core = w.core
         cfg = core.config
+        cfg.set('mode', mode)  # must be set before assistant prompt update!
+        
         try:
             if mode == MODE_ASSISTANT:
                 c.presets.select_default()
@@ -94,8 +96,6 @@ class Mode:
 
             elif mode == MODE_AUDIO:
                 c.audio.set_muted(False) # un-mute and show audio output icon by default
-
-            cfg.set('mode', mode)
 
             # reset model and preset at start
             cfg.set('model', "")

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2025.12.28 00:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -23,6 +23,7 @@ from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.utils import trans
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.events import RenderEvent
+from pygpt_net.core.types import MODE_ASSISTANT
 
 
 class Assistant:
@@ -193,6 +194,9 @@ class Assistant:
 
         :param no_scroll: True if do not scroll to selected item
         """
+        mode = self.window.core.config.get('mode')
+        if mode != MODE_ASSISTANT:
+            return
         assistant_id = self.window.core.config.get('assistant')
         items = self.window.core.assistants.get_all()
         if assistant_id in items:
@@ -208,15 +212,16 @@ class Assistant:
 
     def select_default(self):
         """Set default assistant"""
+        mode = self.window.core.config.get('mode')
+        if mode != MODE_ASSISTANT:
+            return
         assistant = self.window.core.config.get('assistant')
         if assistant is None or assistant == "":
-            mode = self.window.core.config.get('mode')
-            if mode == 'assistant':
-                self.window.core.config.set(
-                    'assistant',
-                    self.window.core.assistants.get_default_assistant(),
-                )
-                self.update()
+            self.window.core.config.set(
+                'assistant',
+                self.window.core.assistants.get_default_assistant(),
+            )
+            self.update()
 
     def create(self) -> AssistantItem:
         """
