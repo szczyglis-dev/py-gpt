@@ -294,14 +294,15 @@ NodeEditor {{
 
 /* ComboBox */
 QComboBox QAbstractItemView {{
-  border: 1px solid rgba(0,0,0,0.18);
-  border-radius: 0;
+  border: 0px;
+  border-radius: 10px;
   outline: 0;
 }}
 
 QListView#ComboPopupList {{
-  border-radius: 0;
+  border-radius: 10px;
   outline: 0;
+  border: 0px solid #d6d6d6;
 }}
 
 QComboBox QAbstractItemView::item,
@@ -328,4 +329,11 @@ QListView#ComboPopupList::item:disabled {{
 
 QComboBox QAbstractItemView::item:hover,
 QListView#ComboPopupList::item:hover {{ }}
-QListView#ComboPopupList > QWidget#ComboPopupViewport {{ }}
+QWidget#ComboPopupWindow {{
+  background: red;
+  border: 0;
+}}
+QListView#ComboPopupList > QWidget#ComboPopupViewport {{
+  background: red;
+  border-radius: 10px;
+}}
