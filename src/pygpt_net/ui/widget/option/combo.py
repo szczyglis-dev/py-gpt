@@ -393,6 +393,15 @@ class SearchableCombo(SeparatorComboBox):
         self._last_query_text: str = ""
         self._suppress_search: bool = False
 
+        # Guard flags for mouse handling
+        self._swallow_release_once: bool = False  # kept for compatibility; not used in the new flow
+        self._open_on_release: bool = False       # open popup on mouse release (non-arrow path)
+
+        # Popup fitting helpers
+        self._fit_in_progress: bool = False
+        self._popup_parent_window = None
+        self._popup_right_margin_px: int = 4  # small safety margin from window right edge
+
         self._install_persistent_editor()
         self._init_popup_view_style_targets()
 
@@ -491,13 +500,18 @@ class SearchableCombo(SeparatorComboBox):
         if self.search:
             self._prepare_popup_header()
 
+        # Ensure geometry fits horizontally within window bounds
+        self._fit_popup_to_window()
         QTimer.singleShot(0, self._apply_popup_max_rows)
+        QTimer.singleShot(0, self._fit_popup_to_window)
         self._refresh_popup_view()
 
     def hidePopup(self):
         """Close popup and restore normal display text; remove header/margins."""
         super().hidePopup()
         self._popup_open = False
+        self._swallow_release_once = False  # ensure release guard is cleared when popup closes
+        self._open_on_release = False
 
         if self._popup_header is not None:
             try:
@@ -539,11 +553,21 @@ class SearchableCombo(SeparatorComboBox):
         try:
             container.setObjectName("ComboPopupWindow")         # QWidget#ComboPopupWindow { ... }
             container.setProperty("class", "combo-popup-window")
+            container.setAttribute(Qt.WA_NoMouseReplay, True)   # prevent unwanted mouse replays on popup show
         except Exception:
             pass
 
         self._popup_container = container
         container.installEventFilter(self)
+
+        # Track parent window moves/resizes while popup is open
+        try:
+            top = self.window()
+            if top is not None:
+                top.installEventFilter(self)
+                self._popup_parent_window = top
+        except Exception:
+            self._popup_parent_window = None
 
         if self._popup_header is None:
             self._popup_header = QLineEdit(container)
@@ -619,7 +643,14 @@ class SearchableCombo(SeparatorComboBox):
                 self._popup_container.removeEventFilter(self)
             except Exception:
                 pass
+        # Unhook parent window filter if any
+        if self._popup_parent_window is not None:
+            try:
+                self._popup_parent_window.removeEventFilter(self)
+            except Exception:
+                pass
         self._popup_container = None
+        self._popup_parent_window = None
 
     # ----- Mouse handling on combo (display area) -----
 
@@ -637,25 +668,51 @@ class SearchableCombo(SeparatorComboBox):
 
     def mousePressEvent(self, event):
         """
-        Open popup on left-click anywhere in the combo area; let the arrow retain default toggle behaviour.
-
-        :param event: QMouseEvent
+        Use release-to-open on the non-arrow area to avoid immediate close when the popup opens upward.
+        Keep the arrow area with the default toggle behaviour from the base class.
         """
         if event.button() == Qt.LeftButton and self.isEnabled():
             arrow_rect = self._arrow_rect()
             if arrow_rect.contains(event.pos()):
+                # Arrow path: keep default toggle semantics
+                self._open_on_release = False
+                self._swallow_release_once = False
                 return super().mousePressEvent(event)
-            if not self._popup_open:
+
+            # Non-arrow path
+            if self._popup_open:
+                # Toggle close if already open
+                self.hidePopup()
+                self._open_on_release = False
+                self._swallow_release_once = False
+                event.accept()
+                return
+
+            # Defer opening until mouse release to prevent instant close when popup is above
+            self._open_on_release = True
+            self._swallow_release_once = False
+            event.accept()
+            return
+
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """
+        Open the popup on release if the press started on the non-arrow area.
+        This avoids the popup being created mid-click (which can close immediately when opening upward).
+        """
+        if event.button() == Qt.LeftButton and self._open_on_release:
+            self._open_on_release = False
+            if self.isEnabled() and not self._popup_open and self.rect().contains(event.pos()):
                 self.showPopup()
             event.accept()
             return
-        super().mousePressEvent(event)
+
+        super().mouseReleaseEvent(event)
 
     def keyPressEvent(self, event):
         """
         Commit the highlighted item with Enter/Return while the popup is open.
-
-        :param event: QKeyEvent
         """
         if self._popup_open:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -675,13 +732,19 @@ class SearchableCombo(SeparatorComboBox):
         - Handle navigation/confirm keys in the header.
         - Handle Enter on the popup list as well.
         - Do not close popup on ESC.
-
-        :param obj: QObject
-        :param event: QEvent
+        - Keep popup horizontally inside the parent window while resizing/moving.
         """
         if obj is self._popup_container and self._popup_container is not None:
             if event.type() in (QEvent.Resize, QEvent.Show):
                 self._place_popup_header()
+                # Also ensure fitting after container geometry changes
+                self._fit_popup_to_window()
+                return False
+
+        # Track top-level parent window resize/move to keep popup clamped within it
+        if obj is self._popup_parent_window and self._popup_parent_window is not None:
+            if event.type() in (QEvent.Resize, QEvent.Move):
+                self._fit_popup_to_window()
                 return False
 
         if obj is self._popup_header:
@@ -1119,6 +1182,99 @@ class SearchableCombo(SeparatorComboBox):
         except Exception:
             pass
 
+    # ----- Horizontal fitting helpers (keep popup inside window bounds) -----
+
+    def _popup_allowed_rect(self) -> QRect:
+        """Return the allowed global rectangle for the popup (intersection of window frame and screen)."""
+        try:
+            win = self.window()
+            if win is not None:
+                allowed = win.frameGeometry()
+            else:
+                scr = self.screen()
+                allowed = scr.availableGeometry() if scr is not None else None
+            # Intersect with the window's screen available area to avoid going off-screen
+            scr = (win.screen() if win is not None else self.screen())
+            if allowed is not None and scr is not None:
+                allowed = allowed.intersected(scr.availableGeometry())
+            if allowed is None:
+                scr = self.screen()
+                allowed = scr.availableGeometry() if scr is not None else QRect(0, 0, 1920, 1080)
+        except Exception:
+            allowed = QRect(0, 0, 1920, 1080)
+        # Small inward adjustment to avoid touching the edge
+        try:
+            margin = max(0, int(self._popup_right_margin_px))
+        except Exception:
+            margin = 4
+        return allowed.adjusted(margin, 0, -margin, 0)
+
+    def _cap_width_to_window(self, desired_width: int) -> int:
+        """
+        Cap desired popup width to the allowed width inside the parent window.
+
+        :param desired_width: desired popup width
+        :return: capped width
+        """
+        try:
+            allowed = self._popup_allowed_rect()
+            max_w = max(50, allowed.width())
+            return max(50, min(desired_width, max_w))
+        except Exception:
+            return desired_width
+
+    def _fit_popup_to_window(self):
+        """
+        Ensure popup container stays horizontally within the parent window:
+        - clamp width to allowed rect,
+        - shift left if right edge would overflow.
+        """
+        if self._fit_in_progress:
+            return
+        view = self.view()
+        container = self._popup_container or (view.window() if view is not None else None)
+        if container is None:
+            return
+        try:
+            self._fit_in_progress = True
+
+            allowed = self._popup_allowed_rect()
+
+            cg = container.geometry()
+            y, h = cg.y(), cg.height()
+
+            # Determine target width: prefer the larger of container or combo width, but not over allowed.
+            desired_w = max(cg.width(), self.width())
+            target_w = self._cap_width_to_window(desired_w)
+
+            # Position: keep current left if possible, otherwise shift to keep right edge inside.
+            left_allowed = allowed.x()
+            right_allowed = allowed.x() + allowed.width()
+            new_x = cg.x()
+            if new_x + target_w > right_allowed:
+                new_x = right_allowed - target_w
+            if new_x < left_allowed:
+                new_x = left_allowed
+
+            # Apply constraints to the internal view as well to avoid relayout expanding the container back
+            try:
+                if view is not None:
+                    if view.minimumWidth() > target_w:
+                        view.setMinimumWidth(target_w)
+                    view.setMaximumWidth(target_w)
+            except Exception:
+                pass
+
+            if cg.x() != new_x or cg.width() != target_w:
+                container.setGeometry(new_x, y, target_w, h)
+
+            # Keep header sized to new width
+            self._place_popup_header()
+        except Exception:
+            pass
+        finally:
+            self._fit_in_progress = False
+
     # ----- Internal helpers -----
 
     def _refresh_popup_view(self, *_):
@@ -1146,7 +1302,7 @@ class NoScrollCombo(SearchableCombo):
         event.ignore()
 
     def showPopup(self):
-        """Adjust popup width to fit the longest item before showing."""
+        """Adjust popup width to fit the longest item before showing, capped to the window width."""
         max_width = 0
         font_metrics = QFontMetrics(self.font())
         for i in range(self.count()):
@@ -1154,11 +1310,19 @@ class NoScrollCombo(SearchableCombo):
             width = font_metrics.horizontalAdvance(text)
             max_width = max(max_width, width)
         extra_margin = 80
-        max_width += extra_margin
+        desired = max_width + extra_margin
+
+        # Cap desired width to parent window to avoid right overflow when window is not maximized
+        capped = self._cap_width_to_window(desired)
+
         try:
-            self.view().setMinimumWidth(max_width)
+            v = self.view()
+            if v is not None:
+                v.setMinimumWidth(capped)
+                v.setMaximumWidth(capped)
         except Exception:
             pass
+
         super().showPopup()
 
 
