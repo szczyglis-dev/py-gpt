@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.7.1 (2025-12-28)
+
+- Improved UI elements.
+- Optimized Painter rendering and redraw functions.
+- Added Pack/Unpack feature to File Explorer.
+- Fixed: image restoration in Painter.
+- Fixed: tab title updating upon context deletion.
+
 ## 2.7.0 (2025-12-28)
 
 - Added multi-select functionality using CTRL or SHIFT and batch actions to the context list, preset list, attachments list, and other list-based widgets.

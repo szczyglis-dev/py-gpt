@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.0** | build: **2025-12-28** | Python: **>=3.10, <3.14**
+Release: **2.7.1** | build: **2025-12-28** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3635,6 +3635,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.1 (2025-12-28)**
+
+- Improved UI elements.
+- Optimized Painter rendering and redraw functions.
+- Added Pack/Unpack feature to File Explorer.
+- Fixed: image restoration in Painter.
+- Fixed: tab title updating upon context deletion.
 
 **2.7.0 (2025-12-28)**
 
