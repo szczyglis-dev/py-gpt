@@ -622,6 +622,7 @@ class Ctx:
             )
             return
         updated = False
+        updated_current = False
         ids = id if isinstance(id, list) else [id]
         for id in ids:
             try:
@@ -633,6 +634,7 @@ class Ctx:
             if self.window.core.ctx.get_current() == id:
                 items = self.window.core.ctx.all()  # TODO: get by meta id(s)
                 self.window.core.history.remove_items(items)
+                updated_current = True
             self.window.core.attachments.context.delete_by_meta_id(id)
             self.window.core.ctx.remove(id)
             self.remove_selected(id)
@@ -645,7 +647,8 @@ class Ctx:
 
         if updated:
             self.update_and_restore()
-            self.window.controller.ui.tabs.update_title_current("...")
+            if updated_current:
+                self.window.controller.ui.tabs.update_title_current("...")
 
     def delete_meta_from_idx(self, id: int):
         """
