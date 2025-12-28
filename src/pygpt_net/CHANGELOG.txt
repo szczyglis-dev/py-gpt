@@ -1,3 +1,15 @@
+2.7.0 (2025-12-28)
+
+- Added multi-select functionality using CTRL or SHIFT and batch actions to the context list, preset list, attachments list, and other list-based widgets.
+- Added a search field to comboboxes, such as the model selector.
+- Added a Duplicate option to the models editor.
+- Added drag-and-drop to context list.
+- Added multi-select, drag-and-drop, Cut, Copy, and Paste features to the File Explorer.
+- Fix: scroll restoration after actions in the context list.
+- Fix: 'Use as image' option in the File Explorer.
+- Fix: current preset system prompt disappearing on profile change.
+- Other UI fixes/improvements.
+
 2.6.67 (2025-12-26)
 
 - Added a provider filter to the models editor.

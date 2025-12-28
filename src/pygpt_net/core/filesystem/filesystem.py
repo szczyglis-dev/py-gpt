@@ -429,7 +429,8 @@ class Filesystem:
                     os.remove(item_path)
             else:
                 if item not in excluded_dirs:
-                    shutil.rmtree(item_path)
+                    if os.path.exists(item_path) and os.path.isdir(item_path):
+                        shutil.rmtree(item_path)
 
         return True
 

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.6.67** | build: **2025-12-26** | Python: **>=3.10, <3.14**
+Release: **2.7.0** | build: **2025-12-28** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3636,6 +3636,18 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.7.0 (2025-12-28)**
+
+- Added multi-select functionality using CTRL or SHIFT and batch actions to the context list, preset list, attachments list, and other list-based widgets.
+- Added a search field to comboboxes, such as the model selector.
+- Added a Duplicate option to the models editor.
+- Added drag-and-drop to context list.
+- Added multi-select, drag-and-drop, Cut, Copy, and Paste features to the File Explorer.
+- Fix: scroll restoration after actions in the context list.
+- Fix: 'Use as image' option in the File Explorer.
+- Fix: current preset system prompt disappearing on profile change.
+- Other UI fixes/improvements.
+
 **2.6.67 (2025-12-26)**
 
 - Added a provider filter to the models editor.
@@ -3652,61 +3664,6 @@ may consume additional tokens that are not displayed in the main window.
 - OpenAI SDK upgraded to 2.14.0, Anthropic SDK upgraded to 0.75.0, xAI SDK upgraded to 1.5.0, Google GenAI upgraded to 1.56.0, LlamaIndex upgraded to 0.14.10.
 - Fix: charset-normalizer 3.2.0 circular import - #152.
 - Fix: Google client closed state.
-
-**2.6.65 (2025-09-28)**
-
-- Added drag and drop functionality for files and directories from the filesystem in attachments and file explorer.
-- Added automatic thumbnail generation when uploading avatars.
-- Added a last status timer.
-- Added a fade effect to collapsed user messages.
-- Added a scroll area to the agent options in the presets editor.
-- Added a hover effect to lists.
-- Improved UI/UX.
-
-**2.6.64 (2025-09-27)**
-
-- Added translations to agent headers.
-- Improved presets tabs.
-- Added support for music (Lyria) in both image and video modes (beta).
-
-**2.6.63 (2025-09-27)**
-
-- Improved agents' workflows.
-- Enhanced the display of agents' steps in the UI.
-
-**2.6.62 (2025-09-26)**
-
-- Enhanced agent workflow execution.
-- Improved preset list handling by adding a drop field indicator and fixing auto-scroll.
-- Added middle-mouse button panning to Painter.
-- Added an input character counter.
-
-**2.6.61 (2025-09-26)**
-
-- Enhanced the agents node editor, custom agent flow, and instruction following.
-- Added drag-and-drop and reordering functionality to the presets list.
-- Added statistics for response tokens, including time elapsed and tokens per second.
-- Improved UI/UX.
-
-**2.6.60 (2025-09-25)**
-
-- Added a new tool: Agents Builder - allowing visual design of agent workflows using nodes - available in Tools -> Agents Builder (beta).
-
-**2.6.59 (2025-09-23)**
-
-- LlamaIndex has been upgraded to v0.13.6.
-- The Responses API is disabled by default in Agents (LlamaIndex) for compatibility.
-- Added WinAPI support to the System (OS) plugin.
-
-**2.6.58 (2025-09-22)**
-
-- Added: internal Web Browser tool.
-
-**2.6.57 (2025-09-22)**
-
-- Changed: The web search icon has been moved to the input area.
-- Improved: The local web search plugin has been enhanced to retrieve multiple URLs at once.
-- Added: Use proxy switch in Settings.
 
 # Credits and links
 

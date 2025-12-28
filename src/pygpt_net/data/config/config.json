@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.6.67",
-    "app.version": "2.6.67",
-    "updated_at": "2025-12-26T00:00:00"
+    "version": "2.7.0",
+    "app.version": "2.7.0",
+    "updated_at": "2025-12-28T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
