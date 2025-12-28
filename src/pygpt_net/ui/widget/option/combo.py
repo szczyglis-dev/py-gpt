@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 02:00:00                  #
+# Updated Date: 2025.12.28 00:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QEvent, QTimer, QRect
+from PySide6.QtCore import Qt, QEvent, QTimer, QRect, Property
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QWidget,
@@ -20,8 +20,19 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QListView,
     QStyledItemDelegate,
+    QStyleOptionViewItem,
 )
-from PySide6.QtGui import QFontMetrics, QStandardItem, QStandardItemModel, QIcon  # keep existing imports, extend with items
+from PySide6.QtGui import (
+    QFontMetrics,
+    QStandardItem,
+    QStandardItemModel,
+    QIcon,  # keep existing imports, extend with items
+    QColor,
+    QPainter,
+    QPen,
+    QBrush,
+    QPalette,
+)
 
 from pygpt_net.utils import trans
 
@@ -150,6 +161,211 @@ class SeparatorComboBox(QComboBox):
             self._block_guard = False
 
 
+# ----- Popup list view and delegate to support styling of the currently selected item -----
+
+class ComboPopupListView(QListView):
+    """
+    QListView used as QComboBox popup, extended with:
+    - Style-probe child widget with class 'current-selected' to allow QSS-driven colors/fonts for the 'current-selected' item.
+    - Q_PROPERTIES to allow QSS set explicit parameters (bg/fg/bold/left stripe).
+    """
+
+    def __init__(self, owner_combo: QComboBox, parent=None):
+        super().__init__(parent or owner_combo)
+        self._owner_combo = owner_combo
+
+        # Stable identifiers for styling
+        self.setObjectName("ComboPopupList")
+        self.viewport().setObjectName("ComboPopupViewport")
+        self.setUniformItemSizes(False)
+        self.setProperty("class", "combo-popup")
+        # Expose owner class for QSS filtering, e.g.: QAbstractItemView[comboClass="NoScrollCombo"]
+        try:
+            self.setProperty("comboClass", type(owner_combo).__name__)
+        except Exception:
+            pass
+
+        # Style probe used to fetch palette/font configured via QSS for '.current-selected'
+        self._current_style_probe = QWidget(self)
+        self._current_style_probe.setObjectName("current-selected")  # optional id target
+        self._current_style_probe.setProperty("class", "current-selected")
+        self._current_style_probe.setVisible(False)
+        self._current_style_probe.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self._current_style_probe.setFocusPolicy(Qt.NoFocus)
+
+        # Defaults for properties (can be overridden via QSS qproperty-*)
+        self._cs_bg = QColor()                 # null = do not override
+        self._cs_fg = QColor()                 # null = do not override
+        self._cs_bold = False
+        self._cs_left_w = 0
+        self._cs_left_color = QColor()
+
+    # Q_PROPERTY: currentSelectedBgColor
+    def _get_cs_bg(self):
+        return self._cs_bg
+
+    def _set_cs_bg(self, val):
+        self._cs_bg = QColor(val) if not isinstance(val, QColor) else val
+        self.viewport().update()
+
+    currentSelectedBgColor = Property(QColor, _get_cs_bg, _set_cs_bg)
+
+    # Q_PROPERTY: currentSelectedTextColor
+    def _get_cs_fg(self):
+        return self._cs_fg
+
+    def _set_cs_fg(self, val):
+        self._cs_fg = QColor(val) if not isinstance(val, QColor) else val
+        self.viewport().update()
+
+    currentSelectedTextColor = Property(QColor, _get_cs_fg, _set_cs_fg)
+
+    # Q_PROPERTY: currentSelectedBold
+    def _get_cs_bold(self):
+        return self._cs_bold
+
+    def _set_cs_bold(self, val):
+        self._cs_bold = bool(val)
+        self.viewport().update()
+
+    currentSelectedBold = Property(bool, _get_cs_bold, _set_cs_bold)
+
+    # Q_PROPERTY: currentSelectedLeftStripeWidth
+    def _get_cs_left_w(self):
+        return self._cs_left_w
+
+    def _set_cs_left_w(self, val):
+        try:
+            self._cs_left_w = max(0, int(val))
+        except Exception:
+            self._cs_left_w = 0
+        self.viewport().update()
+
+    currentSelectedLeftStripeWidth = Property(int, _get_cs_left_w, _set_cs_left_w)
+
+    # Q_PROPERTY: currentSelectedLeftStripeColor
+    def _get_cs_left_color(self):
+        return self._cs_left_color
+
+    def _set_cs_left_color(self, val):
+        self._cs_left_color = QColor(val) if not isinstance(val, QColor) else val
+        self.viewport().update()
+
+    currentSelectedLeftStripeColor = Property(QColor, _get_cs_left_color, _set_cs_left_color)
+
+    # Helpers to resolve effective style for the current-selected mark
+    def _is_valid_color(self, c: QColor) -> bool:
+        try:
+            return isinstance(c, QColor) and c.isValid() and c.alpha() > 0
+        except Exception:
+            return False
+
+    def current_selected_style(self):
+        """
+        Resolve effective style values for the 'current-selected' mark from:
+        1) qproperties set on this view (highest priority)
+        2) style-probe palette/font (QSS: [class~="current-selected"])
+        3) palette fallback
+        """
+        try:
+            probe = self._current_style_probe
+            probe.ensurePolished()
+        except Exception:
+            probe = None
+
+        # Defaults from palette
+        default_fg = self.palette().color(QPalette.Text)
+        default_bg = QColor(0, 0, 0, 0)
+        default_stripe = self.palette().color(QPalette.Highlight)
+
+        fg = self._cs_fg if self._is_valid_color(self._cs_fg) else (
+            probe.palette().color(QPalette.Text) if probe is not None else default_fg
+        )
+        bg = self._cs_bg if self._is_valid_color(self._cs_bg) else (
+            probe.palette().color(QPalette.Base) if probe is not None else default_bg
+        )
+        # If Base is fully transparent for QWidget probe, try Window
+        if not self._is_valid_color(bg) and probe is not None:
+            alt = probe.palette().color(QPalette.Window)
+            if self._is_valid_color(alt):
+                bg = alt
+
+        stripe_w = self._cs_left_w
+        stripe_color = self._cs_left_color if self._is_valid_color(self._cs_left_color) else (
+            probe.palette().color(QPalette.Highlight) if probe is not None else default_stripe
+        )
+        bold = self._cs_bold or (probe.font().bold() if probe is not None else False)
+
+        return fg, bg, bold, stripe_w, stripe_color
+
+
+class CurrentSelectedDelegate(QStyledItemDelegate):
+    """
+    Item delegate that draws a subtle, QSS-controlled mark for the combo's currently selected item.
+    It does not interfere with normal :selected or :hover visuals drawn by the base delegate.
+    """
+
+    def __init__(self, combo_owner: 'SearchableCombo', parent=None):
+        super().__init__(parent or combo_owner)
+        self._combo = combo_owner
+
+    def paint(self, painter: QPainter, option, index):
+        # Skip separators
+        try:
+            if self._combo.is_separator(index.row()):
+                return super().paint(painter, option, index)
+        except Exception:
+            pass
+
+        is_current_combo = False
+        try:
+            is_current_combo = (index.row() == self._combo.currentIndex())
+        except Exception:
+            is_current_combo = False
+
+        view = self._combo.view()
+        fg, bg, bold, stripe_w, stripe_color = (None, None, False, 0, None)
+        if isinstance(view, ComboPopupListView):
+            fg, bg, bold, stripe_w, stripe_color = view.current_selected_style()
+
+        # Prepare option clone to adjust font/colors when item is the current combo value
+        opt = QStyleOptionViewItem(option)
+        selected = bool(opt.state & QStyle.State_Selected)
+        hovered = bool(opt.state & QStyle.State_MouseOver)
+
+        if is_current_combo and not selected:
+            # Apply text color and bold font only when not in selected state to not clash with :selected visuals
+            if isinstance(fg, QColor) and fg.isValid():
+                opt.palette.setColor(QPalette.Text, fg)
+                opt.palette.setColor(QPalette.HighlightedText, fg)
+            if bold:
+                opt.font.setBold(True)
+
+        # Fill background before default painting when applicable and not selected/hovered
+        if is_current_combo and not selected and not hovered:
+            if isinstance(bg, QColor) and bg.isValid() and bg.alpha() > 0:
+                painter.save()
+                painter.setBrush(QBrush(bg))
+                painter.setPen(Qt.NoPen)
+                painter.drawRect(opt.rect)
+                painter.restore()
+
+        # Default painting (respects QSS for :selected and :hover)
+        super().paint(painter, opt, index)
+
+        # Draw left stripe/marker overlay to persistently mark current selection even when hovered/selected
+        if is_current_combo and isinstance(stripe_color, QColor) and stripe_w and stripe_w > 0:
+            painter.save()
+            pen = QPen(stripe_color)
+            pen.setWidth(1)
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QBrush(stripe_color))
+            r = opt.rect.adjusted(1, 1, 0, -1)
+            stripe_rect = QRect(r.x(), r.y(), min(stripe_w, max(1, r.width() // 6)), r.height())
+            painter.drawRect(stripe_rect)
+            painter.restore()
+
+
 class SearchableCombo(SeparatorComboBox):
     """
     A combo box with web-like search input shown while the popup is open.
@@ -180,6 +396,12 @@ class SearchableCombo(SeparatorComboBox):
         self._install_persistent_editor()
         self._init_popup_view_style_targets()
 
+        # Keep popup visuals in sync when current index changes
+        try:
+            self.currentIndexChanged.connect(self._refresh_popup_view)
+        except Exception:
+            pass
+
     # ----- Make the popup list reliably stylable -----
 
     def _init_popup_view_style_targets(self):
@@ -188,26 +410,37 @@ class SearchableCombo(SeparatorComboBox):
         - Use a QListView explicitly.
         - Install a QStyledItemDelegate so sub-control item rules can take effect.
         - Provide stable objectNames/properties that themes (e.g., Qt Material) can target, if they rely on them.
+        - Extend with a custom delegate that allows styling the 'current-selected' row via QSS.
         """
         try:
-            lv = QListView(self)
-            lv.setObjectName("ComboPopupList")             # e.g.: QListView#ComboPopupList { ... }
-            lv.viewport().setObjectName("ComboPopupViewport")
+            lv = ComboPopupListView(self, self)
             lv.setUniformItemSizes(False)
             self.setView(lv)
         except Exception:
-            pass
+            lv = None
 
         try:
-            self.setItemDelegate(QStyledItemDelegate(self))  # allow ::item rules to be honored by the delegate
+            # Delegate that honors default QSS for items and adds 'current-selected' mark
+            self.setItemDelegate(CurrentSelectedDelegate(self, self))
         except Exception:
-            pass
+            try:
+                self.setItemDelegate(QStyledItemDelegate(self))
+            except Exception:
+                pass
 
-        try:
-            # Some themes use class selectors; expose a generic one on the view.
-            self.view().setProperty("class", "combo-popup")
-        except Exception:
-            pass
+        if lv is not None:
+            try:
+                lv.setObjectName("ComboPopupList")             # e.g.: QListView#ComboPopupList { ... }
+                lv.viewport().setObjectName("ComboPopupViewport")
+            except Exception:
+                pass
+
+            try:
+                # Some themes use class selectors; expose a generic one on the view and owner class name.
+                lv.setProperty("class", "combo-popup")
+                lv.setProperty("comboClass", type(self).__name__)
+            except Exception:
+                pass
 
     # ----- Persistent editor (display only, outside the popup) -----
 
@@ -259,6 +492,7 @@ class SearchableCombo(SeparatorComboBox):
             self._prepare_popup_header()
 
         QTimer.singleShot(0, self._apply_popup_max_rows)
+        self._refresh_popup_view()
 
     def hidePopup(self):
         """Close popup and restore normal display text; remove header/margins."""
@@ -884,6 +1118,17 @@ class SearchableCombo(SeparatorComboBox):
             self.setMaxVisibleItems(rows)
         except Exception:
             pass
+
+    # ----- Internal helpers -----
+
+    def _refresh_popup_view(self, *_):
+        """Request repaint of the popup to refresh 'current-selected' mark."""
+        v = self.view()
+        if v is not None:
+            try:
+                v.viewport().update()
+            except Exception:
+                pass
 
 
 class NoScrollCombo(SearchableCombo):
