@@ -152,7 +152,7 @@ class Image(QObject):
         """
         return {
             "type": "combo",
-            "slider": True,
+            #"search": False,
             "label": "img_resolution",
             "value": "1024x1024",
             "keys": self.get_available_resolutions(),
@@ -166,7 +166,7 @@ class Image(QObject):
         """
         return {
             "type": "combo",
-            "slider": True,
+            #"search": False,
             "label": "img_mode",
             "value": "image",
             "keys": self.get_available_modes(),

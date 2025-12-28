@@ -276,7 +276,7 @@ class Video(QObject):
         """
         return {
             "type": "combo",
-            "slider": True,
+            "search": False,
             "label": "video.aspect_ratio",
             "value": "16:9",
             "keys": self.get_available_aspect_ratio(),
@@ -290,7 +290,7 @@ class Video(QObject):
         """
         return {
             "type": "combo",
-            "slider": True,
+            "search": False,
             "label": "video.resolution",
             "value": "720p",
             "keys": self.get_available_resolutions(),
@@ -304,7 +304,6 @@ class Video(QObject):
         """
         return {
             "type": "int",
-            "slider": False,
             "label": "video.duration",
             "value": 8,
             "placeholder": "s",

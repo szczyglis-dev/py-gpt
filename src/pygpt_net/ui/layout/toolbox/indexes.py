@@ -91,6 +91,7 @@ class Indexes:
         option = {
             "name": "current_index",
             "label": "toolbox.llama_index.current_index",
+            "search": False,
             "keys": [],
             "value": None,
         }
@@ -105,6 +106,7 @@ class Indexes:
         option = {
             "name": "llama.idx.mode",
             "label": "toolbox.llama_index.mode",
+            "search": False,
             "keys": self.window.controller.idx.get_modes_keys(),
             "value": "chat",
         }
