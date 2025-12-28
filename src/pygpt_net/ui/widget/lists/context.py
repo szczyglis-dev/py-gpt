@@ -1,5 +1,3 @@
-# ctx.py
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -17,8 +15,8 @@ from typing import Union
 
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtCore import Qt, QPoint, QItemSelectionModel, QPersistentModelIndex
-from PySide6.QtGui import QIcon, QColor, QPixmap, QStandardItem
-from PySide6.QtWidgets import QMenu, QAbstractItemView
+from PySide6.QtGui import QIcon, QColor, QPixmap, QStandardItem, QDrag
+from PySide6.QtWidgets import QMenu, QAbstractItemView, QFrame
 
 from .base import BaseList
 from pygpt_net.utils import trans
@@ -107,6 +105,35 @@ class ContextList(BaseList):
         self._context_menu_anchor_index: QPersistentModelIndex | None = None
         self._context_menu_anchor_scroll_value: int | None = None
         self._connect_model_signals_safely()
+
+        # Drag & Drop: enable internal drag of items onto group rows and a visual drop highlight
+        self._drag_mime = "application/x-pygpt-ctx-ids"
+        self._drop_highlight_index: QPersistentModelIndex | None = None
+
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDropIndicatorShown(False)
+        try:
+            # Available on QAbstractItemView in Qt6
+            self.setDefaultDropAction(Qt.MoveAction)
+        except Exception:
+            pass
+
+        # Drop target highlight overlay (same style as requested)
+        self._dir_highlight = QFrame(self.viewport())
+        self._dir_highlight.setObjectName("drop-dir-highlight")
+        self._dir_highlight.setFrameShape(QFrame.NoFrame)
+        self._dir_highlight.setStyleSheet(
+            "#drop-dir-highlight { border: 2px solid rgba(40,120,255,0.95); border-radius: 3px; "
+            "background-color: rgba(40,120,255,0.10); }"
+        )
+        self._dir_highlight.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self._dir_highlight.hide()
+
+        # Manual multi-select drag detection state
+        self._drag_press_pos = QtCore.QPoint()
+        self._drag_press_index: QPersistentModelIndex | None = None
+        self._drag_pending_from_multi = False
 
     def _on_vertical_scroll(self, value: int):
         """
@@ -530,11 +557,27 @@ class ContextList(BaseList):
         """
         print("dblclick")
 
+    def _event_pos_to_point(self, event) -> QtCore.QPoint:
+        """
+        Convert event position to QPoint, compatible with Qt6 and fallbacks.
+        """
+        try:
+            return event.position().toPoint()
+        except Exception:
+            try:
+                return event.pos()
+            except Exception:
+                return QtCore.QPoint()
+
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            index = self.indexAt(event.pos())
+            pos = self._event_pos_to_point(event)
+            index = self.indexAt(pos)
             no_mod = (event.modifiers() == Qt.NoModifier)
             had_multi = self._has_multi_selection()
+            self._drag_press_pos = pos
+            self._drag_press_index = QPersistentModelIndex(index) if index.isValid() else None
+            self._drag_pending_from_multi = False
 
             # Clear any stale suppression when user performs a plain left click
             if no_mod:
@@ -542,21 +585,40 @@ class ContextList(BaseList):
 
             # When multiple selection is active and a plain left click occurs:
             # - clicking empty area clears the selection and consumes the click,
-            # - clicking a row clears previous multi-selection and immediately arms one-shot activation.
+            # - clicking a selected row preserves selection and arms drag start,
+            # - clicking an unselected row collapses multi-selection and arms one-shot activation.
             if had_multi and no_mod:
                 sel = self.selectionModel()
-                if sel:
-                    sel.clearSelection()
-                self.setCurrentIndex(QtCore.QModelIndex())
-                try:
-                    self.window.controller.ctx.unselect()
-                except Exception:
-                    pass
                 if not index.isValid():
+                    if sel:
+                        sel.clearSelection()
+                    self.setCurrentIndex(QtCore.QModelIndex())
+                    try:
+                        self.window.controller.ctx.unselect()
+                    except Exception:
+                        pass
+                    self._force_single_click_index = None
                     event.accept()
                     return
-                # Arm one-shot activation for the row under cursor; Qt will select it afterwards
-                self._force_single_click_index = QPersistentModelIndex(index)
+
+                if sel and sel.isSelected(index):
+                    # Preserve current selection and arm manual drag for multi-select
+                    self._drag_pending_from_multi = True
+                    self._suppress_item_click = True
+                    event.accept()
+                    return
+                else:
+                    # Collapse multi-selection and allow normal single-row behavior
+                    if sel:
+                        self._backup_selection = list(sel.selectedIndexes())
+                        sel.clearSelection()
+                    self.setCurrentIndex(QtCore.QModelIndex())
+                    try:
+                        self.window.controller.ctx.unselect()
+                    except Exception:
+                        pass
+                    # Arm one-shot activation for the clicked row; Qt will select it afterwards
+                    self._force_single_click_index = QPersistentModelIndex(index)
 
             # Remember the target type for homogeneous selection control
             if index.isValid():
@@ -593,7 +655,7 @@ class ContextList(BaseList):
                     self.window.controller.ctx.unselect()
                 except Exception:
                     pass
-            # Make sure next real click is not suppressed
+                # Make sure next real click is not suppressed
                 self._suppress_item_click = False
                 event.accept()
                 return
@@ -628,6 +690,32 @@ class ContextList(BaseList):
             event.accept()
         else:
             super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        """
+        Manual drag start when multiple items are selected and user drags a selected row.
+        """
+        try:
+            if (event.buttons() & Qt.LeftButton) and self._drag_pending_from_multi and not self._is_group_index(self._drag_press_index or QtCore.QModelIndex()):
+                pos = self._event_pos_to_point(event)
+                if (pos - self._drag_press_pos).manhattanLength() >= QtWidgets.QApplication.startDragDistance():
+                    self._drag_pending_from_multi = False
+                    self.startDrag(Qt.MoveAction)
+                    event.accept()
+                    return
+        except Exception:
+            # Fall back to default behavior on any error
+            self._drag_pending_from_multi = False
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """
+        Clean up drag state on release.
+        """
+        if event.button() == Qt.LeftButton and self._drag_pending_from_multi:
+            self._drag_pending_from_multi = False
+            self._drag_press_index = None
+        super().mouseReleaseEvent(event)
 
     def _build_multi_context_menu(self, ids: list[int]) -> QMenu:
         """
@@ -1178,6 +1266,203 @@ class ContextList(BaseList):
         except Exception:
             pass
         return super().selectionCommand(index, event)
+
+    # =========================
+    # Drag & Drop implementation
+    # =========================
+
+    def _is_valid_drag_source_selection(self) -> bool:
+        """
+        Returns True if current selection contains only non-group items.
+        """
+        types = self._selection_types()
+        return types in (set(), {'item'}) and len(self._selected_item_ids()) > 0
+
+    def startDrag(self, supportedActions):
+        """
+        Start drag only for non-group items. Pack selected item IDs into custom mime.
+        """
+        if not self._is_valid_drag_source_selection():
+            return  # do not start drag for groups or empty selection
+
+        ids = self._selected_item_ids()
+        if not ids:
+            return
+
+        mime = QtCore.QMimeData()
+        payload = ",".join(str(i) for i in ids).encode("utf-8")
+        mime.setData(self._drag_mime, payload)
+        mime.setText(",".join(str(i) for i in ids))
+
+        drag = QDrag(self)
+        drag.setMimeData(mime)
+
+        # Compact drag pixmap with count
+        w, h = 140, 28
+        pm = QPixmap(w, h)
+        pm.fill(Qt.transparent)
+        painter = QtGui.QPainter(pm)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        rect = QtCore.QRectF(0.5, 0.5, w - 1, h - 1)
+        bg = QColor(40, 120, 255, 32)
+        pen = QtGui.QPen(QColor(40, 120, 255, 200), 1.5)
+        painter.setPen(pen)
+        painter.setBrush(bg)
+        painter.drawRoundedRect(rect, 6, 6)
+        painter.setPen(QColor(40, 120, 255, 230))
+        text = "Move {} item{}".format(len(ids), "" if len(ids) == 1 else "s")
+        painter.drawText(pm.rect(), Qt.AlignCenter, text)
+        painter.end()
+        drag.setPixmap(pm)
+        drag.setHotSpot(QtCore.QPoint(pm.width() // 2, pm.height() // 2))
+
+        drag.exec(Qt.MoveAction)
+
+    def dragEnterEvent(self, event: QtGui.QDragEnterEvent):
+        """
+        Accept drags that carry our custom payload (item IDs).
+        """
+        md = event.mimeData()
+        if md and md.hasFormat(self._drag_mime):
+            event.acceptProposedAction()
+            return
+        event.ignore()
+
+    def dragMoveEvent(self, event: QtGui.QDragMoveEvent):
+        """
+        While dragging:
+        - accept only when hovering over a group row,
+        - show highlight frame over the target group row.
+        """
+        md = event.mimeData()
+        if not md or not md.hasFormat(self._drag_mime):
+            self._hide_drop_highlight()
+            event.ignore()
+            return
+
+        pos = self._event_pos_to_point(event)
+        index = self.indexAt(pos)
+
+        if index.isValid() and self._is_group_index(index):
+            self._update_drop_highlight(index)
+            event.setDropAction(Qt.MoveAction)
+            event.accept()
+        else:
+            self._hide_drop_highlight()
+            event.ignore()
+
+    def dragLeaveEvent(self, event: QtGui.QDragLeaveEvent):
+        """
+        Hide highlight when drag leaves the view.
+        """
+        self._hide_drop_highlight()
+        event.accept()
+
+    def dropEvent(self, event: QtGui.QDropEvent):
+        """
+        On drop:
+        - parse dragged item IDs,
+        - resolve group row under cursor,
+        - call controller.move_to_group(ids, group_id).
+        """
+        try:
+            md = event.mimeData()
+            if not md or not md.hasFormat(self._drag_mime):
+                self._hide_drop_highlight()
+                event.ignore()
+                return
+
+            ids = self._parse_drag_ids(md)
+            if not ids:
+                self._hide_drop_highlight()
+                event.ignore()
+                return
+
+            pos = self._event_pos_to_point(event)
+            index = self.indexAt(pos)
+            if not index.isValid() or not self._is_group_index(index):
+                self._hide_drop_highlight()
+                event.ignore()
+                return
+
+            group_item = self._model.itemFromIndex(index)
+            group_id = int(getattr(group_item, "id", 0))
+
+            # Preserve scroll around move operations to avoid jumps
+            try:
+                anchor_val = self.verticalScrollBar().value()
+            except Exception:
+                anchor_val = None
+            self._activate_scroll_guard("dragdrop_move", anchor_val)
+
+            # Perform move via controller (accepts single ID or list)
+            self.window.controller.ctx.move_to_group(ids, group_id)
+
+            self._hide_drop_highlight()
+            event.setDropAction(Qt.MoveAction)
+            event.accept()
+            # schedule restore (layout changes should trigger, but ensure anyway)
+            self._schedule_scroll_restore()
+        except Exception:
+            # Fail-safe: do not break DnD if something goes wrong
+            self._hide_drop_highlight()
+            event.ignore()
+
+    def _parse_drag_ids(self, mime: QtCore.QMimeData) -> list[int]:
+        """
+        Decode list of dragged item IDs from mime data.
+        """
+        try:
+            raw = bytes(mime.data(self._drag_mime)).decode("utf-8").strip()
+            if not raw:
+                return []
+            out = []
+            for part in raw.split(","):
+                part = part.strip()
+                if not part:
+                    continue
+                try:
+                    out.append(int(part))
+                except Exception:
+                    continue
+            return out
+        except Exception:
+            return []
+
+    def _update_drop_highlight(self, index: QtCore.QModelIndex):
+        """
+        Show and position the highlight frame around the given group row.
+        """
+        try:
+            if not index.isValid() or not self._is_group_index(index):
+                self._hide_drop_highlight()
+                return
+
+            rect = self.visualRect(index)
+            if not rect.isValid() or rect.width() <= 0 or rect.height() <= 0:
+                self._hide_drop_highlight()
+                return
+
+            self._drop_highlight_index = QPersistentModelIndex(index)
+            # Slightly inflate the rect for a nicer look without clipping
+            geom = rect.adjusted(1, 1, -1, -1)
+            self._dir_highlight.setGeometry(geom)
+            self._dir_highlight.raise_()
+            if not self._dir_highlight.isVisible():
+                self._dir_highlight.show()
+        except Exception:
+            self._hide_drop_highlight()
+
+    def _hide_drop_highlight(self):
+        """
+        Hide the highlight frame and clear state.
+        """
+        try:
+            if self._dir_highlight.isVisible():
+                self._dir_highlight.hide()
+        except Exception:
+            pass
+        self._drop_highlight_index = None
 
 
 class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
