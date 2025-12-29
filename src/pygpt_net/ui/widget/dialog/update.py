@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.12.29 21:00:00                  #
 # ================================================== #
 
 import os
@@ -32,8 +32,11 @@ class UpdateDialog(BaseDialog):
         self.window = window
         self.setParent(window)
         self.setWindowTitle(trans('update.title'))
+
+        version = self.window.meta['version']
         self.cmd_pip = "pip install --upgrade pygpt-net"
         self.cmd_snap = "sudo snap refresh pygpt"
+        self.cmd_appimage = f"appimageupdatetool ./PyGPT-{version}-x86_64.AppImage"
 
         # www
         self.www = QPushButton(trans('update.download'))
@@ -133,8 +136,9 @@ class UpdateDialog(BaseDialog):
             version: str,
             build: str,
             changelog: str,
-            download_windows: str,
-            download_linux: str
+            download_windows: str = "",
+            download_linux: str = "",
+            download_appimage: str = ""
     ):
         """
         Set update data
@@ -145,6 +149,7 @@ class UpdateDialog(BaseDialog):
         :param changelog: changelog
         :param download_windows: download link for windows
         :param download_linux: download link for linux
+        :param download_appimage: download link for appimage
         """
         # prepare data
         info = trans("update.info")
@@ -179,8 +184,8 @@ class UpdateDialog(BaseDialog):
             if self.window.core.platforms.is_snap():  # snap
                 self.cmd.setText(self.cmd_snap)
                 self.cmd.setVisible(True)
-            elif self.window.core.config.is_compiled():  # compiled
-                if self.window.core.platforms.is_windows():
+            elif self.window.core.config.is_compiled():  # compiled versions
+                if self.window.core.platforms.is_windows(): # Windows
                     self.download_link = download_windows
                     self.download_file.setText("{} .msi ({})".format(trans("action.download"), version))
                     if is_store:
@@ -191,11 +196,17 @@ class UpdateDialog(BaseDialog):
                         self.download_file.setVisible(True)
                         self.info_upgrade.setVisible(True)
                         self.www.setVisible(False)
-                elif self.window.core.platforms.is_linux():
+                elif self.window.core.platforms.is_linux(): # Linux
                     self.download_link = download_linux
                     self.download_file.setText("{} .tar.gz ({})".format(trans("action.download"), version))
                     self.download_file.setVisible(True)
-            else:  # pip
+            elif self.window.core.platforms.is_appimage():  # AppImage
+                self.cmd.setText(self.cmd_appimage)
+                self.cmd.setVisible(True)
+                self.download_link = download_appimage
+                self.download_file.setText("{} .AppImage ({})".format(trans("action.download"), version))
+                self.download_file.setVisible(True)
+            else:  # PyPi package
                 self.cmd.setText(self.cmd_pip)
                 self.cmd.setVisible(True)
                 

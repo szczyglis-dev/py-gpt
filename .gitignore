@@ -135,3 +135,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# AppImage builds
+*.AppImage
+*.zsync
+/AppDir
+/appimage-build
+*.squashfs

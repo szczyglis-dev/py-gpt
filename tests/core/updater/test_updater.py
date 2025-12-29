@@ -180,7 +180,7 @@ def test_show_version_dialog(mock_window):
     updater = Updater(mock_window)
     mock_window.meta = {'version': '1.0.0', 'website': 'https://example.com'}
     mock_window.ui.dialog = {'update': MagicMock()}
-    updater.show_version_dialog("1.0.0", "2024-01-01", "test", "link", "link", True)
+    updater.show_version_dialog("1.0.0", "2024-01-01", "test", "link", "link", "link", True)
     mock_window.ui.dialog['update'].set_data.assert_called_once()
     mock_window.ui.dialogs.open('update')
 

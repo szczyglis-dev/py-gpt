@@ -1,0 +1,101 @@
+# https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+version: 1
+
+AppDir:
+  path: ./AppDir
+
+  app_info:
+    id: io.github.szczyglis_dev.py-gpt
+    name: PyGPT
+    icon: io.github.szczyglis_dev.py-gpt
+    version: 2.7.2
+    exec: usr/bin/python3
+    exec_args: -m pygpt_net.app $@
+
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: deb [arch=amd64] http://archive.ubuntu.com/ubuntu jammy main universe
+        key_url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920D1991BC93C
+      - sourceline: deb [arch=amd64] http://archive.ubuntu.com/ubuntu jammy-updates main universe
+        key_url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920D1991BC93C
+      - sourceline: deb [arch=amd64] http://security.ubuntu.com/ubuntu jammy-security main universe
+        key_url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920D1991BC93C
+    include:
+      - ca-certificates
+      - ffmpeg
+      - fonts-dejavu-core
+      - gstreamer1.0-libav
+      - libasound2
+      - libasound2-data
+      - libasound2-plugins
+      - libatomic1
+      - libdbus-1-3
+      - libegl1
+      - libfontconfig1
+      - libfreetype6
+      - libgl1
+      - libgl1-mesa-dri
+      - libgl1-mesa-glx
+      - libglib2.0-0
+      - libglu1-mesa
+      - libglx-mesa0
+      - libgtk-3-0
+      - libnss3
+      - libpng16-16
+      - libportaudio2
+      - libx11-xcb1
+      - libxkbcommon0
+      - libxkbfile1
+      - libxcb-cursor0
+      - libxcb-icccm4
+      - libxcb-image0
+      - libxcb-keysyms1
+      - libxcb-render0
+      - libxcb-shm0
+      - libxcb-xfixes0
+      - libxcb1
+      - libxi6
+      - libxtst6
+      - mesa-utils
+      - packagekit-gtk3-module
+      - python3
+      - python3-venv
+      - xapp
+      - xkb-data
+
+  after_bundle: |
+    set -e
+    APPDIR="$(readlink -f ./AppDir)"
+    install -Dm644 data/io.github.szczyglis_dev.py-gpt.desktop "$APPDIR/usr/share/applications/io.github.szczyglis_dev.py-gpt.desktop"
+    install -Dm644 data/icons/io.github.szczyglis_dev.py-gpt.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/io.github.szczyglis_dev.py-gpt.png"
+
+    mkdir -p "$APPDIR/usr/src"
+    cp -a src/* "$APPDIR/usr/src/"
+    cp -a requirements.txt "$APPDIR/usr/src/"
+
+    "$APPDIR/usr/bin/python3" -m venv "$APPDIR/usr/pyenv"
+    "$APPDIR/usr/pyenv/bin/python3" -m ensurepip --upgrade || true
+    "$APPDIR/usr/pyenv/bin/python3" -m pip install -U pip wheel setuptools
+    "$APPDIR/usr/pyenv/bin/pip" install -r $APPDIR/usr/src/requirements.txt
+
+    cat > "$APPDIR/usr/src/pygpt_net/data/appimage.conf" << 'EOF'
+    yes
+    EOF
+
+
+  runtime:
+    env:
+      QTWEBENGINE_DISABLE_SANDBOX: "1"
+      QTWEBENGINE_CHROMIUM_FLAGS: "--no-sandbox --disable-gpu-sandbox"
+      QTWEBENGINEPROCESS_PATH: "$APPDIR/usr/pyenv/lib/python3.10/site-packages/PySide6/Qt/libexec/QtWebEngineProcess"
+      QTWEBENGINE_RESOURCES_PATH: "$APPDIR/usr/pyenv/lib/python3.10/site-packages/PySide6/Qt/resources"
+      QTWEBENGINE_LOCALES_PATH: "$APPDIR/usr/pyenv/lib/python3.10/site-packages/PySide6/Qt/translations/qtwebengine_locales"
+      QT_QPA_PLATFORM_PLUGIN_PATH: "$APPDIR/usr/pyenv/lib/python3.10/site-packages/PySide6/Qt/plugins"
+      QT_PLUGIN_PATH: "$APPDIR/usr/pyenv/lib/python3.10/site-packages/PySide6/Qt/plugins"
+      QT_XKB_CONFIG_ROOT: "$APPDIR/usr/share/X11/xkb"
+      PYTHONPATH: "$APPDIR/usr/src:$APPDIR/usr/pyenv/lib/python3.10/site-packages"
+
+AppImage:
+  arch: x86_64
+  update-information: "gh-releases-zsync|szczyglis-dev|py-gpt|latest|*.AppImage.zsync"

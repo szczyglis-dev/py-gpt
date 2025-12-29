@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=PyGPT
+Exec=pygpt
+Icon=io.github.szczyglis_dev.py-gpt
+Categories=Utility;

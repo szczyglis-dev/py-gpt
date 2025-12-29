@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.25 18:00:00                  #
+# Updated Date: 2025.12.29 21:00:00                  #
 # ================================================== #
 
 import platform
@@ -127,6 +127,17 @@ class Platforms:
             return True
         return False
 
+    def is_appimage(self) -> bool:
+        """
+        Return True if app is running as AppImage
+
+        :return: True if app is running as AppImage
+        """
+        path = os.path.join(self.window.core.config.get_app_path(), 'data', 'appimage.conf')
+        if os.path.exists(path):
+            return True
+        return False
+
     def get_as_string(self, env_suffix: bool = True) -> str:
         """
         Return platform as string
@@ -147,6 +158,8 @@ class Platforms:
         suffix = ''
         if self.is_snap():
             suffix = ' (snap)'
+        elif self.is_appimage():
+            suffix = ' (AppImage)'
         elif self.window.core.config.is_compiled():
             suffix = ' (standalone)'
             if self.is_windows():

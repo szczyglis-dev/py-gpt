@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.11 00:00:00                  #
+# Updated Date: 2025.12.29 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -26,13 +26,14 @@ from packaging.version import parse as parse_version, Version
 from pygpt_net.utils import trans
 
 
-class Updater:
+class Updater(QObject):
     def __init__(self, window=None):
         """
         Updater core (config data patcher)
 
         :param window: Window instance
         """
+        super(Updater, self).__init__()
         self.window = window
         self.thanks = None  # cache
 
@@ -261,11 +262,11 @@ class Updater:
             return self.get_thanks()
         return self.thanks
 
-    def check_silent(self) -> Tuple[bool, str, str, str, str, str]:
+    def check_silent(self) -> Tuple[bool, str, str, str, str, str, str]:
         """
         Check version in background
 
-        :return: (is_new, newest_version, newest_build, changelog, download_windows, download_linux)
+        :return: (is_new, newest_version, newest_build, changelog, download_windows, download_linux, download_appimage)
         """
         url = self.get_updater_url()
         is_new = False
@@ -274,6 +275,7 @@ class Updater:
         changelog = ""
         download_windows = ""
         download_linux = ""
+        download_appimage = ""
 
         try:
             ctx = ssl.create_default_context()
@@ -315,6 +317,8 @@ class Updater:
                 download_windows = data_json["download_windows"]
             if "download_linux" in data_json:
                 download_linux = data_json["download_linux"]
+            if "download_appimage" in data_json:
+                download_appimage = data_json["download_appimage"]
             if "thanks" in data_json:
                 self.thanks = self.parse_thanks(data_json["thanks"])
 
@@ -331,7 +335,7 @@ class Updater:
             self.window.core.debug.log(e)
             print("Failed to check for updates")
 
-        return is_new, newest_version, newest_build, changelog, download_windows, download_linux
+        return is_new, newest_version, newest_build, changelog, download_windows, download_linux, download_appimage
 
     def parse_thanks(self, people: str) -> str:
         """
@@ -352,7 +356,7 @@ class Updater:
         :return: True if force show version dialog
         """
         print("Checking for updates...")
-        is_new, version, build, changelog, download_windows, download_linux = self.check_silent()
+        is_new, version, build, changelog, download_windows, download_linux, download_appimage = self.check_silent()
         if is_new or force:
             self.show_version_dialog(
                 version,
@@ -360,6 +364,7 @@ class Updater:
                 changelog,
                 download_windows,
                 download_linux,
+                download_appimage,
                 is_new
             )
             return True
@@ -373,6 +378,7 @@ class Updater:
             changelog: str,
             download_windows: str,
             download_linux: str,
+            download_appimage: str = "",
             is_new: bool = False
     ):
         """
@@ -383,6 +389,7 @@ class Updater:
         :param changelog: changelog
         :param download_windows: windows download link
         :param download_linux: linux download link
+        :param download_appimage: appimage download link
         :param is_new: True if is new version available
         """
         self.window.ui.dialog['update'].set_data(
@@ -391,7 +398,8 @@ class Updater:
             build,
             changelog,
             download_windows,
-            download_linux
+            download_linux,
+            download_appimage
         )
         self.window.ui.dialogs.open('update', height=600)
 
@@ -419,14 +427,15 @@ class Updater:
 
         return updated
 
-    @Slot(str, str, str, str, str)
+    @Slot(str, str, str, str, str, str)
     def handle_new_version(
             self,
             version: str,
             build: str,
             changelog: str,
-            download_windows: str = "",
-            download_linux: str = ""
+            download_windows: str,
+            download_linux: str,
+            download_appimage: str
     ):
         """
         Handle new version signal
@@ -436,6 +445,7 @@ class Updater:
         :param changelog: changelog
         :param download_windows: download link for windows
         :param download_linux: download link for linux
+        :param download_appimage: download link for appimage
         """
         if self.window.ui.tray.is_tray:
             self.window.ui.tray.show_msg(
@@ -450,6 +460,7 @@ class Updater:
             changelog,
             download_windows,
             download_linux,
+            download_appimage,
             True
         )
 
@@ -468,7 +479,7 @@ class Updater:
 
 
 class UpdaterSignals(QObject):
-    version_changed = Signal(str, str, str, str, str)
+    version_changed = Signal(str, str, str, str, str, str)
 
 
 class UpdaterWorker(QRunnable):
@@ -498,7 +509,7 @@ class UpdaterWorker(QRunnable):
             if self.force:
                 print("Checking for updates...")
 
-            is_new, version, build, changelog, download_windows, download_linux = self.checker()
+            is_new, version, build, changelog, download_windows, download_linux, download_appimage = self.checker()
             if is_new:
                 if self.force or (parsed_prev_checked is None or parsed_prev_checked < parse_version(version)):
                     self.signals.version_changed.emit(
@@ -507,6 +518,7 @@ class UpdaterWorker(QRunnable):
                         changelog,
                         download_windows,
                         download_linux,
+                        download_appimage
                     )
                 return
             if self.force:

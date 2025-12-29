@@ -46,6 +46,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param args: launcher arguments
         """
         super().__init__()
+        self.setWindowFlags(self.windowFlags() | Qt.WindowMinMaxButtonsHint | Qt.WindowMaximizeButtonHint)
         self.app = app
         self.args = args
         self.timer = None
