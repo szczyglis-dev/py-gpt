@@ -187,7 +187,7 @@ QListView#ComboPopupList {{
   border: 2px solid #4f5b62;
 }}
 
-QComboBox QAbstractItemView::item,
+QComboBox[name="SearchableCombo"] QAbstractItemView::item,
 QListView#ComboPopupList::item {{
   min-height: 20px;
   padding: 8px 33px;

@@ -379,7 +379,9 @@ class SearchableCombo(SeparatorComboBox):
     """
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("SearchableCombo")
         self.search: bool = True
+
         self._popup_open: bool = False
         self._search_line: QLineEdit | None = None
         self._search_action = None

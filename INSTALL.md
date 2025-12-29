@@ -6,7 +6,25 @@ You can download compiled versions for `Linux` and `Windows` (10/11).
 
 Download the `.msi` or `tar.gz` for the appropriate OS from the download page at https://pygpt.net and then extract files from the archive and run the application.
 
-## Snap Store
+## Microsoft Store (Windows)
+
+For Windows 10/11, you can install **PyGPT** directly from Microsoft Store:
+
+[![Get it from Microsoft Store](https://get.microsoft.com/images/en-us%20dark.svg)](https://apps.microsoft.com/detail/XP99R4MX3X65VQ)
+
+Link to MS Store: https://apps.microsoft.com/detail/XP99R4MX3X65VQ
+
+## AppImage (Linux)
+
+You can download the latest **PyGPT** `AppImage` for Linux from the release page:
+
+Releases: https://github.com/szczyglis-dev/py-gpt/releases
+
+To manage future updates use:
+
+```appimageupdatetool ./PyGPT-X.X.X-x86_64.AppImage```
+
+## Snap Store (Linux)
 
 You can install **PyGPT** directly from Snap Store:
 

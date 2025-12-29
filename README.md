@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.1** | build: **2025-12-28** | Python: **>=3.10, <3.14**
+Release: **2.7.2** | build: **2025-12-29** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -99,7 +99,33 @@ You can download compiled binary versions for `Linux` and `Windows` (10/11).
 
 Linux version requires `GLIBC` >= `2.35`.
 
-## Snap Store
+## Microsoft Store (Windows)
+
+For Windows 10/11, you can install **PyGPT** directly from Microsoft Store:
+
+[![Get it from Microsoft Store](https://get.microsoft.com/images/en-us%20dark.svg)](https://apps.microsoft.com/detail/XP99R4MX3X65VQ)
+
+Link to MS Store: https://apps.microsoft.com/detail/XP99R4MX3X65VQ
+
+## AppImage (Linux)
+
+You can download the latest **PyGPT** `AppImage` for Linux from the release page:
+
+**Releases:** https://github.com/szczyglis-dev/py-gpt/releases
+
+**Tip:** Remember to give execution permissions to the downloaded file:
+
+```chmod +x ./PyGPT-X.X.X-x86_64.AppImage```
+
+To manage future updates you can use `AppImageUpdate` tool:
+
+You can download it from: https://github.com/AppImage/AppImageUpdate/releases
+
+After downloading, run the following command in terminal:
+
+```appimageupdatetool ./PyGPT-X.X.X-x86_64.AppImage```
+
+## Snap Store (Linux)
 
 You can install **PyGPT** directly from Snap Store:
 
@@ -107,7 +133,7 @@ You can install **PyGPT** directly from Snap Store:
 sudo snap install pygpt
 ```
 
-To manage future updates just use:
+To manage future updates use:
 
 ```commandline
 sudo snap refresh pygpt
@@ -3635,6 +3661,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.2 (2025-12-29)**
+
+- Fixed: non-searchable combobox width.
+- Improved updater.
+- Added .AppImage build.
 
 **2.7.1 (2025-12-28)**
 

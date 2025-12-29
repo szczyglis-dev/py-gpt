@@ -2,7 +2,7 @@ How to Install
 ===============
 
 Binaries
----------
+--------
 
 You can download compiled binary versions for ``Linux`` and ``Windows`` (10/11). 
 
@@ -24,8 +24,39 @@ root directory.
 
 Linux version requires ``GLIBC`` >= ``2.35``.
 
+Microsoft Store
+---------------
+
+For Windows 10/11, you can install **PyGPT** directly from Microsoft Store:
+
+Link to MS Store: https://apps.microsoft.com/detail/XP99R4MX3X65VQ
+
+AppImage
+---------
+
+You can download the latest **PyGPT** ``AppImage`` for Linux from the release page:
+
+**Releases:** https://github.com/szczyglis-dev/py-gpt/releases
+
+**Tip:** Remember to give execution permissions to the downloaded file:
+
+.. code-block:: console
+
+    $ chmod +x ./PyGPT-X.X.X-x86_64.AppImage
+
+To manage future updates you can use ``AppImageUpdate`` tool:
+
+You can download it from: https://github.com/AppImage/AppImageUpdate/releases
+
+After downloading, run the following command in terminal:
+
+.. code-block:: console
+
+    appimageupdatetool ./PyGPT-X.X.X-x86_64.AppImage
+
 Snap Store
------------
+----------
+
 You can install **PyGPT** directly from Snap Store:
 
 .. code-block:: console

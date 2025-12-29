@@ -199,6 +199,14 @@ class Patch:
                 patch_css('style.dark.css', True)
                 updated = True
 
+            # < 2.7.2
+            if old < parse_version("2.7.2"):
+                print("Migrating config from < 2.7.2...")
+                # fix: combo boxes css width
+                patch_css('style.light.css', True)
+                patch_css('style.dark.css', True)
+                updated = True
+
         # update file
         migrated = False
         if updated:

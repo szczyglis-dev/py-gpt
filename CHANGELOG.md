@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.7.2 (2025-12-29)
+
+- Fixed: non-searchable combobox width.
+- Improved updater.
+- Added .AppImage build.
+
 ## 2.7.1 (2025-12-28)
 
 - Improved UI elements.
