@@ -1,3 +1,7 @@
+2.7.3 (2025-12-30)
+
+- Added the `Remix/Extend` option in Image and Video generation mode. This allows the use of a previously generated image or video as a reference. It can be used for adding or changing elements in a previously generated image or video instead of creating a new one from scratch. See the docs: `Modes -> Image and Video generation -> Remix, Edit, or Extend`.
+
 2.7.2 (2025-12-29)
 
 - Fixed: non-searchable combobox width.

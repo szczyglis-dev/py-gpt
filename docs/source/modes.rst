@@ -198,6 +198,8 @@ Plugin allows you to generate images in Chat mode:
 
 For OpenAI models, you can also enable remote image generation in ``Config -> Settings -> Remote Tools``. If enabled, image generation will be available natively within the conversation, without plugins, in Chat mode.
 
+To use ``Imagen`` models you must enable ``VertexAI`` in ``Config -> Settings -> API Keys -> Google -> Advanced options``.
+
 **Remix, Edit, or Extend**
 
 To remix or extend from a previous image or video instead of creating a new one from scratch, enable the ``Remix/Extend`` option checkbox in the toolbox. The last generated image or video in the current context will be used as a reference for your prompt, allowing you to request changes to the generated content. If the ``Remix/Extend`` option is enabled, uploading an image attachment as a reference will not take effect.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.2** | build: **2025-12-29** | Python: **>=3.10, <3.14**
+Release: **2.7.3** | build: **2025-12-30** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -618,6 +618,8 @@ Plugin allows you to generate images in Chat mode:
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
 
 For OpenAI models, you can also enable remote image generation in `Config -> Settings -> Remote Tools`. If enabled, image generation will be available natively within the conversation, without plugins, in Chat mode.
+
+To use `Imagen` models you must enable `VertexAI` in `Config -> Settings -> API Keys -> Google -> Advanced options`.
 
 ### Remix, Edit, or Extend
 
@@ -3654,6 +3656,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.3 (2025-12-30)**
+
+- Added the `Remix/Extend` option in Image and Video generation mode. This allows the use of a previously generated image or video as a reference. It can be used for adding or changing elements in a previously generated image or video instead of creating a new one from scratch. See the docs: `Modes -> Image and Video generation -> Remix, Edit, or Extend`.
 
 **2.7.2 (2025-12-29)**
 
