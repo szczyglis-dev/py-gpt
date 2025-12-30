@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 12:00:00                  #
+# Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -59,6 +59,7 @@ class Video:
         prompt = context.prompt
         num = int(extra.get("num", 1))
         inline = bool(extra.get("inline", False))
+        video_id = extra.get("video_id")
 
         # decide sub-mode based on attachments (image-to-video when image is attached)
         sub_mode = self.MODE_GENERATE
@@ -85,6 +86,7 @@ class Video:
         worker.raw = self.window.core.config.get('img_raw')
         worker.num = num
         worker.inline = inline
+        worker.video_id = video_id
 
         # optional params (app-level options)
         worker.aspect_ratio = str(extra.get("aspect_ratio") or self.window.core.config.get('video.aspect_ratio') or "16:9")
@@ -155,6 +157,7 @@ class VideoWorker(QRunnable):
         self.input_prompt = ""
         self.system_prompt = ""
         self.inline = False
+        self.video_id = None
         self.raw = False
         self.num = 1
 
@@ -169,6 +172,7 @@ class VideoWorker(QRunnable):
     @Slot()
     def run(self):
         try:
+            kernel = self.window.controller.kernel
             # Optional prompt enhancement via app default LLM
             if not self.raw and not self.inline and self.input_prompt:
                 try:
@@ -199,42 +203,88 @@ class VideoWorker(QRunnable):
             # Image-to-video: first image attachment as input_reference, must match "size"
             image_path = self._first_image_attachment(self.attachments) if self.mode == Video.MODE_IMAGE_TO_VIDEO else None
 
-            self.signals.status.emit(trans('vid.status.generating') + f": {self.input_prompt}...")
+            # If remix requested, ignore any image input_reference
+            is_remix = bool(self.video_id)
+            if is_remix:
+                image_path = None  # enforce remix over image-to-video
+
+            label = trans('vid.status.generating')
+            if is_remix:
+                label += " (remix)"
+            self.signals.status.emit(label + f": {self.input_prompt}...")
 
             # Create job
-            create_kwargs: Dict[str, Any] = {
-                "model": self.model or "sora-2",
-                "prompt": self.input_prompt or "",
-                "seconds": str(seconds),
-                "size": size,
-            }
-
-            # Attach image as input_reference; auto-resize to match requested size if needed
+            job = None
             file_handle = None
-            if image_path:
-                prepared = self._prepare_input_reference(image_path, size)
-                if prepared is not None:
-                    # tuple (filename, bytes, mime) supported by OpenAI Python SDK
-                    create_kwargs["input_reference"] = prepared
-                else:
-                    # Fallback: use original file (may fail if size/mime mismatch)
-                    try:
-                        file_handle = open(image_path, "rb")
-                        create_kwargs["input_reference"] = file_handle
-                    except Exception as e:
-                        self.signals.error.emit(e)
 
-            job = self.client.videos.create(**create_kwargs)
+            if is_remix:
+                # Primary path: dedicated remix endpoint, inherits the original's length and size
+                last_exc = None
+                try:
+                    job = self.client.videos.remix(
+                        video_id=str(self.video_id),
+                        prompt=self.input_prompt or "",
+                    )
+                except Exception as e1:
+                    # Fallbacks for older SDKs: pass remix id via create()
+                    last_exc = e1
+                    try:
+                        job = self.client.videos.create(
+                            model=self.model or "sora-2",
+                            prompt=self.input_prompt or "",
+                            remix_id=str(self.video_id),
+                        )
+                    except Exception as e2:
+                        last_exc = e2
+                        try:
+                            job = self.client.videos.create(
+                                model=self.model or "sora-2",
+                                prompt=self.input_prompt or "",
+                                remix_video_id=str(self.video_id),
+                            )
+                        except Exception as e3:
+                            last_exc = e3
+                if job is None:
+                    raise last_exc or RuntimeError("Unable to start remix job.")
+            else:
+                create_kwargs: Dict[str, Any] = {
+                    "model": self.model or "sora-2",
+                    "prompt": self.input_prompt or "",
+                    "seconds": str(seconds),
+                    "size": size,
+                }
+
+                # Attach image as input_reference; auto-resize to match requested size if needed
+                if image_path:
+                    prepared = self._prepare_input_reference(image_path, size)
+                    if prepared is not None:
+                        create_kwargs["input_reference"] = prepared
+                    else:
+                        try:
+                            file_handle = open(image_path, "rb")
+                            create_kwargs["input_reference"] = file_handle
+                        except Exception as e:
+                            self.signals.error.emit(e)
+
+                job = self.client.videos.create(**create_kwargs)
+
             video_id = self._safe_get(job, "id")
             if not video_id:
-                # include raw payload for debugging
                 raise RuntimeError("Video job ID missing in create response.")
 
             # Poll until completed (or failed/canceled)
+            if not isinstance(self.ctx.extra, dict):
+                self.ctx.extra = {}
+            self.ctx.extra['video_id'] = video_id  # store video_id in ctx extra
+            self.window.core.ctx.update_item(self.ctx)
             last_progress = None
             last_status = None
             while True:
+                if kernel.stopped():
+                    break
                 time.sleep(5)
+                if kernel.stopped():
+                    break
                 job = self.client.videos.retrieve(video_id)
                 status = self._safe_get(job, "status") or ""
                 progress = self._safe_get(job, "progress")

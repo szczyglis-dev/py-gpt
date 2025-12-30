@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.28 18:00:00                  #
+# Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QWidget, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QCheckBox
 
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.input import OptionInput
+from pygpt_net.utils import trans
 
 
 class Video:
@@ -34,7 +35,7 @@ class Video:
         ui = self.window.ui
         conf_global = ui.config['global']
 
-        container = QWidget()
+        container = QWidget(parent=self.window)
         ui.nodes['video.options'] = container
 
         option_ratio = self.window.core.video.get_aspect_ratio_option()
@@ -49,13 +50,23 @@ class Video:
         conf_global['video.resolution'].setMinimumWidth(120)
         conf_global['video.duration'].setMinimumWidth(50)
 
-        rows = QHBoxLayout()
-        rows.addWidget(conf_global['video.resolution'], 2)
-        rows.addWidget(conf_global['video.aspect_ratio'], 2)
-        rows.addWidget(conf_global['video.duration'], 1)
-        rows.setContentsMargins(2, 5, 5, 5)
+        conf_global['video.remix'] = QCheckBox(trans("video.remix"), parent=container)
+        conf_global['video.remix'].setToolTip(trans("video.remix.tooltip"))
+        conf_global['video.remix'].toggled.connect(self.window.controller.media.toggle_remix_video)
+
+        cols = QHBoxLayout()
+        cols.addWidget(conf_global['video.resolution'], 2)
+        cols.addWidget(conf_global['video.aspect_ratio'], 2)
+        cols.addWidget(conf_global['video.duration'], 1)
+        cols.setContentsMargins(2, 5, 5, 5)
+
+        rows = QVBoxLayout()
+        rows.addLayout(cols)
+        rows.addWidget(conf_global['video.remix'])
+        rows.setContentsMargins(0, 0, 0, 0)
 
         container.setLayout(rows)
-        container.setContentsMargins(2, 0, 0, 0)
+        container.setContentsMargins(2, 0, 0, 10)
+        container.setFixedHeight(90)
 
         return container

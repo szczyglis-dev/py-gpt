@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
 import base64, datetime, os, requests
@@ -54,6 +54,7 @@ class Video:
         prompt = context.prompt
         num = int(extra.get("num", 1))
         inline = bool(extra.get("inline", False))
+        video_id = extra.get("video_id")
 
         # decide sub-mode based on attachments (image-to-video when image is attached)
         sub_mode = self.MODE_GENERATE
@@ -80,6 +81,7 @@ class Video:
         worker.raw = self.window.core.config.get('img_raw')
         worker.num = num
         worker.inline = inline
+        worker.video_id = video_id
 
         # optional params
         worker.aspect_ratio = str(extra.get("aspect_ratio") or self.window.core.config.get('video.aspect_ratio') or "16:9")
@@ -141,6 +143,7 @@ class VideoWorker(QRunnable):
         self.input_prompt = ""
         self.system_prompt = ""
         self.inline = False
+        self.video_id = None
         self.raw = False
         self.num = 1
 
@@ -162,6 +165,7 @@ class VideoWorker(QRunnable):
     @Slot()
     def run(self):
         try:
+            kernel = self.window.controller.kernel
             # optional prompt enhancement
             if not self.raw and not self.inline and self.input_prompt:
                 try:
@@ -208,6 +212,70 @@ class VideoWorker(QRunnable):
             cfg_try = dict(cfg_kwargs)
             cfg_try["duration_seconds"] = int(self._duration_for_model(self.model, self.duration_seconds))
 
+            # remix / extension: if video_id provided, prefer video-to-video path
+            is_remix = bool(self.video_id)
+            if is_remix:
+                # Veo extension support varies by API and model; choose a compatible model if needed
+                model_for_ext = self._select_extension_model(self.model)
+                if model_for_ext != self.model:
+                    self.signals.status.emit(f"Please switch model for extension: {self.model} -> {model_for_ext}")
+                    # self.model = model_for_ext # <-- do not override user selection, just inform
+
+                # Build video input from identifier (URI, files/<id>, http(s), gs://, or local path)
+                video_input = self._video_from_identifier(self.video_id)
+                if not video_input:
+                    raise RuntimeError("Invalid video_id for remix/extension. Provide a valid URI, file name, or local path.")
+
+                # Minimal config for extension to avoid server-side rejections
+                ext_config = gtypes.GenerateVideosConfig(number_of_videos=1)
+
+                label = trans('vid.status.generating') + " (remix)"
+                self.signals.status.emit(label + f": {self.input_prompt or ''}...")
+
+                # Start operation: video extension, prompt optional
+                operation = self.client.models.generate_videos(
+                    model=self.model or self.DEFAULT_VEO_MODEL,
+                    prompt=self.input_prompt or "",
+                    video=video_input,
+                    config=ext_config,
+                )
+
+                # poll until done
+                while not getattr(operation, "done", False):
+                    if kernel.stopped():
+                        break
+                    time.sleep(10)
+                    if kernel.stopped():
+                        break
+                    operation = self.client.operations.get(operation)
+
+                # extract response payload
+                op_resp = getattr(operation, "response", None) or getattr(operation, "result", None)
+                if not op_resp:
+                    raise RuntimeError("Empty operation response.")
+
+                gen_list = getattr(op_resp, "generated_videos", None) or []
+                if not gen_list:
+                    raise RuntimeError("No videos generated.")
+
+                # store remote reference for next remix calls (URI/name) in ctx
+                self._store_video_reference(gen_list[0])
+
+                # download and save
+                paths: List[str] = []
+                for idx, gv in enumerate(gen_list[:1]):
+                    data = self._download_video_bytes(getattr(gv, "video", None))
+                    p = self._save(idx, data)
+                    if p:
+                        paths.append(p)
+
+                if self.inline:
+                    self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                else:
+                    self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                return  # remix path completed
+
+            # normal generation path (text-to-video or image-to-video)
             self.signals.status.emit(trans('vid.status.generating') + f": {self.input_prompt}...")
 
             try:
@@ -235,7 +303,11 @@ class VideoWorker(QRunnable):
 
             # poll until done
             while not getattr(operation, "done", False):
+                if kernel.stopped():
+                    break
                 time.sleep(10)
+                if kernel.stopped():
+                    break
                 operation = self.client.operations.get(operation)
 
             # extract response payload
@@ -246,6 +318,9 @@ class VideoWorker(QRunnable):
             gen_list = getattr(op_resp, "generated_videos", None) or []
             if not gen_list:
                 raise RuntimeError("No videos generated.")
+
+            # store remote reference for potential future remix/extension
+            self._store_video_reference(gen_list[0])
 
             # download and save all outputs up to num
             paths: List[str] = []
@@ -328,6 +403,82 @@ class VideoWorker(QRunnable):
             except Exception:
                 continue
         return None
+
+    def _video_from_identifier(self, identifier: str) -> Optional[gtypes.Video]:
+        """
+        Build a Video object from a generic identifier:
+        - Local file path -> upload via types.Video.from_file
+        - files/<id> -> resolve to URI using Files API
+        - http(s) or gs:// URI -> pass-through
+        """
+        try:
+            if not identifier:
+                return None
+            ident = str(identifier).strip()
+
+            # Local path
+            if os.path.exists(ident):
+                return gtypes.Video.from_file(ident)
+
+            # Files API name
+            if ident.startswith("files/"):
+                try:
+                    f = self.client.files.get(name=ident)
+                    uri = getattr(f, "uri", None)
+                    if uri:
+                        return gtypes.Video(uri=uri)
+                except Exception:
+                    pass
+
+            # Generic URI (Gemini accepts URIs, Vertex expects GCS; SDK honors both via uri field)
+            if ident.startswith("http://") or ident.startswith("https://") or ident.startswith("gs://"):
+                return gtypes.Video(uri=ident)
+        except Exception:
+            return None
+        return None
+
+    def _select_extension_model(self, model_id: str) -> str:
+        """
+        Choose a compatible model for video extension:
+        - Gemini API: Veo 3.1 only supports extension
+        - Vertex AI: extension supported on Veo 2.0
+        """
+        mid = str(model_id or "").lower()
+        use_vertex = bool(getattr(self.client, "vertexai", False))
+
+        # Gemini Developer API path
+        if not use_vertex:
+            if "veo-3.1" in mid:
+                return model_id
+            # Prefer 3.1 preview if user selected older Veo
+            return "veo-3.1-generate-preview"
+
+        # Vertex AI path
+        if "veo-2.0" in mid:
+            return model_id
+        return "veo-2.0-generate-001"
+
+    def _store_video_reference(self, generated_video_item: Any) -> None:
+        """
+        Persist a reusable video reference (URI or name) to ctx.extra['video_id'] for future remix/extension calls.
+        """
+        try:
+            vref = getattr(generated_video_item, "video", None)
+            if not vref:
+                return
+            # Prefer URI, fallback to name
+            uri = getattr(vref, "uri", None) or getattr(vref, "download_uri", None)
+            name = getattr(vref, "name", None)
+            ref = uri or name
+            if not ref:
+                return
+
+            if not isinstance(self.ctx.extra, dict):
+                self.ctx.extra = {}
+            self.ctx.extra["video_id"] = ref
+            self.window.core.ctx.update_item(self.ctx)
+        except Exception:
+            pass
 
     def _download_video_bytes(self, file_ref) -> Optional[bytes]:
         """

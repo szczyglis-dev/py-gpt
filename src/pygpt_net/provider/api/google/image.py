@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -14,7 +14,7 @@ from typing import Optional, Dict, Any, List
 from google import genai
 from google.genai import types as gtypes
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
-import base64, datetime, os, requests
+import base64, datetime, os, requests, tempfile
 
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
@@ -80,6 +80,9 @@ class Image:
         worker.num = num
         worker.inline = inline
 
+        # remix: previous image reference (ID/URI/path) from extra
+        worker.image_id = extra.get("image_id")
+
         if attachments and len(attachments) > 0:
             mid = str(model.id).lower()
             if "imagen" in mid:
@@ -121,7 +124,7 @@ class ImageWorker(QRunnable):
         # params
         self.mode = Image.MODE_GENERATE
         self.attachments: Dict[str, Any] = {}
-        self.model = "imagen-4.0-generate-preview-06-06"
+        self.model = "imagen-4.0-generate-001"
         self.model_prompt = None
         self.input_prompt = ""
         self.system_prompt = ""
@@ -129,6 +132,7 @@ class ImageWorker(QRunnable):
         self.raw = False
         self.num = 1
         self.resolution = "1024x1024"  # used to derive aspect ratio or image_size
+        self.image_id: Optional[str] = None  # remix/extend previous image
 
         # limits
         self.imagen_max_num = 4  # Imagen returns up to 4 images
@@ -174,9 +178,88 @@ class ImageWorker(QRunnable):
                     self.signals.error.emit(e)
                     self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
 
-            self.signals.status.emit(trans('img.status.generating') + f": {self.input_prompt}...")
-
             paths: List[str] = []
+
+            # Remix path: if image_id provided, prefer image-to-image remix using the given identifier.
+            if self.image_id:
+                self.signals.status.emit(trans('img.status.generating') + " (remix): " + (self.input_prompt or "") + "...")
+                if self._using_vertex() and self._is_imagen_generate(self.model):
+                    # Vertex / Imagen edit flow with a single base image (no explicit mask).
+                    img_ref = self._imagen_image_from_identifier(self.image_id)
+                    if not img_ref:
+                        raise RuntimeError("Invalid image_id for remix. Provide a valid local path, Files API name, or gs:// URI.")
+
+                    raw_ref = gtypes.RawReferenceImage(reference_id=0, reference_image=img_ref)
+                    mask_ref = gtypes.MaskReferenceImage(
+                        reference_id=1,
+                        reference_image=None,
+                        config=gtypes.MaskReferenceConfig(
+                            mask_mode="MASK_MODE_BACKGROUND",
+                            mask_dilation=0.0,
+                        ),
+                    )
+                    cfg = gtypes.EditImageConfig(
+                        edit_mode="EDIT_MODE_DEFAULT",
+                        number_of_images=min(self.num, self.imagen_max_num),
+                        include_rai_reason=True,
+                    )
+                    resp = self.client.models.edit_image(
+                        model="imagen-3.0-capability-001",
+                        prompt=self.input_prompt or "",
+                        reference_images=[raw_ref, mask_ref],
+                        config=cfg,
+                    )
+                    imgs = getattr(resp, "generated_images", None) or []
+                    for idx, gi in enumerate(imgs[: min(self.num, self.imagen_max_num)]):
+                        data = self._extract_imagen_bytes(gi)
+                        p = self._save(idx, data)
+                        if p:
+                            paths.append(p)
+
+                    # store reference for future remix: prefer remote URI if available, otherwise saved path
+                    if paths:
+                        self._store_image_reference_imagen(imgs[0] if imgs else None, paths[0])
+
+                else:
+                    # Gemini Developer API remix via generate_content with prompt + reference image part.
+                    ref_part = self._image_part_from_identifier(self.image_id)
+                    if not ref_part:
+                        raise RuntimeError("Invalid image_id for remix. Provide a valid local path, Files API name, http(s) URL, or gs:// URI.")
+                    img_cfg = self._build_gemini_image_config(self.model, self.resolution)
+                    resp = self.client.models.generate_content(
+                        model=self.model or self.DEFAULT_GEMINI_IMAGE_MODEL,
+                        contents=[self.input_prompt or "", ref_part],
+                        config=gtypes.GenerateContentConfig(
+                            image_config=img_cfg,
+                        ),
+                    )
+                    saved = 0
+                    for cand in getattr(resp, "candidates", []) or []:
+                        parts = getattr(getattr(cand, "content", None), "parts", None) or []
+                        for part in parts:
+                            inline = getattr(part, "inline_data", None)
+                            if inline and getattr(inline, "data", None):
+                                p = self._save(saved, inline.data)
+                                if p:
+                                    paths.append(p)
+                                    saved += 1
+                                    if saved >= self.num:
+                                        break
+                        if saved >= self.num:
+                            break
+
+                    # store reference: saved local path is a reusable identifier for next remix
+                    if paths:
+                        self._store_image_id(paths[0])
+
+                if self.inline:
+                    self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                else:
+                    self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                return  # remix path finished
+
+            # Normal paths
+            self.signals.status.emit(trans('img.status.generating') + f": {self.input_prompt}...")
 
             if self.mode == Image.MODE_EDIT:
                 # EDIT
@@ -189,6 +272,9 @@ class ImageWorker(QRunnable):
                         p = self._save(idx, data)
                         if p:
                             paths.append(p)
+                    # store reference
+                    if paths:
+                        self._store_image_reference_imagen(imgs[0] if imgs else None, paths[0])
                 else:
                     # Gemini Developer API via Gemini image models (Nano Banana / Nano Banana Pro)
                     resp = self._gemini_edit(self.input_prompt, self.attachments, self.num)
@@ -206,6 +292,9 @@ class ImageWorker(QRunnable):
                                         break
                         if saved >= self.num:
                             break
+                    # store reference
+                    if paths:
+                        self._store_image_id(paths[0])
 
             else:
                 # GENERATE
@@ -218,6 +307,9 @@ class ImageWorker(QRunnable):
                         p = self._save(idx, data)
                         if p:
                             paths.append(p)
+                    # store reference
+                    if paths:
+                        self._store_image_reference_imagen(imgs[0] if imgs else None, paths[0])
                 else:
                     # Gemini Developer API image generation (Nano Banana / Nano Banana Pro) with robust sizing + optional reference images
                     resp = self._gemini_generate_image(self.input_prompt, self.model, self.resolution)
@@ -235,6 +327,9 @@ class ImageWorker(QRunnable):
                                         break
                         if saved >= self.num:
                             break
+                    # store reference
+                    if paths:
+                        self._store_image_id(paths[0])
 
             if self.inline:
                 self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
@@ -397,9 +492,7 @@ class ImageWorker(QRunnable):
 
         def _do_call(icfg: Optional[gtypes.ImageConfig]):
             contents: List[Any] = []
-            # Always include the textual prompt (can be empty string).
             contents.append(prompt or "")
-            # Append reference images, if any.
             if image_parts:
                 contents.extend(image_parts)
             return self.client.models.generate_content(
@@ -460,6 +553,117 @@ class ImageWorker(QRunnable):
                     cfg2.aspect_ratio = getattr(cfg, "aspect_ratio", None)
                     return _do_call(cfg2)
             raise
+
+    def _image_part_from_identifier(self, identifier: str) -> Optional[gtypes.Part]:
+        """
+        Build a Gemini Part from a generic image identifier:
+        - Local path -> Part.from_bytes
+        - Files API name (files/...) -> resolve to URI + mime and use Part.from_uri
+        - gs:// URI -> Part.from_uri
+        - http(s) URL -> download bytes and use Part.from_bytes
+        - data: URI (base64) -> decode and use Part.from_bytes
+        """
+        if not identifier:
+            return None
+        ident = str(identifier).strip()
+
+        # Local file
+        if os.path.exists(ident):
+            mime = self._guess_mime(ident)
+            with open(ident, "rb") as f:
+                return gtypes.Part.from_bytes(data=f.read(), mime_type=mime)
+
+        # Files API
+        if ident.startswith("files/"):
+            try:
+                f = self.client.files.get(name=ident)
+                file_uri = getattr(f, "uri", None)
+                mime = getattr(f, "mime_type", None) or self._guess_mime_from_uri(file_uri)
+                if file_uri and mime:
+                    return gtypes.Part.from_uri(file_uri=file_uri, mime_type=mime)
+            except Exception:
+                pass
+
+        # gs://
+        if ident.startswith("gs://"):
+            mime = self._guess_mime_from_uri(ident) or "image/png"
+            return gtypes.Part.from_uri(file_uri=ident, mime_type=mime)
+
+        # http(s)
+        if ident.startswith("http://") or ident.startswith("https://"):
+            try:
+                r = requests.get(ident, timeout=60)
+                if r.status_code == 200:
+                    mime = r.headers.get("Content-Type") or self._guess_mime_from_uri(ident) or "image/png"
+                    return gtypes.Part.from_bytes(data=r.content, mime_type=mime)
+            except Exception:
+                return None
+
+        # data:
+        if ident.startswith("data:"):
+            try:
+                head, b64 = ident.split(",", 1)
+                mime = head.split(";")[0][5:] if ";" in head else "image/png"
+                return gtypes.Part.from_bytes(data=base64.b64decode(b64), mime_type=mime)
+            except Exception:
+                return None
+
+        return None
+
+    def _imagen_image_from_identifier(self, identifier: str) -> Optional[gtypes.Image]:
+        """
+        Build a gtypes.Image for Imagen edit:
+        - Local path -> Image.from_file
+        - Files API name -> resolve to URI; if gs:// use gcs_uri, otherwise download to temp and from_file
+        - gs:// -> Image(gcs_uri=...)
+        - http(s) -> download to temp file, then from_file
+        """
+        if not identifier:
+            return None
+        ident = str(identifier).strip()
+
+        if os.path.exists(ident):
+            return gtypes.Image.from_file(location=ident)
+
+        if ident.startswith("files/"):
+            try:
+                f = self.client.files.get(name=ident)
+                uri = getattr(f, "uri", None)
+                if uri and uri.startswith("gs://"):
+                    return gtypes.Image(gcs_uri=uri)
+                if uri and (uri.startswith("http://") or uri.startswith("https://")):
+                    tmp = self._download_to_temp(uri)
+                    return gtypes.Image.from_file(location=tmp) if tmp else None
+            except Exception:
+                return None
+
+        if ident.startswith("gs://"):
+            return gtypes.Image(gcs_uri=ident)
+
+        if ident.startswith("http://") or ident.startswith("https://"):
+            tmp = self._download_to_temp(ident)
+            return gtypes.Image.from_file(location=tmp) if tmp else None
+
+        return None
+
+    def _download_to_temp(self, url: str) -> Optional[str]:
+        """Download URL to a temporary file and return its path."""
+        try:
+            r = requests.get(url, timeout=60)
+            if r.status_code == 200:
+                ext = ".png"
+                ct = r.headers.get("Content-Type") or ""
+                if "jpeg" in ct:
+                    ext = ".jpg"
+                elif "webp" in ct:
+                    ext = ".webp"
+                fd, path = tempfile.mkstemp(suffix=ext)
+                with os.fdopen(fd, "wb") as f:
+                    f.write(r.content)
+                return path
+        except Exception:
+            return None
+        return None
 
     def _collect_attachment_paths(self, attachments: Dict[str, Any]) -> List[str]:
         """Extract file paths from attachments dict."""
@@ -527,6 +731,34 @@ class ImageWorker(QRunnable):
                 pass
         return None
 
+    def _store_image_reference_imagen(self, generated_image_item: Any, fallback_path: Optional[str]) -> None:
+        """
+        Persist a reusable image reference to ctx.extra['image_id'].
+        Prefer remote URI/name if provided by Imagen; fallback to the saved local path.
+        """
+        ref = None
+        try:
+            img = getattr(generated_image_item, "image", None) if generated_image_item else None
+            if img:
+                ref = getattr(img, "uri", None) or getattr(img, "url", None) or getattr(img, "name", None)
+        except Exception:
+            ref = None
+        self._store_image_id(ref or fallback_path)
+
+    def _store_image_id(self, value: Optional[str]) -> None:
+        """
+        Store image_id reference in ctx.extra and persist the context item.
+        """
+        if not value:
+            return
+        try:
+            if not isinstance(self.ctx.extra, dict):
+                self.ctx.extra = {}
+            self.ctx.extra["image_id"] = str(value)
+            self.window.core.ctx.update_item(self.ctx)
+        except Exception:
+            pass
+
     def _save(self, idx: int, data: Optional[bytes]) -> Optional[str]:
         """Save image bytes to file and return path."""
         if not data:
@@ -558,6 +790,13 @@ class ImageWorker(QRunnable):
         if ext in ('.heic', '.heif'):
             return 'image/heic'
         return 'image/png'
+
+    def _guess_mime_from_uri(self, uri: Optional[str]) -> Optional[str]:
+        """Best-effort MIME guess from URI or file extension."""
+        if not uri:
+            return None
+        mime, _ = mimetypes.guess_type(uri)
+        return mime or None
 
     def _cleanup(self):
         """Cleanup resources."""

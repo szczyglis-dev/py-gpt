@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
 import base64
 import datetime
 import os
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 import requests
 
@@ -51,12 +51,14 @@ class Image:
         :param extra: Extra arguments
         :param sync: Synchronous mode
         """
+        extra = extra or {}
         prompt = context.prompt
         ctx = context.ctx
         model = context.model
         num = extra.get("num", 1)
         inline = extra.get("inline", False)
         sub_mode = self.MODE_GENERATE
+        image_id = extra.get("image_id")  # previous image reference for remix
 
         # if attachments then switch mode to EDIT
         attachments = context.attachments
@@ -85,6 +87,7 @@ class Image:
         self.worker.system_prompt = self.window.core.prompt.get('img')
         self.worker.num = num
         self.worker.inline = inline
+        self.worker.image_id = image_id  # remix: previous image path/identifier
 
         # config
         if self.window.core.config.has('img_quality'):
@@ -131,22 +134,24 @@ class ImageWorker(QRunnable):
         self.kwargs = kwargs
         self.window = None
         self.client = None
-        self.ctx = None
+        self.ctx: Optional[CtxItem] = None
         self.raw = False
         self.mode = Image.MODE_GENERATE  # default mode is generate
         self.model = "dall-e-3"
         self.quality = "standard"
         self.resolution = "1792x1024"
-        self.attachments = {}  # attachments for edit mode
+        self.attachments: Dict[str, Any] = {}  # attachments for edit mode
         self.model_prompt = None
-        self.input_prompt = None
+        self.input_prompt: Optional[str] = None
         self.system_prompt = None
         self.inline = False
         self.num = 1
+        self.image_id: Optional[str] = None  # previous image reference for remix
+
+        # legacy maps kept for backwards compatibility (dall-e-2 / dall-e-3 exact ids)
         self.allowed_max_num = {
             "dall-e-2": 4,
             "dall-e-3": 1,
-            "gpt-image-1": 1,
         }
         self.allowed_resolutions = {
             "dall-e-2": [
@@ -159,28 +164,59 @@ class ImageWorker(QRunnable):
                 "1024x1792",
                 "1024x1024",
             ],
-            "gpt-image-1": [
-                "1536x1024",
-                "1024x1536",
-                "1024x1024",
-                "auto",
-            ],
         }
         self.allowed_quality = {
-            "dall-e-2": [
-                "standard",
-            ],
-            "dall-e-3": [
-                "standard",
-                "hd",
-            ],
-            "gpt-image-1": [
-                "auto",
-                "high",
-                "medium",
-                "low",
-            ],
+            "dall-e-2": ["standard"],
+            "dall-e-3": ["standard", "hd"],
         }
+
+    # ---------- model helpers ----------
+
+    def _is_gpt_image_model(self, model_id: Optional[str] = None) -> bool:
+        mid = (model_id or self.model or "").lower()
+        return mid.startswith("gpt-image-1")
+
+    def _is_dalle2(self, model_id: Optional[str] = None) -> bool:
+        mid = (model_id or self.model or "").lower()
+        return mid == "dall-e-2"
+
+    def _is_dalle3(self, model_id: Optional[str] = None) -> bool:
+        mid = (model_id or self.model or "").lower()
+        return mid == "dall-e-3"
+
+    def _max_num_for_model(self) -> int:
+        if self._is_gpt_image_model():
+            return 1
+        if self._is_dalle2():
+            return self.allowed_max_num["dall-e-2"]
+        if self._is_dalle3():
+            return self.allowed_max_num["dall-e-3"]
+        return 1
+
+    def _normalize_resolution_for_model(self, resolution: Optional[str]) -> str:
+        res = (resolution or "").strip() or "1024x1024"
+        if self._is_gpt_image_model():
+            allowed = {"1024x1024", "1536x1024", "1024x1536", "auto"}
+            return res if res in allowed else "auto"
+        if self._is_dalle2():
+            allowed = set(self.allowed_resolutions["dall-e-2"])
+            return res if res in allowed else "1024x1024"
+        if self._is_dalle3():
+            allowed = set(self.allowed_resolutions["dall-e-3"])
+            return res if res in allowed else "1024x1024"
+        return res
+
+    def _normalize_quality_for_model(self, quality: Optional[str]) -> Optional[str]:
+        q = (quality or "").strip().lower()
+        if self._is_gpt_image_model():
+            allowed = {"auto", "high", "medium", "low"}
+            return q if q in allowed else "auto"
+        if self._is_dalle2():
+            return "standard"
+        if self._is_dalle3():
+            allowed = {"standard", "hd"}
+            return q if q in allowed else "standard"
+        return None
 
     @Slot()
     def run(self):
@@ -211,53 +247,93 @@ class ImageWorker(QRunnable):
 
         self.signals.status.emit(trans('img.status.generating') + ": {}...".format(self.input_prompt))
 
-        paths = []  # downloaded images paths
+        paths: List[str] = []  # downloaded images paths
         try:
-            # check if number of images is supported
-            if self.model in self.allowed_max_num:
-                if self.num > self.allowed_max_num[self.model]:
-                    self.num = self.allowed_max_num[self.model]
+            # enforce model-specific limits/options
+            self.num = min(max(1, int(self.num or 1)), self._max_num_for_model())
+            resolution = self._normalize_resolution_for_model(self.resolution)
+            quality = self._normalize_quality_for_model(self.quality)
 
-            # check if resolution is supported
-            resolution = self.resolution
-            if self.model in self.allowed_resolutions:
-                if resolution not in self.allowed_resolutions[self.model]:
-                    resolution = self.allowed_resolutions[self.model][0]
-
-            quality = self.quality
-            if self.model in self.allowed_quality:
-                if quality not in self.allowed_quality[self.model]:
-                    quality = self.allowed_quality[self.model][0]
-
-            # send to API
             response = None
-            if self.mode == Image.MODE_GENERATE:
-                if self.model == "dall-e-2":
-                    response = self.client.images.generate(
-                        model=self.model,
-                        prompt=self.input_prompt,
-                        n=self.num,
-                        size=resolution,
-                    )
-                elif self.model == "dall-e-3" or self.model == "gpt-image-1":
-                    response = self.client.images.generate(
-                        model=self.model,
-                        prompt=self.input_prompt,
-                        n=self.num,
-                        quality=quality,
-                        size=resolution,
-                    )
-            elif self.mode == Image.MODE_EDIT:
-                images = []
-                for uuid in self.attachments:
-                    attachment = self.attachments[uuid]
-                    if attachment.path and os.path.exists(attachment.path):
-                        images.append(open(attachment.path, "rb"))
-                response = self.client.images.edit(
-                    model=self.model,
-                    image=images,
-                    prompt=self.input_prompt,
-                )
+
+            # Remix path: if image_id provided, prefer editing with previous image reference
+            if self.image_id:
+                if self._is_dalle3():
+                    try:
+                        self.signals.status.emit("Remix is not supported for this model; generating a new image.")
+                    except Exception:
+                        pass
+                else:
+                    remix_images = []
+                    try:
+                        if isinstance(self.image_id, str) and os.path.exists(self.image_id):
+                            remix_images.append(open(self.image_id, "rb"))
+                    except Exception:
+                        remix_images = []
+
+                    if len(remix_images) > 0:
+                        try:
+                            edit_kwargs = {
+                                "model": self.model,
+                                "image": remix_images,
+                                "prompt": self.input_prompt,
+                                "n": self.num,
+                                "size": resolution,
+                            }
+                            if self._is_gpt_image_model() or self._is_dalle3():
+                                if quality:
+                                    edit_kwargs["quality"] = quality
+                            response = self.client.images.edit(**edit_kwargs)
+                        finally:
+                            for f in remix_images:
+                                try:
+                                    f.close()
+                                except Exception:
+                                    pass
+
+            # Normal API paths when remix not executed or unsupported
+            if response is None:
+                if self.mode == Image.MODE_GENERATE:
+                    if self._is_dalle2():
+                        response = self.client.images.generate(
+                            model=self.model,
+                            prompt=self.input_prompt,
+                            n=self.num,
+                            size=resolution,
+                        )
+                    else:
+                        gen_kwargs = {
+                            "model": self.model,
+                            "prompt": self.input_prompt,
+                            "n": self.num,
+                            "size": resolution,
+                        }
+                        if (self._is_gpt_image_model() or self._is_dalle3()) and quality:
+                            gen_kwargs["quality"] = quality
+                        response = self.client.images.generate(**gen_kwargs)
+                elif self.mode == Image.MODE_EDIT:
+                    images = []
+                    for uuid in self.attachments or {}:
+                        attachment = self.attachments[uuid]
+                        if attachment.path and os.path.exists(attachment.path):
+                            images.append(open(attachment.path, "rb"))
+                    try:
+                        edit_kwargs = {
+                            "model": self.model,
+                            "image": images,
+                            "prompt": self.input_prompt,
+                            "n": self.num,
+                            "size": resolution,
+                        }
+                        if (self._is_gpt_image_model() or self._is_dalle3()) and quality:
+                            edit_kwargs["quality"] = quality
+                        response = self.client.images.edit(**edit_kwargs)
+                    finally:
+                        for f in images:
+                            try:
+                                f.close()
+                            except Exception:
+                                pass
 
             # check response
             if response is None:
@@ -278,20 +354,29 @@ class ImageWorker(QRunnable):
                 msg = trans('img.status.downloading') + " (" + str(i + 1) + " / " + str(self.num) + ") -> " + str(path)
                 self.signals.status.emit(msg)
 
-                if response.data[i] is None:
-                    self.signals.error.emit("API Error: empty image data")
-                    return
-                if response.data[i].url:  # dall-e 2 and 3 returns URL
-                    res = requests.get(response.data[i].url)
+                item = response.data[i]
+                data = None
+                if getattr(item, "url", None):
+                    res = requests.get(item.url)
                     data = res.content
-                else:  # gpt-image-1 returns base64 encoded image
-                    data = base64.b64decode(response.data[i].b64_json)
+                elif getattr(item, "b64_json", None):
+                    data = base64.b64decode(item.b64_json)
 
                 # save image
                 if data and self.window.core.image.save_image(path, data):
                     paths.append(path)
                 else:
                     self.signals.error.emit("Error saving image")
+
+            # store image_id for future remix (use first saved path as reference)
+            if paths:
+                try:
+                    if not isinstance(self.ctx.extra, dict):
+                        self.ctx.extra = {}
+                    self.ctx.extra["image_id"] = paths[0]
+                    self.window.core.ctx.update_item(self.ctx)
+                except Exception:
+                    pass
 
             # send finished signal
             if self.inline:

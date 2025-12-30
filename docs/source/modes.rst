@@ -182,10 +182,8 @@ Additionally, this mode offers options for labeling the AI and the user, making 
 Image and video generation
 --------------------------
 
-**OpenAI DALL-E 3 / Google Imagen 3 and 4**
-
-**PyGPT** enables quick and easy image creation with image models like ``DALL-E 3``, ``gpt-image-1`` or ``Google Imagen``. 
-Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in ``Image generation`` mode or ask the model for the best prompt.
+**PyGPT** enables quick and easy image creation with models like ``DALL-E 3``, ``gpt-image-1``, ``Imagen 3/4``, and ``Nano Banana``, as well as video generation using ``Veo3`` and ``Sora2``.
+Generating images and videos is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in ``Image generation`` mode or ask the model for the best prompt.
 
 .. image:: images/v3_img.png
    :width: 800
@@ -198,16 +196,11 @@ Plugin allows you to generate images in Chat mode:
 .. image:: images/v3_img_chat.png
    :width: 800
 
-**Video generation**: 
+For OpenAI models, you can also enable remote image generation in ``Config -> Settings -> Remote Tools``. If enabled, image generation will be available natively within the conversation, without plugins, in Chat mode.
 
-From version ``2.6.32``, video generation (using ``Google Veo 3``) is also available.
-From version ``2.6.66``, video generation (using ``OpenAI Sora 2``) is also available.
+**Remix, Edit, or Extend**
 
-**Multiple variants**
-
-You can generate up to **4 different variants** (DALL-E 2) for a given prompt in one session. DALL-E 3 allows one image.
-To select the desired number of variants to create, use the slider located in the right-hand corner at 
-the bottom of the screen. This replaces the conversation temperature slider when you switch to image generation mode.
+To remix or extend from a previous image or video instead of creating a new one from scratch, enable the ``Remix/Extend`` option checkbox in the toolbox. The last generated image or video in the current context will be used as a reference for your prompt, allowing you to request changes to the generated content. If the ``Remix/Extend`` option is enabled, uploading an image attachment as a reference will not take effect.
 
 **Raw mode**
 

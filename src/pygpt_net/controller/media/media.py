@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 12:00:00                  #
+# Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -29,6 +29,34 @@ class Media:
             self.window.ui.config['global']['img_raw'].setChecked(True)
         else:
             self.window.ui.config['global']['img_raw'].setChecked(False)
+
+        # remix for images
+        if self.window.core.config.get('img.remix'):
+            self.window.ui.config['global']['img.remix'].setChecked(True)
+        else:
+            self.window.ui.config['global']['img.remix'].setChecked(False)
+
+        # remix for video
+        if self.window.core.config.get('video.remix'):
+            self.window.ui.config['global']['video.remix'].setChecked(True)
+        else:
+            self.window.ui.config['global']['video.remix'].setChecked(False)
+
+        # img variants
+        opt_variants = {
+            "type": "int",
+            "label": "img_variants",
+            "min": 1,
+            "max": 4,
+            "value": 1,
+        }
+        variants = self.window.core.config.get('img_variants', 1)
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="img_variants",
+            option=opt_variants,
+            value=variants,
+        )
 
         # mode (image|video|music)
         mode = self.window.core.config.get('img_mode', 'image')
@@ -79,6 +107,7 @@ class Media:
         if not self.initialized:
             self.window.ui.add_hook("update.global.img_resolution", self.hook_update)
             self.window.ui.add_hook("update.global.img_mode", self.hook_update)
+            self.window.ui.add_hook("update.global.img_variants", self.hook_update)
             self.window.ui.add_hook("update.global.video.aspect_ratio", self.hook_update)
             self.window.ui.add_hook("update.global.video.resolution", self.hook_update)
             self.window.ui.add_hook("update.global.video.duration", self.hook_update)
@@ -99,6 +128,10 @@ class Media:
             if not value:
                 return
             self.window.core.config.set('img_resolution', value)
+        elif key == "img_variants":
+            if not value:
+                return
+            self.window.core.config.set('img_variants', int(value))
         elif key == "img_mode":
             if not value:
                 return
@@ -134,6 +167,42 @@ class Media:
             self.disable_raw()
         else:
             self.enable_raw()
+
+    def enable_remix_image(self):
+        """Enable remix for image"""
+        self.window.core.config.set('img.remix', True)
+        self.window.core.config.save()
+
+    def disable_remix_image(self):
+        """Disable remix for image"""
+        self.window.core.config.set('img.remix', False)
+        self.window.core.config.save()
+
+    def toggle_remix_image(self):
+        """Save remix enabled option for image"""
+        state = self.window.ui.config['global']['img.remix'].isChecked()
+        if not state:
+            self.disable_remix_image()
+        else:
+            self.enable_remix_image()
+
+    def enable_remix_video(self):
+        """Enable remix for video"""
+        self.window.core.config.set('video.remix', True)
+        self.window.core.config.save()
+
+    def disable_remix_video(self):
+        """Disable remix for video"""
+        self.window.core.config.set('video.remix', False)
+        self.window.core.config.save()
+
+    def toggle_remix_video(self):
+        """Save remix enabled option for video"""
+        state = self.window.ui.config['global']['video.remix'].isChecked()
+        if not state:
+            self.disable_remix_video()
+        else:
+            self.enable_remix_video()
 
     def get_mode(self) -> str:
         """Get media generation mode (image/video/music)"""

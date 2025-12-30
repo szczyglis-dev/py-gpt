@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QCheckBox
@@ -34,7 +34,7 @@ class Raw:
         ui = self.window.ui
         conf_global = ui.config['global']
 
-        container = QWidget()
+        container = QWidget(parent=self.window)
         ui.nodes['media.raw'] = container
 
         conf_global['img_raw'] = QCheckBox(trans("img.raw"), parent=container)

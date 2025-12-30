@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 02:00:00                  #
+# Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -205,6 +205,15 @@ class Patch:
                 # fix: combo boxes css width
                 patch_css('style.light.css', True)
                 patch_css('style.dark.css', True)
+                updated = True
+
+            # < 2.7.3
+            if old < parse_version("2.7.3"):
+                print("Migrating config from < 2.7.3...")
+                if "video.remix" not in data:
+                    data["video.remix"] = False
+                if "img.remix" not in data:
+                    data["img.remix"] = False
                 updated = True
 
         # update file

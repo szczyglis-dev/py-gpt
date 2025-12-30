@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.07 05:00:00                  #
+# Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
 import os
@@ -47,7 +47,7 @@ class Image:
         update_status = self.window.update_status
         dispatch = self.window.dispatch
 
-        num = int(self.window.ui.config['global']['img_variants'].input.text() or 1)
+        num = int(self.window.ui.config['global']['img_variants'].text() or 1)
         if num < 1:
             num = 1
         elif num > 4:
@@ -57,7 +57,8 @@ class Image:
         mode = core.config.get('mode')
         model = core.config.get('model')
         model_data = core.models.get(model)
-        if model_data.id == 'dall-e-3' or model_data.id == 'gpt-image-1':
+        if (model_data and model_data.id
+                and (model_data.id == 'dall-e-3' or model_data.id.startswith('gpt-image-1'))):
             num = 1
 
         update_status(trans('status.sending'))
@@ -69,6 +70,26 @@ class Image:
         ctx.set_input(text, core.config.get('user_name'))
         ctx.prev_ctx = prev_ctx  # store previous context item
         ctx.live = True
+
+        # prepare previous image_id and video_id from last context (for variations)
+        image_id = None
+        video_id = None
+
+        if core.config.get("video.remix") or core.config.get("img.remix"):
+            items = core.ctx.get_items()
+            reversed_items = reversed(items)
+            for item in reversed_items:
+                if isinstance(item.extra, dict):
+                    if core.config.get("video.remix"):
+                        tmp_video_id = item.extra.get('video_id')
+                        if video_id is None and tmp_video_id:
+                            video_id = tmp_video_id
+                    if core.config.get("img.remix"):
+                        tmp_image_id = item.extra.get('image_id')
+                        if image_id is None and tmp_image_id:
+                            image_id = tmp_image_id
+                if image_id and video_id:
+                    break
 
         # event: context before
         event = Event(Event.CTX_BEFORE)
@@ -117,6 +138,8 @@ class Image:
                 'context': context,
                 'extra': {
                     "num": num,
+                    "image_id": image_id,  # pass previous image_id for variations
+                    "video_id": video_id, # pass previous video_id for variations
                 },
             }))
         except Exception as e:
