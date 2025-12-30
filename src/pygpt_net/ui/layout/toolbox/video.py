@@ -45,6 +45,7 @@ class Video:
         conf_global['video.aspect_ratio'] = OptionCombo(self.window, 'global', 'video.aspect_ratio', option_ratio)
         conf_global['video.resolution'] = OptionCombo(self.window, 'global', 'video.resolution', option_resolution)
         conf_global['video.duration'] = OptionInput(self.window, 'global', 'video.duration', option_duration)
+        conf_global['video.duration'].setToolTip(trans('settings.video.duration.desc'))
 
         conf_global['video.aspect_ratio'].setMinimumWidth(120)
         conf_global['video.resolution'].setMinimumWidth(120)
