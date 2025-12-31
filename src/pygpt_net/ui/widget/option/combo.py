@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.12.28 00:00:00                  #
 # ================================================== #
+import sys
 
 from PySide6.QtCore import Qt, QEvent, QTimer, QRect, Property
 from PySide6.QtWidgets import (
@@ -27,7 +28,7 @@ from PySide6.QtGui import (
     QFontMetrics,
     QStandardItem,
     QStandardItemModel,
-    QIcon,  # keep existing imports, extend with items
+    QIcon,
     QColor,
     QPainter,
     QPen,
@@ -512,6 +513,11 @@ class SearchableCombo(SeparatorComboBox):
         QTimer.singleShot(0, self._fit_popup_to_window)
         self._refresh_popup_view()
 
+        # Minimal robustness: re-ensure header after popup is fully shown (helps on Windows when switching combos)
+        QTimer.singleShot(0, self._ensure_header_after_show)
+        QTimer.singleShot(15, self._ensure_header_after_show)
+        QTimer.singleShot(60, self._ensure_header_after_show)
+
     def hidePopup(self):
         """Close popup and restore normal display text; remove header/margins."""
         super().hidePopup()
@@ -768,7 +774,6 @@ class SearchableCombo(SeparatorComboBox):
                             # Clicked back on the owner combo: arm one-shot guard to suppress reopen
                             self._prevent_reopen_once = True
                         elif isinstance(target_combo, SearchableCombo) and target_combo.isEnabled():
-                            # Open the other combo after this popup closes
                             def _open_other():
                                 if target_combo and target_combo.isEnabled():
                                     try:
@@ -776,7 +781,23 @@ class SearchableCombo(SeparatorComboBox):
                                     except Exception:
                                         pass
                                     target_combo.showPopup()
-                            QTimer.singleShot(0, _open_other)
+                            if sys.platform != "win32":
+                                QTimer.singleShot(0, _open_other)
+                            else:
+                                container = self._popup_container
+                                opened_on_destroy = False
+                                try:
+                                    if container is not None:
+                                        container.destroyed.connect(lambda *_: QTimer.singleShot(0, _open_other))
+                                        opened_on_destroy = True
+                                except Exception:
+                                    pass
+                                if not opened_on_destroy:
+                                    QTimer.singleShot(50, _open_other)
+                                try:
+                                    self.hidePopup()
+                                except Exception:
+                                    pass
                 except Exception:
                     pass
                 return False
@@ -996,6 +1017,44 @@ class SearchableCombo(SeparatorComboBox):
         self._popup_header.setFocus(Qt.OtherFocusReason)
         self._popup_header.setCursorPosition(len(self._popup_header.text()))
         self._ensure_clear_button_visible(self._popup_header)
+
+    # ----- Minimal ensure after show (mainly for Windows combo-to-combo switch) -----
+
+    def _ensure_header_after_show(self):
+        """
+        Re-apply critical bits after the popup is up:
+        - header exists and is parented to the popup container,
+        - viewport top margin equals header height,
+        - header is placed and focused.
+        """
+        if not self._popup_open or not self.search:
+            return
+        view = self.view()
+        if view is None:
+            return
+        container = self._popup_container or view.window()
+        if container is None:
+            return
+
+        if self._popup_header is None:
+            self._prepare_popup_header()
+            return
+
+        try:
+            if self._popup_header.parent() is not container:
+                self._popup_header.setParent(container)
+        except Exception:
+            pass
+
+        try:
+            view.setViewportMargins(0, self._popup_header_h, 0, 0)
+        except Exception:
+            pass
+
+        self._place_popup_header()
+        self._ensure_magnifier_on(self._popup_header)
+        self._ensure_clear_button_visible(self._popup_header)
+        self._focus_header_async()
 
     # ----- Search behaviour -----
 
