@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 14:00:00                  #
+# Updated Date: 2025.12.31 17:00:00                  #
 # ================================================== #
 
 # -------------------------------------------------- #
@@ -60,6 +60,10 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         lbl_title.setAlignment(QtCore.Qt.AlignCenter)
         lbl_title.setStyleSheet("font-size: 16px; font-weight: 600;")
 
+        lbl_wait = QtWidgets.QLabel("Initializing...")
+        lbl_wait.setAlignment(QtCore.Qt.AlignCenter)
+        lbl_wait.setStyleSheet("font-size: 12px;")
+
         lbl_msg = QtWidgets.QLabel(message, panel)
         lbl_msg.setAlignment(QtCore.Qt.AlignCenter)
         lbl_msg.setStyleSheet("font-size: 12px;")
@@ -74,6 +78,7 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         layout.addWidget(lbl_title)
         layout.addWidget(lbl_msg)
         layout.addWidget(bar)
+        layout.addWidget(lbl_wait)
 
         panel.setFixedSize(360, 120)
         panel.move(0, 0)
@@ -210,14 +215,29 @@ class _Preloader:
 
 def _start_preloader(title="PyGPT", message="Loading…"):
     """
-    Start splash in a separate process to avoid interfering with the main Qt app.
+    Start splash as a separate process using 'spawn' on every OS.
     Returns a _Preloader controller or None if failed.
     """
     try:
-        from multiprocessing import Process, Pipe
-        parent_conn, child_conn = Pipe(duplex=True)
-        proc = Process(target=_splash_main, args=(child_conn, title, message), daemon=True)
+        import multiprocessing as mp
+        try:
+            ctx = mp.get_context("spawn")
+        except ValueError:
+            ctx = mp
+
+        parent_conn, child_conn = ctx.Pipe(duplex=True)
+        proc = ctx.Process(
+            target=_splash_main,
+            args=(child_conn, title, message),
+            daemon=True
+        )
         proc.start()
+
+        try:
+            child_conn.close()
+        except Exception:
+            pass
+
         return _Preloader(proc, parent_conn)
     except Exception:
         return None

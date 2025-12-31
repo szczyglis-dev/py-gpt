@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 14:00:00                  #
+# Updated Date: 2025.12.31 17:00:00                  #
 # ================================================== #
 
 import os
@@ -50,7 +50,31 @@ class Launcher:
         self.force_disable_gpu = False
         self.shortcut_filter = None
         self.workdir = None
-        self._preloader = None  # optional external splash controller
+        self._preloader = None
+
+    @staticmethod
+    def _clean_multiprocessing_argv(argv):
+        """
+        Clear multiprocessing flags from argv
+
+        :param argv: list of command line arguments
+        """
+        skip_flags = {
+            "--multiprocessing-fork",
+            "--multiprocessing-spawn",
+            "--billiard-fork",
+            "--billiard-spawn",
+        }
+        skip_prefixes = (
+            "parent_pid=",
+            "pipe_handle=",
+            "forkserver_port=",
+            "forkserver_authkey=",
+        )
+        return [
+            a for a in argv
+            if a not in skip_flags and not any(a.startswith(p) for p in skip_prefixes)
+        ]
 
     def setup(self) -> dict:
         """
@@ -58,59 +82,65 @@ class Launcher:
 
         :return: dict with launcher arguments
         """
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            "-d",
-            "--debug",
-            required=False,
-            help="debug mode (0=disabled, 1=info, 2=debug)",
-        )
-        parser.add_argument(
-            "-l",
-            "--legacy",
-            required=False,
-            help="force enable legacy mode (0=disabled, 1=enable)",
-        )
-        parser.add_argument(
-            "-n",
-            "--disable-gpu",
-            required=False,
-            help="force disable OpenGL (1=disabled, 0=enabled)",
-        )
-        parser.add_argument(
-            "-w",
-            "--workdir",
-            required=False,
-            help="force set workdir",
-        )
-        args = vars(parser.parse_args())
+        args = {}
+        try:
+            parser = argparse.ArgumentParser()
+            parser.add_argument(
+                "-d",
+                "--debug",
+                required=False,
+                help="debug mode (0=disabled, 1=info, 2=debug)",
+            )
+            parser.add_argument(
+                "-l",
+                "--legacy",
+                required=False,
+                help="force enable legacy mode (0=disabled, 1=enable)",
+            )
+            parser.add_argument(
+                "-n",
+                "--disable-gpu",
+                required=False,
+                help="force disable OpenGL (1=disabled, 0=enabled)",
+            )
+            parser.add_argument(
+                "-w",
+                "--workdir",
+                required=False,
+                help="force set workdir",
+            )
+            safe_argv = self._clean_multiprocessing_argv(sys.argv[1:])
+            known, unknown = parser.parse_known_args(safe_argv)
+            args = vars(known)
 
-        # set log level [ERROR|WARNING|INFO|DEBUG]
-        if "debug" in args and args["debug"] == "1":
-            print("** Debug mode enabled (1=INFO)")
-            Debug.init(INFO)
-            self.debug = True
-        elif "debug" in args and args["debug"] == "2":
-            print("** Debug mode enabled (2=DEBUG)")
-            Debug.init(DEBUG)
-            self.debug = True
-        else:
-            Debug.init(ERROR)  # default log level
+            # set log level [ERROR|WARNING|INFO|DEBUG]
+            if "debug" in args and args["debug"] == "1":
+                print("** Debug mode enabled (1=INFO)")
+                Debug.init(INFO)
+                self.debug = True
+            elif "debug" in args and args["debug"] == "2":
+                print("** Debug mode enabled (2=DEBUG)")
+                Debug.init(DEBUG)
+                self.debug = True
+            else:
+                Debug.init(ERROR)  # default log level
 
-        # force legacy mode
-        if "legacy" in args and args["legacy"] == "1":
-            print("** Force legacy mode enabled")
-            self.force_legacy = True
+            # force legacy mode
+            if "legacy" in args and args["legacy"] == "1":
+                print("** Force legacy mode enabled")
+                self.force_legacy = True
 
-        # force disable GPU
-        if "disable-gpu" in args and args["disable-gpu"] == "1":
-            print("** Force disable GPU enabled")
-            self.force_disable_gpu = True
+            # force disable GPU
+            if "disable_gpu" in args and args["disable_gpu"] == "1":
+                print("** Force disable GPU enabled")
+                self.force_disable_gpu = True
 
-        # force set workdir
-        if "workdir" in args and args["workdir"] is not None:
-            # set as environment variable
-            os.environ["PYGPT_WORKDIR"] = args["workdir"]
+            # force set workdir
+            if "workdir" in args and args["workdir"] is not None:
+                # set as environment variable
+                os.environ["PYGPT_WORKDIR"] = args["workdir"]
+        except Exception as e:
+            print(f"** Launcher setup error: {e}")
 
         return args
 
@@ -124,7 +154,7 @@ class Launcher:
         self.window = MainWindow(self.app, args=args)
         self.shortcut_filter = GlobalShortcutFilter(self.window)
 
-        # Connect the window "ready" signal to close the splash, if any
+        # Connect the window "ready" signal to close the splash
         if self._preloader is not None:
             try:
                 self.window.appReady.connect(self._on_window_ready, Qt.QueuedConnection)

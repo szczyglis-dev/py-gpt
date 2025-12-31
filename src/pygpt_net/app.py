@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 14:00:00                  #
+# Updated Date: 2025.12.31 17:00:00                  #
 # ================================================== #
 
 import os
@@ -191,6 +191,10 @@ def run(**kwargs):
         )
 
     """
+    import multiprocessing as mp
+
+    mp.freeze_support()  # required for PyInstaller
+
     # Start lightweight splash in a separate process (no interference with the main Qt app)
     from pygpt_net.__init__ import __version__
     from pygpt_net.preload import _start_preloader
