@@ -17,6 +17,7 @@ class Helpers:
 
     _RE_HTML_ANGLE_OR_MATH = re.compile(r'(\\\[.*?\\\])|(<)|(>)', flags=re.DOTALL)
     _RE_WORKDIR_TOKEN = re.compile(r'\(%workdir%([^)]+)\)')
+    _RE_APPDIR_TOKEN = re.compile(r'\(%appdir%([^)]+)\)')
 
     _PLACEHOLDER_THINK_OPEN = "{{{{think}}}}"
     _PLACEHOLDER_THINK_CLOSE = "{{{{/think}}}}"
@@ -182,6 +183,10 @@ class Helpers:
         if "%workdir%" in s:
             prefix = self.window.core.filesystem.get_workdir_prefix()
             s = self._RE_WORKDIR_TOKEN.sub(lambda m, p=prefix: f'({p}{m.group(1)})', s)
+
+        if "%appdir%" in s:
+            prefix = self.window.core.config.get_app_path()
+            s = self._RE_APPDIR_TOKEN.sub(lambda m, p=prefix: f'({p}{m.group(1)})', s)
 
         return s
 
