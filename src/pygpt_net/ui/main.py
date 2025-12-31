@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.28 00:00:00                  #
+# Updated Date: 2025.12.31 14:00:00                  #
 # ================================================== #
 
 import os
@@ -37,6 +37,7 @@ class MainWindow(QMainWindow, QtStyleTools):
     stateChanged = Signal(str)
     logger_message = Signal(object)
     idx_logger_message = Signal(object)
+    appReady = Signal()  # emitted after the first paint to indicate the window is ready on screen
 
     def __init__(self, app: QApplication, args: dict = None):
         """
@@ -60,6 +61,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.state = self.STATE_IDLE
         self.prevState = None
         self.is_post_update = False
+
+        # app ready emission control
+        self._app_ready_emitted = False  # ensures single-shot emission
 
         # load version info
         self.meta = get_app_meta()
@@ -231,6 +235,18 @@ class MainWindow(QMainWindow, QtStyleTools):
     def showEvent(self, e):
         super().showEvent(e)
         QTimer.singleShot(0, self.ui.on_show)
+
+    def paintEvent(self, e):
+        """
+        On the first paint, announce that the window is actually visible and ready.
+        This is used to synchronize closing the external splash screen.
+        """
+        super().paintEvent(e)
+        if not self._app_ready_emitted:
+            self._app_ready_emitted = True
+            QTimer.singleShot(0, self.appReady.emit)
+            # set focus to main window after shown
+            QTimer.singleShot(0, self.activateWindow)
 
     def update(self):
         """Called on every update (real-time)"""

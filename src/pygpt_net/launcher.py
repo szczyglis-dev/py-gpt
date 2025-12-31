@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.19 07:00:00                  #
+# Updated Date: 2025.12.31 14:00:00                  #
 # ================================================== #
 
 import os
@@ -50,6 +50,7 @@ class Launcher:
         self.force_disable_gpu = False
         self.shortcut_filter = None
         self.workdir = None
+        self._preloader = None  # optional external splash controller
 
     def setup(self) -> dict:
         """
@@ -123,6 +124,13 @@ class Launcher:
         self.window = MainWindow(self.app, args=args)
         self.shortcut_filter = GlobalShortcutFilter(self.window)
 
+        # Connect the window "ready" signal to close the splash, if any
+        if self._preloader is not None:
+            try:
+                self.window.appReady.connect(self._on_window_ready, Qt.QueuedConnection)
+            except Exception:
+                pass
+
     def handle_signal(self, signal_number, frame):
         """
         Handle termination signal (SIGTERM, SIGINT)
@@ -136,6 +144,28 @@ class Launcher:
             print("Shutting down...")
             self.window.close()
 
+    def attach_preloader(self, preloader):
+        """
+        Attach external splash controller. The splash will be closed
+        when the main window announces readiness.
+        """
+        self._preloader = preloader
+        if self.window is not None:
+            try:
+                self.window.appReady.connect(self._on_window_ready, Qt.QueuedConnection)
+            except Exception:
+                pass
+
+    def _on_window_ready(self):
+        """
+        Close preloader when the first frame of the main window is ready.
+        """
+        if self._preloader:
+            try:
+                self._preloader.close()
+            except Exception:
+                pass
+            self._preloader = None
 
     def add_plugin(self, plugin: BasePlugin):
         """
