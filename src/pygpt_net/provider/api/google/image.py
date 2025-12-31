@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.30 22:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -55,6 +55,7 @@ class Image:
         prompt = context.prompt
         num = int(extra.get("num", 1))
         inline = bool(extra.get("inline", False))
+        extra_prompt = extra.get("extra_prompt", "")
 
         # decide sub-mode based on attachments
         sub_mode = self.MODE_GENERATE
@@ -79,6 +80,7 @@ class Image:
         worker.raw = self.window.core.config.get('img_raw')
         worker.num = num
         worker.inline = inline
+        worker.extra_prompt = extra_prompt
 
         # remix: previous image reference (ID/URI/path) from extra
         worker.image_id = extra.get("image_id")
@@ -129,6 +131,7 @@ class ImageWorker(QRunnable):
         self.input_prompt = ""
         self.system_prompt = ""
         self.inline = False
+        self.extra_prompt: Optional[str] = None
         self.raw = False
         self.num = 1
         self.resolution = "1024x1024"  # used to derive aspect ratio or image_size
@@ -178,6 +181,18 @@ class ImageWorker(QRunnable):
                     self.signals.error.emit(e)
                     self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
 
+            # Decide how to apply negative prompt: native param on Vertex Imagen 3.0 (-001) or inline fallback.
+            use_param = (
+                bool(self.extra_prompt and str(self.extra_prompt).strip())
+                and self._using_vertex()
+                and self._imagen_supports_negative_prompt(self.model)
+            )
+            if (self.extra_prompt and str(self.extra_prompt).strip()) and not use_param:
+                try:
+                    self.input_prompt = self._merge_negative_prompt(self.input_prompt or "", self.extra_prompt)
+                except Exception:
+                    pass
+
             paths: List[str] = []
 
             # Remix path: if image_id provided, prefer image-to-image remix using the given identifier.
@@ -198,11 +213,21 @@ class ImageWorker(QRunnable):
                             mask_dilation=0.0,
                         ),
                     )
-                    cfg = gtypes.EditImageConfig(
+                    # Prepare edit config with optional negative prompt when supported
+                    cfg_kwargs = dict(
                         edit_mode="EDIT_MODE_DEFAULT",
                         number_of_images=min(self.num, self.imagen_max_num),
                         include_rai_reason=True,
                     )
+                    if self.extra_prompt and self._imagen_supports_negative_prompt(self.model):
+                        cfg_kwargs["negative_prompt"] = self.extra_prompt
+                    try:
+                        cfg = gtypes.EditImageConfig(**cfg_kwargs)
+                    except Exception:
+                        # Fallback without negative_prompt if SDK doesn't recognize it
+                        cfg_kwargs.pop("negative_prompt", None)
+                        cfg = gtypes.EditImageConfig(**cfg_kwargs)
+
                     resp = self.client.models.edit_image(
                         model="imagen-3.0-capability-001",
                         prompt=self.input_prompt or "",
@@ -355,12 +380,34 @@ class ImageWorker(QRunnable):
         mid = str(model_id).lower()
         return "imagen" in mid and "generate" in mid
 
+    def _imagen_supports_negative_prompt(self, model_id: str) -> bool:
+        """
+        Return True if the Imagen model supports native negative_prompt.
+        Supported: imagen-3.0-generate-001, imagen-3.0-fast-generate-001, imagen-3.0-capability-001.
+        """
+        mid = str(model_id or "").lower()
+        return any(x in mid for x in (
+            "imagen-3.0-generate-001",
+            "imagen-3.0-fast-generate-001",
+            "imagen-3.0-capability-001",
+        ))
+
     def _imagen_generate(self, prompt: str, num: int, resolution: str):
         """Imagen text-to-image."""
         aspect = self._aspect_from_resolution(resolution)
-        cfg = gtypes.GenerateImagesConfig(number_of_images=num)
+        # Build config with optional negative_prompt when supported by model and provided.
+        cfg_kwargs: Dict[str, Any] = {"number_of_images": num}
         if aspect:
-            cfg.aspect_ratio = aspect
+            cfg_kwargs["aspect_ratio"] = aspect
+        if self.extra_prompt and self._imagen_supports_negative_prompt(self.model):
+            cfg_kwargs["negative_prompt"] = self.extra_prompt
+        try:
+            cfg = gtypes.GenerateImagesConfig(**cfg_kwargs)
+        except Exception:
+            # Fallback without negative_prompt if SDK doesn't recognize it
+            cfg_kwargs.pop("negative_prompt", None)
+            cfg = gtypes.GenerateImagesConfig(**cfg_kwargs)
+
         return self.client.models.generate_images(
             model=self.model,
             prompt=prompt,
@@ -401,11 +448,19 @@ class ImageWorker(QRunnable):
             )
             edit_mode = "EDIT_MODE_BGSWAP"
 
-        cfg = gtypes.EditImageConfig(
+        # Build edit config with optional negative_prompt
+        cfg_kwargs = dict(
             edit_mode=edit_mode,
             number_of_images=min(num, self.imagen_max_num),
             include_rai_reason=True,
         )
+        if self.extra_prompt and self._imagen_supports_negative_prompt(self.model):
+            cfg_kwargs["negative_prompt"] = self.extra_prompt
+        try:
+            cfg = gtypes.EditImageConfig(**cfg_kwargs)
+        except Exception:
+            cfg_kwargs.pop("negative_prompt", None)
+            cfg = gtypes.EditImageConfig(**cfg_kwargs)
 
         # Ensure capability model for edit
         model_id = "imagen-3.0-capability-001"
@@ -807,3 +862,16 @@ class ImageWorker(QRunnable):
                 sig.deleteLater()
             except RuntimeError:
                 pass
+
+    # ---------- prompt utilities ----------
+
+    @staticmethod
+    def _merge_negative_prompt(prompt: str, negative: Optional[str]) -> str:
+        """
+        Append a negative prompt to the main text prompt when the provider has no native negative_prompt field.
+        """
+        base = (prompt or "").strip()
+        neg = (negative or "").strip()
+        if not neg:
+            return base
+        return (base + ("\n" if base else "") + f"Negative prompt: {neg}").strip()

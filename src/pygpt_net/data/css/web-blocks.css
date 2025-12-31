@@ -17,6 +17,9 @@ body {{
   padding: 0;
   max-width: 100%;
 }}
+img {{
+  vertical-align: middle;
+}}
 ::-webkit-scrollbar {{
   height: 12px;
   width: 12px;

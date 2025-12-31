@@ -18,6 +18,9 @@ body {{
   max-width: 720px;
   border-radius: .25rem;
 }}
+img {{
+  vertical-align: middle;
+}}
 ::-webkit-scrollbar {{
   height: 12px;
   width: 12px;

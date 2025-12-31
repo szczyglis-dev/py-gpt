@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -53,6 +53,7 @@ class UI:
 
         # Cache for Input tab tooltip to avoid redundant updates
         self._last_input_tab_tooltip = None
+        self._input_extra_tab_idx = 4
 
     def setup(self):
         """Setup UI"""
@@ -276,3 +277,17 @@ class UI:
             option=self.window.core.image.get_mode_option(),
             value=current,
         )
+
+    def show_input_extra(self):
+        """Show extra input area"""
+        if self.window.ui.tabs['input'].isTabVisible(self._input_extra_tab_idx):
+            return
+        self.window.ui.tabs['input'].setTabText(self._input_extra_tab_idx, trans('input.tab.extra.negative_prompt'))
+        self.window.ui.tabs['input'].setTabVisible(self._input_extra_tab_idx, True)
+
+    def hide_input_extra(self):
+        """Hide extra input area"""
+        if not self.window.ui.tabs['input'].isTabVisible(self._input_extra_tab_idx):
+            return
+        self.window.ui.tabs['input'].setTabVisible(self._input_extra_tab_idx, False)
+        self.window.ui.tabs['input'].setCurrentIndex(0)

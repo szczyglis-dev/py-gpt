@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -58,6 +58,8 @@ class Mode:
         is_llama_index = mode == MODE_LLAMA_INDEX
         is_completion = mode == MODE_COMPLETION
         is_audio = mode == MODE_AUDIO
+
+        ctrl.ui.hide_input_extra()
 
         # enable/disable system prompt edit - disable in agents (prompts are defined per agent in presets)
         if not is_agent_openai and not is_agent_llama:
@@ -178,6 +180,8 @@ class Mode:
                 ui_nodes['media.raw'].setVisible(False)
                 ui_nodes['dalle.options'].setVisible(False)
                 ui_nodes['video.options'].setVisible(False)
+
+            ctrl.ui.show_input_extra()
         else:
             ui_nodes['media.raw'].setVisible(False)
             ui_nodes['dalle.options'].setVisible(False)

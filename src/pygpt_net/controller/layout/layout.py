@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -34,7 +34,7 @@ class Layout:
             "interpreter.columns",
             "columns",
         ]
-        self.text_nodes = ["input"]
+        self.text_nodes = ["input", "input_extra"]
 
     def setup(self):
         """Setup layout"""

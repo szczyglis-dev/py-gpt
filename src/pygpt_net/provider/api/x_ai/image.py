@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 01:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 import base64
@@ -49,6 +49,7 @@ class Image:
         prompt = context.prompt
         num = int(extra.get("num", 1))
         inline = bool(extra.get("inline", False))
+        extra_prompt = extra.get("extra_prompt", "")
 
         # Optional prompt enhancement model (same as in your Google path)
         prompt_model = self.window.core.models.from_defaults()
@@ -66,6 +67,7 @@ class Image:
         worker.raw = self.window.core.config.get('img_raw')
         worker.num = num
         worker.inline = inline
+        worker.extra_prompt = extra_prompt
 
         self.worker = worker
         self.worker.signals.finished.connect(self.window.core.image.handle_finished)
@@ -102,6 +104,7 @@ class ImageWorker(QRunnable):
         self.input_prompt = ""
         self.system_prompt = ""
         self.inline = False
+        self.extra_prompt: Optional[str] = None
         self.raw = False
         self.num = 1
 
@@ -130,6 +133,13 @@ class ImageWorker(QRunnable):
                 except Exception as e:
                     self.signals.error.emit(e)
                     self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
+
+            # Negative prompt fallback: append as textual instruction (xAI has no native field for it)
+            if self.extra_prompt and str(self.extra_prompt).strip():
+                try:
+                    self.input_prompt = self._merge_negative_prompt(self.input_prompt or "", self.extra_prompt)
+                except Exception:
+                    pass
 
             self.signals.status.emit(trans('img.status.generating') + f": {self.input_prompt}...")
 
@@ -206,3 +216,16 @@ class ImageWorker(QRunnable):
                 sig.deleteLater()
             except RuntimeError:
                 pass
+
+    # ---------- prompt utilities ----------
+
+    @staticmethod
+    def _merge_negative_prompt(prompt: str, negative: Optional[str]) -> str:
+        """
+        Append a negative prompt to the main text prompt for providers without a native negative_prompt field.
+        """
+        base = (prompt or "").strip()
+        neg = (negative or "").strip()
+        if not neg:
+            return base
+        return (base + ("\n" if base else "") + f"Negative prompt: {neg}").strip()

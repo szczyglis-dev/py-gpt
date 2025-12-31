@@ -216,6 +216,13 @@ class Patch:
                     data["img.remix"] = False
                 updated = True
 
+            # < 2.7.4
+            if old < parse_version("2.7.4"):
+                print("Migrating config from < 2.7.4...")
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-blocks.css', True)
+                updated = True
+
         # update file
         migrated = False
         if updated:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 21:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 import os
@@ -376,10 +376,14 @@ class Attachment(QObject):
 
     def show_uploaded(self):
         """Show uploaded attachments"""
+        if self.window.ui.tabs['input'].isTabVisible(self.uploaded_tab_idx):
+            return
         self.window.ui.tabs['input'].setTabVisible(self.uploaded_tab_idx, True)
 
     def hide_uploaded(self):
         """Hide uploaded attachments"""
+        if not self.window.ui.tabs['input'].isTabVisible(self.uploaded_tab_idx):
+            return
         self.window.ui.tabs['input'].setTabVisible(self.uploaded_tab_idx, False)
 
     def delete_by_idx(

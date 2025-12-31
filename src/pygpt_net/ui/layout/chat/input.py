@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.03 00:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 from functools import partial
@@ -26,6 +26,7 @@ from pygpt_net.ui.widget.audio.input_button import AudioInputButton
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.tabs.Input import InputTabs
 from pygpt_net.ui.widget.textarea.input import ChatInput
+from pygpt_net.ui.widget.textarea.input_extra import ExtraInput
 from pygpt_net.utils import trans
 
 
@@ -55,6 +56,7 @@ class Input:
         :return: QWidget
         """
         input = self.setup_input()
+        input_extra = self.setup_input_extra()
         files = self.setup_attachments()
         files_uploaded = self.setup_attachments_uploaded()
         files_ctx = self.setup_attachments_ctx()
@@ -66,6 +68,7 @@ class Input:
         tabs.addTab(files, trans('attachments.tab'))
         tabs.addTab(files_uploaded, trans('attachments_uploaded.tab'))
         tabs.addTab(files_ctx, trans('attachments_uploaded.tab'))
+        tabs.addTab(input_extra, trans('input.tab.extra'))
         tabs.currentChanged.connect(self.update_min_height)
 
         tabs.setTabIcon(0, QIcon(":/icons/input.svg"))
@@ -94,6 +97,21 @@ class Input:
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.addWidget(self.window.ui.nodes['input'])
+        layout.setContentsMargins(0, 0, 0, 0)
+        return widget
+
+    def setup_input_extra(self) -> QWidget:
+        """
+        Setup input tab (extra)
+
+        :return: QWidget
+        """
+        self.window.ui.nodes['input_extra'] = ExtraInput(self.window)
+        self.window.ui.nodes['input_extra'].setMinimumHeight(self.min_height_input)
+
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.addWidget(self.window.ui.nodes['input_extra'])
         layout.setContentsMargins(0, 0, 0, 0)
         return widget
 
@@ -245,7 +263,7 @@ class Input:
         controller_ui = self.window.controller.ui
 
         idx = tabs.currentIndex()
-        if idx == 0:
+        if idx == 0 or idx == 4:
             # nodes['input'].setMinimumHeight(self.min_height_input)
             tabs.setMinimumHeight(self.min_height_input_tab)
             sizes = controller_ui.splitter_output_size_input

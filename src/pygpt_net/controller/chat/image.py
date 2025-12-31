@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.30 22:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 import os
@@ -57,6 +57,7 @@ class Image:
         mode = core.config.get('mode')
         model = core.config.get('model')
         model_data = core.models.get(model)
+        extra_prompt = self.window.ui.nodes['input_extra'].toPlainText().strip()
         if (model_data and model_data.id
                 and (model_data.id == 'dall-e-3' or model_data.id.startswith('gpt-image-1'))):
             num = 1
@@ -140,6 +141,7 @@ class Image:
                     "num": num,
                     "image_id": image_id,  # pass previous image_id for variations
                     "video_id": video_id, # pass previous video_id for variations
+                    "extra_prompt": extra_prompt,
                 },
             }))
         except Exception as e:
@@ -173,10 +175,16 @@ class Image:
         }))
         string = ""
         i = 1
+        urls = []
+        ico_dir = os.path.join("%appdir%", "data", "icons")
+        ico_download = os.path.join(ico_dir, "download.svg")
+        ico_preview = os.path.join(ico_dir, "view.svg")
         for path in paths:
-            basename = os.path.basename(path)
-            string += f"[{basename}]({path})\n"
+            safe_path = self.window.core.filesystem.make_local(path)
+            urls.append(f"![image]({ico_preview}) [**{trans('action.preview')}**]({safe_path})  "
+                        f"![image]({ico_download})[**{trans('action.download')}**](bridge://download/{safe_path})")
             i += 1
+        string += "\n".join(urls)
 
         if not core.config.get('img_raw'):
             string += f"\nPrompt: {prompt}"

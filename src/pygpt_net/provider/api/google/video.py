@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.30 22:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 import base64, datetime, os, requests
@@ -55,6 +55,7 @@ class Video:
         num = int(extra.get("num", 1))
         inline = bool(extra.get("inline", False))
         video_id = extra.get("video_id")
+        extra_prompt = extra.get("extra_prompt", "")
 
         # decide sub-mode based on attachments (image-to-video when image is attached)
         sub_mode = self.MODE_GENERATE
@@ -81,6 +82,7 @@ class Video:
         worker.raw = self.window.core.config.get('img_raw')
         worker.num = num
         worker.inline = inline
+        worker.extra_prompt = extra_prompt
         worker.video_id = video_id
 
         # optional params
@@ -143,6 +145,7 @@ class VideoWorker(QRunnable):
         self.input_prompt = ""
         self.system_prompt = ""
         self.inline = False
+        self.extra_prompt: Optional[str] = None
         self.video_id = None
         self.raw = False
         self.num = 1
@@ -152,7 +155,6 @@ class VideoWorker(QRunnable):
         self.duration_seconds = 8
         self.fps = 24
         self.seed: Optional[int] = None
-        self.negative_prompt: Optional[str] = None
         self.generate_audio: bool = False  # generation includes audio by default on Veo 3.x
         self.resolution: str = "720p"      # Veo supports 720p/1080p depending on variant
 
@@ -205,8 +207,8 @@ class VideoWorker(QRunnable):
             # set optional controls
             if self.seed is not None:
                 cfg_kwargs["seed"] = int(self.seed)
-            if self.negative_prompt:
-                cfg_kwargs["negative_prompt"] = self.negative_prompt
+            if self.extra_prompt:
+                cfg_kwargs["negative_prompt"] = self.extra_prompt
 
             # set durationSeconds when supported; fall back gracefully if rejected by model
             cfg_try = dict(cfg_kwargs)
@@ -228,6 +230,9 @@ class VideoWorker(QRunnable):
 
                 # Minimal config for extension to avoid server-side rejections
                 ext_config = gtypes.GenerateVideosConfig(number_of_videos=1)
+                # Pass negative prompt to extension when provided
+                if self.extra_prompt:
+                    ext_config.negative_prompt = self.extra_prompt  # supported in python-genai
 
                 label = trans('vid.status.generating') + " (remix)"
                 self.signals.status.emit(label + f": {self.input_prompt or ''}...")

@@ -538,7 +538,6 @@
   "video.duration": 8,
   "video.fps": 24,
   "video.generate_audio": false,
-  "video.negative_prompt": "",
   "video.player.path": "",
   "video.player.volume": 100,
   "video.player.volume.mute": false,

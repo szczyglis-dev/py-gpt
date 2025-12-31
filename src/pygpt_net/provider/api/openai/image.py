@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.30 22:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 import base64
@@ -59,6 +59,7 @@ class Image:
         inline = extra.get("inline", False)
         sub_mode = self.MODE_GENERATE
         image_id = extra.get("image_id")  # previous image reference for remix
+        extra_prompt = extra.get("extra_prompt", "")
 
         # if attachments then switch mode to EDIT
         attachments = context.attachments
@@ -74,28 +75,29 @@ class Image:
             prompt_model = self.window.core.models.get(tmp_model)
 
         # worker
-        self.worker = ImageWorker()
-        self.worker.window = self.window
-        self.worker.client = self.window.core.api.openai.get_client()
-        self.worker.ctx = ctx
-        self.worker.mode = sub_mode  # mode can be "generate" or "edit"
-        self.worker.attachments = attachments  # attachments for edit mode
-        self.worker.raw = self.window.core.config.get('img_raw')
-        self.worker.model = model.id  # model ID for generate image, e.g. "dall-e-3"
-        self.worker.model_prompt = prompt_model  # model for generate prompt, not image!
-        self.worker.input_prompt = prompt
-        self.worker.system_prompt = self.window.core.prompt.get('img')
-        self.worker.num = num
-        self.worker.inline = inline
-        self.worker.image_id = image_id  # remix: previous image path/identifier
+        worker = ImageWorker()
+        worker.window = self.window
+        worker.client = self.window.core.api.openai.get_client()
+        worker.ctx = ctx
+        worker.mode = sub_mode  # mode can be "generate" or "edit"
+        worker.attachments = attachments  # attachments for edit mode
+        worker.raw = self.window.core.config.get('img_raw')
+        worker.model = model.id  # model ID for generate image, e.g. "dall-e-3"
+        worker.model_prompt = prompt_model  # model for generate prompt, not image!
+        worker.input_prompt = prompt
+        worker.system_prompt = self.window.core.prompt.get('img')
+        worker.num = num
+        worker.inline = inline
+        worker.extra_prompt = extra_prompt
+        worker.image_id = image_id  # remix: previous image path/identifier
 
         # config
         if self.window.core.config.has('img_quality'):
-            self.worker.quality = self.window.core.config.get('img_quality')
+            worker.quality = self.window.core.config.get('img_quality')
         if self.window.core.config.has('img_resolution'):
-            self.worker.resolution = self.window.core.config.get('img_resolution')
+            worker.resolution = self.window.core.config.get('img_resolution')
 
-        # signals
+        self.worker = worker
         self.worker.signals.finished.connect(self.window.core.image.handle_finished)
         self.worker.signals.finished_inline.connect(self.window.core.image.handle_finished_inline)
         self.worker.signals.status.connect(self.window.core.image.handle_status)
@@ -145,6 +147,7 @@ class ImageWorker(QRunnable):
         self.input_prompt: Optional[str] = None
         self.system_prompt = None
         self.inline = False
+        self.extra_prompt: Optional[str] = None
         self.num = 1
         self.image_id: Optional[str] = None  # previous image reference for remix
 
@@ -244,6 +247,13 @@ class ImageWorker(QRunnable):
             except Exception as e:
                 self.signals.error.emit(e)
                 self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
+
+        # Fallback negative prompt injection (OpenAI Images API has no native negative_prompt field)
+        if self.extra_prompt and str(self.extra_prompt).strip():
+            try:
+                self.input_prompt = self._merge_negative_prompt(self.input_prompt or "", self.extra_prompt)
+            except Exception:
+                pass
 
         self.signals.status.emit(trans('img.status.generating') + ": {}...".format(self.input_prompt))
 
@@ -408,3 +418,16 @@ class ImageWorker(QRunnable):
                 sig.deleteLater()
             except RuntimeError:
                 pass
+
+    # ---------- prompt utilities ----------
+
+    @staticmethod
+    def _merge_negative_prompt(prompt: str, negative: Optional[str]) -> str:
+        """
+        Append a negative prompt to the main text prompt for providers without a native negative_prompt field.
+        """
+        base = (prompt or "").strip()
+        neg = (negative or "").strip()
+        if not neg:
+            return base
+        return (base + ("\n" if base else "") + f"Negative prompt: {neg}").strip()

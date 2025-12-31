@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -58,6 +58,7 @@ class Nodes:
         nodes = {
             'font.chat.input': [
                 'input',
+                'input_extra',
             ],
             'font.chat.output': [
                 'output',

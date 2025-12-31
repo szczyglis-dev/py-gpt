@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.30 22:00:00                  #
+# Updated Date: 2025.12.31 16:00:00                  #
 # ================================================== #
 
 import datetime
@@ -60,6 +60,7 @@ class Video:
         num = int(extra.get("num", 1))
         inline = bool(extra.get("inline", False))
         video_id = extra.get("video_id")
+        extra_prompt = extra.get("extra_prompt", "")
 
         # decide sub-mode based on attachments (image-to-video when image is attached)
         sub_mode = self.MODE_GENERATE
@@ -86,6 +87,7 @@ class Video:
         worker.raw = self.window.core.config.get('img_raw')
         worker.num = num
         worker.inline = inline
+        worker.extra_prompt = extra_prompt
         worker.video_id = video_id
 
         # optional params (app-level options)
@@ -157,6 +159,7 @@ class VideoWorker(QRunnable):
         self.input_prompt = ""
         self.system_prompt = ""
         self.inline = False
+        self.extra_prompt: Optional[str] = None
         self.video_id = None
         self.raw = False
         self.num = 1
@@ -192,6 +195,14 @@ class VideoWorker(QRunnable):
                 except Exception as e:
                     self.signals.error.emit(e)
                     self.signals.status.emit(trans('vid.status.prompt.error') + ": " + str(e))
+
+            # Negative prompt fallback: inject constraints into the text prompt (Sora has no native negative_prompt field)
+            if self.extra_prompt and str(self.extra_prompt).strip():
+                try:
+                    self.input_prompt = self._merge_negative_prompt(self.input_prompt, self.extra_prompt)
+                except Exception:
+                    # do not fail generation if merge fails
+                    pass
 
             # Sora API accepts a single video per create call; honor app's num but cap to 1 per job
             _ = max(1, min(self.num, self.max_per_job))
@@ -610,3 +621,17 @@ class VideoWorker(QRunnable):
                 pass
 
         return " ".join(parts).strip()
+
+    # ---------- prompt utilities ----------
+
+    @staticmethod
+    def _merge_negative_prompt(prompt: str, negative: Optional[str]) -> str:
+        """
+        Append a negative prompt to the main text prompt for providers without a native negative_prompt field.
+        """
+        base = (prompt or "").strip()
+        neg = (negative or "").strip()
+        if not neg:
+            return base
+        # Keep the user's original prompt intact and add clear constraint instructions.
+        return (base + ("\n" if base else "") + f"Negative prompt: {neg}").strip()

@@ -1608,20 +1608,6 @@
         "advanced": false,
         "tab": "video"
     },
-    "video.negative_prompt": {
-        "section": "images",
-        "type": "textarea",
-        "slider": false,
-        "label": "settings.video.negative_prompt",
-        "description": "settings.video.negative_prompt.desc",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "video"
-    },
     "video.prompt_model": {
         "section": "images",
         "type": "combo",
