@@ -57,6 +57,11 @@ AppDir:
       - libxcb1
       - libxi6
       - libxtst6
+      - librsvg2-common
+      - gdk-pixbuf2.0-bin
+      - shared-mime-info
+      - hicolor-icon-theme
+      - adwaita-icon-theme
       - mesa-utils
       - packagekit-gtk3-module
       - python3
