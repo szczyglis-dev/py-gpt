@@ -9,10 +9,11 @@
 # Updated Date: 2025.12.30 22:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QCheckBox
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.input import OptionInput
+from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
 
 
@@ -51,9 +52,9 @@ class Video:
         conf_global['video.resolution'].setMinimumWidth(120)
         conf_global['video.duration'].setMinimumWidth(50)
 
-        conf_global['video.remix'] = QCheckBox(trans("video.remix"), parent=container)
-        conf_global['video.remix'].setToolTip(trans("video.remix.tooltip"))
-        conf_global['video.remix'].toggled.connect(self.window.controller.media.toggle_remix_video)
+        conf_global['video.remix'] = ToggleLabel(trans("video.remix"), parent=self.window)
+        conf_global['video.remix'].box.setToolTip(trans("video.remix.tooltip"))
+        conf_global['video.remix'].box.toggled.connect(self.window.controller.media.toggle_remix_video)
 
         cols = QHBoxLayout()
         cols.addWidget(conf_global['video.resolution'], 2)
