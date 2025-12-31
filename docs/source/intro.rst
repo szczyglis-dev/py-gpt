@@ -29,18 +29,21 @@ Features
 ---------
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
-* 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and video generation, Assistants, Experts, Computer use, Agents and Autonomous Mode.
+* 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Assistants, Experts, Computer use, Agents and Autonomous Mode.
 * Supports multiple models like ``OpenAI GPT-5``, ``GPT-4``, ``o1``, ``o3``, ``o4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``DeepSeek``, ``gpt-oss``, ``Llama 3``, ``Mistral``, ``Bielik``, etc.
 * Chat with your own Files: integrated ``LlamaIndex`` support: chat with data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 * Built-in vector databases support and automated files and data embedding.
-* Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
-* Handles and stores the full context of conversations (short and long-term memory).
+* Image generation via models like ``DALL-E``, ``gpt-image``, ``Imagen``, ``Gemini`` and ``Nano Banana``.
+* Video generation via models like ``Veo3`` and ``Sora2``.
 * Internet access via ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
 * Speech synthesis via ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI`` Text-To-Speech services.
 * Speech recognition via ``OpenAI Whisper``, ``Google`` and ``Microsoft Speech Recognition``.
+* Plugins support with built-in plugins like ``Files I/O``, ``Code Interpreter``, ``Web Search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
 * MCP support.
 * Real-time video camera capture in Vision mode.
-* Image analysis via ``GPT-5`` and ``GPT-4o``.
+* Image analysis via vision models.
+* Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
+* Handles and stores the full context of conversations (short and long-term memory).
 * Integrated calendar, day notes and search in contexts by selected date.
 * Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
 * Custom commands creation and execution.
@@ -55,12 +58,9 @@ Features
 * Includes an node-based Agents Builder.
 * Supports multiple languages.
 * Requires no previous knowledge of using AI models.
-* Image generation via models like ``DALL-E``, ``gpt-image``, ``Imagen`` and ``Nano Banana``.
-* Video generation via models like ``Veo3`` and ``Sora2``.
 * Fully configurable.
 * Themes support.
 * Real-time code syntax highlighting.
-* Plugins support with built-in plugins like ``Files I/O``, ``Code Interpreter``, ``Web Search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
 * Built-in token usage calculation.
 * Possesses the potential to support future OpenAI models.
 * **Open source**; source code is available on ``GitHub``.
