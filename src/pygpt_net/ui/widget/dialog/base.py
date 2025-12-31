@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2025.12.31 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -75,9 +75,8 @@ class BaseDialog(QDialog):
             "size": [self.size().width(), self.size().height()],
             "pos": [self.pos().x(), self.pos().y()]
         }
+        data = {}
         if self.store_geometry_enabled():
-            data = config.get("layout.dialog.geometry", {})
-        else:
             data = config.get_session("layout.dialog.geometry", {})
 
         if not isinstance(data, dict):
@@ -85,8 +84,6 @@ class BaseDialog(QDialog):
         data[self.id] = item
 
         if self.store_geometry_enabled():
-            config.set("layout.dialog.geometry", data)
-        else:
             config.set_session("layout.dialog.geometry", data)
 
     def restore_geometry(self):
@@ -96,13 +93,9 @@ class BaseDialog(QDialog):
         available_geometry = screen.availableGeometry()
         config = self.window.core.config
 
+        data = {}
         if self.store_geometry_enabled():
-            data = config.get("layout.dialog.geometry", {})
-        else:
             data = config.get_session("layout.dialog.geometry", {})
-
-        if not isinstance(data, dict):
-            data = {}
 
         item = data.get(self.id, {})
         if isinstance(item, dict) and "size" in item and "pos" in item:
