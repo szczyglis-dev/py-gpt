@@ -1,3 +1,11 @@
+2.7.4 (2025-12-31)
+
+- Added a splash screen.
+- Added Preview and Download links to the Image and Video outputs.
+- Added Negative prompt input to Image and Video mode.
+- Improved focus handling.
+- UI improvements.
+
 2.7.3 (2025-12-30)
 
 - Added the `Remix/Extend` option in Image and Video generation mode. This allows the use of a previously generated image or video as a reference. It can be used for adding or changing elements in a previously generated image or video instead of creating a new one from scratch. See the docs: `Modes -> Image and Video generation -> Remix, Edit, or Extend`.

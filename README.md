@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.3** | build: **2025-12-30** | Python: **>=3.10, <3.14**
+Release: **2.7.4** | build: **2025-12-31** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3656,6 +3656,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.4 (2025-12-31)**
+
+- Added a splash screen.
+- Added Preview and Download links to the Image and Video outputs.
+- Added Negative prompt input to Image and Video mode.
+- Improved focus handling.
+- UI improvements.
 
 **2.7.3 (2025-12-30)**
 
