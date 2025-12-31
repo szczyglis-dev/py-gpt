@@ -15,6 +15,7 @@ from PySide6.QtCore import QSize
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
 from pygpt_net.ui.widget.element.labels import HelpLabel
+from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.utils import trans
 
 
@@ -57,7 +58,7 @@ class Painter:
         key = 'painter.select.brush.size'
         if nodes.get(key) is None:
             sizes = common.get_sizes()
-            cb = QComboBox()
+            cb = NoScrollCombo(self.window)
             cb.addItems(sizes)
             cb.currentTextChanged.connect(common.change_brush_size)
             cb.setMinimumContentsLength(10)
@@ -67,7 +68,7 @@ class Painter:
         key = 'painter.select.canvas.size'
         if nodes.get(key) is None:
             canvas_sizes = common.get_canvas_sizes()
-            cb = QComboBox()
+            cb = NoScrollCombo(self.window)
             cb.addItems(canvas_sizes)
             cb.setMinimumContentsLength(20)
             cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
@@ -76,7 +77,7 @@ class Painter:
 
         key = 'painter.select.brush.color'
         if nodes.get(key) is None:
-            cb = QComboBox()
+            cb = NoScrollCombo(self.window)
             cb.setIconSize(QSize(16, 16))
             colors = common.get_colors()
             for color_name, color_value in colors.items():
@@ -86,13 +87,14 @@ class Painter:
                 cb.addItem(icon, color_name, color_value)
             cb.currentTextChanged.connect(common.change_brush_color)
             cb.setMinimumContentsLength(10)
+            cb.setMinimumWidth(205)
             cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
             nodes[key] = cb
 
             # Zoom combo (view-only scale) placed to the right of canvas size
             key = 'painter.select.zoom'
             if nodes.get(key) is None:
-                cb = QComboBox()
+                cb = NoScrollCombo(self.window)
                 cb.setMinimumContentsLength(8)
                 cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
