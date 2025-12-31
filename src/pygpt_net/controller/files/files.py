@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 17:00:00                  #
+# Updated Date: 2025.12.31 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,6 +14,7 @@ import os
 import shutil
 from typing import Optional, Union
 from shutil import copy2
+from urllib.parse import unquote
 
 from PySide6.QtWidgets import QFileDialog, QApplication
 
@@ -210,6 +211,7 @@ class Files:
             for p in path:
                 self.download_local(p)
             return
+        path = self.window.core.filesystem.to_workdir(unquote(path))
         last_dir = self.window.core.config.get_last_used_dir()
         dialog = QFileDialog(self.window)
         dialog.setDirectory(last_dir)
