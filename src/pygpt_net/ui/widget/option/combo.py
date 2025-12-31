@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QListView,
     QStyledItemDelegate,
     QStyleOptionViewItem,
+    QApplication,
 )
 from PySide6.QtGui import (
     QFontMetrics,
@@ -399,6 +400,9 @@ class SearchableCombo(SeparatorComboBox):
         self._swallow_release_once: bool = False  # kept for compatibility; not used in the new flow
         self._open_on_release: bool = False       # open popup on mouse release (non-arrow path)
 
+        # One-shot guard to ignore replayed click when user closes popup by clicking this same combo
+        self._prevent_reopen_once: bool = False
+
         # Popup fitting helpers
         self._fit_in_progress: bool = False
         self._popup_parent_window = None
@@ -673,6 +677,12 @@ class SearchableCombo(SeparatorComboBox):
         Use release-to-open on the non-arrow area to avoid immediate close when the popup opens upward.
         Keep the arrow area with the default toggle behaviour from the base class.
         """
+        # One-shot guard: if popup was closed by clicking this same combo, ignore the replayed click
+        if event.button() == Qt.LeftButton and self._prevent_reopen_once:
+            self._prevent_reopen_once = False
+            event.accept()
+            return
+
         if event.button() == Qt.LeftButton and self.isEnabled():
             arrow_rect = self._arrow_rect()
             if arrow_rect.contains(event.pos()):
@@ -722,6 +732,8 @@ class SearchableCombo(SeparatorComboBox):
                 event.accept()
                 return
             if event.key() == Qt.Key_Escape:
+                # Explicitly close so the next click opens immediately
+                self.hidePopup()
                 event.accept()
                 return
         super().keyPressEvent(event)
@@ -737,6 +749,38 @@ class SearchableCombo(SeparatorComboBox):
         - Keep popup horizontally inside the parent window while resizing/moving.
         """
         if obj is self._popup_container and self._popup_container is not None:
+            # Open target combo immediately when user clicks outside current popup
+            if event.type() == QEvent.MouseButtonPress:
+                try:
+                    # Detect left-click outside popup window
+                    left_btn = (getattr(event, "button", lambda: None)() == Qt.LeftButton)
+                    pos_local = getattr(event, "position", lambda: None)()
+                    inside = self._popup_container.rect().contains(pos_local.toPoint()) if pos_local is not None else True
+                    if left_btn and not inside:
+                        # Find widget under cursor and see if it's a different combo
+                        gp = getattr(event, "globalPosition", None)
+                        gp_pt = gp().toPoint() if callable(gp) else getattr(event, "globalPos", lambda: None)()
+                        if gp_pt is None:
+                            gp_pt = QApplication.instance().cursor().pos() if QApplication.instance() else None
+                        target = QApplication.widgetAt(gp_pt) if gp_pt is not None else None
+                        target_combo = self._ascend_to_combo(target)
+                        if target_combo is self:
+                            # Clicked back on the owner combo: arm one-shot guard to suppress reopen
+                            self._prevent_reopen_once = True
+                        elif isinstance(target_combo, SearchableCombo) and target_combo.isEnabled():
+                            # Open the other combo after this popup closes
+                            def _open_other():
+                                if target_combo and target_combo.isEnabled():
+                                    try:
+                                        target_combo.setFocus(Qt.MouseFocusReason)
+                                    except Exception:
+                                        pass
+                                    target_combo.showPopup()
+                            QTimer.singleShot(0, _open_other)
+                except Exception:
+                    pass
+                return False
+
             if event.type() in (QEvent.Resize, QEvent.Show):
                 self._place_popup_header()
                 # Also ensure fitting after container geometry changes
@@ -753,6 +797,8 @@ class SearchableCombo(SeparatorComboBox):
             if event.type() == QEvent.KeyPress:
                 key = event.key()
                 if key == Qt.Key_Escape:
+                    # Explicitly close popup from header
+                    self.hidePopup()
                     return True
                 if key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown, Qt.Key_Home, Qt.Key_End):
                     self._handle_navigation_key(key)
@@ -769,10 +815,23 @@ class SearchableCombo(SeparatorComboBox):
                     self._commit_view_current()
                     return True
                 if event.key() == Qt.Key_Escape:
+                    # Close from view/viewport ESC and keep control flow consistent
+                    self.hidePopup()
                     return True
             return False
 
         return super().eventFilter(obj, event)
+
+    # Helpers to walk up to owning combo under a point
+    def _ascend_to_combo(self, widget):
+        """Ascend from a widget to the nearest SearchableCombo owner if present."""
+        w = widget
+        while w is not None and not isinstance(w, SearchableCombo):
+            try:
+                w = w.parentWidget()
+            except Exception:
+                return None
+        return w
 
     # ----- Magnifier helpers -----
 

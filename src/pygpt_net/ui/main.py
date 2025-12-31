@@ -12,7 +12,7 @@
 import os
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory, QEventLoop
-from PySide6.QtGui import QShortcut, QKeySequence
+from PySide6.QtGui import QShortcut, QKeySequence, QKeyEvent
 from PySide6.QtWidgets import QMainWindow, QApplication
 from qt_material import QtStyleTools
 
@@ -92,6 +92,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # global shortcuts
         self.shortcuts = []
+        self._esc_shortcut = None  # keep a direct handle to temporarily disable during rerouting
 
         # setup signals
         self.statusChanged.connect(self.update_status)
@@ -404,6 +405,67 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.activateWindow()
         self.ui.tray_menu['restore'].setVisible(False)
 
+    # ----- Global ESC routing that preserves widget-level ESC handling -----
+
+    def _deliver_escape_to(self, target) -> bool:
+        """
+        Synthesize ESC keypress to the focused/popup widget so it can run its own close logic.
+        Temporarily disables the global ESC shortcut to avoid re-triggering itself.
+        """
+        if target is None or not target.isVisible():
+            return False
+        try:
+            if self._esc_shortcut is not None:
+                self._esc_shortcut.setEnabled(False)
+            press = QKeyEvent(QEvent.KeyPress, Qt.Key_Escape, Qt.NoModifier)
+            release = QKeyEvent(QEvent.KeyRelease, Qt.Key_Escape, Qt.NoModifier)
+            QApplication.sendEvent(target, press)
+            QApplication.sendEvent(target, release)
+        except Exception:
+            pass
+        finally:
+            if self._esc_shortcut is not None:
+                QTimer.singleShot(0, lambda: self._esc_shortcut.setEnabled(True))
+        return True
+
+    def _route_escape_to_focus_or_popup(self) -> bool:
+        """
+        Route ESC to the widget that currently owns focus (prefer) or active popup widget.
+        Returns True when ESC was delivered to a target.
+        """
+        popup = QApplication.activePopupWidget()
+        if popup is not None and popup.isVisible():
+            try:
+                fw = QApplication.focusWidget()
+                if self._deliver_escape_to(fw):
+                    return True
+            except Exception:
+                pass
+            return True
+
+        modal = QApplication.activeModalWidget()
+        if modal is not None and modal.isVisible():
+            try:
+                modal.close()
+            except Exception:
+                pass
+            return True
+
+        # No popup or modal to close
+        return False
+
+    def _on_escape_shortcut(self):
+        """
+        Global ESC: deliver ESC to the focused/popup widget first so it can handle and cleanup correctly.
+        If nothing handles it, run the app-level escape handler.
+        """
+        if self._route_escape_to_focus_or_popup():
+            return
+        try:
+            self.controller.access.on_escape()
+        except Exception:
+            pass
+
     def setup_global_shortcuts(self):
         """Setup global shortcuts"""
         if not hasattr(self, 'core') or not hasattr(self.core, 'config'):
@@ -417,12 +479,15 @@ class MainWindow(QMainWindow, QtStyleTools):
             self.shortcuts.clear()
         else:
             self.shortcuts = []
+        self._esc_shortcut = None
 
         # Handle the Escape key
         escape_shortcut = QShortcut(QKeySequence(Qt.Key_Escape), self)
         escape_shortcut.setContext(Qt.ApplicationShortcut)
-        escape_shortcut.activated.connect(self.controller.access.on_escape)
+        # escape_shortcut.setAutoRepeat(False)  # avoid spamming when holding the key
+        escape_shortcut.activated.connect(self._on_escape_shortcut)
         self.shortcuts.append(escape_shortcut)
+        self._esc_shortcut = escape_shortcut
 
         config = self.core.config.get("access.shortcuts")
         if config is None:
