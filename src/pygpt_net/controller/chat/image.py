@@ -181,8 +181,12 @@ class Image:
         ico_preview = os.path.join(ico_dir, "view.svg")
         for path in paths:
             safe_path = self.window.core.filesystem.make_local(path)
+            """
             urls.append(f"![image]({ico_preview}) [**{trans('action.preview')}**]({safe_path})  "
                         f"![image]({ico_download})[**{trans('action.download')}**](bridge://download/{safe_path})")
+            """
+            urls.append(f"[**{trans('action.open')}**]({safe_path}) | "
+                        f"[**{trans('action.download')}**](bridge://download/{safe_path})")
             i += 1
         string += "\n".join(urls)
 
