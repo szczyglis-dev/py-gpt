@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2026.01.01 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -27,6 +27,7 @@ from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
+from pygpt_net.core.locale.placeholder import apply as trans_placeholder_apply
 from pygpt_net.utils import trans
 
 
@@ -430,6 +431,7 @@ class Plugins:
             # if txt_tooltip == f"{key}.tooltip":
                 # txt_tooltip = txt_desc
 
+        txt_desc = trans_placeholder_apply(txt_desc)
 
         """
         if option['type'] not in no_desc_types:

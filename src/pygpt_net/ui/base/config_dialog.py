@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2026.01.01 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -20,6 +20,7 @@ from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
+from pygpt_net.core.locale.placeholder import apply as trans_placeholder_apply
 from pygpt_net.utils import trans
 
 
@@ -233,7 +234,7 @@ class BaseConfigDialog:
         :param text: text (to translate)
         :return: QLabel
         """
-        return DescLabel(trans(text))
+        return DescLabel(trans_placeholder_apply(trans(text)))
 
     def add_urls(self, urls, align=Qt.AlignLeft) -> QWidget:
         """
