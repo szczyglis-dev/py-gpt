@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.01.01 15:00:00                  #
 # ================================================== #
 
 import os
@@ -186,7 +186,7 @@ class Image:
                         f"![image]({ico_download})[**{trans('action.download')}**](bridge://download/{safe_path})")
             """
             urls.append(f"[**{trans('action.open')}**]({safe_path}) | "
-                        f"[**{trans('action.download')}**](bridge://download/{safe_path})")
+                        f"[**{trans('action.save_as')}**](bridge://download/{safe_path})")
             i += 1
         string += "\n".join(urls)
 
