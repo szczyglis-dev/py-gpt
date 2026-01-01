@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.28 00:00:00                  #
+# Updated Date: 2026.01.01 15:00:00                  #
 # ================================================== #
 import sys
 
@@ -742,6 +742,11 @@ class SearchableCombo(SeparatorComboBox):
                 self.hidePopup()
                 event.accept()
                 return
+            if event.key() == Qt.Key_Right:
+                # Inject highlighted item's text into the search header
+                self._apply_highlighted_to_search_input()
+                event.accept()
+                return
         super().keyPressEvent(event)
 
     # ----- Event filter -----
@@ -821,6 +826,10 @@ class SearchableCombo(SeparatorComboBox):
                     # Explicitly close popup from header
                     self.hidePopup()
                     return True
+                if key == Qt.Key_Right:
+                    # Insert highlighted item's value into the search input
+                    self._apply_highlighted_to_search_input()
+                    return True
                 if key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown, Qt.Key_Home, Qt.Key_End):
                     self._handle_navigation_key(key)
                     return True
@@ -832,12 +841,17 @@ class SearchableCombo(SeparatorComboBox):
         view = self.view()
         if view is not None and (obj is view or obj is getattr(view, "viewport", lambda: None)()):
             if event.type() == QEvent.KeyPress:
-                if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                key = event.key()
+                if key in (Qt.Key_Return, Qt.Key_Enter):
                     self._commit_view_current()
                     return True
-                if event.key() == Qt.Key_Escape:
+                if key == Qt.Key_Escape:
                     # Close from view/viewport ESC and keep control flow consistent
                     self.hidePopup()
+                    return True
+                if key == Qt.Key_Right:
+                    # Insert highlighted item's value into the search input
+                    self._apply_highlighted_to_search_input()
                     return True
             return False
 
@@ -1405,6 +1419,28 @@ class SearchableCombo(SeparatorComboBox):
                 v.viewport().update()
             except Exception:
                 pass
+
+    # ----- Convenience: inject highlighted row text into the search header -----
+
+    def _apply_highlighted_to_search_input(self):
+        """
+        Put the currently highlighted row's display text into the popup search input.
+        Does nothing if the popup or header is not available. The normal textChanged
+        handler will update scrolling and internal state.
+        """
+        if not self._popup_open or self._popup_header is None:
+            return
+        view = self.view()
+        if view is None:
+            return
+        idx = view.currentIndex()
+        row = self._sanitize_index(idx.row() if idx.isValid() else -1)
+        if row == -1:
+            return
+        text = self.itemText(row) or ""
+        self._popup_header.setText(text)
+        self._ensure_clear_button_visible(self._popup_header)
+        self._popup_header.setCursorPosition(len(text))
 
 
 class NoScrollCombo(SearchableCombo):
