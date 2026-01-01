@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2026.01.01 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QCheckBox, QWidget, QPushButton
+from PySide6.QtGui import QIcon
+from PySide6.QtCore import QSize, Qt
 
 from pygpt_net.ui.base.flow_layout import FlowLayout
 from pygpt_net.utils import trans
@@ -42,6 +44,10 @@ class OptionCheckboxList(QWidget):
         self.real_time = False
         self.keys = {}
         self.boxes = {}
+
+        # overlay button config
+        self._overlay_margin = 4  # px
+        self.btn_select = None
 
         # init from option data
         if self.option is not None:
@@ -84,20 +90,49 @@ class OptionCheckboxList(QWidget):
         for widget in widgets:
             self.layout.addWidget(widget)
 
-        # select/unselect all button
-        btn_select = QPushButton("X", self)
-        btn_select.setToolTip(trans("action.select_unselect_all"))
-        btn_select.clicked.connect(
+        # do not add the select/unselect all button to the flow layout
+        # it will be overlaid in the top-right corner to avoid affecting layout flow
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.layout)
+
+        # overlay select/unselect all button pinned to top-right corner
+        self.btn_select = QPushButton(self)
+        self.btn_select.setObjectName("btn_select_all_overlay")
+        self.btn_select.setToolTip(trans("action.select_unselect_all"))
+        self.btn_select.setIcon(QIcon(":/icons/asterisk.svg"))
+        self.btn_select.setIconSize(QSize(16, 16))
+        self.btn_select.setFixedSize(22, 22)
+        self.btn_select.setFocusPolicy(Qt.NoFocus)
+        self.btn_select.setCursor(Qt.PointingHandCursor)
+        self.btn_select.setStyleSheet("QPushButton { border: none; padding: 0; background: transparent; }")
+        self.btn_select.clicked.connect(
             lambda: self.window.controller.config.checkbox_list.on_select_all(
                 self.parent_id,
                 self.id,
                 self.option
             )
         )
-        self.layout.addWidget(btn_select)
+        self.btn_select.raise_()
+        self._place_select_button()
 
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.layout)
+    def _place_select_button(self) -> None:
+        """
+        Place the overlay select/unselect button in the top-right corner.
+        """
+        if not self.btn_select:
+            return
+        m = self._overlay_margin
+        w = self.btn_select.width()
+        x = max(0, self.width() - w - m)
+        y = m
+        self.btn_select.move(x, y)
+
+    def resizeEvent(self, event):
+        """
+        Keep the overlay button pinned to the top-right on resize.
+        """
+        super().resizeEvent(event)
+        self._place_select_button()
 
     def update_boxes_list(self, keys: dict) -> None:
         """
@@ -140,6 +175,9 @@ class OptionCheckboxList(QWidget):
                     )
                     self.boxes[key] = checkbox
                     self.layout.addWidget(checkbox)
+
+        # keep the overlay button in place after list update
+        self._place_select_button()
 
     def setIcon(self, icon: str):
         """
