@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,24 +14,31 @@ from typing import Optional, List, Dict, Any
 
 from packaging.version import Version
 
-from pygpt_net.item.assistant import AssistantStoreItem, AssistantItem
-from pygpt_net.provider.core.assistant_store.db_sqlite import DbSqliteProvider
+from pygpt_net.item.store import RemoteStoreItem
+from pygpt_net.provider.core.remote_store.db_sqlite import DbSqliteProvider
+
+from .files import Files
 
 
 class Store:
+
+    PROVIDER_NAME = "openai"
+
     def __init__(self, window=None):
         """
-        Assistant vector store core
+        OpenAI vector store core
 
         :param window: Window instance
         """
         self.window = window
         self.provider = DbSqliteProvider(window)
+        self.files = Files(window)
         self.items = {}
 
     def install(self):
         """Install provider data"""
         self.provider.install()
+        self.files.install()
 
     def patch(self, app_version: Version) -> bool:
         """
@@ -40,9 +47,11 @@ class Store:
         :param app_version: app version
         :return: True if data was patched
         """
-        return self.provider.patch(app_version)
+        res1 = self.files.patch(app_version)
+        res2 = self.provider.patch(app_version)
+        return res1 or res2
 
-    def get(self, id: str) -> AssistantStoreItem:
+    def get(self, id: str) -> RemoteStoreItem:
         """
         Get store item by store_id
 
@@ -61,7 +70,7 @@ class Store:
         return list(self.items.keys())
 
 
-    def get_all(self) -> Dict[str, AssistantStoreItem]:
+    def get_all(self) -> Dict[str, RemoteStoreItem]:
         """
         Return all stores
 
@@ -99,7 +108,7 @@ class Store:
         """
         return id in self.items
 
-    def create(self) -> Optional[AssistantStoreItem]:
+    def create(self) -> Optional[RemoteStoreItem]:
         """
         Create new store
 
@@ -109,15 +118,16 @@ class Store:
         vector_store = self.window.core.api.openai.store.create_store(name, 0)
         if vector_store is None:
             return None
-        store = AssistantStoreItem()
+        store = RemoteStoreItem()
         store.id = vector_store.id
         store.name = name
+        store.provider = self.PROVIDER_NAME
         store.is_thread = False
         store.record_id = self.provider.create(store)
         self.items[store.id] = store
         return store
 
-    def update(self, store: AssistantStoreItem) -> Optional[AssistantStoreItem]:
+    def update(self, store: RemoteStoreItem) -> Optional[RemoteStoreItem]:
         """
         Update store
 
@@ -184,12 +194,13 @@ class Store:
         if tmp_name is None:
             tmp_name = ""
         store.name = tmp_name
+        store.provider = self.PROVIDER_NAME
         self.append_status(store, status)  # append to store
         self.update(store)  # save to db
 
     def append_status(
             self,
-            store: AssistantStoreItem,
+            store: RemoteStoreItem,
             status: Dict[str, Any]
     ):
         """
@@ -241,7 +252,7 @@ class Store:
             return True
         return False
 
-    def import_items(self, items: Dict[str, AssistantStoreItem]):
+    def import_items(self, items: Dict[str, RemoteStoreItem]):
         """
         Insert items
 
@@ -249,6 +260,7 @@ class Store:
         """
         self.items = items
         for item in items.values():
+            item.provider = self.PROVIDER_NAME
             item.record_id = self.provider.create(item)
 
     def clear(self):
@@ -263,7 +275,7 @@ class Store:
         :return: True if store is hidden
         """
         if id in self.items:
-            if (self.window.core.config.get("assistant.store.hide_threads")
+            if (self.window.core.config.get("remote_store.openai.hide_threads")
                     and (self.items[id].name is None or self.items[id].name == "")):
                 return True
         return False
@@ -274,14 +286,19 @@ class Store:
 
         :return: True if truncated
         """
-        self.provider.truncate()
+        self.provider.truncate(self.PROVIDER_NAME)
         self.items = {}
         return True
 
     def load(self):
         """Load store"""
-        self.items = self.provider.load_all()
+        self.items = self.provider.load_all(self.PROVIDER_NAME)
         self.sort_items()
+
+    def load_all(self):
+        """Load store"""
+        self.load()
+        self.files.load()
 
     def sort_items(self):
         """Sort items"""

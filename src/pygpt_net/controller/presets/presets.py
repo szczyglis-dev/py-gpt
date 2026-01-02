@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 21:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import re
@@ -628,6 +628,7 @@ class Presets:
         mode = w.core.config.get('mode')
         if mode == MODE_ASSISTANT:
             w.core.assistants.load()
+            w.core.remote_store.openai.load_all()
 
     def _nearest_id_after_delete(self, mode: str, idx: Optional[int], deleting_id: Optional[str]) -> Optional[str]:
         """

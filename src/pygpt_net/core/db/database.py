@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import os
@@ -173,6 +173,7 @@ class Database:
             'file_id',
             'store_id',
             'thread_id',
+            'provider',
             'name',
             'path',
             'size',
@@ -184,6 +185,7 @@ class Database:
             'id',
             'store_id',
             'name',
+            'provider',
             'usage_bytes',
             'num_files',
             'expire_days',
@@ -293,7 +295,7 @@ class Database:
             'remote_file': {
                 'columns': columns["remote_file"],
                 'sort_by': columns["remote_file"],
-                'search_fields': ['id', 'file_id', 'store_id', 'thread_id', 'name', 'path'],
+                'search_fields': ['id', 'file_id', 'store_id', 'thread_id', 'name', 'path', 'provider'],
                 'timestamp_columns': ['created_ts', 'updated_ts'],
                 'json_columns': [],
                 'default_sort': 'id',
@@ -303,7 +305,7 @@ class Database:
             'remote_store': {
                 'columns': columns["remote_store"],
                 'sort_by': columns["remote_store"],
-                'search_fields': ['id', 'store_id', 'uuid', 'name', 'description', 'status', 'status_json'],
+                'search_fields': ['id', 'store_id', 'uuid', 'name', 'description', 'status', 'status_json', 'provider'],
                 'timestamp_columns': ['created_ts', 'updated_ts', 'last_sync_ts', 'last_active_ts'],
                 'json_columns': ['status_json'],
                 'default_sort': 'id',

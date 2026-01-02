@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 22:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -16,10 +16,10 @@ from PySide6.QtGui import QStandardItemModel, QAction, QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
     QSplitter, QSizePolicy, QMenuBar, QCheckBox, QMenu, QListView
 
-from pygpt_net.ui.widget.dialog.assistant_store import AssistantVectorStoreDialog
+from pygpt_net.ui.widget.dialog.remote_store_openai import RemoteStoreOpenAIDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
 from pygpt_net.ui.widget.element.labels import UrlLabel
-from pygpt_net.ui.widget.lists.assistant_store import AssistantVectorStoreEditorList
+from pygpt_net.ui.widget.lists.remote_store_openai import RemoteStoreOpenAIEditorList
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.checkbox_list import OptionCheckboxList
 from pygpt_net.ui.widget.option.combo import OptionCombo
@@ -30,7 +30,7 @@ from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.utils import trans
 
 
-class AssistantVectorStore:
+class RemoteStoreOpenAI:
     def __init__(self, window=None):
         """
         Assistant vector store editor dialog
@@ -38,7 +38,7 @@ class AssistantVectorStore:
         :param window: Window instance
         """
         self.window = window
-        self.dialog_id = "assistant.store"
+        self.dialog_id = "remote_store.openai"
 
     def setup(self, idx=None):
         """
@@ -53,43 +53,43 @@ class AssistantVectorStore:
         controller = self.window.controller
         core = self.window.core
 
-        nodes['assistant.store.btn.new'] = QPushButton(trans("dialog.assistant.store.btn.new"))
-        nodes['assistant.store.btn.save'] = QPushButton(trans("dialog.assistant.store.btn.save"))
-        nodes['assistant.store.btn.refresh_status'] = QPushButton(QIcon(":/icons/reload.svg"), "")
-        nodes['assistant.store.btn.close'] = QPushButton(trans("dialog.assistant.store.btn.close"))
+        nodes['remote_store.openai.btn.new'] = QPushButton(trans("dialog.remote_store.btn.new"))
+        nodes['remote_store.openai.btn.save'] = QPushButton(trans("dialog.remote_store.btn.save"))
+        nodes['remote_store.openai.btn.refresh_status'] = QPushButton(QIcon(":/icons/reload.svg"), "")
+        nodes['remote_store.openai.btn.close'] = QPushButton(trans("dialog.remote_store.btn.close"))
 
-        nodes['assistant.store.btn.refresh_status'].setToolTip(
-            trans("dialog.assistant.store.btn.refresh_status")
+        nodes['remote_store.openai.btn.refresh_status'].setToolTip(
+            trans("dialog.remote_store.btn.refresh_status")
         )
-        nodes['assistant.store.btn.refresh_status'].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        nodes['remote_store.openai.btn.refresh_status'].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
-        nodes['assistant.store.btn.upload.files'] = QPushButton(trans("dialog.assistant.store.btn.upload.files"))
-        nodes['assistant.store.btn.upload.dir'] = QPushButton(trans("dialog.assistant.store.btn.upload.dir"))
+        nodes['remote_store.openai.btn.upload.files'] = QPushButton(trans("dialog.remote_store.btn.upload.files"))
+        nodes['remote_store.openai.btn.upload.dir'] = QPushButton(trans("dialog.remote_store.btn.upload.dir"))
 
-        nodes['assistant.store.hide_thread'] = QCheckBox(trans("assistant.store.hide_threads"))
-        nodes['assistant.store.hide_thread'].setChecked(bool(core.config.get("assistant.store.hide_threads")))
-        nodes['assistant.store.hide_thread'].toggled.connect(
-            controller.assistant.store.set_hide_thread
+        nodes['remote_store.openai.hide_thread'] = QCheckBox(trans("remote_store.openai.hide_threads"))
+        nodes['remote_store.openai.hide_thread'].setChecked(bool(core.config.get("remote_store.openai.hide_threads")))
+        nodes['remote_store.openai.hide_thread'].toggled.connect(
+            controller.remote_store.openai.set_hide_thread
         )
 
-        nodes['assistant.store.btn.new'].clicked.connect(controller.assistant.store.new)
-        nodes['assistant.store.btn.save'].clicked.connect(controller.assistant.store.save_btn)
-        nodes['assistant.store.btn.close'].clicked.connect(controller.assistant.store.close)
-        nodes['assistant.store.btn.refresh_status'].clicked.connect(controller.assistant.store.refresh_status)
-        nodes['assistant.store.btn.upload.files'].clicked.connect(controller.assistant.batch.open_upload_files)
-        nodes['assistant.store.btn.upload.dir'].clicked.connect(controller.assistant.batch.open_upload_dir)
+        nodes['remote_store.openai.btn.new'].clicked.connect(controller.remote_store.openai.new)
+        nodes['remote_store.openai.btn.save'].clicked.connect(controller.remote_store.openai.save_btn)
+        nodes['remote_store.openai.btn.close'].clicked.connect(controller.remote_store.openai.close)
+        nodes['remote_store.openai.btn.refresh_status'].clicked.connect(controller.remote_store.openai.refresh_status)
+        nodes['remote_store.openai.btn.upload.files'].clicked.connect(controller.remote_store.openai.batch.open_upload_files)
+        nodes['remote_store.openai.btn.upload.dir'].clicked.connect(controller.remote_store.openai.batch.open_upload_dir)
 
-        nodes['assistant.store.btn.new'].setAutoDefault(False)
-        nodes['assistant.store.btn.refresh_status'].setAutoDefault(False)
-        nodes['assistant.store.btn.save'].setAutoDefault(True)
+        nodes['remote_store.openai.btn.new'].setAutoDefault(False)
+        nodes['remote_store.openai.btn.refresh_status'].setAutoDefault(False)
+        nodes['remote_store.openai.btn.save'].setAutoDefault(True)
 
         footer = QHBoxLayout()
-        footer.addWidget(nodes['assistant.store.btn.close'])
-        footer.addWidget(nodes['assistant.store.btn.save'])
+        footer.addWidget(nodes['remote_store.openai.btn.close'])
+        footer.addWidget(nodes['remote_store.openai.btn.save'])
 
-        ui.tabs['assistant.store'] = QTabWidget()
+        ui.tabs['remote_store.openai'] = QTabWidget()
 
-        parent_id = "assistant.store"
+        parent_id = "remote_store.openai"
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -98,7 +98,7 @@ class AssistantVectorStore:
         if parent_id not in ui.config:
             ui.config[parent_id] = {}
 
-        options = copy.deepcopy(controller.assistant.store.get_options())
+        options = copy.deepcopy(controller.remote_store.openai.get_options())
         widgets = self.build_widgets(options)
         advanced_keys = [k for k, v in options.items() if v.get('advanced')]
 
@@ -111,7 +111,7 @@ class AssistantVectorStore:
             content.addLayout(self.add_option(widgets[key], options[key]))
 
         if advanced_keys:
-            group_id = 'assistant.store.advanced'
+            group_id = 'remote_store.openai.advanced'
             ui.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
             ui.groups[group_id].box.setText(trans('settings.advanced.collapse'))
             for key in widgets:
@@ -134,21 +134,21 @@ class AssistantVectorStore:
         area_widget = QWidget()
         area_widget.setLayout(area)
 
-        list_id = 'assistant.store.list'
-        nodes[list_id] = AssistantVectorStoreEditorList(self.window, list_id)
+        list_id = 'remote_store.openai.list'
+        nodes[list_id] = RemoteStoreOpenAIEditorList(self.window, list_id)
         models[list_id] = self.create_model(self.window)
         nodes[list_id].setModel(models[list_id])
         nodes[list_id].setMinimumWidth(250)
 
         left_layout = QVBoxLayout()
-        left_layout.addWidget(nodes['assistant.store.btn.new'])
+        left_layout.addWidget(nodes['remote_store.openai.btn.new'])
         left_layout.addWidget(nodes[list_id])
-        left_layout.addWidget(nodes['assistant.store.hide_thread'])
+        left_layout.addWidget(nodes['remote_store.openai.hide_thread'])
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_widget = QWidget()
         left_widget.setLayout(left_layout)
 
-        self.update_list(list_id, core.assistants.store.items)
+        self.update_list(list_id, core.remote_store.openai.items)
 
         # ==================== Files panel ====================
         files_panel = QVBoxLayout()
@@ -156,7 +156,7 @@ class AssistantVectorStore:
         files_label.setStyleSheet("font-weight: bold;")
         files_panel.addWidget(files_label)
 
-        files_list_id = 'assistant.store.files.list'
+        files_list_id = 'remote_store.openai.files.list'
         nodes[files_list_id] = QListView()
         nodes[files_list_id].setEditTriggers(QListView.NoEditTriggers)
         nodes[files_list_id].setSelectionMode(QListView.SingleSelection)
@@ -169,9 +169,9 @@ class AssistantVectorStore:
 
         files_bottom = QHBoxLayout()
         files_bottom.setContentsMargins(0, 0, 0, 0)
-        files_bottom.addWidget(nodes['assistant.store.btn.upload.files'])
-        files_bottom.addWidget(nodes['assistant.store.btn.upload.dir'])
-        files_bottom.addWidget(nodes['assistant.store.btn.refresh_status'])
+        files_bottom.addWidget(nodes['remote_store.openai.btn.upload.files'])
+        files_bottom.addWidget(nodes['remote_store.openai.btn.upload.dir'])
+        files_bottom.addWidget(nodes['remote_store.openai.btn.refresh_status'])
 
         files_panel.addWidget(nodes[files_list_id])
         files_panel.setContentsMargins(0, 0, 0, 5)
@@ -180,22 +180,22 @@ class AssistantVectorStore:
         files_widget.setLayout(files_panel)
         # ========================================================================
 
-        splitters['dialog.assistant.store'] = QSplitter(Qt.Horizontal)
-        splitters['dialog.assistant.store'].addWidget(left_widget)
+        splitters['dialog.remote_store.openai'] = QSplitter(Qt.Horizontal)
+        splitters['dialog.remote_store.openai'].addWidget(left_widget)
 
-        splitters['dialog.assistant.store.right'] = QSplitter(Qt.Horizontal)
-        splitters['dialog.assistant.store.right'].addWidget(files_widget)
-        splitters['dialog.assistant.store.right'].addWidget(area_widget)
-        splitters['dialog.assistant.store.right'].setStretchFactor(1, 7)
-        splitters['dialog.assistant.store.right'].setStretchFactor(0, 3)
+        splitters['dialog.remote_store.openai.right'] = QSplitter(Qt.Horizontal)
+        splitters['dialog.remote_store.openai.right'].addWidget(files_widget)
+        splitters['dialog.remote_store.openai.right'].addWidget(area_widget)
+        splitters['dialog.remote_store.openai.right'].setStretchFactor(1, 7)
+        splitters['dialog.remote_store.openai.right'].setStretchFactor(0, 3)
 
-        splitters['dialog.assistant.store'].addWidget(splitters['dialog.assistant.store.right'])
-        splitters['dialog.assistant.store'].setStretchFactor(0, 2)
-        splitters['dialog.assistant.store'].setStretchFactor(1, 8)
-        splitters['dialog.assistant.store'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        splitters['dialog.remote_store.openai'].addWidget(splitters['dialog.remote_store.openai.right'])
+        splitters['dialog.remote_store.openai'].setStretchFactor(0, 2)
+        splitters['dialog.remote_store.openai'].setStretchFactor(1, 8)
+        splitters['dialog.remote_store.openai'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         main_layout = QHBoxLayout()
-        main_layout.addWidget(splitters['dialog.assistant.store'])
+        main_layout.addWidget(splitters['dialog.remote_store.openai'])
         main_layout.setContentsMargins(0, 0, 0, 0)
 
         layout = QVBoxLayout()
@@ -204,21 +204,21 @@ class AssistantVectorStore:
 
         layout.setMenuBar(self.setup_menu())
 
-        ui.dialog[self.dialog_id] = AssistantVectorStoreDialog(self.window, self.dialog_id)
+        ui.dialog[self.dialog_id] = RemoteStoreOpenAIDialog(self.window, self.dialog_id)
         ui.dialog[self.dialog_id].setLayout(layout)
-        ui.dialog[self.dialog_id].setWindowTitle(trans('dialog.assistant.store'))
+        ui.dialog[self.dialog_id].setWindowTitle(trans('dialog.remote_store.openai'))
 
         if idx is not None:
             try:
-                controller.assistant.store.set_by_tab(idx)
+                controller.remote_store.openai.set_by_tab(idx)
             except Exception as e:
                 print('Failed restore store editor tab: {}'.format(idx))
         else:
-            if controller.assistant.store.current is None:
-                controller.assistant.store.set_by_tab(0)
+            if controller.remote_store.openai.current is None:
+                controller.remote_store.openai.set_by_tab(0)
 
         try:
-            controller.assistant.store.update_files_list()
+            controller.remote_store.openai.update_files_list()
         except Exception:
             pass
 
@@ -232,99 +232,99 @@ class AssistantVectorStore:
         self.menu_bar = QMenuBar()
 
         self.menu = {}
-        self.menu["current"] = self.menu_bar.addMenu(trans("dialog.assistant.store.menu.current"))
-        self.menu["all"] = self.menu_bar.addMenu(trans("dialog.assistant.store.menu.all"))
+        self.menu["current"] = self.menu_bar.addMenu(trans("dialog.remote_store.menu.current"))
+        self.menu["all"] = self.menu_bar.addMenu(trans("dialog.remote_store.menu.all"))
 
         self.actions["current.import_files"] = QAction(QIcon(":/icons/download.svg"),
-                                                   trans("dialog.assistant.store.menu.current.import_files"),
+                                                   trans("dialog.remote_store.menu.current.import_files"),
                                                    self.menu_bar)
         self.actions["current.import_files"].triggered.connect(
-            lambda: self.window.controller.assistant.batch.import_store_files(
-                self.window.controller.assistant.store.current
+            lambda: self.window.controller.remote_store.openai.batch.import_store_files(
+                self.window.controller.remote_store.openai.current
             )
         )
 
         self.actions["current.refresh_store"] = QAction(QIcon(":/icons/reload.svg"),
-                                                     trans("dialog.assistant.store.menu.current.refresh_store"),
+                                                     trans("dialog.remote_store.menu.current.refresh_store"),
                                                      self.menu_bar)
         self.actions["current.refresh_store"].triggered.connect(
-            self.window.controller.assistant.store.refresh_status
+            self.window.controller.remote_store.openai.refresh_status
         )
 
         self.actions["current.clear_files"] = QAction(QIcon(":/icons/close.svg"),
-                                                  trans("dialog.assistant.store.menu.current.clear_files"),
+                                                  trans("dialog.remote_store.menu.current.clear_files"),
                                                   self.menu_bar)
         self.actions["current.clear_files"].triggered.connect(
-            lambda: self.window.controller.assistant.batch.clear_store_files(
-                self.window.controller.assistant.store.current
+            lambda: self.window.controller.remote_store.openai.batch.clear_store_files(
+                self.window.controller.remote_store.openai.current
             )
         )
 
         self.actions["current.truncate_files"] = QAction(QIcon(":/icons/delete.svg"),
-                                                     trans("dialog.assistant.store.menu.current.truncate_files"),
+                                                     trans("dialog.remote_store.menu.current.truncate_files"),
                                                      self.menu_bar)
         self.actions["current.truncate_files"].triggered.connect(
-            lambda: self.window.controller.assistant.batch.truncate_store_files(
-                self.window.controller.assistant.store.current
+            lambda: self.window.controller.remote_store.openai.batch.truncate_store_files(
+                self.window.controller.remote_store.openai.current
             )
         )
 
         self.actions["current.delete"] = QAction(QIcon(":/icons/delete.svg"),
-                                                         trans("dialog.assistant.store.menu.current.delete"),
+                                                         trans("dialog.remote_store.menu.current.delete"),
                                                          self.menu_bar)
         self.actions["current.delete"].triggered.connect(
-            lambda: self.window.controller.assistant.store.delete(
-                self.window.controller.assistant.store.current
+            lambda: self.window.controller.remote_store.openai.delete(
+                self.window.controller.remote_store.openai.current
             )
         )
 
         self.actions["all.import_all"] = QAction(QIcon(":/icons/download.svg"),
-                                                 trans("dialog.assistant.store.menu.all.import_all"),
+                                                 trans("dialog.remote_store.menu.all.import_all"),
                                                  self.menu_bar)
         self.actions["all.import_all"].triggered.connect(
-            self.window.controller.assistant.batch.import_stores
+            self.window.controller.remote_store.openai.batch.import_stores
         )
 
         self.actions["all.import_files"] = QAction(QIcon(":/icons/download.svg"),
-                                             trans("dialog.assistant.store.menu.all.import_files"),
+                                             trans("dialog.remote_store.menu.all.import_files"),
                                              self.menu_bar)
         self.actions["all.import_files"].triggered.connect(
-            self.window.controller.assistant.batch.import_files
+            self.window.controller.remote_store.openai.batch.import_files
         )
 
         self.actions["all.refresh_stores"] = QAction(QIcon(":/icons/reload.svg"),
-                                               trans("dialog.assistant.store.menu.all.refresh_store"),
+                                               trans("dialog.remote_store.menu.all.refresh_store"),
                                                self.menu_bar)
         self.actions["all.refresh_stores"].triggered.connect(
-            self.window.controller.assistant.batch.refresh_stores
+            self.window.controller.remote_store.openai.batch.refresh_stores
         )
 
         self.actions["all.clear_stores"] = QAction(QIcon(":/icons/close.svg"),
-                                                  trans("dialog.assistant.store.menu.all.clear_store"),
+                                                  trans("dialog.remote_store.menu.all.clear_store"),
                                                   self.menu_bar)
         self.actions["all.clear_stores"].triggered.connect(
-            self.window.controller.assistant.batch.clear_stores
+            self.window.controller.remote_store.openai.batch.clear_stores
         )
 
         self.actions["all.clear_files"] = QAction(QIcon(":/icons/close.svg"),
-                                               trans("dialog.assistant.store.menu.all.clear_files"),
+                                               trans("dialog.remote_store.menu.all.clear_files"),
                                                self.menu_bar)
         self.actions["all.clear_files"].triggered.connect(
-            self.window.controller.assistant.batch.clear_files
+            self.window.controller.remote_store.openai.batch.clear_files
         )
 
         self.actions["all.truncate_stores"] = QAction(QIcon(":/icons/delete.svg"),
-                                                      trans("dialog.assistant.store.menu.all.truncate_store"),
+                                                      trans("dialog.remote_store.menu.all.truncate_store"),
                                                       self.menu_bar)
         self.actions["all.truncate_stores"].triggered.connect(
-            self.window.controller.assistant.batch.truncate_stores
+            self.window.controller.remote_store.openai.batch.truncate_stores
         )
 
         self.actions["all.truncate_files"] = QAction(QIcon(":/icons/delete.svg"),
-                                                     trans("dialog.assistant.store.menu.all.truncate_files"),
+                                                     trans("dialog.remote_store.menu.all.truncate_files"),
                                                      self.menu_bar)
         self.actions["all.truncate_files"].triggered.connect(
-            self.window.controller.assistant.batch.truncate_files
+            self.window.controller.remote_store.openai.batch.truncate_files
         )
 
         self.menu["current"].addAction(self.actions["current.import_files"])
@@ -494,8 +494,8 @@ class AssistantVectorStore:
         if id not in models:
             return
         model = models[id]
-        hide_threads = bool(self.window.core.config.get("assistant.store.hide_threads"))
-        suffix = trans("assistant.store.files.suffix")
+        hide_threads = bool(self.window.core.config.get("remote_store.openai.hide_threads"))
+        suffix = trans("remote_store.files.suffix")
 
         names = []
         for n, store in data.items():
@@ -523,7 +523,7 @@ class AssistantVectorStore:
         """
         Context menu for the files list: provides Delete action.
         """
-        view_id = 'assistant.store.files.list'
+        view_id = 'remote_store.openai.files.list'
         if view_id not in self.window.ui.nodes:
             return
         view = self.window.ui.nodes[view_id]
@@ -533,7 +533,7 @@ class AssistantVectorStore:
 
         row = index.row()
         menu = QMenu(view)
-        act_delete = QAction(QIcon(":/icons/delete.svg"), trans("assistant.store.menu.file.delete") if hasattr(self.window, 'tr') else "Delete", view)
-        act_delete.triggered.connect(lambda r=row: self.window.controller.assistant.store.delete_file_by_idx(r))
+        act_delete = QAction(QIcon(":/icons/delete.svg"), trans("remote_store.menu.file.delete") if hasattr(self.window, 'tr') else "Delete", view)
+        act_delete.triggered.connect(lambda r=row: self.window.controller.remote_store.openai.delete_file_by_idx(r))
         menu.addAction(act_delete)
         menu.exec(view.mapToGlobal(pos))

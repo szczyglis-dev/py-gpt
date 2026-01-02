@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 import json
@@ -77,9 +77,12 @@ class JsonFileProvider(BaseProvider):
                 if filename.endswith(".json"):
                     path = os.path.join(self.window.core.config.get_user_dir('presets'), filename)
                     with open(path, 'r', encoding="utf-8") as f:
-                        preset = PresetItem()
-                        self.deserialize(json.load(f), preset)
-                        items[filename[:-5]] = preset
+                        try:
+                            preset = PresetItem()
+                            self.deserialize(json.load(f), preset)
+                            items[filename[:-5]] = preset
+                        except Exception as e:
+                            self.window.core.debug.log(e)
         except Exception as e:
             self.window.core.debug.log(e)
 
@@ -104,9 +107,12 @@ class JsonFileProvider(BaseProvider):
                         filename
                     )
                     with open(path, 'r', encoding="utf-8") as f:
-                        preset = PresetItem()
-                        self.deserialize(json.load(f), preset)
-                        items[filename[:-5]] = preset
+                        try:
+                            preset = PresetItem()
+                            self.deserialize(json.load(f), preset)
+                            items[filename[:-5]] = preset
+                        except Exception as e:
+                            self.window.core.debug.log(e)
         except Exception as e:
             self.window.core.debug.log(e)
 

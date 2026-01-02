@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 import os
@@ -36,17 +36,17 @@ class Importer(QObject):
         if mode == "assistants":
             self.window.controller.assistant.batch.handle_imported_assistants_failed(err)
         elif mode == "import_files":
-            self.window.controller.assistant.batch.handle_imported_files_failed(err)
+            self.window.controller.remote_store.openai.batch.handle_imported_files_failed(err)
         elif mode == "truncate_files":
-            self.window.controller.assistant.batch.handle_truncated_files_failed(err)
+            self.window.controller.remote_store.openai.batch.handle_truncated_files_failed(err)
         elif mode == "upload_files":
-            self.window.controller.assistant.batch.handle_uploaded_files_failed(err)
+            self.window.controller.remote_store.openai.batch.handle_uploaded_files_failed(err)
         elif mode in "vector_stores":
-            self.window.controller.assistant.batch.handle_imported_stores_failed(err)
+            self.window.controller.remote_store.openai.batch.handle_imported_stores_failed(err)
         elif mode in "truncate_vector_stores":
-            self.window.controller.assistant.batch.handle_truncated_stores_failed(err)
+            self.window.controller.remote_store.openai.batch.handle_truncated_stores_failed(err)
         elif mode in "refresh_vector_stores":
-            self.window.controller.assistant.batch.handle_refreshed_stores_failed(err)
+            self.window.controller.remote_store.openai.batch.handle_refreshed_stores_failed(err)
 
     @Slot(str, str, int)
     def handle_finished(self, mode: str, store_id: str = None, num: int = 0):
@@ -60,17 +60,17 @@ class Importer(QObject):
         if mode == "assistants":
             self.window.controller.assistant.batch.handle_imported_assistants(num)
         elif mode == "import_files":
-            self.window.controller.assistant.batch.handle_imported_files(num)
+            self.window.controller.remote_store.openai.batch.handle_imported_files(num)
         elif mode == "truncate_files":
-            self.window.controller.assistant.batch.handle_truncated_files(store_id, num)
+            self.window.controller.remote_store.openai.batch.handle_truncated_files(store_id, num)
         elif mode == "upload_files":
-            self.window.controller.assistant.batch.handle_uploaded_files(num)
+            self.window.controller.remote_store.openai.batch.handle_uploaded_files(num)
         elif mode == "vector_stores":
-            self.window.controller.assistant.batch.handle_imported_stores(num)
+            self.window.controller.remote_store.openai.batch.handle_imported_stores(num)
         elif mode == "truncate_vector_stores":
-            self.window.controller.assistant.batch.handle_truncated_stores(num)
+            self.window.controller.remote_store.openai.batch.handle_truncated_stores(num)
         elif mode == "refresh_vector_stores":
-            self.window.controller.assistant.batch.handle_refreshed_stores(num)
+            self.window.controller.remote_store.openai.batch.handle_refreshed_stores(num)
 
     @Slot(str, str)
     def handle_status(self, mode: str, msg: str):
@@ -264,10 +264,10 @@ class ImportWorker(QRunnable):
         """
         try:
             self.log("Importing vector stores...")
-            self.window.core.assistants.store.clear()
+            self.window.core.remote_store.openai.clear()
             items = {}
             self.window.core.api.openai.store.import_stores(items, callback=self.callback)
-            self.window.core.assistants.store.import_items(items)
+            self.window.core.remote_store.openai.import_items(items)
             if not silent:
                 self.signals.finished.emit("vector_stores", self.store_id, len(items))
             return True
@@ -286,8 +286,8 @@ class ImportWorker(QRunnable):
         try:
             self.log("Truncating stores...")
             num = self.window.core.api.openai.store.remove_all(callback=self.callback)
-            self.window.core.assistants.store.items = {}
-            self.window.core.assistants.store.save()
+            self.window.core.remote_store.openai.items = {}
+            self.window.core.remote_store.openai.save()
             if not silent:
                 self.signals.finished.emit("truncate_vector_stores", self.store_id, num)
             return True
@@ -306,11 +306,11 @@ class ImportWorker(QRunnable):
         try:
             self.log("Refreshing stores...")
             num = 0
-            stores = self.window.core.assistants.store.items
+            stores = self.window.core.remote_store.openai.items
             for id in stores:
                 store = stores[id]
                 try:
-                    self.window.controller.assistant.store.refresh_store(store, update=False)
+                    self.window.controller.remote_store.openai.refresh_store(store, update=False)
                     num += 1
                 except Exception as e:
                     self.log("Failed to refresh store: {}".format(id))
@@ -334,12 +334,12 @@ class ImportWorker(QRunnable):
             # if empty store_id, truncate all files, otherwise truncate only store files
             if self.store_id is None:
                 self.log("Truncating all files...")
-                self.window.core.assistants.files.truncate() # clear all files
+                self.window.core.remote_store.openai.files.truncate() # clear all files
                 # remove all files in API
                 num = self.window.core.api.openai.store.remove_files(callback=self.callback)
             else:
                 self.log("Truncating files for store: {}".format(self.store_id))
-                self.window.core.assistants.files.truncate(self.store_id)  # clear store files, remove from stores / DB
+                self.window.core.remote_store.openai.files.truncate(self.store_id)  # clear store files, remove from stores / DB
                 # remove store files in API
                 num = self.window.core.api.openai.store.remove_store_files(
                     self.store_id,
@@ -373,7 +373,7 @@ class ImportWorker(QRunnable):
                         )
                         if stored_file is not None:
                             data = self.window.core.api.openai.store.get_file(file_id)
-                            self.window.core.assistants.files.insert(self.store_id, data)  # insert to DB
+                            self.window.core.remote_store.openai.files.insert(self.store_id, data)  # insert to DB
                             msg = "Uploaded file: {}/{}".format((num + 1), len(self.files))
                             self.signals.status.emit("upload_files", msg)
                             self.log(msg)
@@ -402,11 +402,11 @@ class ImportWorker(QRunnable):
         try:
             if self.store_id is None:
                 self.log("Importing all files...")
-                self.window.core.assistants.files.truncate_local()  # clear local DB (all)
+                self.window.core.remote_store.openai.files.truncate_local()  # clear local DB (all)
                 num = self.window.core.api.openai.store.import_stores_files(self.callback)  # import all files
             else:
                 self.log("Importing files for store: {}".format(self.store_id))
-                self.window.core.assistants.files.truncate_local(self.store_id)  # clear local DB (all)
+                self.window.core.remote_store.openai.files.truncate_local(self.store_id)  # clear local DB (all)
                 items = self.window.core.api.openai.store.import_store_files(
                     self.store_id,
                     [],

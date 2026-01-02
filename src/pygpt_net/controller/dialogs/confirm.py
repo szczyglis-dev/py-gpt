@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.19 00:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -189,39 +189,39 @@ class Confirm:
         elif type == 'assistant.delete':
             self.window.controller.assistant.delete(id, True)
         elif type == 'assistant.import':
-            self.window.controller.assistant.batch.import_assistants(True)
-        elif type == 'assistant.files.import.all':
-            self.window.controller.assistant.batch.import_files(True)
-        elif type == 'assistant.files.import.store':
-            self.window.controller.assistant.batch.import_store_files(id, True)  # by store_id
-        elif type == 'assistant.files.truncate':
-            self.window.controller.assistant.batch.truncate_files(True)
-        elif type == 'assistant.files.truncate.store':
-            self.window.controller.assistant.batch.truncate_store_files(id, True)  # by store_id
-        elif type == 'assistant.files.clear.all':
-            self.window.controller.assistant.batch.clear_files(True)
-        elif type == 'assistant.files.clear.store':
-            self.window.controller.assistant.batch.clear_store_files(id, True)  # by store_id
-        elif type == 'assistant.files.upload':
-            self.window.controller.assistant.batch.upload(True)
-        elif type == 'assistant.file.delete':
-            self.window.controller.assistant.store.delete_file_by_idx(id, True)
+            self.window.controller.assistant.batch.import_assistants(True)           
         elif type == 'assistant.functions.import':
             self.window.controller.assistant.editor.import_functions(True)
         elif type == 'assistant.functions.clear':
             self.window.controller.assistant.editor.clear_functions(True)
 
-        # assistants vector stores
-        elif type == 'assistant.store.delete':
-            self.window.controller.assistant.store.delete(id, True)  # by store_id
-        elif type == 'assistant.store.import':
-            self.window.controller.assistant.batch.import_stores(True)
-        elif type == 'assistant.store.truncate':
-            self.window.controller.assistant.batch.truncate_stores(True)
-        elif type == 'assistant.store.clear':
-            self.window.controller.assistant.batch.clear_stores(True)
-        elif type == 'assistant.store.refresh':
-            self.window.controller.assistant.batch.refresh_stores(True)
+        # OpenAI vector stores
+        elif type == 'remote_store.openai.file.delete':
+            self.window.controller.remote_store.openai.delete_file_by_idx(id, True)
+        elif type == 'remote_store.openai.delete':
+            self.window.controller.remote_store.openai.delete(id, True)  # by store_id
+        elif type == 'remote_store.openai.import':
+            self.window.controller.remote_store.openai.batch.import_stores(True)
+        elif type == 'remote_store.openai.truncate':
+            self.window.controller.remote_store.openai.batch.truncate_stores(True)
+        elif type == 'remote_store.openai.clear':
+            self.window.controller.remote_store.openai.batch.clear_stores(True)
+        elif type == 'remote_store.openai.refresh':
+            self.window.controller.remote_store.openai.batch.refresh_stores(True)
+        elif type == 'remote_store.openai.files.import.all':
+            self.window.controller.remote_store.openai.batch.import_files(True)
+        elif type == 'remote_store.openai.files.import.store':
+            self.window.controller.remote_store.openai.batch.import_store_files(id, True)  # by store_id
+        elif type == 'remote_store.openai.files.truncate':
+            self.window.controller.remote_store.openai.batch.truncate_files(True)
+        elif type == 'remote_store.openai.files.truncate.store':
+            self.window.controller.remote_store.openai.batch.truncate_store_files(id, True)  # by store_id
+        elif type == 'remote_store.openai.files.clear.all':
+            self.window.controller.remote_store.openai.batch.clear_files(True)
+        elif type == 'remote_store.openai.files.clear.store':
+            self.window.controller.remote_store.openai.batch.clear_store_files(id, True)  # by store_id
+        elif type == 'remote_store.openai.files.upload':
+            self.window.controller.remote_store.openai.batch.upload(True)   
 
         # settings
         elif type == 'settings.defaults.user':

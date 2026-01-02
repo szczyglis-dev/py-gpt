@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import time
@@ -14,7 +14,7 @@ from typing import Dict
 
 from sqlalchemy import text
 
-from pygpt_net.item.assistant import AssistantStoreItem
+from pygpt_net.item.store import RemoteStoreItem
 
 from .utils import pack_item_value, unpack_store
 
@@ -35,36 +35,37 @@ class Storage:
         """
         self.window = window
 
-    def get_all(self) -> Dict[str, AssistantStoreItem]:
+    def get_all(self, provider: str) -> Dict[str, RemoteStoreItem]:
         """
-        Return dict with AssistantStoreItem objects, indexed by ID
+        Return dict with RemoteStoreItem objects, indexed by ID
 
-        :return: dict of AssistantStoreItem objects
+        :param provider: provider ID
+        :return: dict of RemoteStoreItem objects
         """
         stmt = text("""
-            SELECT * FROM remote_store
-        """)
+            SELECT * FROM remote_store WHERE provider = :provider
+        """).bindparams(provider=provider)
         items = {}
         db = self.window.core.db.get_db()
         with db.connect() as conn:
             result = conn.execute(stmt)
             for row in result:
-                store = AssistantStoreItem()
+                store = RemoteStoreItem()
                 unpack_store(store, row._asdict())
                 items[store.id] = store  # index by store ID
         return items
 
-    def get_by_id(self, id: int) -> AssistantStoreItem:
+    def get_by_id(self, id: int) -> RemoteStoreItem:
         """
-        Return AssistantStoreItem by ID
+        Return RemoteStoreItem by ID
 
         :param id: store item ID
-        :return: AssistantStoreItem
+        :return: RemoteStoreItem
         """
         stmt = text("""
             SELECT * FROM remote_store WHERE id = :id LIMIT 1
         """).bindparams(id=id)
-        store = AssistantStoreItem()
+        store = RemoteStoreItem()
         db = self.window.core.db.get_db()
         with db.connect() as conn:
             result = conn.execute(stmt)
@@ -72,17 +73,17 @@ class Storage:
                 unpack_store(store, row._asdict())
         return store
 
-    def get_by_store_id(self, id: str) -> AssistantStoreItem:
+    def get_by_store_id(self, id: str) -> RemoteStoreItem:
         """
-        Return AssistantStoreItem by ID
+        Return RemoteStoreItem by ID
 
         :param id: store_id
-        :return: AssistantStoreItem
+        :return: RemoteStoreItem
         """
         stmt = text("""
             SELECT * FROM remote_store WHERE store_id = :id LIMIT 1
         """).bindparams(id=id)
-        store = AssistantStoreItem()
+        store = RemoteStoreItem()
         db = self.window.core.db.get_db()
         with db.connect() as conn:
             result = conn.execute(stmt)
@@ -90,16 +91,17 @@ class Storage:
                 unpack_store(store, row._asdict())
         return store
 
-    def truncate_all(self) -> bool:
+    def truncate_all(self, provider: str) -> bool:
         """
         Truncate all stores items
 
+        :param provider: provider ID
         :return: True if truncated
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
-            conn.execute(text("DELETE FROM remote_store"))
-            conn.execute(text("DELETE FROM sqlite_sequence WHERE name='remote_store'"))
+            conn.execute(text("DELETE FROM remote_store WHERE provider = :provider").bindparams(provider=provider))
+            # conn.execute(text("DELETE FROM sqlite_sequence WHERE name='remote_store'"))
         return True
 
     def delete_by_id(self, id: int) -> bool:
@@ -132,11 +134,11 @@ class Storage:
             conn.execute(stmt)
             return True
 
-    def save(self, store: AssistantStoreItem):
+    def save(self, store: RemoteStoreItem):
         """
         Insert or update store item
 
-        :param store: AssistantStoreItem object
+        :param store: RemoteStoreItem object
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
@@ -145,6 +147,7 @@ class Storage:
                 UPDATE remote_store
                 SET
                     name = :name,
+                    provider = :provider,
                     description = :description,
                     expire_days = :expire_days,
                     usage_bytes = :usage_bytes,
@@ -160,6 +163,7 @@ class Storage:
                 """).bindparams(
                 id=store.record_id,
                 name=store.name,
+                provider=store.provider,
                 description=store.description,
                 expire_days=store.expire_days,
                 usage_bytes=store.usage_bytes,
@@ -174,11 +178,11 @@ class Storage:
             )
             conn.execute(stmt)
 
-    def insert(self, store: AssistantStoreItem) -> int:
+    def insert(self, store: RemoteStoreItem) -> int:
         """
         Insert store item
 
-        :param store: AssistantStoreItem object
+        :param store: RemoteStoreItem object
         :return: store item ID
         """
         db = self.window.core.db.get_db()
@@ -189,6 +193,7 @@ class Storage:
                 store_id,
                 uuid,
                 name,
+                provider,
                 description,
                 expire_days,
                 usage_bytes,
@@ -206,6 +211,7 @@ class Storage:
                 :store_id,
                 :uuid,
                 :name,
+                :provider,
                 :description,
                 :expire_days,
                 :usage_bytes,
@@ -222,6 +228,7 @@ class Storage:
             store_id=store.id,
             uuid=store.uuid,
             name=store.name,
+            provider=store.provider,
             description=store.description,
             expire_days=int(store.expire_days or 0),
             usage_bytes=int(store.usage_bytes or 0),

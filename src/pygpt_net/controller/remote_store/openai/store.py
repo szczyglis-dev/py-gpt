@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 00:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -17,44 +17,47 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QStandardItem
 from PySide6.QtCore import Qt, QTimer
 
-from pygpt_net.item.assistant import AssistantStoreItem
+from pygpt_net.item.store import RemoteStoreItem
 from pygpt_net.utils import trans
 
+from .batch import Batch
 
-class VectorStore:
+
+class OpenAIRemoteStore:
     def __init__(self, window=None):
         """
-        Assistant vector store editor controller
+        OpenAI vector store editor controller
 
         :param window: Window instance
         """
         self.window = window
+        self.batch = Batch(window)
         self.dialog = False
         self.config_initialized = False
         self.current = None
         self.width = 800
         self.height = 500
-        self.id = "assistant.store"
+        self.id = "remote_store.openai"
         self.options = {
             "id": {
                 "type": "text",
-                "label": "assistant.store.id",
+                "label": "remote_store.id",
                 "read_only": True,
                 "value": "",
             },
             "name": {
                 "type": "text",
-                "label": "assistant.store.name",
+                "label": "remote_store.name",
                 "value": "",
             },
             "expire_days": {
                 "type": "int",
-                "label": "assistant.store.expire_days",
+                "label": "remote_store.expire_days",
                 "value": 0,
             },
             "status": {
                 "type": "textarea",
-                "label": "assistant.store.status",
+                "label": "remote_store.status",
                 "read_only": True,
                 "value": "",
             },
@@ -83,7 +86,7 @@ class VectorStore:
     def setup(self):
         """Set up vector store editor"""
         idx = None
-        self.window.assistant_store.setup(idx)  # widget dialog setup
+        self.window.remote_store_openai.setup(idx)  # widget dialog setup
 
     def toggle_editor(self):
         """Toggle vector store editor dialog"""
@@ -111,7 +114,7 @@ class VectorStore:
             self.current = self.window.controller.assistant.editor.get_selected_store_id()
             self.init()
             self.window.ui.dialogs.open(
-                "assistant.store",
+                "remote_store.openai",
                 width=self.width,
                 height=self.height,
             )
@@ -120,7 +123,7 @@ class VectorStore:
     def close(self):
         """Close vector store editor dialog"""
         if self.dialog:
-            self.window.ui.dialogs.close('assistant.store')
+            self.window.ui.dialogs.close('remote_store.openai')
             self.dialog = False
 
     def init(self):
@@ -133,8 +136,8 @@ class VectorStore:
 
         # assign store to config dialog fields
         options = copy.deepcopy(self.get_options())  # copy options
-        if self.current is not None and self.window.core.assistants.store.has(self.current):
-            store = self.window.core.assistants.store.items[self.current]
+        if self.current is not None and self.window.core.remote_store.openai.has(self.current):
+            store = self.window.core.remote_store.openai.items[self.current]
             data_dict = store.to_dict()
             for key in options:
                 if key in data_dict:
@@ -156,10 +159,10 @@ class VectorStore:
     def refresh_status(self):
         """Reload store status"""
         if self.current is not None:  # TODO: reset on profile reload
-            if self.window.core.assistants.store.has(self.current):
+            if self.window.core.remote_store.openai.has(self.current):
                 self.window.update_status(trans('status.sending'))
                 QApplication.processEvents()
-                store = self.window.core.assistants.store.items[self.current]
+                store = self.window.core.remote_store.openai.items[self.current]
                 self.refresh_store(store)
                 self.window.update_status(trans('status.assistant.saved'))
                 self.update()  # update stores list in assistant dialog
@@ -167,7 +170,7 @@ class VectorStore:
 
     def refresh_store(
             self,
-            store: AssistantStoreItem,
+            store: RemoteStoreItem,
             update: bool = True
     ):
         """
@@ -177,8 +180,8 @@ class VectorStore:
         :param update: update store after refresh
         """
         # update from API
-        self.window.core.assistants.store.update_status(store.id)
-        self.window.core.assistants.store.update(store)
+        self.window.core.remote_store.openai.update_status(store.id)
+        self.window.core.remote_store.openai.update(store)
 
         if update and store.id == self.current:
             self.update_current()
@@ -207,8 +210,8 @@ class VectorStore:
         updated = False
         is_current = False
         for store_id in ids:
-            if store_id is not None and store_id in self.window.core.assistants.store.items:
-                store = self.window.core.assistants.store.items[store_id]
+            if store_id is not None and store_id in self.window.core.remote_store.openai.items:
+                store = self.window.core.remote_store.openai.items[store_id]
                 if store is not None:
                     self.window.update_status(trans('status.sending'))
                     QApplication.processEvents()
@@ -224,8 +227,8 @@ class VectorStore:
 
     def update_current(self):
         """Update current store"""
-        if self.current is not None and self.window.core.assistants.store.has(self.current):
-            store = self.window.core.assistants.store.items[self.current]
+        if self.current is not None and self.window.core.remote_store.openai.has(self.current):
+            store = self.window.core.remote_store.openai.items[self.current]
             # update textarea
             option = copy.deepcopy(self.get_option("status"))
             option["value"] = json.dumps(store.status, indent=4)
@@ -255,7 +258,7 @@ class VectorStore:
         :param persist: persist to file and close dialog
         """
         if self.current is not None:
-            current = self.window.core.assistants.store.items[self.current].to_dict()
+            current = self.window.core.remote_store.openai.items[self.current].to_dict()
             options = copy.deepcopy(self.get_options())  # copy options
             data_dict = {}
             for key in options:
@@ -263,20 +266,20 @@ class VectorStore:
                     data_dict[key] = current[key]  # use initial value
                     continue  # skip status
                 value = self.window.controller.config.get_value(
-                    parent_id="assistant.store",
+                    parent_id="remote_store.openai",
                     key=key,
                     option=options[key],
                 )
                 data_dict[key] = value
-            self.window.core.assistants.store.items[self.current].from_dict(data_dict)
+            self.window.core.remote_store.openai.items[self.current].from_dict(data_dict)
 
         # save config
         if persist:
             self.window.update_status(trans('status.sending'))
             QApplication.processEvents()
             if self.current is not None:
-                store = self.window.core.assistants.store.update(
-                    self.window.core.assistants.store.items[self.current]
+                store = self.window.core.remote_store.openai.update(
+                    self.window.core.remote_store.openai.items[self.current]
                 )
                 if store is None:
                     self.window.update_status(trans('status.error'))
@@ -290,8 +293,8 @@ class VectorStore:
 
     def reload_items(self):
         """Reload list items"""
-        items = self.window.core.assistants.store.items
-        self.window.assistant_store.update_list("assistant.store.list", items)
+        items = self.window.core.remote_store.openai.items
+        self.window.remote_store_openai.update_list("remote_store.openai.list", items)
         self.restore_selection()
 
     def restore_selection(self):
@@ -317,7 +320,7 @@ class VectorStore:
         self.window.update_status(trans('status.sending'))
         QApplication.processEvents()
 
-        store = self.window.core.assistants.store.create()
+        store = self.window.core.remote_store.openai.create()
         if store is None:
             self.window.update_status(trans('status.error'))
             self.window.ui.dialogs.alert("Failed to create new vector store")
@@ -325,7 +328,7 @@ class VectorStore:
 
         self.window.update_status(trans('status.assistant.saved'))
 
-        self.window.core.assistants.store.update(store)
+        self.window.core.remote_store.openai.update(store)
         self.update()  # update stores list in assistant dialog
 
         # switch to created store
@@ -369,9 +372,9 @@ class VectorStore:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                type="assistant.store.delete",
+                type="remote_store.openai.delete",
                 id=store_id,
-                msg=trans("dialog.assistant.store.delete.confirm"),
+                msg=trans("dialog.remote_store.delete.confirm"),
             )
             return
 
@@ -388,10 +391,10 @@ class VectorStore:
                 self.current = None
             try:
                 print("Deleting store: {}".format(store_id))
-                if self.window.core.assistants.store.delete(store_id):
+                if self.window.core.remote_store.openai.delete(store_id):
                     self.window.controller.assistant.batch.remove_store_from_assistants(store_id)
                     self.window.update_status(trans('status.deleted'))
-                    self.window.core.assistants.store.save()
+                    self.window.core.remote_store.openai.save()
                     updated = True
                 else:
                     self.window.update_status(trans('status.error'))
@@ -412,15 +415,15 @@ class VectorStore:
         :param idx: tab index
         """
         store_idx = 0
-        for id in self.window.core.assistants.store.get_ids():
-            if self.window.core.assistants.store.is_hidden(id):
+        for id in self.window.core.remote_store.openai.get_ids():
+            if self.window.core.remote_store.openai.is_hidden(id):
                 continue
             if store_idx == idx:
                 self.current = id
                 break
             store_idx += 1
-        current = self.window.ui.models['assistant.store.list'].index(idx, 0)
-        self.window.ui.nodes['assistant.store.list'].setCurrentIndex(current)
+        current = self.window.ui.models['remote_store.openai.list'].index(idx, 0)
+        self.window.ui.nodes['remote_store.openai.list'].setCurrentIndex(current)
 
     def set_tab_by_id(self, store_id: str):
         """
@@ -429,8 +432,8 @@ class VectorStore:
         :param store_id: store id
         """
         idx = self.get_tab_idx(store_id)
-        current = self.window.ui.models['assistant.store.list'].index(idx, 0)
-        self.window.ui.nodes['assistant.store.list'].setCurrentIndex(current)
+        current = self.window.ui.models['remote_store.openai.list'].index(idx, 0)
+        self.window.ui.nodes['remote_store.openai.list'].setCurrentIndex(current)
 
     def get_tab_idx(self, store_id: str) -> int:
         """
@@ -441,8 +444,8 @@ class VectorStore:
         """
         store_idx = None
         i = 0
-        for id in self.window.core.assistants.store.get_ids():
-            if self.window.core.assistants.store.is_hidden(id):
+        for id in self.window.core.remote_store.openai.get_ids():
+            if self.window.core.remote_store.openai.is_hidden(id):
                 continue
             if id == store_id:
                 store_idx = i
@@ -459,8 +462,8 @@ class VectorStore:
         """
         idx = None
         i = 0
-        for id in self.window.core.assistants.store.get_ids():
-            if self.window.core.assistants.store.is_hidden(id):
+        for id in self.window.core.remote_store.openai.get_ids():
+            if self.window.core.remote_store.openai.is_hidden(id):
                 continue
             if id == store_id:
                 idx = i
@@ -476,8 +479,8 @@ class VectorStore:
         :return: store id / key
         """
         store_idx = 0
-        for id in self.window.core.assistants.store.get_ids():
-            if self.window.core.assistants.store.is_hidden(id):
+        for id in self.window.core.remote_store.openai.get_ids():
+            if self.window.core.remote_store.openai.is_hidden(id):
                 continue
             if store_idx == idx:
                 return id
@@ -490,8 +493,8 @@ class VectorStore:
 
         :return: store id
         """
-        for id in self.window.core.assistants.store.get_ids():
-            if not self.window.core.assistants.store.is_hidden(id):
+        for id in self.window.core.remote_store.openai.get_ids():
+            if not self.window.core.remote_store.openai.is_hidden(id):
                 return id
         return None
 
@@ -501,7 +504,7 @@ class VectorStore:
 
         :param idx: list index
         """
-        store = self.window.core.assistants.store.get_by_idx(idx)
+        store = self.window.core.remote_store.openai.get_by_idx(idx)
         if store is None:
             return
         self.current = store
@@ -519,7 +522,7 @@ class VectorStore:
 
         :param state: state
         """
-        self.window.core.config.set("assistant.store.hide_threads", state)
+        self.window.core.config.set("remote_store.openai.hide_threads", state)
         self.update()
 
     # ==================== Files  ====================
@@ -529,8 +532,8 @@ class VectorStore:
         Update files list view for the current store based on local DB.
         This method does not hit the API; it reflects local state.
         """
-        model_id = 'assistant.store.files.list'
-        if 'assistant.store.files.list' not in self.window.ui.models:
+        model_id = 'remote_store.openai.files.list'
+        if 'remote_store.openai.files.list' not in self.window.ui.models:
             return  # files panel not initialized yet
         model = self.window.ui.models[model_id]
         try:
@@ -543,7 +546,7 @@ class VectorStore:
         if self.current is None:
             return
 
-        files_db = self.window.core.assistants.files
+        files_db = self.window.core.remote_store.openai.files
         if files_db is None:
             return
 
@@ -620,13 +623,13 @@ class VectorStore:
 
         if not force:
             self.window.ui.dialogs.confirm(
-                type='assistant.file.delete',
+                type='remote_store.openai.file.delete',
                 id=idx,
-                msg=trans('confirm.assistant.store.file.delete'),
+                msg=trans('confirm.remote_store.file.delete'),
             )
             return
 
-        model_id = 'assistant.store.files.list'
+        model_id = 'remote_store.openai.files.list'
         if model_id not in self.window.ui.models:
             return
         if idx < 0 or idx >= len(self._files_row_to_id):
@@ -665,7 +668,7 @@ class VectorStore:
 
             # Remove from local DB
             try:
-                self.window.core.assistants.files.delete_by_file_id(file_id)
+                self.window.core.remote_store.openai.files.delete_by_file_id(file_id)
             except Exception as e:
                 self.window.core.debug.log(e)
 
@@ -683,7 +686,7 @@ class VectorStore:
             # Trigger re-import for the current store to refresh local DB and UI elsewhere
             try:
                 self.window.update_status("Refreshing status...")
-                QTimer.singleShot(1000, lambda: self.window.controller.assistant.store.refresh_status())
+                QTimer.singleShot(1000, lambda: self.window.controller.remote_store.openai.refresh_status())
             except Exception as e:
                 self.window.core.debug.log(e)
 

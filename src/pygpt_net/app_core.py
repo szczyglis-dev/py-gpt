@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 23:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 from .config import Config
@@ -38,6 +38,7 @@ from .core.platforms import Platforms
 from .core.plugins import Plugins
 from .core.presets import Presets
 from .core.prompt import Prompt
+from .core.remote_store import RemoteStore
 from .core.settings import Settings
 from .core.tabs import Tabs
 from .core.text import Text
@@ -87,7 +88,8 @@ class Core:
         self.platforms = Platforms(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
-        self.prompt = Prompt(window)
+        self.prompt = Prompt(window)        
+        self.remote_store = RemoteStore(window)
         self.settings = Settings(window)
         self.tabs = Tabs(window)
         self.text = Text(window)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import os
@@ -96,8 +96,8 @@ class AttachmentsUploaded:
         :param data: Data to update
         """
         model = self.window.ui.models[self.id]
-        store_names = self.window.core.assistants.store.get_names()
-        thread_only_label = trans("assistant.store.thread_only")
+        store_names = self.window.core.remote_store.openai.get_names()
+        thread_only_label = trans("remote_store.thread_only")
         fs = self.window.core.filesystem
 
         model.beginResetModel()

@@ -6,20 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import json
 
 from pygpt_net.utils import unpack_var
-from pygpt_net.item.assistant import AssistantStoreItem
+from pygpt_net.item.store import RemoteStoreItem
 
 
-def unpack_store(store: AssistantStoreItem, row: dict) -> AssistantStoreItem:
+def unpack_store(store: RemoteStoreItem, row: dict) -> RemoteStoreItem:
     """
     Unpack store item from DB row
 
-    :param store: store item (AssistantStoreItem)
+    :param store: store item (RemoteStoreItem)
     :param row: DB row
     :return: store item
     """
@@ -31,6 +31,7 @@ def unpack_store(store: AssistantStoreItem, row: dict) -> AssistantStoreItem:
     store.last_active = unpack_var(row['last_active_ts'], "int")
     store.last_sync = unpack_var(row['last_sync_ts'], "int")
     store.name = row['name']
+    store.provider = row['provider']
     store.description = row['description']
     store.expire_days = unpack_var(row['expire_days'], "int")
     store.usage_bytes = unpack_var(row['usage_bytes'], "int")

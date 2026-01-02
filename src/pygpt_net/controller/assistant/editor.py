@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -115,9 +115,9 @@ class Editor:
         current_id = self.get_selected_store_id()
         if current_id is not None:
             current_idx = self.get_choice_idx_by_id(current_id)
-        stores = self.window.core.assistants.store.get_all()
+        stores = self.window.core.remote_store.openai.get_all()
         for id in list(stores.keys()):
-            if self.window.core.assistants.store.is_hidden(id):
+            if self.window.core.remote_store.openai.is_hidden(id):
                 continue
             if stores[id].name is None or stores[id].name == "":
                 items[id] = id
@@ -158,10 +158,10 @@ class Editor:
         :param store_id: store ID
         :return: combo idx
         """
-        stores = self.window.core.assistants.store.get_all()
+        stores = self.window.core.remote_store.openai.get_all()
         i = 1
         for id in list(stores.keys()):
-            if self.window.core.assistants.store.is_hidden(id):
+            if self.window.core.remote_store.openai.is_hidden(id):
                 continue  # ignore empty names
             if id == store_id:
                 return i

@@ -35,6 +35,7 @@ from .audio import Audio
 from .image import Image
 from .realtime import Realtime
 from .remote_tools import RemoteTools
+from .store import Store
 from .video import Video
 from .music import Music
 
@@ -56,6 +57,7 @@ class ApiGoogle:
         self.music = Music(window)
         self.computer = Computer(window)
         self.remote_tools = RemoteTools(window)
+        self.store = Store(window)
         self.client: Optional[genai.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None

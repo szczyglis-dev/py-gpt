@@ -6,21 +6,25 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 00:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Union
 
 from packaging.version import Version
 
-from pygpt_net.item.assistant import AssistantFileItem, AssistantItem
-from pygpt_net.provider.core.assistant_file.db_sqlite import DbSqliteProvider
+from pygpt_net.item.assistant import AssistantItem
+from pygpt_net.item.store import RemoteFileItem
+from pygpt_net.provider.core.remote_file.db_sqlite import DbSqliteProvider
 
 
 class Files:
+
+    PROVIDER_NAME = "openai"
+
     def __init__(self, window=None):
         """
-        Assistant files core
+        OpenAI remote files core
 
         :param window: Window instance
         """
@@ -41,7 +45,7 @@ class Files:
         """
         return self.provider.patch(app_version)
 
-    def get(self, id: str) -> AssistantFileItem:
+    def get(self, id: str) -> Optional[RemoteFileItem]:
         """
         Get file item by file_id
 
@@ -50,6 +54,7 @@ class Files:
         """
         if id in self.items:
             return self.items[id]
+        return None
 
     def get_ids(self) -> List[str]:
         """
@@ -60,7 +65,7 @@ class Files:
         return list(self.items.keys())
 
 
-    def get_all(self) -> Dict[str, AssistantFileItem]:
+    def get_all(self) -> Dict[str, RemoteFileItem]:
         """
         Return all files
 
@@ -105,7 +110,7 @@ class Files:
             file_id: str,
             name: str,
             path: str,
-            size: int) -> Optional[AssistantFileItem]:
+            size: int) -> Optional[RemoteFileItem]:
         """
         Create new file
 
@@ -117,10 +122,11 @@ class Files:
         :param size: file size
         :return: file item
         """
-        file = AssistantFileItem()
+        file = RemoteFileItem()
         file.id = file_id
         file.file_id = file_id
         file.thread_id = thread_id
+        file.provider = self.PROVIDER_NAME
         file.name = name
         file.path = path
         file.size = size
@@ -132,8 +138,8 @@ class Files:
 
     def update(
             self,
-            file: AssistantFileItem
-    ) -> Optional[AssistantFileItem]:
+            file: RemoteFileItem
+    ) -> Optional[RemoteFileItem]:
         """
         Update file
 
@@ -160,7 +166,7 @@ class Files:
             self,
             store_id: str,
             thread_id: str
-    ) -> Dict[str, AssistantFileItem]:
+    ) -> Dict[str, RemoteFileItem]:
         """
         Get files by store or thread
 
@@ -189,7 +195,7 @@ class Files:
             idx: int,
             store_id: str,
             thread_id: str
-    ) -> Optional[AssistantFileItem]:
+    ) -> Optional[RemoteFileItem]:
         """
         Get file by list index
 
@@ -231,7 +237,7 @@ class Files:
         """
         return self.provider.get_all_by_file_id(file_id)
 
-    def delete(self, file: Union[AssistantFileItem, list]) -> bool:
+    def delete(self, file: Union[RemoteFileItem, list]) -> bool:
         """
         Delete file and remove from vector stores if exists
 
@@ -287,7 +293,7 @@ class Files:
 
     def on_all_stores_deleted(self):
         """Clear all deleted stores from files"""
-        self.provider.clear_all_stores_from_files()
+        self.provider.clear_all_stores_from_files(self.PROVIDER_NAME)
 
     def rename(self, record_id: int, name: str) -> bool:
         """
@@ -325,7 +331,7 @@ class Files:
         if store_id is not None:
             self.provider.truncate_by_store(store_id)  # truncate files in DB (by store_id)
         else:
-            self.provider.truncate_all()  # truncate all files in DB
+            self.provider.truncate_all(self.PROVIDER_NAME)  # truncate all files in DB
             self.items = {}  # clear items
         return True
 
@@ -341,18 +347,19 @@ class Files:
             self.create(file.assistant, file.thread_id, file.file_id, file.name, file.path, file.size)
         return True
 
-    def insert(self, store_id: str, data) -> AssistantFileItem:
+    def insert(self, store_id: str, data) -> RemoteFileItem:
         """
         Insert file object
 
         :param store_id: store ID
         :param data: file data from API
         """
-        file = AssistantFileItem()
+        file = RemoteFileItem()
         file.id = data.id
         file.file_id = data.id
         file.thread_id = ""
         file.name = data.filename
+        file.provider = self.PROVIDER_NAME
         file.path = data.filename
         file.size = data.bytes
         file.store_id = store_id
@@ -361,8 +368,8 @@ class Files:
         return file
 
     def load(self):
-        """Load file"""
-        self.items = self.provider.load_all()
+        """Load files"""
+        self.items = self.provider.load_all(self.PROVIDER_NAME)
         self.sort_items()
 
     def sort_items(self):

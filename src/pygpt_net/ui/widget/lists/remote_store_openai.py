@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 00:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -18,7 +18,7 @@ from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
 
-class AssistantVectorStoreEditorList(BaseList):
+class RemoteStoreOpenAIEditorList(BaseList):
     def __init__(self, window=None, id=None):
         """
         Store select menu (in editor)
@@ -26,7 +26,7 @@ class AssistantVectorStoreEditorList(BaseList):
         :param window: main window
         :param id: parent id
         """
-        super(AssistantVectorStoreEditorList, self).__init__(window)
+        super(RemoteStoreOpenAIEditorList, self).__init__(window)
         self.window = window
         self.id = id
 
@@ -94,7 +94,7 @@ class AssistantVectorStoreEditorList(BaseList):
             self._suppress_item_click = True
             self._was_shift_click = True
             if idx.isValid():
-                super(AssistantVectorStoreEditorList, self).mousePressEvent(event)
+                super(RemoteStoreOpenAIEditorList, self).mousePressEvent(event)
             else:
                 event.accept()
             return
@@ -112,7 +112,7 @@ class AssistantVectorStoreEditorList(BaseList):
                     return
                 # continue with default single selection for clicked row
 
-            super(AssistantVectorStoreEditorList, self).mousePressEvent(event)
+            super(RemoteStoreOpenAIEditorList, self).mousePressEvent(event)
             return
 
         # Right click: prepare selection for context menu
@@ -134,14 +134,14 @@ class AssistantVectorStoreEditorList(BaseList):
             event.accept()
             return
 
-        super(AssistantVectorStoreEditorList, self).mousePressEvent(event)
+        super(RemoteStoreOpenAIEditorList, self).mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         # If the click was a Shift-based range selection, bypass business click
         if event.button() == Qt.LeftButton and self._was_shift_click:
             self._was_shift_click = False
             self._suppress_item_click = False
-            super(AssistantVectorStoreEditorList, self).mouseReleaseEvent(event)
+            super(RemoteStoreOpenAIEditorList, self).mouseReleaseEvent(event)
             return
 
         # Finish "virtual" Ctrl toggle on same row (no business click)
@@ -163,12 +163,12 @@ class AssistantVectorStoreEditorList(BaseList):
             idx = self.indexAt(event.pos())
             if not self._has_multi_selection():
                 if idx.isValid() and not self._suppress_item_click:
-                    self.window.controller.assistant.store.select(idx.row())
+                    self.window.controller.remote_store.openai.select(idx.row())
             self._suppress_item_click = False
-            super(AssistantVectorStoreEditorList, self).mouseReleaseEvent(event)
+            super(RemoteStoreOpenAIEditorList, self).mouseReleaseEvent(event)
             return
 
-        super(AssistantVectorStoreEditorList, self).mouseReleaseEvent(event)
+        super(RemoteStoreOpenAIEditorList, self).mouseReleaseEvent(event)
 
     def click(self, val):
         # Not used; single-selection business click is handled in mouseReleaseEvent
@@ -187,18 +187,18 @@ class AssistantVectorStoreEditorList(BaseList):
         actions = {}
         actions['refresh'] = QAction(
             QIcon(":/icons/reload.svg"),
-            trans('dialog.assistant.store.menu.current.refresh_store'),
+            trans('dialog.remote_store.menu.current.refresh_store'),
             self
         )
         actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
         actions['clear'] = QAction(
             QIcon(":/icons/close.svg"),
-            trans('dialog.assistant.store.menu.current.clear_files'),
+            trans('dialog.remote_store.menu.current.clear_files'),
             self
         )
         actions['truncate'] = QAction(
             QIcon(":/icons/delete.svg"),
-            trans('dialog.assistant.store.menu.current.truncate_files'),
+            trans('dialog.remote_store.menu.current.truncate_files'),
             self
         )
 
@@ -263,12 +263,12 @@ class AssistantVectorStoreEditorList(BaseList):
         if isinstance(item, (list, tuple)):
             if item:
                 self.restore_after_ctx_menu = False
-                self.window.controller.assistant.store.delete_by_idx(list(item))
+                self.window.controller.remote_store.openai.delete_by_idx(list(item))
             return
         idx = int(item)
         if idx >= 0:
             self.restore_after_ctx_menu = False
-            self.window.controller.assistant.store.delete_by_idx(idx)
+            self.window.controller.remote_store.openai.delete_by_idx(idx)
 
     def action_clear(self, item):
         """
@@ -279,12 +279,12 @@ class AssistantVectorStoreEditorList(BaseList):
         if isinstance(item, (list, tuple)):
             if item:
                 self.restore_after_ctx_menu = False
-                self.window.controller.assistant.batch.clear_store_files_by_idx(list(item))
+                self.window.controller.remote_store.openai.batch.clear_store_files_by_idx(list(item))
             return
         idx = int(item)
         if idx >= 0:
             self.restore_after_ctx_menu = False
-            self.window.controller.assistant.batch.clear_store_files_by_idx(idx)
+            self.window.controller.remote_store.openai.batch.clear_store_files_by_idx(idx)
 
     def action_truncate(self, item):
         """
@@ -295,12 +295,12 @@ class AssistantVectorStoreEditorList(BaseList):
         if isinstance(item, (list, tuple)):
             if item:
                 self.restore_after_ctx_menu = False
-                self.window.controller.assistant.batch.truncate_store_files_by_idx(list(item))
+                self.window.controller.remote_store.openai.batch.truncate_store_files_by_idx(list(item))
             return
         idx = int(item)
         if idx >= 0:
             self.restore_after_ctx_menu = False
-            self.window.controller.assistant.batch.truncate_store_files_by_idx(idx)
+            self.window.controller.remote_store.openai.batch.truncate_store_files_by_idx(idx)
 
     def action_refresh(self, item):
         """
@@ -309,9 +309,9 @@ class AssistantVectorStoreEditorList(BaseList):
         if isinstance(item, (list, tuple)):
             if item:
                 self.restore_after_ctx_menu = False
-                self.window.controller.assistant.store.refresh_by_idx(list(item))
+                self.window.controller.remote_store.openai.refresh_by_idx(list(item))
             return
         idx = int(item)
         if idx >= 0:
             self.restore_after_ctx_menu = False
-            self.window.controller.assistant.store.refresh_by_idx(idx)
+            self.window.controller.remote_store.openai.refresh_by_idx(idx)

@@ -6,20 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import json
 
 from pygpt_net.utils import unpack_var
-from pygpt_net.item.assistant import AssistantFileItem
+from pygpt_net.item.store import RemoteFileItem
 
 
-def unpack_file(file: AssistantFileItem, row: dict) -> AssistantFileItem:
+def unpack_file(file: RemoteFileItem, row: dict) -> RemoteFileItem:
     """
     Unpack file item from DB row
 
-    :param file: file item (AssistantStoreItem)
+    :param file: file item (RemoteStoreItem)
     :param row: DB row
     :return: store item
     """
@@ -30,6 +30,7 @@ def unpack_file(file: AssistantFileItem, row: dict) -> AssistantFileItem:
     file.updated = unpack_var(row['updated_ts'], "int")
     file.size = unpack_var(row['size'], "int")
     file.name = row['name']
+    file.provider = row['provider']
     file.path = row['path']
     file.file_id = row['file_id']
     file.store_id = row['store_id']

@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 22:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import os
 from typing import Optional, List
 
-from pygpt_net.item.assistant import AssistantStoreItem
+from pygpt_net.item.store import RemoteStoreItem
 
 
 class Store:
@@ -273,7 +273,7 @@ class Store:
             for remote in stores.data:
                 id = remote.id
                 if id not in items:
-                    items[id] = AssistantStoreItem()
+                    items[id] = RemoteStoreItem()
                 tmp_name = remote.name
                 if tmp_name is None:
                     items[id].is_thread = True  # tmp store for thread
@@ -281,8 +281,8 @@ class Store:
                 items[id].id = id
                 items[id].name = tmp_name
                 items[id].file_ids = []
-                items[id].status = self.window.core.assistants.store.parse_status(remote)
-                self.window.core.assistants.store.append_status(items[id], items[id].status)
+                items[id].status = self.window.core.remote_store.openai.parse_status(remote)
+                self.window.core.remote_store.openai.append_status(items[id], items[id].status)
                 self.log("Imported vector store: " + id, callback)
             # next page
             if stores.has_more:
@@ -633,7 +633,7 @@ class Store:
                     if id not in items:
                         items.append(id)
                         data = self.get_file(remote.id)
-                        self.window.core.assistants.files.insert(store_id, data)  # add remote file to DB
+                        self.window.core.remote_store.openai.files.insert(store_id, data)  # add remote file to DB
                         msg = "Imported file ID {} to store {}".format(remote.id, store_id)
                         self.log(msg, callback)
                 except Exception as e:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.28 00:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -16,7 +16,6 @@ from pygpt_net.item.assistant import AssistantItem
 from .batch import Batch
 from .editor import Editor
 from .files import Files
-from .store import VectorStore
 from .threads import Threads
 
 from pygpt_net.core.text.utils import has_unclosed_code_tag
@@ -38,11 +37,11 @@ class Assistant:
         self.editor = Editor(window)
         self.files = Files(window)
         self.threads = Threads(window)
-        self.store = VectorStore(window)
 
     def setup(self):
         """Setup assistants"""
         self.window.core.assistants.load()
+        self.window.core.remote_store.openai.load_all()
         self.editor.setup()
         self.update()
 
@@ -328,4 +327,4 @@ class Assistant:
     def reload(self):
         """Reload assistants"""
         self.setup()
-        self.store.reset()
+        self.window.controller.remote_store.openai.reset()

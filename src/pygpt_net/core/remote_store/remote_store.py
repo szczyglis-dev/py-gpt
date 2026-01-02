@@ -6,5 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
+
+from .openai import Store as OpenAIStore
+
+class RemoteStore:
+    def __init__(self, window=None):
+        """
+        Remote vector stores core
+
+        :param window: Window instance
+        """
+        self.window = window
+        self.openai = OpenAIStore(self.window)

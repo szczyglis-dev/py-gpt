@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import uuid
@@ -14,8 +14,8 @@ from typing import Dict
 
 from packaging.version import Version
 
-from pygpt_net.item.assistant import AssistantStoreItem
-from pygpt_net.provider.core.assistant_store.base import BaseProvider
+from pygpt_net.item.store import RemoteStoreItem
+from pygpt_net.provider.core.remote_store.base import BaseProvider
 
 from .patch import Patch
 from .storage import Storage
@@ -28,7 +28,7 @@ class DbSqliteProvider(BaseProvider):
         self.patcher = Patch(window, self)
         self.storage = Storage(window)
         self.id = "db_sqlite"
-        self.type = "assistant_store"
+        self.type = "remote_store"
 
     def attach(self, window):
         self.window = window
@@ -51,11 +51,11 @@ class DbSqliteProvider(BaseProvider):
         """
         return str(uuid.uuid4())
 
-    def create(self, store: AssistantStoreItem) -> int:
+    def create(self, store: RemoteStoreItem) -> int:
         """
         Create new and return its ID
 
-        :param store: AssistantStoreItem
+        :param store: RemoteStoreItem
         :return: store ID
         """
         if store.record_id is None or store.record_id == "":
@@ -63,15 +63,16 @@ class DbSqliteProvider(BaseProvider):
             store.record_id = self.storage.insert(store)
         return store.record_id
 
-    def load_all(self) -> Dict[str, AssistantStoreItem]:
+    def load_all(self, provider: str) -> Dict[str, RemoteStoreItem]:
         """
         Load stores from DB
 
+        :param provider: provider ID
         :return: stores dict
         """
-        return self.storage.get_all()
+        return self.storage.get_all(provider)
 
-    def load(self, id: int) -> AssistantStoreItem:
+    def load(self, id: int) -> RemoteStoreItem:
         """
         Load store from DB
 
@@ -80,11 +81,11 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_by_id(id)
 
-    def save(self, store: AssistantStoreItem):
+    def save(self, store: RemoteStoreItem):
         """
         Save store to DB
 
-        :param store: AssistantStoreItem
+        :param store: RemoteStoreItem
         """
         try:
             self.storage.save(store)
@@ -92,11 +93,11 @@ class DbSqliteProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving stored: {}".format(str(e)))
 
-    def save_all(self, items: Dict[str, AssistantStoreItem]):
+    def save_all(self, items: Dict[str, RemoteStoreItem]):
         """
         Save all stores to DB
 
-        :param items: dict of AssistantStoreItem objects
+        :param items: dict of RemoteStoreItem objects
         """
         try:
             for id in items:
@@ -124,12 +125,12 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.delete_by_store_id(id)
 
-    def truncate(self) -> bool:
+    def truncate(self, provider: str) -> bool:
         """
         Truncate all stores
 
         :return: True if truncated
         """
-        return self.storage.truncate_all()
+        return self.storage.truncate_all(provider)
 
 

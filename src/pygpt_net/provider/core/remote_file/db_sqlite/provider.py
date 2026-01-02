@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import uuid
@@ -14,8 +14,8 @@ from typing import Dict
 
 from packaging.version import Version
 
-from pygpt_net.item.assistant import AssistantFileItem
-from pygpt_net.provider.core.assistant_file.base import BaseProvider
+from pygpt_net.item.store import RemoteFileItem
+from pygpt_net.provider.core.remote_file.base import BaseProvider
 
 from .patch import Patch
 from .storage import Storage
@@ -28,7 +28,7 @@ class DbSqliteProvider(BaseProvider):
         self.patcher = Patch(window, self)
         self.storage = Storage(window)
         self.id = "db_sqlite"
-        self.type = "assistant_file"
+        self.type = "remote_file"
 
     def attach(self, window):
         """
@@ -56,11 +56,11 @@ class DbSqliteProvider(BaseProvider):
         """
         return str(uuid.uuid4())
 
-    def create(self, file: AssistantFileItem) -> int:
+    def create(self, file: RemoteFileItem) -> int:
         """
         Create new and return its ID
 
-        :param file: AssistantFileItem
+        :param file: RemoteFileItem
         :return: file ID
         """
         if file.record_id is None or file.record_id == "":
@@ -68,15 +68,16 @@ class DbSqliteProvider(BaseProvider):
             file.record_id = self.storage.insert(file)
         return file.record_id
 
-    def load_all(self) -> Dict[str, AssistantFileItem]:
+    def load_all(self, provider: str) -> Dict[str, RemoteFileItem]:
         """
         Load files from DB
 
+        :param provider: provider ID
         :return: files dict
         """
-        return self.storage.get_all()
+        return self.storage.get_all(provider)
 
-    def load(self, id: int) -> AssistantFileItem:
+    def load(self, id: int) -> RemoteFileItem:
         """
         Load file from DB
 
@@ -85,11 +86,11 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_by_id(id)
 
-    def save(self, file: AssistantFileItem):
+    def save(self, file: RemoteFileItem):
         """
         Save file to DB
 
-        :param file: AssistantFileItem
+        :param file: RemoteFileItem
         """
         try:
             self.storage.save(file)
@@ -97,11 +98,11 @@ class DbSqliteProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving filed: {}".format(str(e)))
 
-    def save_all(self, items: Dict[str, AssistantFileItem]):
+    def save_all(self, items: Dict[str, RemoteFileItem]):
         """
         Save all files to DB
 
-        :param items: dict of AssistantFileItem objects
+        :param items: dict of RemoteFileItem objects
         """
         try:
             for id in items:
@@ -113,15 +114,15 @@ class DbSqliteProvider(BaseProvider):
 
     def get_by_store_or_thread(self, store_id: str, thread_id: str) -> dict:
         """
-        Return dict with AssistantFileItem objects, indexed by record ID
+        Return dict with RemoteFileItem objects, indexed by record ID
 
-        :return: dict of AssistantFileItem objects
+        :return: dict of RemoteFileItem objects
         """
         return self.storage.get_by_store_or_thread(store_id, thread_id)
 
     def count_by_store_or_thread(self, store_id: str, thread_id: str) -> int:
         """
-        Count AssistantFileItem objects, indexed by ID
+        Count RemoteFileItem objects, indexed by ID
 
         :return: number of files
         """
@@ -163,13 +164,14 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.clear_store_from_files(store_id)
 
-    def clear_all_stores_from_files(self) -> bool:
+    def clear_all_stores_from_files(self, provider: str) -> bool:
         """
         Clear all stores from files
 
+        :param provider: provider ID
         :return: True if deleted
         """
-        return self.storage.clear_all_stores_from_files()
+        return self.storage.clear_all_stores_from_files(provider)
 
     def rename_file(self, record_id: int, name: str) -> bool:
         """
@@ -181,13 +183,14 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.rename_file(record_id, name)
 
-    def truncate_all(self) -> bool:
+    def truncate_all(self, provider: str) -> bool:
         """
         Truncate all files
 
+        :param provider: provider ID
         :return: True if truncated
         """
-        return self.storage.truncate_all()
+        return self.storage.truncate_all(provider)
 
     def truncate_by_store(self, store_id: str) -> bool:
         """

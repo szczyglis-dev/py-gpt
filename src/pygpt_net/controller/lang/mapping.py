@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -164,12 +164,12 @@ class Mapping:
         nodes['assistant.tool.function.label'] = 'assistant.functions.label'
 
         # assistants: vector store
-        nodes['assistant.store.btn.new'] = 'dialog.assistant.store.btn.new'
-        nodes['assistant.store.btn.save'] = 'dialog.assistant.store.btn.save'
-        nodes['assistant.store.btn.upload.files'] = 'dialog.assistant.store.btn.upload.files'
-        nodes['assistant.store.btn.upload.dir'] = 'dialog.assistant.store.btn.upload.dir'
-        nodes['assistant.store.btn.close'] = 'dialog.assistant.store.btn.close'
-        nodes['assistant.store.hide_thread'] = 'assistant.store.hide_threads'
+        nodes['remote_store.openai.btn.new'] = 'dialog.remote_store.btn.new'
+        nodes['remote_store.openai.btn.save'] = 'dialog.remote_store.btn.save'
+        nodes['remote_store.openai.btn.upload.files'] = 'dialog.remote_store.btn.upload.files'
+        nodes['remote_store.openai.btn.upload.dir'] = 'dialog.remote_store.btn.upload.dir'
+        nodes['remote_store.openai.btn.close'] = 'dialog.remote_store.btn.close'
+        nodes['remote_store.openai.hide_thread'] = 'remote_store.openai.hide_threads'
 
         # vision
         nodes['inline.vision'] = 'inline.vision'
@@ -402,7 +402,7 @@ class Mapping:
         dialog_title['config.editor'] = 'dialog.editor.title'
         dialog_title['config.settings'] = 'dialog.settings'
         dialog_title['editor.assistants'] = 'dialog.assistant'
-        dialog_title['assistant.store'] = 'dialog.assistant.store'
+        dialog_title['remote_store.openai'] = 'dialog.remote_store.openai'
         dialog_title['editor.preset.presets'] = 'dialog.preset'
         dialog_title['image'] = 'dialog.image.title'
         dialog_title['interpreter'] = 'dialog.interpreter.title'
@@ -424,7 +424,7 @@ class Mapping:
         tooltips['icon.audio.output'] = 'icon.audio.output'
         tooltips['icon.audio.input'] = 'icon.audio.input'
         tooltips['icon.remote_tool.web'] = 'icon.remote_tool.web'
-        tooltips['assistant.store.btn.refresh_status'] = 'dialog.assistant.store.btn.refresh_status'
+        tooltips['remote_store.openai.btn.refresh_status'] = 'dialog.remote_store.btn.refresh_status'
         tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
 
         menu_tooltips = {}

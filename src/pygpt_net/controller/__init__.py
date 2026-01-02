@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 from .access import Access
@@ -36,6 +36,7 @@ from .notepad import Notepad
 from .painter import Painter
 from .plugins import Plugins
 from .realtime import Realtime
+from .remote_store import RemoteStore
 from .presets import Presets
 from .settings import Settings
 from .theme import Theme
@@ -81,6 +82,7 @@ class Controller:
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.realtime = Realtime(window)
+        self.remote_store = RemoteStore(window)
         self.settings = Settings(window)
         self.theme = Theme(window)
         self.tools = Tools(window)

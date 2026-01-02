@@ -6,20 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 from typing import Dict
 from packaging.version import Version
 
-from pygpt_net.item.assistant import AssistantFileItem
+from pygpt_net.item.store import RemoteFileItem
 
 
 class BaseProvider:
     def __init__(self, window=None):
         self.window = window
         self.id = ""
-        self.type = "assistant_file"
+        self.type = "remote_file"
 
     def attach(self, window):
         self.window = window
@@ -30,25 +30,25 @@ class BaseProvider:
     def patch(self, version: Version) -> bool:
         pass
 
-    def create(self, file: AssistantFileItem):
+    def create(self, file: RemoteFileItem):
         pass
 
-    def load(self, id) ->  AssistantFileItem:
+    def load(self, id) ->  RemoteFileItem:
         pass
 
-    def load_all(self) -> Dict[str, AssistantFileItem]:
+    def load_all(self, provider: str) -> Dict[str, RemoteFileItem]:
         pass
 
-    def save(self, file:  AssistantFileItem):
+    def save(self, file:  RemoteFileItem):
         pass
 
-    def save_all(self, items: Dict[str, AssistantFileItem]):
+    def save_all(self, items: Dict[str, RemoteFileItem]):
         pass
 
     def remove(self, id):
         pass
 
-    def truncate(self):
+    def truncate(self, provider: str):
         pass
 
     def get_version(self) -> str:

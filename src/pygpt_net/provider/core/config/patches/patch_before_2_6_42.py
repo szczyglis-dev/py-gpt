@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 00:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -1404,8 +1404,8 @@ class Patch:
             # < 2.1.79
             if old < parse_version("2.1.79"):
                 print("Migrating config from < 2.1.79...")
-                if 'assistant.store.hide_threads' not in data:
-                    data["assistant.store.hide_threads"] = True
+                if 'remote_store.openai.hide_threads' not in data:
+                    data["remote_store.openai.hide_threads"] = True
                 updated = True
 
             # < 2.2.2

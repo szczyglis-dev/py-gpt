@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 10:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import os
@@ -33,7 +33,7 @@ def test_select(mock_window):
     item = AssistantItem()
     mock_window.core.config.data = {"assistant": "assistant_id"}
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id")
+    mock_window.core.remote_store.openai.files.get_file_id_by_idx = MagicMock(return_value="file_id")
     files.select(0)
     mock_window.core.assistants.get_by_id.assert_called_once()
     assert mock_window.core.assistants.current_file == "file_id"
@@ -70,7 +70,7 @@ def test_download(mock_window):
     mock_window.core.config.data['assistant'] = "assistant_id"
 
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id")
+    mock_window.core.remote_store.openai.files.get_file_id_by_idx = MagicMock(return_value="file_id")
     mock_window.controller.attachment.download = MagicMock()
 
     files.download(0)
@@ -85,7 +85,7 @@ def test_rename(mock_window):
     item.id = "assistant_id"
     mock_window.core.config.data['assistant'] = "assistant_id"
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id")
+    mock_window.core.remote_store.openai.files.get_file_id_by_idx = MagicMock(return_value="file_id")
     mock_window.core.assistants.get_file_by_id = MagicMock(return_value={"name": "file_name"})
 
     mock_window.ui.dialog['rename'].id = None
@@ -116,7 +116,7 @@ def test_update_name(mock_window):
     item.id = "assistant_id"
     mock_window.core.config.data['assistant'] = "assistant_id"
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id")
+    mock_window.core.remote_store.openai.files.get_file_id_by_idx = MagicMock(return_value="file_id")
     mock_window.core.assistants.get_file_by_id = MagicMock(return_value={"name": "file_name"})
     mock_window.core.assistants.rename_file = MagicMock()
 
@@ -137,7 +137,7 @@ def test_clear(mock_window):
     }
     mock_window.core.config.data['assistant'] = "assistant_id"
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id1")
+    mock_window.core.remote_store.openai.files.get_file_id_by_idx = MagicMock(return_value="file_id1")
     mock_window.core.assistants.get_file_by_id = MagicMock(return_value={"name": "file_name"})
     mock_window.core.assistants.has = MagicMock(return_value=True)
     mock_window.core.assistants.save = MagicMock()
@@ -158,7 +158,7 @@ def test_delete(mock_window):
     }
     mock_window.core.config.data['assistant'] = "assistant_id"
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id1")
+    mock_window.core.remote_store.openai.files.get_file_id_by_idx = MagicMock(return_value="file_id1")
     mock_window.core.assistants.get_file_by_id = MagicMock(return_value={"name": "file_name"})
     mock_window.core.assistants.save = MagicMock()
     mock_window.core.assistants.has = MagicMock(return_value=True)

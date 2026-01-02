@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict
@@ -14,9 +14,6 @@ from typing import Optional, Dict
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.provider.core.assistant.json_file import JsonFileProvider
-
-from .files import Files
-from .store import Store
 
 
 class Assistants:
@@ -27,8 +24,6 @@ class Assistants:
         :param window: Window instance
         """
         self.window = window
-        self.files = Files(window)
-        self.store = Store(window)
         self.provider = JsonFileProvider(window)  # json file provider
         self.current_file = None
         self.items = {}
@@ -36,8 +31,6 @@ class Assistants:
     def install(self):
         """Install provider data"""
         self.provider.install()
-        self.files.install()
-        self.store.install()
 
     def patch(self, app_version) -> bool:
         """
@@ -46,9 +39,7 @@ class Assistants:
         :param app_version: app version
         :return: True if data was patched
         """
-        res1 = self.provider.patch(app_version)
-        res2 = self.store.patch(app_version)
-        return res1 or res2
+        return self.provider.patch(app_version)
 
     def get_by_idx(self, idx: int) -> str:
         """
@@ -95,8 +86,7 @@ class Assistants:
 
         :return: assistant ID
         """
-        assistant = AssistantItem()
-        return assistant
+        return AssistantItem()
 
     def add(self, assistant: AssistantItem):
         """
@@ -160,8 +150,6 @@ class Assistants:
     def load(self):
         """Load assistants"""
         self.items = self.provider.load()
-        self.store.load()  # load vector stores
-        self.files.load()  # load files
 
     def save(self):
         """Save assistants"""

@@ -106,7 +106,7 @@
     }
   ],
   "assistant": "",
-  "assistant.store.hide_threads": true,
+  "remote_store.openai.hide_threads": true,
   "assistant_thread": "",
   "attachments_auto_index": true,
   "attachments_capture_clear": true,

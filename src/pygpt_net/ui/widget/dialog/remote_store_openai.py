@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -14,7 +14,7 @@ from PySide6.QtCore import Qt
 from .base import BaseDialog
 
 
-class AssistantVectorStoreDialog(BaseDialog):
+class RemoteStoreOpenAIDialog(BaseDialog):
     def __init__(self, window=None, id=None):
         """
         Models dialog
@@ -22,7 +22,7 @@ class AssistantVectorStoreDialog(BaseDialog):
         :param window: main window
         :param id: settings id
         """
-        super(AssistantVectorStoreDialog, self).__init__(window, id)
+        super(RemoteStoreOpenAIDialog, self).__init__(window, id)
         self.window = window
         self.id = id
 
@@ -32,9 +32,9 @@ class AssistantVectorStoreDialog(BaseDialog):
 
         :param event: close event
         """
-        self.window.controller.assistant.store.dialog = False
-        self.window.controller.assistant.store.update()
-        super(AssistantVectorStoreDialog, self).closeEvent(event)
+        self.window.controller.remote_store.openai.dialog = False
+        self.window.controller.remote_store.openai.update()
+        super(RemoteStoreOpenAIDialog, self).closeEvent(event)
 
     def keyPressEvent(self, event):
         """
@@ -46,11 +46,11 @@ class AssistantVectorStoreDialog(BaseDialog):
             self.cleanup()
             self.close()  # close dialog when the Esc key is pressed.
         else:
-            super(AssistantVectorStoreDialog, self).keyPressEvent(event)
+            super(RemoteStoreOpenAIDialog, self).keyPressEvent(event)
 
     def cleanup(self):
         """
         Cleanup on close
         """
-        self.window.controller.assistant.store.dialog = False
-        self.window.controller.assistant.store.update()
+        self.window.controller.remote_store.openai.dialog = False
+        self.window.controller.remote_store.openai.update()

@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import json
 import os
 import uuid
 
-from pygpt_net.item.assistant import AssistantStoreItem
+from pygpt_net.item.store import RemoteStoreItem
 from pygpt_net.provider.core.assistant.base import BaseProvider
 
 
@@ -22,7 +22,7 @@ class JsonFileProvider(BaseProvider):
         super(JsonFileProvider, self).__init__(window)
         self.window = window
         self.id = "json_file"
-        self.type = "assistant_store"
+        self.type = "remote_store"
         self.config_file = 'assistants_vector_store.json'
 
     def create_id(self) -> str:
@@ -33,11 +33,11 @@ class JsonFileProvider(BaseProvider):
         """
         return str(uuid.uuid4())
 
-    def create(self, store: AssistantStoreItem) -> str:
+    def create(self, store: RemoteStoreItem) -> str:
         """
         Create new and return its ID
 
-        :param store: AssistantStoreItem
+        :param store: RemoteStoreItem
         :return: vector store ID
         """
         if store.id is None or store.id == "":
@@ -61,7 +61,7 @@ class JsonFileProvider(BaseProvider):
                     # deserialize
                     for id in data['items']:
                         item = data['items'][id]
-                        store = AssistantStoreItem()
+                        store = RemoteStoreItem()
                         self.deserialize(item, store)
                         items[id] = store
         except Exception as e:
@@ -109,7 +109,7 @@ class JsonFileProvider(BaseProvider):
         pass
 
     @staticmethod
-    def serialize(item: AssistantStoreItem) -> dict:
+    def serialize(item: RemoteStoreItem) -> dict:
         """
         Serialize item to dict
 
@@ -124,7 +124,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data: dict, item: AssistantStoreItem):
+    def deserialize(data: dict, item: RemoteStoreItem):
         """
         Deserialize item from dict
 
@@ -140,7 +140,7 @@ class JsonFileProvider(BaseProvider):
         if 'file_ids' in data:
             item.file_ids = data['file_ids']
 
-    def dump(self, item: AssistantStoreItem) -> str:
+    def dump(self, item: RemoteStoreItem) -> str:
         """
         Dump to string
 

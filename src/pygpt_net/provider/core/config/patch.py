@@ -232,6 +232,8 @@ class Patch:
                     data["remote_tools.google.file_search.args"] = ""
                 if "remote_tools.google.maps" not in data:
                     data["remote_tools.google.maps"] = False
+                if "remote_store.openai.hide_threads" not in data:
+                    data["remote_store.openai.hide_threads"] = True
                 updated = True
 
         # update file

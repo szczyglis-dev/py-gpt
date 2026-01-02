@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 00:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 import os
@@ -31,7 +31,7 @@ class Files:
     def update(self):
         """Update assistants files list"""
         self.update_list()
-        self.window.controller.assistant.store.update_files_list()
+        self.window.controller.remote_store.openai.update_files_list()
 
     def select(self, idx: int):
         """
@@ -48,7 +48,7 @@ class Files:
 
         # get file by list index
         thread_id = self.window.core.config.get('assistant_thread')
-        file_id = self.window.core.assistants.files.get_file_id_by_idx(idx, assistant.vector_store, thread_id)
+        file_id = self.window.core.remote_store.openai.files.get_file_id_by_idx(idx, assistant.vector_store, thread_id)
         self.window.core.assistants.current_file = file_id
 
     def count_upload(
@@ -96,7 +96,7 @@ class Files:
 
         ids = idx if isinstance(idx, list) else [idx]
         for idx in ids:
-            file_id = self.window.core.assistants.files.get_file_id_by_idx(idx, assistant.vector_store, thread_id)
+            file_id = self.window.core.remote_store.openai.files.get_file_id_by_idx(idx, assistant.vector_store, thread_id)
             self.window.controller.attachment.download(file_id)  # download file
 
     def rename(self, idx: int):
@@ -115,7 +115,7 @@ class Files:
         thread_id = self.window.core.config.get('assistant_thread')
 
         # get file by list index
-        file = self.window.core.assistants.files.get_file_by_idx(idx, assistant.vector_store, thread_id)
+        file = self.window.core.remote_store.openai.files.get_file_by_idx(idx, assistant.vector_store, thread_id)
         if file is None:
             return
 
@@ -139,7 +139,7 @@ class Files:
         :param record_id: file record ID
         :param name: new name
         """
-        self.window.core.assistants.files.rename(
+        self.window.core.remote_store.openai.files.rename(
             record_id,
             name,
         )
@@ -167,21 +167,21 @@ class Files:
         if self.window.core.assistants.has(id):
             assistant = self.window.core.assistants.get_by_id(id)
             thread_id = self.window.core.config.get('assistant_thread')
-            items = self.window.core.assistants.files.get_by_store_or_thread(assistant.vector_store, thread_id)
+            items = self.window.core.remote_store.openai.files.get_by_store_or_thread(assistant.vector_store, thread_id)
             self.window.update_status(trans('status.sending'))
             QApplication.processEvents()
 
             for id in list(items.keys()):
                 file = items[id]
                 try:
-                    self.window.core.assistants.files.delete(file)  # delete from DB, API and vector stores
+                    self.window.core.remote_store.openai.files.delete(file)  # delete from DB, API and vector stores
                 except Exception as e:
                     self.window.update_status(trans('status.error'))
                     self.window.ui.dialogs.alert(e)
 
             # update store status
             if assistant.vector_store:
-                self.window.controller.assistant.store.refresh_by_store_id(assistant.vector_store)
+                self.window.controller.remote_store.openai.refresh_by_store_id(assistant.vector_store)
 
             self.window.update_status(trans('status.deleted'))
 
@@ -215,7 +215,7 @@ class Files:
         # get files by list index
         ids = idx if isinstance(idx, list) else [idx]
         for idx in ids:
-            file = self.window.core.assistants.files.get_file_by_idx(idx, assistant.vector_store, thread_id)
+            file = self.window.core.remote_store.openai.files.get_file_by_idx(idx, assistant.vector_store, thread_id)
             if file is None:
                 continue
             files.append(file)
@@ -224,11 +224,11 @@ class Files:
         self.window.update_status(trans('status.sending'))
         QApplication.processEvents()
         try:
-            self.window.core.assistants.files.delete(files)  # delete from DB, API and vector stores
+            self.window.core.remote_store.openai.files.delete(files)  # delete from DB, API and vector stores
 
             # update store status
             if assistant.vector_store:
-                self.window.controller.assistant.store.refresh_by_store_id(assistant.vector_store)
+                self.window.controller.remote_store.openai.refresh_by_store_id(assistant.vector_store)
 
             self.window.update_status(trans('status.deleted'))
         except Exception as e:
@@ -312,7 +312,7 @@ class Files:
                         attachment,
                     )
 
-                    self.window.core.assistants.files.create(
+                    self.window.core.remote_store.openai.files.create(
                         assistant,
                         thread_id,
                         new_id,
@@ -341,7 +341,7 @@ class Files:
         if num > 0:
             # update store status
             if assistant.vector_store:
-                self.window.controller.assistant.store.refresh_by_store_id(assistant.vector_store)
+                self.window.controller.remote_store.openai.refresh_by_store_id(assistant.vector_store)
 
             self.update_list()  # update uploaded list UI
 
@@ -371,7 +371,7 @@ class Files:
         assistant = self.window.core.assistants.get_by_id(assistant_id)
         if assistant is None:
             return
-        items = self.window.core.assistants.files.get_by_store_or_thread(assistant.vector_store, thread_id)
+        items = self.window.core.remote_store.openai.files.get_by_store_or_thread(assistant.vector_store, thread_id)
         self.window.ui.chat.input.attachments_uploaded.update(items)
         self.update_tab()
 
@@ -385,7 +385,7 @@ class Files:
         assistant = self.window.core.assistants.get_by_id(assistant_id)
         if assistant is None:
             return  # no assistant
-        num_files = self.window.core.assistants.files.count_by_store_or_thread(assistant.vector_store, thread_id)
+        num_files = self.window.core.remote_store.openai.files.count_by_store_or_thread(assistant.vector_store, thread_id)
         suffix = ''
         # append num of files
         if num_files > 0:

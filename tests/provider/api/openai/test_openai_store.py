@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 import os
@@ -19,9 +19,9 @@ def fake_window():
     window = MagicMock()
     client = MagicMock()
     window.core.api.openai.get_client.return_value = client
-    window.core.assistants.store.parse_status.return_value = "parsed_status"
-    window.core.assistants.store.append_status = MagicMock()
-    window.core.assistants.files.insert = MagicMock()
+    window.core.remote_store.openai.parse_status.return_value = "parsed_status"
+    window.core.remote_store.openai.append_status = MagicMock()
+    window.core.remote_store.openai.files.insert = MagicMock()
     return window
 
 @pytest.fixture
@@ -151,7 +151,7 @@ def test_import_stores(store):
     response.has_more = False
     fake_client.vector_stores.list.return_value = response
     store.window.core.api.openai.get_client.return_value = fake_client
-    store.window.core.assistants.store.parse_status.return_value = "parsed_status"
+    store.window.core.remote_store.openai.parse_status.return_value = "parsed_status"
     items = {}
     callback = MagicMock()
     result = store.import_stores(items, callback=callback)
@@ -161,7 +161,7 @@ def test_import_stores(store):
     assert item.name == "Store 1"
     assert item.file_ids == []
     assert item.status == "parsed_status"
-    store.window.core.assistants.store.append_status.assert_called_with(item, "parsed_status")
+    store.window.core.remote_store.openai.append_status.assert_called_with(item, "parsed_status")
     callback.assert_called_once_with("Imported vector store: s1")
 
 def test_create_store(store):
@@ -321,7 +321,7 @@ def test_import_store_files(store):
     fake_client.vector_stores.files.list.return_value = response
     store.window.core.api.openai.get_client.return_value = fake_client
     store.get_file = MagicMock(return_value="file_data")
-    store.window.core.assistants.files.insert = MagicMock()
+    store.window.core.remote_store.openai.files.insert = MagicMock()
     store.log = MagicMock()
     items = []
     callback = MagicMock()
@@ -329,4 +329,4 @@ def test_import_store_files(store):
     assert result == ["f1"]
     fake_client.vector_stores.files.list.assert_called_once()
     store.get_file.assert_called_once_with("f1")
-    store.window.core.assistants.files.insert.assert_called_once_with("s1", "file_data")
+    store.window.core.remote_store.openai.files.insert.assert_called_once_with("s1", "file_data")

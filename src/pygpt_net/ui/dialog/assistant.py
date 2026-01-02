@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -44,9 +44,9 @@ class Assistant(BaseConfigDialog):
 
         # store
         self.window.ui.nodes['assistant.btn.store.editor'] = QPushButton(QIcon(":/icons/db.svg"), "")
-        self.window.ui.nodes['assistant.btn.store.editor'].setToolTip(trans('dialog.assistant.store'))
+        self.window.ui.nodes['assistant.btn.store.editor'].setToolTip(trans('dialog.remote_store.openai'))
         self.window.ui.nodes['assistant.btn.store.editor'].clicked.connect(
-            lambda: self.window.controller.assistant.store.toggle_editor()
+            lambda: self.window.controller.remote_store.openai.toggle_editor()
         )
 
         self.window.ui.nodes['assistant.btn.store.editor'].setAutoDefault(False)

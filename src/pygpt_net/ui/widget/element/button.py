@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -87,7 +87,7 @@ class SyncButton(QPushButton):
         super().__init__(title)
         self.window = window
         self.clicked.connect(
-            lambda: self.window.controller.assistant.batch.import_files_current()
+            lambda: self.window.controller.remote_store.openai.batch.import_files_current()
         )
 
     @classmethod
@@ -112,11 +112,11 @@ class SyncButton(QPushButton):
         menu = QMenu(parent)
         act_current = menu.addAction(type(self)._icon_download, trans('attachments_uploaded.btn.sync.current'))
         act_current.triggered.connect(
-            lambda checked=False: self.window.controller.assistant.batch.import_files_current()
+            lambda checked=False: self.window.controller.remote_store.openai.batch.import_files_current()
         )
         act_all = menu.addAction(type(self)._icon_download, trans('attachments_uploaded.btn.sync.all'))
         act_all.triggered.connect(
-            lambda checked=False: self.window.controller.assistant.batch.import_files()
+            lambda checked=False: self.window.controller.remote_store.openai.batch.import_files()
         )
         menu.exec_(parent.mapToGlobal(pos))
         menu.deleteLater()
