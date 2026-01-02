@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2026.01.02 02:00:00                  #
 # ================================================== #
 
 import json
@@ -39,11 +39,20 @@ class Computer:
         Get Computer use tool
         :return: dict
         """
+        is_sandbox = bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
         env = self.get_current_env()
         screen = self.window.app.primaryScreen()
         size = screen.size()
         screen_x = size.width()
         screen_y = size.height()
+
+        # if sandbox, get resolution from plugin settings (Playwright viewport)
+        if is_sandbox:
+            try:
+                screen_x = int(self.window.core.plugins.get_option("cmd_mouse_control", "sandbox_viewport_w"))
+                screen_y = int(self.window.core.plugins.get_option("cmd_mouse_control", "sandbox_viewport_h"))
+            except Exception:
+                pass
         return {
             "type": "computer_use_preview",
             "display_width": screen_x,

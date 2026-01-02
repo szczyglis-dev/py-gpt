@@ -1888,6 +1888,27 @@ Allows ``keyboard_key`` command execution. *Default:* `True`
 
 Allows ``keyboard_type`` command execution. *Default:* `True`
 
+**Sandbox (Playwright)**
+
+- ``Browsers directory`` - Path to Playwright browsers installation - leave empty to use default
+- ``Engine`` - Playwright browser engine to use (chromium, firefox, webkit) - must be installed
+- ``Headles mode`` - Run Playwright browser in headless mode (default: False)
+- ``Browser args`` - Additional Playwright browser arguments (comma-separated)
+- ``Home URL`` - Playwright browser home URL
+- ``Viewport width`` - Playwright viewport width in pixels
+- ``Viewport height`` - Playwright viewport height in pixels
+
+You can run this mode in Sandbox (using ``Playwright`` - https://playwright.dev/) - to do it, just enable the ``Sandbox`` switch in the toolbox. Playwright browsers must be installed on your system. To do so, run:
+
+.. code-block:: ini
+
+   pip install playwright
+   playwright install <chromium|firefox|webkit>
+
+After that, set the path to directory with installed browsers in ``Mouse and Keyborad`` plugin settings option: ``Sandbox (Playwright) / Browsers directory``.
+
+Compiled binary and Snap versions have ``chromium`` preinstalled in the package.
+
 OpenStreetMap
 -------------
 

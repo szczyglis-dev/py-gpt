@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.01.02 02:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -103,6 +103,7 @@ class UI:
         self.window.controller.mode.init_list()
         self.window.controller.model.init_list()
         self.init_computer_env()
+        self.init_computer_sandbox()
 
     def init_computer_env(self):
         """Init computer environment"""
@@ -119,6 +120,13 @@ class UI:
         if index != -1 and node.currentIndex() != index:
             node.setCurrentIndex(index)
 
+    def init_computer_sandbox(self):
+        """Init computer sandbox"""
+        sandbox = bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
+        node = self.window.ui.nodes["computer_sandbox"]
+        if node.isChecked() != sandbox:
+            node.box.setChecked(sandbox)
+
     def on_computer_env_changed(self, env: str):
         """
         Handle computer environment change
@@ -128,6 +136,17 @@ class UI:
         cfg = self.window.core.config
         if cfg.get("remote_tools.computer_use.env") != env:
             cfg.set("remote_tools.computer_use.env", env)
+            cfg.save()
+
+    def on_computer_sandbox_toggled(self, checked: bool):
+        """
+        Handle computer sandbox toggle
+
+        :param checked: bool
+        """
+        cfg = self.window.core.config
+        if cfg.get("remote_tools.computer_use.sandbox") != checked:
+            cfg.set("remote_tools.computer_use.sandbox", checked)
             cfg.save()
 
     def update_toolbox(self):

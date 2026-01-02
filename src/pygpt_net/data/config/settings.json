@@ -1962,6 +1962,20 @@
         "advanced": false,
         "tab": "Google"
     },
+    "remote_tools.google.maps": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.google.maps",
+        "description": "settings.remote_tools.google.maps.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "Google"
+    },
     "remote_tools.google.code_interpreter": {
         "section": "remote_tools",
         "type": "bool",
@@ -1989,6 +2003,37 @@
         "step": null,
         "advanced": false,
         "tab": "Google"
+    },
+    "remote_tools.google.file_search": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.google.file_search",
+        "description": "settings.remote_tools.google.file_search.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "Google"
+    },
+    "remote_tools.google.file_search.args": {
+        "section": "remote_tools",
+        "type": "text",
+        "slider": false,
+        "label": "settings.remote_tools.google.file_search.args",
+        "description": "settings.remote_tools.google.file_search.args.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "Google",
+        "urls": {
+            "Google Docs": "https://ai.google.dev/gemini-api/docs/file-search?hl=pl#metadata"
+        }
     },
     "remote_tools.anthropic.web_search": {
         "section": "remote_tools",

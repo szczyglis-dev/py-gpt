@@ -913,6 +913,17 @@ You can change the environment in which the navigation mode operates by using th
 - Windows
 - Mac
 
+You can run this mode in Sandbox (using `Playwright` - https://playwright.dev/) - to do it, just enable the `Sandbox` switch in the toolbox. Playwright browsers must be installed on your system. To do so, run:
+
+```bash
+pip install playwright
+playwright install <chromium|firefox|webkit>
+```
+After that, set the path to directory with installed browsers in `Mouse and Keyborad` plugin settings option: `Sandbox  (Playwright) / Browsers directory`.
+
+Compiled binary and Snap versions have `chromium` preinstalled in the package.
+
+
 **Tip:** DO NOT enable the `Mouse and Keyboard` plugin in Computer use mode—it is already connected to Computer use mode "in the background."
 
 
@@ -3781,3 +3792,5 @@ Code syntax highlight powered by: https://highlightjs.org
 Markdown parsing powered by: https://github.com/markdown-it/markdown-it
 
 LaTeX support by: https://katex.org
+
+Playwright: https://playwright.dev/

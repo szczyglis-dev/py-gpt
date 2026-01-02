@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 import json
@@ -97,7 +97,7 @@ class Realtime:
 
         # Tools
         tools = self.window.core.api.google.tools.prepare(model, context.external_functions)
-        remote_tools = self.window.core.api.google.build_remote_tools(model)
+        remote_tools = self.window.core.api.google.remote_tools.build_remote_tools(model)
         if tools:
             remote_tools = []  # in Google, remote tools are not allowed if function calling is used
 

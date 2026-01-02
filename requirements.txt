@@ -983,7 +983,7 @@ googleapis-common-protos==1.72.0 ; python_version >= "3.10" and python_version <
 gpsoauth==2.0.0 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:9e3b765a6a4e0364dec1bc4157bd3ed7e5ec3066589e285d0b46986910aa6bd2 \
     --hash=sha256:fb8bf9cb8b6e6bee1dbedbbbe8958ace71cddaccf5950e79b38c4d2ae9870641
-greenlet==3.3.0 ; python_version < "3.14" and python_version >= "3.10" \
+greenlet==3.3.0 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:047ab3df20ede6a57c35c14bf5200fcf04039d50f908270d3f9a7a82064f543b \
     --hash=sha256:087ea5e004437321508a8d6f20efc4cfec5e3c30118e1417ea96ed1d93950527 \
     --hash=sha256:0a5d554d0712ba1de0a6c94c640f7aeba3f85b3a6e1f2899c11c2c0428da9365 \

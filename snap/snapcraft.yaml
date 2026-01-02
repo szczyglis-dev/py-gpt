@@ -10,8 +10,8 @@ confinement: strict  # 'strict', 'classic', 'devmode'
 architectures:
     - build-on: amd64
       build-for: [amd64]
-    - build-on: i386
-      build-for: [i386]
+    # - build-on: i386
+      # build-for: [i386]
 
 parts:
   pygpt:
@@ -45,6 +45,16 @@ parts:
       - xapp
       - libatomic1
       - packagekit-gtk3-module
+      # Playwright Chromium runtime libraries
+      - libnss3
+      - libdrm2
+      - libgbm1
+      - libxcomposite1
+      - libxdamage1
+      - libxshmfence1
+      - libxrandr2
+      - libxtst6
+      - libcups2
     build-packages:
       - execstack
       - portaudio19-dev
@@ -57,6 +67,10 @@ parts:
       cp -r $SNAPCRAFT_PART_SRC/src $SNAPCRAFT_PART_INSTALL/
       chmod -R 755 $SNAPCRAFT_PART_INSTALL/src/pygpt_net/provider/agents/openai/bots/research_bot/
       python3 -m nltk.downloader -d $SNAPCRAFT_PART_INSTALL/lib/python3.10/site-packages/llama_index/legacy/_static/nltk_cache stopwords punkt
+      export PLAYWRIGHT_BROWSERS_PATH="$SNAPCRAFT_PART_INSTALL/ms-playwright"
+      if [ "${CRAFT_ARCH_TRIPLET_BUILD_FOR%%-*}" != "i386" ]; then
+        "$SNAPCRAFT_PART_INSTALL/bin/python3" -m playwright install chromium
+      fi
 
 layout:
   /usr/share/alsa:
@@ -69,6 +83,9 @@ plugs:
     interface: content
     content: docker-executables
     target: $SNAP_COMMON/docker-executables
+  browser-support:
+    interface: browser-support
+    allow-sandbox: true
 
 apps:
   pygpt:
@@ -85,6 +102,8 @@ apps:
       PATH: $SNAP_COMMON/docker-executables/bin:$PATH
       QTWEBENGINE_DISABLE_SANDBOX: "1"
       QTWEBENGINE_CHROMIUM_FLAGS: "--no-sandbox --disable-gpu-sandbox"
+      PLAYWRIGHT_BROWSERS_PATH: "$SNAP/ms-playwright"
+      PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: "1"
     plugs:
     - alsa
     - audio-playback

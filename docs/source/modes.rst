@@ -529,5 +529,16 @@ You can change the environment in which the navigation mode operates by using th
 * Windows
 * Mac
 
+You can run this mode in Sandbox (using ``Playwright`` browsers) - to do it, just enable the ``Sandbox`` switch in the toolbox. Playwright browsers must be installed on your system. To do so, run:
+
+.. code-block:: ini
+
+   pip install playwright
+   playwright install <chromium|firefox|webkit>
+
+After that, set the path to directory with installed browsers in ``Mouse and Keyborad`` plugin settings option: ``Sandbox / Browsers directory``.
+
+Compiled binary and Snap versions have ``chromium`` preinstalled in the package.
+
 .. tip::
    **DO NOT** enable the ``Mouse and Keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.

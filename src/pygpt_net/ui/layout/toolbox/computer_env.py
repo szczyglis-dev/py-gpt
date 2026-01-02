@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.02 02:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
+from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox, QVBoxLayout
 
 from pygpt_net.ui.widget.element.labels import TitleLabel
+from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
 
 
@@ -46,13 +47,20 @@ class ComputerEnv:
         data = cbox.itemData(index)
         self.window.controller.ui.on_computer_env_changed(data)
 
-    def setup_env(self) -> QHBoxLayout:
+    def on_sandbox_toggled(self, checked: bool) -> None:
+        """
+        Handle sandbox toggle
+
+        :param checked: bool
+        """
+        self.window.controller.ui.on_computer_sandbox_toggled(checked)
+
+    def setup_env(self) -> QVBoxLayout:
         """
         Setup list of environments
 
         :return: QVBoxLayout
         """
-
         nodes = self.window.ui.nodes
         label = TitleLabel(trans("toolbox.env.label"))
         nodes['env.label'] = label
@@ -68,10 +76,20 @@ class ComputerEnv:
         cbox.setMinimumWidth(40)
 
         cbox.currentIndexChanged.connect(self._on_env_index_changed)
-        nodes[self.id] = cbox
+        nodes['computer_env'] = cbox
 
-        layout = QHBoxLayout()
-        layout.addWidget(label, 0)
-        layout.addWidget(cbox, 1)
+        # sandbox
+        sandbox = ToggleLabel(trans("computer_use.sandbox"), parent=self.window)
+        sandbox.box.setToolTip(trans("computer_use.sandbox.tooltip"))
+        sandbox.box.toggled.connect(self.on_sandbox_toggled)
+        nodes['computer_sandbox'] = sandbox
+
+        env_layout = QHBoxLayout()
+        env_layout.addWidget(label, 0)
+        env_layout.addWidget(cbox, 1)
+
+        layout = QVBoxLayout()
+        layout.addLayout(env_layout)
+        layout.addWidget(sandbox, 0)
         layout.setContentsMargins(2, 5, 5, 5)
         return layout

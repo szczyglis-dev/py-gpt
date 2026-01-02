@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 00:00:00                  #
+# Updated Date: 2026.01.02 02:00:00                  #
 # ================================================== #
 
 import base64
@@ -106,6 +106,13 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                     })
         except Exception:
             pass
+
+    new_calls, has_calls = core.api.google.computer.handle_stream_chunk(ctx, chunk, new_calls)
+    if has_calls:
+        ctx.extra["function_response_required"] = True  # required for automatic with-screenshot response
+        ctx.extra["function_response_source"] = "ctx.tool_calls"
+        ctx.extra["function_response_reason"] = "computer_use"
+        state.force_func_call = True
 
     if new_calls:
         seen = {(tc["function"]["name"], tc["function"]["arguments"]) for tc in state.tool_calls}

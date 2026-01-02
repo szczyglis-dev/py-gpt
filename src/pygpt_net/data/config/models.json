@@ -912,6 +912,42 @@
             "provider": "google",
             "tool_calls": true
         },
+        "gemini-2.5-computer-use-preview-10-2025": {
+            "id": "gemini-2.5-computer-use-preview-10-2025",
+            "name": "gemini-2.5-computer-use-preview-10-2025",
+            "mode": [
+                "computer"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-2.5-computer-use-preview-10-2025",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        },
         "gemini-2.5-flash": {
             "id": "gemini-2.5-flash",
             "name": "gemini-2.5-flash",

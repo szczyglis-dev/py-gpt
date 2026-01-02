@@ -26,7 +26,8 @@ def fake_window():
     fake_size.height.return_value = 1080
     fake_app = MagicMock()
     fake_app.primaryScreen.return_value = fake_size
-    return SimpleNamespace(ui=fake_ui, app=fake_app)
+    core = MagicMock()
+    return SimpleNamespace(ui=fake_ui, app=fake_app, core=core)
 
 def test_get_current_env(fake_window):
     comp = Computer(window=fake_window)

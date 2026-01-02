@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 20:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -70,7 +70,7 @@ class GoogleLLM(BaseLLM):
         # -----------------------------------------------------------
         built_tools = []
         try:
-            built_tools = window.core.api.google.build_remote_tools(model=model) or []
+            built_tools = window.core.api.google.remote_tools.build_remote_tools(model=model) or []
         except Exception as e:
             window.core.debug.log(e)
 

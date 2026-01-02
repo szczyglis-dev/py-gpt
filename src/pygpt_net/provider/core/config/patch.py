@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.30 22:00:00                  #
+# Updated Date: 2026.01.02 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -221,6 +221,17 @@ class Patch:
                 print("Migrating config from < 2.7.4...")
                 patch_css('web-chatgpt.css', True)
                 patch_css('web-blocks.css', True)
+                updated = True
+
+            # < 2.7.5
+            if old < parse_version("2.7.5"):
+                print("Migrating config from < 2.7.5...")
+                if "remote_tools.google.file_search" not in data:
+                    data["remote_tools.google.file_search"] = False
+                if "remote_tools.google.file_search.args" not in data:
+                    data["remote_tools.google.file_search.args"] = ""
+                if "remote_tools.google.maps" not in data:
+                    data["remote_tools.google.maps"] = False
                 updated = True
 
         # update file

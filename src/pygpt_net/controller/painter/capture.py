@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2026.01.02 02:00:00                  #
 # ================================================== #
 
 import datetime
@@ -116,6 +116,55 @@ class Capture:
                     monitor = sct.monitors[1]
                     sct_img = sct.grab(monitor)
                     mss.tools.to_png(sct_img.rgb, sct_img.size, output=path)
+
+            self.attach(name, path, 'screenshot', silent=silent)
+
+            if not silent:
+                self.window.controller.painter.open(path)
+                # show last capture time in status
+                dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
+                event = KernelEvent(KernelEvent.STATUS, {
+                    'status': trans("painter.capture.manual.captured.success") + ' ' + dt_info,
+                })
+                self.window.dispatch(event)
+            return path
+
+        except Exception as e:
+            print("Screenshot capture exception", e)
+            self.window.core.debug.log(e)
+
+    def screenshot_playwright(
+            self,
+            page,
+            silent: bool = False
+    ) -> Optional[Union[str, bool]]:
+        """
+        Make screenshot and append to attachments
+
+        :param page : Playwright page
+        :param silent: Silent mode
+        :return: Path to screenshot or False if failed
+        """
+        if not silent:
+            # switch to vision mode if needed
+            self.window.controller.chat.vision.switch_to_vision()
+
+            # clear attachments before capture if needed
+            if self.window.controller.attachment.is_capture_clear():
+                self.window.controller.attachment.clear(True, auto=True)
+
+        try:
+            # prepare filename
+            now = datetime.datetime.now()
+            dt = now.strftime("%Y-%m-%d_%H-%M-%S")
+            name = 'cap-' + dt
+            path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+
+            # capture screenshot from page
+            if page:
+                page.screenshot(path=path, full_page=False)
+            else:
+                return False
 
             self.attach(name, path, 'screenshot', silent=silent)
 

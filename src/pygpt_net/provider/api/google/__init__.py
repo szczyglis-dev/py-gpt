@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.25 20:00:00                  #
+# Updated Date: 2026.01.02 19:00:00                  #
 # ================================================== #
 
 import os
@@ -22,16 +22,19 @@ from pygpt_net.core.types import (
     MODE_COMPLETION,
     MODE_IMAGE,
     MODE_RESEARCH,
+    MODE_COMPUTER,
 )
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
 
 from .chat import Chat
+from .computer import Computer
 from .vision import Vision
 from .tools import Tools
 from .audio import Audio
 from .image import Image
 from .realtime import Realtime
+from .remote_tools import RemoteTools
 from .video import Video
 from .music import Music
 
@@ -51,6 +54,8 @@ class ApiGoogle:
         self.realtime = Realtime(window)
         self.video = Video(window)
         self.music = Music(window)
+        self.computer = Computer(window)
+        self.remote_tools = RemoteTools(window)
         self.client: Optional[genai.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
@@ -125,7 +130,13 @@ class ApiGoogle:
         used_tokens = 0
         response = None
 
-        if mode in [MODE_COMPLETION, MODE_CHAT, MODE_AUDIO, MODE_RESEARCH]:
+        if mode in [
+            MODE_COMPLETION,
+            MODE_CHAT,
+            MODE_AUDIO,
+            MODE_RESEARCH,
+            MODE_COMPUTER
+        ]:
 
             # Live API for audio streaming
             if mode == MODE_AUDIO and stream:
@@ -226,7 +237,7 @@ class ApiGoogle:
             """
             # with remote tools
             base_tools = self.tools.prepare(model, functions)
-            remote_tools = self.build_remote_tools(model)
+            remote_tools = self.remote_tools.build_remote_tools(model)
             tools = (base_tools or []) + (remote_tools or [])
             """
 
@@ -261,57 +272,6 @@ class ApiGoogle:
             return ""
         finally:
             self.locked = False
-
-    def build_remote_tools(self, model: ModelItem = None) -> list:
-        """
-        Build Google GenAI remote tools based on config flags.
-        - remote_tools.google.web_search: enables grounding via Google Search (Gemini 2.x)
-          or GoogleSearchRetrieval (Gemini 1.5 fallback).
-        - remote_tools.google.code_interpreter: enables code execution tool.
-
-        Returns a list of gtypes.Tool objects (can be empty).
-
-        :param model: ModelItem
-        :return: list of gtypes.Tool
-        """
-        tools: list = []
-        cfg = self.window.core.config
-        model_id = (model.id if model and getattr(model, "id", None) else "").lower()
-        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")  # get global config
-
-        # Google Search tool
-        if is_web and "image" not in model.id:
-            try:
-                if not model_id.startswith("gemini-1.5") and not model_id.startswith("models/gemini-1.5"):
-                    # Gemini 2.x uses GoogleSearch
-                    tools.append(gtypes.Tool(google_search=gtypes.GoogleSearch()))
-                else:
-                    # Gemini 1.5 fallback uses GoogleSearchRetrieval
-                    # Note: Supported only for 1.5 models.
-                    tools.append(gtypes.Tool(
-                        google_search_retrieval=gtypes.GoogleSearchRetrieval()
-                    ))
-            except Exception as e:
-                # Do not break the request if tool construction fails
-                self.window.core.debug.log(e)
-
-        # Code Execution tool
-        if cfg.get("remote_tools.google.code_interpreter") and "image" not in model.id:
-            try:
-                tools.append(gtypes.Tool(code_execution=gtypes.ToolCodeExecution))
-            except Exception as e:
-                self.window.core.debug.log(e)
-
-        # URL Context tool
-        if cfg.get("remote_tools.google.url_ctx") and "image" not in model.id:
-            try:
-                # Supported on Gemini 2.x+ models (not on 1.5)
-                if not model_id.startswith("gemini-1.5") and not model_id.startswith("models/gemini-1.5"):
-                    tools.append(gtypes.Tool(url_context=gtypes.UrlContext))
-            except Exception as e:
-                self.window.core.debug.log(e)
-
-        return tools
 
     def setup_env(self) -> bool:
         """
