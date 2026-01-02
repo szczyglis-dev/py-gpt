@@ -70,7 +70,7 @@ class Batch:
             self.window.ui.dialogs.confirm(
                 type='remote_store.openai.files.import.all',
                 id='',
-                msg=trans('confirm.assistant.import_files'),
+                msg=trans('confirm.remote_store.import_files'),
             )
             return
         try:
@@ -98,7 +98,7 @@ class Batch:
             self.window.ui.dialogs.confirm(
                 type='remote_store.openai.files.import.store',
                 id=store_id,
-                msg=trans('confirm.assistant.import_files.store'),
+                msg=trans('confirm.remote_store.import_files.store'),
             )
             return
         try:

@@ -82,7 +82,7 @@ class JsonFileProvider(BaseProvider):
                             self.deserialize(json.load(f), preset)
                             items[filename[:-5]] = preset
                         except Exception as e:
-                            self.window.core.debug.log(e)
+                            pass
         except Exception as e:
             self.window.core.debug.log(e)
 
@@ -112,7 +112,7 @@ class JsonFileProvider(BaseProvider):
                             self.deserialize(json.load(f), preset)
                             items[filename[:-5]] = preset
                         except Exception as e:
-                            self.window.core.debug.log(e)
+                            pass
         except Exception as e:
             self.window.core.debug.log(e)
 

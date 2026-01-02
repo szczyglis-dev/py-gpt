@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -80,19 +80,19 @@ class Confirm:
 
         # interpreter
         elif type == 'interpreter.clear':
-            self.window.tools.get("interpreter").clear(force=True)
+            self.window.tools.get("interpreter").clear(True)
 
         # html canvas
         elif type == 'html_canvas.clear':
-            self.window.tools.get("html_canvas").clear(force=True)
+            self.window.tools.get("html_canvas").clear(True)
 
         # translator
         elif type == 'translator.clear':
-            self.window.tools.get("translator").clear(force=True)
+            self.window.tools.get("translator").clear(True)
         elif type == 'translator.clear.left':
-            self.window.tools.get("translator").clear_left(force=True)
+            self.window.tools.get("translator").clear_left(True)
         elif type == 'translator.clear.right':
-            self.window.tools.get("translator").clear_right(force=True)
+            self.window.tools.get("translator").clear_right(True)
 
         elif type == "preset.avatar.delete":
             self.window.controller.presets.editor.remove_avatar(True)
@@ -189,7 +189,7 @@ class Confirm:
         elif type == 'assistant.delete':
             self.window.controller.assistant.delete(id, True)
         elif type == 'assistant.import':
-            self.window.controller.assistant.batch.import_assistants(True)           
+            self.window.controller.assistant.batch.import_assistants(True)
         elif type == 'assistant.functions.import':
             self.window.controller.assistant.editor.import_functions(True)
         elif type == 'assistant.functions.clear':
@@ -199,7 +199,7 @@ class Confirm:
         elif type == 'remote_store.openai.file.delete':
             self.window.controller.remote_store.openai.delete_file_by_idx(id, True)
         elif type == 'remote_store.openai.delete':
-            self.window.controller.remote_store.openai.delete(id, True)  # by store_id
+            self.window.controller.remote_store.openai.delete(id, True)
         elif type == 'remote_store.openai.import':
             self.window.controller.remote_store.openai.batch.import_stores(True)
         elif type == 'remote_store.openai.truncate':
@@ -211,17 +211,45 @@ class Confirm:
         elif type == 'remote_store.openai.files.import.all':
             self.window.controller.remote_store.openai.batch.import_files(True)
         elif type == 'remote_store.openai.files.import.store':
-            self.window.controller.remote_store.openai.batch.import_store_files(id, True)  # by store_id
+            self.window.controller.remote_store.openai.batch.import_store_files(id, True)
         elif type == 'remote_store.openai.files.truncate':
             self.window.controller.remote_store.openai.batch.truncate_files(True)
         elif type == 'remote_store.openai.files.truncate.store':
-            self.window.controller.remote_store.openai.batch.truncate_store_files(id, True)  # by store_id
+            self.window.controller.remote_store.openai.batch.truncate_store_files(id, True)
         elif type == 'remote_store.openai.files.clear.all':
             self.window.controller.remote_store.openai.batch.clear_files(True)
         elif type == 'remote_store.openai.files.clear.store':
-            self.window.controller.remote_store.openai.batch.clear_store_files(id, True)  # by store_id
+            self.window.controller.remote_store.openai.batch.clear_store_files(id, True)
         elif type == 'remote_store.openai.files.upload':
-            self.window.controller.remote_store.openai.batch.upload(True)   
+            self.window.controller.remote_store.openai.batch.upload(True)
+
+        # Google (Gemini) File Search stores
+        elif type == 'remote_store.google.file.delete':
+            self.window.controller.remote_store.google.delete_file_by_idx(id, True)
+        elif type == 'remote_store.google.delete':
+            self.window.controller.remote_store.google.delete(id, True)
+        elif type == 'remote_store.google.import':
+            self.window.controller.remote_store.google.batch.import_stores(True)
+        elif type == 'remote_store.google.truncate':
+            self.window.controller.remote_store.google.batch.truncate_stores(True)
+        elif type == 'remote_store.google.clear':
+            self.window.controller.remote_store.google.batch.clear_stores(True)
+        elif type == 'remote_store.google.refresh':
+            self.window.controller.remote_store.google.batch.refresh_stores(True)
+        elif type == 'remote_store.google.files.import.all':
+            self.window.controller.remote_store.google.batch.import_files(True)
+        elif type == 'remote_store.google.files.import.store':
+            self.window.controller.remote_store.google.batch.import_store_files(id, True)
+        elif type == 'remote_store.google.files.truncate':
+            self.window.controller.remote_store.google.batch.truncate_files(True)
+        elif type == 'remote_store.google.files.truncate.store':
+            self.window.controller.remote_store.google.batch.truncate_store_files(id, True)
+        elif type == 'remote_store.google.files.clear.all':
+            self.window.controller.remote_store.google.batch.clear_files(True)
+        elif type == 'remote_store.google.files.clear.store':
+            self.window.controller.remote_store.google.batch.clear_store_files(id, True)
+        elif type == 'remote_store.google.files.upload':
+            self.window.controller.remote_store.google.batch.upload(True)
 
         # settings
         elif type == 'settings.defaults.user':
@@ -267,7 +295,7 @@ class Confirm:
         elif type == 'idx.index.ctx.remove':
             self.window.controller.idx.indexer.index_ctx_meta_remove(idx="", meta_id=id, force=True)  # id = ctx meta id
         elif type == 'idx.index.db':
-            self.window.controller.idx.indexer.index_ctx_meta_confirm(id)  # id = ctx_id
+            self.window.controller.idx.indexer.index_ctx_meta_confirm(id)
         elif type == 'idx.index.db.all':
             self.window.controller.idx.indexer.index_ctx_from_ts_confirm(id)
         elif type == 'idx.clear':
@@ -291,18 +319,11 @@ class Confirm:
         elif type == 'agent.builder.agent.clear':
             self.window.tools.get("agent_builder").clear(True)
 
-    def dismiss(
-            self,
-            type: str,
-            id: Any
-    ):
+    def dismiss(self, type: str, id: Any):
         """
         Confirm dialog dismiss
-
-        :param type: dialog type
-        :param id: dialog object id
         """
-        # editor
+        # Keep original logic...
         if type == 'editor.changed.clear':
             self.window.tools.get("editor").clear(id=id, force=True)
         elif type == 'editor.changed.open':
@@ -324,115 +345,66 @@ class Confirm:
 
         self.window.ui.dialog['confirm'].close()
 
-    def accept_rename(
-            self,
-            type: str,
-            id: Any,
-            name: str
-    ):
+    def accept_rename(self, type: str, id: Any, name: str):
         """
         Update name of object
-
-        :param type: dialog type
-        :param id: dialog object id
-        :param name: new name
         """
-        # ctx
+        # unchanged content...
         if type == 'ctx':
             self.window.controller.ctx.update_name(id, name)
         elif type == 'ctx.group':
             self.window.controller.ctx.update_group_name(id, name, True)
-
-        # tab
         elif type == 'tab':
             self.window.controller.ui.tabs.update_name(id, name, True)
-
-        # attachments and files
         elif type == 'attachment':
             self.window.controller.attachment.update_name(id, name)
         elif type == 'attachment_uploaded':
             self.window.controller.assistant.files.update_name(id, name)
         elif type == 'output_file':
             self.window.controller.files.update_name(id, name)
-
-        # notepad
         elif type == 'notepad':
             self.window.controller.notepad.update_name(id, name, True)
-
-        # plugin presets
         elif type == 'plugin.preset':
             self.window.controller.plugins.presets.update_name(id, name)
-
-        # custom prompt templates rename
         elif type == 'prompt.custom.rename':
             self.window.controller.presets.rename_prompt(id, name, True)
-
-        # custom prompt templates new
         elif type == 'prompt.custom.new':
             self.window.controller.presets.save_prompt(name, True)
-
-        # tool: agent builder - create new agent
         elif type == 'agent.builder.agent':
             self.window.tools.get("agent_builder").rename_agent(id, name)
 
-    def accept_create(
-            self,
-            type: str,
-            id: any,
-            name: str
-    ):
+    def accept_create(self, type: str, id: any, name: str):
         """
         Create new object
-
-        :param type: dialog type
-        :param id: dialog object id
-        :param name: name
         """
-        # filesystem
+        # unchanged content...
         if type == 'mkdir':
             self.window.controller.files.make_dir(id, name)
         if type == 'touch':
             self.window.controller.files.touch_file(id, name, True)
         elif type == 'duplicate':
             self.window.controller.files.duplicate_local(id, name, True)
-
-        # plugin presets
         elif type == 'plugin.preset':
             self.window.controller.plugins.presets.create(id, name)
-
-        # ctx groups
         elif type == 'ctx.group':
             self.window.controller.ctx.create_group(name, id)
-
-        # tool: agent builder - create new agent
         elif type == 'agent.builder.agent':
-            self.window.tools.get("agent_builder").add_agent(name)
+            self.window.tools.get("agent_builder").add_agent(name)        
+        elif type == 'remote_store.google.new':
+            self.window.controller.remote_store.google.new(name, True)
 
-    def accept_url(
-            self,
-            type: str,
-            id: any,
-            url: str
-    ):
+    def accept_url(self, type: str, id: any, url: str):
         """
         Update URL provided
-
-        :param type: dialog type
-        :param id: dialog object id
-        :param url: URL
         """
-        # add attachment
         if type == 'attachment':
             self.window.controller.attachment.add_url(url)
 
     def dismiss_rename(self):
-        """Dismiss rename dialog"""
         self.window.ui.dialog['rename'].close()
 
     def dismiss_create(self):
-        """Dismiss create dialog"""
         self.window.ui.dialog['create'].close()
 
     def dismiss_url(self):
-        """Dismiss url dialog"""
         self.window.ui.dialog['url'].close()

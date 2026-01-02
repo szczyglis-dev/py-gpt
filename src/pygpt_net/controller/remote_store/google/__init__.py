@@ -9,16 +9,4 @@
 # Updated Date: 2026.01.02 20:00:00                  #
 # ================================================== #
 
-from .openai import Store as OpenAIStore
-from .google import Store as GoogleStore
-
-class RemoteStore:
-    def __init__(self, window=None):
-        """
-        Remote vector stores core
-
-        :param window: Window instance
-        """
-        self.window = window
-        self.openai = OpenAIStore(self.window)
-        self.google = GoogleStore(self.window)
+from .store import *

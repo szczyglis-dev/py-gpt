@@ -22,3 +22,14 @@ class RemoteStore:
         self.window = window
         self.openai = OpenAIRemoteStore(window)
         self.google = GoogleRemoteStore(window)
+
+    def setup(self):
+        """Setup stores"""
+        self.window.core.remote_store.openai.load_all()
+        self.window.core.remote_store.google.load_all()
+
+    def reload(self):
+        """Reload stores"""
+        self.setup()
+        self.window.controller.remote_store.openai.reset()
+        self.window.controller.remote_store.google.reset()

@@ -103,6 +103,7 @@ class Controller:
         # setup controllers
         self.lang.setup()
         self.assistant.setup()
+        self.remote_store.setup()
         self.chat.setup()
         self.agent.setup()
         self.tools.setup()
@@ -166,6 +167,7 @@ class Controller:
 
             self.settings.reload()
             self.assistant.reload()
+            self.remote_store.reload()
             self.attachment.reload()
             self.window.core.agents.custom.reload()
             self.presets.reload()

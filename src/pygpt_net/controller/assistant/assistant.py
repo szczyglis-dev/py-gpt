@@ -41,7 +41,6 @@ class Assistant:
     def setup(self):
         """Setup assistants"""
         self.window.core.assistants.load()
-        self.window.core.remote_store.openai.load_all()
         self.editor.setup()
         self.update()
 
@@ -327,4 +326,3 @@ class Assistant:
     def reload(self):
         """Reload assistants"""
         self.setup()
-        self.window.controller.remote_store.openai.reset()

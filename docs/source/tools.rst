@@ -11,6 +11,8 @@ PyGPT features several useful tools, including:
 * Image Viewer
 * Text Eeditor
 * Transcribe Audio/Video Files
+* OpenAI Vector Stores
+* Google Vector Stores
 * Python Code Interpreter
 * HTML/JS Canvas (built-in HTML renderer)
 * Translator
@@ -82,6 +84,11 @@ Transcribe Audio/Video Files
 -----------------------------
 
 An audio transcription tool with which you can prepare a transcript from a video or audio file. It will use a speech recognition plugin to generate the text from the file.
+
+OpenAI / Google Vector Stores
+-----------------------------
+
+Remote vector stores management.
 
 
 Python Code Interpreter
