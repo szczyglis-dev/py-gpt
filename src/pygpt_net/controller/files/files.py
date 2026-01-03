@@ -1,3 +1,5 @@
+# controller/files.py
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -6,7 +8,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 17:00:00                  #
+# Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -203,14 +205,73 @@ class Files:
 
     def download_local(self, path: Union[str, list]):
         """
-        Download (copy) file or directory to local filesystem
+        Download (copy) file or directory to local filesystem.
 
-        :param path: path to source file or list of files
+        Behavior:
+        - Single selection: unchanged, prompts Save As dialog per current implementation.
+        - Multi selection (>1 item): prompts once for a target directory and copies all selected items there.
+          In case of name collision in the target directory, a timestamp prefix is added to the copied name.
         """
+        # Multi-selection: choose a directory once and copy all into it
         if isinstance(path, list):
+            # Normalize incoming list (decode, map to workdir)
+            norm_paths = []
             for p in path:
-                self.download_local(p)
+                try:
+                    p_norm = self.window.core.filesystem.to_workdir(unquote(p))
+                except Exception:
+                    p_norm = p
+                if p_norm:
+                    norm_paths.append(p_norm)
+
+            if not norm_paths:
+                return
+
+            if len(norm_paths) == 1:
+                # Defer to single-item path handling
+                self.download_local(norm_paths[0])
+                return
+
+            last_dir = self.window.core.config.get_last_used_dir()
+            target_dir = QFileDialog.getExistingDirectory(
+                self.window,
+                "Select target directory",
+                last_dir if last_dir else os.path.expanduser("~"),
+            )
+            if not target_dir:
+                return
+
+            # Remember last used directory
+            self.window.core.config.set_last_used_dir(target_dir)
+
+            copied = 0
+
+            for src in norm_paths:
+                try:
+                    if not os.path.exists(src):
+                        continue
+
+                    base_name = os.path.basename(src.rstrip(os.sep))
+                    dst = os.path.join(target_dir, base_name)
+
+                    # Avoid copying into itself and handle name collisions
+                    if os.path.abspath(dst) == os.path.abspath(src) or os.path.exists(dst):
+                        dst = os.path.join(target_dir, f"{self.make_ts_prefix()}_{base_name}")
+
+                    if os.path.isdir(src):
+                        shutil.copytree(src, dst)
+                    else:
+                        copy2(src, dst)
+                    copied += 1
+                except Exception as e:
+                    self.window.core.debug.log(e)
+                    print(f"Error downloading item: {src} -> {target_dir} - {e}")
+
+            if copied > 0:
+                self.window.update_status(f"[OK] Downloaded: {copied} items to: {target_dir}")
             return
+
+        # Single-item flow (unchanged)
         path = self.window.core.filesystem.to_workdir(unquote(path))
         last_dir = self.window.core.config.get_last_used_dir()
         dialog = QFileDialog(self.window)
