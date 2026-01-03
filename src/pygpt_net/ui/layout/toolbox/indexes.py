@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QStandardItemModel, Qt, QIcon
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
@@ -54,6 +55,14 @@ class Indexes:
         """
         nodes = self.window.ui.nodes
         nodes['indexes.new'] = QPushButton(self._settings_icon, "")
+        # Configure compact, borderless settings button aligned to the right
+        icon_size = 20
+        nodes['indexes.new'].setFlat(True)
+        nodes['indexes.new'].setStyleSheet("QPushButton { border: none; background: transparent; padding: 0; }")
+        nodes['indexes.new'].setIconSize(QSize(icon_size, icon_size))
+        nodes['indexes.new'].setFixedSize(icon_size, icon_size)
+        nodes['indexes.new'].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        nodes['indexes.new'].setFocusPolicy(Qt.NoFocus)
         nodes['indexes.new'].clicked.connect(self._open_llama_index_settings)
 
         nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
@@ -119,6 +128,14 @@ class Indexes:
         nodes['llama_index.mode.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         nodes['indexes.new'] = QPushButton(self._settings_icon, "")
+        # Configure compact, borderless settings button for options row
+        icon_size = 20
+        nodes['indexes.new'].setFlat(True)
+        nodes['indexes.new'].setStyleSheet("QPushButton { border: none; background: transparent; padding: 0; }")
+        nodes['indexes.new'].setIconSize(QSize(icon_size, icon_size))
+        nodes['indexes.new'].setFixedSize(icon_size, icon_size)
+        nodes['indexes.new'].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        nodes['indexes.new'].setFocusPolicy(Qt.NoFocus)
         nodes['indexes.new'].clicked.connect(self._open_llama_index_settings)
 
         nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
@@ -129,6 +146,8 @@ class Indexes:
         idx_layout.addWidget(nodes['indexes.select'])
         idx_layout.addWidget(nodes['indexes.new'], alignment=Qt.AlignRight)
         idx_layout.setContentsMargins(0, 0, 0, 10)
+        # Ensure the combo takes maximum horizontal space
+        idx_layout.setStretch(1, 1)
         idx_widget = QWidget()
         idx_widget.setLayout(idx_layout)
         idx_widget.setMinimumHeight(55)
@@ -138,6 +157,7 @@ class Indexes:
         mode_layout.addWidget(nodes['llama_index.mode.label'])
         mode_layout.addWidget(nodes['llama_index.mode.select'])
         mode_layout.setContentsMargins(0, 0, 0, 10)
+        mode_layout.setStretch(1, 1)
         mode_widget = QWidget()
         mode_widget.setLayout(mode_layout)
         mode_widget.setMinimumHeight(55)
@@ -173,23 +193,6 @@ class Indexes:
         if self._last_combo_signature != signature:
             self.window.ui.nodes['indexes.select'].set_keys(combo_keys)
             self._last_combo_signature = signature
-        """
-        # store previous selection
-        self.window.ui.nodes[self.id].backup_selection()
-
-        self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
-        i = 0
-        for item in data:
-            self.window.ui.models[self.id].insertRow(i)
-            name = item['name']
-            index = self.window.ui.models[self.id].index(i, 0)
-            self.window.ui.models[self.id].setData(index, "ID: " + item['id'], QtCore.Qt.ToolTipRole)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)
-            i += 1
-
-        # restore previous selection
-        self.window.ui.nodes[self.id].restore_selection()
-        """
 
     def _open_llama_index_settings(self):
         self.window.controller.settings.open_section('llama-index')
