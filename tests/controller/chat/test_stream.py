@@ -25,7 +25,7 @@ def test_stream_worker_run_raw_chunk(monkeypatch):
     ctx.meta = {}
     ctx.stream = ["hello"]
     ctx.msg_id = "123"
-    ctx.chunk_type = ChunkType.API_CHAT
+    ctx.chunk_type = None
     ctx.extra = {}
     ctx.output = ""
     ctx.input_tokens = 5
@@ -74,7 +74,7 @@ def test_stream_worker_run_stopped(monkeypatch):
     ctx.meta = {}
     ctx.stream = ["hello", "world"]
     ctx.msg_id = "123"
-    ctx.chunk_type = ChunkType.API_CHAT
+    ctx.chunk_type = None
     ctx.extra = {}
     ctx.output = ""
     ctx.input_tokens = 10
@@ -127,6 +127,7 @@ def test_stream_worker_run_exception(monkeypatch):
     ctx.output = ""
     ctx.input_tokens = 1
     ctx.set_tokens = MagicMock()
+    ctx.chunk_type = None
 
     window = MagicMock()
     window.core.image.gen_unique_path.return_value = "dummy_image.png"
