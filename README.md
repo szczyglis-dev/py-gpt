@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.5** | build: **2026-01-03** | Python: **>=3.10, <3.14**
+Release: **2.7.6** | build: **2026-01-03** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3677,6 +3677,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.6 (2026-01-03)**
+
+- Fixed compatibility with xAI SDK and resolved empty responses from Grok models.
+- Fixed missing libraries in the Snap package.
+- Added zoom and grab functionality in the Image Viewer.
+- Added a zoom menu to textarea and web widgets.
+- Added the ability to close tabs with a middle mouse button click.
 
 **2.7.5 (2026-01-03)**
 

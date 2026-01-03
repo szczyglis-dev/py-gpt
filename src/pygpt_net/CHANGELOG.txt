@@ -1,3 +1,11 @@
+2.7.6 (2026-01-03)
+
+- Fixed compatibility with xAI SDK and resolved empty responses from Grok models.
+- Fixed missing libraries in the Snap package.
+- Added zoom and grab functionality in the Image Viewer.
+- Added a zoom menu to textarea and web widgets.
+- Added the ability to close tabs with a middle mouse button click.
+
 2.7.5 (2026-01-03)
 
 - Added Sandbox/Playwright option to Computer Use mode.

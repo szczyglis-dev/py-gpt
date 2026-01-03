@@ -10,10 +10,10 @@
 # ================================================== #
 
 __author__ = "Marcin Szczygliński"
-__copyright__ = "Copyright 2025, Marcin Szczygliński"
+__copyright__ = "Copyright 2026, Marcin Szczygliński"
 __credits__ = ["Marcin Szczygliński"]
 __license__ = "MIT"
-__version__ = "2.7.5"
+__version__ = "2.7.6"
 __build__ = "2026-01-03"
 __maintainer__ = "Marcin Szczygliński"
 __github__ = "https://github.com/szczyglis-dev/py-gpt"
