@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.7.5 (2026-01-03)
+
+- Added Sandbox/Playwright option to Computer Use mode.
+- Added support for Google models in Computer Use mode and introduced a new model: gemini-2.5-computer-use-preview-10-2025.
+- Added support for Google models in Research mode and introduced a new model: deep-research-pro-preview-12-2025.
+- Added the Google Vector Stores tool.
+
 ## 2.7.4 (2025-12-31)
 
 - Added a splash screen.

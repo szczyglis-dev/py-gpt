@@ -62,6 +62,7 @@ class ChunkType(str, Enum):
     LANGCHAIN_CHAT = "langchain_chat"  # LangChain chat (deprecated)
     LLAMA_CHAT = "llama_chat"  # LlamaIndex chat
     GOOGLE = "google"  # Google SDK
+    GOOGLE_INTERACTIONS_API = "api_google_interactions"  # Google SDK, deep research - interactions
     ANTHROPIC = "anthropic"  # Anthropic SDK
     XAI_SDK = "xai_sdk"  # xAI SDK
     RAW = "raw"  # Raw string fallback
@@ -159,6 +160,12 @@ class StreamWorker(QRunnable):
                         if hasattr(chunk, 'type'):
                             etype = chunk.type  # type: ignore[assignment]
                             state.chunk_type = ChunkType.API_CHAT_RESPONSES
+                        else:
+                            continue
+                    elif ctx.use_google_interactions_api:
+                        if hasattr(chunk, 'event_type'):
+                            etype = chunk.event_type  # type: ignore[assignment]
+                            state.chunk_type = ChunkType.GOOGLE_INTERACTIONS_API
                         else:
                             continue
                     else:
@@ -512,7 +519,7 @@ class StreamWorker(QRunnable):
             return self._process_langchain_chat(chunk)
         if t == ChunkType.LLAMA_CHAT:
             return self._process_llama_chat(state, chunk)
-        if t == ChunkType.GOOGLE:
+        if t == ChunkType.GOOGLE or t == ChunkType.GOOGLE_INTERACTIONS_API:
             return self._process_google_chunk(ctx, core, state, chunk)
         if t == ChunkType.ANTHROPIC:
             return self._process_anthropic_chunk(ctx, core, state, chunk)

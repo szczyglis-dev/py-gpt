@@ -226,6 +226,8 @@ class Patch:
             # < 2.7.5
             if old < parse_version("2.7.5"):
                 print("Migrating config from < 2.7.5...")
+                if "remote_tools.computer_use.sandbox" not in data:
+                    data["remote_tools.computer_use.sandbox"] = False
                 if "remote_tools.google.file_search" not in data:
                     data["remote_tools.google.file_search"] = False
                 if "remote_tools.google.file_search.args" not in data:

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.4** | build: **2025-12-31** | Python: **>=3.10, <3.14**
+Release: **2.7.5** | build: **2026-01-03** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -1092,12 +1092,14 @@ PyGPT has a preconfigured list of models (as of 2025-12-25):
 - `codex-mini` (OpenAI)
 - `dall-e-2` (OpenAI)
 - `dall-e-3` (OpenAI)
+- `deep-research-pro-preview-12-2025` (Google)
 - `deepseek-chat` (DeepSeek)
 - `deepseek-r1:1.5b` (Ollama)
 - `deepseek-r1:14b` (Ollama)
 - `deepseek-r1:32b` (Ollama)
 - `deepseek-r1:7b` (Ollama)
 - `deepseek-reasoner` (DeepSeek)
+- `gemini-2.5-computer-use-preview-10-2025` (Google)
 - `gemini-1.5-flash` (Google)
 - `gemini-1.5-pro` (Google)
 - `gemini-2.0-flash-exp` (Google)
@@ -3675,6 +3677,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.5 (2026-01-03)**
+
+- Added Sandbox/Playwright option to Computer Use mode.
+- Added support for Google models in Computer Use mode and introduced a new model: gemini-2.5-computer-use-preview-10-2025.
+- Added support for Google models in Research mode and introduced a new model: deep-research-pro-preview-12-2025.
+- Added the Google Vector Stores tool.
 
 **2.7.4 (2025-12-31)**
 

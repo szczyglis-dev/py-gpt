@@ -24,6 +24,7 @@ def test_stream_worker_run_raw_chunk(monkeypatch):
     ctx.stream = ["hello"]
     ctx.msg_id = "123"
     ctx.use_responses_api = False
+    ctx.use_google_interactions_api = False
     ctx.extra = {}
     ctx.output = ""
     ctx.input_tokens = 5
@@ -73,6 +74,7 @@ def test_stream_worker_run_stopped(monkeypatch):
     ctx.stream = ["hello", "world"]
     ctx.msg_id = "123"
     ctx.use_responses_api = False
+    ctx.use_google_interactions_api = False
     ctx.extra = {}
     ctx.output = ""
     ctx.input_tokens = 10
@@ -121,6 +123,7 @@ def test_stream_worker_run_exception(monkeypatch):
     ctx.stream = fake_stream()
     ctx.msg_id = "id123"
     ctx.use_responses_api = False
+    ctx.use_google_interactions_api = False
     ctx.extra = {}
     ctx.output = ""
     ctx.input_tokens = 1

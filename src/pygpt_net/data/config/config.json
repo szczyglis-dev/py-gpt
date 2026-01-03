@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.7.4",
-    "app.version": "2.7.4",
-    "updated_at": "2025-12-31T00:00:00"
+    "version": "2.7.5",
+    "app.version": "2.7.5",
+    "updated_at": "2026-01-03T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -419,7 +419,7 @@
   "remote_tools.anthropic.web_search": true,
   "remote_tools.code_interpreter": false,
   "remote_tools.computer_use.env": "",
-  "remote_tools.computer_use.sandbox": true,
+  "remote_tools.computer_use.sandbox": false,
   "remote_tools.file_search": false,
   "remote_tools.file_search.args": "",
   "remote_tools.global.web_search": true,

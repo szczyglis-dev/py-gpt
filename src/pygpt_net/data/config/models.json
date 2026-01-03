@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.7.4",
-        "app.version": "2.7.4",
-        "updated_at": "2025-12-31T00:00:00"
+        "version": "2.7.5",
+        "app.version": "2.7.5",
+        "updated_at": "2026-01-03T00:00:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -569,6 +569,44 @@
             "imported": false,
             "provider": "openai",
             "tool_calls": false
+        },
+        "deep-research-pro-preview-12-2025": {
+            "id": "deep-research-pro-preview-12-2025",
+            "name": "deep-research-pro-preview-12-2025",
+            "mode": [
+                "research"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/deep-research-pro-preview-12-2025",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 1000000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text",
+                "image"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
         },
         "deepseek_api_reasoner": {
             "id": "deepseek-reasoner",
