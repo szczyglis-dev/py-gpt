@@ -223,7 +223,6 @@ class Plugin(BasePlugin):
                     and response["result"]["no_screenshot"]):
                 with_screenshot = False
             if ctx is not None:
-                print("APPEND RESPONSE", response)
                 self.prepare_reply_ctx(response, ctx)
                 ctx.reply = True
         self.handle_delayed(ctx, with_screenshot)
@@ -356,14 +355,14 @@ class Plugin(BasePlugin):
                                f"1) Please install Playwright browser(s) on host machine: \n\n"
                                f"pip install playwright && playwright install {engine}\n\n"
                                f"2) Set path to browsers directory in `Mouse And Keyboard` plugin settings option: "
-                               f"`Sandbox: Playwright browsers path`.")
+                               f"`Sandbox (Playwright): Browsers directory`.")
         else:
             if os.environ.get("APPIMAGE") and not cfg_path:  # set path is required for AppImage version
-                err_msg = (f"Playwright browsers path is not set - "
+                err_msg = (f"Playwright browsers path is not set:\n\n "
                                    f"1) Please install Playwright browser(s) on host machine: \n\n"
                                    f"pip install playwright && playwright install {engine}\n\n"
                                    f"2) Set path to browsers directory in `Mouse And Keyboard` plugin settings option: "
-                                   f"`Sandbox: Playwright browsers path`.")
+                                   f"`Sandbox (Playwright): Browsers directory`.")
 
         if err_msg is not None:
             self.error(err_msg)

@@ -136,7 +136,7 @@ class Config(BaseConfig):
             "sandbox_path",
             type="text",
             value="",
-            label="Sandbox: Playwright browsers path",
+            label="Browsers directory",
             description="Path to Playwright browsers installation - leave empty to use default",
             tab="Sandbox (Playwright)"
         )
@@ -144,7 +144,7 @@ class Config(BaseConfig):
             "sandbox_engine",
             type="text",
             value="chromium",
-            label="Sandbox: Playwright engine (chromium|firefox|webkit)",
+            label="Engine",
             description="Playwright browser engine to use (chromium, firefox, webkit) - must be installed",
             tab="Sandbox (Playwright)"
         )
@@ -152,7 +152,7 @@ class Config(BaseConfig):
             "sandbox_headless",
             type="bool",
             value=False,
-            label="Sandbox: headless mode",
+            label="Headless mode",
             description="Run Playwright browser in headless mode (default: False)",
             tab="Sandbox (Playwright)"
         )
@@ -160,14 +160,15 @@ class Config(BaseConfig):
             "sandbox_args",
             type="textarea",
             value="--disable-extensions,\n--disable-file-system",
-            label="Sandbox: Playwright browsers args",
+            label="Browser args",
             description="Additional Playwright browser arguments (comma-separated)",
+            tab="Sandbox (Playwright)"
         )
         plugin.add_option(
             "sandbox_home",
             type="text",
             value="https://duckduckgo.com",
-            label="Sandbox: home URL",
+            label="Home URL",
             description="Playwright browser home URL",
             tab="Sandbox (Playwright)"
         )
@@ -175,7 +176,7 @@ class Config(BaseConfig):
             "sandbox_viewport_w",
             type="int",
             value=1440,
-            label="Sandbox: viewport width",
+            label="Viewport width",
             description="Playwright viewport width in pixels",
             tab="Sandbox (Playwright)"
         )
@@ -183,7 +184,7 @@ class Config(BaseConfig):
             "sandbox_viewport_h",
             type="int",
             value=900,
-            label="Sandbox: viewport height",
+            label="Viewport height",
             description="Playwright viewport height in pixels",
             tab="Sandbox (Playwright)"
         )

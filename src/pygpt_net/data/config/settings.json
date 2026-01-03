@@ -2032,7 +2032,7 @@
         "advanced": false,
         "tab": "Google",
         "urls": {
-            "Google Docs": "https://ai.google.dev/gemini-api/docs/file-search?hl=pl#metadata"
+            "Google Docs": "https://ai.google.dev/gemini-api/docs/file-search#metadata"
         }
     },
     "remote_tools.anthropic.web_search": {
