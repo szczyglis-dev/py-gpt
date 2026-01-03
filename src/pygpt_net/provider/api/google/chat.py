@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.01.03 02:10:00                  #
 # ================================================== #
 
 import os
@@ -15,7 +15,7 @@ from typing import Optional, Dict, Any, List, Tuple
 from google.genai import types as gtypes
 from google.genai.types import Content, Part
 
-from pygpt_net.core.types import MODE_CHAT, MODE_AUDIO, MODE_COMPUTER
+from pygpt_net.core.types import MODE_CHAT, MODE_AUDIO, MODE_COMPUTER, MODE_RESEARCH
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
@@ -178,6 +178,90 @@ class Chat:
                 )
         cfg = gtypes.GenerateContentConfig(**cfg_kwargs)
         params = dict(model=model.id, contents=inputs, config=cfg)
+
+        if mode == MODE_RESEARCH:
+            ctx.use_google_interactions_api = True
+
+            # Deep Research does not support audio inputs; if an audio snippet is present, transcribe it to text first.
+            if has_audio_input:
+                try:
+                    transcribe_model = self.window.core.config.get("google_audio.transcribe_model", "gemini-2.5-flash")
+                    transcribe_prompt = self.window.core.config.get("google_audio.transcribe_prompt", "Transcribe this audio clip to text.")
+                    audio_part = self.window.core.api.google.audio.build_part(multimodal_ctx)
+                    trans_inputs = [
+                        Content(role="user", parts=[
+                            Part.from_text(text=transcribe_prompt),
+                            audio_part,
+                        ])
+                    ]
+                    trans_cfg = gtypes.GenerateContentConfig(
+                        temperature=self.window.core.config.get('temperature'),
+                        top_p=self.window.core.config.get('top_p'),
+                        max_output_tokens=context.max_tokens if context.max_tokens else None,
+                    )
+                    trans_resp = client.models.generate_content(
+                        model=transcribe_model,
+                        contents=trans_inputs,
+                        config=trans_cfg,
+                    )
+                    transcribed_text = self.extract_text(trans_resp).strip()
+                    if transcribed_text:
+                        prompt = (str(prompt or "").strip() + "\n\n" + transcribed_text).strip() if prompt else transcribed_text
+                        ctx.input = transcribed_text
+                        try:
+                            if isinstance(ctx.extra, dict):
+                                ctx.extra["transcription"] = transcribed_text
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+                # Ensure we don't send raw audio to Interactions API
+                if multimodal_ctx:
+                    multimodal_ctx.is_audio_input = False
+
+            # Build single-turn multimodal input for Interactions API (no full chat history)
+            research_parts = self._build_user_parts(
+                content=str(prompt),
+                attachments=attachments,
+                multimodal_ctx=multimodal_ctx,
+            )
+            interactions_input = self._parts_to_interactions_input(research_parts)
+
+            # Try to continue context with the last completed interaction (server-side state)
+            prev_interaction_id, last_event_id, last_status = self._find_last_interaction_state(
+                history=context.history,
+                ctx=ctx,
+            )
+            try:
+                if ctx.extra is None:
+                    ctx.extra = {}
+                if prev_interaction_id:
+                    ctx.extra["previous_interaction_id"] = prev_interaction_id
+                if last_event_id:
+                    ctx.extra["google_last_event_id"] = last_event_id
+                if last_status:
+                    ctx.extra["google_interaction_status"] = last_status
+            except Exception:
+                pass
+
+            # Deep Research agent must use background=True; stream=True enables live progress updates.
+            create_kwargs: Dict[str, Any] = {
+                "agent": model.id,
+                "input": interactions_input if interactions_input else (str(prompt or "") or " "),
+                "background": True,
+                "stream": stream,
+                "agent_config": {
+                    "type": "deep-research",
+                    "thinking_summaries": "auto"
+                }
+            }
+
+            # Continue conversation on server using previous_interaction_id if available
+            if prev_interaction_id:
+                create_kwargs["previous_interaction_id"] = prev_interaction_id
+
+            # Do not pass custom tools here; Deep Research manages its own built-in tools.
+            return client.interactions.create(**create_kwargs)
 
         if stream and mode != MODE_AUDIO:
             return client.models.generate_content_stream(**params)
@@ -804,3 +888,121 @@ class Chat:
             return False
         mid = model_id.lower()
         return ("-tts" in mid) or ("native-audio" in mid)
+
+    @staticmethod
+    def _find_last_interaction_state(
+            history: Optional[List[CtxItem]],
+            ctx: CtxItem,
+    ) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+        """
+        Resolve last known Interactions state:
+        - previous_interaction_id: to continue conversation context
+        - last_event_id: to resume streaming (not used here, but returned for completeness)
+        - last_status: last known status string if available
+
+        Looks at current ctx.extra first, then scans history from newest to oldest.
+        """
+        prev_interaction_id: Optional[str] = None
+        last_event_id: Optional[str] = None
+        last_status: Optional[str] = None
+
+        try:
+            if getattr(ctx, "extra", None) and isinstance(ctx.extra, dict):
+                prev_interaction_id = (
+                    ctx.extra.get("previous_interaction_id")
+                    or ctx.extra.get("google_interaction_id")
+                    or ctx.extra.get("google_last_interaction_id")
+                )
+                last_event_id = ctx.extra.get("google_last_event_id")
+                last_status = ctx.extra.get("google_interaction_status")
+        except Exception:
+            pass
+
+        if not prev_interaction_id and history:
+            for item in reversed(history or []):
+                ex = getattr(item, "extra", None)
+                if not ex or not isinstance(ex, dict):
+                    continue
+                prev_interaction_id = (
+                    ex.get("previous_interaction_id")
+                    or ex.get("google_interaction_id")
+                    or ex.get("google_last_interaction_id")
+                    or prev_interaction_id
+                )
+                last_event_id = ex.get("google_last_event_id") or last_event_id
+                last_status = ex.get("google_interaction_status") or last_status
+                if prev_interaction_id and last_event_id:
+                    break
+
+        return prev_interaction_id, last_event_id, last_status
+
+    @staticmethod
+    def _mime_to_interactions_type(mime: str) -> Optional[str]:
+        """
+        Map MIME type to Interactions input type.
+        """
+        if not mime:
+            return None
+        m = mime.lower()
+        if m.startswith("image/"):
+            return "image"
+        if m.startswith("audio/"):
+            return "audio"
+        if m.startswith("video/"):
+            return "video"
+        return None
+
+    @staticmethod
+    def _ensure_base64(data) -> Optional[str]:
+        """
+        Return base64 string from raw bytes or a base64 string.
+        """
+        try:
+            if data is None:
+                return None
+            if isinstance(data, str):
+                return data
+            if isinstance(data, (bytes, bytearray)):
+                import base64
+                return base64.b64encode(bytes(data)).decode("utf-8")
+        except Exception:
+            return None
+        return None
+
+    def _parts_to_interactions_input(self, parts: List[Part]) -> List[Dict[str, Any]]:
+        """
+        Convert Responses API Part list into Interactions API input payload.
+        """
+        out: List[Dict[str, Any]] = []
+
+        for p in parts or []:
+            # Text
+            t = getattr(p, "text", None)
+            if t is not None:
+                s = str(t).strip()
+                if s:
+                    out.append({"type": "text", "text": s})
+                continue
+
+            # Inline data (images/audio/video)
+            inline = getattr(p, "inline_data", None)
+            if inline:
+                mime = (getattr(inline, "mime_type", "") or "").lower()
+                typ = self._mime_to_interactions_type(mime)
+                data = getattr(inline, "data", None)
+                b64 = self._ensure_base64(data)
+                if typ and b64:
+                    out.append({"type": typ, "data": b64, "mime_type": mime})
+                continue
+
+            # File references (prefer URIs from Gemini Files API)
+            fdata = getattr(p, "file_data", None)
+            if fdata:
+                uri = getattr(fdata, "file_uri", None) or getattr(fdata, "uri", None)
+                mime = (getattr(fdata, "mime_type", "") or "").lower()
+                typ = self._mime_to_interactions_type(mime)
+                if typ and uri:
+                    out.append({"type": typ, "uri": uri})
+                continue
+
+        return out

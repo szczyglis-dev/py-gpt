@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 17:00:00                  #
+# Updated Date: 2026.01.03 02:10:00                  #
 # ================================================== #
 
 import copy
@@ -88,6 +88,7 @@ class CtxItem:
     urls_before: list = field(default_factory=list)
     use_agent_final_response: bool = False
     use_responses_api: bool = False
+    use_google_interactions_api : bool = False
     ai_name: Optional[str] = None
 
     def __init__(self, mode: Optional[str] = None):
@@ -164,6 +165,7 @@ class CtxItem:
         self.urls_before = []
         self.use_agent_final_response = False  # use agent final response
         self.use_responses_api = False  # use responses API format
+        self.use_google_interactions_api = False  # use Google Interactions API format
         self.ai_name = None  # AI name
 
     @property
