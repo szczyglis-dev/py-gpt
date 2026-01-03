@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -88,6 +88,10 @@ class BaseCodeEditor(QTextEdit):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
+        # Add zoom submenu
+        zoom_menu = self.window.ui.context_menu.get_zoom_menu(self, "editor", self.value, self.on_zoom_changed)
+        menu.addMenu(zoom_menu)
+
         action = QAction(self._ICON_SEARCH, trans('text.context_menu.find'), menu)
         action.triggered.connect(self.find_open)
         action.setShortcut(self._FIND_SEQ)
@@ -136,6 +140,15 @@ class BaseCodeEditor(QTextEdit):
             event.accept()
         else:
             super().wheelEvent(event)
+
+    def on_zoom_changed(self, value: int):
+        """
+        On font size changed
+
+        :param value: New font size
+        """
+        self.value = value
+        self.update_stylesheet(f"QTextEdit {{ font-size: {value}px }};")
 
     def focusInEvent(self, e):
         super().focusInEvent(e)

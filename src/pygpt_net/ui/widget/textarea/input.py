@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.28 08:00:00                  #
+# Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -394,6 +394,10 @@ class ChatInput(QTextEdit):
                 action.triggered.connect(lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
                 menu.addAction(action)
 
+            # Add zoom submenu
+            zoom_menu = self.window.ui.context_menu.get_zoom_menu(self, "font_size.input", self.value, self.on_zoom_changed)
+            menu.addMenu(zoom_menu)
+
             try:
                 self.window.core.prompt.template.to_menu_options(menu, "input")
                 self.window.core.prompt.custom.to_menu_options(menu, "input")
@@ -458,8 +462,8 @@ class ChatInput(QTextEdit):
         :param event: Event
         """
         if event.modifiers() & Qt.ControlModifier:
-            prev = self.value
             dy = event.angleDelta().y()
+            prev = self.value
             if dy > 0:
                 if self.value < self.max_font_size:
                     self.value += 1
@@ -468,14 +472,23 @@ class ChatInput(QTextEdit):
                     self.value -= 1
 
             if self.value != prev:
-                self.window.core.config.data['font_size.input'] = self.value
-                self.window.core.config.save()
-                self.window.controller.ui.update_font_size()
-                # Reflow may change number of lines; adjust auto-height next tick
-                QTimer.singleShot(0, self._schedule_auto_resize)
+                self.on_zoom_changed(self.value)
             event.accept()
             return
         super().wheelEvent(event)
+
+    def on_zoom_changed(self, value: int):
+        """
+        Called when zoom level changes.
+
+        :param value: new zoom level
+        """
+        self.value = value
+        self.window.core.config.data['font_size.input'] = value
+        self.window.core.config.save()
+        self.window.controller.ui.update_font_size()
+        # Reflow may change number of lines; adjust auto-height next tick
+        QTimer.singleShot(0, self._schedule_auto_resize)
 
     def changeEvent(self, event):
         super().changeEvent(event)

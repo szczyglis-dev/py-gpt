@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent
@@ -118,6 +118,10 @@ class ChatOutput(QTextBrowser):
             action.triggered.connect(self._save_all_text)
             menu.addAction(action)
 
+        # Add zoom submenu
+        zoom_menu = self.window.ui.context_menu.get_zoom_menu(self, "font_size", self.value, self.on_zoom_changed)
+        menu.addMenu(zoom_menu)
+
         action = QAction(self.ICON_SEARCH, trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
         action.setShortcut(QKeySequence("Ctrl+F"))
@@ -192,6 +196,24 @@ class ChatOutput(QTextBrowser):
             event.accept()
         else:
             super().wheelEvent(event)
+
+    def on_zoom_changed(self, value: int):
+        """
+        On font size changed
+
+        :param value: New font size
+        """
+        self.value = value
+
+        cfg = self.window.core.config
+        cfg.data['font_size'] = value
+        cfg.save()
+
+        ctrl = self.window.controller
+        option = ctrl.settings.editor.get_option('font_size')
+        option['value'] = value
+        ctrl.config.apply(parent_id='config', key='font_size', option=option)
+        ctrl.ui.update_font_size()
 
     def focusInEvent(self, e):
         """

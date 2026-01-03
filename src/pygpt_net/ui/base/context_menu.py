@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
+from typing import Union
 
 from PySide6.QtWidgets import QMenu
 from PySide6.QtGui import QAction, QIcon
@@ -24,6 +25,8 @@ class ContextMenu:
     _ICON_CODE = QIcon(":/icons/code.svg")
     _ICON_TEXT = QIcon(":/icons/text.svg")
     _ICON_TRANSLATOR = QIcon(":/icons/translate.svg")
+    _ICON_ZOOM_IN = QIcon(":/icons/zoom_in.svg")
+    _ICON_ZOOM_OUT = QIcon(":/icons/zoom_out.svg")
 
     def __init__(self, window=None):
         """
@@ -32,6 +35,46 @@ class ContextMenu:
         :param window: main window
         """
         self.window = window
+
+    def get_zoom_menu(self, parent, parent_type: str, current_zoom: Union[int, float], callback = None) -> QMenu:
+        """
+        Get zoom menu (Zoom In/Out)
+
+        :param parent: Parent menu
+        :param parent_type: Type of textarea ('chat', 'notepad', etc.)
+        :param current_zoom: Current zoom level
+        :param callback: Callback function on zoom change
+        :return: Menu
+        """
+        menu = QMenu(trans('context_menu.zoom'), parent)
+        if parent_type in ("font_size.input", "font_size", "editor"):
+            action_zoom_in = QAction(self._ICON_ZOOM_IN, trans('context_menu.zoom.in'), menu)
+            new_zoom = current_zoom + 2
+            action_zoom_in.triggered.connect(
+                lambda checked=False, new_zoom=new_zoom: callback(new_zoom)
+            )
+            menu.addAction(action_zoom_in)
+            action_zoom_out = QAction(self._ICON_ZOOM_OUT, trans('context_menu.zoom.out'), menu)
+            new_zoom = current_zoom - 2
+            action_zoom_out.triggered.connect(
+                lambda checked=False, new_zoom=new_zoom: callback(new_zoom)
+            )
+            menu.addAction(action_zoom_out)
+        elif parent_type in ("zoom"):
+            action_zoom_in = QAction(self._ICON_ZOOM_IN, trans('context_menu.zoom.in'), menu)
+            new_zoom = current_zoom + 0.1
+            action_zoom_in.triggered.connect(
+                lambda checked=False, new_zoom=new_zoom: callback(new_zoom)
+            )
+            menu.addAction(action_zoom_in)
+            action_zoom_out = QAction(self._ICON_ZOOM_OUT, trans('context_menu.zoom.out'), menu)
+            new_zoom = current_zoom - 0.1
+            action_zoom_out.triggered.connect(
+                lambda checked=False, new_zoom=new_zoom: callback(new_zoom)
+            )
+            menu.addAction(action_zoom_out)
+
+        return menu
 
     def get_copy_to_menu(
             self,

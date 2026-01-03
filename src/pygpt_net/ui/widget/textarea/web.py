@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QUrl, QCoreApplication, QEventLoop
@@ -345,11 +345,26 @@ class ChatWebOutput(QWebEngineView):
             action.triggered.connect(self._save_as_html)
             menu.addAction(action)
 
+        # Add zoom submenu
+        zoom_menu = self.window.ui.context_menu.get_zoom_menu(self, "zoom", self.get_zoom_value(), self.on_zoom_changed)
+        menu.addMenu(zoom_menu)
+
         action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
         menu.addAction(action)
 
         menu.exec_(self.mapToGlobal(position))
+
+    def on_zoom_changed(self, zoom: float):
+        """
+        On zoom changed from context menu
+
+        :param zoom: float - new zoom factor
+        """
+        p = self.page()
+        if p:
+            self.window.core.config.set("zoom", zoom)
+            self.update_zoom()
 
     @Slot()
     def _save_selected_txt(self):

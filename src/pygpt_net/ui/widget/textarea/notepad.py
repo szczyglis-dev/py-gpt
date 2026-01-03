@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer
@@ -214,6 +214,10 @@ class NotepadOutput(QTextEdit):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
+        # Add zoom submenu
+        zoom_menu = self.window.ui.context_menu.get_zoom_menu(self, "font_size", self.value, self.on_zoom_changed)
+        menu.addMenu(zoom_menu)
+
         action = QAction(self.ICON_SEARCH, trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
         action.setShortcut(QKeySequence("Ctrl+F"))
@@ -281,6 +285,25 @@ class NotepadOutput(QTextEdit):
         else:
             super(NotepadOutput, self).wheelEvent(event)
             self.last_scroll_pos = self._vscroll.value()
+
+    def on_zoom_changed(self, value: int):
+        """
+        On font size changed
+
+        :param value: New font size
+        """
+        self.value = value
+        self.window.core.config.data['font_size'] = value
+        self.window.core.config.save()
+        option = self.window.controller.settings.editor.get_option('font_size')
+        option['value'] = self.value
+        self.window.controller.config.apply(
+            parent_id='config',
+            key='font_size',
+            option=option,
+        )
+        self.window.controller.ui.update_font_size()
+        self.last_scroll_pos = self._vscroll.value()
 
     def focusInEvent(self, e):
         """
