@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -21,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_RESEARCH,
 )
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.model import ModelItem
 
 from .chat import Chat
@@ -94,15 +95,16 @@ class ApiAnthropic:
         stream = context.stream
         ctx = context.ctx
         ai_name = ctx.output_name if ctx else "assistant"
-
-        # Anthropic: no Responses API; stream events are custom to Anthropic
-        if ctx:
-            ctx.use_responses_api = False
-
         used_tokens = 0
         response = None
+        ctx.chunk_type = ChunkType.ANTHROPIC
 
-        if mode in (MODE_COMPLETION, MODE_CHAT, MODE_AUDIO, MODE_RESEARCH):
+        if mode in (
+                MODE_COMPLETION,
+                MODE_CHAT,
+                MODE_AUDIO,
+                MODE_RESEARCH
+        ):
             # MODE_AUDIO fallback: treat as normal chat (no native audio API)
             response = self.chat.send(context=context, extra=extra)
             used_tokens = self.chat.get_used_tokens()

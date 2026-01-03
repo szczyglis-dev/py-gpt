@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 02:10:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -31,6 +31,7 @@ class CtxItem:
     audio_id: Optional[object] = None
     audio_output: Optional[object] = None
     bag: Optional[object] = None
+    chunk_type: Optional[str] = None
     cmds: list = field(default_factory=list)
     cmds_before: list = field(default_factory=list)
     current: bool = False
@@ -87,8 +88,6 @@ class CtxItem:
     urls: list = field(default_factory=list)
     urls_before: list = field(default_factory=list)
     use_agent_final_response: bool = False
-    use_responses_api: bool = False
-    use_google_interactions_api : bool = False
     ai_name: Optional[str] = None
 
     def __init__(self, mode: Optional[str] = None):
@@ -107,6 +106,7 @@ class CtxItem:
         self.audio_id = None
         self.audio_output = None
         self.bag = None
+        self.chunk_type = None
         self.cmds = []
         self.cmds_before = []
         self.current = False
@@ -164,8 +164,6 @@ class CtxItem:
         self.urls = []
         self.urls_before = []
         self.use_agent_final_response = False  # use agent final response
-        self.use_responses_api = False  # use responses API format
-        self.use_google_interactions_api = False  # use Google Interactions API format
         self.ai_name = None  # AI name
 
     @property

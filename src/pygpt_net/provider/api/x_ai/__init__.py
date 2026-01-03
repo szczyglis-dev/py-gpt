@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -23,6 +23,7 @@ from pygpt_net.core.types import (
     MODE_RESEARCH,
 )
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.model import ModelItem
 
 import xai_sdk
@@ -109,19 +110,19 @@ class ApiXAI:
         :return: True on success, False on error
         """
         mode = context.mode
-        model = context.model
         stream = context.stream
         ctx = context.ctx
         ai_name = (ctx.output_name if ctx else "assistant")
-
-        # No Responses API in xAI SDK
-        if ctx:
-            ctx.use_responses_api = False
-
         used_tokens = 0
         response = None
+        ctx.chunk_type = ChunkType.XAI_SDK
 
-        if mode in (MODE_COMPLETION, MODE_CHAT, MODE_AUDIO, MODE_RESEARCH):
+        if mode in (
+                MODE_COMPLETION,
+                MODE_CHAT,
+                MODE_AUDIO,
+                MODE_RESEARCH
+        ):
             # There is no public realtime audio in SDK; treat MODE_AUDIO as chat (TTS not supported).
             response = self.chat.send(context=context, extra=extra)
             used_tokens = self.chat.get_used_tokens()

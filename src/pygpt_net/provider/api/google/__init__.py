@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 import os
@@ -25,6 +25,7 @@ from pygpt_net.core.types import (
     MODE_COMPUTER,
 )
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.model import ModelItem
 
 from .chat import Chat
@@ -124,10 +125,7 @@ class ApiGoogle:
         stream = context.stream
         ctx = context.ctx
         ai_name = ctx.output_name if ctx else "assistant"
-
-        # No Responses API in google-genai
-        if ctx:
-            ctx.use_responses_api = False
+        ctx.chunk_type = ChunkType.GOOGLE
 
         used_tokens = 0
         response = None
@@ -150,6 +148,9 @@ class ApiGoogle:
                 )
                 if is_realtime:
                     return True
+
+            if mode == MODE_RESEARCH:
+                ctx.chunk_type = ChunkType.GOOGLE_INTERACTIONS_API  # use interactions API for research
 
             response = self.chat.send(context=context, extra=extra)
             used_tokens = self.chat.get_used_tokens()

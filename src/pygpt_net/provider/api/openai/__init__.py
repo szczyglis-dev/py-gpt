@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.28 00:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -22,6 +22,7 @@ from pygpt_net.core.types import (
     MODE_COMPUTER,
 )
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.model import ModelItem
 
 from .audio import Audio
@@ -116,10 +117,12 @@ class ApiOpenAI:
         ctx = context.ctx
         ai_name = ctx.output_name
         thread_id = ctx.thread  # from ctx
+        ctx.chunk_type = ChunkType.API_CHAT  # default: ChatCompletion API
 
         # --- Responses API ----
         use_responses_api = self.responses.is_enabled(model, mode, parent_mode, is_expert_call, preset)
-        ctx.use_responses_api = use_responses_api  # set in context
+        if use_responses_api:
+            ctx.chunk_type = ChunkType.API_CHAT_RESPONSES # Responses API
 
         fixtures = self.window.controller.debug.fixtures
 
@@ -137,13 +140,14 @@ class ApiOpenAI:
 
         # completion
         if mode == MODE_COMPLETION:
+            ctx.chunk_type = ChunkType.API_COMPLETION
             response = self.completion.send(
                 context=context,
                 extra=extra,
             )
             used_tokens = self.completion.get_used_tokens()
 
-        # chat, audio (OpenAI) | research (Perplexity)
+        # chat, audio (OpenAI) | research (deep research, Perplexity)
         elif mode in [
             MODE_CHAT,
             MODE_AUDIO,

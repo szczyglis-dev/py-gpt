@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 import pytest
 from unittest.mock import MagicMock
 from pygpt_net.controller.chat.stream import StreamWorker, Stream, MODE_ASSISTANT
+from pygpt_net.core.types.chunk import ChunkType
+
 
 # A generator raising an exception after one chunk.
 def fake_stream():
@@ -23,8 +25,7 @@ def test_stream_worker_run_raw_chunk(monkeypatch):
     ctx.meta = {}
     ctx.stream = ["hello"]
     ctx.msg_id = "123"
-    ctx.use_responses_api = False
-    ctx.use_google_interactions_api = False
+    ctx.chunk_type = ChunkType.API_CHAT
     ctx.extra = {}
     ctx.output = ""
     ctx.input_tokens = 5
@@ -73,8 +74,7 @@ def test_stream_worker_run_stopped(monkeypatch):
     ctx.meta = {}
     ctx.stream = ["hello", "world"]
     ctx.msg_id = "123"
-    ctx.use_responses_api = False
-    ctx.use_google_interactions_api = False
+    ctx.chunk_type = ChunkType.API_CHAT
     ctx.extra = {}
     ctx.output = ""
     ctx.input_tokens = 10
@@ -122,8 +122,7 @@ def test_stream_worker_run_exception(monkeypatch):
     ctx.meta = {}
     ctx.stream = fake_stream()
     ctx.msg_id = "id123"
-    ctx.use_responses_api = False
-    ctx.use_google_interactions_api = False
+    ctx.chunk_type = ChunkType.API_CHAT
     ctx.extra = {}
     ctx.output = ""
     ctx.input_tokens = 1

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 02:10:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 import os
@@ -180,7 +180,6 @@ class Chat:
         params = dict(model=model.id, contents=inputs, config=cfg)
 
         if mode == MODE_RESEARCH:
-            ctx.use_google_interactions_api = True
 
             # Deep Research does not support audio inputs; if an audio snippet is present, transcribe it to text first.
             if has_audio_input:

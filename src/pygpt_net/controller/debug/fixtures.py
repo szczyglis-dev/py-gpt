@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 20:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 import os
 from typing import Iterable
 
 from pygpt_net.core.fixtures.stream.generator import FakeOpenAIStream
+from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -83,7 +84,7 @@ class Fixtures:
         :param ctx: context item
         :return: stream generator
         """
-        ctx.use_responses_api = False
+        ctx.chunk_type = ChunkType.API_CHAT
         path = os.path.join(self.window.core.config.get_app_path(), "data", "fixtures", "fake_stream.txt")
         return FakeOpenAIStream(code_path=path).stream(
             api="raw",

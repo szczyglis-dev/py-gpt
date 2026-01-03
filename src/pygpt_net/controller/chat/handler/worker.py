@@ -6,20 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.07 05:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 import io
 import json
 from dataclasses import dataclass, field
 from typing import Optional, Literal, Any
-from enum import Enum
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 from openai.types.chat import ChatCompletionChunk
 
 from pygpt_net.core.events import RenderEvent
-from pygpt_net.core.text.utils import has_unclosed_code_tag
+from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.ctx import CtxItem
 
 from . import (
@@ -50,22 +49,6 @@ EventType = Literal[
     "response.failed",
     "error",
 ]
-
-
-class ChunkType(str, Enum):
-    """
-    Enum for chunk type classification.
-    """
-    API_CHAT = "api_chat"  # OpenAI Chat Completions / or compatible
-    API_CHAT_RESPONSES = "api_chat_responses"  # OpenAI Responses
-    API_COMPLETION = "api_completion"  # OpenAI Completions
-    LANGCHAIN_CHAT = "langchain_chat"  # LangChain chat (deprecated)
-    LLAMA_CHAT = "llama_chat"  # LlamaIndex chat
-    GOOGLE = "google"  # Google SDK
-    GOOGLE_INTERACTIONS_API = "api_google_interactions"  # Google SDK, deep research - interactions
-    ANTHROPIC = "anthropic"  # Anthropic SDK
-    XAI_SDK = "xai_sdk"  # xAI SDK
-    RAW = "raw"  # Raw string fallback
 
 
 class WorkerSignals(QObject):
@@ -155,19 +138,13 @@ class StreamWorker(QRunnable):
 
                     etype: Optional[EventType] = None
 
-                    # detect chunk type
-                    if ctx.use_responses_api:
+                    # detect chunk type if not defined
+                    if ctx.chunk_type:
+                        state.chunk_type = ctx.chunk_type
                         if hasattr(chunk, 'type'):
-                            etype = chunk.type  # type: ignore[assignment]
-                            state.chunk_type = ChunkType.API_CHAT_RESPONSES
-                        else:
-                            continue
-                    elif ctx.use_google_interactions_api:
-                        if hasattr(chunk, 'event_type'):
-                            etype = chunk.event_type  # type: ignore[assignment]
-                            state.chunk_type = ChunkType.GOOGLE_INTERACTIONS_API
-                        else:
-                            continue
+                            etype = chunk.type
+                        elif hasattr(chunk, 'event_type'):
+                            etype = chunk.event_type
                     else:
                         state.chunk_type = self._detect_chunk_type(chunk)
 
@@ -549,6 +526,7 @@ class StreamWorker(QRunnable):
         return anthropic_stream.process_anthropic_chunk(ctx, core, state, chunk)
 
     def _process_xai_sdk_chunk(self, ctx, core, state, item):
+        print(item)
         return xai_stream.process_xai_sdk_chunk(ctx, core, state, item)
 
     def _process_raw(self, chunk) -> Optional[str]:
