@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 01:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -116,7 +116,16 @@ class Chat:
         # NON-STREAM: prefer SDK only for plain chat (no tools/search/tool-turns/images)
         if sdk_live and not tools_prepared and http_params is None and not has_tool_turns and not has_images:
             chat = client.chat.create(model=model_id, messages=sdk_messages)
-            return chat.sample()
+            try:
+                if hasattr(chat, "sample"):
+                    return chat.sample()
+                if hasattr(chat, "output_text"):
+                    return chat
+                if hasattr(chat, "message"):
+                    return chat
+            except Exception:
+                pass
+            return chat
 
         # Otherwise HTTP non-stream for tools/search/vision/tool-turns
         text, calls, citations, usage = self.call_http_nonstream(
@@ -142,7 +151,7 @@ class Chat:
 
     def unpack_response(self, mode: str, response, ctx: CtxItem):
         """
-        Unpack non-streaming xAI response into ctx (text, tool calls, usage, citations).
+        Unpack non-streaming xAI response into ctx (text, tool calls, usage, citations, images).
 
         :param mode: mode (chat, etc)
         :param response: Response object from SDK or HTTP (dict)
@@ -152,6 +161,37 @@ class Chat:
         txt = getattr(response, "content", None)
         if not txt and isinstance(response, dict):
             txt = response.get("output_text") or ""
+            if not txt:
+                try:
+                    ch = (response.get("choices") or [])
+                    if ch:
+                        msg = (ch[0].get("message") or {})
+                        txt = self._message_to_text(msg)
+                except Exception:
+                    pass
+
+        if not txt and not isinstance(response, dict):
+            try:
+                msg = getattr(response, "message", None) or getattr(response, "output_message", None)
+                if msg is not None:
+                    mc = getattr(msg, "content", None)
+                    if mc is None and isinstance(msg, dict):
+                        mc = msg.get("content")
+                    txt = self._content_to_text(mc)
+            except Exception:
+                pass
+            if not txt:
+                try:
+                    proto = getattr(response, "proto", None)
+                    if proto:
+                        choices = getattr(proto, "choices", None) or []
+                        if choices:
+                            m = getattr(choices[0], "message", None)
+                            if m:
+                                txt = self._content_to_text(getattr(m, "content", None))
+                except Exception:
+                    pass
+
         ctx.output = (str(txt or "")).strip()
 
         # Tool calls
@@ -160,7 +200,42 @@ class Chat:
             calls = response["tool_calls"]
 
         if not calls:
-            # SDK proto fallback (defensive)
+            try:
+                msg = getattr(response, "message", None) or getattr(response, "output_message", None)
+            except Exception:
+                msg = None
+            try:
+                if msg:
+                    tcs = getattr(msg, "tool_calls", None)
+                    if tcs is None and isinstance(msg, dict):
+                        tcs = msg.get("tool_calls")
+                    if tcs:
+                        out = []
+                        for tc in tcs:
+                            fn = getattr(tc, "function", None)
+                            if isinstance(tc, dict):
+                                fn = tc.get("function", fn)
+                            args = getattr(fn, "arguments", None) if fn is not None else None
+                            if isinstance(fn, dict):
+                                args = fn.get("arguments", args)
+                            if isinstance(args, (dict, list)):
+                                try:
+                                    args = json.dumps(args, ensure_ascii=False)
+                                except Exception:
+                                    args = str(args)
+                            out.append({
+                                "id": (getattr(tc, "id", None) if not isinstance(tc, dict) else tc.get("id")) or "",
+                                "type": "function",
+                                "function": {
+                                    "name": (getattr(fn, "name", None) if not isinstance(fn, dict) else fn.get("name")) or "",
+                                    "arguments": args or "{}",
+                                }
+                            })
+                        calls = out
+            except Exception:
+                pass
+
+        if not calls:
             try:
                 proto = getattr(response, "proto", None)
                 tool_calls = getattr(getattr(getattr(proto, "choices", [None])[0], "message", None), "tool_calls", None)
@@ -182,20 +257,65 @@ class Chat:
         if calls:
             ctx.tool_calls = calls
 
-        # Citations
+        # Citations and URLs
         try:
             urls: List[str] = []
             if isinstance(response, dict):
                 urls = self._extract_urls(response.get("citations"))
+                if not urls:
+                    choices = response.get("choices") or []
+                    if choices:
+                        msg = choices[0].get("message") or {}
+                        urls = self._extract_urls(msg.get("citations"))
+                # Additionally scan assistant message content for http(s) links in text parts
+                try:
+                    choices = response.get("choices") or []
+                    if choices:
+                        msg = choices[0].get("message") or {}
+                        parts = msg.get("content")
+                        if isinstance(parts, list):
+                            for p in parts:
+                                if isinstance(p, dict) and p.get("type") == "text":
+                                    t = p.get("text")
+                                    if isinstance(t, str):
+                                        for u in self._extract_urls([t]):
+                                            if u not in urls:
+                                                urls.append(u)
+                except Exception:
+                    pass
             else:
                 cits = getattr(response, "citations", None)
                 urls = self._extract_urls(cits)
+                if not urls:
+                    msg = getattr(response, "message", None) or getattr(response, "output_message", None)
+                    if msg:
+                        mc = getattr(msg, "citations", None)
+                        if mc is None and isinstance(msg, dict):
+                            mc = msg.get("citations")
+                        urls = self._extract_urls(mc)
             if urls:
                 if ctx.urls is None:
                     ctx.urls = []
                 for u in urls:
                     if u not in ctx.urls:
                         ctx.urls.append(u)
+        except Exception:
+            pass
+
+        # Images possibly returned in assistant content as image_url parts
+        try:
+            parts = None
+            if isinstance(response, dict):
+                choices = response.get("choices") or []
+                if choices:
+                    msg = choices[0].get("message") or {}
+                    parts = msg.get("content")
+            else:
+                msg = getattr(response, "message", None) or getattr(response, "output_message", None)
+                if msg:
+                    parts = getattr(msg, "content", None)
+            if isinstance(parts, list):
+                self._collect_images_from_message_parts(parts, ctx)
         except Exception:
             pass
 
@@ -216,12 +336,29 @@ class Chat:
                     }
                     return
 
+            uattr = getattr(response, "usage", None)
+            if isinstance(uattr, dict):
+                u = self._normalize_usage(uattr)
+                if u:
+                    ctx.set_tokens(u.get("in", 0), u.get("out", 0))
+                    if not isinstance(ctx.extra, dict):
+                        ctx.extra = {}
+                    ctx.extra["usage"] = {
+                        "vendor": "xai",
+                        "input_tokens": u.get("in", 0),
+                        "output_tokens": u.get("out", 0),
+                        "reasoning_tokens": u.get("reasoning", 0),
+                        "total_reported": u.get("total"),
+                    }
+                    return
+
             proto = getattr(response, "proto", None)
             usage = getattr(proto, "usage", None)
             if usage:
                 p = int(getattr(usage, "prompt_tokens", 0) or 0)
                 c = int(getattr(usage, "completion_tokens", 0) or 0)
-                t = int(getattr(usage, "total_tokens", (p + c)) or (p + c))
+                r = int(getattr(usage, "reasoning_tokens", 0) or 0)
+                t = int(getattr(usage, "total_tokens", (p + c + r)) or (p + c + r))
                 out_tok = max(0, t - p) if t else c
                 ctx.set_tokens(p, out_tok)
                 if not isinstance(ctx.extra, dict):
@@ -230,7 +367,7 @@ class Chat:
                     "vendor": "xai",
                     "input_tokens": p,
                     "output_tokens": out_tok,
-                    "reasoning_tokens": 0,
+                    "reasoning_tokens": r,
                     "total_reported": t,
                 }
         except Exception:
@@ -274,7 +411,6 @@ class Chat:
                 if item.final_output:
                     out.append(xassistant(str(item.final_output)))
 
-        # Current user message with optional images (SDK accepts text first or images first)
         parts = [str(prompt or "")]
         for img in self.window.core.api.xai.vision.build_images_for_chat(attachments):
             parts.append(ximage(img))
@@ -299,18 +435,6 @@ class Chat:
         """
         Non-streaming HTTP Chat Completions call to xAI with optional tools, Live Search, and vision.
         Returns (text, tool_calls, citations, usage).
-
-        :param model: Model ID
-        :param prompt: Current user prompt
-        :param system_prompt: System prompt
-        :param history: List of CtxItem for context
-        :param attachments: Dict of AttachmentItem for images
-        :param multimodal_ctx: MultimodalContext (not used)
-        :param tools: List of tool dicts
-        :param search_parameters: Live Search parameters dict
-        :param temperature: Temperature float
-        :param max_tokens: Max tokens int
-        :return: (output text, tool calls list, citations list, usage dict)
         """
         import requests
 
@@ -318,7 +442,6 @@ class Chat:
         api_key = cfg.get("api_key_xai") or ""
         base_url = self._build_base_url(cfg.get("api_endpoint_xai"))
 
-        # unified HTTP messages (with tool-turns + images)
         messages = self._build_http_messages(
             model_id=model,
             system_prompt=system_prompt,
@@ -357,7 +480,6 @@ class Chat:
             if not resp.encoding:
                 resp.encoding = "utf-8"
             if resp.status_code >= 400:
-                # Log server error body for diagnostics
                 self.window.core.debug.error(f"[xai.http] {resp.status_code} {resp.reason}: {resp.text}")
             resp.raise_for_status()
             data = resp.json() if resp.content else {}
@@ -365,7 +487,6 @@ class Chat:
             self.window.core.debug.error(f"[xai.http] error: {e}")
             return "", [], [], None
 
-        # Text + tool calls
         text = ""
         calls: List[dict] = []
         try:
@@ -384,19 +505,23 @@ class Chat:
                                 out_parts.append(t)
                     text = "".join(out_parts).strip()
 
-                # tool calls
                 tlist = msg.get("tool_calls") or []
                 for t in tlist:
                     fn = t.get("function") or {}
+                    args = fn.get("arguments")
+                    if isinstance(args, (dict, list)):
+                        try:
+                            args = json.dumps(args, ensure_ascii=False)
+                        except Exception:
+                            args = str(args)
                     calls.append({
                         "id": t.get("id") or "",
                         "type": "function",
-                        "function": {"name": fn.get("name") or "", "arguments": fn.get("arguments") or "{}"},
+                        "function": {"name": fn.get("name") or "", "arguments": args or "{}"},
                     })
         except Exception:
             pass
 
-        # Citations
         citations: List[str] = []
         try:
             citations = self._extract_urls(data.get("citations")) or []
@@ -408,7 +533,6 @@ class Chat:
         except Exception:
             citations = citations or []
 
-        # Usage
         usage: Optional[dict] = None
         try:
             usage = self._normalize_usage(data.get("usage"))
@@ -425,7 +549,6 @@ class Chat:
         search_parameters: Optional[Dict[str, Any]] = None,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        # fallback rebuild inputs if needed:
         system_prompt: Optional[str] = None,
         history: Optional[List[CtxItem]] = None,
         attachments: Optional[Dict[str, AttachmentItem]] = None,
@@ -435,16 +558,6 @@ class Chat:
         Streaming HTTP Chat Completions (SSE) for xAI.
         Sends OpenAI-compatible JSON; rebuilds messages when given SDK objects.
 
-        :param model: Model ID
-        :param messages: List of messages (SDK objects or HTTP-style dicts)
-        :param tools: List of tool dicts
-        :param search_parameters: Live Search parameters dict
-        :param temperature: Temperature float
-        :param max_tokens: Max tokens int
-        :param system_prompt: System prompt (used if messages need rebuilding)
-        :param history: List of CtxItem for context (used if messages need rebuilding)
-        :param attachments: Dict of AttachmentItem for images (used if messages need rebuilding)
-        :param prompt: Current user prompt (used if messages need rebuilding)
         :return: Iterable/generator yielding SDK-like response chunks with 'content', 'tool_calls', 'citations', 'usage'
         """
         import requests
@@ -455,7 +568,6 @@ class Chat:
         api_key = cfg.get("api_key_xai") or ""
         base_url = self._build_base_url(cfg.get("api_endpoint_xai"))
 
-        # Ensure HTTP messages are JSON-serializable dicts
         if not self._looks_like_http_messages(messages):
             messages = self._build_http_messages(
                 model_id=model,
@@ -535,7 +647,7 @@ class Chat:
                         except Exception:
                             continue
 
-                        # delta or message styles
+                        # OpenAI-style choices path
                         try:
                             chs = obj.get("choices") or []
                             if chs:
@@ -547,14 +659,48 @@ class Chat:
                                     mc = message["content"]
                                     if isinstance(mc, str):
                                         yield _mk_chunk(delta_text=mc)
+                                    elif isinstance(mc, list):
+                                        out_parts: List[str] = []
+                                        for p in mc:
+                                            if isinstance(p, dict) and p.get("type") == "text":
+                                                t = p.get("text")
+                                                if isinstance(t, str):
+                                                    out_parts.append(t)
+                                        if out_parts:
+                                            yield _mk_chunk(delta_text="".join(out_parts))
                                 tc = delta.get("tool_calls") or message.get("tool_calls") or []
                                 if tc:
                                     yield _mk_chunk(tool_calls=tc)
+                                u = obj.get("usage")
+                                cits = self_outer._extract_urls(obj.get("citations"))
+                                if u or cits:
+                                    yield _mk_chunk(delta_text="", citations=cits if cits else None, usage=u if u else None)
+                                continue
                         except Exception:
                             pass
 
-                        # usage + citations tail
+                        # Event-style root-level delta/message
                         try:
+                            if isinstance(obj.get("delta"), dict):
+                                d = obj["delta"]
+                                if "content" in d and d["content"] is not None:
+                                    yield _mk_chunk(delta_text=str(d["content"]))
+                                tc = d.get("tool_calls") or []
+                                if tc:
+                                    yield _mk_chunk(tool_calls=tc)
+                            if isinstance(obj.get("message"), dict) and "content" in obj["message"]:
+                                mc = obj["message"]["content"]
+                                if isinstance(mc, str):
+                                    yield _mk_chunk(delta_text=mc)
+                                elif isinstance(mc, list):
+                                    out_parts: List[str] = []
+                                    for p in mc:
+                                        if isinstance(p, dict) and p.get("type") == "text":
+                                            t = p.get("text")
+                                            if isinstance(t, str):
+                                                out_parts.append(t)
+                                    if out_parts:
+                                        yield _mk_chunk(delta_text="".join(out_parts))
                             u = obj.get("usage")
                             cits = self_outer._extract_urls(obj.get("citations"))
                             if u or cits:
@@ -583,7 +729,6 @@ class Chat:
             if not resp.encoding:
                 resp.encoding = "utf-8"
             if resp.status_code >= 400:
-                # Log server error body for diagnostics
                 try:
                     body = resp.text
                 except Exception:
@@ -608,9 +753,6 @@ class Chat:
     def _fit_ctx(self, model: ModelItem) -> int:
         """
         Fit to max model tokens (uses model.ctx if present).
-
-        :param model: ModelItem
-        :return: Max tokens int
         """
         max_ctx_tokens = self.window.core.config.get('max_total_tokens')
         if model and model.ctx and 0 < model.ctx < max_ctx_tokens:
@@ -626,12 +768,6 @@ class Chat:
     ) -> List[dict]:
         """
         Build simple messages structure for local token estimation.
-
-        :param prompt: Current user prompt
-        :param system_prompt: System prompt
-        :param model: ModelItem
-        :param history: List of CtxItem for context
-        :return: List of dicts with 'role' and 'content'
         """
         messages = []
         if system_prompt:
@@ -651,16 +787,50 @@ class Chat:
         messages.append({"role": "user", "content": str(prompt)})
         return messages
 
+    def _content_to_text(self, content) -> str:
+        """
+        Convert message content (SDK or HTTP shapes) into plain text.
+        """
+        if content is None:
+            return ""
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            out: List[str] = []
+            for p in content:
+                if isinstance(p, dict) and p.get("type") == "text":
+                    t = p.get("text")
+                    if isinstance(t, str):
+                        out.append(t)
+                elif isinstance(p, str):
+                    out.append(p)
+                else:
+                    t = getattr(p, "text", None)
+                    if isinstance(t, str):
+                        out.append(t)
+            return "".join(out)
+        if isinstance(content, dict):
+            if isinstance(content.get("text"), str):
+                return content["text"]
+            if isinstance(content.get("content"), str):
+                return content["content"]
+        t = getattr(content, "text", None)
+        if isinstance(t, str):
+            return t
+        return str(content)
+
+    def _message_to_text(self, msg: Dict[str, Any]) -> str:
+        """
+        Extract text from a dict message with 'content' possibly being str or list of parts.
+        """
+        if not isinstance(msg, dict):
+            return ""
+        mc = msg.get("content")
+        return self._content_to_text(mc)
+
     def _extract_urls(self, raw) -> List[str]:
         """
         Normalize list of citations into a list of HTTP(S) URLs.
-
-        Accepts either:
-        - A list of strings (URLs)
-        - A list of dicts with 'url' or 'uri' keys
-
-        :param raw: Raw citations input
-        :return: List of unique HTTP(S) URLs
         """
         urls: List[str] = []
         seen = set()
@@ -685,9 +855,6 @@ class Chat:
         Accepts either:
           - {'input_tokens','output_tokens','total_tokens'}
           - {'prompt_tokens','completion_tokens','total_tokens'}
-
-        :param raw: Raw usage input
-        :return: Normalized usage dict or None
         """
         if not isinstance(raw, dict):
             return None
@@ -703,19 +870,18 @@ class Chat:
 
         in_tok = raw.get("input_tokens") if "input_tokens" in raw else raw.get("prompt_tokens")
         out_tok = raw.get("output_tokens") if "output_tokens" in raw else raw.get("completion_tokens")
+        reasoning_tok = raw.get("reasoning_tokens", 0)
         tot = raw.get("total_tokens")
 
         i = _as_int(in_tok or 0)
         o = _as_int(out_tok or 0)
-        t = _as_int(tot if tot is not None else (i + o))
-        return {"in": i, "out": max(0, t - i) if t else o, "reasoning": 0, "total": t}
+        r = _as_int(reasoning_tok or 0)
+        t = _as_int(tot if tot is not None else (i + o + r))
+        return {"in": i, "out": max(0, t - i) if t else o, "reasoning": r, "total": t}
 
     def _looks_like_http_messages(self, messages) -> bool:
         """
         Return True if 'messages' looks like an OpenAI-style array of dicts with 'role' and 'content'.
-
-        :param messages: Messages input
-        :return: True if looks like HTTP messages
         """
         if not isinstance(messages, list):
             return False
@@ -739,20 +905,12 @@ class Chat:
         - If images present: content is a list of parts, with image parts first, then text part.
         - Only JPEG/PNG allowed; size validated; on violation we raise clear error in logs.
         - Tool-turns from ctx are injected like OpenAI (assistant.tool_calls + tool).
-
-        :param model_id: Model ID
-        :param system_prompt: System prompt
-        :param history: List of CtxItem for context
-        :param prompt: Current user prompt
-        :param attachments: Dict of AttachmentItem for images
-        :return: List of dicts with 'role' and 'content' (and optional tool_calls)
         """
         self.window.core.api.xai.vision.reset()
         messages: List[dict] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
 
-        # history as plain user/assistant turns
         items: List[CtxItem] = []
         if self.window.core.config.get('use_context'):
             used = self.window.core.tokens.from_user(prompt or "", system_prompt or "")
@@ -764,14 +922,11 @@ class Chat:
                 if it.final_output:
                     messages.append({"role": "assistant", "content": str(it.final_output)})
 
-        # Inject tool-turns from last ctx item
         self._append_tool_turns_from_ctx(messages, items)
 
-        # Current user content (images first -> then text), validated
         parts: List[dict] = []
         img_found = False
         if attachments:
-            # image constraints
             cfg = self.window.core.config
             max_bytes = int(cfg.get("xai_image_max_bytes") or self.default_image_max_bytes)
 
@@ -782,11 +937,9 @@ class Chat:
                     if not self.window.core.api.xai.vision.is_image(att.path):
                         continue
                     mime = self.window.core.api.xai.vision.guess_mime(att.path)
-                    # Enforce allowed MIME
                     if mime not in self.allowed_mimes:
                         self.window.core.debug.error(f"[xai.vision] Unsupported image MIME: {mime}. Use JPEG/PNG.")
                         continue
-                    # Enforce size
                     try:
                         fsz = os.path.getsize(att.path)
                         if fsz > max_bytes:
@@ -807,7 +960,6 @@ class Chat:
                     self.window.core.debug.error(f"[xai.vision] Error processing image '{getattr(att,'path',None)}': {e}")
                     continue
 
-        # Append text part last when images exist
         if img_found:
             if prompt:
                 parts.append({"type": "text", "text": str(prompt)})
@@ -820,9 +972,6 @@ class Chat:
     def _append_tool_turns_from_ctx(self, messages: List[dict], items: List[CtxItem]):
         """
         Append assistant.tool_calls and subsequent tool messages from last ctx item (OpenAI-compatible).
-
-        :param messages: Messages list to append to
-        :param items: List of CtxItem (history) to extract tool calls from
         """
         tool_call_native_enabled = self.window.core.config.get('func_call.native', False)
         if not (items and tool_call_native_enabled):
@@ -835,7 +984,6 @@ class Chat:
         if not (tool_calls and isinstance(tool_calls, list)):
             return
 
-        # find last assistant message to attach tool_calls
         idx = None
         for i in range(len(messages) - 1, -1, -1):
             if messages[i].get("role") == "assistant":
@@ -857,7 +1005,6 @@ class Chat:
                 }
             })
 
-        # append tool messages
         if tool_output and isinstance(tool_output, list):
             for out in tool_output:
                 if isinstance(out, dict) and "result" in out:
@@ -883,9 +1030,6 @@ class Chat:
     def _has_tool_turns(self, history: Optional[List[CtxItem]]) -> bool:
         """
         Return True if the last history item contains tool call(s) with tool output.
-
-        :param history: List of CtxItem
-        :return: True if last item has tool calls and output
         """
         if not history:
             return False
@@ -899,9 +1043,6 @@ class Chat:
     def _attachments_have_images(self, attachments: Optional[Dict[str, AttachmentItem]]) -> bool:
         """
         Detect if attachments contain at least one image file.
-
-        :param attachments: Dict of AttachmentItem
-        :return: True if at least one image attachment found
         """
         if not attachments:
             return False
@@ -916,9 +1057,6 @@ class Chat:
     def _is_vision_model(self, model: ModelItem) -> bool:
         """
         Heuristic check for vision-capable model IDs.
-
-        :param model: ModelItem
-        :return: True if model ID indicates vision capability
         """
         model_id = (model.id if model and model.id else "").strip()
         if not model or not model_id:
@@ -931,9 +1069,6 @@ class Chat:
     def _make_tools_payload(self, tools: Optional[List[dict]]) -> List[dict]:
         """
         Normalize tools to [{"type":"function","function":{...}}] without double-wrapping.
-
-        :param tools: List of tool dicts or None
-        :return: Normalized list of tool dicts
         """
         out: List[dict] = []
         for t in tools or []:
@@ -946,14 +1081,51 @@ class Chat:
     def _build_base_url(self, cfg_endpoint: Optional[str]) -> str:
         """
         Return normalized base URL like 'https://api.x.ai/v1' without trailing slash.
-
-        :param cfg_endpoint: Configured endpoint or None
-        :return: Normalized base URL string
         """
         base = (cfg_endpoint or "https://api.x.ai/v1").strip()
         if base.endswith("/"):
             base = base[:-1]
         return base
+
+    def _collect_images_from_message_parts(self, parts: List[dict], ctx: CtxItem):
+        """
+        Inspect assistant message parts for image_url outputs and store them.
+        For http(s) URLs -> add to ctx.urls; for data URLs -> save to file and add to ctx.images.
+        """
+        try:
+            if not isinstance(parts, list):
+                return
+            for p in parts:
+                if not isinstance(p, dict):
+                    continue
+                if p.get("type") != "image_url":
+                    continue
+                img = p.get("image_url") or {}
+                url = img.get("url")
+                if not isinstance(url, str):
+                    continue
+                if url.startswith("http://") or url.startswith("https://"):
+                    if ctx.urls is None:
+                        ctx.urls = []
+                    if url not in ctx.urls:
+                        ctx.urls.append(url)
+                elif url.startswith("data:image/"):
+                    try:
+                        header, b64 = url.split(",", 1)
+                        mime = header.split(";")[0].split(":")[1].lower()
+                        ext = "png"
+                        if "jpeg" in mime or "jpg" in mime:
+                            ext = "jpg"
+                        save_path = self.window.core.image.gen_unique_path(ctx, ext=ext)
+                        with open(save_path, "wb") as f:
+                            f.write(base64.b64decode(b64))
+                        if not isinstance(ctx.images, list):
+                            ctx.images = []
+                        ctx.images.append(save_path)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
 
     def reset_tokens(self):
         """Reset input tokens counter."""
@@ -962,7 +1134,5 @@ class Chat:
     def get_used_tokens(self) -> int:
         """
         Return the locally estimated input tokens count.
-
-        :return: Input tokens int
         """
         return self.input_tokens
