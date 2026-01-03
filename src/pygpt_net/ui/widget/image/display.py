@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -27,6 +27,17 @@ class ImageLabel(QLabel):
         self.window = window
         self.path = path
 
+    def _get_window(self):
+        """
+        Get main window instance
+
+        :return: Window instance
+        """
+        if self.window is not None:
+            if hasattr(self.window, 'window'):
+                return self.window.window
+        return self.window
+
     def contextMenuEvent(self, event):
         """
         Context menu event
@@ -35,6 +46,8 @@ class ImageLabel(QLabel):
         """
         if not self.path:
             return
+
+        win = self._get_window()
 
         actions = {}
         use_actions = []
@@ -64,13 +77,13 @@ class ImageLabel(QLabel):
             self,
         )
         actions['use_attachment'].triggered.connect(
-            lambda: self.window.controller.files.use_attachment(self.path),
+            lambda: win.controller.files.use_attachment(self.path),
         )
         use_actions.append(actions['use_attachment'])
 
         # use by filetype
-        if self.window.core.filesystem.actions.has_use(self.path):
-            extra_use_actions = self.window.core.filesystem.actions.get_use(self, self.path)
+        if win.core.filesystem.actions.has_use(self.path):
+            extra_use_actions = win.core.filesystem.actions.get_use(self, self.path)
             for action in extra_use_actions:
                 use_actions.append(action)
 
@@ -97,7 +110,8 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.tools.get("viewer").open(self.path)
+        win = self._get_window()
+        win.tools.get("viewer").open(self.path)
 
     def action_open_dir(self, event):
         """
@@ -105,7 +119,8 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.tools.get("viewer").open_dir(self.path)
+        win = self._get_window()
+        win.tools.get("viewer").open_dir(self.path)
 
     def action_save(self, event):
         """
@@ -113,7 +128,8 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.tools.get("viewer").save(self.path)
+        win = self._get_window()
+        win.tools.get("viewer").save(self.path)
 
     def action_delete(self, event):
         """
@@ -121,4 +137,5 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.tools.get("viewer").delete(self.path)
+        win = self._get_window()
+        win.tools.get("viewer").delete(self.path)
