@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -46,6 +46,9 @@ class Url:
             return
         elif url.toString().startswith('bridge://play_video/'):
             self.window.controller.media.play_video(url.toString().replace("bridge://play_video/", ""))
+            return
+        elif url.toString().startswith('bridge://open_image/'):
+            self.window.tools.get("viewer").open_preview(url.toString().replace("bridge://open_image/", ""))
             return
         elif url.toString().startswith('bridge://download/'):
             self.window.controller.files.download_local(url.toString().replace("bridge://download/", ""))

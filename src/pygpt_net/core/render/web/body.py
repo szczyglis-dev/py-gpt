@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.13 06:05:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 import os
@@ -410,7 +410,8 @@ class Body:
                 <p><a href="bridge://play_video/{url}" class="title">{elide_filename(basename)}</a></p>
             </div>
             '''
-        return f'<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url}"><img src="{path}" class="image"></a></div><a href="{url}" class="title">{elide_filename(basename)}</a></div></div><br/>'
+        url_preview = f"bridge://open_image/{url}"
+        return f'<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url_preview}"><img src="{path}" class="image"></a></div><a href="{url}" class="title">{elide_filename(basename)}</a></div></div><br/>'
 
     def get_url_html(
             self,

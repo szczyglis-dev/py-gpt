@@ -91,7 +91,7 @@ class NodeTemplateEngine {
 				} else {
 					parts.push(
 						`<div class="extra-src-img-box" title="${url}">` +
-						`<div class="img-outer"><div class="img-wrapper"><a href="${url}"><img src="${path}" class="image"></a></div>` +
+						`<div class="img-outer"><div class="img-wrapper"><a href="bridge://open_image/${path}"><img src="${path}" class="image"></a></div>` +
 						`<a href="${url}" class="title">${this._escapeHtml(bn)}</a></div>` +
 						`</div><br/>`
 					);
