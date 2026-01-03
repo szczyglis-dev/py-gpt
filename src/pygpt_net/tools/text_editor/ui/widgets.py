@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon, QKeySequence
@@ -66,6 +66,10 @@ class TextFileEditor(BaseCodeEditor):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText())
             )
             menu.addAction(action)
+
+        # Add zoom submenu
+        zoom_menu = self.window.ui.context_menu.get_zoom_menu(self, "editor", self.value, self.on_zoom_changed)
+        menu.addMenu(zoom_menu)
 
         action = QAction(self._icon_search, trans('text.context_menu.find'), menu)
         action.triggered.connect(self.find_open)
