@@ -1160,9 +1160,9 @@
         "slider": true,
         "label": "settings.max_output_tokens",
         "description": "settings.zero.limit.desc",
-        "value": 50,
+        "value": 64000,
         "min": 0,
-        "max": 32000,
+        "max": 2000000,
         "multiplier": 1,
         "step": 1,
         "advanced": false
@@ -1173,9 +1173,9 @@
         "slider": true,
         "label": "settings.max_total_tokens",
         "description": "settings.zero.limit.desc",
-        "value": 400,
+        "value": 256000,
         "min": 0,
-        "max": 256000,
+        "max": 2000000,
         "multiplier": 1,
         "step": 1,
         "advanced": false
@@ -2049,31 +2049,12 @@
         "advanced": false,
         "tab": "Anthropic"
     },
-    "remote_tools.xai.mode": {
-        "section": "remote_tools",
-        "type": "combo",
-        "slider": false,
-        "label": "settings.remote_tools.xai.mode",
-        "description": "settings.remote_tools.xai.mode.desc",
-        "value": "auto",
-        "keys": [
-            {"auto": "auto"},
-            {"on": "on"},
-            {"off": "off"}
-        ],
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "xAI"
-    },
-    "remote_tools.xai.sources.web": {
+    "remote_tools.xai.web_search": {
         "section": "remote_tools",
         "type": "bool",
         "slider": false,
-        "label": "settings.remote_tools.xai.sources.web",
-        "description": "settings.remote_tools.xai.sources.web.desc",
+        "label": "settings.remote_tools.xai.web_search",
+        "description": "settings.remote_tools.xai.web_search.desc",
         "value": true,
         "min": null,
         "max": null,
@@ -2082,12 +2063,12 @@
         "advanced": false,
         "tab": "xAI"
     },
-    "remote_tools.xai.sources.x": {
+    "remote_tools.xai.x_search": {
         "section": "remote_tools",
         "type": "bool",
         "slider": false,
-        "label": "settings.remote_tools.xai.sources.x",
-        "description": "settings.remote_tools.xai.sources.x.desc",
+        "label": "settings.remote_tools.xai.x_search",
+        "description": "settings.remote_tools.xai.x_search.desc",
         "value": true,
         "min": null,
         "max": null,
@@ -2096,12 +2077,12 @@
         "advanced": false,
         "tab": "xAI"
     },
-    "remote_tools.xai.sources.news": {
+    "remote_tools.xai.code_execution": {
         "section": "remote_tools",
         "type": "bool",
         "slider": false,
-        "label": "settings.remote_tools.xai.sources.news",
-        "description": "settings.remote_tools.xai.sources.news.desc",
+        "label": "settings.remote_tools.xai.code_execution",
+        "description": "settings.remote_tools.xai.code_execution.desc",
         "value": true,
         "min": null,
         "max": null,
@@ -2109,6 +2090,37 @@
         "step": null,
         "advanced": false,
         "tab": "xAI"
+    },
+    "remote_tools.xai.mcp": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.xai.mcp",
+        "description": "settings.remote_tools.xai.mcp.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "xAI"
+    },
+    "remote_tools.xai.mcp.args": {
+        "section": "remote_tools",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.remote_tools.xai.mcp.args",
+        "description": "settings.remote_tools.xai.mcp.args.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "xAI",
+        "urls": {
+            "xAI Docs": "https://docs.x.ai/docs/guides/tools/remote-mcp-tools"
+        }
     },
     "llama.idx.list": {
         "section": "llama-index",

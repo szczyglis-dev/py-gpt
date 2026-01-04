@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 12:00:00                  #
+# Updated Date: 2026.01.04 19:00:00                  #
 # ================================================== #
 
 from typing import Union
@@ -69,11 +69,7 @@ class RemoteTools:
         elif model.provider == "anthropic":  # native SDK
             state = cfg_get("remote_tools.anthropic.web_search", False)
         elif model.provider == "x_ai":  # native SDK
-            mode = cfg_get("remote_tools.xai.mode", "auto")
-            if mode not in ("auto", "on", "off"):
-                mode = "auto"
-            if mode == "auto" or mode == "on":
-                state = True
+            state = cfg_get("remote_tools.xai.web_search", False)
 
         # if not enabled by default or other provider, then use global config
         if not state:
@@ -109,9 +105,7 @@ class RemoteTools:
             cfg_set("remote_tools.web_search", state)
             cfg_set("remote_tools.google.web_search", state)
             cfg_set("remote_tools.anthropic.web_search", state)
-
-            # xAI has 3 modes: auto, on, off
-            cfg_set("remote_tools.xai.mode", "on" if state else "off")
+            cfg_set("remote_tools.xai.web_search", state)
 
         # save config
         self.window.core.config.save()

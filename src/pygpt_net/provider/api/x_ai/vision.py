@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 01:00:00                  #
+# Updated Date: 2026.01.04 19:00:00                  #
 # ================================================== #
 
 import os
@@ -50,9 +50,6 @@ class Vision:
             try:
                 if att.path and self.window.core.api.xai.vision.is_image(att.path):
                     mime = self.window.core.api.xai.vision.guess_mime(att.path)
-                    # Accept only JPEG/PNG for SDK too (for consistency)
-                    #if mime not in self.allowed_mimes:
-                       # continue
                     with open(att.path, "rb") as f:
                         b64 = base64.b64encode(f.read()).decode("utf-8")
                     images.append(f"data:{mime};base64,{b64}")

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.01.04 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
@@ -296,9 +296,20 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
     except Exception:
         return None
 
+    # persist last response and attach response id to ctx once
     try:
         if response is not None:
             state.xai_last_response = response
+            rid = getattr(response, "id", None)
+            if rid and not getattr(ctx, "msg_id", None):
+                ctx.msg_id = str(rid)
+                if not isinstance(ctx.extra, dict):
+                    ctx.extra = {}
+                ctx.extra["xai_response_id"] = ctx.msg_id
+                try:
+                    core.ctx.update_item(ctx)
+                except Exception:
+                    pass
     except Exception:
         pass
 

@@ -6,20 +6,26 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 01:00:00                  #
+# Updated Date: 2026.01.04 19:00:00                  #
 # ================================================== #
 
 import json
 from typing import List, Any, Optional
 
+# xAI SDK client-side tool descriptor
+try:
+    from xai_sdk.chat import tool as x_tool
+except Exception:
+    x_tool = None
+
 
 class Tools:
     def __init__(self, window=None):
         """
-        Tools mapper for xAI Chat Completions-compatible schema.
+        Tools mapper for xAI.
 
-        Input: app 'functions' list with keys: name, desc, params (JSON Schema string).
-        Output: list of dicts with keys: name, description, parameters.
+        - prepare(): legacy OpenAI-compatible dicts (kept for compatibility if needed).
+        - prepare_sdk_tools(): xAI SDK client-side tool descriptors for Chat Responses.
 
         :param window: Window instance
         """
@@ -84,12 +90,10 @@ class Tools:
 
     def prepare(self, functions: list) -> List[dict]:
         """
-        Prepare xAI tools list (OpenAI-compatible schema) from app functions list.
-
-        Returns [] if no functions provided.
+        Prepare legacy xAI/OpenAI-compatible tools list from app functions list.
 
         :param functions: List of functions with keys: name (str), desc (str), params (JSON Schema str)
-        :return: List of tools with keys: name (str), description (str), parameters (dict)
+        :return: List of tools in dict format
         """
         if not functions or not isinstance(functions, list):
             return []
@@ -117,4 +121,51 @@ class Tools:
                 "description": desc,
                 "parameters": params,
             })
+        return tools
+
+    def prepare_sdk_tools(self, functions: list) -> List[object]:
+        """
+        Prepare xAI SDK client-side tool descriptors for Chat Responses.
+
+        :param functions: List of functions with keys: name (str), desc (str), params (JSON Schema str)
+        :return: List of xai_sdk.chat.tool(...) objects
+        """
+        if x_tool is None:
+            return []  # SDK too old; skip silently
+        if not functions or not isinstance(functions, list):
+            return []
+
+        tools: List[object] = []
+        for fn in functions:
+            name = str(fn.get("name") or "").strip()
+            if not name:
+                continue
+            desc = fn.get("desc") or ""
+            params: Optional[dict] = {}
+            if fn.get("params"):
+                try:
+                    params = json.loads(fn["params"])
+                except Exception:
+                    params = {}
+                params = self._sanitize_schema(params or {})
+                if not params.get("type"):
+                    params["type"] = "object"
+            else:
+                params = {"type": "object"}
+            try:
+                tools.append(x_tool(
+                    name=name,
+                    description=desc,
+                    parameters=params,
+                ))
+            except Exception:
+                # In case of schema issues, fallback to empty-params tool
+                try:
+                    tools.append(x_tool(
+                        name=name,
+                        description=desc,
+                        parameters={"type": "object"},
+                    ))
+                except Exception:
+                    continue
         return tools

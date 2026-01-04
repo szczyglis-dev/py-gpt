@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 02:10:00                  #
+# Updated Date: 2026.01.04 19:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -114,6 +114,31 @@ class Patch:
                         base_model = from_base(model)
                         if base_model:
                             data[model] = base_model
+                updated = True
+
+            # <  2.7.7 <--- add missing image input
+            if old < parse_version("2.7.7"):
+                print("Migrating models from < 2.7.7...")
+                models_to_add = [
+                    "grok-4-1-fast-non-reasoning",
+                    "grok-4-1-fast-reasoning",
+                    "grok-4-fast-non-reasoning",
+                    "grok-4-fast-reasoning"
+                ]
+                for model in models_to_add:
+                    if model not in data:
+                        base_model = from_base(model)
+                        if base_model:
+                            data[model] = base_model
+
+                models_to_update = [
+                    "grok-4"
+                ]
+                for model in models_to_update:
+                    if model in data:
+                        m = data[model]
+                        if not m.is_image_input():
+                            m.input.append("image")
                 updated = True
 
         # update file

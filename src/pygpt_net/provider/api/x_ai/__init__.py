@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.01.04 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -33,7 +33,8 @@ from .vision import Vision
 from .tools import Tools
 from .audio import Audio
 from .image import Image
-from .remote import Remote
+from .remote_tools import Remote
+from .responses import Responses
 
 
 class ApiXAI:
@@ -49,7 +50,8 @@ class ApiXAI:
         self.tools = Tools(window)
         self.audio = Audio(window)
         self.image = Image(window)
-        self.remote = Remote(window)  # Live Search builder
+        self.remote = Remote(window)
+        self.responses = Responses(window)
         self.client: Optional[xai_sdk.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
@@ -101,8 +103,9 @@ class ApiXAI:
         """
         Make an API call to xAI.
 
-        Supports chat (stream/non-stream), images (via REST),
-        and function-calling. Audio is not available in public xAI SDK at this time.
+        Uses old API and Chat Responses (stateful) via xai_sdk:
+        - Streaming: chat.stream() (tuples of (response, chunk))
+        - Non-stream: chat.sample()
 
         :param context: BridgeContext
         :param extra: Extra params (not used)
@@ -113,9 +116,14 @@ class ApiXAI:
         stream = context.stream
         ctx = context.ctx
         ai_name = (ctx.output_name if ctx else "assistant")
+        model = context.model  # model instance (item, not id)
         used_tokens = 0
         response = None
         ctx.chunk_type = ChunkType.XAI_SDK
+        
+        use_responses_api = True
+        if model and model.id.startswith("grok-3"):
+            use_responses_api = False  # use old API
 
         if mode in (
                 MODE_COMPLETION,
@@ -123,9 +131,15 @@ class ApiXAI:
                 MODE_AUDIO,
                 MODE_RESEARCH
         ):
-            # There is no public realtime audio in SDK; treat MODE_AUDIO as chat (TTS not supported).
-            response = self.chat.send(context=context, extra=extra)
-            used_tokens = self.chat.get_used_tokens()
+            # Audio TTS is not exposed via public SDK; treat MODE_AUDIO as chat input.
+            # NOTE: for grok-3 use Chat completions, for > grok-4 use Chat responses
+            if use_responses_api:
+                response = self.responses.send(context=context, extra=extra)  # responses
+                used_tokens = self.responses.get_used_tokens()
+            else:
+                response = self.chat.send(context=context, extra=extra)  # completions
+                used_tokens = self.chat.get_used_tokens()
+
             if ctx:
                 self.vision.append_images(ctx)
 
@@ -151,7 +165,10 @@ class ApiXAI:
 
         if ctx:
             ctx.ai_name = ai_name
-            self.chat.unpack_response(context.mode, response, ctx)
+            if use_responses_api:
+                self.responses.unpack_response(context.mode, response, ctx)
+            else:
+                self.chat.unpack_response(context.mode, response, ctx)
             try:
                 for tc in getattr(ctx, "tool_calls", []) or []:
                     fn = tc.get("function") or {}
@@ -166,6 +183,88 @@ class ApiXAI:
         return True
 
     def quick_call(
+            self,
+            context: BridgeContext,
+            extra: dict = None
+    ) -> str:
+        """
+        Quick non-streaming xAI chat call and return output text.
+
+        If context.request is set, makes a full call() instead (for consistency).
+
+        :param context: BridgeContext
+        :param extra: Extra params (not used)
+        :return: Output text or "" on error
+        """
+        model = context.model or self.window.core.models.from_defaults()
+        if model and model.id.startswith("grok-3"):
+            return self.quick_call_old(context, extra)  # grok-3 uses old path
+
+        if context.request:
+            context.stream = False
+            context.mode = MODE_CHAT
+            self.locked = True
+            self.call(context, extra)
+            self.locked = False
+            return context.ctx.output
+
+        self.locked = True
+        try:
+            ctx = context.ctx
+            prompt = context.prompt
+            system_prompt = context.system_prompt
+            history = context.history
+            functions = context.external_functions
+            attachments = context.attachments
+            multimodal_ctx = context.multimodal_ctx
+
+            # Prepare client-side tools for SDK (no server-side tools in quick_call)
+            client_tools = self.tools.prepare_sdk_tools(functions)
+
+            client = self.get_client(MODE_CHAT, model)
+            # store_messages: false for quick, and false if images present (SDK guidance)
+            store_messages = False
+            prev_id = None
+
+            # Create chat session
+            include = []
+            chat = client.chat.create(
+                model=model.id,
+                tools=(client_tools if client_tools else None),
+                include=(include if include else None),
+                store_messages=store_messages,
+                previous_response_id=prev_id,
+            )
+
+            # Append history if enabled and no previous_response_id is used
+            self.responses.append_history_sdk(
+                chat=chat,
+                system_prompt=system_prompt,
+                model=model,
+                history=history,
+            )
+
+            # Append current prompt with optional images
+            self.responses.append_current_user_sdk(
+                chat=chat,
+                prompt=prompt,
+                attachments=attachments,
+                multimodal_ctx=multimodal_ctx,
+            )
+
+            resp = chat.sample()
+            # Extract client-side tool calls if any (leave server-side out)
+            out = getattr(resp, "content", "") or ""
+            if ctx:
+                self.responses.quick_collect_response_id(resp, ctx)
+            return out.strip()
+        except Exception as e:
+            self.window.core.debug.log(e)
+            return ""
+        finally:
+            self.locked = False
+
+    def quick_call_old(
             self,
             context: BridgeContext,
             extra: dict = None
@@ -202,7 +301,7 @@ class ApiXAI:
             # If tools are present, prefer non-streaming HTTP Chat Completions path to extract tool calls reliably.
             # Otherwise use native SDK chat.sample().
             if tools:
-                out, calls, citations, usage  = self.chat.call_http_nonstream(
+                out, calls, citations, usage = self.chat.call_http_nonstream(
                     model=model.id,
                     prompt=prompt,
                     system_prompt=system_prompt,

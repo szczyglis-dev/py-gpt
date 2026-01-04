@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.01.04 19:00:00                  #
 # ================================================== #
 
 import base64
 import datetime
 import os
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Iterable
 
 import requests
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -35,7 +35,7 @@ class Image:
             sync: bool = True
     ) -> bool:
         """
-        Generate image(s) via xAI REST API /v1/images/generations (OpenAI-compatible).
+        Generate image(s) via xAI SDK image API.
         Model: grok-2-image (or -1212 variants).
 
         :param context: BridgeContext with prompt, model, ctx
@@ -60,7 +60,7 @@ class Image:
         worker = ImageWorker()
         worker.window = self.window
         worker.ctx = ctx
-        worker.model = model.id or "grok-2-image"
+        worker.model = (model.id or "grok-2-image")
         worker.input_prompt = prompt
         worker.model_prompt = prompt_model
         worker.system_prompt = self.window.core.prompt.get('img')
@@ -108,8 +108,10 @@ class ImageWorker(QRunnable):
         self.raw = False
         self.num = 1
 
-        # API
-        self.api_url = "https://api.x.ai/v1/images/generations"  # OpenAI-compatible endpoint
+        # SDK image_format:
+        # - "base64": returns raw image bytes in SDK response (preferred for local saving)
+        # - "url": returns URL on xAI managed storage (fallback: we download)
+        self.image_format = "base64"
 
     @Slot()
     def run(self):
@@ -143,48 +145,35 @@ class ImageWorker(QRunnable):
 
             self.signals.status.emit(trans('img.status.generating') + f": {self.input_prompt}...")
 
-            cfg = self.window.core.config
-            api_key = cfg.get("api_key_xai") or os.environ.get("XAI_API_KEY") or ""
-            self.api_url = cfg.get("api_endpoint_xai") + "/images/generations"
-            if not api_key:
-                raise RuntimeError("Missing xAI API key. Set `api_key_xai` in config or XAI_API_KEY in env.")
+            # use xAI SDK client
+            client = self.window.core.api.xai.get_client()
 
-            headers = {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            }
-            payload = {
-                "model": self.model or "grok-2-image",
-                "prompt": self.input_prompt or "",
-                "n": max(1, min(int(self.num), 10)),
-                "response_format": "b64_json",  # get base64 so we can save locally
-            }
+            # enforce n range [1..10] as per docs
+            n = max(1, min(int(self.num or 1), 10))
 
-            r = requests.post(self.api_url, headers=headers, json=payload, timeout=180)
-            r.raise_for_status()
-            data = r.json()
+            images_bytes: List[bytes] = []
+            if n == 1:
+                # single image
+                resp = client.image.sample(
+                    model=self.model or "grok-2-image",
+                    prompt=self.input_prompt or "",
+                    image_format=("base64" if self.image_format == "base64" else "url"),
+                )
+                images_bytes = self._extract_bytes_from_single(resp)
+            else:
+                # batch images
+                resp_iter = client.image.sample_batch(
+                    model=self.model or "grok-2-image",
+                    prompt=self.input_prompt or "",
+                    n=n,
+                    image_format=("base64" if self.image_format == "base64" else "url"),
+                )
+                images_bytes = self._extract_bytes_from_batch(resp_iter)
 
-            images = []
-            for idx, img in enumerate((data.get("data") or [])[: self.num]):
-                b64 = img.get("b64_json")
-                if not b64:
-                    # fallback: url download
-                    url = img.get("url")
-                    if url:
-                        try:
-                            rr = requests.get(url, timeout=60)
-                            if rr.status_code == 200:
-                                images.append(rr.content)
-                        except Exception:
-                            pass
-                    continue
-                try:
-                    images.append(base64.b64decode(b64))
-                except Exception:
-                    continue
-
+            # save images to files
             paths: List[str] = []
-            for i, content in enumerate(images):
+            for i, content in enumerate(images_bytes):
+                # generate filename
                 name = (
                     datetime.date.today().strftime("%Y-%m-%d") + "_" +
                     datetime.datetime.now().strftime("%H-%M-%S") + "-" +
@@ -192,7 +181,7 @@ class ImageWorker(QRunnable):
                     str(i + 1) + ".jpg"
                 )
                 path = os.path.join(self.window.core.config.get_user_dir("img"), name)
-                self.signals.status.emit(trans('img.status.downloading') + f" ({i + 1} / {self.num}) -> {path}")
+                self.signals.status.emit(trans('img.status.downloading') + f" ({i + 1} / {len(images_bytes)}) -> {path}")
 
                 if self.window.core.image.save_image(path, content):
                     paths.append(path)
@@ -206,6 +195,119 @@ class ImageWorker(QRunnable):
             self.signals.error.emit(e)
         finally:
             self._cleanup()
+
+    # ---------- SDK response helpers ----------
+
+    def _extract_bytes_from_single(self, resp) -> List[bytes]:
+        """
+        Normalize single-image SDK response to a list of bytes.
+        Accepts:
+        - resp.image -> bytes or base64 str (docs say raw bytes)
+        - resp.url -> download
+        - dict-like/legacy: {'b64_json': ..., 'url': ...}
+        """
+        out: List[bytes] = []
+        try:
+            # preferred path: raw bytes when image_format="base64"
+            img_bytes = getattr(resp, "image", None)
+            if isinstance(img_bytes, (bytes, bytearray)):
+                out.append(bytes(img_bytes))
+                return out
+            if isinstance(img_bytes, str):
+                try:
+                    out.append(base64.b64decode(img_bytes))
+                    return out
+                except Exception:
+                    pass
+
+            # url fallback
+            url = getattr(resp, "url", None)
+            if isinstance(url, str) and url:
+                try:
+                    r = requests.get(url, timeout=60)
+                    if r.status_code == 200:
+                        out.append(r.content)
+                        return out
+                except Exception:
+                    pass
+
+            # dict-like fallbacks
+            if isinstance(resp, dict):
+                if "b64_json" in resp and resp["b64_json"]:
+                    try:
+                        out.append(base64.b64decode(resp["b64_json"]))
+                        return out
+                    except Exception:
+                        pass
+                if "url" in resp and resp["url"]:
+                    try:
+                        r = requests.get(resp["url"], timeout=60)
+                        if r.status_code == 200:
+                            out.append(r.content)
+                            return out
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        return out
+
+    def _extract_bytes_from_batch(self, resp_iter: Iterable) -> List[bytes]:
+        """
+        Normalize batch SDK response (iterable of images) to a list of bytes.
+        Handles item.image (bytes/str), item.url, dict-like or bytes directly.
+        """
+        out: List[bytes] = []
+        if resp_iter is None:
+            return out
+        try:
+            for item in resp_iter:
+                # bytes directly
+                if isinstance(item, (bytes, bytearray)):
+                    out.append(bytes(item))
+                    continue
+
+                # preferred: raw bytes in item.image
+                img_bytes = getattr(item, "image", None)
+                if isinstance(img_bytes, (bytes, bytearray)):
+                    out.append(bytes(img_bytes))
+                    continue
+                if isinstance(img_bytes, str):
+                    try:
+                        out.append(base64.b64decode(img_bytes))
+                        continue
+                    except Exception:
+                        pass
+
+                # url fallback
+                url = getattr(item, "url", None)
+                if isinstance(url, str) and url:
+                    try:
+                        r = requests.get(url, timeout=60)
+                        if r.status_code == 200:
+                            out.append(r.content)
+                            continue
+                    except Exception:
+                        pass
+
+                # dict-like fallbacks
+                if isinstance(item, dict):
+                    if "b64_json" in item and item["b64_json"]:
+                        try:
+                            out.append(base64.b64decode(item["b64_json"]))
+                            continue
+                        except Exception:
+                            pass
+                    if "url" in item and item["url"]:
+                        try:
+                            r = requests.get(item["url"], timeout=60)
+                            if r.status_code == 200:
+                                out.append(r.content)
+                                continue
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+        return out
 
     def _cleanup(self):
         """Cleanup signals to avoid multiple calls."""

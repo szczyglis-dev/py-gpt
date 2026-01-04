@@ -3192,10 +3192,198 @@
                 ]
             },
             "ctx": 256000,
-            "tokens": 16384,
+            "tokens": 0,
             "default": false,
             "input": [
                 "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-4-1-fast-non-reasoning": {
+            "id": "grok-4-1-fast-non-reasoning",
+            "name": "grok-4-1-fast-non-reasoning",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent_llama",
+                "agent_openai",
+                "agent",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-4-1-fast-non-reasoning",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 256000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-4-1-fast-reasoning": {
+            "id": "grok-4-1-fast-reasoning",
+            "name": "grok-4-1-fast-reasoning",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent_llama",
+                "agent_openai",
+                "agent",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-4-1-fast-reasoning",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 256000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-4-fast-non-reasoning": {
+            "id": "grok-4-fast-non-reasoning",
+            "name": "grok-4-fast-non-reasoning",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent_llama",
+                "agent_openai",
+                "agent",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-4-fast-non-reasoning",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 256000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-4-fast-reasoning": {
+            "id": "grok-4-fast-reasoning",
+            "name": "grok-4-fast-reasoning",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent_llama",
+                "agent_openai",
+                "agent",
+                "expert"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-4-fast-reasoning",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 256000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
             ],
             "output": [
                 "text"

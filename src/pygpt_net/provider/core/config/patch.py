@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 02:00:00                  #
+# Updated Date: 2026.01.04 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -236,6 +236,20 @@ class Patch:
                     data["remote_tools.google.maps"] = False
                 if "remote_store.openai.hide_threads" not in data:
                     data["remote_store.openai.hide_threads"] = True
+                updated = True
+
+            # < 2.7.7
+            if old < parse_version("2.7.7"):
+                print("Migrating config from < 2.7.7...")
+                to_add = [
+                    "remote_tools.xai.mcp",
+                    "remote_tools.xai.mcp.args",
+                    "remote_tools.xai.web_search",
+                    "remote_tools.xai.x_search",
+                ]
+                for key in to_add:
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
                 updated = True
 
         # update file
