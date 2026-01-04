@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import base64
@@ -177,7 +177,7 @@ class ImageWorker(QRunnable):
 
     def _is_gpt_image_model(self, model_id: Optional[str] = None) -> bool:
         mid = (model_id or self.model or "").lower()
-        return mid.startswith("gpt-image-1")
+        return mid.startswith("gpt-image-1") or mid.startswith("chatgpt-image")
 
     def _is_dalle2(self, model_id: Optional[str] = None) -> bool:
         mid = (model_id or self.model or "").lower()
