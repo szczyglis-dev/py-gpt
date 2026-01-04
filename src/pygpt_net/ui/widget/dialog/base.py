@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 14:00:00                  #
+# Updated Date: 2026.01.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QRect, QSize, QPoint, QEvent, Qt
+from PySide6.QtCore import QSize, QPoint, QEvent, Qt
 from PySide6.QtWidgets import QDialog
 
 
@@ -25,10 +25,19 @@ class BaseDialog(QDialog):
         super(BaseDialog, self).__init__(window)
         self.window = window
         self.id = id
+        self.shared_id = None
         self.disable_geometry_store = False
         self.setWindowFlags(
             self.windowFlags() | Qt.WindowMaximizeButtonHint
         )
+
+    def _get_id(self):
+        """
+        Get dialog id
+
+        :return: dialog id
+        """
+        return self.shared_id if self.shared_id is not None else self.id
 
     def showEvent(self, event):
         """
@@ -58,7 +67,7 @@ class BaseDialog(QDialog):
         if self.disable_geometry_store:
             return False
 
-        if self.window is None or self.id is None:
+        if self.window is None or self._get_id() is None:
             return False
 
         config = self.window.core.config
@@ -71,6 +80,7 @@ class BaseDialog(QDialog):
     def save_geometry(self):
         """Save dialog geometry"""
         config = self.window.core.config
+        id = self._get_id()
         item = {
             "size": [self.size().width(), self.size().height()],
             "pos": [self.pos().x(), self.pos().y()]
@@ -81,7 +91,7 @@ class BaseDialog(QDialog):
 
         if not isinstance(data, dict):
             data = {}
-        data[self.id] = item
+        data[id] = item
 
         if self.store_geometry_enabled():
             config.set_session("layout.dialog.geometry", data)
@@ -89,6 +99,7 @@ class BaseDialog(QDialog):
     def restore_geometry(self):
         """Restore dialog geometry"""
         # get available screen geometry
+        id = self._get_id()
         screen = QApplication.primaryScreen()
         available_geometry = screen.availableGeometry()
         config = self.window.core.config
@@ -97,7 +108,7 @@ class BaseDialog(QDialog):
         if self.store_geometry_enabled():
             data = config.get_session("layout.dialog.geometry", {})
 
-        item = data.get(self.id, {})
+        item = data.get(id, {})
         if isinstance(item, dict) and "size" in item and "pos" in item:
             width, height = item["size"]
             x, y = item["pos"]

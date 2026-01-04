@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.01.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QPoint, QSize, QEvent
@@ -37,8 +37,9 @@ class DialogSpawner:
         :return: BaseDialog instance
         """
         dialog = ImageViewerDialog(self.window, self.id)
-        dialog.disable_geometry_store = True  # disable geometry store
+        dialog.disable_geometry_store = False
         dialog.id = id
+        dialog.shared_id = self.id
 
         source = ImageLabel(dialog, self.path)
         source.setVisible(False)

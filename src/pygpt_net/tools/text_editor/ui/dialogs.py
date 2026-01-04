@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2026.01.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout
@@ -63,8 +63,9 @@ class DialogSpawner:
         layout.addLayout(bottom_layout)
 
         dialog = EditorFileDialog(self.window)
-        dialog.disable_geometry_store = True  # disable geometry store
+        dialog.disable_geometry_store = False
         dialog.id = id
+        dialog.shared_id = "text-edit"
         dialog.append_layout(layout)
         dialog.setWindowTitle("Text editor")
 
