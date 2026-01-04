@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import json
@@ -152,78 +152,16 @@ class Tools:
                 if not params.get("type"):
                     params["type"] = "object"
 
-            tools.append({
+            # pass through tool as client tool
+            tool_def = {
                 "name": name,
                 "description": desc,
                 "input_schema": params or {"type": "object"},
-            })
-
-        return tools
-
-    def build_remote_tools(self, model: ModelItem = None) -> List[dict]:
-        """
-        Build Anthropic server tools (remote tools) based on config flags.
-        Currently supports: Web Search tool.
-
-        Returns a list of tool dicts to be appended to 'tools' in messages.create.
-
-        :param model: ModelItem
-        :return: List of remote tool dicts
-        """
-        cfg = self.window.core.config
-        tools: List[dict] = []
-
-        # sonnet-3.5 is not supported
-        if model and model.id and model.id.startswith("claude-3-5"):
-            return tools
-
-        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")  # get global config
-
-        # Web Search tool
-        if is_web:
-            ttype = cfg.get("remote_tools.anthropic.web_search.type", "web_search_20250305")  # stable as of docs
-            tname = "web_search"
-
-            tool_def: Dict[str, Any] = {
-                "type": ttype,
-                "name": tname,
             }
 
-            # Optional params
-            max_uses = cfg.get("remote_tools.anthropic.web_search.max_uses")
-            if isinstance(max_uses, int) and max_uses > 0:
-                tool_def["max_uses"] = max_uses
-
-            def parse_csv_list(key: str) -> list:
-                raw = cfg.get(key, "")
-                if not raw:
-                    return []
-                if isinstance(raw, list):
-                    return [str(x).strip() for x in raw if str(x).strip()]
-                return [s.strip() for s in str(raw).split(",") if s.strip()]
-
-            allowed = parse_csv_list("remote_tools.anthropic.web_search.allowed_domains")
-            blocked = parse_csv_list("remote_tools.anthropic.web_search.blocked_domains")
-            if allowed:
-                tool_def["allowed_domains"] = allowed
-            elif blocked:
-                tool_def["blocked_domains"] = blocked
-
-            # Location (approximate)
-            loc_city = cfg.get("remote_tools.anthropic.web_search.user_location.city")
-            loc_region = cfg.get("remote_tools.anthropic.web_search.user_location.region")
-            loc_country = cfg.get("remote_tools.anthropic.web_search.user_location.country")
-            loc_tz = cfg.get("remote_tools.anthropic.web_search.user_location.timezone")
-            if any([loc_city, loc_region, loc_country, loc_tz]):
-                tool_def["user_location"] = {
-                    "type": "approximate",
-                    "city": str(loc_city) if loc_city else None,
-                    "region": str(loc_region) if loc_region else None,
-                    "country": str(loc_country) if loc_country else None,
-                    "timezone": str(loc_tz) if loc_tz else None,
-                }
-                # remove None fields
-                tool_def["user_location"] = {k: v for k, v in tool_def["user_location"].items() if v is not None}
+            # optional: allow defer_loading for tool search when configured per-tool (kept compatible)
+            if isinstance(fn, dict) and fn.get("defer_loading") is True:
+                tool_def["defer_loading"] = True
 
             tools.append(tool_def)
 
@@ -231,28 +169,45 @@ class Tools:
 
     def merge_tools_dedup(self, primary: List[dict], secondary: List[dict]) -> List[dict]:
         """
-        Remove duplicate tools by name, preserving order:
+        Remove duplicate tools, preserving order:
 
         - First from primary list
-        - Then from secondary list if name not already present
+        - Then from secondary list if not already present
+
+        Dedup rules:
+          * Tools with a 'name' are deduped by name.
+          * MCP toolsets (type == 'mcp_toolset') are deduped by (type, mcp_server_name).
+          * Tools without a 'name' use (type) as a fallback key.
 
         :param primary: Primary list of tool dicts
         :param secondary: Secondary list of tool dicts
         :return: Merged list of tool dicts without duplicates
         """
+        def key_for(t: dict) -> str:
+            name = t.get("name")
+            if name:
+                return f"name::{name}"
+            ttype = t.get("type")
+            if ttype == "mcp_toolset":
+                return f"mcp::{t.get('mcp_server_name', '')}"
+            return f"type::{ttype}"
+
         result: List[dict] = []
         seen = set()
+
         for t in primary or []:
-            n = t.get("name")
-            if n and n not in seen:
-                seen.add(n)
+            k = key_for(t)
+            if k not in seen:
+                seen.add(k)
                 result.append(t)
+
         for t in secondary or []:
-            n = t.get("name")
-            if not n or n in seen:
+            k = key_for(t)
+            if k in seen:
                 continue
-            seen.add(n)
+            seen.add(k)
             result.append(t)
+
         return result
 
     def get_all_tools(self, model: ModelItem, functions: list) -> List[dict]:
@@ -264,5 +219,5 @@ class Tools:
         :return: Combined list of tool dicts
         """
         base_tools = self.prepare(model, functions)
-        remote_tools = self.build_remote_tools(model)
+        remote_tools = self.window.core.api.anthropic.remote_tools.build_remote_tools(model)
         return self.merge_tools_dedup(base_tools, remote_tools)

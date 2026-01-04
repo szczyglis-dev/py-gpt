@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -18,7 +18,7 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_COMPLETION,
     MODE_IMAGE,
-    MODE_RESEARCH,
+    MODE_RESEARCH, MODE_COMPUTER,
 )
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.types.chunk import ChunkType
@@ -29,6 +29,8 @@ from .tools import Tools
 from .vision import Vision
 from .audio import Audio
 from .image import Image
+from .remote_tools import RemoteTools
+from .computer import Computer
 
 
 class ApiAnthropic:
@@ -44,6 +46,8 @@ class ApiAnthropic:
         self.vision = Vision(window)
         self.audio = Audio(window)   # stub helpers (no official audio out/in in SDK as of now)
         self.image = Image(window)   # stub: no image generation in Anthropic
+        self.remote_tools = RemoteTools(window)
+        self.computer = Computer(window)
         self.client: Optional[anthropic.Anthropic] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
@@ -103,7 +107,8 @@ class ApiAnthropic:
                 MODE_COMPLETION,
                 MODE_CHAT,
                 MODE_AUDIO,
-                MODE_RESEARCH
+                MODE_RESEARCH,
+                MODE_COMPUTER
         ):
             # MODE_AUDIO fallback: treat as normal chat (no native audio API)
             response = self.chat.send(context=context, extra=extra)

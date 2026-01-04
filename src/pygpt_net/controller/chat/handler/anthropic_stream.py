@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 00:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import io
@@ -28,6 +28,18 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
     state.usage_vendor = "anthropic"
     etype = str(getattr(chunk, "type", "") or "")
     response: Optional[str] = None
+    is_computer_call = False
+
+    # Computer Use: translate Anthropic 'computer' tool_use stream into plugin calls
+    try:
+        tool_calls, has_calls = core.api.anthropic.computer.handle_stream_chunk(ctx, chunk, state.tool_calls)
+        state.tool_calls = tool_calls
+        if has_calls:
+            is_computer_call = True
+            state.force_func_call = True
+    except Exception:
+        pass
+
 
     # --- Top-level delta objects (when SDK yields deltas directly) ---
     if etype == "text_delta":
@@ -37,7 +49,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
     if etype == "thinking_delta":
         return None
 
-    if etype == "input_json_delta":
+    if etype == "input_json_delta" and not is_computer_call:
         pj = getattr(chunk, "partial_json", "") or ""
         buf = state.fn_args_buffers.get("__anthropic_last__")
         if buf is None:
@@ -64,18 +76,20 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
             pass
         return None
 
-    if etype == "content_block_start":
+    if etype == "content_block_start" and not is_computer_call:
         try:
             cb = getattr(chunk, "content_block", None)
             if cb and getattr(cb, "type", "") == "tool_use":
                 idx = getattr(chunk, "index", 0) or 0
                 tid = getattr(cb, "id", "") or ""
                 name = getattr(cb, "name", "") or ""
-                state.tool_calls.append({
-                    "id": tid,
-                    "type": "function",
-                    "function": {"name": name, "arguments": ""}
-                })
+                # Skip generic function-call for Anthropic Computer Use; the adapter will emit computer_call items.
+                if name not in {"computer", "computer.use", "anthropic/computer", "computer_use", "computer-use"}:
+                    state.tool_calls.append({
+                        "id": tid,
+                        "type": "function",
+                        "function": {"name": name, "arguments": ""}
+                    })
                 state.fn_args_buffers[str(idx)] = io.StringIO()
                 state.fn_args_buffers["__anthropic_last__"] = state.fn_args_buffers[str(idx)]
         except Exception:
@@ -97,7 +111,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
 
         return None
 
-    if etype == "content_block_delta":
+    if etype == "content_block_delta" and not is_computer_call:
         try:
             delta = getattr(chunk, "delta", None)
             if not delta:
@@ -125,7 +139,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
             pass
         return response
 
-    if etype == "content_block_stop":
+    if etype == "content_block_stop" and not is_computer_call:
         try:
             idx = str(getattr(chunk, "index", 0) or 0)
             buf = state.fn_args_buffers.pop(idx, None)

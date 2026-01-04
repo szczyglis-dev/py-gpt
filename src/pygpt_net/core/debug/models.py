@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 20:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import os
@@ -24,7 +24,7 @@ class ModelsDebug:
     def update(self):
         """Update debug window."""
         debug = self.window.core.debug
-        models_controller = self.window.controller.models
+        models_controller = self.window.controller.model
         models_core = self.window.core.models
         command_core = self.window.core.command
         config_core = self.window.core.config

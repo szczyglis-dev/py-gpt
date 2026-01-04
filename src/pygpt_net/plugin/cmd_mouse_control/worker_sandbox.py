@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 02:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import time
@@ -231,6 +231,7 @@ class Worker(BaseWorker):
         current_step = self.get_param(item, "current_step", "")
         screen_w, screen_h = self.viewport_w, self.viewport_h
         return {
+            "result": "success",
             "current_step": current_step,
             "screen_w": screen_w,
             "screen_h": screen_h,

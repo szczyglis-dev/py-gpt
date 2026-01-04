@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.01.02 02:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import sys
@@ -782,6 +782,7 @@ class Worker(BaseWorker):
         mouse = MouseController()
         mouse_pos_x, mouse_pos_y = mouse.position
         return {
+            "result": "success",
             'current_step': current_step,
             'screen_w': screen_x,
             'screen_h': screen_y,

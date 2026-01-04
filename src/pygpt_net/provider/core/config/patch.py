@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.04 19:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -242,10 +242,17 @@ class Patch:
             if old < parse_version("2.7.7"):
                 print("Migrating config from < 2.7.7...")
                 to_add = [
+                    "remote_tools.anthropic.code_execution",
+                    "remote_tools.anthropic.file_search",
+                    "remote_tools.anthropic.mcp",
+                    "remote_tools.anthropic.mcp.tools",
+                    "remote_tools.anthropic.mcp.mcp_servers",
+                    "remote_tools.anthropic.web_fetch",
+                    "remote_tools.xai.code_execution",
                     "remote_tools.xai.mcp",
                     "remote_tools.xai.mcp.args",
                     "remote_tools.xai.web_search",
-                    "remote_tools.xai.x_search",
+                    "remote_tools.xai.x_search"
                 ]
                 for key in to_add:
                     if key not in data:

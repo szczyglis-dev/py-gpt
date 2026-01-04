@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import os
@@ -121,12 +121,8 @@ class Chat:
 
         # Enable Computer Use tool in computer mode (use the official Tool/ComputerUse object)
         if mode == MODE_COMPUTER or (model and isinstance(model.id, str) and "computer-use" in model.id.lower()):
-            comp_env = gtypes.Environment.ENVIRONMENT_BROWSER
-            tools = [gtypes.Tool(
-                computer_use=gtypes.ComputerUse(
-                    environment=comp_env,
-                )
-            )]  # reset tools to only Computer Use (multiple tools not supported together)
+            tool = self.window.core.api.google.computer.get_tool()
+            tools = [tool]  # reset tools to only Computer Use (multiple tools not supported together)
 
         # Some models cannot use tools; keep behavior for image-only models
         if model and isinstance(model.id, str) and "-image" in model.id:
