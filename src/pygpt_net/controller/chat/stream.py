@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 20:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -18,7 +18,7 @@ from pygpt_net.core.events import RenderEvent
 from pygpt_net.core.types import MODE_ASSISTANT
 from pygpt_net.item.ctx import CtxItem
 
-from .handler.worker import StreamWorker
+from .stream_worker import StreamWorker
 
 class Stream(QObject):
     def __init__(self, window=None):

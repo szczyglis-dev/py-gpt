@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 00:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
-import base64
 from typing import Any, Optional
 
 

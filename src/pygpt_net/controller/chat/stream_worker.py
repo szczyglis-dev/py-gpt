@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import io
 import json
 from dataclasses import dataclass, field
-from typing import Optional, Literal, Any
+from typing import Optional, Any
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 from openai.types.chat import ChatCompletionChunk
@@ -20,36 +20,15 @@ from openai.types.chat import ChatCompletionChunk
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.provider.api.google.utils import capture_google_usage
 
-from . import (
-    openai_stream,
-    google_stream,
-    anthropic_stream,
-    xai_stream,
-    llamaindex_stream,
-    langchain_stream,
-    utils as stream_utils,
-)
-
-# OpenAI Responses Events
-EventType = Literal[
-    "response.completed",
-    "response.output_text.delta",
-    "response.output_item.added",
-    "response.function_call_arguments.delta",
-    "response.function_call_arguments.done",
-    "response.output_text.annotation.added",
-    "response.reasoning_summary_text.delta",
-    "response.output_item.done",
-    "response.code_interpreter_call_code.delta",
-    "response.code_interpreter_call_code.done",
-    "response.image_generation_call.partial_image",
-    "response.created",
-    "response.done",
-    "response.failed",
-    "error",
-]
-
+# Import provider-specific stream processors
+from pygpt_net.provider.api.openai import stream as openai_stream
+from pygpt_net.provider.api.google import stream as google_stream
+from pygpt_net.provider.api.anthropic import stream as anthropic_stream
+from pygpt_net.provider.api.x_ai import stream as xai_stream
+from pygpt_net.provider.api.llama_index import stream as llamaindex_stream
+from pygpt_net.provider.api.langchain import stream as langchain_stream
 
 class WorkerSignals(QObject):
     """
@@ -136,7 +115,7 @@ class StreamWorker(QRunnable):
                         state.stopped = True
                         break
 
-                    etype: Optional[EventType] = None
+                    etype: Optional[str] = None
 
                     # detect chunk type if not defined
                     if ctx.chunk_type:
@@ -378,7 +357,7 @@ class StreamWorker(QRunnable):
                     state.generator.resolve()
                     um = getattr(state.generator, "usage_metadata", None)
                     if um:
-                        stream_utils.capture_google_usage(state, um)
+                        capture_google_usage(state, um)
             except Exception:
                 pass
 
@@ -473,7 +452,7 @@ class StreamWorker(QRunnable):
             core,
             state: WorkerState,
             chunk,
-            etype: Optional[EventType]
+            etype: Optional[str]
     ) -> Optional[str]:
         """
         Dispatches processing to concrete provider-specific processing.
@@ -526,7 +505,6 @@ class StreamWorker(QRunnable):
         return anthropic_stream.process_anthropic_chunk(ctx, core, state, chunk)
 
     def _process_xai_sdk_chunk(self, ctx, core, state, item):
-        print(item)
         return xai_stream.process_xai_sdk_chunk(ctx, core, state, item)
 
     def _process_raw(self, chunk) -> Optional[str]:

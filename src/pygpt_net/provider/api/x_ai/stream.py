@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.04 19:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
