@@ -31,6 +31,7 @@ from .audio import Audio
 from .image import Image
 from .remote_tools import RemoteTools
 from .computer import Computer
+from .store import Store
 
 
 class ApiAnthropic:
@@ -48,6 +49,7 @@ class ApiAnthropic:
         self.image = Image(window)   # stub: no image generation in Anthropic
         self.remote_tools = RemoteTools(window)
         self.computer = Computer(window)
+        self.store = Store(window)
         self.client: Optional[anthropic.Anthropic] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None

@@ -35,6 +35,7 @@ from .audio import Audio
 from .image import Image
 from .remote_tools import Remote
 from .responses import Responses
+from .store import Store
 
 
 class ApiXAI:
@@ -52,6 +53,7 @@ class ApiXAI:
         self.image = Image(window)
         self.remote = Remote(window)
         self.responses = Responses(window)
+        self.store = Store(window)
         self.client: Optional[xai_sdk.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None

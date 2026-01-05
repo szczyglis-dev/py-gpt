@@ -11,6 +11,8 @@
 
 from .openai import Store as OpenAIStore
 from .google import Store as GoogleStore
+from .anthropic import Store as AnthropicStore
+from .xai import Store as XAIStore
 
 class RemoteStore:
     def __init__(self, window=None):
@@ -22,3 +24,5 @@ class RemoteStore:
         self.window = window
         self.openai = OpenAIStore(self.window)
         self.google = GoogleStore(self.window)
+        self.anthropic = AnthropicStore(self.window)
+        self.xai = XAIStore(self.window)

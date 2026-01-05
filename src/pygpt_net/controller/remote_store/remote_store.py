@@ -31,7 +31,7 @@ class RemoteStore:
         "openai": "OpenAI",
         "google": "Google",
         "anthropic": "Anthropic",
-        "xai": "XAI",
+        "xai": "xAI",
     }
 
     def __init__(self, window=None):
@@ -50,7 +50,7 @@ class RemoteStore:
         self.height = 560
         self.id = "remote_store"
 
-        # Active provider: 'google' | 'openai'
+        # Active provider: 'google' | 'openai' | 'anthropic' | 'xai'
         self.provider_key: Optional[str] = None
 
         # Mapping row -> ids for current stores/files list
@@ -76,7 +76,7 @@ class RemoteStore:
             "expire_days": {
                 "type": "int",
                 "label": "remote_store.expire_days",
-                "value": 0,  # OpenAI only; hidden for Google
+                "value": 0,  # OpenAI only; hidden for Google/Anthropic/xAI
                 "advanced": False,
             },
             "status": {
@@ -100,7 +100,7 @@ class RemoteStore:
         return list(self.PROVIDERS.keys())
 
     def _get_provider(self) -> str:
-        """Return current provider key ('google' | 'openai')."""
+        """Return current provider key."""
         if self.provider_key in self.get_provider_keys():
             return self.provider_key
         key = self.window.core.config.get("remote_store.provider")
@@ -122,7 +122,8 @@ class RemoteStore:
             self.window.core.config.set("remote_store.provider", key)
         except Exception:
             pass
-        self.init()
+        # Force selecting the first visible store for the new provider and refresh files list
+        self.init(select_first=True)
 
     def _core_for(self, provider: Optional[str] = None):
         key = provider or self._get_provider()
@@ -182,6 +183,8 @@ class RemoteStore:
         """Setup caches and build the unified dialog."""
         self.window.core.remote_store.openai.load_all()
         self.window.core.remote_store.google.load_all()
+        self.window.core.remote_store.anthropic.load_all()
+        self.window.core.remote_store.xai.load_all()
 
         # Build unified dialog UI
         self.window.remote_store = RemoteStoreDialog(self.window)
@@ -197,6 +200,8 @@ class RemoteStore:
         """Reload provider data and refresh unified view."""
         self.window.core.remote_store.openai.load_all()
         self.window.core.remote_store.google.load_all()
+        self.window.core.remote_store.anthropic.load_all()
+        self.window.core.remote_store.xai.load_all()
         self.reset()
 
     def reset(self):
@@ -220,7 +225,8 @@ class RemoteStore:
             self.setup()
             self.config_initialized = True
         if not self.dialog or force:
-            self.init()
+            # Force selecting the first visible store on dialog open
+            self.init(select_first=True)
             self.window.ui.dialogs.open(
                 "remote_store",
                 width=self.width,
@@ -236,15 +242,19 @@ class RemoteStore:
 
     # ======================== Initialize / Refresh ========================
 
-    def init(self):
+    def init(self, select_first: bool = False):
         """Initialize UI state for the active provider."""
         self.reload_items()
 
-        if self.current is None:
+        # Ensure a valid selection, optionally forcing the first visible store
+        core = self._core_for()
+        if select_first:
+            # Reset current to enforce picking the first visible store below
+            self.current = None
+        if self.current is None or not core.has(self.current):
             self.current = self.get_first_visible()
 
         options = copy.deepcopy(self.get_options())
-        core = self._core_for()
         if self.current is not None and core.has(self.current):
             store = core.items[self.current]
             data_dict = store.to_dict()
@@ -255,6 +265,7 @@ class RemoteStore:
                         options[key]["value"] = json.dumps(value, indent=4)
                     else:
                         options[key]["value"] = value
+            # Reflect selection in the left list
             self.set_tab_by_id(self.current)
             self.window.controller.config.load_options(self.id, options)
         else:
@@ -267,6 +278,7 @@ class RemoteStore:
         except Exception:
             pass
 
+        # Always refresh files list on provider/selection changes (also clears when empty)
         self.update_files_list()
         try:
             self.window.remote_store.sync_hide_threads_checkbox(self._get_provider())
@@ -491,7 +503,11 @@ class RemoteStore:
         return self._stores_row_to_id[idx]
 
     def get_first_visible(self) -> Optional[str]:
-        """Return first visible store id for current provider."""
+        """Return first visible store id for current provider (respects current UI filters)."""
+        # Prefer what is actually visible in the left list
+        if self._stores_row_to_id:
+            return self._stores_row_to_id[0]
+        # Fallback to provider core when left list is not initialized
         core = self._core_for()
         for sid in core.get_ids():
             if not core.is_hidden(sid):
