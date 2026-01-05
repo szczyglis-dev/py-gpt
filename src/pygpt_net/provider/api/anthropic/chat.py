@@ -10,6 +10,7 @@
 # ================================================== #
 
 import json
+import os
 from typing import Optional, Dict, Any, List, Set
 
 from pygpt_net.core.types import MODE_CHAT, MODE_AUDIO, MODE_COMPUTER
@@ -175,6 +176,12 @@ class Chat:
         # Collect fetched URLs from web_fetch_tool_result blocks
         try:
             self._collect_web_fetch_urls(response, ctx)
+        except Exception:
+            pass
+
+        # Download files referenced by code execution results (Files API)
+        try:
+            self._maybe_download_files_from_response(response, ctx)
         except Exception:
             pass
 
@@ -587,3 +594,79 @@ class Chat:
             return str(last)
         except Exception:
             return "ok"
+
+    # -------------------------- Files download helpers -------------------------- #
+
+    def _maybe_download_files_from_response(self, response: Message, ctx: CtxItem) -> None:
+        """
+        Scan response content blocks for Files API file_ids and download them.
+        Works for code execution tool results that output files.
+        """
+        file_ids: List[str] = []
+
+        def _to_plain(obj):
+            try:
+                if hasattr(obj, "model_dump"):
+                    return obj.model_dump()
+                if hasattr(obj, "to_dict"):
+                    return obj.to_dict()
+            except Exception:
+                pass
+            if isinstance(obj, dict):
+                return {k: _to_plain(v) for k, v in obj.items()}
+            if isinstance(obj, (list, tuple)):
+                return [_to_plain(x) for x in obj]
+            return obj
+
+        def _walk(o):
+            if o is None:
+                return
+            if isinstance(o, dict):
+                for k, v in o.items():
+                    if k == "file_id" and isinstance(v, str) and v.startswith("file_"):
+                        if v not in file_ids:
+                            file_ids.append(v)
+                    else:
+                        _walk(v)
+            elif isinstance(o, (list, tuple)):
+                for it in o:
+                    _walk(it)
+
+        try:
+            for blk in getattr(response, "content", []) or []:
+                btype = getattr(blk, "type", "") or ""
+                # code_execution results appear as *_tool_result with nested 'content'
+                if btype.endswith("_tool_result"):
+                    content = getattr(blk, "content", None)
+                    _walk(_to_plain(content))
+        except Exception:
+            pass
+
+        if not file_ids:
+            return
+
+        saved: List[str] = []
+        for fid in file_ids:
+            try:
+                path = self.window.core.api.anthropic.store.download_to_dir(fid)
+                if path:
+                    saved.append(path)
+            except Exception:
+                continue
+
+        if saved:
+            saved = self.window.core.filesystem.make_local_list(saved)
+            if not isinstance(ctx.files, list):
+                ctx.files = []
+            for p in saved:
+                if p not in ctx.files:
+                    ctx.files.append(p)
+            images = []
+            for path in saved:
+                ext = os.path.splitext(path)[1].lower().lstrip(".")
+                if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp"]:
+                    images.append(path)
+            if images:
+                if not isinstance(ctx.images, list):
+                    ctx.images = []
+                ctx.images += images

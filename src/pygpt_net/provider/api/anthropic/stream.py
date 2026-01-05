@@ -40,6 +40,70 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
     except Exception:
         pass
 
+    def _to_plain(obj):
+        try:
+            if hasattr(obj, "model_dump"):
+                return obj.model_dump()
+            if hasattr(obj, "to_dict"):
+                return obj.to_dict()
+        except Exception:
+            pass
+        if isinstance(obj, dict):
+            return {k: _to_plain(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [_to_plain(x) for x in obj]
+        return obj
+
+    def _walk_for_file_ids(o, acc: set):
+        if o is None:
+            return
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == "file_id" and isinstance(v, str) and v.startswith("file_"):
+                    acc.add(v)
+                else:
+                    _walk_for_file_ids(v, acc)
+        elif isinstance(o, (list, tuple)):
+            for it in o:
+                _walk_for_file_ids(it, acc)
+
+    def _download_files(ids: set):
+        if not ids:
+            return
+        if not hasattr(state, "anthropic_downloaded_ids"):
+            state.anthropic_downloaded_ids = set()
+        saved = []
+        for fid in ids:
+            if fid in state.anthropic_downloaded_ids:
+                continue
+            try:
+                path = core.api.anthropic.store.download_to_dir(fid)
+            except Exception:
+                path = None
+            if path:
+                saved.append(path)
+                state.anthropic_downloaded_ids.add(fid)
+        if saved:
+            try:
+                loc = core.filesystem.make_local_list(saved)
+            except Exception:
+                loc = saved
+            if not isinstance(ctx.files, list):
+                ctx.files = []
+            for p in loc:
+                if p not in ctx.files:
+                    ctx.files.append(p)
+            imgs = []
+            for p in loc:
+                ext = p.lower().rsplit(".", 1)[-1] if "." in p else ""
+                if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp"]:
+                    imgs.append(p)
+            if imgs:
+                if not isinstance(ctx.images, list):
+                    ctx.images = []
+                for p in imgs:
+                    if p not in ctx.images:
+                        ctx.images.append(p)
 
     # --- Top-level delta objects (when SDK yields deltas directly) ---
     if etype == "text_delta":
@@ -92,6 +156,17 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                     })
                 state.fn_args_buffers[str(idx)] = io.StringIO()
                 state.fn_args_buffers["__anthropic_last__"] = state.fn_args_buffers[str(idx)]
+        except Exception:
+            pass
+
+        try:
+            cb = getattr(chunk, "content_block", None)
+            if cb:
+                btype = getattr(cb, "type", "") or ""
+                if btype.endswith("_tool_result"):
+                    ids = set()
+                    _walk_for_file_ids(_to_plain(getattr(cb, "content", None)), ids)
+                    _download_files(ids)
         except Exception:
             pass
 

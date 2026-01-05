@@ -362,6 +362,12 @@ class Chat:
         except Exception:
             pass
 
+        # Download Files API file_data parts if present
+        try:
+            self._maybe_download_response_files(response, ctx)
+        except Exception:
+            pass
+
     def extract_text(self, response) -> str:
         """
         Extract output text.
@@ -792,7 +798,7 @@ class Chat:
                 return bytes(data)
             if isinstance(data, str):
                 import base64
-                return base64.b64decode(data)
+                return base64.b64encode(bytes()) if data == "" else base64.b64decode(data)
         except Exception:
             return None
         return None
@@ -1001,3 +1007,54 @@ class Chat:
                 continue
 
         return out
+
+    def _maybe_download_response_files(self, response, ctx: CtxItem) -> None:
+        """
+        Inspect non-stream response parts for Files API references and download them.
+        """
+        try:
+            cands = getattr(response, "candidates", None) or []
+            if not cands:
+                return
+            first = cands[0]
+            content = getattr(first, "content", None)
+            parts = getattr(content, "parts", None) or []
+        except Exception:
+            parts = []
+
+        if not parts:
+            return
+
+        downloaded: List[str] = []
+        for p in parts:
+            fdata = getattr(p, "file_data", None)
+            if not fdata:
+                continue
+            try:
+                uri = getattr(fdata, "file_uri", None) or getattr(fdata, "uri", None)
+                prefer = getattr(fdata, "file_name", None) or getattr(fdata, "display_name", None)
+                if not uri or not isinstance(uri, str):
+                    continue
+                # Only Gemini Files API refs are supported for direct download
+                save_path = self.window.core.api.google.store.download_to_dir(uri, prefer_name=prefer)
+                if save_path:
+                    downloaded.append(save_path)
+            except Exception:
+                continue
+
+        if downloaded:
+            downloaded = self.window.core.filesystem.make_local_list(downloaded)
+            if not isinstance(ctx.files, list):
+                ctx.files = []
+            for path in downloaded:
+                if path not in ctx.files:
+                    ctx.files.append(path)
+            images = []
+            for path in downloaded:
+                ext = os.path.splitext(path)[1].lower().lstrip(".")
+                if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp"]:
+                    images.append(path)
+            if images:
+                if not isinstance(ctx.images, list):
+                    ctx.images = []
+                ctx.images += images

@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 20:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 import os
 import time
-from typing import Optional, List, Dict, Any
+import mimetypes
+from typing import Optional, List, Dict, Any, Union
 
 from pygpt_net.item.store import RemoteStoreItem
 
@@ -63,6 +64,53 @@ class Store:
             v = hi
         return v
 
+    def _download_dir(self) -> str:
+        """
+        Resolve target download directory (uses download.dir if set).
+        """
+        if self.window.core.config.has("download.dir") and self.window.core.config.get("download.dir") != "":
+            dir_path = os.path.join(
+                self.window.core.config.get_user_dir('data'),
+                self.window.core.config.get("download.dir"),
+            )
+        else:
+            dir_path = self.window.core.config.get_user_dir('data')
+        os.makedirs(dir_path, exist_ok=True)
+        return dir_path
+
+    def _ensure_unique_path(self, dir_path: str, filename: str) -> str:
+        """
+        Ensure unique filename in dir, add timestamp prefix if exists.
+        """
+        path = os.path.join(dir_path, filename)
+        if os.path.exists(path):
+            prefix = time.strftime("%Y%m%d_%H%M%S_")
+            path = os.path.join(dir_path, f"{prefix}{filename}")
+        return path
+
+    def _guess_filename(self, file_meta: Any, fallback: str = "downloaded.bin") -> str:
+        """
+        Best-effort filename from File metadata or URI.
+        """
+        name = None
+        for attr in ("display_name", "filename", "name", "file_name"):
+            try:
+                val = getattr(file_meta, attr, None)
+                if not name and isinstance(val, str) and val:
+                    name = os.path.basename(val)
+            except Exception:
+                pass
+            if not name and isinstance(file_meta, dict):
+                val = file_meta.get(attr)
+                if isinstance(val, str) and val:
+                    name = os.path.basename(val)
+
+        if not name:
+            # allow URI-like strings
+            if isinstance(file_meta, str):
+                name = os.path.basename(file_meta.split("?")[0].split("#")[0])
+        return name or fallback
+
     # -----------------------------
     # Files service (global)
     # -----------------------------
@@ -104,6 +152,79 @@ class Store:
         res = client.files.delete(name=file_name)
         if res is not None:
             return file_name
+
+    def download(self, file: Union[str, Any], path: str) -> bool:
+        """
+        Download a Files API item into the given path.
+
+        :param file: file name ('files/...'), file object, or file URI
+        :param path: target local path
+        :return: True on success
+        """
+        client = self.get_client()
+        data = None
+        try:
+            data = client.files.download(file=file)
+        except Exception:
+            pass
+        if not data:
+            return False
+        # google-genai returns bytes
+        try:
+            with open(path, "wb") as f:
+                f.write(data if isinstance(data, (bytes, bytearray)) else bytes(data))
+            return True
+        except Exception:
+            return False
+
+    def download_to_dir(self, file: Union[str, Any], prefer_name: Optional[str] = None) -> Optional[str]:
+        """
+        Download a Files API item into configured download directory.
+
+        :param file: file name ('files/...'), file object, or file URI
+        :param prefer_name: optional preferred filename
+        :return: saved path or None
+        """
+        dir_path = self._download_dir()
+        filename = None
+
+        # Try to resolve filename from metadata
+        file_meta = None
+        try:
+            name = None
+            if isinstance(file, str) and file.startswith("files/"):
+                name = file
+            elif hasattr(file, "name"):
+                name = getattr(file, "name", None)
+
+            if name:
+                file_meta = self.get_file(name)
+        except Exception:
+            file_meta = None
+
+        if prefer_name and isinstance(prefer_name, str):
+            filename = os.path.basename(prefer_name)
+
+        if not filename:
+            filename = self._guess_filename(file_meta if file_meta is not None else file)
+
+        # Infer extension from mime, if missing
+        if not os.path.splitext(filename)[1] and file_meta is not None:
+            try:
+                mime = getattr(file_meta, "mime_type", None)
+                if isinstance(file_meta, dict):
+                    mime = file_meta.get("mime_type", mime)
+                if mime:
+                    ext = mimetypes.guess_extension(mime) or ""
+                    if ext:
+                        filename = filename + ext
+            except Exception:
+                pass
+
+        path = self._ensure_unique_path(dir_path, filename)
+        if self.download(file, path):
+            return path
+        return None
 
     def get_files_ids_all(
             self,

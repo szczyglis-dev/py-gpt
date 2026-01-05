@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -34,7 +34,6 @@ class Chat:
         """
         self.window = window
         self.input_tokens = 0
-        # Image constraints (can be overridden by config keys below)
         self.allowed_mimes = {"image/jpeg", "image/png"}
         self.default_image_max_bytes = 10 * 1024 * 1024  # 10 MiB default
 
@@ -316,6 +315,12 @@ class Chat:
                     parts = getattr(msg, "content", None)
             if isinstance(parts, list):
                 self._collect_images_from_message_parts(parts, ctx)
+        except Exception:
+            pass
+
+        try:
+            # Attempt to auto-download file parts or references (file id)
+            self._maybe_download_files_from_response(response, ctx)
         except Exception:
             pass
 
@@ -1089,7 +1094,7 @@ class Chat:
 
     def _collect_images_from_message_parts(self, parts: List[dict], ctx: CtxItem):
         """
-        Inspect assistant message parts for image_url outputs and store them.
+        Inspect assistant message parts for image_url outputs and URLs.
         For http(s) URLs -> add to ctx.urls; for data URLs -> save to file and add to ctx.images.
         """
         try:
@@ -1097,6 +1102,25 @@ class Chat:
                 return
             for p in parts:
                 if not isinstance(p, dict):
+                    continue
+                if p.get("type") == "file":
+                    file_id = p.get("id") or p.get("file_id")
+                    if isinstance(file_id, str):
+                        try:
+                            save = self.window.core.api.xai.store.download_to_dir(file_id)
+                            if save:
+                                if not isinstance(ctx.files, list):
+                                    ctx.files = []
+                                if save not in ctx.files:
+                                    ctx.files.append(save)
+                                ext = os.path.splitext(save)[1].lower().lstrip(".")
+                                if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp"]:
+                                    if not isinstance(ctx.images, list):
+                                        ctx.images = []
+                                    if save not in ctx.images:
+                                        ctx.images.append(save)
+                        except Exception:
+                            pass
                     continue
                 if p.get("type") != "image_url":
                     continue
@@ -1136,3 +1160,67 @@ class Chat:
         Return the locally estimated input tokens count.
         """
         return self.input_tokens
+
+    def _maybe_download_files_from_response(self, response, ctx: CtxItem) -> None:
+        """
+        Attempt to download any files referenced by id in response payloads (dict/SDK/proto).
+        """
+        def _walk(o, acc: set):
+            if o is None:
+                return
+            if isinstance(o, dict):
+                fid = o.get("file_id") or o.get("id") if o.get("type") == "file" else None
+                if isinstance(fid, str) and fid.startswith("file-"):
+                    acc.add(fid)
+                for v in o.values():
+                    _walk(v, acc)
+            elif isinstance(o, (list, tuple)):
+                for it in o:
+                    _walk(it, acc)
+
+        ids = set()
+        try:
+            if isinstance(response, dict):
+                _walk(response, ids)
+            else:
+                msg = getattr(response, "message", None) or getattr(response, "output_message", None)
+                if msg:
+                    _walk(getattr(msg, "content", None), ids)
+                proto = getattr(response, "proto", None)
+                if proto:
+                    ch = getattr(proto, "choices", None) or []
+                    if ch:
+                        m = getattr(ch[0], "message", None)
+                        if m:
+                            _walk(getattr(m, "content", None), ids)
+        except Exception:
+            pass
+
+        if not ids:
+            return
+        saved = []
+        for fid in ids:
+            try:
+                p = self.window.core.api.xai.store.download_to_dir(fid)
+                if p:
+                    saved.append(p)
+            except Exception:
+                continue
+        if saved:
+            saved = self.window.core.filesystem.make_local_list(saved)
+            if not isinstance(ctx.files, list):
+                ctx.files = []
+            for p in saved:
+                if p not in ctx.files:
+                    ctx.files.append(p)
+            imgs = []
+            for p in saved:
+                ext = os.path.splitext(p)[1].lower().lstrip(".")
+                if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp"]:
+                    imgs.append(p)
+            if imgs:
+                if not isinstance(ctx.images, list):
+                    ctx.images = []
+                for p in imgs:
+                    if p not in ctx.images:
+                        ctx.images.append(p)

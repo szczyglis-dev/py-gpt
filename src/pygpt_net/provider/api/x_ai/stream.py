@@ -69,10 +69,8 @@ def _extract_http_urls_from_text(text: Optional[str]) -> List[str]:
     """
     if not text or not isinstance(text, str):
         return []
-    # Basic, conservative URL regex
     pattern = re.compile(r"(https?://[^\s)>\]\"']+)", re.IGNORECASE)
     urls = pattern.findall(text)
-    # Deduplicate while preserving order
     out, seen = [], set()
     for u in urls:
         if u not in seen:
@@ -134,6 +132,7 @@ def _process_message_content_for_outputs(core, ctx, state, content):
     - If image_url.url is data:... -> save to file and append to state.image_paths + ctx.images
     - If image_url.url is http(s) -> append to ctx.urls
     - Extract URLs from adjacent text parts conservatively
+    - If file part present -> auto-download via Files API
     """
     if not isinstance(content, list):
         return
@@ -162,7 +161,28 @@ def _process_message_content_for_outputs(core, ctx, state, content):
                 urls = _extract_http_urls_from_text(t)
                 if urls:
                     _append_urls(ctx, state, urls)
-    # If images were added, mark flag similarly to Google path
+        elif ptype == "file":
+            fid = p.get("id") or p.get("file_id")
+            if isinstance(fid, str):
+                if not hasattr(state, "xai_downloaded_file_ids"):
+                    state.xai_downloaded_file_ids = set()
+                if fid not in state.xai_downloaded_file_ids:
+                    try:
+                        path = core.api.xai.store.download_to_dir(fid)
+                    except Exception:
+                        path = None
+                    if path:
+                        if not isinstance(ctx.files, list):
+                            ctx.files = []
+                        if path not in ctx.files:
+                            ctx.files.append(path)
+                        ext = path.lower().rsplit(".", 1)[-1] if "." in path else ""
+                        if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp"]:
+                            if not isinstance(ctx.images, list):
+                                ctx.images = []
+                            if path not in ctx.images:
+                                ctx.images.append(path)
+                        state.xai_downloaded_file_ids.add(fid)
     if any_image:
         try:
             state.has_xai_inline_image = True
@@ -364,7 +384,6 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
         if hasattr(chunk, "content"):
             t = _stringify_content(getattr(chunk, "content"))
             if t:
-                # collect URLs from text content conservatively
                 _append_urls(ctx, state, _extract_http_urls_from_text(t))
                 return str(t)
     except Exception:
@@ -425,11 +444,8 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
                 if "content" in m and m["content"] is not None:
                     mc = m["content"]
                     # inspect for image_url outputs and URLs
-                    _process_message_content_for_outputs(core, ctx, state, mc if isinstance(mc, list) else [])
-                    if isinstance(mc, str):
-                        _append_urls(ctx, state, _extract_http_urls_from_text(mc))
-                        return mc
-                    elif isinstance(mc, list):
+                    if isinstance(mc, list):
+                        _process_message_content_for_outputs(core, ctx, state, mc)
                         out_parts: List[str] = []
                         for p in mc:
                             if isinstance(p, dict) and p.get("type") == "text":
@@ -440,6 +456,11 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
                             txt = "".join(out_parts)
                             _append_urls(ctx, state, _extract_http_urls_from_text(txt))
                             return txt
+                    else:
+                        t = _stringify_content(mc)
+                        if t:
+                            _append_urls(ctx, state, _extract_http_urls_from_text(t))
+                            return str(t)
 
             # root-level delta/message
             if isinstance(chunk.get("delta"), dict) and "content" in chunk["delta"]:

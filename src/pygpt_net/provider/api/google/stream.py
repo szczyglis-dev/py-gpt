@@ -93,6 +93,43 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
             except Exception:
                 pass
 
+    def _try_download_uri(uri: Optional[str], prefer_name: Optional[str] = None) -> Optional[str]:
+        """
+        Attempt to download a Files API URI via store; return local path or None.
+        """
+        if not isinstance(uri, str) or not uri:
+            return None
+        try:
+            path = core.api.google.store.download_to_dir(uri, prefer_name=prefer_name)
+            return path
+        except Exception:
+            return None
+
+    def _append_downloaded(paths):
+        if not paths:
+            return
+        try:
+            loc = core.filesystem.make_local_list(paths)
+        except Exception:
+            loc = paths
+        if not isinstance(ctx.files, list):
+            ctx.files = []
+        for p in loc:
+            if p not in ctx.files:
+                ctx.files.append(p)
+        # images
+        imgs = []
+        for p in loc:
+            ext = p.lower().rsplit(".", 1)[-1] if "." in p else ""
+            if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp"]:
+                imgs.append(p)
+        if imgs:
+            if not isinstance(ctx.images, list):
+                ctx.images = []
+            for p in imgs:
+                if p not in ctx.images:
+                    ctx.images.append(p)
+
     # Collect function calls from Responses API style stream
     if fc_list:
         for fc in fc_list:
@@ -114,6 +151,23 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                 content = getattr(cand, "content", None)
                 parts = getattr(content, "parts", None) or []
                 for p in parts:
+                    # Download Files API file_data parts if present
+                    try:
+                        fdata = getattr(p, "file_data", None)
+                        if fdata:
+                            uri = getattr(fdata, "file_uri", None) or getattr(fdata, "uri", None)
+                            name = getattr(fdata, "file_name", None) or getattr(fdata, "display_name", None)
+                            if uri and isinstance(uri, str):
+                                if not hasattr(state, "google_downloaded_uris"):
+                                    state.google_downloaded_uris = set()
+                                if uri not in state.google_downloaded_uris:
+                                    save = _try_download_uri(uri, name)
+                                    if save:
+                                        _append_downloaded([save])
+                                        state.google_downloaded_uris.add(uri)
+                    except Exception:
+                        pass
+
                     fn = getattr(p, "function_call", None)
                     if not fn:
                         continue
@@ -132,7 +186,6 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
             pass
 
     # Interactions API / Deep Research: collect streaming deltas and metadata
-    # Handles event_type, event_id, interaction.start/complete/status_update, and content.delta variants
     try:
         event_type = _get(chunk, "event_type", None)
         if event_type:
@@ -215,10 +268,8 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                     content_obj = _get(delta, "content", None)
                     thought_txt = None
                     if content_obj is not None:
-                        # TextContent path
                         thought_txt = _get(content_obj, "text", None)
                     if thought_txt is None:
-                        # Some SDKs expose 'thought' or 'content.text' differently
                         thought_txt = _get(delta, "thought", None)
                     if thought_txt:
                         _ensure_list_attr(state, "google_thought_summaries")
@@ -252,7 +303,6 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
 
                 # Function result delta (optional store)
                 elif delta_type == "function_result":
-                    # Can be used to log tool results; not altering UI text
                     _ensure_list_attr(state, "google_function_results")
                     try:
                         state.google_function_results.append(_to_plain_dict(delta))
@@ -269,7 +319,6 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                     else:
                         response_parts.append(str(code_txt))
                 elif delta_type == "code_execution_result":
-                    # Close code block; keep output logging internal if needed
                     if state.is_code:
                         response_parts.append("\n\n```\n-----------\n")
                         state.is_code = False
@@ -282,7 +331,7 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                 # Images in stream
                 elif delta_type == "image":
                     # ImageDelta may contain base64 data or uri
-                    mime = (_get(delta, "mime_type", "") or "").lower()
+                    mime = _get(delta, "mime_type", None)
                     data_b64 = _get(delta, "data", None)
                     uri = _get(delta, "uri", None)
                     if data_b64:
@@ -299,12 +348,17 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                         except Exception:
                             pass
                     elif uri:
-                        try:
-                            if not hasattr(ctx, "urls") or ctx.urls is None:
-                                ctx.urls = []
-                            ctx.urls.append(uri)
-                        except Exception:
-                            pass
+                        # Try to download Files API content when URI is a file ref
+                        save = _try_download_uri(uri)
+                        if save:
+                            _append_downloaded([save])
+                        else:
+                            try:
+                                if not hasattr(ctx, "urls") or ctx.urls is None:
+                                    ctx.urls = []
+                                ctx.urls.append(uri)
+                            except Exception:
+                                pass
 
                 # URL context call/result (Deep Research tool)
                 elif delta_type == "url_context_call":
@@ -368,7 +422,6 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                     except Exception:
                         pass
 
-                # Thought signature delta (optional, store)
                 elif delta_type == "thought_signature":
                     _ensure_list_attr(state, "google_thought_signatures")
                     try:
@@ -380,12 +433,16 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                 elif delta_type in ("audio", "video", "document"):
                     uri = _get(delta, "uri", None)
                     if uri:
-                        try:
-                            if not hasattr(ctx, "urls") or ctx.urls is None:
-                                ctx.urls = []
-                            ctx.urls.append(uri)
-                        except Exception:
-                            pass
+                        save = _try_download_uri(uri)
+                        if save:
+                            _append_downloaded([save])
+                        else:
+                            try:
+                                if not hasattr(ctx, "urls") or ctx.urls is None:
+                                    ctx.urls = []
+                                ctx.urls.append(uri)
+                            except Exception:
+                                pass
 
     except Exception:
         pass
@@ -459,11 +516,21 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                 fdata = getattr(p, "file_data", None)
                 if fdata:
                     uri = getattr(fdata, "file_uri", None) or getattr(fdata, "uri", None)
-                    mime = (getattr(fdata, "mime_type", "") or "").lower()
-                    if uri and mime.startswith("image/") and (uri.startswith("http://") or uri.startswith("https://")):
-                        if ctx.urls is None:
-                            ctx.urls = []
-                        ctx.urls.append(uri)
+                    prefer = getattr(fdata, "file_name", None) or getattr(fdata, "display_name", None)
+                    if uri:
+                        if not hasattr(state, "google_downloaded_uris"):
+                            state.google_downloaded_uris = set()
+                        if uri not in state.google_downloaded_uris:
+                            save = _try_download_uri(uri, prefer)
+                            if save:
+                                _append_downloaded([save])
+                                state.google_downloaded_uris.add(uri)
+                        # keep original behavior for image http links
+                        mime = (getattr(fdata, "mime_type", "") or "").lower()
+                        if uri.startswith(("http://", "https://")) and mime.startswith("image/"):
+                            if ctx.urls is None:
+                                ctx.urls = []
+                            ctx.urls.append(uri)
 
         collect_google_citations(ctx, state, chunk)
 
