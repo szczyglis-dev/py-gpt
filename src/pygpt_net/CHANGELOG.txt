@@ -1,3 +1,9 @@
+2.7.7 (2026-01-05)
+
+- Added support for Responses API in xAI.
+- Added xAI remote tools: Remote MCP, Code Execution.
+- Added Anthropic remote tools: Remote MCP, Web Fetch, Code Execution.
+
 2.7.6 (2026-01-03)
 
 - Fixed compatibility with xAI SDK and resolved empty responses from Grok models.

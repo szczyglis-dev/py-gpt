@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.6** | build: **2026-01-03** | Python: **>=3.10, <3.14**
+Release: **2.7.7** | build: **2026-01-05** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3677,6 +3677,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.7 (2026-01-05)**
+
+- Added support for Responses API in xAI.
+- Added xAI remote tools: Remote MCP, Code Execution.
+- Added Anthropic remote tools: Remote MCP, Web Fetch, Code Execution.
 
 **2.7.6 (2026-01-03)**
 
