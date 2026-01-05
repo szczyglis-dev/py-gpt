@@ -1404,8 +1404,8 @@ class Patch:
             # < 2.1.79
             if old < parse_version("2.1.79"):
                 print("Migrating config from < 2.1.79...")
-                if 'remote_store.openai.hide_threads' not in data:
-                    data["remote_store.openai.hide_threads"] = True
+                if 'remote_store.hide_threads' not in data:
+                    data["remote_store.hide_threads"] = True
                 updated = True
 
             # < 2.2.2

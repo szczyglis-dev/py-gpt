@@ -46,7 +46,7 @@ class Assistant(BaseConfigDialog):
         self.window.ui.nodes['assistant.btn.store.editor'] = QPushButton(QIcon(":/icons/db.svg"), "")
         self.window.ui.nodes['assistant.btn.store.editor'].setToolTip(trans('dialog.remote_store.openai'))
         self.window.ui.nodes['assistant.btn.store.editor'].clicked.connect(
-            lambda: self.window.controller.remote_store.openai.toggle_editor()
+            lambda: self.window.controller.remote_store.toggle_editor(provider="openai")
         )
 
         self.window.ui.nodes['assistant.btn.store.editor'].setAutoDefault(False)

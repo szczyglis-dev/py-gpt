@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 20:00:00                  #
+# Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -108,13 +108,14 @@ class Store:
         """
         return id in self.items
 
-    def create(self) -> Optional[RemoteStoreItem]:
+    def create(self, name: Optional[str] = None) -> Optional[RemoteStoreItem]:
         """
         Create new store
 
+        :param name: store name
         :return: store item
         """
-        name = "New vector store"
+        # name = "New vector store"
         vector_store = self.window.core.api.openai.store.create_store(name, 0)
         if vector_store is None:
             return None
@@ -275,7 +276,7 @@ class Store:
         :return: True if store is hidden
         """
         if id in self.items:
-            if (self.window.core.config.get("remote_store.openai.hide_threads")
+            if (self.window.core.config.get("remote_store.hide_threads")
                     and (self.items[id].name is None or self.items[id].name == "")):
                 return True
         return False

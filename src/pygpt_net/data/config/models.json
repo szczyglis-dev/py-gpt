@@ -3195,7 +3195,8 @@
             "tokens": 0,
             "default": false,
             "input": [
-                "text"
+                "text",
+                "image"
             ],
             "output": [
                 "text"

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 20:00:00                  #
+# Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -195,61 +195,38 @@ class Confirm:
         elif type == 'assistant.functions.clear':
             self.window.controller.assistant.editor.clear_functions(True)
 
-        # OpenAI vector stores
-        elif type == 'remote_store.openai.file.delete':
-            self.window.controller.remote_store.openai.delete_file_by_idx(id, True)
-        elif type == 'remote_store.openai.delete':
-            self.window.controller.remote_store.openai.delete(id, True)
-        elif type == 'remote_store.openai.import':
-            self.window.controller.remote_store.openai.batch.import_stores(True)
-        elif type == 'remote_store.openai.truncate':
-            self.window.controller.remote_store.openai.batch.truncate_stores(True)
-        elif type == 'remote_store.openai.clear':
-            self.window.controller.remote_store.openai.batch.clear_stores(True)
-        elif type == 'remote_store.openai.refresh':
-            self.window.controller.remote_store.openai.batch.refresh_stores(True)
-        elif type == 'remote_store.openai.files.import.all':
-            self.window.controller.remote_store.openai.batch.import_files(True)
-        elif type == 'remote_store.openai.files.import.store':
-            self.window.controller.remote_store.openai.batch.import_store_files(id, True)
-        elif type == 'remote_store.openai.files.truncate':
-            self.window.controller.remote_store.openai.batch.truncate_files(True)
-        elif type == 'remote_store.openai.files.truncate.store':
-            self.window.controller.remote_store.openai.batch.truncate_store_files(id, True)
-        elif type == 'remote_store.openai.files.clear.all':
-            self.window.controller.remote_store.openai.batch.clear_files(True)
-        elif type == 'remote_store.openai.files.clear.store':
-            self.window.controller.remote_store.openai.batch.clear_store_files(id, True)
-        elif type == 'remote_store.openai.files.upload':
-            self.window.controller.remote_store.openai.batch.upload(True)
-
-        # Google (Gemini) File Search stores
-        elif type == 'remote_store.google.file.delete':
-            self.window.controller.remote_store.google.delete_file_by_idx(id, True)
-        elif type == 'remote_store.google.delete':
-            self.window.controller.remote_store.google.delete(id, True)
-        elif type == 'remote_store.google.import':
-            self.window.controller.remote_store.google.batch.import_stores(True)
-        elif type == 'remote_store.google.truncate':
-            self.window.controller.remote_store.google.batch.truncate_stores(True)
-        elif type == 'remote_store.google.clear':
-            self.window.controller.remote_store.google.batch.clear_stores(True)
-        elif type == 'remote_store.google.refresh':
-            self.window.controller.remote_store.google.batch.refresh_stores(True)
-        elif type == 'remote_store.google.files.import.all':
-            self.window.controller.remote_store.google.batch.import_files(True)
-        elif type == 'remote_store.google.files.import.store':
-            self.window.controller.remote_store.google.batch.import_store_files(id, True)
-        elif type == 'remote_store.google.files.truncate':
-            self.window.controller.remote_store.google.batch.truncate_files(True)
-        elif type == 'remote_store.google.files.truncate.store':
-            self.window.controller.remote_store.google.batch.truncate_store_files(id, True)
-        elif type == 'remote_store.google.files.clear.all':
-            self.window.controller.remote_store.google.batch.clear_files(True)
-        elif type == 'remote_store.google.files.clear.store':
-            self.window.controller.remote_store.google.batch.clear_store_files(id, True)
-        elif type == 'remote_store.google.files.upload':
-            self.window.controller.remote_store.google.batch.upload(True)
+        # Remote vector stores
+        elif type == 'remote_store.delete':
+            self.window.controller.remote_store.delete(id, True)        
+        elif type == 'remote_store.import':
+            self.window.controller.remote_store.batch.import_stores(True)
+        elif type == 'remote_store.truncate':
+            self.window.controller.remote_store.batch.truncate_stores(True)
+        elif type == 'remote_store.clear':
+            self.window.controller.remote_store.batch.clear_stores(True)
+        elif type == 'remote_store.refresh':
+            self.window.controller.remote_store.batch.refresh_stores(True)
+        
+        elif type == 'remote_store.file.delete':
+            self.window.controller.remote_store.delete_file_by_idx(id, True)
+        elif type == 'remote_store.files.upload':
+            self.window.controller.remote_store.batch.upload(True)
+        elif type == 'remote_store.files.import.all':
+            self.window.controller.remote_store.batch.import_files(True)
+        elif type == 'remote_store.files.import.store':
+            self.window.controller.remote_store.batch.import_store_files(id, True)
+        elif type == 'remote_store.files.import.assistant.current':
+            self.window.controller.remote_store.batch.import_files_assistant_current(True) # from current assistant       
+        elif type == 'remote_store.files.import.assistant.all':
+            self.window.controller.remote_store.batch.import_files_assistant_all(True) # from all assistants  
+        elif type == 'remote_store.files.truncate':
+            self.window.controller.remote_store.batch.truncate_files(True)
+        elif type == 'remote_store.files.truncate.store':
+            self.window.controller.remote_store.batch.truncate_store_files(id, True)
+        elif type == 'remote_store.files.clear.all':
+            self.window.controller.remote_store.batch.clear_files(True)
+        elif type == 'remote_store.files.clear.store':
+            self.window.controller.remote_store.batch.clear_store_files(id, True)
 
         # settings
         elif type == 'settings.defaults.user':
@@ -390,8 +367,8 @@ class Confirm:
             self.window.controller.ctx.create_group(name, id)
         elif type == 'agent.builder.agent':
             self.window.tools.get("agent_builder").add_agent(name)        
-        elif type == 'remote_store.google.new':
-            self.window.controller.remote_store.google.new(name, True)
+        elif type == 'remote_store.new':
+            self.window.controller.remote_store.new(name, True)
 
     def accept_url(self, type: str, id: any, url: str):
         """

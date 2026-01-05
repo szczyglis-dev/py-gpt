@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 20:00:00                  #
+# Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
 import os
@@ -33,18 +33,19 @@ class Importer(QObject):
         :param mode: mode
         :param err: error message
         """
+        batch = self.window.controller.remote_store.batch
         if mode == "import_files":
-            self.window.controller.remote_store.google.batch.handle_imported_files_failed(err)
+            batch.handle_imported_files_failed(err)
         elif mode == "truncate_files":
-            self.window.controller.remote_store.google.batch.handle_truncated_files_failed(err)
+            batch.handle_truncated_files_failed(err)
         elif mode == "upload_files":
-            self.window.controller.remote_store.google.batch.handle_uploaded_files_failed(err)
+            batch.handle_uploaded_files_failed(err)
         elif mode in "vector_stores":
-            self.window.controller.remote_store.google.batch.handle_imported_stores_failed(err)
+            batch.handle_imported_stores_failed(err)
         elif mode in "truncate_vector_stores":
-            self.window.controller.remote_store.google.batch.handle_truncated_stores_failed(err)
+            batch.handle_truncated_stores_failed(err)
         elif mode in "refresh_vector_stores":
-            self.window.controller.remote_store.google.batch.handle_refreshed_stores_failed(err)
+            batch.handle_refreshed_stores_failed(err)
 
     @Slot(str, str, int)
     def handle_finished(self, mode: str, store_id: str = None, num: int = 0):
@@ -55,18 +56,19 @@ class Importer(QObject):
         :param store_id: store ID
         :param num: number of affected items
         """
+        batch = self.window.controller.remote_store.batch
         if mode == "import_files":
-            self.window.controller.remote_store.google.batch.handle_imported_files(num)
+            batch.handle_imported_files(num)
         elif mode == "truncate_files":
-            self.window.controller.remote_store.google.batch.handle_truncated_files(store_id, num)
+            batch.handle_truncated_files(store_id, num)
         elif mode == "upload_files":
-            self.window.controller.remote_store.google.batch.handle_uploaded_files(num)
+            batch.handle_uploaded_files(num)
         elif mode == "vector_stores":
-            self.window.controller.remote_store.google.batch.handle_imported_stores(num)
+            batch.handle_imported_stores(num)
         elif mode == "truncate_vector_stores":
-            self.window.controller.remote_store.google.batch.handle_truncated_stores(num)
+            batch.handle_truncated_stores(num)
         elif mode == "refresh_vector_stores":
-            self.window.controller.remote_store.google.batch.handle_refreshed_stores(num)
+            batch.handle_refreshed_stores(num)
 
     @Slot(str, str)
     def handle_status(self, mode: str, msg: str):
@@ -282,7 +284,7 @@ class ImportWorker(QRunnable):
             for id in stores:
                 store = stores[id]
                 try:
-                    self.window.controller.remote_store.google.refresh_store(store, update=False)
+                    self.window.controller.remote_store.refresh_store(store, update=False, provider="google")
                     num += 1
                 except Exception as e:
                     self.log("Failed to refresh store: {}".format(id))

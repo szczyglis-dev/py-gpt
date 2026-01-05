@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -14,15 +14,15 @@ from PySide6.QtCore import Qt
 from .base import BaseDialog
 
 
-class RemoteStoreOpenAIDialog(BaseDialog):
+class RemoteStoreDialog(BaseDialog):
     def __init__(self, window=None, id=None):
         """
-        Models dialog
+        Remote stores dialog
 
         :param window: main window
         :param id: settings id
         """
-        super(RemoteStoreOpenAIDialog, self).__init__(window, id)
+        super(RemoteStoreDialog, self).__init__(window, id)
         self.window = window
         self.id = id
 
@@ -32,9 +32,9 @@ class RemoteStoreOpenAIDialog(BaseDialog):
 
         :param event: close event
         """
-        self.window.controller.remote_store.openai.dialog = False
-        self.window.controller.remote_store.openai.update()
-        super(RemoteStoreOpenAIDialog, self).closeEvent(event)
+        self.window.controller.remote_store.dialog = False
+        self.window.controller.remote_store.update()
+        super(RemoteStoreDialog, self).closeEvent(event)
 
     def keyPressEvent(self, event):
         """
@@ -44,13 +44,13 @@ class RemoteStoreOpenAIDialog(BaseDialog):
         """
         if event.key() == Qt.Key_Escape:
             self.cleanup()
-            self.close()  # close dialog when the Esc key is pressed.
+            self.close()
         else:
-            super(RemoteStoreOpenAIDialog, self).keyPressEvent(event)
+            super(RemoteStoreDialog, self).keyPressEvent(event)
 
     def cleanup(self):
         """
         Cleanup on close
         """
-        self.window.controller.remote_store.openai.dialog = False
-        self.window.controller.remote_store.openai.update()
+        self.window.controller.remote_store.dialog = False
+        self.window.controller.remote_store.update()

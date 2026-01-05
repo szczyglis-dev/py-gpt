@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
 import os
@@ -33,20 +33,19 @@ class Importer(QObject):
         :param mode: mode
         :param err: error message
         """
-        if mode == "assistants":
-            self.window.controller.assistant.batch.handle_imported_assistants_failed(err)
-        elif mode == "import_files":
-            self.window.controller.remote_store.openai.batch.handle_imported_files_failed(err)
+        batch = self.window.controller.remote_store.batch
+        if mode == "import_files":
+            batch.handle_imported_files_failed(err)
         elif mode == "truncate_files":
-            self.window.controller.remote_store.openai.batch.handle_truncated_files_failed(err)
+            batch.handle_truncated_files_failed(err)
         elif mode == "upload_files":
-            self.window.controller.remote_store.openai.batch.handle_uploaded_files_failed(err)
+            batch.handle_uploaded_files_failed(err)
         elif mode in "vector_stores":
-            self.window.controller.remote_store.openai.batch.handle_imported_stores_failed(err)
+            batch.handle_imported_stores_failed(err)
         elif mode in "truncate_vector_stores":
-            self.window.controller.remote_store.openai.batch.handle_truncated_stores_failed(err)
+            batch.handle_truncated_stores_failed(err)
         elif mode in "refresh_vector_stores":
-            self.window.controller.remote_store.openai.batch.handle_refreshed_stores_failed(err)
+            batch.handle_refreshed_stores_failed(err)
 
     @Slot(str, str, int)
     def handle_finished(self, mode: str, store_id: str = None, num: int = 0):
@@ -57,20 +56,19 @@ class Importer(QObject):
         :param store_id: store ID
         :param num: number of affected items
         """
-        if mode == "assistants":
-            self.window.controller.assistant.batch.handle_imported_assistants(num)
-        elif mode == "import_files":
-            self.window.controller.remote_store.openai.batch.handle_imported_files(num)
+        batch = self.window.controller.remote_store.batch
+        if mode == "import_files":
+            batch.handle_imported_files(num)
         elif mode == "truncate_files":
-            self.window.controller.remote_store.openai.batch.handle_truncated_files(store_id, num)
+            batch.handle_truncated_files(store_id, num)
         elif mode == "upload_files":
-            self.window.controller.remote_store.openai.batch.handle_uploaded_files(num)
+            batch.handle_uploaded_files(num)
         elif mode == "vector_stores":
-            self.window.controller.remote_store.openai.batch.handle_imported_stores(num)
+            batch.handle_imported_stores(num)
         elif mode == "truncate_vector_stores":
-            self.window.controller.remote_store.openai.batch.handle_truncated_stores(num)
+            batch.handle_truncated_stores(num)
         elif mode == "refresh_vector_stores":
-            self.window.controller.remote_store.openai.batch.handle_refreshed_stores(num)
+            batch.handle_refreshed_stores(num)
 
     @Slot(str, str)
     def handle_status(self, mode: str, msg: str):
@@ -91,14 +89,6 @@ class Importer(QObject):
         :param msg: message
         """
         self.window.controller.assistant.threads.log(mode + ": " + msg)
-
-    def import_assistants(self):
-        """Import assistants"""
-        self.worker = ImportWorker()
-        self.worker.window = self.window
-        self.worker.mode = "assistants"
-        self.connect_signals(self.worker)
-        self.window.threadpool.start(self.worker)
 
     def import_vector_stores(self):
         """Import vector stores"""
@@ -203,9 +193,7 @@ class ImportWorker(QRunnable):
         """Importer thread"""
         try:
             # import data
-            if self.mode == "assistants":
-                self.import_assistants()
-            elif self.mode == "vector_stores":
+            if self.mode == "vector_stores":
                 if self.import_vector_stores():
                     self.import_files()
             elif self.mode == "truncate_vector_stores":
@@ -224,36 +212,6 @@ class ImportWorker(QRunnable):
 
         finally:
             self.cleanup()
-
-    def import_assistants(self, silent: bool = False) -> bool:
-        """
-        Import assistants from API
-
-        :param silent: silent mode (no signals)
-        :return: result
-        """
-        try:
-            # import assistants
-            self.log("Importing assistants...")
-            self.window.core.assistants.clear()
-            items = self.window.core.assistants.get_all()
-            self.window.core.api.openai.assistants.import_all(items, callback=self.callback)
-            self.window.core.assistants.items = items
-            self.window.core.assistants.save()
-
-            # import vector stores
-            self.import_vector_stores(True)
-
-            # import files
-            self.import_files(True)
-
-            if not silent:
-                self.signals.finished.emit("assistants", self.store_id, len(items))
-            return True
-        except Exception as e:
-            self.log("API error: {}".format(e))
-            self.signals.error.emit("assistants", e)
-            return False
 
     def import_vector_stores(self, silent: bool = False) -> bool:
         """
@@ -310,7 +268,7 @@ class ImportWorker(QRunnable):
             for id in stores:
                 store = stores[id]
                 try:
-                    self.window.controller.remote_store.openai.refresh_store(store, update=False)
+                    self.window.controller.remote_store.refresh_store(store, update=False, provider="openai")
                     num += 1
                 except Exception as e:
                     self.log("Failed to refresh store: {}".format(id))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
 import os
@@ -31,7 +31,7 @@ class Files:
     def update(self):
         """Update assistants files list"""
         self.update_list()
-        self.window.controller.remote_store.openai.update_files_list()
+        self.window.controller.remote_store.update_files_list()
 
     def select(self, idx: int):
         """
@@ -76,7 +76,7 @@ class Files:
         """
         # run asynchronous
         self.window.update_status("Importing files...please wait...")
-        self.window.core.api.openai.assistants.importer.import_files(store_id)
+        self.window.core.api.openai.store.importer.import_files(store_id)
 
     def download(self, idx: Union[int, list]):
         """
@@ -181,7 +181,8 @@ class Files:
 
             # update store status
             if assistant.vector_store:
-                self.window.controller.remote_store.openai.refresh_by_store_id(assistant.vector_store)
+                # TODO: only openai
+                self.window.controller.remote_store.refresh_by_store_id(assistant.vector_store, "openai")
 
             self.window.update_status(trans('status.deleted'))
 
@@ -228,7 +229,7 @@ class Files:
 
             # update store status
             if assistant.vector_store:
-                self.window.controller.remote_store.openai.refresh_by_store_id(assistant.vector_store)
+                self.window.controller.remote_store.refresh_by_store_id(assistant.vector_store, "openai")
 
             self.window.update_status(trans('status.deleted'))
         except Exception as e:
@@ -341,7 +342,7 @@ class Files:
         if num > 0:
             # update store status
             if assistant.vector_store:
-                self.window.controller.remote_store.openai.refresh_by_store_id(assistant.vector_store)
+                self.window.controller.remote_store.refresh_by_store_id(assistant.vector_store, "openai")
 
             self.update_list()  # update uploaded list UI
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -49,7 +49,7 @@ class Batch:
         :param num: number of imported assistants
         """
         self.window.controller.assistant.update()
-        self.window.controller.remote_store.openai.update()
+        self.window.controller.remote_store.update()
         self.window.controller.assistant.files.update()
         self.window.update_status("OK. Imported assistants: " + str(num) + ".")
         self.window.ui.dialogs.alert(trans("status.finished"))

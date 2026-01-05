@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -26,11 +26,8 @@ class Tools:
         action = self.window.sender()
         self.window.controller.tools.open_tab(action.data())
 
-    def _toggle_remote_store_openai(self, checked=False):
-        self.window.controller.remote_store.openai.toggle_editor()
-
-    def _toggle_remote_store_google(self, checked=False):
-        self.window.controller.remote_store.google.toggle_editor()
+    def _toggle_remote_store(self, checked=False):
+        self.window.controller.remote_store.toggle_editor()
 
     def _rebuild_ipython(self, checked=False):
         self.window.core.plugins.get("cmd_code_interpreter").builder.build_and_restart()
@@ -72,13 +69,9 @@ class Tools:
 
         menu_tools.addSeparator()
         db_icon = QIcon(":/icons/db.svg")
-        ui_menu['menu.tools.openai.stores'] = QAction(db_icon, trans("dialog.remote_store.openai"), window)
-        menu_tools.addAction(ui_menu['menu.tools.openai.stores'])
-        ui_menu['menu.tools.openai.stores'].triggered.connect(self._toggle_remote_store_openai)
-
-        ui_menu['menu.tools.google.stores'] = QAction(db_icon, trans("dialog.remote_store.google"), window)
-        menu_tools.addAction(ui_menu['menu.tools.google.stores'])
-        ui_menu['menu.tools.google.stores'].triggered.connect(self._toggle_remote_store_google)
+        ui_menu['menu.tools.remote_store'] = QAction(db_icon, trans("dialog.remote_store"), window)
+        menu_tools.addAction(ui_menu['menu.tools.remote_store'])
+        ui_menu['menu.tools.remote_store'].triggered.connect(self._toggle_remote_store)
         # ------------------------------------------------- #
 
         menu_tools.addSeparator()

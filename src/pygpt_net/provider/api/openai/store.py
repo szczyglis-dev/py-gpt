@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 20:00:00                  #
+# Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
 import os
 from typing import Optional, List
 
 from pygpt_net.item.store import RemoteStoreItem
+
+from .worker.importer import Importer
 
 
 class Store:
@@ -23,6 +25,7 @@ class Store:
         :param window: Window instance
         """
         self.window = window
+        self.importer = Importer(window)
 
     def get_client(self):
         """
