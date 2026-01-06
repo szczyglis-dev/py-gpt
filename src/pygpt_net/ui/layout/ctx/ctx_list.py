@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.28 12:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -33,6 +33,10 @@ class CtxList:
         self.search_input = SearchInput(window)
         self._group_separators = False
         self._pinned_separators = False
+
+        # Cached icons for closed/open folder states
+        self._folder_icon = None
+        self._folder_open_icon = None
 
     def setup(self) -> QWidget:
         """
@@ -79,6 +83,14 @@ class CtxList:
 
         ctx = self.window.controller.ctx
         ctx_list.selectionModel().selectionChanged.connect(lambda *_: ctx.selection_change())
+
+        # Switch group folder icon on expand/collapse
+        try:
+            ctx_list.expanded.connect(self.on_group_expanded)
+            ctx_list.collapsed.connect(self.on_group_collapsed)
+        except Exception:
+            # View might not expose expanded/collapsed; ignore if not supported
+            pass
 
         self._group_separators = self.window.core.config.get("ctx.records.groups.separators")
         self._pinned_separators = self.window.core.config.get("ctx.records.pinned.separators")
@@ -258,10 +270,11 @@ class CtxList:
             if gid is not None and gid != 0:
                 grouped.setdefault(gid, []).append((meta_id, meta))
 
-        folder_icon = getattr(self, "_folder_icon", None)
-        if folder_icon is None:
-            from PySide6.QtGui import QIcon
-            folder_icon = self._folder_icon = QIcon(":/icons/folder_filled.svg")
+        # Ensure icons for closed/open folder states are loaded once
+        if getattr(self, "_folder_icon", None) is None:
+            self._folder_icon = QIcon(":/icons/folder.svg")
+        if getattr(self, "_folder_open_icon", None) is None:
+            self._folder_open_icon = QIcon(":/icons/folder_open.svg")
 
         node = self.window.ui.nodes[id]
 
@@ -276,7 +289,7 @@ class CtxList:
             # Display only the group name; the counter is drawn by delegate on the right
             is_attachment = group.has_additional_ctx()
             group_name = group.name
-            group_item = GroupItem(folder_icon, group_name, group.id)
+            group_item = GroupItem(self._folder_icon, group_name, group.id)
             group_item.hasAttachments = is_attachment
 
             # Provide all metadata required by the delegate
@@ -315,6 +328,7 @@ class CtxList:
             idx = group_item.index()
             if node.isExpanded(idx) != desired:
                 node.setExpanded(idx, desired)
+            self._set_group_icon_for_index(idx, desired)
 
     def count_in_group(self, group_id: int, data: dict) -> int:
         """
@@ -418,3 +432,40 @@ class CtxList:
             return trans('dt.month')
         else:
             return date.strftime("%Y-%m-%d")
+
+    # ===========================
+    # Helpers for group icons
+    # ===========================
+
+    def _set_group_icon_for_index(self, index: QtCore.QModelIndex, expanded: bool):
+        """
+        Set folder icon for a group index based on expansion state.
+        """
+        try:
+            if not index.isValid():
+                return
+            model = index.model()
+            if not hasattr(model, "itemFromIndex"):
+                return
+            item = model.itemFromIndex(index)
+            if not isinstance(item, GroupItem):
+                return
+            if getattr(self, "_folder_icon", None) is None:
+                self._folder_icon = QIcon(":/icons/folder.svg")
+            if getattr(self, "_folder_open_icon", None) is None:
+                self._folder_open_icon = QIcon(":/icons/folder_open.svg")
+            item.setIcon(self._folder_open_icon if expanded else self._folder_icon)
+        except Exception:
+            pass
+
+    def on_group_expanded(self, index: QtCore.QModelIndex):
+        """
+        Slot: update icon when a group is expanded.
+        """
+        self._set_group_icon_for_index(index, True)
+
+    def on_group_collapsed(self, index: QtCore.QModelIndex):
+        """
+        Slot: update icon when a group is collapsed.
+        """
+        self._set_group_icon_for_index(index, False)

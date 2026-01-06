@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.28 00:00:00                  #
+# Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -44,7 +44,7 @@ class ContextList(BaseList):
             'pin': QIcon(":/icons/pin3.svg"),
             'clock': QIcon(":/icons/clock.svg"),
             'db': QIcon(":/icons/db.svg"),
-            'folder': QIcon(":/icons/folder_filled.svg"),
+            'folder': QIcon(":/icons/folder.svg"),
             'attachment': QIcon(":/icons/attachment.svg"),
         }
         self._color_icon_cache = {}

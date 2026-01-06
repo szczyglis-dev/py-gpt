@@ -51,12 +51,12 @@ class ImageLabel(QLabel):
 
         actions = {}
         use_actions = []
-        actions['open'] = QAction(QIcon(":/icons/fullscreen.svg"), trans('img.action.open'), self)
+        actions['open'] = QAction(QIcon(":/icons/fit.svg"), trans('img.action.open'), self)
         actions['open'].triggered.connect(
             lambda: self.action_open(event)
         )
 
-        actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
+        actions['open_dir'] = QAction(QIcon(":/icons/folder.svg"), trans('action.open_dir'), self)
         actions['open_dir'].triggered.connect(
             lambda: self.action_open_dir(event)
         )
