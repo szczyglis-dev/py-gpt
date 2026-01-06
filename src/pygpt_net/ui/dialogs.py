@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
 import threading
@@ -32,6 +32,7 @@ from pygpt_net.ui.dialog.plugins import Plugins
 from pygpt_net.ui.dialog.preset import Preset
 from pygpt_net.ui.dialog.preset_plugins import PresetPlugins
 from pygpt_net.ui.dialog.profile import Profile, ProfileEdit
+from pygpt_net.ui.dialog.remote_store import RemoteStore
 from pygpt_net.ui.dialog.rename import Rename
 from pygpt_net.ui.dialog.settings import Settings
 from pygpt_net.ui.dialog.snap import Snap
@@ -104,6 +105,7 @@ class Dialogs:
         self.window.plugin_presets = PresetPlugins(self.window)
         self.window.model_settings = Models(self.window)
         self.window.model_importer = ModelsImporter(self.window)
+        self.window.remote_store = RemoteStore(self.window)
 
         self.window.ui.dialog['alert'] = AlertDialog(self.window)
         self.window.ui.dialog['confirm'] = ConfirmDialog(self.window)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Union
@@ -21,13 +21,10 @@ from pygpt_net.provider.core.remote_file.db_sqlite import DbSqliteProvider
 class Files:
 
     PROVIDER_NAME = "xai"
-    DEFAULT_STORE_ID = "files"
 
     def __init__(self, window=None):
         """
-        xAI remote files core (workspace Files API)
-
-        :param window: Window instance
+        xAI remote files core (Collections)
         """
         self.window = window
         self.provider = DbSqliteProvider(window)
@@ -69,7 +66,7 @@ class Files:
             path: str,
             size: int) -> Optional[RemoteFileItem]:
         """
-        Not used in the xAI path (kept for parity).
+        Not used in xAI Collections path (kept for parity).
         """
         file = RemoteFileItem()
         file.id = file_id
@@ -79,7 +76,7 @@ class Files:
         file.name = name
         file.path = path
         file.size = size or 0
-        file.store_id = self.DEFAULT_STORE_ID
+        file.store_id = ""  # store_id resolved by caller when needed
         file.record_id = self.provider.create(file)
         self.items[file.id] = file
         return file
@@ -118,13 +115,23 @@ class Files:
         return self.provider.get_all_by_file_id(file_id)
 
     def delete(self, file: Union[RemoteFileItem, list]) -> bool:
+        """
+        Delete a file entry and remove from its collections if possible.
+        """
         files = file if isinstance(file, list) else [file]
         for f in files:
             file_id = f.file_id
-            try:
-                self.window.core.api.xai.store.remove_file(file_id)
-            except Exception as e:
-                self.window.core.debug.log("Failed to delete remote file: " + str(e))
+            items = self.get_all_by_file_id(file_id)
+            # remove from linked collections first
+            for rid in items:
+                store_id = items[rid].store_id
+                if not store_id:
+                    continue
+                try:
+                    self.window.core.api.xai.store.delete_collection_file_collections(store_id, file_id)
+                except Exception as e:
+                    self.window.core.debug.log("Failed to detach from collection: " + str(e))
+            # delete in DB entry
             self.provider.delete_by_id(f.record_id)
             if f.record_id in self.items:
                 del self.items[f.record_id]
@@ -154,7 +161,13 @@ class Files:
         return True
 
     def truncate(self, store_id: Optional[str] = None) -> bool:
-        self.window.core.api.xai.store.remove_files()
+        """
+        Detach documents from one/all collections (remote) and clear local DB entries.
+        """
+        if store_id is not None:
+            self.window.core.api.xai.store.remove_from_collection_collections(store_id)
+        else:
+            self.window.core.api.xai.store.remove_from_collections_collections()
         return self.truncate_local(store_id)
 
     def truncate_local(self, store_id: Optional[str] = None) -> bool:
@@ -166,17 +179,18 @@ class Files:
         return True
 
     def import_from_store(self, store_id: str) -> bool:
-        files = self.window.core.api.xai.store.import_files()
-        for f in files:
-            pass
+        """
+        Import collection documents into local DB.
+        """
+        self.window.core.api.xai.store.import_collection_files_collections(store_id, [])
         return True
 
     def insert(self, store_id: str, data) -> RemoteFileItem:
         """
-        Insert a File into local DB
+        Insert a File into local DB, linked to given collection (store_id).
 
-        :param store_id: pseudo store id ('files')
-        :param data: file object from API
+        :param store_id: collection id
+        :param data: file/document object from API (Files metadata)
         """
         file = RemoteFileItem()
         file.id = getattr(data, "id", None) or getattr(data, "name", None)
@@ -192,7 +206,7 @@ class Files:
             file.size = int(size or 0)
         except Exception:
             file.size = 0
-        file.store_id = self.DEFAULT_STORE_ID
+        file.store_id = store_id
         file.record_id = self.provider.create(file)
         self.items[file.id] = file
         return file

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
 import os
@@ -17,7 +17,7 @@ from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 class Importer(QObject):
     def __init__(self, window=None):
         """
-        Importer core (xAI Files)
+        Importer core (xAI Collections)
 
         :param window: Window instance
         """
@@ -65,8 +65,10 @@ class Importer(QObject):
     def handle_log(self, mode: str, msg: str):
         self.window.controller.assistant.threads.log(mode + ": " + msg)
 
+    # ---------- Vector stores (Collections) ----------
+
     def import_vector_stores(self):
-        """Create/ensure pseudo-store and import files list."""
+        """Import collections"""
         self.worker = ImportWorker()
         self.worker.window = self.window
         self.worker.mode = "vector_stores"
@@ -74,15 +76,25 @@ class Importer(QObject):
         self.window.threadpool.start(self.worker)
 
     def truncate_vector_stores(self):
-        """Clear local pseudo-store metadata (no remote action)."""
+        """Delete collections"""
         self.worker = ImportWorker()
         self.worker.window = self.window
         self.worker.mode = "truncate_vector_stores"
         self.connect_signals(self.worker)
         self.window.threadpool.start(self.worker)
 
+    def refresh_vector_stores(self):
+        """Refresh collections"""
+        self.worker = ImportWorker()
+        self.worker.window = self.window
+        self.worker.mode = "refresh_vector_stores"
+        self.connect_signals(self.worker)
+        self.window.threadpool.start(self.worker)
+
+    # ---------- Files (documents) ----------
+
     def truncate_files(self, store_id: str = None):
-        """Remove all files via Files API."""
+        """Remove documents from one/all collections"""
         self.worker = ImportWorker()
         self.worker.window = self.window
         self.worker.mode = "truncate_files"
@@ -91,7 +103,7 @@ class Importer(QObject):
         self.window.threadpool.start(self.worker)
 
     def upload_files(self, store_id: str, files: list = None):
-        """Upload files to Files API."""
+        """Upload files to a collection"""
         self.worker = ImportWorker()
         self.worker.window = self.window
         self.worker.mode = "upload_files"
@@ -100,16 +112,8 @@ class Importer(QObject):
         self.connect_signals(self.worker)
         self.window.threadpool.start(self.worker)
 
-    def refresh_vector_stores(self):
-        """Refresh pseudo-store status."""
-        self.worker = ImportWorker()
-        self.worker.window = self.window
-        self.worker.mode = "refresh_vector_stores"
-        self.connect_signals(self.worker)
-        self.window.threadpool.start(self.worker)
-
     def import_files(self, store_id: str = None):
-        """Import files from Files API."""
+        """Import documents from one/all collections"""
         self.worker = ImportWorker()
         self.worker.window = self.window
         self.worker.mode = "import_files"
@@ -132,13 +136,13 @@ class ImportWorkerSignals(QObject):
 
 
 class ImportWorker(QRunnable):
-    """Import worker (xAI)"""
+    """Import worker (xAI Collections)"""
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.signals = ImportWorkerSignals()
         self.window = None
         self.mode = "vector_stores"
-        self.store_id = "files"
+        self.store_id = None
         self.files = []
 
     @Slot()
@@ -162,15 +166,17 @@ class ImportWorker(QRunnable):
         finally:
             self.cleanup()
 
+    # ---------- Collections ----------
+
     def import_vector_stores(self, silent: bool = False) -> bool:
         try:
-            self.log("Ensuring xAI workspace store...")
+            self.log("Importing collections...")
+            self.window.core.remote_store.xai.clear()
             items = {}
-            store = self.window.core.remote_store.xai.create("Files")
-            items[store.id] = store
+            self.window.core.api.xai.store.import_collections_collections(items, callback=self.callback)
             self.window.core.remote_store.xai.import_items(items)
             if not silent:
-                self.signals.finished.emit("vector_stores", self.store_id, 1)
+                self.signals.finished.emit("vector_stores", self.store_id, len(items))
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
@@ -179,11 +185,12 @@ class ImportWorker(QRunnable):
 
     def truncate_vector_stores(self, silent: bool = False) -> bool:
         try:
-            self.log("Truncating local pseudo-store...")
+            self.log("Truncating collections...")
+            num = self.window.core.api.xai.store.remove_all_collections_collections(callback=self.callback)
             self.window.core.remote_store.xai.items = {}
             self.window.core.remote_store.xai.save()
             if not silent:
-                self.signals.finished.emit("truncate_vector_stores", self.store_id, 1)
+                self.signals.finished.emit("truncate_vector_stores", self.store_id, num)
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
@@ -192,24 +199,40 @@ class ImportWorker(QRunnable):
 
     def refresh_vector_stores(self, silent: bool = False) -> bool:
         try:
-            self.log("Refreshing workspace status...")
-            if "files" not in self.window.core.remote_store.xai.items:
-                self.import_vector_stores(silent=True)
-            store = self.window.core.remote_store.xai.items["files"]
-            self.window.controller.remote_store.refresh_store(store, update=False, provider="xai")
+            self.log("Refreshing collections...")
+            num = 0
+            stores = self.window.core.remote_store.xai.items
+            for id in list(stores.keys()):
+                store = stores[id]
+                try:
+                    self.window.controller.remote_store.refresh_store(store, update=False, provider="xai")
+                    num += 1
+                except Exception as e:
+                    self.log("Failed to refresh collection: {}".format(id))
+                    self.window.core.debug.log(e)
             if not silent:
-                self.signals.finished.emit("refresh_vector_stores", self.store_id, 1)
+                self.signals.finished.emit("refresh_vector_stores", self.store_id, num)
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
             self.signals.error.emit("refresh_vector_stores", e)
             return False
 
+    # ---------- Documents ----------
+
     def truncate_files(self, silent: bool = False) -> bool:
         try:
-            self.log("Removing all files via xAI Files API...")
-            num = self.window.core.api.xai.store.remove_files(callback=self.callback)
-            self.window.core.remote_store.xai.files.truncate_local()
+            if self.store_id is None:
+                self.log("Truncating all collection documents...")
+                self.window.core.remote_store.xai.files.truncate()  # clear all local + detach from all collections
+                num = self.window.core.api.xai.store.remove_files(callback=self.callback)  # delete remote files
+            else:
+                self.log("Truncating documents for collection: {}".format(self.store_id))
+                self.window.core.remote_store.xai.files.truncate(self.store_id)  # clear local + detach from this collection
+                num = self.window.core.api.xai.store.remove_from_collection_collections(
+                    self.store_id,
+                    callback=self.callback,
+                )
             if not silent:
                 self.signals.finished.emit("truncate_files", self.store_id, num)
             return True
@@ -221,12 +244,12 @@ class ImportWorker(QRunnable):
     def upload_files(self, silent: bool = False) -> bool:
         num = 0
         try:
-            self.log("Uploading files to xAI Files API...")
+            self.log("Uploading files to collection...")
             for path in self.files:
                 try:
-                    f = self.window.core.api.xai.store.upload(path)
-                    if f is not None:
-                        self.window.core.remote_store.xai.files.insert("files", f)
+                    doc = self.window.core.api.xai.store.upload_to_collection_collections(self.store_id, path)
+                    if doc is not None:
+                        self.window.core.remote_store.xai.files.insert(self.store_id, doc.file_metadata)
                         num += 1
                         msg = "Uploaded file: {}/{}".format(num, len(self.files))
                         self.signals.status.emit("upload_files", msg)
@@ -246,9 +269,19 @@ class ImportWorker(QRunnable):
 
     def import_files(self, silent: bool = False) -> bool:
         try:
-            self.log("Importing files from xAI Files API...")
-            self.window.core.remote_store.xai.files.truncate_local()
-            num = self.window.core.api.xai.store.import_files(callback=self.callback)
+            if self.store_id is None:
+                self.log("Importing all collection documents...")
+                self.window.core.remote_store.xai.files.truncate_local()  # clear local DB (all)
+                num = self.window.core.api.xai.store.import_collections_files_collections(callback=self.callback)
+            else:
+                self.log("Importing documents for collection: {}".format(self.store_id))
+                self.window.core.remote_store.xai.files.truncate_local(self.store_id)  # clear local DB (store)
+                items = self.window.core.api.xai.store.import_collection_files_collections(
+                    self.store_id,
+                    [],
+                    callback=self.callback,
+                )
+                num = len(items)
             if not silent:
                 self.signals.finished.emit("import_files", self.store_id, num)
             return True
@@ -256,6 +289,8 @@ class ImportWorker(QRunnable):
             self.log("API error: {}".format(e))
             self.signals.error.emit("import_files", e)
             return False
+
+    # ---------- Utils ----------
 
     def callback(self, msg: str):
         self.log(msg)

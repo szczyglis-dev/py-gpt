@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
 import copy
@@ -265,6 +265,9 @@ class Patch:
                 to_add = [
                     "remote_store.hide_threads",
                     "remote_store.provider",
+                    "api_key_management_xai",
+                    "remote_tools.xai.collections",
+                    "remote_tools.xai.collections.args",
                 ]
                 for key in to_add:
                     if key not in data:

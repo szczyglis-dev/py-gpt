@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
 import os
@@ -217,20 +217,6 @@ class ImportWorker(QRunnable):
             self.signals.error.emit(self.mode, e)
         finally:
             self.cleanup()
-
-    def import_assistants(self, silent: bool = False) -> bool:
-        """
-        Import assistants (not used for Google by default; kept for parity)
-
-        :param silent: silent mode
-        """
-        try:
-            if not silent:
-                self.signals.finished.emit("assistants", self.store_id, 0)
-            return True
-        except Exception as e:
-            self.signals.error.emit("assistants", e)
-            return False
 
     def import_vector_stores(self, silent: bool = False) -> bool:
         """

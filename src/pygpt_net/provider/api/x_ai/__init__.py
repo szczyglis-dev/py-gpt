@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.04 19:00:00                  #
+# Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -61,7 +61,8 @@ class ApiXAI:
     def get_client(
             self,
             mode: str = MODE_CHAT,
-            model: ModelItem = None
+            model: ModelItem = None,
+            management_api_key = None
     ) -> xai_sdk.Client:
         """
         Get or create xAI client.
@@ -71,11 +72,9 @@ class ApiXAI:
 
         :param mode: One of MODE_*
         :param model: ModelItem (optional, not used currently)
+        :param management_api_key: Override API key (for management calls)
         :return: xai_sdk.Client
         """
-        if self.client is not None:
-            return self.client
-
         cfg = self.window.core.config
         api_key = cfg.get("api_key_xai") or os.environ.get("XAI_API_KEY") or ""
         timeout = cfg.get("api_native_xai.timeout")  # optional
@@ -92,7 +91,13 @@ class ApiXAI:
         if proxy:
             kwargs["channel_options"] = []
             kwargs["channel_options"].append(("grpc.http_proxy", proxy))
+        if management_api_key:
+            kwargs["management_api_key"] = management_api_key
 
+        if self.client is not None and self.last_client_args == kwargs:
+            return self.client
+
+        self.last_client_args = kwargs
         self.client = xai_sdk.Client(**kwargs)
         return self.client
 

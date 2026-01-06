@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.06 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -14,13 +14,12 @@ import json
 from typing import Optional, Union, Any, List
 
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QApplication, QMessageBox, QFileDialog
+from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtGui import QStandardItem
 
 from pygpt_net.item.store import RemoteStoreItem
 from pygpt_net.utils import trans
 
-from pygpt_net.ui.dialog.remote_store import RemoteStoreDialog
 from .batch import Batch
 
 
@@ -30,13 +29,13 @@ class RemoteStore:
     PROVIDERS = {
         "openai": "OpenAI",
         "google": "Google",
-        "anthropic": "Anthropic",
-        "xai": "xAI",
+        # "anthropic": "Anthropic",  # TODO: enable when SDK fixed
+        "xai": "xAI (Collections)",
     }
 
     def __init__(self, window=None):
         """
-        Unified Remote Store controller (Google + OpenAI in one place)
+        Unified Remote Store controller
 
         :param window: Window instance
         """
@@ -49,6 +48,7 @@ class RemoteStore:
         self.width = 900
         self.height = 560
         self.id = "remote_store"
+        self.initialized = False
 
         # Active provider: 'google' | 'openai' | 'anthropic' | 'xai'
         self.provider_key: Optional[str] = None
@@ -65,6 +65,7 @@ class RemoteStore:
             "id": {
                 "type": "text",
                 "label": "remote_store.id",
+                "description": "remote_store.id.description",
                 "read_only": True,
                 "value": "",
             },
@@ -150,6 +151,11 @@ class RemoteStore:
         if provider == "openai":
             self.window.controller.assistant.editor.update_store_list()  # update stores list in assistant dialog
 
+    def after_update(self, provider: str, store: RemoteStoreItem):
+        """Hook: called after store update (per provider)."""
+        if provider == "openai":
+            self.window.controller.assistant.editor.update_store_list()
+
     def after_truncated_stores(self, provider: str):
         """Hook: called after truncating all stores (per provider)."""
         if provider == "openai":
@@ -181,27 +187,23 @@ class RemoteStore:
 
     def setup(self):
         """Setup caches and build the unified dialog."""
-        self.window.core.remote_store.openai.load_all()
-        self.window.core.remote_store.google.load_all()
-        self.window.core.remote_store.anthropic.load_all()
-        self.window.core.remote_store.xai.load_all()
-
-        # Build unified dialog UI
-        self.window.remote_store = RemoteStoreDialog(self.window)
-        self.window.remote_store.setup()
-
-        # Ensure provider combobox is synced at first load
         try:
-            self.window.remote_store.set_provider_in_ui(self._get_provider())
-        except Exception:
-            pass
+            self.window.core.remote_store.openai.load_all()
+            self.window.core.remote_store.google.load_all()
+            self.window.core.remote_store.anthropic.load_all()
+            self.window.core.remote_store.xai.load_all()
+        except Exception as e:
+            self.window.core.debug.log(e)
 
     def reload(self):
         """Reload provider data and refresh unified view."""
-        self.window.core.remote_store.openai.load_all()
-        self.window.core.remote_store.google.load_all()
-        self.window.core.remote_store.anthropic.load_all()
-        self.window.core.remote_store.xai.load_all()
+        try:
+            self.window.core.remote_store.openai.load_all()
+            self.window.core.remote_store.google.load_all()
+            self.window.core.remote_store.anthropic.load_all()
+            self.window.core.remote_store.xai.load_all()
+        except Exception as e:
+            self.window.core.debug.log(e)
         self.reset()
 
     def reset(self):
@@ -244,6 +246,17 @@ class RemoteStore:
 
     def init(self, select_first: bool = False):
         """Initialize UI state for the active provider."""
+        if not self.initialized:
+            # Setup dialog UI
+            self.window.remote_store.setup()
+
+            # Ensure provider combobox is synced at first load
+            try:
+                self.window.remote_store.set_provider_in_ui(self._get_provider())
+            except Exception:
+                pass
+            self.initialized = True
+
         self.reload_items()
 
         # Ensure a valid selection, optionally forcing the first visible store
@@ -415,7 +428,7 @@ class RemoteStore:
         """Refresh lists and auxiliary widgets."""
         self.reload_items()
         try:
-            self.window.controller.assistant.editor.update_store_list()
+            self.after_update(self._get_provider())
         except Exception:
             pass
         self.update_files_list()
@@ -528,7 +541,7 @@ class RemoteStore:
         if self.current is not None:
             current = self._core_for().items[self.current].to_dict()
             options = copy.deepcopy(self.get_options())
-            data_dict = {}
+            data_dict = current
             for key in options:
                 if key == "status":
                     data_dict[key] = current.get("status", {})
@@ -720,7 +733,7 @@ class RemoteStore:
             self._files_row_to_id.append(data['file_id'] if 'file_id' in data else file_id)
             i += 1
 
-    def delete_file_by_idx(self, idx: int, force: bool = False):
+    def delete_file_by_idx(self, idx: Union[int, list], force: bool = False):
         """
         Delete a single document from the current store.
         Uses inline confirmation if force is False.
@@ -732,11 +745,17 @@ class RemoteStore:
         model_id = 'remote_store.files.list'
         if model_id not in self.window.ui.models:
             return
-        if idx < 0 or idx >= len(self._files_row_to_id):
-            return
 
-        file_id = self._files_row_to_id[idx]
-        if not file_id:
+        if not isinstance(idx, list):
+            idx = [idx]
+        idx_list = []
+        for i in idx:
+            if i < 0 or i >= len(self._files_row_to_id):
+                continue
+            idx_list.append(i)
+
+        file_ids = [self._files_row_to_id[i] for i in idx_list if self._files_row_to_id[i]]
+        if not file_ids:
             return
 
         if not force:
@@ -749,9 +768,9 @@ class RemoteStore:
             if m.exec() != QMessageBox.Yes:
                 return
 
-        self._delete_file_by_idx_provider(idx, self._get_provider(), file_id=file_id)
+        self._delete_file_by_idx_provider(idx, self._get_provider())
 
-    def _delete_file_by_idx_provider(self, idx: int, provider: str, file_id: Optional[str] = None):
+    def _delete_file_by_idx_provider(self, idx: Union[int, list], provider: str, file_id: Optional[str] = None):
         """Provider-explicit file delete (used by proxies/confirm)."""
         if self.current is None and provider == self._get_provider():
             self.window.ui.dialogs.alert(trans("dialog.remote_store.alert.select"))
@@ -761,45 +780,66 @@ class RemoteStore:
         if model_id not in self.window.ui.models and provider == self._get_provider():
             return
 
+        idx_list = []
         if file_id is None:
-            if idx < 0 or idx >= len(self._files_row_to_id):
+            if not isinstance(idx, list):
+                idx = [idx]
+            for i in idx:
+                if i < 0 or i >= len(self._files_row_to_id):
+                    continue
+                idx_list.append(i)
+
+            if not idx_list:
                 return
-            file_id = self._files_row_to_id[idx]
+
+            file_ids = [self._files_row_to_id[i] for i in idx_list if self._files_row_to_id[i]]
+            if not file_ids:
+                return
+        else:
+            file_ids = [file_id]
+            idx_list = [idx] if isinstance(idx, int) else idx
+
+        # sort indexes descending to avoid shifting issues when removing multiple
+        idx_list.sort(reverse=True)
 
         self.window.update_status(trans('status.sending'))
         QApplication.processEvents()
         try:
             api = self._api_store_for(provider)
             removed = False
-            if hasattr(api, 'remove_store_file'):
-                try:
-                    api.remove_store_file(self.current if provider == self._get_provider() else "", file_id)
-                    removed = True
-                except Exception as e:
-                    self.window.core.debug.log(e)
 
-            if not removed and hasattr(api, 'remove_file'):
-                try:
-                    api.remove_file(file_id)
-                    removed = True
-                except Exception as e:
-                    self.window.core.debug.log(e)
+            for file_id in file_ids:
+                if hasattr(api, 'remove_store_file'):
+                    try:
+                        api.remove_store_file(self.current if provider == self._get_provider() else "", file_id)
+                        removed = True
+                    except Exception as e:
+                        self.window.core.debug.log(e)
+
+                if not removed and hasattr(api, 'remove_file'):
+                    try:
+                        api.remove_file(file_id)
+                        removed = True
+                    except Exception as e:
+                        self.window.core.debug.log(e)
 
             if not removed:
                 raise RuntimeError("Remove file API not available.")
 
-            try:
-                self._files_core_for(provider).delete_by_file_id(file_id)
-            except Exception as e:
-                self.window.core.debug.log(e)
+            for file_id in file_ids:
+                try:
+                    self._files_core_for(provider).delete_by_file_id(file_id)
+                except Exception as e:
+                    self.window.core.debug.log(e)
 
             if provider == self._get_provider():
                 try:
-                    self.window.ui.models[model_id].removeRow(idx)
-                    try:
-                        del self._files_row_to_id[idx]
-                    except Exception:
-                        pass
+                    for i in idx_list:
+                        self.window.ui.models[model_id].removeRow(i)
+                        try:
+                            del self._files_row_to_id[i]
+                        except Exception:
+                            pass
                 except Exception:
                     pass
 

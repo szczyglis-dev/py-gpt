@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.04 19:00:00                  #
+# Updated Date: 2026.01.06 18:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ try:
     from xai_sdk.tools import x_search as x_x_search
     from xai_sdk.tools import code_execution as x_code_execution
     from xai_sdk.tools import mcp as x_mcp
+    from xai_sdk.tools import collections_search as x_collections_search
 except Exception:
     x_web_search = None
     x_x_search = None
@@ -168,6 +169,23 @@ class Remote:
                     tools.append(x_mcp(**kwargs))
                 except Exception:
                     pass
+
+        # COLLECTIONS SEARCH
+        is_collections_enabled = bool(cfg.get("remote_tools.xai.collections", False))
+        ids = cfg.get("remote_tools.xai.collections.args", "")
+        ids_list = []
+        if ids:
+            try:
+                ids_list = [s.strip() for s in ids.split(",") if s.strip()]
+            except Exception:
+                pass
+        if is_collections_enabled and ids_list:
+            try:
+                tools.append(x_collections_search(
+                    collection_ids=ids_list
+                ))
+            except Exception:
+                pass
 
         return {
             "tools": tools,

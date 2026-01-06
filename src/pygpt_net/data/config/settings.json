@@ -344,6 +344,28 @@
         "advanced": false,
         "tab": "xAI"
     },
+    "api_key_management_xai": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key_management.xai",
+        "description": "settings.api_key_management.xai.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "urls": {
+            "API Keys": "https://console.x.ai"
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "xAI"
+    },
     "api_endpoint_xai": {
         "section": "api_keys",
         "type": "text",
@@ -2034,7 +2056,7 @@
         "advanced": false,
         "tab": "Google",
         "urls": {
-            "Google Docs": "https://ai.google.dev/gemini-api/docs/file-search#metadata"
+            "Google Docs": "https://ai.google.dev/gemini-api/docs/file-search"
         }
     },
     "remote_tools.anthropic.web_search": {
@@ -2198,6 +2220,37 @@
         "tab": "xAI",
         "urls": {
             "xAI Docs": "https://docs.x.ai/docs/guides/tools/remote-mcp-tools"
+        }
+    },
+    "remote_tools.xai.collections": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.xai.collections",
+        "description": "settings.remote_tools.xai.collections.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "xAI"
+    },
+    "remote_tools.xai.collections.args": {
+        "section": "remote_tools",
+        "type": "text",
+        "slider": false,
+        "label": "settings.remote_tools.xai.collections.args",
+        "description": "settings.remote_tools.xai.collections.args.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "xAI",
+        "urls": {
+            "xAI Docs": "https://docs.x.ai/docs/guides/tools/collections-search-tool"
         }
     },
     "llama.idx.list": {

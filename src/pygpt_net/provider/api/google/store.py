@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
 import os
@@ -498,7 +498,7 @@ class Store:
         for doc_name in files:
             self.log("Removing document from store [{}]:{} ".format(store_id, doc_name))
             self.delete_store_file(store_id, doc_name)
-            num += 1
+            num += 1        
         return num
 
     def remove_all(self, callback: Optional[callable] = None) -> int:

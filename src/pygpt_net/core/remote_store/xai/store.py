@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
 import datetime
@@ -22,17 +22,16 @@ from .files import Files
 
 class Store:
     """
-    xAI Files API "store" adapter.
-    xAI does not have OpenAI-style vector stores; we expose a single workspace-level pseudo store.
+    xAI Collections API store adapter.
+
+    Each xAI Collection is mapped to a RemoteStoreItem (Vector Store analogue).
     """
 
     PROVIDER_NAME = "xai"
-    DEFAULT_STORE_ID = "files"
-    DEFAULT_STORE_NAME = "Files"
 
     def __init__(self, window=None):
         """
-        xAI Files workspace core
+        xAI Collections core
 
         :param window: Window instance
         """
@@ -72,34 +71,44 @@ class Store:
     def has(self, id: str) -> bool:
         return id in self.items
 
-    def _ensure_default(self) -> RemoteStoreItem:
-        if self.DEFAULT_STORE_ID in self.items:
-            return self.items[self.DEFAULT_STORE_ID]
+    # ---------- CRUD ----------
+
+    def create(self, name: Optional[str] = None) -> Optional[RemoteStoreItem]:
+        """
+        Create a new collection.
+        """
+        name = name or "New collection"
+        collection = self.window.core.api.xai.store.create_collection_collections(name)
+        if collection is None:
+            return None
         store = RemoteStoreItem()
-        store.id = self.DEFAULT_STORE_ID
-        store.name = self.DEFAULT_STORE_NAME
+        store.id = getattr(collection, "collection_id", None)
+        store.name = getattr(collection, "collection_name", None) or name
         store.provider = self.PROVIDER_NAME
         store.is_thread = False
         store.record_id = self.provider.create(store)
         self.items[store.id] = store
         return store
 
-    def create(self, name: Optional[str] = None) -> Optional[RemoteStoreItem]:
-        store = self._ensure_default()
-        if name:
-            store.name = name
-            self.provider.save(store)
-        return store
-
     def update(self, store: RemoteStoreItem) -> Optional[RemoteStoreItem]:
+        """
+        Update collection (rename).
+        """
+        collection = self.window.core.api.xai.store.update_collection_collections(store.id, store.name)
+        if collection is None:
+            return None
         self.items[store.id] = store
         self.provider.save(store)
         return store
 
     def get_status_data(self, id: str):
+        """
+        Obtain status data for a collection.
+        """
         status = {}
-        stats = self.window.core.api.xai.store.get_files_stats()
-        if stats is not None:
+        data = self.window.core.api.xai.store.get_collection_collections(id)
+        if data is not None:
+            stats = self.window.core.api.xai.store.get_collection_stats_collections(id)
             status = {
                 "status": "ready",
                 "usage_bytes": int(stats.get("total_bytes", 0) or 0),
@@ -113,14 +122,22 @@ class Store:
                     "total": int(stats.get("count", 0) or 0),
                 },
                 "expires_after": None,
-                "remote_display_name": self.items.get(id, RemoteStoreItem()).name if id in self.items else self.DEFAULT_STORE_NAME,
+                "remote_display_name": getattr(data, "name", "") or "",
             }
-        return status, None
+        return status, data
 
     def update_status(self, id: str):
-        self._ensure_default()
+        """
+        Refresh store status from remote collection.
+        """
+        if id not in self.items:
+            return
         store = self.items[id]
-        status, _ = self.get_status_data(id)
+        status, data = self.get_status_data(id)
+        if data is not None:
+            tmp_name = getattr(data, "collection_name", None) or ""
+            store.name = tmp_name
+        store.provider = self.PROVIDER_NAME
         self.append_status(store, status)
         self.update(store)
 
@@ -148,14 +165,24 @@ class Store:
         return names
 
     def delete(self, id: str) -> bool:
+        """
+        Delete collection.
+        """
         if id in self.items:
             store = self.items[id]
             self.provider.delete_by_id(store.record_id)
+            try:
+                self.window.core.api.xai.store.remove_collection_collections(id)
+            except Exception as e:
+                self.window.core.debug.log(e)
             del self.items[id]
             return True
         return False
 
     def import_items(self, items: Dict[str, RemoteStoreItem]):
+        """
+        Insert items (collections).
+        """
         self.items = items
         for item in items.values():
             item.provider = self.PROVIDER_NAME
@@ -172,10 +199,10 @@ class Store:
         self.items = {}
         return True
 
+    # ---------- Load/Save ----------
+
     def load(self):
         self.items = self.provider.load_all(self.PROVIDER_NAME)
-        if self.DEFAULT_STORE_ID not in self.items:
-            self._ensure_default()
         self.sort_items()
 
     def load_all(self):

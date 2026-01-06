@@ -7,7 +7,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.06 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -19,9 +19,9 @@ from PySide6.QtWidgets import (
     QFrame, QSplitter, QSizePolicy, QMenuBar, QCheckBox, QMenu, QListView
 )
 
-from pygpt_net.ui.widget.dialog.base import BaseDialog
+from pygpt_net.ui.widget.dialog.remote_store import RemoteStoreDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
-from pygpt_net.ui.widget.element.labels import UrlLabel
+from pygpt_net.ui.widget.element.labels import UrlLabel, DescLabel
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.checkbox_list import OptionCheckboxList
 from pygpt_net.ui.widget.option.combo import OptionCombo, NoScrollCombo
@@ -32,7 +32,7 @@ from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.utils import trans
 
 
-class RemoteStoreDialog:
+class RemoteStore:
     def __init__(self, window=None):
         """
         Remote Store editor dialog
@@ -66,7 +66,11 @@ class RemoteStoreDialog:
 
         # Provider selector
         providers = controller.remote_store.get_providers()
-        nodes['remote_store.provider.label'] = QLabel(trans("remote_store.provider") if hasattr(self.window, "tr") else "Provider")
+        nodes['remote_store.provider.label'] = QLabel(trans("remote_store.provider"))
+        nodes['remote_store.provider.desc'] = DescLabel(trans("remote_store.provider.desc"))
+        nodes['remote_store.provider.desc'].setWordWrap(True)
+        nodes['remote_store.provider.desc'].setMaximumHeight(40)
+        nodes['remote_store.provider.desc'].setStyleSheet("font-size: 10px;")
         nodes['remote_store.provider.combo'] = NoScrollCombo()
         for key in providers:
             provider = providers[key]
@@ -115,7 +119,9 @@ class RemoteStoreDialog:
         provider_bar = QHBoxLayout()
         provider_bar.addWidget(nodes['remote_store.provider.label'], 0)
         provider_bar.addWidget(nodes['remote_store.provider.combo'], 1)
+        provider_bar.setContentsMargins(5, 5, 5, 5)
         content.addLayout(provider_bar)
+        content.addWidget(nodes['remote_store.provider.desc'])
 
         for key in widgets:
             if key in advanced_keys:
@@ -153,6 +159,7 @@ class RemoteStoreDialog:
         nodes[list_id].setModel(models[list_id])
         nodes[list_id].setMinimumWidth(260)
         nodes[list_id].setSelectionMode(QListView.ExtendedSelection)
+        nodes[list_id].setEditTriggers(QListView.NoEditTriggers)
         nodes[list_id].clicked.connect(lambda ix: controller.remote_store.select(ix.row()))
         nodes[list_id].setContextMenuPolicy(Qt.CustomContextMenu)
         nodes[list_id].customContextMenuRequested.connect(self.on_stores_context_menu)
@@ -174,7 +181,7 @@ class RemoteStoreDialog:
         files_list_id = 'remote_store.files.list'
         nodes[files_list_id] = QListView()
         nodes[files_list_id].setEditTriggers(QListView.NoEditTriggers)
-        nodes[files_list_id].setSelectionMode(QListView.SingleSelection)
+        nodes[files_list_id].setSelectionMode(QListView.ExtendedSelection)
         nodes[files_list_id].setContextMenuPolicy(Qt.CustomContextMenu)
         nodes[files_list_id].customContextMenuRequested.connect(self.on_files_context_menu)
 
@@ -218,7 +225,7 @@ class RemoteStoreDialog:
         layout.addLayout(footer)
         layout.setMenuBar(self.setup_menu())
 
-        ui.dialog[self.dialog_id] = BaseDialog(self.window, self.dialog_id) # TODO: change to store dialog
+        ui.dialog[self.dialog_id] = RemoteStoreDialog(self.window, self.dialog_id) # TODO: change to store dialog
         ui.dialog[self.dialog_id].setLayout(layout)
         ui.dialog[self.dialog_id].setWindowTitle(trans('dialog.remote_store'))
 
@@ -406,7 +413,7 @@ class RemoteStoreDialog:
             layout.addWidget(widget)
 
         if desc:
-            self.window.ui.nodes[desc_key] = QLabel(desc)
+            self.window.ui.nodes[desc_key] = DescLabel(desc)
             self.window.ui.nodes[desc_key].setWordWrap(True)
             self.window.ui.nodes[desc_key].setMaximumHeight(40)
             self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
@@ -522,11 +529,24 @@ class RemoteStoreDialog:
         if not index.isValid():
             return
 
+        sel_model = view.selectionModel()
+        selected_rows = sorted([ix.row() for ix in sel_model.selectedRows()]) if sel_model else []
+        multi = len(selected_rows) > 1
+
         row = index.row()
         menu = QMenu(view)
         act_delete = QAction(QIcon(":/icons/delete.svg"),
                              trans("remote_store.menu.file.delete") if hasattr(self.window, 'tr') else "Delete",
                              view)
-        act_delete.triggered.connect(lambda r=row: controller.remote_store.delete_file_by_idx(r))
+
+        if multi:
+            act_delete.triggered.connect(
+                lambda checked=False, rows=list(selected_rows): controller.remote_store.delete_file_by_idx(rows)
+            )
+        else:
+            act_delete.triggered.connect(
+                lambda checked=False, r=row: controller.remote_store.delete_file_by_idx(r)
+            )
+
         menu.addAction(act_delete)
         menu.exec(view.mapToGlobal(pos))

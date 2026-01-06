@@ -1,4 +1,3 @@
-# controller/remote_store/remote_store.py
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -7,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
 from typing import Optional, Union, Any, List
@@ -253,7 +252,11 @@ class Batch:
         self._importer().upload_files(self.ctrl.current, self.files_to_upload)
         self.files_to_upload = []
 
-    def refresh_delayed(self, ms: int = 1000):
+    def refresh_delayed(self, ms: int = 1000, all: bool = False):
+        if all:
+            self.window.update_status("Refreshing all stores...")
+            QTimer.singleShot(ms, lambda: self.refresh_stores(force=True))
+            return
         self.window.update_status("Refreshing status...")
         QTimer.singleShot(ms, lambda: self.ctrl.refresh_status())
 
@@ -314,10 +317,12 @@ class Batch:
     def handle_truncated_files(self, store_id: Optional[str] = None, num: int = 0):
         self.window.update_status("OK. Truncated documents: " + str(num) + ".")
         try:
-            if store_id is not None:
+            if store_id :
                 self.ctrl.refresh_by_store_id_provider(self._get_provider(), store_id)
             else:
-                self.refresh_delayed(1200)
+                self.refresh_delayed(1200, all=True)
+        except Exception as e:
+            print(e)
         finally:
             self.window.ui.dialogs.alert(trans("status.finished"))
 
