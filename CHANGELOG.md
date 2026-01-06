@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.7.8 (2026-01-06)
+
+- Added the xAI Collections remote tool and integrated collections management into the Remote Vector Stores tool.
+- Unified the Remote Vector Stores tool into a single tool for all providers.
+- Added xAI Grok audio input and output provider (realtime audio support for Grok coming soon!).
+- Enhanced the Image Viewer tool with a toolbox featuring Prev/Next and more options.
+
 ## 2.7.7 (2026-01-05)
 
 - Added support for Responses API in xAI.

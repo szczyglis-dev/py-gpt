@@ -141,6 +141,19 @@ class Patch:
                             m.input.append("image")
                 updated = True
 
+            # <  2.7.8 <--- add missing image input
+            if old < parse_version("2.7.8"):
+                print("Migrating models from < 2.7.8...")
+                models_to_update = [
+                    "grok-4"
+                ]
+                for model in models_to_update:
+                    if model in data:
+                        m = data[model]
+                        if not m.is_image_input():
+                            m.input.append("image")
+                updated = True
+
         # update file
         if updated:
             # fix empty/broken data

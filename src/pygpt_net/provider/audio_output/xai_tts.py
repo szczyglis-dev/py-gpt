@@ -1,5 +1,3 @@
-# provider/audio_output/xai_tts.py
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #

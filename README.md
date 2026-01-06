@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.7** | build: **2026-01-05** | Python: **>=3.10, <3.14**
+Release: **2.7.8** | build: **2026-01-06** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3677,6 +3677,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.8 (2026-01-06)**
+
+- Added the xAI Collections remote tool and integrated collections management into the Remote Vector Stores tool.
+- Unified the Remote Vector Stores tool into a single tool for all providers.
+- Added xAI Grok audio input and output provider (realtime audio support for Grok coming soon!).
+- Enhanced the Image Viewer tool with a toolbox featuring Prev/Next and more options.
 
 **2.7.7 (2026-01-05)**
 

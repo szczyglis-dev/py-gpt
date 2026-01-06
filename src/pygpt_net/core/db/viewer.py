@@ -196,7 +196,7 @@ class Viewer:
             try:
                 value = int(value)
             except:
-                raise ValueError(f"Invalid _id value for column {field}")
+                pass
 
         if self.is_auto_backup():
             backup_path = self.database.make_backup()
