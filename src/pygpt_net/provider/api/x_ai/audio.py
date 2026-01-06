@@ -6,27 +6,59 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 01:00:00                  #
+# Updated Date: 2026.01.06 20:00:00                  #
 # ================================================== #
 
-from typing import Tuple
+import base64
+from typing import Optional, Union, List, Dict, Any
+
+from pygpt_net.core.bridge.context import MultimodalContext
 
 
 class Audio:
     def __init__(self, window=None):
         """
-        Audio helpers for xAI.
-
-        Note: As of now, the public xAI Python SDK does not expose TTS/STT or realtime audio APIs.
-        This class exists to keep provider surface compatible.
+        Audio input wrapper
 
         :param window: Window instance
         """
         self.window = window
 
-    # Placeholders to keep interface parity
-    def build_part(self, multimodal_ctx) -> None:
-        return None
+    def build_content(
+            self,
+            content: Optional[Union[str, list]] = None,
+            multimodal_ctx: Optional[MultimodalContext] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Build audio content from multimodal context
 
-    def extract_first_audio_part(self, response) -> Tuple[None, None]:
-        return None, None
+        :param content: previous content or input prompt
+        :param multimodal_ctx: multimodal context
+        :return: List of contents
+        """
+        if not isinstance(content, list):
+            if content:
+                content = [
+                    {
+                        "type": "text",
+                        "text": str(content),
+                    }
+                ]
+            else:
+                content = []  # if empty input return empty list
+
+        # abort if no audio input provided
+        if not multimodal_ctx.is_audio_input:
+            return content
+
+        encoded = base64.b64encode(multimodal_ctx.audio_data).decode('utf-8')
+        audio_format = multimodal_ctx.audio_format  # wav by default
+        audio_data = {
+            "type": "input_audio",
+            "input_audio": {
+                "data": encoded,
+                "format": audio_format,
+            }
+        }
+        content.append(audio_data)
+        return content

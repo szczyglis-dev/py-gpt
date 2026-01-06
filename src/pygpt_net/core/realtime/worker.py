@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2026.01.06 20:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -63,6 +63,8 @@ class RealtimeWorker(QRunnable):
             return self.window.core.api.google.realtime.handler
         elif provider == "openai":
             return self.window.core.api.openai.realtime.handler
+        elif provider == "x_ai":
+            return self.window.core.api.xai.realtime.handler
         else:
             raise RuntimeError(f"Unsupported realtime provider: {provider}")
 

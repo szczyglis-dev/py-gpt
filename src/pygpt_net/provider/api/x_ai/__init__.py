@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 06:00:00                  #
+# Updated Date: 2026.01.06 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -36,6 +36,7 @@ from .image import Image
 from .remote_tools import Remote
 from .responses import Responses
 from .store import Store
+from .realtime import Realtime
 
 
 class ApiXAI:
@@ -54,6 +55,7 @@ class ApiXAI:
         self.remote = Remote(window)
         self.responses = Responses(window)
         self.store = Store(window)
+        self.realtime = Realtime(window)
         self.client: Optional[xai_sdk.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
@@ -136,8 +138,23 @@ class ApiXAI:
                 MODE_COMPLETION,
                 MODE_CHAT,
                 MODE_AUDIO,
-                MODE_RESEARCH
+                MODE_RESEARCH,
+                MODE_AUDIO
         ):
+            if mode == MODE_AUDIO:
+                raise NotImplementedError("Not available. xAI realtime audio streaming coming soon!")
+
+            if mode == MODE_AUDIO and stream:
+                # Realtime API for audio streaming
+                is_realtime = self.realtime.begin(
+                    context=context,
+                    model=model,
+                    extra=extra or {},
+                    rt_signals=rt_signals
+                )
+                if is_realtime:
+                    return True
+
             # Audio TTS is not exposed via public SDK; treat MODE_AUDIO as chat input.
             # NOTE: for grok-3 use Chat completions, for > grok-4 use Chat responses
             if use_responses_api:
