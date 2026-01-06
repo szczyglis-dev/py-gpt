@@ -538,7 +538,7 @@ class RemoteStore:
 
     def save(self, persist: bool = True):
         """Persist right panel data to store and remote if supported."""
-        if self.current is not None:
+        if self.current is not None and self._core_for().has(self.current):
             current = self._core_for().items[self.current].to_dict()
             options = copy.deepcopy(self.get_options())
             data_dict = current
