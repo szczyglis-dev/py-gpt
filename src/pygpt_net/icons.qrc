@@ -56,7 +56,11 @@
         <file alias="favorite.svg">data/icons/favorite.svg</file>
         <file alias="fit.svg">data/icons/fit.svg</file>
         <file alias="folder.svg">data/icons/folder.svg</file>
+        <file alias="folder_eye.svg">data/icons/folder_eye.svg</file>
+        <file alias="folder_eye_filled.svg">data/icons/folder_eye_filled.svg</file>
         <file alias="folder_filled.svg">data/icons/folder_filled.svg</file>
+        <file alias="folder_open.svg">data/icons/folder_open.svg</file>
+        <file alias="folder_open_filled.svg">data/icons/folder_open_filled.svg</file>
         <file alias="forward.svg">data/icons/forward.svg</file>
         <file alias="full.svg">data/icons/full.svg</file>
         <file alias="fullscreen.svg">data/icons/fullscreen.svg</file>
