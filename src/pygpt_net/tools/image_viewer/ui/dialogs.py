@@ -1,3 +1,5 @@
+# dialog.py
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -6,12 +8,24 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 23:00:00                  #
+# Updated Date: 2026.01.06 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QPoint, QSize, QEvent
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenuBar, QVBoxLayout, QHBoxLayout, QSizePolicy, QScrollArea
+from PySide6.QtWidgets import (
+    QMenuBar,
+    QVBoxLayout,
+    QHBoxLayout,
+    QSizePolicy,
+    QScrollArea,
+    QToolButton,
+    QPushButton,
+    QWidget,
+    QFrame,
+    QStyle,
+    QLabel,
+)
 
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.ui.widget.image.display import ImageLabel
@@ -56,7 +70,14 @@ class DialogSpawner:
         row.addWidget(scroll)
 
         layout = QVBoxLayout()
+        # full-width toolbar frame; icons cluster inside stays compact on the left
+        toolbar = dialog.setup_toolbar()
+        layout.addWidget(toolbar)
+        # image area
         layout.addLayout(row)
+        # bottom status bar
+        statusbar = dialog.setup_statusbar()
+        layout.addWidget(statusbar)
 
         dialog.append_layout(layout)
         dialog.source = source
@@ -98,6 +119,12 @@ class ImageViewerDialog(BaseDialog):
         self._icon_save = QIcon(":/icons/save.svg")
         self._icon_logout = QIcon(":/icons/logout.svg")
 
+        # toolbar icons
+        self._icon_prev = QIcon(":/icons/back.svg")
+        self._icon_next = QIcon(":/icons/forward.svg")
+        self._icon_copy = QIcon(":/icons/copy.svg")
+        self._icon_fullscreen = QIcon(":/icons/fullscreen.svg")
+
         # zoom / pan state
         self._zoom_mode = 'fit'  # 'fit' or 'manual'
         self._zoom_factor = 1.0  # current manual factor (image space)
@@ -111,6 +138,21 @@ class ImageViewerDialog(BaseDialog):
         # performance guards to prevent extremely huge widget sizes
         self._max_widget_dim = 32768          # max single dimension (px) for the view widget
         self._max_total_pixels = 80_000_000   # max total pixels of the view widget (about 80MP)
+
+        # buttons map to keep enabled state in sync with actions
+        self._tb_btns = {}
+
+        # status bar widgets and metadata
+        self.status_bar = None
+        self.lbl_index = None
+        self.lbl_resolution = None
+        self.lbl_zoom = None
+        self.lbl_extra = None
+
+        self._meta_index = 0           # 1-based index of file in dir
+        self._meta_total = 0           # total files in dir
+        self._meta_img_size = QSize()  # original image size
+        self._meta_file_size = ""      # formatted file size string
 
     def append_layout(self, layout):
         """
@@ -153,6 +195,8 @@ class ImageViewerDialog(BaseDialog):
                     self._fit_factor = self._compute_fit_factor(src.size(), target_size)
                     self._last_src_key = key
                     self._last_target_size = target_size
+                    # update status bar to reflect new zoom and display size
+                    self._refresh_statusbar()
         super(ImageViewerDialog, self).resizeEvent(event)
 
     def setup_menu(self) -> QMenuBar:
@@ -196,6 +240,193 @@ class ImageViewerDialog(BaseDialog):
         self.file_menu.addAction(self.actions["exit"])
 
         return self.menu_bar
+
+    def setup_toolbar(self) -> QFrame:
+        """
+        Setup top toolbar.
+        Full-width frame (Expanding), with a fixed-size icons strip on the left that does not stretch.
+        """
+        bar = QFrame(self)
+        bar.setObjectName("image_viewer_toolbar")
+        bar.setFrameShape(QFrame.NoFrame)
+        bar.setMinimumHeight(35)
+        bar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)  # full width, fixed height
+
+        # scoped minimal style for icon-only QPushButtons
+        bar.setStyleSheet(
+            """
+            #image_viewer_toolbar QPushButton {
+                border: none;
+                padding: 0;
+            }
+            #image_viewer_toolbar QPushButton:disabled {
+                opacity: 0.5;
+            }
+            """
+        )
+
+        # main container layout that fills the width
+        lay = QHBoxLayout(bar)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(0)
+
+        # a compact, non-expanding strip that holds the icons
+        strip = QWidget(bar)
+        strip.setObjectName("image_viewer_toolbar_strip")
+        strip.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        strip_lay = QHBoxLayout(strip)
+        strip_lay.setContentsMargins(6, 6, 6, 6)
+        strip_lay.setSpacing(6)
+
+        # DPI-aware icon and button sizes; explicit fixed size prevents vertical squashing
+        pm = self.style().pixelMetric(QStyle.PM_ToolBarIconSize)
+        if not isinstance(pm, int) or pm <= 0:
+            pm = self.style().pixelMetric(QStyle.PM_SmallIconSize)
+            if not isinstance(pm, int) or pm <= 0:
+                pm = 20
+        # reduce icon height by ~5px (and width to keep square) as requested
+        icon_px = max(16, pm - 5)
+        btn_px = max(29, icon_px + 10)  # keep compact square buttons; min reduced by 5px
+        icon_size = QSize(icon_px, icon_px)
+
+        def bind_button_to_action(btn: QPushButton, action: QAction):
+            """Keep button in sync with the given action."""
+            btn.setIcon(action.icon())
+            btn.setToolTip(action.toolTip())
+            btn.setEnabled(action.isEnabled())
+            action.changed.connect(lambda: (
+                btn.setIcon(action.icon()),
+                btn.setToolTip(action.toolTip()),
+                btn.setEnabled(action.isEnabled())
+            ))
+            btn.clicked.connect(action.trigger)
+
+        def mk_btn(key: str, icon: QIcon, tooltip: str) -> QPushButton:
+            """Create a fixed-size square button with icon-only look."""
+            action = QAction(icon, "", self)
+            action.setToolTip(tooltip)
+            self.actions[key] = action
+
+            btn = QPushButton(strip)
+            btn.setObjectName("ivtb")
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setFocusPolicy(Qt.NoFocus)
+            btn.setFlat(True)
+            btn.setText("")
+            btn.setIcon(icon)
+            btn.setIconSize(icon_size)
+            btn.setFixedSize(btn_px, btn_px)
+
+            bind_button_to_action(btn, action)
+            self._tb_btns[key] = btn
+
+            strip_lay.addWidget(btn)
+            return btn
+
+        def add_sep():
+            sep = QFrame(strip)
+            sep.setFrameShape(QFrame.VLine)
+            sep.setFrameShadow(QFrame.Sunken)
+            sep.setFixedHeight(btn_px - 4)
+            strip_lay.addWidget(sep)
+
+        # prev
+        mk_btn("tb_prev", self._icon_prev, "Previous image")
+        self.actions["tb_prev"].triggered.connect(
+            lambda checked=False: self.window.tools.get("viewer").prev_by_id(self.id)
+        )
+
+        # next
+        mk_btn("tb_next", self._icon_next, "Next image")
+        self.actions["tb_next"].triggered.connect(
+            lambda checked=False: self.window.tools.get("viewer").next_by_id(self.id)
+        )
+
+        add_sep()
+
+        # open in directory
+        mk_btn("tb_open_dir", self._icon_folder, "Open in directory")
+        self.actions["tb_open_dir"].triggered.connect(
+            lambda checked=False: self.window.tools.get("viewer").open_dir_by_id(self.id)
+        )
+
+        # save as...
+        mk_btn("tb_save_as", self._icon_save, "Save as...")
+        self.actions["tb_save_as"].triggered.connect(
+            lambda checked=False: self.window.tools.get("viewer").save_by_id(self.id)
+        )
+
+        # copy
+        mk_btn("tb_copy", self._icon_copy, "Copy to clipboard")
+        self.actions["tb_copy"].triggered.connect(
+            lambda checked=False: self.window.tools.get("viewer").copy_by_id(self.id)
+        )
+
+        add_sep()
+
+        # fullscreen
+        mk_btn("tb_fullscreen", self._icon_fullscreen, "Toggle fullscreen")
+        self.actions["tb_fullscreen"].triggered.connect(
+            lambda checked=False: self.window.tools.get("viewer").toggle_fullscreen_by_id(self.id)
+        )
+
+        # initial enabled state; actual state adjusted on image load
+        for k in ("tb_prev", "tb_next", "tb_open_dir", "tb_save_as", "tb_copy", "tb_fullscreen"):
+            if k in self.actions:
+                self.actions[k].setEnabled(k == "tb_fullscreen")
+
+        # compose: icons strip on the left, stretch fills the rest so frame spans full width
+        lay.addWidget(strip)
+        lay.addStretch(1)
+
+        return bar
+
+    def setup_statusbar(self) -> QFrame:
+        """
+        Setup bottom status bar with four columns:
+        1) file index in directory (e.g., 1/13)
+        2) image resolution (e.g., 1920x1080 px)
+        3) current zoom in percent
+        4) displayed size in px and file size string
+        """
+        bar = QFrame(self)
+        bar.setObjectName("image_viewer_statusbar")
+        bar.setFrameShape(QFrame.NoFrame)
+        bar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        bar.setStyleSheet("""
+            #image_viewer_statusbar {
+                border: none;
+            }
+            #image_viewer_statusbar QLabel {
+                color: #686868;
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+        """)
+
+        lay = QHBoxLayout(bar)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(0)
+
+        self.lbl_index = QLabel("-", bar)
+        self.lbl_resolution = QLabel("-", bar)
+        self.lbl_zoom = QLabel("-", bar)
+        self.lbl_extra = QLabel("-", bar)
+
+        # make columns distribute evenly
+        for w in (self.lbl_index, self.lbl_resolution, self.lbl_zoom, self.lbl_extra):
+            w.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            align = Qt.AlignLeft
+            if w == self.lbl_resolution or w == self.lbl_zoom:
+                align = Qt.AlignCenter
+            if w == self.lbl_extra:
+                align = Qt.AlignRight
+            lay.addWidget(w, 1, align)
+
+        self.status_bar = bar
+        self._refresh_statusbar()
+        return bar
 
     # =========================
     # Zoom / pan implementation
@@ -266,10 +497,8 @@ class ImageViewerDialog(BaseDialog):
                 )
                 self._zoom_factor = self._fit_factor
                 self._zoom_mode = 'manual'
-                # switch to manual rendering path: original pixmap + scaled contents
                 self.scroll_area.setWidgetResizable(False)
                 self.pixmap.setScaledContents(True)
-                # ensure we display original image for better performance (no giant intermediate pixmaps)
                 self.pixmap.setPixmap(self.source.pixmap())
 
             old_w = max(1, self.pixmap.width())
@@ -287,10 +516,8 @@ class ImageViewerDialog(BaseDialog):
                 return False
 
             step = self._zoom_step if angle > 0 else (1.0 / self._zoom_step)
-            # compute tentative new factor and clamp by hard min/max and size guards
             tentative = self._zoom_factor * step
             tentative = max(self._min_zoom, min(self._max_zoom, tentative))
-            # apply size-based guards to avoid extremely huge widget sizes
             tentative = self._clamp_factor_by_size(tentative)
 
             if abs(tentative - self._zoom_factor) < 1e-9:
@@ -301,7 +528,6 @@ class ImageViewerDialog(BaseDialog):
             hbar = self.scroll_area.horizontalScrollBar()
             vbar = self.scroll_area.verticalScrollBar()
 
-            # position in content coords before zoom (keep point under cursor stable)
             content_x = hbar.value() + vp_pos.x()
             content_y = vbar.value() + vp_pos.y()
             rx = content_x / float(old_w)
@@ -365,23 +591,19 @@ class ImageViewerDialog(BaseDialog):
         iw = max(1, src.width())
         ih = max(1, src.height())
 
-        # only guard when zooming in; zooming out should not be limited by these caps
         if factor <= 1.0:
             return factor
 
-        # desired size
         dw = iw * factor
         dh = ih * factor
 
         scale = 1.0
 
-        # total pixel cap
         total = dw * dh
         if total > self._max_total_pixels:
             from math import sqrt
             scale = min(scale, sqrt(self._max_total_pixels / float(total)))
 
-        # dimension caps
         if dw * scale > self._max_widget_dim:
             scale = min(scale, self._max_widget_dim / float(dw))
         if dh * scale > self._max_widget_dim:
@@ -394,10 +616,6 @@ class ImageViewerDialog(BaseDialog):
     def _set_scaled_pixmap_by_factor(self, factor: float):
         """
         Scale and display the image using provided factor relative to the original image.
-        In manual mode this avoids allocating giant intermediate QPixmaps by:
-        - drawing the original pixmap;
-        - enabling scaled contents;
-        - resizing the label to the required size.
         """
         if not self._has_image():
             return
@@ -406,30 +624,29 @@ class ImageViewerDialog(BaseDialog):
         iw = max(1, src.width())
         ih = max(1, src.height())
 
-        # target size based on factor (KeepAspectRatio preserved by proportional math)
         new_w = max(1, int(round(iw * factor)))
         new_h = max(1, int(round(ih * factor)))
 
-        # enforce guards once more to be safe
         guarded_factor = self._clamp_factor_by_size(factor)
         if abs(guarded_factor - factor) > 1e-9:
             new_w = max(1, int(round(iw * guarded_factor)))
             new_h = max(1, int(round(ih * guarded_factor)))
-            self._zoom_factor = guarded_factor  # keep internal factor in sync
+            self._zoom_factor = guarded_factor
 
         if self._zoom_mode == 'manual':
-            # ensure manual path uses original pixmap and scaled contents
             if self.pixmap.pixmap() is None or self.pixmap.pixmap().cacheKey() != src.cacheKey():
                 self.pixmap.setPixmap(src)
             self.pixmap.setScaledContents(True)
             self.pixmap.resize(new_w, new_h)
         else:
-            # fallback (not expected here): keep classic high-quality scaling
             scaled = src.scaled(new_w, new_h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             self.pixmap.setScaledContents(False)
             self.pixmap.setPixmap(scaled)
             if self.scroll_area is not None:
                 self.scroll_area.setWidgetResizable(True)
+
+        # keep status bar in sync with zoom and current display size
+        self._refresh_statusbar()
 
     def _event_pos(self, event) -> QPoint:
         """
@@ -440,3 +657,73 @@ class ImageViewerDialog(BaseDialog):
         if hasattr(event, "pos"):
             return event.pos()
         return QPoint(0, 0)
+
+    # =========================
+    # Status bar helpers
+    # =========================
+
+    def set_status_meta(self, index: int = None, total: int = None, img_size: QSize = None, file_size_str: str = None):
+        """
+        Update persistent metadata shown in status bar (index/total, original image size, file size).
+        """
+        if index is not None:
+            self._meta_index = max(0, int(index))
+        if total is not None:
+            self._meta_total = max(0, int(total))
+        if img_size is not None:
+            self._meta_img_size = QSize(max(0, img_size.width()), max(0, img_size.height()))
+        if file_size_str is not None:
+            self._meta_file_size = file_size_str or ""
+        self._refresh_statusbar()
+
+    def _current_zoom_percent(self) -> int:
+        """
+        Return current zoom in percent, based on mode.
+        """
+        factor = self._fit_factor if self._zoom_mode == 'fit' else self._zoom_factor
+        try:
+            return max(1, int(round(factor * 100.0)))
+        except Exception:
+            return 100
+
+    def _displayed_size(self) -> QSize:
+        """
+        Return the currently displayed image size in pixels.
+        """
+        if self._zoom_mode == 'manual' and self.pixmap is not None:
+            return QSize(max(0, self.pixmap.width()), max(0, self.pixmap.height()))
+        # in fit mode or when using a scaled pixmap
+        if self.pixmap is not None and self.pixmap.pixmap() is not None:
+            pm = self.pixmap.pixmap()
+            return QSize(max(0, pm.width()), max(0, pm.height()))
+        return QSize(0, 0)
+
+    def _refresh_statusbar(self):
+        """
+        Refresh all status bar labels from current metadata and state.
+        """
+        if self.lbl_index is None:
+            return
+
+        # 1) index/total
+        if self._meta_index > 0 and self._meta_total > 0:
+            self.lbl_index.setText(f"{self._meta_index}/{self._meta_total}")
+        else:
+            self.lbl_index.setText("-")
+
+        # 2) original image resolution
+        if self._meta_img_size.width() > 0 and self._meta_img_size.height() > 0:
+            self.lbl_resolution.setText(f"{self._meta_img_size.width()}x{self._meta_img_size.height()} px")
+        else:
+            self.lbl_resolution.setText("-")
+
+        # 3) zoom percent
+        self.lbl_zoom.setText(f"{self._current_zoom_percent()}%")
+
+        # 4) displayed size and file size
+        dsz = self._displayed_size()
+        dsz_txt = f"{dsz.width()}x{dsz.height()} px" if dsz.width() > 0 and dsz.height() > 0 else "-"
+        if self._meta_file_size:
+            self.lbl_extra.setText(f"{dsz_txt} | {self._meta_file_size}")
+        else:
+            self.lbl_extra.setText(dsz_txt)
