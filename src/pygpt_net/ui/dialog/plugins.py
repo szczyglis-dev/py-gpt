@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.01 15:00:00                  #
+# Updated Date: 2026.01.06 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -176,8 +176,12 @@ class Plugins:
             desc_txt = plugin.description
             if plugin.use_locale:
                 domain = f"plugin.{plugin.id}"
-                name_txt = trans('plugin.name', False, domain)
-                desc_txt = trans('plugin.description', False, domain)
+                translated_name = trans('plugin.name', False, domain)
+                translated_desc = trans('plugin.description', False, domain)
+                if translated_name != 'plugin.name':
+                    name_txt = translated_name
+                if translated_desc != 'plugin.description':
+                    desc_txt = translated_desc
 
             self.window.ui.nodes[desc_key] = DescLabel(desc_txt)
             self.window.ui.nodes[desc_key].setAlignment(Qt.AlignCenter)
@@ -423,8 +427,12 @@ class Plugins:
         # translate if localization is enabled
         if plugin.use_locale and allow_locale:
             domain = f"plugin.{plugin.id}"
-            txt_title = trans(f"{key}.label", False, domain)
-            txt_desc = trans(f"{key}.description", False, domain)
+            translated_label = trans(f"{key}.label", False, domain)
+            translated_description = trans(f"{key}.description", False, domain)
+            if translated_label != f"{key}.label":
+                txt_title = translated_label
+            if translated_description != f"{key}.description":
+                txt_desc = translated_description
             # txt_tooltip = trans(f"{key}.tooltip", False, domain)
 
             # if empty tooltip then use description
