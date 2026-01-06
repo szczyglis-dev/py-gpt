@@ -1,5 +1,7 @@
 # dialog.py
 
+# dialog.py
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -70,6 +72,10 @@ class DialogSpawner:
         row.addWidget(scroll)
 
         layout = QVBoxLayout()
+        # remove extra outer margins to bring the toolbar closer to the top/menu bar
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
         # full-width toolbar frame; icons cluster inside stays compact on the left
         toolbar = dialog.setup_toolbar()
         layout.addWidget(toolbar)
@@ -255,6 +261,9 @@ class ImageViewerDialog(BaseDialog):
         # scoped minimal style for icon-only QPushButtons
         bar.setStyleSheet(
             """
+            #image_viewer_toolbar {
+                border: none;
+            }
             #image_viewer_toolbar QPushButton {
                 border: none;
                 padding: 0;
@@ -386,9 +395,9 @@ class ImageViewerDialog(BaseDialog):
         """
         Setup bottom status bar with four columns:
         1) file index in directory (e.g., 1/13)
-        2) image resolution (e.g., 1920x1080 px)
+        2) displayed size (e.g., 1280x720 px)
         3) current zoom in percent
-        4) displayed size in px and file size string
+        4) original image resolution and file size on the right
         """
         bar = QFrame(self)
         bar.setObjectName("image_viewer_statusbar")
@@ -414,15 +423,15 @@ class ImageViewerDialog(BaseDialog):
         self.lbl_zoom = QLabel("-", bar)
         self.lbl_extra = QLabel("-", bar)
 
-        # make columns distribute evenly
-        for w in (self.lbl_index, self.lbl_resolution, self.lbl_zoom, self.lbl_extra):
+        # make columns distribute evenly; order updated to show current (displayed) on the left,
+        # and original with file size on the right: index | displayed | zoom | original (+ size)
+        for w in (self.lbl_index, self.lbl_extra, self.lbl_zoom, self.lbl_resolution):
             w.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-            align = Qt.AlignLeft
-            if w == self.lbl_resolution or w == self.lbl_zoom:
-                align = Qt.AlignCenter
-            if w == self.lbl_extra:
-                align = Qt.AlignRight
-            lay.addWidget(w, 1, align)
+
+        lay.addWidget(self.lbl_index, 1, Qt.AlignLeft)
+        lay.addWidget(self.lbl_extra, 1, Qt.AlignLeft)
+        lay.addWidget(self.lbl_zoom, 1, Qt.AlignCenter)
+        lay.addWidget(self.lbl_resolution, 1, Qt.AlignRight)
 
         self.status_bar = bar
         self._refresh_statusbar()
@@ -711,19 +720,19 @@ class ImageViewerDialog(BaseDialog):
         else:
             self.lbl_index.setText("-")
 
-        # 2) original image resolution
-        if self._meta_img_size.width() > 0 and self._meta_img_size.height() > 0:
-            self.lbl_resolution.setText(f"{self._meta_img_size.width()}x{self._meta_img_size.height()} px")
-        else:
-            self.lbl_resolution.setText("-")
-
-        # 3) zoom percent
-        self.lbl_zoom.setText(f"{self._current_zoom_percent()}%")
-
-        # 4) displayed size and file size
+        # 2) left: displayed size only
         dsz = self._displayed_size()
         dsz_txt = f"{dsz.width()}x{dsz.height()} px" if dsz.width() > 0 and dsz.height() > 0 else "-"
-        if self._meta_file_size:
-            self.lbl_extra.setText(f"{dsz_txt} | {self._meta_file_size}")
+        self.lbl_extra.setText(dsz_txt)
+
+        # 3) zoom percent (center)
+        self.lbl_zoom.setText(f"{self._current_zoom_percent()}%")
+
+        # 4) right: original resolution with file size appended
+        if self._meta_img_size.width() > 0 and self._meta_img_size.height() > 0:
+            right_txt = f"{self._meta_img_size.width()}x{self._meta_img_size.height()} px"
+            if self._meta_file_size:
+                right_txt += f" | {self._meta_file_size}"
+            self.lbl_resolution.setText(right_txt)
         else:
-            self.lbl_extra.setText(dsz_txt)
+            self.lbl_resolution.setText("-")
