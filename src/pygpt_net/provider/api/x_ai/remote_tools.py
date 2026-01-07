@@ -28,6 +28,7 @@ except Exception:
     x_x_search = None
     x_code_execution = None
     x_mcp = None
+    x_collections_search = None
 
 
 class Remote:
@@ -41,6 +42,9 @@ class Remote:
         Server-side Tools builder for xAI (newer SDKs, Responses API):
         - Builds xAI SDK tool objects for web_search, x_search, code_execution, MCP.
         - Returns include flags, max_turns and use_encrypted_content settings.
+
+        Realtime (WebSocket) tools builder for xAI:
+        - Produces Realtime-compatible tool descriptors to be attached to session.update/response.create.
 
         :param window: Window instance
         """
@@ -268,6 +272,85 @@ class Remote:
             "http": http_params,
             "reason": http_reason,
         }
+
+    # ---------- Realtime tools (WebSocket) ----------
+
+    def append_to_tools(
+            self,
+            mode: str,
+            model: ModelItem,
+            stream: bool,
+            is_expert_call: bool,
+            tools: List[dict],
+            preset=None
+    ) -> List[dict]:
+        """
+        Prepare remote tools for xAI Realtime sessions.
+
+        The returned list contains Realtime/WebSocket tool descriptors understood by xAI’s Grok Voice Agent API.
+        Server-side tools are executed by xAI; client-side tools are added separately in the caller.
+
+        :param mode: Agent mode (unused here, kept for signature compatibility)
+        :param model: Model item
+        :param stream: Streaming flag
+        :param is_expert_call: Expert call flag (unused here for xAI)
+        :param tools: Current tools list to extend
+        :param preset: Preset item (unused here)
+        :return: Extended tools list
+        """
+        cfg = self.window.core.config
+        enabled_global = self.window.controller.chat.remote_tools.enabled
+
+        # Toggles
+        is_web_enabled = enabled_global(model, "web_search")
+        is_x_enabled = bool(cfg.get("remote_tools.xai.x_search", False))
+        is_code_enabled = bool(cfg.get("remote_tools.xai.code_execution", False))
+        is_mcp_enabled = bool(cfg.get("remote_tools.xai.mcp", False))
+        is_collections_enabled = bool(cfg.get("remote_tools.xai.collections", False))
+
+        # Web search
+        if is_web_enabled:
+            tools.append({"type": "web_search"})
+
+        # X search
+        if is_x_enabled:
+            tools.append({"type": "x_search"})
+
+        # Code execution (code interpreter)
+        if is_code_enabled:
+            # Container is optional here; xAI executes code server-side
+            tools.append({"type": "code_interpreter"})
+
+        # Collections search
+        if is_collections_enabled:
+            ids = cfg.get("remote_tools.xai.collections.args", "")
+            ids_list: List[str] = []
+            if ids:
+                try:
+                    ids_list = [s.strip() for s in ids.split(",") if s.strip()]
+                except Exception:
+                    ids_list = []
+            if ids_list:
+                tools.append({
+                    "type": "collections_search",
+                    "collection_ids": ids_list,
+                })
+
+        # MCP
+        if is_mcp_enabled:
+            mcp_tool = cfg.get("remote_tools.xai.mcp.args", "")
+            if mcp_tool:
+                try:
+                    parsed = json.loads(mcp_tool)
+                    # Accept either full dict or minimal {"type":"mcp"}
+                    if isinstance(parsed, dict):
+                        tools.append(parsed)
+                except Exception:
+                    tools.append({"type": "mcp"})
+            else:
+                tools.append({"type": "mcp"})
+
+        return tools
 
     # ---------- helpers ----------
 

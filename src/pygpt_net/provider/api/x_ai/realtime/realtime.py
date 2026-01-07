@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 20:00:00                  #
+# Updated Date: 2026.01.07 13:00:00                  #
 # ================================================== #
 
 import json
@@ -27,7 +27,7 @@ class Realtime:
 
     def __init__(self, window=None):
         """
-        OpenAI API realtime controller
+        xAI API realtime controller
 
         :param window: Window instance
         """
@@ -68,15 +68,11 @@ class Realtime:
         self.handler.set_debug(is_debug)
 
         # tools
-        tools = []
-        '''
-        tools = self.window.core.api.xai.tools.prepare(model, context.external_functions)
-        '''
+        tools = self.window.core.api.xai.tools.prepare_realtime(context.external_functions)
 
         # remote tools
         remote_tools = []
-        '''
-        remote_tools = self.window.core.api.openai.remote_tools.append_to_tools(
+        remote_tools = self.window.core.api.xai.remote.append_to_tools(
             mode=context.mode,
             model=model,
             stream=context.stream,
@@ -84,7 +80,6 @@ class Realtime:
             tools=remote_tools,
             preset=context.preset,
         )
-        '''
 
         # handle sub-reply (tool results from tool calls)
         if context.ctx.internal:
@@ -127,7 +122,7 @@ class Realtime:
             print("[realtime session] Last ID", last_session_id)
 
         # Voice
-        voice = "ara"
+        voice = "Ara"
         try:
             v = self.window.core.plugins.get_option("audio_output", "xai_tts_voice")
             if v:

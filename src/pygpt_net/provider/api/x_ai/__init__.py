@@ -141,9 +141,6 @@ class ApiXAI:
                 MODE_RESEARCH,
                 MODE_AUDIO
         ):
-            if mode == MODE_AUDIO:
-                raise NotImplementedError("Not available. xAI realtime audio streaming coming soon!")
-
             if mode == MODE_AUDIO and stream:
                 # Realtime API for audio streaming
                 is_realtime = self.realtime.begin(

@@ -26,6 +26,7 @@ class Tools:
 
         - prepare(): legacy OpenAI-compatible dicts (kept for compatibility if needed).
         - prepare_sdk_tools(): xAI SDK client-side tool descriptors for Chat Responses.
+        - prepare_realtime(): Realtime/WebSocket-compatible function tools.
 
         :param window: Window instance
         """
@@ -168,4 +169,54 @@ class Tools:
                     ))
                 except Exception:
                     continue
+        return tools
+
+    def prepare_realtime(self, functions: list) -> List[dict]:
+        """
+        Prepare function tools for Realtime/WebSocket sessions.
+
+        The returned structure matches the Realtime "tools" schema:
+        [
+          {
+            "type": "function",
+            "function": {
+              "name": "...",
+              "description": "...",
+              "parameters": { ... JSON Schema ... }
+            }
+          }
+        ]
+
+        :param functions: List of functions with keys: name (str), desc (str), params (JSON Schema str)
+        :return: List of function tool descriptors
+        """
+        if not functions or not isinstance(functions, list):
+            return []
+
+        tools: List[dict] = []
+        for fn in functions:
+            name = str(fn.get("name") or "").strip()
+            if not name:
+                continue
+            desc = fn.get("desc") or ""
+            params: Optional[dict] = {}
+            if fn.get("params"):
+                try:
+                    params = json.loads(fn["params"])
+                except Exception:
+                    params = {}
+                params = self._sanitize_schema(params or {})
+                if not params.get("type"):
+                    params["type"] = "object"
+            else:
+                params = {"type": "object"}
+
+            tools.append({
+                "type": "function",
+                "function": {
+                    "name": name,
+                    "description": desc,
+                    "parameters": params,
+                }
+            })
         return tools

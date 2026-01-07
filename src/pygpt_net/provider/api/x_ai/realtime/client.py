@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 20:00:00                  #
+# Updated Date: 2026.01.07 13:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -19,7 +19,6 @@ from typing import Optional, Callable, Awaitable
 from urllib.parse import urlencode
 
 from pygpt_net.core.events import RealtimeEvent
-from pygpt_net.core.types import MODE_AUDIO
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 
@@ -33,9 +32,6 @@ from pygpt_net.core.realtime.shared.audio import (
 )
 from pygpt_net.core.realtime.shared.tools import (
     sanitize_function_tools,
-    sanitize_remote_tools,
-    prepare_tools_for_session,
-    prepare_tools_for_response,
     tools_signature,
     build_tool_outputs_payload,
 )
@@ -50,15 +46,14 @@ class xAIIRealtimeClient:
     Key points:
     - A single background asyncio loop runs in its own thread for the lifetime of the client.
     - One websocket connection (session) at a time; multiple "turns" (send_turn) are serialized.
-    - No server VAD: manual turn control via input_audio_buffer.* + response.create.
+    - Supports server VAD (auto-turn) and manual turn control (input_audio_buffer.* + response.create).
     - Safe to call run()/send_turn()/reset()/shutdown() from any thread or event loop.
 
     Session resumption:
     - The official Realtime API does not expose a documented server-side "resume" for closed WS sessions.
-      We still persist the server-provided session.id and surface it via ctx.extra["rt_session_id"].
-    - If opts.rt_session_id is provided and differs from the current in-memory handle, we reset the
-      connection and attempt to reconnect with a "session_id" query parameter. If that fails, we fall
-      back to the standard URL to avoid breaking existing functionality.
+      We still persist the server-provided handle (session or conversation id) and surface it via ctx.extra["rt_session_id"].
+      If opts.rt_session_id is provided and differs from the current in-memory handle, we reset the connection and attempt
+      to reconnect with a "session_id" query parameter. If that fails, we fall back to the standard URL.
     """
 
     WS_URL = "wss://api.x.ai/v1/realtime"
@@ -234,7 +229,7 @@ class xAIIRealtimeClient:
         ctx: Optional[CtxItem] = None,
         opts=None,
         on_text: Optional[Callable[[str], Awaitable[None]]] = None,
-        on_audio: Optional[Callable[[bytes, str, Optional[int], Optional[int], bool], Awaitable[None]]] = None,
+        on_audio: Optional[Callable[[bytes, str], Awaitable[None]]] = None,
         should_stop: Optional[Callable[[], bool]] = None,
         timeout: float = 10.0,
     ):
@@ -273,6 +268,89 @@ class xAIIRealtimeClient:
                 setattr(lo, "remote_tools", remote_tools)
         except Exception:
             pass
+
+    def _xai_tool_shape(self, tool: dict) -> dict:
+        """
+        Ensure xAI-compatible tool shape:
+        - function tools use top-level name/parameters (no nested "function" object)
+        - known provider tools: file_search (vector_store_ids), web_search, x_search
+        Unknown provider-only tools are dropped to avoid server-side validation issues.
+        """
+        try:
+            if not isinstance(tool, dict):
+                return tool
+
+            t = dict(tool)
+
+            # Convert OpenAI Realtime "function": {...} into xAI top-level form
+            if t.get("type") == "function":
+                if "function" in t and isinstance(t["function"], dict):
+                    f = t["function"]
+                    name = f.get("name") or t.get("name")
+                    desc = f.get("description") or t.get("description") or ""
+                    params = f.get("parameters") or t.get("parameters") or {"type": "object"}
+                    return {
+                        "type": "function",
+                        "name": name,
+                        "description": desc,
+                        "parameters": params if isinstance(params, dict) else {"type": "object"},
+                    }
+                # Already top-level form, return as-is
+                return {
+                    "type": "function",
+                    "name": t.get("name"),
+                    "description": t.get("description") or "",
+                    "parameters": t.get("parameters") or {"type": "object"},
+                }
+
+            # Map collections_search -> file_search
+            if t.get("type") == "collections_search":
+                vec_ids = t.get("collection_ids") or t.get("vector_store_ids") or []
+                max_num = t.get("max_num_results") if isinstance(t.get("max_num_results"), int) else None
+                out = {
+                    "type": "file_search",
+                    "vector_store_ids": vec_ids if isinstance(vec_ids, list) else [],
+                }
+                if max_num is not None:
+                    out["max_num_results"] = max_num
+                return out
+
+            # Pass-through for known provider tools
+            if t.get("type") in ("file_search", "web_search", "x_search"):
+                return t
+
+            # code_interpreter is not documented for xAI Voice Agent; drop it
+            if t.get("type") == "code_interpreter":
+                return {}
+
+            return t
+        except Exception:
+            return tool
+
+    def _compose_xai_tools(self, tools: Optional[list], remote_tools: Optional[list]) -> list:
+        """
+        Compose a single list of tools in xAI shape; filters out unsupported ones.
+        """
+        out: list = []
+        try:
+            fn = tools or []
+            rt = remote_tools or []
+
+            # Sanitize function tools from our shared helper first
+            fn = sanitize_function_tools(fn) or fn
+
+            # Merge order: provider tools first (as in xAI docs), then function tools
+            for t in (rt or []):
+                shaped = self._xai_tool_shape(t)
+                if isinstance(shaped, dict) and shaped:
+                    out.append(shaped)
+            for t in (fn or []):
+                shaped = self._xai_tool_shape(t)
+                if isinstance(shaped, dict) and shaped:
+                    out.append(shaped)
+        except Exception:
+            pass
+        return out
 
     # -----------------------------
     # Internal: background loop/dispatch
@@ -327,19 +405,16 @@ class xAIIRealtimeClient:
         except Exception:
             pass
 
-        # Build WS URL with model and optional session_id for best-effort resume
-        base_q = {"model": model_id}
+        # Prefer plain WS URL; fallback to query-parameter variant
+        url_plain = self.WS_URL
+        q = {"model": model_id}
         if resume_sid:
-            base_q["session_id"] = resume_sid  # if unsupported by server, connect fallback will ignore
-        url_with_sid = f"{self.WS_URL}?{urlencode(base_q)}"
-        url_no_sid = f"{self.WS_URL}?{urlencode({'model': model_id})}"
+            q["session_id"] = resume_sid
+        url_with_q = f"{self.WS_URL}?{urlencode(q)}"
 
         headers = {
             "Authorization": f"Bearer {api_key}",
         }
-
-        # Transcription toggle
-        transcribe_enabled = bool(getattr(opts, "transcribe", False))
 
         # Save callbacks and context
         self._on_text = on_text
@@ -355,11 +430,10 @@ class xAIIRealtimeClient:
         if self.debug:
             print(f"[open_session] owner_loop={id(asyncio.get_running_loop())}")
 
-        # Connect WS: first try with session_id if provided; on failure, fall back to plain URL.
+        # Connect WS with robust fallback
         try:
-            target_url = url_with_sid if resume_sid else url_no_sid
             self.ws = await websockets.connect(
-                target_url,
+                url_plain,
                 additional_headers=headers,
                 max_size=16 * 1024 * 1024,
                 ping_interval=20,
@@ -367,39 +441,53 @@ class xAIIRealtimeClient:
                 close_timeout=5,
             )
         except Exception as e:
-            if resume_sid and self.debug:
-                print(f"[open_session] connect with session_id failed ({e!r}); falling back to plain URL")
-            if resume_sid:
+            if self.debug:
+                print(f"[open_session] connect plain failed: {e!r}")
+            try:
                 self.ws = await websockets.connect(
-                    url_no_sid,
+                    url_with_q,
                     additional_headers=headers,
                     max_size=16 * 1024 * 1024,
                     ping_interval=20,
                     ping_timeout=20,
                     close_timeout=5,
                 )
+            except Exception as e2:
+                if self.debug:
+                    print(f"[open_session] fallback connect failed: {e2!r}")
+                self.ws = None
+
+        if not self.ws:
+            raise RuntimeError("xAI Realtime: WebSocket connect failed")
+
         if self.debug:
             print("[open_session] WS connected")
 
-        # Session payload (manual by default; prepared for auto)
+        # Session payload compatible with xAI Voice Agent
         session_payload = {
             "type": "session.update",
             "session": {
-                "modalities": ["text", "audio"],
                 "voice": voice,
-                "input_audio_format": "pcm16",
-                "output_audio_format": "pcm16",
-                # turn_detection set below via apply_turn_mode_openai
-                **({"instructions": str(getattr(opts, "system_prompt"))} if getattr(opts, "system_prompt", None) else {}),
+                "audio": {
+                    "input": {"format": {"type": "audio/pcm", "rate": self._DEFAULT_RATE}},
+                    "output": {"format": {"type": "audio/pcm", "rate": self._DEFAULT_RATE}},
+                },
             },
         }
+        if getattr(opts, "system_prompt", None):
+            session_payload["session"]["instructions"] = str(getattr(opts, "system_prompt"))
+
+        # Turn detection (server VAD) or manual turns
         turn_mode = TurnMode.AUTO if bool(getattr(opts, "auto_turn", False)) else TurnMode.MANUAL
         apply_turn_mode_openai(session_payload, turn_mode)
         self._tune_openai_vad(session_payload, opts)
 
-        # Attach tools to session (remote + functions)
+        # Attach tools to session (xAI expects tools only in session.update)
         try:
-            session_tools = prepare_tools_for_session(opts)
+            session_tools = self._compose_xai_tools(
+                getattr(opts, "tools", None),
+                getattr(opts, "remote_tools", None),
+            )
             if session_tools:
                 session_payload["session"]["tools"] = session_tools
                 self._cached_session_tools_sig = tools_signature(session_tools)
@@ -411,17 +499,6 @@ class xAIIRealtimeClient:
             if self.debug:
                 print(f"[open_session] tools sanitize error: {_e}")
             self._cached_session_tools_sig = tools_signature([])
-
-        # Attach native input transcription if requested
-        try:
-            if transcribe_enabled:
-                iat = {"model": "whisper-1"}
-                lang = getattr(opts, "transcribe_language", None) or getattr(opts, "language", None)
-                if lang:
-                    iat["language"] = str(lang)
-                session_payload["session"]["input_audio_transcription"] = iat
-        except Exception:
-            pass
 
         if self.debug:
             print(f"[open_session] session_payload: {json.dumps(session_payload)}")
@@ -542,9 +619,11 @@ class xAIIRealtimeClient:
                 return False
 
         is_auto_turn = _bool(getattr(self._last_opts or object(), "auto_turn", False))
-        has_text = bool(prompt and str(prompt).strip() and str(prompt).strip() != "...")
+        has_text = False
+        if prompt is not None:
+            p = str(prompt).strip()
+            has_text = bool(p and p != "...")
         has_audio = bool(audio_data)
-        # Honor explicit "reply" hint if provided by caller (e.g., opts.extra.reply == True)
         reply_hint = False
         try:
             extra = getattr(self._last_opts, "extra", None)
@@ -553,7 +632,6 @@ class xAIIRealtimeClient:
         except Exception:
             pass
 
-        # In manual mode, do not auto-trigger response.create when there is no user input and no explicit reply request.
         if not has_text and not has_audio and not reply_hint:
             if self.debug:
                 print("[send_turn] skipped: manual mode with empty input; waiting for explicit commit")
@@ -580,7 +658,7 @@ class xAIIRealtimeClient:
                     },
                 }))
 
-            # Optional audio
+            # Optional audio (manual turn control flow)
             if has_audio:
                 sr, _ch, pcm = coerce_to_pcm16_mono(audio_data, audio_format, audio_rate, fallback_rate=self._DEFAULT_RATE)
 
@@ -594,7 +672,7 @@ class xAIIRealtimeClient:
                         if self.debug:
                             print(f"[audio] resample failed {sr}->{self._DEFAULT_RATE}: {e}")
 
-                await self.ws.send(json.dumps({"type": "input_audio_buffer.clear"}))
+                # Append PCM and commit input buffer
                 for chunk in iter_pcm_chunks(pcm, sr, ms=50):
                     if not chunk:
                         continue
@@ -623,23 +701,11 @@ class xAIIRealtimeClient:
                     self._response_done = asyncio.Event()
             wait_curr = self._response_done  # snapshot for race-free waiting
 
-            # Build optional response payload (modalities + tools/tool_choice)
-            resp_obj = {"modalities": ["text", "audio"]}
-            try:
-                resp_tools, tool_choice = prepare_tools_for_response(self._last_opts)
-                if resp_tools:
-                    resp_obj["tools"] = resp_tools
-                    if tool_choice is None:
-                        tool_choice = "auto"
-                if tool_choice:
-                    resp_obj["tool_choice"] = tool_choice
-            except Exception as _e:
-                if self.debug:
-                    print(f"[send_turn] response tools compose error: {_e}")
-
-            payload = {"type": "response.create"}
-            if len(resp_obj) > 0:
-                payload["response"] = resp_obj
+            # Build minimal response payload for xAI (tools are configured only via session.update)
+            payload = {
+                "type": "response.create",
+                "response": {"modalities": ["text", "audio"]},
+            }
 
             await self.ws.send(json.dumps(payload))
             if self.debug:
@@ -694,7 +760,6 @@ class xAIIRealtimeClient:
         """
         Owner-loop implementation: push live audio to input buffer in auto-turn mode.
         """
-        # Session must be open and auto-turn must be enabled
         if not self.ws or not self._running:
             if self.debug:
                 print("[_rt_handle_audio_input] Socket not open!")
@@ -727,7 +792,6 @@ class xAIIRealtimeClient:
                     pcm = resample_pcm16_mono(pcm, sr, self._DEFAULT_RATE)
                     sr = self._DEFAULT_RATE
                 except Exception:
-                    # On resample failure, still try to send raw chunk as-is (defensive)
                     sr = self._DEFAULT_RATE
         except Exception:
             return
@@ -749,14 +813,10 @@ class xAIIRealtimeClient:
                 except Exception:
                     return
 
-            # If plugin reported stream end, flush the buffer once.
+            # With server VAD enabled, the server commits the buffer automatically.
             if is_final:
-                try:
-                    if self.debug:
-                        print("[_rt_handle_audio_input] final chunk; committing")
-                    await self.ws.send(json.dumps({"type": "input_audio_buffer.commit"}))
-                except Exception:
-                    pass
+                if self.debug:
+                    print("[_rt_handle_audio_input] final chunk sent (server VAD will commit)")
 
     def commit_audio_input_sync(self, timeout: float = 0.5):
         """
@@ -827,22 +887,12 @@ class xAIIRealtimeClient:
                 except Exception:
                     self._response_done = asyncio.Event()
 
-            # 3) Build response payload (modalities + tools/tool_choice like in _send_turn_internal)
-            resp_obj = {"modalities": ["text", "audio"]}
+            # 3) Trigger the assistant response now
             try:
-                resp_tools, tool_choice = prepare_tools_for_response(self._last_opts)
-                if resp_tools:
-                    resp_obj["tools"] = resp_tools
-                    if tool_choice is None:
-                        tool_choice = "auto"
-                if tool_choice:
-                    resp_obj["tool_choice"] = tool_choice
-            except Exception:
-                pass
-
-            # 4) Trigger the assistant response now
-            try:
-                await self.ws.send(json.dumps({"type": "response.create", "response": resp_obj}))
+                await self.ws.send(json.dumps({
+                    "type": "response.create",
+                    "response": {"modalities": ["text", "audio"]},
+                }))
             except Exception:
                 return
 
@@ -893,11 +943,12 @@ class xAIIRealtimeClient:
                 print("[update_session_tools] WS not open; cached for next session")
             return
 
-        # Sanitize/compose session tools
+        # Compose xAI-shaped session tools (provider tools + function tools)
         try:
-            fn = sanitize_function_tools(tools if tools is not None else getattr(self._last_opts, "tools", None))
-            rt = sanitize_remote_tools(remote_tools if remote_tools is not None else getattr(self._last_opts, "remote_tools", None))
-            session_tools = (rt or []) + (fn or [])
+            session_tools = self._compose_xai_tools(
+                tools if tools is not None else getattr(self._last_opts, "tools", None),
+                remote_tools if remote_tools is not None else getattr(self._last_opts, "remote_tools", None),
+            )
         except Exception as e:
             if self.debug:
                 print(f"[update_session_tools] sanitize error: {e}")
@@ -990,7 +1041,7 @@ class xAIIRealtimeClient:
                     "item": {
                         "type": "function_call_output",
                         "call_id": it["call_id"],
-                        "output": it["output"],  # must be a string (JSON-encoded when dict/list)
+                        "output": it["output"],
                     },
                 }
                 if it.get("previous_item_id"):
@@ -1007,7 +1058,10 @@ class xAIIRealtimeClient:
                     except Exception:
                         self._response_done = asyncio.Event()
                 wait_ev = self._response_done  # snapshot for race-free waiting
-                await self.ws.send(json.dumps({"type": "response.create"}))
+                await self.ws.send(json.dumps({
+                    "type": "response.create",
+                    "response": {"modalities": ["text", "audio"]},
+                }))
 
         # Wait for the follow-up response to complete
         if continue_turn and wait_for_done and wait_ev:
@@ -1047,7 +1101,6 @@ class xAIIRealtimeClient:
                     break
 
                 if isinstance(raw, bytes):
-                    # Realtime sends JSON text frames; ignore unexpected binary
                     continue
 
                 try:
@@ -1057,7 +1110,7 @@ class xAIIRealtimeClient:
 
                 etype = ev.get("type")
 
-                # ---- session lifecycle (capture server handle) ----
+                # ---- session / conversation lifecycle ----
                 if etype in ("session.created", "session.updated"):
                     sess = ev.get("session") or {}
                     sid = sess.get("id")
@@ -1066,7 +1119,6 @@ class xAIIRealtimeClient:
                         set_ctx_rt_handle(self._ctx, self._rt_session_id, self.window)
                         if self.debug:
                             print(f"[_recv_loop] session id: {self._rt_session_id}")
-                    # Optional: expires_at if present (not always provided)
                     exp = sess.get("expires_at") or sess.get("expiresAt")
                     try:
                         if isinstance(exp, (int, float)) and exp > 0:
@@ -1074,6 +1126,16 @@ class xAIIRealtimeClient:
                             set_rt_session_expires_at(self._ctx, self._rt_session_expires_at, self.window)
                     except Exception:
                         pass
+                    continue
+
+                if etype == "conversation.created":
+                    conv = ev.get("conversation") or {}
+                    cid = conv.get("id")
+                    if isinstance(cid, str) and cid.strip():
+                        self._rt_session_id = cid.strip()
+                        set_ctx_rt_handle(self._ctx, self._rt_session_id, self.window)
+                        if self.debug:
+                            print(f"[_recv_loop] conversation id: {self._rt_session_id}")
                     continue
 
                 if etype == "response.created":
@@ -1091,15 +1153,17 @@ class xAIIRealtimeClient:
                     if self.debug:
                         print("[_recv_loop] speech_stopped")
 
-                elif etype == "input_audio_buffer.committed":
+                elif etype in ("conversation.item.committed", "input_audio_buffer.committed"):
                     if self.debug:
-                        print("[_recv_loop] audio_buffer.committed")
-
-                    # disable mic input if auto-commit
+                        print("[_recv_loop] audio_buffer committed")
                     if self._last_opts:
                         self._last_opts.rt_signals.response.emit(RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT, {
                             "ctx": self._ctx,
                         }))
+
+                elif etype == "input_audio_buffer.cleared":
+                    if self.debug:
+                        print("[_recv_loop] audio_buffer.cleared")
 
                 # ---- input transcription (user speech) ----
                 elif etype == "conversation.item.input_audio_transcription.delta":
@@ -1131,15 +1195,9 @@ class xAIIRealtimeClient:
                         if tr:
                             self._save_input_transcript(tr)
 
-                elif etype == "conversation.item.input_audio_transcription.failed":
+                elif etype in ("conversation.item.created", "conversation.item.added"):
                     if self.debug:
-                        err = (ev.get("error") or {}).get("message") or "input transcription failed"
-                        print(f"[_recv_loop] {err}")
-
-                elif etype == "conversation.item.created":
-                    if self.debug:
-                        print("[_recv_loop] conversation.item.created")
-                    # Fallback: some servers may include transcript inside the created user item
+                        print("[_recv_loop] conversation item event")
                     if self._transcribe_enabled():
                         item = ev.get("item") or {}
                         if item.get("role") == "user":
@@ -1161,7 +1219,8 @@ class xAIIRealtimeClient:
                                 await self._on_text(str(delta))
                             except Exception:
                                 pass
-                elif etype == "response.audio_transcript.delta":
+
+                elif etype in ("response.audio_transcript.delta", "response.output_audio_transcript.delta"):
                     if self._transcribe_enabled():
                         delta = ev.get("delta") or ev.get("text")
                         if isinstance(delta, dict) and "text" in delta:
@@ -1174,9 +1233,10 @@ class xAIIRealtimeClient:
                                 except Exception:
                                     pass
 
-                elif etype in ("response.text.done", "response.output_text.done", "response.audio_transcript.done"):
+                elif etype in ("response.text.done", "response.output_text.done",
+                               "response.audio_transcript.done", "response.output_audio_transcript.done"):
                     if self.debug:
-                        print("[_recv_loop] text done")
+                        print("[_recv_loop] text/transcript done")
 
                 elif etype == "response.content_part.added":
                     part = ev.get("part") or {}
@@ -1207,7 +1267,7 @@ class xAIIRealtimeClient:
                                 except Exception:
                                     pass
 
-                elif etype == "response.audio.delta":
+                elif etype in ("response.audio.delta", "response.output_audio.delta"):
                     b64 = ev.get("delta")
                     if b64 and self._on_audio:
                         try:
@@ -1216,7 +1276,7 @@ class xAIIRealtimeClient:
                         except Exception:
                             pass
 
-                elif etype == "response.audio.done":
+                elif etype in ("response.audio.done", "response.output_audio.done"):
                     if self.debug:
                         print("[_recv_loop] audio done")
                     if not audio_done and self._on_audio:
@@ -1358,7 +1418,6 @@ class xAIIRealtimeClient:
                 elif etype == "response.done":
                     if self.debug:
                         print("[_recv_loop] response done")
-                    # Ensure audio finalized
                     if not audio_done and self._on_audio:
                         try:
                             await self._on_audio(b"", "audio/pcm", DEFAULT_RATE, 1, True)
@@ -1368,14 +1427,12 @@ class xAIIRealtimeClient:
 
                     self._response_active = False
 
-                    # Capture usage if present on response
                     try:
                         resp_obj = ev.get("response") or {}
                         self._rt_capture_usage(resp_obj)
                     except Exception:
                         pass
 
-                    # Build final output text
                     output = "".join(self._rt_state["output_parts"]) if self._rt_state else ""
                     if has_unclosed_code_tag(output):
                         output += "\n```"
@@ -1387,7 +1444,6 @@ class xAIIRealtimeClient:
                         except Exception:
                             pass
 
-                    # Persist into ctx
                     try:
                         if self._ctx:
                             self._ctx.output = output or (self._ctx.output or "")
@@ -1413,7 +1469,6 @@ class xAIIRealtimeClient:
                                 except Exception:
                                     pass
 
-                            # Citations
                             if self._rt_state and self._rt_state["citations"]:
                                 if self._ctx.urls is None:
                                     self._ctx.urls = []
@@ -1421,7 +1476,6 @@ class xAIIRealtimeClient:
                                     if u not in self._ctx.urls:
                                         self._ctx.urls.append(u)
 
-                            # Images
                             if self._rt_state and self._rt_state["image_paths"]:
                                 if not isinstance(self._ctx.images, list):
                                     self._ctx.images = []
@@ -1433,7 +1487,6 @@ class xAIIRealtimeClient:
                     except Exception:
                         pass
 
-                    # Download container files if any
                     try:
                         files = (self._rt_state or {}).get("files") or []
                         if files:
@@ -1441,7 +1494,6 @@ class xAIIRealtimeClient:
                     except Exception:
                         pass
 
-                    # Unpack tool calls if any
                     try:
                         tcs = (self._rt_state or {}).get("tool_calls") or []
                         if tcs:
@@ -1456,7 +1508,6 @@ class xAIIRealtimeClient:
                     except Exception:
                         pass
 
-                    # Persist last tool calls snapshot for mapping tool outputs
                     try:
                         tcs = (self._rt_state or {}).get("tool_calls") or []
                         if tcs:
@@ -1464,23 +1515,19 @@ class xAIIRealtimeClient:
                     except Exception:
                         pass
 
-                    # Unblock waiters
                     if self._response_done:
                         self._response_done.set()
 
-                    # send RT_OUTPUT_TURN_END signal
                     if self._last_opts:
                         self._last_opts.rt_signals.response.emit(RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
                             "ctx": self._ctx,
                         }))
 
-                    # Reset per-response extraction state
                     self._rt_state = None
 
                 elif etype == "error":
                     if self.debug:
                         print(f"[_recv_loop] error event: {ev}")
-                    # Session expiration and other errors
                     err = ev.get("error") or {}
                     msg = (err.get("message") or "")
                     code = (err.get("code") or "")
@@ -1505,7 +1552,6 @@ class xAIIRealtimeClient:
         finally:
             if self.debug:
                 print("[_recv_loop] stopped")
-            # Ensure any waiters are unblocked on socket teardown
             try:
                 if self._response_done and not self._response_done.is_set():
                     self._response_done.set()
@@ -1533,7 +1579,7 @@ class xAIIRealtimeClient:
                 return str(v)
         except Exception:
             pass
-        return "alloy"
+        return "Ara"
 
     def _extract_text_from_response_done(self, ev: dict) -> str:
         """
@@ -1652,7 +1698,7 @@ class xAIIRealtimeClient:
             if self._ctx:
                 if not isinstance(self._ctx.extra, dict):
                     self._ctx.extra = {}
-                self._ctx.input.extra["input_transcript"] = str(transcript)
+                self._ctx.extra["input_transcript"] = str(transcript)
                 if not getattr(self._last_opts, "prompt", None):
                     self._ctx.input = str(transcript)
                 self.window.core.ctx.update_item(self._ctx)
@@ -1667,18 +1713,15 @@ class xAIIRealtimeClient:
             sess = session_payload.get("session") or {}
             td = sess.get("turn_detection")
             if not isinstance(td, dict):
-                return  # manual mode or VAD disabled
+                return
 
-            # Resolve target silence (default +2000 ms)
             target_ms = getattr(opts, "vad_end_silence_ms", None)
             if not isinstance(target_ms, (int, float)) or target_ms <= 0:
-                # If user didn't override, ensure at least 2000 ms
                 base = int(td.get("silence_duration_ms") or 500)
                 target_ms = max(base, 2000)
 
             td["silence_duration_ms"] = int(target_ms)
 
-            # Optional: prefix padding before detected speech
             prefix_ms = getattr(opts, "vad_prefix_padding_ms", None)
             if isinstance(prefix_ms, (int, float)) and prefix_ms >= 0:
                 td["prefix_padding_ms"] = int(prefix_ms)
@@ -1736,16 +1779,14 @@ class xAIIRealtimeClient:
 
         async with self._send_lock:
             try:
-                # Build base session.update; let helper set correct turn_detection shape
                 payload: dict = {"type": "session.update", "session": {}}
                 turn_mode = TurnMode.AUTO if enabled else TurnMode.MANUAL
-                apply_turn_mode_openai(payload, turn_mode)  # sets session.turn_detection (AUTO) or None (MANUAL)
+                apply_turn_mode_openai(payload, turn_mode)
 
                 if enabled:
                     sess = payload.get("session", {})
                     td = sess.get("turn_detection")
 
-                    # Optional VAD type override via opts.vad_type ("server_vad" | "semantic_vad")
                     try:
                         vad_type = getattr(self._last_opts, "vad_type", None)
                         if isinstance(vad_type, str) and vad_type in ("server_vad", "semantic_vad"):
@@ -1754,7 +1795,6 @@ class xAIIRealtimeClient:
                     except Exception:
                         pass
 
-                    # Optional threshold for server_vad
                     try:
                         thr = getattr(self._last_opts, "vad_threshold", None)
                         if isinstance(thr, (int, float)) and isinstance(td, dict) and td.get("type") == "server_vad":
@@ -1762,17 +1802,14 @@ class xAIIRealtimeClient:
                     except Exception:
                         pass
 
-                    # Apply defaults based on opts first
                     self._tune_openai_vad(payload, self._last_opts)
 
-                    # Then hard-override with explicit args (user provided values win)
                     if isinstance(td, dict):
                         if silence_ms is not None:
                             td["silence_duration_ms"] = int(silence_ms)
                         if prefix_ms is not None:
                             td["prefix_padding_ms"] = int(prefix_ms)
 
-                        # Optional flags from opts
                         try:
                             cr = getattr(self._last_opts, "vad_create_response", None)
                             if isinstance(cr, bool):
@@ -1786,10 +1823,8 @@ class xAIIRealtimeClient:
                         except Exception:
                             pass
 
-                # Send the update
                 await self.ws.send(json.dumps(payload))
 
-                # Update local opts snapshot so next calls keep the same settings
                 try:
                     if self._last_opts:
                         setattr(self._last_opts, "auto_turn", bool(enabled))
