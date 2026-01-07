@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2026.01.07 23:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -338,20 +338,25 @@ class GoogleLiveClient:
         if sys_prompt:
             live_cfg["system_instruction"] = str(sys_prompt)
 
-        # Session resumption: enable updates; resume when a different non-empty handle is given
+        # Save callbacks and ctx early so handle persistence can target the current context
+        self._on_text = on_text
+        self._on_audio = on_audio
+        self._should_stop = should_stop or (lambda: False)
+        self._ctx = ctx
+        self._last_opts = opts
+
+        # Session resumption: configure per docs; include handle when provided, otherwise None.
         try:
+            ph = None
             provided_handle = getattr(opts, "rt_session_id", None)
-            resume_handle = None
             if isinstance(provided_handle, str):
-                ph = provided_handle.strip()
-                if ph and ph != (self._rt_session_id or ""):
-                    resume_handle = ph
+                ph = provided_handle.strip() or None
 
-            live_cfg["session_resumption"] = gtypes.SessionResumptionConfig(handle=resume_handle)
+            sr_cfg = gtypes.SessionResumptionConfig(handle=ph)
+            live_cfg["session_resumption"] = sr_cfg
 
-            if resume_handle:
-                self._rt_session_id = resume_handle
-                set_ctx_rt_handle(self._ctx, resume_handle, self.window)
+            if ph:
+                self._persist_rt_handle(ph)
         except Exception:
             pass
 
@@ -359,13 +364,6 @@ class GoogleLiveClient:
         turn_mode = TurnMode.AUTO if bool(getattr(opts, "auto_turn", False)) else TurnMode.MANUAL
         apply_turn_mode_google(live_cfg, turn_mode)
         self._tune_google_vad(live_cfg, opts)
-
-        # Save callbacks and ctx
-        self._on_text = on_text
-        self._on_audio = on_audio
-        self._should_stop = should_stop or (lambda: False)
-        self._ctx = ctx
-        self._last_opts = opts
 
         # Control primitives
         self._response_done = asyncio.Event()
@@ -407,7 +405,7 @@ class GoogleLiveClient:
         self._rt_state = None
         self._last_tool_calls = []
 
-        # Clear only in-memory handle; keep persisted ctx.extra["rt_session_id"]
+        # Clear in-memory handle as well to prevent unintended resumption
         self._rt_session_id = None
 
         # Clear cached tools signature
@@ -820,11 +818,10 @@ class GoogleLiveClient:
                 try:
                     sru = getattr(response, "session_resumption_update", None) or getattr(response, "sessionResumptionUpdate", None)
                     if sru:
-                        resumable = bool(getattr(sru, "resumable", None))
-                        new_handle = getattr(sru, "new_handle", None) or getattr(sru, "newHandle", None)
-                        if resumable and isinstance(new_handle, str) and new_handle.strip():
-                            self._rt_session_id = new_handle.strip()
-                            set_ctx_rt_handle(self._ctx, self._rt_session_id, self.window)
+                        # Prefer robustness: persist handle if present, regardless of 'resumable' flag inconsistencies
+                        new_handle = self._extract_sru_handle(sru)
+                        if isinstance(new_handle, str) and new_handle.strip():
+                            self._persist_rt_handle(new_handle.strip())
                             if self.debug:
                                 print(f"[google.live] session handle updated: {self._rt_session_id}")
                 except Exception:
@@ -1740,6 +1737,10 @@ class GoogleLiveClient:
         """
         self.debug = bool(enabled)
 
+    def is_session(self) -> bool:
+        """Check if the WS session is currently open."""
+        return self._session is not None
+
     def is_session_active(self) -> bool:
         """Check if the WS session is currently open."""
         return self._session is not None
@@ -1747,6 +1748,12 @@ class GoogleLiveClient:
     def update_ctx(self, ctx: CtxItem):
         """Update the current CtxItem (for session handle persistence)."""
         self._ctx = ctx
+
+    def get_current_rt_session_id(self) -> Optional[str]:
+        """
+        Return the current resumable session handle if known.
+        """
+        return self._rt_session_id
 
     # -----------------------------
     # Internal: auto-turn receiver bootstrap
@@ -1943,3 +1950,42 @@ class GoogleLiveClient:
         Emit RT_OUTPUT_AUDIO_COMMIT on first sign of model output in auto-turn mode.
         """
         self._emit_audio_commit_signal()
+
+    # -----------------------------
+    # Internal: session handle helpers
+    # -----------------------------
+
+    def _persist_rt_handle(self, handle: str) -> None:
+        """
+        Persist current session handle in-memory, to ctx.extra and into last opts for future restarts.
+        """
+        try:
+            self._rt_session_id = handle
+            set_ctx_rt_handle(self._ctx, handle, self.window)
+        except Exception:
+            pass
+        try:
+            if self._last_opts is not None:
+                setattr(self._last_opts, "rt_session_id", handle)
+        except Exception:
+            pass
+
+    def _extract_sru_handle(self, sru: Any) -> Optional[str]:
+        """
+        Extract handle from SessionResumptionUpdate (supports snake_case and camelCase, and token alias).
+        """
+        # Objects (attrs)
+        for attr in ("new_handle", "newHandle", "token"):
+            try:
+                v = getattr(sru, attr, None)
+                if isinstance(v, str) and v.strip():
+                    return v.strip()
+            except Exception:
+                pass
+        # Dicts
+        if isinstance(sru, dict):
+            for k in ("new_handle", "newHandle", "token"):
+                v = sru.get(k)
+                if isinstance(v, str) and v.strip():
+                    return v.strip()
+        return None

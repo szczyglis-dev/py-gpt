@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2026.01.07 23:00:00                  #
 # ================================================== #
 
 import json
@@ -102,6 +102,31 @@ class Realtime:
                     self.handler.update_ctx(context.ctx)
                     return True  # do not start new session, just send tool results
 
+        # Resolve last session ID from history only (do not fallback anywhere)
+        last_session_id = extract_last_session_id(context.history) if context.history else None
+        if is_debug:
+            print("[realtime session] Last ID", last_session_id)
+
+        # Enforce clean state rules before any live updates:
+        # - If there is no history at all: always reset live session to ensure a fresh context.
+        # - If there is history but it has no resumable session id: close any active session to avoid accidental continuation.
+        try:
+            history_len = len(context.history) if context.history else 0
+        except Exception:
+            history_len = 0
+
+        if history_len == 0:
+            if self.handler.is_session_active():
+                self.handler.close_session_sync()
+            try:
+                if context.ctx and isinstance(context.ctx.extra, dict):
+                    context.ctx.extra.pop("rt_session_id", None)
+            except Exception:
+                pass
+            last_session_id = None  # force new session
+        elif not last_session_id and self.handler.is_session_active():
+            self.handler.close_session_sync()
+
         # update auto-turn in active session
         if (self.handler.is_session_active()
                 and (auto_turn != self.prev_auto_turn
@@ -115,11 +140,6 @@ class Realtime:
             self.handler.update_ctx(context.ctx)
             self.window.update_status(trans("speech.listening"))
             return True # do not send new request if session is active
-
-        # Last session ID
-        last_session_id = extract_last_session_id(context.history)
-        if is_debug:
-            print("[realtime session] Last ID", last_session_id)
 
         # Voice
         voice = "alloy"

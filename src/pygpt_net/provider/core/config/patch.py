@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 06:00:00                  #
+# Updated Date: 2026.01.07 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -272,6 +272,17 @@ class Patch:
                 for key in to_add:
                     if key not in data:
                         data[key] = cfg_get_base(key)
+                updated = True
+
+            # < 2.7.9
+            if old < parse_version("2.7.9"):
+                print("Migrating config from < 2.7.9...")
+                to_add = [
+                    "api_key_management_xai",
+                ]
+                for key in to_add:
+                    if key not in data or data[key] is None or data[key] == "None":
+                        data[key] = ""
                 updated = True
 
         # update file

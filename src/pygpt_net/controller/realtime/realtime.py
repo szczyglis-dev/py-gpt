@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 07:00:00                  #
+# Updated Date: 2026.01.07 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -87,6 +87,8 @@ class Realtime:
                 self.window.core.api.google.realtime.handle_audio_input(event)
             elif self.current_active == "openai":
                 self.window.core.api.openai.realtime.handle_audio_input(event)
+            elif self.current_active == "x_ai":
+                self.window.core.api.xai.realtime.handle_audio_input(event)
 
         # begin: first text chunk or audio chunk received, start rendering
         elif event.name == RealtimeEvent.RT_OUTPUT_READY:
@@ -216,6 +218,8 @@ class Realtime:
             self.window.core.api.google.realtime.manual_commit()
         elif self.current_active == "openai":
             self.window.core.api.openai.realtime.manual_commit()
+        elif self.current_active == "x_ai":
+            self.window.core.api.xai.realtime.manual_commit()
 
     def end_turn(self, ctx):
         """
@@ -253,6 +257,10 @@ class Realtime:
         except Exception as e:
             self.window.core.debug.log(f"[google] Realtime shutdown error: {e}")
         try:
+            self.window.core.api.xai.realtime.shutdown()
+        except Exception as e:
+            self.window.core.debug.log(f"[xAI] Realtime shutdown error: {e}")
+        try:
             self.manager.shutdown()
         except Exception as e:
             self.window.core.debug.log(f"[manager] Realtime shutdown error: {e}")
@@ -267,6 +275,10 @@ class Realtime:
             self.window.core.api.google.realtime.reset()
         except Exception as e:
             self.window.core.debug.log(f"[google] Realtime reset error: {e}")
+        try:
+            self.window.core.api.xai.realtime.reset()
+        except Exception as e:
+            self.window.core.debug.log(f"[xAI] Realtime reset error: {e}")
 
     def is_supported(self) -> bool:
         """

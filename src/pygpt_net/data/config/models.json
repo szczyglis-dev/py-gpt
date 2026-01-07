@@ -1073,9 +1073,9 @@
             "provider": "google",
             "tool_calls": true
         },
-        "gemini-2.5-flash-preview-native-audio-dialog": {
-            "id": "gemini-2.5-flash-preview-native-audio-dialog",
-            "name": "gemini-2.5-flash-preview-native-audio-dialog",
+        "gemini-2.5-flash-native-audio-latest": {
+            "id": "gemini-2.5-flash-native-audio-latest",
+            "name": "gemini-2.5-flash-native-audio-latest",
             "mode": [
                 "audio"
             ],
@@ -1083,7 +1083,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "models/gemini-2.5-flash-preview-native-audio-dialog",
+                        "value": "models/gemini-2.5-flash-native-audio-latest",
                         "type": "str"
                     }
                 ],
@@ -3170,7 +3170,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "audio"
             ],
             "llama_index": {
                 "args": [
@@ -3196,10 +3197,12 @@
             "default": false,
             "input": [
                 "text",
-                "image"
+                "image",
+                "audio"
             ],
             "output": [
-                "text"
+                "text",
+                "audio"
             ],
             "extra": {},
             "imported": false,
@@ -3215,7 +3218,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "audio"
             ],
             "llama_index": {
                 "args": [
@@ -3243,10 +3247,12 @@
             "default": false,
             "input": [
                 "text",
-                "image"
+                "image",
+                "audio"
             ],
             "output": [
-                "text"
+                "text",
+                "audio"
             ],
             "extra": {},
             "imported": false,
@@ -3262,7 +3268,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "audio"
             ],
             "llama_index": {
                 "args": [
@@ -3290,10 +3297,12 @@
             "default": false,
             "input": [
                 "text",
-                "image"
+                "image",
+                "audio"
             ],
             "output": [
-                "text"
+                "text",
+                "audio"
             ],
             "extra": {},
             "imported": false,
@@ -3309,7 +3318,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "audio"
             ],
             "llama_index": {
                 "args": [
@@ -3337,10 +3347,12 @@
             "default": false,
             "input": [
                 "text",
-                "image"
+                "image",
+                "audio"
             ],
             "output": [
-                "text"
+                "text",
+                "audio"
             ],
             "extra": {},
             "imported": false,
@@ -3356,7 +3368,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "audio"
             ],
             "llama_index": {
                 "args": [
@@ -3384,10 +3397,12 @@
             "default": false,
             "input": [
                 "text",
-                "image"
+                "image",
+                "audio"
             ],
             "output": [
-                "text"
+                "text",
+                "audio"
             ],
             "extra": {},
             "imported": false,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.07 13:00:00                  #
+# Updated Date: 2026.01.07 23:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -1854,6 +1854,10 @@ class xAIIRealtimeClient:
     def is_session_active(self) -> bool:
         """Check if the WS session is currently open."""
         return self.ws is not None and self._running
+
+    def is_session(self) -> bool:
+        """Check if the WS session is currently open."""
+        return self.ws is not None
 
     def update_ctx(self, ctx: CtxItem):
         """Update the current CtxItem (for session handle persistence)."""

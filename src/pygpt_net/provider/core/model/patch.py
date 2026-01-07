@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.04 19:00:00                  #
+# Updated Date: 2026.01.07 23:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -152,6 +152,41 @@ class Patch:
                         m = data[model]
                         if not m.is_image_input():
                             m.input.append("image")
+                updated = True
+
+            # <  2.7.9 <--- add missing audio input
+            if old < parse_version("2.7.9"):
+                print("Migrating models from < 2.7.9...")
+                models_to_update = [
+                    "grok-4",
+                    "grok-4-fast-non-reasoning",
+                    "grok-4-fast-reasoning",
+                    "grok-4-1-fast-non-reasoning",
+                    "grok-4-1-fast-reasoning",
+                ]
+                for model in models_to_update:
+                    if model in data:
+                        m = data[model]
+                        if not m.is_audio_input():
+                            m.input.append("audio")
+                        if not m.is_audio_output():
+                            m.output.append("audio")
+                        if not m.has_mode("audio"):
+                            m.mode.append("audio")
+                models_to_remove = [
+                    "gemini-2.5-flash-preview-native-audio-dialog",
+                ]
+                for model in models_to_remove:
+                    if model in data:
+                        del data[model]
+                models_to_add = [
+                    "gemini-2.5-flash-native-audio-latest",
+                ]
+                for model in models_to_add:
+                    if model not in data:
+                        base_model = from_base(model)
+                        if base_model:
+                            data[model] = base_model
                 updated = True
 
         # update file

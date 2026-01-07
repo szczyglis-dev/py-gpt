@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.01.07 23:00:00                  #
 # ================================================== #
 
 import json
@@ -86,7 +86,54 @@ class Realtime:
                     self.handler.send_tool_results_sync({
                         tool_call_id: tool_results
                     })
+                    self.handler.update_ctx(context.ctx)
                     return True  # do not start new session, just send tool results
+
+        # Tools
+        tools = self.window.core.api.google.tools.prepare(model, context.external_functions)
+        remote_tools = self.window.core.api.google.remote_tools.build_remote_tools(model)
+        if tools:
+            remote_tools = []  # in Google, remote tools are not allowed if function calling is used
+
+        # Resolve last session ID, prefer history, then fallback to current ctx and in-memory handler handle
+        last_session_id = extract_last_session_id(context.history) if context.history else None
+        if not last_session_id:
+            try:
+                if context.ctx and isinstance(context.ctx.extra, dict):
+                    sid = context.ctx.extra.get("rt_session_id")
+                    if isinstance(sid, str) and sid.strip():
+                        last_session_id = sid.strip()
+            except Exception:
+                pass
+        if not last_session_id and self.handler.is_session_active():
+            try:
+                sid = self.handler.get_current_rt_session_id()
+                if isinstance(sid, str) and sid.strip():
+                    last_session_id = sid.strip()
+            except Exception:
+                pass
+
+        if is_debug:
+            print("[realtime session] Last ID", last_session_id)
+
+        # Enforce clean state rules:
+        # - No history: always reset to ensure a fresh server context.
+        # - If history exists, keep the current live session even if the resumable handle has not been captured yet.
+        #   Gemini Live can emit the handle slightly after the first turn starts; closing here would drop context continuity.
+        try:
+            history_len = len(context.history) if context.history else 0
+        except Exception:
+            history_len = 0
+
+        if history_len == 0:
+            if self.handler.is_session_active():
+                self.handler.close_session_sync()
+            try:
+                if context.ctx and isinstance(context.ctx.extra, dict):
+                    context.ctx.extra.pop("rt_session_id", None)
+            except Exception:
+                pass
+            last_session_id = None  # force new session
 
         # update auto-turn in active session
         if (self.handler.is_session_active()
@@ -95,22 +142,11 @@ class Realtime:
                      or opt_vad_prefix != self.prev_vad_prefix)):
             self.handler.update_session_autoturn_sync(auto_turn, opt_vad_silence, opt_vad_prefix)
 
-        # Tools
-        tools = self.window.core.api.google.tools.prepare(model, context.external_functions)
-        remote_tools = self.window.core.api.google.remote_tools.build_remote_tools(model)
-        if tools:
-            remote_tools = []  # in Google, remote tools are not allowed if function calling is used
-
         # if auto-turn is enabled and prompt is empty, update session and context only
         if auto_turn and self.handler.is_session_active() and (context.prompt.strip() == "" or context.prompt == "..."):
             self.handler.update_session_tools_sync(tools, remote_tools)
             self.handler.update_ctx(context.ctx)
             return True  # do not send new request if session is active
-
-        # Last session ID
-        last_session_id = extract_last_session_id(context.history)
-        if is_debug:
-            print("[realtime session] Last ID", last_session_id)
 
         # Voice
         voice_name = "Kore"
