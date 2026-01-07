@@ -17,13 +17,13 @@ esac
 export QTWEBENGINEPROCESS_PATH=$SNAP/lib/python3.10/site-packages/PySide6/Qt/libexec/QtWebEngineProcess
 
 # Prefer Wayland when available, fall back to X11 automatically
-if [ -n "$WAYLAND_DISPLAY" ]; then
-  export QT_QPA_PLATFORM=wayland
+#if [ -n "$WAYLAND_DISPLAY" ]; then
+#  export QT_QPA_PLATFORM=wayland
   # Ensure QtWebEngine uses Wayland Ozone backend when on Wayland
-  export QTWEBENGINE_CHROMIUM_FLAGS="${QTWEBENGINE_CHROMIUM_FLAGS} --ozone-platform=wayland --enable-features=UseOzonePlatform"
-else
-  export QT_QPA_PLATFORM=xcb
-fi
+  # export QTWEBENGINE_CHROMIUM_FLAGS="${QTWEBENGINE_CHROMIUM_FLAGS} --ozone-platform=wayland --enable-features=UseOzonePlatform"
+#else
+#  export QT_QPA_PLATFORM=xcb
+#fi
 
 # nvidia drivers fix
 export LIBGL_DRIVERS_PATH=$SNAP/usr/lib/$ARCH/dri

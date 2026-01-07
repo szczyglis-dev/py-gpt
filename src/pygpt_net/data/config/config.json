@@ -88,6 +88,7 @@
   "api_key_perplexity": "",
   "api_key_voyage": "",
   "api_key_xai": "",
+  "api_key_management_xai": "",
   "api_native_anthropic": true,
   "api_native_google": true,
   "api_native_google.app_credentials": "",
