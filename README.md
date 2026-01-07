@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.8** | build: **2026-01-06** | Python: **>=3.10, <3.14**
+Release: **2.7.9** | build: **2026-01-08** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3677,6 +3677,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.9 (2026-01-08)**
+
+- Improved realtime audio mode.
+- Added xAI provider and Grok support in realtime audio mode.
 
 **2.7.8 (2026-01-06)**
 

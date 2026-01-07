@@ -7,9 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'PyGPT'
-copyright = '2025, pygpt.net'
+copyright = '2026, pygpt.net'
 author = 'szczyglis-dev, Marcin Szczygliński'
-release = '2.7.8'
+release = '2.7.9'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
