@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.20 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QObject, Signal
@@ -14,6 +14,7 @@ from PySide6.QtGui import QAction, QIcon, QKeySequence, QFontMetrics
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QTextEdit, QWidget, QSplitter, QPushButton, QLabel
 
 from pygpt_net.core.text.finder import Finder
+from pygpt_net.core.types import MODE_CHAT
 from pygpt_net.ui.widget.option.combo import OptionCombo
 
 from pygpt_net.ui.widget.textarea.search_input import SearchInput
@@ -67,6 +68,9 @@ class ToolWidget:
             "type": "combo",
             "label": "menu.tools.translator.model",
             "use": "models",
+            "use_params": {
+                "mode": [MODE_CHAT]
+            },
             "value": "gpt-4o-mini",
         }
         self.model_select = OptionCombo(
@@ -319,7 +323,7 @@ class TextColumn(QWidget):
         :param search_text: Text to search in languages
         """
         key = self.window.core.text.find_lang_id_by_search_string(search_text)
-        if key:
+        if key and key != "-":
             self.lang_select.set_value(key)
 
     def on_clear(self):
