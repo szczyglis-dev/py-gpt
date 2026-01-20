@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 14:00:00                  #
+# Updated Date: 2026.01.20 20:00:00                  #
 # ================================================== #
 
 import os
@@ -376,7 +376,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.core.presets.save_all()
         print("Exiting...")
         print("")
-        print(f"{trans('exit.msg')} https://pygpt.net/#donate")
+        print(f"⭐☕ {trans('exit.msg')} https://pygpt.net/#donate")
+        print("")
 
     def changeEvent(self, event):
         """

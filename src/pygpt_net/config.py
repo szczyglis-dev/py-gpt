@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2026.01.20 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -24,6 +24,20 @@ from pygpt_net.core.types.console import Color
 
 _RE_VERSION = re.compile(r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]')
 _RE_BUILD = re.compile(r'__build__\s*=\s*[\'"]([^\'"]*)[\'"]')
+
+def quick_get_config_value(key: str, default: any = None) -> any:
+    """
+    Quick get config value without initializing the whole app
+
+    :param key: key
+    :param default: default value
+    :return: value
+    """
+    config = Config()
+    workdir = config.prepare_workdir()
+    config.set_workdir(workdir)
+    config.load_config(all=False)
+    return config.get(key, default)
 
 
 class Config:

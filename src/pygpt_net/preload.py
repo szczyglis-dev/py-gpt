@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 17:00:00                  #
+# Updated Date: 2026.01.20 20:00:00                  #
 # ================================================== #
+
+LINK_GITHUB = "https://github.com/szczyglis-dev/py-gpt"
+LINK_DONATE = "https://www.buymeacoffee.com/szczyglis"
 
 # -------------------------------------------------- #
 # Lightweight splash window (separate process)
@@ -17,11 +20,153 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
     Minimal splash process using PySide6. Runs its own event loop and
     listens for commands on a Pipe: {"type": "msg", "text": "..."} or {"type": "quit"}.
     """
+    STRING_MAPPING = {
+        "en": {
+            "init": "Initializing...",
+            "support": "Support the project:",
+            "github": "⭐ Star on GitHub",
+            "donate": "☕ Buy me a coffee",
+        },
+        "pl": {
+            "init": "Inicjalizacja...",
+            "support": "Wesprzyj projekt:",
+            "github": "⭐ Gwiazdka na GitHub",
+            "donate": "☕ Postaw mi kawę",
+        },
+        "de": {
+            "init": "Initialisierung...",
+            "support": "Unterstütze das Projekt:",
+            "github": "⭐ Auf GitHub starren",
+            "donate": "☕ Kauf mir einen Kaffee",
+        },
+        "es": {
+            "init": "Inicializando...",
+            "support": "Apoya el proyecto:",
+            "github": "⭐ Estrella en GitHub",
+            "donate": "☕ Cómprame un café",
+        },
+        "fr": {
+            "init": "Initialisation...",
+            "support": "Soutenez le projet :",
+            "github": "⭐ Étoile sur GitHub",
+            "donate": "☕ Offrez-moi un café",
+        },
+        "it": {
+            "init": "Inizializzazione...",
+            "support": "Supporta il progetto:",
+            "github": "⭐ Metti una stella su GitHub",
+            "donate": "☕ Offrimi un caffè",
+        },
+        "uk": {
+            "init": "Ініціалізація...",
+            "support": "Підтримайте проєкт:",
+            "github": "⭐ Зірка на GitHub",
+            "donate": "☕ Купи мені каву",
+        },
+        "ru": {
+            "init": "Инициализация...",
+            "support": "Поддержите проект:",
+            "github": "⭐ Звезда на GitHub",
+            "donate": "☕ Купи мне кофе",
+        },
+        "zh": {
+            "init": "正在初始化...",
+            "support": "支持该项目：",
+            "github": "⭐ 在 GitHub 上加星",
+            "donate": "☕ 请我喝杯咖啡",
+        },
+        "ja": {
+            "init": "初期化中...",
+            "support": "プロジェクトをサポート：",
+            "github": "⭐ GitHubでスターを付ける",
+            "donate": "☕ コーヒーをご馳走する",
+        },
+        "ar": {
+            "init": "جارٍ التهيئة...",
+            "support": "ادعم المشروع:",
+            "github": "⭐ نجمة على GitHub",
+            "donate": "☕ اشترِ لي قهوة",
+        },
+        "pt": {
+            "init": "Iniciando...",
+            "support": "Apoie o projeto:",
+            "github": "⭐ Estrela no GitHub",
+            "donate": "☕ Compre-me um café",
+        },
+        "hi": {
+            "init": "प्रारंभ हो रहा है...",
+            "support": "परियोजना का समर्थन करें:",
+            "github": "⭐ GitHub पर स्टार करें",
+            "donate": "☕ मुझे एक कॉफी खरीदें",
+        },
+        "ko": {
+            "init": "초기화 중...",
+            "support": "프로젝트 지원:",
+            "github": "⭐ GitHub에서 별표 표시",
+            "donate": "☕ 커피 한 잔 사주세요",
+        },
+        "tr": {
+            "init": "Başlatılıyor...",
+            "support": "Projeyi destekleyin:",
+            "github": "⭐ GitHub'da Yıldız Ver",
+            "donate": "☕ Bana bir kahve ısmarla",
+        },
+        "he": {
+            "init": "אתחול...",
+            "support": "תמכו בפרויקט:",
+            "github": "⭐ כוכב ב-GitHub",
+            "donate": "☕ קנו לי קפה",
+        },
+        "nl": {
+            "init": "Initialiseren...",
+            "support": "Steun het project:",
+            "github": "⭐ Ster op GitHub",
+            "donate": "☕ Koop me een koffie",
+        },
+        "sv": {
+            "init": "Initierar...",
+            "support": "Stöd projektet:",
+            "github": "⭐ Stjärna på GitHub",
+            "donate": "☕ Köp en kaffe till mig",
+        },
+        "fi": {
+            "init": "Alustetaan...",
+            "support": "Tue projektia:",
+            "github": "⭐ Tähti GitHubissa",
+            "donate": "☕ Osta minulle kahvi",
+        },
+        "no": {
+            "init": "Initialiserer...",
+            "support": "Støtt prosjektet:",
+            "github": "⭐ Stjerne på GitHub",
+            "donate": "☕ Kjøp meg en kaffe",
+        },
+        "da": {
+            "init": "Initialiserer...",
+            "support": "Støt projektet:",
+            "github": "⭐ Stjerne på GitHub",
+            "donate": "☕ Køb mig en kaffe",
+        }
+    }
+
     try:
         # Import locally to keep the main process import path untouched
         from PySide6 import QtCore, QtWidgets
+        from pygpt_net.config import quick_get_config_value
     except Exception:
         return
+
+    # Try to get language from config
+    try:
+        lang = quick_get_config_value("lang", "en")
+    except Exception:
+        lang = "en"
+
+    strings = STRING_MAPPING.get(lang, STRING_MAPPING["en"])
+    msg_init = strings.get("init", message)
+    msg_support = strings.get("support", "Support the project:")
+    msg_github = strings.get("github", "⭐ Star on GitHub")
+    msg_donate = strings.get("donate", "☕ Buy me a coffee")
 
     try:
         # Enable HiDPI (safe defaults)
@@ -60,9 +205,67 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         lbl_title.setAlignment(QtCore.Qt.AlignCenter)
         lbl_title.setStyleSheet("font-size: 16px; font-weight: 600;")
 
-        lbl_wait = QtWidgets.QLabel("Initializing...")
+        lbl_wait = QtWidgets.QLabel(msg_init)
         lbl_wait.setAlignment(QtCore.Qt.AlignCenter)
         lbl_wait.setStyleSheet("font-size: 12px;")
+
+        lbl_support = QtWidgets.QLabel(msg_support)
+        lbl_support.setAlignment(QtCore.Qt.AlignCenter)
+        lbl_support.setStyleSheet("font-size: 12px;")
+
+        btn_support = QtWidgets.QPushButton(msg_github)
+        btn_support.setCursor(QtCore.Qt.PointingHandCursor)
+        btn_support.setStyleSheet("""
+            QPushButton {
+                background-color: #444444;
+                color: #ffffff;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #555555;
+            }
+            QPushButton:pressed {
+                background-color: #333333;
+            }
+        """)
+        def open_github():
+            import webbrowser
+            webbrowser.open(LINK_GITHUB)
+        btn_support.clicked.connect(open_github)
+
+        btn_donate = QtWidgets.QPushButton(msg_donate)
+        btn_donate.setCursor(QtCore.Qt.PointingHandCursor)
+        btn_donate.setStyleSheet("""
+            QPushButton {
+                background-color: #444444;
+                color: #ffffff;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #555555;
+            }
+            QPushButton:pressed {
+                background-color: #333333;
+            }
+        """)
+        def open_donate():
+            import webbrowser
+            webbrowser.open(LINK_DONATE)
+        btn_donate.clicked.connect(open_donate)
+
+        support_layout = QtWidgets.QHBoxLayout()
+        support_layout.addWidget(btn_support)
+        support_layout.addWidget(btn_donate)
+
+        support_area = QtWidgets.QVBoxLayout()
+        support_area.addWidget(lbl_support)
+        support_area.addLayout(support_layout)
 
         lbl_msg = QtWidgets.QLabel(message, panel)
         lbl_msg.setAlignment(QtCore.Qt.AlignCenter)
@@ -79,8 +282,9 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         layout.addWidget(lbl_msg)
         layout.addWidget(bar)
         layout.addWidget(lbl_wait)
+        layout.addLayout(support_area)
 
-        panel.setFixedSize(360, 120)
+        panel.setFixedSize(360, 220)
         panel.move(0, 0)
         root.resize(panel.size())
 
