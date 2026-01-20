@@ -1,3 +1,9 @@
+2.7.10 (2026-01-21)
+
+- Fixed an avatar overwrite bug when creating a new preset.  
+- Added initial image centering on load in the Image Viewer.  
+- Added 13 new languages: Arabic (ar), Danish (da), Finnish (fi), Hebrew (he), Hindi (hi), Japanese (ja), Korean (ko), Dutch (nl), Norwegian (no), Portuguese (pt), Russian (ru), Swedish (sv), Turkish (tr).
+
 2.7.9 (2026-01-08)
 
 - Improved realtime audio mode.

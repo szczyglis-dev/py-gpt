@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.9** | build: **2026-01-08** | Python: **>=3.10, <3.14**
+Release: **2.7.10** | build: **2026-01-21** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3678,6 +3678,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.7.10 (2026-01-21)**
+
+- Fixed an avatar overwrite bug when creating a new preset.  
+- Added initial image centering on load in the Image Viewer.  
+- Added 13 new languages: Arabic (ar), Danish (da), Finnish (fi), Hebrew (he), Hindi (hi), Japanese (ja), Korean (ko), Dutch (nl), Norwegian (no), Portuguese (pt), Russian (ru), Swedish (sv), Turkish (tr).
+
 **2.7.9 (2026-01-08)**
 
 - Improved realtime audio mode.
@@ -3703,68 +3709,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added zoom and grab functionality in the Image Viewer.
 - Added a zoom menu to textarea and web widgets.
 - Added the ability to close tabs with a middle mouse button click.
-
-**2.7.5 (2026-01-03)**
-
-- Added Sandbox/Playwright option to Computer Use mode.
-- Added support for Google models in Computer Use mode and introduced a new model: gemini-2.5-computer-use-preview-10-2025.
-- Added support for Google models in Research mode and introduced a new model: deep-research-pro-preview-12-2025.
-- Added the Google Vector Stores tool.
-
-**2.7.4 (2025-12-31)**
-
-- Added a splash screen.
-- Added Preview and Download links to the Image and Video outputs.
-- Added Negative prompt input to Image and Video mode.
-- Improved focus handling.
-- UI improvements.
-
-**2.7.3 (2025-12-30)**
-
-- Added the `Remix/Extend` option in Image and Video generation mode. This allows the use of a previously generated image or video as a reference. It can be used for adding or changing elements in a previously generated image or video instead of creating a new one from scratch. See the docs: `Modes -> Image and Video generation -> Remix, Edit, or Extend`.
-
-**2.7.2 (2025-12-29)**
-
-- Fixed: non-searchable combobox width.
-- Improved updater.
-- Added .AppImage build.
-
-**2.7.1 (2025-12-28)**
-
-- Improved UI elements.
-- Optimized Painter rendering and redraw functions.
-- Added Pack/Unpack feature to File Explorer.
-- Fixed: image restoration in Painter.
-- Fixed: tab title updating upon context deletion.
-
-**2.7.0 (2025-12-28)**
-
-- Added multi-select functionality using CTRL or SHIFT and batch actions to the context list, preset list, attachments list, and other list-based widgets.
-- Added a search field to comboboxes, such as the model selector.
-- Added a Duplicate option to the models editor.
-- Added drag-and-drop to context list.
-- Added multi-select, drag-and-drop, Cut, Copy, and Paste features to the File Explorer.
-- Fix: scroll restoration after actions in the context list.
-- Fix: 'Use as image' option in the File Explorer.
-- Fix: current preset system prompt disappearing on profile change.
-- Other UI fixes/improvements.
-
-**2.6.67 (2025-12-26)**
-
-- Added a provider filter to the models editor.
-- Added video options (resolution, duration) to the toolbox.
-- Updated the models configuration.
-
-**2.6.66 (2025-12-25)**
-
-- Added Sora 2 support - #155.
-- Added Nano Banana support.
-- Added Qdrant Vector Store - merged PR #147 by @Anush008.
-- Added models: gpt-5.2, gpt-image-1.5, gemini-3, nano-banana-pro, sora-2, claude-sonnet-4.5, claude-opus-4.5, veo-3.1.
-- Added Select/unselect All option in checkbox lists.
-- OpenAI SDK upgraded to 2.14.0, Anthropic SDK upgraded to 0.75.0, xAI SDK upgraded to 1.5.0, Google GenAI upgraded to 1.56.0, LlamaIndex upgraded to 0.14.10.
-- Fix: charset-normalizer 3.2.0 circular import - #152.
-- Fix: Google client closed state.
 
 # Credits and links
 
