@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.20 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QActionGroup
@@ -20,6 +20,31 @@ from .settings import Settings
 
 
 class Lang:
+
+    LANG_MAPPING = {
+        "en": "English (default)",
+        "pl": "Polski",
+        "de": "Deutsch",
+        "es": "Español",
+        "fr": "Français",
+        "it": "Italiano",
+        "uk": "Українська",
+        "ru": "Русский",
+        "zh": "中文",
+        "ja": "日本語",
+        "ar": "العربية",
+        "pt": "Português",
+        "hi": "हिन्दी",
+        "ko": "한국어",
+        "tr": "Türkçe",
+        "he": "עברית",
+        "nl": "Nederlands",
+        "sv": "Svenska",
+        "fi": "Suomi",
+        "no": "Norsk",
+        "da": "Dansk",
+    }
+
     def __init__(self, window=None):
         """
         Language switch controller
@@ -56,9 +81,17 @@ class Lang:
             menu_lang = menu['lang']
             menu_root = menu['menu.lang']
             for lang in langs:
-                act = QAction(lang.upper(), w, checkable=True)
+                title = self.LANG_MAPPING.get(lang, "")
+                act_title = lang.upper() + (" - " + title if title else "")
+                act = QAction(act_title, w, checkable=True)
                 act.setData(lang)
                 menu_lang[lang] = act
+
+            # sort by code, but put 'en' first
+            sorted_langs = sorted(menu_lang.items(), key=lambda x: (x[0] != 'en', x[0]))
+            menu_lang = dict(sorted_langs)
+
+            for act in menu_lang.values():
                 self._lang_group.addAction(act)
                 menu_root.addAction(act)
         self.loaded = True
