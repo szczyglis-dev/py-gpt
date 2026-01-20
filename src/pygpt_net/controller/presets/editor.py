@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.28 09:35:00                  #
+# Updated Date: 2026.01.20 16:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 import shutil
+import uuid
 from typing import Any, Optional, Dict
 
 from PySide6.QtCore import Slot, Qt
@@ -922,6 +923,7 @@ class Editor:
             self.reload_all_custom_agent_options()
             if self.opened:
                 self.init(self.current_id)
+
     def init(self, id: Optional[str] = None):
         """
         Initialize preset editor
@@ -935,8 +937,10 @@ class Editor:
         data = PresetItem()
         data.name = ""
         data.filename = ""
+        data.uuid = str(uuid.uuid4())
 
         if id is None:
+            self.current = None  # RESET HERE is always required for new/avatar update
             self.experts.update_list()
             self.window.ui.config[self.id]['idx'].set_value("_")  # reset idx combo if new preset
 

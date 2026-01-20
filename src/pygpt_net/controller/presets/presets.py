@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 20:00:00                  #
+# Updated Date: 2026.01.20 16:00:00                  #
 # ================================================== #
 
 import re
@@ -24,14 +24,12 @@ from pygpt_net.core.types import (
     MODE_AGENT_OPENAI,
 )
 from pygpt_net.controller.presets.editor import Editor
-    # Editor controller
 from pygpt_net.core.events import AppEvent
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
 
 
 _FILENAME_SANITIZE_RE = re.compile(r'[^a-zA-Z0-9_\-\.]')
-# keep original validation (do not break other parts)
 _VALIDATE_FILENAME_RE = re.compile(r'[^\w\s\-\.]')
 
 
@@ -630,7 +628,12 @@ class Presets:
             w.core.assistants.load()
             w.core.remote_store.openai.load_all()
 
-    def _nearest_id_after_delete(self, mode: str, idx: Optional[int], deleting_id: Optional[str]) -> Optional[str]:
+    def _nearest_id_after_delete(
+            self,
+            mode: str,
+            idx: Optional[int],
+            deleting_id: Optional[str]
+    ) -> Optional[str]:
         """
         Compute the nearest neighbor to select after deletion:
         - Prefer the next item (below) if exists;
@@ -847,11 +850,18 @@ class Presets:
     # Drag & drop ordering helpers
     # ----------------------------
 
-    def persist_order_for_mode(self, mode: str, uuids: List[str]):
+    def persist_order_for_mode(
+            self,
+            mode: str,
+            uuids: List[str]
+    ):
         """
         Persist new order (by UUIDs) for given mode.
 
         The special '*' preset (current.<mode>) is not included here and always pinned at index 0.
+
+        :param mode: mode name
+        :param uuids: list of preset UUIDs in new order
         """
         w = self.window
         cfg = w.core.config
@@ -866,6 +876,8 @@ class Presets:
     def dnd_enabled(self) -> bool:
         """
         Check if drag and drop is globally enabled in config.
+
+        :return: True if enabled
         """
         try:
             return bool(self.window.core.config.get('presets.drag_and_drop.enabled'))
