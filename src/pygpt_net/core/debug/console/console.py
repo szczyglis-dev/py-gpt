@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -22,11 +22,39 @@ class Console:
         :param window: Window instance
         """
         self.window = window
+        # list of supported commands for auto-completion in ConsoleInput
+        self._supported_commands = [
+            "clr",
+            "mem",
+            "free",
+            "css",
+            "lang",
+            "oclr",
+            "dump(",
+            "js(",
+            "help",
+            "/help",
+            "/h",
+            "quit",
+            "exit",
+            "/q",
+        ]
+
+    def get_supported_commands(self):
+        """
+        Return list of supported commands for auto-completion.
+
+        :return: list of strings
+        """
+        return list(self._supported_commands)
 
     def on_send(self):
         """Called on send message from console"""
         msg = self.window.console.text().strip()
         if msg:
+            # push to history first to make it available for Up/Down
+            if hasattr(self.window.console, "add_to_history"):
+                self.window.console.add_to_history(msg)
             self.clear()
             self.log(msg)
             QApplication.processEvents()

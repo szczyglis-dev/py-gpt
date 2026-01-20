@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2026.01.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout
@@ -33,6 +33,10 @@ class Logger:
         self.window.logger.setProperty('class', 'text-editor')
 
         self.window.console = ConsoleInput(self.window)
+
+        # TAB completion commands
+        if hasattr(self.window.core.debug, "console") and hasattr(self.window.core.debug.console, "get_supported_commands"):
+            self.window.console.set_commands(self.window.core.debug.console.get_supported_commands())
 
         send_btn = QPushButton("Send")
         send_btn.clicked.connect(self.window.core.debug.console.on_send)
