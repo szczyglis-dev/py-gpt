@@ -1,7 +1,3 @@
-# dialog.py
-
-# dialog.py
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -10,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 19:00:00                  #
+# Updated Date: 2026.01.20 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QPoint, QSize, QEvent
@@ -61,6 +57,7 @@ class DialogSpawner:
         source.setVisible(False)
         pixmap = ImageLabel(dialog, self.path)
         pixmap.setSizePolicy(QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored))
+        pixmap.setAlignment(Qt.AlignCenter)
 
         # scrollable container for pixmap
         scroll = QScrollArea(dialog)
