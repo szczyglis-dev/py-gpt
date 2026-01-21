@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2026.01.21 20:00:00                  #
 # ================================================== #
-
+import json
 import time
 from typing import Dict, Any
 
@@ -116,14 +116,16 @@ class Storage:
                                 title = :title,
                                 content = :content,
                                 is_initialized = :is_initialized,
-                                updated_ts = :updated_ts
+                                updated_ts = :updated_ts,
+                                highlights_json = :highlights_json
                             WHERE idx = :idx
                         """).bindparams(
                     idx=int(notepad.idx or 0),
                     title=notepad.title,
                     content=notepad.content,
                     is_initialized=int(notepad.initialized),
-                    updated_ts=ts
+                    updated_ts=ts,
+                    highlights_json=self.pack_item_value(notepad.highlights)
                 )
             else:
                 stmt = text("""
@@ -136,7 +138,8 @@ class Storage:
                                 created_ts, 
                                 updated_ts,
                                 is_deleted,
-                                is_initialized
+                                is_initialized,
+                                highlights_json
                             )
                             VALUES
                             (
@@ -147,7 +150,8 @@ class Storage:
                                 :created_ts,
                                 :updated_ts,
                                 :is_deleted,
-                                :is_initialized
+                                :is_initialized,
+                                :highlights_json
                             )
                         """).bindparams(
                     idx=notepad.idx,
@@ -157,7 +161,8 @@ class Storage:
                     created_ts=ts,
                     updated_ts=ts,
                     is_deleted=int(notepad.deleted),
-                    is_initialized=int(notepad.initialized)
+                    is_initialized=int(notepad.initialized),
+                    highlights_json=self.pack_item_value(notepad.highlights)
                 )
             conn.execute(stmt)
 
@@ -180,7 +185,8 @@ class Storage:
                     created_ts, 
                     updated_ts,
                     is_deleted,
-                    is_initialized
+                    is_initialized,
+                    highlights_json
                 )
                 VALUES
                 (
@@ -191,7 +197,8 @@ class Storage:
                     :created_ts,
                     :updated_ts,
                     :is_deleted,
-                    :is_initialized
+                    :is_initialized,
+                    :highlights_json
                 )
             """).bindparams(
             idx=int(notepad.idx or 0),
@@ -201,7 +208,8 @@ class Storage:
             created_ts=ts,
             updated_ts=ts,
             is_deleted=int(notepad.deleted),
-            is_initialized=int(notepad.initialized)
+            is_initialized=int(notepad.initialized),
+            highlights_json=self.pack_item_value(notepad.highlights)
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -225,4 +233,30 @@ class Storage:
         notepad.content = row['content']
         notepad.deleted = bool(row['is_deleted'])
         notepad.initialized = bool(row['is_initialized'])
+        notepad.highlights = self.unpack_item_value(row['highlights_json'])
         return notepad
+
+    def pack_item_value(self, value: Any) -> str:
+        """
+        Pack item value to JSON
+
+        :param value: Value to pack
+        :return: JSON string or value itself
+        """
+        if isinstance(value, (list, dict)):
+            return json.dumps(value)
+        return value
+
+    def unpack_item_value(self, value: Any) -> Any:
+        """
+        Unpack item value from JSON
+
+        :param value: Value to unpack
+        :return: Unpacked value
+        """
+        if value is None:
+            return []
+        try:
+            return json.loads(value)
+        except:
+            return value

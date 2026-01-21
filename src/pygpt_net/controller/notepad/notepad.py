@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 12:30:00                  #
+# Updated Date: 2026.01.21 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, Tuple
@@ -119,21 +119,30 @@ class Notepad:
 
     def load(self):
         """Load all notepads contents"""
-        self.window.core.notepad.load_all()
-        items = self.window.core.notepad.get_all()
-        num_notepads = self.get_num_notepads()
-        if len(items) == 0:
-            if num_notepads > 0:
-                for idx in range(1, num_notepads + 1):
-                    item = NotepadItem()
-                    item.idx = idx
-                    items[idx] = item
+        core_notepad = self.window.core.notepad
+        prev_locked = core_notepad.locked
+        core_notepad.locked = True  # block any autosave during restore
+        try:
+            core_notepad.load_all()
+            items = core_notepad.get_all()
+            num_notepads = self.get_num_notepads()
 
-        if num_notepads > 0:
-            for idx, item in items.items():
-                widget = self.window.ui.notepad.get(idx)
-                if widget is not None:
-                    widget.setText(item.content)
+            if len(items) == 0:
+                if num_notepads > 0:
+                    for idx in range(1, num_notepads + 1):
+                        item = NotepadItem()
+                        item.idx = idx
+                        items[idx] = item
+
+            if num_notepads > 0:
+                for idx, item in items.items():
+                    widget = self.window.ui.notepad.get(idx)
+                    if widget is not None:
+                        widget.setText(item.content)
+                        highlights = getattr(item, 'highlights', []) or []
+                        widget.textarea.set_highlights(highlights)
+        finally:
+            core_notepad.locked = prev_locked  # restore previous lock state
 
     def get_notepad_name(self, idx: int):
         """
@@ -172,8 +181,27 @@ class Notepad:
             text = widget.toPlainText()
             if item.content != text:
                 item.content = text
+                self.save_marks(idx, persist=False)
                 core_notepad.update(item)
+            else:
+                self.save_marks(idx)
             self.update()
+
+    def save_marks(self, idx: int, persist: bool = True):
+        """
+        Save highlights for given notepad idx into item.highlights
+        """
+        widget = self.window.ui.notepad.get(idx)
+        if widget is None:
+            return
+        highlights = widget.textarea.get_highlights()
+        core_notepad = self.window.core.notepad
+        item = core_notepad.get_by_id(idx)
+        if item is None or core_notepad.locked:
+            return
+        item.highlights = highlights
+        if persist:
+            core_notepad.update(item)
 
     def save_all(self):
         """Save all notepads contents"""
@@ -191,8 +219,9 @@ class Notepad:
                     text = widget.toPlainText()
                     if prev_content != text:
                         items[idx].content = text
+                        self.save_marks(idx, persist=False)  # persist highlights for each notepad
                         self.window.core.notepad.update(items[idx])
-            self.update()
+        self.update()
 
     def setup(self):
         """Setup all notepads"""
@@ -322,6 +351,7 @@ class Notepad:
         widget = self.window.ui.notepad.get(idx)
         if widget is not None:
             widget.textarea.clear()
+            widget.textarea.clear_highlights()
             self.save(idx)
             return True
         return False

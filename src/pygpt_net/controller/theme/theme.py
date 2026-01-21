@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 13:00:00                  #
+# Updated Date: 2026.01.21 20:00:00                  #
 # ================================================== #
 
 import os
@@ -291,3 +291,12 @@ class Theme:
             self.setup()
             self.update_style()
         self.update_syntax()
+
+    def is_dark_theme(self) -> bool:
+        """
+        Check if current theme is dark
+
+        :return: True if dark theme, False otherwise
+        """
+        current = self.window.core.config.get('theme')
+        return current.startswith('dark')

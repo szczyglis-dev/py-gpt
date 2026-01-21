@@ -30,6 +30,7 @@ def test_unpack(mock_window):
         'content': 'test content',
         'is_deleted': 0,
         'is_initialized': 0,
+        'highlights_json': None,
     }
     storage.unpack(notepad, row)
 
@@ -58,6 +59,7 @@ def test_get_all(mock_window):
         'content': 'Content 1',
         'is_deleted': 0,
         'is_initialized': 0,
+        'highlights_json': None,
     }
     conn = Mock()
     conn.execute.return_value = [fake_row]
@@ -88,6 +90,7 @@ def test_get_by_idx(mock_window):
         'content': 'Content 1',
         'is_deleted': 0,
         'is_initialized': 0,
+        'highlights_json': None,
     }
     conn = Mock()
     conn.execute.return_value = [fake_row]

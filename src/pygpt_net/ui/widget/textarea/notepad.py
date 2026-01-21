@@ -6,17 +6,25 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 00:00:00                  #
+# Updated Date: 2026.01.21 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer
-from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor, QFontMetrics
+from PySide6.QtGui import (
+    QAction,
+    QIcon,
+    QKeySequence,
+    QTextCursor,
+    QFontMetrics,
+    QColor,
+)
 from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
+from .highlight import MarkerHighlighter
 
 
 class NotepadWidget(QWidget):
@@ -75,6 +83,7 @@ class NotepadWidget(QWidget):
         """On destroy"""
         # unregister finder from memory
         self.window.controller.finder.unset(self.textarea.finder)
+
     def on_delete(self):
         """On delete"""
         self.tab = None  # clear tab reference
@@ -85,6 +94,8 @@ class NotepadOutput(QTextEdit):
     ICON_VOLUME = QIcon(":/icons/volume.svg")
     ICON_SAVE = QIcon(":/icons/save.svg")
     ICON_SEARCH = QIcon(":/icons/search.svg")
+    ICON_MARK = QIcon(":/icons/edit.svg")
+    ICON_UNMARK = QIcon(":/icons/close.svg")
 
     def __init__(self, window=None):
         """
@@ -115,19 +126,44 @@ class NotepadOutput(QTextEdit):
         self._vscroll.valueChanged.connect(self._on_scrollbar_value_changed)
         self._restore_attempts = 0
 
+        # highlight state (using QSyntaxHighlighter for rendering)
+        self._highlights = []  # list of (start, length)
+
+        # timers/slots must be available even if later connections fail
+        self._save_timer = QTimer(self)
+        self._save_timer.setSingleShot(True)
+        self._save_timer.setInterval(400)
+        self._save_timer.timeout.connect(self._persist)
+
+        # highlighter
+        self._highlighter = MarkerHighlighter(self.document(), self.get_highlights, self.get_highlight_color)
+
     def on_delete(self):
         """On delete"""
         if self.finder:
             self.finder.disconnect()  # disconnect finder
             self.finder = None  # delete finder
+        if self._save_timer.isActive():
+            self._save_timer.stop()
         self.deleteLater()
 
     def showEvent(self, event):
+        """On show event"""
         super().showEvent(event)
         self._restore_attempts = 0
         QTimer.singleShot(0, self.restore_scroll_pos)
 
+    def changeEvent(self, event):
+        """React to theme/palette changes"""
+        if event.type() in (QEvent.PaletteChange, QEvent.ApplicationPaletteChange, QEvent.StyleChange):
+            try:
+                self._highlighter.rehighlight()
+            except Exception:
+                pass
+        super().changeEvent(event)
+
     def scroll_to_bottom(self):
+        """Scroll to bottom"""
         self.moveCursor(QTextCursor.End)
         self.ensureCursorVisible()
         scroll_bar = self._vscroll
@@ -155,22 +191,37 @@ class NotepadOutput(QTextEdit):
         self.tab = tab
 
     def setText(self, text: str):
+        """
+        Set text
+
+        :param text: Text
+        """
         if self.toPlainText() == text:
             return
         self.setPlainText(text)
+        self._highlighter.rehighlight()  # refresh highlighting on new content
 
     def text_changed(self):
         """On text changed"""
         if not self.window.core.notepad.locked:
-            self.window.controller.notepad.save(self.id)  # use notepad id
-        if self.finder is not None:
-            self.finder.text_changed()
-        self.last_scroll_pos = self._vscroll.value()
+            if self.finder is not None:
+                self.finder.text_changed()
+            self.last_scroll_pos = self._vscroll.value()
+            try:
+                self._save_timer.start()
+            except Exception:
+                pass
 
     def _on_scrollbar_value_changed(self, value: int):
+        """
+        On scrollbar value changed
+
+        :param value: New value
+        """
         self.last_scroll_pos = value
 
     def restore_scroll_pos(self):
+        """Restore last scroll position"""
         if self.last_scroll_pos is None:
             return
         scroll_bar = self._vscroll
@@ -193,6 +244,23 @@ class NotepadOutput(QTextEdit):
         menu = self.createStandardContextMenu()
         cursor = self.textCursor()
         selected_text = cursor.selectedText()
+        has_selection = bool(selected_text)
+
+        # Mark / Unmark actions for selection
+        if has_selection:
+            start = min(cursor.selectionStart(), cursor.selectionEnd())
+            end = max(cursor.selectionStart(), cursor.selectionEnd())
+            overlap = self._selection_overlaps_any_highlight(start, end)
+
+            action_mark = QAction(self.ICON_MARK, trans("action.mark"), self)
+            action_mark.triggered.connect(self.mark_selection)
+            menu.addAction(action_mark)
+
+            action_unmark = QAction(self.ICON_UNMARK, trans("action.unmark"), self)
+            action_unmark.setEnabled(overlap)
+            action_unmark.triggered.connect(self.unmark_selection)
+            menu.addAction(action_unmark)
+
         if selected_text:
             plain_text = cursor.selection().toPlainText()
 
@@ -238,6 +306,25 @@ class NotepadOutput(QTextEdit):
     def on_update(self):
         """On content update"""
         self.finder.clear()  # clear finder
+
+    def on_zoom_changed(self, value: int):
+        """
+        On font size changed
+
+        :param value: New font size
+        """
+        self.value = value
+        self.window.core.config.data['font_size'] = value
+        self.window.core.config.save()
+        option = self.window.controller.settings.editor.get_option('font_size')
+        option['value'] = self.value
+        self.window.controller.config.apply(
+                parent_id='config',
+                key='font_size',
+                option=option,
+        )
+        self.window.controller.ui.update_font_size()
+        self.last_scroll_pos = self._vscroll.value()
 
     def keyPressEvent(self, e):
         """
@@ -286,25 +373,6 @@ class NotepadOutput(QTextEdit):
             super(NotepadOutput, self).wheelEvent(event)
             self.last_scroll_pos = self._vscroll.value()
 
-    def on_zoom_changed(self, value: int):
-        """
-        On font size changed
-
-        :param value: New font size
-        """
-        self.value = value
-        self.window.core.config.data['font_size'] = value
-        self.window.core.config.save()
-        option = self.window.controller.settings.editor.get_option('font_size')
-        option['value'] = self.value
-        self.window.controller.config.apply(
-            parent_id='config',
-            key='font_size',
-            option=option,
-        )
-        self.window.controller.ui.update_font_size()
-        self.last_scroll_pos = self._vscroll.value()
-
     def focusInEvent(self, e):
         """
         Focus in event
@@ -322,3 +390,159 @@ class NotepadOutput(QTextEdit):
         """
         super(NotepadOutput, self).focusOutEvent(e)
         self.window.controller.finder.focus_out(self.finder)
+
+    # ==== Marking / Highlights API ====
+
+    def mark_selection(self):
+        """Apply highlight to current selection"""
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            return
+        start = min(cursor.selectionStart(), cursor.selectionEnd())
+        end = max(cursor.selectionStart(), cursor.selectionEnd())
+        self._add_highlight((start, end - start))
+        self._highlighter.rehighlight()
+        self._persist()
+
+    def unmark_selection(self):
+        """Remove highlight from current selection"""
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            return
+        start = min(cursor.selectionStart(), cursor.selectionEnd())
+        end = max(cursor.selectionStart(), cursor.selectionEnd())
+        self._remove_range_from_highlights(start, end - start)
+        self._highlighter.rehighlight()
+        self._persist()
+
+    def get_highlights(self):
+        """Return current highlights as list of (start, length)"""
+        return list(self._highlights)
+
+    def set_highlights(self, highlights):
+        """Set highlights and repaint"""
+        self._highlights = self._merge_ranges(self._sanitize_ranges(highlights))
+        self._highlighter.rehighlight()
+
+    def clear_highlights(self):
+        """Clear all highlights"""
+        self._highlights = []
+        self._highlighter.rehighlight()
+        self._persist()
+
+    # ==== Highlight colors / theme ====
+
+    def get_highlight_color(self):
+        """
+        Return (text_color, background_color) for highlights based on current theme.
+        """
+        is_dark = self._is_dark_theme()
+        if is_dark:
+            text_color = QColor(0, 0, 0)
+            bg_color = QColor(255, 215, 64)  # amber A200
+        else:
+            text_color = QColor(0, 0, 0)
+            bg_color = QColor(255, 235, 59)  # yellow 500
+        return text_color, bg_color
+
+    def apply_highlight_theme(self):
+        """
+        Public method to refresh highlight colors. Can be called by theme controller
+        after theme switch.
+        """
+        try:
+            self._highlighter.rehighlight()
+        except Exception:
+            pass
+
+    def _is_dark_theme(self) -> bool:
+        """
+        Get whether current theme is dark
+        """
+        return self.window.controller.theme.is_dark_theme()
+
+    # ==== Internal highlight helpers ====
+
+    def _persist(self):
+        """Persist highlights to core"""
+        if self._save_timer.isActive():
+            self._save_timer.stop()
+        try:
+            self.window.controller.notepad.save(self.id)  # save content + marking
+        except Exception:
+            pass
+
+    def _schedule_persist(self):
+        """Schedule delayed persist to avoid saving on every keystroke"""
+        try:
+            self._save_timer.start()
+        except Exception:
+            pass
+
+    def _sanitize_ranges(self, ranges):
+        """Sanitize ranges to (start>=0, length>0) integers"""
+        out = []
+        for r in ranges or []:
+            try:
+                s = int(r[0])
+                l = int(r[1])
+            except Exception:
+                continue
+            if s < 0 or l <= 0:
+                continue
+            out.append((s, l))
+        out.sort(key=lambda x: x[0])
+        return out
+
+    def _merge_ranges(self, ranges):
+        """Merge overlapping/adjacent ranges"""
+        if not ranges:
+            return []
+        merged = []
+        for s, l in ranges:
+            if not merged:
+                merged.append([s, s + l])
+                continue
+            ps, pe = merged[-1]
+            se = s + l
+            if s <= pe:
+                merged[-1][1] = max(pe, se)
+            else:
+                merged.append([s, se])
+        return [(s, e - s) for s, e in merged]
+
+    def _add_highlight(self, rng):
+        """Add a highlight range and merge"""
+        s, l = int(rng[0]), int(rng[1])
+        if l <= 0:
+            return
+        self._highlights.append((s, l))
+        self._highlights = self._merge_ranges(self._sanitize_ranges(self._highlights))
+        self._schedule_persist()
+
+    def _remove_range_from_highlights(self, s, l):
+        """Subtract a range from all highlights"""
+        if l <= 0:
+            return
+        start = s
+        end = s + l
+        result = []
+        for hs, hl in self._highlights:
+            he = hs + hl
+            if he <= start or hs >= end:
+                result.append((hs, hl))
+                continue
+            if hs < start:
+                result.append((hs, start - hs))
+            if he > end:
+                result.append((end, he - end))
+        self._highlights = self._merge_ranges(self._sanitize_ranges(result))
+        self._schedule_persist()
+
+    def _selection_overlaps_any_highlight(self, s, e):
+        """Check if selection overlaps any highlight"""
+        for hs, hl in self._highlights:
+            he = hs + hl
+            if not (he <= s or hs >= e):
+                return True
+        return False
