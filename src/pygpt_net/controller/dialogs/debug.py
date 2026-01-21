@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 20:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
+import time
 from typing import Any
 
 from PySide6.QtCore import Qt
@@ -62,6 +63,8 @@ class Debug:
             'ui': UIDebug(self.window)
         }
 
+        self.is_realtime = False  # real-time data update
+
         # prepare debug ids
         self.ids = self.workers.keys()
         self.models = {}
@@ -77,12 +80,30 @@ class Debug:
             self.active[id] = False
             self.idx[id] = 0
 
+    def refresh(self, id: str):
+        """
+        Refresh debug data
+
+        :param id: debug id
+        """
+        if id in self.initialized:
+            self.initialized[id] = False
+
     def begin(self, id: str):
         """
         Begin debug data
 
         :param id: debug id
         """
+        if self.initialized[id] and not self.is_realtime:
+            if self.is_active(id):
+                return  # skip if already initialized and realtime disabled
+
+        upd_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        self.window.ui.debug[id].last_update_label.setText(
+            f"Last update: {upd_time}"
+        )
+
         model = self.models.get(id, None)
         dialog = self.window.ui.debug[id]
         dialog.setModel(model)
@@ -92,8 +113,16 @@ class Debug:
         if id not in self.counters or self.counters[id] != model.rowCount():
             model.removeRows(0, model.rowCount())
             self.initialized[id] = False
-        dialog.setUpdatesEnabled(True)
         self.idx[id] = 0
+
+    def set_realtime(self, id: str, enabled: bool):
+        """
+        Set realtime mode
+
+        :param id: debug id
+        :param enabled: enable realtime
+        """
+        self.is_realtime = enabled
 
     def end(self, id: str):
         """
@@ -101,9 +130,11 @@ class Debug:
 
         :param id: debug id
         """
+        dialog = self.window.ui.debug[id]
         self.counters[id] = self.idx[id]
         self.initialized[id] = True
         self.window.ui.debug[id].on_data_end()
+        dialog.setUpdatesEnabled(True)
 
     def add(self, id: str, k: str, v: Any):
         """
@@ -113,23 +144,21 @@ class Debug:
         :param k: key
         :param v: value
         """
-        dialog = self.window.ui.debug[id]
-        dialog.setUpdatesEnabled(False)
         model = self.models.get(id, None)
         if self.initialized[id] is False:
             idx = model.rowCount()
             model.insertRow(idx)
             model.setData(model.index(idx, self.DBG_KEY), k)
             model.setData(model.index(idx, self.DBG_VALUE), v)
+            self.idx[id] += 1
         else:
             for idx in range(0, model.rowCount()):
+                self.idx[id] += 1
                 if model.index(idx, self.DBG_KEY).data() == k:
+                    if model.index(idx, self.DBG_VALUE).data() == v:
+                        continue  # no changes, skip update
                     model.setData(model.index(idx, self.DBG_VALUE), v)
-                    self.idx[id] += 1
-                    dialog.setUpdatesEnabled(True)
                     return
-        self.idx[id] += 1
-        dialog.setUpdatesEnabled(True)
 
     def get_ids(self) -> list:
         """

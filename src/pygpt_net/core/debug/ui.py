@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 20:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
 
@@ -20,16 +20,38 @@ class UIDebug:
         self.window = window
         self.id = 'ui'
 
+    def _sortable_key(self, key):
+        """
+        Return a safe, comparable key representation for sorting across heterogeneous key types.
+        Uses str() with robust fallbacks to avoid TypeError.
+        """
+        try:
+            return str(key)
+        except Exception:
+            try:
+                return repr(key)
+            except Exception:
+                return f"{type(key).__name__}@{id(key)}"
+
+    def _sorted_items(self, d: dict):
+        """
+        Return dict items sorted by key at this nesting level.
+        """
+        return sorted(d.items(), key=lambda kv: self._sortable_key(kv[0]))
+
     def map_structure(self, d, show_value: bool = False):
         """
         Map dict structure
 
         :param d: data to map
         :param show_value: show value
-        :return: mapped structure
+        :return: mapped structure with keys sorted at every nesting level
         """
         if isinstance(d, dict):
-            return {k: self.map_structure(v, show_value) for k, v in d.items()}
+            out = {}
+            for k, v in self._sorted_items(d):
+                out[k] = self.map_structure(v, show_value)
+            return out
         elif isinstance(d, list):
             return [self.map_structure(item, show_value) for item in d]
         else:

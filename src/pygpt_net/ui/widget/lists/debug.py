@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
 import json
@@ -48,6 +48,7 @@ class DebugList(QTableView):
         On data update begin
         """
         self.adjustColumns()
+        self.setUpdatesEnabled(False)
 
     def on_data_end(self):
         """
@@ -59,6 +60,7 @@ class DebugList(QTableView):
             if self.viewer_current != new:
                 self.viewer.setPlainText(self.parse_view(new))
                 self.viewer_current = new
+        self.setUpdatesEnabled(True)
 
     def parse_view(self, data):
         """
