@@ -187,7 +187,7 @@ def test_append_tabs_chat(tabs_instance, fake_window, monkeypatch):
     tab = tabs_instance.append(Tab.TAB_CHAT, "tool", 0, 0)
     assert tab.pid == initial_last_pid + 1
     assert tab in tabs_instance.pids.values()
-    assert tab.new_idx == 1
+    assert tab.new_idx == 0
 
 def test_append_tabs_notepad(tabs_instance, fake_window, monkeypatch):
     called = False

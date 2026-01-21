@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.21 12:30:00                  #
 # ================================================== #
 
 from typing import Optional, Tuple
@@ -64,22 +64,24 @@ class Notepad:
             self,
             idx: Optional[int] = None,
             tab: Optional[Tab] = None,
+            restore: bool = False
     ) -> Tuple[TabBody, int, int]:
         """
         Create notepad widget
 
         :param idx: notepad idx
         :param tab: existing tab to use (optional)
+        :param restore: whether to restore existing notepad (default: False)
         :return: notepad widget (TabBody)
         """
         tabs_core = self.window.core.tabs
-        existing_tabs = tabs_core.get_tabs_by_type(Tab.TAB_NOTEPAD)
-        used_ids = {t.data_id for t in existing_tabs}
-
-        if idx is None:
-            idx = 1
-        while idx in used_ids:
-            idx += 1
+        if not restore:
+            existing_tabs = tabs_core.get_tabs_by_type(Tab.TAB_NOTEPAD)
+            used_ids = {t.data_id for t in existing_tabs}
+            if idx is None:
+                idx = 1
+            while idx in used_ids:
+                idx += 1
 
         suffix = self.get_next_suffix()
 

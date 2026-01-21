@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2026.01.21 12:30:00                  #
 # ================================================== #
 
 import uuid
@@ -59,16 +59,49 @@ class Tabs:
             column_idx: int = 0
     ) -> Optional[Tab]:
         """
-        Get tab by index
+        Get tab by index (robust, with late owner binding fallback)
 
         :param idx: Tab index
         :param column_idx: Column index
         :return: Tab
         """
-        tab = self.window.ui.layout.get_tabs_by_idx(column_idx).widget(idx)
-        if tab is None:
+        tabs_widget = self.window.ui.layout.get_tabs_by_idx(column_idx)
+        if tabs_widget is None:
             return None
-        return tab.getOwner()
+
+        child = tabs_widget.widget(idx)
+        if child is not None:
+            # try direct owner first
+            try:
+                tab = child.getOwner()
+            except Exception:
+                tab = None
+
+            if tab is not None:
+                return tab
+
+            # late owner binding: match by object identity
+            for t in self.pids.values():
+                if t.child is child:
+                    if hasattr(child, "setOwner"):
+                        child.setOwner(t)
+                    return t
+
+            # fallback: match by (column_idx, idx) if child reference is not yet available
+            for t in self.pids.values():
+                if t.column_idx == column_idx and getattr(t, "idx", -1) == idx:
+                    if hasattr(child, "setOwner"):
+                        child.setOwner(t)
+                    return t
+
+            return None
+
+        # child is None -> fallback by (column_idx, idx)
+        for t in self.pids.values():
+            if t.column_idx == column_idx and getattr(t, "idx", -1) == idx:
+                return t
+
+        return None
 
     def get_tab_by_pid(self, pid: int) -> Optional[Tab]:
         """
@@ -139,6 +172,8 @@ class Tabs:
         tab.data_id = data_id
         tab.tool_id = tool_id
 
+        self.pids[tab.pid] = tab
+
         if type == Tab.TAB_CHAT:
             self.add_chat(tab)
         elif type == Tab.TAB_NOTEPAD:
@@ -152,7 +187,6 @@ class Tabs:
         elif type == Tab.TAB_TOOL:
             self.add_tool(tab)
 
-        self.pids[tab.pid] = tab
         return tab
 
     def append(
@@ -185,9 +219,20 @@ class Tabs:
         tab.type = type
         tab.title = title
         tab.icon = icon
-        tab.new_idx = idx + 1  # place on right side
+
+        # compute a safe insertion index within the target column
+        tabs_widget = self.window.ui.layout.get_tabs_by_idx(column_idx)
+        count = tabs_widget.count() if tabs_widget is not None else 0
+        if count == 0:
+            safe_new_idx = 0
+        else:
+            safe_new_idx = min(idx + 1, count)
+
+        tab.new_idx = safe_new_idx  # final insertion index
         tab.column_idx = column_idx
         tab.tool_id = tool_id
+
+        self.pids[tab.pid] = tab
 
         if type == Tab.TAB_CHAT:
             self.add_chat(tab)
@@ -196,7 +241,6 @@ class Tabs:
         elif type == Tab.TAB_TOOL:
             self.add_tool(tab)
 
-        self.pids[tab.pid] = tab
         self.update()
 
         # load data from db
@@ -233,6 +277,8 @@ class Tabs:
         if tab.type in self.icons:
             tab.icon = self.icons[tab.type]
 
+        self.pids[tab.pid] = tab
+
         if tab.type == Tab.TAB_CHAT:  # chat
             try:
                 self.add_chat(tab)
@@ -243,7 +289,7 @@ class Tabs:
                 print("Error restoring chat tab:", e)
         elif tab.type == Tab.TAB_NOTEPAD: # notepad
             try:
-                self.add_notepad(tab)
+                self.add_notepad(tab, restore=True) # without creating new
             except Exception as e:
                 print("Error restoring notepad tab:", e)
         elif tab.type == Tab.TAB_FILES:  # files
@@ -267,7 +313,6 @@ class Tabs:
             except Exception as e:
                 print("Error restoring tool tab:", e)
 
-        self.pids[tab.pid] = tab
         self.last_pid = self.get_max_pid()
 
     def remove_tab_by_idx(
@@ -619,18 +664,28 @@ class Tabs:
         column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
         tabs = column.get_tabs()
         tab.parent = column
-        tab.child = self.window.core.ctx.container.get(tab)  # tab is already appended here
+        tab.child = self.window.core.ctx.container.get(tab)
+
+        # ensure owner is set on the page widget even before insertion
+        if hasattr(tab.child, "setOwner"):
+            tab.child.setOwner(tab)
+
         tab.idx = self.insert_tab(tabs, tab)
-        tab.child.setOwner(tab)
+
+        # set again after insertion to be 100% sure the widget in the stack has owner set
+        if hasattr(tab.child, "setOwner"):
+            tab.child.setOwner(tab)
+
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
 
-    def add_notepad(self, tab: Tab):
+    def add_notepad(self, tab: Tab, restore: bool = False):
         """
         Add notepad tab
 
         :param tab: Tab instance
+        :param restore: Restore only (do not try to create new)
         """
         idx = None
         column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
@@ -639,10 +694,11 @@ class Tabs:
         tab.parent = tabs.get_column()
         if tab.data_id is not None:
             idx = tab.data_id  # restore prev idx
-        tab.child, idx, data_id = self.window.controller.notepad.create(idx, tab)
+        tab.child, idx, data_id = self.window.controller.notepad.create(idx, tab, restore=restore)
         tab.data_id = data_id  # notepad idx in db, enumerated from 1
         tab.idx = self.insert_tab(tabs, tab)
-        tab.child.setOwner(tab)
+        if hasattr(tab.child, "setOwner"):
+            tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
@@ -658,7 +714,8 @@ class Tabs:
         tab.parent = column
         tab.child = self.window.ui.chat.output.explorer.setup()
         tab.idx = self.insert_tab(tabs, tab)
-        tab.child.setOwner(tab)
+        if hasattr(tab.child, "setOwner"):
+            tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
@@ -675,7 +732,8 @@ class Tabs:
         tab.child = self.window.ui.chat.output.painter.setup()
         tab.child.append(self.window.ui.painter)
         tab.idx = self.insert_tab(tabs, tab)
-        tab.child.setOwner(tab)
+        if hasattr(tab.child, "setOwner"):
+            tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
@@ -691,7 +749,8 @@ class Tabs:
         tab.parent = column
         tab.child = self.window.ui.chat.output.calendar.setup()
         tab.idx = self.insert_tab(tabs, tab)
-        tab.child.setOwner(tab)
+        if hasattr(tab.child, "setOwner"):
+            tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
@@ -715,7 +774,8 @@ class Tabs:
         tab.parent = column
         tab.child = self.from_widget(widget)
         tab.idx = self.insert_tab(tabs, tab)
-        tab.child.setOwner(tab)
+        if hasattr(tab.child, "setOwner"):
+            tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
