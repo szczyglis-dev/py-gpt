@@ -1,8 +1,9 @@
 2.7.10 (2026-01-21)
 
-- Fixed an avatar overwrite bug when creating a new preset.  
+- Fixed an avatar overwrite bug when creating a new preset.
+- Added prompt history to the input (via Ctrl + Up/Down arrow keys).
 - Added initial image centering on load in the Image Viewer.  
-- Added 13 new languages: Arabic (ar), Danish (da), Finnish (fi), Hebrew (he), Hindi (hi), Japanese (ja), Korean (ko), Dutch (nl), Norwegian (no), Portuguese (pt), Russian (ru), Swedish (sv), Turkish (tr).
+- Added 18 new languages: Arabic (ar), Bulgarian (bg), Czech (cs), Danish (da), Finnish (fi), Hebrew (he), Hindi (hi), Hungarian (hu), Japanese (ja), Korean (ko), Dutch (nl), Norwegian (no), Portuguese (pt), Romanian (ro), Russian (ru), Slovak (sk), Swedish (sv), Turkish (tr).
 
 2.7.9 (2026-01-08)
 
