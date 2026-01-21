@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.01.21 13:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -155,6 +155,25 @@ class ApiAnthropic:
                 pass
         return True
 
+    def redirect_call(
+            self,
+            context: BridgeContext,
+            extra: dict = None
+    ) -> str:
+        """
+        Redirect quick call to standard call and return the output text
+
+        :param context: BridgeContext
+        :param extra: Extra parameters
+        :return: Output text
+        """
+        context.stream = False
+        context.mode = MODE_CHAT
+        self.locked = True
+        self.call(context, extra)
+        self.locked = False
+        return context.ctx.output
+
     def quick_call(
             self,
             context: BridgeContext,
@@ -168,12 +187,7 @@ class ApiAnthropic:
         :return: Output text
         """
         if context.request:
-            context.stream = False
-            context.mode = MODE_CHAT
-            self.locked = True
-            self.call(context, extra)
-            self.locked = False
-            return context.ctx.output
+            return self.redirect_call(context, extra)
 
         self.locked = True
         try:

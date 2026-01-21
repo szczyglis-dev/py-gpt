@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 01:00:00                  #
+# Updated Date: 2026.01.21 13:00:00                  #
 # ================================================== #
 
 from .anthropic import ApiAnthropic
@@ -27,3 +27,17 @@ class Api:
         self.google = ApiGoogle(window)
         self.openai = ApiOpenAI(window)
         self.xai = ApiXAI(window)
+
+    def stop(self):
+        """Stop all API clients"""
+        self.anthropic.stop()
+        self.google.stop()
+        self.openai.stop()
+        self.xai.stop()
+
+    def close(self):
+        """Close all API clients"""
+        self.anthropic.safe_close()
+        self.google.safe_close()
+        self.openai.safe_close()
+        self.xai.safe_close()

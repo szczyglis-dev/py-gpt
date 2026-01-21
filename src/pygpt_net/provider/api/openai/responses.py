@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2026.01.21 13:00:00                  #
 # ================================================== #
 
 import base64
-import json
 import time
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -92,9 +91,11 @@ class Responses:
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
 
-        client = self.window.core.api.openai.get_client(mode, model)
+        api = self.window.core.api.openai
+        client = api.get_client(mode, model)
 
         # build chat messages
+        self.reset_tokens()
         messages = self.build(
             prompt=prompt,
             system_prompt=system_prompt,
@@ -106,11 +107,12 @@ class Responses:
             multimodal_ctx=multimodal_ctx,
             is_expert_call=is_expert_call,  # use separated previous response ID for expert calls
         )
-
         msg_tokens = self.window.core.tokens.from_messages(
             messages,
             model.id,
         )
+        self.input_tokens += msg_tokens
+
         # check if max tokens not exceeded
         if max_tokens > 0 and model.ctx > 0:
             if msg_tokens + int(max_tokens) > model.ctx:
@@ -121,16 +123,16 @@ class Responses:
         # extra API kwargs
         response_kwargs = {}
 
-        # tools / functions
-        tools = self.window.core.api.openai.tools.prepare_responses_api(model, functions)
+        # tools prepare
+        tools = api.tools.prepare_responses_api(model, functions)
 
-        # extra arguments, o3 only
+        # extra arguments, reasoning models only
         if model.extra and "reasoning_effort" in model.extra:
             response_kwargs['reasoning'] = {}
             response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
 
         # append remote tools
-        tools = self.window.core.api.openai.remote_tools.append_to_tools(
+        tools = api.remote_tools.append_to_tools(
             mode=mode,
             model=model,
             stream=stream,
@@ -217,11 +219,6 @@ class Responses:
         # tokens config
         mode = MODE_CHAT
         tool_call_native_enabled = self.window.core.config.get('func_call.native', False)
-        allowed_system = True
-        if (model.id is not None
-                and model.id in ["o1-mini", "o1-preview"]):
-            allowed_system = False
-
         used_tokens = self.window.core.tokens.from_user(
             prompt,
             system_prompt,
@@ -231,17 +228,6 @@ class Responses:
         # fit to max model tokens
         if max_ctx_tokens > model.ctx > 0:
             max_ctx_tokens = model.ctx
-
-        # input tokens: reset
-        self.reset_tokens()
-
-        # append system prompt
-        if allowed_system:
-            pass
-            '''
-            if system_prompt is not None and system_prompt != "":
-                messages.append({"role": "developer", "content": system_prompt})
-            '''
 
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
@@ -384,7 +370,7 @@ class Responses:
                                                 break
 
                     # --- previous message ID ---
-                    if (item.msg_id and is_last_item
+                    if (item.msg_id
                             and ((item.cmds is None or len(item.cmds) == 0) or is_tool_output)):  # if no cmds before or tool output
                         if is_expert_call:
                             self.prev_internal_response_id = item.msg_id
@@ -413,12 +399,6 @@ class Responses:
                 "role": "user",
                 "content": content,
             })
-
-        # input tokens: update
-        self.input_tokens += self.window.core.tokens.from_messages(
-            messages,
-            model.id,
-        )
 
         return messages
 

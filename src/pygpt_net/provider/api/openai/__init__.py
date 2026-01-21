@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.01.21 13:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -263,7 +263,30 @@ class ApiOpenAI:
 
         return True
 
-    def quick_call(self, context: BridgeContext, extra: dict = None) -> str:
+    def redirect_call(
+            self,
+            context: BridgeContext,
+            extra: dict = None
+    ) -> str:
+        """
+        Redirect quick call to standard call and return the output text
+
+        :param context: BridgeContext
+        :param extra: Extra parameters
+        :return: Output text
+        """
+        context.stream = False
+        context.mode = MODE_CHAT
+        self.locked = True
+        self.call(context, extra)
+        self.locked = False
+        return context.ctx.output
+
+    def quick_call(
+            self,
+            context: BridgeContext,
+            extra: dict = None
+    ) -> str:
         """
         Quick call OpenAI API with custom prompt
 
@@ -273,19 +296,13 @@ class ApiOpenAI:
         """
         # if normal request call then redirect
         if context.request:
-            context.stream = False
-            context.mode = "chat"  # fake mode for redirect
-            self.locked = True
-            self.call(context, extra)
-            self.locked = False
-            return context.ctx.output
+            return self.redirect_call(context, extra)
 
         self.locked = True
         ctx = context.ctx
         mode = context.mode
         prompt = context.prompt
         system_prompt = context.system_prompt
-        max_tokens = context.max_tokens
         temperature = context.temperature
         functions = context.external_functions
         history = context.history
@@ -309,8 +326,6 @@ class ApiOpenAI:
                 })
         messages.append({"role": "user", "content": prompt})
         additional_kwargs = {}
-        # if max_tokens > 0:
-        # additional_kwargs["max_tokens"] = max_tokens
 
         # tools / functions
         tools = self.window.core.api.openai.tools.prepare(model, functions)
