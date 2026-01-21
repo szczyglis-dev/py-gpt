@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QIcon
@@ -54,7 +54,6 @@ class OptionCheckbox(QWidget):
             if "real_time" in self.option:
                 self.real_time = self.option["real_time"]
 
-        # self.box = QCheckBox(self.title, self.window)
         self.box = AnimToggle('', self.window)
         if self.value is not None:
             self.box.setChecked(self.value)
@@ -77,16 +76,10 @@ class OptionCheckbox(QWidget):
             ico.setPixmap(pixmap)
             self.layout.addWidget(ico)
 
-
         self.layout.addWidget(self.label)
         self.layout.addStretch()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
-
-        # self.layout = QHBoxLayout()
-        #self.layout.addWidget(self.box)
-
-        #self.setLayout(self.layout)
 
     def trans_or_not(self, label: str):
         """
@@ -116,6 +109,7 @@ class OptionCheckbox(QWidget):
 
         :param text: text
         """
+        self.title = text
         self.label.setText(text)
 
     def setChecked(self, state: bool):

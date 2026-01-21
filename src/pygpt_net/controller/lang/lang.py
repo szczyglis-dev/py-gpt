@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.20 18:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QActionGroup
@@ -43,6 +43,11 @@ class Lang:
         "fi": "Suomi",
         "no": "Norsk",
         "da": "Dansk",
+        "cs": "Čeština",
+        "sk": "Slovenčina",
+        "bg": "Български",
+        "hu": "Magyar",
+        "ro": "Română",
     }
 
     def __init__(self, window=None):
@@ -94,6 +99,8 @@ class Lang:
             for act in menu_lang.values():
                 self._lang_group.addAction(act)
                 menu_root.addAction(act)
+                if act.data() == 'en':
+                    menu_root.addSeparator()
         self.loaded = True
         self.update()
 

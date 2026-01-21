@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.01 15:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 import sys
 
@@ -1650,3 +1650,11 @@ class OptionCombo(QWidget):
     def fit_to_content(self):
         """Fit to content"""
         self.combo.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+
+    def setText(self, title: str):
+        """
+        Set label text
+
+        :param text: text
+        """
+        self.title = title

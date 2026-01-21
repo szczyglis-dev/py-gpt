@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 21:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -23,6 +23,8 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_RESEARCH,
+    MODE_AGENT_OPENAI,
+    MODE_COMPUTER,
 )
 from pygpt_net.utils import trans
 
@@ -52,17 +54,28 @@ class Custom:
         self.window.ui.config['assistant']['tool.code_interpreter'].box.setText(
             trans('assistant.tool.code_interpreter')
         )
-        self.window.ui.config['preset'][MODE_CHAT].box.setText(trans("preset.chat"))
-        self.window.ui.config['preset'][MODE_COMPLETION].box.setText(trans("preset.completion"))
-        self.window.ui.config['preset'][MODE_IMAGE].box.setText(trans("preset.img"))
-        # self.window.ui.config['preset'][MODE_VISION].box.setText(trans("preset.vision"))
-        # self.window.ui.config['preset'][MODE_LANGCHAIN].box.setText(trans("preset.langchain"))
-        self.window.ui.config['preset'][MODE_LLAMA_INDEX].box.setText(trans("preset.llama_index"))
-        self.window.ui.config['preset'][MODE_AGENT].box.setText(trans("preset.agent"))
-        self.window.ui.config['preset'][MODE_AGENT_LLAMA].box.setText(trans("preset.agent_llama"))
-        self.window.ui.config['preset'][MODE_EXPERT].box.setText(trans("preset.expert"))
-        self.window.ui.config['preset'][MODE_AUDIO].box.setText(trans("preset.audio"))
-        self.window.ui.config['preset'][MODE_RESEARCH].box.setText(trans("preset.research"))
+
+        # preset editor
+        self.window.ui.config['preset'][MODE_CHAT].setText(trans("preset.chat"))
+        self.window.ui.config['preset'][MODE_COMPLETION].setText(trans("preset.completion"))
+        self.window.ui.config['preset'][MODE_IMAGE].setText(trans("preset.img"))
+        # self.window.ui.config['preset'][MODE_VISION].setText(trans("preset.vision"))
+        # self.window.ui.config['preset'][MODE_LANGCHAIN].setText(trans("preset.langchain"))
+        self.window.ui.config['preset'][MODE_LLAMA_INDEX].setText(trans("preset.llama_index"))
+        self.window.ui.config['preset'][MODE_AGENT].setText(trans("preset.agent"))
+        self.window.ui.config['preset'][MODE_AGENT_LLAMA].setText(trans("preset.agent_llama"))
+        self.window.ui.config['preset'][MODE_AGENT_OPENAI].setText(trans("preset.agent_openai"))
+        self.window.ui.config['preset'][MODE_EXPERT].setText(trans("preset.expert"))
+        self.window.ui.config['preset'][MODE_AUDIO].setText(trans("preset.audio"))
+        self.window.ui.config['preset'][MODE_RESEARCH].setText(trans("preset.research"))
+        self.window.ui.config['preset'][MODE_COMPUTER].setText(trans("preset.computer"))
+        self.window.ui.config['preset']["ai_personalize"].setText(trans("preset.ai_personalize"))
+
+        self.window.ui.tabs['preset.editor.tabs'].setTabText(0, trans("preset.tab.general"))
+        self.window.ui.tabs['preset.editor.tabs'].setTabText(1, trans("preset.tab.personalize"))
+        self.window.ui.tabs['preset.editor.tabs'].setTabText(2, trans("preset.tab.experts"))
+        self.window.ui.tabs['preset.editor.tabs'].setTabText(3, trans("preset.tab.remote_tools"))
+
 
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.28 08:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -252,6 +252,7 @@ class Preset(BaseConfigDialog):
 
         # warning label
         warn_label = HelpLabel(trans("preset.personalize.warning"))
+        self.window.ui.nodes['preset.editor.warn_label'] = warn_label
 
         # avatar
         self.window.ui.nodes['preset.editor.avatar'] = AvatarWidget(self.window)
@@ -441,6 +442,9 @@ class AvatarWidget(QWidget):
         main_layout.addLayout(buttons_layout)
         main_layout.setContentsMargins(0, 10, 0, 0)
         main_layout.addStretch()
+
+        self.window.ui.nodes['preset.editor.personalize.avatar.choose'] = self.choose_button
+        self.window.ui.nodes['preset.editor.personalize.avatar.remove'] = self.remove_button
 
     def open_file_dialog(self):
         """Open a file dialog to select an avatar image file."""

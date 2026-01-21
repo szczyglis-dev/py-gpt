@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -41,7 +41,7 @@ class Mapping:
                     try:
                         if getter() == v:
                             continue
-                    except Exception:
+                    except Exception as e:
                         pass
                 setter(v)
             except Exception:
@@ -199,6 +199,12 @@ class Mapping:
         nodes['preset.tool.function.label.agent_llama'] = 'preset.tool.function.tip.agent_llama'
         nodes['preset.btn.current'] = 'dialog.preset.btn.current'
         nodes['preset.btn.save'] = 'dialog.preset.btn.save'
+        nodes['preset.editor.warn_label'] = 'preset.personalize.warning'
+        nodes['toolbox.model.label.label'] = 'toolbox.model.label'
+        nodes['preset.editor.personalize.avatar.choose'] = 'preset.personalize.avatar.choose'
+        nodes['preset.editor.personalize.avatar.remove'] = 'preset.personalize.avatar.remove'
+        nodes['preset.ai_avatar.label'] = 'preset.ai_avatar.label'
+        nodes['preset.ai_personalize.desc'] = 'preset.ai_personalize.desc'
 
         # dialog: rename
         nodes['dialog.rename.label'] = 'dialog.rename.title'
@@ -394,6 +400,11 @@ class Mapping:
             menu_text['debug.db'] = 'menu.debug.db'
             menu_text['debug.logger'] = 'menu.debug.logger'
             menu_text['debug.app.log'] = 'menu.debug.app.log'
+            menu_text['debug.render'] = 'menu.debug.render'
+            menu_text['debug.indexes'] = 'menu.debug.indexes'
+            menu_text['debug.kernel'] = 'menu.debug.kernel'
+            menu_text['debug.tabs'] = 'menu.debug.tabs'
+            menu_text['debug.fixtures.stream'] = 'menu.debug.fixtures.stream'
 
         dialog_title = {}
         dialog_title['info.about'] = 'dialog.about.title'
@@ -434,6 +445,7 @@ class Mapping:
         placeholders = {}
         placeholders['ctx.search'] = 'ctx.list.search.placeholder'
         placeholders['interpreter.input'] = 'interpreter.input.placeholder'
+        placeholders['input'] = 'input.placeholder'
 
         mapping = {}
         mapping['nodes'] = nodes
