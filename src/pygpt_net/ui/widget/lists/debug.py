@@ -55,12 +55,15 @@ class DebugList(QTableView):
         On data update end
         """
         # update data viewer
-        if self.viewer_index:
-            new = self.model().data(self.viewer_index)
-            if self.viewer_current != new:
-                self.viewer.setPlainText(self.parse_view(new))
-                self.viewer_current = new
-        self.setUpdatesEnabled(True)
+        try:
+            if self.viewer_index:
+                new = self.model().data(self.viewer_index)
+                if self.viewer_current != new:
+                    self.viewer.setPlainText(self.parse_view(new))
+                    self.viewer_current = new        
+            self.setUpdatesEnabled(True)
+        except Exception:
+            pass
 
     def parse_view(self, data):
         """
