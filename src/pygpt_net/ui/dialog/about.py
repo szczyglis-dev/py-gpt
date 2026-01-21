@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2026.01.21 02:00:00                  #
 # ================================================== #
 
 import os
@@ -20,7 +20,7 @@ from pygpt_net.utils import trans
 
 class About:
 
-    RELEASE_YEAR = 2025
+    RELEASE_YEAR = 2026
 
     def __init__(self, window=None):
         """
