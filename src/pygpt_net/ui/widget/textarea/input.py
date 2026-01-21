@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 00:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -14,7 +14,7 @@ import math
 import os
 
 from PySide6.QtCore import Qt, QSize, QTimer, QEvent
-from PySide6.QtGui import QAction, QIcon, QImage
+from PySide6.QtGui import QAction, QIcon, QImage, QTextCursor
 from PySide6.QtWidgets import (
     QTextEdit,
     QApplication,
@@ -49,6 +49,7 @@ class ChatInput(QTextEdit):
         super().__init__(window)
         self.window = window
         self.setAcceptRichText(False)
+        self.setPlaceholderText(trans("input.placeholder"))
         self.setFocus()
         self.value = self.window.core.config.data['font_size.input']
         self.max_font_size = 42
@@ -135,6 +136,14 @@ class ChatInput(QTextEdit):
 
         # Drag & Drop: add as attachments; do not insert file paths into text
         self._dnd_handler = AttachmentDropHandler(self.window, self, policy=AttachmentDropHandler.INPUT_MIX)
+
+        # --- History navigation (input prompts) ---
+        # Stores sent prompts and allows keyboard navigation through the history.
+        self._history = []  # list[str]
+        self._history_limit = 30
+        self._history_index = -1     # -1 when not navigating; otherwise index of current history item
+        self._history_active = False
+        self._history_saved_current = ""  # snapshot of the current typed text before entering history nav
 
     def _on_text_changed_tokens(self):
         """Schedule token count update with debounce."""
@@ -428,6 +437,29 @@ class ChatInput(QTextEdit):
         """
         handled = False
         key = event.key()
+        mods = event.modifiers()
+
+        # --- History navigation and recall ---
+        # Ctrl/Command + Up/Down navigates history regardless of current text.
+        if key in (Qt.Key_Up, Qt.Key_Down) and (mods & (Qt.ControlModifier | Qt.MetaModifier)):
+            if key == Qt.Key_Up:
+                self._history_navigate(-1)
+            else:
+                self._history_navigate(+1)
+            handled = True
+
+        # Up with empty input and no modifiers recalls the last sent prompt.
+        elif key == Qt.Key_Up and mods == Qt.NoModifier:
+            if self._is_effectively_empty() and self._history:
+                if not self._history_active:
+                    self._history_begin()
+                # Start from sentinel and move one step up to the latest entry
+                self._history_index = len(self._history)
+                self._history_navigate(-1)
+                handled = True
+
+        if handled:
+            return
 
         if key in (Qt.Key_Return, Qt.Key_Enter):
             mode = self.window.core.config.get('send_mode')
@@ -437,11 +469,15 @@ class ChatInput(QTextEdit):
 
                 if mode == 2:
                     if has_shift_or_ctrl:
+                        text_before_send = self.toPlainText()
                         self.window.controller.chat.input.send_input()
+                        self._on_prompt_sent(text_before_send)
                         handled = True
                 else:
                     if not has_shift_or_ctrl:
+                        text_before_send = self.toPlainText()
                         self.window.controller.chat.input.send_input()
+                        self._on_prompt_sent(text_before_send)
                         handled = True
 
                 self.setFocus()
@@ -1169,3 +1205,134 @@ class ChatInput(QTextEdit):
     def collapse_to_min(self):
         """Public helper to collapse input area to minimal height."""
         self._schedule_auto_resize(force=True, enforce_minimize_if_single=True)
+
+    # ================== Prompt history helpers ==================
+
+    def _is_effectively_empty(self) -> bool:
+        """Returns True if input contains only whitespace or is empty."""
+        try:
+            return len(self.toPlainText().strip()) == 0
+        except Exception:
+            return True
+
+    def _set_text_and_move_end(self, text: str):
+        """Set text and move cursor to the end."""
+        self.setPlainText(text or "")
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.setTextCursor(cursor)
+
+    def _history_begin(self):
+        """Enter history navigation mode and snapshot current typed text."""
+        if self._history_active:
+            return
+        try:
+            self._history_saved_current = self.toPlainText()
+        except Exception:
+            self._history_saved_current = ""
+        self._history_active = True
+        self._history_index = len(self._history)
+
+    def _history_end(self, restore_saved: bool = True):
+        """Exit history navigation mode; optionally restore the saved typed text."""
+        if restore_saved:
+            self._set_text_and_move_end(self._history_saved_current)
+        self._history_active = False
+        self._history_index = -1
+        self._history_saved_current = ""
+
+    def _history_navigate(self, direction: int):
+        """
+        Navigate through history.
+        direction: -1 for older (Up), +1 for newer (Down).
+        """
+        if not self._history:
+            return
+        if not self._history_active:
+            self._history_begin()
+
+        # Move within [0, len(history)-1]; moving past newest restores and exits navigation.
+        if direction < 0:
+            # Older
+            if self._history_index > 0:
+                self._history_index -= 1
+                self._set_text_and_move_end(self._history[self._history_index])
+            elif self._history_index == 0:
+                # Stay at the oldest entry
+                self._set_text_and_move_end(self._history[0])
+            else:
+                # Sentinel -> jump to last
+                self._history_index = max(0, len(self._history) - 1)
+                self._set_text_and_move_end(self._history[self._history_index])
+        else:
+            # Newer
+            if self._history_index < len(self._history) - 1:
+                self._history_index += 1
+                self._set_text_and_move_end(self._history[self._history_index])
+            elif self._history_index == len(self._history) - 1:
+                # Past newest -> restore typed and exit
+                self._history_end(restore_saved=True)
+            else:
+                # Already at sentinel -> ensure restore
+                self._history_end(restore_saved=True)
+
+    def _normalize_history_text(self, text: str) -> str:
+        """Normalize text before storing in history."""
+        if not isinstance(text, str):
+            try:
+                text = str(text)
+            except Exception:
+                return ""
+        return text.strip()
+
+    def history_push(self, text: str):
+        """
+        Public API: push a sent prompt to history.
+        Controllers may call this when sending via buttons to keep history in sync.
+        """
+        s = self._normalize_history_text(text)
+        if not s:
+            return
+        if self._history and self._history[-1] == s:
+            return
+        self._history.append(s)
+        if len(self._history) > self._history_limit:
+            # Keep most recent N entries
+            overflow = len(self._history) - self._history_limit
+            if overflow > 0:
+                del self._history[:overflow]
+
+    def history_clear(self):
+        """Public API: clear stored prompt history."""
+        self._history.clear()
+        self._history_index = -1
+        self._history_active = False
+        self._history_saved_current = ""
+
+    def _on_prompt_sent(self, text_before_send: str):
+        """
+        Internal hook executed after sending the input via Enter.
+        Stores the prompt into history and resets navigation snapshot.
+        """
+        try:
+            # Avoid recording while editing existing messages (best-effort).
+            is_editing = bool(self.window.controller.ctx.extra.is_editing())
+        except Exception:
+            is_editing = False
+
+        if not is_editing:
+            self.history_push(text_before_send)
+
+        # Leave history navigation after send
+        self._history_active = False
+        self._history_index = -1
+        self._history_saved_current = ""
+
+    def on_prompt_sent(self, text: Optional[str] = None):
+        """
+        Public API: controllers can call this when a prompt is sent by other means (e.g., send button).
+        If text is None the current input text is used.
+        """
+        if text is None:
+            text = self.toPlainText()
+        self._on_prompt_sent(text)
