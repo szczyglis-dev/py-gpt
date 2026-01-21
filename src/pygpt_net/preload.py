@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.20 20:00:00                  #
+# Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
 LINK_GITHUB = "https://github.com/szczyglis-dev/py-gpt"
@@ -146,8 +146,47 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
             "support": "Støt projektet:",
             "github": "⭐ Stjerne på GitHub",
             "donate": "☕ Køb mig en kaffe",
-        }
+        },
+        "cs": {
+            "init": "Inicializuji...",
+            "support": "Podpořte projekt:",
+            "github": "⭐ Ohodnoťte na GitHubu",
+            "donate": "☕ Kup mi kávu",
+        },
+        "sk": {
+            "init": "Inicializácia...",
+            "support": "Podporte projekt:",
+            "github": "⭐ Ohodnoťte na GitHube",
+            "donate": "☕ Kúp mi kávu",
+        },
+        "bg": {
+            "init": "Инициализация...",
+            "support": "Подкрепете проекта:",
+            "github": "⭐ Оценете в GitHub",
+            "donate": "☕ Купете ми кафе",
+        },
+        "hu": {
+            "init": "Inicializálás...",
+            "support": "Támogassa a projektet:",
+            "github": "⭐ Csillag a GitHubon",
+            "donate": "☕ Vegyél nekem egy kávét",
+        },
+        "ro": {
+            "init": "Se inițializează...",
+            "support": "Susține proiectul:",
+            "github": "⭐ Evaluează pe GitHub",
+            "donate": "☕ Cumpără-mi o cafea",
+        },
     }
+
+
+    """
+    "cs": "Čeština",
+        "sk": "Slovenčina",
+        "bg": "Български",
+        "hu": "Magyar",
+        "ro": "Română",
+    """
 
     try:
         # Import locally to keep the main process import path untouched
