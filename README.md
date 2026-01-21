@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.10** | build: **2026-01-21** | Python: **>=3.10, <3.14**
+Release: **2.7.10** | build: **2026-01-22** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3678,11 +3678,13 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.7.10 (2026-01-21)**
+**2.7.10 (2026-01-22)**
 
-- Fixed an avatar overwrite bug when creating a new preset.
-- Added prompt history to the input (via Ctrl + Up/Down arrow keys).
-- Added initial image centering on load in the Image Viewer.  
+- Fixed an issue where an avatar could be overwritten when creating a new preset.  
+- Fixed an issue where a new context was not created when opening a new tab in the second column.  
+- Added prompt history navigation to the input field (Ctrl + Up/Down arrow keys).  
+- Added initial image centering when loading the Image Viewer.  
+- Added a Mark/Unmark feature to the Notepad widget.  
 - Added 18 new languages: Arabic (ar), Bulgarian (bg), Czech (cs), Danish (da), Finnish (fi), Hebrew (he), Hindi (hi), Hungarian (hu), Japanese (ja), Korean (ko), Dutch (nl), Norwegian (no), Portuguese (pt), Romanian (ro), Russian (ru), Slovak (sk), Swedish (sv), Turkish (tr).
 
 **2.7.9 (2026-01-08)**
