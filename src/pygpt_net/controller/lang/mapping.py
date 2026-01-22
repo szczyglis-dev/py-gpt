@@ -91,6 +91,7 @@ class Mapping:
         # output
         nodes['output.timestamp'] = 'output.timestamp'
         nodes['output.edit'] = 'output.edit'
+        nodes['output.raw'] = 'output.raw'
 
         # painter
         nodes['painter.btn.brush'] = 'painter.mode.paint'

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 01:00:00                  #
+# Updated Date: 2026.01.22 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QActionGroup
@@ -156,3 +156,5 @@ class Lang:
         """Reload language"""
         self.reload_config()
         self.setup()
+        current = self.window.core.config.get('lang')
+        self.toggle(current)
