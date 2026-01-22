@@ -6,16 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 13:00:00                  #
+# Updated Date: 2026.01.22 17:00:00                  #
 # ================================================== #
 
 import copy
 from typing import Dict, List, Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QStandardItemModel, QIcon
+from PySide6.QtGui import QStandardItemModel, QIcon, QAction
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
-    QSplitter, QSizePolicy
+    QSplitter, QSizePolicy, QMenuBar
 
 from pygpt_net.ui.widget.dialog.model import ModelDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
@@ -41,6 +41,11 @@ class Models:
         """
         self.window = window
         self.dialog_id = "models.editor"
+        self.menu_bar = None
+
+        # Keep menu objects alive and correctly parented
+        self._file_menu = None
+        self._menu_actions: Dict[str, QAction] = {}
 
         # Internal state for filtering/mapping
         self._filter_text: str = ""
@@ -204,6 +209,34 @@ class Models:
 
         self.window.ui.dialog[self.dialog_id] = ModelDialog(self.window, self.dialog_id)
         self.window.ui.dialog[self.dialog_id].setLayout(layout)
+
+        self.menu_bar = QMenuBar(self.window.ui.dialog[self.dialog_id])
+        self.menu_bar.setNativeMenuBar(False)
+        self._file_menu = self.menu_bar.addMenu(trans("menu.file"))
+
+        # open importer
+        self._menu_actions["import"] = QAction(
+            QIcon(":/icons/download.svg"),
+            trans("action.import"),
+            self.window.ui.dialog[self.dialog_id],
+        )
+        self._menu_actions["import"].triggered.connect(
+            lambda checked=False: self.window.controller.model.importer.open()
+        )
+        self._menu_actions["close"] = QAction(
+            QIcon(":/icons/logout.svg"),
+            trans("menu.file.exit"),
+            self.window.ui.dialog[self.dialog_id],
+        )
+        self._menu_actions["close"].triggered.connect(
+            lambda checked=False: self.window.ui.dialog[self.dialog_id].close()
+        )
+
+        # add actions
+        self._file_menu.addAction(self._menu_actions["import"])
+        self._file_menu.addAction(self._menu_actions["close"])
+        layout.setMenuBar(self.menu_bar)
+
         self.window.ui.dialog[self.dialog_id].setWindowTitle(trans('dialog.models.editor'))
 
         # restore current opened tab if idx is set
