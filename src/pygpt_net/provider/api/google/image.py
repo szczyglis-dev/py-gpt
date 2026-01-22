@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.01.22 23:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -234,6 +234,13 @@ class ImageWorker(QRunnable):
                         reference_images=[raw_ref, mask_ref],
                         config=cfg,
                     )
+
+                    # record usage if provided
+                    try:
+                        self._record_usage_google(resp)
+                    except Exception:
+                        pass
+
                     imgs = getattr(resp, "generated_images", None) or []
                     for idx, gi in enumerate(imgs[: min(self.num, self.imagen_max_num)]):
                         data = self._extract_imagen_bytes(gi)
@@ -258,6 +265,13 @@ class ImageWorker(QRunnable):
                             image_config=img_cfg,
                         ),
                     )
+
+                    # record usage if provided
+                    try:
+                        self._record_usage_google(resp)
+                    except Exception:
+                        pass
+
                     saved = 0
                     for cand in getattr(resp, "candidates", []) or []:
                         parts = getattr(getattr(cand, "content", None), "parts", None) or []
@@ -291,6 +305,13 @@ class ImageWorker(QRunnable):
                 if self._using_vertex():
                     # Vertex Imagen edit API (preferred)
                     resp = self._imagen_edit(self.input_prompt, self.attachments, self.num)
+
+                    # record usage if provided
+                    try:
+                        self._record_usage_google(resp)
+                    except Exception:
+                        pass
+
                     imgs = getattr(resp, "generated_images", None) or []
                     for idx, gi in enumerate(imgs[: self.num]):
                         data = self._extract_imagen_bytes(gi)
@@ -303,6 +324,13 @@ class ImageWorker(QRunnable):
                 else:
                     # Gemini Developer API via Gemini image models (Nano Banana / Nano Banana Pro)
                     resp = self._gemini_edit(self.input_prompt, self.attachments, self.num)
+
+                    # record usage if provided
+                    try:
+                        self._record_usage_google(resp)
+                    except Exception:
+                        pass
+
                     saved = 0
                     for cand in getattr(resp, "candidates", []) or []:
                         parts = getattr(getattr(cand, "content", None), "parts", None) or []
@@ -326,6 +354,13 @@ class ImageWorker(QRunnable):
                 if self._is_imagen_generate(self.model) and self._using_vertex():
                     num = min(self.num, self.imagen_max_num)
                     resp = self._imagen_generate(self.input_prompt, num, self.resolution)
+
+                    # record usage if provided
+                    try:
+                        self._record_usage_google(resp)
+                    except Exception:
+                        pass
+
                     imgs = getattr(resp, "generated_images", None) or []
                     for idx, gi in enumerate(imgs[: num]):
                         data = self._extract_imagen_bytes(gi)
@@ -338,6 +373,13 @@ class ImageWorker(QRunnable):
                 else:
                     # Gemini Developer API image generation (Nano Banana / Nano Banana Pro) with robust sizing + optional reference images
                     resp = self._gemini_generate_image(self.input_prompt, self.model, self.resolution)
+
+                    # record usage if provided
+                    try:
+                        self._record_usage_google(resp)
+                    except Exception:
+                        pass
+
                     saved = 0
                     for cand in getattr(resp, "candidates", []) or []:
                         parts = getattr(getattr(cand, "content", None), "parts", None) or []
@@ -852,6 +894,51 @@ class ImageWorker(QRunnable):
             return None
         mime, _ = mimetypes.guess_type(uri)
         return mime or None
+
+    # ---------- usage helpers (Google GenAI) ----------
+
+    def _record_usage_google(self, response: Any) -> None:
+        """
+        Extract usage_metadata from Google GenAI response if present and store in ctx.
+        Saves to:
+          - ctx.set_tokens(prompt_token_count, candidates_token_count)
+          - ctx.extra["usage"] = {...}
+        """
+        try:
+            usage = getattr(response, "usage_metadata", None)
+            if not usage:
+                return
+
+            def _as_int(v) -> int:
+                try:
+                    return int(v)
+                except Exception:
+                    try:
+                        return int(float(v))
+                    except Exception:
+                        return 0
+
+            p = _as_int(getattr(usage, "prompt_token_count", 0) or 0)
+            c = _as_int(getattr(usage, "candidates_token_count", 0) or 0)
+            t = _as_int(getattr(usage, "total_token_count", (p + c)) or (p + c))
+
+            if self.ctx:
+                self.ctx.set_tokens(p, c)
+
+            if not isinstance(self.ctx.extra, dict):
+                self.ctx.extra = {}
+
+            self.ctx.extra["usage"] = {
+                "vendor": "google",
+                "model": str(self.model),
+                "input_tokens": p,
+                "output_tokens": c,
+                "total_tokens": t,
+                "source": "image",
+            }
+        except Exception:
+            # best-effort; ignore failures
+            pass
 
     def _cleanup(self):
         """Cleanup resources."""

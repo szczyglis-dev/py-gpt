@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.01.22 23:00:00                  #
 # ================================================== #
 
 import base64
@@ -350,6 +350,12 @@ class ImageWorker(QRunnable):
                 self.signals.status.emit("API Error: empty response")
                 return
 
+            # record usage if provided by API
+            try:
+                self._record_usage_openai(response)
+            except Exception:
+                pass
+
             # download images
             for i in range(self.num):
                 if i >= len(response.data):
@@ -431,3 +437,73 @@ class ImageWorker(QRunnable):
         if not neg:
             return base
         return (base + ("\n" if base else "") + f"Negative prompt: {neg}").strip()
+
+    # ---------- usage helpers (OpenAI Images API) ----------
+
+    def _record_usage_openai(self, response: Any) -> None:
+        """
+        Extract and store token usage from OpenAI Images API response if present.
+        Saves to:
+          - ctx.set_tokens(input_tokens, output_tokens)
+          - ctx.extra["usage"] = {...}
+        """
+        try:
+            usage = getattr(response, "usage", None)
+            if usage is None and isinstance(response, dict):
+                usage = response.get("usage")
+
+            if not usage:
+                return
+
+            def _as_int(v) -> int:
+                try:
+                    return int(v)
+                except Exception:
+                    try:
+                        return int(float(v))
+                    except Exception:
+                        return 0
+
+            # handle both attr and dict style
+            getv = lambda o, k: getattr(o, k, None) if not isinstance(o, dict) else o.get(k)
+
+            inp = _as_int(getv(usage, "input_tokens") or getv(usage, "prompt_tokens") or 0)
+            outp = _as_int(getv(usage, "output_tokens") or getv(usage, "completion_tokens") or 0)
+            total = _as_int(getv(usage, "total_tokens") or (inp + outp))
+
+            # store basic tokens
+            if self.ctx:
+                self.ctx.set_tokens(inp, outp)
+
+            # store detailed usage in ctx.extra["usage"]
+            if not isinstance(self.ctx.extra, dict):
+                self.ctx.extra = {}
+
+            # pass through details if available
+            input_details = getv(usage, "input_tokens_details") or getv(usage, "prompt_tokens_details") or {}
+            output_details = getv(usage, "output_tokens_details") or getv(usage, "completion_tokens_details") or {}
+
+            # normalize dict-like objects
+            def _to_plain(o):
+                try:
+                    if hasattr(o, "model_dump"):
+                        return o.model_dump()
+                    if hasattr(o, "to_dict"):
+                        return o.to_dict()
+                except Exception:
+                    pass
+                return o if isinstance(o, dict) else {}
+
+            self.ctx.extra["usage"] = {
+                "vendor": "openai",
+                "model": str(self.model),
+                "input_tokens": inp,
+                "output_tokens": outp,
+                "total_tokens": total,
+                "input_tokens_details": _to_plain(input_details),
+                "output_tokens_details": _to_plain(output_details),
+                "source": "images",
+            }
+        except Exception:
+            # do not raise, usage is best-effort
+            pass
