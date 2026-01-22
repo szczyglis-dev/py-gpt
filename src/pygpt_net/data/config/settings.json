@@ -915,6 +915,9 @@
         "section": "files",
         "type": "combo",
         "use": "models",
+        "use_params": {
+            "mode": ["chat"]
+        },
         "slider": false,
         "label": "settings.ctx.attachment.summary.model",
         "description": "settings.ctx.attachment.summary.model.desc",
@@ -929,6 +932,9 @@
         "section": "files",
         "type": "combo",
         "use": "models",
+        "use_params": {
+            "mode": ["chat"]
+        },
         "slider": false,
         "label": "settings.ctx.attachment.query.model",
         "description": "settings.ctx.attachment.query.model.desc",
@@ -994,6 +1000,9 @@
         "section": "ctx",
         "type": "combo",
         "use": "models",
+        "use_params": {
+            "mode": ["chat"]
+        },
         "slider": false,
         "label": "settings.ctx.auto_summary.model",
         "description": "settings.ctx.auto_summary.model.desc",
@@ -1538,6 +1547,9 @@
         "section": "images",
         "type": "combo",
         "use": "models",
+        "use_params": {
+            "mode": ["chat"]
+        },
         "slider": false,
         "label": "settings.img_prompt_model",
         "description": "settings.img_prompt_model.desc",
