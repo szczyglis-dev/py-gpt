@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 01:00:00                  #
+# Updated Date: 2026.01.22 14:40:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, Union, Tuple
 import math
 import os
 
@@ -69,12 +69,30 @@ class ChatInput(QTextEdit):
         self._icon_size = QSize(18, 18)  # icon size (matches original)
         self._btn_size = QSize(24, 24)   # button size (w x h), matches QPushButton
 
+        # Independent sizes for the right-bottom icon bar
+        self._icon_size_right = QSize(20, 20)  # slightly larger by default
+        self._btn_size_right = QSize(26, 26)   # slightly larger by default
+
+        # Independent margins/spacing/offset for the right-bottom bar
+        self._icons_margin_right = 6
+        self._icons_spacing_right = 4
+        self._icons_offset_x_right = 0
+        self._icons_offset_y_right = 4  # position the right bar 4px lower by default
+
         # Storage for icon buttons and metadata
         self._icons = {}       # key -> QPushButton
         self._icon_meta = {}   # key -> {"icon": QIcon, "alt_icon": Optional[QIcon], "tooltip": str, "alt_tooltip": Optional[str], "active": bool}
         self._icon_order = []  # rendering order
 
+        # Storage for right-bottom icon buttons and metadata
+        self._icons_right = {}       # key -> QPushButton
+        self._icon_meta_right = {}   # key -> meta as above
+        self._icon_order_right = []  # rendering order for right bar
+
         self._init_icon_bar()
+        # Initialize the bottom-right icon bar (independent from the left one)
+        self._init_icon_bar_right()
+
         # Add a "+" button in the top-left corner to add attachments
         self.add_icon(
             key="attach",
@@ -84,7 +102,8 @@ class ChatInput(QTextEdit):
             visible=True,
         )
         # Add a microphone button (hidden by default; shown when audio input is enabled)
-        self.add_icon(
+        # Placed on the bottom-right icon bar
+        self.add_right_icon(
             key="mic",
             icon=self.ICON_MIC_ON,
             alt_icon=self.ICON_MIC_OFF,
@@ -105,6 +124,7 @@ class ChatInput(QTextEdit):
         )
 
         # Apply initial margins (top padding + left space for icons)
+        # Also reserve right space for bottom-right icons; bottom margin stays 0
         self._apply_margins()
 
         # ---- Auto-resize config (input in splitter) ----
@@ -148,6 +168,8 @@ class ChatInput(QTextEdit):
     def _on_text_changed_tokens(self):
         """Schedule token count update with debounce."""
         self._tokens_timer.start()
+        # Keep auto-height in sync with content growth/shrink on every edit
+        self._schedule_auto_resize()
 
     def _apply_text_top_padding(self):
         """Apply extra top padding inside the text area by using viewport margins."""
@@ -576,6 +598,31 @@ class ChatInput(QTextEdit):
         self._update_icon_bar_geometry()
         self._apply_margins()
 
+    # -------------------- Right-bottom icon bar --------------------
+    # Independent bar anchored at the bottom-right corner of the input widget.
+
+    def _init_icon_bar_right(self):
+        """Create the right-side icon bar pinned in the bottom-right corner."""
+        self._icon_bar_right = QWidget(self)
+        self._icon_bar_right.setObjectName("chatInputIconBarRight")
+        self._icon_bar_right.setAttribute(Qt.WA_StyledBackground, True)
+        self._icon_bar_right.setAutoFillBackground(False)
+        self._icon_bar_right.setStyleSheet("""
+            #chatInputIconBarRight { background-color: transparent; }
+        """)
+
+        layout = QHBoxLayout(self._icon_bar_right)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(self._icons_spacing_right)
+        self._icon_bar_right.setLayout(layout)
+
+        self._icon_bar_right.setFixedHeight(self._btn_size_right.height())
+        self._icon_bar_right.show()
+
+        self._reposition_icon_bar_right()
+        self._update_icon_bar_geometry_right()
+        self._apply_margins()
+
     # ---- Public API for icons ----
 
     def add_icon(
@@ -687,15 +734,120 @@ class ChatInput(QTextEdit):
                 alt_tooltip = it[6] if len(it) > 6 else None
                 self.add_icon(key, icon, tooltip, callback, visible, alt_icon, alt_tooltip)
 
+    # ---- Public API for icons (RIGHT-BOTTOM) ----
+
+    def add_right_icon(
+        self,
+        key: str,
+        icon: QIcon,
+        tooltip: str = "",
+        callback=None,
+        visible: bool = True,
+        alt_icon: Optional[QIcon] = None,
+        alt_tooltip: Optional[str] = None,
+    ) -> QPushButton:
+        """
+        Add a new icon button to the right-bottom bar.
+
+        :param key: unique identifier for the icon
+        :param icon: default QIcon
+        :param tooltip: default tooltip text
+        :param callback: callable executed on click
+        :param visible: initial visibility (True=shown, False=hidden)
+        :param alt_icon: optional alternate icon
+        :param alt_tooltip: optional alternate tooltip text
+        :return: the created QPushButton (or existing one if key already present)
+        """
+        if key in self._icons_right:
+            btn = self._icons_right[key]
+            meta = self._icon_meta_right.get(key, {})
+            meta.update({
+                "icon": icon or meta.get("icon"),
+                "alt_icon": alt_icon if alt_icon is not None else meta.get("alt_icon"),
+                "tooltip": tooltip or meta.get("tooltip", key),
+                "alt_tooltip": alt_tooltip if alt_tooltip is not None else meta.get("alt_tooltip"),
+            })
+            self._icon_meta_right[key] = meta
+            btn.setIcon(meta["icon"])
+            btn.setToolTip(meta["tooltip"])
+            if callback is not None:
+                try:
+                    btn.clicked.disconnect()
+                except Exception:
+                    pass
+                btn.clicked.connect(callback)
+            btn.setHidden(not visible)
+            self._rebuild_icon_layout_right()
+            self._update_icon_bar_geometry_right()
+            self._apply_margins()
+            return btn
+
+        btn = QPushButton(self._icon_bar_right)
+        btn.setObjectName(f"chatInputIconBtnRight_{key}")
+        btn.setIcon(icon)
+        btn.setIconSize(self._icon_size_right)
+        btn.setFixedSize(self._btn_size_right)
+        btn.setCursor(Qt.PointingHandCursor)
+        btn.setToolTip(tooltip or key)
+        btn.setFocusPolicy(Qt.NoFocus)
+        btn.setFlat(True)
+        btn.setText("")
+
+        if callback is not None:
+            btn.clicked.connect(callback)
+
+        self._icons_right[key] = btn
+        self._icon_order_right.append(key)
+        self._icon_meta_right[key] = {
+            "icon": icon,
+            "alt_icon": alt_icon,
+            "tooltip": tooltip or key,
+            "alt_tooltip": alt_tooltip,
+            "active": False,
+        }
+
+        self._apply_icon_visual(key)
+        btn.setHidden(not visible)
+
+        self._rebuild_icon_layout_right()
+        self._update_icon_bar_geometry_right()
+        self._apply_margins()
+        return btn
+
+    def add_right_icons(self, items):
+        """Add multiple right-bottom icons at once."""
+        for it in items:
+            if isinstance(it, dict):
+                self.add_right_icon(
+                    key=it["key"],
+                    icon=it["icon"],
+                    tooltip=it.get("tooltip", ""),
+                    callback=it.get("callback"),
+                    visible=it.get("visible", True),
+                    alt_icon=it.get("alt_icon"),
+                    alt_tooltip=it.get("alt_tooltip"),
+                )
+            else:
+                key, icon = it[0], it[1]
+                tooltip = it[2] if len(it) > 2 else ""
+                callback = it[3] if len(it) > 3 else None
+                visible = it[4] if len(it) > 4 else True
+                alt_icon = it[5] if len(it) > 5 else None
+                alt_tooltip = it[6] if len(it) > 6 else None
+                self.add_right_icon(key, icon, tooltip, callback, visible, alt_icon, alt_tooltip)
+
+    # ---- Cross-bar helpers (operate on both bars where applicable) ----
+
     def remove_icon(self, key: str):
         """
         Remove an icon from the bar.
 
         :param key: icon key
         """
+        # Left bar
         btn = self._icons.pop(key, None)
-        self._icon_meta.pop(key, None)
         if btn is not None:
+            self._icon_meta.pop(key, None)
             try:
                 self._icon_order.remove(key)
             except ValueError:
@@ -704,6 +856,21 @@ class ChatInput(QTextEdit):
             btn.deleteLater()
             self._rebuild_icon_layout()
             self._update_icon_bar_geometry()
+            self._apply_margins()
+            return
+
+        # Right-bottom bar
+        btn = self._icons_right.pop(key, None)
+        if btn is not None:
+            self._icon_meta_right.pop(key, None)
+            try:
+                self._icon_order_right.remove(key)
+            except ValueError:
+                pass
+            btn.setParent(None)
+            btn.deleteLater()
+            self._rebuild_icon_layout_right()
+            self._update_icon_bar_geometry_right()
             self._apply_margins()
 
     def set_icon_visible(self, key: str, visible: bool):
@@ -714,11 +881,16 @@ class ChatInput(QTextEdit):
         :param visible: True to show, False to hide
         """
         btn = self._icons.get(key)
-        if not btn:
+        if btn:
+            btn.setHidden(not visible)
+            self._update_icon_bar_geometry()
+            self._apply_margins()
             return
-        btn.setHidden(not visible)
-        self._update_icon_bar_geometry()
-        self._apply_margins()
+        btn = self._icons_right.get(key)
+        if btn:
+            btn.setHidden(not visible)
+            self._update_icon_bar_geometry_right()
+            self._apply_margins()
 
     def toggle_icon(self, key: str):
         """
@@ -727,11 +899,16 @@ class ChatInput(QTextEdit):
         :param key: icon key
         """
         btn = self._icons.get(key)
-        if not btn:
+        if btn:
+            btn.setHidden(not btn.isHidden())
+            self._update_icon_bar_geometry()
+            self._apply_margins()
             return
-        btn.setHidden(not btn.isHidden())
-        self._update_icon_bar_geometry()
-        self._apply_margins()
+        btn = self._icons_right.get(key)
+        if btn:
+            btn.setHidden(not btn.isHidden())
+            self._update_icon_bar_geometry_right()
+            self._apply_margins()
 
     def is_icon_visible(self, key: str) -> bool:
         """
@@ -739,7 +916,7 @@ class ChatInput(QTextEdit):
 
         :param key: icon key
         """
-        btn = self._icons.get(key)
+        btn = self._icons.get(key) or self._icons_right.get(key)
         return bool(btn and not btn.isHidden())
 
     def set_icon_order(self, keys):
@@ -763,6 +940,27 @@ class ChatInput(QTextEdit):
         self._update_icon_bar_geometry()
         self._apply_margins()
 
+    def set_right_icon_order(self, keys):
+        """
+        Set rendering order for RIGHT-BOTTOM icons by a list of keys.
+        Icons not listed keep their relative order at the end.
+
+        :param keys: list of icon keys in desired order
+        """
+        new_order = []
+        seen = set()
+        for k in keys:
+            if k in self._icons_right and k not in seen:
+                new_order.append(k)
+                seen.add(k)
+        for k in self._icon_order_right:
+            if k not in seen and k in self._icons_right:
+                new_order.append(k)
+        self._icon_order_right = new_order
+        self._rebuild_icon_layout_right()
+        self._update_icon_bar_geometry_right()
+        self._apply_margins()
+
     # ---- Runtime icon swap / state API ----
 
     def set_icon_state(self, key: str, active: bool):
@@ -774,12 +972,17 @@ class ChatInput(QTextEdit):
         :param key: icon key
         :param active: True to show alt icon, False for base icon
         """
-        if key not in self._icons:
+        if key in self._icons:
+            meta = self._icon_meta.get(key, {})
+            meta["active"] = bool(active)
+            self._icon_meta[key] = meta
+            self._apply_icon_visual(key)
             return
-        meta = self._icon_meta.get(key, {})
-        meta["active"] = bool(active)
-        self._icon_meta[key] = meta
-        self._apply_icon_visual(key)
+        if key in self._icons_right:
+            meta = self._icon_meta_right.get(key, {})
+            meta["active"] = bool(active)
+            self._icon_meta_right[key] = meta
+            self._apply_icon_visual(key)
 
     def toggle_icon_state(self, key: str) -> bool:
         """
@@ -788,11 +991,15 @@ class ChatInput(QTextEdit):
         :param key: icon key
         :return: new active state (True if alt icon is now shown)
         """
-        if key not in self._icons:
-            return False
-        current = bool(self._icon_meta.get(key, {}).get("active", False))
-        self.set_icon_state(key, not current)
-        return not current
+        if key in self._icons:
+            current = bool(self._icon_meta.get(key, {}).get("active", False))
+            self.set_icon_state(key, not current)
+            return not current
+        if key in self._icons_right:
+            current = bool(self._icon_meta_right.get(key, {}).get("active", False))
+            self.set_icon_state(key, not current)
+            return not current
+        return False
 
     def set_icon_pixmap(self, key: str, icon: QIcon):
         """
@@ -801,12 +1008,17 @@ class ChatInput(QTextEdit):
         :param key: icon key
         :param icon: new QIcon
         """
-        if key not in self._icons:
+        if key in self._icons:
+            meta = self._icon_meta.get(key, {})
+            meta["icon"] = icon
+            self._icon_meta[key] = meta
+            self._apply_icon_visual(key)
             return
-        meta = self._icon_meta.get(key, {})
-        meta["icon"] = icon
-        self._icon_meta[key] = meta
-        self._apply_icon_visual(key)
+        if key in self._icons_right:
+            meta = self._icon_meta_right.get(key, {})
+            meta["icon"] = icon
+            self._icon_meta_right[key] = meta
+            self._apply_icon_visual(key)
 
     def set_icon_alt(self, key: str, alt_icon: Optional[QIcon], alt_tooltip: Optional[str] = None):
         """
@@ -816,14 +1028,21 @@ class ChatInput(QTextEdit):
         :param alt_icon: new alternate QIcon (or None to clear)
         :param alt_tooltip: new alternate tooltip (or None to keep existing)
         """
-        if key not in self._icons:
+        if key in self._icons:
+            meta = self._icon_meta.get(key, {})
+            meta["alt_icon"] = alt_icon
+            if alt_tooltip is not None:
+                meta["alt_tooltip"] = alt_tooltip
+            self._icon_meta[key] = meta
+            self._apply_icon_visual(key)
             return
-        meta = self._icon_meta.get(key, {})
-        meta["alt_icon"] = alt_icon
-        if alt_tooltip is not None:
-            meta["alt_tooltip"] = alt_tooltip
-        self._icon_meta[key] = meta
-        self._apply_icon_visual(key)
+        if key in self._icons_right:
+            meta = self._icon_meta_right.get(key, {})
+            meta["alt_icon"] = alt_icon
+            if alt_tooltip is not None:
+                meta["alt_tooltip"] = alt_tooltip
+            self._icon_meta_right[key] = meta
+            self._apply_icon_visual(key)
 
     def set_icon_tooltip(self, key: str, tooltip: str, for_alt: bool = False):
         """
@@ -833,15 +1052,23 @@ class ChatInput(QTextEdit):
         :param tooltip: new tooltip text
         :param for_alt: if True, update alt tooltip instead of base tooltip
         """
-        if key not in self._icons:
+        if key in self._icons:
+            meta = self._icon_meta.get(key, {})
+            if for_alt:
+                meta["alt_tooltip"] = tooltip
+            else:
+                meta["tooltip"] = tooltip
+            self._icon_meta[key] = meta
+            self._apply_icon_visual(key)
             return
-        meta = self._icon_meta.get(key, {})
-        if for_alt:
-            meta["alt_tooltip"] = tooltip
-        else:
-            meta["tooltip"] = tooltip
-        self._icon_meta[key] = meta
-        self._apply_icon_visual(key)
+        if key in self._icons_right:
+            meta = self._icon_meta_right.get(key, {})
+            if for_alt:
+                meta["alt_tooltip"] = tooltip
+            else:
+                meta["tooltip"] = tooltip
+            self._icon_meta_right[key] = meta
+            self._apply_icon_visual(key)
 
     def set_icon_callback(self, key: str, callback):
         """
@@ -851,14 +1078,22 @@ class ChatInput(QTextEdit):
         :param callback: new callable (or None to disconnect)
         """
         btn = self._icons.get(key)
-        if not btn:
+        if btn:
+            try:
+                btn.clicked.disconnect()
+            except Exception:
+                pass
+            if callback is not None:
+                btn.clicked.connect(callback)
             return
-        try:
-            btn.clicked.disconnect()
-        except Exception:
-            pass
-        if callback is not None:
-            btn.clicked.connect(callback)
+        btn = self._icons_right.get(key)
+        if btn:
+            try:
+                btn.clicked.disconnect()
+            except Exception:
+                pass
+            if callback is not None:
+                btn.clicked.connect(callback)
 
     def get_icon_state(self, key: str) -> bool:
         """
@@ -866,7 +1101,11 @@ class ChatInput(QTextEdit):
 
         :param key: icon key
         """
-        return bool(self._icon_meta.get(key, {}).get("active", False))
+        if key in self._icon_meta:
+            return bool(self._icon_meta.get(key, {}).get("active", False))
+        if key in self._icon_meta_right:
+            return bool(self._icon_meta_right.get(key, {}).get("active", False))
+        return False
 
     def get_icon_button(self, key: str) -> Optional[QPushButton]:
         """
@@ -875,7 +1114,100 @@ class ChatInput(QTextEdit):
         :param key: icon key
         :return: QPushButton or None if key not found
         """
-        return self._icons.get(key)
+        return self._icons.get(key) or self._icons_right.get(key)
+
+    # ---- Right icons sizing API ----
+
+    def set_right_icon_sizes(
+        self,
+        icon_size: Optional[Union[QSize, Tuple[int, int], int]] = None,
+        btn_size: Optional[Union[QSize, Tuple[int, int], int]] = None,
+    ):
+        """
+        Public API: change sizes for right-bottom icons.
+        - icon_size: QSize | (w, h) | int (square)
+        - btn_size : QSize | (w, h) | int (square)
+        Applies to existing right icons immediately.
+        """
+        def _to_qsize(v, fallback: QSize) -> QSize:
+            if v is None:
+                return fallback
+            if isinstance(v, QSize):
+                return v
+            if isinstance(v, int):
+                return QSize(v, v)
+            if isinstance(v, (tuple, list)) and len(v) >= 2:
+                return QSize(int(v[0]), int(v[1]))
+            return fallback
+
+        new_icon_sz = _to_qsize(icon_size, self._icon_size_right)
+        new_btn_sz = _to_qsize(btn_size, self._btn_size_right)
+
+        self._icon_size_right = new_icon_sz
+        self._btn_size_right = new_btn_sz
+
+        for btn in self._icons_right.values():
+            btn.setIconSize(self._icon_size_right)
+            btn.setFixedSize(self._btn_size_right)
+
+        if hasattr(self, "_icon_bar_right"):
+            self._icon_bar_right.setFixedHeight(self._btn_size_right.height())
+
+        self._update_icon_bar_geometry_right()
+        self._reposition_icon_bar_right()
+        self._apply_margins()
+        self.update()
+
+    def set_right_icon_px(self, icon_px: int, btn_px: Optional[int] = None):
+        """
+        Convenience helper to set square sizes for right-bottom icons.
+        """
+        btn = btn_px if btn_px is not None else self._btn_size_right.height()
+        self.set_right_icon_sizes(icon_px, btn)
+
+    # ---- Right bar margins/spacing/offset API ----
+
+    def set_right_bar_margins(
+        self,
+        margin: Optional[int] = None,
+        spacing: Optional[int] = None,
+        offset_x: Optional[int] = None,
+        offset_y: Optional[int] = None,
+    ):
+        """
+        Public API: change layout params for the right-bottom icon bar.
+        - margin: inner padding from edges (px)
+        - spacing: spacing between right-bar buttons (px)
+        - offset_x: horizontal offset (+ rightwards, - leftwards)
+        - offset_y: vertical offset (+ downwards, - upwards)
+        """
+        if margin is not None:
+            try:
+                self._icons_margin_right = int(margin)
+            except Exception:
+                pass
+        if spacing is not None:
+            try:
+                self._icons_spacing_right = int(spacing)
+                if hasattr(self, "_icon_bar_right") and self._icon_bar_right.layout():
+                    self._icon_bar_right.layout().setSpacing(self._icons_spacing_right)
+            except Exception:
+                pass
+        if offset_x is not None:
+            try:
+                self._icons_offset_x_right = int(offset_x)
+            except Exception:
+                pass
+        if offset_y is not None:
+            try:
+                self._icons_offset_y_right = int(offset_y)
+            except Exception:
+                pass
+
+        self._update_icon_bar_geometry_right()
+        self._reposition_icon_bar_right()
+        self._apply_margins()
+        self.update()
 
     # ---- Internal layout helpers ----
 
@@ -885,8 +1217,8 @@ class ChatInput(QTextEdit):
 
         :param key: icon key
         """
-        btn = self._icons.get(key)
-        meta = self._icon_meta.get(key, {})
+        btn = self._icons.get(key) or self._icons_right.get(key)
+        meta = self._icon_meta.get(key) if key in self._icon_meta else self._icon_meta_right.get(key, {})
         if not btn or not meta:
             return
         active = meta.get("active", False)
@@ -914,9 +1246,28 @@ class ChatInput(QTextEdit):
             if btn:
                 layout.addWidget(btn)
 
+    def _rebuild_icon_layout_right(self):
+        """Rebuild the RIGHT-BOTTOM layout according to current _icon_order_right."""
+        if not hasattr(self, "_icon_bar_right"):
+            return
+        layout = self._icon_bar_right.layout()
+        while layout.count():
+            item = layout.takeAt(0)
+            w = item.widget()
+            if w:
+                layout.removeWidget(w)
+        for k in self._icon_order_right:
+            btn = self._icons_right.get(k)
+            if btn:
+                layout.addWidget(btn)
+
     def _visible_buttons(self):
         """Helper to list icon buttons that are not hidden."""
         return [self._icons[k] for k in self._icon_order if k in self._icons and not self._icons[k].isHidden()]
+
+    def _visible_buttons_right(self):
+        """Helper to list icon buttons that are not hidden on right bar."""
+        return [self._icons_right[k] for k in self._icon_order_right if k in self._icons_right and not self._icons_right[k].isHidden()]
 
     def _compute_icon_bar_width(self) -> int:
         """
@@ -931,6 +1282,17 @@ class ChatInput(QTextEdit):
         w = count * self._btn_size.width() + (count - 1) * self._icons_spacing
         return w
 
+    def _compute_icon_bar_right_width(self) -> int:
+        """
+        Compute width for right-bottom bar from button count.
+        """
+        vis = self._visible_buttons_right()
+        if not vis:
+            return 0
+        count = len(vis)
+        w = count * self._btn_size_right.width() + (count - 1) * self._icons_spacing_right
+        return w
+
     def _update_icon_bar_geometry(self):
         """Update the bar width and keep it raised above the text viewport."""
         if not hasattr(self, "_icon_bar"):
@@ -939,6 +1301,15 @@ class ChatInput(QTextEdit):
         self._icon_bar.setFixedWidth(max(0, width))
         self._icon_bar.raise_()
         self._reposition_icon_bar()
+
+    def _update_icon_bar_geometry_right(self):
+        """Update the right-bottom bar width and keep it raised above the text viewport."""
+        if not hasattr(self, "_icon_bar_right"):
+            return
+        width = self._compute_icon_bar_right_width()
+        self._icon_bar_right.setFixedWidth(max(0, width))
+        self._icon_bar_right.raise_()
+        self._reposition_icon_bar_right()
 
     def _reposition_icon_bar(self):
         """Keep the icon bar pinned to the top-left corner."""
@@ -950,18 +1321,47 @@ class ChatInput(QTextEdit):
                 y = 0
             self._icon_bar.move(x, y)
 
+    def _reposition_icon_bar_right(self):
+        """Keep the right-bottom icon bar pinned to the bottom-right corner."""
+        if hasattr(self, "_icon_bar_right"):
+            fw = self.frameWidth()
+            bar_w = self._compute_icon_bar_right_width()
+            bar_h = self._btn_size_right.height()
+            x = self.width() - fw - self._icons_margin_right - bar_w + self._icons_offset_x_right
+            y = self.height() - fw - self._icons_margin_right - bar_h + self._icons_offset_y_right
+            # Clamp inside widget bounds
+            x = max(0, min(self.width() - bar_w, x))
+            y = max(0, min(self.height() - bar_h, y))
+            self._icon_bar_right.move(x, y)
+
     def _apply_margins(self):
         """Reserve left space for visible icons and apply top text padding."""
+        # Also reserve right space for the bottom-right icon bar; keep bottom margin at 0 to avoid vertical shrink
         left_space = self._compute_icon_bar_width()
         if left_space > 0:
             left_space += self._icons_margin * 2
-        self.setViewportMargins(left_space, self._text_top_padding, 0, 0)
+
+        right_space = self._compute_icon_bar_right_width()
+        if right_space > 0:
+            right_space += self._icons_margin_right * 2
+
+        self.setViewportMargins(left_space, self._text_top_padding, right_space, 0)
+
+        # Reflow may change number of lines; adjust auto-height on next tick
+        try:
+            QTimer.singleShot(0, self._schedule_auto_resize)
+        except Exception:
+            pass
 
     def resizeEvent(self, event):
         """Resize event keeps the icon bar in place."""
         super().resizeEvent(event)
         try:
             self._reposition_icon_bar()
+        except Exception:
+            pass
+        try:
+            self._reposition_icon_bar_right()
         except Exception:
             pass
         # Recompute on width changes (word wrap may change line count)
