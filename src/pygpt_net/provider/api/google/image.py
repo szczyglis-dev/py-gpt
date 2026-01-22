@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 23:00:00                  #
+# Updated Date: 2026.01.23 23:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -851,7 +851,7 @@ class ImageWorker(QRunnable):
         try:
             if not isinstance(self.ctx.extra, dict):
                 self.ctx.extra = {}
-            self.ctx.extra["image_id"] = str(value)
+            self.ctx.extra["image_id"] = self.window.core.filesystem.make_local(str(value))
             self.window.core.ctx.update_item(self.ctx)
         except Exception:
             pass

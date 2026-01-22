@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2026.01.23 23:00:00                  #
 # ================================================== #
 
 import os
@@ -149,11 +149,12 @@ class Filesystem:
             return str(os.path.join(*parts))  # rebuild OS directory separators
         return path
 
-    def to_workdir(self, path: str) -> str:
+    def to_workdir(self, path: str, auto_prefix: bool = True) -> str:
         """
         Replace user path with current workdir
 
         :param path: path to fix
+        :param auto_prefix: add workdir prefix if missing
         :return: path with replaced user workdir
         """
         path = self.get_path(path)
@@ -165,6 +166,9 @@ class Filesystem:
                 self.workdir_placeholder,
                 work_dir
             )
+
+        if not auto_prefix:
+            return path
 
         # try to find workdir in path: old versions compatibility, < 2.0.113
         if work_dir.endswith('.config/pygpt-net'):

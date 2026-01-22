@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.01.23 23:00:00                  #
 # ================================================== #
 
 import base64, datetime, os, requests
@@ -480,7 +480,7 @@ class VideoWorker(QRunnable):
 
             if not isinstance(self.ctx.extra, dict):
                 self.ctx.extra = {}
-            self.ctx.extra["video_id"] = ref
+            self.ctx.extra["video_id"] = self.window.core.filesystem.make_local(ref)
             self.window.core.ctx.update_item(self.ctx)
         except Exception:
             pass

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.01.23 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -286,7 +286,7 @@ class VideoWorker(QRunnable):
             # Poll until completed (or failed/canceled)
             if not isinstance(self.ctx.extra, dict):
                 self.ctx.extra = {}
-            self.ctx.extra['video_id'] = video_id  # store video_id in ctx extra
+            self.ctx.extra['video_id'] = self.window.core.filesystem.make_local(video_id)  # store video_id in ctx extra
             self.window.core.ctx.update_item(self.ctx)
             last_progress = None
             last_status = None

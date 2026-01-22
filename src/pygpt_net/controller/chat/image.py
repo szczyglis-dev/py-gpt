@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.01 15:00:00                  #
+# Updated Date: 2026.01.23 23:00:00                  #
 # ================================================== #
 
 import os
@@ -84,11 +84,11 @@ class Image:
                     if core.config.get("video.remix"):
                         tmp_video_id = item.extra.get('video_id')
                         if video_id is None and tmp_video_id:
-                            video_id = tmp_video_id
+                            video_id = core.filesystem.to_workdir(tmp_video_id, auto_prefix=False)
                     if core.config.get("img.remix"):
                         tmp_image_id = item.extra.get('image_id')
                         if image_id is None and tmp_image_id:
-                            image_id = tmp_image_id
+                            image_id = core.filesystem.to_workdir(tmp_image_id)
                 if image_id and video_id:
                     break
 
