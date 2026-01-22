@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2026.01.22 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -75,6 +75,7 @@ class Tool:
         """
         # create menu bar
         self.menu_bar = QMenuBar()
+        self.menu_bar.setNativeMenuBar(False)
         self.menu["file"] = self.menu_bar.addMenu(trans("interpreter.menu.file"))
         self.menu["kernel"] = self.menu_bar.addMenu(trans("interpreter.menu.kernel"))
 

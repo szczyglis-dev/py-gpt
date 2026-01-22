@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 03:00:00                  #
+# Updated Date: 2026.01.22 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QTimer, QSignalBlocker, QObject, QEvent
@@ -178,6 +178,7 @@ class Database:
         splitter.splitterMoved.connect(self._on_splitter_moved)
 
         self.menu_bar = QMenuBar()
+        self.menu_bar.setNativeMenuBar(False)
         self.batch_actions_menu = self.menu_bar.addMenu("Actions")
         self.delete_all_action = QAction(QIcon(":/icons/delete.svg"), "Delete all records")
         self.delete_all_action.triggered.connect(self.viewer.delete_all)

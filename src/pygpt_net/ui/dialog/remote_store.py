@@ -7,7 +7,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 18:00:00                  #
+# Updated Date: 2026.01.22 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -238,6 +238,7 @@ class RemoteStore:
         controller = self.window.controller
         self.actions = {}
         self.menu_bar = QMenuBar()
+        self.menu_bar.setNativeMenuBar(False)
 
         self.menu = {}
         self.menu["current"] = self.menu_bar.addMenu(trans("dialog.remote_store.menu.current"))

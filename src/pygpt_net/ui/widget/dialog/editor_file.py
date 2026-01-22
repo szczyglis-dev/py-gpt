@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.01.22 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -72,6 +72,7 @@ class EditorFileDialog(BaseDialog):
         :return: menu bar
         """
         self.menu_bar = QMenuBar(self)
+        self.menu_bar.setNativeMenuBar(False)
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
         self.actions = {}
 

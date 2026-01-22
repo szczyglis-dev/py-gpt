@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2026.01.22 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -34,6 +34,7 @@ class VideoPlayer:
     def setup_menu(self) -> QMenuBar:
         """Setup video dialog menu"""
         self.menu_bar = QMenuBar()
+        self.menu_bar.setNativeMenuBar(False)
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
 
         # open
