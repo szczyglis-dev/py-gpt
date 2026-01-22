@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 20:00:00                  #
+# Updated Date: 2026.01.22 16:00:00                  #
 # ================================================== #
 import json
 import time
@@ -117,7 +117,8 @@ class Storage:
                                 content = :content,
                                 is_initialized = :is_initialized,
                                 updated_ts = :updated_ts,
-                                highlights_json = :highlights_json
+                                highlights_json = :highlights_json,
+                                scroll_pos = :scroll_pos
                             WHERE idx = :idx
                         """).bindparams(
                     idx=int(notepad.idx or 0),
@@ -125,7 +126,8 @@ class Storage:
                     content=notepad.content,
                     is_initialized=int(notepad.initialized),
                     updated_ts=ts,
-                    highlights_json=self.pack_item_value(notepad.highlights)
+                    highlights_json=self.pack_item_value(notepad.highlights),
+                    scroll_pos=int(notepad.scroll_pos)
                 )
             else:
                 stmt = text("""
@@ -139,7 +141,8 @@ class Storage:
                                 updated_ts,
                                 is_deleted,
                                 is_initialized,
-                                highlights_json
+                                highlights_json,
+                                scroll_pos
                             )
                             VALUES
                             (
@@ -151,7 +154,8 @@ class Storage:
                                 :updated_ts,
                                 :is_deleted,
                                 :is_initialized,
-                                :highlights_json
+                                :highlights_json,
+                                :scroll_pos
                             )
                         """).bindparams(
                     idx=notepad.idx,
@@ -162,7 +166,8 @@ class Storage:
                     updated_ts=ts,
                     is_deleted=int(notepad.deleted),
                     is_initialized=int(notepad.initialized),
-                    highlights_json=self.pack_item_value(notepad.highlights)
+                    highlights_json=self.pack_item_value(notepad.highlights),
+                    scroll_pos=int(notepad.scroll_pos)
                 )
             conn.execute(stmt)
 
@@ -186,7 +191,8 @@ class Storage:
                     updated_ts,
                     is_deleted,
                     is_initialized,
-                    highlights_json
+                    highlights_json,
+                    scroll_pos
                 )
                 VALUES
                 (
@@ -198,7 +204,8 @@ class Storage:
                     :updated_ts,
                     :is_deleted,
                     :is_initialized,
-                    :highlights_json
+                    :highlights_json,
+                    :scroll_pos
                 )
             """).bindparams(
             idx=int(notepad.idx or 0),
@@ -209,7 +216,8 @@ class Storage:
             updated_ts=ts,
             is_deleted=int(notepad.deleted),
             is_initialized=int(notepad.initialized),
-            highlights_json=self.pack_item_value(notepad.highlights)
+            highlights_json=self.pack_item_value(notepad.highlights),
+            scroll_pos=int(notepad.scroll_pos)
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -234,6 +242,7 @@ class Storage:
         notepad.deleted = bool(row['is_deleted'])
         notepad.initialized = bool(row['is_initialized'])
         notepad.highlights = self.unpack_item_value(row['highlights_json'])
+        notepad.scroll_pos = int(row.get('scroll_pos', -1))
         return notepad
 
     def pack_item_value(self, value: Any) -> str:

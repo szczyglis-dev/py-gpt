@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 20:00:00                  #
+# Updated Date: 2026.01.22 16:00:00                  #
 # ================================================== #
 
 import json
@@ -27,6 +27,7 @@ class NotepadItem:
     updated: int = 0
     initialized: bool = False
     highlights: Optional[list] = None
+    scroll_pos: int = -1
 
     def __init__(self):
         self.id = 0
@@ -40,6 +41,7 @@ class NotepadItem:
         self.updated = ts
         self.initialized = False
         self.highlights = []
+        self.scroll_pos = -1
 
     def to_dict(self):
         return {
@@ -53,6 +55,7 @@ class NotepadItem:
             'updated': self.updated,
             'initialized': self.initialized,
             'highlights': self.highlights,
+            'scroll_pos': self.scroll_pos,
         }
 
     def dump(self):

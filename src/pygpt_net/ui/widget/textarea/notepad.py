@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 20:00:00                  #
+# Updated Date: 2026.01.22 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer
@@ -117,6 +117,7 @@ class NotepadOutput(QTextEdit):
         self.last_scroll_pos = None
         self.installEventFilter(self)
         self.setProperty('class', 'layout-notepad')
+        self.initialized = False
 
         metrics = QFontMetrics(self.font())
         space_width = metrics.horizontalAdvance(" ")
@@ -125,6 +126,7 @@ class NotepadOutput(QTextEdit):
         self._vscroll = self.verticalScrollBar()
         self._vscroll.valueChanged.connect(self._on_scrollbar_value_changed)
         self._restore_attempts = 0
+        self._pending_scroll_pos = None
 
         # highlight state (using QSyntaxHighlighter for rendering)
         self._highlights = []  # list of (start, length)
@@ -152,6 +154,7 @@ class NotepadOutput(QTextEdit):
         super().showEvent(event)
         self._restore_attempts = 0
         QTimer.singleShot(0, self.restore_scroll_pos)
+        self.initialized = True
 
     def changeEvent(self, event):
         """React to theme/palette changes"""
@@ -207,10 +210,9 @@ class NotepadOutput(QTextEdit):
             if self.finder is not None:
                 self.finder.text_changed()
             self.last_scroll_pos = self._vscroll.value()
-            try:
-                self._save_timer.start()
-            except Exception:
-                pass
+            if self.initialized and not self.toPlainText():
+                QTimer.singleShot(0, lambda: self.clear_highlights(persist=False))  # if empty, reset highlights
+            self.schedule_save()
 
     def _on_scrollbar_value_changed(self, value: int):
         """
@@ -218,14 +220,33 @@ class NotepadOutput(QTextEdit):
 
         :param value: New value
         """
-        self.last_scroll_pos = value
+        if not self.window.core.notepad.locked:
+            self.last_scroll_pos = value
+            self.schedule_save()
+
+    def is_initialized(self) -> bool:
+        """
+        Check if initialized
+
+        :return: True if initialized
+        """
+        return self.initialized
 
     def restore_scroll_pos(self):
         """Restore last scroll position"""
+        if self.window.core.notepad.locked:
+            QTimer.singleShot(25, self.restore_scroll_pos)
+            return
+        if not self.initialized:
+            return
+        if self._pending_scroll_pos is not None:
+            self.last_scroll_pos = self._pending_scroll_pos
         if self.last_scroll_pos is None:
             return
         scroll_bar = self._vscroll
         current_max = scroll_bar.maximum()
+        if current_max == 0:
+            return  # nothing to scroll
         if self.last_scroll_pos > current_max:
             if self._restore_attempts < 30:
                 self._restore_attempts += 1
@@ -233,7 +254,35 @@ class NotepadOutput(QTextEdit):
             else:
                 scroll_bar.setValue(current_max)
         else:
+            self.window.core.notepad.locked = True
             scroll_bar.setValue(self.last_scroll_pos)
+            if self._pending_scroll_pos is not None:
+                self._pending_scroll_pos = None
+            self.window.core.notepad.locked = False
+
+    def set_scroll_pos(self, pos: int):
+        """
+        Set scroll position
+
+        :param pos: Scroll position
+        """
+        self._pending_scroll_pos = pos
+        self.last_scroll_pos = pos
+
+    def get_scroll_pos(self) -> int:
+        """
+        Get scroll position
+
+        :return: Scroll position
+        """
+        return self._vscroll.value()
+
+    def schedule_save(self):
+        """Schedule save of notepad content"""
+        try:
+            self._save_timer.start()
+        except Exception:
+            pass
 
     def contextMenuEvent(self, event):
         """
@@ -424,11 +473,12 @@ class NotepadOutput(QTextEdit):
         self._highlights = self._merge_ranges(self._sanitize_ranges(highlights))
         self._highlighter.rehighlight()
 
-    def clear_highlights(self):
+    def clear_highlights(self, persist: bool = True):
         """Clear all highlights"""
         self._highlights = []
         self._highlighter.rehighlight()
-        self._persist()
+        if persist:
+            self._persist()
 
     # ==== Highlight colors / theme ====
 
@@ -464,20 +514,13 @@ class NotepadOutput(QTextEdit):
     # ==== Internal highlight helpers ====
 
     def _persist(self):
-        """Persist highlights to core"""
+        """Persist notepad state"""
         if self._save_timer.isActive():
             self._save_timer.stop()
         try:
             self.window.controller.notepad.save(self.id)  # save content + marking
-        except Exception:
-            pass
-
-    def _schedule_persist(self):
-        """Schedule delayed persist to avoid saving on every keystroke"""
-        try:
-            self._save_timer.start()
-        except Exception:
-            pass
+        except Exception as e:
+            print(e)
 
     def _sanitize_ranges(self, ranges):
         """Sanitize ranges to (start>=0, length>0) integers"""
@@ -518,7 +561,7 @@ class NotepadOutput(QTextEdit):
             return
         self._highlights.append((s, l))
         self._highlights = self._merge_ranges(self._sanitize_ranges(self._highlights))
-        self._schedule_persist()
+        self.schedule_save()
 
     def _remove_range_from_highlights(self, s, l):
         """Subtract a range from all highlights"""
@@ -537,7 +580,7 @@ class NotepadOutput(QTextEdit):
             if he > end:
                 result.append((end, he - end))
         self._highlights = self._merge_ranges(self._sanitize_ranges(result))
-        self._schedule_persist()
+        self.schedule_save()
 
     def _selection_overlaps_any_highlight(self, s, e):
         """Check if selection overlaps any highlight"""

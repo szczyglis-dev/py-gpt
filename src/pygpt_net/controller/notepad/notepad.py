@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 20:00:00                  #
+# Updated Date: 2026.01.22 16:00:00                  #
 # ================================================== #
 
 from typing import Optional, Tuple
@@ -118,7 +118,7 @@ class Notepad:
         self.update()
 
     def load(self):
-        """Load all notepads contents"""
+        """Load all notepads"""
         core_notepad = self.window.core.notepad
         prev_locked = core_notepad.locked
         core_notepad.locked = True  # block any autosave during restore
@@ -139,8 +139,10 @@ class Notepad:
                     widget = self.window.ui.notepad.get(idx)
                     if widget is not None:
                         widget.setText(item.content)
-                        highlights = getattr(item, 'highlights', []) or []
+                        highlights = item.highlights
                         widget.textarea.set_highlights(highlights)
+                        if item.scroll_pos is not None and item.scroll_pos != -1:
+                            widget.textarea.set_scroll_pos(item.scroll_pos)
         finally:
             core_notepad.locked = prev_locked  # restore previous lock state
 
@@ -178,16 +180,18 @@ class Notepad:
 
         widget = self.window.ui.notepad.get(idx)
         if widget is not None:
+            if not widget.textarea.is_initialized():
+                return # do not save uninitialized notepads
             text = widget.toPlainText()
             if item.content != text:
                 item.content = text
-                self.save_marks(idx, persist=False)
+                self.save_state(idx, persist=False)
                 core_notepad.update(item)
             else:
-                self.save_marks(idx)
+                self.save_state(idx)
             self.update()
 
-    def save_marks(self, idx: int, persist: bool = True):
+    def save_state(self, idx: int, persist: bool = True):
         """
         Save highlights for given notepad idx into item.highlights
         """
@@ -195,11 +199,14 @@ class Notepad:
         if widget is None:
             return
         highlights = widget.textarea.get_highlights()
+        scroll_pos = widget.textarea.get_scroll_pos()
         core_notepad = self.window.core.notepad
         item = core_notepad.get_by_id(idx)
         if item is None or core_notepad.locked:
             return
         item.highlights = highlights
+        if widget.textarea.is_initialized():
+            item.scroll_pos = scroll_pos
         if persist:
             core_notepad.update(item)
 
@@ -219,7 +226,7 @@ class Notepad:
                     text = widget.toPlainText()
                     if prev_content != text:
                         items[idx].content = text
-                        self.save_marks(idx, persist=False)  # persist highlights for each notepad
+                        self.save_state(idx, persist=False)  # persist highlights for each notepad
                         self.window.core.notepad.update(items[idx])
         self.update()
 
@@ -375,8 +382,12 @@ class Notepad:
             widget = self.window.ui.notepad.get(idx)
             if widget is None:
                 return
+            # only autoscroll brand-new notepad once, if there is no saved scroll position
             if idx not in self.opened_idx:
-                QTimer.singleShot(0, widget.scroll_to_bottom)
+                item = self.window.core.notepad.get_by_id(idx)
+                has_saved_pos = item is not None and item.scroll_pos not in (None, -1)
+                if not has_saved_pos:
+                    QTimer.singleShot(0, widget.scroll_to_bottom)
             if not widget.opened:
                 widget.opened = True
             if idx not in self.opened_idx:
