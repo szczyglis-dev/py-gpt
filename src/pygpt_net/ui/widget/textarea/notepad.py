@@ -489,10 +489,10 @@ class NotepadOutput(QTextEdit):
         is_dark = self._is_dark_theme()
         if is_dark:
             text_color = QColor(0, 0, 0)
-            bg_color = QColor(255, 215, 64)  # amber A200
+            bg_color = QColor(255, 255, 0)  # yellow
         else:
             text_color = QColor(0, 0, 0)
-            bg_color = QColor(255, 235, 59)  # yellow 500
+            bg_color = QColor(255, 255, 0)  # yellow
         return text_color, bg_color
 
     def apply_highlight_theme(self):
