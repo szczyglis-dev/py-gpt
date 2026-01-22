@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.01.22 04:00:00                  #
 # ================================================== #
 
 import io
@@ -39,7 +39,7 @@ class WorkerSignals(QObject):
     - `chunk`: CtxItem, chunk str, begin bool
     """
     end = Signal(object)
-    errorOccurred = Signal(Exception)
+    errorOccurred = Signal(object, Exception)
     eventReady = Signal(object)
     chunk = Signal(object, str, bool)  # CtxItem, chunk, begin
 
@@ -423,7 +423,7 @@ class StreamWorker(QRunnable):
 
         # Emit error and end
         if state.error:
-            emit_error(state.error)
+            emit_error(ctx, state.error)
             ctx.msg_id = None
             # clear response_id on error - this prevents no response_id in API on next call
             # prev messages will be sent again, new response_id will be generated

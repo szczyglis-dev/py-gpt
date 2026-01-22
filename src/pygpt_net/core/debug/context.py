@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 20:00:00                  #
+# Updated Date: 2026.01.22 04:00:00                  #
 # ================================================== #
 
 import json
@@ -47,6 +47,7 @@ class ContextDebug:
         debug.add(self.id, 'current (id)', str(ctx_core.get_current()))
         debug.add(self.id, 'len(meta)', len(ctx_core.meta))
         debug.add(self.id, 'len(items)', len(ctx_core.get_items()))
+        debug.add(self.id, 'Stream PIDs', str(controller.chat.stream.get_pid_ids()))
         debug.add(self.id, 'SYS PROMPT (current)', str(ctx_core.current_sys_prompt))
         debug.add(self.id, 'CMD (current)', str(ctx_core.current_cmd))
         debug.add(self.id, 'CMD schema (current)', str(ctx_core.current_cmd_schema))

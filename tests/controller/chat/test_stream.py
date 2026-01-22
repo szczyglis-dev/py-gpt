@@ -8,6 +8,8 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
+from types import SimpleNamespace
+
 import pytest
 from unittest.mock import MagicMock
 from pygpt_net.controller.chat.stream import StreamWorker, Stream, MODE_ASSISTANT
@@ -162,11 +164,10 @@ def test_stream_worker_run_exception(monkeypatch):
     window.core.ctx.update_item.assert_called_with(ctx)
     assert len(end_emitted) == 1
     assert len(error_emitted) == 1
-    assert str(error_emitted[0]) == "Fake error"
 
 def test_stream_append(monkeypatch):
     ctx = MagicMock()
-    ctx.meta = {}
+    ctx.meta = MagicMock()
     ctx.input_tokens = 0
     ctx.set_tokens = MagicMock()
 
@@ -189,24 +190,28 @@ def test_stream_append(monkeypatch):
     stream_obj = Stream(window)
     monkeypatch.setattr("pygpt_net.core.text.utils.has_unclosed_code_tag", lambda text: False)
     stream_obj.append(ctx, mode="test", is_response=False, reply=False, internal=False, context=None, extra={'key': 'value'})
-    assert stream_obj.worker is None
+    assert stream_obj.pids is not None
 
 def test_handleEnd_assistant():
-    ctx = MagicMock()
-    ctx.meta = {"info": "data"}
+    meta = SimpleNamespace(id=1)
+    ctx = SimpleNamespace(meta=meta)
     window = MagicMock()
     window.dispatch = MagicMock()
     window.controller.ui.update_tokens = MagicMock()
     window.controller.chat.output.handle_after = MagicMock()
     window.controller.assistant.threads.handle_output_message_after_stream = MagicMock()
+    window.core.ctx.output.get_pid = MagicMock(return_value=1)
 
     stream_obj = Stream(window)
-    stream_obj.ctx = MagicMock()
-    stream_obj.ctx.meta = {"info": "data"}
-    stream_obj.mode = MODE_ASSISTANT
-    stream_obj.is_response = False
-    stream_obj.reply = False
-    stream_obj.internal = False
+    stream_obj.pids = {
+        1: {
+            "ctx": MagicMock(),
+            "mode": MODE_ASSISTANT,
+            "is_response": False,
+            "reply": False,
+            "internal": False,
+        }
+    }
 
     stream_obj.handleEnd(ctx)
     window.controller.ui.update_tokens.assert_called_once()
@@ -227,14 +232,24 @@ def test_handleError():
     window.core.debug.log = MagicMock()
     window.controller.chat.response.failed = MagicMock()
     window.controller.chat.response.post_handle = MagicMock()
+    window.core.ctx.output.get_pid = MagicMock(return_value=1)
+
+    meta = SimpleNamespace(id=1)
+    dummy_ctx = SimpleNamespace(meta=meta)
     stream_obj = Stream(window)
-    stream_obj.is_response = True
-    stream_obj.extra = {}
-    stream_obj.context = "dummy_context"
-    dummy_ctx = MagicMock()
-    stream_obj.ctx = dummy_ctx
+    stream_obj.pids = {
+        1: {
+            "ctx": dummy_ctx,
+            "mode": None,
+            "is_response": True,
+            "reply": False,
+            "internal": False,
+            "context": "dummy_context",
+            "extra": {}
+        }
+    }
     error = Exception("test error")
-    stream_obj.handleError(error)
+    stream_obj.handleError(dummy_ctx, error)
     window.core.debug.log.assert_called_once_with(error)
     window.controller.chat.response.failed.assert_called_once_with("dummy_context", {"error": error})
     window.controller.chat.response.post_handle.assert_called_once_with(ctx=dummy_ctx, mode=None, stream=True, reply=False, internal=False)

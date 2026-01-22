@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2026.01.22 04:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -171,8 +171,11 @@ class Output:
         tabs = self.window.core.tabs
         active_pid = tabs.get_active_pid()
         tab = tabs.get_tab_by_pid(active_pid)
+        in_second_column = False
         if tab is None:
             return None
+
+        # 1) check current column
         col_idx = tab.column_idx
         col_map = self.mapping.get(col_idx, {})
         if not isinstance(col_map, dict):
@@ -182,7 +185,25 @@ class Output:
         for pid in candidates:
             if pid == active_pid:  # prefer active PID
                 return pid
-        return candidates[-1] if candidates else None  # return last found PID
+        pid = candidates[-1] if candidates else None
+
+        # 2) check if mapped in other columns
+        if pid is None:
+            for idx, other_col_map in self.mapping.items():
+                if idx == col_idx:
+                    continue
+                for other_pid, meta_id in other_col_map.items():
+                    if meta_id == meta.id:
+                        in_second_column = True
+                        pid = other_pid
+                        break
+                if pid is not None:
+                    break
+
+        if in_second_column and not self.window.controller.chat.input.generating:
+            return None # allow remapping only when not generating
+
+        return pid  # return last found PID
 
     def is_empty(self) -> bool:
         """
@@ -214,15 +235,13 @@ class Output:
         active_pid = tabs.get_active_pid()
         mapped_pid = self.get_mapped(meta)
         if mapped_pid == active_pid:
-            return active_pid
-        return self.store(meta)
-
-    def clear(self):
-        """Clear mapping"""
-        self.mapping.clear()
-        self.last_pids.clear()
-        self.last_pid = 0
-        self.initialized = False
+            pid = active_pid
+        else:
+            if mapped_pid is None:
+                pid = self.store(meta)
+            else:
+                pid = mapped_pid
+        return pid
 
     def get_current(self, meta: Optional[CtxMeta] = None):
         """
@@ -314,3 +333,10 @@ class Output:
             del self.last_pids[pid]
         if pid == self.last_pid:
             self.last_pid = 0
+
+    def clear(self):
+        """Clear mapping"""
+        self.mapping.clear()
+        self.last_pids.clear()
+        self.last_pid = 0
+        self.initialized = False
