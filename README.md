@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.10** | build: **2026-01-22** | Python: **>=3.10, <3.14**
+Release: **2.7.10** | build: **2026-02-03** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3678,7 +3678,7 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.7.10 (2026-01-22)**
+**2.7.10 (2026-02-03)**
 
 - Fixed an issue where an avatar could be overwritten when creating a new preset.  
 - Fixed an issue where a new context was not created when opening a new tab in the second column.  

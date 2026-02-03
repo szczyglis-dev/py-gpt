@@ -1,4 +1,4 @@
-2.7.10 (2026-01-22)
+2.7.10 (2026-02-03)
 
 - Fixed an issue where an avatar could be overwritten when creating a new preset.  
 - Fixed an issue where a new context was not created when opening a new tab in the second column.  
