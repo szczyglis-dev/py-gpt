@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 21:00:00                  #
+# Updated Date: 2026.02.05 03:00:00                  #
 # ================================================== #
 
 import os
 import shutil
 
 from uuid import uuid4
+from typing import List
 
 class Packer:
     def __init__(self, window=None):
@@ -245,3 +246,58 @@ class Packer:
         base = self.window.core.filesystem.strip_archive_name(os.path.basename(path))
         out_dir = self.window.core.filesystem.unique_dir(parent, base)
         return self.unpack_to_dir(path, out_dir)
+
+    def unpack_here(self, path: str) -> List[str]:
+        """
+        Extract archive content next to the archive, preserving the archive's own top-level structure.
+        - If the archive contains a single top-level directory, that directory is created next to the archive
+          (renamed with ' (n)' suffix if needed).
+        - Otherwise, each top-level entry (file/dir) is placed next to the archive.
+        - Name collisions are resolved using Filesystem.unique_path/unique_dir, producing ' (n)' suffixes.
+        Returns a list of created paths.
+        """
+        created: List[str] = []
+        if not self.can_unpack(path):
+            return created
+
+        parent_dir = os.path.dirname(path)
+        tmp_dir = self.unpack(path)
+        if not tmp_dir or not os.path.isdir(tmp_dir):
+            return created
+
+        fs = self.window.core.filesystem
+        try:
+            try:
+                entries = os.listdir(tmp_dir)
+            except Exception:
+                entries = []
+
+            if len(entries) == 1:
+                name = entries[0]
+                src = os.path.join(tmp_dir, name)
+                if os.path.isdir(src):
+                    dst = fs.unique_dir(parent_dir, name)
+                else:
+                    root, ext = os.path.splitext(name)
+                    dst = fs.unique_path(parent_dir, root, ext)
+                shutil.move(src, dst)
+                created.append(dst)
+            else:
+                for name in entries:
+                    src = os.path.join(tmp_dir, name)
+                    if os.path.isdir(src):
+                        dst = fs.unique_dir(parent_dir, name)
+                    else:
+                        root, ext = os.path.splitext(name)
+                        dst = fs.unique_path(parent_dir, root, ext)
+                    shutil.move(src, dst)
+                    created.append(dst)
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+        finally:
+            self.remove_tmp(tmp_dir)
+
+        return created

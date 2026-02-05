@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 17:00:00                  #
+# Updated Date: 2026.02.05 03:00:00                  #
 # ================================================== #
 
 import datetime
@@ -622,7 +622,7 @@ class FileExplorer(QWidget):
         )
         self.btn_open.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        self.btn_upload = QPushButton(trans('files.local.upload'))
+        self.btn_upload = QPushButton(QIcon(":/icons/upload.svg"), trans('files.local.upload'))
         self.btn_upload.setMaximumHeight(40)
         self.btn_upload.clicked.connect(self.window.controller.files.upload_local)
         self.btn_upload.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -1104,13 +1104,14 @@ class FileExplorer(QWidget):
                 a_unpack.triggered.connect(lambda: self.action_unpack(target_multi))
                 menu.addAction(a_unpack)
 
-            menu.addSeparator()
-            menu.addAction(actions['download'])
+            menu.addSeparator()            
+            menu.addAction(actions['refresh'])
             menu.addAction(actions['touch'])
             menu.addAction(actions['mkdir'])
             menu.addAction(actions['upload'])
-            menu.addAction(actions['refresh'])
+            menu.addSeparator()
 
+            menu.addAction(actions['download'])
             menu.addAction(actions['rename'])
             menu.addAction(actions['duplicate'])
             menu.addAction(actions['delete'])
@@ -1236,18 +1237,20 @@ class FileExplorer(QWidget):
 
     def action_unpack(self, path: Union[str, list]):
         """
-        Unpack selected archives to sibling directories named after archives.
-
-        :param path: path or list of paths to archives
+        Unpack selected archives directly into their parent directories ("Extract Here" behavior).
+        - If archive root contains a single directory, that directory is created next to the archive
+          (renamed with " (n)" suffix if a directory with the same name exists).
+        - If archive root contains files and/or multiple items, they are placed directly next to the archive,
+          each using " (n)" suffixes on name collisions, preserving the archive structure.
         """
         paths = path if isinstance(path, list) else [path]
         created = []
         for p in paths:
             try:
                 if self.window.core.filesystem.packer.can_unpack(p):
-                    out_dir = self.window.core.filesystem.packer.unpack_to_sibling_dir(p)
-                    if out_dir:
-                        created.append(out_dir)
+                    items = self.window.core.filesystem.packer.unpack_here(p)
+                    if items:
+                        created.extend(items)
             except Exception as e:
                 try:
                     self.window.core.debug.log(e)
