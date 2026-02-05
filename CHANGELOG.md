@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.7.11 (2026-02-05)
+
+- Improved handling focus between columns.
+- Fixed models debugger update.
+
 ## 2.7.10 (2026-02-03)
 
 - Fixed an issue where an avatar could be overwritten when creating a new preset.  

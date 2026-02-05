@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.10** | build: **2026-02-03** | Python: **>=3.10, <3.14**
+Release: **2.7.11** | build: **2026-02-05** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3677,6 +3677,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.11 (2026-02-05)**
+
+- Improved handling focus between columns.
+- Fixed models debugger update.
 
 **2.7.10 (2026-02-03)**
 
