@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 16:00:00                  #
+# Updated Date: 2026.02.05 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer
@@ -108,6 +108,10 @@ class NotepadOutput(QTextEdit):
         self.finder = Finder(window, self)
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+
+        # Ensure the editor always accepts keyboard focus on single click
+        self.setFocusPolicy(Qt.StrongFocus)
+
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
@@ -139,6 +143,9 @@ class NotepadOutput(QTextEdit):
 
         # highlighter
         self._highlighter = MarkerHighlighter(self.document(), self.get_highlights, self.get_highlight_color)
+
+        # schedule guard for column-focus sync
+        self._column_focus_sync_scheduled = False
 
     def on_delete(self):
         """On delete"""
@@ -179,11 +186,39 @@ class NotepadOutput(QTextEdit):
         :param source: source
         :param event: event
         """
-        if event.type() == QEvent.FocusIn:
-            if self.tab is not None:
-                col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        if source is self and event.type() == QEvent.FocusIn:
+            self._post_column_focus_sync()
         return super().eventFilter(source, event)
+
+    def _post_column_focus_sync(self):
+        """
+        Post column-focus sync so it runs after the editor actually gained focus,
+        preventing any intermediate handlers from consuming the first keystroke.
+        """
+        if self.tab is None:
+            return
+        if self._column_focus_sync_scheduled:
+            return
+        self._column_focus_sync_scheduled = True
+        QTimer.singleShot(0, self._do_column_focus_sync)
+
+    def _do_column_focus_sync(self):
+        """Perform column-focus sync and keep editor focus if something tries to steal it."""
+        self._column_focus_sync_scheduled = False
+        if self.tab is None:
+            return
+        idx = getattr(self.tab, 'column_idx', None)
+        if idx is None:
+            return
+        had_focus = self.hasFocus()
+        try:
+            self.window.controller.ui.tabs.on_column_focus(idx)
+        except Exception:
+            # Keep the UI resilient even if external handler fails
+            pass
+        # If external code changed focus, restore it to keep typing seamless
+        if had_focus and not self.hasFocus() and self.isVisible():
+            self.setFocus(Qt.OtherFocusReason)
 
     def set_tab(self, tab: Tab):
         """
@@ -422,6 +457,16 @@ class NotepadOutput(QTextEdit):
             super(NotepadOutput, self).wheelEvent(event)
             self.last_scroll_pos = self._vscroll.value()
 
+    def mousePressEvent(self, e):
+        """
+        Ensure the editor grabs focus on first click and keep column state in sync.
+        """
+        if not self.hasFocus():
+            # Force focus so the first keystroke is delivered to the editor
+            self.setFocus(Qt.MouseFocusReason)
+        super(NotepadOutput, self).mousePressEvent(e)
+        self._post_column_focus_sync()
+
     def focusInEvent(self, e):
         """
         Focus in event
@@ -430,6 +475,7 @@ class NotepadOutput(QTextEdit):
         """
         self.window.controller.finder.focus_in(self.finder)
         super(NotepadOutput, self).focusInEvent(e)
+        self._post_column_focus_sync()
 
     def focusOutEvent(self, e):
         """
