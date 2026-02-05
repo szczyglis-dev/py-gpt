@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.23 23:00:00                  #
+# Updated Date: 2026.02.05 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -290,6 +290,7 @@ class VideoWorker(QRunnable):
             self.window.core.ctx.update_item(self.ctx)
             last_progress = None
             last_status = None
+            status = ""
             while True:
                 if kernel.stopped():
                     break
