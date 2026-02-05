@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 04:00:00                  #
+# Updated Date: 2026.02.05 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, Qt
+from PySide6.QtGui import QGuiApplication
 from pygpt_net.core.events import AppEvent, RenderEvent
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.ctx import CtxMeta
@@ -39,6 +40,9 @@ class Tabs:
         self.locked = False
         self.create_new_on_tab = True
         self.col = {}
+
+        self._focus_sync_scheduled = False  # column-focus sync to keep focus stable
+        self._pending_focus_idx: Optional[int] = None
 
     def setup(self, reload: bool = False):
         """Setup tabs"""
@@ -414,17 +418,48 @@ class Tabs:
 
     def on_column_focus(self, idx: int):
         """
-        Column focus event
+        Column focus event.
 
-        :param idx: column index
+        This method is now deferred and coalesced to the next event loop turn
+        to prevent intermediate UI updates from stealing focus from the
+        widget that just gained it (e.g. text inputs). The actual switch is
+        performed in _apply_column_focus().
         """
-        if self.column_idx == idx:
+        if idx == self.column_idx:
             return
+        self._pending_focus_idx = idx
+        if self._focus_sync_scheduled:
+            return
+        self._focus_sync_scheduled = True
+        QTimer.singleShot(0, self._apply_column_focus)
+
+    def _apply_column_focus(self):
+        """
+        Apply pending column focus change and restore focus to the widget that
+        had focus at the time of invocation if something stole it meanwhile.
+        """
+        self._focus_sync_scheduled = False
+        idx = self._pending_focus_idx
+        self._pending_focus_idx = None
+        if idx is None or idx == self.column_idx:
+            return
+
+        # Capture the widget that currently has focus (the one user clicked into)
+        app = QGuiApplication.instance()
+        target = app.focusWidget() if app else None
+
         self.column_idx = idx
         self.on_column_changed()
         self.on_changed()
         self.update_current()
         self.debug()
+
+        # If column change stole focus, return it back to the original widget
+        if target and target.isVisible() and not target.hasFocus():
+            try:
+                target.setFocus(Qt.OtherFocusReason)
+            except Exception:
+                pass
 
     def on_tab_dbl_clicked(
             self,
