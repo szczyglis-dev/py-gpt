@@ -84,11 +84,17 @@ class Image:
                     if core.config.get("video.remix"):
                         tmp_video_id = item.extra.get('video_id')
                         if video_id is None and tmp_video_id:
-                            video_id = core.filesystem.to_workdir(tmp_video_id, auto_prefix=False)
+                            if not tmp_video_id.startswith("http://") and not tmp_video_id.startswith("https://"):
+                                video_id = core.filesystem.to_workdir(tmp_video_id, auto_prefix=False)
+                            else:
+                                video_id = tmp_video_id
                     if core.config.get("img.remix"):
                         tmp_image_id = item.extra.get('image_id')
                         if image_id is None and tmp_image_id:
-                            image_id = core.filesystem.to_workdir(tmp_image_id)
+                            if not tmp_image_id.startswith("http://") and not tmp_image_id.startswith("https://"):
+                                image_id = core.filesystem.to_workdir(tmp_image_id, auto_prefix=False)
+                            else:
+                                image_id = tmp_image_id
                 if image_id and video_id:
                     break
 

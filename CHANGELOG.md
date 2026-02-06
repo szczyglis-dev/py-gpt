@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.7.12 (2026-02-06)
+
+- xAI SDK upgraded to v1.6.1.
+- Added video generation support in xAI provider.
+- Added new models: grok-imagine-image and grok-imagine-video.
+- UI improvements and smoother navigation between tabs and columns.  
+- Optimized adding attachments. Added options to attach an attachment only once (if the API stores messages on its side), and an option to force attaching an attachment only once.  
+- Updated libraries.
+- UI improvements and smoother navigation between tabs and columns.  
+- Optimized adding attachments. Added options to attach an attachment only once (if the API stores messages on its side), and an option to force attaching an attachment only once.  
+- Updated libraries.
+
 ## 2.7.11 (2026-02-05)
 
 - Improved handling focus between columns.

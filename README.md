@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.11** | build: **2026-02-05** | Python: **>=3.10, <3.14**
+Release: **2.7.12** | build: **2026-02-06** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -1076,7 +1076,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has a preconfigured list of models (as of 2025-12-25):
+PyGPT has a preconfigured list of models (as of 2026-02-06):
 
 - `bielik-11b-v2.3-instruct:Q4_K_M` (Ollama)
 - `chatgpt-4o-latest` (OpenAI)
@@ -1137,6 +1137,8 @@ PyGPT has a preconfigured list of models (as of 2025-12-25):
 - `grok-3-mini` (xAI)
 - `grok-3-mini-fast` (xAI)
 - `grok-4` (xAI)
+- `grok-imagine-image` (xAI)
+- `grok-imagine-video` (xAI)
 - `llama2-uncensored` (Ollama)
 - `llama3.1` (Ollama)
 - `llama3.1:70b` (Ollama)
@@ -3676,13 +3678,22 @@ Users are reminded to be mindful of token usage - always verify the number of to
 the API website and engage with the application responsibly. Activating plugins, such as Web Search,
 may consume additional tokens that are not displayed in the main window. 
 
-**Always monitor your actual token usage on the OpenAI, Google, Anthropic, etc. websites.**
+**Always monitor your actual token usage on the OpenAI, Google, Anthropic, xAI, etc. websites.**
 
 ---
 
 # CHANGELOG
 
 ## Recent changes:
+
+**2.7.12 (2026-02-06)**
+
+- xAI SDK upgraded to v1.6.1.
+- Added video generation support in xAI provider.
+- Added new models: grok-imagine-image and grok-imagine-video.
+- UI improvements and smoother navigation between tabs and columns.  
+- Optimized adding attachments. Added options to attach an attachment only once (if the API stores messages on its side), and an option to force attaching an attachment only once.  
+- Updated libraries.
 
 **2.7.11 (2026-02-05)**
 
