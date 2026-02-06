@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -19,6 +19,9 @@ from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_VISION,
     MODE_LOOP_NEXT,
+    MODE_CHAT,
+    MODE_RESEARCH,
+    MODE_COMPUTER,
 )
 from pygpt_net.core.events import KernelEvent, Event
 
@@ -206,6 +209,26 @@ class BridgeWorker(QRunnable):
         self.window.dispatch(event)
         self.context.system_prompt = event.data['value']
 
+    def allowed_single_append(self, context) -> bool:
+        """Check if only single append of additional context is allowed for current mode and provider"""
+        if context is None or context.model is None:
+            return False
+        allowed_modes = [MODE_CHAT, MODE_RESEARCH, MODE_COMPUTER]
+        if context.model.provider == "openai":
+            use_responses_api = self.window.core.api.openai.responses.is_enabled(
+                context.model,
+                context.mode,
+                context.parent_mode,
+                context.is_expert_call,
+                context.preset
+            )
+            if use_responses_api and context.mode in allowed_modes:
+                return True
+        elif context.model.provider == "xai":
+            if context.model.id.startswith("grok-3") and context.mode in allowed_modes:
+                return True
+        return False
+
     def handle_additional_context(self):
         """Append additional context"""
         ctx = self.context.ctx
@@ -215,7 +238,27 @@ class BridgeWorker(QRunnable):
             return
         if not self.window.controller.chat.attachment.has_context(ctx.meta):
             return
-        ad_context = self.window.controller.chat.attachment.get_context(ctx, self.context.history)
+
+        # determine if only current attachment content should be appended
+        only_current = self.window.core.config.get("ctx.attachment.append_once", False)  # force single append
+        auto_detect = self.window.core.config.get("ctx.attachment.auto_append", True) # auto-detect if allowed
+        if not only_current and auto_detect:
+            if self.allowed_single_append(self.context):
+                only_current = True
+
+        # if group additional context exists, append it to current additional context
+        if only_current and ctx.meta.group:
+            if ctx.meta.group.additional_ctx is None:
+                ctx.meta.group.additional_ctx = []
+            if ctx.meta.additional_ctx_current is None:
+                ctx.meta.additional_ctx_current = []
+            ctx.meta.additional_ctx_current.extend(ctx.meta.group.additional_ctx)
+
+        ad_context = self.window.controller.chat.attachment.get_context(
+            ctx,
+            self.context.history,
+            only_current=only_current
+        )
         ad_mode = self.window.controller.chat.attachment.get_mode()
         if ad_context:
             self.context.prompt += f"\n\n{ad_context}"  # append to input text

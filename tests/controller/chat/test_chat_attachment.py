@@ -82,6 +82,7 @@ class DummyMeta:
     def __init__(self, additional_ctx=None, group=None):
         self.id = "meta1"
         self.additional_ctx = additional_ctx
+        self.additional_ctx_current = []
         self.group = group
     def has_additional_ctx(self):
         return bool(self.additional_ctx)
@@ -91,6 +92,7 @@ class DummyMeta:
 class DummyGroup:
     def __init__(self, additional_ctx=None):
         self.additional_ctx = additional_ctx
+        self.additional_ctx_current = []
 
 @pytest.fixture
 def dummy_window():

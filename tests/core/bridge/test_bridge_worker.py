@@ -11,7 +11,7 @@
 
 import pytest
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 from pygpt_net.core.bridge import BridgeWorker
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
@@ -33,6 +33,9 @@ class CtxObj:
 class ContextObj:
     def __init__(self):
         self.mode = None
+        self.model = None
+        self.parent_mode = None
+        self.preset = None
         self.ctx = CtxObj()
         self.system_prompt = ""
         self.prompt = ""
@@ -47,7 +50,7 @@ class AttachmentStub:
         self.MODE_QUERY_CONTEXT = "query"
     def has_context(self, meta):
         return self._has
-    def get_context(self, ctx, history):
+    def get_context(self, ctx, history, only_current=False):
         return self._context
     def get_mode(self):
         return self._mode
@@ -88,7 +91,7 @@ def test_handle_post_prompt_async_and_end():
 
 def test_handle_additional_context_no_ctx():
     worker = BridgeWorker()
-    worker.window = SimpleNamespace(controller=SimpleNamespace(chat=SimpleNamespace(attachment=AttachmentStub())))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=AttachmentStub())))
     ctx = ContextObj()
     ctx.ctx = None
     ctx.prompt = "p"
@@ -100,7 +103,7 @@ def test_handle_additional_context_no_ctx():
 def test_handle_additional_context_meta_none():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="CTX", mode_value="query")
-    worker.window = SimpleNamespace(controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = None
     ctx.prompt = "p"
@@ -113,7 +116,7 @@ def test_handle_additional_context_meta_none():
 def test_handle_additional_context_has_no_context():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=False)
-    worker.window = SimpleNamespace(controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = "m"
     ctx.prompt = "p"
@@ -126,7 +129,7 @@ def test_handle_additional_context_has_no_context():
 def test_handle_additional_context_empty_ad_context():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="", mode_value="query")
-    worker.window = SimpleNamespace(controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = "m"
     ctx.prompt = "p"
@@ -139,7 +142,7 @@ def test_handle_additional_context_empty_ad_context():
 def test_handle_additional_context_query_mode_sets_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="query")
-    worker.window = SimpleNamespace(controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = "m"
     ctx.prompt = "p"
@@ -152,7 +155,7 @@ def test_handle_additional_context_query_mode_sets_hidden_input():
 def test_handle_additional_context_agent_mode_sets_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="full")
-    worker.window = SimpleNamespace(controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = "m"
     ctx.prompt = "p"
@@ -166,7 +169,7 @@ def test_handle_additional_context_agent_mode_sets_hidden_input():
 def test_handle_additional_context_full_mode_no_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="full")
-    worker.window = SimpleNamespace(controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = "m"
     ctx.prompt = "p"

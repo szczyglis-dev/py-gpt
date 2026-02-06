@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
 import os
@@ -230,11 +230,19 @@ class Attachment(QObject):
         if meta.group:
             if meta.group.additional_ctx is None:
                 meta.group.additional_ctx = []
+            if meta.group.additional_ctx_current is None:
+                meta.group.additional_ctx_current = []
             meta.group.additional_ctx.append(item)
+            if meta.additional_ctx_current is None:
+                meta.additional_ctx_current = []
+            meta.additional_ctx_current.append(item)
             return
         if meta.additional_ctx is None:
             meta.additional_ctx = []
+        if meta.additional_ctx_current is None:
+            meta.additional_ctx_current = []
         meta.additional_ctx.append(item)
+        meta.additional_ctx_current.append(item)
 
     def upload_web(
             self,
@@ -287,13 +295,15 @@ class Attachment(QObject):
     def get_context(
             self,
             ctx: CtxItem,
-            history: List[CtxItem]
+            history: List[CtxItem],
+            only_current: bool = False
     ) -> str:
         """
         Get additional context for attachment
 
         :param ctx: CtxItem instance
         :param history Context items (history)
+        :param only_current: Use only current context
         :return: Additional context
         """
         if self.mode != self.MODE_DISABLED:
@@ -303,7 +313,7 @@ class Attachment(QObject):
         self.window.core.attachments.context.reset()  # reset used files and urls
 
         # get additional context from attachments
-        content = self.window.core.attachments.context.get_context(self.mode, ctx, history)
+        content = self.window.core.attachments.context.get_context(self.mode, ctx, history, only_current=only_current)
 
         # append used files and urls to context
         files = self.window.core.attachments.context.get_used_files()

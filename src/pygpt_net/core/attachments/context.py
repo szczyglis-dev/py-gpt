@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -93,7 +93,8 @@ class Context:
             self,
             mode: str,
             ctx: CtxItem,
-            history: List[CtxItem]
+            history: List[CtxItem],
+            only_current: bool = False
     ) -> str:
         """
         Get context for mode
@@ -101,11 +102,12 @@ class Context:
         :param mode: Context mode
         :param ctx: CtxItem instance
         :param history: history
+        :param only_current: only current
         :return: context
         """
         content = ""
         if mode == self.window.controller.chat.attachment.MODE_FULL_CONTEXT:
-            content = self.get_context_text(ctx, filename=True)
+            content = self.get_context_text(ctx, filename=True, only_current=only_current)
         elif mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT:
             content = self.query_context(ctx, history)
         elif mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT_SUMMARY:
@@ -115,18 +117,26 @@ class Context:
     def get_context_text(
             self,
             ctx: CtxItem,
-            filename: bool = False
+            filename: bool = False,
+            only_current: bool = False
     ) -> str:
         """
         Get raw text context for meta
 
         :param ctx: CtxItem instance
         :param filename: append filename
+        :param only_current: only current
         :return: raw context
         """
         meta = ctx.meta
         meta_path = self.get_dir(meta)
         context = ""
+        uuid_current = []
+        if meta.additional_ctx_current:
+            for item in meta.additional_ctx_current:
+                if "uuid" in item:
+                    uuid_current.append(item["uuid"])
+
         if os.path.exists(meta_path) and os.path.isdir(meta_path):
             for file in meta.get_additional_ctx():
                 if ("type" not in file
@@ -134,6 +144,11 @@ class Context:
                     continue
                 if not "uuid" in file:
                     continue
+
+                # abort if only current and file not in current
+                if only_current and file["uuid"] not in uuid_current:
+                    continue
+
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
                 text_path = os.path.join(file_idx_path, file_id + ".txt")

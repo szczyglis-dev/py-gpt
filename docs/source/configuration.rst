@@ -105,7 +105,11 @@ The following basic options can be modified directly within the application:
 
 * ``Store images, capture and uploads in data directory``: Enable to store everything in single data directory. Default: False
 
-* ``Directory for file downloads``: Subdirectory for downloaded files, e.g. in Assistants mode, inside "data". Default: "download"
+* ``Allow images as additional context``: If enabled, images can be used as additional context. Default: False
+
+* ``Append attachment only once (mode: always)``: If enabled, the sent attachment will be appended once to the sending message, rather than appended every time to the input prompt as additional context. Force mode - affects all models. Default: False
+
+* ``Append attachment only once (mode: only if available, auto-detect)``: If enabled, the sent attachment will be appended once to the sending message, if the selected model and API handle the storage of sent messages on the server side. This may optimize token usage by sending attachments only once. Default: True
 
 * ``Model for querying index``: Model to use for preparing query and querying the index when the RAG option is selected.
 
@@ -114,6 +118,8 @@ The following basic options can be modified directly within the application:
 * ``Use history in RAG query``: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary.
 
 * ``RAG limit``: Only if the option ``Use history in RAG query`` is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit.
+
+* ``Directory for file downloads``: Subdirectory for downloaded files, e.g. in Assistants mode, inside "data". Default: "download"
 
 **Context**
 

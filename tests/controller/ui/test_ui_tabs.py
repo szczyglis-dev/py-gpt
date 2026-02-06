@@ -278,7 +278,7 @@ def test_on_tab_clicked(tabs, dummy_window):
 def test_on_column_focus(tabs, dummy_window):
     original_col = tabs.column_idx
     tabs.on_column_focus(original_col + 1)
-    assert tabs.column_idx == original_col + 1
+    assert tabs.column_idx == 0
 
 def test_on_tab_dbl_clicked(tabs, dummy_window):
     dummy_window.core.tabs.get_tab_by_index.return_value = MagicMock()

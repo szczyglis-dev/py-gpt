@@ -911,6 +911,32 @@
         "step": null,
         "advanced": false
     },
+    "ctx.attachment.append_once": {
+        "section": "files",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.attachment.append_once",
+        "description": "settings.ctx.attachment.append_once.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "ctx.attachment.auto_append": {
+        "section": "files",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.attachment.auto_append",
+        "description": "settings.ctx.attachment.auto_append.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.attachment.summary.model": {
         "section": "files",
         "type": "combo",

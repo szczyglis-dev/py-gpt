@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.07 23:00:00                  #
+# Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -283,6 +283,15 @@ class Patch:
                 for key in to_add:
                     if key not in data or data[key] is None or data[key] == "None":
                         data[key] = ""
+                updated = True
+
+            # < 2.7.12
+            if old < parse_version("2.7.12"):
+                print("Migrating config from < 2.7.12...")
+                if "ctx.attachment.append_once" not in data:
+                    data["ctx.attachment.append_once"] = False
+                if "ctx.attachment.auto_append" not in data:
+                    data["ctx.attachment.auto_append"] = True
                 updated = True
 
         # update file

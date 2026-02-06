@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 13:00:00                  #
+# Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any
@@ -139,7 +139,6 @@ class ApiXAI:
                 MODE_CHAT,
                 MODE_AUDIO,
                 MODE_RESEARCH,
-                MODE_AUDIO
         ):
             if mode == MODE_AUDIO and stream:
                 # Realtime API for audio streaming

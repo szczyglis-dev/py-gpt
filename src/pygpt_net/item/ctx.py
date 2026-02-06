@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -490,6 +490,7 @@ class CtxItem:
 class CtxMeta:
     id: Optional[int] = None
     additional_ctx: list = field(default_factory=list)
+    additional_ctx_current: list = field(default_factory=list)
     archived: bool = False
     assistant: Optional[object] = None
     created: int = field(default_factory=lambda: int(time.time()))
@@ -526,6 +527,7 @@ class CtxMeta:
         :param id: Context ID
         """
         self.additional_ctx = []  # additional context data
+        self.additional_ctx_current = []  # additional context data (current)
         self.archived = False
         self.assistant = None
         self.created = int(time.time())
@@ -723,6 +725,7 @@ class CtxGroup:
     id: Optional[int] = None
     name: Optional[str] = None
     additional_ctx: list = field(default_factory=list)
+    additional_ctx_current: list = field(default_factory=list)
     count: int = 0
     created: int = field(default_factory=lambda: int(time.time()))
     items: list = field(default_factory=list)
@@ -737,6 +740,7 @@ class CtxGroup:
         :param name: Group name
         """
         self.additional_ctx = []
+        self.additional_ctx_current = []
         self.count = 0
         self.created = int(time.time())
         self.id = id

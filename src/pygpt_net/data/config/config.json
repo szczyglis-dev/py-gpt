@@ -131,6 +131,8 @@
   "cmd": false,
   "context_threshold": 200,
   "ctx": "",
+  "ctx.attachment.append_once": false,
+  "ctx.attachment.auto_append": true,
   "ctx.attachment.img": false,
   "ctx.attachment.mode": "full",
   "ctx.attachment.query.model": "gpt-4o-mini",
