@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
 # This file is a part of PYGPT package               #
@@ -37,6 +37,7 @@ from .remote_tools import Remote
 from .responses import Responses
 from .store import Store
 from .realtime import Realtime
+from .video import Video
 
 
 class ApiXAI:
@@ -56,6 +57,7 @@ class ApiXAI:
         self.responses = Responses(window)
         self.store = Store(window)
         self.realtime = Realtime(window)
+        self.video = Video(window)
         self.client: Optional[xai_sdk.Client] = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
@@ -64,7 +66,7 @@ class ApiXAI:
             self,
             mode: str = MODE_CHAT,
             model: ModelItem = None,
-            management_api_key = None
+            management_api_key=None
     ) -> xai_sdk.Client:
         """
         Get or create xAI client.
@@ -129,10 +131,18 @@ class ApiXAI:
         used_tokens = 0
         response = None
         ctx.chunk_type = ChunkType.XAI_SDK
-        
+
         use_responses_api = True
         if model and model.id.startswith("grok-3"):
             use_responses_api = False  # use old API
+
+        # Force the Agent Tools (Responses API) whenever server-side tools are enabled in config
+        try:
+            rt_probe = self.remote.build_for_chat(model=model, stream=stream)
+            if (rt_probe.get("tools") or []):
+                use_responses_api = True
+        except Exception:
+            pass
 
         if mode in (
                 MODE_COMPLETION,
@@ -157,15 +167,28 @@ class ApiXAI:
                 response = self.responses.send(context=context, extra=extra)  # responses
                 used_tokens = self.responses.get_used_tokens()
             else:
-                response = self.chat.send(context=context, extra=extra)  # completions
+                response = self.chat.send(context=context, extra=extra)  # completions (legacy)
                 used_tokens = self.chat.get_used_tokens()
 
             if ctx:
                 self.vision.append_images(ctx)
 
         elif mode == MODE_IMAGE:
-            # Image generation via REST /v1/images/generations (OpenAI-compatible)
-            return self.image.generate(context=context, extra=extra)
+            # Media router: image or video
+            media_mode = self.window.controller.media.get_mode()
+            if media_mode == "video":
+                if context.model and context.model.is_video_output():
+                    return self.video.generate(
+                        context=context,
+                        extra=extra,
+                    )
+                # Fallback: ignore when non-video model selected
+                return False
+            else:
+                return self.image.generate(
+                    context=context,
+                    extra=extra,
+                )
 
         elif mode == MODE_ASSISTANT:
             return False  # not implemented for xAI
@@ -345,6 +368,7 @@ class ApiXAI:
                     tools=tools,
                     temperature=temperature,
                     max_tokens=context.max_tokens,
+                    search_parameters=None,
                 )
                 if ctx:
                     if calls:

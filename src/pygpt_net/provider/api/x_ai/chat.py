@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.02.06 03:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ class Chat:
 
         client = self.window.core.api.xai.get_client(context.mode, model_item)
 
-        # Build SDK messages (used only on SDK path)
+        # Build SDK messages (used only on SDK/HTTP path without server-side tools)
         sdk_messages = self.build_messages(
             prompt=prompt,
             system_prompt=system_prompt,
@@ -80,11 +80,8 @@ class Chat:
         count_msgs = self._build_count_messages(prompt, system_prompt, model_item, context.history)
         self.input_tokens += self.window.core.tokens.from_messages(count_msgs, model_item.id)
 
-        # Tools and Live Search config
+        # Tools config
         tools_prepared = self.window.core.api.xai.tools.prepare(functions)
-        rt_cfg = self.window.core.api.xai.remote.build_remote_tools(model_item)
-        http_params = (rt_cfg.get("http") if isinstance(rt_cfg, dict) else None)
-        sdk_live = bool(rt_cfg.get("sdk", {}).get("enabled")) if isinstance(rt_cfg, dict) else False
 
         # Detect tool-turns and image attachments
         has_tool_turns = self._has_tool_turns(context.history)
@@ -97,13 +94,20 @@ class Chat:
             self.window.core.debug.info(f"[xai] Switching to vision model: {fb} (was: {model_id}) due to image input")
             model_id = fb
 
-        # STREAM: use HTTP SSE for consistent tool/citation/vision handling
+        # Server-side Agent Tools availability (web_search/x_search/code_execution/MCP/collections)
+        # If any server-side tool is enabled, delegate to the Responses API which implements the Agent Tools flow.
+        srv_cfg = self.window.core.api.xai.remote.build_for_chat(model_item, stream=context.stream)
+        srv_tools_present = bool((srv_cfg.get("tools") or []))
+        if srv_tools_present:
+            return self.window.core.api.xai.responses.send(context=context, extra=extra)
+
+        # STREAM: use HTTP SSE for consistent tool/citation/vision handling (legacy Chat Completions without Agent Tools)
         if context.stream:
             return self.call_http_stream(
                 model=model_id,
-                messages=sdk_messages,  # may be SDK objects; HTTP builder will rebuild if needed
+                messages=sdk_messages,
                 tools=tools_prepared or None,
-                search_parameters=http_params,
+                search_parameters=None,  # Live Search removed from Chat Completions; handled via Agent Tools in Responses API
                 temperature=context.temperature,
                 max_tokens=context.max_tokens,
                 system_prompt=system_prompt,
@@ -112,8 +116,9 @@ class Chat:
                 prompt=prompt,
             )
 
-        # NON-STREAM: prefer SDK only for plain chat (no tools/search/tool-turns/images)
-        if sdk_live and not tools_prepared and http_params is None and not has_tool_turns and not has_images:
+        # NON-STREAM: prefer SDK only for plain chat (no function tools/tool-turns/images)
+        prefer_sdk_plain = (not tools_prepared) and (not has_tool_turns) and (not has_images)
+        if prefer_sdk_plain:
             chat = client.chat.create(model=model_id, messages=sdk_messages)
             try:
                 if hasattr(chat, "sample"):
@@ -126,7 +131,7 @@ class Chat:
                 pass
             return chat
 
-        # Otherwise HTTP non-stream for tools/search/vision/tool-turns
+        # Otherwise HTTP non-stream for legacy function-calling/vision/tool-turns (without Live Search)
         text, calls, citations, usage = self.call_http_nonstream(
             model=model_id,
             prompt=prompt,
@@ -135,7 +140,7 @@ class Chat:
             attachments=attachments,
             multimodal_ctx=multimodal_ctx,
             tools=tools_prepared or [],
-            search_parameters=http_params,
+            search_parameters=None,  # Live Search removed from Chat Completions; handled via Agent Tools in Responses API
             temperature=context.temperature,
             max_tokens=context.max_tokens,
         )
@@ -468,11 +473,8 @@ class Chat:
             payload["tools"] = tools_payload
             payload["tool_choice"] = "auto"
 
-        if search_parameters:
-            sp = dict(search_parameters)
-            if "return_citations" not in sp:
-                sp["return_citations"] = True
-            payload["search_parameters"] = sp
+        # Live Search via 'search_parameters' is deprecated on Chat Completions.
+        # It is intentionally not attached here; Agent Tools are handled by the Responses API path.
 
         headers = {
             "Content-Type": "application/json",
@@ -596,11 +598,7 @@ class Chat:
             payload["tools"] = tools_payload
             payload["tool_choice"] = "auto"
 
-        if search_parameters:
-            sp = dict(search_parameters)
-            if "return_citations" not in sp:
-                sp["return_citations"] = True
-            payload["search_parameters"] = sp
+        # Live Search via 'search_parameters' is deprecated on Chat Completions and omitted here.
 
         headers = {
             "Content-Type": "application/json",

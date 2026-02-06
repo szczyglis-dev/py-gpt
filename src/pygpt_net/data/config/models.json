@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.7.11",
-        "app.version": "2.7.11",
-        "updated_at": "2026-02-05T00:00:00"
+        "version": "2.7.12",
+        "app.version": "2.7.12",
+        "updated_at": "2026-02-06T00:00:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -3403,6 +3403,90 @@
             "output": [
                 "text",
                 "audio"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-imagine-image": {
+            "id": "grok-imagine-image",
+            "name": "grok-imagine-image",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-imagine-image",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "image"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-imagine-video": {
+            "id": "grok-imagine-video",
+            "name": "grok-imagine-video",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-imagine-video",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "video"
             ],
             "extra": {},
             "imported": false,

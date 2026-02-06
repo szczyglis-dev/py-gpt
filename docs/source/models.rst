@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has a preconfigured list of models (as of 2025-12-25):
+PyGPT has a preconfigured list of models (as of 2026-02-06):
 
 - ``bielik-11b-v2.3-instruct:Q4_K_M`` (Ollama)
 - ``chatgpt-4o-latest`` (OpenAI)
@@ -65,6 +65,8 @@ PyGPT has a preconfigured list of models (as of 2025-12-25):
 - ``grok-3-mini`` (xAI)
 - ``grok-3-mini-fast`` (xAI)
 - ``grok-4`` (xAI)
+- ``grok-imagine-image`` (xAI)
+- ``grok-imagine-video`` (xAI)
 - ``llama2-uncensored`` (Ollama)
 - ``llama3.1`` (Ollama)
 - ``llama3.1:70b`` (Ollama)

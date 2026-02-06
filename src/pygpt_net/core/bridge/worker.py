@@ -224,8 +224,8 @@ class BridgeWorker(QRunnable):
             )
             if use_responses_api and context.mode in allowed_modes:
                 return True
-        elif context.model.provider == "xai":
-            if context.model.id.startswith("grok-3") and context.mode in allowed_modes:
+        elif context.model.provider == "x_ai":
+            if not context.model.id.startswith("grok-3") and context.mode in allowed_modes:
                 return True
         return False
 

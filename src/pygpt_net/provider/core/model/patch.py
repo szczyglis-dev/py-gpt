@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.07 23:00:00                  #
+# Updated Date: 2026.02.06 03:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -181,6 +181,20 @@ class Patch:
                         del data[model]
                 models_to_add = [
                     "gemini-2.5-flash-native-audio-latest",
+                ]
+                for model in models_to_add:
+                    if model not in data:
+                        base_model = from_base(model)
+                        if base_model:
+                            data[model] = base_model
+                updated = True
+
+            # <  2.7.12 <--- add imagine models
+            if old < parse_version("2.7.12"):
+                print("Migrating models from < 2.7.12...")
+                models_to_add = [
+                    "grok-imagine-image",
+                    "grok-imagine-video",
                 ]
                 for model in models_to_add:
                     if model not in data:

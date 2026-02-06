@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.04 19:00:00                  #
+# Updated Date: 2026.02.06 03:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -107,6 +107,12 @@ class Responses:
             fb = self.window.core.config.get("xai_vision_fallback_model") or "grok-2-vision-latest"
             self.window.core.debug.info(f"[xai] Switching to vision model: {fb} (was: {model_id}) due to image input")
             model_id = fb
+
+        # Tools-capable model fallback for Agent Tools (legacy grok-3 does not support server-side tools)
+        if srv_tools and str(model_item.id or "").lower().startswith("grok-3"):
+            fb_tools = self.window.core.config.get("xai_tools_fallback_model") or "grok-4-latest"
+            self.window.core.debug.info(f"[xai] Switching to tools-capable model: {fb_tools} (was: {model_id}) due to server-side tools")
+            model_id = fb_tools
 
         # Store messages: false when images present (SDK guidance), otherwise configurable (default True)
         store_messages = True
