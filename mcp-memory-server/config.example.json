@@ -1,0 +1,15 @@
+{
+  "firebase": {
+    "project_id": "your-firebase-project-id",
+    "credentials_path": "/path/to/serviceAccountKey.json"
+  },
+  "memory": {
+    "user_id": "default",
+    "embedding_model": "local",
+    "ttl_days": 90
+  },
+  "server": {
+    "transport": "stdio",
+    "port": 8080
+  }
+}

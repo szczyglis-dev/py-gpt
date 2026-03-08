@@ -1,0 +1,4 @@
+firebase-admin>=6.0.0
+sentence-transformers>=2.2.0
+numpy>=1.24.0
+textblob>=0.17.0
