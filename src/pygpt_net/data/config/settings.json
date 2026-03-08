@@ -561,6 +561,37 @@
         "advanced": false,
         "tab": "OpenRouter"
     },
+    "api_key_forge": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.forge",
+        "description": "settings.api_key.forge.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Forge"
+    },
+    "api_endpoint_forge": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_forge",
+        "description": "settings.api_endpoint_forge.desc",
+        "value": "https://api.forge.tensorblock.co/v1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "Forge"
+    },
     "app.env": {
         "section": "general",
         "type": "dict",
