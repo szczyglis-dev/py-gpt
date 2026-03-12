@@ -32,11 +32,9 @@ class Settings:
         self.height = 500
 
     def setup(self):
-        """Set up plugin settings"""
-        idx = None
-        if 'plugin.settings' in self.window.ui.tabs:
-            idx = self.window.ui.tabs['plugin.settings'].currentIndex()
-        self.window.plugin_settings.setup(idx)
+        """Set up plugin settings (skeleton now, full build deferred)"""
+        self.window.plugin_settings.setup_skeleton()
+        self.config_initialized = False
 
     def toggle_editor(self):
         """Toggle plugin settings dialog"""

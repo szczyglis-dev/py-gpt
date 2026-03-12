@@ -9,14 +9,17 @@
 # Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
+import os
+import tempfile
+
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from PySide6.QtWidgets import QMainWindow
 from pygpt_net.config import Config
 
 
 @pytest.fixture
-def mock_window():
+def mock_window(tmp_path_factory):
     window = MagicMock(spec=QMainWindow)
     window.STATE_IDLE = 'idle'
     window.STATE_BUSY = 'busy'
@@ -25,7 +28,9 @@ def mock_window():
     window.stateChanged = MagicMock()
     window.idx_logger_message = MagicMock()
     window.core = MagicMock()
-    window.core.config = Config(window)  # real config object
+    with patch('pygpt_net.core.profile.profile.Profile.init'):
+        window.core.config = Config(window)  # real config object
+    window.core.config.path = str(tmp_path_factory.mktemp("config"))  # isolate from real filesystem
     window.core.config.initialized = True  # prevent initializing config
     window.core.config.init = MagicMock()  # mock init method to prevent init
     window.core.config.load = MagicMock()  # mock load method to prevent loading

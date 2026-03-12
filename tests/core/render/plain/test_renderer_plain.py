@@ -244,7 +244,9 @@ def test_append_timestamp(mock_window):
     ctx = CtxItem()
     meta = CtxMeta()
     ctx.input_timestamp = 1234567890
-    assert render.append_timestamp(ctx, text).startswith("00:31:30: test") is True
+    from datetime import datetime
+    expected_hour = datetime.fromtimestamp(1234567890).strftime("%H:%M:%S")
+    assert render.append_timestamp(ctx, text).startswith(expected_hour + ": test") is True
 
 
 def test_pre_format_text(mock_window):

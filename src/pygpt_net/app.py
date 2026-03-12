@@ -245,6 +245,9 @@ def run(**kwargs):
         from pygpt_net.plugin.mcp import Plugin as MCPPlugin
         from pygpt_net.plugin.wolfram import Plugin as WolframPlugin
         from pygpt_net.plugin.osm import Plugin as OSMPlugin
+        from pygpt_net.plugin.wake_word import Plugin as WakeWordPlugin
+        from pygpt_net.plugin.cmd_app_launcher import Plugin as AppLauncherPlugin
+        from pygpt_net.plugin.assistant_mode import Plugin as AssistantModePlugin
 
         # agents (Llama-index)
         from pygpt_net.provider.agents.llama_index.legacy.openai_assistant import OpenAIAssistantAgent
@@ -465,6 +468,9 @@ def run(**kwargs):
         launcher.add_plugin(MCPPlugin())
         launcher.add_plugin(WolframPlugin())
         launcher.add_plugin(OSMPlugin())
+        launcher.add_plugin(WakeWordPlugin())
+        launcher.add_plugin(AppLauncherPlugin())
+        launcher.add_plugin(AssistantModePlugin())
 
         # register custom plugins
         plugins = kwargs.get('plugins', None)

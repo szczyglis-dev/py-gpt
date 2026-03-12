@@ -42,6 +42,49 @@ class Plugins:
         self.dialog_id = "plugin_settings"
         self.max_list_width = 250
 
+    def setup_skeleton(self):
+        """
+        Create minimal plugin settings UI structure for startup.
+
+        Registers empty tab widget, plugin list, and dialog so that
+        other parts of the system can reference them safely. Full widget
+        building is deferred to the first dialog open via setup().
+        """
+        from PySide6.QtGui import QStandardItemModel
+
+        # empty tab widget
+        self.window.ui.tabs['plugin.settings'] = QTabWidget()
+        self.window.ui.tabs['plugin.settings.tabs'] = {}
+
+        # empty plugin list
+        list_id = 'plugin.list'
+        self.window.ui.nodes[list_id] = PluginList(self.window, list_id)
+        self.window.ui.models[list_id] = self.create_model(self.window)
+        self.window.ui.nodes[list_id].setModel(self.window.ui.models[list_id])
+
+        # populate plugin list data
+        sorted_ids = self.window.core.plugins.get_ids(sort=True)
+        get_plugin = self.window.core.plugins.get
+        data = {}
+        for plugin_id in sorted_ids:
+            data[plugin_id] = get_plugin(plugin_id)
+        self.update_list(list_id, data)
+
+        # create placeholder dialog
+        self.window.ui.nodes['plugin.settings.cmd.footer'] = HelpLabel(trans('cmd.tip'))
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(self.window.ui.nodes[list_id])
+        splitter.addWidget(self.window.ui.tabs['plugin.settings'])
+        self.window.ui.splitters['dialog.plugins'] = splitter
+
+        self.window.ui.dialog[self.dialog_id] = PluginSettingsDialog(self.window, self.dialog_id)
+        layout = QVBoxLayout()
+        main_layout = QHBoxLayout()
+        main_layout.addWidget(splitter)
+        layout.addLayout(main_layout)
+        self.window.ui.dialog[self.dialog_id].setLayout(layout)
+        self.window.ui.dialog[self.dialog_id].setWindowTitle(trans('dialog.plugin_settings'))
+
     def setup(self, idx=None):
         """
         Setup plugin settings dialog
@@ -76,7 +119,7 @@ class Plugins:
         footer.addWidget(self.window.ui.nodes['plugin.settings.btn.defaults.app'])
         footer.addWidget(self.window.ui.nodes['plugin.settings.btn.save'])
 
-        # plugins tabs
+        # plugins tabs - recreate for full setup
         self.window.ui.tabs['plugin.settings'] = QTabWidget()
         self.window.ui.tabs['plugin.settings.tabs'] = {}
 
@@ -304,8 +347,9 @@ class Plugins:
             option = options[key]
             if 'tab' in option:
                 tab = option['tab']
-                if tab == "" or tab is None:
+                if tab is None or tab == "":
                     is_default = True
+                    continue
                 if tab not in keys:
                     keys.append(tab)
             else:

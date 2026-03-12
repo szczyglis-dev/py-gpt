@@ -15,3 +15,10 @@ def reload_attachment_module():
     import pygpt_net.item.attachment as mod
     importlib.reload(mod)
     yield
+
+@pytest.fixture(autouse=True)
+def reset_global_locale():
+    """Reset global locale in utils to prevent state leaking between tests."""
+    import pygpt_net.utils as utils_mod
+    yield
+    utils_mod.locale = None

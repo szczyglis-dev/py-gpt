@@ -214,7 +214,7 @@ def test_store_content(mock_window):
         with patch('builtins.open', mock_open()) as mock_file:
             context = Context(mock_window)
             result, _ = context.store_content(attachment, "test_dir")
-            assert result == "test_dir/url.txt"
+            assert result == os.path.join("test_dir", "url.txt")
 
 
 def test_index_attachment(mock_window):

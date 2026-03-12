@@ -253,5 +253,5 @@ def test_apply_rate_limit_with_sleep(monkeypatch):
     b.apply_rate_limit()
     assert sleep_mock.call_count == 1
     sleep_arg = sleep_mock.call_args[0][0]
-    assert sleep_arg == pytest.approx(extra.total_seconds(), rel=1e-3)
+    assert sleep_arg == pytest.approx(extra.total_seconds(), abs=0.01)
     window.core.debug.debug.assert_called()
