@@ -13,6 +13,7 @@ import json
 import os
 import re
 import math
+import unicodedata
 
 from datetime import datetime
 from contextlib import contextmanager
@@ -494,3 +495,24 @@ def short_num(value,
     out = f"{d:.{decimals}f}"
     out = _strip_trailing_zeros(out).replace(".", decimal_sep)
     return f"{sign}{out}{suffixes[idx]}"
+
+
+def normalize_text(text: str) -> str:
+    """
+    Normalize text for locale-safe, case-insensitive comparison.
+
+    Handles Turkish I/İ/ı and other accented characters correctly by
+    applying casefold + NFKD decomposition + combining-mark removal.
+
+    Examples:
+        normalize_text("YARDIMI")  == normalize_text("yardımı")   # True
+        normalize_text("İstanbul") == normalize_text("istanbul")  # True
+        normalize_text("Notepad++") == normalize_text("notepad++") # True
+    """
+    folded = text.casefold()
+    normalized = unicodedata.normalize("NFKD", folded)
+    stripped = "".join(
+        ch for ch in normalized if unicodedata.category(ch) != "Mn"
+    )
+    stripped = stripped.replace("\u0131", "i")
+    return stripped

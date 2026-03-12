@@ -24,15 +24,18 @@ def test_install(mock_window):
     provider.path = mock_window.core.config.path
     with patch('os.path.exists') as os_path_exists:
         os_path_exists.return_value = True
-        provider.install()
-        os_path_exists.assert_called()
+        with patch('builtins.open', mock_open(read_data='{"foo": "bar"}')):
+            provider.install()
+            os_path_exists.assert_called()
 
 
 def test_get_version(mock_window):
     """Test get version"""
     provider = JsonFileProvider(mock_window)
     provider.path = mock_window.core.config.get_path()
-    assert provider.get_version() is not None
+    data = json.dumps({"__meta__": {"version": "1.0.0"}})
+    with patch('builtins.open', mock_open(read_data=data)):
+        assert provider.get_version() is not None
 
 
 def test_load(mock_window):

@@ -516,17 +516,21 @@ class Config:
 
         :param all: load all configs
         """
-        self.data = self.provider.load(all)
-        if self.data is not None:
-            self.data = dict(sorted(self.data.items(), key=itemgetter(0)))
+        loaded = self.provider.load(all)
+        if loaded is None:
+            self.data = {}
+        else:
+            self.data = dict(sorted(loaded.items(), key=itemgetter(0)))
 
     def load_base_config(self):
         """
         Load app config from JSON file
         """
-        self.data_base = self.provider.load_base()
-        if self.data_base is not None:
-            self.data_base = dict(sorted(self.data_base.items(), key=itemgetter(0)))
+        loaded_base = self.provider.load_base()
+        if loaded_base is None:
+            self.data_base = {}
+        else:
+            self.data_base = dict(sorted(loaded_base.items(), key=itemgetter(0)))
             self.initialized_base = True
 
     def from_base_config(self):

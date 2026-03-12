@@ -99,14 +99,16 @@ class Profile:
         """Load profiles"""
         f = os.path.join(self.base_workdir, self.PROFILE_FILE)
         if os.path.exists(f):
-            with open(f, 'r', encoding='utf-8') as f:
-                try:
-                    data = json.load(f)
+            try:
+                with open(f, 'r', encoding='utf-8') as fh:
+                    data = json.load(fh)
                     self.current = data['current']
                     self.profiles = data['profiles']
                     self.initialized = True
-                except Exception as e:
-                    print('CRITICAL: Error loading profile file:', e)
+            except FileNotFoundError:
+                pass  # race condition: file removed between exists() and open()
+            except Exception as e:
+                print('CRITICAL: Error loading profile file:', e)
 
     def save(self):
         """Save profiles"""
