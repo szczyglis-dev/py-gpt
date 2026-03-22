@@ -69,17 +69,24 @@ class TavilySearch(BaseProvider):
         client = TavilyClient(api_key=key)
         if limit < 1:
             limit = 1
+        if offset < 0:
+            offset = 0
+
+        # Tavily API allows max_results up to 20
+        fetch_count = limit + offset
+        if fetch_count > 20:
+            fetch_count = 20
 
         urls = []
         try:
             response = client.search(
                 query=query,
-                max_results=limit,
+                max_results=fetch_count,
             )
-            for result in response.get("results", []):
-                url = result.get("url")
-                if url:
-                    urls.append(url)
+            all_urls = [
+                r.get("url") for r in response.get("results", []) if r.get("url")
+            ]
+            urls = all_urls[offset:offset + limit]
         except Exception as e:
             print(e)
 
