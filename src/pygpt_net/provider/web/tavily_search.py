@@ -45,6 +45,16 @@ class TavilySearch(BaseProvider):
             tab="tavily",
             urls=url_api,
         )
+        self.plugin.add_option(
+            "tavily_search_depth",
+            type="text",
+            value="basic",
+            label="Search depth",
+            description="Search depth: 'basic' (1 credit) or 'advanced' (2 credits, higher quality).",
+            tooltip="Tavily search depth",
+            persist=True,
+            tab="tavily",
+        )
 
     def search(
             self,
@@ -69,19 +79,28 @@ class TavilySearch(BaseProvider):
         client = TavilyClient(api_key=key)
         if limit < 1:
             limit = 1
+        # Tavily API allows max_results up to 20
+        if limit > 20:
+            limit = 20
         if offset < 0:
             offset = 0
 
-        # Tavily API allows max_results up to 20
         fetch_count = limit + offset
         if fetch_count > 20:
             fetch_count = 20
+
+        search_depth = str(
+            self.plugin.get_option_value("tavily_search_depth") or "basic"
+        ).lower()
+        if search_depth not in ("basic", "advanced"):
+            search_depth = "basic"
 
         urls = []
         try:
             response = client.search(
                 query=query,
                 max_results=fetch_count,
+                search_depth=search_depth,
             )
             all_urls = [
                 r.get("url") for r in response.get("results", []) if r.get("url")
