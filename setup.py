@@ -131,6 +131,7 @@ setup(
         'show-in-file-manager>=1.1.5,<2.0.0',
         'SQLAlchemy>=2.0.43,<3.0.0',
         'Telethon>=1.40.0,<2.0.0',
+        'tavily-python>=0.5.0,<1.0.0',
         'tiktoken>=0.9.0,<1.0.0',
         'transformers==4.48.3',
         'urllib3>=1.26.20,<2.0.0',
