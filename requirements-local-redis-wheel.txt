@@ -1,0 +1,11 @@
+# PyHuey local Redis vector-store wheel overlay
+# This preserves the exact working direct-reference line from the known-good freeze.
+#
+# Use this only on the Windows build machine where the wheel path exists, or edit
+# the file URL to point at the local wheelhouse path for your current clone.
+#
+# Typical usage:
+#   pip install -r requirements.txt
+#   pip install -r requirements-local-redis-wheel.txt
+#
+llama-index-vector-stores-redis @ file:///C:/Users/admin/Desktop/HueyOS/Build/PyGPT/RedisPatch/wheel-out/llama_index_vector_stores_redis-0.8.0-py3-none-any.whl#sha256=2a09961603a50f9148b4632e6d40abb23b990f35df0f530f33a7c710625cf31a
