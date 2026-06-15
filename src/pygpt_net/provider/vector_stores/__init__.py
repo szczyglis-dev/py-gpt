@@ -18,6 +18,7 @@ from llama_index.core.indices.vector_store.base import VectorStoreIndex
 from .base import BaseStore
 from .ctx_attachment import CtxAttachmentProvider
 from .temp import TempProvider
+from .huey import resolve_storage_id
 
 
 class Storage:
@@ -38,10 +39,9 @@ class Storage:
 
         :return: vector store provider instance
         """
-        current = self.window.core.config.get("llama.idx.storage")
-        if current is None \
-                or current == "_" \
-                or current not in self.storages:
+        configured = self.window.core.config.get("llama.idx.storage")
+        current = resolve_storage_id(configured, self.storages)
+        if current is None:
             return None
         return self.storages[current]
 

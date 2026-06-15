@@ -284,7 +284,6 @@ def run(**kwargs):
         from pygpt_net.provider.llms.open_router import OpenRouterLLM
 
         # vector store providers (llama-index)
-        from pygpt_net.provider.vector_stores.chroma import ChromaProvider
         from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
         from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
         from pygpt_net.provider.vector_stores.qdrant import QdrantProvider
@@ -495,10 +494,9 @@ def run(**kwargs):
                 launcher.add_llm(llm)
 
         # register base vector store providers (llama-index)
-        launcher.add_vector_store(ChromaProvider())
+        launcher.add_vector_store(QdrantProvider())
         launcher.add_vector_store(ElasticsearchProvider())
         launcher.add_vector_store(PinecodeProvider())
-        launcher.add_vector_store(QdrantProvider())
         launcher.add_vector_store(RedisProvider())
         launcher.add_vector_store(SimpleProvider())
 
