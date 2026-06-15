@@ -1,0 +1,60 @@
+# PyHuey / PyGPT Windows 11 + Python 3.13 runtime overlay
+#
+# Use this after the editable no-deps install:
+#
+#   cd L:\PyHuey
+#   .\.venv313\Scripts\Activate.ps1
+#   cd L:\PyHuey\source
+#   python -m pip install -e . --no-deps
+#   python -m pip install -r requirements-win313.in
+#
+# This file is intentionally additive. It records dependencies proven necessary
+# in the native Windows Python 3.13 environment without forcing the entire
+# upstream dependency set at once.
+#
+# Chroma is intentionally not included here. Use the Python 3.12 Chroma sidecar:
+#
+#   L:\PyHuey\.venv312-chroma
+
+# GUI/theme startup
+qt-material>=2.17,<3
+
+# LlamaIndex generation required by pygpt_net.core.agents.runners.llama_workflow
+llama-index==0.14.10
+llama-index-core==0.14.10
+llama-index-cli==0.5.3
+llama-index-workflows==2.14.0
+llama-index-readers-file==0.5.4
+llama-index-embeddings-openai==0.5.1
+llama-index-llms-openai==0.6.17
+llama-index-multi-modal-llms-openai==0.6.2
+
+# OpenAI Agents SDK; provides the importable `agents` module used by pygpt_net.core.agents.tools
+openai-agents>=0.6.4,<0.7
+
+# Direct runtime import used by pygpt_net.provider.core.index.db_sqlite.storage
+traitlets==5.14.3
+
+# Proxy transport support used by pygpt_net.core.models.models
+httpx-socks>=0.10.1,<0.11
+
+# xAI/Grok provider support used by pygpt_net.provider.api.x_ai
+xai-sdk>=1.5,<2
+
+# Markdown rendering support used by pygpt_net.core.render.markdown
+Markdown>=3.8.2,<4
+python-markdown-math>=0.8,<0.9
+
+# Screenshot/capture support used by pygpt_net.controller.painter.capture
+mss>=9.0.2,<10
+
+# Python Docker SDK used by PyGPT command/system/code-interpreter plumbing.
+# This does not install Docker Desktop or start Docker services.
+docker>=7.1,<8
+
+# Cron/scheduler support used by PyGPT scheduled task plumbing
+croniter>=2.0.7,<3
+
+# LlamaIndex web readers used by PyGPT web/index reader integrations.
+# Installed normally because html2text currently has no wheel under --only-binary.
+llama-index-readers-web>=0.5.3,<0.6

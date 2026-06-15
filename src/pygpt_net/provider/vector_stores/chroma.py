@@ -14,7 +14,29 @@ from typing import Optional
 
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core import StorageContext
-from llama_index.vector_stores.chroma import ChromaVectorStore
+def _get_chroma_vector_store_cls():
+    """
+    Lazily import the Chroma LlamaIndex adapter.
+
+    Native Windows Python 3.13 builds keep Chroma in the Python 3.12 sidecar,
+    so PyGPT must be able to start even when chromadb is not installed in the
+    main environment. This helper keeps Chroma optional until the Chroma vector
+    store is actually selected.
+    """
+    try:
+        from llama_index.vector_stores.chroma import ChromaVectorStore
+    except ModuleNotFoundError as exc:
+        missing = getattr(exc, "name", "") or ""
+        if missing == "chromadb" or missing.startswith("llama_index.vector_stores.chroma"):
+            raise RuntimeError(
+                "Chroma vector store is not available in this Python environment. "
+                "For the Windows Python 3.13 runtime, use Qdrant/Redis/Simple here "
+                "and keep Chroma in the Python 3.12 sidecar at L:\\PyHuey\\.venv312-chroma."
+            ) from exc
+        raise
+    return ChromaVectorStore
+
+
 
 from .base import BaseStore
 
@@ -86,6 +108,7 @@ class ChromaProvider(BaseStore):
         path = self.get_path(id)
         db = self.get_db(id)
         chroma_collection = db.get_or_create_collection(id)
+        ChromaVectorStore = _get_chroma_vector_store_cls()
         vector_store = ChromaVectorStore(
             chroma_collection=chroma_collection,
         )
