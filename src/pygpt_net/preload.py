@@ -9,8 +9,8 @@
 # Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
-LINK_GITHUB = "https://github.com/szczyglis-dev/py-gpt"
-LINK_DONATE = "https://www.buymeacoffee.com/szczyglis"
+LINK_GITHUB = "https://github.com/DylanLRPollock/Monkey-Head-Project"
+LINK_DONATE = "https://github.com/szczyglis-dev/py-gpt"
 
 # -------------------------------------------------- #
 # Lightweight splash window (separate process)
@@ -23,9 +23,9 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
     STRING_MAPPING = {
         "en": {
             "init": "Initializing...",
-            "support": "Support the project:",
-            "github": "⭐ Star on GitHub",
-            "donate": "☕ Buy me a coffee",
+            "support": "Monkey-Head-Project:",
+            "github": "Open Project",
+            "donate": "Upstream PyGPT",
         },
         "pl": {
             "init": "Inicjalizacja...",
@@ -231,10 +231,13 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         panel.setObjectName("SplashPanel")
         panel.setStyleSheet("""
         #SplashPanel {
-            background-color: rgba(30, 30, 30, 230);
-            border-radius: 12px;
+            background-color: rgba(23, 0, 35, 242);
+            border: 1px solid #6f2dbd;
+            border-radius: 16px;
         }
-        QLabel { color: #ffffff; }
+        QLabel {
+            color: #ffffff;
+        }
         """)
         layout = QtWidgets.QVBoxLayout(panel)
         layout.setContentsMargins(16, 16, 16, 16)
@@ -242,7 +245,7 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
 
         lbl_title = QtWidgets.QLabel(title, panel)
         lbl_title.setAlignment(QtCore.Qt.AlignCenter)
-        lbl_title.setStyleSheet("font-size: 16px; font-weight: 600;")
+        lbl_title.setStyleSheet("font-size: 20px; font-weight: 700; color: #ffffff;")
 
         lbl_wait = QtWidgets.QLabel(msg_init)
         lbl_wait.setAlignment(QtCore.Qt.AlignCenter)
@@ -256,18 +259,19 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         btn_support.setCursor(QtCore.Qt.PointingHandCursor)
         btn_support.setStyleSheet("""
             QPushButton {
-                background-color: #444444;
-                color: #ffffff;
-                border: none;
-                border-radius: 6px;
-                padding: 6px 12px;
+                background-color: #3a164f;
+                color: #f7f1ff;
+                border: 1px solid #7b2cbf;
+                border-radius: 8px;
+                padding: 7px 13px;
                 font-size: 12px;
             }
             QPushButton:hover {
-                background-color: #555555;
+                background-color: #51206d;
             }
             QPushButton:pressed {
-                background-color: #333333;
+                background-color: #00c853;
+                color: #07120a;
             }
         """)
         def open_github():
@@ -279,18 +283,19 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         btn_donate.setCursor(QtCore.Qt.PointingHandCursor)
         btn_donate.setStyleSheet("""
             QPushButton {
-                background-color: #444444;
-                color: #ffffff;
-                border: none;
-                border-radius: 6px;
-                padding: 6px 12px;
+                background-color: #3a164f;
+                color: #f7f1ff;
+                border: 1px solid #7b2cbf;
+                border-radius: 8px;
+                padding: 7px 13px;
                 font-size: 12px;
             }
             QPushButton:hover {
-                background-color: #555555;
+                background-color: #51206d;
             }
             QPushButton:pressed {
-                background-color: #333333;
+                background-color: #00c853;
+                color: #07120a;
             }
         """)
         def open_donate():
@@ -308,14 +313,19 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
 
         lbl_msg = QtWidgets.QLabel(message, panel)
         lbl_msg.setAlignment(QtCore.Qt.AlignCenter)
-        lbl_msg.setStyleSheet("font-size: 12px;")
+        lbl_msg.setWordWrap(True)
+        lbl_msg.setTextFormat(QtCore.Qt.PlainText)
+        lbl_msg.setMinimumWidth(500)
+        lbl_msg.setStyleSheet("font-size: 12px; color: #d8c6ff;")
 
         bar = QtWidgets.QProgressBar(panel)
         bar.setRange(0, 0)
         bar.setTextVisible(False)
         bar.setFixedHeight(8)
-        bar.setStyleSheet("QProgressBar { border: 0px; border-radius: 4px; } "
-                          "QProgressBar::chunk { background-color: #3f3f3f; }")
+        bar.setStyleSheet(
+            "QProgressBar { background-color: #100019; border: 0px; border-radius: 4px; } "
+            "QProgressBar::chunk { background-color: #00c853; border-radius: 4px; }"
+        )
 
         layout.addWidget(lbl_title)
         layout.addWidget(lbl_msg)
@@ -323,7 +333,7 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         layout.addWidget(lbl_wait)
         layout.addLayout(support_area)
 
-        panel.setFixedSize(360, 220)
+        panel.setFixedSize(560, 250)
         panel.move(0, 0)
         root.resize(panel.size())
 
