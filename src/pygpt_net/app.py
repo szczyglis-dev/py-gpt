@@ -195,6 +195,9 @@ def run(**kwargs):
 
     mp.freeze_support()  # required for PyInstaller
 
+    from pygpt_net.huey_license import require_license_acceptance
+    require_license_acceptance()
+
     # Start lightweight splash in a separate process (no interference with the main Qt app)
     from pygpt_net.__init__ import __version__
     from pygpt_net.preload import _start_preloader

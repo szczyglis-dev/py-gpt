@@ -1,0 +1,7 @@
+# Upstream PyGPT / PyGPT-net License Notice
+
+PyHuey is derived from / based on PyGPT / PyGPT-net.
+
+Before release, replace this file with the complete upstream PyGPT/PyGPT-net license text and required attribution from the upstream repository.
+
+This placeholder exists so the license gate can be wired and tested without pretending to change upstream license terms.
