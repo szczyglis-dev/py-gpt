@@ -336,11 +336,16 @@ class Launcher:
         """Run app"""
         self.window.setup()
         geometry = self.window.screen().availableGeometry()
-        pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
-        margin = 100
-        self.window.resize(geometry.width() - margin, geometry.height() - margin)
+        margin = 120
+
+        width = min(1800, max(1100, int(geometry.width() * 0.82)))
+        height = min(1000, max(720, int(geometry.height() * 0.78)))
+        x = geometry.x() + margin
+        y = geometry.y() + margin
+
+        self.window.resize(width, height)
         self.window.show()
-        self.window.move(pos)
+        self.window.move(x, y)
         self.window.post_setup()
         self.app.setWindowIcon(self.window.ui.get_app_icon())
         self.window.ui.tray.setup(self.app)
