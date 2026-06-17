@@ -140,11 +140,12 @@ class UI:
 
     def update_title(self):
         """Update window title"""
+        from pygpt_net.huey_branding import APP_NAME, BUILD, PROJECT_NAME
+
         suffix = self.window.core.platforms.get_env_suffix()
         profile_name = self.window.core.config.profile.get_current_name()
         self.window.setWindowTitle(
-            f"PyGPT {self.window.meta['version']} | "
-            f"build {self.window.meta['build'].replace('.', '-')}{suffix} ({profile_name})"
+            f"{APP_NAME} {BUILD} | {PROJECT_NAME}{suffix} ({profile_name})"
         )
 
     def post_setup(self):

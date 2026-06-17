@@ -129,6 +129,7 @@ pytest = "^7.4.3"
 
 [tool.poetry.scripts]
 pygpt = 'pygpt_net.app:run'
+pyhuey = 'pygpt_net.app:run'
 
 [build-system]
 requires = ["poetry-core"]
