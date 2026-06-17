@@ -59,15 +59,36 @@ _original_print = builtins.print
 
 def print_wrapper(*args, **kwargs):
     """
-    Suppress noisy upstream workdir traces unless explicitly requested.
+    Format normal PyHuey startup output and suppress noisy upstream traces.
 
-    Enable with:
+    Enable full upstream workdir traces with:
         $env:PYHUEY_VERBOSE_WORKDIR = "1"
     """
+    message = " ".join(str(arg) for arg in args)
+
     if os.environ.get("PYHUEY_VERBOSE_WORKDIR") != "1":
-        message = " ".join(str(arg) for arg in args)
         if message.startswith("FORCE using workdir:"):
             return
+
+    replacements = {
+        "Initializing...": "  [PyHuey] Initializing...",
+        "Checking for updates...": "  [Updates] Checking for updates...",
+        "No updates available.": "  [Updates] No updates available.",
+        "Closing...": "  [PyHuey] Closing...",
+        "Exiting...": "  [PyHuey] Exiting...",
+    }
+
+    if message in replacements:
+        return _original_print(replacements[message], **kwargs)
+
+    if message.startswith("Loaded config:"):
+        return _original_print("  [Config] " + message.removeprefix("Loaded config:").strip(), **kwargs)
+
+    if message.startswith("Loaded models:"):
+        return _original_print("  [Models] " + message.removeprefix("Loaded models:").strip(), **kwargs)
+
+    if message.startswith("Setting environment vars:"):
+        return _original_print("  [Env] " + message.removeprefix("Setting environment vars:").strip(), **kwargs)
 
     return _original_print(*args, **kwargs)
 

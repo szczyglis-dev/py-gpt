@@ -12,6 +12,7 @@
 import os
 from typing import Any, Optional
 
+from PySide6.QtGui import QColor, QPalette
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.events import RenderEvent
@@ -273,6 +274,49 @@ class Theme:
                     window.setStyleSheet(stylesheet + ''.join(content_parts).format(**os.environ))
                 except KeyError:
                     pass
+
+        self.apply_pyhuey_palette()
+
+
+    def apply_pyhuey_palette(self):
+        """Apply readable PyHuey text/color roles after qt-material CSS."""
+        if self.window.core.config.get('theme') != 'dark_pyhuey':
+            return
+
+        palette = QApplication.palette()
+
+        bg = QColor("#202328")
+        panel = QColor("#1b2026")
+        text = QColor("#fff8ff")
+        muted = QColor("#cbb8db")
+        accent = QColor("#5b2a86")
+        accent_text = QColor("#ffffff")
+        link = QColor("#b88cff")
+
+        for group in (QPalette.Active, QPalette.Inactive):
+            palette.setColor(group, QPalette.Window, bg)
+            palette.setColor(group, QPalette.WindowText, text)
+            palette.setColor(group, QPalette.Base, panel)
+            palette.setColor(group, QPalette.AlternateBase, QColor("#242931"))
+            palette.setColor(group, QPalette.Text, text)
+            palette.setColor(group, QPalette.Button, QColor("#242931"))
+            palette.setColor(group, QPalette.ButtonText, text)
+            palette.setColor(group, QPalette.ToolTipBase, QColor("#242931"))
+            palette.setColor(group, QPalette.ToolTipText, text)
+            palette.setColor(group, QPalette.Highlight, accent)
+            palette.setColor(group, QPalette.HighlightedText, accent_text)
+            palette.setColor(group, QPalette.Link, link)
+            palette.setColor(group, QPalette.PlaceholderText, muted)
+
+        palette.setColor(QPalette.Disabled, QPalette.WindowText, muted)
+        palette.setColor(QPalette.Disabled, QPalette.Text, muted)
+        palette.setColor(QPalette.Disabled, QPalette.ButtonText, muted)
+        palette.setColor(QPalette.Disabled, QPalette.PlaceholderText, muted)
+        palette.setColor(QPalette.Disabled, QPalette.Highlight, QColor("#35233f"))
+        palette.setColor(QPalette.Disabled, QPalette.HighlightedText, muted)
+
+        QApplication.setPalette(palette)
+        self.window.setPalette(palette)
 
     def style(self, element: str) -> str:
         """

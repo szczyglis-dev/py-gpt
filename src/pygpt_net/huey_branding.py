@@ -24,4 +24,14 @@ SPLASH_MESSAGE = (
 
 
 def print_startup_banner() -> None:
-    print(DISPLAY_BANNER)
+    width = 88
+    title = " PyHuey "
+    rule_left = "═" * 28
+    rule_right = "═" * max(0, width - len(rule_left) - len(title))
+
+    print("")
+    print(f"╔{rule_left}{title}{rule_right}╗")
+    print("║ Monkey-Head-Project".ljust(width + 1) + "║")
+    print("║ PyHuey Build v0.4.0  [Windows 11 Pro Insiders Edition]".ljust(width + 1) + "║")
+    print("║ https://github.com/DylanLRPollock/Monkey-Head-Project".ljust(width + 1) + "║")
+    print("╚" + "═" * width + "╝")
