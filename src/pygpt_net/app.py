@@ -195,13 +195,14 @@ def run(**kwargs):
 
     mp.freeze_support()  # required for PyInstaller
 
+    from pygpt_net.huey_branding import SPLASH_MESSAGE, SPLASH_TITLE
     from pygpt_net.huey_license import require_license_acceptance
+
     require_license_acceptance()
 
     # Start lightweight splash in a separate process (no interference with the main Qt app)
-    from pygpt_net.__init__ import __version__
     from pygpt_net.preload import _start_preloader
-    _preloader = _start_preloader(title="PyGPT", message=f"v{__version__}")
+    _preloader = _start_preloader(title=SPLASH_TITLE, message=SPLASH_MESSAGE)
 
     from pygpt_net.launcher import Launcher
 

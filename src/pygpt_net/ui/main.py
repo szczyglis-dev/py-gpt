@@ -376,7 +376,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.core.presets.save_all()
         print("Exiting...")
         print("")
-        print(f"⭐☕ {trans('exit.msg')} https://pygpt.net/#donate ☕⭐")
+        from pygpt_net.huey_branding import DISPLAY_BANNER
+
+        print(DISPLAY_BANNER)
         print("")
 
     def changeEvent(self, event):

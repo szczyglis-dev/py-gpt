@@ -302,14 +302,9 @@ class Config:
                 os_name = self.window.core.platforms.get_os()
                 architecture = self.window.core.platforms.get_architecture()
 
-                print("===================================================")
-                print(f" {Color.BOLD}PyGPT    {v}{Color.ENDC} build {build} ({os_name}, {architecture})")
-                print(" Author:  Marcin Szczygliński")
-                print(" GitHub:  https://github.com/szczyglis-dev/py-gpt")
-                print(" Website: https://pygpt.net")
-                print(" Email:   info@pygpt.net")
-                print("===================================================")
-                print("")
+                from pygpt_net.huey_branding import print_startup_banner
+
+                print_startup_banner()
                 print(f"{Color.BOLD}Initializing...{Color.ENDC}")
 
                 self.window.core.installer.install()
