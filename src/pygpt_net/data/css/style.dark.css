@@ -1,222 +1,126 @@
-* {{ 
-  font-family: 'Lato' !important; 
-  selection-background-color: #0765d4;
-  selection-color: #fff;
-}}
-QLineEdit {{
-  color: #ffffff; 
-  border: 1px solid #5c5c5c;
-}}
-QTextEdit {{
-  color: #ffffff; 
-  border: 1px solid #5c5c5c;
-}}
-QTabBar {{
-  text-transform: none;
-}}
-QComboBox {{
-  color: #fff;
-}}
-QTreeView,
-QListView,
-QLineEdit,
-QComboBox {{  
-  height: 30px;
-}}
-QTableView::item,
-QTreeView::item,
-QListView::item {{
-  padding: 4px;
-  min-height: 20px;
-}}
+/* PyHuey local dark overlay */
+/* Purple-first, green-accent theme test */
 
-/* Subtle hover for list/tree items (non-selected) */
-QListView::item:hover:!selected,
-QTreeView::item:hover:!selected {{
-  background-color: rgba(255, 255, 255, 5);
-}}
+QWidget {
+    background-color: #170023;
+    color: #f7f1ff;
+}
 
-QListView::item:selected,
-QTreeView::item:selected {{
-  color: #ffffff;
-  selection-color: #ffffff;
-}}
-QComboBox::item:selected {{
-  color: #000;
-  selection-color: #000;
-}}
-QComboBox::item:disabled {{
-  color: #d1d2d2;
-}}
-QListView::item:selected:focus, 
-QComboBox::item:selected:focus,
-QTreeView::item:selected:focus {{
-  color: #ffffff;
-  selection-color: #000000;
-}}
-QListView::item::disabled {{
-   color: #959595;
-   font-weight: bold;
-}}
-QMenuBar::item:selected {{ 
-  color: #000000;
-}} 
-QMenu::item:selected {{ 
-  color: #000000;
-}} 
-QPushButton {{
-  text-transform: none;
-}}
-QHeaderView::section {{
-  text-transform: none;
-}}
+QMainWindow,
+QDialog,
+QFrame,
+QScrollArea,
+QSplitter,
+QTabWidget::pane {
+    background-color: #170023;
+    color: #f7f1ff;
+}
 
-.label-title {{
-  font-weight: bold;
-}}
-.label-help,
-.label-desc,
-.label-chat-status {{
-  color: #999;
-}}
-.label-link {{
-  color: #90d9ff;
-  font-weight: bold;
-  text-decoration: none;
-}}
-.interpreter-input {{
-  font-family: 'Monaspace Neon';
-}}
-.interpreter-output,
-.code-editor {{
-  font-family: 'Monaspace Neon';
-  background: #232629; 
-  color: #fff;
-}}
-
-/* radius */
-QPushButton,
-QTextEdit,
-QListView,
-QTreeView,
-QComboBox,
-QLineEdit,
-QWebView {{
-  border-radius: 10px
-}}
+QMenuBar,
 QMenu,
-.layout-input,
-.layout-notepad {{
-  border-top-right-radius: 10px;
-  border-top-left-radius: 0px;
-  border-bottom-right-radius: 10px;
-  border-bottom-left-radius: 10px;
-}}
-.layout-search {{
-  height: 35px;
-}}
-.layout-output-web {{
-  border-radius: 10px;
-}}
+QToolBar {
+    background-color: #21102f;
+    color: #f7f1ff;
+    border: 0;
+}
+
+QMenuBar::item:selected,
+QMenu::item:selected {
+    background-color: #3a164f;
+    color: #ffffff;
+}
+
+QPushButton {
+    background-color: #3a164f;
+    color: #f7f1ff;
+    border: 1px solid #7b2cbf;
+    border-radius: 8px;
+    padding: 7px 12px;
+}
+
+QPushButton:hover {
+    background-color: #51206d;
+    border: 1px solid #9d4edd;
+}
+
+QPushButton:pressed {
+    background-color: #00c853;
+    color: #07120a;
+    border: 1px solid #6dff9a;
+}
+
+QLineEdit,
 QTextEdit,
-QLineEdit {{
- border: none;
-}}
-QComboBox::item:checked {{
-  font-weight: bold;
-}}
-QCalendarWidget QAbstractItemView::item:selected:focus,
-QCalendarWidget QAbstractItemView::item:selected {{
-    background: #3a4045;
-}}
-QCalendarWidget QAbstractItemView::item:hover {{
-    background: #3a4045;
-}}
-.file-explorer QHeaderView::section {{
-  background: #262a2e;
-  padding-top: 6px;
-  padding-bottom: 2px;
-  height: 20px;
-}}
-.file-explorer QTreeView::branch {{
-  background: #262a2e;
-}}
+QPlainTextEdit,
+QComboBox,
+QListView,
+QTreeView,
+QTableView {
+    background-color: #21102f;
+    color: #f7f1ff;
+    border: 1px solid #4c1d73;
+    border-radius: 8px;
+    selection-background-color: #00c853;
+    selection-color: #07120a;
+}
 
-.DebugList::item:selected,
-.DebugList::item:selected:focus {{
-  color: #000;
-  selection-color: #000000;
-}}
+QLineEdit:focus,
+QTextEdit:focus,
+QPlainTextEdit:focus,
+QComboBox:focus {
+    border: 1px solid #00c853;
+}
 
-QCalendarWidget QMenu::item:selected:focus,
-QCalendarWidget QMenu::item:selected {{
-    background: #3a4045;
-}}
+QTabBar::tab {
+    background-color: #21102f;
+    color: #d8c6ff;
+    padding: 8px 14px;
+    border: 0;
+}
 
-/* Node editor */
-NodeEditor {{
-  qproperty-gridBackColor: #242629;
-  qproperty-gridPenColor: #3b3f46;
+QTabBar::tab:selected {
+    color: #ffffff;
+    border-bottom: 2px solid #00c853;
+}
 
-  qproperty-nodeBackgroundColor: #2d2f34;
-  qproperty-nodeBorderColor: #4b4f57;
-  qproperty-nodeSelectionColor: #ff9900;
-  qproperty-nodeTitleColor: #3a3d44;
+QTabBar::tab:hover {
+    color: #ffffff;
+    background-color: #3a164f;
+}
 
-  qproperty-portInputColor: #66b2ff;
-  qproperty-portOutputColor: #70e070;
-  qproperty-portConnectedColor: #ffd166;
+QScrollBar:vertical,
+QScrollBar:horizontal {
+    background-color: #100019;
+    border: 0;
+}
 
-  qproperty-edgeColor: #c0c0c0;
-  qproperty-edgeSelectedColor: #ff8a5c;
-}}
+QScrollBar::handle:vertical,
+QScrollBar::handle:horizontal {
+    background-color: #7b2cbf;
+    border-radius: 5px;
+}
 
-/* Status Bar */
-#StatusBarTimer {{
-  color: #999 !important;
-}}
+QScrollBar::handle:vertical:hover,
+QScrollBar::handle:horizontal:hover {
+    background-color: #00c853;
+}
 
-/* ComboBox */
-QComboBox QAbstractItemView {{
-  border: 1px solid rgba(0,0,0,0.18);
-}}
+QSplitter::handle {
+    background-color: #4c1d73;
+}
 
-QListView#ComboPopupList {{
-  border-radius: 10px;
-  background: #1f2123;
-  border: 2px solid #4f5b62;
-}}
+QSplitter::handle:hover {
+    background-color: #00c853;
+}
 
-QComboBox[name="SearchableCombo"] QAbstractItemView::item,
-QListView#ComboPopupList::item {{
-  min-height: 20px;
-  padding: 8px 33px;
-  margin: 0;
-  color: #fff;
-}}
+QCheckBox,
+QRadioButton,
+QLabel {
+    color: #f7f1ff;
+}
 
-QComboBox QAbstractItemView::item:selected,
-QListView#ComboPopupList::item:selected {{
-   background: #fff;
-   color: #000;
-   selection-color: #000;
-   font-weight: bold;
- }}
-
-QListView#ComboPopupList::item:disabled {{
-  color: #c9c9c9;
-  background: #363d42;
-  padding: 15px;
-}}
-
-QComboBox QAbstractItemView::item:hover,
-QListView#ComboPopupList::item:hover {{ }}
-
-QWidget#ComboPopupWindow {{
-  background: transparent;
-  border: 0;
-}}
-QListView#ComboPopupList > QWidget#ComboPopupViewport {{
-  background: transparent;
-  border-radius: 0px;
-}}
+QToolTip {
+    background-color: #21102f;
+    color: #f7f1ff;
+    border: 1px solid #7b2cbf;
+}
