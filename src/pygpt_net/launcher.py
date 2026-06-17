@@ -16,9 +16,12 @@ import signal
 from logging import ERROR, WARNING, INFO, DEBUG
 
 from PySide6 import QtCore
-from PySide6.QtCore import QCoreApplication, Qt
+from PySide6.QtCore import QCoreApplication, Qt, qInstallMessageHandler
 from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import QApplication
+
+# Ensure Qt resource icons are registered even when launcher.py is imported directly.
+import pygpt_net.icons_rc  # noqa: F401
 
 from pygpt_net.core.events import AppEvent
 from pygpt_net.core.access.shortcuts import GlobalShortcutFilter
@@ -37,6 +40,27 @@ from pygpt_net.provider.web.base import BaseProvider as BaseWeb
 
 from PySide6.QtGui import QPixmapCache
 QPixmapCache.setCacheLimit(1024)  # ~1 MB
+
+
+def _qt_message_filter(mode, context, message):
+    """
+    Suppress known cosmetic Qt warnings in normal PyHuey startup output.
+
+    Enable full Qt warning output with:
+        $env:PYHUEY_VERBOSE_QT = "1"
+    """
+    if os.environ.get("PYHUEY_VERBOSE_QT") != "1":
+        suppressed = (
+            message.startswith("QFont::setPointSize: Point size <= 0")
+            or message.startswith("QWindowsWindow::setGeometry: Unable to set geometry")
+        )
+        if suppressed:
+            return
+
+    sys.__stderr__.write(f"{message}\n")
+
+
+qInstallMessageHandler(_qt_message_filter)
 
 
 class Launcher:
