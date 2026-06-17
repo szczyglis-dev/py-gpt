@@ -40,12 +40,39 @@ set_env("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-gpu-rasterization", True)
 
 # disable warnings
 set_env("TRANSFORMERS_NO_ADVISORY_WARNINGS", 1)
-set_env("QT_LOGGING_RULES", "qt.multimedia.ffmpeg=false;qt.qpa.fonts=false", allow_overwrite=True)
+set_env(
+    "QT_LOGGING_RULES",
+    "qt.multimedia.ffmpeg=false;"
+    "qt.qpa.fonts=false;"
+    "qt.gui.fonts=false;"
+    "qt.qpa.window=false;"
+    "qt.qpa.windows=false",
+    allow_overwrite=True,
+)
 
 if platform.system() == 'Windows':
     set_env("QT_MEDIA_BACKEND", "windows")
 
 _original_open = builtins.open
+_original_print = builtins.print
+
+
+def print_wrapper(*args, **kwargs):
+    """
+    Suppress noisy upstream workdir traces unless explicitly requested.
+
+    Enable with:
+        $env:PYHUEY_VERBOSE_WORKDIR = "1"
+    """
+    if os.environ.get("PYHUEY_VERBOSE_WORKDIR") != "1":
+        message = " ".join(str(arg) for arg in args)
+        if message.startswith("FORCE using workdir:"):
+            return
+
+    return _original_print(*args, **kwargs)
+
+
+builtins.print = print_wrapper
 
 def open_wrapper(file, mode='r', *args, **kwargs):
     """
