@@ -74,12 +74,38 @@ def print_wrapper(*args, **kwargs):
         "Initializing...": "  [PyHuey] Initializing...",
         "Checking for updates...": "  [Updates] Checking for updates...",
         "No updates available.": "  [Updates] No updates available.",
-        "Closing...": "  [PyHuey] Closing...",
+        "Closing...": "  [PyHuey] Saving session state...",
+        "Shutting down...": "  [PyHuey] Shutdown requested.",
         "Exiting...": "  [PyHuey] Exiting...",
     }
 
     if message in replacements:
         return _original_print(replacements[message], **kwargs)
+
+    if message.startswith("[SIG] Received signal:"):
+        return
+
+    quiet_shutdown_lines = {
+        "Sending terminate signal to all...",
+        "Saving ctx groups...",
+        "Saving tabs...",
+        "Saving notepad...",
+        "Saving calendar...",
+        "Saving drawing...",
+        "Saving plugins config...",
+        "Saving tools...",
+        "Closing clients...",
+        "Saving layout state...",
+        "Stopping timers...",
+        "Saving config...",
+        "Saving presets...",
+    }
+
+    if (
+        os.environ.get("PYHUEY_VERBOSE_SHUTDOWN") != "1"
+        and message in quiet_shutdown_lines
+    ):
+        return
 
     if message.startswith("Loaded config:"):
         return _original_print("  [Config] " + message.removeprefix("Loaded config:").strip(), **kwargs)
