@@ -64,11 +64,16 @@ def print_wrapper(*args, **kwargs):
     Enable full upstream workdir traces with:
         $env:PYHUEY_VERBOSE_WORKDIR = "1"
     """
-    message = " ".join(str(arg) for arg in args)
+    raw_message = " ".join(str(arg) for arg in args)
+    message = raw_message.strip()
 
     if os.environ.get("PYHUEY_VERBOSE_WORKDIR") != "1":
         if message.startswith("FORCE using workdir:"):
             return
+
+    # The boxed startup banner replaces the old single-line banner.
+    if message.startswith("Monkey-Head-Project  PyHuey Build"):
+        return
 
     replacements = {
         "Initializing...": "  [PyHuey] Initializing...",
