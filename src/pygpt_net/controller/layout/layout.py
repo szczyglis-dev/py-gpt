@@ -252,14 +252,17 @@ class Layout:
                 width = geometry_data.get('width', self.window.width())
                 height = geometry_data.get('height', self.window.height())
 
-                window_rect = QRect(x, y, width, height)
-                adjusted_rect = available_geometry.intersected(window_rect)
+                max_width = max(900, int(available_geometry.width() * 0.90))
+                max_height = max(700, int(available_geometry.height() * 0.88))
 
-                if not available_geometry.contains(window_rect):
-                    adjusted_rect.adjust(0, 0, -20, -20)
+                safe_width = min(max(width, 900), max_width)
+                safe_height = min(max(height, 700), max_height)
 
-                self.window.move(adjusted_rect.x(), adjusted_rect.y())
-                self.window.resize(adjusted_rect.width(), adjusted_rect.height())
+                safe_x = max(available_geometry.x(), min(x, available_geometry.right() - safe_width))
+                safe_y = max(available_geometry.y(), min(y, available_geometry.bottom() - safe_height))
+
+                self.window.move(safe_x, safe_y)
+                self.window.resize(safe_width, safe_height)
 
             if data.get('maximized'):
                 self.window.showMaximized()
