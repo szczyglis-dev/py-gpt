@@ -242,6 +242,7 @@ def run(**kwargs):
         from pygpt_net.plugin.server import Plugin as ServerPlugin
         from pygpt_net.plugin.tuya import Plugin as TuyaPlugin
         from pygpt_net.plugin.wikipedia import Plugin as WikipediaPlugin
+        from pygpt_net.plugin.twelvelabs import Plugin as TwelveLabsPlugin
         from pygpt_net.plugin.mcp import Plugin as MCPPlugin
         from pygpt_net.plugin.wolfram import Plugin as WolframPlugin
         from pygpt_net.plugin.osm import Plugin as OSMPlugin
@@ -462,6 +463,7 @@ def run(**kwargs):
         launcher.add_plugin(ServerPlugin())
         launcher.add_plugin(TuyaPlugin())
         launcher.add_plugin(WikipediaPlugin())
+        launcher.add_plugin(TwelveLabsPlugin())
         launcher.add_plugin(MCPPlugin())
         launcher.add_plugin(WolframPlugin())
         launcher.add_plugin(OSMPlugin())

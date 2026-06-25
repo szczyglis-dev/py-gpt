@@ -4154,6 +4154,9 @@ typer==0.21.1 ; python_version >= "3.10" and python_version < "3.14" \
 types-requests==2.32.4.20260107 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:018a11ac158f801bfa84857ddec1650750e393df8a004a8a9ae2a9bec6fcb24f \
     --hash=sha256:b703fe72f8ce5b31ef031264fe9395cac8f46a04661a79f7ed31a80fb308730d
+twelvelabs==1.2.8 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:c0487dd892b03728ac2afe3e4ebd4ea5e30ff404b61896667eb5a39264db282b \
+    --hash=sha256:bb0846cc839845c800de8061bb7b99212a472e24bf20770d569f6f620b845e3c
 typing-extensions==4.15.0 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
     --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548

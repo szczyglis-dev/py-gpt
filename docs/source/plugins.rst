@@ -36,6 +36,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 * ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
 * ``Tuya (IoT)`` - Handle Tuya Smart Home devices via Tuya Cloud API.
+* ``TwelveLabs`` - Analyze and understand videos with TwelveLabs Pegasus, and create multimodal embeddings with Marengo.
 * ``Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 * ``Voice Control (inline)`` - provides voice control command execution within a conversation.
 * ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
@@ -2785,6 +2786,24 @@ The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless in
 - ``tuya_sensors_read``
 
   Read normalized sensor values from your connected devices.
+
+
+TwelveLabs
+----------
+
+The TwelveLabs plugin brings native video understanding to PyGPT through the `TwelveLabs <https://twelvelabs.io>`_ API. The model can analyze videos with the ``Pegasus`` model and create multimodal embeddings with the ``Marengo`` model.
+
+Provide your API key in the plugin settings, or set the ``TWELVELABS_API_KEY`` environment variable. You can grab a free API key at https://twelvelabs.io — there is a generous free tier.
+
+**Commands**
+
+- ``tl_analyze_video``
+
+  Analyze/understand a video with Pegasus and answer a prompt about it (summary, description, Q&A). Accepts either a public video ``url`` or an already-indexed ``video_id``.
+
+- ``tl_embed_text``
+
+  Create a Marengo multimodal text embedding. The returned vector lives in the same space as Marengo video embeddings, which is useful for text-to-video search.
 
 
 Vision (inline)
