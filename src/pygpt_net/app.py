@@ -282,6 +282,7 @@ def run(**kwargs):
         from pygpt_net.provider.llms.perplexity import PerplexityLLM
         from pygpt_net.provider.llms.x_ai import xAILLM
         from pygpt_net.provider.llms.open_router import OpenRouterLLM
+        from pygpt_net.provider.llms.edenai import EdenAILLM
 
         # vector store providers (llama-index)
         from pygpt_net.provider.vector_stores.chroma import ChromaProvider
@@ -487,6 +488,7 @@ def run(**kwargs):
         launcher.add_llm(PerplexityLLM())
         launcher.add_llm(xAILLM())
         launcher.add_llm(OpenRouterLLM())
+        launcher.add_llm(EdenAILLM())
 
         # register LLMs
         llms = kwargs.get('llms', None)

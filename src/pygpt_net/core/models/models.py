@@ -513,6 +513,10 @@ class Models:
                 args["api_key"] = cfg.get('api_key_open_router', "")
                 args["base_url"] = cfg.get('api_endpoint_open_router', "")
                 self.window.core.debug.info("[api] Using client: OpenRouter API")
+            elif model.provider == "edenai":
+                args["api_key"] = cfg.get('api_key_edenai', "")
+                args["base_url"] = cfg.get('api_endpoint_edenai', "")
+                self.window.core.debug.info("[api] Using client: Eden AI API")
             elif model.provider == "ollama":
                 args["api_key"] = "ollama"
                 args["base_url"] = self.window.core.models.ollama.get_base_url() + "/v1"

@@ -561,6 +561,43 @@
         "advanced": false,
         "tab": "OpenRouter"
     },
+    "api_key_edenai": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.edenai",
+        "description": "settings.api_key.edenai.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "urls": {
+            "API Keys": "https://app.edenai.run/admin/api-settings/features-preferences"
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Eden AI"
+    },
+    "api_endpoint_edenai": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_edenai",
+        "description": "settings.api_endpoint_edenai.desc",
+        "value": "https://api.edenai.run/v3",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "Eden AI"
+    },
     "app.env": {
         "section": "general",
         "type": "dict",
