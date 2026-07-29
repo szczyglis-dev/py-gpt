@@ -579,6 +579,20 @@ class Importer:
                         'type': 'str'
                     }
                 ]
+            elif self.provider == "minimax":
+                m.tool_calls = True
+                m.llama_index['env'] = [
+                    {
+                        'name': 'OPENAI_API_KEY',
+                        'value': '{api_key_minimax}',
+                        'type': 'str'
+                    },
+                    {
+                        'name': 'OPENAI_API_BASE',
+                        'value': '{api_endpoint_minimax}',
+                        'type': 'str'
+                    }
+                ]
             models[key] = m
         provider_name = self.window.core.llm.get_provider_name(self.provider)
         self.set_status(trans('models.importer.loaded').replace("{provider}", provider_name))
