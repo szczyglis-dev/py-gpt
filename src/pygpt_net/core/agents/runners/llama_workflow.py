@@ -8,7 +8,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 06:00:00                  #
+# Updated Date: 2026.08.12 14:00:00                  #
 # ================================================== #
 
 import re
@@ -389,7 +389,53 @@ class LlamaWorkflow(BaseRunner):
                 # - split on the next StepEvent, or
                 # - finalize once at the end (make_response), just like OpenAI flow does.
 
+        # stream_events() completes when the terminal StopEvent reaches the stream,
+        # but the workflow's actual return value is obtained by awaiting the handler.
+        # This is especially important for custom workflows (Planner/Supervisor), whose
+        # final answer may exist only in the terminal event/result rather than AgentOutput.
+        final_result = await handler
+        final_text = self._workflow_result_to_text(final_result)
+        if final_text:
+            item_ctx.set_agent_final_response(final_text)
+            if verbose:
+                print(f"\nWorkflow final response: {final_text}")
+
         return item_ctx
+
+    def _workflow_result_to_text(self, result: Any) -> str:
+        """Extract a user-facing final answer from a workflow terminal result."""
+        if result is None:
+            return ""
+
+        if isinstance(result, str):
+            return result.strip()
+
+        # Custom StopEvent types used by PyGPT workflows, e.g. Supervisor OutputEvent.
+        final_answer = getattr(result, "final_answer", None)
+        if final_answer:
+            return str(final_answer).strip()
+
+        # Some workflow versions/implementations may expose the stop payload itself.
+        stop_result = getattr(result, "result", None)
+        if stop_result is not None and stop_result is not result:
+            text = self._workflow_result_to_text(stop_result)
+            if text:
+                return text
+
+        # Standard LlamaIndex AgentOutput -> ChatMessage.response/content.
+        response = getattr(result, "response", None)
+        if response is not None:
+            content = getattr(response, "content", None)
+            if content:
+                return str(content).strip()
+            if isinstance(response, str):
+                return response.strip()
+
+        content = getattr(result, "content", None)
+        if content:
+            return str(content).strip()
+
+        return ""
 
     def on_next_ctx(
             self,

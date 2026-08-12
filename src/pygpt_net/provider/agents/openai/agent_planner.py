@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 17:00:00                  #
+# Updated Date: 2026.08.12 14:00:00                  #
 # ================================================== #
 
-from dataclasses import dataclass
+import re
 from typing import Dict, Any, Tuple, Optional, List
+
+from pydantic import BaseModel, Field
 
 from agents import (
     Agent as OpenAIAgent,
@@ -40,24 +42,31 @@ from ..base import BaseAgent
 
 
 # ---------- Structured types to mirror the LlamaIndex Planner ----------
-@dataclass
-class SubTask:
-    name: str
-    input: str
-    expected_output: str
-    dependencies: List[str]
+# Use Pydantic models here rather than stdlib dataclasses. In openai-agents 0.6.4
+# dataclasses are wrapped under a top-level ``response`` key by AgentOutputSchema,
+# while BaseModel subclasses are emitted as the JSON object directly. Keeping the
+# schema shape identical to the prompt avoids a conflicting structured-output contract.
+class SubTask(BaseModel):
+    name: str = Field(..., description="The name of the sub-task.")
+    input: str = Field(..., description="The input prompt for the sub-task.")
+    expected_output: str = Field(..., description="The expected output of the sub-task.")
+    dependencies: List[str] = Field(
+        ...,
+        description="Names of sub-tasks that must be completed before this sub-task.",
+    )
 
 
-@dataclass
-class Plan:
-    sub_tasks: List[SubTask]
+class Plan(BaseModel):
+    sub_tasks: List[SubTask] = Field(..., description="The sub-tasks in the plan.")
 
 
-@dataclass
-class PlanRefinement:
-    is_done: bool
-    reason: Optional[str]
-    plan: Optional[Plan]
+class PlanRefinement(BaseModel):
+    is_done: bool = Field(..., description="Whether the overall task is already satisfied.")
+    reason: Optional[str] = Field(..., description="Why the plan is complete or needs an update.")
+    plan: Optional[Plan] = Field(
+        ...,
+        description="Replacement for the remaining plan, or null when no update is required.",
+    )
 
 
 class Agent(BaseAgent):
@@ -104,7 +113,7 @@ Completion criteria (ALL must be true to set is_done=true):
 If ANY of the above is false, set is_done=false.
 
 Update policy:
-- If the remaining sub-tasks are already reasonable and correctly ordered, do not propose changes: set is_done=false and omit "plan".
+- If the remaining sub-tasks are already reasonable and correctly ordered, do not propose changes: set is_done=false and set "plan" to null.
 - Only propose a new "plan" if you need to REPLACE the "Remaining Sub-Tasks" (e.g., wrong order, missing critical steps, or new info from completed outputs).
 - Do NOT repeat any completed sub-task. New sub-tasks must replace only the "Remaining Sub-Tasks".
 
@@ -153,7 +162,24 @@ Overall Task: {task}
         self.name = "Planner"
         self._memory_char_limit = 8000  # consistent with the LlamaIndex workflow
 
+    # Only these placeholders are substituted. This intentionally does NOT use
+    # str.format(), because planner prompts contain literal JSON braces.
+    _PROMPT_VAR_RE = re.compile(
+        r"\{(memory_context|tools_str|task|completed_outputs|remaining_sub_tasks)\}"
+    )
+
     # ---------- Helpers: planning/execution parity with LlamaIndex + bridge persistence ----------
+
+    def _render_prompt(self, template: str, **values: Any) -> str:
+        """Render known planner placeholders without interpreting literal JSON braces."""
+        source = template or ""
+
+        def repl(match: re.Match) -> str:
+            key = match.group(1)
+            value = values.get(key, match.group(0))
+            return "" if value is None else str(value)
+
+        return self._PROMPT_VAR_RE.sub(repl, source)
 
     def _truncate(self, text: str, limit: int) -> str:
         if not text or not limit or limit <= 0:
@@ -543,7 +569,8 @@ Overall Task: {task}
             allow_remote_tools=planner_allow_remote_tools,
         )
 
-        plan_prompt = planner_prompt_tpl.format(
+        plan_prompt = self._render_prompt(
+            planner_prompt_tpl,
             memory_context=memory_context,
             tools_str=tools_str,
             task=query,
@@ -553,7 +580,8 @@ Overall Task: {task}
         try:
             planner_result = await Runner.run(planner, plan_input_items)
             plan_obj: Optional[Plan] = planner_result.final_output  # type: ignore
-        except Exception:
+        except Exception as ex:
+            window.core.debug.log(f"OpenAI Planner: failed to create structured plan: {ex}")
             plan_obj = None
 
         if not plan_obj or not getattr(plan_obj, "sub_tasks", None):
@@ -610,6 +638,8 @@ Overall Task: {task}
         prev_rid: Optional[str] = previous_response_id
 
         i = 0
+        refinement_count = 0
+        max_refinements = max(1, max_steps)
         while i < len(plan_sub_tasks):
             if bridge.stopped():
                 bridge.on_stop(ctx)
@@ -678,12 +708,18 @@ Overall Task: {task}
             is_last_subtask = (i + 1 == len(plan_sub_tasks))
             will_refine = (refine_after_each and not is_last_subtask)
             if use_partial_ctx:
+                final_subtask_block = (is_last_subtask and not will_refine)
+                persisted_output = sub_answer if sub_answer else header_block.strip()
                 ctx = bridge.on_next_ctx(
                     ctx=ctx,
-                    input="",
-                    output=sub_answer if sub_answer else header_block.strip(),
+                    # On the terminal block, matching input/output tells the shared OpenAI
+                    # workflow bridge to finalize the current context instead of creating
+                    # a trailing empty partial context. The value is only a finish sentinel
+                    # here; on_next_ctx does not overwrite the current item's input.
+                    input=persisted_output if final_subtask_block else "",
+                    output=persisted_output,
                     response_id=sub_rid,
-                    finish=(is_last_subtask and not will_refine),
+                    finish=final_subtask_block,
                     stream=stream,
                 )
                 if stream:
@@ -697,7 +733,8 @@ Overall Task: {task}
 
             # Optional legacy-style refine after each sub-task (if there are remaining ones)
             i += 1
-            if refine_after_each and i < len(plan_sub_tasks):
+            if refine_after_each and i < len(plan_sub_tasks) and refinement_count < max_refinements:
+                refinement_count += 1
                 remaining = plan_sub_tasks[i:]
                 refine_label = self._agent_label("refine", index=i, total=len(plan_sub_tasks))
 
@@ -710,7 +747,8 @@ Overall Task: {task}
                 # Build refine prompt
                 completed_text = self._format_completed(completed)
                 remaining_text = self._format_subtasks(remaining)
-                refine_prompt = refine_prompt_tpl.format(
+                refine_prompt = self._render_prompt(
+                    refine_prompt_tpl,
                     memory_context=memory_context,
                     tools_str=tools_str,
                     completed_outputs=completed_text,
@@ -733,7 +771,8 @@ Overall Task: {task}
                     refinement_result = await Runner.run(refiner, [{"role": "user", "content": refine_prompt}])
                     refinement = refinement_result.final_output  # type: ignore
                     refine_rid = getattr(refinement_result, "last_response_id", "") or ""
-                except Exception:
+                except Exception as ex:
+                    window.core.debug.log(f"OpenAI Planner: failed to refine structured plan: {ex}")
                     refinement = None
 
                 if refinement is None:
@@ -765,7 +804,8 @@ Overall Task: {task}
                     if use_partial_ctx:
                         ctx = bridge.on_next_ctx(
                             ctx=ctx,
-                            input="",
+                            # Finalize this refine block in-place; avoid an empty terminal ctx.
+                            input=refine_display,
                             output=refine_display,
                             response_id=refine_rid or (response_id or ""),
                             finish=True,

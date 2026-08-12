@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 17:00:00                  #
+# Updated Date: 2026.08.12 14:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -50,7 +50,7 @@ class PlannerAgent(BaseAgent):
         tools: List[BaseTool] = kwargs.get("tools", []) or []
         llm: LLM = kwargs.get("llm", None)
         verbose: bool = kwargs.get("verbose", False)
-        max_steps: int = kwargs.get("max_steps", 12)
+        max_steps: int = int(kwargs.get("max_iterations", kwargs.get("max_steps", 12)))
 
         # get prompts from options or use defaults
         prompt_step = self.get_option(preset, "step", "prompt")

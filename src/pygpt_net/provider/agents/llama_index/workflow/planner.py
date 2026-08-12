@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 10:00:00                  #
+# Updated Date: 2026.08.12 14:00:00                  #
 # ================================================== #
 
 from typing import List, Optional, Callable
-import inspect
 from pydantic import BaseModel, Field, ValidationError
 
 from llama_index.core.workflow import (
@@ -175,7 +174,6 @@ class PlannerWorkflow(Workflow):
             tools=tools,
             llm=llm,
             system_prompt=system_prompt or DEFAULT_EXECUTE_PROMPT,
-            max_steps=max_steps,
         )
 
         if executor_memory_factory is not None:
@@ -309,11 +307,17 @@ class PlannerWorkflow(Workflow):
         :param ctx: The context in which the workflow is executed (optional).
         :param memory: custom memory buffer to use for the agent (optional).
         :param verbose: Whether to enable verbose output (default: False).
-        :param kwargs: Additional keyword arguments (not used).
+        :param kwargs: Additional runtime keyword arguments.
         :return: The result of the workflow execution.
         """
         if verbose:
             self.verbose = True
+
+        # The outer PyGPT workflow runner passes its cancellation callback per run.
+        # Keep it on the workflow so nested executor runs and the plan loop can stop too.
+        on_stop = kwargs.pop("on_stop", None)
+        if on_stop is not None:
+            self._on_stop = on_stop
 
         self._memory = memory
         self._reset_executor_memory()
@@ -484,20 +488,15 @@ class PlannerWorkflow(Workflow):
         if self._clear_exec_mem_between_subtasks:
             self._reset_executor_memory()
 
-        sig = inspect.signature(self._executor.run)
-        kwargs = {}
-        if "user_msg" in sig.parameters:
-            kwargs["user_msg"] = prompt
-        elif "input" in sig.parameters:
-            kwargs["input"] = prompt
-        elif "query" in sig.parameters:
-            kwargs["query"] = prompt
-        elif "task" in sig.parameters:
-            kwargs["task"] = prompt
-        if "max_steps" in sig.parameters:
-            kwargs["max_steps"] = self._max_steps
-
-        handler = self._executor.run(**kwargs)
+        # llama-index-core 0.14.23 exposes BaseWorkflowAgent.run as *args/**kwargs
+        # at runtime and consumes these names internally. Signature introspection therefore
+        # cannot discover user_msg/max_iterations and previously started the executor with
+        # no sub-task prompt at all. Pass the supported runtime arguments explicitly.
+        handler = self._executor.run(
+            user_msg=prompt,
+            max_iterations=max(1, self._max_steps),
+            early_stopping_method="generate",
+        )
         last_answer = ""
         has_stream = False
         stream_buf = []
@@ -560,10 +559,11 @@ class PlannerWorkflow(Workflow):
                 if isinstance(e, Event):
                     ctx.write_event_to_stream(e)
 
-            try:
-                await handler
-            except Exception:
-                pass
+            final_result = await handler
+            if not last_answer:
+                final_text = self._to_text(final_result).strip()
+                if final_text and final_text != "None":
+                    last_answer = final_text
 
             return last_answer or ("".join(stream_buf).strip() if stream_buf else "")
 
@@ -633,7 +633,7 @@ class PlannerWorkflow(Workflow):
                 memory_context=memory_context,
             )
             return refinement
-        except (ValueError, ValidationError):
+        except (ValueError, TypeError, ValidationError):
             # Graceful fallback if the model fails to conform to schema.
             return None
 
@@ -660,7 +660,12 @@ class PlannerWorkflow(Workflow):
                 task=ev.query,
                 memory_context=memory_context,
             )
-        except (ValueError, ValidationError):
+        except (ValueError, TypeError, ValidationError):
+            plan = None
+
+        # Structured output can be syntactically valid while still containing an empty plan.
+        # Never enter execute_plan with zero work items: fall back to one executable task.
+        if plan is None or not plan.sub_tasks:
             plan = Plan(sub_tasks=[SubTask(name="default", input=ev.query, expected_output="", dependencies=[])])
 
         lines = [f"`{trans('agent.planner.ui.current_plan')}`"]
@@ -700,6 +705,8 @@ class PlannerWorkflow(Workflow):
         memory_context = self._memory_to_text(self._memory)
 
         i = 0  # manual index to allow in-place plan updates during refinement
+        refinement_count = 0
+        max_refinements = max(1, self._max_steps)
         while i < len(plan_sub_tasks):
             st = plan_sub_tasks[i]
             total = len(plan_sub_tasks)
@@ -778,7 +785,12 @@ class PlannerWorkflow(Workflow):
 
             # Optional legacy-style refine after each sub-task
             i += 1  # move pointer to the next item before potential replacement of tail
-            if self._refine_after_each_subtask and i < len(plan_sub_tasks):
+            if (
+                self._refine_after_each_subtask
+                and i < len(plan_sub_tasks)
+                and refinement_count < max_refinements
+            ):
+                refinement_count += 1
                 remaining = plan_sub_tasks[i:]
                 # Label for refine step
                 refine_label = self._agent_label("refine", index=i, total=len(plan_sub_tasks))
