@@ -83,6 +83,15 @@ class Chat:
             user_name=user_name,
             multimodal_ctx=multimodal_ctx,
         )
+
+        # fix: messages for Mistral
+        if model.provider == "mistral_ai":
+            for msg in messages:
+                if 'name' in msg:
+                    del msg['name']
+                if 'user' in msg:
+                    del msg['user']
+
         msg_tokens = self.window.core.tokens.from_messages(
             messages,
             model.id,
