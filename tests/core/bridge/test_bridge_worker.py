@@ -21,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_ASSISTANT,
 )
 from pygpt_net.core.events import KernelEvent, Event
+from pygpt_net.item.ctx import CtxMeta
 
 
 class CtxObj:
@@ -118,7 +119,7 @@ def test_handle_additional_context_has_no_context():
     attachment = AttachmentStub(has_context=False)
     worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
-    ctx.ctx.meta = "m"
+    ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
     worker.context = ctx
     worker.handle_additional_context()
@@ -131,7 +132,7 @@ def test_handle_additional_context_empty_ad_context():
     attachment = AttachmentStub(has_context=True, context_value="", mode_value="query")
     worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
-    ctx.ctx.meta = "m"
+    ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
     worker.context = ctx
     worker.handle_additional_context()
@@ -144,7 +145,7 @@ def test_handle_additional_context_query_mode_sets_hidden_input():
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="query")
     worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
-    ctx.ctx.meta = "m"
+    ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
     worker.context = ctx
     worker.handle_additional_context()
@@ -157,7 +158,7 @@ def test_handle_additional_context_agent_mode_sets_hidden_input():
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="full")
     worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
-    ctx.ctx.meta = "m"
+    ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
     worker.context = ctx
     worker.mode = MODE_AGENT_LLAMA
@@ -171,7 +172,7 @@ def test_handle_additional_context_full_mode_no_hidden_input():
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="full")
     worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
-    ctx.ctx.meta = "m"
+    ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
     worker.context = ctx
     worker.mode = None

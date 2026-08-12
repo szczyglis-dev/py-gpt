@@ -51,6 +51,7 @@ def test_send(mock_window_conf):
     chat.window.core.api.openai.get_client = MagicMock(return_value=client)
 
     model = ModelItem()
+    model.id = 'gpt-3.5-turbo'
     model.ctx = 2048
     bridge_context = BridgeContext(
         prompt='test_prompt',

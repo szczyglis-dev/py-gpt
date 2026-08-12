@@ -55,10 +55,12 @@ def dummy_window():
 def dummy_model():
     model = MagicMock()
     model.id = "gpt-3-chat"
+    model.name = "gpt-3-chat"
     model.ctx = 4096
     model.extra = {}
     model.mode = ["chat"]
     model.is_gpt = MagicMock(return_value=True)
+    model.is_ollama = MagicMock(return_value=False)
     model.is_image_input = MagicMock(return_value=False)
     model.is_audio_input = MagicMock(return_value=False)
     return model
