@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2026.08.12 12:00:00                  #
 # ================================================== #
 
 import os.path
@@ -76,22 +76,11 @@ class Llm:
                     sub_mode="",
                 )
                 # get llama LLM instance
-                if multimodal and model.is_multimodal():
-                    # at first, try to get multimodal provider
-                    llm = self.window.core.llm.llms[provider].llama_multimodal(
-                        window=self.window,
-                        model=model,
-                    )
-                    if llm is not None:
-                        print("Using multimodal.")
-
-                if llm is None:
-                    # if no multimodal, get default llama provider
-                    llm = self.window.core.llm.llms[provider].llama(
-                        window=self.window,
-                        model=model,
-                        stream=stream,
-                    )
+                llm = self.window.core.llm.llms[provider].llama(
+                    window=self.window,
+                    model=model,
+                    stream=stream,
+                )
 
         # default model
         if llm is None:

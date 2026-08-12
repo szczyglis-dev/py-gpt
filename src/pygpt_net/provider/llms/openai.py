@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 08:00:00                  #
+# Updated Date: 2026.08.12 12:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -17,8 +17,6 @@ from typing import Optional, List, Dict
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
-
-from llama_index.multi_modal_llms.openai import OpenAIMultiModal as LlamaOpenAIMultiModal
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
@@ -129,10 +127,7 @@ class OpenAILLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        return LlamaOpenAIMultiModal(**args)
+        pass
 
     def get_embeddings_model(
             self,
