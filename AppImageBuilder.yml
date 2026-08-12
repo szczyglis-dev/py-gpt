@@ -8,7 +8,7 @@ AppDir:
     id: io.github.szczyglis_dev.py-gpt
     name: PyGPT
     icon: io.github.szczyglis_dev.py-gpt
-    version: 2.7.12
+    version: 2.8.0
     exec: usr/bin/python3
     exec_args: -m pygpt_net.app $@
 

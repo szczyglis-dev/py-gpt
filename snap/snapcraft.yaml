@@ -2,24 +2,32 @@ name: pygpt
 base: core22  # Ubuntu 22.04
 version: '2.8.0'
 summary: Desktop AI Assistant - o1, gpt-4, gpt-4-vision, chat, assistant, vision.
-description: |
-  **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including GPT-4, GPT-4 Vision, and GPT-3.5, through the OpenAI API. The application also integrates with alternative LLMs.
 
-grade: stable  # 'stable', 'devel'
-confinement: strict  # 'strict', 'classic', 'devmode'
+description: |
+  **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction
+  with OpenAI language models, including GPT-4, GPT-4 Vision, and GPT-3.5,
+  through the OpenAI API. The application also integrates with alternative LLMs.
+
+grade: stable
+confinement: strict
+
 architectures:
-    - build-on: amd64
-      build-for: [amd64]
-    # - build-on: i386
-      # build-for: [i386]
+  - build-on: amd64
+    build-for: [amd64]
+
+# - build-on: i386
+#   build-for: [i386]
 
 parts:
   pygpt:
-    #source: https://github.com/szczyglis-dev/py-gpt.git
-    #source-branch: master
+    # source: https://github.com/szczyglis-dev/py-gpt.git
+    # source-branch: master
     source: .
     plugin: python
-    python-requirements: [requirements.txt]
+
+    python-requirements:
+      - requirements.txt
+
     stage-packages:
       - libasound2
       - libasound2-data
@@ -45,6 +53,7 @@ parts:
       - xapp
       - libatomic1
       - packagekit-gtk3-module
+
       # Playwright Chromium runtime libraries
       - libnss3
       - libdrm2
@@ -55,38 +64,67 @@ parts:
       - libxrandr2
       - libxtst6
       - libcups2
+
       # PipeWire for QtMultimedia
       - libpipewire-0.3-0
       - libspa-0.2-modules
+
       # GStreamer runtime used by QtMultimedia
       - libgstreamer1.0-0
       - gstreamer1.0-plugins-good
       - gstreamer1.0-plugins-bad
       - gstreamer1.0-pulseaudio
+
       # GTK3 modules and icon themes
       - libcanberra-gtk3-module
       - adwaita-icon-theme
       - hicolor-icon-theme
       - shared-mime-info
+
       # Wayland client libs and XKB for cross-display compatibility
       - libwayland-client0
       - libwayland-cursor0
       - libwayland-egl1
       - libxkbcommon0
       - libxkbcommon-x11-0
+
     build-packages:
       - execstack
       - portaudio19-dev
       - gstreamer1.0-libav
       - libxcb-cursor0
+
     override-build: |
       snapcraftctl build
-      find $SNAPCRAFT_PART_INSTALL -name "onnxruntime_pybind11_state.cpython-310-${SNAPCRAFT_ARCH_TRIPLET}.so" -exec execstack --clear-execstack {} \;
-      cp -r $SNAPCRAFT_PART_SRC/snaprun.sh $SNAPCRAFT_PART_INSTALL/
-      cp -r $SNAPCRAFT_PART_SRC/src $SNAPCRAFT_PART_INSTALL/
-      chmod -R 755 $SNAPCRAFT_PART_INSTALL/src/pygpt_net/provider/agents/openai/bots/research_bot/
-      python3 -m nltk.downloader -d $SNAPCRAFT_PART_INSTALL/lib/python3.10/site-packages/llama_index/legacy/_static/nltk_cache stopwords punkt
+
+      find "$SNAPCRAFT_PART_INSTALL" \
+        -name "onnxruntime_pybind11_state.cpython-310-${SNAPCRAFT_ARCH_TRIPLET}.so" \
+        -exec execstack --clear-execstack {} \;
+
+      cp -r "$SNAPCRAFT_PART_SRC/snaprun.sh" "$SNAPCRAFT_PART_INSTALL/"
+      cp -r "$SNAPCRAFT_PART_SRC/src" "$SNAPCRAFT_PART_INSTALL/"
+
+      # Make all bundled source files readable and all directories traversable
+      # by the user running the snap.
+      #
+      # This fixes directories that accidentally have permissions such as 2700,
+      # while not marking every .py file as executable.
+      chmod -R a+rX "$SNAPCRAFT_PART_INSTALL/src"
+
+      # NLTK cache used by llama_index.
+      # NLTK 3.10+ requires the custom data directory to be explicitly allowed.
+      NLTK_CACHE="$SNAPCRAFT_PART_INSTALL/lib/python3.10/site-packages/llama_index/legacy/_static/nltk_cache"
+
+      mkdir -p "$NLTK_CACHE"
+      export NLTK_DATA="$NLTK_CACHE"
+
+      "$SNAPCRAFT_PART_INSTALL/bin/python3" -m nltk.downloader \
+        -d "$NLTK_CACHE" \
+        stopwords punkt punkt_tab
+
+      # Playwright Chromium
       export PLAYWRIGHT_BROWSERS_PATH="$SNAPCRAFT_PART_INSTALL/ms-playwright"
+
       if [ "${CRAFT_ARCH_TRIPLET_BUILD_FOR%%-*}" != "i386" ]; then
         "$SNAPCRAFT_PART_INSTALL/bin/python3" -m playwright install chromium
       fi
@@ -98,6 +136,7 @@ layout:
 plugs:
   docker:
     interface: docker
+
   docker-executables:
     interface: content
     content: docker-executables
@@ -106,50 +145,69 @@ plugs:
 apps:
   pygpt:
     command: snaprun.sh
-    extensions: [kde-neon]
+
+    extensions:
+      - kde-neon
+
     environment:
-      "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/blas:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/lapack"
-      "PYTHONPATH": "$PYTHONPATH:$SNAP/usr/lib/python3/dist-packages:$SNAP/src"
-      "QT_XKB_CONFIG_ROOT": "$SNAP/usr/share/X11/xkb"
-      "LIBGL_DRIVERS_PATH": "$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri"
-      "QTWEBENGINEPROCESS_PATH": "$SNAP/lib/python3.10/site-packages/PySide6/Qt/libexec/QtWebEngineProcess"
+      LD_LIBRARY_PATH: "$LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/blas:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/lapack"
+
+      PYTHONPATH: "$PYTHONPATH:$SNAP/usr/lib/python3/dist-packages:$SNAP/src"
+
+      QT_XKB_CONFIG_ROOT: "$SNAP/usr/share/X11/xkb"
+
+      LIBGL_DRIVERS_PATH: "$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri"
+
+      QTWEBENGINEPROCESS_PATH: "$SNAP/lib/python3.10/site-packages/PySide6/Qt/libexec/QtWebEngineProcess"
+
       # Make QML modules from PySide6 visible
-      "QML_IMPORT_PATH": "$SNAP/lib/python3.10/site-packages/PySide6/Qt/qml:$SNAP/qml"
-      "QML2_IMPORT_PATH": "$SNAP/lib/python3.10/site-packages/PySide6/Qt/qml:$SNAP/qml"
-      PATH: $SNAP_COMMON/docker-executables/bin:$PATH
+      QML_IMPORT_PATH: "$SNAP/lib/python3.10/site-packages/PySide6/Qt/qml:$SNAP/qml"
+      QML2_IMPORT_PATH: "$SNAP/lib/python3.10/site-packages/PySide6/Qt/qml:$SNAP/qml"
+
+      PATH: "$SNAP_COMMON/docker-executables/bin:$PATH"
+
       QTWEBENGINE_DISABLE_SANDBOX: "1"
-      # Allow QtWebEngine to select the right Ozone backend automatically (Wayland/X11)
+
+      # Allow QtWebEngine to select the right Ozone backend automatically
+      # (Wayland/X11)
       QTWEBENGINE_CHROMIUM_FLAGS: "--no-sandbox --disable-gpu-sandbox --ozone-platform-hint=auto"
+
       PLAYWRIGHT_BROWSERS_PATH: "$SNAP/ms-playwright"
       PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: "1"
+
       # Ensure GTK3 can find staged modules like xapp/canberra
       GTK_PATH: "$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/gtk-3.0"
+
       # Make sure Qt loads plugins from bundled PySide6 first
       QT_PLUGIN_PATH: "$SNAP/lib/python3.10/site-packages/PySide6/Qt/plugins:$QT_PLUGIN_PATH"
-      # Ensure icon themes and other shared data are visible (fixes missing folder icons)
+
+      # Ensure icon themes and other shared data are visible
       XDG_DATA_DIRS: "$SNAP/usr/share:$SNAP/share:$XDG_DATA_DIRS"
-      # Help GStreamer discover plugins inside the snap (QtMultimedia backend)
+
+      # Help GStreamer discover plugins inside the snap
       GST_PLUGIN_SYSTEM_PATH_1_0: "$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/gstreamer-1.0"
       GST_PLUGIN_PATH_1_0: "$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/gstreamer-1.0"
+
       # Use portals for file dialogs under Wayland/X11
       QT_QPA_PLATFORMTHEME: "xdgdesktopportal"
+
     plugs:
-    - alsa
-    - audio-playback
-    - audio-record
-    - pulseaudio
-    - browser-support
-    - network
-    - network-bind
-    - home
-    - gsettings
-    - desktop
-    - desktop-legacy
-    - wayland
-    - x11
-    - opengl
-    - unity7
-    - camera
-    - serial-port
-    - docker
-    - docker-executables
+      - alsa
+      - audio-playback
+      - audio-record
+      - pulseaudio
+      - browser-support
+      - network
+      - network-bind
+      - home
+      - gsettings
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl
+      - unity7
+      - camera
+      - serial-port
+      - docker
+      - docker-executables
