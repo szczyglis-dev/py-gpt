@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.29 21:00:00                  #
+# Updated Date: 2026.08.12 14:30:00                  #
 # ================================================== #
 
 import copy
@@ -464,22 +464,26 @@ class Updater(QObject):
             True
         )
 
-    def run_check(self, force: bool = False):
+    def run_check(self, force: bool = False, on_finished=None):
         """
         Run check for updates in background
 
         :param force: force show version dialog
+        :param on_finished: optional callback invoked after the background check finishes
         """
         worker = UpdaterWorker()
         worker.window = self.window
         worker.checker = self.check_silent
         worker.force = force
         worker.signals.version_changed.connect(self.handle_new_version)
+        if on_finished is not None:
+            worker.signals.finished.connect(on_finished)
         self.window.threadpool.start(worker)
 
 
 class UpdaterSignals(QObject):
     version_changed = Signal(str, str, str, str, str, str)
+    finished = Signal()
 
 
 class UpdaterWorker(QRunnable):
@@ -529,6 +533,8 @@ class UpdaterWorker(QRunnable):
             print("Failed to check for updates")
 
         finally:
+            if self.signals is not None:
+                self.signals.finished.emit()
             self.cleanup()
 
     def cleanup(self):

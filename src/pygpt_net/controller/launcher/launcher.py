@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.11 00:00:00                  #
+# Updated Date: 2026.08.12 14:30:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -27,9 +27,15 @@ class Launcher:
 
     def post_setup(self):
         """Post setup launcher"""
-        # check for updates
+        # Check for updates first, then synchronize banners. Both operations
+        # are asynchronous and never block the UI thread.
         if self.window.core.config.get('updater.check.launch'):
-            self.window.core.updater.run_check(force=True)  # async
+            self.window.core.updater.run_check(
+                force=True,
+                on_finished=self.window.core.banners.run_load,
+            )
+        else:
+            self.window.core.banners.run_load()
 
     def show_api_monit(self):
         """Show empty API KEY monit"""

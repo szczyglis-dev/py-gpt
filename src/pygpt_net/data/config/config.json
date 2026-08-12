@@ -100,6 +100,7 @@
   "api_proxy.enabled": false,
   "api_use_responses": true,
   "api_use_responses_llama": true,
+  "app_banners_api_url": "https://pygpt.net/api/banners.json",
   "app.env": [
     {
       "name": "OLLAMA_API_BASE",

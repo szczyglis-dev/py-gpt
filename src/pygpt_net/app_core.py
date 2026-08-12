@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 20:00:00                  #
+# Updated Date: 2026.08.12 14:30:00                  #
 # ================================================== #
 
 from .config import Config
@@ -16,6 +16,7 @@ from .core.assistants import Assistants
 from .core.attachments import Attachments
 from .core.audio import Audio
 from .core.bridge import Bridge
+from .core.banners import Banners
 from .core.calendar import Calendar
 from .core.camera import Camera
 # from .core.chain import Chain
@@ -71,6 +72,7 @@ class Core:
         # self.chain = Chain(window)  # deprecated from v2.5.20
         self.command = Command(window)
         self.config = Config(window)
+        self.banners = Banners(window)
         self.ctx = Ctx(window)
         self.db = Database(window)
         self.debug = Debug(window)
