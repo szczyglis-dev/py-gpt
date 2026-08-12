@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 02:00:00                  #
+# Updated Date: 2026.08.12 16:30:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -273,6 +273,13 @@ class UI:
         model = self.window.core.config.get('model')
         keys = self.window.core.image.get_available_resolutions(model)
         current = self.window.core.config.get('img_resolution', '1024x1024')
+
+        # A resolution saved for another image model must not leak into the new
+        # model request. Prefer the common 1024x1024 default when available.
+        if keys and current not in keys:
+            current = '1024x1024' if '1024x1024' in keys else next(iter(keys))
+            self.window.core.config.set('img_resolution', current)
+
         self.window.ui.config['global']['img_resolution'].set_keys(keys, lock=False)
         self.window.controller.config.apply_value(
             parent_id="global",

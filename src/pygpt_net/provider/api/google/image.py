@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 12:00:00                  #
+# Updated Date: 2026.08.12 16:30:00                  #
 # ================================================== #
 
 import mimetypes
@@ -17,6 +17,7 @@ from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 import base64, datetime, os, requests, tempfile
 
 from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.types import MODE_IMAGE
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -70,7 +71,7 @@ class Image:
 
         worker = ImageWorker()
         worker.window = self.window
-        worker.client = self.window.core.api.google.get_client()
+        worker.client = self.window.core.api.google.get_client(mode=MODE_IMAGE, model=model)
         worker.ctx = ctx
         worker.mode = sub_mode
         worker.attachments = attachments or {}
@@ -144,9 +145,10 @@ class ImageWorker(QRunnable):
         # fallbacks
         self.DEFAULT_GEMINI_IMAGE_MODEL = DEFAULT_GEMINI_IMAGE_MODEL
 
-        # Canonical 1K dimensions for Nano Banana Pro (Gemini 3 Pro Image Preview).
-        # Used to infer 2K/4K by 2x/4x multiples and to normalize UI inputs.
-        self._NB_PRO_1K = {
+        # Canonical Gemini image dimensions. These are also used to infer the
+        # image_size token without sending unsupported sizing options to models
+        # with fixed output size (e.g. Gemini 2.5 Flash Image / Flash Lite Image).
+        self._GEMINI_1K = {
             "1024x1024",  # 1:1
             "848x1264",   # 2:3
             "1264x848",   # 3:2
@@ -157,6 +159,38 @@ class ImageWorker(QRunnable):
             "768x1376",   # 9:16
             "1376x768",   # 16:9
             "1584x672",   # 21:9
+        }
+        self._GEMINI_31_FLASH_1K_EXTRA = {
+            "512x2048",   # 1:4
+            "384x3072",   # 1:8
+            "2048x512",   # 4:1
+            "3072x384",   # 8:1
+        }
+        # Keep the historical Nano Banana Pro alias dimensions working.
+        # PyGPT exposed these before the stable Gemini 3 Pro model ids landed.
+        self._NANO_BANANA_PRO_LEGACY_1K = {
+            "1024x1024",
+            "832x1248", "1248x832",
+            "864x1184", "1184x864",
+            "896x1152", "1152x896",
+            "768x1344", "1344x768",
+            "1536x672",
+        }
+        self._GEMINI_31_FLASH_512 = {
+            "512x512",
+            "256x1024",
+            "192x1536",
+            "424x632",
+            "632x424",
+            "448x600",
+            "1024x256",
+            "600x448",
+            "464x576",
+            "576x464",
+            "1536x192",
+            "384x688",
+            "688x384",
+            "792x168",
         }
 
     @Slot()
@@ -196,11 +230,17 @@ class ImageWorker(QRunnable):
 
             paths: List[str] = []
 
-            # Remix path: if image_id provided, prefer image-to-image remix using the given identifier.
+            # Remix path: if image_id provided, use the native edit/remix path
+            # for the selected image model family.
             if self.image_id:
                 self.signals.status.emit(trans('img.status.generating') + " (remix): " + (self.input_prompt or "") + "...")
-                if self._using_vertex() and self._is_imagen_generate(self.model):
-                    # Vertex / Imagen edit flow with a single base image (no explicit mask).
+                if self._is_imagen_generate(self.model):
+                    if not self._using_vertex():
+                        raise RuntimeError(
+                            "Imagen remix/edit requires Vertex AI. Use a Gemini image model for editing "
+                            "with the Gemini Developer API."
+                        )
+
                     img_ref = self._imagen_image_from_identifier(self.image_id)
                     if not img_ref:
                         raise RuntimeError("Invalid image_id for remix. Provide a valid local path, Files API name, or gs:// URI.")
@@ -214,7 +254,6 @@ class ImageWorker(QRunnable):
                             mask_dilation=0.0,
                         ),
                     )
-                    # Prepare edit config with optional negative prompt when supported
                     cfg_kwargs = dict(
                         edit_mode="EDIT_MODE_DEFAULT",
                         number_of_images=min(self.num, self.imagen_max_num),
@@ -225,7 +264,6 @@ class ImageWorker(QRunnable):
                     try:
                         cfg = gtypes.EditImageConfig(**cfg_kwargs)
                     except Exception:
-                        # Fallback without negative_prompt if SDK doesn't recognize it
                         cfg_kwargs.pop("negative_prompt", None)
                         cfg = gtypes.EditImageConfig(**cfg_kwargs)
 
@@ -235,12 +273,7 @@ class ImageWorker(QRunnable):
                         reference_images=[raw_ref, mask_ref],
                         config=cfg,
                     )
-
-                    # record usage if provided
-                    try:
-                        self._record_usage_google(resp)
-                    except Exception:
-                        pass
+                    self._record_usage_google_safe(resp)
 
                     imgs = getattr(resp, "generated_images", None) or []
                     for idx, gi in enumerate(imgs[: min(self.num, self.imagen_max_num)]):
@@ -248,49 +281,26 @@ class ImageWorker(QRunnable):
                         p = self._save(idx, data)
                         if p:
                             paths.append(p)
-
-                    # store reference for future remix: prefer remote URI if available, otherwise saved path
-                    if paths:
-                        self._store_image_reference_imagen(imgs[0] if imgs else None, paths[0])
+                    if not paths:
+                        raise RuntimeError("Google Imagen returned no image data.")
+                    self._store_image_reference_imagen(imgs[0] if imgs else None, paths[0])
 
                 else:
-                    # Gemini Developer API remix via generate_content with prompt + reference image part.
                     ref_part = self._image_part_from_identifier(self.image_id)
                     if not ref_part:
-                        raise RuntimeError("Invalid image_id for remix. Provide a valid local path, Files API name, http(s) URL, or gs:// URI.")
-                    img_cfg = self._build_gemini_image_config(self.model, self.resolution)
-                    resp = self.client.models.generate_content(
-                        model=self.model or self.DEFAULT_GEMINI_IMAGE_MODEL,
-                        contents=[self.input_prompt or "", ref_part],
-                        config=gtypes.GenerateContentConfig(
-                            image_config=img_cfg,
-                        ),
+                        raise RuntimeError(
+                            "Invalid image_id for remix. Provide a valid local path, Files API name, "
+                            "http(s) URL, or gs:// URI."
+                        )
+                    resp = self._gemini_generate_content(
+                        prompt=self.input_prompt or "",
+                        model_id=self.model,
+                        resolution=self.resolution,
+                        extra_parts=[ref_part],
                     )
-
-                    # record usage if provided
-                    try:
-                        self._record_usage_google(resp)
-                    except Exception:
-                        pass
-
-                    saved = 0
-                    for cand in getattr(resp, "candidates", []) or []:
-                        parts = getattr(getattr(cand, "content", None), "parts", None) or []
-                        for part in parts:
-                            inline = getattr(part, "inline_data", None)
-                            if inline and getattr(inline, "data", None):
-                                p = self._save(saved, inline.data)
-                                if p:
-                                    paths.append(p)
-                                    saved += 1
-                                    if saved >= self.num:
-                                        break
-                        if saved >= self.num:
-                            break
-
-                    # store reference: saved local path is a reusable identifier for next remix
-                    if paths:
-                        self._store_image_id(paths[0])
+                    self._record_usage_google_safe(resp)
+                    paths.extend(self._save_gemini_response(resp, self.num))
+                    self._store_image_id(paths[0])
 
                 if self.inline:
                     self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
@@ -302,16 +312,16 @@ class ImageWorker(QRunnable):
             self.signals.status.emit(trans('img.status.generating') + f": {self.input_prompt}...")
 
             if self.mode == Image.MODE_EDIT:
-                # EDIT
-                if self._using_vertex():
-                    # Vertex Imagen edit API (preferred)
+                # Attachments switch Imagen models to edit mode. Imagen editing is
+                # available through Vertex AI; Gemini image models use generate_content.
+                if self._is_imagen_generate(self.model):
+                    if not self._using_vertex():
+                        raise RuntimeError(
+                            "Imagen image editing requires Vertex AI. Use a Gemini image model for "
+                            "image-to-image editing with the Gemini Developer API."
+                        )
                     resp = self._imagen_edit(self.input_prompt, self.attachments, self.num)
-
-                    # record usage if provided
-                    try:
-                        self._record_usage_google(resp)
-                    except Exception:
-                        pass
+                    self._record_usage_google_safe(resp)
 
                     imgs = getattr(resp, "generated_images", None) or []
                     for idx, gi in enumerate(imgs[: self.num]):
@@ -319,48 +329,22 @@ class ImageWorker(QRunnable):
                         p = self._save(idx, data)
                         if p:
                             paths.append(p)
-                    # store reference
-                    if paths:
-                        self._store_image_reference_imagen(imgs[0] if imgs else None, paths[0])
+                    if not paths:
+                        raise RuntimeError("Google Imagen returned no image data.")
+                    self._store_image_reference_imagen(imgs[0] if imgs else None, paths[0])
                 else:
-                    # Gemini Developer API via Gemini image models (Nano Banana / Nano Banana Pro)
                     resp = self._gemini_edit(self.input_prompt, self.attachments, self.num)
-
-                    # record usage if provided
-                    try:
-                        self._record_usage_google(resp)
-                    except Exception:
-                        pass
-
-                    saved = 0
-                    for cand in getattr(resp, "candidates", []) or []:
-                        parts = getattr(getattr(cand, "content", None), "parts", None) or []
-                        for part in parts:
-                            inline = getattr(part, "inline_data", None)
-                            if inline and getattr(inline, "data", None):
-                                p = self._save(saved, inline.data)
-                                if p:
-                                    paths.append(p)
-                                    saved += 1
-                                    if saved >= self.num:
-                                        break
-                        if saved >= self.num:
-                            break
-                    # store reference
-                    if paths:
-                        self._store_image_id(paths[0])
+                    self._record_usage_google_safe(resp)
+                    paths.extend(self._save_gemini_response(resp, self.num))
+                    self._store_image_id(paths[0])
 
             else:
-                # GENERATE
-                if self._is_imagen_generate(self.model) and self._using_vertex():
+                # GENERATE. Imagen has a dedicated generate_images API on both
+                # Gemini Developer API and Vertex AI; Gemini image models use generate_content.
+                if self._is_imagen_generate(self.model):
                     num = min(self.num, self.imagen_max_num)
                     resp = self._imagen_generate(self.input_prompt, num, self.resolution)
-
-                    # record usage if provided
-                    try:
-                        self._record_usage_google(resp)
-                    except Exception:
-                        pass
+                    self._record_usage_google_safe(resp)
 
                     imgs = getattr(resp, "generated_images", None) or []
                     for idx, gi in enumerate(imgs[: num]):
@@ -368,36 +352,14 @@ class ImageWorker(QRunnable):
                         p = self._save(idx, data)
                         if p:
                             paths.append(p)
-                    # store reference
-                    if paths:
-                        self._store_image_reference_imagen(imgs[0] if imgs else None, paths[0])
+                    if not paths:
+                        raise RuntimeError("Google Imagen returned no image data.")
+                    self._store_image_reference_imagen(imgs[0] if imgs else None, paths[0])
                 else:
-                    # Gemini Developer API image generation (Nano Banana / Nano Banana Pro) with robust sizing + optional reference images
                     resp = self._gemini_generate_image(self.input_prompt, self.model, self.resolution)
-
-                    # record usage if provided
-                    try:
-                        self._record_usage_google(resp)
-                    except Exception:
-                        pass
-
-                    saved = 0
-                    for cand in getattr(resp, "candidates", []) or []:
-                        parts = getattr(getattr(cand, "content", None), "parts", None) or []
-                        for part in parts:
-                            inline = getattr(part, "inline_data", None)
-                            if inline and getattr(inline, "data", None):
-                                p = self._save(saved, inline.data)
-                                if p:
-                                    paths.append(p)
-                                    saved += 1
-                                    if saved >= self.num:
-                                        break
-                        if saved >= self.num:
-                            break
-                    # store reference
-                    if paths:
-                        self._store_image_id(paths[0])
+                    self._record_usage_google_safe(resp)
+                    paths.extend(self._save_gemini_response(resp, self.num))
+                    self._store_image_id(paths[0])
 
             if self.inline:
                 self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
@@ -514,58 +476,71 @@ class ImageWorker(QRunnable):
             config=cfg,
         )
 
-    def _is_gemini_pro_image_model(self, model_id: str) -> bool:
-        """
-        Detect Gemini 3 Pro Image (Nano Banana Pro) by id or UI alias.
-        """
-        mid = (model_id or "").lower()
-        return mid.startswith("gemini-") or mid.startswith("nano-banana") or mid.startswith("nb-")
+    def _gemini_supports_variable_image_size(self, model_id: str) -> bool:
+        """Return True only for Gemini image models that accept image_size."""
+        mid = (model_id or "").lower().split("/")[-1]
+        return (
+            mid.startswith("gemini-3.1-flash-image")
+            or mid.startswith("gemini-3-pro-image")
+            or mid.startswith("nano-banana-pro")
+            or mid.startswith("nb-pro")
+        )
 
-    def _infer_nb_pro_size_for_dims(self, w: int, h: int) -> Optional[str]:
-        """
-        Infer '1K' | '2K' | '4K' for Nano Banana Pro from WxH.
-        """
+    def _is_gemini_31_flash_image(self, model_id: str) -> bool:
+        mid = (model_id or "").lower().split("/")[-1]
+        return mid.startswith("gemini-3.1-flash-image")
+
+    def _is_nano_banana_pro_alias(self, model_id: str) -> bool:
+        mid = (model_id or "").lower().split("/")[-1]
+        return mid.startswith("nano-banana-pro") or mid.startswith("nb-pro")
+
+    def _infer_gemini_image_size_for_dims(self, model_id: str, w: int, h: int) -> Optional[str]:
+        """Infer the API image_size token from a canonical UI WxH value."""
+        if not self._gemini_supports_variable_image_size(model_id):
+            return None
+
         dims = f"{w}x{h}"
-        if dims in self._NB_PRO_1K:
+        if self._is_gemini_31_flash_image(model_id) and dims in self._GEMINI_31_FLASH_512:
+            return "512"
+
+        if self._is_nano_banana_pro_alias(model_id):
+            base = set(self._NANO_BANANA_PRO_LEGACY_1K)
+        else:
+            base = set(self._GEMINI_1K)
+            if self._is_gemini_31_flash_image(model_id):
+                base.update(self._GEMINI_31_FLASH_1K_EXTRA)
+
+        if dims in base:
             return "1K"
-        if (w % 2 == 0) and (h % 2 == 0):
-            if f"{w // 2}x{h // 2}" in self._NB_PRO_1K:
-                return "2K"
-        if (w % 4 == 0) and (h % 4 == 0):
-            if f"{w // 4}x{h // 4}" in self._NB_PRO_1K:
-                return "4K"
-        mx = max(w, h)
-        if mx >= 4000:
-            return "4K"
-        if mx >= 2000:
+        if (w % 2 == 0) and (h % 2 == 0) and f"{w // 2}x{h // 2}" in base:
             return "2K"
-        return "1K"
+        if (w % 4 == 0) and (h % 4 == 0) and f"{w // 4}x{h // 4}" in base:
+            return "4K"
+        return None
 
     def _build_gemini_image_config(self, model_id: str, resolution: str) -> Optional[gtypes.ImageConfig]:
-        """
-        Build ImageConfig for Gemini image models.
-        """
+        """Build a model-aware ImageConfig for Gemini native image generation."""
         try:
             aspect = self._aspect_from_resolution(resolution)
             cfg = gtypes.ImageConfig()
             if aspect:
                 cfg.aspect_ratio = aspect
 
-            # Only Pro supports image_size; detect by id/alias and set 1K/2K/4K from WxH.
-            if self._is_gemini_pro_image_model(model_id):
+            # Do not send image_size to fixed-size Gemini image models. The old
+            # code treated every gemini-* id as Nano Banana Pro, which could make
+            # otherwise valid requests fail for Flash / Flash Lite variants.
+            if self._gemini_supports_variable_image_size(model_id):
                 w_str, h_str = resolution.lower().replace("×", "x").split("x")
                 w, h = int(w_str.strip()), int(h_str.strip())
-                k = self._infer_nb_pro_size_for_dims(w, h)
-                if k:
-                    cfg.image_size = k
+                image_size = self._infer_gemini_image_size_for_dims(model_id, w, h)
+                if image_size:
+                    cfg.image_size = image_size
             return cfg
         except Exception:
             return None
 
     def _attachment_image_parts(self) -> List[gtypes.Part]:
-        """
-        Build image Parts from current attachments for Gemini models.
-        """
+        """Build image Parts from current attachments for Gemini models."""
         parts: List[gtypes.Part] = []
         paths = self._collect_attachment_paths(self.attachments)
         for p in paths:
@@ -580,77 +555,303 @@ class ImageWorker(QRunnable):
                 continue
         return parts
 
-    def _gemini_generate_image(self, prompt: str, model_id: str, resolution: str):
-        """
-        Call Gemini generate_content with robust fallback for image_size.
-        Supports optional reference images uploaded as attachments.
-        """
-        cfg = self._build_gemini_image_config(model_id, resolution)
-        image_parts = self._attachment_image_parts()
+    def _gemini_config_error(self, exc: Exception) -> bool:
+        """Best-effort detection of SDK/API errors caused by image config fields."""
+        msg = str(exc).lower()
+        markers = (
+            "imagesize", "image_size", "imageconfig", "image_config",
+            "aspect_ratio", "aspect ratio", "unrecognized", "unsupported",
+            "unknown name", "cannot find field", "invalid argument",
+        )
+        return any(marker in msg for marker in markers)
 
-        def _do_call(icfg: Optional[gtypes.ImageConfig]):
-            contents: List[Any] = []
-            contents.append(prompt or "")
-            if image_parts:
-                contents.extend(image_parts)
+    def _gemini_config_without_size(self, cfg: Optional[gtypes.ImageConfig]) -> Optional[gtypes.ImageConfig]:
+        if not cfg:
+            return None
+        try:
+            cfg2 = gtypes.ImageConfig()
+            aspect = getattr(cfg, "aspect_ratio", None)
+            if aspect:
+                cfg2.aspect_ratio = aspect
+            return cfg2
+        except Exception:
+            return None
+
+    def _gtype_has_field(self, cls: Any, field: str) -> bool:
+        """Return True when a google-genai Pydantic type exposes the given field."""
+        try:
+            fields = getattr(cls, "model_fields", None) or getattr(cls, "__fields__", None) or {}
+            return field in fields
+        except Exception:
+            return False
+
+    def _gemini_response_format(self, model_id: str, resolution: str) -> Dict[str, Any]:
+        """Build the current Python SDK response_format payload for an image output."""
+        image: Dict[str, Any] = {}
+        aspect = self._aspect_from_resolution(resolution)
+        if aspect:
+            image["aspect_ratio"] = aspect
+
+        try:
+            w_str, h_str = resolution.lower().replace("×", "x").split("x")
+            w, h = int(w_str.strip()), int(h_str.strip())
+            image_size = self._infer_gemini_image_size_for_dims(model_id, w, h)
+            if image_size:
+                image["image_size"] = image_size
+        except Exception:
+            pass
+
+        return {"image": image}
+
+    def _gemini_generate_content(
+            self,
+            prompt: str,
+            model_id: str,
+            resolution: str,
+            extra_parts: Optional[List[gtypes.Part]] = None
+    ):
+        """Call Gemini native image generation/editing with SDK-version fallbacks."""
+        cfg = self._build_gemini_image_config(model_id, resolution)
+        contents: List[Any] = [prompt or ""]
+        if extra_parts:
+            contents.extend(extra_parts)
+
+        supports_response_format = self._gtype_has_field(gtypes.GenerateContentConfig, "response_format")
+
+        def _do_call(icfg: Optional[gtypes.ImageConfig], use_response_format: bool = False):
+            kwargs: Dict[str, Any] = {"response_modalities": ["IMAGE"]}
+            if use_response_format and supports_response_format:
+                kwargs["response_format"] = self._gemini_response_format(model_id, resolution)
+            elif icfg is not None:
+                kwargs["image_config"] = icfg
             return self.client.models.generate_content(
                 model=model_id or self.DEFAULT_GEMINI_IMAGE_MODEL,
                 contents=contents,
-                config=gtypes.GenerateContentConfig(
-                    response_modalities=[gtypes.Modality.TEXT, gtypes.Modality.IMAGE],
-                    image_config=icfg,
-                ),
+                config=gtypes.GenerateContentConfig(**kwargs),
             )
 
-        try:
-            return _do_call(cfg)
-        except Exception as e:
-            msg = str(e)
-            if "imageSize" in msg or "image_size" in msg or "Unrecognized" in msg or "unsupported" in msg:
-                try:
-                    if cfg and getattr(cfg, "image_size", None):
-                        cfg2 = gtypes.ImageConfig()
-                        cfg2.aspect_ratio = getattr(cfg, "aspect_ratio", None)
-                        return _do_call(cfg2)
-                except Exception:
-                    pass
-            raise
+        response = None
+        last_error: Optional[Exception] = None
+
+        # Current Python SDK/docs use response_format. Older google-genai versions
+        # expose image_config instead, so preserve both paths without requiring a
+        # forced dependency upgrade.
+        strategies = []
+        if supports_response_format:
+            strategies.append((cfg, True))
+        strategies.append((cfg, False))
+
+        cfg_no_size = self._gemini_config_without_size(cfg)
+        if cfg_no_size is not None:
+            strategies.append((cfg_no_size, False))
+        strategies.append((None, False))
+
+        seen = set()
+        for icfg, use_response_format in strategies:
+            signature = (
+                bool(use_response_format),
+                getattr(icfg, "aspect_ratio", None) if icfg else None,
+                getattr(icfg, "image_size", None) if icfg else None,
+            )
+            if signature in seen:
+                continue
+            seen.add(signature)
+            try:
+                response = _do_call(icfg, use_response_format=use_response_format)
+                break
+            except Exception as exc:
+                last_error = exc
+                if not self._gemini_config_error(exc):
+                    raise
+
+        if response is None:
+            if last_error is not None:
+                raise last_error
+            raise RuntimeError("Google Gemini image request failed before a response was returned.")
+
+        # A successfully accepted but empty image response used to be silently
+        # treated as success in PyGPT. Retry once without optional image sizing
+        # unless Google explicitly blocked the request, then surface a real error.
+        if (
+                not self._gemini_response_has_image(response)
+                and cfg is not None
+                and not self._gemini_response_is_blocked(response)
+        ):
+            try:
+                fallback = _do_call(None, use_response_format=False)
+                if self._gemini_response_has_image(fallback) or self._gemini_response_is_blocked(fallback):
+                    response = fallback
+            except Exception:
+                pass
+
+        return response
+
+    def _gemini_generate_image(self, prompt: str, model_id: str, resolution: str):
+        """Gemini text-to-image, with optional image attachments as references."""
+        return self._gemini_generate_content(
+            prompt=prompt,
+            model_id=model_id,
+            resolution=resolution,
+            extra_parts=self._attachment_image_parts(),
+        )
 
     def _gemini_edit(self, prompt: str, attachments: Dict[str, Any], num: int):
-        """
-        Gemini image-to-image editing via generate_content.
-        The first attachment is used as the input image. Honors aspect_ratio and (for Pro) image_size.
-        """
+        """Gemini image-to-image editing via native generate_content."""
         paths = self._collect_attachment_paths(attachments)
         if len(paths) == 0:
             raise RuntimeError("No attachment provided for edit mode.")
 
-        img_path = paths[0]
-        with open(img_path, "rb") as f:
-            img_bytes = f.read()
-        mime = self._guess_mime(img_path)
+        parts: List[gtypes.Part] = []
+        for img_path in paths:
+            try:
+                with open(img_path, "rb") as f:
+                    img_bytes = f.read()
+                parts.append(gtypes.Part.from_bytes(data=img_bytes, mime_type=self._guess_mime(img_path)))
+            except Exception:
+                continue
+        if not parts:
+            raise RuntimeError("No readable image attachment provided for edit mode.")
 
-        cfg = self._build_gemini_image_config(self.model, self.resolution)
+        return self._gemini_generate_content(
+            prompt=prompt,
+            model_id=self.model,
+            resolution=self.resolution,
+            extra_parts=parts,
+        )
 
-        def _do_call(icfg: Optional[gtypes.ImageConfig]):
-            return self.client.models.generate_content(
-                model=self.model or self.DEFAULT_GEMINI_IMAGE_MODEL,
-                contents=[prompt, gtypes.Part.from_bytes(data=img_bytes, mime_type=mime)],
-                config=gtypes.GenerateContentConfig(
-                    image_config=icfg,
-                ),
-            )
+    def _gemini_response_parts(self, response: Any) -> List[Any]:
+        """Return response parts across current and older google-genai response shapes."""
+        try:
+            parts = getattr(response, "parts", None)
+            if parts:
+                return list(parts)
+        except Exception:
+            pass
+
+        parts: List[Any] = []
+        for cand in getattr(response, "candidates", None) or []:
+            try:
+                parts.extend(getattr(getattr(cand, "content", None), "parts", None) or [])
+            except Exception:
+                continue
+        return parts
+
+    def _extract_gemini_part_bytes(self, part: Any) -> Optional[bytes]:
+        """Extract image bytes from a Gemini response part."""
+        try:
+            if bool(getattr(part, "thought", False)):
+                return None
+        except Exception:
+            pass
 
         try:
-            return _do_call(cfg)
-        except Exception as e:
-            msg = str(e)
-            if "imageSize" in msg or "image_size" in msg or "Unrecognized" in msg or "unsupported" in msg:
-                if cfg and getattr(cfg, "image_size", None):
-                    cfg2 = gtypes.ImageConfig()
-                    cfg2.aspect_ratio = getattr(cfg, "aspect_ratio", None)
-                    return _do_call(cfg2)
-            raise
+            inline = getattr(part, "inline_data", None)
+            data = getattr(inline, "data", None) if inline else None
+            if isinstance(data, (bytes, bytearray)):
+                return bytes(data)
+            if isinstance(data, str):
+                return base64.b64decode(data)
+        except Exception:
+            pass
+
+        # Newer SDKs expose Part.as_image(); keep this as a secondary path so
+        # parsing remains compatible if inline_data internals change.
+        try:
+            as_image = getattr(part, "as_image", None)
+            if callable(as_image):
+                img = as_image()
+                data = getattr(img, "image_bytes", None) if img else None
+                if isinstance(data, (bytes, bytearray)):
+                    return bytes(data)
+                if isinstance(data, str):
+                    return base64.b64decode(data)
+        except Exception:
+            pass
+        return None
+
+    def _gemini_response_has_image(self, response: Any) -> bool:
+        return any(self._extract_gemini_part_bytes(part) for part in self._gemini_response_parts(response))
+
+    def _gemini_response_is_blocked(self, response: Any) -> bool:
+        """Detect safety/content blocking so a blocked request is not retried unnecessarily."""
+        try:
+            feedback = getattr(response, "prompt_feedback", None)
+            block_reason = getattr(feedback, "block_reason", None) if feedback else None
+            if block_reason and str(block_reason).upper() not in ("BLOCK_REASON_UNSPECIFIED", "NONE", "0"):
+                return True
+        except Exception:
+            pass
+        for cand in getattr(response, "candidates", None) or []:
+            try:
+                reason = str(getattr(cand, "finish_reason", "") or "").upper()
+                if any(x in reason for x in ("SAFETY", "BLOCKLIST", "PROHIBITED", "SPII", "RECITATION")):
+                    return True
+            except Exception:
+                continue
+        return False
+
+    def _gemini_no_image_error(self, response: Any) -> RuntimeError:
+        details: List[str] = []
+        try:
+            feedback = getattr(response, "prompt_feedback", None)
+            reason = getattr(feedback, "block_reason", None) if feedback else None
+            if reason:
+                details.append(f"block_reason={reason}")
+        except Exception:
+            pass
+
+        for cand in getattr(response, "candidates", None) or []:
+            try:
+                reason = getattr(cand, "finish_reason", None)
+                message = getattr(cand, "finish_message", None)
+                if reason:
+                    details.append(f"finish_reason={reason}")
+                if message:
+                    details.append(str(message))
+            except Exception:
+                continue
+
+        texts: List[str] = []
+        for part in self._gemini_response_parts(response):
+            try:
+                text = getattr(part, "text", None)
+                if text:
+                    texts.append(str(text).strip())
+            except Exception:
+                continue
+        if texts:
+            details.append("response=" + " ".join(texts)[:500])
+
+        suffix = (" Details: " + "; ".join(dict.fromkeys(details))) if details else ""
+        return RuntimeError("Google Gemini returned no image data." + suffix)
+
+    def _save_gemini_response(self, response: Any, max_images: int) -> List[str]:
+        """Save image parts from a Gemini response; never silently accept an empty response."""
+        data_items: List[bytes] = []
+        for part in self._gemini_response_parts(response):
+            data = self._extract_gemini_part_bytes(part)
+            if data:
+                data_items.append(data)
+                if len(data_items) >= max(1, int(max_images or 1)):
+                    break
+
+        if not data_items:
+            raise self._gemini_no_image_error(response)
+
+        paths: List[str] = []
+        for idx, data in enumerate(data_items):
+            p = self._save(idx, data)
+            if p:
+                paths.append(p)
+        if not paths:
+            raise RuntimeError("Gemini returned image data, but PyGPT could not save the generated image.")
+        return paths
+
+    def _record_usage_google_safe(self, response: Any) -> None:
+        try:
+            self._record_usage_google(response)
+        except Exception:
+            pass
 
     def _image_part_from_identifier(self, identifier: str) -> Optional[gtypes.Part]:
         """
@@ -779,18 +980,32 @@ class ImageWorker(QRunnable):
         try:
             from math import gcd
             tolerance = 0.08
-            w_str, h_str = resolution.lower().replace("×", "x").split("x")
+            normalized = resolution.lower().replace("×", "x").replace(" ", "")
+            # Google's published 512px table currently lists 792x168 for 21:9,
+            # which does not reduce mathematically to 21:9. Preserve the API
+            # semantic ratio for that canonical value instead of guessing from WxH.
+            canonical = {
+                "792x168": "21:9",
+            }
+            if normalized in canonical:
+                return canonical[normalized]
+
+            w_str, h_str = normalized.split("x")
             w, h = int(w_str.strip()), int(h_str.strip())
             if w <= 0 or h <= 0:
                 return None
             supported = {
                 "1:1": 1 / 1,
+                "1:4": 1 / 4,
+                "1:8": 1 / 8,
                 "2:3": 2 / 3,
                 "3:2": 3 / 2,
                 "3:4": 3 / 4,
+                "4:1": 4 / 1,
                 "4:3": 4 / 3,
                 "4:5": 4 / 5,
                 "5:4": 5 / 4,
+                "8:1": 8 / 1,
                 "9:16": 9 / 16,
                 "16:9": 16 / 9,
                 "21:9": 21 / 9,

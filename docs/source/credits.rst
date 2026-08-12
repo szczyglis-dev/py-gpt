@@ -39,6 +39,7 @@ Special thanks
 --------------
 GitHub's community:
 
+* **ba2512005**
 * **BillionShields**
 * **gfsysa**
 * **glinkot**
@@ -48,6 +49,8 @@ GitHub's community:
 * **lukasz-pekala**
 * **moritz-t-w**
 * **oleksii-honchar**
+* **robertnama**
+* **WildGreenRose**
 * **yf007**
 
 

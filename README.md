@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.7.12** | build: **2026-02-06** | Python: **>=3.10, <3.14**
+Release: **2.8.0** | build: **2026-08-12** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -1076,78 +1076,83 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has a preconfigured list of models (as of 2026-02-06):
+PyGPT has a preconfigured list of models (as of 2026-08-12):
 
 - `bielik-11b-v2.3-instruct:Q4_K_M` (Ollama)
-- `chatgpt-4o-latest` (OpenAI)
-- `claude-3-5-sonnet-20240620` (Anthropic)
-- `claude-3-7-sonnet` (Anthropic)
-- `claude-3-opus` (Anthropic)
-- `claude-3-opus` (Anthropic)
-- `claude-opus-4-0` (Anthropic)
-- `claude-sonnet-4-0` (Anthropic)
+- `claude-fable-5` (Anthropic)
+- `claude-haiku-4-5` (Anthropic)
 - `claude-opus-4-5` (Anthropic)
+- `claude-opus-5` (Anthropic)
 - `claude-sonnet-4-5` (Anthropic)
+- `claude-sonnet-5` (Anthropic)
 - `codellama` (Ollama)
-- `codex-mini` (OpenAI)
-- `dall-e-2` (OpenAI)
-- `dall-e-3` (OpenAI)
+- `deep-research-max-preview-04-2026` (Google)
+- `deep-research-preview-04-2026` (Google)
 - `deep-research-pro-preview-12-2025` (Google)
-- `deepseek-chat` (DeepSeek)
 - `deepseek-r1:1.5b` (Ollama)
 - `deepseek-r1:14b` (Ollama)
-- `deepseek-r1:32b` (Ollama)
 - `deepseek-r1:7b` (Ollama)
-- `deepseek-reasoner` (DeepSeek)
+- `deepseek-v4-flash` (DeepSeek)
+- `deepseek-v4-pro` (DeepSeek)
 - `gemini-2.5-computer-use-preview-10-2025` (Google)
-- `gemini-1.5-flash` (Google)
-- `gemini-1.5-pro` (Google)
-- `gemini-2.0-flash-exp` (Google)
 - `gemini-2.5-flash` (Google)
-- `gemini-2.5-flash-preview-native-audio-dialog` (Google, real-time)
+- `gemini-2.5-flash-image` (Google)
+- `gemini-2.5-flash-native-audio-latest` (Google, real-time)
 - `gemini-2.5-pro` (Google)
 - `gemini-3-flash-preview` (Google)
-- `gemini-3-pro-image-preview` (Google)
-- `gemini-3-pro-preview` (Google)
+- `gemini-3-pro-image` (Google)
+- `gemini-3.1-flash-image` (Google)
+- `gemini-3.1-flash-lite-image` (Google)
+- `gemini-3.1-flash-live-preview` (Google, real-time)
+- `gemini-3.1-flash-tts-preview` (Google, audio)
+- `gemini-3.1-pro-preview` (Google)
+- `gemini-3.5-flash` (Google)
+- `gemini-3.5-flash-lite` (Google)
+- `gemini-3.6-flash` (Google)
 - `gpt-3.5-turbo` (OpenAI)
-- `gpt-3.5-turbo-16k` (OpenAI)
 - `gpt-3.5-turbo-instruct` (OpenAI)
 - `gpt-4` (OpenAI)
-- `gpt-4-32k` (OpenAI)
 - `gpt-4-turbo` (OpenAI)
-- `gpt-4-vision-preview` (OpenAI)
 - `gpt-4.1` (OpenAI)
 - `gpt-4.1-mini` (OpenAI)
 - `gpt-4.1-nano` (OpenAI)
 - `gpt-4o` (OpenAI)
-- `gpt-4o-realtime-preview` (OpenAI, real-time)
 - `gpt-4o-mini` (OpenAI)
 - `gpt-5` (OpenAI)
 - `gpt-5-mini` (OpenAI)
 - `gpt-5-nano` (OpenAI)
 - `gpt-5.2` (OpenAI)
+- `gpt-5.6-sol` (OpenAI)
+- `gpt-5.6-luna` (OpenAI)
+- `gpt-5.6-terra` (OpenAI)
 - `gpt-image-1` (OpenAI)
 - `gpt-image-1.5` (OpenAI)
+- `gpt-image-2` (OpenAI)
 - `gpt-oss:20b` (OpenAI - via Ollama and HuggingFace Router)
 - `gpt-oss:120b` (OpenAI - via Ollama and HuggingFace Router)
 - `gpt-realtime` (OpenAI, real-time)
+- `gpt-realtime-2.1` (OpenAI, real-time)
+- `gpt-realtime-2.1-mini` (OpenAI, real-time)
+- `grok-2-image-1212` (xAI)
 - `grok-2-vision` (xAI)
-- `grok-3` (xAI)
-- `grok-3-fast` (xAI)
 - `grok-3-mini` (xAI)
 - `grok-3-mini-fast` (xAI)
-- `grok-4` (xAI)
+- `grok-4.3-latest` (xAI)
+- `grok-4.5-latest` (xAI)
 - `grok-imagine-image` (xAI)
+- `grok-imagine-image-quality-latest` (xAI)
 - `grok-imagine-video` (xAI)
+- `grok-imagine-video-1.5` (xAI)
+- `imagen-4.0-generate-001` (Google)
 - `llama2-uncensored` (Ollama)
 - `llama3.1` (Ollama)
 - `llama3.1:70b` (Ollama)
+- `llama3.3:70b` (Ollama)
 - `mistral` (Ollama)
 - `mistral-large` (Ollama)
 - `mistral-small3.1` (Ollama)
 - `nano-banana-pro-preview` (Google)
 - `o1` (OpenAI)
-- `o1-mini` (OpenAI)
 - `o1-pro` (OpenAI)
 - `o3` (OpenAI)
 - `o3-deep-research` (OpenAI)
@@ -1159,17 +1164,14 @@ PyGPT has a preconfigured list of models (as of 2026-02-06):
 - `qwen2.5-coder:7b` (Ollama)
 - `qwen3:8b` (Ollama)
 - `qwen3:30b-a3b` (Ollama)
-- `r1` (Perplexity)
 - `sonar` (Perplexity)
 - `sonar-deep-research` (Perplexity)
 - `sonar-pro` (Perplexity)
-- `sonar-reasoning` (Perplexity)
 - `sonar-reasoning-pro` (Perplexity)
 - `sora-2` (OpenAI)
-- `veo-3.0-generate-preview` (Google)
-- `veo-3.0-fast-generate-preview` (Google)
-- `veo-3.1-generate-preview` (Google)
 - `veo-3.1-fast-generate-preview` (Google)
+- `veo-3.1-generate-preview` (Google)
+- `veo-3.1-lite-generate-preview` (Google)
 
 All models are specified in the configuration file `models.json`, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by `OpenAI API` (or compatible), `Google Gen AI API`, `Anthropic API`, `xAI API`, and those supported by `LlamaIndex` or `Ollama` to this file. Configuration for LlamaIndex in placed in `llama_index` key.
@@ -3686,6 +3688,17 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.8.0 (2026-08-12)**
+
+- Upgraded all models to their latest available versions.
+- Upgraded dependencies.
+- Fixed compatibility with the latest models.
+- Fixed the Runner agents workflow.
+- Fixed the Ollama provider and custom model handling - [#169](https://github.com/szczyglis-dev/py-gpt/pull/169), thanks to [@ba2512005](https://github.com/ba2512005).
+- Fixed top_p handling and added temperature guards for Claude 4.x Anthropic models - [#184](https://github.com/szczyglis-dev/py-gpt/pull/184), thanks to [@robertnama](https://github.com/robertnama).
+- Fixed message handling for Mistral - [#185](https://github.com/szczyglis-dev/py-gpt/pull/185), thanks to [@WildGreenRose](https://github.com/WildGreenRose).
+
+
 **2.7.12 (2026-02-06)**
 
 - xAI SDK upgraded to v1.6.1.
@@ -3709,31 +3722,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added a Mark/Unmark feature to the Notepad widget.  
 - Added 18 new languages: Arabic (ar), Bulgarian (bg), Czech (cs), Danish (da), Finnish (fi), Hebrew (he), Hindi (hi), Hungarian (hu), Japanese (ja), Korean (ko), Dutch (nl), Norwegian (no), Portuguese (pt), Romanian (ro), Russian (ru), Slovak (sk), Swedish (sv), Turkish (tr).
 
-**2.7.9 (2026-01-08)**
-
-- Improved realtime audio mode.
-- Added xAI provider and Grok support in realtime audio mode.
-
-**2.7.8 (2026-01-06)**
-
-- Added the xAI Collections remote tool and integrated collections management into the Remote Vector Stores tool.
-- Unified the Remote Vector Stores tool into a single tool for all providers.
-- Added xAI Grok audio input and output provider (realtime audio support for Grok coming soon!).
-- Enhanced the Image Viewer tool with a toolbox featuring Prev/Next and more options.
-
-**2.7.7 (2026-01-05)**
-
-- Added support for Responses API in xAI.
-- Added xAI remote tools: Remote MCP, Code Execution.
-- Added Anthropic remote tools: Remote MCP, Web Fetch, Code Execution.
-
-**2.7.6 (2026-01-03)**
-
-- Fixed compatibility with xAI SDK and resolved empty responses from Grok models.
-- Fixed missing libraries in the Snap package.
-- Added zoom and grab functionality in the Image Viewer.
-- Added a zoom menu to textarea and web widgets.
-- Added the ability to close tabs with a middle mouse button click.
 
 # Credits and links
 
@@ -3763,6 +3751,8 @@ may consume additional tokens that are not displayed in the main window.
 
 GitHub's community:
 
+- [@ba2512005](https://github.com/ba2512005)
+
 - [@BillionShields](https://github.com/BillionShields)
 
 - [@gfsysa](https://github.com/gfsysa)
@@ -3780,6 +3770,10 @@ GitHub's community:
 - [@moritz-t-w](https://github.com/moritz-t-w)
 
 - [@oleksii-honchar](https://github.com/oleksii-honchar)
+
+- [@robertnama](https://github.com/robertnama)
+
+- [@WildGreenRose](https://github.com/WildGreenRose)
 
 - [@yf007](https://github.com/yf007)
 

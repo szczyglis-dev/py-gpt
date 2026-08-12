@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.8.0 (2026-08-12)
+
+- Upgraded all models to their latest available versions.
+- Upgraded dependencies.
+- Fixed compatibility with the latest models.
+- Fixed the Runner agents workflow.
+- Fixed the Ollama provider and custom model handling - [#169](https://github.com/szczyglis-dev/py-gpt/pull/169), thanks to [@ba2512005](https://github.com/ba2512005).
+- Fixed top_p handling and added temperature guards for Claude 4.x Anthropic models - [#184](https://github.com/szczyglis-dev/py-gpt/pull/184), thanks to [@robertnama](https://github.com/robertnama).
+- Fixed message handling for Mistral - [#185](https://github.com/szczyglis-dev/py-gpt/pull/185), thanks to [@WildGreenRose](https://github.com/WildGreenRose).
+
 ## 2.7.12 (2026-02-06)
 
 - xAI SDK upgraded to v1.6.1.
