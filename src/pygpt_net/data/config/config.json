@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.7.12",
-    "app.version": "2.7.12",
-    "updated_at": "2026-02-06T00:00:00"
+    "version": "2.8.0",
+    "app.version": "2.8.0",
+    "updated_at": "2026-08-12T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -168,17 +168,17 @@
   "ctx.urls.internal": false,
   "ctx.use_extra": true,
   "current_model": {
-    "assistant": "gpt-4o",
-    "chat": "gpt-4o",
+    "assistant": "gpt-5.6-terra-high",
+    "chat": "gpt-5.6-terra-high",
     "completion": "gpt-3.5-turbo-instruct",
-    "img": "gpt-image-1",
+    "img": "gpt-image-2",
     "langchain": "gpt-4o-mini",
-    "llama_index": "gpt-4o",
-    "vision": "gpt-4o",
-    "agent": "gpt-4o",
-    "agent_llama": "gpt-4o",
-    "agent_openai": "gpt-4o",
-    "expert": "gpt-4o",
+    "llama_index": "gpt-5.6-terra-high",
+    "vision": "gpt-5.6-terra-high",
+    "agent": "gpt-5.6-terra-high",
+    "agent_llama": "gpt-5.6-terra-high",
+    "agent_openai": "gpt-5.6-terra-high",
+    "expert": "gpt-5.6-terra-high",
     "computer": "computer-use-preview"
   },
   "current_preset": {
@@ -352,7 +352,7 @@
   "max_tokens_length": 32000,
   "max_total_tokens": 128000,
   "mode": "chat",
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra-high",
   "notepad.num": 1,
   "organization_key": "",
   "output_timestamp": false,

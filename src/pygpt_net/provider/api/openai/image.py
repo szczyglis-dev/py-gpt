@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.23 23:00:00                  #
+# Updated Date: 2026.08.12 12:00:00                  #
 # ================================================== #
 
 import base64
@@ -82,7 +82,7 @@ class Image:
         worker.mode = sub_mode  # mode can be "generate" or "edit"
         worker.attachments = attachments  # attachments for edit mode
         worker.raw = self.window.core.config.get('img_raw')
-        worker.model = model.id  # model ID for generate image, e.g. "dall-e-3"
+        worker.model = model.id  # model ID for generate image, e.g. "gpt-image-2"
         worker.model_prompt = prompt_model  # model for generate prompt, not image!
         worker.input_prompt = prompt
         worker.system_prompt = self.window.core.prompt.get('img')
@@ -139,7 +139,7 @@ class ImageWorker(QRunnable):
         self.ctx: Optional[CtxItem] = None
         self.raw = False
         self.mode = Image.MODE_GENERATE  # default mode is generate
-        self.model = "dall-e-3"
+        self.model = "gpt-image-2"
         self.quality = "standard"
         self.resolution = "1792x1024"
         self.attachments: Dict[str, Any] = {}  # attachments for edit mode
@@ -177,7 +177,7 @@ class ImageWorker(QRunnable):
 
     def _is_gpt_image_model(self, model_id: Optional[str] = None) -> bool:
         mid = (model_id or self.model or "").lower()
-        return mid.startswith("gpt-image-1") or mid.startswith("chatgpt-image")
+        return mid.startswith("gpt-image-") or mid.startswith("chatgpt-image")
 
     def _is_dalle2(self, model_id: Optional[str] = None) -> bool:
         mid = (model_id or self.model or "").lower()

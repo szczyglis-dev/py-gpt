@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.08.12 12:00:00                  #
 # ================================================== #
 
 import json
@@ -104,7 +104,7 @@ class Chat:
             params["system"] = system_prompt  # SDK expects string or blocks, not None
         # Claude 4.x: top_p is rejected when temperature is also present.
         # Opus 4.x and claude-3-7-sonnet have deprecated temperature entirely (extended thinking).
-        _no_temp = ("claude-opus-4-", "claude-3-7-sonnet")
+        _no_temp = ("claude-opus-4-", "claude-3-7-sonnet", "claude-fable-5", "claude-opus-5", "claude-sonnet-5")
         if temperature is not None and not any(model.id.startswith(p) for p in _no_temp):
             params["temperature"] = temperature
         if tools:  # only include when non-empty list

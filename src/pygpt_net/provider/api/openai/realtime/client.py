@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 00:00:00                  #
+# Updated Date: 2026.08.12 12:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -313,7 +313,7 @@ class OpenAIRealtimeClient:
         if not api_key:
             raise RuntimeError("OpenAI API key not configured")
 
-        model_id = getattr(opts, "model", None) or (ctx.model if ctx and ctx.model else "gpt-4o-realtime-preview")
+        model_id = getattr(opts, "model", None) or (ctx.model if ctx and ctx.model else "gpt-realtime-2.1")
         voice = getattr(opts, "voice", None) or self._preferred_voice()
 
         # Optional: requested resume handle from opts

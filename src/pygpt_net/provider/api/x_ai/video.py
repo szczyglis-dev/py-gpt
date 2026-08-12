@@ -24,6 +24,7 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
+DEFAULT_GROK_VIDEO_MODEL="grok-imagine-video-1.5"
 
 class Video:
     """
@@ -79,7 +80,7 @@ class Video:
         worker.window = self.window
         worker.ctx = ctx
         worker.client = self.window.core.api.xai.get_client()  # configured xAI client
-        worker.model = (model.id if model and getattr(model, "id", None) else "grok-imagine-video")
+        worker.model = (model.id if model and getattr(model, "id", None) else DEFAULT_GROK_VIDEO_MODEL)
         worker.input_prompt = prompt
         worker.model_prompt = prompt_model
         worker.system_prompt = self.window.core.prompt.get('video')
@@ -138,7 +139,7 @@ class VideoWorker(QRunnable):
         self.ctx: Optional[CtxItem] = None
 
         # params
-        self.model = "grok-imagine-video"
+        self.model = DEFAULT_GROK_VIDEO_MODEL
         self.model_prompt = None
         self.input_prompt = ""
         self.system_prompt = ""
@@ -222,7 +223,7 @@ class VideoWorker(QRunnable):
                 # Build kwargs: omit duration for edits per docs
                 gen_kwargs: Dict[str, Any] = {
                     "prompt": self.input_prompt or "",
-                    "model": self.model or "grok-imagine-video",
+                    "model": self.model or DEFAULT_GROK_VIDEO_MODEL,
                     "aspect_ratio": aspect_ratio,
                     "resolution": resolution,
                 }

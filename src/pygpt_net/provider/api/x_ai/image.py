@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.04 19:00:00                  #
+# Updated Date: 2026.08.12 12:00:00                  #
 # ================================================== #
 
 import base64
@@ -22,6 +22,7 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
+DEFAULT_GROK_IMAGE_MODEL="grok-imagine-image-quality-latest"
 
 class Image:
     def __init__(self, window=None):
@@ -36,7 +37,7 @@ class Image:
     ) -> bool:
         """
         Generate image(s) via xAI SDK image API.
-        Model: grok-2-image (or -1212 variants).
+        Model: current Grok Imagine image model.
 
         :param context: BridgeContext with prompt, model, ctx
         :param extra: Extra parameters (num: int, inline: bool, etc.)
@@ -60,7 +61,7 @@ class Image:
         worker = ImageWorker()
         worker.window = self.window
         worker.ctx = ctx
-        worker.model = (model.id or "grok-2-image")
+        worker.model = (model.id or DEFAULT_GROK_IMAGE_MODEL)
         worker.input_prompt = prompt
         worker.model_prompt = prompt_model
         worker.system_prompt = self.window.core.prompt.get('img')
@@ -99,7 +100,7 @@ class ImageWorker(QRunnable):
         self.ctx: Optional[CtxItem] = None
 
         # params
-        self.model = "grok-2-image"
+        self.model = DEFAULT_GROK_IMAGE_MODEL
         self.model_prompt = None
         self.input_prompt = ""
         self.system_prompt = ""
@@ -155,7 +156,7 @@ class ImageWorker(QRunnable):
             if n == 1:
                 # single image
                 resp = client.image.sample(
-                    model=self.model or "grok-2-image",
+                    model=self.model or DEFAULT_GROK_IMAGE_MODEL,
                     prompt=self.input_prompt or "",
                     image_format=("base64" if self.image_format == "base64" else "url"),
                 )
@@ -163,7 +164,7 @@ class ImageWorker(QRunnable):
             else:
                 # batch images
                 resp_iter = client.image.sample_batch(
-                    model=self.model or "grok-2-image",
+                    model=self.model or DEFAULT_GROK_IMAGE_MODEL,
                     prompt=self.input_prompt or "",
                     n=n,
                     image_format=("base64" if self.image_format == "base64" else "url"),

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.23 23:00:00                  #
+# Updated Date: 2026.08.12 12:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -21,6 +21,7 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
+DEFAULT_GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image"
 
 class Image:
 
@@ -126,7 +127,7 @@ class ImageWorker(QRunnable):
         # params
         self.mode = Image.MODE_GENERATE
         self.attachments: Dict[str, Any] = {}
-        self.model = "imagen-4.0-generate-001"
+        self.model = DEFAULT_GEMINI_IMAGE_MODEL
         self.model_prompt = None
         self.input_prompt = ""
         self.system_prompt = ""
@@ -141,7 +142,7 @@ class ImageWorker(QRunnable):
         self.imagen_max_num = 4  # Imagen returns up to 4 images
 
         # fallbacks
-        self.DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image"
+        self.DEFAULT_GEMINI_IMAGE_MODEL = DEFAULT_GEMINI_IMAGE_MODEL
 
         # Canonical 1K dimensions for Nano Banana Pro (Gemini 3 Pro Image Preview).
         # Used to infer 2K/4K by 2x/4x multiples and to normalize UI inputs.

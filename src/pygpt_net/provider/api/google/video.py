@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.23 23:00:00                  #
+# Updated Date: 2026.08.12 12:00:00                  #
 # ================================================== #
 
 import base64, datetime, os, requests
@@ -140,7 +140,7 @@ class VideoWorker(QRunnable):
         # params
         self.mode = Video.MODE_GENERATE
         self.attachments: Dict[str, Any] = {}
-        self.model = "veo-3.0-generate-001"
+        self.model = "veo-3.1-generate-preview"
         self.model_prompt = None
         self.input_prompt = ""
         self.system_prompt = ""
@@ -162,7 +162,7 @@ class VideoWorker(QRunnable):
         self.veo_max_num = 1  # limit to 1 in Gemini API
 
         # fallbacks
-        self.DEFAULT_VEO_MODEL = "veo-3.0-generate-001"
+        self.DEFAULT_VEO_MODEL = "veo-3.1-generate-preview"
 
     @Slot()
     def run(self):
