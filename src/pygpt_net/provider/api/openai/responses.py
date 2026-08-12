@@ -169,9 +169,12 @@ class Responses:
                 "summary": "concise",
             }
 
+        model_id = (model.get_ollama_model() or model.id or "").strip() if model.is_ollama() else (model.id or "")
+        if not model_id:
+            raise ValueError("Model name is required for the API request.")
         response = client.responses.create(
             input=messages,
-            model=model.id,
+            model=model_id,
             stream=stream,
             **response_kwargs,
         )

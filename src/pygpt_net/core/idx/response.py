@@ -125,13 +125,14 @@ class Response:
         :param llm: LLM instance
         :param response: Response data
         """
-        output = response.message.content
+        msg = getattr(response, "message", None)
+        output = (getattr(msg, "content", None) if msg else None) or ""
+        if isinstance(output, str):
+            output = output.strip() or output
         tool_calls = llm.get_tool_calls_from_response(
             response,
             error_on_no_tool_call=False,
         )
-        if output is None:
-            output = ""
         ctx.set_output(output, "")
         ctx.tool_calls = self.window.core.command.unpack_tool_calls_from_llama(tool_calls)
 

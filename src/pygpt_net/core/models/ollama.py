@@ -73,6 +73,9 @@ class Ollama:
             'is_installed': False,
             'is_model': False,
         }
+        if not model:
+            return result
+        model = model.strip()
         if model in self.available_models:
             return {
                 'is_installed': True,
@@ -84,7 +87,8 @@ class Ollama:
         if "models" not in status:
             return result
         for item in status.get('models', []):
-            model_id = item.get('name')
+            raw_name = item.get('name') or ''
+            model_id = raw_name.strip()
             if model_id not in self.available_models:
                 self.available_models.append(model_id)
             if model_id == model:
@@ -92,10 +96,11 @@ class Ollama:
                     'is_installed': True,
                     'is_model': True,
                 }
-            model_id = item.get('name').replace(":latest", "")  # handle latest tag
-            if model_id not in self.available_models:
-                self.available_models.append(model_id)
-            if model_id == model:
+            # handle :latest tag (compare without it)
+            model_id_no_latest = model_id.replace(":latest", "").strip()
+            if model_id_no_latest not in self.available_models:
+                self.available_models.append(model_id_no_latest)
+            if model_id_no_latest == model or model_id == model:
                 return {
                     'is_installed': True,
                     'is_model': True,

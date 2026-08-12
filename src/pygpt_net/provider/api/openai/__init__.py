@@ -332,10 +332,15 @@ class ApiOpenAI:
         if len(tools) > 0 and "disable_tools" not in extra:
             additional_kwargs["tools"] = tools
 
+        model_id = (model.get_ollama_model() or model.id or "").strip() if model.is_ollama() else (model.id or "")
+        if not model_id:
+            self.locked = False
+            return None
+
         try:
             response = client.chat.completions.create(
                 messages=messages,
-                model=model.id,
+                model=model_id,
                 temperature=temperature,
                 top_p=1.0,
                 frequency_penalty=0.0,

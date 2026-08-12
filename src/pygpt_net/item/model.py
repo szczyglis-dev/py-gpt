@@ -231,15 +231,15 @@ class ModelItem:
 
     def get_ollama_model(self) -> str:
         """
-        Get Ollama model ID
+        Get Ollama model ID (name used for ollama pull / API).
 
-        :return: model ID
+        :return: model ID, or self.id when no "model" arg is set (e.g. custom/non-default list)
         """
         if "args" in self.llama_index:
             for arg in self.llama_index["args"]:
-                if arg["name"] == "model":
-                    return arg["value"]
-        return ""
+                if arg["name"] == "model" and arg.get("value"):
+                    return (arg["value"] or "").strip()
+        return (self.id or "").strip()
 
     def has_mode(self, mode: str) -> bool:
         """

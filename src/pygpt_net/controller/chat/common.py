@@ -343,6 +343,9 @@ class Common:
         """
         if model is None:
             return True
+        # Ollama and other local providers do not require an API key
+        if model.is_ollama():
+            return True
 
         config = self.window.core.config
         provider_keys = {

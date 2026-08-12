@@ -58,7 +58,7 @@ class Model:
                                         mode == MODE_CHAT and not model_data.is_openai_supported() and model_data.is_ollama()
                                 )
                         ):
-                            model_id = model_data.get_ollama_model()
+                            model_id = (model_data.get_ollama_model() or "").strip()
 
                             # load ENV vars first
                             if ('env' in model_data.llama_index
@@ -76,8 +76,9 @@ class Model:
                                 return
                             if not is_model:
                                 event.data["stop"] = True  # stop flow
+                                display_name = model_id or model_data.id or model or ""
                                 self.window.ui.dialogs.alert(
-                                    trans("dialog.ollama.model_not_found").replace("{model}", model_id))
+                                    trans("dialog.ollama.model_not_found").replace("{model}", display_name))
                                 return
 
         # on input before

@@ -146,9 +146,14 @@ class Chat:
             response_kwargs['stream_options'] = {"include_usage": True}
 
         # OpenRouter: add web search remote tool (if enabled)
-        model_id = model.id
+        # Ollama: use actual Ollama model name (get_ollama_model), not just list key
+        model_id = model.id or ""
         if model.provider == "open_router":
             model_id = self.window.core.models.get_openrouter_model(model)
+        elif model.is_ollama():
+            model_id = (model.get_ollama_model() or model.id or "").strip()
+        if not model_id:
+            raise ValueError("Model name is required for the API request. Check that the selected model has a valid model ID.")
 
         response = client.chat.completions.create(
             messages=messages,

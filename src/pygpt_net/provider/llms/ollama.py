@@ -92,9 +92,24 @@ class OllamaLLM(BaseLLM):
             if "base_url" not in args:
                 args["base_url"] = os.environ['OLLAMA_API_BASE']
         if "model" not in args:
-            args["model"] = model.id
+            args["model"] = (model.id or "").strip()
+        else:
+            args["model"] = (args["model"] or "").strip()
         if "request_timeout" not in args:
             args["request_timeout"] = 300
+        # Apply context and output token settings from model/config
+        if window:
+            ctx_size = window.core.models.get_num_ctx(model.id) if model.id else 0
+            if ctx_size <= 0:
+                ctx_size = window.core.config.get("max_total_tokens") or 0
+            if ctx_size > 0:
+                args["context_window"] = int(ctx_size)
+            max_out = window.core.models.get_tokens(model.id) if model.id else 0
+            if max_out <= 0:
+                max_out = window.core.config.get("max_output_tokens") or 0
+            if max_out > 0:
+                extra_opts = args.get("additional_kwargs") or {}
+                args["additional_kwargs"] = {**extra_opts, "num_predict": int(max_out)}
         return Ollama(**args)
 
     def get_embeddings_model(
