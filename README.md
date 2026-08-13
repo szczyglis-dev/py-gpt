@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.0** | build: **2026-08-12** | Python: **>=3.10, <3.14**
+Release: **2.8.1** | build: **2026-08-13** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3688,6 +3688,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.8.1 (2026-08-13)**
+
+- Added LiteLLM as AI gateway provider - [#181](https://github.com/szczyglis-dev/py-gpt/pull/181), thanks to [@RheagalFire](https://github.com/RheagalFire).
+
+
 **2.8.0 (2026-08-12)**
 
 - Upgraded all models to their latest available versions.
@@ -3770,6 +3775,8 @@ GitHub's community:
 - [@moritz-t-w](https://github.com/moritz-t-w)
 
 - [@oleksii-honchar](https://github.com/oleksii-honchar)
+
+- [@RheagalFirea](https://github.com/RheagalFire)
 
 - [@robertnama](https://github.com/robertnama)
 

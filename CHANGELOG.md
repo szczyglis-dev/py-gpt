@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.8.1 (2026-08-13)
+
+- Added LiteLLM as AI gateway provider - [#181](https://github.com/szczyglis-dev/py-gpt/pull/181), thanks to [@RheagalFire](https://github.com/RheagalFire).
+
+
 ## 2.8.0 (2026-08-12)
 
 - Upgraded all models to their latest available versions.

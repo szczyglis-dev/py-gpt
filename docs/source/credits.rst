@@ -49,6 +49,7 @@ GitHub's community:
 * **lukasz-pekala**
 * **moritz-t-w**
 * **oleksii-honchar**
+* **RheagalFire**
 * **robertnama**
 * **WildGreenRose**
 * **yf007**
