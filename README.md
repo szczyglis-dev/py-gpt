@@ -3708,6 +3708,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added LiteLLM as LLM provider - [#181](https://github.com/szczyglis-dev/py-gpt/pull/181), thanks to [@RheagalFire](https://github.com/RheagalFire).
 - Added Forge as LLM provider - [#173](https://github.com/szczyglis-dev/py-gpt/pull/173), thanks to [@Yiiii0](https://github.com/Yiiii0).
 - Added Eden AI as LLM provider - [#194](https://github.com/szczyglis-dev/py-gpt/pull/194), thanks to [@MVS-source](https://github.com/MVS-source).
+- Added TwelveLabs plugin (video understanding with Pegasus + Marengo embeddings) - [#191](https://github.com/szczyglis-dev/py-gpt/pull/191), thanks to [@mohit-twelvelabs](https://github.com/mohit-twelvelabs).
 
 
 **2.8.0 (2026-08-12)**
@@ -3719,30 +3720,6 @@ may consume additional tokens that are not displayed in the main window.
 - Fixed the Ollama provider and custom model handling - [#169](https://github.com/szczyglis-dev/py-gpt/pull/169), thanks to [@ba2512005](https://github.com/ba2512005).
 - Fixed top_p handling and added temperature guards for Claude 4.x Anthropic models - [#184](https://github.com/szczyglis-dev/py-gpt/pull/184), thanks to [@robertnama](https://github.com/robertnama).
 - Fixed message handling for Mistral - [#185](https://github.com/szczyglis-dev/py-gpt/pull/185), thanks to [@WildGreenRose](https://github.com/WildGreenRose).
-
-
-**2.7.12 (2026-02-06)**
-
-- xAI SDK upgraded to v1.6.1.
-- Added video generation support in xAI provider.
-- Added new models: grok-imagine-image and grok-imagine-video.
-- UI improvements and smoother navigation between tabs and columns.  
-- Optimized adding attachments. Added options to attach an attachment only once (if the API stores messages on its side), and an option to force attaching an attachment only once.  
-- Updated libraries.
-
-**2.7.11 (2026-02-05)**
-
-- Improved handling focus between columns.
-- Fixed models debugger update.
-
-**2.7.10 (2026-02-03)**
-
-- Fixed an issue where an avatar could be overwritten when creating a new preset.  
-- Fixed an issue where a new context was not created when opening a new tab in the second column.  
-- Added prompt history navigation to the input field (Ctrl + Up/Down arrow keys).  
-- Added initial image centering when loading the Image Viewer.  
-- Added a Mark/Unmark feature to the Notepad widget.  
-- Added 18 new languages: Arabic (ar), Bulgarian (bg), Czech (cs), Danish (da), Finnish (fi), Hebrew (he), Hindi (hi), Hungarian (hu), Japanese (ja), Korean (ko), Dutch (nl), Norwegian (no), Portuguese (pt), Romanian (ro), Russian (ru), Slovak (sk), Swedish (sv), Turkish (tr).
 
 
 # Credits and links
@@ -3788,6 +3765,8 @@ GitHub's community:
 - [@linnflux](https://github.com/linnflux)
 
 - [@lukasz-pekala](https://github.com/lukasz-pekala)
+
+- [@mohit-twelvelabs](https://github.com/mohit-twelvelabs)
 
 - [@moritz-t-w](https://github.com/moritz-t-w)
 

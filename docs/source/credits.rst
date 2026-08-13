@@ -47,6 +47,7 @@ GitHub's community:
 * **KingOfTheCastle**
 * **linnflux**
 * **lukasz-pekala**
+* **mohit-twelvelabs**
 * **moritz-t-w**
 * **oleksii-honchar**
 * **RheagalFire**

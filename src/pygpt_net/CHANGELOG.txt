@@ -3,6 +3,7 @@
 - Added LiteLLM as LLM provider - #181, thanks to @RheagalFire.
 - Added Forge as LLM provider - #173, thanks to @Yiiii0.
 - Added Eden AI as LLM provider - #194, thanks to @MVS-source.
+- Added TwelveLabs plugin (video understanding with Pegasus + Marengo embeddings) - #191, thanks to @mohit-twelvelabs.
 
 2.8.0 (2026-08-12)
 
