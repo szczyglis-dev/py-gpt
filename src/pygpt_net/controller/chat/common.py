@@ -357,6 +357,7 @@ class Common:
             "perplexity": config.get('api_key_perplexity', None),
             "deepseek_api": config.get('api_key_deepseek', None),
             "mistral_ai": config.get('api_key_mistral', None),
+            "minimax": config.get('api_key_minimax', None),
         }
 
         if model.provider in provider_keys:

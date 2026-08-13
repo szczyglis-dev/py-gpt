@@ -22,6 +22,7 @@ OPENAI_COMPATIBLE_PROVIDERS = [
     "deepseek_api",
     "x_ai",
     "open_router",
+    "minimax",
 ]
 
 OPENAI_DISABLE_TOOLS = [

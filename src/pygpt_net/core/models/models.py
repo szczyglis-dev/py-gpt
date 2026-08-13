@@ -513,6 +513,10 @@ class Models:
                 args["api_key"] = cfg.get('api_key_open_router', "")
                 args["base_url"] = cfg.get('api_endpoint_open_router', "")
                 self.window.core.debug.info("[api] Using client: OpenRouter API")
+            elif model.provider == "minimax":
+                args["api_key"] = cfg.get('api_key_minimax', "")
+                args["base_url"] = cfg.get('api_endpoint_minimax', "")
+                self.window.core.debug.info("[api] Using client: MiniMax API")
             elif model.provider == "ollama":
                 args["api_key"] = "ollama"
                 args["base_url"] = self.window.core.models.ollama.get_base_url() + "/v1"
