@@ -16,6 +16,8 @@ import os
 import queue
 import threading
 import wave
+import time
+import uuid
 from typing import Optional, Tuple
 
 from .base import BaseProvider
@@ -115,7 +117,9 @@ class XAITextToSpeech(BaseProvider):
 
         base_dir = self.plugin.window.core.config.path
         default_name = getattr(self.plugin, "output_file", "output.wav")
-        out_path = os.path.join(base_dir, default_name)
+        name_root, _ = os.path.splitext(default_name)
+        unique_name = f"{name_root}_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
+        out_path = os.path.join(base_dir, unique_name)
         out_path = self._ensure_extension(out_path, ".wav" if container == "wav" else ".raw")
 
         result_queue: queue.Queue[Tuple[bool, Optional[str], Optional[bytes]]] = queue.Queue()

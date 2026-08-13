@@ -6,6 +6,7 @@
 - Added Forge as LLM provider - [#173](https://github.com/szczyglis-dev/py-gpt/pull/173), thanks to [@Yiiii0](https://github.com/Yiiii0).
 - Added Eden AI as LLM provider - [#194](https://github.com/szczyglis-dev/py-gpt/pull/194), thanks to [@MVS-source](https://github.com/MVS-source).
 - Added TwelveLabs plugin (video understanding with Pegasus + Marengo embeddings) - [#191](https://github.com/szczyglis-dev/py-gpt/pull/191), thanks to [@mohit-twelvelabs](https://github.com/mohit-twelvelabs).
+- Fix: use unique filename per xAI TTS generation to avoid Windows file-lock PermissionError - [#192](https://github.com/szczyglis-dev/py-gpt/pull/192), thanks to [@LittleBallOfPurr](https://github.com/LittleBallOfPurr).
 
 
 ## 2.8.0 (2026-08-12)

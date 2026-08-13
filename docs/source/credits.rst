@@ -46,6 +46,7 @@ GitHub's community:
 * **kaneda2004**
 * **KingOfTheCastle**
 * **linnflux**
+* **LittleBallOfPurr**
 * **lukasz-pekala**
 * **mohit-twelvelabs**
 * **moritz-t-w**
