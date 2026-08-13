@@ -492,6 +492,8 @@ def run(**kwargs):
         launcher.add_llm(PerplexityLLM())
         launcher.add_llm(xAILLM())
         launcher.add_llm(OpenRouterLLM())
+        launcher.add_llm(ForgeLLM())
+        launcher.add_llm(EdenAILLM())
         launcher.add_llm(LiteLLMProvider())
 
         # register LLMs

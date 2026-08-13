@@ -579,6 +579,34 @@ class Importer:
                         'type': 'str'
                     }
                 ]
+            elif self.provider == "forge":
+                m.tool_calls = True
+                m.llama_index['args'].extend([
+                    {
+                        'name': 'api_key',
+                        'value': '{api_key_forge}',
+                        'type': 'str'
+                    },
+                    {
+                        'name': 'api_base',
+                        'value': '{api_endpoint_forge}',
+                        'type': 'str'
+                    }
+                ])
+            elif self.provider == "edenai":
+                m.tool_calls = True
+                m.llama_index['args'].extend([
+                    {
+                        'name': 'api_key',
+                        'value': '{api_key_edenai}',
+                        'type': 'str'
+                    },
+                    {
+                        'name': 'api_base',
+                        'value': '{api_endpoint_edenai}',
+                        'type': 'str'
+                    }
+                ])
             models[key] = m
         provider_name = self.window.core.llm.get_provider_name(self.provider)
         self.set_status(trans('models.importer.loaded').replace("{provider}", provider_name))

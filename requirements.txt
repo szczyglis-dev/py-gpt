@@ -3375,9 +3375,9 @@ pyopenssl==26.4.0 ; python_version >= "3.10" and python_version < "3.14" \
 pyparsing==3.3.2 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d \
     --hash=sha256:c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc
-pypdf==6.1.0 ; python_version >= "3.10" and python_version < "3.14" \
-    --hash=sha256:0cba440d024da5a2a9304f03cd645346052827b84c5a461c6123e24ed5a3b0b9 \
-    --hash=sha256:6b34e4147df20978bf270af19826692e0485431a9d3944617b9533bc77efb695
+pypdf==6.15.0 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:14e001d6504822cb1ca9c7ed9a69bccb320f59b320730f55af804361abe4d5ee \
+    --hash=sha256:d39c4d955a76409284a905e2d65b40076d77ab76129e0faaeeb6612403ecfc79
 pyperclip==1.11.0 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:244035963e4428530d9e3a6101a1ef97209c6825edab1567beac148ccc1db1b6 \
     --hash=sha256:299403e9ff44581cb9ba2ffeed69c7aa96a008622ad0c46cb575ca75b5b84273
@@ -4335,6 +4335,9 @@ trio==0.34.0 ; python_version >= "3.10" and python_version < "3.14" \
 tweepy==4.17.0 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:1244d7f2959091542f8e4a2c0c4256294e3beb69c0aa26eaf634b126d81eee49 \
     --hash=sha256:c232e9fffa0b15b81d5ff8ec59d46af85e330285ffc3e64614d2418fb9af71b5
+twelvelabs==1.2.9 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:bd3efc9d5d3f1cc03afb65998cfb214b0a8705bac37a5720f30fd1043b4bf89b \
+    --hash=sha256:e4cdcb5207c12d75156ce688bbb3e08cdffe0a7108ecf4eceb1ae86ff8186eef
 twisted==26.4.0 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:dbfd0fe1ee409d0243fdd7a6a6ff14f4948cec1fd78e0376291f805e1501fae9 \
     --hash=sha256:dc25ea0ebf6511c24f03232ee9f4afa54b291c5d897990e3a39cc4d14a1ef4c0
@@ -4359,9 +4362,9 @@ tzdata==2026.3 ; python_version >= "3.10" and python_version < "3.14" \
 uritemplate==4.2.0 ; python_version >= "3.10" and python_version < "3.14" \
     --hash=sha256:480c2ed180878955863323eea31b0ede668795de182617fef9c6ca09e6ec9d0e \
     --hash=sha256:962201ba1c4edcab02e60f9a0d3821e82dfc5d2d6662a21abd533879bdb8a686
-urllib3==2.5.0 ; python_version >= "3.10" and python_version < "3.14" \
-    --hash=sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760 \
-    --hash=sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc
+urllib3==2.7.0 ; python_version >= "3.10" and python_version < "3.14" \
+    --hash=sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c \
+    --hash=sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897
 uuid-utils==0.17.0 ; python_version >= "3.10" and python_version <= "3.12" \
     --hash=sha256:03815cea572c8a693cab5475b9d750cc161470961c7defa27e9286cad62f38f5 \
     --hash=sha256:04452640d8b6920c480c16e5afe91ff896d236e0c972830f9247e0898d38c803 \
