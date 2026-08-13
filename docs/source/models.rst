@@ -122,6 +122,7 @@ There is built-in support for those LLM providers:
 * ``Anthropic``
 * ``Azure OpenAI`` (native SDK)
 * ``Deepseek API``
+* ``Eden AI``
 * ``Forge``
 * ``Google`` (native SDK)
 * ``HuggingFace API``

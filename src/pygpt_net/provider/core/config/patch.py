@@ -303,6 +303,8 @@ class Patch:
                 to_add = [
                     "api_endpoint_forge",
                     "api_key_forge",
+                    "api_endpoint_edenai",
+                    "api_key_edenai",
                 ]
                 for key in to_add:
                     if key not in data:
