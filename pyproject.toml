@@ -19,9 +19,9 @@ packages = [
     { from = "src", include = "pygpt_net" },
 ]
 include = [
-	"CHANGELOG.md",
-	"icon.png",
-	"README.md",
+    "CHANGELOG.md",
+    "icon.png",
+    "README.md",
 ]
 
 [tool.poetry.urls]
@@ -85,6 +85,7 @@ llama-index-readers-google = "0.7.3"
 llama-index-readers-microsoft-onedrive = "0.4.1"
 llama-index-readers-twitter = "0.4.1"
 llama-index-readers-web = "0.5.6"
+litellm = ">=1.55,<2.0"
 Markdown = "3.10.3"
 mcp = "1.29.0"
 mss = "9.0.2"
