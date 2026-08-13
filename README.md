@@ -1191,9 +1191,11 @@ There is built-in support for those LLM providers:
 - `Anthropic`
 - `Azure OpenAI` (native SDK)
 - `Deepseek API`
+- `Forge`
 - `Google` (native SDK)
 - `HuggingFace API`
 - `HuggingFace Router` (wrapper for OpenAI compatible ChatCompletions)
+- `LiteLLM`
 - `Local models` (OpenAI API compatible)
 - `Mistral AI`
 - `Ollama`
@@ -3690,7 +3692,8 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.8.1 (2026-08-13)**
 
-- Added LiteLLM as AI gateway provider - [#181](https://github.com/szczyglis-dev/py-gpt/pull/181), thanks to [@RheagalFire](https://github.com/RheagalFire).
+- Added LiteLLM as LLM provider - [#181](https://github.com/szczyglis-dev/py-gpt/pull/181), thanks to [@RheagalFire](https://github.com/RheagalFire).
+- Added Forge as LLM provider - [#173](https://github.com/szczyglis-dev/py-gpt/pull/173), thanks to [@Yiiii0](https://github.com/Yiiii0).
 
 
 **2.8.0 (2026-08-12)**
@@ -3776,13 +3779,15 @@ GitHub's community:
 
 - [@oleksii-honchar](https://github.com/oleksii-honchar)
 
-- [@RheagalFirea](https://github.com/RheagalFire)
+- [@RheagalFire](https://github.com/RheagalFire)
 
 - [@robertnama](https://github.com/robertnama)
 
 - [@WildGreenRose](https://github.com/WildGreenRose)
 
 - [@yf007](https://github.com/yf007)
+
+- [@Yiiii0](https://github.com/Yiiii0)
 
 ## Third-party libraries
 

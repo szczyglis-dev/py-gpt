@@ -122,9 +122,11 @@ There is built-in support for those LLM providers:
 * ``Anthropic``
 * ``Azure OpenAI`` (native SDK)
 * ``Deepseek API``
+* ``Forge``
 * ``Google`` (native SDK)
 * ``HuggingFace API``
 * ``HuggingFace Router`` (wrapper for OpenAI compatible ChatCompletions)
+* ``LiteLLM``
 * ``Local models`` (OpenAI API compatible)
 * ``Mistral AI``
 * ``Ollama``

@@ -300,6 +300,13 @@ class Patch:
                 # add: buttons hover css
                 patch_css('style.light.css', True)
                 patch_css('style.dark.css', True)
+                to_add = [
+                    "api_endpoint_forge",
+                    "api_key_forge",
+                ]
+                for key in to_add:
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
                 updated = True
 
         # update file

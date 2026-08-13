@@ -1,7 +1,7 @@
 2.8.1 (2026-08-13)
 
 - Added LiteLLM as AI gateway provider - #181, thanks to @RheagalFire.
-
+- Added Forge as LLM provider - #173, thanks to @Yiiii0.
 
 2.8.0 (2026-08-12)
 
