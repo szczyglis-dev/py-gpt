@@ -62,6 +62,8 @@ class Models:
         """
         self.window.ui.nodes['models.editor.btn.new'] = \
             QPushButton(QIcon(":/icons/add.svg"), trans("dialog.models.editor.btn.new"))
+        self.window.ui.nodes['models.editor.btn.import'] = \
+            QPushButton(QIcon(":/icons/download.svg"), trans("dialog.models.editor.btn.import"))
         self.window.ui.nodes['models.editor.btn.defaults.user'] = \
             QPushButton(trans("dialog.models.editor.btn.defaults.user"))
         self.window.ui.nodes['models.editor.btn.defaults.app'] = \
@@ -71,6 +73,9 @@ class Models:
 
         self.window.ui.nodes['models.editor.btn.new'].clicked.connect(
             lambda: self.window.controller.model.editor.new()
+        )
+        self.window.ui.nodes['models.editor.btn.import'].clicked.connect(
+            lambda: self.window.controller.model.importer.open()
         )
         self.window.ui.nodes['models.editor.btn.defaults.user'].clicked.connect(
             lambda: self.window.controller.model.editor.load_defaults_user()
@@ -84,6 +89,7 @@ class Models:
 
         # set enter key to save button
         self.window.ui.nodes['models.editor.btn.new'].setAutoDefault(False)
+        self.window.ui.nodes['models.editor.btn.import'].setAutoDefault(False)
         self.window.ui.nodes['models.editor.btn.defaults.user'].setAutoDefault(False)
         self.window.ui.nodes['models.editor.btn.defaults.app'].setAutoDefault(False)
         self.window.ui.nodes['models.editor.btn.save'].setAutoDefault(True)
@@ -91,6 +97,7 @@ class Models:
         # footer buttons
         footer = QHBoxLayout()
         footer.addWidget(self.window.ui.nodes['models.editor.btn.new'])
+        footer.addWidget(self.window.ui.nodes['models.editor.btn.import'])
         footer.addWidget(self.window.ui.nodes['models.editor.btn.defaults.user'])
         footer.addWidget(self.window.ui.nodes['models.editor.btn.defaults.app'])
         footer.addWidget(self.window.ui.nodes['models.editor.btn.save'])
@@ -528,6 +535,8 @@ class Models:
                 provider_name = self._get_provider_display_name(provider_id) if provider_id else ""
                 if provider_name:
                     display_name = f"{base_name} ({provider_name})"
+            if getattr(item, "is_hidden", False):
+                display_name += " [-]"
 
             self.window.ui.models[id].insertRow(i)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), display_name)

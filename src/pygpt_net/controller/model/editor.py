@@ -51,25 +51,19 @@ class Editor:
                 "label": "model.provider",
                 "description": "model.provider.desc",
             },
-            "ctx": {
-                "type": "int",
-                "label": "model.ctx",
-                "description": "model.ctx.desc",
-            },
-            "tokens": {
-                "type": "int",
-                "label": "model.tokens",
-                "description": "model.tokens.desc",
-            },
             "mode": {
                 "type": "bool_list",  # list of comma separated values
                 "label": "model.mode",
                 "use": "modes",
             },
-            "tool_calls": {
+            "default": {
                 "type": "bool",
-                "label": "model.tool_calls",
-                "description": "model.tool_calls.desc",
+                "label": "model.default",
+            },
+            "is_hidden": {
+                "type": "bool",
+                "label": "model.is_hidden",
+                "description": "model.is_hidden.desc",
             },
             "input": {
                 "type": "bool_list",  # list of comma separated values
@@ -83,9 +77,23 @@ class Editor:
                 "use": "multimodal",
                 "advanced": True,
             },
-            "default": {
+            "ctx": {
+                "type": "int",
+                "label": "model.ctx",
+                "description": "model.ctx.desc",
+                "advanced": True,
+            },
+            "tokens": {
+                "type": "int",
+                "label": "model.tokens",
+                "description": "model.tokens.desc",
+                "advanced": True,
+            },
+            "tool_calls": {
                 "type": "bool",
-                "label": "model.default",
+                "label": "model.tool_calls",
+                "description": "model.tool_calls.desc",
+                "advanced": True,
             },
             "llama_index.args": {
                 "type": "dict",
@@ -157,6 +165,7 @@ class Editor:
         self.window.model_settings.setup(idx)  # widget dialog setup
         self.window.ui.add_hook("update.model.name", self.hook_update)
         self.window.ui.add_hook("update.model.mode", self.hook_update)
+        self.window.ui.add_hook("update.model.is_hidden", self.hook_update)
         self.update_provider(self.provider)
         self.window.ui.add_hook("update.model.provider_global", self.hook_update)
 
@@ -207,7 +216,7 @@ class Editor:
             self.locked = False
             return
 
-        if key in ["id", "name", "mode"]:
+        if key in ["id", "name", "mode", "is_hidden"]:
             self.save(persist=False)
             self.reload_items()
             # select by current model
@@ -383,6 +392,19 @@ class Editor:
         """Reload items"""
         self.window.model_settings.update_list("models.list", self.prepare_items())
 
+    def sync_from_core(self):
+        """Refresh an opened editor after models were changed externally."""
+        if not self.config_initialized or not self.dialog:
+            return
+        self.locked = True
+        try:
+            items = self.prepare_items()
+            if self.current not in items:
+                self.current = next(iter(items), None)
+            self.init()
+        finally:
+            self.locked = False
+
     def select(self, idx: int):
         """Select model"""
         self.locked = True
@@ -454,6 +476,50 @@ class Editor:
 
         self.init()
         self.locked = False
+
+    def set_hidden_by_idx(
+            self,
+            idx: Union[int, list],
+            hidden: bool
+    ):
+        """Set hidden state for one or more models from the editor list."""
+        ids = idx if isinstance(idx, list) else [idx]
+        model_ids = []
+        for i in ids:
+            model_id = self.get_model_by_tab_idx(i)
+            if model_id and model_id not in model_ids:
+                model_ids.append(model_id)
+
+        if not model_ids:
+            return
+
+        for model_id in model_ids:
+            model = self.window.core.models.items.get(model_id)
+            if model is not None:
+                model.is_hidden = bool(hidden)
+
+        # Keep the checkbox in sync when the context action targets the currently edited model.
+        if self.current in model_ids:
+            widget = self.window.ui.config.get("model", {}).get("is_hidden")
+            if widget is not None:
+                was_locked = self.locked
+                self.locked = True
+                try:
+                    widget.setChecked(bool(hidden))
+                finally:
+                    self.locked = was_locked
+
+        self.window.core.models.save()
+        self.reload_items()
+        self.window.controller.model.reload()
+
+        event = Event(Event.MODELS_CHANGED)
+        self.window.dispatch(event, all=True)
+
+        if self.current is not None:
+            idx_current = self.get_tab_by_id(self.current)
+            if idx_current is not None:
+                self.set_by_tab(idx_current)
 
     def duplicate_by_idx(
             self,

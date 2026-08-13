@@ -30,6 +30,7 @@ class ModelItem:
     default: bool = False
     extra: dict = field(default_factory=dict)
     imported: bool = False
+    is_hidden: bool = False
     input: list = field(default_factory=lambda: ["text"])
     langchain: dict = field(default_factory=dict)
     llama_index: dict = field(default_factory=dict)
@@ -52,6 +53,7 @@ class ModelItem:
         self.extra = {}
         self.id = id
         self.imported = False
+        self.is_hidden = False
         self.input = ["text"]  # multimodal support: image, audio, etc.
         self.langchain = {}
         self.llama_index = {}
@@ -79,6 +81,8 @@ class ModelItem:
             self.id = data['id']
         if 'imported' in data:
             self.imported = data['imported']
+        if 'is_hidden' in data:
+            self.is_hidden = data['is_hidden']
         if 'input' in data:
             input = data['input'].replace(' ', '')
             self.input = input.split(',')
@@ -122,6 +126,7 @@ class ModelItem:
             'default': self.default,
             'extra': self.extra,
             'imported': self.imported,
+            'is_hidden': self.is_hidden,
             'provider': self.provider,
             'tool_calls': self.tool_calls,
             'llama_index.args': [],

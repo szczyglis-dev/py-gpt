@@ -667,6 +667,7 @@ class Importer:
         self.from_pending()
         self.window.controller.model.init_list()
         self.window.controller.model.update()
+        self.window.controller.model.editor.sync_from_core()
         self.close()
 
         # dispatch on update event

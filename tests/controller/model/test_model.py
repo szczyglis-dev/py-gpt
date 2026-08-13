@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 02:00:00                  #
+# Updated Date: 2026.08.13 12:45:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -110,18 +110,41 @@ def test_select_default_from_current(mock_window):
 
 
 def test_select_default_from_default(mock_window):
-    """Set default mode"""
+    """Select first visible model when there is no current model"""
     mock_window.core.config.data['model'] = None
     mock_window.core.config.data['mode'] = 'chat'
     mock_window.core.config.data['current_model'] = {}  # no current model
     items = {
+        'gpt-4': ModelItem(),
         'gpt-8': ModelItem(),
     }
-    mock_window.core.models.get_by_mode = MagicMock(items)  # will return empty list
-    mock_window.core.models.get_default = MagicMock(return_value='gpt-4')  # this will be used
+    mock_window.core.models.get_by_mode = MagicMock(return_value=items)
     model = Model(mock_window)
     model.select_default()
     assert mock_window.core.config.get('model') == 'gpt-4'
+    assert mock_window.core.config.get('current_model') == {'chat': 'gpt-4'}
+
+
+def test_select_default_skips_hidden(mock_window):
+    """Select first visible model when current/default candidate is hidden"""
+    mock_window.core.config.data['model'] = None
+    mock_window.core.config.data['mode'] = 'chat'
+    mock_window.core.config.data['current_model'] = {'chat': 'gpt-hidden'}
+
+    hidden = ModelItem()
+    hidden.is_hidden = True
+    visible = ModelItem()
+    items = {
+        'gpt-hidden': hidden,
+        'gpt-visible': visible,
+    }
+    mock_window.core.models.get_by_mode = MagicMock(return_value=items)
+
+    model = Model(mock_window)
+    model.select_default()
+
+    assert mock_window.core.config.get('model') == 'gpt-visible'
+    assert mock_window.core.config.get('current_model') == {'chat': 'gpt-visible'}
 
 
 def test_update(mock_window):

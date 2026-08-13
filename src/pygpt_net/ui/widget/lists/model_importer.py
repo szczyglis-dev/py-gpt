@@ -225,6 +225,9 @@ class ModelImporter(QWidget):
             name = data[n].id
             if data[n].name != data[n].id:
                 name += f" ({data[n].name})"
+            importer = self.window.controller.model.importer
+            if importer.all and importer.in_current(data[n].id):
+                name += " *"
             index = self.window.ui.models[id].index(i, 0)
             tooltip = data[n].id
             # store model ID in tooltip role for stable retrieval from view

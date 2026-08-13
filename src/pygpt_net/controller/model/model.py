@@ -128,7 +128,14 @@ class Model:
         w = self.window
         mode = w.core.config.get('mode')
         model = w.core.config.get('model')
-        next_model = w.core.models.get_next(model, mode)
+        keys = list(self._get_visible_by_mode(mode).keys())
+        if not keys:
+            return
+        if model not in keys:
+            next_model = keys[0]
+        else:
+            idx = keys.index(model)
+            next_model = keys[(idx + 1) % len(keys)]
         self.select(next_model)
 
     def prev(self):
@@ -136,7 +143,14 @@ class Model:
         w = self.window
         mode = w.core.config.get('mode')
         model = w.core.config.get('model')
-        prev_model = w.core.models.get_prev(model, mode)
+        keys = list(self._get_visible_by_mode(mode).keys())
+        if not keys:
+            return
+        if model not in keys:
+            prev_model = keys[-1]
+        else:
+            idx = keys.index(model)
+            prev_model = keys[(idx - 1) % len(keys)]
         self.select(prev_model)
 
     def set(self, mode: str, model: str):
@@ -171,12 +185,20 @@ class Model:
         """
         self.window.ui.nodes["prompt.model"].set_value(model)
 
+    def _get_visible_by_mode(self, mode: str):
+        """Return models visible in user-facing model selection controls."""
+        return {
+            key: item
+            for key, item in self.window.core.models.get_by_mode(mode).items()
+            if not getattr(item, "is_hidden", False)
+        }
+
     def select_current(self):
         """Select current model on list"""
         w = self.window
         mode = w.core.config.get('mode')
         model = w.core.config.get('model')
-        items = w.core.models.get_by_mode(mode)
+        items = self._get_visible_by_mode(mode)
         if model in items:
             self.select_on_list(model)
 
@@ -184,18 +206,22 @@ class Model:
         """Set default model"""
         w = self.window
         model = w.core.config.get('model')
-        if model is None or model == "":
-            mode = w.core.config.get('mode')
+        mode = w.core.config.get('mode')
+        mode_items = self._get_visible_by_mode(mode)
+        if not mode_items:
+            return
+        if model not in mode_items:
             current_models = w.core.config.get('current_model') or {}
-            mode_items = w.core.models.get_by_mode(mode)
             if (
                 mode in current_models
                 and current_models[mode]
                 and current_models[mode] in mode_items
             ):
-                w.core.config.set('model', current_models[mode])
+                model = current_models[mode]
             else:
-                w.core.config.set('model', w.core.models.get_default(mode))
+                model = next(iter(mode_items))
+            w.core.config.set('model', model)
+            self._ensure_current_model_map()[mode] = model
 
     def switch_inline(
             self,
@@ -223,7 +249,7 @@ class Model:
         """Init models list"""
         w = self.window
         mode = w.core.config.get('mode')
-        data = w.core.models.get_by_mode(mode)
+        data = self._get_visible_by_mode(mode)
 
         items_by_provider = {}
         for k, item in data.items():
