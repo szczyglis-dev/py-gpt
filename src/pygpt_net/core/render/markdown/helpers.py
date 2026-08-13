@@ -48,13 +48,15 @@ class Helpers:
         # replace cmd tags
         text = self.replace_code_tags(text)
 
-        # replace %workdir% with current workdir
-        local_prefix = self.window.core.filesystem.get_workdir_prefix()
-        safe_local_prefix = local_prefix.replace('\\', '\\\\').replace('\\.', '\\\\.')  # windows fix
-        replacement = f'({safe_local_prefix}\\1)'
+        # replace %workdir% with a valid local file URL
+        # (QUrl.fromLocalFile converts Windows backslashes to URL slashes)
         try:
-            text = re.sub(r'\(%workdir%([^)]+)\)', replacement, text)
-        except Exception as e:
+            text = re.sub(
+                r'\(%workdir%([^)]+)\)',
+                lambda m: f'({self.window.core.filesystem.get_local_url("%workdir%" + m.group(1))})',
+                text,
+            )
+        except Exception:
             pass
         return text
 

@@ -179,14 +179,21 @@ class Helpers:
         s = self.replace_think_tags(s)
         s = self.replace_execute_tags(s)
 
-        # replace workdir token
+        # replace local path tokens with valid, encoded file URLs
         if "%workdir%" in s:
-            prefix = self.window.core.filesystem.get_workdir_prefix()
-            s = self._RE_WORKDIR_TOKEN.sub(lambda m, p=prefix: f'({p}{m.group(1)})', s)
+            fs = self.window.core.filesystem
+            s = self._RE_WORKDIR_TOKEN.sub(
+                lambda m: f'({fs.get_local_url("%workdir%" + m.group(1))})',
+                s,
+            )
 
         if "%appdir%" in s:
-            prefix = self.window.core.config.get_app_path()
-            s = self._RE_APPDIR_TOKEN.sub(lambda m, p=prefix: f'({p}{m.group(1)})', s)
+            fs = self.window.core.filesystem
+            app_dir = self.window.core.config.get_app_path()
+            s = self._RE_APPDIR_TOKEN.sub(
+                lambda m: f'({fs.get_local_url(app_dir + m.group(1))})',
+                s,
+            )
 
         return s
 

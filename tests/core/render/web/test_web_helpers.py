@@ -97,3 +97,11 @@ def test_format_chunk():
     exp = "line1\nline2"
     out = h.format_chunk(inp)
     assert out == exp
+
+
+def test_pre_format_text_workdir_uses_local_url(dummy_window):
+    dummy_window.core.filesystem.get_local_url.return_value = "file:///C:/Users/marcin/Desktop/img/test.png"
+    h = Helpers(window=dummy_window)
+    out = h.pre_format_text("[Open](%workdir%/img/test.png)")
+    assert out == "[Open](file:///C:/Users/marcin/Desktop/img/test.png)"
+    dummy_window.core.filesystem.get_local_url.assert_called_once_with("%workdir%/img/test.png")

@@ -14,6 +14,7 @@ import shutil
 
 from pathlib import PurePath
 from typing import Tuple, Any, Union, List
+from urllib.parse import unquote
 from uuid import uuid4
 
 from PySide6.QtCore import QUrl
@@ -125,17 +126,63 @@ class Filesystem:
 
     def get_url(self, url: str) -> QUrl:
         """
-        Make current OS-specific URL to open file or directory
+        Make current OS-specific URL to open file or directory.
 
-        :param url: URL to prepare
+        Always use QUrl.fromLocalFile() for filesystem paths.  In particular,
+        manually prefixing a Windows path such as ``C:\\Users\\...`` with
+        ``file:///`` leaves backslashes in the URL.  Qt then percent-encodes
+        them as ``%5C`` when the link is clicked.
+
+        :param url: URL or local path to prepare
         :return: URL to open file or directory
         """
-        if self.window.core.platforms.is_windows():
-            if not url.startswith('file:///'):
-                url = 'file:///' + url
+        if self.is_schema(url):
             return QUrl(url, QUrl.TolerantMode)
-        else:
-            return QUrl.fromLocalFile(url)
+        return QUrl.fromLocalFile(url)
+
+    def normalize_local_path(
+            self,
+            path: str,
+            auto_prefix: bool = True
+    ) -> str:
+        """
+        Normalize a local path received directly or through a Qt URL.
+
+        This also repairs legacy/malformed Windows links where backslashes
+        were serialized as ``%5C`` (for example ``C:%5CUsers%5C...``).
+
+        :param path: local path, file URL or workdir-relative path
+        :param auto_prefix: add current workdir for relative paths
+        :return: normalized local filesystem path
+        """
+        if not path:
+            return path
+
+        path = unquote(path)
+
+        if path.startswith('file://'):
+            # Legacy Windows links could contain backslashes inside file:///.
+            # Normalize them before asking Qt to convert the URL to a path.
+            file_url = path.replace('\\', '/')
+            local = QUrl(file_url, QUrl.TolerantMode).toLocalFile()
+            if local:
+                path = unquote(local)
+            else:
+                # Fallback for malformed legacy file URLs.
+                path = file_url.replace('file:///', '', 1).replace('file://', '', 1)
+                path = unquote(path)
+
+        return self.to_workdir(path, auto_prefix=auto_prefix)
+
+    def get_local_url(self, path: str) -> str:
+        """
+        Convert a local/workdir path to a properly encoded file URL.
+
+        :param path: local path or path containing the %workdir% placeholder
+        :return: encoded file URL
+        """
+        path = self.normalize_local_path(path)
+        return QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
 
     def get_path(self, path: str) -> str:
         """
@@ -186,36 +233,27 @@ class Filesystem:
 
     def extract_local_url(self, path: str) -> Tuple[str, str]:
         """
-        Extract local url and path from url
+        Extract a local URL and native filesystem path.
 
-        :param path: local path or url
-        :return: url, path
+        :param path: local path or URL
+        :return: URL, native path
         """
-        if not self.is_schema(path):
-            path = self.to_workdir(path)
+        if path.startswith('http://') or path.startswith('https://'):
+            return path, path
 
-        prefix = ''
-        if not self.is_schema(path):
-            if self.window.core.platforms.is_windows():
-                prefix = 'file:///'
-            else:
-                prefix = 'file://'
-
-        url = prefix + path
+        path = self.normalize_local_path(path)
+        url = QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
         return url, path
 
     def get_workdir_prefix(self) -> str:
         """
-        Get workdir prefix
+        Get a properly encoded file URL for the current workdir.
 
-        :return: workdir prefix
+        :return: workdir file URL
         """
-        prefix = ''
-        if self.window.core.platforms.is_windows():
-            prefix = 'file:///'
-        else:
-            prefix = 'file://'
-        return prefix + self.window.core.config.get_user_path()
+        return QUrl.fromLocalFile(
+            self.window.core.config.get_user_path()
+        ).toString(QUrl.FullyEncoded)
 
     def in_work_dir(self, path: str) -> bool:
         """

@@ -45,13 +45,22 @@ class Url:
                 self.window.ui.nodes['output'][pid].on_focus_js()
             return
         elif url.toString().startswith('bridge://play_video/'):
-            self.window.controller.media.play_video(url.toString().replace("bridge://play_video/", ""))
+            path = self.window.core.filesystem.normalize_local_path(
+                url.toString().replace("bridge://play_video/", "", 1)
+            )
+            self.window.controller.media.play_video(path)
             return
         elif url.toString().startswith('bridge://open_image/'):
-            self.window.tools.get("viewer").open_preview(url.toString().replace("bridge://open_image/", ""))
+            path = self.window.core.filesystem.normalize_local_path(
+                url.toString().replace("bridge://open_image/", "", 1)
+            )
+            self.window.tools.get("viewer").open_preview(path)
             return
         elif url.toString().startswith('bridge://download/'):
-            self.window.controller.files.download_local(url.toString().replace("bridge://download/", ""))
+            path = self.window.core.filesystem.normalize_local_path(
+                url.toString().replace("bridge://download/", "", 1)
+            )
+            self.window.controller.files.download_local(path)
             return
 
         # -------------
@@ -67,7 +76,11 @@ class Url:
 
         # local file
         if not url.scheme().startswith('http') and url.scheme() not in extra_schemes:
-            self.window.controller.files.open(url.toLocalFile())
+            path = self.window.core.filesystem.normalize_local_path(
+                url.toLocalFile() or url.toString(),
+                auto_prefix=False,
+            )
+            self.window.controller.files.open(path)
 
         # extra actions
         elif url.scheme() == 'extra-delete':  # ctx item delete

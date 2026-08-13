@@ -397,21 +397,22 @@ class Body:
         ext = os.path.splitext(basename)[1].lower()
         video_exts = (".mp4", ".webm", ".ogg", ".mov", ".avi", ".mkv")
         if ext in video_exts:
+            source_url = url
             if ext != ".webm":
                 webm_path = os.path.splitext(path)[0] + ".webm"
                 if os.path.exists(webm_path):
-                    path = webm_path
+                    source_url = self.window.core.filesystem.get_local_url(webm_path)
                     ext = ".webm"
             return f'''
             <div class="extra-src-video-box" title="{url}">
                 <video class="video-player" controls>
-                    <source src="{path}" type="video/{ext[1:]}">
+                    <source src="{source_url}" type="video/{ext[1:]}">
                 </video>
                 <p><a href="bridge://play_video/{url}" class="title">{elide_filename(basename)}</a></p>
             </div>
             '''
         url_preview = f"bridge://open_image/{url}"
-        return f'<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url_preview}"><img src="{path}" class="image"></a></div><a href="{url}" class="title">{elide_filename(basename)}</a></div></div><br/>'
+        return f'<div class="extra-src-img-box" title="{url}"><div class="img-outer"><div class="img-wrapper"><a href="{url_preview}"><img src="{url}" class="image"></a></div><a href="{url}" class="title">{elide_filename(basename)}</a></div></div><br/>'
 
     def get_url_html(
             self,
@@ -602,10 +603,13 @@ class Body:
                     if is_video and ext != ".webm":
                         wp = os.path.splitext(path)[0] + ".webm"
                         if os.path.exists(wp):
-                            webm_path = wp
+                            webm_path = self.window.core.filesystem.get_local_url(wp)
                     images[str(n)] = {
                         "url": url,
-                        "path": path,
+                        # Browser-facing media sources must be file:// URLs, not
+                        # native paths such as C:\\Users\\... .  Chromium/QWebEngine
+                        # does not treat a raw Windows path as a valid media URL.
+                        "path": url,
                         "basename": basename,
                         "ext": ext,
                         "is_video": is_video,

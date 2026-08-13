@@ -147,6 +147,39 @@ def test_get_image_html():
     assert 'extra-src-img-box' in html
     assert 'img.png' in html
 
+
+def test_get_video_html_uses_file_url_for_source(monkeypatch):
+    config_data = {"app_path": "/fake/app"}
+    win = FakeWindow(config_data)
+    monkeypatch.setattr(os.path, "exists", lambda _: False)
+    win.core.filesystem.extract_local_url = lambda _: (
+        "file:///tmp/video/test.mp4",
+        "/tmp/video/test.mp4",
+    )
+    b = Body(win)
+    html = b.get_image_html("/tmp/video/test.mp4")
+    assert '<source src="file:///tmp/video/test.mp4" type="video/mp4">' in html
+    assert 'bridge://play_video/file:///tmp/video/test.mp4' in html
+
+
+def test_build_extras_dicts_uses_browser_url_for_media_path(monkeypatch):
+    config_data = {"app_path": "/fake/app"}
+    win = FakeWindow(config_data)
+    monkeypatch.setattr(os.path, "exists", lambda _: False)
+    file_url = "file:///tmp/video/test.mp4"
+    native_path = "/tmp/video/test.mp4"
+    win.core.filesystem.extract_local_url = lambda _: (file_url, native_path)
+    b = Body(win)
+    ctx = CtxItem()
+    ctx.images = [native_path]
+
+    images, files, urls, actions = b.build_extras_dicts(ctx, 0)
+
+    assert images["1"]["url"] == file_url
+    assert images["1"]["path"] == file_url
+    assert images["1"]["basename"] == "test.mp4"
+    assert images["1"]["is_video"] is True
+
 def test_get_url_html():
     config_data = {"app_path": "/fake/app"}
     win = FakeWindow(config_data)

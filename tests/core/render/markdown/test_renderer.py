@@ -10,7 +10,9 @@
 # ================================================== #
 
 from unittest.mock import MagicMock
-import platform
+import os
+
+from PySide6.QtCore import QUrl
 
 from tests.mocks import mock_window
 from pygpt_net.core.render.markdown.renderer import Renderer as Render
@@ -170,23 +172,16 @@ def test_get_image_html(mock_window):
     mock_window.core.config.set("lang", "en")
     mock_window.core.filesystem = Filesystem(mock_window)
     work_dir = mock_window.core.config.get_user_path()
-    url = "%workdir%/test.png"
+    path = os.path.join(work_dir, "test.png")
+    file_url = QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
     render = Render(mock_window)
     render.body = Body(mock_window)
     render.helpers = Helpers(mock_window)
-    html = render.body.get_image_html(url)
-    if platform.system() == 'Windows':
-        assert html == \
-               '<a href="file:///' + work_dir + '\\test.png"><img src="' + work_dir + '\\test.png" width="400" ' \
-                                                                                     'class="image"></a>\n        ' \
-                                                                                     '<p><b>Image:</b> <a href="file:///' \
-               + work_dir + '\\test.png">' + work_dir + '\\test.png</a></p>'
-    else:
-        assert html == \
-               '<a href="file:///' + work_dir + '/test.png"><img src="' + work_dir + '/test.png" width="400" ' \
-                                                                                     'class="image"></a>\n        ' \
-                                                                                     '<p><b>Image:</b> <a href="file:///'\
-               + work_dir + '/test.png">' + work_dir + '/test.png</a></p>'
+    html = render.body.get_image_html("%workdir%/test.png")
+    assert html == (
+        f'<a href="{file_url}"><img src="{path}" width="400" class="image"></a>\n        '
+        f'<p><b>Image:</b> <a href="{file_url}">{path}</a></p>'
+    )
 
 
 def test_get_url_html(mock_window):
@@ -206,17 +201,13 @@ def test_get_file_html(mock_window):
     mock_window.core.config.set("lang", "en")
     mock_window.core.filesystem = Filesystem(mock_window)
     work_dir = mock_window.core.config.get_user_path()
-    url = "%workdir%/test.txt"
+    path = os.path.join(work_dir, "test.txt")
+    file_url = QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
     render = Render(mock_window)
     render.body = Body(mock_window)
     render.helpers = Helpers(mock_window)
-    html = render.body.get_file_html(url)
-    if platform.system() == 'Windows':
-        assert html == \
-               '<div><b>File:</b> <a href="file:///' + work_dir + '\\test.txt">' + work_dir + '\\test.txt</a></div>'
-    else:
-        assert html == \
-               '<div><b>File:</b> <a href="file:///' + work_dir + '/test.txt">' + work_dir + '/test.txt</a></div>'
+    html = render.body.get_file_html("%workdir%/test.txt")
+    assert html == f'<div><b>File:</b> <a href="{file_url}">{path}</a></div>'
 
 
 def test_append(mock_window):
