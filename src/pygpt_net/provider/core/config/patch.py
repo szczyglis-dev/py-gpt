@@ -294,6 +294,14 @@ class Patch:
                     data["ctx.attachment.auto_append"] = True
                 updated = True
 
+            # < 2.8.1
+            if old < parse_version("2.8.1"):
+                print("Migrating config from < 2.8.1...")
+                # add: buttons hover css
+                patch_css('style.light.css', True)
+                patch_css('style.dark.css', True)
+                updated = True
+
         # update file
         migrated = False
         if updated:

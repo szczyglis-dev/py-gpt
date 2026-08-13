@@ -337,3 +337,6 @@ QListView#ComboPopupList > QWidget#ComboPopupViewport {{
   background: red;
   border-radius: 10px;
 }}
+QPushButton:hover {{
+  background-color: rgba(0, 0, 0, 25);
+}}
