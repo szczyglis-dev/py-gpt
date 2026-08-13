@@ -10,6 +10,7 @@
 # ================================================== #
 
 import copy
+import os
 from typing import Optional, List, Dict, Tuple
 
 from httpx_socks import SyncProxyTransport
@@ -513,6 +514,12 @@ class Models:
                 args["api_key"] = cfg.get('api_key_open_router', "")
                 args["base_url"] = cfg.get('api_endpoint_open_router', "")
                 self.window.core.debug.info("[api] Using client: OpenRouter API")
+            elif model.provider == "forge":
+                args["api_key"] = cfg.get('api_key_forge', "") or os.environ.get("FORGE_API_KEY", "")
+                args["base_url"] = cfg.get('api_endpoint_forge', "") or os.environ.get(
+                    "FORGE_API_BASE", "https://api.forge.tensorblock.co/v1"
+                )
+                self.window.core.debug.info("[api] Using client: Forge API")
             elif model.provider == "ollama":
                 args["api_key"] = "ollama"
                 args["base_url"] = self.window.core.models.ollama.get_base_url() + "/v1"

@@ -22,6 +22,7 @@ OPENAI_COMPATIBLE_PROVIDERS = [
     "deepseek_api",
     "x_ai",
     "open_router",
+    "forge",
 ]
 
 OPENAI_DISABLE_TOOLS = [
