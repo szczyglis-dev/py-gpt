@@ -23,6 +23,7 @@ OPENAI_COMPATIBLE_PROVIDERS = [
     "x_ai",
     "open_router",
     "forge",
+    "edenai",
 ]
 
 OPENAI_DISABLE_TOOLS = [

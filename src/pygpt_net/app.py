@@ -284,6 +284,7 @@ def run(**kwargs):
         from pygpt_net.provider.llms.open_router import OpenRouterLLM
         from pygpt_net.provider.llms.litellm import LiteLLMProvider
         from pygpt_net.provider.llms.forge import ForgeLLM
+        from pygpt_net.provider.llms.edenai import EdenAILLM
 
         # vector store providers (llama-index)
         from pygpt_net.provider.vector_stores.chroma import ChromaProvider
