@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 02:00:00                  #
+# Updated Date: 2026.08.13 13:00:00                  #
 # ================================================== #
 
 import os
@@ -159,23 +159,12 @@ class About:
         content = QLabel(string)
         content.setTextInteractionFlags(Qt.TextSelectableByMouse)
         content.setWordWrap(True)
+        content.setContentsMargins(2, 10, 2, 0)
         self.window.ui.nodes['dialog.about.content'] = content
 
         thanks = QLabel(trans('about.thanks'))
-        thanks.setAlignment(Qt.AlignCenter)
+        thanks.setContentsMargins(2, 0, 2, 0)
         self.window.ui.nodes['dialog.about.thanks'] = thanks
-
-        title = QLabel("PyGPT")
-        title.setContentsMargins(0, 0, 0, 0)
-        title.setStyleSheet(
-            "font-size: 16px; "
-            "font-weight: bold; "
-            "margin-bottom: 10px; "
-            "margin-left: 0; "
-            "margin-top: 10px; "
-            "padding: 0;"
-        )
-        title.setAlignment(Qt.AlignCenter)
 
         thanks_content = QPlainTextEdit()
         thanks_content.setReadOnly(True)
@@ -185,7 +174,6 @@ class About:
 
         layout = QVBoxLayout()
         layout.addWidget(logo_label)
-        layout.addWidget(title)
         layout.addWidget(self.window.ui.nodes['dialog.about.content'])
         layout.addWidget(self.window.ui.nodes['dialog.about.thanks'])
         layout.addWidget(self.window.ui.nodes['dialog.about.thanks.content'])

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.08.13 13:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -60,7 +60,7 @@ class About:
         m['donate.paypal'].triggered.connect(lambda checked=False, i=dlg_info: i.donate('paypal'))
         m['donate.github'].triggered.connect(lambda checked=False, i=dlg_info: i.donate('github'))
 
-        m['info.about'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('about'))
+        m['info.about'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('about', width=400, height=500))
         m['info.changelog'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('changelog'))
         m['info.updates'].triggered.connect(lambda checked=False, l=launcher: l.check_updates())
         m['info.report'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_report())

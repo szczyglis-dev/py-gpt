@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 01:00:00                  #
+# Updated Date: 2026.08.13 13:00:00                  #
 # ================================================== #
+
+import os
 
 LINK_GITHUB = "https://github.com/szczyglis-dev/py-gpt"
 LINK_DONATE = "https://www.buymeacoffee.com/szczyglis"
@@ -190,8 +192,8 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
 
     try:
         # Import locally to keep the main process import path untouched
-        from PySide6 import QtCore, QtWidgets
-        from pygpt_net.config import quick_get_config_value
+        from PySide6 import QtCore, QtGui, QtWidgets
+        from pygpt_net.config import Config, quick_get_config_value
     except Exception:
         return
 
@@ -240,9 +242,23 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(8)
 
-        lbl_title = QtWidgets.QLabel(title, panel)
-        lbl_title.setAlignment(QtCore.Qt.AlignCenter)
-        lbl_title.setStyleSheet("font-size: 16px; font-weight: 600;")
+        lbl_logo = QtWidgets.QLabel(panel)
+        lbl_logo.setAlignment(QtCore.Qt.AlignCenter)
+        try:
+            logo_path = os.path.abspath(
+                os.path.join(Config().get_app_path(), "data", "logo.png")
+            )
+            logo_pixmap = QtGui.QPixmap(logo_path)
+            if not logo_pixmap.isNull():
+                logo_pixmap = logo_pixmap.scaled(
+                    300,
+                    90,
+                    QtCore.Qt.KeepAspectRatio,
+                    QtCore.Qt.SmoothTransformation,
+                )
+                lbl_logo.setPixmap(logo_pixmap)
+        except Exception:
+            pass
 
         lbl_wait = QtWidgets.QLabel(msg_init)
         lbl_wait.setAlignment(QtCore.Qt.AlignCenter)
@@ -317,13 +333,13 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         bar.setStyleSheet("QProgressBar { border: 0px; border-radius: 4px; } "
                           "QProgressBar::chunk { background-color: #3f3f3f; }")
 
-        layout.addWidget(lbl_title)
+        layout.addWidget(lbl_logo)
         layout.addWidget(lbl_msg)
         layout.addWidget(bar)
         layout.addWidget(lbl_wait)
         layout.addLayout(support_area)
 
-        panel.setFixedSize(360, 220)
+        panel.setFixedSize(360, 285)
         panel.move(0, 0)
         root.resize(panel.size())
 
