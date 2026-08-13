@@ -1411,6 +1411,8 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Tuya (IoT)` - Handle Tuya Smart Home devices via Tuya Cloud API.
 
+- `TwelveLabs` - Analyze and understand videos with TwelveLabs Pegasus, and create multimodal embeddings with Marengo.
+
 - `Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
 - `Voice Control (inline)` - provides voice control command execution within a conversation.
@@ -1840,6 +1842,16 @@ The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless in
 * Read sensor values and normalize them for easy interpretation.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#tuya-iot
+
+## TwelveLabs
+
+The TwelveLabs plugin brings native video understanding to PyGPT through the [TwelveLabs](https://twelvelabs.io) API. The model can analyze videos with the `Pegasus` model and create multimodal embeddings with the `Marengo` model.
+
+* Analyze a video and answer a prompt about it (summary, description, Q&A) from a public video URL or an already-indexed `video_id` (`tl_analyze_video`, Pegasus).
+* Create a multimodal text embedding that lives in the same vector space as Marengo video embeddings, useful for text-to-video search (`tl_embed_text`, Marengo).
+* Configure the Pegasus and Marengo model names, default max tokens, temperature, and request timeout.
+
+Provide your API key in the plugin settings, or set the `TWELVELABS_API_KEY` environment variable. You can grab a free API key at https://twelvelabs.io — there is a generous free tier.
 
 ## Vision (inline)
 
