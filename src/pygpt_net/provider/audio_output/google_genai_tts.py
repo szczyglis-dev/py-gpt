@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.29 18:00:00                  #
+# Updated Date: 2026.08.13 16:00:00                  #
 # ================================================== #
 
-import os
 import wave
 import base64
 
@@ -80,8 +79,7 @@ class GoogleGenAITextToSpeech(BaseProvider):
         client = self.plugin.window.core.api.google.get_client()
 
         # Resolve path where audio should be written
-        output_file = self.plugin.output_file
-        path = os.path.join(self.plugin.window.core.config.path, output_file)
+        path = self.prepare_output_path()
 
         # Validate/select model
         model = self.plugin.get_option_value("google_genai_tts_model") or "gemini-2.5-flash-preview-tts"

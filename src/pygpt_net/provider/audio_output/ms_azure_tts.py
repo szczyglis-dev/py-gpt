@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 22:00:00                  #
+# Updated Date: 2026.08.13 16:00:00                  #
 # ================================================== #
 
-import os
 import requests
 
 from .base import BaseProvider
@@ -85,11 +84,7 @@ class MSAzureTextToSpeech(BaseProvider):
         api_key = self.plugin.get_option_value("azure_api_key")
         region = self.plugin.get_option_value("azure_region")
         lang = self.plugin.window.core.config.get('lang')
-        output_file = self.plugin.output_file
-        path = os.path.join(
-            self.plugin.window.core.config.path,
-            output_file,
-        )
+        path = self.prepare_output_path()
         if lang == "en":
             voice = self.plugin.get_option_value("azure_voice_en")
         else:

@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 22:00:00                  #
+# Updated Date: 2026.08.13 16:00:00                  #
 # ================================================== #
 import json
-import os
 import requests
 
 from .base import BaseProvider
@@ -81,11 +80,7 @@ class GoogleTextToSpeech(BaseProvider):
         api_key = self.plugin.get_option_value("google_api_key")
         lang = self.plugin.get_option_value("google_lang")
         voice = self.plugin.get_option_value("google_voice")
-        output_file = self.plugin.output_file
-        path = os.path.join(
-            self.plugin.window.core.config.path,
-            output_file,
-        )
+        path = self.prepare_output_path()
         url = "https://texttospeech.googleapis.com/v1beta1/text:synthesize"
         data = {
             "input": {

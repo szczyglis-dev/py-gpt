@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 22:00:00                  #
+# Updated Date: 2026.08.13 16:00:00                  #
 # ================================================== #
 
-import os
 import requests
 
 from .base import BaseProvider
@@ -81,11 +80,7 @@ class ElevenLabsTextToSpeech(BaseProvider):
         api_key = self.plugin.get_option_value("eleven_labs_api_key")
         model = self.plugin.get_option_value("eleven_labs_model")
         voice = self.plugin.get_option_value("eleven_labs_voice")
-        output_file = self.plugin.output_file
-        path = os.path.join(
-            self.plugin.window.core.config.path,
-            output_file,
-        )
+        path = self.prepare_output_path()
         CHUNK_SIZE = 1024
         url = "https://api.elevenlabs.io/v1/text-to-speech/" + voice
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 20:00:00                  #
+# Updated Date: 2026.08.13 16:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -16,8 +16,6 @@ import os
 import queue
 import threading
 import wave
-import time
-import uuid
 from typing import Optional, Tuple
 
 from .base import BaseProvider
@@ -115,12 +113,7 @@ class XAITextToSpeech(BaseProvider):
         host = f"{region}.api.x.ai" if region else "api.x.ai"
         ws_uri = f"wss://{host}/v1/realtime"
 
-        base_dir = self.plugin.window.core.config.path
-        default_name = getattr(self.plugin, "output_file", "output.wav")
-        name_root, _ = os.path.splitext(default_name)
-        unique_name = f"{name_root}_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
-        out_path = os.path.join(base_dir, unique_name)
-        out_path = self._ensure_extension(out_path, ".wav" if container == "wav" else ".raw")
+        out_path = self.prepare_output_path(".wav" if container == "wav" else ".raw")
 
         result_queue: queue.Queue[Tuple[bool, Optional[str], Optional[bytes]]] = queue.Queue()
 

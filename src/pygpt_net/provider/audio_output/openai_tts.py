@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.29 18:00:00                  #
+# Updated Date: 2026.08.13 16:00:00                  #
 # ================================================== #
-
-import os
 
 from .base import BaseProvider
 
@@ -64,7 +62,6 @@ class OpenAITextToSpeech(BaseProvider):
         :return: path to generated audio file or None if audio playback is handled here
         """
         client = self.plugin.window.core.api.openai.get_client()
-        output_file = self.plugin.output_file
         voice = self.plugin.get_option_value('openai_voice')
         model = self.plugin.get_option_value('openai_model')
         allowed_voices = self.plugin.window.core.audio.whisper.get_voices()
@@ -72,10 +69,7 @@ class OpenAITextToSpeech(BaseProvider):
             # model = 'tts-1'
         # if voice not in allowed_voices:
             # voice = 'alloy'
-        path = os.path.join(
-            self.plugin.window.core.config.path,
-            output_file,
-        )
+        path = self.prepare_output_path()
         response = client.audio.speech.create(
             model=model,
             voice=voice,
