@@ -184,7 +184,35 @@ jobs:
           BUILDER_VENV="$RUNNER_TEMP/appimage-builder-venv"
           python3 -m venv "$BUILDER_VENV"
           "$BUILDER_VENV/bin/python3" -m pip install --upgrade pip setuptools wheel
-          "$BUILDER_VENV/bin/python3" -m pip install 'appimage-builder==1.1.0'
+          "$BUILDER_VENV/bin/python3" -m pip install 'appimage-builder==1.1.0' packaging-legacy
+
+          # appimage-builder 1.1.0 compares Debian/Ubuntu package versions
+          # (for example 1.21.1ubuntu2) with packaging.version. Modern
+          # packaging rejects these non-PEP-440 versions. Use the legacy
+          # parser for appimage-builder's apt Package class instead.
+          PACKAGE_PY="$("$BUILDER_VENV/bin/python3" - <<'PY_PACKAGE'
+          from pathlib import Path
+          import appimagebuilder
+
+          print(
+              Path(appimagebuilder.__file__).resolve().parent
+              / "modules" / "deploy" / "apt" / "package.py"
+          )
+          PY_PACKAGE
+          )"
+
+          test -f "$PACKAGE_PY"
+          sed -i 's/^from packaging import version$/from packaging_legacy import version/' "$PACKAGE_PY"
+          grep -q '^from packaging_legacy import version$' "$PACKAGE_PY"
+
+          "$BUILDER_VENV/bin/python3" - <<'PY_VERIFY'
+          from packaging_legacy import version
+
+          # Must not raise InvalidVersion for Ubuntu/Debian package versions.
+          assert version.parse("1.21.1ubuntu2")
+          print("Legacy Debian/Ubuntu version parser: OK")
+          PY_VERIFY
+
           echo "$BUILDER_VENV/bin" >> "$GITHUB_PATH"
 
       - name: Prepare architecture-specific recipe
