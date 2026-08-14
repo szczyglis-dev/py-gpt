@@ -1,4 +1,6 @@
-# https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+# AppImage recipe for PyGPT.
+# Local builder: https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+
 version: 1
 
 AppDir:
@@ -75,12 +77,11 @@ AppDir:
     "$APPDIR/usr/bin/python3" -m venv "$APPDIR/usr/pyenv"
     "$APPDIR/usr/pyenv/bin/python3" -m ensurepip --upgrade || true
     "$APPDIR/usr/pyenv/bin/python3" -m pip install -U pip wheel setuptools
-    "$APPDIR/usr/pyenv/bin/pip" install -r $APPDIR/usr/src/requirements.txt
+    "$APPDIR/usr/pyenv/bin/pip" install -r "$APPDIR/usr/src/requirements.txt"
 
-    cat > "$APPDIR/usr/src/pygpt_net/data/appimage.conf" << 'EOF'
+    cat > "$APPDIR/usr/src/pygpt_net/data/appimage.conf" << 'EOF_APPIMAGE_CONF'
     yes
-    EOF
-
+    EOF_APPIMAGE_CONF
 
   runtime:
     env:
@@ -96,4 +97,4 @@ AppDir:
 
 AppImage:
   arch: x86_64
-  update-information: "gh-releases-zsync|szczyglis-dev|py-gpt|latest|*.AppImage.zsync"
+  update-information: "gh-releases-zsync|szczyglis-dev|py-gpt|latest|PyGPT-*-x86_64.AppImage.zsync"
