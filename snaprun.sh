@@ -6,10 +6,10 @@
 case "$SNAP_ARCH" in
     "amd64") ARCH='x86_64-linux-gnu'
     ;;
-    "i386") ARCH='i386-linux-gnu'
+    "arm64") ARCH='aarch64-linux-gnu'
     ;;
     *)
-        echo "Unsupported architecture for this app build"
+        echo "Unsupported architecture for this app build: $SNAP_ARCH"
         exit 1
     ;;
 esac
