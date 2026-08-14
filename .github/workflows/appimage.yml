@@ -292,6 +292,35 @@ jobs:
           # generated ARM64 recipe. Generic python3 commands remain unchanged.
           text = text.replace("python3.10", f"python{python_version}")
 
+          # Ubuntu 24.04/Noble renamed several runtime libraries as part of
+          # the 64-bit time_t (t64) transition. The xapp binary package was
+          # also split into separate GTK module and status-notifier packages.
+          # Keep the repository recipe Jammy-compatible for local x86_64
+          # builds and apply these substitutions only to generated Noble ARM64
+          # recipes.
+          if ubuntu_series == "noble":
+              noble_package_map = {
+                  "libasound2": "libasound2t64",
+                  "libglib2.0-0": "libglib2.0-0t64",
+                  "libgtk-3-0": "libgtk-3-0t64",
+                  "libpng16-16": "libpng16-16t64",
+              }
+              for old_name, new_name in noble_package_map.items():
+                  text = re.sub(
+                      rf"(?m)^(\s*-\s*){re.escape(old_name)}\s*$",
+                      rf"\1{new_name}",
+                      text,
+                  )
+
+              text, xapp_count = re.subn(
+                  r"(?m)^(\s*)-\s*xapp\s*$",
+                  r"\1- libxapp-gtk3-module\n\1- xapp-sn-watcher",
+                  text,
+                  count=1,
+              )
+              if xapp_count != 1:
+                  raise SystemExit("Could not rewrite Noble xapp packages")
+
           text, count = re.subn(
               r"(?m)^  arch:\s*(?:x86_64|aarch64)\s*$",
               f"  arch: {appimage_arch}",
