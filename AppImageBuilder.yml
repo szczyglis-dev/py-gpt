@@ -1,6 +1,12 @@
 # AppImage recipe for PyGPT.
-# Local builder: https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
-
+#
+# The repository keeps amd64/x86_64 as the default so this file can still be
+# used directly for local builds. GitHub Actions creates a temporary copy and
+# rewrites the architecture, Ubuntu mirrors and application version for the
+# native arm64/aarch64 build. The ARM64 GitHub build uses Ubuntu 24.04
+# (Noble/Python 3.12), because current PySide6 6.9.x Linux ARM64 wheels
+# target manylinux_2_39 / glibc 2.39. The local default remains
+# Ubuntu 22.04 (Jammy/Python 3.10) on x86_64 for wider compatibility.
 version: 1
 
 AppDir:

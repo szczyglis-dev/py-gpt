@@ -109,11 +109,17 @@ jobs:
           - runner: ubuntu-22.04
             deb_arch: amd64
             appimage_arch: x86_64
+            ubuntu_series: jammy
+            python_version: '3.10'
+            fuse_package: libfuse2
             archive_mirror: http://archive.ubuntu.com/ubuntu
             security_mirror: http://security.ubuntu.com/ubuntu
-          - runner: ubuntu-22.04-arm
+          - runner: ubuntu-24.04-arm
             deb_arch: arm64
             appimage_arch: aarch64
+            ubuntu_series: noble
+            python_version: '3.12'
+            fuse_package: libfuse2t64
             archive_mirror: http://ports.ubuntu.com/ubuntu-ports
             security_mirror: http://ports.ubuntu.com/ubuntu-ports
 
@@ -165,14 +171,21 @@ jobs:
           set -euo pipefail
 
           sudo apt-get update
+
+          # Some Python dependencies (notably PyAudio) are built from source
+          # on Linux. Keep their development headers/toolchain on the runner;
+          # only runtime libraries are bundled into the AppImage recipe.
           sudo apt-get install -y --no-install-recommends \
             binutils \
+            build-essential \
             coreutils \
             desktop-file-utils \
             fakeroot \
-            libfuse2 \
+            ${{ matrix.fuse_package }} \
             libgdk-pixbuf2.0-dev \
             patchelf \
+            portaudio19-dev \
+            python3-dev \
             python3-pip \
             python3-setuptools \
             python3-venv \
@@ -223,6 +236,8 @@ jobs:
           APPIMAGE_ARCH: ${{ matrix.appimage_arch }}
           ARCHIVE_MIRROR: ${{ matrix.archive_mirror }}
           SECURITY_MIRROR: ${{ matrix.security_mirror }}
+          UBUNTU_SERIES: ${{ matrix.ubuntu_series }}
+          PYTHON_VERSION: ${{ matrix.python_version }}
         run: |
           set -euo pipefail
           mkdir -p .ci
@@ -241,6 +256,8 @@ jobs:
           appimage_arch = os.environ["APPIMAGE_ARCH"]
           archive_mirror = os.environ["ARCHIVE_MIRROR"]
           security_mirror = os.environ["SECURITY_MIRROR"]
+          ubuntu_series = os.environ["UBUNTU_SERIES"]
+          python_version = os.environ["PYTHON_VERSION"]
 
           text, count = re.subn(
               r"(?m)^    version:\s*.*$",
@@ -264,6 +281,16 @@ jobs:
           text = text.replace("http://archive.ubuntu.com/ubuntu", archive_mirror)
           text = text.replace("http://security.ubuntu.com/ubuntu", security_mirror)
           text = text.replace("http://ports.ubuntu.com/ubuntu-ports", archive_mirror)
+
+          # Qt/PySide6 6.9.x ARM64 wheels are manylinux_2_39 and therefore
+          # require glibc >= 2.39. Keep x86_64 on Jammy for compatibility,
+          # but generate the ARM64 AppDir from Noble packages.
+          text = re.sub(r"\bjammy(?=(?:-updates|-security)?\b)", ubuntu_series, text)
+
+          # The default recipe is Jammy/Python 3.10. Noble ships Python 3.12,
+          # so rewrite only the hard-coded runtime site-packages paths in the
+          # generated ARM64 recipe. Generic python3 commands remain unchanged.
+          text = text.replace("python3.10", f"python{python_version}")
 
           text, count = re.subn(
               r"(?m)^  arch:\s*(?:x86_64|aarch64)\s*$",
@@ -295,8 +322,8 @@ jobs:
           print(f"Generated {dst}")
           PY
 
-          echo '--- generated recipe architecture ---'
-          grep -E '(^    version:|^    arch:|^  arch:|sourceline:|update-information:)' \
+          echo '--- generated recipe architecture / base ---'
+          grep -E '(^    version:|^    arch:|^  arch:|sourceline:|python3\.(10|12)|update-information:)' \
             ".ci/AppImageBuilder-${APPIMAGE_ARCH}.yml"
 
       - name: Build AppImage
