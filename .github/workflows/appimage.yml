@@ -36,6 +36,12 @@ concurrency:
 permissions:
   contents: read
 
+# Tell GitHub CLI which repository to use even in jobs that intentionally do
+# not checkout the source tree (prepare/checksums). This prevents gh from
+# trying to discover the repository from a local .git directory.
+env:
+  GH_REPO: ${{ github.repository }}
+
 jobs:
   prepare:
     name: Prepare build
@@ -68,13 +74,23 @@ jobs:
             SOURCE_REF="$EVENT_RELEASE_TAG"
             PUBLISH="true"
           elif [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$MANUAL_RELEASE_TAG" ]]; then
-            RELEASE_TAG="$MANUAL_RELEASE_TAG"
-            SOURCE_REF="$MANUAL_RELEASE_TAG"
-            PUBLISH="true"
+            REQUESTED_TAG="$MANUAL_RELEASE_TAG"
 
-            # Fail before starting two large builds if the requested release
-            # does not exist.
-            gh release view "$RELEASE_TAG" >/dev/null
+            # Resolve the existing release before starting two large builds.
+            # Accept both the exact tag (for example v2.8.1) and the convenient
+            # shorthand without the leading v (for example 2.8.1). GH_REPO is
+            # set at workflow level, so gh does not need a local .git checkout.
+            if gh release view "$REQUESTED_TAG" >/dev/null 2>&1; then
+              RELEASE_TAG="$REQUESTED_TAG"
+            elif [[ "$REQUESTED_TAG" != v* ]] && gh release view "v${REQUESTED_TAG}" >/dev/null 2>&1; then
+              RELEASE_TAG="v${REQUESTED_TAG}"
+            else
+              echo "GitHub Release not found for tag '$REQUESTED_TAG' (also tried 'v$REQUESTED_TAG')." >&2
+              exit 1
+            fi
+
+            SOURCE_REF="$RELEASE_TAG"
+            PUBLISH="true"
           fi
 
           if [[ "$PUBLISH" == "true" && -z "$RELEASE_TAG" ]]; then
