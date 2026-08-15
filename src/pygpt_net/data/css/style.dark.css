@@ -66,6 +66,10 @@ QMenu::item:selected {{
 }} 
 QPushButton {{
   text-transform: none;
+  border: 1px solid #4f5152;
+}}
+QPushButton:hover {{
+  background-color: rgba(255, 255, 255, 15);
 }}
 QHeaderView::section {{
   text-transform: none;
@@ -219,7 +223,4 @@ QWidget#ComboPopupWindow {{
 QListView#ComboPopupList > QWidget#ComboPopupViewport {{
   background: transparent;
   border-radius: 0px;
-}}
-QPushButton:hover {{
-  background-color: rgba(255, 255, 255, 15);
 }}

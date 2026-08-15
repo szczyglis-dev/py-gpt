@@ -41,6 +41,9 @@ QPushButton {{
   background-color: {QTMATERIAL_SECONDARYCOLOR};
   border: 1px solid #fff;
 }}
+QPushButton:hover {{
+  background-color: rgba(0, 0, 0, 25);
+}}
 QLineEdit {{
   color: #000000; 
   border: 1px solid #c0c0c0;
@@ -336,7 +339,4 @@ QWidget#ComboPopupWindow {{
 QListView#ComboPopupList > QWidget#ComboPopupViewport {{
   background: red;
   border-radius: 10px;
-}}
-QPushButton:hover {{
-  background-color: rgba(0, 0, 0, 25);
 }}

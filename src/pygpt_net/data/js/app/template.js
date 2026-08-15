@@ -112,7 +112,7 @@ class NodeTemplateEngine {
 				const icon = (typeof window !== 'undefined' && window.ICON_ATTACHMENTS) ? `<img src="${window.ICON_ATTACHMENTS}" class="extra-src-icon">` : '';
 				rows.push(`${icon} <b> [${k}] </b> <a href="${url}">${path}</a>`);
 			});
-			if (rows.length) parts.push(`<div>${rows.join("<br/><br/>")}</div>`);
+			if (rows.length) parts.push(`<div>${rows.join("<br/>")}</div>`);
 		}
 
 		// urls
@@ -127,7 +127,7 @@ class NodeTemplateEngine {
 				const icon = (typeof window !== 'undefined' && window.ICON_URL) ? `<img src="${window.ICON_URL}" class="extra-src-icon">` : '';
 				rows.push(`${icon}<a href="${url}" title="${url}">${url}</a> <small> [${k}] </small>`);
 			});
-			if (rows.length) parts.push(`<div>${rows.join("<br/><br/>")}</div>`);
+			if (rows.length) parts.push(`<div>${rows.join("<br/>")}</div>`);
 		}
 
 		// docs (render on JS) or fallback to docs_html

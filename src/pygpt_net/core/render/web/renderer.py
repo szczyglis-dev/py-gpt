@@ -982,7 +982,7 @@ class Renderer(BaseRenderer):
                 except Exception:
                     pass
             if files_html:
-                html_parts.append("<br/><br/>".join(files_html))
+                html_parts.append("<br/>".join(files_html))
 
         c = len(ctx.urls)
         if c > 0:
@@ -999,7 +999,7 @@ class Renderer(BaseRenderer):
                 except Exception:
                     pass
             if urls_html:
-                html_parts.append("<br/><br/>".join(urls_html))
+                html_parts.append("<br/>".join(urls_html))
 
         if self.window.core.config.get('ctx.sources'):
             if ctx.doc_ids is not None and len(ctx.doc_ids) > 0:
@@ -1193,8 +1193,8 @@ class Renderer(BaseRenderer):
             avatar_html = ""
             try:
                 use_default = self.window.core.config.get("agent.avatar.default", True)
-                if use_default and os.path.exists(self._agent_avatar):
-                    avatar_html = f"<img src=\"{self._file_prefix}{self._agent_avatar}\" class=\"avatar\"> "
+                # if use_default and os.path.exists(self._agent_avatar):
+                    # avatar_html = f"<img src=\"{self._file_prefix}{self._agent_avatar}\" class=\"avatar\"> "
             except Exception:
                 pass
             if stream:
@@ -1997,8 +1997,9 @@ class Renderer(BaseRenderer):
         if agent_name:
             avatar = None
             try:
-                if self.window.core.config.get("agent.avatar.default", True) and os.path.exists(self._agent_avatar):
-                    avatar = f"{self._file_prefix}{self._agent_avatar}"
+                pass
+                # if self.window.core.config.get("agent.avatar.default", True) and os.path.exists(self._agent_avatar):
+                    # avatar = f"{self._file_prefix}{self._agent_avatar}"
             except Exception:
                 pass
             return agent_name, avatar, True
