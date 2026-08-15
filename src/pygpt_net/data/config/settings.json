@@ -629,6 +629,19 @@
         "advanced": false,
         "tab": "Eden AI"
     },
+    "send_clear": {
+        "section": "general",
+        "type": "bool",
+        "slider": false,
+        "label": "input.send_clear",
+        "description": "input.send_clear.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "app.env": {
         "section": "general",
         "type": "dict",

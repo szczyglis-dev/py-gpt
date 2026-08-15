@@ -318,6 +318,7 @@ class Patch:
                 patch_css('style.light.css', True)
                 patch_css('style.dark.css', True)
                 patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt_wide.css', True)
                 to_add = [
                     "app_banners_api_url",
                 ]

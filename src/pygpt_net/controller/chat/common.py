@@ -50,12 +50,6 @@ class Common:
         else:
             nodes['input.stream'].setChecked(False)
 
-        # send clear
-        if config.get('send_clear'):
-            nodes['input.send_clear'].setChecked(True)
-        else:
-            nodes['input.send_clear'].setChecked(False)
-
         # send with enter/shift/disabled
         mode = config.get('send_mode')
         if mode == 2:
@@ -172,14 +166,6 @@ class Common:
             self.window.controller.command.stop = False
 
         self.window.controller.ui.update()  # update tokens counters
-
-    def toggle_send_clear(self, value: bool):
-        """
-        Toggle send clear
-
-        :param value: True if enabled
-        """
-        self.window.core.config.set('send_clear', value)
 
     def toggle_send_shift(self, value: bool):
         """

@@ -12,11 +12,25 @@
 body {{ 
   word-wrap: break-word;
   padding: 6px;
-  line-height: 1.25;
+  line-height: 1.5;
   padding: 0;
   margin: auto;
   max-width: 100%;
   border-radius: .25rem;
+}}
+h1,
+h2,
+h3,
+h4,
+h5 {{
+  line-height: 1.3;
+  margin-top: 0.9rem;
+  margin-right: 0;
+  margin-bottom: 0.4rem;
+  margin-left: 0;
+}}
+img {{
+  vertical-align: middle;
 }}
 ::-webkit-scrollbar {{
   height: 12px;
@@ -42,29 +56,125 @@ a:hover {{
   cursor: pointer !important;
   text-decoration: underline;
 }}
-p {{ 
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+p {{
+  margin-top: 0.15rem;
+  margin-bottom: 0.15rem;
 }}
+p:empty {{
+  display: none;
+}}
+
+/* keep vertical rhythm compact around headings */
+p + h1,
+p + h2,
+p + h3,
+p + h4,
+p + h5,
+ul + h1,
+ul + h2,
+ul + h3,
+ul + h4,
+ul + h5,
+ol + h1,
+ol + h2,
+ol + h3,
+ol + h4,
+ol + h5 {{
+  margin-top: 0.9rem;
+}}
+
+h1 + h2,
+h1 + h3,
+h1 + h4,
+h1 + h5,
+h2 + h3,
+h2 + h4,
+h2 + h5,
+h3 + h4,
+h3 + h5,
+h4 + h5 {{
+  margin-top: 0.62rem;
+}}
+
 /* lists, code */
 ol,
 ul {{
-  list-style-position: outside  !important;
+  list-style-position: outside !important;
   padding-inline-start: 2rem;
-  margin: 0 0 0 0;
+  margin-top: 0.44rem;
+  margin-bottom: 0.64rem;
 }}
-
-li > p:first-child {{
+li {{
+  line-height: 1.5;
   margin: 0;
-  margin-top: -1.25rem;
+}}
+li > p {{
+  line-height: 1.5;
+  margin-top: 0.1rem;
+  margin-bottom: 0.1rem;
+}}
+li > p:first-child {{
+  margin-top: -1rem;
 }}
 
+/* Ordered sections generated as: ol > li > p + ul.
+   Keep the generic li > p hack above, but prevent top-level numbered
+   sections from being pulled into the previous section. */
+ol > li > p:first-child {{
+  margin-top: 0.25rem;
+  margin-bottom: 0.15rem;
+}}
+
+/* Plain Markdown bullet lists may be rendered as ul > li > p.
+   Do not apply the generic -1rem pull-up to these items, otherwise
+   wrapped text and consecutive bullets can overlap. */
+ul > li > p:first-child {{
+  margin-top: 0;
+}}
+ul > li > p:last-child {{
+  margin-bottom: 0;
+}}
+ol > li + li {{
+  margin-top: 0.45rem;
+}}
+ol > li > ul,
+ol > li > ol {{
+  margin-top: 0.24rem;
+  margin-bottom: 0.32rem;
+}}
+li > p:last-child {{
+  margin-bottom: 0;
+}}
 li + li {{
-  margin-top: .35em;
+  margin-top: 0.18rem;
 }}
-
 li div:first-child {{
- margin-top: 1rem;
+  margin-top: 0.2rem;
+}}
+li > ul,
+li > ol {{
+  margin-top: 0.24rem;
+  margin-bottom: 0.32rem;
+}}
+p + ul,
+p + ol {{
+  margin-top: 0.44rem;
+}}
+ul + p,
+ol + p {{
+  margin-top: 0.50rem;
+}}
+h1 + ul,
+h1 + ol,
+h2 + ul,
+h2 + ol,
+h3 + ul,
+h3 + ol,
+h4 + ul,
+h4 + ol,
+h5 + ul,
+h5 + ol {{
+  margin-top: 0.44rem;
 }}
 pre {{
   font-family: 'Monaspace Neon';
@@ -126,6 +236,9 @@ think {{
   padding-right: 5px;
   margin-top: -3px;
 }}
+.code-header-action span {{
+  font-family: "Lato" !important;
+}}
 .code-header-action img {{
   vertical-align: middle;
 }}
@@ -169,7 +282,7 @@ think {{
 
 /* action icons */
 .action-icons {{
-  margin-top: 20px;
+  margin-top: 5px;
 }}
 .action-icons a {{
   text-decoration: none;
@@ -218,20 +331,8 @@ think {{
   background: none;
   border: none;
 }}
-.msg-box .name-header.name-bot {{
-  display: block;
-  margin-left: -10px;
-  margin-bottom: 1rem;
-  color: #cfcfcf;
-}}
-.msg-box .name-header.name-bot .avatar {{
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: inline;
-  vertical-align: middle;
-  object-fit: cover;
-  margin-right: 10px;
+.msg-bot .msg {{
+  white-space: normal;
 }}
 .msg-box .name-header.name-bot {{
   display: block;
@@ -249,12 +350,20 @@ think {{
   margin-right: 10px;
 }}
 .msg-extra {{
-  margin-top: 10px;
-  margin-bottom: 0px;
+  margin: 0;
+  padding: 0;
   color: gray;
+  font-size: 0.8rem;
+}}
+.msg-extra:not(.msg-extra .msg-extra):not(:empty):not(:has(.msg-extra)),
+.msg-extra:not(.msg-extra .msg-extra):has(.msg-extra:not(:has(.msg-extra)):not(:empty)) {{
+  padding-top: 10px;
 }}
 .msg-extra a {{
   color: gray;
+}}
+.msg > .msg-extra {{
+  padding-top: 0.5rem;
 }}
 .msg-user .msg-extra {{
   display: none;
@@ -276,7 +385,7 @@ think {{
 
 /* images */
 .image {{
-  max-width: 320px;
+  max-width: 250px;
 }}
 
 /* cmd */
@@ -298,7 +407,7 @@ think {{
 .tool-output .content {{
   font-family: 'Monaspace Neon';
   padding: 10px;
-  color: gray !important;
+  color: #4d4d4d !important;
   font-size: 0.75rem;
 }}
 .tool-output .toggle-cmd-output {{
@@ -380,9 +489,9 @@ think {{
 
 /* extra source */
 .extra-src-icon {{
-  padding-right: 2px;
-  width: 25px;
-  height: 25px;
+  padding-right: 4px;
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
 }}
 .extra-src-img-box {{
@@ -390,7 +499,7 @@ think {{
   text-align: center;
   padding: 5px;
   margin: 5px;
-  max-width: 320px;
+  max-width: 250px;
   height: auto;
   white-space: pre-wrap;
   word-break: break-all !important;
@@ -463,6 +572,8 @@ think {{
 .append_live {{
   font-size: 0.8rem;
 }}
+.empty_list {{
+}}
 .hidden {{
   display: block;
   opacity: 0;
@@ -473,8 +584,6 @@ think {{
   opacity: 1;
   visibility: visible;
   transition: opacity 0.5s ease, visibility 0.5s ease;
-}}
-.empty_list {{
 }}
 .debug {{
   color: orange !important;

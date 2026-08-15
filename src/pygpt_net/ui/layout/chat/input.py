@@ -214,9 +214,6 @@ class Input:
         nodes['input.send_none'] = QRadioButton(trans("input.radio.none"))
         nodes['input.send_none'].toggled.connect(partial(self._on_send_mode_toggled, 0))
 
-        nodes['input.send_clear'] = QCheckBox(trans('input.send_clear'))
-        nodes['input.send_clear'].toggled.connect(controller.chat.common.toggle_send_clear)
-
         nodes['input.stream'] = QCheckBox(trans('input.stream'))
         nodes['input.stream'].toggled.connect(controller.chat.common.toggle_stream)
 
@@ -237,7 +234,6 @@ class Input:
 
         nodes['ui.input.buttons'] = QHBoxLayout()
         nodes['ui.input.buttons'].addWidget(nodes['input.stream'])
-        nodes['ui.input.buttons'].addWidget(nodes['input.send_clear'])
         nodes['ui.input.buttons'].addWidget(nodes['input.send_enter'])
         nodes['ui.input.buttons'].addWidget(nodes['input.send_shift_enter'])
         nodes['ui.input.buttons'].addWidget(nodes['input.send_none'])

@@ -136,7 +136,6 @@ class Mapping:
         nodes['input.send_enter'] = 'input.radio.enter'
         nodes['input.send_shift_enter'] = 'input.radio.enter_shift'
         nodes['input.send_none'] = 'input.radio.none'
-        nodes['input.send_clear'] = 'input.send_clear'
         nodes['input.send_btn'] = 'input.btn.send'
         nodes['input.update_btn'] = 'input.btn.update'
         nodes['input.cancel_btn'] = 'input.btn.cancel'
