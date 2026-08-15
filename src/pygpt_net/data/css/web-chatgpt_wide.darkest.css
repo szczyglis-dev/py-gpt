@@ -83,6 +83,15 @@ code {{
 .tool-output .content {{
     color: #4d4d4d !important;
 }}
+.tool-output .tool-output-toggle:hover {{
+    background-color: rgba(255, 255, 255, 0.10);
+}}
+.tool-output .tool-output-label {{
+    color: #8d8d8c;
+}}
+.tool-output .tool-output-name {{
+    color: #fff;
+}}
 
 /* loader */
 .lds-ring {{

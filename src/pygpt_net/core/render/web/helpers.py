@@ -72,6 +72,45 @@ class Helpers:
         """
         return f'[!cmd]{html.escape(m.group(1))}[/!cmd]'
 
+    def extract_tool_calls(self, text: str) -> list:
+        """
+        Extract tool calls from <tool>...</tool> tags.
+
+        :param text: Raw assistant output
+        :return: List of dicts with tool name and raw request JSON
+        """
+        if not text or "<tool>" not in text or "</tool>" not in text:
+            return []
+
+        calls = []
+        for match in self._RE_TOOL_TAG.finditer(text):
+            request = match.group(1).strip()
+            name = ""
+            try:
+                data = json.loads(request)
+                if isinstance(data, dict) and data.get("cmd") is not None:
+                    name = str(data.get("cmd")).strip()
+            except Exception:
+                pass
+            calls.append({
+                "name": name or "tool",
+                "request": request,
+            })
+        return calls
+
+    def strip_tool_calls(self, text: str) -> str:
+        """
+        Remove <tool>...</tool> tags from assistant output used for visible markdown.
+
+        Tool requests are rendered separately in the collapsible tool block.
+
+        :param text: Raw assistant output
+        :return: Output without tool call tags
+        """
+        if not text or "<tool>" not in text or "</tool>" not in text:
+            return text
+        return self._RE_TOOL_TAG.sub("", text).strip()
+
     def _repl_think(self, m: re.Match) -> str:
         """
         Replace think tags with HTML paragraph

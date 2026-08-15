@@ -40,36 +40,54 @@ class ToolOutput {
 		if (els.length) els[els.length - 1].style.display = 'none';
 	}
 
-	// Append HTML into the latest tool-output content area.
+	// Append tool output. Structured tool blocks keep the request intact and
+	// append only to the Result section; legacy blocks keep the old HTML path.
 	append(content) {
 		this.hideLoader();
 		this.enable();
 		const els = document.querySelectorAll('.tool-output');
 		if (els.length) {
 			const contentEl = els[els.length - 1].querySelector('.content');
-			if (contentEl) contentEl.insertAdjacentHTML('beforeend', content);
+			if (!contentEl) return;
+			const resultEl = contentEl.querySelector('.tool-output-result-data');
+			if (resultEl) {
+				resultEl.insertAdjacentText('beforeend', content == null ? '' : String(content));
+			} else {
+				contentEl.insertAdjacentHTML('beforeend', content == null ? '' : String(content));
+			}
 		}
 	}
 
-	// Replace inner HTML for the latest tool-output content area.
+	// Replace tool output. Structured tool blocks replace only Result, keeping
+	// the Tool request visible after expansion.
 	update(content) {
 		this.hideLoader();
 		this.enable();
 		const els = document.querySelectorAll('.tool-output');
 		if (els.length) {
 			const contentEl = els[els.length - 1].querySelector('.content');
-			if (contentEl) contentEl.innerHTML = content;
+			if (!contentEl) return;
+			const resultEl = contentEl.querySelector('.tool-output-result-data');
+			if (resultEl) {
+				resultEl.textContent = content == null ? '' : String(content);
+			} else {
+				contentEl.innerHTML = content == null ? '' : String(content);
+			}
 		}
 	}
 
-	// Remove children from the latest tool-output content area.
+	// Clear only Result in structured tool blocks; legacy blocks are cleared
+	// exactly as before.
 	clear() {
 		this.hideLoader();
 		this.enable();
 		const els = document.querySelectorAll('.tool-output');
 		if (els.length) {
 			const contentEl = els[els.length - 1].querySelector('.content');
-			if (contentEl) contentEl.replaceChildren();
+			if (!contentEl) return;
+			const resultEl = contentEl.querySelector('.tool-output-result-data');
+			if (resultEl) resultEl.replaceChildren();
+			else contentEl.replaceChildren();
 		}
 	}
 	
@@ -80,8 +98,15 @@ class ToolOutput {
 		const outputEl = el.querySelector('.tool-output');
 		if (!outputEl) return;
 		const contentEl = outputEl.querySelector('.content');
-		if (contentEl) contentEl.style.display = (contentEl.style.display === 'none') ? 'block' : 'none';
-		const toggleEl = outputEl.querySelector('.toggle-cmd-output img');
-		if (toggleEl) toggleEl.classList.toggle('toggle-expanded');
+		if (!contentEl) return;
+
+		const expanded = contentEl.style.display === 'none';
+		contentEl.style.display = expanded ? 'block' : 'none';
+
+		const headerEl = outputEl.querySelector('.tool-output-toggle');
+		if (headerEl) headerEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+		const arrowEl = outputEl.querySelector('.tool-output-arrow') || outputEl.querySelector('.toggle-cmd-output img');
+		if (arrowEl) arrowEl.classList.toggle('toggle-expanded', expanded);
 	}
 }

@@ -282,6 +282,62 @@ think {{
   color: gray;
 }}
 
+.tool-output .tool-output-toggle {{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  padding: 4px 6px;
+  background: none;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  -webkit-appearance: none;
+  appearance: none;
+  box-shadow: none;
+  font-family: 'Lato';
+  font-size: inherit;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer !important;
+  transition: background-color 0.15s ease;
+}}
+.tool-output .tool-output-toggle * {{
+  cursor: pointer !important;
+}}
+.tool-output .tool-output-toggle:hover {{
+  background-color: rgba(127, 127, 127, 0.18) !important;
+}}
+.tool-output .tool-output-toggle:focus {{
+  outline: none;
+}}
+.tool-output .tool-output-icon {{
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}}
+.tool-output .tool-output-label {{
+  color: #8d8d8c;
+}}
+.tool-output .tool-output-name {{
+  font-family: 'Lato';
+}}
+.tool-output .tool-output-arrow {{
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+}}
+.tool-output .tool-output-section + .tool-output-section {{
+  margin-top: 14px;
+}}
+.tool-output .tool-output-data {{
+  margin-top: 6px;
+  font-family: 'Monaspace Neon';
+  white-space: pre-wrap;
+  word-break: break-word;
+}}
+
+
 /* extra source */
 .extra-src-icon {{
   padding-right: 2px;

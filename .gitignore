@@ -142,3 +142,6 @@ dmypy.json
 /AppDir
 /appimage-build
 *.squashfs
+
+# flatpak
+/.flatpak-builder

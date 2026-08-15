@@ -723,6 +723,7 @@ class Body:
         url_path = os.path.join(app_path, "data", "icons", "url.svg").replace("\\", "/")
         attach_path = os.path.join(app_path, "data", "icons", "attachments.svg").replace("\\", "/")
         db_path = os.path.join(app_path, "data", "icons", "db.svg").replace("\\", "/")
+        tool_path = os.path.join(app_path, "data", "icons", "settings.svg").replace("\\", "/")
 
         done_path = os.path.join(app_path, "data", "icons", "done.svg").replace("\\", "/")
 
@@ -736,6 +737,7 @@ class Body:
             f'window.ICON_URL="file://{url_path}";'
             f'window.ICON_ATTACHMENTS="file://{attach_path}";'
             f'window.ICON_DB="file://{db_path}";'
+            f'window.ICON_TOOL="file://{tool_path}";'
             f'window.ICON_DONE="file://{done_path}";'
         )
 
@@ -746,6 +748,9 @@ class Body:
         t_preview = trans('ctx.extra.preview')
         t_run = trans('ctx.extra.run')
         t_doc_prefix = trans("chat.prefix.doc")
+        t_tool = trans("ctx.tool.label")
+        t_tool_request = trans("ctx.tool.request")
+        t_tool_response = trans("ctx.tool.response")
 
         locales_js = (
             f'window.LOCALE_COPY={_json_dumps(t_copy)};'
@@ -755,6 +760,9 @@ class Body:
             f'window.LOCALE_COLLAPSE={_json_dumps(t_collapse)};'
             f'window.LOCALE_EXPAND={_json_dumps(t_expand)};'
             f'window.LOCALE_DOC_PREFIX={_json_dumps(t_doc_prefix)};'
+            f'window.LOCALE_TOOL={_json_dumps(t_tool)};'
+            f'window.LOCALE_TOOL_REQUEST={_json_dumps(t_tool_request)};'
+            f'window.LOCALE_TOOL_RESPONSE={_json_dumps(t_tool_response)};'
         )
 
         syntax_style = cfg_get("render.code_syntax") or "default"

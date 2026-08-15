@@ -206,28 +206,64 @@ class NodeTemplateEngine {
 	// Inside class NodeTemplateEngine
 	_renderToolOutputWrapper(block) {
 		const extra = block.extra || {};
+		const toolCalls = Array.isArray(extra.tool_calls) ? extra.tool_calls.filter(Boolean) : [];
+		const hasToolCalls = toolCalls.length > 0;
 
-		// IMPORTANT: keep initial tool output verbatim (HTML-ready).
-		// Do NOT HTML-escape here – the host already provides a safe/HTML-ready string.
-		// Escaping again would double-encode entities (e.g. " -> "), which
-		// caused visible """ in the UI instead of quotes.
-		const tool_output_html = (extra.tool_output != null) ? String(extra.tool_output) : '';
+		// Backward-compatible HTML-ready result. New blocks also carry the raw
+		// result so it can be escaped here instead of being injected as HTML.
+		const legacyToolOutput = (extra.tool_output != null) ? String(extra.tool_output) : '';
+		const resultHtml = (extra.tool_result != null)
+			? this._escapeHtml(String(extra.tool_result))
+			: legacyToolOutput;
 
-		// Wrapper visibility: show/hide based on tool_output_visible...
-		const wrapperDisplay = (extra.tool_output_visible === true) ? '' : 'display:none';
+		// A tool request itself makes the wrapper visible immediately. The result
+		// can arrive later through ToolOutput.update().
+		const wrapperDisplay = (extra.tool_output_visible === true || hasToolCalls) ? '' : 'display:none';
 
 		const toggleTitle = (typeof trans !== 'undefined' && trans) ? trans('action.cmd.expand') : 'Expand';
 		const expIcon = (typeof window !== 'undefined' && window.ICON_EXPAND) ? window.ICON_EXPAND : '';
+		const toolIcon = (typeof window !== 'undefined' && window.ICON_TOOL) ? window.ICON_TOOL : '';
+		const toolLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL) ? window.LOCALE_TOOL : 'Tool';
+		const requestLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_REQUEST) ? window.LOCALE_TOOL_REQUEST : 'Request';
+		const responseLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_RESPONSE) ? window.LOCALE_TOOL_RESPONSE : 'Response';
 
-		return (
-			`<div class='tool-output' style='${wrapperDisplay}'>` +
+		let titleHtml = '';
+		let contentHtml = legacyToolOutput;
+		if (hasToolCalls) {
+			const names = toolCalls.map((call) => this._escapeHtml(String(call.name || 'tool')));
+			const requests = toolCalls
+				.map((call) => this._escapeHtml(String(call.request || '')))
+				.join('\n\n');
+
+			const iconHtml = toolIcon ? `<img src='${this._esc(toolIcon)}' class='tool-output-icon' alt=''>` : '';
+			const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow' width='25' height='25' alt=''>`;
+			titleHtml =
+				`<button type='button' class='tool-output-toggle' onclick='toggleToolOutput(${this._esc(block.id)});' ` +
+				`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
+				`${iconHtml}<span class='tool-output-label'><b>${this._escapeHtml(toolLabel)}:</b>&nbsp;</span>` +
+				`<span class='tool-output-name'>${names.join(', ')}</span>${arrowHtml}` +
+				`</button>`;
+			contentHtml =
+				`<div class='tool-output-section'>` +
+				`<b>${this._escapeHtml(requestLabel)}:</b>` +
+				`<div class='tool-output-data tool-output-request-data'>${requests}</div>` +
+				`</div>` +
+				`<div class='tool-output-section'>` +
+				`<b>${this._escapeHtml(responseLabel)}:</b>` +
+				`<div class='tool-output-data tool-output-result-data'>${resultHtml}</div>` +
+				`</div>`;
+		}
+
+		const legacyToggleHtml = hasToolCalls ? '' :
 			`<span class='toggle-cmd-output' onclick='toggleToolOutput(${this._esc(block.id)});' ` +
 			`title='${this._escapeHtml(toggleTitle)}' role='button'>` +
 			`<img src='${this._esc(expIcon)}' width='25' height='25' valign='middle'>` +
-			`</span>` +
-			// Content is initially collapsed. We intentionally do NOT escape here,
-			// to keep behavior consistent with ToolOutput.append/update (HTML-in).
-			`<div class='content' style='display:none' data-trusted='1'>${tool_output_html}</div>` +
+			`</span>`;
+
+		return (
+			`<div class='tool-output' style='${wrapperDisplay}'>` +
+			`${titleHtml}${legacyToggleHtml}` +
+			`<div class='content' style='display:none' data-trusted='1'>${contentHtml}</div>` +
 			`</div>`
 		);
 	}
@@ -246,6 +282,7 @@ class NodeTemplateEngine {
 		const nameHeader = personalize ? this._nameHeader('bot', out.name || '', out.avatar_img || null) : '';
 
 		const mdText = this._escapeHtml(out.text || '');
+		const mdBlock = mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '';
 		const toolWrap = this._renderToolOutputWrapper(block);
 		const extras = this._renderExtras(block);
 		const actions = (block.extra && block.extra.footer_icons) ? this._renderActions(block) : '';
@@ -255,7 +292,7 @@ class NodeTemplateEngine {
 			`<div class='msg-box msg-bot' id='${msgId}'>` +
 			`${nameHeader}` +
 			`<div class='msg'>` +
-			`<div class='md-block' md-block-markdown='1'>${mdText}</div>` +
+			`${mdBlock}` +
 			`<div class='msg-tool-extra'></div>` +
 			`${toolWrap}` +
 			`<div class='msg-extra'>${extras}</div>` +
@@ -269,7 +306,13 @@ class NodeTemplateEngine {
 	renderNode(block) {
 		const parts = [];
 		if (block && block.input && block.input.text) parts.push(this._renderUser(block));
-		if (block && block.output && block.output.text) parts.push(this._renderBot(block));
+		if (block && block.output) {
+			const extra = block.extra || {};
+			const hasToolCalls = Array.isArray(extra.tool_calls) && extra.tool_calls.length > 0;
+			if (block.output.text || hasToolCalls || extra.tool_output_visible === true) {
+				parts.push(this._renderBot(block));
+			}
+		}
 		return parts.join('');
 	}
 

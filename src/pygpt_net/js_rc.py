@@ -77295,7 +77295,7 @@ lear();\x0a\x09\x09} catc\
 h (_) {}\x0a\x09\x09this.\
 _pendingDoc = fa\
 lse;\x0a\x09}\x0a}\
-\x00\x00)\xf0\
+\x00\x002S\
 /\
 / ==============\
 ================\
@@ -77777,197 +77777,332 @@ ngine\x0a\x09_renderTo\
 olOutputWrapper(\
 block) {\x0a\x09\x09const\
  extra = block.e\
-xtra || {};\x0a\x0a\x09\x09/\
-/ IMPORTANT: kee\
-p initial tool o\
-utput verbatim (\
-HTML-ready).\x0a\x09\x09/\
-/ Do NOT HTML-es\
-cape here \xe2\x80\x93 th\
-e host already p\
-rovides a safe/H\
-TML-ready string\
-.\x0a\x09\x09// Escaping \
-again would doub\
-le-encode entiti\
-es (e.g. \x22 -> \x22)\
-, which\x0a\x09\x09// cau\
-sed visible \x22\x22\x22 \
-in the UI instea\
-d of quotes.\x0a\x09\x09c\
-onst tool_output\
-_html = (extra.t\
-ool_output != nu\
-ll) ? String(ext\
-ra.tool_output) \
-: '';\x0a\x0a\x09\x09// Wrap\
-per visibility: \
-show/hide based \
-on tool_output_v\
-isible...\x0a\x09\x09cons\
-t wrapperDisplay\
- = (extra.tool_o\
-utput_visible ==\
-= true) ? '' : '\
-display:none';\x0a\x0a\
-\x09\x09const toggleTi\
-tle = (typeof tr\
-ans !== 'undefin\
-ed' && trans) ? \
-trans('action.cm\
-d.expand') : 'Ex\
-pand';\x0a\x09\x09const e\
-xpIcon = (typeof\
- window !== 'und\
-efined' && windo\
-w.ICON_EXPAND) ?\
- window.ICON_EXP\
-AND : '';\x0a\x0a\x09\x09ret\
-urn (\x0a\x09\x09\x09`<div c\
-lass='tool-outpu\
-t' style='${wrap\
-perDisplay}'>` +\
-\x0a\x09\x09\x09`<span class\
-='toggle-cmd-out\
-put' onclick='to\
-ggleToolOutput($\
-{this._esc(block\
-.id)});' ` +\x0a\x09\x09\x09\
-`title='${this._\
-escapeHtml(toggl\
-eTitle)}' role='\
-button'>` +\x0a\x09\x09\x09`\
-<img src='${this\
-._esc(expIcon)}'\
- width='25' heig\
-ht='25' valign='\
-middle'>` +\x0a\x09\x09\x09`\
-</span>` +\x0a\x09\x09\x09//\
- Content is init\
-ially collapsed.\
- We intentionall\
-y do NOT escape \
-here,\x0a\x09\x09\x09// to k\
-eep behavior con\
-sistent with Too\
-lOutput.append/u\
-pdate (HTML-in).\
+xtra || {};\x0a\x09\x09co\
+nst toolCalls = \
+Array.isArray(ex\
+tra.tool_calls) \
+? extra.tool_cal\
+ls.filter(Boolea\
+n) : [];\x0a\x09\x09const\
+ hasToolCalls = \
+toolCalls.length\
+ > 0;\x0a\x0a\x09\x09// Back\
+ward-compatible \
+HTML-ready resul\
+t. New blocks al\
+so carry the raw\
+\x0a\x09\x09// result so \
+it can be escape\
+d here instead o\
+f being injected\
+ as HTML.\x0a\x09\x09cons\
+t legacyToolOutp\
+ut = (extra.tool\
+_output != null)\
+ ? String(extra.\
+tool_output) : '\
+';\x0a\x09\x09const resul\
+tHtml = (extra.t\
+ool_result != nu\
+ll)\x0a\x09\x09\x09? this._e\
+scapeHtml(String\
+(extra.tool_resu\
+lt))\x0a\x09\x09\x09: legacy\
+ToolOutput;\x0a\x0a\x09\x09/\
+/ A tool request\
+ itself makes th\
+e wrapper visibl\
+e immediately. T\
+he result\x0a\x09\x09// c\
+an arrive later \
+through ToolOutp\
+ut.update().\x0a\x09\x09c\
+onst wrapperDisp\
+lay = (extra.too\
+l_output_visible\
+ === true || has\
+ToolCalls) ? '' \
+: 'display:none'\
+;\x0a\x0a\x09\x09const toggl\
+eTitle = (typeof\
+ trans !== 'unde\
+fined' && trans)\
+ ? trans('action\
+.cmd.expand') : \
+'Expand';\x0a\x09\x09cons\
+t expIcon = (typ\
+eof window !== '\
+undefined' && wi\
+ndow.ICON_EXPAND\
+) ? window.ICON_\
+EXPAND : '';\x0a\x09\x09c\
+onst toolIcon = \
+(typeof window !\
+== 'undefined' &\
+& window.ICON_TO\
+OL) ? window.ICO\
+N_TOOL : '';\x0a\x09\x09c\
+onst toolLabel =\
+ (typeof window \
+!== 'undefined' \
+&& window.LOCALE\
+_TOOL) ? window.\
+LOCALE_TOOL : 'T\
+ool';\x0a\x09\x09const re\
+questLabel = (ty\
+peof window !== \
+'undefined' && w\
+indow.LOCALE_TOO\
+L_REQUEST) ? win\
+dow.LOCALE_TOOL_\
+REQUEST : 'Reque\
+st';\x0a\x09\x09const res\
+ponseLabel = (ty\
+peof window !== \
+'undefined' && w\
+indow.LOCALE_TOO\
+L_RESPONSE) ? wi\
+ndow.LOCALE_TOOL\
+_RESPONSE : 'Res\
+ponse';\x0a\x0a\x09\x09let t\
+itleHtml = '';\x0a\x09\
+\x09let contentHtml\
+ = legacyToolOut\
+put;\x0a\x09\x09if (hasTo\
+olCalls) {\x0a\x09\x09\x09co\
+nst names = tool\
+Calls.map((call)\
+ => this._escape\
+Html(String(call\
+.name || 'tool')\
+));\x0a\x09\x09\x09const req\
+uests = toolCall\
+s\x0a\x09\x09\x09\x09.map((call\
+) => this._escap\
+eHtml(String(cal\
+l.request || '')\
+))\x0a\x09\x09\x09\x09.join('\x5cn\
+\x5cn');\x0a\x0a\x09\x09\x09const \
+iconHtml = toolI\
+con ? `<img src=\
+'${this._esc(too\
+lIcon)}' class='\
+tool-output-icon\
+' alt=''>` : '';\
+\x0a\x09\x09\x09const arrowH\
+tml = `<img src=\
+'${this._esc(exp\
+Icon)}' class='t\
+ool-output-arrow\
+' width='25' hei\
+ght='25' alt=''>\
+`;\x0a\x09\x09\x09titleHtml \
+=\x0a\x09\x09\x09\x09`<button t\
+ype='button' cla\
+ss='tool-output-\
+toggle' onclick=\
+'toggleToolOutpu\
+t(${this._esc(bl\
+ock.id)});' ` +\x0a\
+\x09\x09\x09\x09`title='${th\
+is._escapeHtml(t\
+oggleTitle)}' ar\
+ia-expanded='fal\
+se'>` +\x0a\x09\x09\x09\x09`${i\
+conHtml}<span cl\
+ass='tool-output\
+-label'><b>${thi\
+s._escapeHtml(to\
+olLabel)}:</b>&n\
+bsp;</span>` +\x0a\x09\
+\x09\x09\x09`<span class=\
+'tool-output-nam\
+e'>${names.join(\
+', ')}</span>${a\
+rrowHtml}` +\x0a\x09\x09\x09\
+\x09`</button>`;\x0a\x09\x09\
+\x09contentHtml =\x0a\x09\
+\x09\x09\x09`<div class='\
+tool-output-sect\
+ion'>` +\x0a\x09\x09\x09\x09`<b\
+>${this._escapeH\
+tml(requestLabel\
+)}:</b>` +\x0a\x09\x09\x09\x09`\
+<div class='tool\
+-output-data too\
+l-output-request\
+-data'>${request\
+s}</div>` +\x0a\x09\x09\x09\x09\
+`</div>` +\x0a\x09\x09\x09\x09`\
+<div class='tool\
+-output-section'\
+>` +\x0a\x09\x09\x09\x09`<b>${t\
+his._escapeHtml(\
+responseLabel)}:\
+</b>` +\x0a\x09\x09\x09\x09`<di\
+v class='tool-ou\
+tput-data tool-o\
+utput-result-dat\
+a'>${resultHtml}\
+</div>` +\x0a\x09\x09\x09\x09`<\
+/div>`;\x0a\x09\x09}\x0a\x0a\x09\x09c\
+onst legacyToggl\
+eHtml = hasToolC\
+alls ? '' :\x0a\x09\x09\x09`\
+<span class='tog\
+gle-cmd-output' \
+onclick='toggleT\
+oolOutput(${this\
+._esc(block.id)}\
+);' ` +\x0a\x09\x09\x09`titl\
+e='${this._escap\
+eHtml(toggleTitl\
+e)}' role='butto\
+n'>` +\x0a\x09\x09\x09`<img \
+src='${this._esc\
+(expIcon)}' widt\
+h='25' height='2\
+5' valign='middl\
+e'>` +\x0a\x09\x09\x09`</spa\
+n>`;\x0a\x0a\x09\x09return (\
 \x0a\x09\x09\x09`<div class=\
-'content' style=\
-'display:none' d\
-ata-trusted='1'>\
-${tool_output_ht\
-ml}</div>` +\x0a\x09\x09\x09\
-`</div>`\x0a\x09\x09);\x0a\x09}\
-\x0a\x0a\x09// Render bot\
- message block (\
-md-block-markdow\
-n)\x0a\x09_renderBot(b\
-lock) {\x0a\x09\x09const \
-id = block.id;\x0a\x09\
-\x09const out = blo\
-ck.output || {};\
-\x0a\x09\x09const msgId =\
- `msg-bot-${id}`\
-;\x0a\x0a\x09\x09// timestam\
-ps intentionally\
- disabled on fro\
-ntend\x0a\x09\x09// let t\
-s = '';\x0a\x09\x09// if \
-(out.timestamp) \
-{ ... }\x0a\x0a\x09\x09const\
- personalize = !\
-!(block && block\
+'tool-output' st\
+yle='${wrapperDi\
+splay}'>` +\x0a\x09\x09\x09`\
+${titleHtml}${le\
+gacyToggleHtml}`\
+ +\x0a\x09\x09\x09`<div clas\
+s='content' styl\
+e='display:none'\
+ data-trusted='1\
+'>${contentHtml}\
+</div>` +\x0a\x09\x09\x09`</\
+div>`\x0a\x09\x09);\x0a\x09}\x0a\x0a\x09\
+// Render bot me\
+ssage block (md-\
+block-markdown)\x0a\
+\x09_renderBot(bloc\
+k) {\x0a\x09\x09const id \
+= block.id;\x0a\x09\x09co\
+nst out = block.\
+output || {};\x0a\x09\x09\
+const msgId = `m\
+sg-bot-${id}`;\x0a\x0a\
+\x09\x09// timestamps \
+intentionally di\
+sabled on fronte\
+nd\x0a\x09\x09// let ts =\
+ '';\x0a\x09\x09// if (ou\
+t.timestamp) { .\
+.. }\x0a\x0a\x09\x09const pe\
+rsonalize = !!(b\
+lock && block.ex\
+tra && block.ext\
+ra.personalize =\
+== true);\x0a\x09\x09cons\
+t nameHeader = p\
+ersonalize ? thi\
+s._nameHeader('b\
+ot', out.name ||\
+ '', out.avatar_\
+img || null) : '\
+';\x0a\x0a\x09\x09const mdTe\
+xt = this._escap\
+eHtml(out.text |\
+| '');\x0a\x09\x09const m\
+dBlock = mdText \
+? `<div class='m\
+d-block' md-bloc\
+k-markdown='1'>$\
+{mdText}</div>` \
+: '';\x0a\x09\x09const to\
+olWrap = this._r\
+enderToolOutputW\
+rapper(block);\x0a\x09\
+\x09const extras = \
+this._renderExtr\
+as(block);\x0a\x09\x09con\
+st actions = (bl\
+ock.extra && blo\
+ck.extra.footer_\
+icons) ? this._r\
+enderActions(blo\
+ck) : '';\x0a\x09\x09cons\
+t debug = (block\
 .extra && block.\
-extra.personaliz\
-e === true);\x0a\x09\x09c\
-onst nameHeader \
-= personalize ? \
-this._nameHeader\
-('bot', out.name\
- || '', out.avat\
-ar_img || null) \
-: '';\x0a\x0a\x09\x09const m\
-dText = this._es\
-capeHtml(out.tex\
-t || '');\x0a\x09\x09cons\
-t toolWrap = thi\
-s._renderToolOut\
-putWrapper(block\
-);\x0a\x09\x09const extra\
-s = this._render\
-Extras(block);\x0a\x09\
-\x09const actions =\
- (block.extra &&\
- block.extra.foo\
-ter_icons) ? thi\
-s._renderActions\
-(block) : '';\x0a\x09\x09\
-const debug = (b\
-lock.extra && bl\
-ock.extra.debug_\
-html) ? String(b\
-lock.extra.debug\
-_html) : '';\x0a\x0a\x09\x09\
-return (\x0a\x09\x09\x09`<di\
-v class='msg-box\
- msg-bot' id='${\
-msgId}'>` +\x0a\x09\x09\x09`\
-${nameHeader}` +\
-\x0a\x09\x09\x09`<div class=\
-'msg'>` +\x0a\x09\x09\x09`<d\
-iv class='md-blo\
-ck' md-block-mar\
-kdown='1'>${mdTe\
-xt}</div>` +\x0a\x09\x09\x09\
+extra.debug_html\
+) ? String(block\
+.extra.debug_htm\
+l) : '';\x0a\x0a\x09\x09retu\
+rn (\x0a\x09\x09\x09`<div cl\
+ass='msg-box msg\
+-bot' id='${msgI\
+d}'>` +\x0a\x09\x09\x09`${na\
+meHeader}` +\x0a\x09\x09\x09\
 `<div class='msg\
--tool-extra'></d\
-iv>` +\x0a\x09\x09\x09`${too\
-lWrap}` +\x0a\x09\x09\x09`<d\
-iv class='msg-ex\
-tra'>${extras}</\
-div>` +\x0a\x09\x09\x09`${ac\
-tions}${debug}` \
-+\x0a\x09\x09\x09`</div>` +\x0a\
-\x09\x09\x09`</div>`\x0a\x09\x09);\
-\x0a\x09}\x0a\x0a\x09// Render \
-one RenderBlock \
-into HTML (may p\
-roduce 1 or 2 me\
-ssages \xe2\x80\x93 input\
- and/or output)\x0a\
-\x09renderNode(bloc\
-k) {\x0a\x09\x09const par\
-ts = [];\x0a\x09\x09if (b\
-lock && block.in\
-put && block.inp\
-ut.text) parts.p\
-ush(this._render\
-User(block));\x0a\x09\x09\
-if (block && blo\
-ck.output && blo\
-ck.output.text) \
-parts.push(this.\
-_renderBot(block\
-));\x0a\x09\x09return par\
-ts.join('');\x0a\x09}\x0a\
-\x0a\x09// Render arra\
-y of blocks\x0a\x09ren\
-derNodes(blocks)\
- {\x0a\x09\x09if (!Array.\
-isArray(blocks))\
- return '';\x0a\x09\x09co\
-nst out = [];\x0a\x09\x09\
-for (let i = 0; \
-i < blocks.lengt\
-h; i++) {\x0a\x09\x09\x09con\
-st b = blocks[i]\
- || null;\x0a\x09\x09\x09if \
-(!b) continue;\x0a\x09\
-\x09\x09out.push(this.\
-renderNode(b));\x0a\
-\x09\x09}\x0a\x09\x09return out\
-.join('');\x0a\x09}\x0a}\
+'>` +\x0a\x09\x09\x09`${mdBl\
+ock}` +\x0a\x09\x09\x09`<div\
+ class='msg-tool\
+-extra'></div>` \
++\x0a\x09\x09\x09`${toolWrap\
+}` +\x0a\x09\x09\x09`<div cl\
+ass='msg-extra'>\
+${extras}</div>`\
+ +\x0a\x09\x09\x09`${actions\
+}${debug}` +\x0a\x09\x09\x09\
+`</div>` +\x0a\x09\x09\x09`<\
+/div>`\x0a\x09\x09);\x0a\x09}\x0a\x0a\
+\x09// Render one R\
+enderBlock into \
+HTML (may produc\
+e 1 or 2 message\
+s \xe2\x80\x93 input and/\
+or output)\x0a\x09rend\
+erNode(block) {\x0a\
+\x09\x09const parts = \
+[];\x0a\x09\x09if (block \
+&& block.input &\
+& block.input.te\
+xt) parts.push(t\
+his._renderUser(\
+block));\x0a\x09\x09if (b\
+lock && block.ou\
+tput) {\x0a\x09\x09\x09const\
+ extra = block.e\
+xtra || {};\x0a\x09\x09\x09c\
+onst hasToolCall\
+s = Array.isArra\
+y(extra.tool_cal\
+ls) && extra.too\
+l_calls.length >\
+ 0;\x0a\x09\x09\x09if (block\
+.output.text || \
+hasToolCalls || \
+extra.tool_outpu\
+t_visible === tr\
+ue) {\x0a\x09\x09\x09\x09parts.\
+push(this._rende\
+rBot(block));\x0a\x09\x09\
+\x09}\x0a\x09\x09}\x0a\x09\x09return \
+parts.join('');\x0a\
+\x09}\x0a\x0a\x09// Render a\
+rray of blocks\x0a\x09\
+renderNodes(bloc\
+ks) {\x0a\x09\x09if (!Arr\
+ay.isArray(block\
+s)) return '';\x0a\x09\
+\x09const out = [];\
+\x0a\x09\x09for (let i = \
+0; i < blocks.le\
+ngth; i++) {\x0a\x09\x09\x09\
+const b = blocks\
+[i] || null;\x0a\x09\x09\x09\
+if (!b) continue\
+;\x0a\x09\x09\x09out.push(th\
+is.renderNode(b)\
+);\x0a\x09\x09}\x0a\x09\x09return \
+out.join('');\x0a\x09}\
+\x0a}\
 \x00\x00\x09J\
 /\
 / ==============\
@@ -111163,7 +111298,7 @@ lapse');\x0a       \
          }\x0a     \
        }\x0a       \
  });\x0a    }\x0a}\
-\x00\x00\x09\xd3\
+\x00\x00\x0d\xd9\
 /\
 / ==============\
 ================\
@@ -111229,10 +111364,56 @@ ength) els[els.l\
 ength - 1].style\
 .display = 'none\
 ';\x0a\x09}\x0a\x0a\x09// Appen\
-d HTML into the \
-latest tool-outp\
-ut content area.\
-\x0a\x09append(content\
+d tool output. S\
+tructured tool b\
+locks keep the r\
+equest intact an\
+d\x0a\x09// append onl\
+y to the Result \
+section; legacy \
+blocks keep the \
+old HTML path.\x0a\x09\
+append(content) \
+{\x0a\x09\x09this.hideLoa\
+der();\x0a\x09\x09this.en\
+able();\x0a\x09\x09const \
+els = document.q\
+uerySelectorAll(\
+'.tool-output');\
+\x0a\x09\x09if (els.lengt\
+h) {\x0a\x09\x09\x09const co\
+ntentEl = els[el\
+s.length - 1].qu\
+erySelector('.co\
+ntent');\x0a\x09\x09\x09if (\
+!contentEl) retu\
+rn;\x0a\x09\x09\x09const res\
+ultEl = contentE\
+l.querySelector(\
+'.tool-output-re\
+sult-data');\x0a\x09\x09\x09\
+if (resultEl) {\x0a\
+\x09\x09\x09\x09resultEl.ins\
+ertAdjacentText(\
+'beforeend', con\
+tent == null ? '\
+' : String(conte\
+nt));\x0a\x09\x09\x09} else \
+{\x0a\x09\x09\x09\x09contentEl.\
+insertAdjacentHT\
+ML('beforeend', \
+content == null \
+? '' : String(co\
+ntent));\x0a\x09\x09\x09}\x0a\x09\x09\
+}\x0a\x09}\x0a\x0a\x09// Replac\
+e tool output. S\
+tructured tool b\
+locks replace on\
+ly Result, keepi\
+ng\x0a\x09// the Tool \
+request visible \
+after expansion.\
+\x0a\x09update(content\
 ) {\x0a\x09\x09this.hideL\
 oader();\x0a\x09\x09this.\
 enable();\x0a\x09\x09cons\
@@ -111245,84 +111426,102 @@ contentEl = els[\
 els.length - 1].\
 querySelector('.\
 content');\x0a\x09\x09\x09if\
- (contentEl) con\
-tentEl.insertAdj\
-acentHTML('befor\
-eend', content);\
-\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09// Rep\
-lace inner HTML \
-for the latest t\
-ool-output conte\
-nt area.\x0a\x09update\
-(content) {\x0a\x09\x09th\
-is.hideLoader();\
-\x0a\x09\x09this.enable()\
-;\x0a\x09\x09const els = \
-document.querySe\
-lectorAll('.tool\
--output');\x0a\x09\x09if \
-(els.length) {\x0a\x09\
-\x09\x09const contentE\
-l = els[els.leng\
-th - 1].querySel\
-ector('.content'\
-);\x0a\x09\x09\x09if (conten\
-tEl) contentEl.i\
+ (!contentEl) re\
+turn;\x0a\x09\x09\x09const r\
+esultEl = conten\
+tEl.querySelecto\
+r('.tool-output-\
+result-data');\x0a\x09\
+\x09\x09if (resultEl) \
+{\x0a\x09\x09\x09\x09resultEl.t\
+extContent = con\
+tent == null ? '\
+' : String(conte\
+nt);\x0a\x09\x09\x09} else {\
+\x0a\x09\x09\x09\x09contentEl.i\
 nnerHTML = conte\
-nt;\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09// \
-Remove children \
-from the latest \
-tool-output cont\
-ent area.\x0a\x09clear\
-() {\x0a\x09\x09this.hide\
-Loader();\x0a\x09\x09this\
-.enable();\x0a\x09\x09con\
-st els = documen\
-t.querySelectorA\
-ll('.tool-output\
-');\x0a\x09\x09if (els.le\
-ngth) {\x0a\x09\x09\x09const\
- contentEl = els\
-[els.length - 1]\
-.querySelector('\
-.content');\x0a\x09\x09\x09i\
-f (contentEl) co\
-ntentEl.replaceC\
-hildren();\x0a\x09\x09}\x0a\x09\
-}\x0a\x09\x0a\x09// Toggle v\
-isibility of a s\
-pecific tool out\
-put block by mes\
-sage id.\x0a\x09toggle\
-(id) {\x0a\x09\x09const e\
-l = document.get\
-ElementById('msg\
--bot-' + id);\x0a\x09\x09\
-if (!el) return;\
-\x0a\x09\x09const outputE\
-l = el.querySele\
-ctor('.tool-outp\
-ut');\x0a\x09\x09if (!out\
-putEl) return;\x0a\x09\
-\x09const contentEl\
- = outputEl.quer\
-ySelector('.cont\
-ent');\x0a\x09\x09if (con\
-tentEl) contentE\
-l.style.display \
-= (contentEl.sty\
-le.display === '\
-none') ? 'block'\
- : 'none';\x0a\x09\x09con\
-st toggleEl = ou\
-tputEl.querySele\
-ctor('.toggle-cm\
-d-output img');\x0a\
-\x09\x09if (toggleEl) \
-toggleEl.classLi\
-st.toggle('toggl\
-e-expanded');\x0a\x09}\
-\x0a}\
+nt == null ? '' \
+: String(content\
+);\x0a\x09\x09\x09}\x0a\x09\x09}\x0a\x09}\x0a\x0a\
+\x09// Clear only R\
+esult in structu\
+red tool blocks;\
+ legacy blocks a\
+re cleared\x0a\x09// e\
+xactly as before\
+.\x0a\x09clear() {\x0a\x09\x09t\
+his.hideLoader()\
+;\x0a\x09\x09this.enable(\
+);\x0a\x09\x09const els =\
+ document.queryS\
+electorAll('.too\
+l-output');\x0a\x09\x09if\
+ (els.length) {\x0a\
+\x09\x09\x09const content\
+El = els[els.len\
+gth - 1].querySe\
+lector('.content\
+');\x0a\x09\x09\x09if (!cont\
+entEl) return;\x0a\x09\
+\x09\x09const resultEl\
+ = contentEl.que\
+rySelector('.too\
+l-output-result-\
+data');\x0a\x09\x09\x09if (r\
+esultEl) resultE\
+l.replaceChildre\
+n();\x0a\x09\x09\x09else con\
+tentEl.replaceCh\
+ildren();\x0a\x09\x09}\x0a\x09}\
+\x0a\x09\x0a\x09// Toggle vi\
+sibility of a sp\
+ecific tool outp\
+ut block by mess\
+age id.\x0a\x09toggle(\
+id) {\x0a\x09\x09const el\
+ = document.getE\
+lementById('msg-\
+bot-' + id);\x0a\x09\x09i\
+f (!el) return;\x0a\
+\x09\x09const outputEl\
+ = el.querySelec\
+tor('.tool-outpu\
+t');\x0a\x09\x09if (!outp\
+utEl) return;\x0a\x09\x09\
+const contentEl \
+= outputEl.query\
+Selector('.conte\
+nt');\x0a\x09\x09if (!con\
+tentEl) return;\x0a\
+\x0a\x09\x09const expande\
+d = contentEl.st\
+yle.display === \
+'none';\x0a\x09\x09conten\
+tEl.style.displa\
+y = expanded ? '\
+block' : 'none';\
+\x0a\x0a\x09\x09const header\
+El = outputEl.qu\
+erySelector('.to\
+ol-output-toggle\
+');\x0a\x09\x09if (header\
+El) headerEl.set\
+Attribute('aria-\
+expanded', expan\
+ded ? 'true' : '\
+false');\x0a\x0a\x09\x09cons\
+t arrowEl = outp\
+utEl.querySelect\
+or('.tool-output\
+-arrow') || outp\
+utEl.querySelect\
+or('.toggle-cmd-\
+output img');\x0a\x09\x09\
+if (arrowEl) arr\
+owEl.classList.t\
+oggle('toggle-ex\
+panded', expande\
+d);\x0a\x09}\x0a}\
 \x00\x00KL\
 /\
 / ==============\
@@ -113524,7 +113723,7 @@ r,r.macros=r.mac\
 ros||{},d(e,r)}}\
 (),i=i.default}(\
 )}));\
-\x00\x03?\xcf\
+\x00\x03J\x9c\
 /\
 * app.min.js \xe2\x80\x94\
  generated on 20\
@@ -125012,15 +125211,30 @@ v>`;}\x0a_renderToo\
 lOutputWrapper(b\
 lock){const extr\
 a=block.extra||{\
-};const tool_out\
-put_html=(extra.\
-tool_output!=nul\
-l)?String(extra.\
-tool_output):'';\
-const wrapperDis\
-play=(extra.tool\
-_output_visible=\
-==true)?'':'disp\
+};const toolCall\
+s=Array.isArray(\
+extra.tool_calls\
+)?extra.tool_cal\
+ls.filter(Boolea\
+n):[];const hasT\
+oolCalls=toolCal\
+ls.length>0;cons\
+t legacyToolOutp\
+ut=(extra.tool_o\
+utput!=null)?Str\
+ing(extra.tool_o\
+utput):'';const \
+resultHtml=(extr\
+a.tool_result!=n\
+ull)?this._escap\
+eHtml(String(ext\
+ra.tool_result))\
+:legacyToolOutpu\
+t;const wrapperD\
+isplay=(extra.to\
+ol_output_visibl\
+e===true||hasToo\
+lCalls)?'':'disp\
 lay:none';const \
 toggleTitle=(typ\
 eof trans!=='und\
@@ -125032,144 +125246,309 @@ n=(typeof window\
 !=='undefined'&&\
 window.ICON_EXPA\
 ND)?window.ICON_\
-EXPAND:'';return\
+EXPAND:'';const \
+toolIcon=(typeof\
+ window!=='undef\
+ined'&&window.IC\
+ON_TOOL)?window.\
+ICON_TOOL:'';con\
+st toolLabel=(ty\
+peof window!=='u\
+ndefined'&&windo\
+w.LOCALE_TOOL)?w\
+indow.LOCALE_TOO\
+L:'Tool';const r\
+equestLabel=(typ\
+eof window!=='un\
+defined'&&window\
+.LOCALE_TOOL_REQ\
+UEST)?window.LOC\
+ALE_TOOL_REQUEST\
+:'Request';const\
+ responseLabel=(\
+typeof window!==\
+'undefined'&&win\
+dow.LOCALE_TOOL_\
+RESPONSE)?window\
+.LOCALE_TOOL_RES\
+PONSE:'Response'\
+;let titleHtml='\
+';let contentHtm\
+l=legacyToolOutp\
+ut;if(hasToolCal\
+ls){const names=\
+toolCalls.map((c\
+all)=>this._esca\
+peHtml(String(ca\
+ll.name||'tool')\
+));const request\
+s=toolCalls.map(\
+(call)=>this._es\
+capeHtml(String(\
+call.request||''\
+))).join('\x5cn\x5cn')\
+;const iconHtml=\
+toolIcon?`<img s\
+rc='${this._esc(\
+toolIcon)}' clas\
+s='tool-output-i\
+con' alt=''>`:''\
+;const arrowHtml\
+=`<img src='${th\
+is._esc(expIcon)\
+}' class='tool-o\
+utput-arrow' wid\
+th='25' height='\
+25' alt=''>`;tit\
+leHtml=`<button \
+type='button' cl\
+ass='tool-output\
+-toggle' onclick\
+='toggleToolOutp\
+ut(${this._esc(b\
+lock.id)});' `+`\
+title='${this._e\
+scapeHtml(toggle\
+Title)}' aria-ex\
+panded='false'>`\
++`${iconHtml}<sp\
+an class='tool-o\
+utput-label'><b>\
+${this._escapeHt\
+ml(toolLabel)}:<\
+/b>&nbsp;</span>\
+`+`<span class='\
+tool-output-name\
+'>${names.join('\
+, ')}</span>${ar\
+rowHtml}`+`</but\
+ton>`;contentHtm\
+l=`<div class='t\
+ool-output-secti\
+on'>`+`<b>${this\
+._escapeHtml(req\
+uestLabel)}:</b>\
+`+`<div class='t\
+ool-output-data \
+tool-output-requ\
+est-data'>${requ\
+ests}</div>`+`</\
+div>`+`<div clas\
+s='tool-output-s\
+ection'>`+`<b>${\
+this._escapeHtml\
+(responseLabel)}\
+:</b>`+`<div cla\
+ss='tool-output-\
+data tool-output\
+-result-data'>${\
+resultHtml}</div\
+>`+`</div>`;}con\
+st legacyToggleH\
+tml=hasToolCalls\
+?'':`<span class\
+='toggle-cmd-out\
+put' onclick='to\
+ggleToolOutput($\
+{this._esc(block\
+.id)});' `+`titl\
+e='${this._escap\
+eHtml(toggleTitl\
+e)}' role='butto\
+n'>`+`<img src='\
+${this._esc(expI\
+con)}' width='25\
+' height='25' va\
+lign='middle'>`+\
+`</span>`;return\
 (`<div class='to\
 ol-output' style\
 ='${wrapperDispl\
-ay}'>`+`<span cl\
-ass='toggle-cmd-\
-output' onclick=\
-'toggleToolOutpu\
-t(${this._esc(bl\
-ock.id)});' `+`t\
-itle='${this._es\
-capeHtml(toggleT\
-itle)}' role='bu\
-tton'>`+`<img sr\
-c='${this._esc(e\
-xpIcon)}' width=\
-'25' height='25'\
- valign='middle'\
->`+`</span>`+`<d\
-iv class='conten\
-t' style='displa\
-y:none' data-tru\
-sted='1'>${tool_\
-output_html}</di\
-v>`+`</div>`);}\x0a\
-_renderBot(block\
-){const id=block\
-.id;const out=bl\
-ock.output||{};c\
-onst msgId=`msg-\
-bot-${id}`;const\
- personalize=!!(\
-block&&block.ext\
-ra&&block.extra.\
-personalize===tr\
-ue);const nameHe\
-ader=personalize\
-?this._nameHeade\
-r('bot',out.name\
-||'',out.avatar_\
-img||null):'';co\
-nst mdText=this.\
-_escapeHtml(out.\
-text||'');const \
-toolWrap=this._r\
-enderToolOutputW\
-rapper(block);co\
-nst extras=this.\
-_renderExtras(bl\
-ock);const actio\
-ns=(block.extra&\
-&block.extra.foo\
-ter_icons)?this.\
-_renderActions(b\
-lock):'';const d\
-ebug=(block.extr\
-a&&block.extra.d\
-ebug_html)?Strin\
-g(block.extra.de\
-bug_html):'';ret\
-urn(`<div class=\
-'msg-box msg-bot\
-' id='${msgId}'>\
-`+`${nameHeader}\
-`+`<div class='m\
-sg'>`+`<div clas\
+ay}'>`+`${titleH\
+tml}${legacyTogg\
+leHtml}`+`<div c\
+lass='content' s\
+tyle='display:no\
+ne' data-trusted\
+='1'>${contentHt\
+ml}</div>`+`</di\
+v>`);}\x0a_renderBo\
+t(block){const i\
+d=block.id;const\
+ out=block.outpu\
+t||{};const msgI\
+d=`msg-bot-${id}\
+`;const personal\
+ize=!!(block&&bl\
+ock.extra&&block\
+.extra.personali\
+ze===true);const\
+ nameHeader=pers\
+onalize?this._na\
+meHeader('bot',o\
+ut.name||'',out.\
+avatar_img||null\
+):'';const mdTex\
+t=this._escapeHt\
+ml(out.text||'')\
+;const mdBlock=m\
+dText?`<div clas\
 s='md-block' md-\
 block-markdown='\
 1'>${mdText}</di\
-v>`+`<div class=\
-'msg-tool-extra'\
-></div>`+`${tool\
-Wrap}`+`<div cla\
-ss='msg-extra'>$\
-{extras}</div>`+\
-`${actions}${deb\
-ug}`+`</div>`+`<\
-/div>`);}\x0arender\
-Node(block){cons\
-t parts=[];if(bl\
-ock&&block.input\
-&&block.input.te\
-xt)parts.push(th\
-is._renderUser(b\
-lock));if(block&\
-&block.output&&b\
-lock.output.text\
-)parts.push(this\
-._renderBot(bloc\
-k));return parts\
-.join('');}\x0arend\
-erNodes(blocks){\
-if(!Array.isArra\
-y(blocks))return\
-'';const out=[];\
-for(let i=0;i<bl\
-ocks.length;i++)\
-{const b=blocks[\
-i]||null;if(!b)c\
-ontinue;out.push\
-(this.renderNode\
-(b));}\x0areturn ou\
-t.join('');}};\x0a\x0a\
-/* data/js/app/t\
-ool.js */\x0aclass \
-ToolOutput{showL\
-oader(){return;}\
-\x0ahideLoader(){co\
-nst elements=doc\
-ument.querySelec\
-torAll('.msg-bot\
-');if(elements.l\
-ength>0)elements\
-.forEach(el=>{co\
-nst s=el.querySe\
-lector('.spinner\
-');if(s)s.style.\
-display='none';}\
-);}\x0abegin(){this\
-.showLoader();}\x0a\
-end(){this.hideL\
-oader();}\x0aenable\
-(){const els=doc\
+v>`:'';const too\
+lWrap=this._rend\
+erToolOutputWrap\
+per(block);const\
+ extras=this._re\
+nderExtras(block\
+);const actions=\
+(block.extra&&bl\
+ock.extra.footer\
+_icons)?this._re\
+nderActions(bloc\
+k):'';const debu\
+g=(block.extra&&\
+block.extra.debu\
+g_html)?String(b\
+lock.extra.debug\
+_html):'';return\
+(`<div class='ms\
+g-box msg-bot' i\
+d='${msgId}'>`+`\
+${nameHeader}`+`\
+<div class='msg'\
+>`+`${mdBlock}`+\
+`<div class='msg\
+-tool-extra'></d\
+iv>`+`${toolWrap\
+}`+`<div class='\
+msg-extra'>${ext\
+ras}</div>`+`${a\
+ctions}${debug}`\
++`</div>`+`</div\
+>`);}\x0arenderNode\
+(block){const pa\
+rts=[];if(block&\
+&block.input&&bl\
+ock.input.text)p\
+arts.push(this._\
+renderUser(block\
+));if(block&&blo\
+ck.output){const\
+ extra=block.ext\
+ra||{};const has\
+ToolCalls=Array.\
+isArray(extra.to\
+ol_calls)&&extra\
+.tool_calls.leng\
+th>0;if(block.ou\
+tput.text||hasTo\
+olCalls||extra.t\
+ool_output_visib\
+le===true){parts\
+.push(this._rend\
+erBot(block));}}\
+return parts.joi\
+n('');}\x0arenderNo\
+des(blocks){if(!\
+Array.isArray(bl\
+ocks))return'';c\
+onst out=[];for(\
+let i=0;i<blocks\
+.length;i++){con\
+st b=blocks[i]||\
+null;if(!b)conti\
+nue;out.push(thi\
+s.renderNode(b))\
+;}\x0areturn out.jo\
+in('');}};\x0a\x0a/* d\
+ata/js/app/tool.\
+js */\x0aclass Tool\
+Output{showLoade\
+r(){return;}\x0ahid\
+eLoader(){const \
+elements=documen\
+t.querySelectorA\
+ll('.msg-bot');i\
+f(elements.lengt\
+h>0)elements.for\
+Each(el=>{const \
+s=el.querySelect\
+or('.spinner');i\
+f(s)s.style.disp\
+lay='none';});}\x0a\
+begin(){this.sho\
+wLoader();}\x0aend(\
+){this.hideLoade\
+r();}\x0aenable(){c\
+onst els=documen\
+t.querySelectorA\
+ll('.tool-output\
+');if(els.length\
+)els[els.length-\
+1].style.display\
+='block';}\x0adisab\
+le(){const els=d\
+ocument.querySel\
+ectorAll('.tool-\
+output');if(els.\
+length)els[els.l\
+ength-1].style.d\
+isplay='none';}\x0a\
+append(content){\
+this.hideLoader(\
+);this.enable();\
+const els=docume\
+nt.querySelector\
+All('.tool-outpu\
+t');if(els.lengt\
+h){const content\
+El=els[els.lengt\
+h-1].querySelect\
+or('.content');i\
+f(!contentEl)ret\
+urn;const result\
+El=contentEl.que\
+rySelector('.too\
+l-output-result-\
+data');if(result\
+El){resultEl.ins\
+ertAdjacentText(\
+'beforeend',cont\
+ent==null?'':Str\
+ing(content));}e\
+lse{contentEl.in\
+sertAdjacentHTML\
+('beforeend',con\
+tent==null?'':St\
+ring(content));}\
+}}\x0aupdate(conten\
+t){this.hideLoad\
+er();this.enable\
+();const els=doc\
 ument.querySelec\
 torAll('.tool-ou\
 tput');if(els.le\
-ngth)els[els.len\
-gth-1].style.dis\
-play='block';}\x0ad\
-isable(){const e\
-ls=document.quer\
-ySelectorAll('.t\
-ool-output');if(\
-els.length)els[e\
-ls.length-1].sty\
-le.display='none\
-';}\x0aappend(conte\
-nt){this.hideLoa\
+ngth){const cont\
+entEl=els[els.le\
+ngth-1].querySel\
+ector('.content'\
+);if(!contentEl)\
+return;const res\
+ultEl=contentEl.\
+querySelector('.\
+tool-output-resu\
+lt-data');if(res\
+ultEl){resultEl.\
+textContent=cont\
+ent==null?'':Str\
+ing(content);}el\
+se{contentEl.inn\
+erHTML=content==\
+null?'':String(c\
+ontent);}}}\x0aclea\
+r(){this.hideLoa\
 der();this.enabl\
 e();const els=do\
 cument.querySele\
@@ -125179,627 +125558,554 @@ ength){const con\
 tentEl=els[els.l\
 ength-1].querySe\
 lector('.content\
-');if(contentEl)\
-contentEl.insert\
-AdjacentHTML('be\
-foreend',content\
-);}}\x0aupdate(cont\
-ent){this.hideLo\
-ader();this.enab\
-le();const els=d\
-ocument.querySel\
-ectorAll('.tool-\
-output');if(els.\
-length){const co\
-ntentEl=els[els.\
-length-1].queryS\
-elector('.conten\
-t');if(contentEl\
-)contentEl.inner\
-HTML=content;}}\x0a\
-clear(){this.hid\
-eLoader();this.e\
-nable();const el\
-s=document.query\
-SelectorAll('.to\
-ol-output');if(e\
-ls.length){const\
- contentEl=els[e\
-ls.length-1].que\
-rySelector('.con\
-tent');if(conten\
-tEl)contentEl.re\
-placeChildren();\
-}}\x0atoggle(id){co\
-nst el=document.\
-getElementById('\
-msg-bot-'+id);if\
-(!el)return;cons\
-t outputEl=el.qu\
-erySelector('.to\
-ol-output');if(!\
-outputEl)return;\
-const contentEl=\
-outputEl.querySe\
-lector('.content\
-');if(contentEl)\
-contentEl.style.\
-display=(content\
-El.style.display\
-==='none')?'bloc\
-k':'none';const \
-toggleEl=outputE\
-l.querySelector(\
-'.toggle-cmd-out\
-put img');if(tog\
-gleEl)toggleEl.c\
-lassList.toggle(\
-'toggle-expanded\
-');}};\x0a\x0a/* data/\
-js/app/ui.js */\x0a\
-class UIManager{\
-updateCSS(styles\
-){let style=docu\
-ment.getElementB\
-yId('app-style')\
-;if(!style){styl\
-e=document.creat\
-eElement('style'\
-);style.id='app-\
-style';document.\
-head.appendChild\
-(style);}\x0astyle.\
-textContent=styl\
-es;}\x0aensureStick\
-yHeaderStyle(){l\
+');if(!contentEl\
+)return;const re\
+sultEl=contentEl\
+.querySelector('\
+.tool-output-res\
+ult-data');if(re\
+sultEl)resultEl.\
+replaceChildren(\
+);else contentEl\
+.replaceChildren\
+();}}\x0atoggle(id)\
+{const el=docume\
+nt.getElementByI\
+d('msg-bot-'+id)\
+;if(!el)return;c\
+onst outputEl=el\
+.querySelector('\
+.tool-output');i\
+f(!outputEl)retu\
+rn;const content\
+El=outputEl.quer\
+ySelector('.cont\
+ent');if(!conten\
+tEl)return;const\
+ expanded=conten\
+tEl.style.displa\
+y==='none';conte\
+ntEl.style.displ\
+ay=expanded?'blo\
+ck':'none';const\
+ headerEl=output\
+El.querySelector\
+('.tool-output-t\
+oggle');if(heade\
+rEl)headerEl.set\
+Attribute('aria-\
+expanded',expand\
+ed?'true':'false\
+');const arrowEl\
+=outputEl.queryS\
+elector('.tool-o\
+utput-arrow')||o\
+utputEl.querySel\
+ector('.toggle-c\
+md-output img');\
+if(arrowEl)arrow\
+El.classList.tog\
+gle('toggle-expa\
+nded',expanded);\
+}};\x0a\x0a/* data/js/\
+app/ui.js */\x0acla\
+ss UIManager{upd\
+ateCSS(styles){l\
 et style=documen\
 t.getElementById\
-('code-sticky-st\
-yle');if(style)r\
-eturn;style=docu\
-ment.createEleme\
-nt('style');styl\
-e.id='code-stick\
-y-style';style.t\
-extContent=['.co\
-de-wrapper { pos\
-ition: relative;\
- }','.code-wrapp\
-er .code-header-\
+('app-style');if\
+(!style){style=d\
+ocument.createEl\
+ement('style');s\
+tyle.id='app-sty\
+le';document.hea\
+d.appendChild(st\
+yle);}\x0astyle.tex\
+tContent=styles;\
+}\x0aensureStickyHe\
+aderStyle(){let \
+style=document.g\
+etElementById('c\
+ode-sticky-style\
+');if(style)retu\
+rn;style=documen\
+t.createElement(\
+'style');style.i\
+d='code-sticky-s\
+tyle';style.text\
+Content=['.code-\
 wrapper { positi\
-on: sticky; top:\
- var(--code-head\
-er-sticky-top, -\
-2px); z-index: 2\
-; box-shadow: 0 \
-1px 0 rgba(0,0,0\
-,.06); }','.code\
--wrapper pre { o\
-verflow: visible\
-; margin-top: 0;\
- }','.code-wrapp\
-er pre code { di\
-splay: block; wh\
-ite-space: pre; \
-max-height: 100d\
-vh; overflow: au\
-to;','  overscro\
-ll-behavior: con\
-tain; -webkit-ov\
-erflow-scrolling\
-: touch; overflo\
-w-anchor: none; \
-scrollbar-gutter\
-: stable both-ed\
-ges; scroll-beha\
-vior: auto; }','\
-#_loader_.hidden\
- { display: none\
- !important; vis\
-ibility: hidden \
-!important; }','\
-#_loader_.visibl\
-e { display: blo\
-ck; visibility: \
-visible; }','.ms\
-g-box.msg-user .\
-msg { position: \
-relative; }','.m\
-sg-box.msg-user \
-.msg > .uc-conte\
-nt { display: bl\
-ock; overflow: v\
-isible; }','.msg\
--box.msg-user .m\
-sg > .uc-content\
-.uc-collapsed {'\
-,'  max-height: \
-var(--user-msg-c\
-ollapse-max-h, 1\
-000px);','  over\
-flow: hidden;','\
-  -webkit-mask-i\
-mage: linear-gra\
-dient(to bottom,\
- rgba(0,0,0,1) c\
-alc(100% - var(-\
--uc-fade-height,\
- 64px)), rgba(0,\
-0,0,0) 100%);','\
-  mask-image: li\
-near-gradient(to\
- bottom, rgba(0,\
-0,0,1) calc(100%\
- - var(--uc-fade\
--height, 64px)),\
- rgba(0,0,0,0) 1\
-00%);','  -webki\
-t-mask-size: 100\
-% 100%;','  mask\
--size: 100% 100%\
-;','  -webkit-ma\
-sk-repeat: no-re\
-peat;','  mask-r\
-epeat: no-repeat\
-;','}','.msg-box\
-.msg-user .msg >\
- .uc-content.uc-\
-expanded {','  -\
+on: relative; }'\
+,'.code-wrapper \
+.code-header-wra\
+pper { position:\
+ sticky; top: va\
+r(--code-header-\
+sticky-top, -2px\
+); z-index: 2; b\
+ox-shadow: 0 1px\
+ 0 rgba(0,0,0,.0\
+6); }','.code-wr\
+apper pre { over\
+flow: visible; m\
+argin-top: 0; }'\
+,'.code-wrapper \
+pre code { displ\
+ay: block; white\
+-space: pre; max\
+-height: 100dvh;\
+ overflow: auto;\
+','  overscroll-\
+behavior: contai\
+n; -webkit-overf\
+low-scrolling: t\
+ouch; overflow-a\
+nchor: none; scr\
+ollbar-gutter: s\
+table both-edges\
+; scroll-behavio\
+r: auto; }','#_l\
+oader_.hidden { \
+display: none !i\
+mportant; visibi\
+lity: hidden !im\
+portant; }','#_l\
+oader_.visible {\
+ display: block;\
+ visibility: vis\
+ible; }','.msg-b\
+ox.msg-user .msg\
+ { position: rel\
+ative; }','.msg-\
+box.msg-user .ms\
+g > .uc-content \
+{ display: block\
+; overflow: visi\
+ble; }','.msg-bo\
+x.msg-user .msg \
+> .uc-content.uc\
+-collapsed {',' \
+ max-height: var\
+(--user-msg-coll\
+apse-max-h, 1000\
+px);','  overflo\
+w: hidden;','  -\
 webkit-mask-imag\
-e: none;','  mas\
-k-image: none;',\
+e: linear-gradie\
+nt(to bottom, rg\
+ba(0,0,0,1) calc\
+(100% - var(--uc\
+-fade-height, 64\
+px)), rgba(0,0,0\
+,0) 100%);','  m\
+ask-image: linea\
+r-gradient(to bo\
+ttom, rgba(0,0,0\
+,1) calc(100% - \
+var(--uc-fade-he\
+ight, 64px)), rg\
+ba(0,0,0,0) 100%\
+);','  -webkit-m\
+ask-size: 100% 1\
+00%;','  mask-si\
+ze: 100% 100%;',\
+'  -webkit-mask-\
+repeat: no-repea\
+t;','  mask-repe\
+at: no-repeat;',\
 '}','.msg-box.ms\
 g-user .msg > .u\
-c-toggle { displ\
-ay: none; margin\
--top: 8px; text-\
-align: center; c\
-ursor: pointer; \
-user-select: non\
-e; }','.msg-box.\
-msg-user .msg > \
-.uc-toggle.visib\
-le { display: bl\
-ock; }','.msg-bo\
-x.msg-user .msg \
-> .uc-toggle img\
- { width: var(--\
-uc-toggle-icon-s\
-ize, 26px); heig\
-ht: var(--uc-tog\
-gle-icon-size, 2\
-6px); opacity: .\
-8; }','.msg-box.\
-msg-user .msg > \
-.uc-toggle:hover\
- img { opacity: \
-1; }','.msg-box.\
-msg-user .msg .m\
-sg-copy-btn { po\
-sition: absolute\
-; top: 2px; righ\
-t: 0px; z-index:\
- 3;','  opacity:\
- 0; pointer-even\
-ts: none; transi\
-tion: opacity .1\
-5s ease, transfo\
-rm .15s ease, ba\
-ckground-color .\
-15s ease, border\
--color .15s ease\
-;','  border-rad\
-ius: 6px; paddin\
-g: 4px; line-hei\
-ght: 0; border: \
-1px solid transp\
-arent; backgroun\
-d: transparent; \
+c-content.uc-exp\
+anded {','  -web\
+kit-mask-image: \
+none;','  mask-i\
+mage: none;','}'\
+,'.msg-box.msg-u\
+ser .msg > .uc-t\
+oggle { display:\
+ none; margin-to\
+p: 8px; text-ali\
+gn: center; curs\
+or: pointer; use\
+r-select: none; \
 }','.msg-box.msg\
--user .msg:hover\
- .msg-copy-btn, \
-.msg-box.msg-use\
-r .msg:focus-wit\
-hin .msg-copy-bt\
-n { opacity: 1; \
-pointer-events: \
-auto; }','.msg-b\
-ox.msg-user .msg\
- .msg-copy-btn:h\
-over { transform\
-: scale(1.06); b\
-ackground: var(-\
--copy-btn-bg-hov\
-er, rgba(0,0,0,.\
-86)); border-col\
-or: var(--copy-b\
-tn-border, rgba(\
-0,0,0,.08)); }',\
+-user .msg > .uc\
+-toggle.visible \
+{ display: block\
+; }','.msg-box.m\
+sg-user .msg > .\
+uc-toggle img { \
+width: var(--uc-\
+toggle-icon-size\
+, 26px); height:\
+ var(--uc-toggle\
+-icon-size, 26px\
+); opacity: .8; \
+}','.msg-box.msg\
+-user .msg > .uc\
+-toggle:hover im\
+g { opacity: 1; \
+}','.msg-box.msg\
+-user .msg .msg-\
+copy-btn { posit\
+ion: absolute; t\
+op: 2px; right: \
+0px; z-index: 3;\
+','  opacity: 0;\
+ pointer-events:\
+ none; transitio\
+n: opacity .15s \
+ease, transform \
+.15s ease, backg\
+round-color .15s\
+ ease, border-co\
+lor .15s ease;',\
+'  border-radius\
+: 6px; padding: \
+4px; line-height\
+: 0; border: 1px\
+ solid transpare\
+nt; background: \
+transparent; }',\
 '.msg-box.msg-us\
-er .msg .msg-cop\
-y-btn.copied { b\
-ackground: var(-\
--copy-btn-bg-cop\
-ied, rgba(150,15\
-0,150,.12)); bor\
+er .msg:hover .m\
+sg-copy-btn, .ms\
+g-box.msg-user .\
+msg:focus-within\
+ .msg-copy-btn {\
+ opacity: 1; poi\
+nter-events: aut\
+o; }','.msg-box.\
+msg-user .msg .m\
+sg-copy-btn:hove\
+r { transform: s\
+cale(1.06); back\
+ground: var(--co\
+py-btn-bg-hover,\
+ rgba(0,0,0,.86)\
+); border-color:\
+ var(--copy-btn-\
+border, rgba(0,0\
+,0,.08)); }','.m\
+sg-box.msg-user \
+.msg .msg-copy-b\
+tn.copied { back\
+ground: var(--co\
+py-btn-bg-copied\
+, rgba(150,150,1\
+50,.12)); border\
+-color: var(--co\
+py-btn-border-co\
+pied, rgba(150,1\
+50,150,.35)); an\
+imation: msg-cop\
+y-pop .25s ease;\
+ }','.msg-box.ms\
+g-user .msg .msg\
+-copy-btn img { \
+display: block; \
+width: 18px; hei\
+ght: 18px; }','.\
+code-wrapper .co\
+de-header-action\
+.code-header-cop\
+y,','.code-wrapp\
+er .code-header-\
+action.code-head\
+er-collapse { di\
+splay: inline-fl\
+ex; align-items:\
+ center; border-\
+radius: 6px; pad\
+ding: 2px; line-\
+height: 0; borde\
+r: 1px solid tra\
+nsparent; transi\
+tion: transform \
+.15s ease, backg\
+round-color .15s\
+ ease, border-co\
+lor .15s ease; }\
+','.code-wrapper\
+ .code-header-ac\
+tion.code-header\
+-copy:hover,','.\
+code-wrapper .co\
+de-header-action\
+.code-header-col\
+lapse:hover { tr\
+ansform: scale(1\
+.06); background\
+: var(--copy-btn\
+-bg-hover, rgba(\
+0,0,0,.76)); bor\
 der-color: var(-\
 -copy-btn-border\
--copied, rgba(15\
-0,150,150,.35));\
- animation: msg-\
-copy-pop .25s ea\
-se; }','.msg-box\
-.msg-user .msg .\
-msg-copy-btn img\
- { display: bloc\
-k; width: 18px; \
-height: 18px; }'\
-,'.code-wrapper \
-.code-header-act\
-ion.code-header-\
-copy,','.code-wr\
+, rgba(0,0,0,.08\
+)); }','.code-wr\
 apper .code-head\
-er-action.code-h\
-eader-collapse {\
- display: inline\
--flex; align-ite\
-ms: center; bord\
-er-radius: 6px; \
-padding: 2px; li\
-ne-height: 0; bo\
-rder: 1px solid \
-transparent; tra\
-nsition: transfo\
-rm .15s ease, ba\
-ckground-color .\
-15s ease, border\
--color .15s ease\
-; }','.code-wrap\
-per .code-header\
--action.code-hea\
-der-copy:hover,'\
-,'.code-wrapper \
-.code-header-act\
-ion.code-header-\
-collapse:hover {\
- transform: scal\
-e(1.06); backgro\
-und: var(--copy-\
-btn-bg-hover, rg\
-ba(0,0,0,.76)); \
-border-color: va\
-r(--copy-btn-bor\
-der, rgba(0,0,0,\
-.08)); }','.code\
--wrapper .code-h\
-eader-action.cop\
-ied { background\
-: var(--copy-btn\
--bg-copied, rgba\
-(150,150,150,.12\
-)); border-color\
-: var(--copy-btn\
--border-copied, \
-rgba(150,150,150\
-,.35)); animatio\
-n: msg-copy-pop \
-.25s ease; }','@\
-keyframes msg-co\
-py-pop { 0%{ tra\
-nsform: scale(1)\
-; } 60%{ transfo\
-rm: scale(1.1); \
-} 100%{ transfor\
-m: scale(1); } }\
-'].join('\x5cn');do\
-cument.head.appe\
-ndChild(style);}\
-\x0aenableEditIcons\
-(){document.body\
-&&document.body.\
-classList.add('d\
-isplay-edit-icon\
-s');}\x0adisableEdi\
-tIcons(){documen\
-t.body&&document\
-.body.classList.\
-remove('display-\
-edit-icons');}\x0ae\
-nableTimestamp()\
-{document.body&&\
-document.body.cl\
-assList.add('dis\
-play-timestamp')\
-;}\x0adisableTimest\
-amp(){document.b\
+er-action.copied\
+ { background: v\
+ar(--copy-btn-bg\
+-copied, rgba(15\
+0,150,150,.12));\
+ border-color: v\
+ar(--copy-btn-bo\
+rder-copied, rgb\
+a(150,150,150,.3\
+5)); animation: \
+msg-copy-pop .25\
+s ease; }','@key\
+frames msg-copy-\
+pop { 0%{ transf\
+orm: scale(1); }\
+ 60%{ transform:\
+ scale(1.1); } 1\
+00%{ transform: \
+scale(1); } }'].\
+join('\x5cn');docum\
+ent.head.appendC\
+hild(style);}\x0aen\
+ableEditIcons(){\
+document.body&&d\
+ocument.body.cla\
+ssList.add('disp\
+lay-edit-icons')\
+;}\x0adisableEditIc\
+ons(){document.b\
 ody&&document.bo\
 dy.classList.rem\
-ove('display-tim\
-estamp');}\x0aenabl\
-eBlocks(){docume\
-nt.body&&documen\
-t.body.classList\
-.add('display-bl\
-ocks');}\x0adisable\
-Blocks(){documen\
-t.body&&document\
-.body.classList.\
-remove('display-\
-blocks');}};\x0a\x0a/*\
- data/js/app/use\
-r.js */\x0aclass Us\
-erCollapseManage\
-r{constructor(cf\
-g){this.cfg=cfg|\
-|{};this.thresho\
-ld=Utils.g('USER\
-_MSG_COLLAPSE_HE\
-IGHT_PX',1000);t\
-his._processed=n\
-ew Set();}\x0a_icon\
-s(){const I=(thi\
-s.cfg&&this.cfg.\
-ICONS)||{};retur\
-n{expand:I.EXPAN\
-D||'',collapse:I\
-.COLLAPSE||''};}\
-\x0a_labels(){const\
- L=(this.cfg&&th\
-is.cfg.LOCALE)||\
-{};return{expand\
-:L.EXPAND||'Expa\
-nd',collapse:L.C\
-OLLAPSE||'Collap\
-se'};}\x0a_afterLay\
-out(fn){try{if(t\
-ypeof runtime!==\
-'undefined'&&run\
-time.raf&&typeof\
- runtime.raf.sch\
-edule==='functio\
-n'){const key={t\
-:'UC:afterLayout\
-',i:Math.random(\
-)};runtime.raf.s\
-chedule(key,()=>\
-{try{fn&&fn();}c\
-atch(_){}},'User\
-Collapse',0);ret\
-urn;}}catch(_){}\
-\x0atry{requestAnim\
-ationFrame(()=>{\
-try{fn&&fn();}ca\
-tch(_){}});}catc\
-h(_){setTimeout(\
-()=>{try{fn&&fn(\
-);}catch(__){}},\
-0);}}\x0a_scrollTog\
-gleIntoView(togg\
-leEl){if(!toggle\
-El||!toggleEl.is\
-Connected)return\
-;try{if(runtime&\
-&runtime.scrollM\
-gr){runtime.scro\
-llMgr.userIntera\
-cted=true;runtim\
-e.scrollMgr.auto\
-Follow=false;}}c\
-atch(_){}\x0athis._\
-afterLayout(()=>\
-{try{if(toggleEl\
-.scrollIntoView)\
-{try{toggleEl.sc\
-rollIntoView({bl\
-ock:'nearest',in\
-line:'nearest',b\
-ehavior:'instant\
-'});}catch(_){to\
-ggleEl.scrollInt\
-oView(false);}}}\
-catch(_){}});}\x0a_\
-ensureStructure(\
-msg){if(!msg||!m\
-sg.isConnected)r\
-eturn null;let c\
-ontent=msg.query\
-Selector('.uc-co\
-ntent');if(!cont\
-ent){content=doc\
-ument.createElem\
-ent('div');conte\
-nt.className='uc\
--content';const \
-frag=document.cr\
-eateDocumentFrag\
-ment();while(msg\
-.firstChild)frag\
-.appendChild(msg\
-.firstChild);con\
-tent.appendChild\
-(frag);msg.appen\
-dChild(content);\
-}\x0alet toggle=msg\
-.querySelector('\
-.uc-toggle');if(\
-!toggle){const i\
-cons=this._icons\
-();const labels=\
-this._labels();t\
-oggle=document.c\
-reateElement('di\
-v');toggle.class\
-Name='uc-toggle'\
-;toggle.tabIndex\
-=0;toggle.setAtt\
-ribute('role','b\
-utton');toggle.s\
-etAttribute('ari\
-a-expanded','fal\
-se');toggle.titl\
-e=labels.expand;\
-const img=docume\
-nt.createElement\
-('img');img.clas\
-sName='uc-toggle\
--icon';img.alt=l\
-abels.expand;img\
-.src=icons.expan\
-d;img.width=26;i\
-mg.height=26;tog\
-gle.appendChild(\
-img);toggle.addE\
-ventListener('cl\
-ick',(ev)=>{ev.p\
-reventDefault();\
-ev.stopPropagati\
-on();this.toggle\
-FromToggle(toggl\
-e);});toggle.add\
-EventListener('k\
-eydown',(ev)=>{i\
-f(ev.key==='Ente\
-r'||ev.key===' '\
-){ev.preventDefa\
-ult();ev.stopPro\
-pagation();this.\
-toggleFromToggle\
-(toggle);}},{pas\
-sive:false});msg\
-.appendChild(tog\
-gle);}\x0athis._pro\
-cessed.add(msg);\
-msg.dataset.ucIn\
-it='1';return{co\
-ntent,toggle};}\x0a\
-_ensureEllipsisE\
-l(msg,contentEl)\
-{const content=c\
-ontentEl||(msg&&\
-msg.querySelecto\
-r('.uc-content')\
-);if(!content)re\
-turn null;try{co\
-nst legacy=conte\
-nt.querySelector\
-('.uc-ellipsis')\
-;if(legacy&&lega\
-cy.parentNode){l\
-egacy.parentNode\
-.removeChild(leg\
-acy);}}catch(_){\
-}\x0areturn null;}\x0a\
-_showEllipsis(ms\
-g,contentEl){thi\
-s._ensureEllipsi\
-sEl(msg,contentE\
-l);}\x0a_hideEllips\
-is(msg){this._en\
-sureEllipsisEl(m\
-sg,null);}\x0aapply\
-(root){const sco\
-pe=root||documen\
-t;let list;if(sc\
-ope.nodeType===1\
-)list=scope.quer\
-ySelectorAll('.m\
-sg-box.msg-user \
-.msg');else list\
-=document.queryS\
-electorAll('.msg\
--box.msg-user .m\
-sg');if(!list||!\
-list.length)retu\
-rn;for(let i=0;i\
-<list.length;i++\
-){const msg=list\
-[i];const st=thi\
-s._ensureStructu\
-re(msg);if(!st)c\
-ontinue;this._up\
-date(msg,st.cont\
-ent,st.toggle);}\
-}\x0a_update(msg,co\
-ntentEl,toggleEl\
-){const c=conten\
-tEl||(msg&&msg.q\
-uerySelector('.u\
-c-content'));if(\
-!msg||!c)return;\
-if(this.threshol\
-d===0||this.thre\
-shold==='0'){con\
-st t=toggleEl||m\
-sg.querySelector\
-('.uc-toggle');c\
-onst labels=this\
-._labels();c.cla\
-ssList.remove('u\
-c-collapsed');c.\
+ove('display-edi\
+t-icons');}\x0aenab\
+leTimestamp(){do\
+cument.body&&doc\
+ument.body.class\
+List.add('displa\
+y-timestamp');}\x0a\
+disableTimestamp\
+(){document.body\
+&&document.body.\
 classList.remove\
-('uc-expanded');\
-msg.dataset.ucSt\
-ate='expanded';t\
-his._hideEllipsi\
-s(msg);if(t){t.c\
-lassList.remove(\
-'visible');t.set\
-Attribute('aria-\
-expanded','false\
-');t.title=label\
-s.expand;const i\
-mg=t.querySelect\
-or('img');if(img\
-){img.alt=labels\
-.expand;}}\x0aretur\
-n;}\x0ac.classList.\
-remove('uc-colla\
-psed');c.classLi\
-st.remove('uc-ex\
-panded');const f\
-ullHeight=Math.c\
-eil(c.scrollHeig\
-ht);const labels\
-=this._labels();\
-const icons=this\
-._icons();const \
+('display-timest\
+amp');}\x0aenableBl\
+ocks(){document.\
+body&&document.b\
+ody.classList.ad\
+d('display-block\
+s');}\x0adisableBlo\
+cks(){document.b\
+ody&&document.bo\
+dy.classList.rem\
+ove('display-blo\
+cks');}};\x0a\x0a/* da\
+ta/js/app/user.j\
+s */\x0aclass UserC\
+ollapseManager{c\
+onstructor(cfg){\
+this.cfg=cfg||{}\
+;this.threshold=\
+Utils.g('USER_MS\
+G_COLLAPSE_HEIGH\
+T_PX',1000);this\
+._processed=new \
+Set();}\x0a_icons()\
+{const I=(this.c\
+fg&&this.cfg.ICO\
+NS)||{};return{e\
+xpand:I.EXPAND||\
+'',collapse:I.CO\
+LLAPSE||''};}\x0a_l\
+abels(){const L=\
+(this.cfg&&this.\
+cfg.LOCALE)||{};\
+return{expand:L.\
+EXPAND||'Expand'\
+,collapse:L.COLL\
+APSE||'Collapse'\
+};}\x0a_afterLayout\
+(fn){try{if(type\
+of runtime!=='un\
+defined'&&runtim\
+e.raf&&typeof ru\
+ntime.raf.schedu\
+le==='function')\
+{const key={t:'U\
+C:afterLayout',i\
+:Math.random()};\
+runtime.raf.sche\
+dule(key,()=>{tr\
+y{fn&&fn();}catc\
+h(_){}},'UserCol\
+lapse',0);return\
+;}}catch(_){}\x0atr\
+y{requestAnimati\
+onFrame(()=>{try\
+{fn&&fn();}catch\
+(_){}});}catch(_\
+){setTimeout(()=\
+>{try{fn&&fn();}\
+catch(__){}},0);\
+}}\x0a_scrollToggle\
+IntoView(toggleE\
+l){if(!toggleEl|\
+|!toggleEl.isCon\
+nected)return;tr\
+y{if(runtime&&ru\
+ntime.scrollMgr)\
+{runtime.scrollM\
+gr.userInteracte\
+d=true;runtime.s\
+crollMgr.autoFol\
+low=false;}}catc\
+h(_){}\x0athis._aft\
+erLayout(()=>{tr\
+y{if(toggleEl.sc\
+rollIntoView){tr\
+y{toggleEl.scrol\
+lIntoView({block\
+:'nearest',inlin\
+e:'nearest',beha\
+vior:'instant'})\
+;}catch(_){toggl\
+eEl.scrollIntoVi\
+ew(false);}}}cat\
+ch(_){}});}\x0a_ens\
+ureStructure(msg\
+){if(!msg||!msg.\
+isConnected)retu\
+rn null;let cont\
+ent=msg.querySel\
+ector('.uc-conte\
+nt');if(!content\
+){content=docume\
+nt.createElement\
+('div');content.\
+className='uc-co\
+ntent';const fra\
+g=document.creat\
+eDocumentFragmen\
+t();while(msg.fi\
+rstChild)frag.ap\
+pendChild(msg.fi\
+rstChild);conten\
+t.appendChild(fr\
+ag);msg.appendCh\
+ild(content);}\x0al\
+et toggle=msg.qu\
+erySelector('.uc\
+-toggle');if(!to\
+ggle){const icon\
+s=this._icons();\
+const labels=thi\
+s._labels();togg\
+le=document.crea\
+teElement('div')\
+;toggle.classNam\
+e='uc-toggle';to\
+ggle.tabIndex=0;\
+toggle.setAttrib\
+ute('role','butt\
+on');toggle.setA\
+ttribute('aria-e\
+xpanded','false'\
+);toggle.title=l\
+abels.expand;con\
+st img=document.\
+createElement('i\
+mg');img.classNa\
+me='uc-toggle-ic\
+on';img.alt=labe\
+ls.expand;img.sr\
+c=icons.expand;i\
+mg.width=26;img.\
+height=26;toggle\
+.appendChild(img\
+);toggle.addEven\
+tListener('click\
+',(ev)=>{ev.prev\
+entDefault();ev.\
+stopPropagation(\
+);this.toggleFro\
+mToggle(toggle);\
+});toggle.addEve\
+ntListener('keyd\
+own',(ev)=>{if(e\
+v.key==='Enter'|\
+|ev.key===' '){e\
+v.preventDefault\
+();ev.stopPropag\
+ation();this.tog\
+gleFromToggle(to\
+ggle);}},{passiv\
+e:false});msg.ap\
+pendChild(toggle\
+);}\x0athis._proces\
+sed.add(msg);msg\
+.dataset.ucInit=\
+'1';return{conte\
+nt,toggle};}\x0a_en\
+sureEllipsisEl(m\
+sg,contentEl){co\
+nst content=cont\
+entEl||(msg&&msg\
+.querySelector('\
+.uc-content'));i\
+f(!content)retur\
+n null;try{const\
+ legacy=content.\
+querySelector('.\
+uc-ellipsis');if\
+(legacy&&legacy.\
+parentNode){lega\
+cy.parentNode.re\
+moveChild(legacy\
+);}}catch(_){}\x0ar\
+eturn null;}\x0a_sh\
+owEllipsis(msg,c\
+ontentEl){this._\
+ensureEllipsisEl\
+(msg,contentEl);\
+}\x0a_hideEllipsis(\
+msg){this._ensur\
+eEllipsisEl(msg,\
+null);}\x0aapply(ro\
+ot){const scope=\
+root||document;l\
+et list;if(scope\
+.nodeType===1)li\
+st=scope.querySe\
+lectorAll('.msg-\
+box.msg-user .ms\
+g');else list=do\
+cument.querySele\
+ctorAll('.msg-bo\
+x.msg-user .msg'\
+);if(!list||!lis\
+t.length)return;\
+for(let i=0;i<li\
+st.length;i++){c\
+onst msg=list[i]\
+;const st=this._\
+ensureStructure(\
+msg);if(!st)cont\
+inue;this._updat\
+e(msg,st.content\
+,st.toggle);}}\x0a_\
+update(msg,conte\
+ntEl,toggleEl){c\
+onst c=contentEl\
+||(msg&&msg.quer\
+ySelector('.uc-c\
+ontent'));if(!ms\
+g||!c)return;if(\
+this.threshold==\
+=0||this.thresho\
+ld==='0'){const \
 t=toggleEl||msg.\
 querySelector('.\
-uc-toggle');if(f\
-ullHeight>this.t\
-hreshold){if(t)t\
-.classList.add('\
-visible');const \
-desired=msg.data\
-set.ucState||'co\
-llapsed';const e\
-xpand=(desired==\
-='expanded');if(\
-expand){c.classL\
-ist.add('uc-expa\
-nded');this._hid\
-eEllipsis(msg);}\
-else{c.classList\
-.add('uc-collaps\
-ed');this._showE\
-llipsis(msg,c);}\
-\x0aif(t){const img\
-=t.querySelector\
-('img');if(img){\
-if(expand){img.s\
-rc=icons.collaps\
-e;img.alt=labels\
-.collapse;}else{\
-img.src=icons.ex\
-pand;img.alt=lab\
-els.expand;}}\x0at.\
-setAttribute('ar\
-ia-expanded',exp\
-and?'true':'fals\
-e');t.title=expa\
-nd?labels.collap\
-se:labels.expand\
-;}}else{c.classL\
+uc-toggle');cons\
+t labels=this._l\
+abels();c.classL\
 ist.remove('uc-c\
 ollapsed');c.cla\
 ssList.remove('u\
@@ -125813,1028 +126119,1094 @@ sible');t.setAtt\
 ribute('aria-exp\
 anded','false');\
 t.title=labels.e\
-xpand;}}}\x0atoggle\
-FromToggle(toggl\
-eEl){const msg=t\
-oggleEl&&toggleE\
-l.closest?toggle\
-El.closest('.msg\
--box.msg-user .m\
-sg'):null;if(!ms\
-g)return;this.to\
-ggle(msg);}\x0atogg\
-le(msg){if(!msg|\
-|!msg.isConnecte\
-d)return;const c\
-=msg.querySelect\
-or('.uc-content'\
-);if(!c)return;c\
-onst t=msg.query\
-Selector('.uc-to\
-ggle');const lab\
-els=this._labels\
-();const icons=t\
-his._icons();con\
-st isCollapsed=c\
-.classList.conta\
-ins('uc-collapse\
-d');if(isCollaps\
-ed){c.classList.\
-remove('uc-colla\
-psed');c.classLi\
-st.add('uc-expan\
-ded');msg.datase\
-t.ucState='expan\
-ded';this._hideE\
-llipsis(msg);if(\
-t){t.setAttribut\
-e('aria-expanded\
-','true');t.titl\
-e=labels.collaps\
-e;const img=t.qu\
-erySelector('img\
-');if(img){img.s\
-rc=icons.collaps\
-e;img.alt=labels\
-.collapse;}}}els\
-e{c.classList.re\
-move('uc-expande\
+xpand;const img=\
+t.querySelector(\
+'img');if(img){i\
+mg.alt=labels.ex\
+pand;}}\x0areturn;}\
+\x0ac.classList.rem\
+ove('uc-collapse\
 d');c.classList.\
-add('uc-collapse\
-d');msg.dataset.\
-ucState='collaps\
-ed';this._showEl\
-lipsis(msg,c);if\
-(t){t.setAttribu\
-te('aria-expande\
-d','false');t.ti\
-tle=labels.expan\
-d;const img=t.qu\
-erySelector('img\
-');if(img){img.s\
-rc=icons.expand;\
-img.alt=labels.e\
-xpand;}\x0athis._sc\
-rollToggleIntoVi\
-ew(t);}}}\x0aremeas\
-ureAll(){const a\
-rr=Array.from(th\
-is._processed||[\
-]);for(let i=0;i\
-<arr.length;i++)\
-{const msg=arr[i\
-];if(!msg||!msg.\
-isConnected){thi\
-s._processed.del\
-ete(msg);continu\
-e;}\x0athis._update\
-(msg);}}};\x0a\x0a/* d\
-ata/js/app/utils\
-.js */\x0aclass Uti\
-ls{static g(name\
-,dflt){return(ty\
-peof window[name\
-]!=='undefined')\
-?window[name]:df\
-lt;}\x0astatic now(\
-){return(typeof \
-performance!=='u\
-ndefined'&&perfo\
-rmance.now)?perf\
-ormance.now():Da\
-te.now();}\x0astati\
-c escapeHtml(s){\
-const d=Utils._e\
-scDiv||(Utils._e\
-scDiv=document.c\
-reateElement('di\
-v'));d.textConte\
-nt=String(s??'')\
-;return d.innerH\
-TML;}\x0astatic cou\
-ntNewlines(s){if\
-(!s)return 0;let\
- c=0,i=-1;while(\
-(i=s.indexOf('\x5cn\
-',i+1))!==-1)c++\
-;return c;}\x0astat\
-ic reEscape(s){r\
-eturn String(s).\
-replace(/[.*+?^$\
-{}()|[\x5c]\x5c\x5c]/g,'\x5c\
-\x5c$&');}\x0astatic i\
-dle(fn,timeout){\
-if('requestIdleC\
-allback'in windo\
-w)return request\
-IdleCallback(fn,\
-{timeout:timeout\
-||800});return s\
-etTimeout(fn,50)\
-;}\x0astatic cancel\
-Idle(id){try{if(\
-'cancelIdleCallb\
-ack'in window)ca\
+remove('uc-expan\
+ded');const full\
+Height=Math.ceil\
+(c.scrollHeight)\
+;const labels=th\
+is._labels();con\
+st icons=this._i\
+cons();const t=t\
+oggleEl||msg.que\
+rySelector('.uc-\
+toggle');if(full\
+Height>this.thre\
+shold){if(t)t.cl\
+assList.add('vis\
+ible');const des\
+ired=msg.dataset\
+.ucState||'colla\
+psed';const expa\
+nd=(desired==='e\
+xpanded');if(exp\
+and){c.classList\
+.add('uc-expande\
+d');this._hideEl\
+lipsis(msg);}els\
+e{c.classList.ad\
+d('uc-collapsed'\
+);this._showElli\
+psis(msg,c);}\x0aif\
+(t){const img=t.\
+querySelector('i\
+mg');if(img){if(\
+expand){img.src=\
+icons.collapse;i\
+mg.alt=labels.co\
+llapse;}else{img\
+.src=icons.expan\
+d;img.alt=labels\
+.expand;}}\x0at.set\
+Attribute('aria-\
+expanded',expand\
+?'true':'false')\
+;t.title=expand?\
+labels.collapse:\
+labels.expand;}}\
+else{c.classList\
+.remove('uc-coll\
+apsed');c.classL\
+ist.remove('uc-e\
+xpanded');msg.da\
+taset.ucState='e\
+xpanded';this._h\
+ideEllipsis(msg)\
+;if(t){t.classLi\
+st.remove('visib\
+le');t.setAttrib\
+ute('aria-expand\
+ed','false');t.t\
+itle=labels.expa\
+nd;}}}\x0atoggleFro\
+mToggle(toggleEl\
+){const msg=togg\
+leEl&&toggleEl.c\
+losest?toggleEl.\
+closest('.msg-bo\
+x.msg-user .msg'\
+):null;if(!msg)r\
+eturn;this.toggl\
+e(msg);}\x0atoggle(\
+msg){if(!msg||!m\
+sg.isConnected)r\
+eturn;const c=ms\
+g.querySelector(\
+'.uc-content');i\
+f(!c)return;cons\
+t t=msg.querySel\
+ector('.uc-toggl\
+e');const labels\
+=this._labels();\
+const icons=this\
+._icons();const \
+isCollapsed=c.cl\
+assList.contains\
+('uc-collapsed')\
+;if(isCollapsed)\
+{c.classList.rem\
+ove('uc-collapse\
+d');c.classList.\
+add('uc-expanded\
+');msg.dataset.u\
+cState='expanded\
+';this._hideElli\
+psis(msg);if(t){\
+t.setAttribute('\
+aria-expanded','\
+true');t.title=l\
+abels.collapse;c\
+onst img=t.query\
+Selector('img');\
+if(img){img.src=\
+icons.collapse;i\
+mg.alt=labels.co\
+llapse;}}}else{c\
+.classList.remov\
+e('uc-expanded')\
+;c.classList.add\
+('uc-collapsed')\
+;msg.dataset.ucS\
+tate='collapsed'\
+;this._showEllip\
+sis(msg,c);if(t)\
+{t.setAttribute(\
+'aria-expanded',\
+'false');t.title\
+=labels.expand;c\
+onst img=t.query\
+Selector('img');\
+if(img){img.src=\
+icons.expand;img\
+.alt=labels.expa\
+nd;}\x0athis._scrol\
+lToggleIntoView(\
+t);}}}\x0aremeasure\
+All(){const arr=\
+Array.from(this.\
+_processed||[]);\
+for(let i=0;i<ar\
+r.length;i++){co\
+nst msg=arr[i];i\
+f(!msg||!msg.isC\
+onnected){this._\
+processed.delete\
+(msg);continue;}\
+\x0athis._update(ms\
+g);}}};\x0a\x0a/* data\
+/js/app/utils.js\
+ */\x0aclass Utils{\
+static g(name,df\
+lt){return(typeo\
+f window[name]!=\
+='undefined')?wi\
+ndow[name]:dflt;\
+}\x0astatic now(){r\
+eturn(typeof per\
+formance!=='unde\
+fined'&&performa\
+nce.now)?perform\
+ance.now():Date.\
+now();}\x0astatic e\
+scapeHtml(s){con\
+st d=Utils._escD\
+iv||(Utils._escD\
+iv=document.crea\
+teElement('div')\
+);d.textContent=\
+String(s??'');re\
+turn d.innerHTML\
+;}\x0astatic countN\
+ewlines(s){if(!s\
+)return 0;let c=\
+0,i=-1;while((i=\
+s.indexOf('\x5cn',i\
++1))!==-1)c++;re\
+turn c;}\x0astatic \
+reEscape(s){retu\
+rn String(s).rep\
+lace(/[.*+?^${}(\
+)|[\x5c]\x5c\x5c]/g,'\x5c\x5c$&\
+');}\x0astatic idle\
+(fn,timeout){if(\
+'requestIdleCall\
+back'in window)r\
+eturn requestIdl\
+eCallback(fn,{ti\
+meout:timeout||8\
+00});return setT\
+imeout(fn,50);}\x0a\
+static cancelIdl\
+e(id){try{if('ca\
 ncelIdleCallback\
-(id);else clearT\
-imeout(id);}catc\
-h(_){}}\x0astatic g\
-et SE(){return d\
-ocument.scrollin\
-gElement||docume\
-nt.documentEleme\
-nt;}\x0astatic utf8\
-Decode(bytes){if\
-(!Utils._td)Util\
-s._td=new TextDe\
-coder('utf-8');r\
-eturn Utils._td.\
-decode(bytes);}}\
-;\x0a\x0a/* data/js/ap\
-p/runtime.js */\x0a\
-class Runtime{co\
-nstructor(){this\
-.cfg=new Config(\
-);this.logger=ne\
-w Logger(this.cf\
-g);this.dom=new \
-DOMRefs();this.c\
-ustomMarkup=new \
-CustomMarkup(thi\
-s.cfg,this.logge\
-r);this.raf=new \
-RafManager(this.\
-cfg);try{this.lo\
-gger.bindRaf(thi\
-s.raf);}catch(_)\
-{}\x0athis.async=ne\
-w AsyncRunner(th\
-is.cfg,this.raf)\
-;this.renderer=n\
-ew MarkdownRende\
-rer(this.cfg,thi\
-s.customMarkup,t\
-his.logger,this.\
-async,this.raf);\
-this.math=new Ma\
-thRenderer(this.\
-cfg,this.raf,thi\
-s.async);this.co\
-deScroll=new Cod\
-eScrollState(thi\
-s.cfg,this.raf);\
-this.highlighter\
-=new Highlighter\
+'in window)cance\
+lIdleCallback(id\
+);else clearTime\
+out(id);}catch(_\
+){}}\x0astatic get \
+SE(){return docu\
+ment.scrollingEl\
+ement||document.\
+documentElement;\
+}\x0astatic utf8Dec\
+ode(bytes){if(!U\
+tils._td)Utils._\
+td=new TextDecod\
+er('utf-8');retu\
+rn Utils._td.dec\
+ode(bytes);}};\x0a\x0a\
+/* data/js/app/r\
+untime.js */\x0acla\
+ss Runtime{const\
+ructor(){this.cf\
+g=new Config();t\
+his.logger=new L\
+ogger(this.cfg);\
+this.dom=new DOM\
+Refs();this.cust\
+omMarkup=new Cus\
+tomMarkup(this.c\
+fg,this.logger);\
+this.raf=new Raf\
+Manager(this.cfg\
+);try{this.logge\
+r.bindRaf(this.r\
+af);}catch(_){}\x0a\
+this.async=new A\
+syncRunner(this.\
+cfg,this.raf);th\
+is.renderer=new \
+MarkdownRenderer\
 (this.cfg,this.c\
-odeScroll,this.r\
-af);this.scrollM\
-gr=new ScrollMan\
-ager(this.cfg,th\
-is.dom,this.raf)\
-;this.toolOutput\
-=new ToolOutput(\
-);this.loading=n\
-ew Loading(this.\
-dom);this.nodes=\
-new NodesManager\
-(this.dom,this.r\
-enderer,this.hig\
-hlighter,this.ma\
-th);this.bridge=\
-new BridgeManage\
+ustomMarkup,this\
+.logger,this.asy\
+nc,this.raf);thi\
+s.math=new MathR\
+enderer(this.cfg\
+,this.raf,this.a\
+sync);this.codeS\
+croll=new CodeSc\
+rollState(this.c\
+fg,this.raf);thi\
+s.highlighter=ne\
+w Highlighter(th\
+is.cfg,this.code\
+Scroll,this.raf)\
+;this.scrollMgr=\
+new ScrollManage\
 r(this.cfg,this.\
-logger);this.ui=\
-new UIManager();\
-this.stream=new \
-StreamEngine(thi\
+dom,this.raf);th\
+is.toolOutput=ne\
+w ToolOutput();t\
+his.loading=new \
+Loading(this.dom\
+);this.nodes=new\
+ NodesManager(th\
+is.dom,this.rend\
+erer,this.highli\
+ghter,this.math)\
+;this.bridge=new\
+ BridgeManager(t\
+his.cfg,this.log\
+ger);this.ui=new\
+ UIManager();thi\
+s.stream=new Str\
+eamEngine(this.c\
+fg,this.dom,this\
+.renderer,this.m\
+ath,this.highlig\
+hter,this.codeSc\
+roll,this.scroll\
+Mgr,this.raf,thi\
+s.async,this.log\
+ger);this.stream\
+Q=new StreamQueu\
+e(this.cfg,this.\
+stream,this.scro\
+llMgr,this.raf);\
+this.events=new \
+EventManager(thi\
 s.cfg,this.dom,t\
-his.renderer,thi\
-s.math,this.high\
-lighter,this.cod\
-eScroll,this.scr\
-ollMgr,this.raf,\
-this.async,this.\
-logger);this.str\
-eamQ=new StreamQ\
-ueue(this.cfg,th\
-is.stream,this.s\
-crollMgr,this.ra\
-f);this.events=n\
-ew EventManager(\
-this.cfg,this.do\
-m,this.scrollMgr\
-,this.highlighte\
-r,this.codeScrol\
-l,this.toolOutpu\
-t,this.bridge);t\
-ry{this.stream.s\
-etCustomFenceSpe\
-cs(this.customMa\
-rkup.getSourceFe\
-nceSpecs());}cat\
-ch(_){}\x0athis.tem\
-plates=new NodeT\
-emplateEngine(th\
-is.cfg,this.logg\
-er);this.data=ne\
-w DataReceiver(t\
-his.cfg,this.tem\
-plates,this.node\
-s,this.scrollMgr\
-);this.tips=null\
-;this._lastHeavy\
-ResetMs=0;this.r\
-enderer.hooks.ob\
-serveNewCode=(ro\
-ot,opts)=>this.h\
-ighlighter.obser\
-veNewCode(root,o\
-pts,this.stream.\
-activeCode);this\
-.renderer.hooks.\
-observeMsgBoxes=\
-(root)=>this.hig\
-hlighter.observe\
-MsgBoxes(root,(b\
-ox)=>{this.highl\
-ighter.observeNe\
-wCode(box,{defer\
-LastIfStreaming:\
-true,minLinesFor\
-Last:this.cfg.PR\
-OFILE_CODE.minLi\
-nesForHL,minChar\
-sForLast:this.cf\
-g.PROFILE_CODE.m\
-inCharsForHL},th\
-is.stream.active\
-Code);this.codeS\
-croll.initScroll\
-ableBlocks(box);\
-});this.renderer\
-.hooks.scheduleM\
-athRender=(root)\
-=>{const mm=getM\
-athMode();if(mm=\
-=='idle')this.ma\
-th.schedule(root\
-);else if(mm==='\
-always')this.mat\
-h.schedule(root,\
-0,true);};this.r\
-enderer.hooks.co\
-deScrollInit=(ro\
-ot)=>this.codeSc\
-roll.initScrolla\
-bleBlocks(root);\
-}\x0aresetStreamSta\
-te(origin,opts){\
-try{this.streamQ\
-.clear();}catch(\
-_){}\x0aconst def=O\
-bject.assign({fi\
-nalizeActive:tru\
-e,clearBuffer:tr\
-ue,clearMsg:fals\
-e,defuseOrphans:\
-true,forceHeavy:\
-false,reason:Str\
-ing(origin||'ext\
-ernal-op')},(opt\
-s||{}));const no\
-w=Utils.now();co\
-nst withinDeboun\
-ce=(now-(this._l\
-astHeavyResetMs|\
-|0))<=(this.cfg.\
-RESET.HEAVY_DEBO\
-UNCE_MS||24);con\
-st mustHeavyByOr\
-igin=def.forceHe\
-avy===true||def.\
-clearMsg===true|\
-|origin==='begin\
-Stream'||origin=\
-=='nextStream'||\
-origin==='clearS\
-tream'||origin==\
-='replaceNodes'|\
-|origin==='clear\
-Nodes'||origin==\
-='clearOutput'||\
-origin==='clearL\
-ive'||origin==='\
-clearInput';cons\
-t shouldHeavy=mu\
-stHeavyByOrigin|\
-|!withinDebounce\
-;const suppressL\
-og=withinDebounc\
-e&&origin!=='beg\
-inStream';try{th\
-is.stream.abortA\
-ndReset({...def,\
-suppressLog});}c\
-atch(_){}\x0aif(sho\
-uldHeavy){try{th\
-is.highlighter.c\
-leanup();}catch(\
-_){}\x0atry{this.ma\
-th.cleanup();}ca\
+his.scrollMgr,th\
+is.highlighter,t\
+his.codeScroll,t\
+his.toolOutput,t\
+his.bridge);try{\
+this.stream.setC\
+ustomFenceSpecs(\
+this.customMarku\
+p.getSourceFence\
+Specs());}catch(\
+_){}\x0athis.templa\
+tes=new NodeTemp\
+lateEngine(this.\
+cfg,this.logger)\
+;this.data=new D\
+ataReceiver(this\
+.cfg,this.templa\
+tes,this.nodes,t\
+his.scrollMgr);t\
+his.tips=null;th\
+is._lastHeavyRes\
+etMs=0;this.rend\
+erer.hooks.obser\
+veNewCode=(root,\
+opts)=>this.high\
+lighter.observeN\
+ewCode(root,opts\
+,this.stream.act\
+iveCode);this.re\
+nderer.hooks.obs\
+erveMsgBoxes=(ro\
+ot)=>this.highli\
+ghter.observeMsg\
+Boxes(root,(box)\
+=>{this.highligh\
+ter.observeNewCo\
+de(box,{deferLas\
+tIfStreaming:tru\
+e,minLinesForLas\
+t:this.cfg.PROFI\
+LE_CODE.minLines\
+ForHL,minCharsFo\
+rLast:this.cfg.P\
+ROFILE_CODE.minC\
+harsForHL},this.\
+stream.activeCod\
+e);this.codeScro\
+ll.initScrollabl\
+eBlocks(box);});\
+this.renderer.ho\
+oks.scheduleMath\
+Render=(root)=>{\
+const mm=getMath\
+Mode();if(mm==='\
+idle')this.math.\
+schedule(root);e\
+lse if(mm==='alw\
+ays')this.math.s\
+chedule(root,0,t\
+rue);};this.rend\
+erer.hooks.codeS\
+crollInit=(root)\
+=>this.codeScrol\
+l.initScrollable\
+Blocks(root);}\x0ar\
+esetStreamState(\
+origin,opts){try\
+{this.streamQ.cl\
+ear();}catch(_){\
+}\x0aconst def=Obje\
+ct.assign({final\
+izeActive:true,c\
+learBuffer:true,\
+clearMsg:false,d\
+efuseOrphans:tru\
+e,forceHeavy:fal\
+se,reason:String\
+(origin||'extern\
+al-op')},(opts||\
+{}));const now=U\
+tils.now();const\
+ withinDebounce=\
+(now-(this._last\
+HeavyResetMs||0)\
+)<=(this.cfg.RES\
+ET.HEAVY_DEBOUNC\
+E_MS||24);const \
+mustHeavyByOrigi\
+n=def.forceHeavy\
+===true||def.cle\
+arMsg===true||or\
+igin==='beginStr\
+eam'||origin==='\
+nextStream'||ori\
+gin==='clearStre\
+am'||origin==='r\
+eplaceNodes'||or\
+igin==='clearNod\
+es'||origin==='c\
+learOutput'||ori\
+gin==='clearLive\
+'||origin==='cle\
+arInput';const s\
+houldHeavy=mustH\
+eavyByOrigin||!w\
+ithinDebounce;co\
+nst suppressLog=\
+withinDebounce&&\
+origin!=='beginS\
+tream';try{this.\
+stream.abortAndR\
+eset({...def,sup\
+pressLog});}catc\
+h(_){}\x0aif(should\
+Heavy){try{this.\
+highlighter.clea\
+nup();}catch(_){\
+}\x0atry{this.math.\
+cleanup();}catch\
+(_){}\x0atry{this.c\
+odeScroll.cancel\
+AllScrolls();}ca\
 tch(_){}\x0atry{thi\
-s.codeScroll.can\
-celAllScrolls();\
-}catch(_){}\x0atry{\
-this.scrollMgr.c\
-ancelPendingScro\
-ll();}catch(_){}\
-\x0atry{this.raf.ca\
-ncelAll();}catch\
-(_){}\x0athis._last\
-HeavyResetMs=now\
-;}else{try{this.\
-raf.cancelGroup(\
-'StreamQueue');}\
-catch(_){}}\x0atry{\
-this.tips&&this.\
-tips.hide();}cat\
-ch(_){}}\x0aapi_onC\
-hunk=(name,chunk\
-,type)=>{const t\
-=String(type||'t\
-ext_delta');if(t\
-==='text_delta')\
-{this.api_append\
+s.scrollMgr.canc\
+elPendingScroll(\
+);}catch(_){}\x0atr\
+y{this.raf.cance\
+lAll();}catch(_)\
+{}\x0athis._lastHea\
+vyResetMs=now;}e\
+lse{try{this.raf\
+.cancelGroup('St\
+reamQueue');}cat\
+ch(_){}}\x0atry{thi\
+s.tips&&this.tip\
+s.hide();}catch(\
+_){}}\x0aapi_onChun\
+k=(name,chunk,ty\
+pe)=>{const t=St\
+ring(type||'text\
+_delta');if(t===\
+'text_delta'){th\
+is.api_appendStr\
+eam(name,chunk);\
+return;}\x0athis.lo\
+gger.debug('STRE\
+AM','IGNORED_NON\
+_TEXT_CHUNK',{ty\
+pe:t,len:(chunk?\
+String(chunk).le\
+ngth:0)});};api_\
+beginStream=(chu\
+nk=false)=>{this\
+.tips&&this.tips\
+.hide();this.res\
+etStreamState('b\
+eginStream',{cle\
+arMsg:true,final\
+izeActive:false,\
+forceHeavy:true}\
+);this.stream.be\
+ginStream(chunk)\
+;};api_endStream\
+=()=>{this.strea\
+m.endStream();};\
+api_applyStream=\
+(name,chunk)=>{t\
+his.stream.apply\
 Stream(name,chun\
-k);return;}\x0athis\
-.logger.debug('S\
-TREAM','IGNORED_\
-NON_TEXT_CHUNK',\
-{type:t,len:(chu\
-nk?String(chunk)\
-.length:0)});};a\
-pi_beginStream=(\
-chunk=false)=>{t\
-his.tips&&this.t\
-ips.hide();this.\
-resetStreamState\
-('beginStream',{\
-clearMsg:true,fi\
-nalizeActive:fal\
-se,forceHeavy:tr\
-ue});this.stream\
-.beginStream(chu\
-nk);};api_endStr\
-eam=()=>{this.st\
-ream.endStream()\
-;};api_applyStre\
-am=(name,chunk)=\
->{this.stream.ap\
-plyStream(name,c\
-hunk);};api_appe\
-ndStream=(name,c\
-hunk)=>{this.str\
-eamQ.enqueue(nam\
-e,chunk);};api_n\
-extStream=()=>{t\
-his.tips&&this.t\
-ips.hide();const\
- element=this.do\
-m.get('_append_o\
-utput_');const b\
-efore=this.dom.g\
+k);};api_appendS\
+tream=(name,chun\
+k)=>{this.stream\
+Q.enqueue(name,c\
+hunk);};api_next\
+Stream=()=>{this\
+.tips&&this.tips\
+.hide();const el\
+ement=this.dom.g\
 et('_append_outp\
-ut_before_');if(\
-element&&before)\
-{const frag=docu\
-ment.createDocum\
-entFragment();wh\
-ile(element.firs\
-tChild)frag.appe\
-ndChild(element.\
-firstChild);befo\
-re.appendChild(f\
-rag);}\x0athis.rese\
-tStreamState('ne\
-xtStream',{clear\
-Msg:true,finaliz\
-eActive:false,fo\
-rceHeavy:true});\
-this.scrollMgr.s\
-cheduleScroll();\
-};api_clearStrea\
-m=()=>{this.tips\
-&&this.tips.hide\
-();this.resetStr\
-eamState('clearS\
+ut_');const befo\
+re=this.dom.get(\
+'_append_output_\
+before_');if(ele\
+ment&&before){co\
+nst frag=documen\
+t.createDocument\
+Fragment();while\
+(element.firstCh\
+ild)frag.appendC\
+hild(element.fir\
+stChild);before.\
+appendChild(frag\
+);}\x0athis.resetSt\
+reamState('nextS\
 tream',{clearMsg\
-:true,forceHeavy\
-:true});const el\
-=this.dom.getStr\
-eamContainer();i\
-f(!el)return;el.\
-replaceChildren(\
-);};api_appendNo\
-de=(payload)=>{t\
-his.resetStreamS\
-tate('appendNode\
-');this.data.app\
-end(payload);thi\
+:true,finalizeAc\
+tive:false,force\
+Heavy:true});thi\
 s.scrollMgr.sche\
 duleScroll();};a\
-pi_replaceNodes=\
+pi_clearStream=(\
+)=>{this.tips&&t\
+his.tips.hide();\
+this.resetStream\
+State('clearStre\
+am',{clearMsg:tr\
+ue,forceHeavy:tr\
+ue});const el=th\
+is.dom.getStream\
+Container();if(!\
+el)return;el.rep\
+laceChildren();}\
+;api_appendNode=\
 (payload)=>{this\
 .resetStreamStat\
-e('replaceNodes'\
-,{clearMsg:true,\
-forceHeavy:true}\
-);this.dom.clear\
-Nodes();this.dat\
-a.replace(payloa\
-d);};api_appendT\
-oInput=(payload)\
-=>{this.nodes.ap\
-pendToInput(payl\
-oad);this.scroll\
-Mgr.autoFollow=t\
-rue;this.scrollM\
-gr.userInteracte\
-d=false;try{this\
-.scrollMgr.lastS\
-crollTop=Utils.S\
-E.scrollTop|0;}c\
-atch(_){}\x0athis.s\
+e('appendNode');\
+this.data.append\
+(payload);this.s\
 crollMgr.schedul\
 eScroll();};api_\
-clearNodes=()=>{\
-this.dom.clearNo\
-des();this.reset\
-StreamState('cle\
-arNodes',{clearM\
-sg:true,forceHea\
-vy:true});};api_\
-clearInput=()=>{\
-this.resetStream\
-State('clearInpu\
-t',{forceHeavy:t\
-rue});this.dom.c\
-learInput();};ap\
-i_clearOutput=()\
-=>{this.dom.clea\
-rOutput();this.r\
-esetStreamState(\
-'clearOutput',{c\
-learMsg:true,for\
-ceHeavy:true});}\
-;api_clearLive=(\
-)=>{this.dom.cle\
-arLive();this.re\
+replaceNodes=(pa\
+yload)=>{this.re\
 setStreamState('\
-clearLive',{forc\
-eHeavy:true});};\
-api_appendToolOu\
-tput=(c)=>this.t\
-oolOutput.append\
-(c);api_updateTo\
-olOutput=(c)=>th\
-is.toolOutput.up\
-date(c);api_clea\
-rToolOutput=()=>\
-this.toolOutput.\
-clear();api_begi\
-nToolOutput=()=>\
-this.toolOutput.\
-begin();api_endT\
-oolOutput=()=>th\
-is.toolOutput.en\
-d();api_enableTo\
+replaceNodes',{c\
+learMsg:true,for\
+ceHeavy:true});t\
+his.dom.clearNod\
+es();this.data.r\
+eplace(payload);\
+};api_appendToIn\
+put=(payload)=>{\
+this.nodes.appen\
+dToInput(payload\
+);this.scrollMgr\
+.autoFollow=true\
+;this.scrollMgr.\
+userInteracted=f\
+alse;try{this.sc\
+rollMgr.lastScro\
+llTop=Utils.SE.s\
+crollTop|0;}catc\
+h(_){}\x0athis.scro\
+llMgr.scheduleSc\
+roll();};api_cle\
+arNodes=()=>{thi\
+s.dom.clearNodes\
+();this.resetStr\
+eamState('clearN\
+odes',{clearMsg:\
+true,forceHeavy:\
+true});};api_cle\
+arInput=()=>{thi\
+s.resetStreamSta\
+te('clearInput',\
+{forceHeavy:true\
+});this.dom.clea\
+rInput();};api_c\
+learOutput=()=>{\
+this.dom.clearOu\
+tput();this.rese\
+tStreamState('cl\
+earOutput',{clea\
+rMsg:true,forceH\
+eavy:true});};ap\
+i_clearLive=()=>\
+{this.dom.clearL\
+ive();this.reset\
+StreamState('cle\
+arLive',{forceHe\
+avy:true});};api\
+_appendToolOutpu\
+t=(c)=>this.tool\
+Output.append(c)\
+;api_updateToolO\
+utput=(c)=>this.\
+toolOutput.updat\
+e(c);api_clearTo\
 olOutput=()=>thi\
-s.toolOutput.ena\
-ble();api_disabl\
-eToolOutput=()=>\
-this.toolOutput.\
-disable();api_to\
-ggleToolOutput=(\
-id)=>this.toolOu\
-tput.toggle(id);\
-api_appendExtra=\
-(id,c)=>this.nod\
-es.appendExtra(i\
-d,c,this.scrollM\
-gr);api_removeNo\
-de=(id)=>this.no\
-des.removeNode(i\
-d,this.scrollMgr\
-);api_removeNode\
-sFromId=(id)=>th\
-is.nodes.removeN\
-odesFromId(id,th\
-is.scrollMgr);ap\
-i_replaceLive=(c\
-ontent)=>{const \
-el=this.dom.get(\
-'_append_live_')\
-;if(!el)return;i\
-f(el.classList.c\
-ontains('hidden'\
-)){el.classList.\
-remove('hidden')\
-;el.classList.ad\
-d('visible');}\x0ae\
-l.innerHTML=cont\
-ent;try{const ma\
-ybePromise=this.\
-renderer.renderP\
-endingMarkdown(e\
-l);const post=()\
-=>{try{this.high\
-lighter.observeN\
-ewCode(el,{defer\
-LastIfStreaming:\
-true,minLinesFor\
-Last:this.cfg.PR\
-OFILE_CODE.minLi\
-nesForHL,minChar\
-sForLast:this.cf\
-g.PROFILE_CODE.m\
-inCharsForHL},th\
-is.stream.active\
-Code);this.highl\
-ighter.observeMs\
-gBoxes(el,(box)=\
->{this.highlight\
-er.observeNewCod\
-e(box,{deferLast\
-IfStreaming:true\
-,minLinesForLast\
-:this.cfg.PROFIL\
-E_CODE.minLinesF\
-orHL,minCharsFor\
-Last:this.cfg.PR\
-OFILE_CODE.minCh\
-arsForHL},this.s\
-tream.activeCode\
-);this.codeScrol\
-l.initScrollable\
-Blocks(box);});}\
-catch(_){}\x0atry{c\
-onst mm=getMathM\
-ode();if(mm==='f\
-inalize-only')th\
+s.toolOutput.cle\
+ar();api_beginTo\
+olOutput=()=>thi\
+s.toolOutput.beg\
+in();api_endTool\
+Output=()=>this.\
+toolOutput.end()\
+;api_enableToolO\
+utput=()=>this.t\
+oolOutput.enable\
+();api_disableTo\
+olOutput=()=>thi\
+s.toolOutput.dis\
+able();api_toggl\
+eToolOutput=(id)\
+=>this.toolOutpu\
+t.toggle(id);api\
+_appendExtra=(id\
+,c)=>this.nodes.\
+appendExtra(id,c\
+,this.scrollMgr)\
+;api_removeNode=\
+(id)=>this.nodes\
+.removeNode(id,t\
+his.scrollMgr);a\
+pi_removeNodesFr\
+omId=(id)=>this.\
+nodes.removeNode\
+sFromId(id,this.\
+scrollMgr);api_r\
+eplaceLive=(cont\
+ent)=>{const el=\
+this.dom.get('_a\
+ppend_live_');if\
+(!el)return;if(e\
+l.classList.cont\
+ains('hidden')){\
+el.classList.rem\
+ove('hidden');el\
+.classList.add('\
+visible');}\x0ael.i\
+nnerHTML=content\
+;try{const maybe\
+Promise=this.ren\
+derer.renderPend\
+ingMarkdown(el);\
+const post=()=>{\
+try{this.highlig\
+hter.observeNewC\
+ode(el,{deferLas\
+tIfStreaming:tru\
+e,minLinesForLas\
+t:this.cfg.PROFI\
+LE_CODE.minLines\
+ForHL,minCharsFo\
+rLast:this.cfg.P\
+ROFILE_CODE.minC\
+harsForHL},this.\
+stream.activeCod\
+e);this.highligh\
+ter.observeMsgBo\
+xes(el,(box)=>{t\
+his.highlighter.\
+observeNewCode(b\
+ox,{deferLastIfS\
+treaming:true,mi\
+nLinesForLast:th\
+is.cfg.PROFILE_C\
+ODE.minLinesForH\
+L,minCharsForLas\
+t:this.cfg.PROFI\
+LE_CODE.minChars\
+ForHL},this.stre\
+am.activeCode);t\
+his.codeScroll.i\
+nitScrollableBlo\
+cks(box);});}cat\
+ch(_){}\x0atry{cons\
+t mm=getMathMode\
+();if(mm==='fina\
+lize-only')this.\
+math.schedule(el\
+,0,true);else th\
 is.math.schedule\
-(el,0,true);else\
- this.math.sched\
-ule(el);}catch(_\
-){}\x0athis.scrollM\
-gr.scheduleScrol\
-l();};if(maybePr\
-omise&&typeof ma\
-ybePromise.then=\
-=='function'){ma\
-ybePromise.then(\
-post);}else{post\
-();}}catch(_){th\
-is.scrollMgr.sch\
-eduleScroll();}}\
-;api_updateFoote\
-r=(html)=>{const\
- el=this.dom.get\
-('_footer_');if(\
-el)el.innerHTML=\
-html;};api_enabl\
+(el);}catch(_){}\
+\x0athis.scrollMgr.\
+scheduleScroll()\
+;};if(maybePromi\
+se&&typeof maybe\
+Promise.then==='\
+function'){maybe\
+Promise.then(pos\
+t);}else{post();\
+}}catch(_){this.\
+scrollMgr.schedu\
+leScroll();}};ap\
+i_updateFooter=(\
+html)=>{const el\
+=this.dom.get('_\
+footer_');if(el)\
+el.innerHTML=htm\
+l;};api_enableEd\
+itIcons=()=>this\
+.ui.enableEditIc\
+ons();api_disabl\
 eEditIcons=()=>t\
-his.ui.enableEdi\
-tIcons();api_dis\
-ableEditIcons=()\
-=>this.ui.disabl\
-eEditIcons();api\
-_enableTimestamp\
-=()=>this.ui.ena\
-bleTimestamp();a\
-pi_disableTimest\
-amp=()=>this.ui.\
+his.ui.disableEd\
+itIcons();api_en\
+ableTimestamp=()\
+=>this.ui.enable\
+Timestamp();api_\
 disableTimestamp\
-();api_enableBlo\
-cks=()=>this.ui.\
-enableBlocks();a\
-pi_disableBlocks\
 =()=>this.ui.dis\
-ableBlocks();api\
-_updateCSS=(styl\
-es)=>this.ui.upd\
-ateCSS(styles);a\
-pi_getScrollPosi\
-tion=()=>{this.b\
-ridge.updateScro\
-llPosition(windo\
-w.scrollY);};api\
-_setScrollPositi\
-on=(pos)=>{try{w\
-indow.scrollTo(0\
-,pos);this.scrol\
-lMgr.prevScroll=\
-parseInt(pos);}c\
-atch(_){}};api_s\
-howLoading=()=>t\
-his.loading.show\
-();api_hideLoadi\
-ng=()=>this.load\
-ing.hide();api_r\
-estoreCollapsedC\
-ode=(root)=>this\
-.renderer.restor\
-eCollapsedCode(r\
-oot);api_scrollT\
-oTopUser=()=>thi\
-s.scrollMgr.scro\
-llToTopUser();ap\
-i_scrollToBottom\
-User=()=>this.sc\
-rollMgr.scrollTo\
-BottomUser();api\
-_showTips=()=>th\
-is.tips.show();a\
-pi_hideTips=()=>\
-this.tips.hide()\
-;api_begin=()=>{\
-};api_end=()=>{t\
-his.scrollMgr.fo\
-rceScrollToBotto\
-mImmediateAtEnd(\
-);}\x0aapi_getCusto\
-mMarkupRules=()=\
->this.customMark\
-up.getRules();ap\
-i_setCustomMarku\
-pRules=(rules)=>\
-{this.customMark\
-up.setRules(rule\
-s);try{this.stre\
-am.setCustomFenc\
-eSpecs(this.cust\
-omMarkup.getSour\
-ceFenceSpecs());\
-}catch(_){}};ini\
-t(){this.highlig\
-hter.initHLJS();\
-this.dom.init();\
-this.ui.ensureSt\
-ickyHeaderStyle(\
-);this.tips=new \
-TipsManager(this\
-.dom);this.event\
-s.install();this\
-.bridge.initQWeb\
-Channel(this.cfg\
-.PID,(bridge)=>{\
-const onChunk=(n\
-ame,chunk,type)=\
->this.api_onChun\
-k(name,chunk,typ\
-e);const onNode=\
-(payload)=>this.\
-api_appendNode(p\
-ayload);const on\
-NodeReplace=(pay\
-load)=>this.api_\
-replaceNodes(pay\
-load);const onNo\
-deInput=(html)=>\
-this.api_appendT\
-oInput(html);thi\
-s.bridge.connect\
-(onChunk,onNode,\
-onNodeReplace,on\
-NodeInput);try{t\
-his.logger.bindB\
-ridge(this.bridg\
-e.bridge||this.b\
-ridge);}catch(_)\
-{}});this.render\
-er.init();try{th\
-is.renderer.rend\
-erPendingMarkdow\
-n(document);}cat\
-ch(_){}\x0athis.hig\
-hlighter.observe\
-MsgBoxes(documen\
-t,(box)=>{this.h\
-ighlighter.obser\
-veNewCode(box,{d\
-eferLastIfStream\
-ing:true,minLine\
-sForLast:this.cf\
-g.PROFILE_CODE.m\
-inLinesForHL,min\
-CharsForLast:thi\
-s.cfg.PROFILE_CO\
-DE.minCharsForHL\
-},this.stream.ac\
-tiveCode);this.c\
-odeScroll.initSc\
-rollableBlocks(b\
-ox);});this.high\
+ableTimestamp();\
+api_enableBlocks\
+=()=>this.ui.ena\
+bleBlocks();api_\
+disableBlocks=()\
+=>this.ui.disabl\
+eBlocks();api_up\
+dateCSS=(styles)\
+=>this.ui.update\
+CSS(styles);api_\
+getScrollPositio\
+n=()=>{this.brid\
+ge.updateScrollP\
+osition(window.s\
+crollY);};api_se\
+tScrollPosition=\
+(pos)=>{try{wind\
+ow.scrollTo(0,po\
+s);this.scrollMg\
+r.prevScroll=par\
+seInt(pos);}catc\
+h(_){}};api_show\
+Loading=()=>this\
+.loading.show();\
+api_hideLoading=\
+()=>this.loading\
+.hide();api_rest\
+oreCollapsedCode\
+=(root)=>this.re\
+nderer.restoreCo\
+llapsedCode(root\
+);api_scrollToTo\
+pUser=()=>this.s\
+crollMgr.scrollT\
+oTopUser();api_s\
+crollToBottomUse\
+r=()=>this.scrol\
+lMgr.scrollToBot\
+tomUser();api_sh\
+owTips=()=>this.\
+tips.show();api_\
+hideTips=()=>thi\
+s.tips.hide();ap\
+i_begin=()=>{};a\
+pi_end=()=>{this\
+.scrollMgr.force\
+ScrollToBottomIm\
+mediateAtEnd();}\
+\x0aapi_getCustomMa\
+rkupRules=()=>th\
+is.customMarkup.\
+getRules();api_s\
+etCustomMarkupRu\
+les=(rules)=>{th\
+is.customMarkup.\
+setRules(rules);\
+try{this.stream.\
+setCustomFenceSp\
+ecs(this.customM\
+arkup.getSourceF\
+enceSpecs());}ca\
+tch(_){}};init()\
+{this.highlighte\
+r.initHLJS();thi\
+s.dom.init();thi\
+s.ui.ensureStick\
+yHeaderStyle();t\
+his.tips=new Tip\
+sManager(this.do\
+m);this.events.i\
+nstall();this.br\
+idge.initQWebCha\
+nnel(this.cfg.PI\
+D,(bridge)=>{con\
+st onChunk=(name\
+,chunk,type)=>th\
+is.api_onChunk(n\
+ame,chunk,type);\
+const onNode=(pa\
+yload)=>this.api\
+_appendNode(payl\
+oad);const onNod\
+eReplace=(payloa\
+d)=>this.api_rep\
+laceNodes(payloa\
+d);const onNodeI\
+nput=(html)=>thi\
+s.api_appendToIn\
+put(html);this.b\
+ridge.connect(on\
+Chunk,onNode,onN\
+odeReplace,onNod\
+eInput);try{this\
+.logger.bindBrid\
+ge(this.bridge.b\
+ridge||this.brid\
+ge);}catch(_){}}\
+);this.renderer.\
+init();try{this.\
+renderer.renderP\
+endingMarkdown(d\
+ocument);}catch(\
+_){}\x0athis.highli\
+ghter.observeMsg\
+Boxes(document,(\
+box)=>{this.high\
 lighter.observeN\
-ewCode(document,\
-{deferLastIfStre\
-aming:true,minLi\
-nesForLast:this.\
-cfg.PROFILE_CODE\
-.minLinesForHL,m\
-inCharsForLast:t\
-his.cfg.PROFILE_\
-CODE.minCharsFor\
-HL},this.stream.\
-activeCode);this\
-.highlighter.sch\
-eduleScanVisible\
-Codes(this.strea\
-m.activeCode);th\
-is.tips.cycle();\
-this.scrollMgr.u\
-pdateScrollFab(t\
-rue);}\x0acleanup()\
-{this.tips.clean\
-up();try{this.br\
-idge.disconnect(\
-);}catch(_){}\x0ath\
-is.events.cleanu\
-p();this.highlig\
-hter.cleanup();t\
-his.math.cleanup\
-();this.streamQ.\
-clear();this.dom\
-.cleanup();}}\x0aif\
-(typeof RafManag\
-er!=='undefined'\
-&&RafManager.pro\
-totype&&typeof R\
+ewCode(box,{defe\
+rLastIfStreaming\
+:true,minLinesFo\
+rLast:this.cfg.P\
+ROFILE_CODE.minL\
+inesForHL,minCha\
+rsForLast:this.c\
+fg.PROFILE_CODE.\
+minCharsForHL},t\
+his.stream.activ\
+eCode);this.code\
+Scroll.initScrol\
+lableBlocks(box)\
+;});this.highlig\
+hter.observeNewC\
+ode(document,{de\
+ferLastIfStreami\
+ng:true,minLines\
+ForLast:this.cfg\
+.PROFILE_CODE.mi\
+nLinesForHL,minC\
+harsForLast:this\
+.cfg.PROFILE_COD\
+E.minCharsForHL}\
+,this.stream.act\
+iveCode);this.hi\
+ghlighter.schedu\
+leScanVisibleCod\
+es(this.stream.a\
+ctiveCode);this.\
+tips.cycle();thi\
+s.scrollMgr.upda\
+teScrollFab(true\
+);}\x0acleanup(){th\
+is.tips.cleanup(\
+);try{this.bridg\
+e.disconnect();}\
+catch(_){}\x0athis.\
+events.cleanup()\
+;this.highlighte\
+r.cleanup();this\
+.math.cleanup();\
+this.streamQ.cle\
+ar();this.dom.cl\
+eanup();}}\x0aif(ty\
+peof RafManager!\
+=='undefined'&&R\
 afManager.protot\
-ype.cancel==='fu\
-nction'){RafMana\
-ger.prototype.ca\
-ncel=function(ke\
-y){const t=this.\
-tasks.get(key);i\
-f(!t)return;this\
-.tasks.delete(ke\
-y);if(t.group){c\
-onst set=this.gr\
-oups.get(t.group\
-);if(set){set.de\
-lete(key);if(set\
-.size===0)this.g\
-roups.delete(t.g\
-roup);}}};}\x0awind\
-ow.__collapsed_i\
-dx=window.__coll\
-apsed_idx||[];co\
-nst runtime=new \
-Runtime();docume\
-nt.addEventListe\
-ner('DOMContentL\
-oaded',()=>runti\
-me.init());Objec\
-t.defineProperty\
-(window,'SE',{ge\
-t(){return Utils\
-.SE;}});window.b\
-eginStream=(chun\
+ype&&typeof RafM\
+anager.prototype\
+.cancel==='funct\
+ion'){RafManager\
+.prototype.cance\
+l=function(key){\
+const t=this.tas\
+ks.get(key);if(!\
+t)return;this.ta\
+sks.delete(key);\
+if(t.group){cons\
+t set=this.group\
+s.get(t.group);i\
+f(set){set.delet\
+e(key);if(set.si\
+ze===0)this.grou\
+ps.delete(t.grou\
+p);}}};}\x0awindow.\
+__collapsed_idx=\
+window.__collaps\
+ed_idx||[];const\
+ runtime=new Run\
+time();document.\
+addEventListener\
+('DOMContentLoad\
+ed',()=>runtime.\
+init());Object.d\
+efineProperty(wi\
+ndow,'SE',{get()\
+{return Utils.SE\
+;}});window.begi\
+nStream=(chunk)=\
+>runtime.api_beg\
+inStream(chunk);\
+window.endStream\
+=()=>runtime.api\
+_endStream();win\
+dow.applyStream=\
+(name,chunk)=>ru\
+ntime.api_applyS\
+tream(name,chunk\
+);window.appendS\
+tream=(name,chun\
 k)=>runtime.api_\
-beginStream(chun\
-k);window.endStr\
-eam=()=>runtime.\
-api_endStream();\
-window.applyStre\
-am=(name,chunk)=\
->runtime.api_app\
-lyStream(name,ch\
-unk);window.appe\
-ndStream=(name,c\
-hunk)=>runtime.a\
-pi_appendStream(\
-name,chunk);wind\
-ow.appendStreamT\
-yped=(type,name,\
-chunk)=>runtime.\
-api_onChunk(name\
-,chunk,type);win\
-dow.nextStream=(\
-)=>runtime.api_n\
-extStream();wind\
-ow.clearStream=(\
-)=>runtime.api_c\
-learStream();win\
-dow.begin=()=>ru\
-ntime.api_begin(\
-);window.end=()=\
->runtime.api_end\
-();window.append\
-Node=(payload)=>\
-runtime.api_appe\
-ndNode(payload);\
-window.replaceNo\
-des=(payload)=>r\
-untime.api_repla\
-ceNodes(payload)\
-;window.appendTo\
-Input=(html)=>ru\
-ntime.api_append\
-ToInput(html);wi\
-ndow.clearNodes=\
-()=>runtime.api_\
-clearNodes();win\
-dow.clearInput=(\
-)=>runtime.api_c\
-learInput();wind\
-ow.clearOutput=(\
-)=>runtime.api_c\
-learOutput();win\
-dow.clearLive=()\
-=>runtime.api_cl\
-earLive();window\
-.appendToolOutpu\
-t=(c)=>runtime.a\
-pi_appendToolOut\
-put(c);window.up\
-dateToolOutput=(\
-c)=>runtime.api_\
-updateToolOutput\
-(c);window.clear\
-ToolOutput=()=>r\
+appendStream(nam\
+e,chunk);window.\
+appendStreamType\
+d=(type,name,chu\
+nk)=>runtime.api\
+_onChunk(name,ch\
+unk,type);window\
+.nextStream=()=>\
+runtime.api_next\
+Stream();window.\
+clearStream=()=>\
+runtime.api_clea\
+rStream();window\
+.begin=()=>runti\
+me.api_begin();w\
+indow.end=()=>ru\
+ntime.api_end();\
+window.appendNod\
+e=(payload)=>run\
+time.api_appendN\
+ode(payload);win\
+dow.replaceNodes\
+=(payload)=>runt\
+ime.api_replaceN\
+odes(payload);wi\
+ndow.appendToInp\
+ut=(html)=>runti\
+me.api_appendToI\
+nput(html);windo\
+w.clearNodes=()=\
+>runtime.api_cle\
+arNodes();window\
+.clearInput=()=>\
+runtime.api_clea\
+rInput();window.\
+clearOutput=()=>\
+runtime.api_clea\
+rOutput();window\
+.clearLive=()=>r\
 untime.api_clear\
-ToolOutput();win\
-dow.beginToolOut\
-put=()=>runtime.\
-api_beginToolOut\
-put();window.end\
-ToolOutput=()=>r\
-untime.api_endTo\
-olOutput();windo\
-w.enableToolOutp\
-ut=()=>runtime.a\
-pi_enableToolOut\
-put();window.dis\
-ableToolOutput=(\
-)=>runtime.api_d\
-isableToolOutput\
-();window.toggle\
-ToolOutput=(id)=\
->runtime.api_tog\
-gleToolOutput(id\
-);window.appendE\
-xtra=(id,c)=>run\
-time.api_appendE\
-xtra(id,c);windo\
-w.removeNode=(id\
-)=>runtime.api_r\
-emoveNode(id);wi\
-ndow.removeNodes\
-FromId=(id)=>run\
-time.api_removeN\
-odesFromId(id);w\
-indow.replaceLiv\
-e=(c)=>runtime.a\
-pi_replaceLive(c\
-);window.updateF\
-ooter=(c)=>runti\
-me.api_updateFoo\
-ter(c);window.en\
-ableEditIcons=()\
-=>runtime.api_en\
-ableEditIcons();\
-window.disableEd\
-itIcons=()=>runt\
-ime.api_disableE\
-ditIcons();windo\
-w.enableTimestam\
-p=()=>runtime.ap\
-i_enableTimestam\
-p();window.disab\
-leTimestamp=()=>\
+Live();window.ap\
+pendToolOutput=(\
+c)=>runtime.api_\
+appendToolOutput\
+(c);window.updat\
+eToolOutput=(c)=\
+>runtime.api_upd\
+ateToolOutput(c)\
+;window.clearToo\
+lOutput=()=>runt\
+ime.api_clearToo\
+lOutput();window\
+.beginToolOutput\
+=()=>runtime.api\
+_beginToolOutput\
+();window.endToo\
+lOutput=()=>runt\
+ime.api_endToolO\
+utput();window.e\
+nableToolOutput=\
+()=>runtime.api_\
+enableToolOutput\
+();window.disabl\
+eToolOutput=()=>\
 runtime.api_disa\
-bleTimestamp();w\
-indow.enableBloc\
-ks=()=>runtime.a\
-pi_enableBlocks(\
-);window.disable\
-Blocks=()=>runti\
-me.api_disableBl\
-ocks();window.up\
-dateCSS=(s)=>run\
-time.api_updateC\
-SS(s);window.get\
-ScrollPosition=(\
-)=>runtime.api_g\
-etScrollPosition\
-();window.setScr\
-ollPosition=(pos\
-)=>runtime.api_s\
-etScrollPosition\
-(pos);window.sho\
-wLoading=()=>run\
-time.api_showLoa\
-ding();window.hi\
-deLoading=()=>ru\
-ntime.api_hideLo\
-ading();window.r\
-estoreCollapsedC\
-ode=(root)=>runt\
-ime.api_restoreC\
-ollapsedCode(roo\
-t);window.scroll\
-ToTopUser=()=>ru\
-ntime.api_scroll\
-ToTopUser();wind\
-ow.scrollToBotto\
-mUser=()=>runtim\
-e.api_scrollToBo\
-ttomUser();windo\
-w.showTips=()=>r\
-untime.api_showT\
-ips();window.hid\
-eTips=()=>runtim\
-e.api_hideTips()\
-;window.getCusto\
-mMarkupRules=()=\
->runtime.api_get\
-CustomMarkupRule\
-s();window.setCu\
-stomMarkupRules=\
-(rules)=>runtime\
-.api_setCustomMa\
-rkupRules(rules)\
-;window.__pygpt_\
-cleanup=()=>runt\
-ime.cleanup();Ra\
-fManager.prototy\
-pe.stats=functio\
-n(){const byGrou\
-p=new Map();for(\
-const[key,t]of t\
-his.tasks){const\
- g=t.group||'def\
-ault';byGroup.se\
-t(g,(byGroup.get\
-(g)||0)+1);}\x0aret\
-urn{tasks:this.t\
-asks.size,groups\
-:Array.from(byGr\
-oup,([group,coun\
-t])=>({group,cou\
-nt})).sort((a,b)\
-=>b.count-a.coun\
-t)};};RafManager\
-.prototype.dumpH\
-otGroups=functio\
-n(label=''){cons\
-t s=this.stats()\
-;console.log('[R\
-AF]',label,'task\
-s=',s.tasks,'byG\
-roup=',s.groups.\
-slice(0,8));};Ra\
-fManager.prototy\
-pe.findDomTasks=\
-function(){const\
- out=[];for(cons\
-t[key,t]of this.\
-tasks){let el=nu\
-ll;if(key&&key.n\
-odeType===1)el=k\
-ey;else if(key&&\
-key.el&&key.el.n\
-odeType===1)el=k\
-ey.el;if(el)out.\
-push({group:t.gr\
-oup,tag:el.tagNa\
-me,connected:el.\
-isConnected});}\x0a\
-return out;};fun\
-ction gaugeSE(se\
-){const ropeLen=\
-(se.streamBuf.le\
-ngth+se._sbLen);\
-const ac=se.acti\
-veCode;const dom\
-Frozen=ac?.froze\
-nEl?.textContent\
-?.length||0;cons\
-t domTail=ac?.ta\
-ilEl?.textConten\
-t?.length||0;con\
-st domLen=domFro\
-zen+domTail;retu\
-rn{ropeLen,domLe\
-n,totalChars:rop\
-eLen+domLen,rati\
-oRopeToDom:(domL\
-en?(ropeLen/domL\
-en).toFixed(2):'\
-n/a'),fenceOpen:\
-se.fenceOpen,cod\
-eOpen:se.codeStr\
-eam?.open};};\x0a\
+bleToolOutput();\
+window.toggleToo\
+lOutput=(id)=>ru\
+ntime.api_toggle\
+ToolOutput(id);w\
+indow.appendExtr\
+a=(id,c)=>runtim\
+e.api_appendExtr\
+a(id,c);window.r\
+emoveNode=(id)=>\
+runtime.api_remo\
+veNode(id);windo\
+w.removeNodesFro\
+mId=(id)=>runtim\
+e.api_removeNode\
+sFromId(id);wind\
+ow.replaceLive=(\
+c)=>runtime.api_\
+replaceLive(c);w\
+indow.updateFoot\
+er=(c)=>runtime.\
+api_updateFooter\
+(c);window.enabl\
+eEditIcons=()=>r\
+untime.api_enabl\
+eEditIcons();win\
+dow.disableEditI\
+cons=()=>runtime\
+.api_disableEdit\
+Icons();window.e\
+nableTimestamp=(\
+)=>runtime.api_e\
+nableTimestamp()\
+;window.disableT\
+imestamp=()=>run\
+time.api_disable\
+Timestamp();wind\
+ow.enableBlocks=\
+()=>runtime.api_\
+enableBlocks();w\
+indow.disableBlo\
+cks=()=>runtime.\
+api_disableBlock\
+s();window.updat\
+eCSS=(s)=>runtim\
+e.api_updateCSS(\
+s);window.getScr\
+ollPosition=()=>\
+runtime.api_getS\
+crollPosition();\
+window.setScroll\
+Position=(pos)=>\
+runtime.api_setS\
+crollPosition(po\
+s);window.showLo\
+ading=()=>runtim\
+e.api_showLoadin\
+g();window.hideL\
+oading=()=>runti\
+me.api_hideLoadi\
+ng();window.rest\
+oreCollapsedCode\
+=(root)=>runtime\
+.api_restoreColl\
+apsedCode(root);\
+window.scrollToT\
+opUser=()=>runti\
+me.api_scrollToT\
+opUser();window.\
+scrollToBottomUs\
+er=()=>runtime.a\
+pi_scrollToBotto\
+mUser();window.s\
+howTips=()=>runt\
+ime.api_showTips\
+();window.hideTi\
+ps=()=>runtime.a\
+pi_hideTips();wi\
+ndow.getCustomMa\
+rkupRules=()=>ru\
+ntime.api_getCus\
+tomMarkupRules()\
+;window.setCusto\
+mMarkupRules=(ru\
+les)=>runtime.ap\
+i_setCustomMarku\
+pRules(rules);wi\
+ndow.__pygpt_cle\
+anup=()=>runtime\
+.cleanup();RafMa\
+nager.prototype.\
+stats=function()\
+{const byGroup=n\
+ew Map();for(con\
+st[key,t]of this\
+.tasks){const g=\
+t.group||'defaul\
+t';byGroup.set(g\
+,(byGroup.get(g)\
+||0)+1);}\x0areturn\
+{tasks:this.task\
+s.size,groups:Ar\
+ray.from(byGroup\
+,([group,count])\
+=>({group,count}\
+)).sort((a,b)=>b\
+.count-a.count)}\
+;};RafManager.pr\
+ototype.dumpHotG\
+roups=function(l\
+abel=''){const s\
+=this.stats();co\
+nsole.log('[RAF]\
+',label,'tasks='\
+,s.tasks,'byGrou\
+p=',s.groups.sli\
+ce(0,8));};RafMa\
+nager.prototype.\
+findDomTasks=fun\
+ction(){const ou\
+t=[];for(const[k\
+ey,t]of this.tas\
+ks){let el=null;\
+if(key&&key.node\
+Type===1)el=key;\
+else if(key&&key\
+.el&&key.el.node\
+Type===1)el=key.\
+el;if(el)out.pus\
+h({group:t.group\
+,tag:el.tagName,\
+connected:el.isC\
+onnected});}\x0aret\
+urn out;};functi\
+on gaugeSE(se){c\
+onst ropeLen=(se\
+.streamBuf.lengt\
+h+se._sbLen);con\
+st ac=se.activeC\
+ode;const domFro\
+zen=ac?.frozenEl\
+?.textContent?.l\
+ength||0;const d\
+omTail=ac?.tailE\
+l?.textContent?.\
+length||0;const \
+domLen=domFrozen\
++domTail;return{\
+ropeLen,domLen,t\
+otalChars:ropeLe\
+n+domLen,ratioRo\
+peToDom:(domLen?\
+(ropeLen/domLen)\
+.toFixed(2):'n/a\
+'),fenceOpen:se.\
+fenceOpen,codeOp\
+en:se.codeStream\
+?.open};};\x0a\
 "
 
 qt_resource_name = b"\
@@ -126970,30 +127342,30 @@ qt_resource_struct = b"\
 \x00\x00\x01V\x00\x00\x00\x00\x00\x01\x00\x12\xc7D\
 \x00\x00\x00p\x00\x00\x00\x00\x00\x01\x00\x10\xde9\
 \x00\x00\x01r\x00\x00\x00\x00\x00\x01\x00\x12\xdd\x12\
-\x00\x00\x02h\x00\x00\x00\x00\x00\x01\x00\x17\xe6\xc0\
+\x00\x00\x02h\x00\x00\x00\x00\x00\x01\x00\x17\xef#\
 \x00\x00\x000\x00\x00\x00\x00\x00\x01\x00\x10s\xea\
-\x00\x00\x02\x88\x00\x00\x00\x00\x00\x01\x00\x18\x01\x9f\
-\x00\x00\x030\x00\x00\x00\x00\x00\x01\x00\x1b)\xdb\
-\x00\x00\x02\x0e\x00\x00\x00\x00\x00\x01\x00\x13n?\
-\x00\x00\x03\x9c\x00\x00\x00\x00\x00\x01\x00\x1b\xb3\x01\
-\x00\x00\x01\xb2\x00\x00\x00\x00\x00\x01\x00\x13\x10T\
+\x00\x00\x02\x88\x00\x00\x00\x00\x00\x01\x00\x18\x0a\x02\
+\x00\x00\x030\x00\x00\x00\x00\x00\x01\x00\x1b6D\
+\x00\x00\x02\x0e\x00\x00\x00\x00\x00\x01\x00\x13v\xa2\
+\x00\x00\x03\x9c\x00\x00\x00\x00\x00\x01\x00\x1b\xbfj\
+\x00\x00\x01\xb2\x00\x00\x00\x00\x00\x01\x00\x13\x18\xb7\
 \x00\x00\x00\xf8\x00\x00\x00\x00\x00\x01\x00\x11K\xe7\
-\x00\x00\x01\xf0\x00\x00\x00\x00\x00\x01\x00\x13g9\
+\x00\x00\x01\xf0\x00\x00\x00\x00\x00\x01\x00\x13o\x9c\
 \x00\x00\x00J\x00\x00\x00\x00\x00\x01\x00\x10\x8c-\
 \x00\x00\x016\x00\x00\x00\x00\x00\x01\x00\x11m\xca\
-\x00\x00\x02\xb2\x00\x00\x00\x00\x00\x01\x00\x19\xe4\x85\
-\x00\x00\x03R\x00\x00\x00\x00\x00\x01\x00\x1bu+\
-\x00\x00\x02\xd0\x00\x00\x00\x00\x00\x01\x00\x1a\x13\xf1\
-\x00\x00\x01\x96\x00\x00\x00\x00\x00\x01\x00\x13\x07\x06\
-\x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x13\x85U\
+\x00\x00\x02\xb2\x00\x00\x00\x00\x00\x01\x00\x19\xec\xe8\
+\x00\x00\x03R\x00\x00\x00\x00\x00\x01\x00\x1b\x81\x94\
+\x00\x00\x02\xd0\x00\x00\x00\x00\x00\x01\x00\x1a\x1cT\
+\x00\x00\x01\x96\x00\x00\x00\x00\x00\x01\x00\x13\x0fi\
+\x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x13\x8d\xb8\
 \x00\x00\x00\x0a\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\
-\x00\x00\x03\x14\x00\x00\x00\x00\x00\x01\x00\x1b \x04\
-\x00\x00\x02L\x00\x00\x00\x00\x00\x01\x00\x17\xben\
-\x00\x00\x01\xd0\x00\x00\x00\x00\x00\x01\x00\x13-\xbb\
+\x00\x00\x03\x14\x00\x00\x00\x00\x00\x01\x00\x1b(g\
+\x00\x00\x02L\x00\x00\x00\x00\x00\x01\x00\x17\xc6\xd1\
+\x00\x00\x01\xd0\x00\x00\x00\x00\x00\x01\x00\x136\x1e\
 \x00\x00\x00\x8a\x00\x00\x00\x00\x00\x01\x00\x11\x07\xcf\
-\x00\x00\x02\xf0\x00\x00\x00\x00\x00\x01\x00\x1a\x8b\xc3\
+\x00\x00\x02\xf0\x00\x00\x00\x00\x00\x01\x00\x1a\x94&\
 \x00\x00\x00\xc2\x00\x00\x00\x00\x00\x01\x00\x11E]\
-\x00\x00\x03r\x00\x00\x00\x00\x00\x01\x00\x1b\xa5g\
+\x00\x00\x03r\x00\x00\x00\x00\x00\x01\x00\x1b\xb1\xd0\
 \x00\x00\x01\x16\x00\x00\x00\x00\x00\x01\x00\x11d\x16\
 "
 

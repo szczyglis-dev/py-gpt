@@ -472,7 +472,7 @@
   "render.open_gl": true,
   "render.plain": false,
   "send_clear": true,
-  "send_mode": 2,
+  "send_mode": 1,
   "store_history": true,
   "store_history_time": true,
   "stream": true,

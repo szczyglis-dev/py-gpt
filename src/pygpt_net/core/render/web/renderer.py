@@ -2072,8 +2072,13 @@ class Renderer(BaseRenderer):
 
         # output
         if output_text:
+            # Tool calls are rendered as a compact header (icon + tool name).
+            # Their request payload is moved into the same collapsible area as the result.
+            tool_calls = self.helpers.extract_tool_calls(output_text)
+            visible_output_text = self.helpers.strip_tool_calls(output_text) if tool_calls else output_text
+
             # Pre/post format raw markdown via Helpers to preserve placeholders ([!cmd], think) and workdir tokens.
-            md_src = self.helpers.pre_format_text(output_text)
+            md_src = self.helpers.pre_format_text(visible_output_text)
             md_text = self.helpers.post_format_text(md_src)
             name, avatar, personalize = self._output_identity(ctx)
 
@@ -2081,21 +2086,29 @@ class Renderer(BaseRenderer):
             is_cmd = (
                 next_ctx is not None and
                 next_ctx.internal and
-                (len(ctx.cmds) > 0 or (ctx.extra_ctx is not None and len(ctx.extra_ctx) > 0))
+                (
+                    bool(tool_calls)
+                    or len(ctx.cmds) > 0
+                    or (ctx.extra_ctx is not None and len(ctx.extra_ctx) > 0)
+                )
             )
-            tool_output = ""
-            tool_output_visible = False
+            tool_result = ""
+            tool_output = ""  # backward-compatible HTML-ready result
+            tool_output_visible = bool(tool_calls)
             if is_cmd:
                 if ctx.results is not None and len(ctx.results) > 0 \
                         and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
-                    tool_output = self.helpers.format_cmd_text(str(ctx.input), indent=True)
+                    tool_result = str(ctx.input)
                     tool_output_visible = True
                 else:
-                    tool_output = self.helpers.format_cmd_text(str(next_ctx.input), indent=True)
+                    tool_result = str(next_ctx.input)
                     tool_output_visible = True
             elif ctx.results is not None and len(ctx.results) > 0 \
                     and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
-                tool_output = self.helpers.format_cmd_text(str(ctx.input), indent=True)
+                tool_result = str(ctx.input)
+
+            if tool_result:
+                tool_output = self.helpers.format_cmd_text(tool_result, indent=True)
 
             # plugin-driven extra (HTML) – keep as-is to preserve functionality
             tool_extra_html = self.body.prepare_tool_extra(ctx)
@@ -2121,6 +2134,8 @@ class Renderer(BaseRenderer):
                     docs_norm = self.body.normalize_docs(ctx.doc_ids)
 
             block.extra.update({
+                "tool_calls": tool_calls,
+                "tool_result": tool_result,
                 "tool_output": tool_output,
                 "tool_output_visible": tool_output_visible,
                 "tool_extra_html": tool_extra_html,
