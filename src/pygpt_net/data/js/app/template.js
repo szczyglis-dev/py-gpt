@@ -110,7 +110,7 @@ class NodeTemplateEngine {
 				const url = this._esc(it.url);
 				const path = this._esc(it.path);
 				const icon = (typeof window !== 'undefined' && window.ICON_ATTACHMENTS) ? `<img src="${window.ICON_ATTACHMENTS}" class="extra-src-icon">` : '';
-				rows.push(`${icon} <b> [${k}] </b> <a href="${url}">${path}</a>`);
+				rows.push(`${icon} <a href="${url}">${path}</a> <b> [${k}] </b>`);
 			});
 			if (rows.length) parts.push(`<div>${rows.join("<br/>")}</div>`);
 		}

@@ -489,7 +489,7 @@ class Body:
         icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
         num_str = f" [{num}]" if (num is not None and num_all is not None and num_all > 1) else ""
         url, path = self.window.core.filesystem.extract_local_url(url)
-        return f'{icon} <b>{num_str}</b> <a href="{url}">{path}</a>'
+        return f'{icon} <a href="{url}">{path}</a> <b>{num_str}</b>'
 
     def prepare_tool_extra(self, ctx: CtxItem) -> str:
         """

@@ -77556,9 +77556,9 @@ HMENTS}\x22 class=\x22\
 extra-src-icon\x22>\
 ` : '';\x0a\x09\x09\x09\x09rows\
 .push(`${icon} <\
-b> [${k}] </b> <\
 a href=\x22${url}\x22>\
-${path}</a>`);\x0a\x09\
+${path}</a> <b> \
+[${k}] </b>`);\x0a\x09\
 \x09\x09});\x0a\x09\x09\x09if (row\
 s.length) parts.\
 push(`<div>${row\
@@ -125044,10 +125044,10 @@ ndow.ICON_ATTACH\
 MENTS}\x22 class=\x22e\
 xtra-src-icon\x22>`\
 :'';rows.push(`$\
-{icon} <b> [${k}\
-] </b> <a href=\x22\
+{icon} <a href=\x22\
 ${url}\x22>${path}<\
-/a>`);});if(rows\
+/a> <b> [${k}] <\
+/b>`);});if(rows\
 .length)parts.pu\
 sh(`<div>${rows.\
 join(\x22<br/>\x22)}</\
