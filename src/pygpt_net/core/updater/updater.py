@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 14:30:00                  #
+# Updated Date: 2026.08.15 15:37:00                  #
 # ================================================== #
 
 import copy
@@ -15,7 +15,7 @@ import shutil
 import json
 import ssl
 import time
-from typing import Tuple
+from typing import Optional, Tuple
 import locale
 
 from urllib.request import urlopen, Request
@@ -219,13 +219,17 @@ class Updater(QObject):
         """
         return parse_version(self.window.meta['version'])
 
-    def get_updater_url(self) -> str:
+    def get_updater_url(self, event: Optional[str] = None) -> str:
         """
         Get the app updates info url.
 
+        :param event: optional updater event name
         :return: updater url
         """
-        return self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
+        url = self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
+        if event:
+            url += "&event=" + event
+        return url
 
     def get_thanks(self) -> Tuple[str, str, str]:
         """
@@ -262,13 +266,14 @@ class Updater(QObject):
             return self.get_thanks()
         return self.thanks
 
-    def check_silent(self) -> Tuple[bool, str, str, str, str, str, str]:
+    def check_silent(self, event: Optional[str] = None) -> Tuple[bool, str, str, str, str, str, str]:
         """
         Check version in background
 
+        :param event: optional updater event name
         :return: (is_new, newest_version, newest_build, changelog, download_windows, download_linux, download_appimage)
         """
-        url = self.get_updater_url()
+        url = self.get_updater_url(event)
         is_new = False
         newest_version = ""
         newest_build = ""
@@ -356,7 +361,7 @@ class Updater(QObject):
         :return: True if force show version dialog
         """
         print("Checking for updates...")
-        is_new, version, build, changelog, download_windows, download_linux, download_appimage = self.check_silent()
+        is_new, version, build, changelog, download_windows, download_linux, download_appimage = self.check_silent("manual")
         if is_new or force:
             self.show_version_dialog(
                 version,
@@ -464,17 +469,19 @@ class Updater(QObject):
             True
         )
 
-    def run_check(self, force: bool = False, on_finished=None):
+    def run_check(self, force: bool = False, on_finished=None, event: Optional[str] = "ping"):
         """
         Run check for updates in background
 
         :param force: force show version dialog
         :param on_finished: optional callback invoked after the background check finishes
+        :param event: updater event name
         """
         worker = UpdaterWorker()
         worker.window = self.window
         worker.checker = self.check_silent
         worker.force = force
+        worker.event = event
         worker.signals.version_changed.connect(self.handle_new_version)
         if on_finished is not None:
             worker.signals.finished.connect(on_finished)
@@ -496,6 +503,7 @@ class UpdaterWorker(QRunnable):
         self.window = None
         self.checker = None
         self.force = False
+        self.event = None
 
     @Slot()
     def run(self):
@@ -513,7 +521,7 @@ class UpdaterWorker(QRunnable):
             if self.force:
                 print("Checking for updates...")
 
-            is_new, version, build, changelog, download_windows, download_linux, download_appimage = self.checker()
+            is_new, version, build, changelog, download_windows, download_linux, download_appimage = self.checker(self.event)
             if is_new:
                 if self.force or (parsed_prev_checked is None or parsed_prev_checked < parse_version(version)):
                     self.signals.version_changed.emit(

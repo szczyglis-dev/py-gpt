@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 14:30:00                  #
+# Updated Date: 2026.08.15 15:35:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -33,6 +33,7 @@ class Launcher:
             self.window.core.updater.run_check(
                 force=True,
                 on_finished=self.window.core.banners.run_load,
+                event="launch",
             )
         else:
             self.window.core.banners.run_load()
