@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.8.1",
-        "app.version": "2.8.1",
-        "updated_at": "2026-08-13T00:00:00"
+        "version": "2.8.2",
+        "app.version": "2.8.2",
+        "updated_at": "2026-08-15T00:00:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -326,6 +326,55 @@
             "imported": false,
             "provider": "ollama",
             "tool_calls": false
+        },
+        "computer-use-preview": {
+            "id": "computer-use-preview",
+            "name": "computer-use-preview",
+            "mode": [
+                "agent_openai",
+                "computer"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "computer-use-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
         },
         "deep-research-max-preview-04-2026": {
             "id": "deep-research-max-preview-04-2026",
@@ -1058,42 +1107,6 @@
             "provider": "google",
             "tool_calls": true
         },
-        "gemini-3.1-flash-tts-preview": {
-            "id": "gemini-3.1-flash-tts-preview",
-            "name": "gemini-3.1-flash-tts-preview",
-            "mode": [
-                "audio"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3.1-flash-tts-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
-            "ctx": 8192,
-            "tokens": 16384,
-            "default": false,
-            "input": [
-                "text"
-            ],
-            "output": [
-                "audio"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "google",
-            "tool_calls": false
-        },
         "gemini-3.1-pro-preview": {
             "id": "gemini-3.1-pro-preview",
             "name": "gemini-3.1-pro-preview",
@@ -1148,8 +1161,7 @@
                 "expert",
                 "chat",
                 "vision",
-                "agent_openai",
-                "computer"
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1193,8 +1205,7 @@
                 "expert",
                 "chat",
                 "vision",
-                "agent_openai",
-                "computer"
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1238,14 +1249,145 @@
                 "expert",
                 "chat",
                 "vision",
-                "agent_openai",
-                "computer"
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
                     {
                         "name": "model",
                         "value": "models/gemini-3.6-flash",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}"
+                    }
+                ]
+            },
+            "ctx": 1048576,
+            "tokens": 65536,
+            "default": false,
+            "input": [
+                "text",
+                "image",
+                "audio",
+                "video"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        },
+        "gemini-3.7-flash": {
+            "id": "gemini-3.7-flash",
+            "name": "gemini-3.7-flash",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
+                "vision",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-3.7-flash",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}"
+                    }
+                ]
+            },
+            "ctx": 1048576,
+            "tokens": 65536,
+            "default": false,
+            "input": [
+                "text",
+                "image",
+                "audio",
+                "video"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        },
+        "gemini-flash-latest": {
+            "id": "gemini-flash-latest",
+            "name": "gemini-flash-latest",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
+                "vision",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-flash-latest",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}"
+                    }
+                ]
+            },
+            "ctx": 1048576,
+            "tokens": 65536,
+            "default": false,
+            "input": [
+                "text",
+                "image",
+                "audio",
+                "video"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "google",
+            "tool_calls": true
+        },
+        "gemini-pro-latest": {
+            "id": "gemini-pro-latest",
+            "name": "gemini-pro-latest",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
+                "vision",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-pro-latest",
                         "type": "str"
                     }
                 ],
@@ -3554,9 +3696,9 @@
             "provider": "x_ai",
             "tool_calls": true
         },
-        "grok-4.3-latest": {
-            "id": "grok-4.3-latest",
-            "name": "grok-4.3-latest",
+        "grok-4.3": {
+            "id": "grok-4.3",
+            "name": "grok-4.3",
             "mode": [
                 "chat",
                 "llama_index",
@@ -3564,13 +3706,14 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "audio"
             ],
             "llama_index": {
                 "args": [
                     {
                         "name": "model",
-                        "value": "grok-4.3-latest",
+                        "value": "grok-4.3",
                         "type": "str"
                     }
                 ],
@@ -3590,19 +3733,21 @@
             "default": false,
             "input": [
                 "text",
-                "image"
+                "image",
+                "audio"
             ],
             "output": [
-                "text"
+                "text",
+                "audio"
             ],
             "extra": {},
             "imported": false,
             "provider": "x_ai",
             "tool_calls": true
         },
-        "grok-4.5-latest": {
-            "id": "grok-4.5-latest",
-            "name": "grok-4.5-latest",
+        "grok-4.5": {
+            "id": "grok-4.5",
+            "name": "grok-4.5",
             "mode": [
                 "chat",
                 "llama_index",
@@ -3610,13 +3755,14 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "audio"
             ],
             "llama_index": {
                 "args": [
                     {
                         "name": "model",
-                        "value": "grok-4.5-latest",
+                        "value": "grok-4.5",
                         "type": "str"
                     }
                 ],
@@ -3636,10 +3782,61 @@
             "default": false,
             "input": [
                 "text",
-                "image"
+                "image",
+                "audio"
             ],
             "output": [
-                "text"
+                "text",
+                "audio"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-4.6": {
+            "id": "grok-4.6",
+            "name": "grok-4.6",
+            "mode": [
+                "chat",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai",
+                "audio"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-4.6",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 500000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image",
+                "audio"
+            ],
+            "output": [
+                "text",
+                "audio"
             ],
             "extra": {},
             "imported": false,
@@ -4998,6 +5195,58 @@
                     {
                         "name": "model",
                         "value": "sora-2",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "video"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "sora-2-pro": {
+            "id": "sora-2-pro",
+            "name": "sora-2-pro",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "sora-2-pro",
                         "type": "str"
                     }
                 ],

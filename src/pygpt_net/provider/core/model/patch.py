@@ -324,6 +324,58 @@ class Patch:
 
                 updated = True
 
+
+            # <  2.8.2 <--- add missing audio input
+            if old < parse_version("2.8.2"):
+                print("Migrating models from < 2.8.2...")
+                models_to_update = [
+                    "grok-4.5-latest",
+                    "grok-4.3-latest",
+                    "grok-4.5",
+                    "grok-4.3",
+                ]
+                for model in models_to_update:
+                    if model in data:
+                        m = data[model]
+                        if not m.is_audio_input():
+                            m.input.append("audio")
+                        if not m.is_audio_output():
+                            m.output.append("audio")
+                        if not m.has_mode("audio"):
+                            m.mode.append("audio")
+
+                models_to_update = [
+                    "gemini-3.5-flash",
+                    "gemini-3.5-flash-lite",
+                    "gemini-3.6-flash",
+                ]
+                for model in models_to_update:
+                    if model in data:
+                        m = data[model]
+                        if m.has_mode("computer"):
+                            m.mode.remove("computer")
+
+                models_to_remove = [
+                    "gemini-3.1-flash-tts-preview",
+                ]
+                for model in models_to_remove:
+                    if model in data:
+                        del data[model]
+                models_to_add = [
+                    "computer-use-preview",
+                    "gemini-3.7-flash",
+                    "gemini-pro-latest",
+                    "gemini-flash-latest",
+                    "grok-4.6",
+                    "sora-2-pro",
+                ]
+                for model in models_to_add:
+                    if model not in data:
+                        base_model = from_base(model)
+                        if base_model:
+                            data[model] = base_model
+                updated = True
+
         # update file
         if updated:
             # fix empty/broken data

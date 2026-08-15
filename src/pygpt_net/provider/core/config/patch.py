@@ -311,6 +311,20 @@ class Patch:
                         data[key] = cfg_get_base(key)
                 updated = True
 
+            # < 2.8.2
+            if old < parse_version("2.8.2"):
+                print("Migrating config from < 2.8.2...")
+                # add: buttons hover css
+                patch_css('style.light.css', True)
+                patch_css('style.dark.css', True)
+                to_add = [
+                    "app_banners_api_url",
+                ]
+                for key in to_add:
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                updated = True
+
         # update file
         migrated = False
         if updated:

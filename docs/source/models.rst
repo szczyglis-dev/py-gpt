@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has a preconfigured list of models (as of 2026-08-12):
+PyGPT has a preconfigured list of models (as of 2026-08-15):
 
 - ``bielik-11b-v2.3-instruct:Q4_K_M`` (Ollama)
 - ``claude-fable-5`` (Anthropic)
@@ -14,6 +14,7 @@ PyGPT has a preconfigured list of models (as of 2026-08-12):
 - ``claude-sonnet-4-5`` (Anthropic)
 - ``claude-sonnet-5`` (Anthropic)
 - ``codellama`` (Ollama)
+- ``computer-use-preview`` (OpenAI)
 - ``deep-research-max-preview-04-2026`` (Google)
 - ``deep-research-preview-04-2026`` (Google)
 - ``deep-research-pro-preview-12-2025`` (Google)
@@ -32,7 +33,6 @@ PyGPT has a preconfigured list of models (as of 2026-08-12):
 - ``gemini-3.1-flash-image`` (Google)
 - ``gemini-3.1-flash-lite-image`` (Google)
 - ``gemini-3.1-flash-live-preview`` (Google, real-time)
-- ``gemini-3.1-flash-tts-preview`` (Google, audio)
 - ``gemini-3.1-pro-preview`` (Google)
 - ``gemini-3.5-flash`` (Google)
 - ``gemini-3.5-flash-lite`` (Google)
@@ -65,8 +65,9 @@ PyGPT has a preconfigured list of models (as of 2026-08-12):
 - ``grok-2-vision`` (xAI)
 - ``grok-3-mini`` (xAI)
 - ``grok-3-mini-fast`` (xAI)
-- ``grok-4.3-latest`` (xAI)
-- ``grok-4.5-latest`` (xAI)
+- ``grok-4.3`` (xAI)
+- ``grok-4.5`` (xAI)
+- ``grok-4.6`` (xAI)
 - ``grok-imagine-image`` (xAI)
 - ``grok-imagine-image-quality-latest`` (xAI)
 - ``grok-imagine-video`` (xAI)
@@ -97,6 +98,7 @@ PyGPT has a preconfigured list of models (as of 2026-08-12):
 - ``sonar-pro`` (Perplexity)
 - ``sonar-reasoning-pro`` (Perplexity)
 - ``sora-2`` (OpenAI)
+- ``sora-2-pro`` (OpenAI)
 - ``veo-3.1-fast-generate-preview`` (Google)
 - ``veo-3.1-generate-preview`` (Google)
 - ``veo-3.1-lite-generate-preview`` (Google)
