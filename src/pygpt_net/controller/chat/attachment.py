@@ -185,9 +185,9 @@ class Attachment(QObject):
                         path = str(os.path.join(root, file))
                         sub_attachment = AttachmentItem()
                         sub_attachment.path = path
-                        sub_attachment.name = os.path.basename(path)
                         sub_attachment.consumed = False
-                        path_relative = os.path.relpath(path, tmp_path)
+                        path_relative = os.path.relpath(path, tmp_path).replace(os.sep, "/")
+                        sub_attachment.name = path_relative
                         if self.is_allowed(str(path)):
                             if self.is_verbose():
                                 print(f"Uploading unpacked from archive: {path_relative}")
@@ -199,7 +199,9 @@ class Attachment(QObject):
                                 auto_index=auto_index,
                             )
                             if item:
-                                item["path"] = f"{os.path.basename(attachment.path)}/{str(path_relative)}"
+                                item["stored_name"] = item["name"]
+                                item["name"] = path_relative
+                                item["path"] = f"{os.path.basename(attachment.path)}/{path_relative}"
                                 item["size"] = os.path.getsize(path)
                                 self.append_to_meta(meta, item)
                                 uploaded = True

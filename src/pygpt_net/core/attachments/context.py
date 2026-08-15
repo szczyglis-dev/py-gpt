@@ -205,7 +205,8 @@ class Context:
             if "indexed" not in file or not file["indexed"]:
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
-                file_path = os.path.join(file_idx_path, file["name"])
+                stored_name = file.get("stored_name", file["name"])
+                file_path = os.path.join(file_idx_path, stored_name)
                 type = AttachmentItem.TYPE_FILE
                 source = file_path
                 if "type" in file:
