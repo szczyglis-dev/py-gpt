@@ -18,6 +18,7 @@ import time
 from typing import Optional, Tuple
 import locale
 
+from urllib.parse import urlencode
 from urllib.request import urlopen, Request
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
@@ -226,10 +227,14 @@ class Updater(QObject):
         :param event: optional updater event name
         :return: updater url
         """
-        url = self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
+        params = [("v", str(self.window.meta['version']))]
         if event:
-            url += "&event=" + event
-        return url
+            params.append(("event", event))
+        params.extend([
+            ("platform", self.window.core.platforms.get_as_string(env_suffix=False)),
+            ("app_type", self.window.core.platforms.get_app_type()),
+        ])
+        return self.window.meta['website'] + "/api/version?" + urlencode(params)
 
     def get_thanks(self) -> Tuple[str, str, str]:
         """
