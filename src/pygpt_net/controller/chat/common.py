@@ -50,20 +50,19 @@ class Common:
         else:
             nodes['input.stream'].setChecked(False)
 
-        # send with enter/shift/disabled
+        # send with enter/shift
         mode = config.get('send_mode')
+        if mode not in (1, 2):
+            # Migrate legacy/invalid mode (0 = disabled) to the default Enter mode.
+            mode = 1
+            config.set('send_mode', mode)
+
         if mode == 2:
             nodes['input.send_shift_enter'].setChecked(True)
             nodes['input.send_enter'].setChecked(False)
-            nodes['input.send_none'].setChecked(False)
-        elif mode == 1:
+        else:
             nodes['input.send_enter'].setChecked(True)
             nodes['input.send_shift_enter'].setChecked(False)
-            nodes['input.send_none'].setChecked(False)
-        elif mode == 0:
-            nodes['input.send_enter'].setChecked(False)
-            nodes['input.send_shift_enter'].setChecked(False)
-            nodes['input.send_none'].setChecked(True)
 
         # cmd enabled
         if config.get('cmd'):
@@ -167,25 +166,23 @@ class Common:
 
         self.window.controller.ui.update()  # update tokens counters
 
-    def toggle_send_shift(self, value: bool):
+    def toggle_send_shift(self, value: int):
         """
-        Toggle send with shift
+        Toggle send mode between Enter and Shift+Enter.
 
-        :param value: True if enabled
+        :param value: send mode (1 = Enter, 2 = Shift+Enter)
         """
         nodes = self.window.ui.nodes
-        if value == 0:
-            nodes['input.send_none'].setChecked(True)
-            nodes['input.send_shift_enter'].setChecked(False)
-            nodes['input.send_enter'].setChecked(False)
-        elif value == 1:
-            nodes['input.send_enter'].setChecked(True)
-            nodes['input.send_shift_enter'].setChecked(False)
-            nodes['input.send_none'].setChecked(False)
-        elif value == 2:
+        if value not in (1, 2):
+            value = 1
+
+        if value == 2:
             nodes['input.send_shift_enter'].setChecked(True)
             nodes['input.send_enter'].setChecked(False)
-            nodes['input.send_none'].setChecked(False)
+        else:
+            nodes['input.send_enter'].setChecked(True)
+            nodes['input.send_shift_enter'].setChecked(False)
+
         self.window.core.config.set('send_mode', value)
 
     def focus_input(self):
