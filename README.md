@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.1** | build: **2026-08-13** | Python: **>=3.10, <3.14**
+Release: **2.8.2** | build: **2026-08-15** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3704,6 +3704,15 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.2 (2026-08-15)**
+
+- Added ARM64 AppImage and Snap builds.
+- Added support for preserving full archive paths when attaching ZIP files.
+- Removed the Send mode: Off option.
+- Improved tool call rendering.
+- Improved CSS and UI.
+- Moved the Clear input on send option to Settings.
 
 **2.8.1 (2026-08-13)**
 

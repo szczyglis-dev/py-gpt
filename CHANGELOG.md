@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.8.2 (2026-08-15)
+
+- Added ARM64 AppImage and Snap builds.
+- Added support for preserving full archive paths when attaching ZIP files.
+- Removed the Send mode: Off option.
+- Improved tool call rendering.
+- Improved CSS and UI.
+- Moved the Clear input on send option to Settings.
+
 ## 2.8.1 (2026-08-13)
 
 - Added LiteLLM as LLM provider - [#181](https://github.com/szczyglis-dev/py-gpt/pull/181), thanks to [@RheagalFire](https://github.com/RheagalFire).
