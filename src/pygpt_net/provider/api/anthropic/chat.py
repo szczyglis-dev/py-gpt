@@ -91,6 +91,8 @@ class Chat:
 
         # Compute betas required by selected server tools or MCP
         betas = self._compute_required_betas(tools, mcp_servers)
+        if self.window.core.attachments.native.get_refs(attachments, "anthropic"):
+            betas.add("files-api-2025-04-14")
 
         max_tokens = context.max_tokens if context.max_tokens else 1024
         temperature = self.window.core.config.get('temperature')
@@ -437,9 +439,16 @@ class Chat:
         if attachments:
             img_parts = self.window.core.api.anthropic.vision.build_blocks(content, attachments)
             parts.extend(img_parts)
-            content = ""  # image-first; do not duplicate text if build_blocks already added it
         if content:
             parts.append({"type": "text", "text": str(content)})
+        for ref in self.window.core.attachments.native.get_refs(attachments, "anthropic"):
+            parts.append({
+                "type": "document",
+                "source": {
+                    "type": "file",
+                    "file_id": ref["id"],
+                },
+            })
 
         # No input_audio supported in SDK at the time of writing
         if multimodal_ctx and getattr(multimodal_ctx, "is_audio_input", False):
@@ -637,7 +646,14 @@ class Chat:
                 if isinstance(part, dict) and part.get("type") in ("image", "input_image", "document"):
                     image_blocks.append(part)
 
-        user_msg_2 = {"role": "user", "content": [tool_result_block] + image_blocks}
+        native_blocks: List[dict] = []
+        for ref in self.window.core.attachments.native.get_refs(attachments, "anthropic"):
+            native_blocks.append({
+                "type": "document",
+                "source": {"type": "file", "file_id": ref["id"]},
+            })
+
+        user_msg_2 = {"role": "user", "content": [tool_result_block] + image_blocks + native_blocks}
 
         out: List[dict] = []
         if user_msg_1:

@@ -200,8 +200,12 @@ class Context:
         idx_path = os.path.join(self.get_dir(meta), self.dir_index)
 
         indexed = False
-        # index files if not indexed by auto_index
+        has_local_context = False
+        # index local files if not indexed by auto_index; native refs bypass local RAG entirely
         for i, file in enumerate(meta.get_additional_ctx()):
+            if file.get("type") == "native_file":
+                continue
+            has_local_context = True
             if "indexed" not in file or not file["indexed"]:
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
@@ -227,6 +231,9 @@ class Context:
             # update ctx in DB
             self.window.core.ctx.replace(meta)
             self.window.core.ctx.save(meta.id)
+
+        if not has_local_context:
+            return ""
 
         history_data = self.prepare_context_history(history)
         model, model_item = self.get_selected_model("query")
@@ -262,6 +269,11 @@ class Context:
         :param history: history
         :return: query result
         """
+        query = str(ctx.input)
+        content = self.get_context_text(ctx, filename=True)
+        if not content:
+            return ""
+
         model, model_item = self.get_selected_model("summary")
         if model_item is None:
             raise Exception("Attachments: summary model not found: {}".format(model))
@@ -269,8 +281,6 @@ class Context:
         if self.is_verbose():
             print("Attachments: using summary model: {}".format(model))
 
-        query = str(ctx.input)
-        content = self.get_context_text(ctx, filename=True)
         prompt = self.summary_prompt.format(
             query=str(query).strip(),
             content=str(content).strip(),
@@ -438,6 +448,40 @@ class Context:
         if self.is_verbose():
             print("Attachments: uploaded: {}".format(result))
 
+        return result
+
+    def create_native_item(
+            self,
+            attachment: AttachmentItem,
+            native_ref: Dict[str, Any],
+            real_path: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Create additional-context metadata for a provider-native file without reading it locally."""
+        size = int(native_ref.get("size", 0) or 0)
+        if not size and attachment.path and os.path.isfile(attachment.path):
+            try:
+                size = os.path.getsize(attachment.path)
+            except OSError:
+                size = 0
+        result = {
+            "name": os.path.basename(str(attachment.path or attachment.name or "")),
+            "context_name": self.get_attachment_context_name(attachment, real_path),
+            "path": attachment.path,
+            "type": "native_file",
+            "uuid": str(uuid.uuid4()),
+            "content_type": "native",
+            "size": size,
+            "length": 0,
+            "tokens": 0,
+            "indexed": False,
+            "native": True,
+            "native_provider": native_ref.get("provider"),
+            "native_id": native_ref.get("id"),
+            "native_uri": native_ref.get("uri"),
+            "native_mime_type": native_ref.get("mime_type"),
+        }
+        if real_path:
+            result["real_path"] = real_path
         return result
 
     @staticmethod
@@ -664,6 +708,8 @@ class Context:
 
             if not group["archive"]:
                 display_item = copy.copy(members[0])
+                if display_item.get("native"):
+                    display_item["name"] = f'{display_item.get("name", "No name")} (Native)'
                 display_item["_ctx_items"] = members
                 display_item["_archive"] = False
                 result.append(display_item)
@@ -676,7 +722,13 @@ class Context:
             count = len(members)
             suffix = "file" if count == 1 else "files"
 
-            display_item["name"] = f"{archive_name} ({count} {suffix})"
+            native_count = sum(1 for item in members if item.get("native"))
+            native_suffix = ""
+            if native_count == count:
+                native_suffix = " (Native)"
+            elif native_count > 0:
+                native_suffix = f" ({native_count} Native)"
+            display_item["name"] = f"{archive_name} ({count} {suffix}){native_suffix}"
             display_item["path"] = archive_path
             display_item["real_path"] = archive_path
             display_item["length"] = sum(int(item.get("length", 0) or 0) for item in members)

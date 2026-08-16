@@ -19,6 +19,7 @@ from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.provider.core.attachment.json_file import JsonFileProvider
 
 from .context import Context
+from .native import Native
 
 
 class Attachments:
@@ -31,6 +32,7 @@ class Attachments:
         self.window = window
         self.provider = JsonFileProvider(window)
         self.context = Context(window)
+        self.native = Native(window)
         self.items = {}
         self.current = None
 

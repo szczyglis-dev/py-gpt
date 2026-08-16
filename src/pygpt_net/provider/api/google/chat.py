@@ -862,6 +862,12 @@ class Chat:
             img_parts = self.window.core.api.google.vision.build_parts(content, attachments)
             parts.extend(img_parts)
 
+        for ref in self.window.core.attachments.native.get_refs(attachments, "google"):
+            uri = ref.get("uri")
+            mime = ref.get("mime_type")
+            if uri and mime:
+                parts.append(Part.from_uri(file_uri=uri, mime_type=mime))
+
         if multimodal_ctx and multimodal_ctx.is_audio_input and multimodal_ctx.audio_data:
             audio_format = (multimodal_ctx.audio_format or "wav").lower()
             mime = f"audio/{audio_format}"

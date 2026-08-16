@@ -13,7 +13,7 @@ import os
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QWidget, QRadioButton
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QWidget, QRadioButton, QCheckBox
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.attachment_ctx import AttachmentCtxList
@@ -63,6 +63,13 @@ class AttachmentsCtx:
                 self.window.controller.chat.attachment.MODE_DISABLED
             ))
 
+        self.window.ui.nodes['input.attachments.native_upload'] = QCheckBox(
+            trans("attachments.ctx.native_upload")
+        )
+        self.window.ui.nodes['input.attachments.native_upload'].toggled.connect(
+            lambda enabled: self.window.controller.chat.attachment.toggle_native_upload(enabled)
+        )
+
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.ui.nodes['attachments_ctx.btn.clear'])
         buttons_layout.addWidget(empty_widget)
@@ -71,6 +78,7 @@ class AttachmentsCtx:
         buttons_layout.addWidget(self.window.ui.nodes['input.attachments.ctx.mode.query'])
         buttons_layout.addWidget(self.window.ui.nodes['input.attachments.ctx.mode.query_summary'])
         buttons_layout.addWidget(self.window.ui.nodes['input.attachments.ctx.mode.off'])
+        buttons_layout.addWidget(self.window.ui.nodes['input.attachments.native_upload'])
         buttons_layout.addStretch()
 
         layout = QVBoxLayout()

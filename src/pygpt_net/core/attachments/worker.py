@@ -39,7 +39,7 @@ class AttachmentWorker(QRunnable):
             if self.signals is not None:
                 self.signals.error.emit(e)
             self.window.core.debug.error(e)
-            print("Attachment indexing error", e)
+            print("Attachment processing error", e)
 
         finally:
             self.cleanup()

@@ -976,7 +976,7 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 ![v2_file_input](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
-You can use attachments to provide additional context to the conversation. Uploaded files will be converted into text using loaders from LlamaIndex, and then embedded into the vector store. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
+You can use attachments to provide additional context to the conversation. By default, uploaded files are processed locally using loaders from LlamaIndex and can be converted into text and/or indexed in the vector store. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
 
 Text-based types:
 
@@ -1001,6 +1001,20 @@ Archives:
 
 - zip
 - tar, tar.gz, tar.bz2
+
+### Native file upload
+
+In the `Attachments` tab you can enable **Prefer native file upload when supported**. This option is disabled by default.
+
+When enabled, PyGPT will try to upload each supported attachment directly through the selected provider's native file API instead of reading the file locally and appending its extracted content to the prompt. Native upload is used only when it is supported by the current provider, model, file type, and file size. The native upload path is available for supported OpenAI, Google Gemini, Anthropic, and xAI configurations.
+
+For a file that is successfully sent natively, native upload overrides the selected attachment context mode (`Full context`, `RAG`, or `Summary`) for that file. If native upload is unavailable or fails, PyGPT automatically falls back to the standard local attachment processing, so existing attachment behavior is preserved.
+
+Archive files such as ZIP and TAR are unpacked locally first. Their contents are then handled individually: supported files can be uploaded natively, while unsupported files use the normal local-processing fallback. Attachments sent through the native path are marked with the `(Native)` suffix in the uploaded attachments list.
+
+**Note:** Native upload sends the original file content to the selected API provider. Provider-specific file type, size, model, retention, and availability limits may apply.
+
+**Tip:** To see native-upload activity in the console, enable `Settings -> Debug -> Log attachments usage to console`. Native upload messages are printed only when attachment logging is enabled.
 
 The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
 
@@ -2523,6 +2537,8 @@ The options below mirror the current application settings defined in `settings.j
 **Files and attachments**
 
 - `Store attachments in the workdir upload directory`: Enable to store a local copy of uploaded attachments for future use. Default: True.
+
+- `Prefer native file upload when supported`: If enabled, PyGPT will try to send supported attachments directly through the selected provider's native file API instead of processing them locally. Availability depends on the provider, model, file type, and file size. If native upload is unavailable or fails, the standard local attachment-processing path is used automatically. Default: False.
 
 - `Store images, captures, and uploads in the data directory`: Enable to store everything in a single data directory. Default: False.
 

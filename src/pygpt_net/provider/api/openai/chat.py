@@ -359,6 +359,18 @@ class Chat:
                     multimodal_ctx=multimodal_ctx,
                 )
 
+            native_refs = self.window.core.attachments.native.get_refs(attachments, "openai")
+            if native_refs:
+                if isinstance(content, str):
+                    content = [{"type": "text", "text": content}]
+                elif not isinstance(content, list):
+                    content = [{"type": "text", "text": str(content or "")}]
+                for ref in native_refs:
+                    content.append({
+                        "type": "file",
+                        "file": {"file_id": ref["id"]},
+                    })
+
             # append current prompt
             messages.append({
                 "role": "user",

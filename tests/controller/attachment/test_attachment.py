@@ -191,8 +191,7 @@ def test_clear_assistant(mock_window):
 
 def test_open_dir(mock_window):
     attachment = Attachment(mock_window)
-    att = AttachmentItem
-    att.path = "path"
+    att = AttachmentItem(path="path")
     with patch('os.path.exists') as os_path_exists:
         os_path_exists.return_value=True
         mock_window.controller.files.open_in_file_manager = MagicMock()
@@ -203,8 +202,7 @@ def test_open_dir(mock_window):
 
 def test_open(mock_window):
     attachment = Attachment(mock_window)
-    att = AttachmentItem
-    att.path = "path"
+    att = AttachmentItem(path="path")
     with patch('os.path.exists') as os_path_exists:
         os_path_exists.return_value=True
         mock_window.controller.files.open = MagicMock()

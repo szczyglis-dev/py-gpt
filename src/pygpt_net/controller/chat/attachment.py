@@ -42,6 +42,7 @@ class Attachment(QObject):
         super(Attachment, self).__init__()
         self.window = window
         self.mode = self.MODE_FULL_CONTEXT
+        self.native_upload = False
         self.uploaded = False
         self.uploaded_tab_idx = 3
 
@@ -54,9 +55,13 @@ class Attachment(QObject):
         """
         if self.window.core.attachments.has(mode):
             files = self.window.core.attachments.get_all(mode, only_files=True)
+            native = self.window.core.attachments.native
+            model = native.get_model()
             for id in files:
                 file = files[id]
                 if self.is_allowed(file.path):
+                    return True
+                if file.type == AttachmentItem.TYPE_FILE and native.can_upload(file.path, mode, model):
                     return True
         return False
 
@@ -71,6 +76,11 @@ class Attachment(QObject):
             self.window.ui.nodes['input.attachments.ctx.mode.full'].setChecked(True)
         elif self.mode == self.MODE_DISABLED:
             self.window.ui.nodes['input.attachments.ctx.mode.off'].setChecked(True)
+
+        self.native_upload = bool(self.window.core.config.get("ctx.attachment.native_upload", False))
+        node = self.window.ui.nodes.get('input.attachments.native_upload')
+        if node is not None:
+            node.setChecked(self.native_upload)
 
     def reload(self):
         """Reload attachments"""
@@ -125,6 +135,7 @@ class Attachment(QObject):
         :return: True if uploaded
         """
         self.uploaded = False
+        self.window.core.attachments.native.reset()
         auto_index = self.window.core.config.get("attachments_auto_index", False)
         attachments = self.window.core.attachments.get_all(mode, only_files=True)
         if self.mode != self.MODE_QUERY_CONTEXT:
@@ -141,6 +152,7 @@ class Attachment(QObject):
                     meta=meta,
                     prompt=prompt,
                     auto_index=auto_index,
+                    mode=mode,
                 )
                 if result:
                     self.uploaded = True
@@ -150,6 +162,7 @@ class Attachment(QObject):
                     meta=meta,
                     prompt=prompt,
                     auto_index=auto_index,
+                    mode=mode,
                 )
                 if result:
                     self.uploaded = True
@@ -162,7 +175,8 @@ class Attachment(QObject):
             attachment: AttachmentItem,
             meta: CtxMeta,
             prompt: str,
-            auto_index: bool
+            auto_index: bool,
+            mode: str
     ) -> bool:
         """
         Upload file attachment
@@ -171,11 +185,21 @@ class Attachment(QObject):
         :param meta: CtxMeta
         :param prompt: User input prompt
         :param auto_index: Auto index
+        :param mode: Work mode
         :return: True if uploaded
         """
         uploaded = False
-        if not self.is_allowed(attachment.path):
+        native = self.window.core.attachments.native
+        model = native.get_model()
+        if not self.is_allowed(attachment.path) and not native.can_upload(attachment.path, mode, model):
             return False
+
+        # A native reference belongs to the current in-memory input attachment.
+        # Reset it before each send so retained attachments cannot accumulate stale refs.
+        if not isinstance(attachment.extra, dict):
+            attachment.extra = {}
+        attachment.extra.pop("native_files", None)
+
         if self.window.core.filesystem.packer.is_archive(attachment.path):
             if self.is_verbose():
                 print(f"Unpacking archive: {attachment.path}")
@@ -183,27 +207,26 @@ class Attachment(QObject):
             archive_name = os.path.basename(attachment.path)
             tmp_path = self.window.core.filesystem.packer.unpack(attachment.path)
             if tmp_path:
-                for root, dirs, files in os.walk(tmp_path):
-                    for file in files:
-                        path = str(os.path.join(root, file))
-                        sub_attachment = AttachmentItem()
-                        sub_attachment.path = path
-                        sub_attachment.consumed = False
-                        path_relative = os.path.relpath(path, tmp_path).replace(os.sep, "/")
-                        sub_attachment.name = path_relative
-                        if self.is_allowed(str(path)):
-                            if self.is_verbose():
-                                print(f"Uploading unpacked from archive: {path_relative}")
-                            item = self.window.core.attachments.context.upload(
-                                meta=meta,
-                                attachment=sub_attachment,
-                                prompt=prompt,
-                                real_path=attachment.path,
-                                auto_index=auto_index,
-                            )
-                            if item:
+                try:
+                    for root, dirs, files in os.walk(tmp_path):
+                        for file in files:
+                            path = str(os.path.join(root, file))
+                            sub_attachment = AttachmentItem()
+                            sub_attachment.path = path
+                            sub_attachment.consumed = False
+                            path_relative = os.path.relpath(path, tmp_path).replace(os.sep, "/")
+                            sub_attachment.name = path_relative
+
+                            native_ref = self._try_native_upload(path, mode, model, path_relative)
+                            if native_ref:
+                                item = self.window.core.attachments.context.create_native_item(
+                                    attachment=sub_attachment,
+                                    native_ref=native_ref,
+                                    real_path=attachment.path,
+                                )
                                 item["stored_name"] = item["name"]
                                 item["name"] = path_relative
+                                item["context_name"] = path_relative
                                 item["path"] = f"{archive_name}/{path_relative}"
                                 item["size"] = os.path.getsize(path)
                                 item["archive_id"] = archive_id
@@ -211,23 +234,91 @@ class Attachment(QObject):
                                 item["archive_path"] = attachment.path
                                 item["archive_member"] = path_relative
                                 self.append_to_meta(meta, item)
+                                attachment.extra.setdefault("native_files", []).append(native_ref)
                                 uploaded = True
                                 sub_attachment.consumed = True
                                 attachment.consumed = True
-                self.window.core.filesystem.packer.remove_tmp(tmp_path)  # clean
+                                continue
+
+                            if self.is_allowed(path):
+                                if self.is_verbose():
+                                    print(f"Uploading unpacked from archive: {path_relative}")
+                                item = self.window.core.attachments.context.upload(
+                                    meta=meta,
+                                    attachment=sub_attachment,
+                                    prompt=prompt,
+                                    real_path=attachment.path,
+                                    auto_index=auto_index,
+                                )
+                                if item:
+                                    item["stored_name"] = item["name"]
+                                    item["name"] = path_relative
+                                    item["path"] = f"{archive_name}/{path_relative}"
+                                    item["size"] = os.path.getsize(path)
+                                    item["archive_id"] = archive_id
+                                    item["archive_name"] = archive_name
+                                    item["archive_path"] = attachment.path
+                                    item["archive_member"] = path_relative
+                                    self.append_to_meta(meta, item)
+                                    uploaded = True
+                                    sub_attachment.consumed = True
+                                    attachment.consumed = True
+                finally:
+                    self.window.core.filesystem.packer.remove_tmp(tmp_path)  # clean
         else:
-            item = self.window.core.attachments.context.upload(
-                meta=meta,
-                attachment=attachment,
-                prompt=prompt,
-                real_path=attachment.path,
-                auto_index=auto_index,
-            )
-            if item:
+            native_ref = self._try_native_upload(attachment.path, mode, model, attachment.name or os.path.basename(attachment.path))
+            if native_ref:
+                item = self.window.core.attachments.context.create_native_item(
+                    attachment=attachment,
+                    native_ref=native_ref,
+                    real_path=attachment.path,
+                )
                 self.append_to_meta(meta, item)
-                attachment.consumed = True  # allow for deletion
+                attachment.extra.setdefault("native_files", []).append(native_ref)
+                attachment.consumed = True
                 uploaded = True
+            elif self.is_allowed(attachment.path):
+                item = self.window.core.attachments.context.upload(
+                    meta=meta,
+                    attachment=attachment,
+                    prompt=prompt,
+                    real_path=attachment.path,
+                    auto_index=auto_index,
+                )
+                if item:
+                    self.append_to_meta(meta, item)
+                    attachment.consumed = True  # allow for deletion
+                    uploaded = True
         return uploaded
+
+    def _try_native_upload(
+            self,
+            path: str,
+            mode: str,
+            model,
+            display_name: str,
+    ):
+        """Try provider-native upload and return its reference; fall back silently on incompatibility/failure."""
+        native = self.window.core.attachments.native
+        if not native.can_upload(path, mode, model):
+            return None
+
+        msg = f"Uploading native attachment: {display_name}"
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+            "id": "chat",
+            "msg": msg,
+        }))
+        if self.is_verbose():
+            print(msg)
+        try:
+            ref = native.upload(path, mode, model)
+            if self.is_verbose():
+                print(f"Native upload completed: {display_name} ({ref.get('provider')})")
+            return ref
+        except Exception as e:
+            if self.is_verbose():
+                print(f"Native upload failed for {display_name}, using local context fallback: {e}")
+            return None
 
     def append_to_meta(self, meta: CtxMeta, item: Dict[str, Any]):
         """
@@ -258,7 +349,8 @@ class Attachment(QObject):
             attachment: AttachmentItem,
             meta: CtxMeta,
             prompt: str,
-            auto_index: bool
+            auto_index: bool,
+            mode: str
     ) -> bool:
         """
         Upload web attachment
@@ -267,9 +359,11 @@ class Attachment(QObject):
         :param meta: CtxMeta
         :param prompt: User input prompt
         :param auto_index: Auto index
+        :param mode: Work mode
         :return: True if uploaded
         """
-        return self.upload_file(attachment, meta, prompt, auto_index)
+        # URLs keep the existing local context path; native Files APIs here operate on local files.
+        return self.upload_file(attachment, meta, prompt, auto_index, mode)
 
     def has_context(self, meta: CtxMeta) -> bool:
         """
@@ -633,7 +727,7 @@ class Attachment(QObject):
         """
         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
             "id": "chat",
-            "msg": f"Error reading attachments: {str(error)}"
+            "msg": f"Error processing attachments: {str(error)}"
         }))
 
     @Slot(str)
@@ -650,6 +744,12 @@ class Attachment(QObject):
             'extra': {},
         })
         self.window.dispatch(event)
+
+    def toggle_native_upload(self, enabled: bool):
+        """Enable/disable preference for provider-native file uploads."""
+        self.native_upload = bool(enabled)
+        self.window.core.config.set("ctx.attachment.native_upload", self.native_upload)
+        self.window.core.config.save()
 
     def switch_mode(self, mode: str):
         """

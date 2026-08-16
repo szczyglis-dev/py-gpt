@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 13:00:00                  #
+# Updated Date: 2026.08.16 19:55:00                  #
 # ================================================== #
 
 import base64
@@ -62,7 +62,11 @@ def dummy_window():
     window.core.tokens.from_user = MagicMock(return_value=10)
     window.core.ctx = SimpleNamespace()
     window.core.ctx.get_history = MagicMock(return_value=[])
+    window.core.ctx.get_current_meta = MagicMock(return_value=None)
     window.core.ctx.save = MagicMock()
+    window.core.attachments = SimpleNamespace()
+    window.core.attachments.native = SimpleNamespace()
+    window.core.attachments.native.get_refs = MagicMock(return_value=[])
     window.core.command = SimpleNamespace()
     window.core.command.unpack_tool_calls_responses = MagicMock(return_value=["tool_response"])
     window.core.command.unpack_tool_calls_chunks = MagicMock()
@@ -135,6 +139,30 @@ def test_build_plain(responses_instance, dummy_window, dummy_model):
     assert res[-1]["content"] == "plain"
     # assert responses_instance.get_used_tokens() == 5
 
+
+def test_build_native_file(responses_instance, dummy_window, dummy_model):
+    dummy_window.core.attachments.native.get_refs.return_value = [
+        {"provider": "openai", "id": "file_123"}
+    ]
+    res = responses_instance.build(
+        "plain",
+        "sys",
+        dummy_model,
+        history=[],
+        attachments={},
+        ai_name="AI",
+        user_name="User",
+        multimodal_ctx=None,
+        is_expert_call=False,
+    )
+    assert res[-1]["role"] == "user"
+    assert res[-1]["content"] == [
+        {"type": "input_text", "text": "plain"},
+        {"type": "input_file", "file_id": "file_123"},
+    ]
+    dummy_window.core.attachments.native.get_refs.assert_called_with(
+        {}, "openai", include_meta=False
+    )
 
 def test_build_image(responses_instance, dummy_window, dummy_model):
     dummy_model.input = ["text", MULTIMODAL_IMAGE]

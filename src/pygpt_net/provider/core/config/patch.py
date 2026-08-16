@@ -337,6 +337,10 @@ class Patch:
             # < 2.8.3
             if old < parse_version("2.8.3"):
                 print("Migrating config from < 2.8.3...")
+                if "ctx.attachment.native_upload" not in data:
+                    data["ctx.attachment.native_upload"] = False
+                    updated = True
+
                 if "max_total_tokens" in data:
                     data["max_total_tokens"] = 0 # disable by default
                 if "ctx.reasoning.show_realtime" not in data:

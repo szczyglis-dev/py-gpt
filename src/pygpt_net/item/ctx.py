@@ -72,9 +72,18 @@ def get_additional_ctx_display_names(items: list) -> list:
             archive_name = first.get("archive_name") or os.path.basename(str(archive_path)) or first.get("name", "No name")
             count = len(members)
             suffix = "file" if count == 1 else "files"
-            names.append(f"{archive_name} ({count} {suffix})")
+            native_count = sum(1 for item in members if item.get("native"))
+            native_suffix = ""
+            if native_count == count:
+                native_suffix = " (Native)"
+            elif native_count > 0:
+                native_suffix = f" ({native_count} Native)"
+            names.append(f"{archive_name} ({count} {suffix}){native_suffix}")
         else:
-            names.append(first.get("name", "No name"))
+            name = first.get("name", "No name")
+            if first.get("native"):
+                name = f"{name} (Native)"
+            names.append(name)
     return names
 
 

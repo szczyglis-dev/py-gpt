@@ -239,16 +239,19 @@ class Input:
         # handle attachments with additional context (not images here)
         if mode != MODE_ASSISTANT and controller.chat.attachment.has(mode):
             exists = True
+            status = "Reading attachments..."
+            if self.window.core.attachments.native.get_provider(mode):
+                status = "Processing attachments..."
             dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
                 "id": "chat",
-                "msg": "Reading attachments..."
+                "msg": status
             }))
             try:
                 controller.chat.attachment.handle(mode, text)
             except Exception as e:
                 dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
                     "id": "chat",
-                    "msg": f"Error reading attachments: {e}"
+                    "msg": f"Error processing attachments: {e}"
                 }))
 
         return exists

@@ -93,6 +93,9 @@ def create_dummy_window():
     win.core.models.get = MagicMock(return_value=None)
     win.core.models.ollama = MagicMock()
     win.core.models.ollama.check_model = MagicMock(return_value={'is_installed': True, 'is_model': True})
+    win.core.attachments = MagicMock()
+    win.core.attachments.native = MagicMock()
+    win.core.attachments.native.get_provider = MagicMock(return_value=None)
     win.core.ctx = MagicMock()
     win.core.ctx.count_meta = MagicMock(return_value=1)
     win.core.ctx.get_current = MagicMock(return_value="ctx")
@@ -206,6 +209,25 @@ def test_send_input_attachments_success():
     assert found_busy
     win.controller.chat.attachment.handle.assert_called_once_with(MODE_CHAT, "attachment text")
 
+def test_send_input_attachments_native_status():
+    win = create_dummy_window()
+    win.ui.nodes['input'].toPlainText.return_value = "native attachment"
+    win.core.config.get = MagicMock(return_value=MODE_CHAT)
+    win.controller.chat.attachment.has.return_value = True
+    win.core.attachments.native.get_provider.return_value = "openai"
+    inp = Input(win)
+    inp.send_input(force=False)
+    calls = win.dispatch.call_args_list
+    found_busy = any(
+        isinstance(arg[0], KernelEvent)
+        and arg[0].data.get("msg") == "Processing attachments..."
+        for arg, _ in calls
+    )
+    assert found_busy
+    win.controller.chat.attachment.handle.assert_called_once_with(
+        MODE_CHAT, "native attachment"
+    )
+
 def test_send_input_attachments_error():
     win = create_dummy_window()
     win.ui.nodes['input'].toPlainText.return_value = "attachment error"
@@ -215,7 +237,7 @@ def test_send_input_attachments_error():
     inp = Input(win)
     inp.send_input(force=False)
     calls = win.dispatch.call_args_list
-    found_error = any(isinstance(arg[0], KernelEvent) and arg[0].data.get("msg", "").startswith("Error reading attachments:") for arg, _ in calls)
+    found_error = any(isinstance(arg[0], KernelEvent) and arg[0].data.get("msg", "").startswith("Error processing attachments:") for arg, _ in calls)
     assert found_error
 
 def test_send_calls_execute():

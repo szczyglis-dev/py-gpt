@@ -140,6 +140,7 @@
   "ctx.attachment.auto_append": true,
   "ctx.attachment.img": false,
   "ctx.attachment.mode": "full",
+  "ctx.attachment.native_upload": false,
   "ctx.attachment.query.model": "gpt-4o-mini",
   "ctx.attachment.rag.history": true,
   "ctx.attachment.rag.history.max_items": 3,

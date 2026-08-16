@@ -23,7 +23,7 @@ You can use your own files (for example, to analyze them) during any conversatio
 .. image:: images/v2_file_input.png
    :width: 800
 
-You can use attachments to provide additional context to the conversation. Uploaded files will be converted into text using loaders from LlamaIndex. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
+You can use attachments to provide additional context to the conversation. By default, uploaded files are processed locally using loaders from LlamaIndex and can be converted into text and/or indexed for use as additional context. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
 
 Text-based types:
 
@@ -48,6 +48,27 @@ Archives:
 
 * zip
 * tar, tar.gz, tar.bz2
+
+Native file upload
+^^^^^^^^^^^^^^^^^^
+
+In the ``Attachments`` tab you can enable **Prefer native file upload when supported**. The option is disabled by default.
+
+When enabled, PyGPT tries to upload each supported attachment directly through the selected provider's native file API instead of reading the file locally and appending its extracted content to the prompt. Native upload is selected only when it is supported by the current provider, model, file type, and file size. The native upload path is available for supported OpenAI, Google Gemini, Anthropic, and xAI configurations.
+
+For an attachment that is successfully uploaded natively, this path overrides the selected attachment context mode (``Full context``, ``RAG``, or ``Summary``) for that particular file. The file is not read into the local additional-context pipeline. If native upload is not supported or the upload fails, PyGPT automatically falls back to the standard local attachment-processing path.
+
+Archive files such as ZIP and TAR are a special case. PyGPT unpacks the archive locally first and evaluates every extracted file separately. Supported members can be uploaded natively, while unsupported members continue through the standard local-processing path. This means a single archive can contain both native and locally processed attachments.
+
+Files sent through the native path are marked with the ``(Native)`` suffix in the uploaded attachments list.
+
+.. note::
+
+   Native upload sends the original file content to the selected API provider. Provider-specific limits and behavior apply, including supported file types, maximum file sizes, compatible models, availability, and file-retention rules.
+
+.. tip::
+
+   To inspect native-upload activity in the console, enable ``Settings -> Debug -> Log attachments usage to console``. Messages such as ``Uploading native attachment: ...`` are printed only when attachment logging is enabled.
 
 The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
 

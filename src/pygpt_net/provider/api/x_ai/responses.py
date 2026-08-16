@@ -27,6 +27,7 @@ from xai_sdk.chat import (
     user as xuser,
     assistant as xassistant,
     image as ximage,
+    file as xfile,
     tool_result as xtool_result
 )
 
@@ -351,6 +352,8 @@ class Responses:
         parts = [str(prompt or "")]
         for img in self.window.core.api.xai.vision.build_images_for_chat(attachments):
             parts.append(ximage(img))
+        for ref in self.window.core.attachments.native.get_refs(attachments, "x_ai", include_meta=False):
+            parts.append(xfile(ref["id"]))
         chat.append(xuser(*parts))
 
     def _append_tool_results_from_ctx(self, chat, history: Optional[List[CtxItem]]):

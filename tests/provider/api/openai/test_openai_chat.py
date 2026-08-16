@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2026.08.16 19:55:00                  #
 # ================================================== #
 
 import time
@@ -41,6 +41,9 @@ def dummy_window():
     window.core.config.get = MagicMock(side_effect=lambda k, default=None: config_values.get(k, default))
     window.core.ctx = MagicMock()
     window.core.ctx.get_history = MagicMock(return_value=[])
+    window.core.attachments = MagicMock()
+    window.core.attachments.native = MagicMock()
+    window.core.attachments.native.get_refs = MagicMock(return_value=[])
     window.core.api.openai.vision = MagicMock()
     window.core.api.openai.vision.build_content = MagicMock(side_effect=lambda content, attachments: content + " vision")
     window.core.api.openai.audio = MagicMock()
@@ -108,6 +111,26 @@ def test_build_without_history(dummy_window, dummy_model, dummy_ctx):
     assert messages[1]["role"] == "user"
     assert "Hello" in messages[1]["content"]
     assert chat.input_tokens == 10
+
+def test_build_with_native_file(dummy_window, dummy_model):
+    dummy_window.core.attachments.native.get_refs.return_value = [
+        {"provider": "openai", "id": "file_123"}
+    ]
+    chat = Chat(window=dummy_window)
+    messages = chat.build(
+        "Hello",
+        "system",
+        dummy_model,
+        history=[],
+        attachments={},
+        ai_name="assistant",
+        user_name="user",
+        multimodal_ctx=None,
+    )
+    assert messages[-1]["content"] == [
+        {"type": "text", "text": "Hello"},
+        {"type": "file", "file": {"file_id": "file_123"}},
+    ]
 
 def test_build_with_vision(dummy_window, dummy_model, dummy_ctx):
     dummy_model.is_image_input = MagicMock(return_value=True)

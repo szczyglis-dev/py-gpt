@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2026.08.16 19:55:00                  #
 # ================================================== #
 import os
 import pytest
@@ -22,7 +22,8 @@ class DummyUI:
             'input.attachments.ctx.mode.query': MagicMock(),
             'input.attachments.ctx.mode.query_summary': MagicMock(),
             'input.attachments.ctx.mode.full': MagicMock(),
-            'input.attachments.ctx.mode.off': MagicMock()
+            'input.attachments.ctx.mode.off': MagicMock(),
+            'input.attachments.native_upload': MagicMock()
         }
         self.chat = MagicMock()
         self.chat.input = MagicMock()
@@ -39,6 +40,13 @@ class DummyCore:
         self.attachments = MagicMock()
         self.attachments.has = MagicMock(return_value=False)
         self.attachments.get_all = MagicMock(return_value={})
+        self.attachments.native = MagicMock()
+        self.attachments.native.get_model = MagicMock(return_value=None)
+        self.attachments.native.can_upload = MagicMock(return_value=False)
+        self.attachments.native.upload = MagicMock()
+        self.attachments.native.reset = MagicMock()
+        self.attachments.native.get_provider = MagicMock(return_value=None)
+        self.attachments.native.get_refs = MagicMock(return_value=[])
         self.attachments.context = MagicMock()
         self.attachments.context.upload = MagicMock(return_value={'uuid': 'dummy', 'path': 'dummy.txt'})
         self.attachments.context.get_context = MagicMock(return_value="content")
@@ -200,7 +208,7 @@ class TestAttachment:
         dummy_window.core.filesystem.packer.is_archive.return_value = False
         dummy_window.core.attachments.context.upload.return_value = {"uuid": "id", "path": "file.txt"}
         att.append_to_meta = MagicMock()
-        res = att.upload_file(a, dummy_meta, "p", False)
+        res = att.upload_file(a, dummy_meta, "p", False, "chat")
         assert res is True
         att.append_to_meta.assert_called()
         assert a.consumed is True
@@ -211,7 +219,8 @@ class TestAttachment:
         a.path = "archive.zip"
         att.is_allowed = MagicMock(return_value=True)
         dummy_window.core.filesystem.packer.is_archive.return_value = True
-        dummy_window.core.attachments.context.upload.return_value = {"uuid": "id", "path": "archive.zip"}
+        dummy_window.core.filesystem.packer.unpack.return_value = "tmp_dir"
+        dummy_window.core.attachments.context.upload.return_value = {"uuid": "id", "name": "file1.txt", "path": "file1.txt"}
         att.append_to_meta = MagicMock()
         def fake_walk(p):
             return [("tmp_dir", [], ["file1.txt"])]
@@ -221,9 +230,75 @@ class TestAttachment:
         monkeypatch.setattr(os.path, "relpath", lambda p, start: p[len(start)+1:] if p.startswith(start + "/") else p)
         monkeypatch.setattr(os.path, "getsize", lambda p: 100)
         att.is_verbose = MagicMock(return_value=True)
-        res = att.upload_file(a, dummy_meta, "p", False)
-        assert res is False
-        # dummy_window.core.filesystem.packer.remove_tmp.assert_called_with("tmp_dir")
+        res = att.upload_file(a, dummy_meta, "p", False, "chat")
+        assert res is True
+        att.append_to_meta.assert_called_once()
+        dummy_window.core.filesystem.packer.remove_tmp.assert_called_with("tmp_dir")
+
+    def test_upload_file_native(self, dummy_window, dummy_meta):
+        att = Attachment(dummy_window)
+        a = AttachmentItem(path="file.txt", name="file.txt")
+        att.is_allowed = MagicMock(return_value=True)
+        dummy_window.core.filesystem.packer.is_archive.return_value = False
+        native_ref = {"provider": "openai", "id": "file_123", "name": "file.txt"}
+        dummy_window.core.attachments.native.can_upload.return_value = True
+        dummy_window.core.attachments.native.upload.return_value = native_ref
+        dummy_window.core.attachments.context.create_native_item.return_value = {
+            "uuid": "id",
+            "name": "file.txt",
+            "path": "file.txt",
+            "type": "native_file",
+        }
+        att.append_to_meta = MagicMock()
+
+        res = att.upload_file(a, dummy_meta, "p", False, "chat")
+
+        assert res is True
+        dummy_window.core.attachments.native.upload.assert_called_once_with(
+            "file.txt", "chat", None
+        )
+        dummy_window.core.attachments.context.upload.assert_not_called()
+        att.append_to_meta.assert_called_once()
+        assert a.extra["native_files"] == [native_ref]
+        assert a.consumed is True
+
+    def test_native_upload_failure_falls_back_to_local(self, dummy_window, dummy_meta):
+        att = Attachment(dummy_window)
+        a = AttachmentItem(path="file.txt", name="file.txt")
+        att.is_allowed = MagicMock(return_value=True)
+        dummy_window.core.filesystem.packer.is_archive.return_value = False
+        dummy_window.core.attachments.native.can_upload.return_value = True
+        dummy_window.core.attachments.native.upload.side_effect = RuntimeError("upload failed")
+        dummy_window.core.attachments.context.upload.return_value = {
+            "uuid": "id", "name": "file.txt", "path": "file.txt"
+        }
+        att.append_to_meta = MagicMock()
+
+        res = att.upload_file(a, dummy_meta, "p", False, "chat")
+
+        assert res is True
+        dummy_window.core.attachments.context.upload.assert_called_once()
+        att.append_to_meta.assert_called_once()
+        assert a.consumed is True
+
+    def test_native_upload_verbose_uses_print(self, dummy_window):
+        att = Attachment(dummy_window)
+        att.is_verbose = MagicMock(return_value=True)
+        dummy_window.core.attachments.native.can_upload.return_value = True
+        dummy_window.core.attachments.native.upload.return_value = {
+            "provider": "openai", "id": "file_123"
+        }
+
+        with patch("builtins.print") as mock_print:
+            ref = att._try_native_upload(
+                "file.txt", "chat", None, "file.txt"
+            )
+
+        assert ref["id"] == "file_123"
+        mock_print.assert_any_call("Uploading native attachment: file.txt")
+        mock_print.assert_any_call(
+            "Native upload completed: file.txt (openai)"
+        )
 
     def test_append_to_meta(self, dummy_window, dummy_meta):
         att = Attachment(dummy_window)
@@ -242,7 +317,7 @@ class TestAttachment:
         a = MagicMock()
         a.path = "file.txt"
         att.upload_file = MagicMock(return_value=True)
-        res = att.upload_web(a, dummy_meta, "p", False)
+        res = att.upload_web(a, dummy_meta, "p", False, "chat")
         assert res is True
 
     def test_has_context(self, dummy_window, dummy_meta):
@@ -421,7 +496,7 @@ class TestAttachment:
         att.window.dispatch = MagicMock()
         att.handle_upload_error(err)
         event = att.window.dispatch.call_args[0][0]
-        assert event.data["msg"] == "Error reading attachments: error"
+        assert event.data["msg"] == "Error processing attachments: error"
 
     def test_handle_upload_success(self, dummy_window):
         att = Attachment(dummy_window)
@@ -431,6 +506,13 @@ class TestAttachment:
         ctx = event.data["context"]
         assert isinstance(ctx, BridgeContext)
         assert ctx.prompt == "txt"
+
+    def test_toggle_native_upload(self, dummy_window):
+        att = Attachment(dummy_window)
+        att.toggle_native_upload(True)
+        assert att.native_upload is True
+        dummy_window.core.config.set.assert_called_with("ctx.attachment.native_upload", True)
+        dummy_window.core.config.save.assert_called_once()
 
     def test_switch_mode(self, dummy_window):
         att = Attachment(dummy_window)
