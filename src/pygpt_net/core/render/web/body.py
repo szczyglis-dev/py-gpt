@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 12:00:00                  #
+# Updated Date: 2026.08.16 14:20:00                  #
 # ================================================== #
 
 import os
@@ -30,6 +30,7 @@ import pygpt_net.fonts_rc
 class Body:
 
     NUM_TIPS = 13
+    EXTRA_ITEMS_VISIBLE_LIMIT = 10
 
     _HTML_P0 = """
             <!DOCTYPE html>
@@ -581,6 +582,49 @@ class Body:
         except Exception:
             return url, url
 
+    def get_collapsible_extra_rows_html(self, rows: List[str]) -> str:
+        """
+        Wrap file/URL rows in a collapsible container when their count exceeds
+        EXTRA_ITEMS_VISIBLE_LIMIT.
+
+        A non-positive limit disables collapsing.
+
+        :param rows: Rendered HTML rows.
+        :return: HTML string.
+        """
+        if not rows:
+            return ""
+
+        try:
+            limit = int(self.EXTRA_ITEMS_VISIBLE_LIMIT)
+        except (TypeError, ValueError):
+            limit = 5
+
+        if limit <= 0 or len(rows) <= limit:
+            return f'<div class="extra-items-list">{"<br/>".join(rows)}</div>'
+
+        visible = "<br/>".join(rows[:limit])
+        hidden = "<br/>".join(rows[limit:])
+        remaining = len(rows) - limit
+        label = trans("ctx.extra.more_items").replace("{count}", str(remaining))
+        title = trans("ctx.extra.expand")
+
+        app_path = self.window.core.config.get_app_path()
+        icon_path = os.path.join(app_path, "data", "icons", "expand.svg").replace("\\", "/")
+        arrow = f'<img src="file://{icon_path}" class="extra-items-toggle-arrow" alt="">'
+
+        return (
+            '<div class="extra-items-list">'
+            f'<div class="extra-items-visible">{visible}</div>'
+            f'<div class="extra-items-hidden" style="display:none">{hidden}</div>'
+            '<button type="button" class="extra-items-toggle" '
+            'onclick="toggleExtraItems(this);" '
+            f'title="{title}" aria-expanded="false">'
+            f'<span class="extra-items-toggle-label">{label}</span>{arrow}'
+            '</button>'
+            '</div>'
+        )
+
     def build_extras_dicts(
             self,
             ctx: CtxItem,
@@ -777,6 +821,7 @@ class Body:
         t_copied = trans('ctx.extra.copied')
         t_preview = trans('ctx.extra.preview')
         t_run = trans('ctx.extra.run')
+        t_more_items = trans("ctx.extra.more_items")
         t_doc_prefix = trans("chat.prefix.doc")
         t_tool = trans("ctx.tool.label")
         t_tool_request = trans("ctx.tool.request")
@@ -787,6 +832,7 @@ class Body:
             f'window.LOCALE_COPIED={_json_dumps(t_copied)};'
             f'window.LOCALE_PREVIEW={_json_dumps(t_preview)};'
             f'window.LOCALE_RUN={_json_dumps(t_run)};'
+            f'window.LOCALE_MORE_ITEMS={_json_dumps(t_more_items)};'
             f'window.LOCALE_COLLAPSE={_json_dumps(t_collapse)};'
             f'window.LOCALE_EXPAND={_json_dumps(t_expand)};'
             f'window.LOCALE_DOC_PREFIX={_json_dumps(t_doc_prefix)};'
@@ -805,6 +851,7 @@ class Body:
             f'window.PROFILE_CODE_FINAL_HL_MAX_CHARS={int(cfg_get("render.code_syntax.final_max_chars", 350000))};'
             f'window.DISABLE_SYNTAX_HIGHLIGHT={int(cfg_get("render.code_syntax.disabled", 0))};'
             f'window.USER_MSG_COLLAPSE_HEIGHT_PX={int(cfg_get("render.msg.user.collapse.px", 1500))};'
+            f'window.EXTRA_ITEMS_VISIBLE_LIMIT={int(self.EXTRA_ITEMS_VISIBLE_LIMIT)};'
         )
 
         tips_js = f'window.TIPS={tips_json};'

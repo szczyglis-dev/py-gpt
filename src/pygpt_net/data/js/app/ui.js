@@ -80,7 +80,33 @@ class UIManager {
 		].join('\n');
 		document.head.appendChild(style);
 	}
-	
+
+	// Toggle the hidden tail of a file/URL extras list.
+	toggleExtraItems(button) {
+		if (!button) return;
+
+		const list = button.closest ? button.closest('.extra-items-list') : null;
+		if (!list) return;
+
+		const hidden = list.querySelector('.extra-items-hidden');
+		if (!hidden) return;
+
+		const isHidden = hidden.style.display === 'none' || getComputedStyle(hidden).display === 'none';
+		hidden.style.display = isHidden ? 'block' : 'none';
+		button.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+
+		const arrow = button.querySelector('.extra-items-toggle-arrow');
+		if (arrow) arrow.classList.toggle('toggle-expanded', isHidden);
+
+		const expandTitle = (typeof window !== 'undefined' && window.LOCALE_EXPAND)
+			? String(window.LOCALE_EXPAND)
+			: 'Expand';
+		const collapseTitle = (typeof window !== 'undefined' && window.LOCALE_COLLAPSE)
+			? String(window.LOCALE_COLLAPSE)
+			: 'Collapse';
+		button.setAttribute('title', isHidden ? collapseTitle : expandTitle);
+	}
+
 	// Toggle classes controlling optional UI features.
 	enableEditIcons() {
 		document.body && document.body.classList.add('display-edit-icons');

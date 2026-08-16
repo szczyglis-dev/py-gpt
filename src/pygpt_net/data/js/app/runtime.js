@@ -273,6 +273,9 @@ class Runtime {
 	api_disableToolOutput = () => this.toolOutput.disable();
 	api_toggleToolOutput = (id) => this.toolOutput.toggle(id);
 
+	// API: toggle collapsed file/URL extras.
+	api_toggleExtraItems = (button) => this.ui.toggleExtraItems(button);
+
 	// API: append extra content to a bot message.
 	api_appendExtra = (id, c) => this.nodes.appendExtra(id, c, this.scrollMgr);
 
@@ -505,6 +508,7 @@ window.endToolOutput = () => runtime.api_endToolOutput();
 window.enableToolOutput = () => runtime.api_enableToolOutput();
 window.disableToolOutput = () => runtime.api_disableToolOutput();
 window.toggleToolOutput = (id) => runtime.api_toggleToolOutput(id);
+window.toggleExtraItems = (button) => runtime.api_toggleExtraItems(button);
 
 window.appendExtra = (id, c) => runtime.api_appendExtra(id, c);
 window.removeNode = (id) => runtime.api_removeNode(id);

@@ -1000,7 +1000,7 @@ class Renderer(BaseRenderer):
                 except Exception:
                     pass
             if files_html:
-                html_parts.append("<br/>".join(files_html))
+                html_parts.append(self.body.get_collapsible_extra_rows_html(files_html))
 
         c = len(ctx.urls)
         if c > 0:
@@ -1017,7 +1017,7 @@ class Renderer(BaseRenderer):
                 except Exception:
                     pass
             if urls_html:
-                html_parts.append("<br/>".join(urls_html))
+                html_parts.append(self.body.get_collapsible_extra_rows_html(urls_html))
 
         if self.window.core.config.get('ctx.sources'):
             if ctx.doc_ids is not None and len(ctx.doc_ids) > 0:

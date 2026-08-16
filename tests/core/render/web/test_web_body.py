@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 12:00:00                  #
+# Updated Date: 2026.08.16 14:30:00                  #
 # ================================================== #
 import os
 import json
@@ -190,6 +190,69 @@ def test_get_url_html():
     assert f'href="{url}"' in html
     assert "[1]" in html
 
+
+def test_get_collapsible_extra_rows_html_within_limit(body_instance):
+    rows = [f"<row>{i}</row>" for i in range(1, Body.EXTRA_ITEMS_VISIBLE_LIMIT + 1)]
+
+    html = body_instance.get_collapsible_extra_rows_html(rows)
+
+    assert 'class="extra-items-list"' in html
+    assert 'class="extra-items-hidden"' not in html
+    assert 'class="extra-items-toggle"' not in html
+    for row in rows:
+        assert row in html
+
+
+def test_get_collapsible_extra_rows_html_over_limit(body_instance, monkeypatch):
+    limit = int(body_instance.EXTRA_ITEMS_VISIBLE_LIMIT)
+    assert limit > 0
+
+    rows = [f"<row>{i}</row>" for i in range(1, limit + 3)]
+    monkeypatch.setattr(
+        "pygpt_net.core.render.web.body.trans",
+        lambda key: {
+            "ctx.extra.more_items": "+ {count} more items",
+            "ctx.extra.expand": "Expand",
+        }.get(key, key),
+    )
+
+    html = body_instance.get_collapsible_extra_rows_html(rows)
+
+    assert 'class="extra-items-visible"' in html
+    assert 'class="extra-items-hidden" style="display:none"' in html
+    assert 'class="extra-items-toggle"' in html
+    assert 'onclick="toggleExtraItems(this);"' in html
+    assert 'aria-expanded="false"' in html
+    assert 'title="Expand"' in html
+    assert '<span class="extra-items-toggle-label">+ 2 more items</span>' in html
+    assert 'class="extra-items-toggle-arrow"' in html
+    assert 'expand.svg' in html
+
+    visible_html, hidden_html = html.split(
+        '<div class="extra-items-hidden" style="display:none">', 1
+    )
+    for i in range(1, limit + 1):
+        assert f"<row>{i}</row>" in visible_html
+    for i in range(limit + 1, limit + 3):
+        assert f"<row>{i}</row>" not in visible_html
+        assert f"<row>{i}</row>" in hidden_html
+
+
+def test_get_collapsible_extra_rows_html_non_positive_limit_disables_collapse(
+        body_instance,
+        monkeypatch,
+):
+    monkeypatch.setattr(body_instance, "EXTRA_ITEMS_VISIBLE_LIMIT", 0)
+    rows = [f"<row>{i}</row>" for i in range(1, 8)]
+
+    html = body_instance.get_collapsible_extra_rows_html(rows)
+
+    assert 'class="extra-items-list"' in html
+    assert 'class="extra-items-hidden"' not in html
+    assert 'class="extra-items-toggle"' not in html
+    for row in rows:
+        assert row in html
+
 def test_get_docs_html():
     config_data = {"app_path": "/fake/app"}
     win = FakeWindow(config_data)
@@ -244,3 +307,5 @@ def test_get_all_tips():
 def test_get_html(body_instance):
     html = body_instance.get_html(0)
     assert html.strip().startswith("<!DOCTYPE html>")
+    assert f"window.EXTRA_ITEMS_VISIBLE_LIMIT={Body.EXTRA_ITEMS_VISIBLE_LIMIT};" in html
+    assert "window.LOCALE_MORE_ITEMS=" in html

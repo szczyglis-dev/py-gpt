@@ -63,6 +63,49 @@ class NodeTemplateEngine {
 		return `<div class="msg-box msg-user" id="${msgId}">${nameHeader}<div class="msg">${copyBtn}<p style="margin:0">${content}</p></div></div>`;
 	}
 
+	// Render a list of file/URL rows with an optional collapsed tail.
+	_renderCollapsibleExtraRows(rows) {
+		if (!Array.isArray(rows) || !rows.length) return '';
+
+		let limit = 5;
+		try {
+			const configured = Number((typeof window !== 'undefined') ? window.EXTRA_ITEMS_VISIBLE_LIMIT : limit);
+			if (Number.isFinite(configured)) limit = Math.floor(configured);
+		} catch (_) {}
+
+		if (limit <= 0 || rows.length <= limit) {
+			return `<div class="extra-items-list">${rows.join("<br/>")}</div>`;
+		}
+
+		const visible = rows.slice(0, limit).join("<br/>");
+		const hidden = rows.slice(limit).join("<br/>");
+		const remaining = rows.length - limit;
+		const labelTpl = (typeof window !== 'undefined' && window.LOCALE_MORE_ITEMS)
+			? String(window.LOCALE_MORE_ITEMS)
+			: '+ {count} more items';
+		const label = labelTpl.split('{count}').join(String(remaining));
+		const expandTitle = (typeof window !== 'undefined' && window.LOCALE_EXPAND)
+			? String(window.LOCALE_EXPAND)
+			: 'Expand';
+		const expIcon = (typeof window !== 'undefined' && window.ICON_EXPAND)
+			? String(window.ICON_EXPAND)
+			: '';
+		const arrow = expIcon
+			? `<img src="${this._esc(expIcon)}" class="extra-items-toggle-arrow" alt="">`
+			: '';
+
+		return (
+			`<div class="extra-items-list">` +
+			`<div class="extra-items-visible">${visible}</div>` +
+			`<div class="extra-items-hidden" style="display:none">${hidden}</div>` +
+			`<button type="button" class="extra-items-toggle" onclick="toggleExtraItems(this);" ` +
+			`title="${this._escapeHtml(expandTitle)}" aria-expanded="false">` +
+			`<span class="extra-items-toggle-label">${this._escapeHtml(label)}</span>${arrow}` +
+			`</button>` +
+			`</div>`
+		);
+	}
+
 	// Render extra blocks (images/files/urls/docs/tool-extra)
 	_renderExtras(block) {
 		const parts = [];
@@ -112,7 +155,7 @@ class NodeTemplateEngine {
 				const icon = (typeof window !== 'undefined' && window.ICON_ATTACHMENTS) ? `<img src="${window.ICON_ATTACHMENTS}" class="extra-src-icon">` : '';
 				rows.push(`${icon} <a href="${url}">${path}</a> <b> [${k}] </b>`);
 			});
-			if (rows.length) parts.push(`<div>${rows.join("<br/>")}</div>`);
+			if (rows.length) parts.push(this._renderCollapsibleExtraRows(rows));
 		}
 
 		// urls
@@ -127,7 +170,7 @@ class NodeTemplateEngine {
 				const icon = (typeof window !== 'undefined' && window.ICON_URL) ? `<img src="${window.ICON_URL}" class="extra-src-icon">` : '';
 				rows.push(`${icon}<a href="${url}" title="${url}">${url}</a> <small> [${k}] </small>`);
 			});
-			if (rows.length) parts.push(`<div>${rows.join("<br/>")}</div>`);
+			if (rows.length) parts.push(this._renderCollapsibleExtraRows(rows));
 		}
 
 		// docs (render on JS) or fallback to docs_html

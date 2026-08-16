@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.07 05:00:00                  #
+# Updated Date: 2026.08.16 14:30:00                  #
 # ================================================== #
 import json
 import os
@@ -74,6 +74,9 @@ def renderer(fake_window):
     r.body.get_image_html = MagicMock(side_effect=lambda image, n, c: f"<img>{image}</img>")
     r.body.get_file_html = MagicMock(side_effect=lambda file, n, c: f"<file>{file}</file>")
     r.body.get_url_html = MagicMock(side_effect=lambda url, n, c: f"<url>{url}</url>")
+    r.body.get_collapsible_extra_rows_html = MagicMock(
+        side_effect=lambda rows: f'<div class="extra-items-list">{"<br/>".join(rows)}</div>'
+    )
     r.body.get_docs_html = MagicMock(return_value="<docs></docs>")
     r.body.get_html = MagicMock(return_value="<html></html>")
     r.body.prepare_styles = MagicMock(return_value="")
@@ -412,6 +415,34 @@ class TestRenderer:
         assert "<file>file1</file>" in html
         assert "<url>url1</url>" in html
         assert "<docs></docs>" in html
+        assert renderer.body.get_collapsible_extra_rows_html.call_count == 2
+        renderer.body.get_collapsible_extra_rows_html.assert_any_call(["<file>file1</file>"])
+        renderer.body.get_collapsible_extra_rows_html.assert_any_call(["<url>url1</url>"])
+
+    def test_append_extra_groups_files_and_urls_for_collapsing(self, renderer):
+        meta = DummyCtxMeta()
+        ctx = DummyCtxItem()
+        ctx.files = [f"file{i}" for i in range(1, 8)]
+        ctx.urls = [f"url{i}" for i in range(1, 8)]
+
+        renderer.get_pid = MagicMock(return_value=1)
+        renderer.pids = {
+            1: MagicMock(images_appended=[], files_appended=[], urls_appended=[])
+        }
+
+        html = renderer.append_extra(meta, ctx, footer=False, render=False)
+
+        assert renderer.body.get_collapsible_extra_rows_html.call_count == 2
+        file_rows = renderer.body.get_collapsible_extra_rows_html.call_args_list[0].args[0]
+        url_rows = renderer.body.get_collapsible_extra_rows_html.call_args_list[1].args[0]
+
+        assert len(file_rows) == 7
+        assert len(url_rows) == 7
+        assert file_rows[0] == "<file>file1</file>"
+        assert file_rows[-1] == "<file>file7</file>"
+        assert url_rows[0] == "<url>url1</url>"
+        assert url_rows[-1] == "<url>url7</url>"
+        assert 'class="extra-items-list"' in html
 
     def test_append_timestamp(self, renderer):
         ctx = DummyCtxItem()
