@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+import uuid
 from typing import List, Dict, Any, Union
 
 from PySide6.QtCore import Slot, QObject
@@ -178,6 +179,8 @@ class Attachment(QObject):
         if self.window.core.filesystem.packer.is_archive(attachment.path):
             if self.is_verbose():
                 print(f"Unpacking archive: {attachment.path}")
+            archive_id = str(uuid.uuid4())
+            archive_name = os.path.basename(attachment.path)
             tmp_path = self.window.core.filesystem.packer.unpack(attachment.path)
             if tmp_path:
                 for root, dirs, files in os.walk(tmp_path):
@@ -201,8 +204,12 @@ class Attachment(QObject):
                             if item:
                                 item["stored_name"] = item["name"]
                                 item["name"] = path_relative
-                                item["path"] = f"{os.path.basename(attachment.path)}/{path_relative}"
+                                item["path"] = f"{archive_name}/{path_relative}"
                                 item["size"] = os.path.getsize(path)
+                                item["archive_id"] = archive_id
+                                item["archive_name"] = archive_name
+                                item["archive_path"] = attachment.path
+                                item["archive_member"] = path_relative
                                 self.append_to_meta(meta, item)
                                 uploaded = True
                                 sub_attachment.consumed = True
@@ -350,7 +357,7 @@ class Attachment(QObject):
         if meta is None or not meta.has_additional_ctx():
             items = []
         else:
-            items = self.window.core.attachments.context.get_all(meta)
+            items = self.window.core.attachments.context.get_display_all(meta)
         self.window.ui.chat.input.attachments_ctx.update(items)
         self.update_tab(meta)
 
@@ -421,13 +428,13 @@ class Attachment(QObject):
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return
-        items = self.window.core.attachments.context.get_all(meta)
+        items = self.window.core.attachments.context.get_display_all(meta)
         ids = idx if isinstance(idx, list) else [idx]
         updated = False
         for idx in sorted(ids, reverse=True):
             if idx < len(items):
                 item = items[idx]
-                self.window.core.attachments.context.delete(meta, item, delete_files=remove_local)
+                self.window.core.attachments.context.delete_display_item(meta, item, delete_files=remove_local)
                 updated = True
         if updated:
             self.update_list(meta)
@@ -478,7 +485,7 @@ class Attachment(QObject):
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return
-        items = self.window.core.attachments.context.get_all(meta)
+        items = self.window.core.attachments.context.get_display_all(meta)
         ids = idx if isinstance(idx, list) else [idx]
         for idx in ids:
             if idx < len(items):
@@ -499,7 +506,7 @@ class Attachment(QObject):
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return
-        items = self.window.core.attachments.context.get_all(meta)
+        items = self.window.core.attachments.context.get_display_all(meta)
         ids = idx if isinstance(idx, list) else [idx]
         for idx in ids:
             if idx < len(items):
@@ -521,13 +528,16 @@ class Attachment(QObject):
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return
-        items = self.window.core.attachments.context.get_all(meta)
+        items = self.window.core.attachments.context.get_display_all(meta)
         ids = idx if isinstance(idx, list) else [idx]
         for idx in ids:
             if idx < len(items):
                 item = items[idx]
                 root_dir = self.window.core.attachments.context.get_dir(meta)
-                dir = os.path.join(root_dir, item["uuid"])
+                if item.get("_archive"):
+                    dir = root_dir
+                else:
+                    dir = os.path.join(root_dir, item["uuid"])
                 if os.path.exists(dir) and os.path.isdir(dir):
                     self.window.controller.files.open(dir)
                     print(f"Opening destination directory: {dir}")
@@ -542,7 +552,7 @@ class Attachment(QObject):
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return False
-        items = self.window.core.attachments.context.get_all(meta)
+        items = self.window.core.attachments.context.get_display_all(meta)
         if idx < len(items):
             item = items[idx]
             path = item["path"]
@@ -561,7 +571,7 @@ class Attachment(QObject):
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return False
-        items = self.window.core.attachments.context.get_all(meta)
+        items = self.window.core.attachments.context.get_display_all(meta)
         if idx < len(items):
             item = items[idx]
             path = item["path"]
@@ -581,11 +591,14 @@ class Attachment(QObject):
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or not meta.has_additional_ctx():
             return False
-        items = self.window.core.attachments.context.get_all(meta)
+        items = self.window.core.attachments.context.get_display_all(meta)
         if idx < len(items):
             item = items[idx]
             root_dir = self.window.core.attachments.context.get_dir(meta)
-            dir = os.path.join(root_dir, item["uuid"])
+            if item.get("_archive"):
+                dir = root_dir
+            else:
+                dir = os.path.join(root_dir, item["uuid"])
             return os.path.exists(dir) and os.path.isdir(dir)
         return False
 

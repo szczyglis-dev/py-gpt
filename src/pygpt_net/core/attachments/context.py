@@ -23,7 +23,7 @@ from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
 from pygpt_net.item.attachment import AttachmentItem
-from pygpt_net.item.ctx import CtxMeta, CtxItem
+from pygpt_net.item.ctx import CtxMeta, CtxItem, group_additional_ctx_items
 
 
 class Context:
@@ -524,12 +524,66 @@ class Context:
 
     def get_all(self, meta: CtxMeta) -> list:
         """
-        Get all attachments for meta
+        Get all raw attachments for meta.
+
+        Archive members intentionally remain separate here because each member
+        keeps its own extracted text/index data used by the model.
 
         :param meta: CtxMeta instance
-        :return: list of attachments
+        :return: list of raw attachments
         """
         return meta.get_additional_ctx()
+
+    def get_display_all(self, meta: CtxMeta) -> list:
+        """
+        Get attachments grouped for UI presentation.
+
+        Files extracted from one archive are represented by a single synthetic
+        row while the underlying additional context stays untouched.
+
+        :param meta: CtxMeta instance
+        :return: list of UI attachment dicts
+        """
+        result = []
+        for group in group_additional_ctx_items(meta.get_additional_ctx()):
+            members = group["items"]
+            if not members:
+                continue
+
+            if not group["archive"]:
+                display_item = copy.copy(members[0])
+                display_item["_ctx_items"] = members
+                display_item["_archive"] = False
+                result.append(display_item)
+                continue
+
+            first = members[0]
+            display_item = copy.copy(first)
+            archive_path = first.get("archive_path") or first.get("real_path") or first.get("path") or ""
+            archive_name = first.get("archive_name") or os.path.basename(str(archive_path)) or first.get("name", "No name")
+            count = len(members)
+            suffix = "file" if count == 1 else "files"
+
+            display_item["name"] = f"{archive_name} ({count} {suffix})"
+            display_item["path"] = archive_path
+            display_item["real_path"] = archive_path
+            display_item["length"] = sum(int(item.get("length", 0) or 0) for item in members)
+            display_item["tokens"] = sum(int(item.get("tokens", 0) or 0) for item in members)
+            display_item["indexed"] = bool(members) and all(bool(item.get("indexed")) for item in members)
+            display_item["_ctx_items"] = members
+            display_item["_archive"] = True
+
+            if archive_path and os.path.isfile(archive_path):
+                try:
+                    display_item["size"] = os.path.getsize(archive_path)
+                except OSError:
+                    display_item["size"] = sum(int(item.get("size", 0) or 0) for item in members)
+            else:
+                display_item["size"] = sum(int(item.get("size", 0) or 0) for item in members)
+
+            result.append(display_item)
+
+        return result
 
     def get_dir(self, meta: CtxMeta) -> str:
         """
@@ -592,12 +646,15 @@ class Context:
 
     def count(self, meta: CtxMeta) -> int:
         """
-        Count attachments for meta
+        Count attachments as presented in the UI.
+
+        An archive counts as one visible attachment regardless of the number of
+        extracted files stored in additional context.
 
         :param meta: CtxMeta instance
-        :return: number of attachments
+        :return: number of visible attachments
         """
-        return len(meta.get_additional_ctx())
+        return len(self.get_display_all(meta))
 
     def delete(
             self,
@@ -618,6 +675,21 @@ class Context:
             self.delete_local(meta, item)
         if len(meta.get_additional_ctx()) == 0:
             self.delete_index(meta)
+
+    def delete_display_item(
+            self,
+            meta: CtxMeta,
+            item: Dict[str, Any],
+            delete_files: bool = False
+    ):
+        """Delete one UI row, including every member represented by an archive row."""
+        members = item.get("_ctx_items") if isinstance(item, dict) else None
+        if not members:
+            members = [item]
+
+        for member in list(members):
+            if member in meta.get_additional_ctx():
+                self.delete(meta, member, delete_files=delete_files)
 
     def delete_by_meta(self, meta: CtxMeta):
         """

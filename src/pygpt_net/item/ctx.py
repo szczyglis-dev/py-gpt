@@ -12,10 +12,70 @@
 import copy
 import datetime
 import json
+import os
 import time
 
 from typing import Optional
 from dataclasses import dataclass, field
+
+
+def _additional_ctx_archive_key(item: dict):
+    """Return a stable grouping key for an item extracted from an archive."""
+    if not isinstance(item, dict):
+        return None
+
+    archive_id = item.get("archive_id")
+    if archive_id:
+        return "archive_id", str(archive_id)
+
+    # Backward compatibility for contexts created before archive_id was stored.
+    # `stored_name` is added only for files unpacked from an archive, while
+    # `real_path` points to the original archive.
+    real_path = item.get("real_path")
+    if item.get("stored_name") and real_path and item.get("path") != real_path:
+        return "archive_path", os.path.normcase(os.path.normpath(str(real_path)))
+
+    return None
+
+
+def group_additional_ctx_items(items: list) -> list:
+    """Group archive members for presentation without changing stored context data."""
+    groups = []
+    archive_groups = {}
+
+    for item in items or []:
+        key = _additional_ctx_archive_key(item)
+        if key is None:
+            groups.append({"archive": False, "items": [item]})
+            continue
+
+        if key in archive_groups:
+            groups[archive_groups[key]]["items"].append(item)
+            continue
+
+        archive_groups[key] = len(groups)
+        groups.append({"archive": True, "items": [item]})
+
+    return groups
+
+
+def get_additional_ctx_display_names(items: list) -> list:
+    """Return attachment names as shown in context tooltips/lists."""
+    names = []
+    for group in group_additional_ctx_items(items):
+        members = group["items"]
+        if not members:
+            continue
+        first = members[0]
+        if group["archive"]:
+            archive_path = first.get("archive_path") or first.get("real_path") or first.get("path") or ""
+            archive_name = first.get("archive_name") or os.path.basename(str(archive_path)) or first.get("name", "No name")
+            count = len(members)
+            suffix = "file" if count == 1 else "files"
+            names.append(f"{archive_name} ({count} {suffix})")
+        else:
+            names.append(first.get("name", "No name"))
+    return names
 
 
 @dataclass(slots=True)
@@ -611,7 +671,7 @@ class CtxMeta:
         if self.group:
             if self.group.additional_ctx:
                 return self.group.get_attachment_names()
-        return [item['name'] for item in self.additional_ctx]
+        return get_additional_ctx_display_names(self.additional_ctx)
 
     def to_dict(self) -> dict:
         """
@@ -779,7 +839,7 @@ class CtxGroup:
 
         :return: list
         """
-        return [item['name'] for item in self.additional_ctx]
+        return get_additional_ctx_display_names(self.additional_ctx)
 
     def to_dict(self) -> dict:
         """
