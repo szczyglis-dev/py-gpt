@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.15 18:15:00                  #
+# Updated Date: 2026.08.16 14:32:00                  #
 # ================================================== #
 
 import platform
@@ -116,6 +116,14 @@ class Platforms:
                and "SNAP_NAME" in os.environ \
                and os.environ["SNAP_NAME"] == Config.SNAP_NAME
 
+    def is_flatpak(self) -> bool:
+        """
+        Return True if app is running inside Flatpak.
+
+        :return: True if app is running inside Flatpak
+        """
+        return bool(os.environ.get("FLATPAK_ID")) or os.path.exists("/.flatpak-info")
+
     def is_ms_store(self) -> bool:
         """
         Return True if app is running as Microsoft Store app
@@ -155,6 +163,8 @@ class Platforms:
 
         :return: application distribution type
         """
+        if self.is_flatpak():
+            return 'Flatpak'
         if self.is_snap():
             return 'snap'
         if self.is_appimage():
