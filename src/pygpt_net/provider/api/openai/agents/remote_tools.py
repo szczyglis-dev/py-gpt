@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2026.08.16 13:09:00                  #
 # ================================================== #
 
 import json
@@ -89,8 +89,20 @@ def append_tools(
             "is_expert_call": is_expert_call,
         }
         remote_tools = get_remote_tools(**tool_kwargs)
+
+        model_settings = {}
         if is_computer_tool(**tool_kwargs):
-            kwargs["model_settings"] = ModelSettings(truncation="auto")
+            model_settings["truncation"] = "auto"
+
+        # Agents SDK uses Responses API for hosted WebSearchTool. Request the
+        # complete consulted source list, not only inline url_citation entries.
+        if any(isinstance(tool, WebSearchTool) for tool in remote_tools):
+            model_settings["response_include"] = [
+                "web_search_call.action.sources"
+            ]
+
+        if model_settings:
+            kwargs["model_settings"] = ModelSettings(**model_settings)
 
     all_tools = remote_tools + tools
     if all_tools:

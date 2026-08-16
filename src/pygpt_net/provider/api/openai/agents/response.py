@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 19:00:00                  #
+# Updated Date: 2026.08.16 13:09:00                  #
 # ================================================== #
 
 import base64
@@ -17,6 +17,7 @@ from agents import HandoffOutputItem, ReasoningItem
 
 from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.item.ctx import CtxItem
+from ..utils import append_unique_urls, extract_response_urls
 
 from openai.types.responses import (
     ResponseTextDeltaEvent,
@@ -139,15 +140,17 @@ class StreamHandler:
 
             elif isinstance(data, ResponseCompletedEvent):
                 response = data.response
+                ctx.urls = append_unique_urls(ctx.urls, extract_response_urls(response))
                 for item in response.output:
                     if item.type == "message":
                         for content in item.content:
                             if content.annotations:
                                 for annotation in content.annotations:
                                     if annotation.type == "url_citation":
-                                        if ctx.urls is None:
-                                            ctx.urls = []
-                                        ctx.urls.append(annotation.url)
+                                        ctx.urls = append_unique_urls(
+                                            ctx.urls,
+                                            [getattr(annotation, "url", None)],
+                                        )
                                     elif annotation.type == "container_file_citation":
                                         self.files.append({
                                             "container_id": annotation.container_id,

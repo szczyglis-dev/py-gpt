@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 13:00:00                  #
+# Updated Date: 2026.08.16 13:09:00                  #
 # ================================================== #
 
 import base64
@@ -31,6 +31,7 @@ from pygpt_net.item.model import ModelItem
 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.preset import PresetItem
+from .utils import append_unique_urls, extract_response_urls
 
 
 class Responses:
@@ -147,6 +148,23 @@ class Responses:
 
         if len(tools) > 0:
             response_kwargs['tools'] = tools
+
+            # OpenAI only returns the complete list of URLs consulted by hosted
+            # web search when this field is explicitly included. Inline
+            # url_citation annotations contain only the most relevant citations.
+            web_tool_types = {
+                "web_search",
+                "web_search_preview",
+                "web_search_2025_08_26",
+                "web_search_preview_2025_03_11",
+            }
+            if any(
+                    isinstance(tool, dict) and tool.get("type") in web_tool_types
+                    for tool in tools
+            ):
+                response_kwargs.setdefault("include", []).append(
+                    "web_search_call.action.sources"
+                )
 
         # attach previous response ID if available
         if is_expert_call:
@@ -481,9 +499,10 @@ class Responses:
                             for annotation in content.annotations:
                                 # url citation
                                 if annotation.type == "url_citation":
-                                    if ctx.urls is None:
-                                        ctx.urls = []
-                                    ctx.urls.append(annotation.url)
+                                    ctx.urls = append_unique_urls(
+                                        ctx.urls,
+                                        [getattr(annotation, "url", None)],
+                                    )
                                 # container file citation
                                 elif annotation.type == "container_file_citation":
                                     container_id = annotation.container_id
@@ -556,6 +575,12 @@ class Responses:
                 }
                 ctx.extra["mcp_approval_request"] = call
 
+        # Merge all URL sources from the final Responses API object. This adds
+        # web_search_call.action.sources (full consulted list) and also acts as a
+        # fallback for url_citation annotations that may not have been handled
+        # above due to an SDK shape change.
+        ctx.urls = append_unique_urls(ctx.urls, extract_response_urls(response))
+
         # computer use tool calls (other functions are handled before)
         if tool_calls:
             ctx.force_call = force_func_call
@@ -584,6 +609,15 @@ class Responses:
         response_id = result.last_response_id
 
         for item in result.new_items:
+            raw_item = getattr(item, "raw_item", None)
+            if raw_item is not None:
+                # Reuse the response URL extractor by wrapping a single raw output
+                # item. This also handles web_search_call.action.sources if the
+                # Agents SDK exposes them.
+                ctx.urls = append_unique_urls(
+                    ctx.urls,
+                    extract_response_urls({"output": [raw_item]}),
+                )
             if (
                     item.type == "tool_call_item"
                     and item.raw_item.type == "image_generation_call"
@@ -614,9 +648,10 @@ class Responses:
                         for annotation in content.annotations:
                             # url citation
                             if annotation.type == "url_citation":
-                                if ctx.urls is None:
-                                    ctx.urls = []
-                                ctx.urls.append(annotation.url)
+                                ctx.urls = append_unique_urls(
+                                    ctx.urls,
+                                    [getattr(annotation, "url", None)],
+                                )
                             # container file citation
                             elif annotation.type == "container_file_citation":
                                 container_id = annotation.container_id

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.08.16 13:09:00                  #
 # ================================================== #
 
 import base64
@@ -14,7 +14,7 @@ import io
 import json
 from typing import Optional, Any
 
-from .utils import capture_openai_usage
+from .utils import capture_openai_usage, append_unique_urls, extract_response_urls
 
 
 # v2: Support both dict and Pydantic objects returned by OpenAI Python SDK v2
@@ -240,6 +240,16 @@ def process_api_chat_responses(ctx, core, state, chunk, etype: Optional[str]) ->
                 capture_openai_usage(state, u)
         except Exception:
             pass
+
+        # Final response is authoritative. Streaming annotation events are not
+        # guaranteed to provide the complete web-search source set, while
+        # web_search_call.action.sources is available here when requested via
+        # Responses API `include`. Scanning the final output also backfills any
+        # missed url_citation annotation events.
+        final_urls = extract_response_urls(chunk.response)
+        state.citations = append_unique_urls(state.citations, final_urls)
+        if state.citations:
+            ctx.urls = state.citations
 
         for item in chunk.response.output:
             if item.type == "mcp_list_tools":
