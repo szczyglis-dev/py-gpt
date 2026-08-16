@@ -203,7 +203,7 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Contexts per load (0 = all)``: Number of contexts loaded at a time in the context list. When you scroll to the bottom of the list, the next batch is loaded automatically. Set to 0 to load all contexts at once. Default: 1000.
 
-* ``Model used for auto-summary``: Choose a model used for summarizing the context and preparing the title on the conversation list on the left. Default: gpt-3.5-turbo-1106.
+* ``Model used for auto-summary``: Choose a model used for summarizing the context and preparing the title on the conversation list on the left. Default: gpt-4o-mini.
 
 * ``Context auto-summary``: Enable automatic summarization of the context on the conversation list on the left. Default: True.
 
@@ -303,9 +303,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 **Models**
 
-* ``Max output tokens``: Set to 0 to disable the limit. Default: 64000.
+* ``Max output tokens``: Set to 0 to disable the limit. Default: 0.
 
-* ``Max total tokens``: Set to 0 to disable the limit. Default: 256000.
+* ``Max total tokens``: Set to 0 to disable the limit. Default: 0.
 
 * ``RPM limit``: Specify the limit of maximum requests per minute (RPM), 0 = no limit. Default: 60.
 
@@ -383,9 +383,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Camera Device``: Select a camera device for real-time video capture. Default: 0.
 
-* ``Capture width (in pixels)``: Sets the camera capture width in pixels. Default: 800.
+* ``Capture width (in pixels)``: Sets the camera capture width in pixels. Default: 1280.
 
-* ``Capture height (in pixels)``: Sets the camera capture height in pixels. Default: 800.
+* ``Capture height (in pixels)``: Sets the camera capture height in pixels. Default: 720.
 
 * ``Capture quality (%)``: Sets JPEG quality for captured camera images, in percent. Default: 85.
 

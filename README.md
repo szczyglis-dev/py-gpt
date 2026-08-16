@@ -2562,7 +2562,7 @@ The options below mirror the current application settings defined in `settings.j
 
 - `Contexts per load (0 = all)`: Number of contexts loaded at a time in the context list. When you scroll to the bottom of the list, the next batch is loaded automatically. Set to 0 to load all contexts at once. Default: 1000.
 
-- `Model used for auto-summary`: Choose a model used for summarizing the context and preparing the title on the conversation list on the left. Default: gpt-3.5-turbo-1106.
+- `Model used for auto-summary`: Choose a model used for summarizing the context and preparing the title on the conversation list on the left. Default: gpt-4o-mini.
 
 - `Context auto-summary`: Enable automatic summarization of the context on the conversation list on the left. Default: True.
 
@@ -2662,9 +2662,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 **Models**
 
-- `Max output tokens`: Set to 0 to disable the limit. Default: 64000.
+- `Max output tokens`: Set to 0 to disable the limit. Default: 0.
 
-- `Max total tokens`: Set to 0 to disable the limit. Default: 256000.
+- `Max total tokens`: Set to 0 to disable the limit. Default: 0.
 
 - `RPM limit`: Specify the limit of maximum requests per minute (RPM), 0 = no limit. Default: 60.
 
@@ -2742,9 +2742,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Camera Device`: Select a camera device for real-time video capture. Default: 0.
 
-- `Capture width (in pixels)`: Sets the camera capture width in pixels. Default: 800.
+- `Capture width (in pixels)`: Sets the camera capture width in pixels. Default: 1280.
 
-- `Capture height (in pixels)`: Sets the camera capture height in pixels. Default: 800.
+- `Capture height (in pixels)`: Sets the camera capture height in pixels. Default: 720.
 
 - `Capture quality (%)`: Sets JPEG quality for captured camera images, in percent. Default: 85.
 
@@ -3872,6 +3872,24 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.3 (2026-08-16)**
+
+- Fixed duplicated attachments being displayed after tool calls.
+- Fixed duplicated images in tool chains.
+- Fixed attachment paths in additional context so the full filesystem path is no longer sent.
+- Fixed URL extraction from responses.
+- Fixed reasoning context being appended to responses for local Ollama models such as DeepSeek.
+- Added native attachment file upload when supported by the provider.
+- Added real-time reasoning rendering.
+- Added collapse/expand controls for URLs and attachments lists.
+- Added missing settings descriptions.
+- Upgraded the image generation plugin to support the newest models.
+- Changed attachment archive rendering to display an archive as a single entry.
+- Changed tool-chain rendering to display action icons at the end of the chain.
+- Set max_total_tokens to 0 by default.
+- Updated the context max limit option description.
+- Updated documentation and configuration descriptions.
 
 **2.8.2 (2026-08-15)**
 

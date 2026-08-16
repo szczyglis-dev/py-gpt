@@ -1,3 +1,21 @@
+2.8.3 (2026-08-16)
+
+- Fixed duplicated attachments being displayed after tool calls.
+- Fixed duplicated images in tool chains.
+- Fixed attachment paths in additional context so the full filesystem path is no longer sent.
+- Fixed URL extraction from responses.
+- Fixed reasoning context being appended to responses for local Ollama models such as DeepSeek.
+- Added native attachment file upload when supported by the provider.
+- Added real-time reasoning rendering.
+- Added collapse/expand controls for URLs and attachments lists.
+- Added missing settings descriptions.
+- Upgraded the image generation plugin to support the newest models.
+- Changed attachment archive rendering to display an archive as a single entry.
+- Changed tool-chain rendering to display action icons at the end of the chain.
+- Set max_total_tokens to 0 by default.
+- Updated the context max limit option description.
+- Updated documentation and configuration descriptions.
+
 2.8.2 (2026-08-15)
 
 - Added ARM64 AppImage and Snap builds.
