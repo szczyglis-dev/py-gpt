@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 20:10:00                  #
+# Updated Date: 2026.08.16 21:25:00                  #
 # ================================================== #
 
 import json
@@ -1206,6 +1206,11 @@ class Renderer(BaseRenderer):
         if meta is None:
             return ""
 
+        # Consecutive tool replies form one visual assistant turn. The identity
+        # belongs to the first tool request only, not to later tool calls/final reply.
+        if not self._show_output_identity(ctx):
+            return ""
+
         # Agent-provided display name override:
         # If ctx.get_agent_name() returns a non-empty name, force "fake personalize":
         # - use that name
@@ -2109,6 +2114,41 @@ class Renderer(BaseRenderer):
             and self._ctx_has_tool_request(ctx)
         )
 
+    def _show_output_identity(
+            self,
+            ctx: Optional[CtxItem],
+            prev_ctx: Optional[CtxItem] = None
+    ) -> bool:
+        """
+        Return True when the bot identity should be rendered for this output.
+
+        A tool-call continuation is one visual assistant turn even though it is
+        persisted as multiple context items. Keep the avatar/name on the first
+        item which starts the tool chain and suppress it on every internal reply
+        that follows, including subsequent tool calls and the final response.
+
+        ``ctx.prev_ctx`` is used by live/stream paths where an explicit previous
+        item is not passed to the renderer. History rendering passes ``prev_ctx``
+        directly, so the same rule also works after a context reload.
+
+        :param ctx: Current context item
+        :param prev_ctx: Previous context item, if already known
+        :return: True if avatar/name may be shown
+        """
+        if ctx is None:
+            return True
+
+        previous = prev_ctx
+        if previous is None:
+            try:
+                previous = getattr(ctx, "prev_ctx", None)
+            except Exception:
+                previous = None
+
+        if previous is not None and self._is_tool_reply_transition(previous, ctx):
+            return False
+        return True
+
     def _normalize_image_extra_key(self, image) -> str:
         """
         Return a stable key for an image attachment used by the web renderer.
@@ -2382,6 +2422,7 @@ class Renderer(BaseRenderer):
             md_src = self.helpers.pre_format_text(visible_output_text)
             md_text = self.helpers.post_format_text(md_src)
             name, avatar, personalize = self._output_identity(ctx)
+            show_output_identity = self._show_output_identity(ctx, prev_ctx)
 
             # tool output visibility (agent step / commands)
             is_cmd = (
@@ -2481,7 +2522,7 @@ class Renderer(BaseRenderer):
                 "tool_extra_html": tool_extra_html,
                 "docs": docs_norm,
                 "footer_icons": bool(action_state.get("footer_icons", True)),
-                "personalize": personalize,
+                "personalize": bool(personalize and show_output_identity),
             })
             block.extra.update(extra_actions)
 
