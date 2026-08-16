@@ -201,7 +201,7 @@ The options below mirror the current application settings defined in ``settings.
 
 **Context**
 
-* ``Limit of last contexts on the list (0 = unlimited)``: Limits the number of most recent contexts shown on the list; 0 means unlimited. Default: 0.
+* ``Contexts per load (0 = all)``: Number of contexts loaded at a time in the context list. When you scroll to the bottom of the list, the next batch is loaded automatically. Set to 0 to load all contexts at once. Default: 1000.
 
 * ``Model used for auto-summary``: Choose a model used for summarizing the context and preparing the title on the conversation list on the left. Default: gpt-3.5-turbo-1106.
 

@@ -1102,6 +1102,7 @@
         "type": "int",
         "slider": true,
         "label": "settings.ctx.records.limit",
+        "description": "settings.ctx.records.limit.desc",
         "value": 0,
         "min": 0,
         "max": 10000,
