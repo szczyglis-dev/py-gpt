@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.08.16 18:40:00
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -169,22 +169,22 @@ class Mode:
             ui_nodes['media.raw'].setVisible(True)
             if ctrl.media.is_video_model() and ctrl.media.get_mode() == "video":
                 ui_nodes['video.options'].setVisible(True)
-                ui_nodes['dalle.options'].setVisible(False)
+                ui_nodes['image.options'].setVisible(False)
             elif ctrl.media.is_image_model() and ctrl.media.get_mode() == "image":
-                ui_nodes['dalle.options'].setVisible(True)
+                ui_nodes['image.options'].setVisible(True)
                 ui_nodes['video.options'].setVisible(False)
             elif ctrl.media.get_mode() == "music":
-                ui_nodes['dalle.options'].setVisible(False)
+                ui_nodes['image.options'].setVisible(False)
                 ui_nodes['video.options'].setVisible(False)
             else:
                 ui_nodes['media.raw'].setVisible(False)
-                ui_nodes['dalle.options'].setVisible(False)
+                ui_nodes['image.options'].setVisible(False)
                 ui_nodes['video.options'].setVisible(False)
 
             ctrl.ui.show_input_extra()
         else:
             ui_nodes['media.raw'].setVisible(False)
-            ui_nodes['dalle.options'].setVisible(False)
+            ui_nodes['image.options'].setVisible(False)
             ui_nodes['video.options'].setVisible(False)
 
         if is_agent:

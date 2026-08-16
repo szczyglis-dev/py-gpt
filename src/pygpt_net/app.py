@@ -227,7 +227,7 @@ def run(**kwargs):
         from pygpt_net.plugin.extra_prompt import Plugin as ExtraPromptPlugin
         from pygpt_net.plugin.experts import Plugin as ExpertsPlugin
         from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
-        from pygpt_net.plugin.openai_dalle import Plugin as OpenAIDallePlugin
+        from pygpt_net.plugin.openai_dalle import Plugin as ImageGenerationPlugin
         from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
         from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
         from pygpt_net.plugin.agent import Plugin as AgentPlugin
@@ -451,7 +451,7 @@ def run(**kwargs):
         launcher.add_plugin(CmdSerialPlugin())
         launcher.add_plugin(CmdMousePlugin())
         launcher.add_plugin(CtxHistoryPlugin())
-        launcher.add_plugin(OpenAIDallePlugin())
+        launcher.add_plugin(ImageGenerationPlugin())
         launcher.add_plugin(OpenAIVisionPlugin())
         launcher.add_plugin(IdxLlamaIndexPlugin())
         launcher.add_plugin(MailerPlugin())

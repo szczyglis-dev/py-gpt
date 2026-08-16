@@ -605,7 +605,7 @@ From version `2.0.107` the `davinci` models are deprecated and has been replaced
 
 ## Image and video generation
 
-**PyGPT** enables quick and easy image creation with models like `DALL-E 3`, `gpt-image-1`, `Imagen 3/4`, and `Nano Banana`, as well as video generation using `Veo3` and `Sora2`.
+**PyGPT** enables quick and easy image creation with image-generation models such as `gpt-image`, `Imagen`, `Gemini`, `Nano Banana`, and `Grok`, as well as video generation using models such as `Veo` and `Sora`.
 Generating images and videos is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in `Image generation` mode or ask the model for the best prompt.
 
 ![v3_img](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img.png)
@@ -1387,7 +1387,7 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Google` - Access Gmail, Drive, Docs, Maps, Calendar, Contacts, Colab, YouTube, Keep - for managing emails, files, events, notes, video info, and contacts.
 
-- `Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the `+ Tools` option to be enabled.
+- `Image Generation (inline)` - integrates image generation with any chat and mode. Select an image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The plugin does not require the `+ Tools` option to be enabled.
 
 - `Mailer` - Provides the ability to send, receive and read emails.
 
@@ -1461,7 +1461,7 @@ The plugin activates autonomous mode in standard chat modes, where AI begins a c
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
-This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using `DALL-E`.
+This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#autonomous-agent-inline
 
@@ -1492,7 +1492,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#bitbucket
 
 ## Chat with Files (LlamaIndex, inline)
 
-Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context.
+Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context. The plugin also provides the `Image model` setting used by the Image (vision) data loader when API mode is active (default: `gpt-4o`). Audio/video transcription is not configured here; it uses the provider selected in the `Audio Input` plugin.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#chat-with-files-llamaindex-inline
 
@@ -1711,7 +1711,9 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#google-gmail-
 
 ## Image Generation (inline)
 
-The plugin integrates `DALL-E 3` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as `GPT-4`. The plugin does not require the `+ Tools` option to be enabled.
+The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The model can then call the plugin's `image` tool with a dedicated image prompt. The plugin does not require the `+ Tools` option to be enabled.
+
+By default, the plugin appends a short image-generation instruction to the system prompt so the current model knows when and how to use the `image` tool. You can disable this behavior with `Append image prompt to system prompt` while keeping the image tool available.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#image-generation-inline
 
@@ -2818,7 +2820,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments (**kwargs), such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the PyGPT documentation or LlamaHub loaders reference for a list of allowed arguments for the specified data loader. One argument per single row.
 
-- `Use local models in Video/Audio and Image (vision) loaders`: Enable usage of local models in Video/Audio and Image (vision) loaders. If disabled, then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in the Python version (not compiled/Snap). Default: False.
+- `Use local models in Video/Audio and Image (vision) loaders`: Enable usage of local models in Video/Audio and Image (vision) loaders. If disabled, the Image (vision) loader uses the image model configured in the `Chat with Files (LlamaIndex, inline)` plugin, while the Video/Audio loader uses the speech-recognition provider configured in the `Audio Input` plugin. Note: local models work only in the Python version (not compiled/Snap). Default: False.
 
 *Update*
 
@@ -2914,7 +2916,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Log plugin usage to console`: Enables plugin usage logging in the console. Default: False.
 
-- `Log DALL-E usage to console`: Enables image-generation usage logging in the console. Default: False.
+- `Log image generation usage to console`: Enables image-generation usage logging in the console. Default: False.
 
 - `Log attachments usage to console`: Enables attachment usage logging in the console. Default: False.
 
@@ -2954,7 +2956,7 @@ You can manually edit the configuration files in this directory (this is your wo
 - `css` - a directory for CSS stylesheets (user override)
 - `history` - a directory for context history in `.txt` format.
 - `idx` - `LlamaIndex` indexes
-- `img` - a directory for images generated with `DALL-E 3` and `DALL-E 2`, saved as `.png` files.
+- `img` - a directory for generated images saved by the application.
 - `locale` - a directory for locales (user override)
 - `data` - a directory for data files and files downloaded/generated by models.
 - `presets` - a directory for presets stored as `.json` files.
@@ -3062,17 +3064,17 @@ Allowed additional keyword arguments for built-in data loaders (files):
 **Image (vision)**  (file_image_vision)
 
 This loader can operate in two modes: local model and API.
-If the local mode is enabled, then the local model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
-If the API mode (default) is selected, then the OpenAI API and the standard vision model will be used. 
+If local mode is enabled, a local vision model is used. Local mode requires the Python/PyPi version of the application and is not available in compiled or Snap versions.
+If API mode (default) is selected, the loader uses the image model configured in `Plugins -> Settings -> Chat with Files (LlamaIndex, inline) -> Image model` (default: `gpt-4o`).
 
-**Note:** Usage of API mode consumes additional tokens in OpenAI API (for `GPT-4 Vision` model)!
+**Note:** API mode sends the image to the configured API model and may incur provider/API usage costs.
 
-Local mode requires `torch`, `transformers`, `sentencepiece` and `Pillow` to be installed and uses the `Salesforce/blip2-opt-2.7b` model to describing images.
+Local mode requires `torch`, `transformers`, `sentencepiece` and `Pillow` and uses `Salesforce/blip2-opt-2.7b` to describe images.
 
 - `keep_image` - bool, default: `False`
 - `local_prompt` - str, default: `Question: describe what you see in this image. Answer:`
-- `api_prompt` - str, default: `Describe what you see in this image` - Prompt to use in API
-- `api_model` - str, default: `gpt-4-vision-preview` - Model to use in API
+- `api_prompt` - str, default: `Describe what is visible in the image, do it as accurately as possible, including a comprehensive description of all details` - Prompt to use in API mode
+- `api_model` - str, default: `gpt-4o` - API model fallback; when running inside PyGPT it is set from the `Image model` option in the `Chat with Files (LlamaIndex, inline)` plugin
 - `api_tokens` - int, default: `1000` - Max output tokens in API
 
 **IPYNB Notebook files**  (file_ipynb)
@@ -3091,15 +3093,15 @@ Local mode requires `torch`, `transformers`, `sentencepiece` and `Pillow` to be 
 
 **Video/Audio**  (file_video_audio)
 
-This loader can operate in two modes: local model and API.
-If the local mode is enabled, then the local `Whisper` model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
-If the API mode (default) is selected, then the currently selected provider in `Audio Input` plugin will be used. If the `OpenAI Whisper` is chosen then the OpenAI API and the API Whisper model will be used. 
+This loader can operate in two modes: local model and provider-based transcription.
+If local mode is enabled, the local `Whisper` model is used. Local mode requires the Python/PyPi version of the application and is not available in compiled or Snap versions.
+If local mode is disabled (default), transcription is delegated to the provider currently configured in the `Audio Input` plugin. For example, when `Whisper (via OpenAI API)` is selected there, the loader uses that provider and its configured model.
 
-**Note:** Usage of Whisper via API consumes additional tokens in OpenAI API (for `Whisper` model)!
+**Note:** Provider-based transcription may incur API usage costs depending on the selected `Audio Input` provider.
 
-Local mode requires `torch` and `openai-whisper` to be installed and uses the `Whisper` model locally to transcribing video and audio.
+Local mode requires `torch` and `openai-whisper` and uses the local `Whisper` model to transcribe video and audio.
 
-- `model_version` - str, default: `base` - Whisper model to use, available models: https://github.com/openai/whisper
+- `model_version` - str, default: `base` - Local Whisper model to use, available models: https://github.com/openai/whisper
 
 **XML files**  (file_xml)
 

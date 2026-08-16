@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.15 02:00:00                  #
+# Updated Date: 2026.08.16 18:20:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -23,30 +23,15 @@ class Config(BaseConfig):
 
         :param plugin: plugin instance
         """
-        prompt = 'IMAGE GENERATION: Whenever I provide a basic idea or concept for an image, such as \'give me a picture of ' \
-                 'mountains\', I want you to ALWAYS translate it into English and expand and elaborate on this idea. ' \
-                 'Use your knowledge and creativity to add details that would make the image more vivid and ' \
-                 'interesting. This could include specifying the time of day, weather conditions, surrounding ' \
-                 'environment, and any additional elements that could enhance the scene. Your goal is to create a ' \
-                 'detailed and descriptive prompt that provides DALL-E with enough information to generate a rich ' \
-                 'and visually appealing image. Remember to maintain the original intent of my request while ' \
-                 'enriching the description with your imaginative details. HOW TO START IMAGE GENERATION: to start ' \
-                 'image generation return to me prepared prompt in JSON format, all in one line, using the following ' \
-                 'syntax: <tool>...</tool>, example: <tool>{"cmd": "image", "params": {"query": "your query here"}}</tool>. Use ONLY this syntax ' \
-                 'and remember to surround JSON string with <tool> tags. DO NOT use any other syntax. Use English in the ' \
-                 'generated JSON command, but conduct all the remaining parts of the discussion with me in the ' \
-                 'language in which I am speaking to you. The image will be generated on my machine  immediately ' \
-                 'after the command is issued, allowing us to discuss the photo once it has been created.  Please ' \
-                 'engage with me about the photo itself, not only by giving the generate command. '
-        prompt_func = 'IMAGE GENERATION: Whenever I provide a basic idea or concept for an image, such as \'give me a picture of ' \
-                      'mountains\', I want you to translate it into English and expand and elaborate on this idea. ' \
-                      'Use your knowledge and creativity to add details that would make the image more vivid and ' \
-                      'interesting. This could include specifying the time of day, weather conditions, surrounding ' \
-                      'environment, and any additional elements that could enhance the scene. Your goal is to create a ' \
-                      'detailed and descriptive prompt (query) that provides DALL-E with enough information to generate a rich ' \
-                      'and visually appealing image. Use this command to start image generation. Use English in the image query.  ' \
-                      'The image will be generated on my machine immediately after the command is issued, allowing us to ' \
-                      'discuss the photo once it has been created. Please engage with me about the photo itself, not only by giving the generate command. '
+        prompt = (
+            "IMAGE GENERATION: When the user asks to create or generate an image, use the image tool. "
+            "Write the image query in English as a clear, detailed prompt that preserves the user's intent. "
+            "After the image is generated, continue the conversation normally."
+        )
+        prompt_func = (
+            "Generate an image requested by the user. Put a clear, detailed English image-generation prompt "
+            "in the query parameter and preserve the user's intent."
+        )
         plugin.add_option(
             "model",
             type="combo",
@@ -56,8 +41,7 @@ class Config(BaseConfig):
             },
             value="gpt-image-1",
             label="Model",
-            description="Model used for generating images, "
-                        "default: gpt-image-1",
+            description="Image generation model, default: gpt-image-1",
             tooltip="Model",
         )
         plugin.add_cmd(
@@ -67,19 +51,27 @@ class Config(BaseConfig):
                 {
                     "name": "query",
                     "type": "str",
-                    "description": "image generation query (prompt for DALL-E)",
+                    "description": "Prompt describing the image to generate",
                     "required": True,
                 },
             ],
             enabled=True,
-            description="If enabled, DALL-E 3 image generation is available in chat.",
+            description="Enable image generation in chat.",
         )
         plugin.add_option(
             "prompt",
             type="textarea",
             value=prompt,
             label="Prompt",
-            description="Prompt used for generating a query for DALL-E in background.",
+            description="Image generation instructions appended to the system prompt.",
             tooltip="Prompt",
+            advanced=False,
+        )
+        plugin.add_option(
+            "append_prompt",
+            type="bool",
+            value=True,
+            label="Append image prompt to system prompt",
+            description="Append image generation instructions to the system prompt.",
             advanced=False,
         )

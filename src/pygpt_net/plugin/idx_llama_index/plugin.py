@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 09:00:00                  #
+# Updated Date: 2026.08.16 18:25:00                  #
 # ================================================== #
 
 import json
@@ -114,6 +114,7 @@ class Plugin(BasePlugin):
             # update models list
             self.refresh_option("model_prepare_question")
             self.refresh_option("model_query")
+            self.refresh_option("model_image")
 
     def on_system_prompt(self, prompt: str) -> str:
         """

@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.8.2",
-    "app.version": "2.8.2",
+    "version": "2.8.3",
+    "app.version": "2.8.3",
     "updated_at": "2026-08-15T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -220,7 +220,7 @@
   "img_prompt_model": "gpt-4o",
   "img_raw": true,
   "img_resolution": "1024x1024",
-  "img_quality": "standard",
+  "img_quality": "auto",
   "img_variants": 1,
   "img.remix": false,
   "interpreter.auto_clear": false,
@@ -348,7 +348,7 @@
   "lock_modes": true,
   "log.assistants": false,
   "log.ctx": true,
-  "log.dalle": false,
+  "log.image": false,
   "log.events": false,
   "log.level": "error",
   "log.llama": false,

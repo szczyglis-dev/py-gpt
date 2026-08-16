@@ -23,7 +23,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Files I/O`` - grants access to the local filesystem, enabling model to read and write files, as well as list and create directories.
 * ``GitHub`` - Access GitHub API to manage repositories, issues, and pull requests.
 * ``Google`` - Access Gmail, Drive, Docs, Maps, Calendar, Contacts, Colab, YouTube, Keep - for managing emails, files, events, notes, video info, and contacts.
-* ``Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``+ Tools`` option to be enabled.
+* ``Image Generation (inline)`` - integrates image generation with any chat and mode. Select an image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The plugin does not require the ``+ Tools`` option to be enabled.
 * ``Mailer`` - Provides the ability to send, receive and read emails.
 * ``MCP`` - Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
 * ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
@@ -375,7 +375,7 @@ The plugin activates autonomous mode in standard chat modes, where AI begins a c
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
-This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using ``DALL-E``.
+This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation.
 
 **Options**
 
@@ -614,7 +614,13 @@ If enabled, then metadata from LlamaIndex will be appended to additional context
 
 - ``Model`` *model_query*
 
-Model used for querying ``LlamaIndex``. *Default:* ``gpt-3.5-turbo``
+Model used for querying ``LlamaIndex``. *Default:* ``gpt-4o-mini``
+
+- ``Image model`` *model_image*
+
+Vision model used by the Image (vision) data loader when API mode is active. *Default:* ``gpt-4o``
+
+Audio/video transcription is configured separately in the ``Audio Input`` plugin and uses the provider selected there.
 
 - ``Index name`` *idx*
 
@@ -1617,13 +1623,21 @@ The plugin integrates with various Google services, enabling features such as em
 Image Generation (inline)
 -------------------------
 
-The plugin integrates ``DALL-E 3`` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as ``GPT-4``. The plugin does not require the ``+ Tools`` option to be enabled.
+The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The current model can call the plugin's ``image`` tool with a dedicated image prompt. The plugin does not require the ``+ Tools`` option to be enabled.
 
 **Options**
 
+- ``Model`` *model*
+
+Image-generation model used by the plugin. *Default:* ``gpt-image-1``
+
 - ``Prompt`` *prompt*
 
-The prompt is used to generate a query for the ``DALL-E`` image generation model, which runs in the background.
+Image-generation instructions that can be appended to the current system prompt. They tell the current model when and how to use the ``image`` tool.
+
+- ``Append image prompt to system prompt`` *append_prompt*
+
+If enabled, the plugin appends the configured image-generation instructions to the system prompt. Disable it if you want the ``image`` tool to remain available without adding the extra image-generation instructions. *Default:* ``True``
 
 
 Mailer

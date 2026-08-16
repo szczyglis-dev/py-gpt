@@ -1669,27 +1669,6 @@
                 "1024x1536": "[gpt-image-1] 1024x1536"
             },
             {
-                "1536x1024": "[gpt-image-1] 1536x1024"
-            },
-            {
-                "1792x1024": "[DALL-E 3] 1792x1024"
-            },
-            {
-                "1024x1792": "[DALL-E 3] 1024x1792"
-            },
-            {
-                "1024x1024": "[DALL-E 3] 1024x1024"
-            },
-            {
-                "1024x1024": "[DALL-E 2] 1024x1024"
-            },
-            {
-                "512x512": "[DALL-E 2] 512x512"
-            },
-            {
-                "256x256": "[DALL-E 2] 256x256"
-            },
-            {
                 "1024x1024": "[Imagen 3.0] 1024x1024"
             },
             {
@@ -1760,16 +1739,7 @@
                 "medium": "[gpt-image-1] medium"
             },
             {
-                "medium": "[gpt-image-1] low"
-            },
-            {
-                "standard": "[DALL-E 3] standard"
-            },
-            {
-                "hd": "[DALL-E 3] hd"
-            },
-            {
-                "standard": "[DALL-E 2] standard"
+                "low": "[gpt-image-1] low"
             }
         ],
         "tab": "image"
@@ -3227,12 +3197,12 @@
         "step": null,
         "advanced": false
     },
-    "log.dalle": {
+    "log.image": {
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log DALL-E usage to console",
-        "description": "settings.log.dalle.desc",
+        "label": "Log image and video generation to console",
+        "description": "settings.log.image.desc",
         "value": false,
         "min": null,
         "max": null,

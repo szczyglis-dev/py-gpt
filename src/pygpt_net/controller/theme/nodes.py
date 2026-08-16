@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.08.16 18:40:00
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -73,7 +73,7 @@ class Nodes:
                 'assistants.import',
                 'assistants.label',
                 'cmd.enabled',
-                'dalle.options',
+                'image.options',
                 'img_variants.label',
                 'preset.clear',
                 'preset.presets',

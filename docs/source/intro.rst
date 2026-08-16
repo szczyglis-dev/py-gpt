@@ -33,7 +33,7 @@ Features
 * Supports multiple models like ``OpenAI GPT-5``, ``GPT-4``, ``o1``, ``o3``, ``o4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``DeepSeek``, ``gpt-oss``, ``Llama 3``, ``Mistral``, ``Bielik``, etc.
 * Chat with your own Files: integrated ``LlamaIndex`` support: chat with data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 * Built-in vector databases support and automated files and data embedding.
-* Image generation via models like ``DALL-E``, ``gpt-image``, ``Imagen``, ``Gemini`` and ``Nano Banana``.
+* Image generation via models like ``gpt-image``, ``Imagen``, ``Gemini`` and ``Nano Banana``.
 * Video generation via models like ``Veo3`` and ``Sora2``.
 * Internet access via ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
 * Speech synthesis via ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI`` Text-To-Speech services.

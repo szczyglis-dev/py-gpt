@@ -10,7 +10,7 @@ from llama_index.core.utils import infer_torch_device
 class ImageVisionLLMReader(BaseReader):
     """Image parser.
 
-    Caption image using Blip2 (a multimodal VisionLLM similar to GPT4).
+    Caption image using Blip2 (a multimodal vision-language model).
 
     Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-file/llama_index/readers/file/image_vision_llm/base.py
 
@@ -22,7 +22,7 @@ class ImageVisionLLMReader(BaseReader):
         window = None,
         keep_image: bool = False,
         api_prompt: str = "Describe what you see in this image",
-        api_model: str = "gpt-4-vision-preview",
+        api_model: str = "gpt-4o",
         api_tokens: int = 1000,
         local_prompt: str = "Question: describe what you see in this image. Answer:",
     ):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 16:30:00                  #
+# Updated Date: 2026.08.16 18:40:00                  #
 # ================================================== #
 
 VIDEO_AVAILABLE_ASPECT_RATIOS = {
@@ -93,16 +93,6 @@ IMAGE_AVAILABLE_RESOLUTIONS = {
         "1024x1024": "1024x1024",
         "1536x1024": "1536x1024",
         "1024x1536": "1024x1536"
-    },
-    "dall-e-3": {
-        "1792x1024": "1792x1024",
-        "1024x1792": "1024x1792",
-        "1024x1024": "1024x1024"
-    },
-    "dall-e-2": {
-        "1024x1024": "1024x1024",
-        "512x512": "512x512",
-        "256x256": "256x256"
     },
     "imagen-3.0": {
         "1024x1024": "1024x1024",

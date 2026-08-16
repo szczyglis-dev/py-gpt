@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2026.08.16 18:20:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -35,8 +35,8 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_dalle"
         self.name = "Image generation"
-        self.description = "Integrates DALL-E 3 image generation with any chat"
-        self.prefix = "DALL-E"
+        self.description = "Integrates image generation with any chat"
+        self.prefix = "Image"
         self.type = [
             "cmd.inline",
         ]
@@ -125,6 +125,8 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
+        if not self.get_option_value("append_prompt"):
+            return prompt
         prompt += "\n" + self.get_option_value("prompt")
         return prompt
 
@@ -151,22 +153,30 @@ class Plugin(BasePlugin):
                     query = item["params"]["query"]
                     # if internal call (ctx.internal = True), then re-send OK response
                     # if not internal call, then append image to chat only
-                    model = ModelItem()
-                    model.id = "dall-e-3"
+                    model_id = self.get_option_value("model") or "gpt-image-1"
+                    model = self.window.core.models.get(model_id)
+                    if model is None:
+                        model = ModelItem(model_id)
+
                     bridge_context = BridgeContext(
                         ctx=ctx,
-                        mode="image",  # fake mode, not-img mode
-                        model=model,  # model instance
+                        mode="img",
+                        model=model,
                         prompt=query,
                     )
                     extra = {
-                        "num": 1,  # force 1 image if dall-e-3 model is used
-                        "inline": True, # force inline mode
+                        "num": 1,
+                        "inline": True,
                     }
-                    sync = False
-                    if self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
-                        sync = True
-                    self.window.core.api.openai.image.generate(bridge_context, extra, sync)  # force inline mode, async call
+                    sync = self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]
+
+                    # Use the native image provider selected by the configured image model.
+                    if model.provider == "google" and self.window.core.config.get("api_native_google", False):
+                        self.window.core.api.google.image.generate(bridge_context, extra, sync)
+                    elif model.provider == "x_ai" and self.window.core.config.get("api_native_xai", False):
+                        self.window.core.api.xai.image.generate(bridge_context, extra, sync)
+                    else:
+                        self.window.core.api.openai.image.generate(bridge_context, extra, sync)
             except Exception as e:
                 self.log("Error: " + str(e))
                 return

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.30 22:00:00                  #
+# Updated Date: 2026.08.16 18:40:00
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout
@@ -45,7 +45,7 @@ class Image:
         conf_global = ui.config['global']
 
         container = QWidget(parent=self.window)
-        ui.nodes['dalle.options'] = container
+        ui.nodes['image.options'] = container
 
         conf_global['img_variants'] = OptionInput(self.window, 'global', 'img_variants', option)
         conf_global['img_variants'].setToolTip(trans("toolbox.img_variants.label"))

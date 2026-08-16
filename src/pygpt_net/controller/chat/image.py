@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.23 23:00:00                  #
+# Updated Date: 2026.08.16 18:40:00
 # ================================================== #
 
 import os
@@ -53,13 +53,13 @@ class Image:
         elif num > 4:
             num = 4
 
-        # force 1 image if dall-e-3 model is used
+        # force one image for current OpenAI image models
         mode = core.config.get('mode')
         model = core.config.get('model')
         model_data = core.models.get(model)
         extra_prompt = self.window.ui.nodes['input_extra'].toPlainText().strip()
         if (model_data and model_data.id
-                and (model_data.id == 'dall-e-3' or model_data.id.startswith('gpt-image-1'))):
+                and (model_data.id.startswith('gpt-image-') or model_data.id.startswith('chatgpt-image'))):
             num = 1
 
         update_status(trans('status.sending'))

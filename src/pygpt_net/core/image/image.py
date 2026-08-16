@@ -83,8 +83,8 @@ class Image(QObject):
         self.window.update_status(msg)
 
         is_log = False
-        if self.window.core.config.has("log.dalle") \
-                and self.window.core.config.get("log.dalle"):
+        if self.window.core.config.has("log.image") \
+                and self.window.core.config.get("log.image"):
             is_log = True
         self.window.core.debug.info(msg, not is_log)
         if is_log:
