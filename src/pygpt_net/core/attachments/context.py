@@ -159,7 +159,7 @@ class Context:
                     if file["type"] == "url":
                         context += "URL: {}\n".format(file["path"]) + "\n"
                     else:
-                        context += "Filename: {}\n".format(file["name"]) + "\n"
+                        context += "Filename: {}\n".format(self.get_context_filename(file)) + "\n"
 
                 # store used files and URLs in ctx
                 if file["type"] == "url":
@@ -213,7 +213,12 @@ class Context:
                     if file["type"] == "url":
                         type = AttachmentItem.TYPE_URL
                         source = file["path"] # URL
-                doc_ids = self.index_attachment(type, source, idx_path)
+                doc_ids = self.index_attachment(
+                    type,
+                    source,
+                    idx_path,
+                    context_name=self.get_context_filename(file),
+                )
                 file["indexed"] = True
                 file["doc_ids"] = doc_ids
                 indexed = True
@@ -375,6 +380,8 @@ class Context:
         content, docs = self.read_content(attachment, src_file, prompt)
         if attachment.type == AttachmentItem.TYPE_FILE:
             documents = docs
+            context_name = self.get_attachment_context_name(attachment, real_path)
+            self.normalize_attachment_document_metadata(documents, context_name)
 
         if content:
             text_path = os.path.join(file_idx_path, file_id + ".txt")
@@ -401,10 +408,17 @@ class Context:
             source = src_file
             if attachment.type == AttachmentItem.TYPE_URL:
                 source = attachment.path  # URL
-            doc_ids = self.index_attachment(attachment.type, source, index_path, documents=documents)
+            doc_ids = self.index_attachment(
+                attachment.type,
+                source,
+                index_path,
+                documents=documents,
+                context_name=self.get_attachment_context_name(attachment, real_path),
+            )
 
         result = {
             "name": name,
+            "context_name": self.get_attachment_context_name(attachment, real_path),
             "path": attachment.path,
             "type": type,
             "uuid": str(file_id),
@@ -425,6 +439,98 @@ class Context:
             print("Attachments: uploaded: {}".format(result))
 
         return result
+
+    @staticmethod
+    def _normalize_context_path(path: str) -> str:
+        """Normalize a model-facing attachment path without exposing local filesystem paths."""
+        value = str(path or "").replace("\\", "/")
+        while value.startswith("./"):
+            value = value[2:]
+        return value.lstrip("/")
+
+    def get_attachment_context_name(
+            self,
+            attachment: AttachmentItem,
+            real_path: Optional[str] = None
+    ) -> str:
+        """Return the source name that may safely be exposed to the model."""
+        attachment_path = str(attachment.path or "")
+        is_archive_member = bool(
+            real_path
+            and attachment_path
+            and os.path.normcase(os.path.normpath(str(real_path)))
+            != os.path.normcase(os.path.normpath(attachment_path))
+        )
+        if is_archive_member:
+            name = getattr(attachment, "name", None)
+            if name:
+                normalized = self._normalize_context_path(name)
+                if normalized:
+                    return normalized
+        return os.path.basename(attachment_path)
+
+    def get_context_filename(self, item: Dict[str, Any]) -> str:
+        """Return a safe filename/relative archive member path for additional context."""
+        explicit = item.get("context_name")
+        if explicit:
+            return self._normalize_context_path(explicit)
+
+        archive_member = item.get("archive_member")
+        if archive_member:
+            return self._normalize_context_path(archive_member)
+
+        # Backward compatibility for archive entries created before context_name
+        # and archive_member were stored. Their `name` was already rewritten to
+        # the path relative to the archive root.
+        if item.get("stored_name") and item.get("real_path"):
+            name = item.get("name")
+            if name:
+                normalized = self._normalize_context_path(name)
+                archive_name = os.path.basename(str(item.get("real_path") or ""))
+                prefix = f"{archive_name}/" if archive_name else ""
+                if prefix and normalized.startswith(prefix):
+                    normalized = normalized[len(prefix):]
+                if normalized:
+                    return normalized
+
+        # Never expose the original absolute path for regular files.
+        candidate = item.get("name") or item.get("real_path") or item.get("path") or ""
+        normalized = str(candidate).replace("\\", "/").rstrip("/")
+        return normalized.rsplit("/", 1)[-1] if normalized else ""
+
+    def normalize_attachment_document_metadata(
+            self,
+            documents: Optional[List[Document]],
+            context_name: str
+    ):
+        """Remove local filesystem paths from attachment metadata used by RAG."""
+        if not documents:
+            return
+        safe_path = self._normalize_context_path(context_name)
+        safe_name = safe_path.rsplit("/", 1)[-1] if safe_path else ""
+        for doc in documents:
+            metadata = getattr(doc, "metadata", None)
+            if not isinstance(metadata, dict):
+                continue
+
+            # Standard LlamaIndex file metadata can contain the full local path.
+            # Keep the metadata keys, but replace path values with a model-safe
+            # filename or archive-relative path.
+            for key in ("file_path", "filepath", "source_path"):
+                if key in metadata:
+                    metadata[key] = safe_path
+            for key in ("file_name", "filename"):
+                if key in metadata:
+                    metadata[key] = safe_path or safe_name
+
+            # Custom metadata can use a generic `path` key. Only rewrite it when
+            # it clearly contains an absolute/local path rather than arbitrary text.
+            if "path" in metadata and isinstance(metadata["path"], str):
+                value = metadata["path"]
+                if os.path.isabs(value) or "\\" in value:
+                    metadata["path"] = safe_path
+
+            doc.metadata = metadata
 
     def read_content(
             self,
@@ -501,7 +607,8 @@ class Context:
             type: str,
             source: str,
             idx_path: str,
-            documents: Optional[List[Document]] = None
+            documents: Optional[List[Document]] = None,
+            context_name: Optional[str] = None
     ) -> list:
         """
         Index attachment
@@ -510,11 +617,16 @@ class Context:
         :param source: source file or URL
         :param idx_path: index path
         :param documents: list of documents (optional)
+        :param context_name: model-facing filename or archive-relative path
         :return: list of doc IDs
         """
         model, model_item = self.get_selected_model("query")
         doc_ids = []
         if type == AttachmentItem.TYPE_FILE:
+            if context_name:
+                if documents is None:
+                    documents = self.window.core.idx.indexing.get_documents(source)
+                self.normalize_attachment_document_metadata(documents, context_name)
             doc_ids = self.window.core.idx.indexing.index_attachment(source, idx_path, model_item, documents)
         elif type == AttachmentItem.TYPE_URL:
             doc_ids = self.window.core.idx.indexing.index_attachment_web(source, idx_path, model_item, documents)
