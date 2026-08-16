@@ -11,6 +11,7 @@
 
 import json
 import os
+import re
 from typing import Optional, Dict, Any, List, Set
 
 from pygpt_net.core.types import MODE_CHAT, MODE_AUDIO, MODE_COMPUTER
@@ -18,6 +19,7 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
 
 import anthropic
 from anthropic.types import Message
@@ -112,6 +114,38 @@ class Chat:
         if mcp_servers:
             params["mcp_servers"] = mcp_servers  # MCP connector servers per docs
 
+        # Request readable summarized thinking only where it does not interfere
+        # with the app's separate client/server-tool continuation flow. Anthropic
+        # requires thinking blocks/signatures to be preserved across tool turns;
+        # until that whole tool transcript is round-tripped here, keep automatic
+        # thinking display to plain chat requests.
+        no_tools = not tools and not mcp_servers and mode != MODE_COMPUTER
+        model_id_lc = str(model.id or "").lower()
+        thinking_cfg = None
+        if no_tools:
+            # Claude 4.6+ and Claude 5 use adaptive thinking.
+            version_match = re.search(r"-4-(\d+)(?:-|$)", model_id_lc)
+            is_adaptive = (
+                bool(version_match and int(version_match.group(1)) >= 6)
+                or bool(re.search(r"-(?:opus|sonnet|fable|haiku|mythos)-5(?:-|$)", model_id_lc))
+            )
+            if is_adaptive:
+                thinking_cfg = {"type": "adaptive", "display": "summarized"}
+            # Claude 4.5 / 3.7 use legacy fixed-budget extended thinking.
+            elif ("-4-5" in model_id_lc or "claude-3-7-sonnet" in model_id_lc) and max_tokens > 1024:
+                budget = min(4096, max(1024, max_tokens // 2), max_tokens - 1)
+                thinking_cfg = {
+                    "type": "enabled",
+                    "budget_tokens": budget,
+                    "display": "summarized",
+                }
+
+        if thinking_cfg is not None:
+            params["thinking"] = thinking_cfg
+            # Sampling temperature is incompatible with thinking on affected
+            # Claude generations; default sampling is the safest common path.
+            params.pop("temperature", None)
+
         if mode == MODE_AUDIO:
             stream = False  # no native TTS
 
@@ -138,6 +172,15 @@ class Chat:
         :param ctx: CtxItem to update
         """
         ctx.output = self.extract_text(response)
+        reasoning = self.extract_reasoning(response)
+        if reasoning:
+            store_reasoning(
+                ctx, provider="anthropic", text=reasoning,
+                kind="thinking_summary", raw=False, visible=True,
+            )
+            signatures = self.extract_thinking_signatures(response)
+            if signatures:
+                ctx.extra["reasoning"]["signatures"] = signatures
 
         calls = self.extract_tool_calls(response)
         if calls:
@@ -159,12 +202,16 @@ class Chat:
                         server_tool_use = dict(getattr(usage, "server_tool_use"))
                     except Exception:
                         server_tool_use = {}
+                details = getattr(usage, "output_tokens_details", None)
+                thinking_tokens = getattr(details, "thinking_tokens", 0) if details else 0
                 ctx.extra["usage"] = {
                     "vendor": "anthropic",
                     "input_tokens": p,
                     "output_tokens": c,
+                    "reasoning_tokens": thinking_tokens or 0,
                     "server_tool_use": server_tool_use,
                 }
+                ensure_reasoning_metadata(ctx, "anthropic", thinking_tokens)
         except Exception:
             pass
 
@@ -203,6 +250,31 @@ class Chat:
         except Exception:
             pass
         return "".join(out).strip()
+
+    def extract_reasoning(self, response: Message) -> str:
+        """Extract Anthropic summarized thinking blocks."""
+        out: List[str] = []
+        try:
+            for blk in getattr(response, "content", []) or []:
+                if getattr(blk, "type", "") == "thinking" and getattr(blk, "thinking", None):
+                    out.append(str(blk.thinking))
+        except Exception:
+            pass
+        return "".join(out).strip()
+
+    def extract_thinking_signatures(self, response: Message) -> List[str]:
+        """Extract integrity signatures associated with thinking blocks."""
+        out: List[str] = []
+        try:
+            for blk in getattr(response, "content", []) or []:
+                if getattr(blk, "type", "") != "thinking":
+                    continue
+                signature = getattr(blk, "signature", None)
+                if signature:
+                    out.append(str(signature))
+        except Exception:
+            pass
+        return out
 
     def extract_tool_calls(self, response: Message) -> List[dict]:
         """

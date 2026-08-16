@@ -358,7 +358,7 @@ class ApiXAI:
             # If tools are present, prefer non-streaming HTTP Chat Completions path to extract tool calls reliably.
             # Otherwise use native SDK chat.sample().
             if tools:
-                out, calls, citations, usage = self.chat.call_http_nonstream(
+                out, calls, citations, usage, _reasoning = self.chat.call_http_nonstream(
                     model=model.id,
                     prompt=prompt,
                     system_prompt=system_prompt,

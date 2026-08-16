@@ -79,6 +79,7 @@ def capture_google_usage(state, um_obj: Any):
         as_int(safe_get(um_obj, "output_tokens"))
     )
     reasoning = (
+        as_int(safe_get(um_obj, "thoughts_token_count")) or
         as_int(safe_get(um_obj, "candidates_reasoning_token_count")) or
         as_int(safe_get(um_obj, "reasoning_tokens")) or 0
     )

@@ -21,6 +21,7 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
 
 from xai_sdk.chat import system as xsystem, user as xuser, assistant as xassistant, image as ximage
 
@@ -132,7 +133,7 @@ class Chat:
             return chat
 
         # Otherwise HTTP non-stream for legacy function-calling/vision/tool-turns (without Live Search)
-        text, calls, citations, usage = self.call_http_nonstream(
+        text, calls, citations, usage, reasoning = self.call_http_nonstream(
             model=model_id,
             prompt=prompt,
             system_prompt=system_prompt,
@@ -149,6 +150,7 @@ class Chat:
             "tool_calls": calls or [],
             "citations": citations or [],
             "usage": usage or None,
+            "reasoning_content": reasoning or "",
         }
 
     # ---------- UNPACK (non-stream) ----------
@@ -197,6 +199,20 @@ class Chat:
                     pass
 
         ctx.output = (str(txt or "")).strip()
+
+        try:
+            reasoning = self._extract_reasoning_content(response)
+            if reasoning:
+                store_reasoning(
+                    ctx=ctx,
+                    provider="xai",
+                    text=reasoning,
+                    kind="reasoning_summary",
+                    raw=False,
+                    visible=True,
+                )
+        except Exception:
+            pass
 
         # Tool calls
         calls = []
@@ -344,6 +360,7 @@ class Chat:
                         "reasoning_tokens": u.get("reasoning", 0),
                         "total_reported": u.get("total"),
                     }
+                    ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
                     return
 
             uattr = getattr(response, "usage", None)
@@ -360,6 +377,7 @@ class Chat:
                         "reasoning_tokens": u.get("reasoning", 0),
                         "total_reported": u.get("total"),
                     }
+                    ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
                     return
 
             proto = getattr(response, "proto", None)
@@ -380,6 +398,7 @@ class Chat:
                     "reasoning_tokens": r,
                     "total_reported": t,
                 }
+                ensure_reasoning_metadata(ctx, "xai", r)
         except Exception:
             pass
 
@@ -441,10 +460,10 @@ class Chat:
         search_parameters: Optional[Dict[str, Any]],
         temperature: Optional[float],
         max_tokens: Optional[int],
-    ) -> Tuple[str, List[dict], List[str], Optional[dict]]:
+    ) -> Tuple[str, List[dict], List[str], Optional[dict], str]:
         """
         Non-streaming HTTP Chat Completions call to xAI with optional tools, Live Search, and vision.
-        Returns (text, tool_calls, citations, usage).
+        Returns (text, tool_calls, citations, usage, reasoning_summary).
         """
         import requests
 
@@ -492,14 +511,18 @@ class Chat:
             data = resp.json() if resp.content else {}
         except Exception as e:
             self.window.core.debug.error(f"[xai.http] error: {e}")
-            return "", [], [], None
+            return "", [], [], None, ""
 
         text = ""
+        reasoning = ""
         calls: List[dict] = []
         try:
             choices = data.get("choices") or []
             if choices:
                 msg = (choices[0].get("message") or {})
+                rc = msg.get("reasoning_content")
+                if isinstance(rc, str):
+                    reasoning = rc.strip()
                 mc = msg.get("content")
                 if isinstance(mc, str):
                     text = mc.strip()
@@ -546,7 +569,7 @@ class Chat:
         except Exception:
             usage = usage or None
 
-        return text, calls, citations, usage
+        return text, calls, citations, usage, reasoning
 
     def call_http_stream(
         self,
@@ -605,10 +628,12 @@ class Chat:
             "Authorization": f"Bearer {api_key}",
         }
 
-        def _mk_chunk(delta_text=None, tool_calls=None, citations=None, usage=None):
+        def _mk_chunk(delta_text=None, reasoning_content=None, tool_calls=None, citations=None, usage=None):
             delta_dict: Dict[str, Any] = {}
             if delta_text is not None:
                 delta_dict["content"] = delta_text
+            if reasoning_content is not None:
+                delta_dict["reasoning_content"] = reasoning_content
             if tool_calls is not None:
                 delta_dict["tool_calls"] = tool_calls
             choice = SimpleNamespace(delta=SimpleNamespace(**delta_dict))
@@ -656,6 +681,11 @@ class Chat:
                             if chs:
                                 delta = chs[0].get("delta") or {}
                                 message = chs[0].get("message") or {}
+                                rc = delta.get("reasoning_content")
+                                if rc is None:
+                                    rc = message.get("reasoning_content")
+                                if rc is not None:
+                                    yield _mk_chunk(reasoning_content=str(rc))
                                 if "content" in delta and delta["content"] is not None:
                                     yield _mk_chunk(delta_text=str(delta["content"]))
                                 elif "content" in message and message["content"] is not None:
@@ -686,13 +716,17 @@ class Chat:
                         try:
                             if isinstance(obj.get("delta"), dict):
                                 d = obj["delta"]
+                                if d.get("reasoning_content") is not None:
+                                    yield _mk_chunk(reasoning_content=str(d["reasoning_content"]))
                                 if "content" in d and d["content"] is not None:
                                     yield _mk_chunk(delta_text=str(d["content"]))
                                 tc = d.get("tool_calls") or []
                                 if tc:
                                     yield _mk_chunk(tool_calls=tc)
-                            if isinstance(obj.get("message"), dict) and "content" in obj["message"]:
-                                mc = obj["message"]["content"]
+                            if isinstance(obj.get("message"), dict):
+                                if obj["message"].get("reasoning_content") is not None:
+                                    yield _mk_chunk(reasoning_content=str(obj["message"]["reasoning_content"]))
+                                mc = obj["message"].get("content")
                                 if isinstance(mc, str):
                                     yield _mk_chunk(delta_text=mc)
                                 elif isinstance(mc, list):
@@ -851,6 +885,26 @@ class Chat:
                     if u not in seen:
                         urls.append(u); seen.add(u)
         return urls
+
+    def _extract_reasoning_content(self, response) -> str:
+        """Extract a readable xAI reasoning summary when the response exposes one."""
+        value = None
+        if isinstance(response, dict):
+            value = response.get("reasoning_content")
+            if value is None:
+                choices = response.get("choices") or []
+                if choices:
+                    msg = choices[0].get("message") or {}
+                    value = msg.get("reasoning_content")
+        else:
+            value = getattr(response, "reasoning_content", None)
+            if value is None:
+                msg = getattr(response, "message", None) or getattr(response, "output_message", None)
+                if msg is not None:
+                    value = getattr(msg, "reasoning_content", None)
+                    if value is None and isinstance(msg, dict):
+                        value = msg.get("reasoning_content")
+        return self._content_to_text(value).strip() if value is not None else ""
 
     def _normalize_usage(self, raw) -> Optional[dict]:
         """

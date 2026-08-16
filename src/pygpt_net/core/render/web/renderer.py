@@ -735,10 +735,15 @@ class Renderer(BaseRenderer):
                 output = ctx.output  # full agent output
             else:
                 output = ctx.extra["output"]  # final output only
-        else:
-            if not output:
-                return
-        return str(output).strip()
+
+        # Reasoning/thinking returned by providers is persisted separately from
+        # ctx.output so it does not contaminate conversation history. Persisted
+        # reasoning is shown only as a fallback when the regular output is empty
+        # and real-time reasoning display is enabled. The same setting therefore
+        # acts as a master UI switch for <think> blocks without deleting metadata.
+        if self.window.core.config.get("ctx.reasoning.show_realtime", True):
+            output = ctx.get_display_output(output or "")
+        return str(output).strip() if output else None
 
     def append_output(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True,
                       prev_ctx: Optional[CtxItem] = None, next_ctx: Optional[CtxItem] = None):

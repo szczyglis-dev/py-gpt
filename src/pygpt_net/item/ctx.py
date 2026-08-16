@@ -252,6 +252,44 @@ class CtxItem:
             return "\n\n".join([self.output, self.hidden_output])
         return self.output
 
+    def get_display_output(self, output: Optional[str] = None) -> Optional[str]:
+        """
+        Return output prepared for UI rendering.
+
+        Persisted provider reasoning is normally hidden once generation has
+        finished.  It is restored only as a fallback when there is no regular
+        assistant output at all.  Live reasoning remains unaffected because it
+        is rendered directly from streamed ``<think>`` chunks while the response
+        is being generated.
+
+        The trace stays out of ``final_output`` so it is never sent back to the
+        model as ordinary assistant content on subsequent turns.
+
+        :param output: Optional already-selected output (e.g. final agent output)
+        :return: UI output text or None
+        """
+        if output is None:
+            output = self.output
+
+        # A completed response takes precedence over persisted reasoning.  The
+        # reasoning remains stored in ctx.extra for metadata/history purposes,
+        # but is not reconstructed in the chat after save/reload.
+        if output is not None and str(output).strip():
+            return output
+
+        reasoning = self.extra.get("reasoning") if isinstance(self.extra, dict) else None
+        if not isinstance(reasoning, dict) or not reasoning.get("visible", False):
+            return output
+
+        text = str(reasoning.get("text") or "").strip()
+        if not text:
+            return output
+
+        # Protect the wrapper used by the renderer from provider-produced literal
+        # tags while leaving Markdown inside the summary untouched.
+        text = text.replace("<think>", "&lt;think&gt;").replace("</think>", "&lt;/think&gt;")
+        return f"<think>{text}</think>"
+
     def clear_reply(self):
         """Clear current reply output"""
         if self.reply:

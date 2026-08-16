@@ -21,6 +21,10 @@ from pygpt_net.core.events import RenderEvent
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.api.google.utils import capture_google_usage
+from pygpt_net.provider.api.reasoning import (
+    close_stream_reasoning, cleanup_stream_reasoning, ensure_reasoning_metadata,
+    persist_stream_reasoning, strip_stream_reasoning,
+)
 
 # Import provider-specific stream processors
 from pygpt_net.provider.api.openai import stream as openai_stream
@@ -67,6 +71,15 @@ class WorkerState:
     usage_payload: dict = field(default_factory=dict)
     google_stream_ref: Any = None
     tool_calls: list[dict] = field(default_factory=list)
+
+    # --- Provider reasoning/thinking trace ---
+    reasoning_buffer: Optional[io.StringIO] = None
+    reasoning_display_buffer: Optional[io.StringIO] = None
+    reasoning_display_blocks: list[str] = field(default_factory=list)
+    reasoning_provider: Optional[str] = None
+    reasoning_kind: Optional[str] = None
+    reasoning_raw: bool = False
+    reasoning_open: bool = False
 
     # --- XAI SDK only ---
     xai_last_response: Any = None  # holds final response from xai_sdk.chat.stream()
@@ -136,6 +149,18 @@ class StreamWorker(QRunnable):
 
                     # free per-iteration ref
                     chunk = None
+
+                # Close a final reasoning-only block even when the provider did
+                # not emit a normal text delta afterwards.
+                closing = close_stream_reasoning(state)
+                if closing:
+                    if not state.stopped:
+                        self._append_response(ctx, state, closing, emit_chunk)
+                    elif state.out is not None:
+                        # Keep the internal stream buffer structurally complete
+                        # so strip_stream_reasoning() can remove the partial
+                        # provider trace even when the user stopped generation.
+                        state.out.write(closing)
 
                 # after loop: handle tool-calls and images assembly
                 self._handle_after_loop(ctx, core, state)
@@ -339,6 +364,7 @@ class StreamWorker(QRunnable):
         :param emit_error: Function to emit error event
         """
         output = state.out.getvalue() if state.out is not None else ""
+        output = strip_stream_reasoning(output, state)
         if state.out is not None:
             try:
                 state.out.close()
@@ -411,6 +437,17 @@ class StreamWorker(QRunnable):
         else:
             ctx.set_tokens(ctx.input_tokens if ctx.input_tokens is not None else 0, state.output_tokens)
 
+        # Store provider-supplied readable reasoning separately from the actual
+        # assistant output so it can be rendered after reload without polluting
+        # subsequent model context.
+        persist_stream_reasoning(ctx, state)
+        if state.usage_payload:
+            ensure_reasoning_metadata(
+                ctx,
+                state.reasoning_provider or state.usage_vendor or "",
+                state.usage_payload.get("reasoning", 0),
+            )
+
         core.ctx.update_item(ctx)
 
         # OpenAI: download container files if present
@@ -441,6 +478,7 @@ class StreamWorker(QRunnable):
         if state.citations is not None and state.citations is not ctx.urls:
             state.citations.clear()
         state.citations = None
+        cleanup_stream_reasoning(state)
 
         self.cleanup()
 

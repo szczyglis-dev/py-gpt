@@ -19,6 +19,7 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
 
 # xAI SDK chat helpers (system/user/assistant/image) for message building
 from xai_sdk.chat import (
@@ -191,6 +192,23 @@ class Responses:
 
         ctx.output = (str(out or "")).strip()
 
+        # Grok 4.6 can return a readable summarized reasoning trace separately
+        # from the final answer.  Keep it outside ctx.output so it is rendered
+        # for the user but is not replayed as ordinary assistant text.
+        try:
+            reasoning = self._extract_reasoning_content(response)
+            if reasoning:
+                store_reasoning(
+                    ctx=ctx,
+                    provider="xai",
+                    text=reasoning,
+                    kind="reasoning_summary",
+                    raw=False,
+                    visible=True,
+                )
+        except Exception:
+            pass
+
         # Citations (list of urls)
         try:
             cits = getattr(response, "citations", None)
@@ -259,6 +277,7 @@ class Responses:
                     "reasoning_tokens": u.get("reasoning", 0),
                     "total_reported": u.get("total"),
                 }
+                ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
         except Exception:
             pass
 
@@ -393,6 +412,40 @@ class Responses:
 
         messages.append({"role": "user", "content": str(prompt)})
         return messages
+
+    @staticmethod
+    def _extract_reasoning_content(response) -> str:
+        """Best-effort extraction of xAI's readable reasoning summary."""
+        value = None
+        if isinstance(response, dict):
+            value = response.get("reasoning_content")
+            if value is None:
+                reasoning = response.get("reasoning")
+                if isinstance(reasoning, dict):
+                    value = reasoning.get("summary") or reasoning.get("content")
+        else:
+            value = getattr(response, "reasoning_content", None)
+            if value is None:
+                reasoning = getattr(response, "reasoning", None)
+                value = getattr(reasoning, "summary", None) if reasoning is not None else None
+
+        if isinstance(value, str):
+            return value.strip()
+        if isinstance(value, list):
+            parts = []
+            for item in value:
+                if isinstance(item, str):
+                    parts.append(item)
+                elif isinstance(item, dict):
+                    text = item.get("text") or item.get("content")
+                    if isinstance(text, str):
+                        parts.append(text)
+                else:
+                    text = getattr(item, "text", None) or getattr(item, "content", None)
+                    if isinstance(text, str):
+                        parts.append(text)
+            return "".join(parts).strip()
+        return ""
 
     def _normalize_usage(self, raw) -> Optional[dict]:
         """

@@ -53,7 +53,7 @@
         "secret": false,
         "advanced": false,
         "tab": "OpenAI"
-    },    
+    },
     "api_use_responses": {
         "section": "api_keys",
         "type": "bool",
@@ -693,7 +693,9 @@
         "step": null,
         "advanced": false,
         "keys": [
-            {"web": "WebEngine / Chromium"}
+            {
+                "web": "WebEngine / Chromium"
+            }
         ]
     },
     "render.open_gl": {
@@ -708,7 +710,7 @@
         "multiplier": 1,
         "step": 1,
         "advanced": false
-    },     
+    },
     "api_proxy.enabled": {
         "section": "general",
         "type": "bool",
@@ -978,7 +980,7 @@
         "multiplier": null,
         "step": null,
         "advanced": false
-    },    
+    },
     "ctx.attachment.img": {
         "section": "files",
         "type": "bool",
@@ -1023,7 +1025,9 @@
         "type": "combo",
         "use": "models",
         "use_params": {
-            "mode": ["chat"]
+            "mode": [
+                "chat"
+            ]
         },
         "slider": false,
         "label": "settings.ctx.attachment.summary.model",
@@ -1040,7 +1044,9 @@
         "type": "combo",
         "use": "models",
         "use_params": {
-            "mode": ["chat"]
+            "mode": [
+                "chat"
+            ]
         },
         "slider": false,
         "label": "settings.ctx.attachment.query.model",
@@ -1108,7 +1114,9 @@
         "type": "combo",
         "use": "models",
         "use_params": {
-            "mode": ["chat"]
+            "mode": [
+                "chat"
+            ]
         },
         "slider": false,
         "label": "settings.ctx.auto_summary.model",
@@ -1119,7 +1127,7 @@
         "multiplier": null,
         "step": null,
         "advanced": false
-    },    
+    },
     "ctx.auto_summary": {
         "section": "ctx",
         "type": "bool",
@@ -1261,6 +1269,32 @@
         "slider": false,
         "label": "settings.ctx.code_interpreter",
         "description": "settings.ctx.code_interpreter.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "ctx.reasoning.show_realtime": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.reasoning.show_realtime",
+        "description": "settings.ctx.reasoning.show_realtime.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "ctx.reasoning.hide_after_response": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.reasoning.hide_after_response",
+        "description": "settings.ctx.reasoning.hide_after_response.desc",
         "value": true,
         "min": null,
         "max": null,
@@ -1599,32 +1633,84 @@
         "step": null,
         "advanced": false,
         "keys": [
-            {"auto": "[gpt-image-1] auto"},
-            {"1024x1024": "[gpt-image-1] 1024x1024"},
-            {"1536x1024": "[gpt-image-1] 1536x1024"},
-            {"1024x1536": "[gpt-image-1] 1024x1536"},
-            {"1536x1024": "[gpt-image-1] 1536x1024"},
-            {"1792x1024": "[DALL-E 3] 1792x1024"},
-            {"1024x1792": "[DALL-E 3] 1024x1792"},
-            {"1024x1024": "[DALL-E 3] 1024x1024"},
-            {"1024x1024": "[DALL-E 2] 1024x1024"},
-            {"512x512": "[DALL-E 2] 512x512"},
-            {"256x256": "[DALL-E 2] 256x256"},
-            {"1024x1024": "[Imagen 3.0] 1024x1024"},
-            {"896x1280": "[Imagen 3.0] 896x1280"},
-            {"1280x896": "[Imagen 3.0] 1280x896"},
-            {"768x1408": "[Imagen 3.0] 768x1408"},
-            {"1408x768": "[Imagen 3.0] 1408x768"},
-            {"1024x1024": "[Imagen 4.0] 1024x1024"},
-            {"896x1280": "[Imagen 4.0] 896x1280"},
-            {"1280x896": "[Imagen 4.0] 1280x896"},
-            {"768x1408": "[Imagen 4.0] 768x1408"},
-            {"1408x768": "[Imagen 4.0] 1408x768"},
-            {"2048x2048": "[Imagen 4.0] 2048x2048"},
-            {"1792x2560": "[Imagen 4.0] 1792x2560"},
-            {"2560x1792": "[Imagen 4.0] 2560x1792"},
-            {"1536x2816": "[Imagen 4.0] 1536x2816"},
-            {"2816x1536": "[Imagen 4.0] 2816x1536"}
+            {
+                "auto": "[gpt-image-1] auto"
+            },
+            {
+                "1024x1024": "[gpt-image-1] 1024x1024"
+            },
+            {
+                "1536x1024": "[gpt-image-1] 1536x1024"
+            },
+            {
+                "1024x1536": "[gpt-image-1] 1024x1536"
+            },
+            {
+                "1536x1024": "[gpt-image-1] 1536x1024"
+            },
+            {
+                "1792x1024": "[DALL-E 3] 1792x1024"
+            },
+            {
+                "1024x1792": "[DALL-E 3] 1024x1792"
+            },
+            {
+                "1024x1024": "[DALL-E 3] 1024x1024"
+            },
+            {
+                "1024x1024": "[DALL-E 2] 1024x1024"
+            },
+            {
+                "512x512": "[DALL-E 2] 512x512"
+            },
+            {
+                "256x256": "[DALL-E 2] 256x256"
+            },
+            {
+                "1024x1024": "[Imagen 3.0] 1024x1024"
+            },
+            {
+                "896x1280": "[Imagen 3.0] 896x1280"
+            },
+            {
+                "1280x896": "[Imagen 3.0] 1280x896"
+            },
+            {
+                "768x1408": "[Imagen 3.0] 768x1408"
+            },
+            {
+                "1408x768": "[Imagen 3.0] 1408x768"
+            },
+            {
+                "1024x1024": "[Imagen 4.0] 1024x1024"
+            },
+            {
+                "896x1280": "[Imagen 4.0] 896x1280"
+            },
+            {
+                "1280x896": "[Imagen 4.0] 1280x896"
+            },
+            {
+                "768x1408": "[Imagen 4.0] 768x1408"
+            },
+            {
+                "1408x768": "[Imagen 4.0] 1408x768"
+            },
+            {
+                "2048x2048": "[Imagen 4.0] 2048x2048"
+            },
+            {
+                "1792x2560": "[Imagen 4.0] 1792x2560"
+            },
+            {
+                "2560x1792": "[Imagen 4.0] 2560x1792"
+            },
+            {
+                "1536x2816": "[Imagen 4.0] 1536x2816"
+            },
+            {
+                "2816x1536": "[Imagen 4.0] 2816x1536"
+            }
         ],
         "tab": "image"
     },
@@ -1640,13 +1726,27 @@
         "step": null,
         "advanced": false,
         "keys": [
-            {"auto": "[gpt-image-1] auto"},
-            {"high": "[gpt-image-1] high"},
-            {"medium": "[gpt-image-1] medium"},
-            {"medium": "[gpt-image-1] low"},
-            {"standard": "[DALL-E 3] standard"},
-            {"hd": "[DALL-E 3] hd"},
-            {"standard": "[DALL-E 2] standard"}
+            {
+                "auto": "[gpt-image-1] auto"
+            },
+            {
+                "high": "[gpt-image-1] high"
+            },
+            {
+                "medium": "[gpt-image-1] medium"
+            },
+            {
+                "medium": "[gpt-image-1] low"
+            },
+            {
+                "standard": "[DALL-E 3] standard"
+            },
+            {
+                "hd": "[DALL-E 3] hd"
+            },
+            {
+                "standard": "[DALL-E 2] standard"
+            }
         ],
         "tab": "image"
     },
@@ -1655,7 +1755,9 @@
         "type": "combo",
         "use": "models",
         "use_params": {
-            "mode": ["chat"]
+            "mode": [
+                "chat"
+            ]
         },
         "slider": false,
         "label": "settings.img_prompt_model",
@@ -1666,7 +1768,7 @@
         "multiplier": null,
         "step": null,
         "tab": "image"
-    },    
+    },
     "video.aspect_ratio": {
         "section": "images",
         "type": "text",
@@ -1722,7 +1824,7 @@
         "step": null,
         "advanced": false,
         "tab": "video"
-    },    
+    },
     "video.generate_audio": {
         "section": "images",
         "type": "bool",
@@ -1818,7 +1920,7 @@
         "step": 1,
         "advanced": false,
         "tab": "camera"
-    },    
+    },
     "audio.input.backend": {
         "section": "audio",
         "type": "combo",
@@ -1826,7 +1928,7 @@
         "label": "settings.audio.input.backend",
         "description": "settings.audio.input.backend.desc",
         "value": 0,
-        "advanced": false,        
+        "advanced": false,
         "tab": "device"
     },
     "audio.input.device": {
@@ -1836,7 +1938,7 @@
         "label": "settings.audio.input.device",
         "description": "settings.audio.input.device.desc",
         "value": 0,
-        "advanced": false,        
+        "advanced": false,
         "tab": "device"
     },
     "audio.output.backend": {
@@ -1846,7 +1948,7 @@
         "label": "settings.audio.output.backend",
         "description": "settings.audio.output.backend.desc",
         "value": 0,
-        "advanced": false,        
+        "advanced": false,
         "tab": "device"
     },
     "audio.output.device": {
@@ -1856,7 +1958,7 @@
         "label": "settings.audio.output.device",
         "description": "settings.audio.output.device.desc",
         "value": 0,
-        "advanced": false,        
+        "advanced": false,
         "tab": "device"
     },
     "audio.input.channels": {
@@ -1870,7 +1972,7 @@
         "max": 4,
         "multiplier": 1,
         "step": 1,
-        "advanced": false,        
+        "advanced": false,
         "tab": "device"
     },
     "audio.input.rate": {
@@ -1884,9 +1986,9 @@
         "max": 256000,
         "multiplier": 1,
         "step": 1,
-        "advanced": false,        
+        "advanced": false,
         "tab": "device"
-    },     
+    },
     "audio.input.timeout": {
         "section": "audio",
         "type": "int",
@@ -1897,7 +1999,7 @@
         "min": 0,
         "multiplier": 1,
         "step": 1,
-        "advanced": false,        
+        "advanced": false,
         "tab": "options"
     },
     "audio.input.stop_interval": {
@@ -1911,7 +2013,7 @@
         "max": 120,
         "multiplier": 1,
         "step": 1,
-        "advanced": false,        
+        "advanced": false,
         "tab": "options"
     },
     "audio.input.continuous": {
@@ -1925,7 +2027,7 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false,        
+        "advanced": false,
         "tab": "options"
     },
     "audio.input.timeout.continuous": {
@@ -1938,9 +2040,9 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false,        
+        "advanced": false,
         "tab": "options"
-    },    
+    },
     "audio.input.vad.prefix": {
         "section": "audio",
         "type": "int",
@@ -1972,7 +2074,7 @@
         "label": "settings.audio.cache.enabled",
         "description": "settings.audio.cache.enabled.desc",
         "value": true,
-        "advanced": false,        
+        "advanced": false,
         "tab": "cache"
     },
     "audio.cache.max_files": {
@@ -1984,7 +2086,7 @@
         "min": 0,
         "multiplier": 1,
         "value": 1000,
-        "advanced": false,        
+        "advanced": false,
         "tab": "cache"
     },
     "remote_tools.web_search": {
@@ -2383,8 +2485,8 @@
         "label": "settings.llama.idx.list",
         "value": [
             {
-              "id": "base",
-              "name": "Base"
+                "id": "base",
+                "name": "Base"
             }
         ],
         "min": null,
@@ -2392,7 +2494,7 @@
         "multiplier": null,
         "step": null,
         "advanced": false
-    },    
+    },
     "llama.idx.storage": {
         "section": "llama-index",
         "type": "combo",
@@ -2457,7 +2559,7 @@
         "secret": false,
         "advanced": false,
         "tab": "chat"
-    },    
+    },
     "llama.idx.chat.auto_retrieve": {
         "section": "llama-index",
         "type": "bool",
@@ -2661,7 +2763,7 @@
             "loader": {
                 "type": "combo",
                 "use": "llama_index_loaders"
-           },
+            },
             "name": "text",
             "value": "text",
             "type": {
@@ -2735,7 +2837,7 @@
         "step": null,
         "advanced": false,
         "tab": "update"
-    },    
+    },
     "agent.llama.steps": {
         "section": "agent",
         "description": "settings.agent.llama.steps.desc",
@@ -2795,7 +2897,7 @@
         "step": 1,
         "advanced": false,
         "tab": "llama"
-    },    
+    },
     "agent.openai.response.split": {
         "section": "agent",
         "description": "settings.agent.openai.response.split.desc",
@@ -2809,7 +2911,7 @@
         "step": 1,
         "advanced": false,
         "tab": "llama"
-    },    
+    },
     "agent.idx.auto_retrieve": {
         "section": "agent",
         "type": "bool",
@@ -2852,7 +2954,7 @@
         "step": null,
         "advanced": false,
         "tab": "autonomous"
-    },    
+    },
     "agent.idx": {
         "section": "agent",
         "type": "combo",
@@ -2867,7 +2969,7 @@
         "step": null,
         "advanced": false,
         "tab": "autonomous"
-    },   
+    },
     "agent.func_call.native": {
         "section": "agent",
         "type": "bool",
@@ -2954,7 +3056,7 @@
         "secret": false,
         "advanced": false,
         "tab": "experts"
-    }, 
+    },
     "experts.internal.api_use_responses": {
         "section": "agent",
         "type": "bool",
@@ -2969,7 +3071,7 @@
         "secret": false,
         "advanced": false,
         "tab": "experts"
-    }, 
+    },
     "agent.goal.notify": {
         "section": "agent",
         "type": "bool",
@@ -2982,7 +3084,7 @@
         "step": 1,
         "advanced": false,
         "tab": "general"
-    },    
+    },
     "updater.check.launch": {
         "section": "updates",
         "type": "bool",
@@ -3032,10 +3134,18 @@
         "step": null,
         "advanced": false,
         "keys": [
-            {"error": "ERROR (default)"},
-            {"warning": "WARNING"},
-            {"info": "INFO"},
-            {"debug": "DEBUG"}
+            {
+                "error": "ERROR (default)"
+            },
+            {
+                "warning": "WARNING"
+            },
+            {
+                "info": "INFO"
+            },
+            {
+                "debug": "DEBUG"
+            }
         ]
     },
     "log.ctx": {
@@ -3146,7 +3256,7 @@
         "multiplier": null,
         "step": null,
         "advanced": false
-    },    
+    },
     "access.voice_control": {
         "section": "access",
         "type": "bool",

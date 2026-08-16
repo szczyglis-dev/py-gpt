@@ -339,6 +339,10 @@ class Patch:
                 print("Migrating config from < 2.8.3...")
                 if "max_total_tokens" in data:
                     data["max_total_tokens"] = 0 # disable by default
+                if "ctx.reasoning.show_realtime" not in data:
+                    data["ctx.reasoning.show_realtime"] = True
+                if "ctx.reasoning.hide_after_response" not in data:
+                    data["ctx.reasoning.hide_after_response"] = True
                 patch_css('web-blocks.css', True)
                 patch_css('web-chatgpt.css', True)
                 patch_css('web-chatgpt_wide.css', True)

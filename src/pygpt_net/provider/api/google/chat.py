@@ -20,6 +20,7 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
 
 
 class Chat:
@@ -172,6 +173,17 @@ class Chat:
                         prebuilt_voice_config=gtypes.PrebuiltVoiceConfig(voice_name=voice_name)
                     )
                 )
+        # Gemini exposes summarized thoughts when include_thoughts is enabled.
+        # This does not expose raw private chain-of-thought. Keep it off for the
+        # audio/TTS path where thinking config is not part of the response flow.
+        if mode != MODE_AUDIO and model and str(model.id or "").lower().startswith("gemini"):
+            try:
+                cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(include_thoughts=True)
+            except Exception:
+                # Older google-genai releases may not expose ThinkingConfig yet;
+                # retain the existing request rather than breaking compatibility.
+                pass
+
         cfg = gtypes.GenerateContentConfig(**cfg_kwargs)
         params = dict(model=model.id, contents=inputs, config=cfg)
 
@@ -298,6 +310,12 @@ class Chat:
 
         # ---- chat / computer ----
         ctx.output = self.extract_text(response) or ""
+        reasoning = self.extract_reasoning(response)
+        if reasoning:
+            store_reasoning(
+                ctx, provider="google", text=reasoning,
+                kind="thought_summary", raw=False, visible=True,
+            )
 
         # 1) Extract tool calls and store in ctx.tool_calls (backward-compatible shape)
         calls = self.extract_tool_calls(response)
@@ -353,6 +371,13 @@ class Chat:
                 p = getattr(usage, "prompt_token_count", 0) or 0
                 c = getattr(usage, "candidates_token_count", 0) or 0
                 ctx.set_tokens(p, c)
+                reasoning_tokens = (
+                    getattr(usage, "thoughts_token_count", None)
+                    or getattr(usage, "candidates_reasoning_token_count", None)
+                    or getattr(usage, "reasoning_tokens", 0)
+                    or 0
+                )
+                ensure_reasoning_metadata(ctx, "google", reasoning_tokens)
         except Exception:
             pass
 
@@ -370,30 +395,46 @@ class Chat:
 
     def extract_text(self, response) -> str:
         """
-        Extract output text.
-
-        Prefer response.text (Python SDK), then fallback to parts[].text.
+        Extract final answer text while excluding thought-summary parts.
 
         :param response: Response object
-        :return: Extracted text
+        :return: Extracted final text
         """
-        txt = getattr(response, "text", None) or getattr(response, "output_text", None)
-        if txt:
-            return str(txt).strip()
         try:
             cands = getattr(response, "candidates", None) or []
             if cands:
-                parts = getattr(cands[0], "content", None)
-                parts = getattr(parts, "parts", None) or []
+                parts = getattr(getattr(cands[0], "content", None), "parts", None) or []
                 out = []
                 for p in parts:
+                    if bool(getattr(p, "thought", False)):
+                        continue
                     t = getattr(p, "text", None)
                     if t:
                         out.append(str(t))
-                return "".join(out).strip()
+                if out:
+                    return "".join(out).strip()
         except Exception:
             pass
-        return ""
+
+        txt = getattr(response, "text", None) or getattr(response, "output_text", None)
+        return str(txt).strip() if txt else ""
+
+    def extract_reasoning(self, response) -> str:
+        """Extract provider-supplied Gemini thought summaries from parts[]."""
+        out: List[str] = []
+        try:
+            cands = getattr(response, "candidates", None) or []
+            for cand in cands:
+                parts = getattr(getattr(cand, "content", None), "parts", None) or []
+                for p in parts:
+                    if not bool(getattr(p, "thought", False)):
+                        continue
+                    text = getattr(p, "text", None)
+                    if text:
+                        out.append(str(text))
+        except Exception:
+            pass
+        return "".join(out).strip()
 
     def extract_tool_calls(self, response) -> List[dict]:
         """

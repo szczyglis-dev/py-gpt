@@ -13,6 +13,8 @@ from typing import Optional, List, Dict, Any
 import base64
 import re
 
+from pygpt_net.provider.api.reasoning import stream_reasoning_delta, stream_text_delta
+
 
 def _stringify_content(content) -> Optional[str]:
     """
@@ -316,6 +318,53 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
     except Exception:
         return None
 
+    # Grok 4.6 exposes a readable summarized reasoning stream through
+    # ``chunk.reasoning_content``.  Keep it in the shared <think> pipeline;
+    # encrypted reasoning is a separate transport payload and is never shown.
+    reasoning_prefix = ""
+    try:
+        reasoning_content = getattr(chunk, "reasoning_content", None)
+        if reasoning_content is None and isinstance(chunk, dict):
+            reasoning_content = chunk.get("reasoning_content")
+        if reasoning_content is None:
+            delta_obj = getattr(chunk, "delta", None)
+            if isinstance(delta_obj, dict):
+                reasoning_content = delta_obj.get("reasoning_content")
+            elif delta_obj is not None:
+                reasoning_content = getattr(delta_obj, "reasoning_content", None)
+        if reasoning_content is None:
+            choices = chunk.get("choices") if isinstance(chunk, dict) else getattr(chunk, "choices", None)
+            if choices:
+                first = choices[0]
+                if isinstance(first, dict):
+                    d = first.get("delta") or first.get("message") or {}
+                    if isinstance(d, dict):
+                        reasoning_content = d.get("reasoning_content")
+                else:
+                    d = getattr(first, "delta", None) or getattr(first, "message", None)
+                    if d is not None:
+                        reasoning_content = getattr(d, "reasoning_content", None)
+        reasoning_text = _stringify_content(reasoning_content)
+        if reasoning_text:
+            reasoning_prefix = stream_reasoning_delta(
+                state,
+                reasoning_text,
+                provider="xai",
+                kind="reasoning_summary",
+                raw=False,
+            ) or ""
+    except Exception:
+        reasoning_prefix = ""
+
+    def _visible_text(value) -> Optional[str]:
+        """Return normal text preceded by any reasoning emitted in this chunk."""
+        text = _stringify_content(value)
+        if not text:
+            return reasoning_prefix or None
+        _append_urls(ctx, state, _extract_http_urls_from_text(text))
+        rendered = stream_text_delta(state, text) or ""
+        return reasoning_prefix + rendered
+
     # persist last response and attach response id to ctx once
     try:
         if response is not None:
@@ -384,8 +433,7 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
         if hasattr(chunk, "content"):
             t = _stringify_content(getattr(chunk, "content"))
             if t:
-                _append_urls(ctx, state, _extract_http_urls_from_text(t))
-                return str(t)
+                return _visible_text(t)
     except Exception:
         pass
 
@@ -407,11 +455,9 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
             if dc is not None:
                 t = _stringify_content(dc)
                 if t:
-                    _append_urls(ctx, state, _extract_http_urls_from_text(t))
-                    return str(t)
+                    return _visible_text(t)
             if isinstance(delta, str) and delta:
-                _append_urls(ctx, state, _extract_http_urls_from_text(delta))
-                return delta
+                return _visible_text(delta)
     except Exception:
         pass
 
@@ -439,8 +485,7 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
                 if "content" in d and d["content"] is not None:
                     t = _stringify_content(d["content"])
                     if t:
-                        _append_urls(ctx, state, _extract_http_urls_from_text(t))
-                        return str(t)
+                        return _visible_text(t)
                 if "content" in m and m["content"] is not None:
                     mc = m["content"]
                     # inspect for image_url outputs and URLs
@@ -454,26 +499,22 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
                                     out_parts.append(t)
                         if out_parts:
                             txt = "".join(out_parts)
-                            _append_urls(ctx, state, _extract_http_urls_from_text(txt))
-                            return txt
+                            return _visible_text(txt)
                     else:
                         t = _stringify_content(mc)
                         if t:
-                            _append_urls(ctx, state, _extract_http_urls_from_text(t))
-                            return str(t)
+                            return _visible_text(t)
 
             # root-level delta/message
             if isinstance(chunk.get("delta"), dict) and "content" in chunk["delta"]:
                 t = _stringify_content(chunk["delta"]["content"])
                 if t:
-                    _append_urls(ctx, state, _extract_http_urls_from_text(t))
-                    return str(t)
+                    return _visible_text(t)
             if isinstance(chunk.get("message"), dict) and "content" in chunk["message"]:
                 mc = chunk["message"]["content"]
                 _process_message_content_for_outputs(core, ctx, state, mc if isinstance(mc, list) else [])
                 if isinstance(mc, str):
-                    _append_urls(ctx, state, _extract_http_urls_from_text(mc))
-                    return mc
+                    return _visible_text(mc)
 
             # tail metadata: citations and usage
             _maybe_collect_tail_meta(state, chunk, ctx=ctx)
@@ -499,8 +540,7 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
                 if c is not None:
                     t = _stringify_content(c)
                     if t:
-                        _append_urls(ctx, state, _extract_http_urls_from_text(t))
-                        return str(t)
+                        return _visible_text(t)
             if message is not None:
                 c = getattr(message, "content", None)
                 if c is not None:
@@ -515,22 +555,19 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
                                     out_parts.append(t)
                         if out_parts:
                             txt = "".join(out_parts)
-                            _append_urls(ctx, state, _extract_http_urls_from_text(txt))
-                            return txt
+                            return _visible_text(txt)
                     else:
                         t = _stringify_content(c)
                         if t:
-                            _append_urls(ctx, state, _extract_http_urls_from_text(t))
-                            return str(t)
+                            return _visible_text(t)
     except Exception:
         pass
 
     # 5) Plain string
     if isinstance(chunk, str):
-        _append_urls(ctx, state, _extract_http_urls_from_text(chunk))
-        return chunk
+        return _visible_text(chunk)
 
-    return None
+    return reasoning_prefix or None
 
 
 def xai_extract_tool_calls(response) -> list[dict]:

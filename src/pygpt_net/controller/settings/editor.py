@@ -199,7 +199,9 @@ class Editor:
         if self.config_changed('ctx.sources') or self.config_changed('ctx.audio'):
             self.window.controller.ctx.refresh()
 
-        if self.config_changed('agent.output.render.all'):
+        if (self.config_changed('agent.output.render.all') or
+                self.config_changed('ctx.reasoning.show_realtime') or
+                self.config_changed('ctx.reasoning.hide_after_response')):
             self.window.controller.chat.render.reload()
 
         # update global shortcuts
@@ -305,6 +307,10 @@ class Editor:
             self.window.controller.ctx.update()
 
         elif key == "agent.output.render.all":
+            self.window.core.config.set(key, value)
+            self.window.controller.chat.render.reload()
+
+        elif key in ("ctx.reasoning.show_realtime", "ctx.reasoning.hide_after_response"):
             self.window.core.config.set(key, value)
             self.window.controller.chat.render.reload()
 

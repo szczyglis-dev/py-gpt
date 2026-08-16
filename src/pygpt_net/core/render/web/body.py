@@ -32,6 +32,13 @@ class Body:
     NUM_TIPS = 13
     EXTRA_ITEMS_VISIBLE_LIMIT = 10
 
+    # Live provider reasoning UI timing (milliseconds).
+    # Delay starts on the first normal response token after a thinking block.
+    # Set REASONING_FADE_OUT_DELAY_MS to 0 to start hiding immediately.
+    # Set REASONING_FADE_DURATION_MS to 0 to disable the fade animation.
+    REASONING_FADE_OUT_DELAY_MS = 0
+    REASONING_FADE_DURATION_MS = 180
+
     _HTML_P0 = """
             <!DOCTYPE html>
             <html>
@@ -852,6 +859,10 @@ class Body:
             f'window.DISABLE_SYNTAX_HIGHLIGHT={int(cfg_get("render.code_syntax.disabled", 0))};'
             f'window.USER_MSG_COLLAPSE_HEIGHT_PX={int(cfg_get("render.msg.user.collapse.px", 1500))};'
             f'window.EXTRA_ITEMS_VISIBLE_LIMIT={int(self.EXTRA_ITEMS_VISIBLE_LIMIT)};'
+            f'window.REASONING_SHOW_REALTIME={_json_dumps(bool(cfg_get("ctx.reasoning.show_realtime", True)))};'
+            f'window.REASONING_HIDE_AFTER_RESPONSE={_json_dumps(bool(cfg_get("ctx.reasoning.hide_after_response", True)))};'
+            f'window.REASONING_FADE_OUT_DELAY_MS={int(self.REASONING_FADE_OUT_DELAY_MS)};'
+            f'window.REASONING_FADE_DURATION_MS={int(self.REASONING_FADE_DURATION_MS)};'
         )
 
         tips_js = f'window.TIPS={tips_json};'

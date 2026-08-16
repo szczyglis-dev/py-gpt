@@ -28,6 +28,7 @@ from pygpt_net.core.types import (
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.preset import PresetItem
@@ -127,10 +128,18 @@ class Responses:
         # tools prepare
         tools = api.tools.prepare_responses_api(model, functions)
 
-        # extra arguments, reasoning models only
-        if model.extra and "reasoning_effort" in model.extra:
-            response_kwargs['reasoning'] = {}
-            response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
+        # Reasoning models: request the provider-supported readable summary.
+        # OpenAI deliberately does not expose raw chain-of-thought; summary=auto
+        # is the supported presentation/debugging surface in Responses API.
+        model_id_lc = str(model.id or "").lower()
+        is_reasoning_model = (
+            bool(model.extra and "reasoning_effort" in model.extra)
+            or model_id_lc.startswith(("o1", "o3", "o4", "gpt-5"))
+        )
+        if is_reasoning_model:
+            response_kwargs['reasoning'] = {"summary": "auto"}
+            if model.extra and "reasoning_effort" in model.extra:
+                response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
 
         # append remote tools
         tools = api.remote_tools.append_to_tools(
@@ -183,9 +192,7 @@ class Responses:
         # http://platform.openai.com/docs/guides/tools-computer-use
         if mode == MODE_COMPUTER or model.id.startswith("computer-use"):
             response_kwargs['truncation'] = "auto"
-            response_kwargs['reasoning'] = {
-                "summary": "concise",
-            }
+            response_kwargs.setdefault('reasoning', {})["summary"] = "concise"
 
         model_id = (model.get_ollama_model() or model.id or "").strip() if model.is_ollama() else (model.id or "")
         if not model_id:
@@ -465,6 +472,12 @@ class Responses:
             response.usage.input_tokens,
             response.usage.output_tokens,
         )
+        try:
+            details = getattr(response.usage, "output_tokens_details", None)
+            reasoning_tokens = getattr(details, "reasoning_tokens", 0) if details else 0
+            ensure_reasoning_metadata(ctx, "openai", reasoning_tokens)
+        except Exception:
+            pass
 
         files = []
         tool_calls = []
@@ -536,10 +549,15 @@ class Responses:
                     force_func_call = True  # force function call for computer use
 
             elif output.type == "reasoning":
-                if ctx.output == "":
-                    for summary in output.summary:
-                        if summary.type == "summary_text":
-                            ctx.output += summary.text + "\n"
+                summaries = []
+                for summary in getattr(output, "summary", None) or []:
+                    if getattr(summary, "type", "") == "summary_text" and getattr(summary, "text", None):
+                        summaries.append(str(summary.text))
+                if summaries:
+                    store_reasoning(
+                        ctx, provider="openai", text="".join(summaries),
+                        kind="summary", raw=False, visible=True,
+                    )
 
             # MCP: list tools
             elif output.type == "mcp_list_tools":

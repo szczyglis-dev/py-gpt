@@ -167,6 +167,8 @@
   "ctx.records.limit": 1000,
   "ctx.records.pinned.separators": false,
   "ctx.records.separators": true,
+  "ctx.reasoning.hide_after_response": true,
+  "ctx.reasoning.show_realtime": true,
   "ctx.search_content": true,
   "ctx.search.string": "",
   "ctx.sources": true,

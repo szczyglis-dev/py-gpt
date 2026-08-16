@@ -14,6 +14,7 @@ import json
 from typing import Optional, Any
 
 from .utils import capture_google_usage, collect_google_citations
+from pygpt_net.provider.api.reasoning import stream_reasoning_delta, stream_text_delta
 
 
 def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
@@ -31,6 +32,9 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
     :return: Extracted text delta or None
     """
     response_parts: list[str] = []
+    chunk_text: Optional[str] = None
+    structured_text_seen = False
+    interaction_text_seen = False
 
     if state.google_stream_ref is None:
         state.google_stream_ref = state.generator
@@ -45,7 +49,7 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
     try:
         t = getattr(chunk, "text", None)
         if t:
-            response_parts.append(t)
+            chunk_text = str(t)
     except Exception:
         pass
 
@@ -129,6 +133,27 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
             for p in imgs:
                 if p not in ctx.images:
                     ctx.images.append(p)
+
+    # GenerateContent thought summaries arrive as ordinary text parts carrying
+    # part.thought=True. Parse parts directly so they are not mixed into the
+    # final answer exposed by chunk.text.
+    try:
+        for cand in getattr(chunk, "candidates", None) or []:
+            for part in getattr(getattr(cand, "content", None), "parts", None) or []:
+                txt = getattr(part, "text", None)
+                if not txt:
+                    continue
+                structured_text_seen = True
+                if bool(getattr(part, "thought", False)):
+                    delta = stream_reasoning_delta(
+                        state, txt, provider="google", kind="thought_summary", raw=False,
+                    )
+                else:
+                    delta = stream_text_delta(state, txt)
+                if delta:
+                    response_parts.append(delta)
+    except Exception:
+        pass
 
     # Collect function calls from Responses API style stream
     if fc_list:
@@ -261,7 +286,10 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                 if delta_type == "text":
                     txt = _get(delta, "text", None)
                     if txt:
-                        response_parts.append(txt)
+                        interaction_text_seen = True
+                        rendered = stream_text_delta(state, txt)
+                        if rendered:
+                            response_parts.append(rendered)
 
                 # Thought summaries (Deep Research thinking summaries)
                 elif delta_type in ("thought", "thought_summary"):
@@ -272,6 +300,12 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                     if thought_txt is None:
                         thought_txt = _get(delta, "thought", None)
                     if thought_txt:
+                        rendered = stream_reasoning_delta(
+                            state, thought_txt, provider="google",
+                            kind="thought_summary", raw=False,
+                        )
+                        if rendered:
+                            response_parts.append(rendered)
                         _ensure_list_attr(state, "google_thought_summaries")
                         try:
                             state.google_thought_summaries.append(thought_txt)
@@ -446,6 +480,14 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
 
     except Exception:
         pass
+
+    # response.text is a convenient SDK aggregate for normal chunks, but when
+    # include_thoughts is enabled it is safer to prefer the structured parts
+    # above so summaries and final output remain separated.
+    if chunk_text and not structured_text_seen and not interaction_text_seen:
+        rendered = stream_text_delta(state, chunk_text)
+        if rendered:
+            response_parts.append(rendered)
 
     # Let Computer Use handler inspect chunk and tool calls (no-op if irrelevant)
     new_calls, has_calls = core.api.google.computer.handle_stream_chunk(ctx, chunk, new_calls)

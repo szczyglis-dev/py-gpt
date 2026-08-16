@@ -15,6 +15,7 @@ import json
 from typing import Optional, Any
 
 from .utils import capture_openai_usage, append_unique_urls, extract_response_urls
+from pygpt_net.provider.api.reasoning import stream_reasoning_delta, stream_text_delta
 
 
 # v2: Support both dict and Pydantic objects returned by OpenAI Python SDK v2
@@ -155,9 +156,26 @@ def process_api_chat(ctx, state, chunk) -> Optional[str]:
     except Exception:
         pass
 
+    # Readable reasoning content is not part of the official OpenAI Chat
+    # Completions contract, but some OpenAI-compatible providers expose it.
+    # Handle it generically without depending on that non-standard field.
+    if delta:
+        reasoning_content = getattr(delta, "reasoning_content", None)
+        if reasoning_content is None and isinstance(delta, dict):
+            reasoning_content = delta.get("reasoning_content")
+        if reasoning_content:
+            model_id = str(getattr(ctx, "model", "") or "").lower()
+            provider = "xai" if model_id.startswith("grok") else "openai"
+            is_raw = provider == "openai" and "gpt-oss" in model_id
+            response = stream_reasoning_delta(
+                state, reasoning_content, provider=provider,
+                kind="raw_reasoning" if is_raw else "reasoning_content",
+                raw=is_raw,
+            )
+
     # Text delta
     if delta and getattr(delta, "content", None) is not None:
-        response = delta.content
+        response = stream_text_delta(state, delta.content)
 
     # Tool calls (support OpenAI object or xAI dict)
     if delta and getattr(delta, "tool_calls", None):
@@ -285,7 +303,7 @@ def process_api_chat_responses(ctx, core, state, chunk, etype: Optional[str]) ->
                 core.ctx.update_item(ctx)
 
     elif etype == "response.output_text.delta":
-        response = chunk.delta
+        response = stream_text_delta(state, chunk.delta)
 
     elif etype == "response.output_item.added" and chunk.item.type == "function_call":
         state.tool_calls.append({
@@ -349,8 +367,19 @@ def process_api_chat_responses(ctx, core, state, chunk, etype: Optional[str]) ->
                 "file_id": ann_d.get("file_id", _deep_get(ann, "file_id")),
             })
 
-    elif etype == "response.reasoning_summary_text.delta":
-        response = chunk.delta
+    elif etype in ("response.reasoning_text.delta", "response.reasoning_summary_text.delta"):
+        model_id = str(getattr(ctx, "model", "") or "").lower()
+        provider = "xai" if model_id.startswith("grok") else "openai"
+        is_raw = (
+            etype == "response.reasoning_text.delta"
+            and provider == "openai"
+            and "gpt-oss" in model_id
+        )
+        response = stream_reasoning_delta(
+            state, chunk.delta, provider=provider,
+            kind="raw_reasoning" if is_raw else "summary",
+            raw=is_raw,
+        )
 
     elif etype == "response.output_item.done":
         tool_calls, has_calls = core.api.openai.computer.handle_stream_chunk(ctx, chunk, state.tool_calls)

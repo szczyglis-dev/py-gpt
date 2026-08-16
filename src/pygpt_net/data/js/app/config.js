@@ -48,6 +48,14 @@ class Config {
 		};
 
 		// Stream (snapshot) budgets and queue limits.
+		// Live provider reasoning/thinking UI. Values are injected by Python.
+		this.REASONING = {
+			SHOW_REALTIME: Boolean(Utils.g('REASONING_SHOW_REALTIME', true)),
+			HIDE_AFTER_RESPONSE: Boolean(Utils.g('REASONING_HIDE_AFTER_RESPONSE', true)),
+			FADE_OUT_DELAY_MS: Math.max(0, Number(Utils.g('REASONING_FADE_OUT_DELAY_MS', 1000)) || 0),
+			FADE_DURATION_MS: Math.max(0, Number(Utils.g('REASONING_FADE_DURATION_MS', 180)) || 0)
+		};
+
 		this.STREAM = {
 			MAX_PER_FRAME: Utils.g('STREAM_MAX_PER_FRAME', 8),
 			EMERGENCY_COALESCE_LEN: Utils.g('STREAM_EMERGENCY_COALESCE_LEN', 300),

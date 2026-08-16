@@ -45,7 +45,7 @@ class DummyCore:
         self.attachments.context.get_used_files = MagicMock(return_value=["file1"])
         self.attachments.context.get_used_urls = MagicMock(return_value=["url1"])
         self.attachments.context.reset = MagicMock()
-        self.attachments.context.get_all = MagicMock(return_value=[])
+        self.attachments.context.get_display_all = MagicMock(return_value=[])
         self.attachments.context.count = MagicMock(return_value=0)
         self.attachments.context.delete = MagicMock()
         self.attachments.context.clear = MagicMock()
@@ -293,7 +293,7 @@ class TestAttachment:
 
     def test_update_tab(self, dummy_window, dummy_meta):
         dummy_meta.has_additional_ctx = MagicMock(return_value=True)
-        dummy_window.core.attachments.context.get_all.return_value = []
+        dummy_window.core.attachments.context.get_display_all.return_value = []
         dummy_window.core.attachments.context.count.return_value = 2
         att = Attachment(dummy_window)
         att.update_tab(dummy_meta)
@@ -323,7 +323,7 @@ class TestAttachment:
         att.delete_by_idx(0, force=False)
         dummy_window.ui.dialogs.confirm.assert_called()
         dummy_meta.additional_ctx = [{"k": "v"}]
-        dummy_window.core.attachments.context.get_all.return_value = [{"k": "v"}]
+        dummy_window.core.attachments.context.get_display_all.return_value = [{"k": "v"}]
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
         att.delete_by_idx(0, force=True)
         # dummy_window.core.attachments.context.delete.assert_called()
@@ -346,7 +346,7 @@ class TestAttachment:
     def test_open_by_idx(self, dummy_window, dummy_meta, monkeypatch):
         dummy_meta.additional_ctx = [{"path": "file.txt"}]
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
-        dummy_window.core.attachments.context.get_all.return_value = dummy_meta.additional_ctx
+        dummy_window.core.attachments.context.get_display_all.return_value = dummy_meta.additional_ctx
         monkeypatch.setattr(os.path, "exists", lambda p: True)
         monkeypatch.setattr(os.path, "isfile", lambda p: True)
         att = Attachment(dummy_window)
@@ -356,7 +356,7 @@ class TestAttachment:
     def test_open_dir_src_by_idx(self, dummy_window, dummy_meta, monkeypatch):
         dummy_meta.additional_ctx = [{"path": "dir/file.txt"}]
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
-        dummy_window.core.attachments.context.get_all.return_value = dummy_meta.additional_ctx
+        dummy_window.core.attachments.context.get_display_all.return_value = dummy_meta.additional_ctx
         monkeypatch.setattr(os.path, "exists", lambda p: True)
         monkeypatch.setattr(os.path, "isdir", lambda p: True)
         monkeypatch.setattr(os.path, "dirname", lambda p: "dir")
@@ -367,7 +367,7 @@ class TestAttachment:
     def test_open_dir_dest_by_idx(self, dummy_window, dummy_meta, monkeypatch):
         dummy_meta.additional_ctx = [{"uuid": "uid", "path": "file.txt"}]
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
-        dummy_window.core.attachments.context.get_all.return_value = dummy_meta.additional_ctx
+        dummy_window.core.attachments.context.get_display_all.return_value = dummy_meta.additional_ctx
         dummy_window.core.attachments.context.get_dir.return_value = "root_dir"
         monkeypatch.setattr(os.path, "exists", lambda p: True)
         monkeypatch.setattr(os.path, "isdir", lambda p: True)
@@ -379,7 +379,7 @@ class TestAttachment:
     def test_has_file_by_idx(self, dummy_window, dummy_meta, monkeypatch):
         dummy_meta.additional_ctx = [{"path": "file.txt"}]
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
-        dummy_window.core.attachments.context.get_all.return_value = dummy_meta.additional_ctx
+        dummy_window.core.attachments.context.get_display_all.return_value = dummy_meta.additional_ctx
         monkeypatch.setattr(os.path, "exists", lambda p: True)
         monkeypatch.setattr(os.path, "isfile", lambda p: True)
         att = Attachment(dummy_window)
@@ -390,7 +390,7 @@ class TestAttachment:
     def test_has_src_by_idx(self, dummy_window, dummy_meta, monkeypatch):
         dummy_meta.additional_ctx = [{"real_path": "dir/file.txt", "path": "dir/file.txt"}]
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
-        dummy_window.core.attachments.context.get_all.return_value = dummy_meta.additional_ctx
+        dummy_window.core.attachments.context.get_display_all.return_value = dummy_meta.additional_ctx
         monkeypatch.setattr(os.path, "exists", lambda p: True)
         monkeypatch.setattr(os.path, "isdir", lambda p: True)
         att = Attachment(dummy_window)
@@ -399,7 +399,7 @@ class TestAttachment:
     def test_has_dest_by_idx(self, dummy_window, dummy_meta, monkeypatch):
         dummy_meta.additional_ctx = [{"uuid": "uid", "path": "file.txt"}]
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
-        dummy_window.core.attachments.context.get_all.return_value = dummy_meta.additional_ctx
+        dummy_window.core.attachments.context.get_display_all.return_value = dummy_meta.additional_ctx
         dummy_window.core.attachments.context.get_dir.return_value = "root_dir"
         monkeypatch.setattr(os.path, "exists", lambda p: True)
         monkeypatch.setattr(os.path, "isdir", lambda p: True)

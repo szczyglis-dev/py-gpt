@@ -117,6 +117,9 @@ class DummyCtxItem:
         self.live = False
         self.extra_ctx = None
         self.meta = DummyCtxMeta()
+    def get_display_output(self, output=None):
+        return self.output if output is None else output
+
     def to_dict(self):
         return {"id": self.id}
 

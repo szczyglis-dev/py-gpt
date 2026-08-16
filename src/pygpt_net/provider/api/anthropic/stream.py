@@ -13,6 +13,7 @@ import io
 from typing import Optional
 
 from .utils import as_int
+from pygpt_net.provider.api.reasoning import stream_reasoning_delta, stream_text_delta
 
 
 def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
@@ -105,13 +106,37 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                     if p not in ctx.images:
                         ctx.images.append(p)
 
+    def _store_thinking_signature(signature):
+        if not signature:
+            return
+        if not isinstance(getattr(ctx, "extra", None), dict):
+            ctx.extra = {}
+        reasoning = ctx.extra.get("reasoning")
+        if not isinstance(reasoning, dict):
+            reasoning = {
+                "provider": "anthropic",
+                "type": "thinking_summary",
+                "text": "",
+                "raw": False,
+                "visible": False,
+                "encrypted": False,
+            }
+            ctx.extra["reasoning"] = reasoning
+        signatures = reasoning.setdefault("signatures", [])
+        value = str(signature)
+        if value not in signatures:
+            signatures.append(value)
+
     # --- Top-level delta objects (when SDK yields deltas directly) ---
     if etype == "text_delta":
         txt = getattr(chunk, "text", None)
-        return str(txt) if txt is not None else None
+        return stream_text_delta(state, txt)
 
     if etype == "thinking_delta":
-        return None
+        return stream_reasoning_delta(
+            state, getattr(chunk, "thinking", None),
+            provider="anthropic", kind="thinking_summary", raw=False,
+        )
 
     if etype == "input_json_delta" and not is_computer_call:
         pj = getattr(chunk, "partial_json", "") or ""
@@ -125,6 +150,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
         return None
 
     if etype == "signature_delta":
+        _store_thinking_signature(getattr(chunk, "signature", None))
         return None
 
     # --- Standard event flow ---
@@ -194,7 +220,14 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
             if getattr(delta, "type", "") == "text_delta":
                 txt = getattr(delta, "text", None)
                 if txt is not None:
-                    response = str(txt)
+                    response = stream_text_delta(state, txt)
+            elif getattr(delta, "type", "") == "thinking_delta":
+                response = stream_reasoning_delta(
+                    state, getattr(delta, "thinking", None),
+                    provider="anthropic", kind="thinking_summary", raw=False,
+                )
+            elif getattr(delta, "type", "") == "signature_delta":
+                _store_thinking_signature(getattr(delta, "signature", None))
             elif getattr(delta, "type", "") == "input_json_delta":
                 idx = str(getattr(chunk, "index", 0) or 0)
                 buf = state.fn_args_buffers.get(idx)
@@ -241,6 +274,10 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                 out_tok = as_int(getattr(usage, "output_tokens", None))
                 if out_tok is not None:
                     state.usage_payload["out"] = out_tok
+                details = getattr(usage, "output_tokens_details", None)
+                thinking_tok = as_int(getattr(details, "thinking_tokens", None)) if details else None
+                if thinking_tok is not None:
+                    state.usage_payload["reasoning"] = thinking_tok
             delta = getattr(chunk, "delta", None)
             stop_reason = getattr(delta, "stop_reason", None) if delta else None
         except Exception:
