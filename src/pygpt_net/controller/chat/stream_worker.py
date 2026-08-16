@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 04:00:00                  #
+# Updated Date: 2026.08.16 17:40:00                  #
 # ================================================== #
 
 import io
@@ -23,7 +23,8 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.api.google.utils import capture_google_usage
 from pygpt_net.provider.api.reasoning import (
     close_stream_reasoning, cleanup_stream_reasoning, ensure_reasoning_metadata,
-    persist_stream_reasoning, strip_stream_reasoning,
+    is_tagged_reasoning_model, persist_stream_reasoning,
+    strip_and_store_tagged_reasoning, strip_stream_reasoning,
 )
 
 # Import provider-specific stream processors
@@ -365,6 +366,19 @@ class StreamWorker(QRunnable):
         """
         output = state.out.getvalue() if state.out is not None else ""
         output = strip_stream_reasoning(output, state)
+
+        # Local reasoning models such as DeepSeek served through Ollama/local
+        # OpenAI-compatible backends expose thinking inline as <think> blocks.
+        # Keep the live stream unchanged for the existing UI, but separate the
+        # trace before persistence so it never becomes assistant history.
+        model = core.models.get(ctx.model) if getattr(ctx, "model", None) else None
+        if is_tagged_reasoning_model(model):
+            provider = str(getattr(model, "provider", "") or "local")
+            output = strip_and_store_tagged_reasoning(
+                ctx,
+                output,
+                provider=provider,
+            )
         if state.out is not None:
             try:
                 state.out.close()

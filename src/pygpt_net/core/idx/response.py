@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 07:00:00                  #
+# Updated Date: 2026.08.16 17:40:00                  #
 # ================================================== #
 
 from typing import Any
 
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.provider.api.reasoning import (
+    is_tagged_reasoning_model, strip_and_store_tagged_reasoning,
+)
 
 class Response:
     def __init__(self, window=None):
@@ -22,6 +25,14 @@ class Response:
         :param window: Window instance
         """
         self.window = window
+
+    def _prepare_output(self, ctx: CtxItem, model: ModelItem, output: Any) -> str:
+        """Normalize local <think> reasoning without affecting other providers."""
+        text = str(output)
+        if is_tagged_reasoning_model(model):
+            provider = str(getattr(model, "provider", "") or "local")
+            text = strip_and_store_tagged_reasoning(ctx, text, provider=provider)
+        return text
 
     def handle(
             self,
@@ -87,9 +98,7 @@ class Response:
         :param model: ModelItem
         :param response: Response data
         """
-        output = str(response)
-        if output is None:
-            output = ""
+        output = self._prepare_output(ctx, model, response)
         ctx.set_output(output, "")
 
     def from_index(
@@ -105,9 +114,7 @@ class Response:
         :param model: ModelItem
         :param response: Response data
         """
-        output = str(response.response)
-        if output is None:
-            output = ""
+        output = self._prepare_output(ctx, model, response.response)
         ctx.set_output(output, "")
 
     def from_llm(
@@ -129,6 +136,7 @@ class Response:
         output = (getattr(msg, "content", None) if msg else None) or ""
         if isinstance(output, str):
             output = output.strip() or output
+        output = self._prepare_output(ctx, model, output)
         tool_calls = llm.get_tool_calls_from_response(
             response,
             error_on_no_tool_call=False,

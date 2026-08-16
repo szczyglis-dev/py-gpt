@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 19:00:00                  #
+# Updated Date: 2026.08.16 17:40:00                  #
 # ================================================== #
 
 import json
@@ -24,6 +24,9 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.provider.api.reasoning import (
+    is_tagged_reasoning_model, strip_and_store_tagged_reasoning,
+)
 from pygpt_net.item.model import ModelItem
 
 from .utils import sanitize_name
@@ -423,6 +426,15 @@ class Chat:
                     ctx.tool_calls = self.window.core.command.unpack_tool_calls(
                         response.choices[0].message.tool_calls,
                     )
+
+        # Local OpenAI-compatible backends (including Ollama) may put raw
+        # reasoning directly in the text as <think>...</think>. Keep it in the
+        # same normalized extra metadata used by native provider reasoning, not
+        # in the assistant output that will be sent back as conversation history.
+        model = self.window.core.models.get(ctx.model) if getattr(ctx, "model", None) else None
+        if is_tagged_reasoning_model(model):
+            provider = str(getattr(model, "provider", "") or "local")
+            output = strip_and_store_tagged_reasoning(ctx, output, provider=provider)
 
         ctx.output = output  # set output text
         ctx.set_tokens(

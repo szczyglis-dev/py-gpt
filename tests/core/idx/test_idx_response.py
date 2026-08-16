@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2026.08.16 18:05:00                  #
 # ================================================== #
 
 import pytest
@@ -40,6 +40,59 @@ def test_from_index_with_none_response_calls_set_output_with_string_none():
     r = Response()
     r.from_index(ctx, model=Mock(), response=response)
     ctx.set_output.assert_called_once_with("None", "")
+
+
+def test_from_index_extracts_local_tagged_reasoning_to_extra():
+    ctx = SimpleNamespace(set_output=Mock(), extra={})
+    response = SimpleNamespace(response="<think>internal reasoning</think>\n\nfinal answer")
+    model = SimpleNamespace(
+        provider="ollama",
+        llama_index={},
+        is_ollama=lambda: True,
+    )
+    r = Response()
+    r.from_index(ctx, model=model, response=response)
+
+    ctx.set_output.assert_called_once_with("final answer", "")
+    assert ctx.extra["reasoning"] == {
+        "provider": "ollama",
+        "type": "thinking",
+        "text": "internal reasoning",
+        "raw": True,
+        "visible": True,
+        "encrypted": False,
+    }
+
+
+def test_from_index_keeps_think_tags_for_non_local_model():
+    ctx = SimpleNamespace(set_output=Mock(), extra={})
+    response = SimpleNamespace(response="<think>ordinary text</think> final answer")
+    model = SimpleNamespace(
+        provider="openai",
+        llama_index={},
+        is_ollama=lambda: False,
+    )
+    r = Response()
+    r.from_index(ctx, model=model, response=response)
+
+    ctx.set_output.assert_called_once_with("<think>ordinary text</think> final answer", "")
+    assert ctx.extra == {}
+
+
+def test_from_index_extracts_unclosed_local_think_block():
+    ctx = SimpleNamespace(set_output=Mock(), extra={})
+    response = SimpleNamespace(response="<think>partial reasoning")
+    model = SimpleNamespace(
+        provider="local_ai",
+        llama_index={},
+        is_ollama=lambda: False,
+    )
+    r = Response()
+    r.from_index(ctx, model=model, response=response)
+
+    ctx.set_output.assert_called_once_with("", "")
+    assert ctx.extra["reasoning"]["text"] == "partial reasoning"
+    assert ctx.extra["reasoning"]["type"] == "thinking"
 
 
 def test_from_llm_sets_output_and_unpacks_tool_calls_when_message_present():
