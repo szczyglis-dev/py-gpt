@@ -78038,7 +78038,7 @@ lear();\x0a\x09\x09} catc\
 h (_) {}\x0a\x09\x09this.\
 _pendingDoc = fa\
 lse;\x0a\x09}\x0a}\
-\x00\x008\xec\
+\x00\x008>\
 /\
 / ==============\
 ================\
@@ -78391,566 +78391,555 @@ les[k];\x0a\x09\x09\x09\x09if (\
 !it) return;\x0a\x09\x09\x09\
 \x09const url = thi\
 s._esc(it.url);\x0a\
-\x09\x09\x09\x09const path =\
- this._esc(it.pa\
-th);\x0a\x09\x09\x09\x09const i\
-con = (typeof wi\
-ndow !== 'undefi\
-ned' && window.I\
-CON_ATTACHMENTS)\
- ? `<img src=\x22${\
-window.ICON_ATTA\
-CHMENTS}\x22 class=\
-\x22extra-src-icon\x22\
->` : '';\x0a\x09\x09\x09\x09row\
-s.push(`${icon} \
-<a href=\x22${url}\x22\
->${path}</a> <b>\
- [${k}] </b>`);\x0a\
-\x09\x09\x09});\x0a\x09\x09\x09if (ro\
-ws.length) parts\
-.push(this._rend\
-erCollapsibleExt\
-raRows(rows));\x0a\x09\
-\x09}\x0a\x0a\x09\x09// urls\x0a\x09\x09\
-const urls = blo\
-ck.urls || {};\x0a\x09\
-\x09const kU = Obje\
-ct.keys(urls);\x0a\x09\
-\x09if (kU.length) \
-{\x0a\x09\x09\x09const rows \
-= [];\x0a\x09\x09\x09kU.forE\
-ach((k) => {\x0a\x09\x09\x09\
-\x09const it = urls\
-[k];\x0a\x09\x09\x09\x09if (!it\
-) return;\x0a\x09\x09\x09\x09co\
-nst url = this._\
-esc(it.url);\x0a\x09\x09\x09\
-\x09const icon = (t\
-ypeof window !==\
- 'undefined' && \
-window.ICON_URL)\
- ? `<img src=\x22${\
-window.ICON_URL}\
-\x22 class=\x22extra-s\
-rc-icon\x22>` : '';\
-\x0a\x09\x09\x09\x09rows.push(`\
-${icon}<a href=\x22\
-${url}\x22 title=\x22$\
-{url}\x22>${url}</a\
-> <small> [${k}]\
- </small>`);\x0a\x09\x09\x09\
-});\x0a\x09\x09\x09if (rows.\
-length) parts.pu\
-sh(this._renderC\
-ollapsibleExtraR\
-ows(rows));\x0a\x09\x09}\x0a\
-\x0a\x09\x09// docs (rend\
-er on JS) or fal\
-lback to docs_ht\
-ml\x0a\x09\x09const extra\
- = block.extra |\
-| {};\x0a\x09\x09const do\
-csRaw = Array.is\
-Array(extra.docs\
-) ? extra.docs :\
- null;\x0a\x0a\x09\x09if (do\
-csRaw && docsRaw\
-.length) {\x0a\x09\x09\x09co\
+\x09\x09\x09\x09const name =\
+ this._esc(it.ba\
+sename || it.pat\
+h || '');\x0a\x09\x09\x09\x09co\
 nst icon = (type\
 of window !== 'u\
 ndefined' && win\
-dow.ICON_DB) ? `\
-<img src=\x22${wind\
-ow.ICON_DB}\x22 cla\
-ss=\x22extra-src-ic\
-on\x22>` : '';\x0a\x09\x09\x09c\
-onst prefix = (t\
-ypeof window !==\
- 'undefined' && \
-window.LOCALE_DO\
-C_PREFIX) ? Stri\
-ng(window.LOCALE\
-_DOC_PREFIX) : '\
-Doc:';\x0a\x09\x09\x09const \
-limit = 3;\x0a\x0a\x09\x09\x09/\
-/ normalize: [{u\
-uid, meta}] OR [\
-{ uuid: {...} }]\
-\x0a\x09\x09\x09const normal\
-ized = [];\x0a\x09\x09\x09do\
-csRaw.forEach((i\
-t) => {\x0a\x09\x09\x09\x09if (\
-!it || typeof it\
- !== 'object') r\
-eturn;\x0a\x09\x09\x09\x09if ('\
-uuid' in it && '\
-meta' in it && t\
-ypeof it.meta ==\
-= 'object') {\x0a\x09\x09\
-\x09\x09\x09normalized.pu\
-sh({\x0a\x09\x09\x09\x09\x09\x09uuid:\
- String(it.uuid)\
-,\x0a\x09\x09\x09\x09\x09\x09meta: it\
-.meta || {}\x0a\x09\x09\x09\x09\
-\x09});\x0a\x09\x09\x09\x09} else \
-{\x0a\x09\x09\x09\x09\x09const key\
-s = Object.keys(\
-it);\x0a\x09\x09\x09\x09\x09if (ke\
-ys.length === 1)\
- {\x0a\x09\x09\x09\x09\x09\x09const u\
-uid = keys[0];\x0a\x09\
-\x09\x09\x09\x09\x09const meta \
-= it[uuid];\x0a\x09\x09\x09\x09\
-\x09\x09if (meta && ty\
-peof meta === 'o\
-bject') {\x0a\x09\x09\x09\x09\x09\x09\
-\x09normalized.push\
-({\x0a\x09\x09\x09\x09\x09\x09\x09\x09uuid:\
- String(uuid),\x0a\x09\
-\x09\x09\x09\x09\x09\x09\x09meta\x0a\x09\x09\x09\x09\
-\x09\x09\x09});\x0a\x09\x09\x09\x09\x09\x09}\x0a\x09\
-\x09\x09\x09\x09}\x0a\x09\x09\x09\x09}\x0a\x09\x09\x09}\
-);\x0a\x0a\x09\x09\x09const row\
-s = [];\x0a\x09\x09\x09for (\
-let i = 0; i < M\
-ath.min(limit, n\
-ormalized.length\
-); i++) {\x0a\x09\x09\x09\x09co\
-nst d = normaliz\
-ed[i];\x0a\x09\x09\x09\x09const\
- meta = d.meta |\
-| {};\x0a\x09\x09\x09\x09const \
-entries = Object\
-.keys(meta).map(\
-k => `<b>${this.\
-_escapeHtml(k)}:\
-</b> ${this._esc\
-apeHtml(String(m\
-eta[k]))}`).join\
-(', ');\x0a\x09\x09\x09\x09rows\
-.push(`<p><small\
->[${i + 1}] ${th\
-is._escapeHtml(d\
-.uuid)}: ${entri\
-es}</small></p>`\
-);\x0a\x09\x09\x09}\x0a\x09\x09\x09if (r\
-ows.length) {\x0a\x09\x09\
-\x09\x09parts.push(`<p\
->${icon}<small><\
-b>${this._escape\
-Html(prefix)}:</\
-b></small></p>`)\
-;\x0a\x09\x09\x09\x09parts.push\
-(`<div class=\x22cm\
-d\x22><p>${rows.joi\
-n('')}</p></div>\
-`);\x0a\x09\x09\x09}\x0a\x09\x09} els\
-e {\x0a\x09\x09\x09// backwa\
-rd compat\x0a\x09\x09\x09con\
-st docs_html = e\
-xtra && extra.do\
-cs_html ? String\
-(extra.docs_html\
-) : '';\x0a\x09\x09\x09if (d\
-ocs_html) parts.\
-push(docs_html);\
-\x0a\x09\x09}\x0a\x0a\x09\x09// plugi\
-n-driven tool ex\
-tra HTML\x0a\x09\x09const\
- tool_extra_html\
- = extra && extr\
-a.tool_extra_htm\
-l ? String(extra\
-.tool_extra_html\
-) : '';\x0a\x09\x09if (to\
-ol_extra_html) p\
-arts.push(`<div \
-class=\x22msg-extra\
-\x22>${tool_extra_h\
-tml}</div>`);\x0a\x0a\x09\
-\x09return parts.jo\
-in('');\x0a\x09}\x0a\x0a\x09// \
-Render message-l\
-evel actions\x0a\x09_r\
-enderActions(blo\
-ck) {\x0a\x09\x09const ex\
-tra = block.extr\
-a || {};\x0a\x09\x09const\
- actions = extra\
-.actions || [];\x0a\
-\x09\x09if (!actions |\
-| !actions.lengt\
-h) return '';\x0a\x09\x09\
-const parts = ac\
-tions.map((a) =>\
- {\x0a\x09\x09\x09const href\
- = this._esc(a.h\
-ref || '#');\x0a\x09\x09\x09\
-const title = th\
-is._esc(a.title \
-|| '');\x0a\x09\x09\x09const\
- icon = this._es\
-c(a.icon || '');\
-\x0a\x09\x09\x09const id = t\
-his._esc(a.id ||\
- block.id);\x0a\x09\x09\x09r\
-eturn `<a href=\x22\
-${href}\x22 class=\x22\
-action-icon\x22 dat\
-a-id=\x22${id}\x22 rol\
-e=\x22button\x22><span\
- class=\x22cmd\x22><im\
-g src=\x22${icon}\x22 \
-class=\x22action-im\
-g\x22 title=\x22${titl\
-e}\x22 alt=\x22${title\
-}\x22 data-id=\x22${id\
-}\x22></span></a>`;\
-\x0a\x09\x09});\x0a\x09\x09return \
-`<div class=\x22act\
-ion-icons\x22 data-\
-id=\x22${this._esc(\
-block.id)}\x22>${pa\
-rts.join('')}</d\
-iv>`;\x0a\x09}\x0a\x0a\x09// Re\
-nder tool output\
- wrapper (always\
- collapsed by de\
-fault; wrapper v\
-isibility depend\
-s on flag)\x0a\x09// I\
-nside class Node\
-TemplateEngine\x0a\x09\
-_renderToolOutpu\
-tWrapper(block) \
-{\x0a\x09\x09const extra \
-= block.extra ||\
- {};\x0a\x09\x09const too\
-lCalls = Array.i\
-sArray(extra.too\
-l_calls) ? extra\
-.tool_calls.filt\
-er(Boolean) : []\
-;\x0a\x09\x09const hasToo\
-lCalls = toolCal\
-ls.length > 0;\x0a\x0a\
-\x09\x09// Backward-co\
-mpatible HTML-re\
-ady result. New \
-blocks also carr\
-y the raw\x0a\x09\x09// r\
-esult so it can \
-be escaped here \
-instead of being\
- injected as HTM\
-L.\x0a\x09\x09const legac\
-yToolOutput = (e\
-xtra.tool_output\
- != null) ? Stri\
-ng(extra.tool_ou\
-tput) : '';\x0a\x09\x09co\
-nst resultHtml =\
- (extra.tool_res\
-ult != null)\x0a\x09\x09\x09\
-? this._escapeHt\
-ml(String(extra.\
-tool_result))\x0a\x09\x09\
-\x09: legacyToolOut\
-put;\x0a\x0a\x09\x09// A too\
-l request itself\
- makes the wrapp\
-er visible immed\
-iately. The resu\
-lt\x0a\x09\x09// can arri\
-ve later through\
- ToolOutput.upda\
-te().\x0a\x09\x09const wr\
-apperDisplay = (\
-extra.tool_outpu\
-t_visible === tr\
-ue || hasToolCal\
-ls) ? '' : 'disp\
-lay:none';\x0a\x0a\x09\x09co\
-nst toggleTitle \
-= (typeof trans \
-!== 'undefined' \
-&& trans) ? tran\
-s('action.cmd.ex\
-pand') : 'Expand\
-';\x0a\x09\x09const expIc\
+dow.ICON_ATTACHM\
+ENTS) ? `<img sr\
+c=\x22${window.ICON\
+_ATTACHMENTS}\x22 c\
+lass=\x22extra-src-\
+icon\x22>` : '';\x0a\x09\x09\
+\x09\x09rows.push(`${i\
+con} <a href=\x22${\
+url}\x22>${this._es\
+capeHtml(name)}<\
+/a> <b> [${k}] <\
+/b>`);\x0a\x09\x09\x09});\x0a\x09\x09\
+\x09if (rows.length\
+) parts.push(thi\
+s._renderCollaps\
+ibleExtraRows(ro\
+ws));\x0a\x09\x09}\x0a\x0a\x09\x09// \
+urls\x0a\x09\x09const url\
+s = block.urls |\
+| {};\x0a\x09\x09const kU\
+ = Object.keys(u\
+rls);\x0a\x09\x09if (kU.l\
+ength) {\x0a\x09\x09\x09cons\
+t rows = [];\x0a\x09\x09\x09\
+kU.forEach((k) =\
+> {\x0a\x09\x09\x09\x09const it\
+ = urls[k];\x0a\x09\x09\x09\x09\
+if (!it) return;\
+\x0a\x09\x09\x09\x09const url =\
+ this._esc(it.ur\
+l);\x0a\x09\x09\x09\x09const ic\
 on = (typeof win\
 dow !== 'undefin\
 ed' && window.IC\
-ON_EXPAND) ? win\
-dow.ICON_EXPAND \
-: '';\x0a\x09\x09const to\
-olIcon = (typeof\
- window !== 'und\
-efined' && windo\
-w.ICON_TOOL) ? w\
-indow.ICON_TOOL \
-: '';\x0a\x09\x09const to\
-olLabel = (typeo\
-f window !== 'un\
-defined' && wind\
-ow.LOCALE_TOOL) \
-? window.LOCALE_\
-TOOL : 'Tool';\x0a\x09\
-\x09const requestLa\
-bel = (typeof wi\
-ndow !== 'undefi\
-ned' && window.L\
-OCALE_TOOL_REQUE\
-ST) ? window.LOC\
-ALE_TOOL_REQUEST\
- : 'Request';\x0a\x09\x09\
-const responseLa\
-bel = (typeof wi\
-ndow !== 'undefi\
-ned' && window.L\
-OCALE_TOOL_RESPO\
-NSE) ? window.LO\
-CALE_TOOL_RESPON\
-SE : 'Response';\
-\x0a\x0a\x09\x09let titleHtm\
-l = '';\x0a\x09\x09let co\
-ntentHtml = lega\
-cyToolOutput;\x0a\x09\x09\
-if (hasToolCalls\
-) {\x0a\x09\x09\x09const nam\
-es = toolCalls.m\
-ap((call) => thi\
-s._escapeHtml(St\
-ring(call.name |\
-| 'tool')));\x0a\x09\x09\x09\
-const requests =\
- toolCalls\x0a\x09\x09\x09\x09.\
-map((call) => th\
+ON_URL) ? `<img \
+src=\x22${window.IC\
+ON_URL}\x22 class=\x22\
+extra-src-icon\x22>\
+` : '';\x0a\x09\x09\x09\x09rows\
+.push(`${icon}<a\
+ href=\x22${url}\x22 t\
+itle=\x22${url}\x22>${\
+url}</a> <small>\
+ [${k}] </small>\
+`);\x0a\x09\x09\x09});\x0a\x09\x09\x09if\
+ (rows.length) p\
+arts.push(this._\
+renderCollapsibl\
+eExtraRows(rows)\
+);\x0a\x09\x09}\x0a\x0a\x09\x09// doc\
+s (render on JS)\
+ or fallback to \
+docs_html\x0a\x09\x09cons\
+t extra = block.\
+extra || {};\x0a\x09\x09c\
+onst docsRaw = A\
+rray.isArray(ext\
+ra.docs) ? extra\
+.docs : null;\x0a\x0a\x09\
+\x09if (docsRaw && \
+docsRaw.length) \
+{\x0a\x09\x09\x09const icon \
+= (typeof window\
+ !== 'undefined'\
+ && window.ICON_\
+DB) ? `<img src=\
+\x22${window.ICON_D\
+B}\x22 class=\x22extra\
+-src-icon\x22>` : '\
+';\x0a\x09\x09\x09const pref\
+ix = (typeof win\
+dow !== 'undefin\
+ed' && window.LO\
+CALE_DOC_PREFIX)\
+ ? String(window\
+.LOCALE_DOC_PREF\
+IX) : 'Doc:';\x0a\x09\x09\
+\x09const limit = 3\
+;\x0a\x0a\x09\x09\x09// normali\
+ze: [{uuid, meta\
+}] OR [{ uuid: {\
+...} }]\x0a\x09\x09\x09const\
+ normalized = []\
+;\x0a\x09\x09\x09docsRaw.for\
+Each((it) => {\x0a\x09\
+\x09\x09\x09if (!it || ty\
+peof it !== 'obj\
+ect') return;\x0a\x09\x09\
+\x09\x09if ('uuid' in \
+it && 'meta' in \
+it && typeof it.\
+meta === 'object\
+') {\x0a\x09\x09\x09\x09\x09normal\
+ized.push({\x0a\x09\x09\x09\x09\
+\x09\x09uuid: String(i\
+t.uuid),\x0a\x09\x09\x09\x09\x09\x09m\
+eta: it.meta || \
+{}\x0a\x09\x09\x09\x09\x09});\x0a\x09\x09\x09\x09\
+} else {\x0a\x09\x09\x09\x09\x09co\
+nst keys = Objec\
+t.keys(it);\x0a\x09\x09\x09\x09\
+\x09if (keys.length\
+ === 1) {\x0a\x09\x09\x09\x09\x09\x09\
+const uuid = key\
+s[0];\x0a\x09\x09\x09\x09\x09\x09cons\
+t meta = it[uuid\
+];\x0a\x09\x09\x09\x09\x09\x09if (met\
+a && typeof meta\
+ === 'object') {\
+\x0a\x09\x09\x09\x09\x09\x09\x09normaliz\
+ed.push({\x0a\x09\x09\x09\x09\x09\x09\
+\x09\x09uuid: String(u\
+uid),\x0a\x09\x09\x09\x09\x09\x09\x09\x09me\
+ta\x0a\x09\x09\x09\x09\x09\x09\x09});\x0a\x09\x09\
+\x09\x09\x09\x09}\x0a\x09\x09\x09\x09\x09}\x0a\x09\x09\x09\
+\x09}\x0a\x09\x09\x09});\x0a\x0a\x09\x09\x09co\
+nst rows = [];\x0a\x09\
+\x09\x09for (let i = 0\
+; i < Math.min(l\
+imit, normalized\
+.length); i++) {\
+\x0a\x09\x09\x09\x09const d = n\
+ormalized[i];\x0a\x09\x09\
+\x09\x09const meta = d\
+.meta || {};\x0a\x09\x09\x09\
+\x09const entries =\
+ Object.keys(met\
+a).map(k => `<b>\
+${this._escapeHt\
+ml(k)}:</b> ${th\
 is._escapeHtml(S\
-tring(call.reque\
-st || '')))\x0a\x09\x09\x09\x09\
-.join('\x5cn\x5cn');\x0a\x0a\
-\x09\x09\x09const iconHtm\
-l = toolIcon ? `\
-<img src='${this\
-._esc(toolIcon)}\
-' class='tool-ou\
-tput-icon' alt='\
-'>` : '';\x0a\x09\x09\x09con\
-st arrowHtml = `\
-<img src='${this\
-._esc(expIcon)}'\
- class='tool-out\
-put-arrow' width\
-='25' height='25\
-' alt=''>`;\x0a\x09\x09\x09t\
-itleHtml =\x0a\x09\x09\x09\x09`\
-<button type='bu\
-tton' class='too\
-l-output-toggle'\
- onclick='toggle\
-ToolOutput(${thi\
+tring(meta[k]))}\
+`).join(', ');\x0a\x09\
+\x09\x09\x09rows.push(`<p\
+><small>[${i + 1\
+}] ${this._escap\
+eHtml(d.uuid)}: \
+${entries}</smal\
+l></p>`);\x0a\x09\x09\x09}\x0a\x09\
+\x09\x09if (rows.lengt\
+h) {\x0a\x09\x09\x09\x09parts.p\
+ush(`<p>${icon}<\
+small><b>${this.\
+_escapeHtml(pref\
+ix)}:</b></small\
+></p>`);\x0a\x09\x09\x09\x09par\
+ts.push(`<div cl\
+ass=\x22cmd\x22><p>${r\
+ows.join('')}</p\
+></div>`);\x0a\x09\x09\x09}\x0a\
+\x09\x09} else {\x0a\x09\x09\x09//\
+ backward compat\
+\x0a\x09\x09\x09const docs_h\
+tml = extra && e\
+xtra.docs_html ?\
+ String(extra.do\
+cs_html) : '';\x0a\x09\
+\x09\x09if (docs_html)\
+ parts.push(docs\
+_html);\x0a\x09\x09}\x0a\x0a\x09\x09/\
+/ plugin-driven \
+tool extra HTML\x0a\
+\x09\x09const tool_ext\
+ra_html = extra \
+&& extra.tool_ex\
+tra_html ? Strin\
+g(extra.tool_ext\
+ra_html) : '';\x0a\x09\
+\x09if (tool_extra_\
+html) parts.push\
+(`<div class=\x22ms\
+g-extra\x22>${tool_\
+extra_html}</div\
+>`);\x0a\x0a\x09\x09return p\
+arts.join('');\x0a\x09\
+}\x0a\x0a\x09// Render me\
+ssage-level acti\
+ons\x0a\x09_renderActi\
+ons(block) {\x0a\x09\x09c\
+onst extra = blo\
+ck.extra || {};\x0a\
+\x09\x09const actions \
+= extra.actions \
+|| [];\x0a\x09\x09if (!ac\
+tions || !action\
+s.length) return\
+ '';\x0a\x09\x09const par\
+ts = actions.map\
+((a) => {\x0a\x09\x09\x09con\
+st href = this._\
+esc(a.href || '#\
+');\x0a\x09\x09\x09const tit\
+le = this._esc(a\
+.title || '');\x0a\x09\
+\x09\x09const icon = t\
+his._esc(a.icon \
+|| '');\x0a\x09\x09\x09const\
+ id = this._esc(\
+a.id || block.id\
+);\x0a\x09\x09\x09return `<a\
+ href=\x22${href}\x22 \
+class=\x22action-ic\
+on\x22 data-id=\x22${i\
+d}\x22 role=\x22button\
+\x22><span class=\x22c\
+md\x22><img src=\x22${\
+icon}\x22 class=\x22ac\
+tion-img\x22 title=\
+\x22${title}\x22 alt=\x22\
+${title}\x22 data-i\
+d=\x22${id}\x22></span\
+></a>`;\x0a\x09\x09});\x0a\x09\x09\
+return `<div cla\
+ss=\x22action-icons\
+\x22 data-id=\x22${thi\
 s._esc(block.id)\
-});' ` +\x0a\x09\x09\x09\x09`ti\
-tle='${this._esc\
-apeHtml(toggleTi\
-tle)}' aria-expa\
-nded='false'>` +\
-\x0a\x09\x09\x09\x09`${iconHtml\
-}<span class='to\
-ol-output-label'\
-><b>${this._esca\
-peHtml(toolLabel\
-)}:</b>&nbsp;</s\
-pan>` +\x0a\x09\x09\x09\x09`<sp\
-an class='tool-o\
-utput-name'>${na\
-mes.join(', ')}<\
-/span>${arrowHtm\
-l}` +\x0a\x09\x09\x09\x09`</but\
-ton>`;\x0a\x09\x09\x09conten\
-tHtml =\x0a\x09\x09\x09\x09`<di\
-v class='tool-ou\
-tput-section'>` \
-+\x0a\x09\x09\x09\x09`<b>${this\
-._escapeHtml(req\
-uestLabel)}:</b>\
-` +\x0a\x09\x09\x09\x09`<div cl\
-ass='tool-output\
--data tool-outpu\
-t-request-data'>\
-${requests}</div\
->` +\x0a\x09\x09\x09\x09`</div>\
-` +\x0a\x09\x09\x09\x09`<div cl\
-ass='tool-output\
--section'>` +\x0a\x09\x09\
-\x09\x09`<b>${this._es\
-capeHtml(respons\
-eLabel)}:</b>` +\
-\x0a\x09\x09\x09\x09`<div class\
-='tool-output-da\
-ta tool-output-r\
-esult-data'>${re\
-sultHtml}</div>`\
- +\x0a\x09\x09\x09\x09`</div>`;\
-\x0a\x09\x09}\x0a\x0a\x09\x09const le\
-gacyToggleHtml =\
- hasToolCalls ? \
-'' :\x0a\x09\x09\x09`<span c\
-lass='toggle-cmd\
--output' onclick\
-='toggleToolOutp\
-ut(${this._esc(b\
-lock.id)});' ` +\
-\x0a\x09\x09\x09`title='${th\
-is._escapeHtml(t\
-oggleTitle)}' ro\
-le='button'>` +\x0a\
-\x09\x09\x09`<img src='${\
-this._esc(expIco\
-n)}' width='25' \
-height='25' vali\
-gn='middle'>` +\x0a\
-\x09\x09\x09`</span>`;\x0a\x0a\x09\
-\x09return (\x0a\x09\x09\x09`<d\
-iv class='tool-o\
-utput' style='${\
-wrapperDisplay}'\
->` +\x0a\x09\x09\x09`${title\
-Html}${legacyTog\
-gleHtml}` +\x0a\x09\x09\x09`\
-<div class='cont\
-ent' style='disp\
-lay:none' data-t\
-rusted='1'>${con\
-tentHtml}</div>`\
- +\x0a\x09\x09\x09`</div>`\x0a\x09\
-\x09);\x0a\x09}\x0a\x0a\x09// Rend\
-er bot message b\
-lock (md-block-m\
-arkdown)\x0a\x09_rende\
-rBot(block) {\x0a\x09\x09\
-const id = block\
-.id;\x0a\x09\x09const out\
- = block.output \
-|| {};\x0a\x09\x09const m\
-sgId = `msg-bot-\
-${id}`;\x0a\x0a\x09\x09// ti\
-mestamps intenti\
-onally disabled \
-on frontend\x0a\x09\x09//\
- let ts = '';\x0a\x09\x09\
-// if (out.times\
-tamp) { ... }\x0a\x0a\x09\
-\x09const personali\
-ze = !!(block &&\
- block.extra && \
-block.extra.pers\
-onalize === true\
-);\x0a\x09\x09const nameH\
-eader = personal\
-ize ? this._name\
-Header('bot', ou\
-t.name || '', ou\
-t.avatar_img || \
-null) : '';\x0a\x0a\x09\x09c\
-onst mdText = th\
-is._escapeHtml(o\
-ut.text || '');\x0a\
-\x09\x09const mdBlock \
-= mdText ? `<div\
- class='md-block\
-' md-block-markd\
-own='1'>${mdText\
-}</div>` : '';\x0a\x09\
-\x09const toolWrap \
-= this._renderTo\
+}\x22>${parts.join(\
+'')}</div>`;\x0a\x09}\x0a\
+\x0a\x09// Render tool\
+ output wrapper \
+(always collapse\
+d by default; wr\
+apper visibility\
+ depends on flag\
+)\x0a\x09// Inside cla\
+ss NodeTemplateE\
+ngine\x0a\x09_renderTo\
 olOutputWrapper(\
-block);\x0a\x09\x09const \
-extras = this._r\
-enderExtras(bloc\
-k);\x0a\x09\x09const acti\
-ons = (block.ext\
-ra && block.extr\
-a.footer_icons) \
-? this._renderAc\
-tions(block) : '\
-';\x0a\x09\x09const debug\
- = (block.extra \
-&& block.extra.d\
-ebug_html) ? Str\
-ing(block.extra.\
-debug_html) : ''\
-;\x0a\x0a\x09\x09return (\x0a\x09\x09\
-\x09`<div class='ms\
-g-box msg-bot' i\
-d='${msgId}'>` +\
-\x0a\x09\x09\x09`${nameHeade\
-r}` +\x0a\x09\x09\x09`<div c\
-lass='msg'>` +\x0a\x09\
-\x09\x09`${mdBlock}` +\
-\x0a\x09\x09\x09`<div class=\
-'msg-tool-extra'\
-></div>` +\x0a\x09\x09\x09`$\
-{toolWrap}` +\x0a\x09\x09\
-\x09`<div class='ms\
-g-extra'>${extra\
-s}</div>` +\x0a\x09\x09\x09`\
-${actions}${debu\
-g}` +\x0a\x09\x09\x09`</div>\
-` +\x0a\x09\x09\x09`</div>`\x0a\
-\x09\x09);\x0a\x09}\x0a\x0a\x09// Ren\
-der one RenderBl\
-ock into HTML (m\
-ay produce 1 or \
-2 messages \xe2\x80\x93 i\
-nput and/or outp\
-ut)\x0a\x09renderNode(\
 block) {\x0a\x09\x09const\
- parts = [];\x0a\x09\x09i\
-f (block && bloc\
-k.input && block\
-.input.text) par\
-ts.push(this._re\
-nderUser(block))\
-;\x0a\x09\x09if (block &&\
- block.output) {\
-\x0a\x09\x09\x09const extra \
-= block.extra ||\
- {};\x0a\x09\x09\x09const ha\
-sToolCalls = Arr\
-ay.isArray(extra\
-.tool_calls) && \
-extra.tool_calls\
-.length > 0;\x0a\x09\x09\x09\
-if (block.output\
-.text || hasTool\
-Calls || extra.t\
-ool_output_visib\
-le === true) {\x0a\x09\
-\x09\x09\x09parts.push(th\
-is._renderBot(bl\
-ock));\x0a\x09\x09\x09}\x0a\x09\x09}\x0a\
-\x09\x09return parts.j\
-oin('');\x0a\x09}\x0a\x0a\x09//\
- Render array of\
- blocks\x0a\x09renderN\
-odes(blocks) {\x0a\x09\
-\x09if (!Array.isAr\
-ray(blocks)) ret\
-urn '';\x0a\x09\x09const \
-out = [];\x0a\x09\x09for \
-(let i = 0; i < \
-blocks.length; i\
-++) {\x0a\x09\x09\x09const b\
- = blocks[i] || \
-null;\x0a\x09\x09\x09if (!b)\
- continue;\x0a\x09\x09\x09ou\
-t.push(this.rend\
-erNode(b));\x0a\x09\x09}\x0a\
-\x09\x09return out.joi\
-n('');\x0a\x09}\x0a}\
+ extra = block.e\
+xtra || {};\x0a\x09\x09co\
+nst toolCalls = \
+Array.isArray(ex\
+tra.tool_calls) \
+? extra.tool_cal\
+ls.filter(Boolea\
+n) : [];\x0a\x09\x09const\
+ hasToolCalls = \
+toolCalls.length\
+ > 0;\x0a\x0a\x09\x09// Back\
+ward-compatible \
+HTML-ready resul\
+t. New blocks al\
+so carry the raw\
+\x0a\x09\x09// result so \
+it can be escape\
+d here instead o\
+f being injected\
+ as HTML.\x0a\x09\x09cons\
+t legacyToolOutp\
+ut = (extra.tool\
+_output != null)\
+ ? String(extra.\
+tool_output) : '\
+';\x0a\x09\x09const resul\
+tHtml = (extra.t\
+ool_result != nu\
+ll)\x0a\x09\x09\x09? this._e\
+scapeHtml(String\
+(extra.tool_resu\
+lt))\x0a\x09\x09\x09: legacy\
+ToolOutput;\x0a\x0a\x09\x09/\
+/ A tool request\
+ itself makes th\
+e wrapper visibl\
+e immediately. T\
+he result\x0a\x09\x09// c\
+an arrive later \
+through ToolOutp\
+ut.update().\x0a\x09\x09c\
+onst wrapperDisp\
+lay = (extra.too\
+l_output_visible\
+ === true || has\
+ToolCalls) ? '' \
+: 'display:none'\
+;\x0a\x0a\x09\x09const toggl\
+eTitle = (typeof\
+ trans !== 'unde\
+fined' && trans)\
+ ? trans('action\
+.cmd.expand') : \
+'Expand';\x0a\x09\x09cons\
+t expIcon = (typ\
+eof window !== '\
+undefined' && wi\
+ndow.ICON_EXPAND\
+) ? window.ICON_\
+EXPAND : '';\x0a\x09\x09c\
+onst toolLabel =\
+ (typeof window \
+!== 'undefined' \
+&& window.LOCALE\
+_TOOL) ? window.\
+LOCALE_TOOL : 'T\
+ool';\x0a\x09\x09const re\
+questLabel = (ty\
+peof window !== \
+'undefined' && w\
+indow.LOCALE_TOO\
+L_REQUEST) ? win\
+dow.LOCALE_TOOL_\
+REQUEST : 'Reque\
+st';\x0a\x09\x09const res\
+ponseLabel = (ty\
+peof window !== \
+'undefined' && w\
+indow.LOCALE_TOO\
+L_RESPONSE) ? wi\
+ndow.LOCALE_TOOL\
+_RESPONSE : 'Res\
+ponse';\x0a\x0a\x09\x09let t\
+itleHtml = '';\x0a\x09\
+\x09let contentHtml\
+ = legacyToolOut\
+put;\x0a\x09\x09if (hasTo\
+olCalls) {\x0a\x09\x09\x09co\
+nst names = tool\
+Calls.map((call)\
+ => this._escape\
+Html(String(call\
+.name || 'tool')\
+));\x0a\x09\x09\x09const req\
+uests = toolCall\
+s\x0a\x09\x09\x09\x09.map((call\
+) => this._escap\
+eHtml(String(cal\
+l.request || '')\
+))\x0a\x09\x09\x09\x09.join('\x5cn\
+\x5cn');\x0a\x0a\x09\x09\x09const \
+arrowHtml = `<im\
+g src='${this._e\
+sc(expIcon)}' cl\
+ass='tool-output\
+-arrow' width='2\
+5' height='25' a\
+lt=''>`;\x0a\x09\x09\x09titl\
+eHtml =\x0a\x09\x09\x09\x09`<bu\
+tton type='butto\
+n' class='tool-o\
+utput-toggle' on\
+click='toggleToo\
+lOutput(${this._\
+esc(block.id)});\
+' ` +\x0a\x09\x09\x09\x09`title\
+='${this._escape\
+Html(toggleTitle\
+)}' aria-expande\
+d='false'>` +\x0a\x09\x09\
+\x09\x09`<span class='\
+tool-output-labe\
+l'><b>${this._es\
+capeHtml(toolLab\
+el)}:</b>&nbsp;<\
+/span>` +\x0a\x09\x09\x09\x09`<\
+span class='tool\
+-output-name'>${\
+names.join(', ')\
+}</span>${arrowH\
+tml}` +\x0a\x09\x09\x09\x09`</b\
+utton>`;\x0a\x09\x09\x09cont\
+entHtml =\x0a\x09\x09\x09\x09`<\
+div class='tool-\
+output-section'>\
+` +\x0a\x09\x09\x09\x09`<b>${th\
+is._escapeHtml(r\
+equestLabel)}:</\
+b>` +\x0a\x09\x09\x09\x09`<div \
+class='tool-outp\
+ut-data tool-out\
+put-request-data\
+'>${requests}</d\
+iv>` +\x0a\x09\x09\x09\x09`</di\
+v>` +\x0a\x09\x09\x09\x09`<div \
+class='tool-outp\
+ut-section'>` +\x0a\
+\x09\x09\x09\x09`<b>${this._\
+escapeHtml(respo\
+nseLabel)}:</b>`\
+ +\x0a\x09\x09\x09\x09`<div cla\
+ss='tool-output-\
+data tool-output\
+-result-data'>${\
+resultHtml}</div\
+>` +\x0a\x09\x09\x09\x09`</div>\
+`;\x0a\x09\x09}\x0a\x0a\x09\x09const \
+legacyToggleHtml\
+ = hasToolCalls \
+? '' :\x0a\x09\x09\x09`<span\
+ class='toggle-c\
+md-output' oncli\
+ck='toggleToolOu\
+tput(${this._esc\
+(block.id)});' `\
+ +\x0a\x09\x09\x09`title='${\
+this._escapeHtml\
+(toggleTitle)}' \
+role='button'>` \
++\x0a\x09\x09\x09`<img src='\
+${this._esc(expI\
+con)}' width='25\
+' height='25' va\
+lign='middle'>` \
++\x0a\x09\x09\x09`</span>`;\x0a\
+\x0a\x09\x09return (\x0a\x09\x09\x09`\
+<div class='tool\
+-output' style='\
+${wrapperDisplay\
+}'>` +\x0a\x09\x09\x09`${tit\
+leHtml}${legacyT\
+oggleHtml}` +\x0a\x09\x09\
+\x09`<div class='co\
+ntent' style='di\
+splay:none' data\
+-trusted='1'>${c\
+ontentHtml}</div\
+>` +\x0a\x09\x09\x09`</div>`\
+\x0a\x09\x09);\x0a\x09}\x0a\x0a\x09// Re\
+nder bot message\
+ block (md-block\
+-markdown)\x0a\x09_ren\
+derBot(block) {\x0a\
+\x09\x09const id = blo\
+ck.id;\x0a\x09\x09const o\
+ut = block.outpu\
+t || {};\x0a\x09\x09const\
+ msgId = `msg-bo\
+t-${id}`;\x0a\x0a\x09\x09// \
+timestamps inten\
+tionally disable\
+d on frontend\x0a\x09\x09\
+// let ts = '';\x0a\
+\x09\x09// if (out.tim\
+estamp) { ... }\x0a\
+\x0a\x09\x09const persona\
+lize = !!(block \
+&& block.extra &\
+& block.extra.pe\
+rsonalize === tr\
+ue);\x0a\x09\x09const nam\
+eHeader = person\
+alize ? this._na\
+meHeader('bot', \
+out.name || '', \
+out.avatar_img |\
+| null) : '';\x0a\x0a\x09\
+\x09const mdText = \
+this._escapeHtml\
+(out.text || '')\
+;\x0a\x09\x09const mdBloc\
+k = mdText ? `<d\
+iv class='md-blo\
+ck' md-block-mar\
+kdown='1'>${mdTe\
+xt}</div>` : '';\
+\x0a\x09\x09const toolWra\
+p = this._render\
+ToolOutputWrappe\
+r(block);\x0a\x09\x09cons\
+t extras = this.\
+_renderExtras(bl\
+ock);\x0a\x09\x09const ac\
+tions = (block.e\
+xtra && block.ex\
+tra.footer_icons\
+) ? this._render\
+Actions(block) :\
+ '';\x0a\x09\x09const deb\
+ug = (block.extr\
+a && block.extra\
+.debug_html) ? S\
+tring(block.extr\
+a.debug_html) : \
+'';\x0a\x0a\x09\x09return (\x0a\
+\x09\x09\x09`<div class='\
+msg-box msg-bot'\
+ id='${msgId}'>`\
+ +\x0a\x09\x09\x09`${nameHea\
+der}` +\x0a\x09\x09\x09`<div\
+ class='msg'>` +\
+\x0a\x09\x09\x09`${mdBlock}`\
+ +\x0a\x09\x09\x09`<div clas\
+s='msg-tool-extr\
+a'></div>` +\x0a\x09\x09\x09\
+`${toolWrap}` +\x0a\
+\x09\x09\x09`<div class='\
+msg-extra'>${ext\
+ras}</div>` +\x0a\x09\x09\
+\x09`${actions}${de\
+bug}` +\x0a\x09\x09\x09`</di\
+v>` +\x0a\x09\x09\x09`</div>\
+`\x0a\x09\x09);\x0a\x09}\x0a\x0a\x09// R\
+ender one Render\
+Block into HTML \
+(may produce 1 o\
+r 2 messages \xe2\x80\x93\
+ input and/or ou\
+tput)\x0a\x09renderNod\
+e(block) {\x0a\x09\x09con\
+st parts = [];\x0a\x09\
+\x09if (block && bl\
+ock.input && blo\
+ck.input.text) p\
+arts.push(this._\
+renderUser(block\
+));\x0a\x09\x09if (block \
+&& block.output)\
+ {\x0a\x09\x09\x09const extr\
+a = block.extra \
+|| {};\x0a\x09\x09\x09const \
+hasToolCalls = A\
+rray.isArray(ext\
+ra.tool_calls) &\
+& extra.tool_cal\
+ls.length > 0;\x0a\x09\
+\x09\x09if (block.outp\
+ut.text || hasTo\
+olCalls || extra\
+.tool_output_vis\
+ible === true) {\
+\x0a\x09\x09\x09\x09parts.push(\
+this._renderBot(\
+block));\x0a\x09\x09\x09}\x0a\x09\x09\
+}\x0a\x09\x09return parts\
+.join('');\x0a\x09}\x0a\x0a\x09\
+// Render array \
+of blocks\x0a\x09rende\
+rNodes(blocks) {\
+\x0a\x09\x09if (!Array.is\
+Array(blocks)) r\
+eturn '';\x0a\x09\x09cons\
+t out = [];\x0a\x09\x09fo\
+r (let i = 0; i \
+< blocks.length;\
+ i++) {\x0a\x09\x09\x09const\
+ b = blocks[i] |\
+| null;\x0a\x09\x09\x09if (!\
+b) continue;\x0a\x09\x09\x09\
+out.push(this.re\
+nderNode(b));\x0a\x09\x09\
+}\x0a\x09\x09return out.j\
+oin('');\x0a\x09}\x0a}\
 \x00\x00\x09J\
 /\
 / ==============\
@@ -114610,7 +114599,7 @@ r,r.macros=r.mac\
 ros||{},d(e,r)}}\
 (),i=i.default}(\
 )}));\
-\x00\x03o\xbb\
+\x00\x03o \
 /\
 * app.min.js \xe2\x80\x94\
  generated on 20\
@@ -126455,225 +126444,222 @@ const it=files[k\
 ];if(!it)return;\
 const url=this._\
 esc(it.url);cons\
-t path=this._esc\
-(it.path);const \
-icon=(typeof win\
-dow!=='undefined\
-'&&window.ICON_A\
-TTACHMENTS)?`<im\
-g src=\x22${window.\
-ICON_ATTACHMENTS\
-}\x22 class=\x22extra-\
-src-icon\x22>`:'';r\
-ows.push(`${icon\
-} <a href=\x22${url\
-}\x22>${path}</a> <\
-b> [${k}] </b>`)\
-;});if(rows.leng\
-th)parts.push(th\
-is._renderCollap\
-sibleExtraRows(r\
-ows));}\x0aconst ur\
-ls=block.urls||{\
-};const kU=Objec\
-t.keys(urls);if(\
-kU.length){const\
- rows=[];kU.forE\
-ach((k)=>{const \
-it=urls[k];if(!i\
-t)return;const u\
-rl=this._esc(it.\
-url);const icon=\
-(typeof window!=\
-='undefined'&&wi\
-ndow.ICON_URL)?`\
-<img src=\x22${wind\
-ow.ICON_URL}\x22 cl\
-ass=\x22extra-src-i\
-con\x22>`:'';rows.p\
-ush(`${icon}<a h\
-ref=\x22${url}\x22 tit\
-le=\x22${url}\x22>${ur\
-l}</a> <small> [\
-${k}] </small>`)\
-;});if(rows.leng\
-th)parts.push(th\
-is._renderCollap\
-sibleExtraRows(r\
-ows));}\x0aconst ex\
-tra=block.extra|\
-|{};const docsRa\
-w=Array.isArray(\
-extra.docs)?extr\
-a.docs:null;if(d\
-ocsRaw&&docsRaw.\
-length){const ic\
+t name=this._esc\
+(it.basename||it\
+.path||'');const\
+ icon=(typeof wi\
+ndow!=='undefine\
+d'&&window.ICON_\
+ATTACHMENTS)?`<i\
+mg src=\x22${window\
+.ICON_ATTACHMENT\
+S}\x22 class=\x22extra\
+-src-icon\x22>`:'';\
+rows.push(`${ico\
+n} <a href=\x22${ur\
+l}\x22>${this._esca\
+peHtml(name)}</a\
+> <b> [${k}] </b\
+>`);});if(rows.l\
+ength)parts.push\
+(this._renderCol\
+lapsibleExtraRow\
+s(rows));}\x0aconst\
+ urls=block.urls\
+||{};const kU=Ob\
+ject.keys(urls);\
+if(kU.length){co\
+nst rows=[];kU.f\
+orEach((k)=>{con\
+st it=urls[k];if\
+(!it)return;cons\
+t url=this._esc(\
+it.url);const ic\
 on=(typeof windo\
 w!=='undefined'&\
-&window.ICON_DB)\
-?`<img src=\x22${wi\
-ndow.ICON_DB}\x22 c\
-lass=\x22extra-src-\
-icon\x22>`:'';const\
- prefix=(typeof \
-window!=='undefi\
-ned'&&window.LOC\
-ALE_DOC_PREFIX)?\
-String(window.LO\
-CALE_DOC_PREFIX)\
-:'Doc:';const li\
-mit=3;const norm\
-alized=[];docsRa\
-w.forEach((it)=>\
-{if(!it||typeof \
-it!=='object')re\
-turn;if('uuid'in\
- it&&'meta'in it\
-&&typeof it.meta\
-==='object'){nor\
-malized.push({uu\
-id:String(it.uui\
-d),meta:it.meta|\
-|{}});}else{cons\
-t keys=Object.ke\
-ys(it);if(keys.l\
-ength===1){const\
- uuid=keys[0];co\
-nst meta=it[uuid\
-];if(meta&&typeo\
-f meta==='object\
-'){normalized.pu\
-sh({uuid:String(\
-uuid),meta});}}}\
-});const rows=[]\
-;for(let i=0;i<M\
-ath.min(limit,no\
-rmalized.length)\
-;i++){const d=no\
-rmalized[i];cons\
-t meta=d.meta||{\
-};const entries=\
-Object.keys(meta\
-).map(k=>`<b>${t\
-his._escapeHtml(\
-k)}:</b> ${this.\
-_escapeHtml(Stri\
-ng(meta[k]))}`).\
-join(', ');rows.\
-push(`<p><small>\
-[${i + 1}] ${thi\
-s._escapeHtml(d.\
-uuid)}: ${entrie\
-s}</small></p>`)\
-;}\x0aif(rows.lengt\
-h){parts.push(`<\
-p>${icon}<small>\
-<b>${this._escap\
-eHtml(prefix)}:<\
-/b></small></p>`\
-);parts.push(`<d\
-iv class=\x22cmd\x22><\
-p>${rows.join(''\
-)}</p></div>`);}\
-}else{const docs\
+&window.ICON_URL\
+)?`<img src=\x22${w\
+indow.ICON_URL}\x22\
+ class=\x22extra-sr\
+c-icon\x22>`:'';row\
+s.push(`${icon}<\
+a href=\x22${url}\x22 \
+title=\x22${url}\x22>$\
+{url}</a> <small\
+> [${k}] </small\
+>`);});if(rows.l\
+ength)parts.push\
+(this._renderCol\
+lapsibleExtraRow\
+s(rows));}\x0aconst\
+ extra=block.ext\
+ra||{};const doc\
+sRaw=Array.isArr\
+ay(extra.docs)?e\
+xtra.docs:null;i\
+f(docsRaw&&docsR\
+aw.length){const\
+ icon=(typeof wi\
+ndow!=='undefine\
+d'&&window.ICON_\
+DB)?`<img src=\x22$\
+{window.ICON_DB}\
+\x22 class=\x22extra-s\
+rc-icon\x22>`:'';co\
+nst prefix=(type\
+of window!=='und\
+efined'&&window.\
+LOCALE_DOC_PREFI\
+X)?String(window\
+.LOCALE_DOC_PREF\
+IX):'Doc:';const\
+ limit=3;const n\
+ormalized=[];doc\
+sRaw.forEach((it\
+)=>{if(!it||type\
+of it!=='object'\
+)return;if('uuid\
+'in it&&'meta'in\
+ it&&typeof it.m\
+eta==='object'){\
+normalized.push(\
+{uuid:String(it.\
+uuid),meta:it.me\
+ta||{}});}else{c\
+onst keys=Object\
+.keys(it);if(key\
+s.length===1){co\
+nst uuid=keys[0]\
+;const meta=it[u\
+uid];if(meta&&ty\
+peof meta==='obj\
+ect'){normalized\
+.push({uuid:Stri\
+ng(uuid),meta});\
+}}}});const rows\
+=[];for(let i=0;\
+i<Math.min(limit\
+,normalized.leng\
+th);i++){const d\
+=normalized[i];c\
+onst meta=d.meta\
+||{};const entri\
+es=Object.keys(m\
+eta).map(k=>`<b>\
+${this._escapeHt\
+ml(k)}:</b> ${th\
+is._escapeHtml(S\
+tring(meta[k]))}\
+`).join(', ');ro\
+ws.push(`<p><sma\
+ll>[${i + 1}] ${\
+this._escapeHtml\
+(d.uuid)}: ${ent\
+ries}</small></p\
+>`);}\x0aif(rows.le\
+ngth){parts.push\
+(`<p>${icon}<sma\
+ll><b>${this._es\
+capeHtml(prefix)\
+}:</b></small></\
+p>`);parts.push(\
+`<div class=\x22cmd\
+\x22><p>${rows.join\
+('')}</p></div>`\
+);}}else{const d\
+ocs_html=extra&&\
+extra.docs_html?\
+String(extra.doc\
+s_html):'';if(do\
+cs_html)parts.pu\
+sh(docs_html);}\x0a\
+const tool_extra\
 _html=extra&&ext\
-ra.docs_html?Str\
-ing(extra.docs_h\
-tml):'';if(docs_\
-html)parts.push(\
-docs_html);}\x0acon\
-st tool_extra_ht\
-ml=extra&&extra.\
-tool_extra_html?\
-String(extra.too\
-l_extra_html):''\
-;if(tool_extra_h\
-tml)parts.push(`\
-<div class=\x22msg-\
-extra\x22>${tool_ex\
-tra_html}</div>`\
-);return parts.j\
-oin('');}\x0a_rende\
-rActions(block){\
-const extra=bloc\
-k.extra||{};cons\
-t actions=extra.\
-actions||[];if(!\
-actions||!action\
-s.length)return'\
-';const parts=ac\
-tions.map((a)=>{\
-const href=this.\
-_esc(a.href||'#'\
-);const title=th\
-is._esc(a.title|\
-|'');const icon=\
-this._esc(a.icon\
-||'');const id=t\
-his._esc(a.id||b\
-lock.id);return`\
-<a href=\x22${href}\
-\x22 class=\x22action-\
-icon\x22 data-id=\x22$\
-{id}\x22 role=\x22butt\
-on\x22><span class=\
-\x22cmd\x22><img src=\x22\
-${icon}\x22 class=\x22\
-action-img\x22 titl\
-e=\x22${title}\x22 alt\
-=\x22${title}\x22 data\
--id=\x22${id}\x22></sp\
-an></a>`;});retu\
-rn`<div class=\x22a\
-ction-icons\x22 dat\
-a-id=\x22${this._es\
-c(block.id)}\x22>${\
-parts.join('')}<\
-/div>`;}\x0a_render\
-ToolOutputWrappe\
-r(block){const e\
-xtra=block.extra\
-||{};const toolC\
-alls=Array.isArr\
-ay(extra.tool_ca\
-lls)?extra.tool_\
-calls.filter(Boo\
-lean):[];const h\
-asToolCalls=tool\
-Calls.length>0;c\
-onst legacyToolO\
-utput=(extra.too\
-l_output!=null)?\
-String(extra.too\
-l_output):'';con\
-st resultHtml=(e\
-xtra.tool_result\
-!=null)?this._es\
-capeHtml(String(\
-extra.tool_resul\
-t)):legacyToolOu\
-tput;const wrapp\
-erDisplay=(extra\
-.tool_output_vis\
-ible===true||has\
-ToolCalls)?'':'d\
-isplay:none';con\
-st toggleTitle=(\
-typeof trans!=='\
-undefined'&&tran\
-s)?trans('action\
-.cmd.expand'):'E\
-xpand';const exp\
-Icon=(typeof win\
-dow!=='undefined\
-'&&window.ICON_E\
-XPAND)?window.IC\
-ON_EXPAND:'';con\
-st toolIcon=(typ\
-eof window!=='un\
-defined'&&window\
-.ICON_TOOL)?wind\
-ow.ICON_TOOL:'';\
+ra.tool_extra_ht\
+ml?String(extra.\
+tool_extra_html)\
+:'';if(tool_extr\
+a_html)parts.pus\
+h(`<div class=\x22m\
+sg-extra\x22>${tool\
+_extra_html}</di\
+v>`);return part\
+s.join('');}\x0a_re\
+nderActions(bloc\
+k){const extra=b\
+lock.extra||{};c\
+onst actions=ext\
+ra.actions||[];i\
+f(!actions||!act\
+ions.length)retu\
+rn'';const parts\
+=actions.map((a)\
+=>{const href=th\
+is._esc(a.href||\
+'#');const title\
+=this._esc(a.tit\
+le||'');const ic\
+on=this._esc(a.i\
+con||'');const i\
+d=this._esc(a.id\
+||block.id);retu\
+rn`<a href=\x22${hr\
+ef}\x22 class=\x22acti\
+on-icon\x22 data-id\
+=\x22${id}\x22 role=\x22b\
+utton\x22><span cla\
+ss=\x22cmd\x22><img sr\
+c=\x22${icon}\x22 clas\
+s=\x22action-img\x22 t\
+itle=\x22${title}\x22 \
+alt=\x22${title}\x22 d\
+ata-id=\x22${id}\x22><\
+/span></a>`;});r\
+eturn`<div class\
+=\x22action-icons\x22 \
+data-id=\x22${this.\
+_esc(block.id)}\x22\
+>${parts.join(''\
+)}</div>`;}\x0a_ren\
+derToolOutputWra\
+pper(block){cons\
+t extra=block.ex\
+tra||{};const to\
+olCalls=Array.is\
+Array(extra.tool\
+_calls)?extra.to\
+ol_calls.filter(\
+Boolean):[];cons\
+t hasToolCalls=t\
+oolCalls.length>\
+0;const legacyTo\
+olOutput=(extra.\
+tool_output!=nul\
+l)?String(extra.\
+tool_output):'';\
+const resultHtml\
+=(extra.tool_res\
+ult!=null)?this.\
+_escapeHtml(Stri\
+ng(extra.tool_re\
+sult)):legacyToo\
+lOutput;const wr\
+apperDisplay=(ex\
+tra.tool_output_\
+visible===true||\
+hasToolCalls)?''\
+:'display:none';\
+const toggleTitl\
+e=(typeof trans!\
+=='undefined'&&t\
+rans)?trans('act\
+ion.cmd.expand')\
+:'Expand';const \
+expIcon=(typeof \
+window!=='undefi\
+ned'&&window.ICO\
+N_EXPAND)?window\
+.ICON_EXPAND:'';\
 const toolLabel=\
 (typeof window!=\
 ='undefined'&&wi\
@@ -126709,13 +126695,7 @@ ap((call)=>this.\
 _escapeHtml(Stri\
 ng(call.request|\
 |''))).join('\x5cn\x5c\
-n');const iconHt\
-ml=toolIcon?`<im\
-g src='${this._e\
-sc(toolIcon)}' c\
-lass='tool-outpu\
-t-icon' alt=''>`\
-:'';const arrowH\
+n');const arrowH\
 tml=`<img src='$\
 {this._esc(expIc\
 on)}' class='too\
@@ -126733,1961 +126713,1960 @@ c(block.id)});' \
 ._escapeHtml(tog\
 gleTitle)}' aria\
 -expanded='false\
-'>`+`${iconHtml}\
-<span class='too\
-l-output-label'>\
-<b>${this._escap\
-eHtml(toolLabel)\
-}:</b>&nbsp;</sp\
-an>`+`<span clas\
-s='tool-output-n\
-ame'>${names.joi\
-n(', ')}</span>$\
-{arrowHtml}`+`</\
-button>`;content\
-Html=`<div class\
-='tool-output-se\
-ction'>`+`<b>${t\
-his._escapeHtml(\
-requestLabel)}:<\
-/b>`+`<div class\
-='tool-output-da\
-ta tool-output-r\
-equest-data'>${r\
-equests}</div>`+\
-`</div>`+`<div c\
-lass='tool-outpu\
-t-section'>`+`<b\
->${this._escapeH\
-tml(responseLabe\
+'>`+`<span class\
+='tool-output-la\
+bel'><b>${this._\
+escapeHtml(toolL\
+abel)}:</b>&nbsp\
+;</span>`+`<span\
+ class='tool-out\
+put-name'>${name\
+s.join(', ')}</s\
+pan>${arrowHtml}\
+`+`</button>`;co\
+ntentHtml=`<div \
+class='tool-outp\
+ut-section'>`+`<\
+b>${this._escape\
+Html(requestLabe\
 l)}:</b>`+`<div \
 class='tool-outp\
 ut-data tool-out\
-put-result-data'\
->${resultHtml}</\
-div>`+`</div>`;}\
-const legacyTogg\
-leHtml=hasToolCa\
-lls?'':`<span cl\
-ass='toggle-cmd-\
-output' onclick=\
-'toggleToolOutpu\
-t(${this._esc(bl\
-ock.id)});' `+`t\
-itle='${this._es\
-capeHtml(toggleT\
-itle)}' role='bu\
-tton'>`+`<img sr\
-c='${this._esc(e\
-xpIcon)}' width=\
-'25' height='25'\
- valign='middle'\
->`+`</span>`;ret\
-urn(`<div class=\
-'tool-output' st\
-yle='${wrapperDi\
-splay}'>`+`${tit\
-leHtml}${legacyT\
-oggleHtml}`+`<di\
-v class='content\
-' style='display\
-:none' data-trus\
-ted='1'>${conten\
-tHtml}</div>`+`<\
-/div>`);}\x0a_rende\
-rBot(block){cons\
-t id=block.id;co\
-nst out=block.ou\
-tput||{};const m\
-sgId=`msg-bot-${\
-id}`;const perso\
-nalize=!!(block&\
-&block.extra&&bl\
-ock.extra.person\
-alize===true);co\
-nst nameHeader=p\
-ersonalize?this.\
-_nameHeader('bot\
-',out.name||'',o\
-ut.avatar_img||n\
-ull):'';const md\
-Text=this._escap\
-eHtml(out.text||\
-'');const mdBloc\
-k=mdText?`<div c\
-lass='md-block' \
-md-block-markdow\
-n='1'>${mdText}<\
-/div>`:'';const \
-toolWrap=this._r\
-enderToolOutputW\
-rapper(block);co\
-nst extras=this.\
-_renderExtras(bl\
-ock);const actio\
-ns=(block.extra&\
-&block.extra.foo\
-ter_icons)?this.\
-_renderActions(b\
-lock):'';const d\
-ebug=(block.extr\
-a&&block.extra.d\
-ebug_html)?Strin\
-g(block.extra.de\
-bug_html):'';ret\
-urn(`<div class=\
-'msg-box msg-bot\
-' id='${msgId}'>\
-`+`${nameHeader}\
-`+`<div class='m\
-sg'>`+`${mdBlock\
-}`+`<div class='\
-msg-tool-extra'>\
-</div>`+`${toolW\
-rap}`+`<div clas\
-s='msg-extra'>${\
-extras}</div>`+`\
-${actions}${debu\
-g}`+`</div>`+`</\
-div>`);}\x0arenderN\
-ode(block){const\
- parts=[];if(blo\
-ck&&block.input&\
-&block.input.tex\
-t)parts.push(thi\
-s._renderUser(bl\
-ock));if(block&&\
-block.output){co\
-nst extra=block.\
-extra||{};const \
-hasToolCalls=Arr\
-ay.isArray(extra\
-.tool_calls)&&ex\
-tra.tool_calls.l\
-ength>0;if(block\
-.output.text||ha\
-sToolCalls||extr\
-a.tool_output_vi\
-sible===true){pa\
-rts.push(this._r\
-enderBot(block))\
-;}}return parts.\
-join('');}\x0arende\
-rNodes(blocks){i\
-f(!Array.isArray\
-(blocks))return'\
-';const out=[];f\
-or(let i=0;i<blo\
-cks.length;i++){\
-const b=blocks[i\
-]||null;if(!b)co\
-ntinue;out.push(\
-this.renderNode(\
-b));}\x0areturn out\
-.join('');}};\x0a\x0a/\
-* data/js/app/to\
-ol.js */\x0aclass T\
-oolOutput{showLo\
-ader(){return;}\x0a\
-hideLoader(){con\
-st elements=docu\
-ment.querySelect\
-orAll('.msg-bot'\
-);if(elements.le\
-ngth>0)elements.\
-forEach(el=>{con\
-st s=el.querySel\
-ector('.spinner'\
-);if(s)s.style.d\
-isplay='none';})\
-;}\x0abegin(){this.\
-showLoader();}\x0ae\
-nd(){this.hideLo\
-ader();}\x0aenable(\
-){const els=docu\
-ment.querySelect\
-orAll('.tool-out\
-put');if(els.len\
-gth)els[els.leng\
-th-1].style.disp\
-lay='block';}\x0adi\
-sable(){const el\
-s=document.query\
-SelectorAll('.to\
-ol-output');if(e\
-ls.length)els[el\
-s.length-1].styl\
-e.display='none'\
-;}\x0aappend(conten\
-t){this.hideLoad\
-er();this.enable\
-();const els=doc\
-ument.querySelec\
-torAll('.tool-ou\
-tput');if(els.le\
-ngth){const cont\
-entEl=els[els.le\
-ngth-1].querySel\
-ector('.content'\
-);if(!contentEl)\
-return;const res\
-ultEl=contentEl.\
-querySelector('.\
-tool-output-resu\
-lt-data');if(res\
-ultEl){resultEl.\
-insertAdjacentTe\
-xt('beforeend',c\
-ontent==null?'':\
-String(content))\
-;}else{contentEl\
-.insertAdjacentH\
-TML('beforeend',\
-content==null?''\
-:String(content)\
-);}}}\x0aupdate(con\
-tent){this.hideL\
-oader();this.ena\
-ble();const els=\
-document.querySe\
-lectorAll('.tool\
--output');if(els\
-.length){const c\
-ontentEl=els[els\
-.length-1].query\
-Selector('.conte\
-nt');if(!content\
-El)return;const \
-resultEl=content\
-El.querySelector\
-('.tool-output-r\
-esult-data');if(\
-resultEl){result\
-El.textContent=c\
-ontent==null?'':\
-String(content);\
-}else{contentEl.\
-innerHTML=conten\
-t==null?'':Strin\
-g(content);}}}\x0ac\
-lear(){this.hide\
-Loader();this.en\
-able();const els\
+put-request-data\
+'>${requests}</d\
+iv>`+`</div>`+`<\
+div class='tool-\
+output-section'>\
+`+`<b>${this._es\
+capeHtml(respons\
+eLabel)}:</b>`+`\
+<div class='tool\
+-output-data too\
+l-output-result-\
+data'>${resultHt\
+ml}</div>`+`</di\
+v>`;}const legac\
+yToggleHtml=hasT\
+oolCalls?'':`<sp\
+an class='toggle\
+-cmd-output' onc\
+lick='toggleTool\
+Output(${this._e\
+sc(block.id)});'\
+ `+`title='${thi\
+s._escapeHtml(to\
+ggleTitle)}' rol\
+e='button'>`+`<i\
+mg src='${this._\
+esc(expIcon)}' w\
+idth='25' height\
+='25' valign='mi\
+ddle'>`+`</span>\
+`;return(`<div c\
+lass='tool-outpu\
+t' style='${wrap\
+perDisplay}'>`+`\
+${titleHtml}${le\
+gacyToggleHtml}`\
++`<div class='co\
+ntent' style='di\
+splay:none' data\
+-trusted='1'>${c\
+ontentHtml}</div\
+>`+`</div>`);}\x0a_\
+renderBot(block)\
+{const id=block.\
+id;const out=blo\
+ck.output||{};co\
+nst msgId=`msg-b\
+ot-${id}`;const \
+personalize=!!(b\
+lock&&block.extr\
+a&&block.extra.p\
+ersonalize===tru\
+e);const nameHea\
+der=personalize?\
+this._nameHeader\
+('bot',out.name|\
+|'',out.avatar_i\
+mg||null):'';con\
+st mdText=this._\
+escapeHtml(out.t\
+ext||'');const m\
+dBlock=mdText?`<\
+div class='md-bl\
+ock' md-block-ma\
+rkdown='1'>${mdT\
+ext}</div>`:'';c\
+onst toolWrap=th\
+is._renderToolOu\
+tputWrapper(bloc\
+k);const extras=\
+this._renderExtr\
+as(block);const \
+actions=(block.e\
+xtra&&block.extr\
+a.footer_icons)?\
+this._renderActi\
+ons(block):'';co\
+nst debug=(block\
+.extra&&block.ex\
+tra.debug_html)?\
+String(block.ext\
+ra.debug_html):'\
+';return(`<div c\
+lass='msg-box ms\
+g-bot' id='${msg\
+Id}'>`+`${nameHe\
+ader}`+`<div cla\
+ss='msg'>`+`${md\
+Block}`+`<div cl\
+ass='msg-tool-ex\
+tra'></div>`+`${\
+toolWrap}`+`<div\
+ class='msg-extr\
+a'>${extras}</di\
+v>`+`${actions}$\
+{debug}`+`</div>\
+`+`</div>`);}\x0are\
+nderNode(block){\
+const parts=[];i\
+f(block&&block.i\
+nput&&block.inpu\
+t.text)parts.pus\
+h(this._renderUs\
+er(block));if(bl\
+ock&&block.outpu\
+t){const extra=b\
+lock.extra||{};c\
+onst hasToolCall\
+s=Array.isArray(\
+extra.tool_calls\
+)&&extra.tool_ca\
+lls.length>0;if(\
+block.output.tex\
+t||hasToolCalls|\
+|extra.tool_outp\
+ut_visible===tru\
+e){parts.push(th\
+is._renderBot(bl\
+ock));}}return p\
+arts.join('');}\x0a\
+renderNodes(bloc\
+ks){if(!Array.is\
+Array(blocks))re\
+turn'';const out\
+=[];for(let i=0;\
+i<blocks.length;\
+i++){const b=blo\
+cks[i]||null;if(\
+!b)continue;out.\
+push(this.render\
+Node(b));}\x0aretur\
+n out.join('');}\
+};\x0a\x0a/* data/js/a\
+pp/tool.js */\x0acl\
+ass ToolOutput{s\
+howLoader(){retu\
+rn;}\x0ahideLoader(\
+){const elements\
+=document.queryS\
+electorAll('.msg\
+-bot');if(elemen\
+ts.length>0)elem\
+ents.forEach(el=\
+>{const s=el.que\
+rySelector('.spi\
+nner');if(s)s.st\
+yle.display='non\
+e';});}\x0abegin(){\
+this.showLoader(\
+);}\x0aend(){this.h\
+ideLoader();}\x0aen\
+able(){const els\
 =document.queryS\
 electorAll('.too\
 l-output');if(el\
-s.length){const \
-contentEl=els[el\
-s.length-1].quer\
-ySelector('.cont\
-ent');if(!conten\
-tEl)return;const\
- resultEl=conten\
-tEl.querySelecto\
-r('.tool-output-\
-result-data');if\
-(resultEl)result\
-El.replaceChildr\
-en();else conten\
-tEl.replaceChild\
-ren();}}\x0atoggle(\
-id){const el=doc\
-ument.getElement\
-ById('msg-bot-'+\
-id);if(!el)retur\
-n;const outputEl\
-=el.querySelecto\
-r('.tool-output'\
-);if(!outputEl)r\
-eturn;const cont\
-entEl=outputEl.q\
-uerySelector('.c\
-ontent');if(!con\
-tentEl)return;co\
-nst expanded=con\
-tentEl.style.dis\
-play==='none';co\
-ntentEl.style.di\
-splay=expanded?'\
-block':'none';co\
-nst headerEl=out\
-putEl.querySelec\
-tor('.tool-outpu\
-t-toggle');if(he\
-aderEl)headerEl.\
-setAttribute('ar\
-ia-expanded',exp\
-anded?'true':'fa\
-lse');const arro\
-wEl=outputEl.que\
-rySelector('.too\
-l-output-arrow')\
-||outputEl.query\
-Selector('.toggl\
-e-cmd-output img\
-');if(arrowEl)ar\
-rowEl.classList.\
-toggle('toggle-e\
-xpanded',expande\
-d);}};\x0a\x0a/* data/\
-js/app/ui.js */\x0a\
-class UIManager{\
-updateCSS(styles\
-){let style=docu\
-ment.getElementB\
-yId('app-style')\
-;if(!style){styl\
-e=document.creat\
-eElement('style'\
-);style.id='app-\
-style';document.\
-head.appendChild\
-(style);}\x0astyle.\
-textContent=styl\
-es;}\x0aensureStick\
-yHeaderStyle(){l\
-et style=documen\
-t.getElementById\
-('code-sticky-st\
-yle');if(style)r\
-eturn;style=docu\
-ment.createEleme\
-nt('style');styl\
-e.id='code-stick\
-y-style';style.t\
-extContent=['.co\
-de-wrapper { pos\
-ition: relative;\
- }','.code-wrapp\
-er .code-header-\
-wrapper { positi\
-on: sticky; top:\
- var(--code-head\
-er-sticky-top, -\
-2px); z-index: 2\
-; box-shadow: 0 \
-1px 0 rgba(0,0,0\
-,.06); }','.code\
--wrapper pre { o\
-verflow: visible\
-; margin-top: 0;\
- }','.code-wrapp\
-er pre code { di\
-splay: block; wh\
-ite-space: pre; \
-max-height: 100d\
-vh; overflow: au\
-to;','  overscro\
-ll-behavior: con\
-tain; -webkit-ov\
-erflow-scrolling\
-: touch; overflo\
-w-anchor: none; \
-scrollbar-gutter\
-: stable both-ed\
-ges; scroll-beha\
-vior: auto; }','\
-#_loader_.hidden\
- { display: none\
- !important; vis\
-ibility: hidden \
-!important; }','\
-#_loader_.visibl\
-e { display: blo\
-ck; visibility: \
-visible; }','.ms\
-g-box.msg-user .\
-msg { position: \
-relative; }','.m\
-sg-box.msg-user \
-.msg > .uc-conte\
-nt { display: bl\
-ock; overflow: v\
-isible; }','.msg\
--box.msg-user .m\
-sg > .uc-content\
-.uc-collapsed {'\
-,'  max-height: \
-var(--user-msg-c\
-ollapse-max-h, 1\
-000px);','  over\
-flow: hidden;','\
-  -webkit-mask-i\
-mage: linear-gra\
-dient(to bottom,\
- rgba(0,0,0,1) c\
-alc(100% - var(-\
--uc-fade-height,\
- 64px)), rgba(0,\
-0,0,0) 100%);','\
-  mask-image: li\
-near-gradient(to\
- bottom, rgba(0,\
-0,0,1) calc(100%\
- - var(--uc-fade\
--height, 64px)),\
- rgba(0,0,0,0) 1\
-00%);','  -webki\
-t-mask-size: 100\
-% 100%;','  mask\
--size: 100% 100%\
-;','  -webkit-ma\
-sk-repeat: no-re\
-peat;','  mask-r\
-epeat: no-repeat\
-;','}','.msg-box\
-.msg-user .msg >\
- .uc-content.uc-\
-expanded {','  -\
-webkit-mask-imag\
-e: none;','  mas\
-k-image: none;',\
-'}','.msg-box.ms\
-g-user .msg > .u\
-c-toggle { displ\
-ay: none; margin\
--top: 8px; text-\
-align: center; c\
-ursor: pointer; \
-user-select: non\
-e; }','.msg-box.\
-msg-user .msg > \
-.uc-toggle.visib\
-le { display: bl\
-ock; }','.msg-bo\
-x.msg-user .msg \
-> .uc-toggle img\
- { width: var(--\
-uc-toggle-icon-s\
-ize, 26px); heig\
-ht: var(--uc-tog\
-gle-icon-size, 2\
-6px); opacity: .\
-8; }','.msg-box.\
-msg-user .msg > \
-.uc-toggle:hover\
- img { opacity: \
-1; }','.msg-box.\
-msg-user .msg .m\
-sg-copy-btn { po\
-sition: absolute\
-; top: 2px; righ\
-t: 0px; z-index:\
- 3;','  opacity:\
- 0; pointer-even\
-ts: none; transi\
-tion: opacity .1\
-5s ease, transfo\
-rm .15s ease, ba\
-ckground-color .\
-15s ease, border\
--color .15s ease\
-;','  border-rad\
-ius: 6px; paddin\
-g: 4px; line-hei\
-ght: 0; border: \
-1px solid transp\
-arent; backgroun\
-d: transparent; \
-}','.msg-box.msg\
--user .msg:hover\
- .msg-copy-btn, \
-.msg-box.msg-use\
-r .msg:focus-wit\
-hin .msg-copy-bt\
-n { opacity: 1; \
-pointer-events: \
-auto; }','.msg-b\
-ox.msg-user .msg\
- .msg-copy-btn:h\
-over { transform\
-: scale(1.06); b\
-ackground: var(-\
--copy-btn-bg-hov\
-er, rgba(0,0,0,.\
-86)); border-col\
-or: var(--copy-b\
-tn-border, rgba(\
-0,0,0,.08)); }',\
-'.msg-box.msg-us\
-er .msg .msg-cop\
-y-btn.copied { b\
-ackground: var(-\
--copy-btn-bg-cop\
-ied, rgba(150,15\
-0,150,.12)); bor\
-der-color: var(-\
--copy-btn-border\
--copied, rgba(15\
-0,150,150,.35));\
- animation: msg-\
-copy-pop .25s ea\
-se; }','.msg-box\
-.msg-user .msg .\
-msg-copy-btn img\
- { display: bloc\
-k; width: 18px; \
-height: 18px; }'\
-,'.code-wrapper \
-.code-header-act\
-ion.code-header-\
-copy,','.code-wr\
-apper .code-head\
-er-action.code-h\
-eader-collapse {\
- display: inline\
--flex; align-ite\
-ms: center; bord\
-er-radius: 6px; \
-padding: 2px; li\
-ne-height: 0; bo\
-rder: 1px solid \
-transparent; tra\
-nsition: transfo\
-rm .15s ease, ba\
-ckground-color .\
-15s ease, border\
--color .15s ease\
-; }','.code-wrap\
-per .code-header\
--action.code-hea\
-der-copy:hover,'\
-,'.code-wrapper \
-.code-header-act\
-ion.code-header-\
-collapse:hover {\
- transform: scal\
-e(1.06); backgro\
-und: var(--copy-\
-btn-bg-hover, rg\
-ba(0,0,0,.76)); \
-border-color: va\
-r(--copy-btn-bor\
-der, rgba(0,0,0,\
-.08)); }','.code\
--wrapper .code-h\
-eader-action.cop\
-ied { background\
-: var(--copy-btn\
--bg-copied, rgba\
-(150,150,150,.12\
-)); border-color\
-: var(--copy-btn\
--border-copied, \
-rgba(150,150,150\
-,.35)); animatio\
-n: msg-copy-pop \
-.25s ease; }','@\
-keyframes msg-co\
-py-pop { 0%{ tra\
-nsform: scale(1)\
-; } 60%{ transfo\
-rm: scale(1.1); \
-} 100%{ transfor\
-m: scale(1); } }\
-'].join('\x5cn');do\
-cument.head.appe\
-ndChild(style);}\
-\x0atoggleExtraItem\
-s(button){if(!bu\
-tton)return;cons\
-t list=button.cl\
-osest?button.clo\
-sest('.extra-ite\
-ms-list'):null;i\
-f(!list)return;c\
-onst hidden=list\
+s.length)els[els\
+.length-1].style\
+.display='block'\
+;}\x0adisable(){con\
+st els=document.\
+querySelectorAll\
+('.tool-output')\
+;if(els.length)e\
+ls[els.length-1]\
+.style.display='\
+none';}\x0aappend(c\
+ontent){this.hid\
+eLoader();this.e\
+nable();const el\
+s=document.query\
+SelectorAll('.to\
+ol-output');if(e\
+ls.length){const\
+ contentEl=els[e\
+ls.length-1].que\
+rySelector('.con\
+tent');if(!conte\
+ntEl)return;cons\
+t resultEl=conte\
+ntEl.querySelect\
+or('.tool-output\
+-result-data');i\
+f(resultEl){resu\
+ltEl.insertAdjac\
+entText('beforee\
+nd',content==nul\
+l?'':String(cont\
+ent));}else{cont\
+entEl.insertAdja\
+centHTML('before\
+end',content==nu\
+ll?'':String(con\
+tent));}}}\x0aupdat\
+e(content){this.\
+hideLoader();thi\
+s.enable();const\
+ els=document.qu\
+erySelectorAll('\
+.tool-output');i\
+f(els.length){co\
+nst contentEl=el\
+s[els.length-1].\
+querySelector('.\
+content');if(!co\
+ntentEl)return;c\
+onst resultEl=co\
+ntentEl.querySel\
+ector('.tool-out\
+put-result-data'\
+);if(resultEl){r\
+esultEl.textCont\
+ent=content==nul\
+l?'':String(cont\
+ent);}else{conte\
+ntEl.innerHTML=c\
+ontent==null?'':\
+String(content);\
+}}}\x0aclear(){this\
+.hideLoader();th\
+is.enable();cons\
+t els=document.q\
+uerySelectorAll(\
+'.tool-output');\
+if(els.length){c\
+onst contentEl=e\
+ls[els.length-1]\
 .querySelector('\
-.extra-items-hid\
-den');if(!hidden\
-)return;const is\
-Hidden=hidden.st\
-yle.display==='n\
-one'||getCompute\
-dStyle(hidden).d\
-isplay==='none';\
-hidden.style.dis\
-play=isHidden?'b\
-lock':'none';but\
-ton.setAttribute\
-('aria-expanded'\
-,isHidden?'true'\
-:'false');const \
-arrow=button.que\
-rySelector('.ext\
-ra-items-toggle-\
-arrow');if(arrow\
-)arrow.classList\
-.toggle('toggle-\
-expanded',isHidd\
-en);const expand\
-Title=(typeof wi\
-ndow!=='undefine\
-d'&&window.LOCAL\
-E_EXPAND)?String\
-(window.LOCALE_E\
-XPAND):'Expand';\
-const collapseTi\
-tle=(typeof wind\
-ow!=='undefined'\
-&&window.LOCALE_\
-COLLAPSE)?String\
-(window.LOCALE_C\
-OLLAPSE):'Collap\
-se';button.setAt\
-tribute('title',\
-isHidden?collaps\
-eTitle:expandTit\
-le);}\x0aenableEdit\
-Icons(){document\
-.body&&document.\
-body.classList.a\
-dd('display-edit\
--icons');}\x0adisab\
-leEditIcons(){do\
-cument.body&&doc\
-ument.body.class\
-List.remove('dis\
-play-edit-icons'\
-);}\x0aenableTimest\
-amp(){document.b\
-ody&&document.bo\
-dy.classList.add\
-('display-timest\
-amp');}\x0adisableT\
+.content');if(!c\
+ontentEl)return;\
+const resultEl=c\
+ontentEl.querySe\
+lector('.tool-ou\
+tput-result-data\
+');if(resultEl)r\
+esultEl.replaceC\
+hildren();else c\
+ontentEl.replace\
+Children();}}\x0ato\
+ggle(id){const e\
+l=document.getEl\
+ementById('msg-b\
+ot-'+id);if(!el)\
+return;const out\
+putEl=el.querySe\
+lector('.tool-ou\
+tput');if(!outpu\
+tEl)return;const\
+ contentEl=outpu\
+tEl.querySelecto\
+r('.content');if\
+(!contentEl)retu\
+rn;const expande\
+d=contentEl.styl\
+e.display==='non\
+e';contentEl.sty\
+le.display=expan\
+ded?'block':'non\
+e';const headerE\
+l=outputEl.query\
+Selector('.tool-\
+output-toggle');\
+if(headerEl)head\
+erEl.setAttribut\
+e('aria-expanded\
+',expanded?'true\
+':'false');const\
+ arrowEl=outputE\
+l.querySelector(\
+'.tool-output-ar\
+row')||outputEl.\
+querySelector('.\
+toggle-cmd-outpu\
+t img');if(arrow\
+El)arrowEl.class\
+List.toggle('tog\
+gle-expanded',ex\
+panded);}};\x0a\x0a/* \
+data/js/app/ui.j\
+s */\x0aclass UIMan\
+ager{updateCSS(s\
+tyles){let style\
+=document.getEle\
+mentById('app-st\
+yle');if(!style)\
+{style=document.\
+createElement('s\
+tyle');style.id=\
+'app-style';docu\
+ment.head.append\
+Child(style);}\x0as\
+tyle.textContent\
+=styles;}\x0aensure\
+StickyHeaderStyl\
+e(){let style=do\
+cument.getElemen\
+tById('code-stic\
+ky-style');if(st\
+yle)return;style\
+=document.create\
+Element('style')\
+;style.id='code-\
+sticky-style';st\
+yle.textContent=\
+['.code-wrapper \
+{ position: rela\
+tive; }','.code-\
+wrapper .code-he\
+ader-wrapper { p\
+osition: sticky;\
+ top: var(--code\
+-header-sticky-t\
+op, -2px); z-ind\
+ex: 2; box-shado\
+w: 0 1px 0 rgba(\
+0,0,0,.06); }','\
+.code-wrapper pr\
+e { overflow: vi\
+sible; margin-to\
+p: 0; }','.code-\
+wrapper pre code\
+ { display: bloc\
+k; white-space: \
+pre; max-height:\
+ 100dvh; overflo\
+w: auto;','  ove\
+rscroll-behavior\
+: contain; -webk\
+it-overflow-scro\
+lling: touch; ov\
+erflow-anchor: n\
+one; scrollbar-g\
+utter: stable bo\
+th-edges; scroll\
+-behavior: auto;\
+ }','#_loader_.h\
+idden { display:\
+ none !important\
+; visibility: hi\
+dden !important;\
+ }','#_loader_.v\
+isible { display\
+: block; visibil\
+ity: visible; }'\
+,'.msg-box.msg-u\
+ser .msg { posit\
+ion: relative; }\
+','.msg-box.msg-\
+user .msg > .uc-\
+content { displa\
+y: block; overfl\
+ow: visible; }',\
+'.msg-box.msg-us\
+er .msg > .uc-co\
+ntent.uc-collaps\
+ed {','  max-hei\
+ght: var(--user-\
+msg-collapse-max\
+-h, 1000px);',' \
+ overflow: hidde\
+n;','  -webkit-m\
+ask-image: linea\
+r-gradient(to bo\
+ttom, rgba(0,0,0\
+,1) calc(100% - \
+var(--uc-fade-he\
+ight, 64px)), rg\
+ba(0,0,0,0) 100%\
+);','  mask-imag\
+e: linear-gradie\
+nt(to bottom, rg\
+ba(0,0,0,1) calc\
+(100% - var(--uc\
+-fade-height, 64\
+px)), rgba(0,0,0\
+,0) 100%);','  -\
+webkit-mask-size\
+: 100% 100%;',' \
+ mask-size: 100%\
+ 100%;','  -webk\
+it-mask-repeat: \
+no-repeat;','  m\
+ask-repeat: no-r\
+epeat;','}','.ms\
+g-box.msg-user .\
+msg > .uc-conten\
+t.uc-expanded {'\
+,'  -webkit-mask\
+-image: none;','\
+  mask-image: no\
+ne;','}','.msg-b\
+ox.msg-user .msg\
+ > .uc-toggle { \
+display: none; m\
+argin-top: 8px; \
+text-align: cent\
+er; cursor: poin\
+ter; user-select\
+: none; }','.msg\
+-box.msg-user .m\
+sg > .uc-toggle.\
+visible { displa\
+y: block; }','.m\
+sg-box.msg-user \
+.msg > .uc-toggl\
+e img { width: v\
+ar(--uc-toggle-i\
+con-size, 26px);\
+ height: var(--u\
+c-toggle-icon-si\
+ze, 26px); opaci\
+ty: .8; }','.msg\
+-box.msg-user .m\
+sg > .uc-toggle:\
+hover img { opac\
+ity: 1; }','.msg\
+-box.msg-user .m\
+sg .msg-copy-btn\
+ { position: abs\
+olute; top: 2px;\
+ right: 0px; z-i\
+ndex: 3;','  opa\
+city: 0; pointer\
+-events: none; t\
+ransition: opaci\
+ty .15s ease, tr\
+ansform .15s eas\
+e, background-co\
+lor .15s ease, b\
+order-color .15s\
+ ease;','  borde\
+r-radius: 6px; p\
+adding: 4px; lin\
+e-height: 0; bor\
+der: 1px solid t\
+ransparent; back\
+ground: transpar\
+ent; }','.msg-bo\
+x.msg-user .msg:\
+hover .msg-copy-\
+btn, .msg-box.ms\
+g-user .msg:focu\
+s-within .msg-co\
+py-btn { opacity\
+: 1; pointer-eve\
+nts: auto; }','.\
+msg-box.msg-user\
+ .msg .msg-copy-\
+btn:hover { tran\
+sform: scale(1.0\
+6); background: \
+var(--copy-btn-b\
+g-hover, rgba(0,\
+0,0,.86)); borde\
+r-color: var(--c\
+opy-btn-border, \
+rgba(0,0,0,.08))\
+; }','.msg-box.m\
+sg-user .msg .ms\
+g-copy-btn.copie\
+d { background: \
+var(--copy-btn-b\
+g-copied, rgba(1\
+50,150,150,.12))\
+; border-color: \
+var(--copy-btn-b\
+order-copied, rg\
+ba(150,150,150,.\
+35)); animation:\
+ msg-copy-pop .2\
+5s ease; }','.ms\
+g-box.msg-user .\
+msg .msg-copy-bt\
+n img { display:\
+ block; width: 1\
+8px; height: 18p\
+x; }','.code-wra\
+pper .code-heade\
+r-action.code-he\
+ader-copy,','.co\
+de-wrapper .code\
+-header-action.c\
+ode-header-colla\
+pse { display: i\
+nline-flex; alig\
+n-items: center;\
+ border-radius: \
+6px; padding: 2p\
+x; line-height: \
+0; border: 1px s\
+olid transparent\
+; transition: tr\
+ansform .15s eas\
+e, background-co\
+lor .15s ease, b\
+order-color .15s\
+ ease; }','.code\
+-wrapper .code-h\
+eader-action.cod\
+e-header-copy:ho\
+ver,','.code-wra\
+pper .code-heade\
+r-action.code-he\
+ader-collapse:ho\
+ver { transform:\
+ scale(1.06); ba\
+ckground: var(--\
+copy-btn-bg-hove\
+r, rgba(0,0,0,.7\
+6)); border-colo\
+r: var(--copy-bt\
+n-border, rgba(0\
+,0,0,.08)); }','\
+.code-wrapper .c\
+ode-header-actio\
+n.copied { backg\
+round: var(--cop\
+y-btn-bg-copied,\
+ rgba(150,150,15\
+0,.12)); border-\
+color: var(--cop\
+y-btn-border-cop\
+ied, rgba(150,15\
+0,150,.35)); ani\
+mation: msg-copy\
+-pop .25s ease; \
+}','@keyframes m\
+sg-copy-pop { 0%\
+{ transform: sca\
+le(1); } 60%{ tr\
+ansform: scale(1\
+.1); } 100%{ tra\
+nsform: scale(1)\
+; } }'].join('\x5cn\
+');document.head\
+.appendChild(sty\
+le);}\x0atoggleExtr\
+aItems(button){i\
+f(!button)return\
+;const list=butt\
+on.closest?butto\
+n.closest('.extr\
+a-items-list'):n\
+ull;if(!list)ret\
+urn;const hidden\
+=list.querySelec\
+tor('.extra-item\
+s-hidden');if(!h\
+idden)return;con\
+st isHidden=hidd\
+en.style.display\
+==='none'||getCo\
+mputedStyle(hidd\
+en).display==='n\
+one';hidden.styl\
+e.display=isHidd\
+en?'block':'none\
+';button.setAttr\
+ibute('aria-expa\
+nded',isHidden?'\
+true':'false');c\
+onst arrow=butto\
+n.querySelector(\
+'.extra-items-to\
+ggle-arrow');if(\
+arrow)arrow.clas\
+sList.toggle('to\
+ggle-expanded',i\
+sHidden);const e\
+xpandTitle=(type\
+of window!=='und\
+efined'&&window.\
+LOCALE_EXPAND)?S\
+tring(window.LOC\
+ALE_EXPAND):'Exp\
+and';const colla\
+pseTitle=(typeof\
+ window!=='undef\
+ined'&&window.LO\
+CALE_COLLAPSE)?S\
+tring(window.LOC\
+ALE_COLLAPSE):'C\
+ollapse';button.\
+setAttribute('ti\
+tle',isHidden?co\
+llapseTitle:expa\
+ndTitle);}\x0aenabl\
+eEditIcons(){doc\
+ument.body&&docu\
+ment.body.classL\
+ist.add('display\
+-edit-icons');}\x0a\
+disableEditIcons\
+(){document.body\
+&&document.body.\
+classList.remove\
+('display-edit-i\
+cons');}\x0aenableT\
 imestamp(){docum\
 ent.body&&docume\
 nt.body.classLis\
-t.remove('displa\
-y-timestamp');}\x0a\
-enableBlocks(){d\
-ocument.body&&do\
-cument.body.clas\
-sList.add('displ\
-ay-blocks');}\x0adi\
-sableBlocks(){do\
-cument.body&&doc\
-ument.body.class\
-List.remove('dis\
-play-blocks');}}\
-;\x0a\x0a/* data/js/ap\
-p/user.js */\x0acla\
-ss UserCollapseM\
-anager{construct\
-or(cfg){this.cfg\
-=cfg||{};this.th\
-reshold=Utils.g(\
-'USER_MSG_COLLAP\
-SE_HEIGHT_PX',10\
-00);this._proces\
-sed=new Set();}\x0a\
-_icons(){const I\
-=(this.cfg&&this\
-.cfg.ICONS)||{};\
-return{expand:I.\
-EXPAND||'',colla\
-pse:I.COLLAPSE||\
-''};}\x0a_labels(){\
-const L=(this.cf\
-g&&this.cfg.LOCA\
-LE)||{};return{e\
-xpand:L.EXPAND||\
-'Expand',collaps\
-e:L.COLLAPSE||'C\
-ollapse'};}\x0a_aft\
-erLayout(fn){try\
-{if(typeof runti\
-me!=='undefined'\
-&&runtime.raf&&t\
-ypeof runtime.ra\
-f.schedule==='fu\
-nction'){const k\
-ey={t:'UC:afterL\
-ayout',i:Math.ra\
-ndom()};runtime.\
-raf.schedule(key\
-,()=>{try{fn&&fn\
-();}catch(_){}},\
-'UserCollapse',0\
-);return;}}catch\
-(_){}\x0atry{reques\
-tAnimationFrame(\
-()=>{try{fn&&fn(\
-);}catch(_){}});\
-}catch(_){setTim\
-eout(()=>{try{fn\
-&&fn();}catch(__\
-){}},0);}}\x0a_scro\
-llToggleIntoView\
-(toggleEl){if(!t\
-oggleEl||!toggle\
-El.isConnected)r\
-eturn;try{if(run\
-time&&runtime.sc\
-rollMgr){runtime\
-.scrollMgr.userI\
-nteracted=true;r\
-untime.scrollMgr\
-.autoFollow=fals\
-e;}}catch(_){}\x0at\
-his._afterLayout\
-(()=>{try{if(tog\
-gleEl.scrollInto\
-View){try{toggle\
-El.scrollIntoVie\
-w({block:'neares\
-t',inline:'neare\
-st',behavior:'in\
-stant'});}catch(\
-_){toggleEl.scro\
-llIntoView(false\
-);}}}catch(_){}}\
-);}\x0a_ensureStruc\
-ture(msg){if(!ms\
-g||!msg.isConnec\
-ted)return null;\
-let content=msg.\
-querySelector('.\
-uc-content');if(\
-!content){conten\
-t=document.creat\
-eElement('div');\
-content.classNam\
-e='uc-content';c\
-onst frag=docume\
-nt.createDocumen\
-tFragment();whil\
-e(msg.firstChild\
-)frag.appendChil\
-d(msg.firstChild\
-);content.append\
-Child(frag);msg.\
-appendChild(cont\
-ent);}\x0alet toggl\
-e=msg.querySelec\
-tor('.uc-toggle'\
-);if(!toggle){co\
-nst icons=this._\
-icons();const la\
-bels=this._label\
-s();toggle=docum\
-ent.createElemen\
-t('div');toggle.\
-className='uc-to\
-ggle';toggle.tab\
-Index=0;toggle.s\
-etAttribute('rol\
-e','button');tog\
+t.add('display-t\
+imestamp');}\x0adis\
+ableTimestamp(){\
+document.body&&d\
+ocument.body.cla\
+ssList.remove('d\
+isplay-timestamp\
+');}\x0aenableBlock\
+s(){document.bod\
+y&&document.body\
+.classList.add('\
+display-blocks')\
+;}\x0adisableBlocks\
+(){document.body\
+&&document.body.\
+classList.remove\
+('display-blocks\
+');}};\x0a\x0a/* data/\
+js/app/user.js *\
+/\x0aclass UserColl\
+apseManager{cons\
+tructor(cfg){thi\
+s.cfg=cfg||{};th\
+is.threshold=Uti\
+ls.g('USER_MSG_C\
+OLLAPSE_HEIGHT_P\
+X',1000);this._p\
+rocessed=new Set\
+();}\x0a_icons(){co\
+nst I=(this.cfg&\
+&this.cfg.ICONS)\
+||{};return{expa\
+nd:I.EXPAND||'',\
+collapse:I.COLLA\
+PSE||''};}\x0a_labe\
+ls(){const L=(th\
+is.cfg&&this.cfg\
+.LOCALE)||{};ret\
+urn{expand:L.EXP\
+AND||'Expand',co\
+llapse:L.COLLAPS\
+E||'Collapse'};}\
+\x0a_afterLayout(fn\
+){try{if(typeof \
+runtime!=='undef\
+ined'&&runtime.r\
+af&&typeof runti\
+me.raf.schedule=\
+=='function'){co\
+nst key={t:'UC:a\
+fterLayout',i:Ma\
+th.random()};run\
+time.raf.schedul\
+e(key,()=>{try{f\
+n&&fn();}catch(_\
+){}},'UserCollap\
+se',0);return;}}\
+catch(_){}\x0atry{r\
+equestAnimationF\
+rame(()=>{try{fn\
+&&fn();}catch(_)\
+{}});}catch(_){s\
+etTimeout(()=>{t\
+ry{fn&&fn();}cat\
+ch(__){}},0);}}\x0a\
+_scrollToggleInt\
+oView(toggleEl){\
+if(!toggleEl||!t\
+oggleEl.isConnec\
+ted)return;try{i\
+f(runtime&&runti\
+me.scrollMgr){ru\
+ntime.scrollMgr.\
+userInteracted=t\
+rue;runtime.scro\
+llMgr.autoFollow\
+=false;}}catch(_\
+){}\x0athis._afterL\
+ayout(()=>{try{i\
+f(toggleEl.scrol\
+lIntoView){try{t\
+oggleEl.scrollIn\
+toView({block:'n\
+earest',inline:'\
+nearest',behavio\
+r:'instant'});}c\
+atch(_){toggleEl\
+.scrollIntoView(\
+false);}}}catch(\
+_){}});}\x0a_ensure\
+Structure(msg){i\
+f(!msg||!msg.isC\
+onnected)return \
+null;let content\
+=msg.querySelect\
+or('.uc-content'\
+);if(!content){c\
+ontent=document.\
+createElement('d\
+iv');content.cla\
+ssName='uc-conte\
+nt';const frag=d\
+ocument.createDo\
+cumentFragment()\
+;while(msg.first\
+Child)frag.appen\
+dChild(msg.first\
+Child);content.a\
+ppendChild(frag)\
+;msg.appendChild\
+(content);}\x0alet \
+toggle=msg.query\
+Selector('.uc-to\
+ggle');if(!toggl\
+e){const icons=t\
+his._icons();con\
+st labels=this._\
+labels();toggle=\
+document.createE\
+lement('div');to\
+ggle.className='\
+uc-toggle';toggl\
+e.tabIndex=0;tog\
 gle.setAttribute\
-('aria-expanded'\
-,'false');toggle\
-.title=labels.ex\
-pand;const img=d\
-ocument.createEl\
-ement('img');img\
-.className='uc-t\
-oggle-icon';img.\
-alt=labels.expan\
-d;img.src=icons.\
-expand;img.width\
-=26;img.height=2\
-6;toggle.appendC\
-hild(img);toggle\
-.addEventListene\
-r('click',(ev)=>\
-{ev.preventDefau\
-lt();ev.stopProp\
-agation();this.t\
-oggleFromToggle(\
-toggle);});toggl\
-e.addEventListen\
-er('keydown',(ev\
-)=>{if(ev.key===\
-'Enter'||ev.key=\
-==' '){ev.preven\
-tDefault();ev.st\
-opPropagation();\
-this.toggleFromT\
-oggle(toggle);}}\
-,{passive:false}\
-);msg.appendChil\
-d(toggle);}\x0athis\
-._processed.add(\
-msg);msg.dataset\
-.ucInit='1';retu\
-rn{content,toggl\
-e};}\x0a_ensureElli\
-psisEl(msg,conte\
-ntEl){const cont\
-ent=contentEl||(\
+('role','button'\
+);toggle.setAttr\
+ibute('aria-expa\
+nded','false');t\
+oggle.title=labe\
+ls.expand;const \
+img=document.cre\
+ateElement('img'\
+);img.className=\
+'uc-toggle-icon'\
+;img.alt=labels.\
+expand;img.src=i\
+cons.expand;img.\
+width=26;img.hei\
+ght=26;toggle.ap\
+pendChild(img);t\
+oggle.addEventLi\
+stener('click',(\
+ev)=>{ev.prevent\
+Default();ev.sto\
+pPropagation();t\
+his.toggleFromTo\
+ggle(toggle);});\
+toggle.addEventL\
+istener('keydown\
+',(ev)=>{if(ev.k\
+ey==='Enter'||ev\
+.key===' '){ev.p\
+reventDefault();\
+ev.stopPropagati\
+on();this.toggle\
+FromToggle(toggl\
+e);}},{passive:f\
+alse});msg.appen\
+dChild(toggle);}\
+\x0athis._processed\
+.add(msg);msg.da\
+taset.ucInit='1'\
+;return{content,\
+toggle};}\x0a_ensur\
+eEllipsisEl(msg,\
+contentEl){const\
+ content=content\
+El||(msg&&msg.qu\
+erySelector('.uc\
+-content'));if(!\
+content)return n\
+ull;try{const le\
+gacy=content.que\
+rySelector('.uc-\
+ellipsis');if(le\
+gacy&&legacy.par\
+entNode){legacy.\
+parentNode.remov\
+eChild(legacy);}\
+}catch(_){}\x0aretu\
+rn null;}\x0a_showE\
+llipsis(msg,cont\
+entEl){this._ens\
+ureEllipsisEl(ms\
+g,contentEl);}\x0a_\
+hideEllipsis(msg\
+){this._ensureEl\
+lipsisEl(msg,nul\
+l);}\x0aapply(root)\
+{const scope=roo\
+t||document;let \
+list;if(scope.no\
+deType===1)list=\
+scope.querySelec\
+torAll('.msg-box\
+.msg-user .msg')\
+;else list=docum\
+ent.querySelecto\
+rAll('.msg-box.m\
+sg-user .msg');i\
+f(!list||!list.l\
+ength)return;for\
+(let i=0;i<list.\
+length;i++){cons\
+t msg=list[i];co\
+nst st=this._ens\
+ureStructure(msg\
+);if(!st)continu\
+e;this._update(m\
+sg,st.content,st\
+.toggle);}}\x0a_upd\
+ate(msg,contentE\
+l,toggleEl){cons\
+t c=contentEl||(\
 msg&&msg.querySe\
 lector('.uc-cont\
-ent'));if(!conte\
-nt)return null;t\
-ry{const legacy=\
-content.querySel\
-ector('.uc-ellip\
-sis');if(legacy&\
-&legacy.parentNo\
-de){legacy.paren\
-tNode.removeChil\
-d(legacy);}}catc\
-h(_){}\x0areturn nu\
-ll;}\x0a_showEllips\
-is(msg,contentEl\
-){this._ensureEl\
-lipsisEl(msg,con\
-tentEl);}\x0a_hideE\
-llipsis(msg){thi\
-s._ensureEllipsi\
-sEl(msg,null);}\x0a\
-apply(root){cons\
-t scope=root||do\
-cument;let list;\
-if(scope.nodeTyp\
-e===1)list=scope\
-.querySelectorAl\
-l('.msg-box.msg-\
-user .msg');else\
- list=document.q\
-uerySelectorAll(\
-'.msg-box.msg-us\
-er .msg');if(!li\
-st||!list.length\
-)return;for(let \
-i=0;i<list.lengt\
-h;i++){const msg\
-=list[i];const s\
-t=this._ensureSt\
-ructure(msg);if(\
-!st)continue;thi\
-s._update(msg,st\
-.content,st.togg\
-le);}}\x0a_update(m\
-sg,contentEl,tog\
-gleEl){const c=c\
-ontentEl||(msg&&\
-msg.querySelecto\
-r('.uc-content')\
-);if(!msg||!c)re\
-turn;if(this.thr\
-eshold===0||this\
-.threshold==='0'\
-){const t=toggle\
-El||msg.querySel\
-ector('.uc-toggl\
-e');const labels\
-=this._labels();\
-c.classList.remo\
-ve('uc-collapsed\
-');c.classList.r\
-emove('uc-expand\
-ed');msg.dataset\
-.ucState='expand\
-ed';this._hideEl\
-lipsis(msg);if(t\
-){t.classList.re\
-move('visible');\
-t.setAttribute('\
-aria-expanded','\
-false');t.title=\
-labels.expand;co\
-nst img=t.queryS\
-elector('img');i\
-f(img){img.alt=l\
-abels.expand;}}\x0a\
-return;}\x0ac.class\
-List.remove('uc-\
-collapsed');c.cl\
-assList.remove('\
-uc-expanded');co\
-nst fullHeight=M\
-ath.ceil(c.scrol\
-lHeight);const l\
+ent'));if(!msg||\
+!c)return;if(thi\
+s.threshold===0|\
+|this.threshold=\
+=='0'){const t=t\
+oggleEl||msg.que\
+rySelector('.uc-\
+toggle');const l\
 abels=this._labe\
-ls();const icons\
-=this._icons();c\
-onst t=toggleEl|\
-|msg.querySelect\
+ls();c.classList\
+.remove('uc-coll\
+apsed');c.classL\
+ist.remove('uc-e\
+xpanded');msg.da\
+taset.ucState='e\
+xpanded';this._h\
+ideEllipsis(msg)\
+;if(t){t.classLi\
+st.remove('visib\
+le');t.setAttrib\
+ute('aria-expand\
+ed','false');t.t\
+itle=labels.expa\
+nd;const img=t.q\
+uerySelector('im\
+g');if(img){img.\
+alt=labels.expan\
+d;}}\x0areturn;}\x0ac.\
+classList.remove\
+('uc-collapsed')\
+;c.classList.rem\
+ove('uc-expanded\
+');const fullHei\
+ght=Math.ceil(c.\
+scrollHeight);co\
+nst labels=this.\
+_labels();const \
+icons=this._icon\
+s();const t=togg\
+leEl||msg.queryS\
+elector('.uc-tog\
+gle');if(fullHei\
+ght>this.thresho\
+ld){if(t)t.class\
+List.add('visibl\
+e');const desire\
+d=msg.dataset.uc\
+State||'collapse\
+d';const expand=\
+(desired==='expa\
+nded');if(expand\
+){c.classList.ad\
+d('uc-expanded')\
+;this._hideEllip\
+sis(msg);}else{c\
+.classList.add('\
+uc-collapsed');t\
+his._showEllipsi\
+s(msg,c);}\x0aif(t)\
+{const img=t.que\
+rySelector('img'\
+);if(img){if(exp\
+and){img.src=ico\
+ns.collapse;img.\
+alt=labels.colla\
+pse;}else{img.sr\
+c=icons.expand;i\
+mg.alt=labels.ex\
+pand;}}\x0at.setAtt\
+ribute('aria-exp\
+anded',expand?'t\
+rue':'false');t.\
+title=expand?lab\
+els.collapse:lab\
+els.expand;}}els\
+e{c.classList.re\
+move('uc-collaps\
+ed');c.classList\
+.remove('uc-expa\
+nded');msg.datas\
+et.ucState='expa\
+nded';this._hide\
+Ellipsis(msg);if\
+(t){t.classList.\
+remove('visible'\
+);t.setAttribute\
+('aria-expanded'\
+,'false');t.titl\
+e=labels.expand;\
+}}}\x0atoggleFromTo\
+ggle(toggleEl){c\
+onst msg=toggleE\
+l&&toggleEl.clos\
+est?toggleEl.clo\
+sest('.msg-box.m\
+sg-user .msg'):n\
+ull;if(!msg)retu\
+rn;this.toggle(m\
+sg);}\x0atoggle(msg\
+){if(!msg||!msg.\
+isConnected)retu\
+rn;const c=msg.q\
+uerySelector('.u\
+c-content');if(!\
+c)return;const t\
+=msg.querySelect\
 or('.uc-toggle')\
-;if(fullHeight>t\
-his.threshold){i\
-f(t)t.classList.\
-add('visible');c\
-onst desired=msg\
-.dataset.ucState\
-||'collapsed';co\
-nst expand=(desi\
-red==='expanded'\
-);if(expand){c.c\
-lassList.add('uc\
--expanded');this\
-._hideEllipsis(m\
-sg);}else{c.clas\
-sList.add('uc-co\
-llapsed');this._\
-showEllipsis(msg\
-,c);}\x0aif(t){cons\
+;const labels=th\
+is._labels();con\
+st icons=this._i\
+cons();const isC\
+ollapsed=c.class\
+List.contains('u\
+c-collapsed');if\
+(isCollapsed){c.\
+classList.remove\
+('uc-collapsed')\
+;c.classList.add\
+('uc-expanded');\
+msg.dataset.ucSt\
+ate='expanded';t\
+his._hideEllipsi\
+s(msg);if(t){t.s\
+etAttribute('ari\
+a-expanded','tru\
+e');t.title=labe\
+ls.collapse;cons\
 t img=t.querySel\
 ector('img');if(\
-img){if(expand){\
-img.src=icons.co\
-llapse;img.alt=l\
-abels.collapse;}\
-else{img.src=ico\
+img){img.src=ico\
+ns.collapse;img.\
+alt=labels.colla\
+pse;}}}else{c.cl\
+assList.remove('\
+uc-expanded');c.\
+classList.add('u\
+c-collapsed');ms\
+g.dataset.ucStat\
+e='collapsed';th\
+is._showEllipsis\
+(msg,c);if(t){t.\
+setAttribute('ar\
+ia-expanded','fa\
+lse');t.title=la\
+bels.expand;cons\
+t img=t.querySel\
+ector('img');if(\
+img){img.src=ico\
 ns.expand;img.al\
 t=labels.expand;\
-}}\x0at.setAttribut\
-e('aria-expanded\
-',expand?'true':\
-'false');t.title\
-=expand?labels.c\
-ollapse:labels.e\
-xpand;}}else{c.c\
-lassList.remove(\
-'uc-collapsed');\
-c.classList.remo\
-ve('uc-expanded'\
-);msg.dataset.uc\
-State='expanded'\
-;this._hideEllip\
-sis(msg);if(t){t\
-.classList.remov\
-e('visible');t.s\
-etAttribute('ari\
-a-expanded','fal\
-se');t.title=lab\
-els.expand;}}}\x0at\
-oggleFromToggle(\
-toggleEl){const \
-msg=toggleEl&&to\
-ggleEl.closest?t\
-oggleEl.closest(\
-'.msg-box.msg-us\
-er .msg'):null;i\
-f(!msg)return;th\
-is.toggle(msg);}\
-\x0atoggle(msg){if(\
-!msg||!msg.isCon\
-nected)return;co\
-nst c=msg.queryS\
-elector('.uc-con\
-tent');if(!c)ret\
-urn;const t=msg.\
-querySelector('.\
-uc-toggle');cons\
-t labels=this._l\
-abels();const ic\
-ons=this._icons(\
-);const isCollap\
-sed=c.classList.\
-contains('uc-col\
-lapsed');if(isCo\
-llapsed){c.class\
-List.remove('uc-\
-collapsed');c.cl\
-assList.add('uc-\
-expanded');msg.d\
-ataset.ucState='\
-expanded';this._\
-hideEllipsis(msg\
-);if(t){t.setAtt\
-ribute('aria-exp\
-anded','true');t\
-.title=labels.co\
-llapse;const img\
-=t.querySelector\
-('img');if(img){\
-img.src=icons.co\
-llapse;img.alt=l\
-abels.collapse;}\
-}}else{c.classLi\
-st.remove('uc-ex\
-panded');c.class\
-List.add('uc-col\
-lapsed');msg.dat\
-aset.ucState='co\
-llapsed';this._s\
-howEllipsis(msg,\
-c);if(t){t.setAt\
-tribute('aria-ex\
-panded','false')\
-;t.title=labels.\
-expand;const img\
-=t.querySelector\
-('img');if(img){\
-img.src=icons.ex\
-pand;img.alt=lab\
-els.expand;}\x0athi\
-s._scrollToggleI\
-ntoView(t);}}}\x0ar\
-emeasureAll(){co\
-nst arr=Array.fr\
-om(this._process\
-ed||[]);for(let \
-i=0;i<arr.length\
-;i++){const msg=\
-arr[i];if(!msg||\
-!msg.isConnected\
-){this._processe\
-d.delete(msg);co\
-ntinue;}\x0athis._u\
-pdate(msg);}}};\x0a\
-\x0a/* data/js/app/\
-utils.js */\x0aclas\
-s Utils{static g\
-(name,dflt){retu\
-rn(typeof window\
-[name]!=='undefi\
-ned')?window[nam\
-e]:dflt;}\x0astatic\
- now(){return(ty\
-peof performance\
-!=='undefined'&&\
-performance.now)\
-?performance.now\
-():Date.now();}\x0a\
-static escapeHtm\
-l(s){const d=Uti\
-ls._escDiv||(Uti\
-ls._escDiv=docum\
-ent.createElemen\
-t('div'));d.text\
-Content=String(s\
-??'');return d.i\
-nnerHTML;}\x0astati\
-c countNewlines(\
-s){if(!s)return \
-0;let c=0,i=-1;w\
-hile((i=s.indexO\
-f('\x5cn',i+1))!==-\
-1)c++;return c;}\
-\x0astatic reEscape\
-(s){return Strin\
-g(s).replace(/[.\
-*+?^${}()|[\x5c]\x5c\x5c]\
-/g,'\x5c\x5c$&');}\x0asta\
-tic idle(fn,time\
-out){if('request\
-IdleCallback'in \
-window)return re\
+}\x0athis._scrollTo\
+ggleIntoView(t);\
+}}}\x0aremeasureAll\
+(){const arr=Arr\
+ay.from(this._pr\
+ocessed||[]);for\
+(let i=0;i<arr.l\
+ength;i++){const\
+ msg=arr[i];if(!\
+msg||!msg.isConn\
+ected){this._pro\
+cessed.delete(ms\
+g);continue;}\x0ath\
+is._update(msg);\
+}}};\x0a\x0a/* data/js\
+/app/utils.js */\
+\x0aclass Utils{sta\
+tic g(name,dflt)\
+{return(typeof w\
+indow[name]!=='u\
+ndefined')?windo\
+w[name]:dflt;}\x0as\
+tatic now(){retu\
+rn(typeof perfor\
+mance!=='undefin\
+ed'&&performance\
+.now)?performanc\
+e.now():Date.now\
+();}\x0astatic esca\
+peHtml(s){const \
+d=Utils._escDiv|\
+|(Utils._escDiv=\
+document.createE\
+lement('div'));d\
+.textContent=Str\
+ing(s??'');retur\
+n d.innerHTML;}\x0a\
+static countNewl\
+ines(s){if(!s)re\
+turn 0;let c=0,i\
+=-1;while((i=s.i\
+ndexOf('\x5cn',i+1)\
+)!==-1)c++;retur\
+n c;}\x0astatic reE\
+scape(s){return \
+String(s).replac\
+e(/[.*+?^${}()|[\
+\x5c]\x5c\x5c]/g,'\x5c\x5c$&');\
+}\x0astatic idle(fn\
+,timeout){if('re\
 questIdleCallbac\
-k(fn,{timeout:ti\
-meout||800});ret\
-urn setTimeout(f\
-n,50);}\x0astatic c\
-ancelIdle(id){tr\
-y{if('cancelIdle\
-Callback'in wind\
-ow)cancelIdleCal\
-lback(id);else c\
-learTimeout(id);\
-}catch(_){}}\x0asta\
-tic get SE(){ret\
-urn document.scr\
-ollingElement||d\
-ocument.document\
-Element;}\x0astatic\
- utf8Decode(byte\
-s){if(!Utils._td\
-)Utils._td=new T\
-extDecoder('utf-\
-8');return Utils\
-._td.decode(byte\
-s);}};\x0a\x0a/* data/\
-js/app/runtime.j\
-s */\x0aclass Runti\
-me{constructor()\
-{this.cfg=new Co\
-nfig();this.logg\
-er=new Logger(th\
-is.cfg);this.dom\
-=new DOMRefs();t\
-his.customMarkup\
-=new CustomMarku\
-p(this.cfg,this.\
-logger);this.raf\
-=new RafManager(\
-this.cfg);try{th\
-is.logger.bindRa\
-f(this.raf);}cat\
-ch(_){}\x0athis.asy\
-nc=new AsyncRunn\
-er(this.cfg,this\
-.raf);this.rende\
-rer=new Markdown\
-Renderer(this.cf\
-g,this.customMar\
-kup,this.logger,\
-this.async,this.\
-raf);this.math=n\
-ew MathRenderer(\
-this.cfg,this.ra\
-f,this.async);th\
-is.codeScroll=ne\
-w CodeScrollStat\
-e(this.cfg,this.\
-raf);this.highli\
-ghter=new Highli\
-ghter(this.cfg,t\
-his.codeScroll,t\
-his.raf);this.sc\
-rollMgr=new Scro\
-llManager(this.c\
-fg,this.dom,this\
-.raf);this.toolO\
-utput=new ToolOu\
-tput();this.load\
-ing=new Loading(\
-this.dom);this.n\
-odes=new NodesMa\
-nager(this.dom,t\
-his.renderer,thi\
-s.highlighter,th\
-is.math);this.br\
-idge=new BridgeM\
-anager(this.cfg,\
+k'in window)retu\
+rn requestIdleCa\
+llback(fn,{timeo\
+ut:timeout||800}\
+);return setTime\
+out(fn,50);}\x0asta\
+tic cancelIdle(i\
+d){try{if('cance\
+lIdleCallback'in\
+ window)cancelId\
+leCallback(id);e\
+lse clearTimeout\
+(id);}catch(_){}\
+}\x0astatic get SE(\
+){return documen\
+t.scrollingEleme\
+nt||document.doc\
+umentElement;}\x0as\
+tatic utf8Decode\
+(bytes){if(!Util\
+s._td)Utils._td=\
+new TextDecoder(\
+'utf-8');return \
+Utils._td.decode\
+(bytes);}};\x0a\x0a/* \
+data/js/app/runt\
+ime.js */\x0aclass \
+Runtime{construc\
+tor(){this.cfg=n\
+ew Config();this\
+.logger=new Logg\
+er(this.cfg);thi\
+s.dom=new DOMRef\
+s();this.customM\
+arkup=new Custom\
+Markup(this.cfg,\
 this.logger);thi\
-s.ui=new UIManag\
-er();this.stream\
-=new StreamEngin\
-e(this.cfg,this.\
-dom,this.rendere\
-r,this.math,this\
-.highlighter,thi\
-s.codeScroll,thi\
-s.scrollMgr,this\
-.raf,this.async,\
-this.logger);thi\
-s.streamQ=new St\
-reamQueue(this.c\
-fg,this.stream,t\
-his.scrollMgr,th\
-is.raf);this.eve\
-nts=new EventMan\
-ager(this.cfg,th\
-is.dom,this.scro\
-llMgr,this.highl\
-ighter,this.code\
-Scroll,this.tool\
-Output,this.brid\
-ge);try{this.str\
-eam.setCustomFen\
-ceSpecs(this.cus\
-tomMarkup.getSou\
-rceFenceSpecs())\
+s.raf=new RafMan\
+ager(this.cfg);t\
+ry{this.logger.b\
+indRaf(this.raf)\
 ;}catch(_){}\x0athi\
-s.templates=new \
-NodeTemplateEngi\
-ne(this.cfg,this\
-.logger);this.da\
-ta=new DataRecei\
-ver(this.cfg,thi\
-s.templates,this\
-.nodes,this.scro\
-llMgr);this.tips\
-=null;this._last\
-HeavyResetMs=0;t\
-his.renderer.hoo\
-ks.observeNewCod\
-e=(root,opts)=>t\
-his.highlighter.\
-observeNewCode(r\
-oot,opts,this.st\
-ream.activeCode)\
-;this.renderer.h\
-ooks.observeMsgB\
-oxes=(root)=>thi\
-s.highlighter.ob\
-serveMsgBoxes(ro\
-ot,(box)=>{this.\
-highlighter.obse\
-rveNewCode(box,{\
-deferLastIfStrea\
-ming:true,minLin\
-esForLast:this.c\
-fg.PROFILE_CODE.\
-minLinesForHL,mi\
-nCharsForLast:th\
-is.cfg.PROFILE_C\
-ODE.minCharsForH\
-L},this.stream.a\
-ctiveCode);this.\
-codeScroll.initS\
-crollableBlocks(\
-box);});this.ren\
-derer.hooks.sche\
-duleMathRender=(\
-root)=>{const mm\
-=getMathMode();i\
-f(mm==='idle')th\
-is.math.schedule\
-(root);else if(m\
-m==='always')thi\
-s.math.schedule(\
-root,0,true);};t\
-his.renderer.hoo\
-ks.codeScrollIni\
-t=(root)=>this.c\
-odeScroll.initSc\
-rollableBlocks(r\
-oot);}\x0aresetStre\
-amState(origin,o\
-pts){try{this.st\
-reamQ.clear();}c\
-atch(_){}\x0aconst \
-def=Object.assig\
-n({finalizeActiv\
-e:true,clearBuff\
-er:true,clearMsg\
-:false,defuseOrp\
-hans:true,forceH\
-eavy:false,reaso\
-n:String(origin|\
-|'external-op')}\
-,(opts||{}));con\
-st now=Utils.now\
-();const withinD\
-ebounce=(now-(th\
-is._lastHeavyRes\
-etMs||0))<=(this\
-.cfg.RESET.HEAVY\
-_DEBOUNCE_MS||24\
-);const mustHeav\
-yByOrigin=def.fo\
-rceHeavy===true|\
-|def.clearMsg===\
-true||origin==='\
-beginStream'||or\
-igin==='nextStre\
-am'||origin==='c\
-learStream'||ori\
-gin==='replaceNo\
-des'||origin==='\
-clearNodes'||ori\
-gin==='clearOutp\
-ut'||origin==='c\
-learLive'||origi\
-n==='clearInput'\
-;const shouldHea\
-vy=mustHeavyByOr\
-igin||!withinDeb\
-ounce;const supp\
-ressLog=withinDe\
-bounce&&origin!=\
-='beginStream';t\
-ry{this.stream.a\
-bortAndReset({..\
-.def,suppressLog\
-});}catch(_){}\x0ai\
-f(shouldHeavy){t\
-ry{this.highligh\
-ter.cleanup();}c\
-atch(_){}\x0atry{th\
-is.math.cleanup(\
-);}catch(_){}\x0atr\
-y{this.codeScrol\
-l.cancelAllScrol\
-ls();}catch(_){}\
-\x0atry{this.scroll\
-Mgr.cancelPendin\
-gScroll();}catch\
-(_){}\x0atry{this.r\
-af.cancelAll();}\
-catch(_){}\x0athis.\
+s.async=new Asyn\
+cRunner(this.cfg\
+,this.raf);this.\
+renderer=new Mar\
+kdownRenderer(th\
+is.cfg,this.cust\
+omMarkup,this.lo\
+gger,this.async,\
+this.raf);this.m\
+ath=new MathRend\
+erer(this.cfg,th\
+is.raf,this.asyn\
+c);this.codeScro\
+ll=new CodeScrol\
+lState(this.cfg,\
+this.raf);this.h\
+ighlighter=new H\
+ighlighter(this.\
+cfg,this.codeScr\
+oll,this.raf);th\
+is.scrollMgr=new\
+ ScrollManager(t\
+his.cfg,this.dom\
+,this.raf);this.\
+toolOutput=new T\
+oolOutput();this\
+.loading=new Loa\
+ding(this.dom);t\
+his.nodes=new No\
+desManager(this.\
+dom,this.rendere\
+r,this.highlight\
+er,this.math);th\
+is.bridge=new Br\
+idgeManager(this\
+.cfg,this.logger\
+);this.ui=new UI\
+Manager();this.s\
+tream=new Stream\
+Engine(this.cfg,\
+this.dom,this.re\
+nderer,this.math\
+,this.highlighte\
+r,this.codeScrol\
+l,this.scrollMgr\
+,this.raf,this.a\
+sync,this.logger\
+);this.streamQ=n\
+ew StreamQueue(t\
+his.cfg,this.str\
+eam,this.scrollM\
+gr,this.raf);thi\
+s.events=new Eve\
+ntManager(this.c\
+fg,this.dom,this\
+.scrollMgr,this.\
+highlighter,this\
+.codeScroll,this\
+.toolOutput,this\
+.bridge);try{thi\
+s.stream.setCust\
+omFenceSpecs(thi\
+s.customMarkup.g\
+etSourceFenceSpe\
+cs());}catch(_){\
+}\x0athis.templates\
+=new NodeTemplat\
+eEngine(this.cfg\
+,this.logger);th\
+is.data=new Data\
+Receiver(this.cf\
+g,this.templates\
+,this.nodes,this\
+.scrollMgr);this\
+.tips=null;this.\
 _lastHeavyResetM\
-s=now;}else{try{\
-this.raf.cancelG\
-roup('StreamQueu\
-e');}catch(_){}}\
-\x0atry{this.tips&&\
-this.tips.hide()\
-;}catch(_){}}\x0aap\
-i_onChunk=(name,\
-chunk,type)=>{co\
-nst t=String(typ\
-e||'text_delta')\
-;if(t==='text_de\
-lta'){this.api_a\
-ppendStream(name\
-,chunk);return;}\
-\x0athis.logger.deb\
-ug('STREAM','IGN\
-ORED_NON_TEXT_CH\
-UNK',{type:t,len\
-:(chunk?String(c\
-hunk).length:0)}\
-);};api_beginStr\
-eam=(chunk=false\
-)=>{this.tips&&t\
-his.tips.hide();\
-this.resetStream\
-State('beginStre\
+s=0;this.rendere\
+r.hooks.observeN\
+ewCode=(root,opt\
+s)=>this.highlig\
+hter.observeNewC\
+ode(root,opts,th\
+is.stream.active\
+Code);this.rende\
+rer.hooks.observ\
+eMsgBoxes=(root)\
+=>this.highlight\
+er.observeMsgBox\
+es(root,(box)=>{\
+this.highlighter\
+.observeNewCode(\
+box,{deferLastIf\
+Streaming:true,m\
+inLinesForLast:t\
+his.cfg.PROFILE_\
+CODE.minLinesFor\
+HL,minCharsForLa\
+st:this.cfg.PROF\
+ILE_CODE.minChar\
+sForHL},this.str\
+eam.activeCode);\
+this.codeScroll.\
+initScrollableBl\
+ocks(box);});thi\
+s.renderer.hooks\
+.scheduleMathRen\
+der=(root)=>{con\
+st mm=getMathMod\
+e();if(mm==='idl\
+e')this.math.sch\
+edule(root);else\
+ if(mm==='always\
+')this.math.sche\
+dule(root,0,true\
+);};this.rendere\
+r.hooks.codeScro\
+llInit=(root)=>t\
+his.codeScroll.i\
+nitScrollableBlo\
+cks(root);}\x0arese\
+tStreamState(ori\
+gin,opts){try{th\
+is.streamQ.clear\
+();}catch(_){}\x0ac\
+onst def=Object.\
+assign({finalize\
+Active:true,clea\
+rBuffer:true,cle\
+arMsg:false,defu\
+seOrphans:true,f\
+orceHeavy:false,\
+reason:String(or\
+igin||'external-\
+op')},(opts||{})\
+);const now=Util\
+s.now();const wi\
+thinDebounce=(no\
+w-(this._lastHea\
+vyResetMs||0))<=\
+(this.cfg.RESET.\
+HEAVY_DEBOUNCE_M\
+S||24);const mus\
+tHeavyByOrigin=d\
+ef.forceHeavy===\
+true||def.clearM\
+sg===true||origi\
+n==='beginStream\
+'||origin==='nex\
+tStream'||origin\
+==='clearStream'\
+||origin==='repl\
+aceNodes'||origi\
+n==='clearNodes'\
+||origin==='clea\
+rOutput'||origin\
+==='clearLive'||\
+origin==='clearI\
+nput';const shou\
+ldHeavy=mustHeav\
+yByOrigin||!with\
+inDebounce;const\
+ suppressLog=wit\
+hinDebounce&&ori\
+gin!=='beginStre\
+am';try{this.str\
+eam.abortAndRese\
+t({...def,suppre\
+ssLog});}catch(_\
+){}\x0aif(shouldHea\
+vy){try{this.hig\
+hlighter.cleanup\
+();}catch(_){}\x0at\
+ry{this.math.cle\
+anup();}catch(_)\
+{}\x0atry{this.code\
+Scroll.cancelAll\
+Scrolls();}catch\
+(_){}\x0atry{this.s\
+crollMgr.cancelP\
+endingScroll();}\
+catch(_){}\x0atry{t\
+his.raf.cancelAl\
+l();}catch(_){}\x0a\
+this._lastHeavyR\
+esetMs=now;}else\
+{try{this.raf.ca\
+ncelGroup('Strea\
+mQueue');}catch(\
+_){}}\x0atry{this.t\
+ips&&this.tips.h\
+ide();}catch(_){\
+}}\x0aapi_onChunk=(\
+name,chunk,type)\
+=>{const t=Strin\
+g(type||'text_de\
+lta');if(t==='te\
+xt_delta'){this.\
+api_appendStream\
+(name,chunk);ret\
+urn;}\x0athis.logge\
+r.debug('STREAM'\
+,'IGNORED_NON_TE\
+XT_CHUNK',{type:\
+t,len:(chunk?Str\
+ing(chunk).lengt\
+h:0)});};api_beg\
+inStream=(chunk=\
+false)=>{this.ti\
+ps&&this.tips.hi\
+de();this.resetS\
+treamState('begi\
+nStream',{clearM\
+sg:true,finalize\
+Active:false,for\
+ceHeavy:true});t\
+his.stream.begin\
+Stream(chunk);};\
+api_endStream=()\
+=>{this.stream.e\
+ndStream();};api\
+_applyStream=(na\
+me,chunk)=>{this\
+.stream.applyStr\
+eam(name,chunk);\
+};api_appendStre\
+am=(name,chunk)=\
+>{this.streamQ.e\
+nqueue(name,chun\
+k);};api_nextStr\
+eam=()=>{this.ti\
+ps&&this.tips.hi\
+de();const eleme\
+nt=this.dom.get(\
+'_append_output_\
+');const before=\
+this.dom.get('_a\
+ppend_output_bef\
+ore_');if(elemen\
+t&&before){const\
+ frag=document.c\
+reateDocumentFra\
+gment();while(el\
+ement.firstChild\
+)frag.appendChil\
+d(element.firstC\
+hild);before.app\
+endChild(frag);}\
+\x0athis.resetStrea\
+mState('nextStre\
 am',{clearMsg:tr\
 ue,finalizeActiv\
 e:false,forceHea\
 vy:true});this.s\
-tream.beginStrea\
-m(chunk);};api_e\
-ndStream=()=>{th\
-is.stream.endStr\
-eam();};api_appl\
-yStream=(name,ch\
-unk)=>{this.stre\
-am.applyStream(n\
-ame,chunk);};api\
-_appendStream=(n\
-ame,chunk)=>{thi\
-s.streamQ.enqueu\
-e(name,chunk);};\
-api_nextStream=(\
-)=>{this.tips&&t\
-his.tips.hide();\
-const element=th\
-is.dom.get('_app\
-end_output_');co\
-nst before=this.\
-dom.get('_append\
-_output_before_'\
-);if(element&&be\
-fore){const frag\
-=document.create\
-DocumentFragment\
-();while(element\
-.firstChild)frag\
-.appendChild(ele\
-ment.firstChild)\
-;before.appendCh\
-ild(frag);}\x0athis\
-.resetStreamStat\
-e('nextStream',{\
-clearMsg:true,fi\
-nalizeActive:fal\
-se,forceHeavy:tr\
-ue});this.scroll\
-Mgr.scheduleScro\
-ll();};api_clear\
-Stream=()=>{this\
-.tips&&this.tips\
-.hide();this.res\
-etStreamState('c\
-learStream',{cle\
-arMsg:true,force\
-Heavy:true});con\
-st el=this.dom.g\
-etStreamContaine\
-r();if(!el)retur\
-n;el.replaceChil\
-dren();};api_app\
-endNode=(payload\
-)=>{this.resetSt\
-reamState('appen\
-dNode');this.dat\
-a.append(payload\
-);this.scrollMgr\
-.scheduleScroll(\
-);};api_replaceN\
-odes=(payload)=>\
-{this.resetStrea\
-mState('replaceN\
-odes',{clearMsg:\
-true,forceHeavy:\
-true});this.dom.\
-clearNodes();thi\
-s.data.replace(p\
-ayload);};api_ap\
-pendToInput=(pay\
-load)=>{this.nod\
-es.appendToInput\
-(payload);this.s\
-crollMgr.autoFol\
-low=true;this.sc\
-rollMgr.userInte\
-racted=false;try\
-{this.scrollMgr.\
-lastScrollTop=Ut\
-ils.SE.scrollTop\
-|0;}catch(_){}\x0at\
-his.scrollMgr.sc\
-heduleScroll();}\
-;api_clearNodes=\
-()=>{this.dom.cl\
-earNodes();this.\
-resetStreamState\
-('clearNodes',{c\
-learMsg:true,for\
-ceHeavy:true});}\
-;api_clearInput=\
-()=>{this.resetS\
-treamState('clea\
-rInput',{forceHe\
-avy:true});this.\
-dom.clearInput()\
-;};api_clearOutp\
-ut=()=>{this.dom\
-.clearOutput();t\
-his.resetStreamS\
-tate('clearOutpu\
-t',{clearMsg:tru\
+crollMgr.schedul\
+eScroll();};api_\
+clearStream=()=>\
+{this.tips&&this\
+.tips.hide();thi\
+s.resetStreamSta\
+te('clearStream'\
+,{clearMsg:true,\
+forceHeavy:true}\
+);const el=this.\
+dom.getStreamCon\
+tainer();if(!el)\
+return;el.replac\
+eChildren();};ap\
+i_appendNode=(pa\
+yload)=>{this.re\
+setStreamState('\
+appendNode');thi\
+s.data.append(pa\
+yload);this.scro\
+llMgr.scheduleSc\
+roll();};api_rep\
+laceNodes=(paylo\
+ad)=>{this.reset\
+StreamState('rep\
+laceNodes',{clea\
+rMsg:true,forceH\
+eavy:true});this\
+.dom.clearNodes(\
+);this.data.repl\
+ace(payload);};a\
+pi_appendToInput\
+=(payload)=>{thi\
+s.nodes.appendTo\
+Input(payload);t\
+his.scrollMgr.au\
+toFollow=true;th\
+is.scrollMgr.use\
+rInteracted=fals\
+e;try{this.scrol\
+lMgr.lastScrollT\
+op=Utils.SE.scro\
+llTop|0;}catch(_\
+){}\x0athis.scrollM\
+gr.scheduleScrol\
+l();};api_clearN\
+odes=()=>{this.d\
+om.clearNodes();\
+this.resetStream\
+State('clearNode\
+s',{clearMsg:tru\
 e,forceHeavy:tru\
-e});};api_clearL\
-ive=()=>{this.do\
-m.clearLive();th\
-is.resetStreamSt\
-ate('clearLive',\
-{forceHeavy:true\
-});};api_appendT\
-oolOutput=(c)=>t\
-his.toolOutput.a\
-ppend(c);api_upd\
-ateToolOutput=(c\
-)=>this.toolOutp\
-ut.update(c);api\
-_clearToolOutput\
-=()=>this.toolOu\
-tput.clear();api\
-_beginToolOutput\
-=()=>this.toolOu\
-tput.begin();api\
-_endToolOutput=(\
-)=>this.toolOutp\
-ut.end();api_ena\
-bleToolOutput=()\
-=>this.toolOutpu\
-t.enable();api_d\
-isableToolOutput\
-=()=>this.toolOu\
-tput.disable();a\
-pi_toggleToolOut\
-put=(id)=>this.t\
-oolOutput.toggle\
-(id);api_toggleE\
-xtraItems=(butto\
-n)=>this.ui.togg\
-leExtraItems(but\
-ton);api_appendE\
-xtra=(id,c)=>thi\
-s.nodes.appendEx\
-tra(id,c,this.sc\
-rollMgr);api_rem\
-oveNode=(id)=>th\
-is.nodes.removeN\
-ode(id,this.scro\
-llMgr);api_remov\
-eNodesFromId=(id\
-)=>this.nodes.re\
-moveNodesFromId(\
-id,this.scrollMg\
-r);api_replaceLi\
-ve=(content)=>{c\
-onst el=this.dom\
-.get('_append_li\
-ve_');if(!el)ret\
-urn;if(el.classL\
-ist.contains('hi\
-dden')){el.class\
-List.remove('hid\
-den');el.classLi\
-st.add('visible'\
-);}\x0ael.innerHTML\
-=content;try{con\
-st maybePromise=\
-this.renderer.re\
-nderPendingMarkd\
-own(el);const po\
-st=()=>{try{this\
-.highlighter.obs\
-erveNewCode(el,{\
-deferLastIfStrea\
-ming:true,minLin\
-esForLast:this.c\
-fg.PROFILE_CODE.\
-minLinesForHL,mi\
-nCharsForLast:th\
-is.cfg.PROFILE_C\
-ODE.minCharsForH\
-L},this.stream.a\
-ctiveCode);this.\
-highlighter.obse\
-rveMsgBoxes(el,(\
-box)=>{this.high\
-lighter.observeN\
-ewCode(box,{defe\
-rLastIfStreaming\
-:true,minLinesFo\
-rLast:this.cfg.P\
-ROFILE_CODE.minL\
-inesForHL,minCha\
-rsForLast:this.c\
-fg.PROFILE_CODE.\
-minCharsForHL},t\
-his.stream.activ\
-eCode);this.code\
-Scroll.initScrol\
-lableBlocks(box)\
-;});}catch(_){}\x0a\
-try{const mm=get\
-MathMode();if(mm\
-==='finalize-onl\
-y')this.math.sch\
-edule(el,0,true)\
-;else this.math.\
-schedule(el);}ca\
-tch(_){}\x0athis.sc\
-rollMgr.schedule\
-Scroll();};if(ma\
-ybePromise&&type\
-of maybePromise.\
-then==='function\
-'){maybePromise.\
-then(post);}else\
-{post();}}catch(\
-_){this.scrollMg\
-r.scheduleScroll\
-();}};api_update\
-Footer=(html)=>{\
-const el=this.do\
-m.get('_footer_'\
-);if(el)el.inner\
-HTML=html;};api_\
-enableEditIcons=\
-()=>this.ui.enab\
-leEditIcons();ap\
-i_disableEditIco\
-ns=()=>this.ui.d\
-isableEditIcons(\
-);api_enableTime\
-stamp=()=>this.u\
-i.enableTimestam\
-p();api_disableT\
-imestamp=()=>thi\
-s.ui.disableTime\
-stamp();api_enab\
-leBlocks=()=>thi\
-s.ui.enableBlock\
-s();api_disableB\
-locks=()=>this.u\
-i.disableBlocks(\
-);api_updateCSS=\
-(styles)=>this.u\
-i.updateCSS(styl\
-es);api_getScrol\
-lPosition=()=>{t\
-his.bridge.updat\
-eScrollPosition(\
-window.scrollY);\
-};api_setScrollP\
-osition=(pos)=>{\
-try{window.scrol\
-lTo(0,pos);this.\
-scrollMgr.prevSc\
-roll=parseInt(po\
-s);}catch(_){}};\
-api_showLoading=\
-()=>this.loading\
-.show();api_hide\
-Loading=()=>this\
-.loading.hide();\
-api_restoreColla\
-psedCode=(root)=\
->this.renderer.r\
-estoreCollapsedC\
-ode(root);api_sc\
-rollToTopUser=()\
-=>this.scrollMgr\
-.scrollToTopUser\
-();api_scrollToB\
-ottomUser=()=>th\
-is.scrollMgr.scr\
-ollToBottomUser(\
-);api_showTips=(\
-)=>this.tips.sho\
-w();api_hideTips\
-=()=>this.tips.h\
-ide();api_begin=\
-()=>{};api_end=(\
-)=>{this.scrollM\
-gr.forceScrollTo\
-BottomImmediateA\
-tEnd();}\x0aapi_get\
-CustomMarkupRule\
-s=()=>this.custo\
-mMarkup.getRules\
-();api_setCustom\
-MarkupRules=(rul\
-es)=>{this.custo\
-mMarkup.setRules\
-(rules);try{this\
-.stream.setCusto\
-mFenceSpecs(this\
-.customMarkup.ge\
-tSourceFenceSpec\
-s());}catch(_){}\
-};init(){this.hi\
-ghlighter.initHL\
-JS();this.dom.in\
-it();this.ui.ens\
-ureStickyHeaderS\
-tyle();this.tips\
-=new TipsManager\
-(this.dom);this.\
-events.install()\
-;this.bridge.ini\
-tQWebChannel(thi\
-s.cfg.PID,(bridg\
-e)=>{const onChu\
-nk=(name,chunk,t\
-ype)=>this.api_o\
-nChunk(name,chun\
-k,type);const on\
-Node=(payload)=>\
-this.api_appendN\
-ode(payload);con\
-st onNodeReplace\
-=(payload)=>this\
-.api_replaceNode\
-s(payload);const\
- onNodeInput=(ht\
-ml)=>this.api_ap\
-pendToInput(html\
-);this.bridge.co\
-nnect(onChunk,on\
-Node,onNodeRepla\
-ce,onNodeInput);\
-try{this.logger.\
-bindBridge(this.\
-bridge.bridge||t\
-his.bridge);}cat\
-ch(_){}});this.r\
-enderer.init();t\
-ry{this.renderer\
-.renderPendingMa\
-rkdown(document)\
-;}catch(_){}\x0athi\
-s.highlighter.ob\
-serveMsgBoxes(do\
-cument,(box)=>{t\
-his.highlighter.\
-observeNewCode(b\
-ox,{deferLastIfS\
-treaming:true,mi\
-nLinesForLast:th\
-is.cfg.PROFILE_C\
-ODE.minLinesForH\
-L,minCharsForLas\
-t:this.cfg.PROFI\
-LE_CODE.minChars\
-ForHL},this.stre\
-am.activeCode);t\
-his.codeScroll.i\
-nitScrollableBlo\
-cks(box);});this\
-.highlighter.obs\
-erveNewCode(docu\
-ment,{deferLastI\
-fStreaming:true,\
-minLinesForLast:\
-this.cfg.PROFILE\
-_CODE.minLinesFo\
-rHL,minCharsForL\
-ast:this.cfg.PRO\
-FILE_CODE.minCha\
-rsForHL},this.st\
-ream.activeCode)\
-;this.highlighte\
-r.scheduleScanVi\
-sibleCodes(this.\
-stream.activeCod\
-e);this.tips.cyc\
-le();this.scroll\
-Mgr.updateScroll\
-Fab(true);}\x0aclea\
-nup(){this.tips.\
-cleanup();try{th\
-is.bridge.discon\
-nect();}catch(_)\
-{}\x0athis.events.c\
-leanup();this.hi\
-ghlighter.cleanu\
-p();this.math.cl\
-eanup();this.str\
-eamQ.clear();thi\
-s.dom.cleanup();\
-}}\x0aif(typeof Raf\
-Manager!=='undef\
-ined'&&RafManage\
-r.prototype&&typ\
-eof RafManager.p\
-rototype.cancel=\
-=='function'){Ra\
-fManager.prototy\
-pe.cancel=functi\
-on(key){const t=\
-this.tasks.get(k\
-ey);if(!t)return\
-;this.tasks.dele\
-te(key);if(t.gro\
-up){const set=th\
-is.groups.get(t.\
-group);if(set){s\
-et.delete(key);i\
-f(set.size===0)t\
-his.groups.delet\
-e(t.group);}}};}\
-\x0awindow.__collap\
-sed_idx=window._\
-_collapsed_idx||\
-[];const runtime\
-=new Runtime();d\
-ocument.addEvent\
-Listener('DOMCon\
-tentLoaded',()=>\
-runtime.init());\
-Object.definePro\
-perty(window,'SE\
-',{get(){return \
-Utils.SE;}});win\
-dow.beginStream=\
-(chunk)=>runtime\
-.api_beginStream\
-(chunk);window.e\
-ndStream=()=>run\
-time.api_endStre\
-am();window.appl\
-yStream=(name,ch\
-unk)=>runtime.ap\
-i_applyStream(na\
-me,chunk);window\
-.appendStream=(n\
-ame,chunk)=>runt\
-ime.api_appendSt\
-ream(name,chunk)\
-;window.appendSt\
-reamTyped=(type,\
-name,chunk)=>run\
-time.api_onChunk\
-(name,chunk,type\
-);window.nextStr\
-eam=()=>runtime.\
-api_nextStream()\
-;window.clearStr\
-eam=()=>runtime.\
-api_clearStream(\
-);window.begin=(\
-)=>runtime.api_b\
-egin();window.en\
-d=()=>runtime.ap\
-i_end();window.a\
-ppendNode=(paylo\
-ad)=>runtime.api\
-_appendNode(payl\
-oad);window.repl\
-aceNodes=(payloa\
-d)=>runtime.api_\
-replaceNodes(pay\
-load);window.app\
-endToInput=(html\
-)=>runtime.api_a\
-ppendToInput(htm\
-l);window.clearN\
-odes=()=>runtime\
-.api_clearNodes(\
-);window.clearIn\
-put=()=>runtime.\
-api_clearInput()\
-;window.clearOut\
-put=()=>runtime.\
-api_clearOutput(\
-);window.clearLi\
-ve=()=>runtime.a\
-pi_clearLive();w\
-indow.appendTool\
-Output=(c)=>runt\
-ime.api_appendTo\
-olOutput(c);wind\
-ow.updateToolOut\
-put=(c)=>runtime\
-.api_updateToolO\
-utput(c);window.\
-clearToolOutput=\
-()=>runtime.api_\
-clearToolOutput(\
-);window.beginTo\
-olOutput=()=>run\
-time.api_beginTo\
-olOutput();windo\
-w.endToolOutput=\
-()=>runtime.api_\
-endToolOutput();\
-window.enableToo\
-lOutput=()=>runt\
-ime.api_enableTo\
-olOutput();windo\
-w.disableToolOut\
-put=()=>runtime.\
+e});};api_clearI\
+nput=()=>{this.r\
+esetStreamState(\
+'clearInput',{fo\
+rceHeavy:true});\
+this.dom.clearIn\
+put();};api_clea\
+rOutput=()=>{thi\
+s.dom.clearOutpu\
+t();this.resetSt\
+reamState('clear\
+Output',{clearMs\
+g:true,forceHeav\
+y:true});};api_c\
+learLive=()=>{th\
+is.dom.clearLive\
+();this.resetStr\
+eamState('clearL\
+ive',{forceHeavy\
+:true});};api_ap\
+pendToolOutput=(\
+c)=>this.toolOut\
+put.append(c);ap\
+i_updateToolOutp\
+ut=(c)=>this.too\
+lOutput.update(c\
+);api_clearToolO\
+utput=()=>this.t\
+oolOutput.clear(\
+);api_beginToolO\
+utput=()=>this.t\
+oolOutput.begin(\
+);api_endToolOut\
+put=()=>this.too\
+lOutput.end();ap\
+i_enableToolOutp\
+ut=()=>this.tool\
+Output.enable();\
 api_disableToolO\
-utput();window.t\
-oggleToolOutput=\
-(id)=>runtime.ap\
-i_toggleToolOutp\
-ut(id);window.to\
+utput=()=>this.t\
+oolOutput.disabl\
+e();api_toggleTo\
+olOutput=(id)=>t\
+his.toolOutput.t\
+oggle(id);api_to\
 ggleExtraItems=(\
-button)=>runtime\
-.api_toggleExtra\
-Items(button);wi\
-ndow.appendExtra\
-=(id,c)=>runtime\
-.api_appendExtra\
-(id,c);window.re\
-moveNode=(id)=>r\
-untime.api_remov\
-eNode(id);window\
-.removeNodesFrom\
-Id=(id)=>runtime\
-.api_removeNodes\
-FromId(id);windo\
-w.replaceLive=(c\
-)=>runtime.api_r\
-eplaceLive(c);wi\
-ndow.updateFoote\
-r=(c)=>runtime.a\
-pi_updateFooter(\
-c);window.enable\
-EditIcons=()=>ru\
-ntime.api_enable\
-EditIcons();wind\
-ow.disableEditIc\
-ons=()=>runtime.\
-api_disableEditI\
-cons();window.en\
+button)=>this.ui\
+.toggleExtraItem\
+s(button);api_ap\
+pendExtra=(id,c)\
+=>this.nodes.app\
+endExtra(id,c,th\
+is.scrollMgr);ap\
+i_removeNode=(id\
+)=>this.nodes.re\
+moveNode(id,this\
+.scrollMgr);api_\
+removeNodesFromI\
+d=(id)=>this.nod\
+es.removeNodesFr\
+omId(id,this.scr\
+ollMgr);api_repl\
+aceLive=(content\
+)=>{const el=thi\
+s.dom.get('_appe\
+nd_live_');if(!e\
+l)return;if(el.c\
+lassList.contain\
+s('hidden')){el.\
+classList.remove\
+('hidden');el.cl\
+assList.add('vis\
+ible');}\x0ael.inne\
+rHTML=content;tr\
+y{const maybePro\
+mise=this.render\
+er.renderPending\
+Markdown(el);con\
+st post=()=>{try\
+{this.highlighte\
+r.observeNewCode\
+(el,{deferLastIf\
+Streaming:true,m\
+inLinesForLast:t\
+his.cfg.PROFILE_\
+CODE.minLinesFor\
+HL,minCharsForLa\
+st:this.cfg.PROF\
+ILE_CODE.minChar\
+sForHL},this.str\
+eam.activeCode);\
+this.highlighter\
+.observeMsgBoxes\
+(el,(box)=>{this\
+.highlighter.obs\
+erveNewCode(box,\
+{deferLastIfStre\
+aming:true,minLi\
+nesForLast:this.\
+cfg.PROFILE_CODE\
+.minLinesForHL,m\
+inCharsForLast:t\
+his.cfg.PROFILE_\
+CODE.minCharsFor\
+HL},this.stream.\
+activeCode);this\
+.codeScroll.init\
+ScrollableBlocks\
+(box);});}catch(\
+_){}\x0atry{const m\
+m=getMathMode();\
+if(mm==='finaliz\
+e-only')this.mat\
+h.schedule(el,0,\
+true);else this.\
+math.schedule(el\
+);}catch(_){}\x0ath\
+is.scrollMgr.sch\
+eduleScroll();};\
+if(maybePromise&\
+&typeof maybePro\
+mise.then==='fun\
+ction'){maybePro\
+mise.then(post);\
+}else{post();}}c\
+atch(_){this.scr\
+ollMgr.scheduleS\
+croll();}};api_u\
+pdateFooter=(htm\
+l)=>{const el=th\
+is.dom.get('_foo\
+ter_');if(el)el.\
+innerHTML=html;}\
+;api_enableEditI\
+cons=()=>this.ui\
+.enableEditIcons\
+();api_disableEd\
+itIcons=()=>this\
+.ui.disableEditI\
+cons();api_enabl\
+eTimestamp=()=>t\
+his.ui.enableTim\
+estamp();api_dis\
 ableTimestamp=()\
+=>this.ui.disabl\
+eTimestamp();api\
+_enableBlocks=()\
+=>this.ui.enable\
+Blocks();api_dis\
+ableBlocks=()=>t\
+his.ui.disableBl\
+ocks();api_updat\
+eCSS=(styles)=>t\
+his.ui.updateCSS\
+(styles);api_get\
+ScrollPosition=(\
+)=>{this.bridge.\
+updateScrollPosi\
+tion(window.scro\
+llY);};api_setSc\
+rollPosition=(po\
+s)=>{try{window.\
+scrollTo(0,pos);\
+this.scrollMgr.p\
+revScroll=parseI\
+nt(pos);}catch(_\
+){}};api_showLoa\
+ding=()=>this.lo\
+ading.show();api\
+_hideLoading=()=\
+>this.loading.hi\
+de();api_restore\
+CollapsedCode=(r\
+oot)=>this.rende\
+rer.restoreColla\
+psedCode(root);a\
+pi_scrollToTopUs\
+er=()=>this.scro\
+llMgr.scrollToTo\
+pUser();api_scro\
+llToBottomUser=(\
+)=>this.scrollMg\
+r.scrollToBottom\
+User();api_showT\
+ips=()=>this.tip\
+s.show();api_hid\
+eTips=()=>this.t\
+ips.hide();api_b\
+egin=()=>{};api_\
+end=()=>{this.sc\
+rollMgr.forceScr\
+ollToBottomImmed\
+iateAtEnd();}\x0aap\
+i_getCustomMarku\
+pRules=()=>this.\
+customMarkup.get\
+Rules();api_setC\
+ustomMarkupRules\
+=(rules)=>{this.\
+customMarkup.set\
+Rules(rules);try\
+{this.stream.set\
+CustomFenceSpecs\
+(this.customMark\
+up.getSourceFenc\
+eSpecs());}catch\
+(_){}};init(){th\
+is.highlighter.i\
+nitHLJS();this.d\
+om.init();this.u\
+i.ensureStickyHe\
+aderStyle();this\
+.tips=new TipsMa\
+nager(this.dom);\
+this.events.inst\
+all();this.bridg\
+e.initQWebChanne\
+l(this.cfg.PID,(\
+bridge)=>{const \
+onChunk=(name,ch\
+unk,type)=>this.\
+api_onChunk(name\
+,chunk,type);con\
+st onNode=(paylo\
+ad)=>this.api_ap\
+pendNode(payload\
+);const onNodeRe\
+place=(payload)=\
+>this.api_replac\
+eNodes(payload);\
+const onNodeInpu\
+t=(html)=>this.a\
+pi_appendToInput\
+(html);this.brid\
+ge.connect(onChu\
+nk,onNode,onNode\
+Replace,onNodeIn\
+put);try{this.lo\
+gger.bindBridge(\
+this.bridge.brid\
+ge||this.bridge)\
+;}catch(_){}});t\
+his.renderer.ini\
+t();try{this.ren\
+derer.renderPend\
+ingMarkdown(docu\
+ment);}catch(_){\
+}\x0athis.highlight\
+er.observeMsgBox\
+es(document,(box\
+)=>{this.highlig\
+hter.observeNewC\
+ode(box,{deferLa\
+stIfStreaming:tr\
+ue,minLinesForLa\
+st:this.cfg.PROF\
+ILE_CODE.minLine\
+sForHL,minCharsF\
+orLast:this.cfg.\
+PROFILE_CODE.min\
+CharsForHL},this\
+.stream.activeCo\
+de);this.codeScr\
+oll.initScrollab\
+leBlocks(box);})\
+;this.highlighte\
+r.observeNewCode\
+(document,{defer\
+LastIfStreaming:\
+true,minLinesFor\
+Last:this.cfg.PR\
+OFILE_CODE.minLi\
+nesForHL,minChar\
+sForLast:this.cf\
+g.PROFILE_CODE.m\
+inCharsForHL},th\
+is.stream.active\
+Code);this.highl\
+ighter.scheduleS\
+canVisibleCodes(\
+this.stream.acti\
+veCode);this.tip\
+s.cycle();this.s\
+crollMgr.updateS\
+crollFab(true);}\
+\x0acleanup(){this.\
+tips.cleanup();t\
+ry{this.bridge.d\
+isconnect();}cat\
+ch(_){}\x0athis.eve\
+nts.cleanup();th\
+is.highlighter.c\
+leanup();this.ma\
+th.cleanup();thi\
+s.streamQ.clear(\
+);this.dom.clean\
+up();}}\x0aif(typeo\
+f RafManager!=='\
+undefined'&&RafM\
+anager.prototype\
+&&typeof RafMana\
+ger.prototype.ca\
+ncel==='function\
+'){RafManager.pr\
+ototype.cancel=f\
+unction(key){con\
+st t=this.tasks.\
+get(key);if(!t)r\
+eturn;this.tasks\
+.delete(key);if(\
+t.group){const s\
+et=this.groups.g\
+et(t.group);if(s\
+et){set.delete(k\
+ey);if(set.size=\
+==0)this.groups.\
+delete(t.group);\
+}}};}\x0awindow.__c\
+ollapsed_idx=win\
+dow.__collapsed_\
+idx||[];const ru\
+ntime=new Runtim\
+e();document.add\
+EventListener('D\
+OMContentLoaded'\
+,()=>runtime.ini\
+t());Object.defi\
+neProperty(windo\
+w,'SE',{get(){re\
+turn Utils.SE;}}\
+);window.beginSt\
+ream=(chunk)=>ru\
+ntime.api_beginS\
+tream(chunk);win\
+dow.endStream=()\
 =>runtime.api_en\
-ableTimestamp();\
-window.disableTi\
-mestamp=()=>runt\
-ime.api_disableT\
-imestamp();windo\
-w.enableBlocks=(\
+dStream();window\
+.applyStream=(na\
+me,chunk)=>runti\
+me.api_applyStre\
+am(name,chunk);w\
+indow.appendStre\
+am=(name,chunk)=\
+>runtime.api_app\
+endStream(name,c\
+hunk);window.app\
+endStreamTyped=(\
+type,name,chunk)\
+=>runtime.api_on\
+Chunk(name,chunk\
+,type);window.ne\
+xtStream=()=>run\
+time.api_nextStr\
+eam();window.cle\
+arStream=()=>run\
+time.api_clearSt\
+ream();window.be\
+gin=()=>runtime.\
+api_begin();wind\
+ow.end=()=>runti\
+me.api_end();win\
+dow.appendNode=(\
+payload)=>runtim\
+e.api_appendNode\
+(payload);window\
+.replaceNodes=(p\
+ayload)=>runtime\
+.api_replaceNode\
+s(payload);windo\
+w.appendToInput=\
+(html)=>runtime.\
+api_appendToInpu\
+t(html);window.c\
+learNodes=()=>ru\
+ntime.api_clearN\
+odes();window.cl\
+earInput=()=>run\
+time.api_clearIn\
+put();window.cle\
+arOutput=()=>run\
+time.api_clearOu\
+tput();window.cl\
+earLive=()=>runt\
+ime.api_clearLiv\
+e();window.appen\
+dToolOutput=(c)=\
+>runtime.api_app\
+endToolOutput(c)\
+;window.updateTo\
+olOutput=(c)=>ru\
+ntime.api_update\
+ToolOutput(c);wi\
+ndow.clearToolOu\
+tput=()=>runtime\
+.api_clearToolOu\
+tput();window.be\
+ginToolOutput=()\
+=>runtime.api_be\
+ginToolOutput();\
+window.endToolOu\
+tput=()=>runtime\
+.api_endToolOutp\
+ut();window.enab\
+leToolOutput=()=\
+>runtime.api_ena\
+bleToolOutput();\
+window.disableTo\
+olOutput=()=>run\
+time.api_disable\
+ToolOutput();win\
+dow.toggleToolOu\
+tput=(id)=>runti\
+me.api_toggleToo\
+lOutput(id);wind\
+ow.toggleExtraIt\
+ems=(button)=>ru\
+ntime.api_toggle\
+ExtraItems(butto\
+n);window.append\
+Extra=(id,c)=>ru\
+ntime.api_append\
+Extra(id,c);wind\
+ow.removeNode=(i\
+d)=>runtime.api_\
+removeNode(id);w\
+indow.removeNode\
+sFromId=(id)=>ru\
+ntime.api_remove\
+NodesFromId(id);\
+window.replaceLi\
+ve=(c)=>runtime.\
+api_replaceLive(\
+c);window.update\
+Footer=(c)=>runt\
+ime.api_updateFo\
+oter(c);window.e\
+nableEditIcons=(\
 )=>runtime.api_e\
-nableBlocks();wi\
-ndow.disableBloc\
-ks=()=>runtime.a\
-pi_disableBlocks\
-();window.update\
-CSS=(s)=>runtime\
-.api_updateCSS(s\
-);window.getScro\
-llPosition=()=>r\
-untime.api_getSc\
-rollPosition();w\
-indow.setScrollP\
-osition=(pos)=>r\
-untime.api_setSc\
-rollPosition(pos\
-);window.showLoa\
-ding=()=>runtime\
-.api_showLoading\
-();window.hideLo\
-ading=()=>runtim\
-e.api_hideLoadin\
-g();window.resto\
-reCollapsedCode=\
-(root)=>runtime.\
-api_restoreColla\
-psedCode(root);w\
-indow.scrollToTo\
-pUser=()=>runtim\
-e.api_scrollToTo\
-pUser();window.s\
-crollToBottomUse\
-r=()=>runtime.ap\
-i_scrollToBottom\
-User();window.sh\
-owTips=()=>runti\
-me.api_showTips(\
-);window.hideTip\
-s=()=>runtime.ap\
-i_hideTips();win\
-dow.getCustomMar\
-kupRules=()=>run\
-time.api_getCust\
-omMarkupRules();\
-window.setCustom\
-MarkupRules=(rul\
-es)=>runtime.api\
-_setCustomMarkup\
-Rules(rules);win\
-dow.__pygpt_clea\
-nup=()=>runtime.\
-cleanup();RafMan\
-ager.prototype.s\
-tats=function(){\
-const byGroup=ne\
-w Map();for(cons\
-t[key,t]of this.\
-tasks){const g=t\
-.group||'default\
-';byGroup.set(g,\
-(byGroup.get(g)|\
-|0)+1);}\x0areturn{\
-tasks:this.tasks\
-.size,groups:Arr\
-ay.from(byGroup,\
-([group,count])=\
->({group,count})\
-).sort((a,b)=>b.\
-count-a.count)};\
-};RafManager.pro\
-totype.dumpHotGr\
-oups=function(la\
-bel=''){const s=\
-this.stats();con\
-sole.log('[RAF]'\
-,label,'tasks=',\
-s.tasks,'byGroup\
-=',s.groups.slic\
-e(0,8));};RafMan\
-ager.prototype.f\
-indDomTasks=func\
-tion(){const out\
-=[];for(const[ke\
-y,t]of this.task\
-s){let el=null;i\
-f(key&&key.nodeT\
-ype===1)el=key;e\
-lse if(key&&key.\
-el&&key.el.nodeT\
-ype===1)el=key.e\
-l;if(el)out.push\
-({group:t.group,\
-tag:el.tagName,c\
-onnected:el.isCo\
-nnected});}\x0aretu\
-rn out;};functio\
-n gaugeSE(se){co\
-nst ropeLen=(se.\
-streamBuf.length\
-+se._sbLen);cons\
-t ac=se.activeCo\
-de;const domFroz\
-en=ac?.frozenEl?\
-.textContent?.le\
-ngth||0;const do\
-mTail=ac?.tailEl\
-?.textContent?.l\
-ength||0;const d\
-omLen=domFrozen+\
-domTail;return{r\
-opeLen,domLen,to\
-talChars:ropeLen\
-+domLen,ratioRop\
-eToDom:(domLen?(\
-ropeLen/domLen).\
-toFixed(2):'n/a'\
-),fenceOpen:se.f\
-enceOpen,codeOpe\
-n:se.codeStream?\
-.open};};\x0a\
+nableEditIcons()\
+;window.disableE\
+ditIcons=()=>run\
+time.api_disable\
+EditIcons();wind\
+ow.enableTimesta\
+mp=()=>runtime.a\
+pi_enableTimesta\
+mp();window.disa\
+bleTimestamp=()=\
+>runtime.api_dis\
+ableTimestamp();\
+window.enableBlo\
+cks=()=>runtime.\
+api_enableBlocks\
+();window.disabl\
+eBlocks=()=>runt\
+ime.api_disableB\
+locks();window.u\
+pdateCSS=(s)=>ru\
+ntime.api_update\
+CSS(s);window.ge\
+tScrollPosition=\
+()=>runtime.api_\
+getScrollPositio\
+n();window.setSc\
+rollPosition=(po\
+s)=>runtime.api_\
+setScrollPositio\
+n(pos);window.sh\
+owLoading=()=>ru\
+ntime.api_showLo\
+ading();window.h\
+ideLoading=()=>r\
+untime.api_hideL\
+oading();window.\
+restoreCollapsed\
+Code=(root)=>run\
+time.api_restore\
+CollapsedCode(ro\
+ot);window.scrol\
+lToTopUser=()=>r\
+untime.api_scrol\
+lToTopUser();win\
+dow.scrollToBott\
+omUser=()=>runti\
+me.api_scrollToB\
+ottomUser();wind\
+ow.showTips=()=>\
+runtime.api_show\
+Tips();window.hi\
+deTips=()=>runti\
+me.api_hideTips(\
+);window.getCust\
+omMarkupRules=()\
+=>runtime.api_ge\
+tCustomMarkupRul\
+es();window.setC\
+ustomMarkupRules\
+=(rules)=>runtim\
+e.api_setCustomM\
+arkupRules(rules\
+);window.__pygpt\
+_cleanup=()=>run\
+time.cleanup();R\
+afManager.protot\
+ype.stats=functi\
+on(){const byGro\
+up=new Map();for\
+(const[key,t]of \
+this.tasks){cons\
+t g=t.group||'de\
+fault';byGroup.s\
+et(g,(byGroup.ge\
+t(g)||0)+1);}\x0are\
+turn{tasks:this.\
+tasks.size,group\
+s:Array.from(byG\
+roup,([group,cou\
+nt])=>({group,co\
+unt})).sort((a,b\
+)=>b.count-a.cou\
+nt)};};RafManage\
+r.prototype.dump\
+HotGroups=functi\
+on(label=''){con\
+st s=this.stats(\
+);console.log('[\
+RAF]',label,'tas\
+ks=',s.tasks,'by\
+Group=',s.groups\
+.slice(0,8));};R\
+afManager.protot\
+ype.findDomTasks\
+=function(){cons\
+t out=[];for(con\
+st[key,t]of this\
+.tasks){let el=n\
+ull;if(key&&key.\
+nodeType===1)el=\
+key;else if(key&\
+&key.el&&key.el.\
+nodeType===1)el=\
+key.el;if(el)out\
+.push({group:t.g\
+roup,tag:el.tagN\
+ame,connected:el\
+.isConnected});}\
+\x0areturn out;};fu\
+nction gaugeSE(s\
+e){const ropeLen\
+=(se.streamBuf.l\
+ength+se._sbLen)\
+;const ac=se.act\
+iveCode;const do\
+mFrozen=ac?.froz\
+enEl?.textConten\
+t?.length||0;con\
+st domTail=ac?.t\
+ailEl?.textConte\
+nt?.length||0;co\
+nst domLen=domFr\
+ozen+domTail;ret\
+urn{ropeLen,domL\
+en,totalChars:ro\
+peLen+domLen,rat\
+ioRopeToDom:(dom\
+Len?(ropeLen/dom\
+Len).toFixed(2):\
+'n/a'),fenceOpen\
+:se.fenceOpen,co\
+deOpen:se.codeSt\
+ream?.open};};\x0a\
 "
 
 qt_resource_name = b"\
@@ -128823,30 +128802,30 @@ qt_resource_struct = b"\
 \x00\x00\x01V\x00\x00\x00\x00\x00\x01\x00\x12\xf5\xa7\
 \x00\x00\x00p\x00\x00\x00\x00\x00\x01\x00\x10\xde9\
 \x00\x00\x01r\x00\x00\x00\x00\x00\x01\x00\x13\x0bu\
-\x00\x00\x02h\x00\x00\x00\x00\x00\x01\x00\x18$\x1f\
+\x00\x00\x02h\x00\x00\x00\x00\x00\x01\x00\x18#q\
 \x00\x00\x000\x00\x00\x00\x00\x00\x01\x00\x10s\xea\
-\x00\x00\x02\x88\x00\x00\x00\x00\x00\x01\x00\x18@\xb0\
-\x00\x00\x030\x00\x00\x00\x00\x00\x01\x00\x1bl\xf2\
-\x00\x00\x02\x0e\x00\x00\x00\x00\x00\x01\x00\x13\xab\x9e\
-\x00\x00\x03\x9c\x00\x00\x00\x00\x00\x01\x00\x1b\xf6\xd6\
-\x00\x00\x01\xb2\x00\x00\x00\x00\x00\x01\x00\x13M\xb3\
+\x00\x00\x02\x88\x00\x00\x00\x00\x00\x01\x00\x18@\x02\
+\x00\x00\x030\x00\x00\x00\x00\x00\x01\x00\x1blD\
+\x00\x00\x02\x0e\x00\x00\x00\x00\x00\x01\x00\x13\xaa\xf0\
+\x00\x00\x03\x9c\x00\x00\x00\x00\x00\x01\x00\x1b\xf6(\
+\x00\x00\x01\xb2\x00\x00\x00\x00\x00\x01\x00\x13M\x05\
 \x00\x00\x00\xf8\x00\x00\x00\x00\x00\x01\x00\x11O\xbd\
-\x00\x00\x01\xf0\x00\x00\x00\x00\x00\x01\x00\x13\xa4\x98\
+\x00\x00\x01\xf0\x00\x00\x00\x00\x00\x01\x00\x13\xa3\xea\
 \x00\x00\x00J\x00\x00\x00\x00\x00\x01\x00\x10\x8c-\
 \x00\x00\x016\x00\x00\x00\x00\x00\x01\x00\x11q\xa0\
-\x00\x00\x02\xb2\x00\x00\x00\x00\x00\x01\x00\x1a#\x96\
-\x00\x00\x03R\x00\x00\x00\x00\x00\x01\x00\x1b\xb9\x00\
-\x00\x00\x02\xd0\x00\x00\x00\x00\x00\x01\x00\x1aS\x02\
-\x00\x00\x01\x96\x00\x00\x00\x00\x00\x01\x00\x13De\
-\x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x13\xc2\xb4\
+\x00\x00\x02\xb2\x00\x00\x00\x00\x00\x01\x00\x1a\x22\xe8\
+\x00\x00\x03R\x00\x00\x00\x00\x00\x01\x00\x1b\xb8R\
+\x00\x00\x02\xd0\x00\x00\x00\x00\x00\x01\x00\x1aRT\
+\x00\x00\x01\x96\x00\x00\x00\x00\x00\x01\x00\x13C\xb7\
+\x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x13\xc2\x06\
 \x00\x00\x00\x0a\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\
-\x00\x00\x03\x14\x00\x00\x00\x00\x00\x01\x00\x1b_\x15\
-\x00\x00\x02L\x00\x00\x00\x00\x00\x01\x00\x17\xfb\xcd\
-\x00\x00\x01\xd0\x00\x00\x00\x00\x00\x01\x00\x13k\x1a\
+\x00\x00\x03\x14\x00\x00\x00\x00\x00\x01\x00\x1b^g\
+\x00\x00\x02L\x00\x00\x00\x00\x00\x01\x00\x17\xfb\x1f\
+\x00\x00\x01\xd0\x00\x00\x00\x00\x00\x01\x00\x13jl\
 \x00\x00\x00\x8a\x00\x00\x00\x00\x00\x01\x00\x11\x07\xcf\
-\x00\x00\x02\xf0\x00\x00\x00\x00\x00\x01\x00\x1a\xca\xd4\
+\x00\x00\x02\xf0\x00\x00\x00\x00\x00\x01\x00\x1a\xca&\
 \x00\x00\x00\xc2\x00\x00\x00\x00\x00\x01\x00\x11I3\
-\x00\x00\x03r\x00\x00\x00\x00\x00\x01\x00\x1b\xe9<\
+\x00\x00\x03r\x00\x00\x00\x00\x00\x01\x00\x1b\xe8\x8e\
 \x00\x00\x01\x16\x00\x00\x00\x00\x00\x01\x00\x11g\xec\
 "
 

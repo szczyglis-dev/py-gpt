@@ -151,9 +151,9 @@ class NodeTemplateEngine {
 				const it = files[k];
 				if (!it) return;
 				const url = this._esc(it.url);
-				const path = this._esc(it.path);
+				const name = this._esc(it.basename || it.path || '');
 				const icon = (typeof window !== 'undefined' && window.ICON_ATTACHMENTS) ? `<img src="${window.ICON_ATTACHMENTS}" class="extra-src-icon">` : '';
-				rows.push(`${icon} <a href="${url}">${path}</a> <b> [${k}] </b>`);
+				rows.push(`${icon} <a href="${url}">${this._escapeHtml(name)}</a> <b> [${k}] </b>`);
 			});
 			if (rows.length) parts.push(this._renderCollapsibleExtraRows(rows));
 		}
@@ -265,7 +265,6 @@ class NodeTemplateEngine {
 
 		const toggleTitle = (typeof trans !== 'undefined' && trans) ? trans('action.cmd.expand') : 'Expand';
 		const expIcon = (typeof window !== 'undefined' && window.ICON_EXPAND) ? window.ICON_EXPAND : '';
-		const toolIcon = (typeof window !== 'undefined' && window.ICON_TOOL) ? window.ICON_TOOL : '';
 		const toolLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL) ? window.LOCALE_TOOL : 'Tool';
 		const requestLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_REQUEST) ? window.LOCALE_TOOL_REQUEST : 'Request';
 		const responseLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_RESPONSE) ? window.LOCALE_TOOL_RESPONSE : 'Response';
@@ -278,12 +277,11 @@ class NodeTemplateEngine {
 				.map((call) => this._escapeHtml(String(call.request || '')))
 				.join('\n\n');
 
-			const iconHtml = toolIcon ? `<img src='${this._esc(toolIcon)}' class='tool-output-icon' alt=''>` : '';
 			const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow' width='25' height='25' alt=''>`;
 			titleHtml =
 				`<button type='button' class='tool-output-toggle' onclick='toggleToolOutput(${this._esc(block.id)});' ` +
 				`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
-				`${iconHtml}<span class='tool-output-label'><b>${this._escapeHtml(toolLabel)}:</b>&nbsp;</span>` +
+				`<span class='tool-output-label'><b>${this._escapeHtml(toolLabel)}:</b>&nbsp;</span>` +
 				`<span class='tool-output-name'>${names.join(', ')}</span>${arrowHtml}` +
 				`</button>`;
 			contentHtml =

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 14:20:00                  #
+# Updated Date: 2026.08.16 20:10:00                  #
 # ================================================== #
 
 import os
@@ -512,7 +512,8 @@ class Body:
         icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
         num_str = f" [{num}]" if (num is not None and num_all is not None and num_all > 1) else ""
         url, path = self.window.core.filesystem.extract_local_url(url)
-        return f'{icon} <a href="{url}">{path}</a> <b>{num_str}</b>'
+        name = os.path.basename(path) or path
+        return f'{icon} <a href="{url}">{name}</a> <b>{num_str}</b>'
 
     def prepare_tool_extra(self, ctx: CtxItem) -> str:
         """
@@ -704,6 +705,7 @@ class Body:
                     files[str(n)] = {
                         "url": url,
                         "path": path,
+                        "basename": os.path.basename(path) or path,
                     }
                     n += 1
                 except Exception:
@@ -804,8 +806,6 @@ class Body:
         url_path = os.path.join(app_path, "data", "icons", "url.svg").replace("\\", "/")
         attach_path = os.path.join(app_path, "data", "icons", "attachments.svg").replace("\\", "/")
         db_path = os.path.join(app_path, "data", "icons", "db.svg").replace("\\", "/")
-        tool_path = os.path.join(app_path, "data", "icons", "settings.svg").replace("\\", "/")
-
         done_path = os.path.join(app_path, "data", "icons", "done.svg").replace("\\", "/")
 
         icons_js = (
@@ -818,7 +818,6 @@ class Body:
             f'window.ICON_URL="file://{url_path}";'
             f'window.ICON_ATTACHMENTS="file://{attach_path}";'
             f'window.ICON_DB="file://{db_path}";'
-            f'window.ICON_TOOL="file://{tool_path}";'
             f'window.ICON_DONE="file://{done_path}";'
         )
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 12:00:00                  #
+# Updated Date: 2026.08.16 20:10:00                  #
 # ================================================== #
 
 import json
@@ -2133,28 +2133,44 @@ class Renderer(BaseRenderer):
             pass
         return str(image)
 
-    def _get_hidden_tool_chain_image_keys(self, items: List[CtxItem], index: int) -> set:
+    def _normalize_file_extra_key(self, file) -> str:
+        """Return a stable key for a local file attachment used by the web renderer."""
+        return self._normalize_image_extra_key(file)
+
+    def _normalize_url_extra_key(self, url) -> str:
+        """Return a stable key for a URL extra used by the web renderer."""
+        if url is None:
+            return ""
+        return str(url).strip()
+
+    def _get_hidden_tool_chain_extra_keys(
+            self,
+            items: List[CtxItem],
+            index: int,
+            attr: str,
+            normalizer
+    ) -> set:
         """
-        Return image keys that should be hidden on this item because the same image
-        is rendered again later in the same tool-call continuation chain.
+        Return extra keys hidden on this item when the same extra is rendered
+        again later in the same tool-call continuation chain.
         """
         if index < 0 or index >= len(items):
             return set()
 
         ctx = items[index]
-        current_images = getattr(ctx, "images", None) or []
-        if not current_images:
+        current_values = getattr(ctx, attr, None) or []
+        if not current_values:
             return set()
 
         # De-duplication only applies when this item actually continues into a
-        # tool-result item.  A normal message must keep all of its attachments.
+        # tool-result item. A normal message must keep all of its extras.
         if index + 1 >= len(items) or not self._is_tool_reply_transition(ctx, items[index + 1]):
             return set()
 
         current_keys = {
-            self._normalize_image_extra_key(img)
-            for img in current_images
-            if img is not None
+            normalizer(value)
+            for value in current_values
+            if value is not None
         }
         current_keys.discard("")
         if not current_keys:
@@ -2164,10 +2180,10 @@ class Renderer(BaseRenderer):
         pos = index + 1
         while pos < len(items):
             item = items[pos]
-            for img in (getattr(item, "images", None) or []):
-                if img is None:
+            for value in (getattr(item, attr, None) or []):
+                if value is None:
                     continue
-                key = self._normalize_image_extra_key(img)
+                key = normalizer(value)
                 if key:
                     later_keys.add(key)
 
@@ -2178,18 +2194,54 @@ class Renderer(BaseRenderer):
 
         return current_keys.intersection(later_keys)
 
-    def _get_hidden_tool_chain_image_keys_for_ctx(self, ctx: CtxItem) -> set:
-        """Resolve tool-chain image de-duplication state for a single ctx item."""
+    def _get_hidden_tool_chain_image_keys(self, items: List[CtxItem], index: int) -> set:
+        """Return duplicate image keys hidden before the final tool-chain occurrence."""
+        return self._get_hidden_tool_chain_extra_keys(
+            items,
+            index,
+            "images",
+            self._normalize_image_extra_key,
+        )
+
+    def _get_hidden_tool_chain_file_keys(self, items: List[CtxItem], index: int) -> set:
+        """Return duplicate file keys hidden before the final tool-chain occurrence."""
+        return self._get_hidden_tool_chain_extra_keys(
+            items,
+            index,
+            "files",
+            self._normalize_file_extra_key,
+        )
+
+    def _get_hidden_tool_chain_url_keys(self, items: List[CtxItem], index: int) -> set:
+        """Return duplicate URL keys hidden before the final tool-chain occurrence."""
+        return self._get_hidden_tool_chain_extra_keys(
+            items,
+            index,
+            "urls",
+            self._normalize_url_extra_key,
+        )
+
+    def _get_hidden_tool_chain_extra_keys_for_ctx(self, ctx: CtxItem) -> Tuple[set, set, set]:
+        """Resolve image/file/URL de-duplication state for a single context item."""
         try:
             items = self.window.core.ctx.get_items()
         except Exception:
-            return set()
+            return set(), set(), set()
 
         cid = getattr(ctx, "id", None)
         for index, item in enumerate(items):
             if getattr(item, "id", None) == cid:
-                return self._get_hidden_tool_chain_image_keys(items, index)
-        return set()
+                return (
+                    self._get_hidden_tool_chain_image_keys(items, index),
+                    self._get_hidden_tool_chain_file_keys(items, index),
+                    self._get_hidden_tool_chain_url_keys(items, index),
+                )
+        return set(), set(), set()
+
+    def _get_hidden_tool_chain_image_keys_for_ctx(self, ctx: CtxItem) -> set:
+        """Backward-compatible image-only de-duplication helper."""
+        image_keys, _, _ = self._get_hidden_tool_chain_extra_keys_for_ctx(ctx)
+        return image_keys
 
     def _get_action_state(self, items: List[CtxItem], index: int) -> dict:
         """
@@ -2321,7 +2373,7 @@ class Renderer(BaseRenderer):
 
         # output
         if output_text:
-            # Tool calls are rendered as a compact header (icon + tool name).
+            # Tool calls are rendered as a compact header (tool name + expand arrow).
             # Their request payload is moved into the same collapsible area as the result.
             tool_calls = self.helpers.extract_tool_calls(output_text)
             visible_output_text = self.helpers.strip_tool_calls(output_text) if tool_calls else output_text
@@ -2379,10 +2431,12 @@ class Renderer(BaseRenderer):
                 delete_end_id=action_state.get("delete_end_id"),
             )
 
-            # When an uploaded image is carried forward through a tool-call chain,
-            # render it only at its last occurrence.  The attachment remains on every
-            # original CtxItem; this only removes duplicate visual extras.
-            hidden_image_keys = self._get_hidden_tool_chain_image_keys_for_ctx(ctx)
+            # Extras carried forward through a tool-call chain are rendered only
+            # at their last occurrence (the response-side item). The original
+            # CtxItems remain untouched; only duplicate visual extras are filtered.
+            hidden_image_keys, hidden_file_keys, hidden_url_keys = \
+                self._get_hidden_tool_chain_extra_keys_for_ctx(ctx)
+
             if hidden_image_keys and images:
                 images = {
                     key: value
@@ -2390,8 +2444,24 @@ class Renderer(BaseRenderer):
                     if self._normalize_image_extra_key(value.get("path") or value.get("url"))
                     not in hidden_image_keys
                 }
-                # Re-number after filtering so JS keeps stable 1..N indexing.
                 images = {str(i): value for i, value in enumerate(images.values(), 1)}
+
+            if hidden_file_keys and files:
+                files = {
+                    key: value
+                    for key, value in files.items()
+                    if self._normalize_file_extra_key(value.get("path") or value.get("url"))
+                    not in hidden_file_keys
+                }
+                files = {str(i): value for i, value in enumerate(files.values(), 1)}
+
+            if hidden_url_keys and urls:
+                urls = {
+                    key: value
+                    for key, value in urls.items()
+                    if self._normalize_url_extra_key(value.get("url")) not in hidden_url_keys
+                }
+                urls = {str(i): value for i, value in enumerate(urls.values(), 1)}
 
             block.images = images
             block.files = files
