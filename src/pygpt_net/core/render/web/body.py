@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 
 import os
@@ -322,42 +322,57 @@ class Body:
                 f'<a href="extra-edit:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("edit", t("ctx.extra.edit"), ctx)}</span></a>')
             icons.append(
                 f'<a href="extra-delete:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("delete", t("ctx.extra.delete"), ctx)}</span></a>')
-            if not self.window.core.ctx.is_first_item(cid):
-                icons.append(
-                    f'<a href="extra-join:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("playlist_add", t("ctx.extra.join"), ctx)}</span></a>')
         return icons
 
-    def get_action_icon_data(self, ctx: CtxItem) -> List[Dict]:
+    def get_action_icon_data(
+            self,
+            ctx: CtxItem,
+            edit_replay_id: Optional[int] = None,
+            delete_start_id: Optional[int] = None,
+            delete_end_id: Optional[int] = None
+    ) -> List[Dict]:
         """
         Return raw data for message-level action icons (href/title/icon path).
         This allows JS templates to render actions without Python-side HTML.
+
+        Audio and copy always target the visible response item. Edit/replay may
+        target an earlier user item when the response closes a tool-call chain.
+        Delete may target an exact inclusive range for the same chain.
 
         1. extra-audio-read
         2. extra-copy
         3. extra-replay
         4. extra-edit
-        5. extra-delete
-        6. extra-join (if not the first item)
-        7. (future actions...)
+        5. extra-delete / extra-delete-chain
 
         :param ctx: CtxItem
+        :param edit_replay_id: Optional item ID used by edit/replay actions
+        :param delete_start_id: Optional first item ID for grouped deletion
+        :param delete_end_id: Optional last item ID for grouped deletion
         :return: List of action dicts
         """
         items: List[Dict] = []
         if ctx.output:
             cid = ctx.id
+            target_id = edit_replay_id if edit_replay_id is not None else cid
             t = trans
             app_path = self.window.core.config.get_app_path()
+
             def icon_path(name: str) -> str:
                 return os.path.join(app_path, "data", "icons", f"{name}.svg").replace("\\", "/")
 
+            delete_href = f"extra-delete:{cid}"
+            if delete_start_id is not None and delete_end_id is not None \
+                    and delete_start_id != delete_end_id:
+                delete_href = f"extra-delete-chain:{delete_start_id},{delete_end_id}"
+
+            # Keep data-id bound to the visible response so hover/highlight still
+            # refers to the footer that the user actually clicked.
             items.append({"href": f"extra-audio-read:{cid}", "title": t("ctx.extra.audio"), "icon": f"file://{icon_path('volume')}", "id": cid})
             items.append({"href": f"extra-copy:{cid}", "title": t("ctx.extra.copy"), "icon": f"file://{icon_path('copy')}", "id": cid})
-            items.append({"href": f"extra-replay:{cid}", "title": t("ctx.extra.reply"), "icon": f"file://{icon_path('reload')}", "id": cid})
-            items.append({"href": f"extra-edit:{cid}", "title": t("ctx.extra.edit"), "icon": f"file://{icon_path('edit')}", "id": cid})
-            items.append({"href": f"extra-delete:{cid}", "title": t("ctx.extra.delete"), "icon": f"file://{icon_path('delete')}", "id": cid})
-            if not self.window.core.ctx.is_first_item(cid):
-                items.append({"href": f"extra-join:{cid}", "title": t("ctx.extra.join"), "icon": f"file://{icon_path('playlist_add')}", "id": cid})
+            items.append({"href": f"extra-replay:{target_id}", "title": t("ctx.extra.reply"), "icon": f"file://{icon_path('reload')}", "id": cid})
+            items.append({"href": f"extra-edit:{target_id}", "title": t("ctx.extra.edit"), "icon": f"file://{icon_path('edit')}", "id": cid})
+            items.append({"href": delete_href, "title": t("ctx.extra.delete"), "icon": f"file://{icon_path('delete')}", "id": cid})
         return items
 
     def get_icon(
@@ -566,7 +581,14 @@ class Body:
         except Exception:
             return url, url
 
-    def build_extras_dicts(self, ctx: CtxItem, pid: int) -> Tuple[dict, dict, dict, dict]:
+    def build_extras_dicts(
+            self,
+            ctx: CtxItem,
+            pid: int,
+            edit_replay_id: Optional[int] = None,
+            delete_start_id: Optional[int] = None,
+            delete_end_id: Optional[int] = None
+    ) -> Tuple[dict, dict, dict, dict]:
         """
         Build images/files/urls raw dicts to be rendered by JS templates.
 
@@ -581,6 +603,9 @@ class Body:
 
         :param ctx: CtxItem
         :param pid: Process ID
+        :param edit_replay_id: Optional item ID used by edit/replay actions
+        :param delete_start_id: Optional first item ID for grouped deletion
+        :param delete_end_id: Optional last item ID for grouped deletion
         :return: Tuple of (images_dict, files_dict, urls_dict, actions_dict)
         """
         images = {}
@@ -644,7 +669,12 @@ class Body:
                     pass
 
         # actions (message-level) – raw data for icons (href/title/icon)
-        actions = self.get_action_icon_data(ctx)
+        actions = self.get_action_icon_data(
+            ctx,
+            edit_replay_id=edit_replay_id,
+            delete_start_id=delete_start_id,
+            delete_end_id=delete_end_id,
+        )
 
         return images, files, urls, {"actions": actions}
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -69,8 +69,8 @@ class Url:
             'extra-code-copy',
             'extra-copy',
             'extra-delete',
+            'extra-delete-chain',
             'extra-edit',
-            'extra-join',
             'extra-replay'
         )
 
@@ -86,6 +86,16 @@ class Url:
         elif url.scheme() == 'extra-delete':  # ctx item delete
             id = url.toString().split(':')[1]
             self.window.controller.ctx.extra.delete_item(int(id))
+        elif url.scheme() == 'extra-delete-chain':  # exact tool-chain delete
+            try:
+                payload = url.toString().split(':', 1)[1]
+                start_id, end_id = payload.split(',', 1)
+                self.window.controller.ctx.extra.delete_item_chain(
+                    int(start_id),
+                    int(end_id),
+                )
+            except (IndexError, TypeError, ValueError):
+                return
         elif url.scheme() == 'extra-edit':  # ctx item edit
             id = url.toString().split(':')[1]
             self.window.controller.ctx.extra.edit_item(int(id))
@@ -98,9 +108,6 @@ class Url:
         elif url.scheme() == 'extra-audio-read':  # ctx audio read
             id = url.toString().split(':')[1]
             self.window.controller.ctx.extra.audio_read_item(int(id))
-        elif url.scheme() == 'extra-join':  # ctx join
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.join_item(int(id))
         elif url.scheme() == 'extra-code-copy':  # copy code block
             id = url.toString().split(':')[1]
             self.window.controller.ctx.extra.copy_code_block(int(id))

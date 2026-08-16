@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 06:00:00                  #
+# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -33,6 +33,15 @@ class Extra:
         :param item_id: Item id
         """
         self.window.controller.ctx.delete_item(item_id)
+
+    def delete_item_chain(self, start_item_id: int, end_item_id: int):
+        """
+        Delete an exact tool-call chain range.
+
+        :param start_item_id: First item ID in the chain
+        :param end_item_id: Final response item ID in the chain
+        """
+        self.window.controller.ctx.delete_item_chain(start_item_id, end_item_id)
 
     def copy_item(self, item_id: int):
         """
@@ -221,32 +230,3 @@ class Extra:
                 self.audio_play_id = item_id
             elif self.audio_play_id == item_id:
                 self.window.controller.audio.read_text(item.output)
-
-    def join_item(
-            self,
-            item_id: int,
-            force: bool = False
-    ):
-        """
-        Join ctx items
-
-        :param item_id: ctx item id
-        :param force: Force join
-        """
-        self.window.controller.kernel.resume()
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='ctx.join_item',
-                id=item_id,
-                msg=trans('ctx.join.item.confirm'),
-            )
-            return
-        prev_item = self.window.core.ctx.get_previous_item(item_id)
-        current_item = self.window.core.ctx.get_item_by_id(item_id)
-        if prev_item is not None and current_item is not None:
-            prev_item.output += "\n\n" + current_item.output
-            if current_item.msg_id is not None:
-                prev_item.msg_id = current_item.msg_id # update msg_id to the latest
-            self.window.core.ctx.update_item(prev_item)
-            self.window.core.ctx.remove_item(current_item.id)
-            self.window.controller.ctx.refresh()

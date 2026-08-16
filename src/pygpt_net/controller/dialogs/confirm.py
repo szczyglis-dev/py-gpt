@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -59,10 +59,11 @@ class Confirm:
             self.window.controller.ctx.delete_history_groups(True)
         elif type == 'ctx.delete_item':
             self.window.controller.ctx.delete_item(id, True)
+        elif type == 'ctx.delete_item_chain':
+            if isinstance(id, (tuple, list)) and len(id) == 2:
+                self.window.controller.ctx.delete_item_chain(id[0], id[1], True)
         elif type == 'ctx.replay_item':
             self.window.controller.ctx.extra.replay_item(id, True)
-        elif type == 'ctx.join_item':
-            self.window.controller.ctx.extra.join_item(id, True)
         elif type == 'ctx.group.delete':
             self.window.controller.ctx.delete_group(id, True)  # group delete
         elif type == 'ctx.group.delete.all':

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 21:00:00                  #
+# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Union
@@ -689,6 +689,80 @@ class Ctx:
         })
         self.window.core.ctx.remove_item(id)
         self.window.dispatch(event)
+
+    def delete_item_chain(
+            self,
+            start_id: int,
+            end_id: int,
+            force: bool = False
+    ):
+        """
+        Delete an exact inclusive range of context items belonging to one
+        tool-call chain.
+
+        Unlike remove_items_from(), this never touches messages after end_id.
+
+        :param start_id: first ctx item id in the chain
+        :param end_id: final response ctx item id in the chain
+        :param force: force delete
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='ctx.delete_item_chain',
+                id=(start_id, end_id),
+                msg=trans('ctx.delete.item.confirm'),
+            )
+            return
+
+        items = list(self.window.core.ctx.get_items())
+        start_index = next(
+            (i for i, item in enumerate(items) if item.id == start_id),
+            None,
+        )
+        end_index = next(
+            (i for i, item in enumerate(items) if item.id == end_id),
+            None,
+        )
+        if start_index is None or end_index is None or end_index <= start_index:
+            return
+
+        def is_tool_reply_transition(current, following) -> bool:
+            if current is None or following is None or not getattr(following, "internal", False):
+                return False
+            has_request = bool(
+                getattr(current, "tool_calls", None)
+                or getattr(current, "cmds", None)
+                or getattr(current, "extra_ctx", None)
+            )
+            if not has_request:
+                output = str(getattr(current, "output", None) or "")
+                has_request = "<tool>" in output and "</tool>" in output
+            return has_request
+
+        # Validate the range at click time. This keeps stale or manually crafted
+        # extra-delete-chain URLs from deleting unrelated messages.
+        if start_index > 0 and is_tool_reply_transition(
+                items[start_index - 1],
+                items[start_index]
+        ):
+            return
+        for i in range(start_index, end_index):
+            if not is_tool_reply_transition(items[i], items[i + 1]):
+                return
+        if end_index + 1 < len(items) and is_tool_reply_transition(
+                items[end_index],
+                items[end_index + 1]
+        ):
+            return
+
+        # Snapshot the exact range before modifying the underlying container.
+        targets = items[start_index:end_index + 1]
+        for item in targets:
+            self.window.core.ctx.remove_item(item.id)
+            event = RenderEvent(RenderEvent.ITEM_DELETE_ID, {
+                "ctx": item,
+            })
+            self.window.dispatch(event)
 
     def delete_history(self, force: bool = False):
         """

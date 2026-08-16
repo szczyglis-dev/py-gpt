@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.28 10:00:00                  #
+# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 
 import json
@@ -572,7 +572,16 @@ class Renderer(BaseRenderer):
             # build single RenderBlock with both input and output (if present)
             input_text = self.prepare_input(meta, item, flush=False, append=False)
             output_text = self.prepare_output(meta, item, flush=False, prev_ctx=prev_ctx, next_ctx=next_item)
-            block = self._build_render_block(meta, item, input_text, output_text, prev_ctx=prev_ctx, next_ctx=next_item)
+            action_state = self._get_action_state(items, i)
+            block = self._build_render_block(
+                meta,
+                item,
+                input_text,
+                output_text,
+                prev_ctx=prev_ctx,
+                next_ctx=next_item,
+                action_state=action_state,
+            )
             if block:
                 self.append(pid, block.to_json(wrap=True))
 
@@ -621,7 +630,16 @@ class Renderer(BaseRenderer):
 
             input_text = self.prepare_input(meta, item, flush=False, append=False)
             output_text = self.prepare_output(meta, item, flush=False, prev_ctx=prev_ctx, next_ctx=next_ctx)
-            block = self._build_render_block(meta, item, input_text, output_text, prev_ctx=prev_ctx, next_ctx=next_ctx)
+            action_state = self._get_action_state(items, i)
+            block = self._build_render_block(
+                meta,
+                item,
+                input_text,
+                output_text,
+                prev_ctx=prev_ctx,
+                next_ctx=next_ctx,
+                action_state=action_state,
+            )
             if block:
                 nodes.append(block.to_dict())
 
@@ -2029,6 +2047,145 @@ class Renderer(BaseRenderer):
                 avatar = f"{self._file_prefix}{avatar_fs}"
         return name, avatar, True
 
+    def _ctx_has_tool_request(self, ctx: Optional[CtxItem]) -> bool:
+        """
+        Check whether an item is the request side of a tool/command reply.
+
+        Keep this compatible with the same signals used by tool-result rendering:
+        native tool calls, legacy commands and extra context. Parsing the output is
+        a fallback for persisted contexts where the explicit tool_calls field is
+        not available anymore.
+
+        :param ctx: Context item
+        :return: True if the item requests a tool/command continuation
+        """
+        if ctx is None:
+            return False
+
+        try:
+            if getattr(ctx, "tool_calls", None):
+                return True
+        except Exception:
+            pass
+
+        try:
+            if getattr(ctx, "cmds", None):
+                return True
+        except Exception:
+            pass
+
+        try:
+            if getattr(ctx, "extra_ctx", None):
+                return True
+        except Exception:
+            pass
+
+        output = getattr(ctx, "output", None)
+        if output:
+            try:
+                return bool(self.helpers.extract_tool_calls(str(output)))
+            except Exception:
+                pass
+        return False
+
+    def _is_tool_reply_transition(
+            self,
+            ctx: Optional[CtxItem],
+            next_ctx: Optional[CtxItem]
+    ) -> bool:
+        """
+        Return True when next_ctx is an internal continuation carrying a reply
+        to a tool/command request made by ctx.
+        """
+        return bool(
+            ctx is not None
+            and next_ctx is not None
+            and getattr(next_ctx, "internal", False)
+            and self._ctx_has_tool_request(ctx)
+        )
+
+    def _get_action_state(self, items: List[CtxItem], index: int) -> dict:
+        """
+        Resolve footer visibility and action targets for a context item.
+
+        Intermediate tool-call items do not get a footer. The final response of
+        a tool chain keeps audio/copy bound to itself, while edit/replay targets
+        the last user item that initiated the chain. Delete targets only the
+        exact tool-chain range, so later unrelated messages are never removed.
+
+        :param items: Ordered context items
+        :param index: Index of the rendered item
+        :return: Footer/action routing state
+        """
+        if index < 0 or index >= len(items):
+            return {
+                "footer_icons": True,
+                "edit_replay_id": None,
+                "delete_start_id": None,
+                "delete_end_id": None,
+            }
+
+        ctx = items[index]
+        cid = getattr(ctx, "id", None)
+        state = {
+            "footer_icons": True,
+            "edit_replay_id": cid,
+            "delete_start_id": None,
+            "delete_end_id": None,
+        }
+
+        next_ctx = items[index + 1] if index + 1 < len(items) else None
+        if self._is_tool_reply_transition(ctx, next_ctx):
+            state["footer_icons"] = False
+            return state
+
+        # Only the final item in a tool-reply chain needs action rerouting.
+        if index == 0 or not self._is_tool_reply_transition(items[index - 1], ctx):
+            return state
+
+        # Walk back over all consecutive tool request -> internal reply edges.
+        chain_start = index - 1
+        while chain_start > 0 and self._is_tool_reply_transition(
+                items[chain_start - 1],
+                items[chain_start]
+        ):
+            chain_start -= 1
+
+        # Edit/replay should always restart from the user turn which initiated
+        # the chain, never from an internal tool-result prompt.
+        user_index = chain_start
+        while user_index >= 0:
+            candidate = items[user_index]
+            if not getattr(candidate, "internal", False) and getattr(candidate, "input", None):
+                break
+            user_index -= 1
+        if user_index < 0:
+            user_index = chain_start
+
+        state["edit_replay_id"] = getattr(items[user_index], "id", cid)
+        state["delete_start_id"] = getattr(items[chain_start], "id", cid)
+        state["delete_end_id"] = cid
+        return state
+
+    def _get_action_state_for_ctx(self, ctx: CtxItem) -> dict:
+        """Resolve action state for single-item render paths."""
+        try:
+            items = self.window.core.ctx.get_items()
+        except Exception:
+            items = []
+
+        cid = getattr(ctx, "id", None)
+        for index, item in enumerate(items):
+            if getattr(item, "id", None) == cid:
+                return self._get_action_state(items, index)
+
+        return {
+            "footer_icons": True,
+            "edit_replay_id": cid,
+            "delete_start_id": None,
+            "delete_end_id": None,
+        }
+
     def _build_render_block(
             self,
             meta: CtxMeta,
@@ -2036,7 +2193,8 @@ class Renderer(BaseRenderer):
             input_text: Optional[str],
             output_text: Optional[str],
             prev_ctx: Optional[CtxItem] = None,
-            next_ctx: Optional[CtxItem] = None
+            next_ctx: Optional[CtxItem] = None,
+            action_state: Optional[dict] = None
     ) -> Optional[RenderBlock]:
         """
         Build RenderBlock for given ctx and payloads (input/output).
@@ -2051,11 +2209,15 @@ class Renderer(BaseRenderer):
         :param input_text: Input text (raw, un-formatted)
         :param prev_ctx: Previous CtxItem (for context, optional)
         :param next_ctx: Next CtxItem (for context, optional)
+        :param action_state: Optional footer/action routing state
         :return: RenderBlock object or None
         """
         pid = self.get_or_create_pid(meta)
         if pid is None:
             return
+
+        if action_state is None:
+            action_state = self._get_action_state_for_ctx(ctx)
 
         block = RenderBlock(id=getattr(ctx, "id", None), meta_id=getattr(meta, "id", None))
 
@@ -2122,7 +2284,13 @@ class Renderer(BaseRenderer):
             }
 
             # extras (images/files/urls/actions)
-            images, files, urls, extra_actions = self.body.build_extras_dicts(ctx, pid)
+            images, files, urls, extra_actions = self.body.build_extras_dicts(
+                ctx,
+                pid,
+                edit_replay_id=action_state.get("edit_replay_id"),
+                delete_start_id=action_state.get("delete_start_id"),
+                delete_end_id=action_state.get("delete_end_id"),
+            )
             block.images = images
             block.files = files
             block.urls = urls
@@ -2140,7 +2308,7 @@ class Renderer(BaseRenderer):
                 "tool_output_visible": tool_output_visible,
                 "tool_extra_html": tool_extra_html,
                 "docs": docs_norm,
-                "footer_icons": True,
+                "footer_icons": bool(action_state.get("footer_icons", True)),
                 "personalize": personalize,
             })
             block.extra.update(extra_actions)

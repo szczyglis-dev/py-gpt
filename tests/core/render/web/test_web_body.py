@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.10 00:00:00                  #
+# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 import os
 import json
@@ -125,7 +125,7 @@ def test_get_action_icons():
     b = Body(win)
     ctx = FakeCtxItem("123", output="value")
     icons = b.get_action_icons(ctx, all=False)
-    assert len(icons) == 6
+    assert len(icons) == 5
 
 def test_get_icon():
     config_data = {"app_path": "/fake/app"}

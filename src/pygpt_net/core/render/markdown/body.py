@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 
 import os
@@ -186,15 +186,6 @@ class Body:
                         self.get_icon("delete", trans("ctx.extra.delete"))
                     )
                 )
-
-                # join link
-                if not self.window.core.ctx.is_first_item(ctx.id):
-                    icons.append(
-                        '<a href="extra-join:{}"><span class="cmd">{}</span></a>'.format(
-                            ctx.id,
-                            self.get_icon("join", trans("ctx.extra.join"))
-                        )
-                    )
         return icons
 
     def get_icon(self, icon: str, title: Optional[str] = None) -> str:
