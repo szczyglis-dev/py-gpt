@@ -355,7 +355,7 @@
   "max_output_tokens": 0,
   "max_requests_limit": 60,
   "max_tokens_length": 32000,
-  "max_total_tokens": 128000,
+  "max_total_tokens": 0,
   "mode": "chat",
   "model": "gpt-5.6-terra-high",
   "notepad.num": 1,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.02.06 01:00:00                  #
+# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 
 import copy
@@ -332,6 +332,13 @@ class Patch:
                 for key in to_add:
                     if key not in data:
                         data[key] = cfg_get_base(key)
+                updated = True
+
+            # < 2.8.3
+            if old < parse_version("2.8.3"):
+                print("Migrating config from < 2.8.3...")
+                if "max_total_tokens" in data:
+                    data["max_total_tokens"] = 0 # disable by default
                 updated = True
 
         # update file
