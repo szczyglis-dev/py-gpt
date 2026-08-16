@@ -2104,6 +2104,88 @@ class Renderer(BaseRenderer):
             and self._ctx_has_tool_request(ctx)
         )
 
+    def _normalize_image_extra_key(self, image) -> str:
+        """
+        Return a stable key for an image attachment used by the web renderer.
+
+        Context items may carry the same local image in slightly different URL/path
+        forms (native path vs. file:// URL).  Normalize through the filesystem helper
+        so duplicate detection across tool-chain items is based on the actual media
+        target rather than the serialized representation.
+        """
+        if image is None:
+            return ""
+        try:
+            url, path = self.window.core.filesystem.extract_local_url(str(image))
+            if path:
+                try:
+                    return os.path.normcase(os.path.normpath(path))
+                except Exception:
+                    return str(path)
+            if url:
+                return str(url)
+        except Exception:
+            pass
+        return str(image)
+
+    def _get_hidden_tool_chain_image_keys(self, items: List[CtxItem], index: int) -> set:
+        """
+        Return image keys that should be hidden on this item because the same image
+        is rendered again later in the same tool-call continuation chain.
+        """
+        if index < 0 or index >= len(items):
+            return set()
+
+        ctx = items[index]
+        current_images = getattr(ctx, "images", None) or []
+        if not current_images:
+            return set()
+
+        # De-duplication only applies when this item actually continues into a
+        # tool-result item.  A normal message must keep all of its attachments.
+        if index + 1 >= len(items) or not self._is_tool_reply_transition(ctx, items[index + 1]):
+            return set()
+
+        current_keys = {
+            self._normalize_image_extra_key(img)
+            for img in current_images
+            if img is not None
+        }
+        current_keys.discard("")
+        if not current_keys:
+            return set()
+
+        later_keys = set()
+        pos = index + 1
+        while pos < len(items):
+            item = items[pos]
+            for img in (getattr(item, "images", None) or []):
+                if img is None:
+                    continue
+                key = self._normalize_image_extra_key(img)
+                if key:
+                    later_keys.add(key)
+
+            # Stay strictly inside the same consecutive tool continuation chain.
+            if pos + 1 >= len(items) or not self._is_tool_reply_transition(item, items[pos + 1]):
+                break
+            pos += 1
+
+        return current_keys.intersection(later_keys)
+
+    def _get_hidden_tool_chain_image_keys_for_ctx(self, ctx: CtxItem) -> set:
+        """Resolve tool-chain image de-duplication state for a single ctx item."""
+        try:
+            items = self.window.core.ctx.get_items()
+        except Exception:
+            return set()
+
+        cid = getattr(ctx, "id", None)
+        for index, item in enumerate(items):
+            if getattr(item, "id", None) == cid:
+                return self._get_hidden_tool_chain_image_keys(items, index)
+        return set()
+
     def _get_action_state(self, items: List[CtxItem], index: int) -> dict:
         """
         Resolve footer visibility and action targets for a context item.
@@ -2291,6 +2373,21 @@ class Renderer(BaseRenderer):
                 delete_start_id=action_state.get("delete_start_id"),
                 delete_end_id=action_state.get("delete_end_id"),
             )
+
+            # When an uploaded image is carried forward through a tool-call chain,
+            # render it only at its last occurrence.  The attachment remains on every
+            # original CtxItem; this only removes duplicate visual extras.
+            hidden_image_keys = self._get_hidden_tool_chain_image_keys_for_ctx(ctx)
+            if hidden_image_keys and images:
+                images = {
+                    key: value
+                    for key, value in images.items()
+                    if self._normalize_image_extra_key(value.get("path") or value.get("url"))
+                    not in hidden_image_keys
+                }
+                # Re-number after filtering so JS keeps stable 1..N indexing.
+                images = {str(i): value for i, value in enumerate(images.values(), 1)}
+
             block.images = images
             block.files = files
             block.urls = urls
