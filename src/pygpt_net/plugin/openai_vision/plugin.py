@@ -6,19 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2026.08.18 17:30:00                  #
 # ================================================== #
+
+import os
+import re
+from urllib.parse import urlsplit
 
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
-    MODE_AUDIO,
-    MODE_LANGCHAIN,
-    MODE_LLAMA_INDEX,
-    MODE_VISION,
     MODE_CHAT,
-    MODE_RESEARCH,
 )
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.item.ctx import CtxItem
@@ -30,12 +29,12 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_vision"
-        self.name = "GPT-4 Vision (inline)"
+        self.name = "Vision (inline)"
         self.type = [
             "vision",
             "cmd.inline",
         ]
-        self.description = "Integrates GPT-4 Vision abilities with any chat mode"
+        self.description = "Integrates image analysis with chat modes using any supported image-capable model"
         self.prefix = "Vision"
         self.order = 100
         self.use_locale = True
@@ -46,6 +45,9 @@ class Plugin(BasePlugin):
             ".jpeg",
             ".gif",
             ".webp",
+            ".bmp",
+            ".tif",
+            ".tiff",
         ]
         self.allowed_cmds = [
             "camera_capture",
@@ -54,16 +56,12 @@ class Plugin(BasePlugin):
             "analyze_screenshot",
             "analyze_camera_capture",
         ]
+        # Agent runners manage their own execution flow and must not be bypassed.
+        # Other supported modes can temporarily route an image turn through Chat.
         self.disabled_mode_switch = [
-            MODE_CHAT,
-            MODE_VISION,
             MODE_AGENT,
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
-            MODE_LLAMA_INDEX,
-            MODE_LANGCHAIN,
-            MODE_AUDIO,
-            MODE_RESEARCH,
         ]
         self.worker = None
         self.config = Config(self)
@@ -102,10 +100,27 @@ class Plugin(BasePlugin):
                 )  # mode change
 
         elif name == Event.MODEL_BEFORE:
-            if data.get("mode") == MODE_CHAT:
+            if data.get("mode") == MODE_CHAT and self.is_vision_provided():
+                # Preserve the plugin's existing dedicated-model behavior, but
+                # select by capabilities instead of the legacy Vision mode/provider.
                 key = self.get_option_value("model")
                 if self.window.core.models.has(key):
-                    data['model'] = self.window.core.models.get(key)
+                    model = self.window.core.models.get(key)
+                    if model.is_image_input() and model.is_supported(MODE_CHAT):
+                        data['model'] = model
+                        return
+
+                # Invalid/removed plugin model: keep an already image-capable
+                # current model, then try the historical default as a safe fallback.
+                current_model = data.get("model")
+                if (current_model is not None
+                        and current_model.is_image_input()
+                        and current_model.is_supported(MODE_CHAT)):
+                    return
+                if self.window.core.models.has("gpt-4o"):
+                    fallback = self.window.core.models.get("gpt-4o")
+                    if fallback.is_image_input() and fallback.is_supported(MODE_CHAT):
+                        data['model'] = fallback
 
         elif name == Event.PRE_PROMPT:
             if self.is_allowed(data['mode']):
@@ -134,7 +149,7 @@ class Plugin(BasePlugin):
             Event.MODE_SELECT,
             Event.MODEL_SELECT,
         ]:
-            self.on_toggle(False)  # always reset vision flag / disable vision mode
+            self.on_toggle(False)  # always reset inline vision state
 
         elif name in [
             Event.CMD_SYNTAX,
@@ -279,29 +294,59 @@ class Plugin(BasePlugin):
         if self.window.core.config.get("cmd"):
             return prompt  # vision handled by command
 
-        # replace vision prompt
-        if self.get_option_value("replace_prompt"):
-            return self.get_option_value("prompt")
-        else:
+        image_prompt = str(self.get_option_value("prompt") or "").strip()
+        if not image_prompt:
             return prompt
+
+        # Replace or append the dedicated image-analysis instruction exactly as
+        # described by the plugin option.
+        if self.get_option_value("replace_prompt"):
+            return image_prompt
+        if not prompt:
+            return image_prompt
+        return str(prompt).rstrip() + "\n\n" + image_prompt
+
+    def _is_image_ref(self, value: str) -> bool:
+        """Check whether a local path or URL points to a supported image type."""
+        if not value:
+            return False
+        value = str(value).strip()
+        try:
+            if value.lower().startswith(("http://", "https://")):
+                value = urlsplit(value).path
+        except ValueError:
+            pass
+        value = value.lower()
+        return any(value.endswith(ext) for ext in self.allowed_urls_ext)
+
+    def _get_image_attachments(self) -> dict:
+        """Return current local image attachments without using a provider API helper."""
+        mode = self.window.core.config.get('mode')
+        attachments = self.window.core.attachments.get_all(mode)
+        images = {}
+        for attachment_id, attachment in attachments.items():
+            path = getattr(attachment, "path", "")
+            if path and os.path.exists(path) and self._is_image_ref(path):
+                images[attachment_id] = attachment
+        return images
+
+    def _get_image_urls(self) -> list:
+        """Return image URLs found in the current prompt."""
+        urls = re.findall(r'https?://\S+', str(self.prompt))
+        result = []
+        for url in urls:
+            clean = url.rstrip('.,;:!?)]}\"\'')
+            if self._is_image_ref(clean):
+                result.append(clean)
+        return result
 
     def is_attachment_provided(self) -> bool:
         """
-        Check if attachment is provided in this ctx
+        Check if an image attachment is provided in this ctx
 
-        :return: True if attachment is provided in this ctx
+        :return: True if image attachment is provided in this ctx
         """
-        mode = self.window.core.config.get('mode')
-        attachments = self.window.core.attachments.get_all(mode)
-        self.window.core.api.openai.vision.build_content(
-            str(self.prompt),
-            attachments,
-        )  # tmp build content, provide attachments from global mode
-
-        built_attachments = self.window.core.api.openai.vision.attachments
-        if len(built_attachments) > 0:
-            return True
-        return False
+        return bool(self._get_image_attachments())
 
     def is_vision_provided(self) -> bool:
         """
@@ -309,29 +354,7 @@ class Plugin(BasePlugin):
 
         :return: True if vision is provided in this ctx
         """
-        result = False
-        mode = self.window.core.config.get('mode')
-        attachments = self.window.core.attachments.get_all(mode)  # from global mode
-        self.window.core.api.openai.vision.build_content(
-            str(self.prompt),
-            attachments,
-        )  # tmp build content, provide attachments from global mode
-
-        built_attachments = self.window.core.api.openai.vision.attachments
-        built_urls = self.window.core.api.openai.vision.urls
-
-        # check for images in URLs found in prompt
-        img_urls = []
-        for url in built_urls:
-            for ext in self.allowed_urls_ext:
-                if url.lower().endswith(ext):
-                    img_urls.append(url)
-                    break
-
-        if len(built_attachments) > 0 or len(img_urls) > 0:
-            result = True
-
-        return result
+        return bool(self._get_image_attachments() or self._get_image_urls())
 
     def on_mode_before(self, ctx: CtxItem, mode: str) -> str:
         """
@@ -341,16 +364,19 @@ class Plugin(BasePlugin):
         :param mode: current mode
         :return: updated mode
         """
-        # abort if already in vision mode or command enabled
+        if not self.is_vision_provided():
+            return mode
+
+        ctx.is_vision = True
+
+        # Keep agent runners intact; their image-analysis commands use the
+        # provider-aware analyzer instead of replacing the whole agent mode.
         if mode in self.disabled_mode_switch:
-            return mode  # keep current mode
+            return mode
 
-        # if already used in this ctx then keep vision (in CHAT) mode
-        if self.is_vision_provided():
-            ctx.is_vision = True
-            return MODE_CHAT
-
-        return mode  # keep current mode
+        # The legacy Vision mode is deprecated. Route inline image turns
+        # through Chat and let MODEL_BEFORE select an image-capable model.
+        return MODE_CHAT
 
     def on_agent_prompt(self, prompt: str, silent: bool = False) -> str:
         """

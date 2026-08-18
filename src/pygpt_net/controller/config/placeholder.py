@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 16:00:00                  #
+# Updated Date: 2026.08.18 17:30:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -351,6 +351,11 @@ class Placeholder:
             if isinstance(params.get("mode"), list):
                 for m in params["mode"]:
                     if m not in model.mode:
+                        allowed = False
+                        break
+            if allowed and isinstance(params.get("input"), list):
+                for input_type in params["input"]:
+                    if input_type not in model.input:
                         allowed = False
                         break
             if allowed:

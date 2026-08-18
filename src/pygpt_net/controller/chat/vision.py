@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 20:00:00                  #
+# Updated Date: 2026.08.18 17:30:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -17,9 +17,7 @@ from pygpt_net.core.types import (
     MODE_COMPLETION,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
-    MODE_VISION,
-    MODE_RESEARCH, 
-    MULTIMODAL_IMAGE,
+    MODE_RESEARCH,
 )
 
 class Vision:
@@ -64,22 +62,12 @@ class Vision:
         self.is_available = False
 
     def switch_to_vision(self):
-        """Switch to vision mode"""
-        return  # DO NOT SWITCH, deprecated
-        mode = self.window.core.config.get('mode')
-        model = self.window.core.config.get('model')
-        model_data = self.window.core.models.get(model)
-        if mode in [MODE_AGENT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
-            return  # disallow change in agent modes
-        if mode == MODE_CHAT and MODE_CHAT in model_data.mode:
-            return  # abort if vision is already allowed
-        # if mode == MODE_VISION:
-            # return
-        # abort if vision is already enabled
-        if not self.window.controller.plugins.is_enabled('openai_vision') \
-                or (self.window.controller.plugins.is_enabled('openai_vision')
-                    and mode not in self.allowed_modes):
-            self.window.controller.mode.set(MODE_CHAT)
+        """Compatibility shim for the removed standalone Vision mode.
+
+        Inline image requests are routed at request time by the Vision plugin.
+        The UI mode is intentionally not changed here.
+        """
+        return
 
     def allowed(self) -> bool:
         """

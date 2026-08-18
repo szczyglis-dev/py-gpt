@@ -37,7 +37,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
 * ``Tuya (IoT)`` - Handle Tuya Smart Home devices via Tuya Cloud API.
 * ``TwelveLabs`` - Analyze and understand videos with TwelveLabs Pegasus, and create multimodal embeddings with Marengo.
-* ``Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+* ``Vision (inline)`` - adds image analysis to supported chat modes. When image content is detected, PyGPT temporarily routes that turn through Chat with the image-capable model configured in the plugin. The plugin model can use any supported provider.
 * ``Voice Control (inline)`` - provides voice control command execution within a conversation.
 * ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
 * ``Wikipedia`` - Search Wikipedia for information.
@@ -2823,24 +2823,26 @@ Provide your API key in the plugin settings, or set the ``TWELVELABS_API_KEY`` e
 Vision (inline)
 ----------------
 
-The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
+The plugin adds image analysis to supported chat modes without relying on the deprecated standalone Vision mode. When an image attachment, screenshot, or camera capture is detected, the request is handled through Chat with the image-capable model configured in the plugin. This preserves the plugin's dedicated-model behavior while removing the dependency on the legacy Vision mode.
+
+The plugin model list is filtered by capabilities (``Chat`` + image input), not by provider. Models from any supported provider can therefore be selected, including OpenAI, Google, Anthropic, xAI, OpenRouter, local/OpenAI-compatible endpoints, and other configured providers. Native Google, Anthropic, and xAI SDK routing is respected when enabled; otherwise the configured OpenAI-compatible Chat endpoint is used where applicable.
 
 .. tip::
-   When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
+   The ``+ Vision`` label at the bottom of the Chat window is an availability indicator for inline image analysis. Image handling is automatic when compatible image content is supplied; there is no separate legacy Vision-mode switch to enable.
 
 **Options**
 
 - ``Model`` *model*
 
-The model used to temporarily provide vision capabilities. *Default:* `gpt-4-vision-preview`.
+The image-capable Chat model used temporarily for image analysis. The list is filtered by capability rather than provider. *Default:* ``gpt-4o``.
 
 - ``Prompt`` *prompt*
 
-The prompt used for vision mode. It will append or replace current system prompt when using vision model.
+The prompt used for inline image analysis. It is appended to or replaces the current system prompt while the temporary image-capable model is used in Chat mode.
 
 - ``Replace prompt`` *replace_prompt*
 
-Replace whole system prompt with vision prompt against appending it to the current prompt. *Default:* `False`
+Replace the whole system prompt with the image-analysis prompt instead of appending it to the current prompt. *Default:* ``False``
 
 - ``Tool: capturing images from camera`` *cmd.camera_capture*
 

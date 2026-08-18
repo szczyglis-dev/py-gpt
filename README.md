@@ -22,7 +22,7 @@ For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft
 
 **PyGPT**'s functionality extends through plugin support, allowing for custom enhancements (with multiple plugins included). Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chat, text completion, assistant, agents, vision, Chat with Files (via `LlamaIndex`), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
+Multiple operation modes are included, such as chat, text completion, assistant, agents, Chat with Files (via `LlamaIndex`), commands execution, external API calls and image generation. Multimodal image analysis is integrated directly into Chat and supported modes, making **PyGPT** a multi-tool for many AI-driven tasks.
 
 **Showcase** (mp4, version `2.5.65`, build `2025-07-24`):
 
@@ -53,7 +53,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Speech recognition via `OpenAI Whisper`, `Google` and `Microsoft Speech Recognition`.
 - Plugins support with built-in plugins like `Files I/O`, `Code Interpreter`, `Web Search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
 - MCP support.
-- Real-time video camera capture in Vision mode.
+- Camera capture for real-time image analysis in Chat and other supported modes.
 - Image analysis via vision models.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 - Handles and stores the full context of conversations (short and long-term memory).
@@ -450,7 +450,7 @@ Above where you type your messages, the interface shows you the number of tokens
 
 ![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_chat.png)
 
-**Vision:** If you want to send photos from your disk or images from your camera for analysis, and the selected model does not support Vision, you must enable the `Vision (inline)` plugin in the Plugins menu. This plugin allows you to send photos or images from your camera for analysis in any Chat mode.
+**Vision:** If you want to analyze photos from disk, screenshots, or camera captures and the currently selected model cannot accept image input, enable the `Vision (inline)` plugin in the Plugins menu. The plugin uses a separately configured image-capable Chat model only for the image-analysis turn. The fallback model can come from any supported provider (for example OpenAI, Google, Anthropic, xAI, OpenRouter, or another OpenAI-compatible provider), as long as the model is configured for Chat and image input.
 
 ![v3_vision_plugins](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_plugins.png)
 
@@ -1429,7 +1429,7 @@ The following plugins are currently available, and model can use them instantly:
 
 - `TwelveLabs` - Analyze and understand videos with TwelveLabs Pegasus, and create multimodal embeddings with Marengo.
 
-- `Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+- `Vision (inline)` - adds image analysis to supported chat modes. When image content is detected, PyGPT temporarily routes that turn through Chat with the image-capable model configured in the plugin. The plugin model can use any supported provider.
 
 - `Voice Control (inline)` - provides voice control command execution within a conversation.
 
@@ -1873,9 +1873,11 @@ Provide your API key in the plugin settings, or set the `TWELVELABS_API_KEY` env
 
 ## Vision (inline)
 
-The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
+The plugin adds image analysis to supported chat modes without relying on the deprecated standalone Vision mode. When an image attachment, screenshot, or camera capture is detected, the request is handled through Chat with the image-capable model configured in the plugin. This preserves the plugin's dedicated-model behavior while removing the dependency on the legacy Vision mode.
 
-**Tip:** When using `Vision (inline)` by utilizing a plugin in standard mode, such as `Chat` (not `Vision` mode), the `+ Vision` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
+The plugin model list is filtered by capabilities (`Chat` + image input), not by provider, so supported models from OpenAI, Google, Anthropic, xAI, OpenRouter, local/OpenAI-compatible endpoints, and other configured providers can be selected. Native Google, Anthropic, and xAI SDK routing is respected when enabled; otherwise the configured OpenAI-compatible Chat endpoint is used where applicable.
+
+**Tip:** The `+ Vision` label at the bottom of the Chat window is an availability indicator for inline image analysis. Image handling is automatic when compatible image content is supplied; there is no separate legacy Vision-mode switch to enable.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#vision-inline
 

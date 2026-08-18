@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2026.08.18 17:30:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -33,12 +33,13 @@ class Config(BaseConfig):
             type="combo",
             use="models",
             use_params={
-                "mode": ["vision"],
+                "mode": ["chat"],
+                "input": ["image"],
             },
             value="gpt-4o",
             label="Model",
-            description="Model used to temporarily providing vision abilities, "
-                        "default: gpt-4o",
+            description="Image-capable Chat model used temporarily for vision analysis. "
+                        "It can use any supported provider; default: gpt-4o",
             tooltip="Model",
         )
         plugin.add_option(
@@ -46,8 +47,8 @@ class Config(BaseConfig):
             type="textarea",
             value=prompt,
             label="Prompt",
-            description="Prompt used for vision mode. It will append or replace current system prompt "
-                        "when using vision model",
+            description="Prompt used for inline image analysis. It can append to or replace the current "
+                        "system prompt while the temporary image-capable model is used in Chat mode",
             tooltip="Prompt",
             advanced=True,
         )
@@ -56,15 +57,15 @@ class Config(BaseConfig):
             type="bool",
             value=False,
             label="Replace prompt",
-            description="Replace whole system prompt with vision prompt against appending "
+            description="Replace the whole system prompt with the image-analysis prompt instead of appending "
                         "it to the current prompt",
-            tooltip="Replace whole system prompt with vision prompt against appending it to the "
+            tooltip="Replace the whole system prompt with the image-analysis prompt instead of appending it to the "
                     "current prompt",
             advanced=True,
         )
         plugin.add_cmd(
             "analyze_image_attachment",
-            instruction="the function sends the user's image to the vision model and requests an image analysis. Use this function whenever the user asks for an analysis of a given image. The image will be automatically uploaded during the execution of the function.",
+            instruction="send the user's image to the configured image-capable model and request an image analysis. Use this function whenever the user asks for an analysis of a given image. The image will be automatically attached during execution.",
             params=[
                 {
                     "name": "prompt",
@@ -83,7 +84,7 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "analyze_screenshot",
-            instruction="make a screenshot and send it to analyze to vision model",
+            instruction="make a screenshot and send it to the configured image-capable model for analysis",
             params=[
                 {
                     "name": "prompt",
@@ -96,7 +97,7 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "analyze_camera_capture",
-            instruction="capture image from camera and send it to analyze to vision model",
+            instruction="capture an image from the camera and send it to the configured image-capable model for analysis",
             params=[
                 {
                     "name": "prompt",
