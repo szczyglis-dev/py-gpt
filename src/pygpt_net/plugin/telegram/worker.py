@@ -378,8 +378,10 @@ class Worker(BaseWorker):
             data.update(self._default_send_flags(p))
             files = None
             # Accept local path, URL or file_id
-            if os.path.exists(self.prepare_path(photo)):
-                local = self.prepare_path(photo)
+            local_candidate = self.prepare_path(photo)
+            self.security_read(local_candidate)
+            if os.path.exists(local_candidate):
+                local = local_candidate
                 files = {"photo": (os.path.basename(local), open(local, "rb"), self._guess_mime(local))}
             else:
                 data["photo"] = photo
@@ -389,6 +391,8 @@ class Worker(BaseWorker):
             client = self._tl_get_client(need_auth=True)
             entity = self._tl_resolve(client, chat)
             local = self.prepare_path(photo) if not photo.lower().startswith("http") else photo
+            if not str(local).lower().startswith("http"):
+                self.security_read(local)
             msg = client.send_file(entity, local, caption=caption)
             return self.make_response(item, {"id": msg.id, "date": msg.date.isoformat()})
 
@@ -404,8 +408,10 @@ class Worker(BaseWorker):
             data = {"chat_id": chat, "caption": caption}
             data.update(self._default_send_flags(p))
             files = None
-            if os.path.exists(self.prepare_path(doc)):
-                local = self.prepare_path(doc)
+            local_candidate = self.prepare_path(doc)
+            self.security_read(local_candidate)
+            if os.path.exists(local_candidate):
+                local = local_candidate
                 files = {"document": (os.path.basename(local), open(local, "rb"), self._guess_mime(local))}
             else:
                 data["document"] = doc
@@ -415,6 +421,8 @@ class Worker(BaseWorker):
             client = self._tl_get_client(need_auth=True)
             entity = self._tl_resolve(client, chat)
             local = self.prepare_path(doc) if not str(doc).lower().startswith("http") else doc
+            if not str(local).lower().startswith("http"):
+                self.security_read(local)
             msg = client.send_file(entity, local, caption=caption, force_document=True)
             return self.make_response(item, {"id": msg.id, "date": msg.date.isoformat()})
 
@@ -485,6 +493,7 @@ class Worker(BaseWorker):
         if r.status_code != 200:
             return self.make_response(item, f"Download error: HTTP {r.status_code}")
         local = self.prepare_path(save_as or os.path.basename(file_path))
+        self.security_write(local)
         os.makedirs(os.path.dirname(local), exist_ok=True)
         with open(local, "wb") as fh:
             fh.write(r.content)

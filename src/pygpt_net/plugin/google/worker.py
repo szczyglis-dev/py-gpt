@@ -443,6 +443,7 @@ class Worker(BaseWorker):
                 msg.attach(MIMEText(body, "plain", "utf-8"))
             for apath in attachments:
                 apath = self.prepare_path(apath)
+                self.security_read(apath)
                 if not os.path.exists(apath):
                     continue
                 with open(apath, "rb") as f:
@@ -703,6 +704,7 @@ class Worker(BaseWorker):
 
         meta = svc.files().get(fileId=file_id, fields="id, name, mimeType").execute()
         target = out_path or self.prepare_path(meta["name"])
+        self.security_write(target)
 
         fh = io.FileIO(target, "wb")
         try:
@@ -721,6 +723,7 @@ class Worker(BaseWorker):
     def cmd_drive_upload_file(self, item: dict) -> dict:
         p = item.get("params", {})
         local = self.prepare_path(p.get("local"))
+        self.security_read(local)
         remote_parent_path = p.get("remote_parent_path")  # optional folder path
         name = p.get("name") or os.path.basename(local)
         mime = p.get("mime")
@@ -1006,6 +1009,7 @@ class Worker(BaseWorker):
         dsvc = self._service("drive", "v3", scopes=self.DRIVE_SCOPES)
         meta = dsvc.files().get(fileId=doc_id, fields="id, name").execute()
         target = out_path or self.prepare_path(meta["name"] + (".pdf" if mime == "application/pdf" else ""))
+        self.security_write(target)
         fh = io.FileIO(target, "wb")
         try:
             req = dsvc.files().export_media(fileId=doc_id, mimeType=mime)
@@ -1174,6 +1178,7 @@ class Worker(BaseWorker):
         markers = p.get("markers")  # list of "lat,lng" or dict spec
         maptype = p.get("maptype", "roadmap")
         out_path = self.prepare_path(p.get("out") or "static_map.png")
+        self.security_write(out_path)
         params = {"key": key, "zoom": zoom, "size": size, "maptype": maptype}
         if center:
             params["center"] = center

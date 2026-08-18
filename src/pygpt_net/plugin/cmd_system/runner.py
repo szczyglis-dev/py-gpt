@@ -138,6 +138,7 @@ class Runner:
         """
         Execute system command on host
         """
+        self.plugin.window.core.security.ensure_command(item["params"]['command'], sandbox=False)
         msg = "Executing system command: {}".format(item["params"]['command'])
         self.log(msg)
         self.log("Running command: {}".format(item["params"]['command']))
@@ -537,6 +538,7 @@ class Runner:
     def _save_pixmap(self, pix, path: str) -> Tuple[bool, str]:
         """Save QPixmap to disk, ensure dir."""
         abspath = self.prepare_path(path)
+        self.plugin.window.core.security.ensure_write(abspath, sandbox=False)
         try:
             os.makedirs(os.path.dirname(abspath), exist_ok=True)
         except Exception:

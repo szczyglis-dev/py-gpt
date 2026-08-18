@@ -113,7 +113,8 @@ class Worker(BaseWorker):
                         str(item["params"][param["name"]]),
                     )
 
-        # execute
+        # execute on host (Security command rules apply)
+        self.security_command(cmd, sandbox=False)
         msg = "Running custom cmd: {}".format(cmd)
         self.log(msg)
         process = subprocess.Popen(

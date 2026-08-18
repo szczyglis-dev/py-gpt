@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.8.3",
-    "app.version": "2.8.3",
+    "version": "2.8.4",
+    "app.version": "2.8.4",
     "updated_at": "2026-08-16T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -475,6 +475,15 @@
   "render.open_gl": true,
   "render.plain": false,
   "send_clear": true,
+  "security.commands.blacklist.linux": "",
+  "security.commands.blacklist.macos": "",
+  "security.commands.blacklist.windows": "",
+  "security.commands.whitelist.enabled": false,
+  "security.commands.whitelist.linux": "ls, pwd, cat, head, tail, grep, rg, find, which, whereis, file, stat, du, df, wc, sort, uniq, cut, tr, sed, awk, echo, printf, date, uname, whoami, id, hostname, basename, dirname, realpath, readlink, diff, cmp, comm",
+  "security.commands.whitelist.macos": "ls, pwd, cat, head, tail, grep, rg, find, which, file, stat, du, df, wc, sort, uniq, cut, tr, sed, awk, echo, printf, date, uname, whoami, id, hostname, basename, dirname, realpath, readlink, diff, cmp, comm, mdfind, sw_vers",
+  "security.commands.whitelist.windows": "dir, tree, type, more, find, findstr, where, echo, ver, hostname, whoami, ipconfig, systeminfo, tasklist, fc, sort",
+  "security.filesystem.read.restrict": true,
+  "security.filesystem.write.restrict": true,
   "send_mode": 1,
   "store_history": true,
   "store_history_time": true,

@@ -234,6 +234,7 @@ class Helpers:
         if os.path.exists(path):
             name = name + uuid.uuid4().hex[:6].upper()
         download_path = os.path.join(dir, name)
+        self.window.core.security.ensure_write(download_path, sandbox=False)
         with open(download_path, 'wb', ) as f:
             f.write(response.content)
         return self.window.core.filesystem.make_local(download_path)

@@ -41,6 +41,9 @@
     "access": {
         "label": "settings.section.access"
     },
+    "security": {
+        "label": "settings.section.security"
+    },
     "personalize": {
         "label": "settings.section.personalize"
     },

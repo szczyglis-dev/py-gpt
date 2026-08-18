@@ -411,6 +411,25 @@ class Patch:
                 patch_css('web-chatgpt_wide.css', True)
                 updated = True
 
+            # < 2.8.4
+            if old < parse_version("2.8.4"):
+                print("Migrating config from < 2.8.4...")
+                to_add = [
+                    "security.filesystem.read.restrict",
+                    "security.filesystem.write.restrict",
+                    "security.commands.whitelist.enabled",
+                    "security.commands.whitelist.linux",
+                    "security.commands.blacklist.linux",
+                    "security.commands.whitelist.windows",
+                    "security.commands.blacklist.windows",
+                    "security.commands.whitelist.macos",
+                    "security.commands.blacklist.macos",
+                ]
+                for key in to_add:
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
+
         # update file
         migrated = False
         if updated:

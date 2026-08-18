@@ -47,6 +47,7 @@ class Worker(BaseWorker):
                 try:
                     response = None
                     if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
+                        self.check_security(item)
 
                         # save file
                         if item["cmd"] == "save_file":
@@ -158,6 +159,52 @@ class Worker(BaseWorker):
             self.error(e)
         finally:
             self.cleanup()
+
+    def check_security(self, item: dict):
+        """Validate host filesystem access requested by a Files I/O command."""
+        cmd = item.get("cmd")
+        params = item.get("params") or {}
+
+        def paths(name):
+            value = params.get(name)
+            if value is None:
+                return []
+            if isinstance(value, (list, tuple, set)):
+                return [self.prepare_path(v) for v in value if v not in (None, "")]
+            return [self.prepare_path(value)] if value != "" else []
+
+        read_path = {
+            "read_file", "query_file", "list_dir", "tree", "is_dir", "is_file",
+            "file_exists", "file_size", "file_info", "send_file", "file_index", "find",
+        }
+        write_path = {"save_file", "append_file", "delete_file", "mkdir", "rmdir"}
+
+        if cmd in read_path:
+            requested = paths("path")
+            if not requested and cmd in {"list_dir", "tree", "find"}:
+                requested = [self.plugin.window.core.config.get_user_dir("data")]
+            for path in requested:
+                self.security_read(path)
+        elif cmd in write_path:
+            for path in paths("path"):
+                self.security_write(path)
+        elif cmd in {"copy_file", "copy_dir"}:
+            for path in paths("src"):
+                self.security_read(path)
+            for path in paths("dst"):
+                self.security_write(path)
+        elif cmd == "move":
+            for path in paths("src"):
+                self.security_read(path)
+                self.security_write(path)
+            for path in paths("dst"):
+                self.security_write(path)
+        elif cmd == "download_file":
+            src = params.get("src")
+            if src and not str(src).lower().startswith(("http://", "https://")):
+                self.security_read(self.prepare_path(src))
+            for path in paths("dst"):
+                self.security_write(path)
 
     def cmd_save_file(self, item: dict) -> dict:
         """

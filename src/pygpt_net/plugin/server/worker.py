@@ -230,6 +230,7 @@ class Worker(BaseWorker):
                          env: dict | None) -> dict:
         bins = self._ssh_bins()
         base = [bins["ssh"]] + self._ssh_options() + ["-p", str(port)]
+        self.security_command(bins["ssh"])
         remote = f"{user}@{host}"
         rcmd = self._build_remote_cmd(command, cwd=cwd, env=env)
         try:
@@ -243,6 +244,7 @@ class Worker(BaseWorker):
     def _scp_get_system(self, host: str, port: int, user: str, remote_path: str, local_path: str) -> dict:
         bins = self._ssh_bins()
         base = [bins["scp"]] + self._ssh_options() + ["-P", str(port)]
+        self.security_command(bins["scp"])
         remote = f"{user}@{host}:{remote_path}"
         os.makedirs(os.path.dirname(local_path) or ".", exist_ok=True)
         try:
@@ -259,6 +261,7 @@ class Worker(BaseWorker):
     def _scp_put_system(self, host: str, port: int, user: str, local_path: str, remote_path: str) -> dict:
         bins = self._ssh_bins()
         base = [bins["scp"]] + self._ssh_options() + ["-P", str(port)]
+        self.security_command(bins["scp"])
         if not os.path.exists(local_path):
             raise RuntimeError(f"Local path not found: {local_path}")
         remote = f"{user}@{host}:{remote_path}"
@@ -771,6 +774,7 @@ class Worker(BaseWorker):
         # Attachments (local files)
         for apath in (mail.get("attachments") or []):
             lp = self.prepare_path(apath)
+            self.security_read(lp)
             if not os.path.exists(lp):
                 raise RuntimeError(f"Attachment not found: {lp}")
             with open(lp, "rb") as f:
@@ -870,6 +874,7 @@ class Worker(BaseWorker):
             local_path = self.prepare_path(os.path.basename(remote_path))
         else:
             local_path = self.prepare_path(local_path)
+        self.security_write(local_path)
         if os.path.exists(local_path) and not overwrite:
             return self.make_response(item, f"Local path exists and overwrite=False: {local_path}")
 
@@ -901,6 +906,7 @@ class Worker(BaseWorker):
         if not (server and port and local_path):
             return self.make_response(item, "Params 'server', 'port' and 'local_path' required.")
         lp = self.prepare_path(local_path)
+        self.security_read(lp)
         if not os.path.exists(lp):
             return self.make_response(item, f"Local path not found: {lp}")
         if not remote_path:

@@ -549,6 +549,30 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Voice control actions blacklist``: Disable actions in voice control; add actions to the blacklist to prevent execution through voice commands.
 
+**Security**
+
+Security settings control host-side filesystem access and system commands used by plugins. These controls apply only to **non-sandbox** execution. When a plugin command runs in a configured sandbox, the Security restrictions below are bypassed because the sandbox provides its own isolation.
+
+*General*
+
+* ``Restrict plugin file reads to working directory``: When enabled, plugin-mediated reads of local files are limited to the current working data directory (the app workdir ``data`` directory, shown as the actual path in the Settings window). Default: True.
+
+* ``Restrict plugin file writes to working directory``: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current working data directory. Default: False.
+
+* ``Enable system commands whitelist``: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
+
+*Linux / Windows / macOS*
+
+* ``System commands whitelist``: Per-OS comma- or semicolon-separated list of executable/command names allowed for non-sandbox plugin execution. Each OS tab is pre-populated with common file-listing, inspection, and text-processing commands (for example ``ls``, ``cat``, ``grep``, ``sed`` on Linux/macOS, and ``dir``, ``type``, ``findstr`` on Windows).
+
+* ``System commands blacklist``: Per-OS comma- or semicolon-separated list of executable/command names blocked for non-sandbox plugin execution when the whitelist is disabled. The default blacklist is empty to preserve existing behavior.
+
+If access is blocked, the plugin returns a ``Permission denied`` result that points to ``Settings -> Security``. The checks are shared by filesystem-capable plugins and host-side command execution, including Files I/O, Web Search file upload/download paths, System (OS), Custom Commands, Code Interpreter host execution, server transfers, and integrations that upload or save local files.
+
+.. important::
+
+   These settings are application-level guards, not a process sandbox. Arbitrary host code (for example Python code intentionally executed outside the sandbox) may use operating-system APIs directly. For process-level isolation, use the plugin sandbox; sandbox execution is intentionally not filtered by these Security settings.
+
 **Personalize**
 
 * ``About You``: Provide information about yourself, e.g., "My name is... I'm 30 years old, I'm interested in..." This will be included in the model's system prompt. WARNING: Please do not use AI as a "friend". Real-life friendship is better than using an AI as a friendship replacement. DO NOT become emotionally involved in interactions with an AI.

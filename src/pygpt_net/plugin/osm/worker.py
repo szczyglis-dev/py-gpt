@@ -138,6 +138,7 @@ class Worker(BaseWorker):
 
     def _save_bytes(self, data: bytes, out_path: str) -> str:
         local = self.prepare_path(out_path)
+        self.security_write(local)
         os.makedirs(os.path.dirname(local), exist_ok=True)
         with open(local, "wb") as fh:
             fh.write(data)

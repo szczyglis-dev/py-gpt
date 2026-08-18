@@ -589,6 +589,7 @@ class Worker(BaseWorker):
         files = None
         if path:
             local = self.prepare_path(path)
+            self.security_read(local)
             if not os.path.exists(local):
                 raise RuntimeError(f"Local file not found: {local}")
             mt, _ = mimetypes.guess_type(local)

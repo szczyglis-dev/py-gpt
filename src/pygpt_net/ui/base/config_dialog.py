@@ -234,7 +234,10 @@ class BaseConfigDialog:
         :param text: text (to translate)
         :return: QLabel
         """
-        return DescLabel(trans_placeholder_apply(trans(text)))
+        value = trans_placeholder_apply(trans(text))
+        if "%WORKDIR%" in value:
+            value = value.replace("%WORKDIR%", self.window.core.config.get_user_dir("data"))
+        return DescLabel(value)
 
     def add_urls(self, urls, align=Qt.AlignLeft) -> QWidget:
         """

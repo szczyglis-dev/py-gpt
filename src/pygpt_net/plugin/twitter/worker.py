@@ -764,6 +764,7 @@ class Worker(BaseWorker):
     def cmd_x_upload_media(self, item: dict) -> dict:
         p = item.get("params", {})
         local = self.prepare_path(p.get("path") or "")
+        self.security_read(local)
         if not os.path.exists(local):
             return self.make_response(item, f"Local file not found: {local}")
         media_type = p.get("media_type") or self._guess_mime(local)

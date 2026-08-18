@@ -221,6 +221,24 @@ class BaseWorker(QRunnable):
             response.update(extra)
         return response
 
+    def security_read(self, path: str, sandbox: bool = False) -> str:
+        """Validate host-side plugin file read access."""
+        if self.plugin is None or self.plugin.window is None:
+            return path
+        return self.plugin.window.core.security.ensure_read(path, sandbox=sandbox)
+
+    def security_write(self, path: str, sandbox: bool = False) -> str:
+        """Validate host-side plugin file write access."""
+        if self.plugin is None or self.plugin.window is None:
+            return path
+        return self.plugin.window.core.security.ensure_write(path, sandbox=sandbox)
+
+    def security_command(self, command: str, sandbox: bool = False):
+        """Validate host-side plugin system command access."""
+        if self.plugin is None or self.plugin.window is None:
+            return []
+        return self.plugin.window.core.security.ensure_command(command, sandbox=sandbox)
+
     def throw_error(self, e: Exception) -> str:
         """
         Handle error

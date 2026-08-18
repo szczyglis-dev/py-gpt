@@ -209,6 +209,7 @@ class Runner:
         msg = "Executing Python file: {}".format(item["params"]['path'])
         self.log(msg)
         path = self.prepare_path(item["params"]['path'], on_host=True)
+        self.plugin.window.core.security.ensure_read(path, sandbox=False)
 
         # check if file exists
         if not os.path.isfile(path):
@@ -227,6 +228,7 @@ class Runner:
 
         # run code
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
+        self.plugin.window.core.security.ensure_command(cmd, sandbox=False)
         self.log("Running command: {}".format(cmd))
         try:
             self.send_interpreter_output_begin("stdout")
@@ -301,18 +303,21 @@ class Runner:
             if "path" in item["params"]:
                 path = item["params"]['path']
             path = self.prepare_path(path, on_host=True)
+            self.plugin.window.core.security.ensure_write(path, sandbox=False)
             msg = "Saving Python file: {}".format(path)
             self.log(msg)
             with open(path, 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
             path = self.prepare_path(self.plugin.window.tools.get("interpreter").file_input, on_host=True)
+            self.plugin.window.core.security.ensure_read(path, sandbox=False)
 
         self.append_input(data)
         self.send_interpreter_input(data)  # send input to interpreter
 
         # run code
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
+        self.plugin.window.core.security.ensure_command(cmd, sandbox=False)
         self.log("Running command: {}".format(cmd))
         try:
             self.send_interpreter_output_begin("stdout")
@@ -396,12 +401,16 @@ class Runner:
                 path = item["params"]['path']
             msg = "Saving Python file: {}".format(path)
             self.log(msg, sandbox=sandbox)
-            with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
+            host_path = self.prepare_path(path, on_host=True)
+            self.plugin.window.core.security.ensure_write(host_path, sandbox=sandbox)
+            with open(host_path, 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
             path = self.plugin.window.tools.get("interpreter").file_input
 
-        with open(self.prepare_path(path, on_host=True), 'r', encoding="utf-8") as file:
+        host_path = self.prepare_path(path, on_host=True)
+        self.plugin.window.core.security.ensure_read(host_path, sandbox=sandbox)
+        with open(host_path, 'r', encoding="utf-8") as file:
             data = file.read()
 
         self.append_input(data)
@@ -455,12 +464,16 @@ class Runner:
                 path = item["params"]['path']
             msg = "Saving Python file: {}".format(path)
             self.log(msg, sandbox=sandbox)
-            with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
+            host_path = self.prepare_path(path, on_host=True)
+            self.plugin.window.core.security.ensure_write(host_path, sandbox=sandbox)
+            with open(host_path, 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
             path = self.plugin.window.tools.get("interpreter").file_input
 
-        with open(self.prepare_path(path, on_host=True), 'r', encoding="utf-8") as file:
+        host_path = self.prepare_path(path, on_host=True)
+        self.plugin.window.core.security.ensure_read(host_path, sandbox=sandbox)
+        with open(host_path, 'r', encoding="utf-8") as file:
             data = file.read()
 
         self.append_input(data)

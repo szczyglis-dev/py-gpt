@@ -10,6 +10,7 @@
 # ================================================== #
 
 import json
+import os
 
 from PySide6.QtCore import Slot
 
@@ -98,6 +99,13 @@ class Worker(BaseWorker):
             seen.add(u)
             cleaned.append(u)
         return cleaned
+
+    def _prepare_local_path(self, path: str) -> str:
+        """Resolve relative plugin file paths against the user data directory."""
+        value = str(path or "").replace("file://", "", 1)
+        if os.path.isabs(value):
+            return value
+        return os.path.join(self.plugin.window.core.config.get_user_dir("data"), value)
 
     @Slot()
     def run(self):
@@ -528,6 +536,7 @@ class Worker(BaseWorker):
                     'images': images,
                 }
                 if images and download:
+                    download_errors = []
                     for img in images:
                         try:
                             path = self.plugin.window.core.web.helpers.download_image(img)
@@ -535,8 +544,11 @@ class Worker(BaseWorker):
                                 if path not in self.ctx.images_before:
                                     self.ctx.images_before.append(path)
                         except Exception as e:
-                            # Keep downloading independent per image
-                            print(e)
+                            # Keep downloading independent per image, but expose permission errors to the model.
+                            download_errors.append(str(e))
+                            self.log(f"Error downloading image '{img}': {e}")
+                    if download_errors:
+                        result["download_errors"] = download_errors
                 if url not in self.ctx.urls_before:
                     self.ctx.urls_before.append(url)
                 results.append(result)
@@ -586,6 +598,13 @@ class Worker(BaseWorker):
             cookies = self.get_param(item, "cookies")
         if self.has_param(item, "files"):
             files = self.get_param(item, "files")
+            if isinstance(files, dict):
+                checked_files = {}
+                for key, value in files.items():
+                    local = self._prepare_local_path(value)
+                    self.security_read(local, sandbox=False)
+                    checked_files[key] = local
+                files = checked_files
 
         results = []
         for url in urls:

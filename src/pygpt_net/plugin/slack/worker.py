@@ -585,6 +585,7 @@ class Worker(BaseWorker):
         """
         p = item.get("params", {}) or {}
         local = self.prepare_path(p.get("path") or "")
+        self.security_read(local)
         if not os.path.exists(local):
             return self.make_response(item, f"Local file not found: {local}")
 

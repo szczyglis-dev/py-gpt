@@ -464,6 +464,7 @@ class Worker(BaseWorker):
 
     def _read_local_bytes(self, local_path: str) -> bytes:
         local = self.prepare_path(local_path)
+        self.security_read(local)
         if not os.path.exists(local):
             raise RuntimeError(f"Local file not found: {local}")
         with open(local, "rb") as fh:

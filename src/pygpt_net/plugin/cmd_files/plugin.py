@@ -167,6 +167,7 @@ class Plugin(BasePlugin):
         :return: text content
         """
         # use_loaders = False
+        self.window.core.security.ensure_read(path, sandbox=False)
         if use_loaders:
             content, docs = self.window.core.idx.indexing.read_text_content(path)
             return content

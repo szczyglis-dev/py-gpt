@@ -40,6 +40,7 @@ from .core.plugins import Plugins
 from .core.presets import Presets
 from .core.prompt import Prompt
 from .core.remote_store import RemoteStore
+from .core.security import Security
 from .core.settings import Settings
 from .core.tabs import Tabs
 from .core.text import Text
@@ -92,6 +93,7 @@ class Core:
         self.presets = Presets(window)
         self.prompt = Prompt(window)        
         self.remote_store = RemoteStore(window)
+        self.security = Security(window)
         self.settings = Settings(window)
         self.tabs = Tabs(window)
         self.text = Text(window)
