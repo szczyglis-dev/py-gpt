@@ -4,15 +4,11 @@ Introduction
 Overview
 ----------------
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``GPT-5``, ``GPT-4``, ``o1``, ``o3`` and more, through the ``OpenAI API``. By utilizing other SDKs and ``LlamaIndex``, the application also supports alternative LLMs, like those available on ``HuggingFace``, locally available models via ``Ollama`` (like ``gpt-oss``, ``Llama 3``, ``Mistral``, ``DeepSeek V3/R1`` or ``Bielik``), and other models like ``Google Gemini``, ``Anthropic Claude``, ``Perplexity / Sonar``, and ``xAI Grok``.
+**PyGPT** is an **all-in-one desktop AI assistant** supporting models from ``OpenAI`` (``GPT-5``, ``GPT-4``, ``o1``, ``o3``), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, and models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``gpt-oss``, ``Llama 3``, ``Mistral``, ``DeepSeek`` and ``Bielik``.
 
-This assistant offers multiple modes of operation such as chat, assistants, agents, completions, and image-related tasks like image generation and image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
+It supports chat, assistants, agents, completions, Chat with Files (via ``LlamaIndex``), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
 
-For audio interactions, **PyGPT** includes speech synthesis using the ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI`` Text-To-Speech services. Additionally, it features speech recognition capabilities provided by ``OpenAI Whisper``, ``Google`` and ``Bing`` enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
-
-**PyGPT**'s functionality extends through plugin support, allowing for custom enhancements (with multiple plugins included). Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
-
-Multiple operation modes are included, such as chat, text completion, assistant, agents, vision, Chat with Files (via ``LlamaIndex``), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
+**PyGPT** also provides speech synthesis through ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI``, plus speech recognition with ``OpenAI Whisper``, ``Google`` and ``Bing``. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
 *Dark theme*
 
