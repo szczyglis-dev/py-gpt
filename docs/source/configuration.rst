@@ -551,15 +551,19 @@ Remote tools are available only when supported by the selected provider/API mode
 
 **Security**
 
-Security settings control host-side filesystem access and system commands used by plugins. These controls apply only to **non-sandbox** execution. When a plugin command runs in a configured sandbox, the Security restrictions below are bypassed because the sandbox provides its own isolation.
+Security settings control host-side filesystem access, system commands used by plugins, and confirmation of provider-flagged Computer Use operations. These controls apply only to **non-sandbox** execution. When a plugin command or Computer Use action runs in a configured sandbox, the Security restrictions below are bypassed because the sandbox provides its own isolation.
 
 *General*
 
 * ``Restrict plugin file reads to working directory``: When enabled, plugin-mediated reads of local files are limited to the current working data directory (the app workdir ``data`` directory, shown as the actual path in the Settings window). Default: True.
 
-* ``Restrict plugin file writes to working directory``: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current working data directory. Default: False.
+* ``Restrict plugin file writes to working directory``: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current working data directory. Default: True.
 
 * ``Enable system commands whitelist``: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
+
+*Computer use*
+
+* ``Halt on potentially unsafe operation``: Non-sandbox only. When enabled, Computer Use pauses before an operation that the API provider flags as requiring user confirmation. PyGPT displays a warning in the chat and waits until the user types ``continue``. The paused mouse/keyboard action is executed only after that confirmation, and only then is the provider safety check acknowledged back to the API. When disabled, provider safety checks are acknowledged automatically as before. Sandbox execution is not affected. Default: True.
 
 *Linux / Windows / macOS*
 

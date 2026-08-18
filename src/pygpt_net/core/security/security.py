@@ -27,6 +27,7 @@ class Security:
     WHITELIST_ENABLED_KEY = "security.commands.whitelist.enabled"
     WHITELIST_KEY_PREFIX = "security.commands.whitelist."
     BLACKLIST_KEY_PREFIX = "security.commands.blacklist."
+    COMPUTER_HALT_INSECURE_KEY = "security.computer.halt_insecure"
 
     _SHELL_SPLIT_RE = re.compile(r"(?:&&|\|\||[;|\n\r])+")
     _WINDOWS_EXTENSIONS = (".exe", ".cmd", ".bat", ".com")
@@ -183,6 +184,94 @@ class Security:
             if name and name not in names:
                 names.append(name)
         return names
+
+
+    def is_computer_sandbox(self) -> bool:
+        """Return True when Computer Use runs in sandbox mode."""
+        return bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
+
+    def is_computer_halt_insecure_enabled(self) -> bool:
+        """Return True when provider-flagged Computer Use actions require explicit confirmation."""
+        return bool(self.window.core.config.get(self.COMPUTER_HALT_INSECURE_KEY, True))
+
+    @staticmethod
+    def _decision_value(value) -> str:
+        """Normalize SDK enum/string safety decision values."""
+        if value is None:
+            return ""
+        raw = getattr(value, "value", value)
+        text = str(raw).strip().lower()
+        if "." in text:
+            text = text.rsplit(".", 1)[-1]
+        return text
+
+    def has_pending_computer_safety(self, ctx) -> bool:
+        """Return True if a provider marked the current Computer Use action as requiring confirmation."""
+        if ctx is None or not isinstance(getattr(ctx, "extra", None), dict):
+            return False
+
+        extra = ctx.extra
+        checks = extra.get("pending_safety_checks")
+        if isinstance(checks, list) and len(checks) > 0:
+            return True
+
+        decisions = extra.get("computer_safety_decisions")
+        if isinstance(decisions, list):
+            for item in decisions:
+                if not isinstance(item, dict):
+                    continue
+                if self._decision_value(item.get("decision")) == "require_confirmation":
+                    return True
+        return False
+
+    def should_halt_computer(self, ctx) -> bool:
+        """Return True if a pending Computer Use action must wait for user confirmation."""
+        if not self.has_pending_computer_safety(ctx):
+            return False
+        if self.is_computer_sandbox():
+            return False
+        if not self.is_computer_halt_insecure_enabled():
+            return False
+        extra = getattr(ctx, "extra", None) or {}
+        return not bool(extra.get("computer_safety_confirmed", False))
+
+    def can_acknowledge_computer_safety(self, ctx) -> bool:
+        """Return True when provider safety checks may be acknowledged back to the API."""
+        if not self.has_pending_computer_safety(ctx):
+            return False
+        if self.is_computer_sandbox() or not self.is_computer_halt_insecure_enabled():
+            return True
+        extra = getattr(ctx, "extra", None) or {}
+        return bool(extra.get("computer_safety_confirmed", False))
+
+    @staticmethod
+    def mark_computer_safety_confirmed(ctx):
+        """Mark a paused Computer Use operation as explicitly confirmed by the user."""
+        if ctx is None:
+            return
+        if not isinstance(getattr(ctx, "extra", None), dict):
+            ctx.extra = {}
+        ctx.extra["computer_safety_confirmed"] = True
+        ctx.extra["computer_safety_waiting"] = False
+
+    def get_computer_safety_messages(self, ctx) -> List[str]:
+        """Return provider-supplied safety explanations for display in the chat."""
+        messages: List[str] = []
+        if ctx is None or not isinstance(getattr(ctx, "extra", None), dict):
+            return messages
+
+        for check in ctx.extra.get("pending_safety_checks") or []:
+            if isinstance(check, dict):
+                msg = str(check.get("message") or check.get("code") or "").strip()
+                if msg and msg not in messages:
+                    messages.append(msg)
+
+        for item in ctx.extra.get("computer_safety_decisions") or []:
+            if isinstance(item, dict):
+                msg = str(item.get("explanation") or "").strip()
+                if msg and msg not in messages:
+                    messages.append(msg)
+        return messages
 
     def ensure_command(self, command: str, sandbox: bool = False) -> List[str]:
         """Validate a host system command against the current OS whitelist/blacklist."""

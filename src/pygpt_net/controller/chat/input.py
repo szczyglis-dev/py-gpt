@@ -77,6 +77,16 @@ class Input:
             dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
             return
 
+        # A provider-flagged Computer Use operation is waiting for explicit user confirmation.
+        # While pending, only the literal "continue" command is consumed as approval; other
+        # input is kept in the editor and is not sent to the model.
+        if self.window.controller.chat.command.has_pending_safety_confirmation():
+            is_continue = str(text or "").strip().lower() == "continue"
+            if self.window.controller.chat.command.handle_pending_safety_input(text):
+                if is_continue:
+                    dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
+                return
+
         # event: user input send (manually)
         event = Event(Event.USER_SEND, {
             'mode': mode,

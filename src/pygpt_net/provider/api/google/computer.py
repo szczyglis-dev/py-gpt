@@ -82,6 +82,8 @@ class Computer:
     def _record_pending_checks(self, ctx: CtxItem, pending: Optional[list]) -> None:
         if not pending:
             return
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
         ctx.extra["pending_safety_checks"] = []
         for item in pending:
             try:
@@ -92,6 +94,54 @@ class Computer:
                 })
             except Exception:
                 pass
+
+    @staticmethod
+    def _safety_value(value) -> str:
+        if value is None:
+            return ""
+        raw = getattr(value, "value", value)
+        text = str(raw).strip().lower()
+        if "." in text:
+            text = text.rsplit(".", 1)[-1]
+        return text
+
+    def _record_safety_decision(self, ctx: CtxItem, name: str, args: dict) -> None:
+        """Record Gemini Computer Use safety_decision metadata for the shared confirmation gate."""
+        if not args:
+            return
+        try:
+            raw = args.get("safety_decision")
+        except Exception:
+            raw = None
+        if raw is None:
+            return
+
+        if isinstance(raw, dict) or hasattr(raw, "get"):
+            try:
+                decision = raw.get("decision")
+                explanation = raw.get("explanation")
+            except Exception:
+                decision = getattr(raw, "decision", None)
+                explanation = getattr(raw, "explanation", None)
+        else:
+            decision = getattr(raw, "decision", None)
+            explanation = getattr(raw, "explanation", None)
+
+        decision_value = self._safety_value(decision)
+        if decision_value != "require_confirmation":
+            return
+
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        decisions = ctx.extra.setdefault("computer_safety_decisions", [])
+        item = {
+            "provider": "google",
+            "function": str(name or ""),
+            "decision": decision_value,
+            "explanation": str(explanation or "").strip(),
+        }
+        if item not in decisions:
+            decisions.append(item)
 
     def handle_stream_chunk(self, ctx: CtxItem, chunk, tool_calls: list) -> Tuple[List, bool]:
         """
@@ -106,6 +156,7 @@ class Computer:
         for fname, fargs in self._iter_function_calls(chunk):
             if not fname:
                 continue
+            self._record_safety_decision(ctx, fname, fargs or {})
             id_ = self._next_id()
             call_id = id_
             try:

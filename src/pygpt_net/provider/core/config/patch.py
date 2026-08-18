@@ -418,6 +418,7 @@ class Patch:
                     "security.filesystem.read.restrict",
                     "security.filesystem.write.restrict",
                     "security.commands.whitelist.enabled",
+                    "security.computer.halt_insecure",
                     "security.commands.whitelist.linux",
                     "security.commands.blacklist.linux",
                     "security.commands.whitelist.windows",

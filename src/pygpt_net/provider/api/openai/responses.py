@@ -382,8 +382,9 @@ class Responses:
                                                     },
                                                 }
                                                 # safety checks
-                                                if "pending_safety_checks" in item.extra and isinstance(
-                                                        item.extra["pending_safety_checks"], list):
+                                                if ("pending_safety_checks" in item.extra
+                                                        and isinstance(item.extra["pending_safety_checks"], list)
+                                                        and self.window.core.security.can_acknowledge_computer_safety(item)):
                                                     safety_checks = []
                                                     for check in item.extra["pending_safety_checks"]:
                                                         safety_checks.append({

@@ -1,3 +1,18 @@
+2.8.4 (2026-08-18)
+
+- Added a new Security settings section for host-side plugin permissions.
+- Added separate read and write restrictions for local filesystem access outside the workdir data directory.
+- Added per-system Linux, Windows, and macOS system-command whitelists and blacklists, with the whitelist taking precedence when enabled.
+- Added shared filesystem and command security checks across filesystem-capable plugins and host-side command execution.
+- Added Permission denied tool responses that point to Settings -> Security when filesystem access is blocked.
+- Added a Computer Use tab in Security settings.
+- Added Halt on potentially unsafe operation, enabled by default.
+- Added explicit user confirmation for provider-flagged unsafe Computer Use operations in OpenAI and Google providers; type continue in chat to execute the paused action and acknowledge the safety check.
+- Security restrictions and Computer Use confirmation gates are bypassed in sandbox mode.
+- Updated non-English input.placeholder translations to match the English Enter a message... text.
+- Added Security and Computer Use safety translations for all bundled languages.
+- Updated README and configuration documentation for the new Security controls.
+
 2.8.3 (2026-08-16)
 
 - Fixed duplicated attachments being displayed after tool calls.

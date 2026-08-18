@@ -760,8 +760,7 @@ class Chat:
         except Exception:
             return None
 
-    @staticmethod
-    def _minimal_tool_response(item: CtxItem) -> Dict[str, Any]:
+    def _minimal_tool_response(self, item: CtxItem) -> Dict[str, Any]:
         """
         Construct a minimal structured payload for FunctionResponse.response.
         """
@@ -776,6 +775,18 @@ class Chat:
                             resp = last["result"]
                         if "error" in last:
                             resp["error"] = last["error"]
+        except Exception:
+            pass
+
+        # Gemini Computer Use: acknowledge provider safety only after explicit user
+        # confirmation when the Security gate is enabled. With the gate disabled (or
+        # in sandbox mode) this preserves the previous automatic-acknowledgement flow.
+        try:
+            if (item
+                    and isinstance(item.extra, dict)
+                    and item.extra.get("computer_safety_decisions")
+                    and self.window.core.security.can_acknowledge_computer_safety(item)):
+                resp["safety_acknowledgement"] = True
         except Exception:
             pass
         return resp

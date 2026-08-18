@@ -14,11 +14,13 @@ from typing import Any
 
 from pygpt_net.core.types import (
     MODE_AGENT,
+    MODE_COMPUTER,
 )
 from pygpt_net.core.events import KernelEvent, RenderEvent, Event
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.utils import trans
 
 
 class Command:
@@ -29,6 +31,59 @@ class Command:
         :param window: Window instance
         """
         self.window = window
+        self.pending_safety_ctx = None
+
+    def has_pending_safety_confirmation(self) -> bool:
+        """Return True when a Computer Use operation is paused for user confirmation."""
+        return self.pending_safety_ctx is not None
+
+    def _get_safety_warning(self, ctx: CtxItem) -> str:
+        """Build localized warning text with optional provider details."""
+        warning = trans("computer.safety.warning")
+        details = self.window.core.security.get_computer_safety_messages(ctx)
+        if details:
+            warning += "\n\n" + "\n".join(details)
+        return warning
+
+    def _pause_for_safety_confirmation(self, ctx: CtxItem):
+        """Pause a provider-flagged Computer Use operation before executing local actions."""
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        ctx.extra["computer_safety_waiting"] = True
+        self.pending_safety_ctx = ctx
+        warning = self._get_safety_warning(ctx)
+        self.window.dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, {
+            "meta": ctx.meta,
+            "tool_data": warning,
+        }))
+        self.window.update_status("")
+        self.window.controller.chat.common.unlock_input()
+        self.log("[computer] Potentially unsafe operation paused; waiting for user confirmation.")
+
+    def handle_pending_safety_input(self, text: str) -> bool:
+        """Consume chat input while a Computer Use safety confirmation is pending."""
+        ctx = self.pending_safety_ctx
+        if ctx is None:
+            return False
+
+        # Do not keep a stale confirmation gate after leaving Computer Use mode.
+        if self.window.core.config.get("mode") != MODE_COMPUTER:
+            self.pending_safety_ctx = None
+            return False
+
+        value = str(text or "").strip().lower()
+        if value != "continue":
+            self.window.dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, {
+                "meta": ctx.meta,
+                "tool_data": self._get_safety_warning(ctx),
+            }))
+            return True
+
+        self.pending_safety_ctx = None
+        self.window.core.security.mark_computer_safety_confirmed(ctx)
+        self.log("[computer] Potentially unsafe operation explicitly confirmed by user.")
+        self.handle(ctx)
+        return True
 
     def handle(self, ctx: CtxItem, internal: bool = False) -> Any:
         """
@@ -75,6 +130,13 @@ class Command:
 
             ctx.cmds = cmds  # append commands to ctx
             self.log("[cmd] Command call received...")
+
+            # Computer Use provider safety checks: pause before executing the action.
+            if (mode == MODE_COMPUTER
+                    and not internal
+                    and self.window.core.security.should_halt_computer(ctx)):
+                self._pause_for_safety_confirmation(ctx)
+                return
 
             # plugins
             self.log("[cmd] Preparing command reply context...")

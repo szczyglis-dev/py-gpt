@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2026.08.18 17:20:00                  #
 # ================================================== #
 import os
 from unittest.mock import MagicMock, call, ANY
@@ -71,6 +71,9 @@ def create_dummy_window():
     win.controller.kernel.stop = MagicMock()
     win.controller.kernel.resume = MagicMock()
     win.controller.chat = MagicMock()
+    win.controller.chat.command = MagicMock()
+    win.controller.chat.command.has_pending_safety_confirmation = MagicMock(return_value=False)
+    win.controller.chat.command.handle_pending_safety_input = MagicMock(return_value=False)
     win.controller.chat.log = MagicMock()
     win.controller.chat.image = MagicMock()
     win.controller.chat.image.send = MagicMock()
@@ -186,6 +189,51 @@ def test_send_input_agent_mode():
     inp.send_input(force=False)
     calls = [c for c in win.dispatch.call_args_list if c[0][0].__class__.__name__ == "Event" and c[0][0].data.get("value") == "hello"]
     assert calls
+
+
+def test_send_input_pending_safety_non_continue_is_consumed():
+    win = create_dummy_window()
+    win.ui.nodes['input'].toPlainText.return_value = "not yet"
+    win.controller.chat.command.has_pending_safety_confirmation.return_value = True
+    win.controller.chat.command.handle_pending_safety_input.return_value = True
+    inp = Input(win)
+
+    inp.send_input(force=False)
+
+    win.controller.chat.command.handle_pending_safety_input.assert_called_once_with("not yet")
+    user_send = [
+        c for c in win.dispatch.call_args_list
+        if c.args and isinstance(c.args[0], Event) and c.args[0].name == Event.USER_SEND
+    ]
+    assert user_send == []
+    clear_input = [
+        c for c in win.dispatch.call_args_list
+        if c.args and isinstance(c.args[0], RenderEvent) and c.args[0].name == RenderEvent.CLEAR_INPUT
+    ]
+    assert clear_input == []
+
+
+def test_send_input_pending_safety_continue_is_consumed_and_cleared():
+    win = create_dummy_window()
+    win.ui.nodes['input'].toPlainText.return_value = "continue"
+    win.controller.chat.command.has_pending_safety_confirmation.return_value = True
+    win.controller.chat.command.handle_pending_safety_input.return_value = True
+    inp = Input(win)
+
+    inp.send_input(force=False)
+
+    win.controller.chat.command.handle_pending_safety_input.assert_called_once_with("continue")
+    user_send = [
+        c for c in win.dispatch.call_args_list
+        if c.args and isinstance(c.args[0], Event) and c.args[0].name == Event.USER_SEND
+    ]
+    assert user_send == []
+    clear_input = [
+        c for c in win.dispatch.call_args_list
+        if c.args and isinstance(c.args[0], RenderEvent) and c.args[0].name == RenderEvent.CLEAR_INPUT
+    ]
+    assert len(clear_input) == 1
+
 
 def test_send_input_agent_llama_mode():
     win = create_dummy_window()
