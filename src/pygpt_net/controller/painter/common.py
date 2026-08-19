@@ -208,9 +208,17 @@ class Common:
                 self.set_erase_mode(True)
         # color
         if brush_color:
-            color = self.get_colors().get(brush_color)
-            self.window.ui.nodes['painter.select.brush.color'].setCurrentText(brush_color)
-            self.update_brush_color(color)
+            combo = self.window.ui.nodes['painter.select.brush.color']
+            idx = combo.findText(brush_color)
+            if idx >= 0:
+                combo.blockSignals(True)
+                combo.setCurrentIndex(idx)
+                combo.blockSignals(False)
+                color = combo.itemData(idx)
+            else:
+                color = self.get_colors().get(brush_color)
+            if color is not None:
+                self.update_brush_color(color)
 
         # size
         size = 3
