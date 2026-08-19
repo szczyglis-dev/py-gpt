@@ -66,8 +66,7 @@ The application is free, open-source, and runs on PCs with ``Linux``, ``Windows 
 Full Python source code is available on ``GitHub``.
 
 
-**PyGPT uses the user's API key  -  to use the GPT models, 
-you must have a registered OpenAI account and your own API key. Local models do not require any API keys.**
+PyGPT uses your own API credentials to connect to supported AI providers such as OpenAI, Google, Anthropic, xAI, Perplexity, Mistral, OpenRouter, and others. Depending on the selected model and provider, you may need an account and a valid API key for that service. Local models do not require external API credentials.
 
 .. note::
    This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
