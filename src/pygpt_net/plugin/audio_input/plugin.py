@@ -53,6 +53,13 @@ class Plugin(BasePlugin):
         self.input_file = "input.wav"
         self.config = Config(self)
 
+    def get_input_path(self) -> str:
+        """Return the temporary audio input path."""
+        return os.path.join(
+            self.window.core.config.get_user_dir("tmp"),
+            self.input_file,
+        )
+
     def init_options(self):
         """Initialize options"""
         self.config.from_defaults(self)
@@ -352,10 +359,7 @@ class Plugin(BasePlugin):
         try:
             worker = Worker()
             worker.from_defaults(self)
-            worker.path = os.path.join(
-                self.window.core.config.path,
-                self.input_file,
-            )
+            worker.path = self.get_input_path()
             worker.advanced = self.is_advanced()  # advanced mode
 
             # signals

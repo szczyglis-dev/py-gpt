@@ -50,7 +50,7 @@ class CodeInterpreter(BaseTool):
         self.signals = ToolSignals()
         self.max_history_size = 1000  # max history lines
 
-        # interpreter data files in /data directory
+        # temporary interpreter state files in /tmp directory
         self.file_current = ".interpreter.current.py"
         self.file_input = ".interpreter.input.py"
         self.file_output = ".interpreter.output.py"
@@ -62,6 +62,7 @@ class CodeInterpreter(BaseTool):
 
     def setup(self):
         """Setup"""
+        self.migrate_legacy_files()
         self.load_history()
         self.load_output()
         self.update()
@@ -82,6 +83,30 @@ class CodeInterpreter(BaseTool):
         if not self.window.core.config.has("interpreter.dialog.initialized"):
             self.set_initial_size()
             self.window.core.config.set("interpreter.dialog.initialized", True)
+
+    def migrate_legacy_files(self):
+        """Move legacy interpreter temporary files from data to workdir/tmp."""
+        data_dir = self.window.core.config.get_user_dir("data")
+        tmp_dir = self.window.core.config.get_user_dir("tmp")
+        names = [
+            self.file_current,
+            self.file_input,
+            self.file_output,
+            self.file_output_json,
+            ".interpreter.kernel.json",
+        ]
+        for name in names:
+            legacy_path = os.path.join(data_dir, name)
+            if not os.path.exists(legacy_path):
+                continue
+            current_path = os.path.join(tmp_dir, name)
+            try:
+                if not os.path.exists(current_path):
+                    os.replace(legacy_path, current_path)
+                else:
+                    os.remove(legacy_path)
+            except OSError:
+                pass
 
     def handle(self, event: BaseEvent):
         """
@@ -225,7 +250,7 @@ class CodeInterpreter(BaseTool):
 
         :return: Input path
         """
-        return os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
+        return os.path.join(self.window.core.config.get_user_dir("tmp"), self.file_input)
 
     def get_path_output(self) -> str:
         """
@@ -233,7 +258,7 @@ class CodeInterpreter(BaseTool):
 
         :return: Output path
         """
-        return os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        return os.path.join(self.window.core.config.get_user_dir("tmp"), self.file_output)
 
     def get_path_output_json(self) -> str:
         """
@@ -241,7 +266,7 @@ class CodeInterpreter(BaseTool):
 
         :return: Output path
         """
-        return os.path.join(self.window.core.config.get_user_dir("data"), self.file_output_json)
+        return os.path.join(self.window.core.config.get_user_dir("tmp"), self.file_output_json)
 
     def get_widget(self) -> ToolWidget:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.18 16:00:00                  #
+# Updated Date: 2026.08.19 16:05:00                  #
 # ================================================== #
 
 import os
@@ -66,20 +66,33 @@ class Security:
     def _normalize_path(path: str) -> str:
         return os.path.normcase(os.path.realpath(os.path.abspath(os.path.expanduser(str(path)))))
 
-    def is_in_workdir(self, path: str) -> bool:
+    @classmethod
+    def _is_in_dir(cls, path: str, directory: str) -> bool:
         """Check path containment using resolved paths (including symlink resolution)."""
         try:
-            workdir = self._normalize_path(self.get_workdir())
-            target = self._normalize_path(path)
-            return os.path.commonpath([workdir, target]) == workdir
+            root = cls._normalize_path(directory)
+            target = cls._normalize_path(path)
+            return os.path.commonpath([root, target]) == root
         except (TypeError, ValueError, OSError):
             return False
+
+    def is_in_workdir(self, path: str) -> bool:
+        """Return True when path is inside the user-facing workdir data directory."""
+        return self._is_in_dir(path, self.get_workdir())
+
+    def is_in_internal_tmp(self, path: str) -> bool:
+        """Return True when path is inside the app-owned workdir temporary directory."""
+        return self._is_in_dir(path, self.window.core.config.get_user_dir("tmp"))
+
+    def is_in_allowed_workdir(self, path: str) -> bool:
+        """Return True for paths allowed by the workdir filesystem restriction."""
+        return self.is_in_workdir(path) or self.is_in_internal_tmp(path)
 
     def ensure_read(self, path: str, sandbox: bool = False) -> str:
         """Validate a local file/directory read. Security restrictions are bypassed in sandbox mode."""
         if path is None or str(path).strip() == "":
             return path
-        if sandbox or not self.is_read_restricted() or self.is_in_workdir(path):
+        if sandbox or not self.is_read_restricted() or self.is_in_allowed_workdir(path):
             return path
         raise SecurityError(
             "Permission denied - filesystem read access outside the workdir data directory is disabled. "
@@ -92,7 +105,7 @@ class Security:
         """Validate a local file/directory write. Security restrictions are bypassed in sandbox mode."""
         if path is None or str(path).strip() == "":
             return path
-        if sandbox or not self.is_write_restricted() or self.is_in_workdir(path):
+        if sandbox or not self.is_write_restricted() or self.is_in_allowed_workdir(path):
             return path
         raise SecurityError(
             "Permission denied - filesystem write access outside the workdir data directory is disabled. "

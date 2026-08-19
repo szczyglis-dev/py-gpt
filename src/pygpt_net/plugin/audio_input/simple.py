@@ -9,8 +9,6 @@
 # Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
-import os
-
 from PySide6.QtCore import QTimer
 
 from pygpt_net.core.events import AppEvent, RealtimeEvent
@@ -172,7 +170,7 @@ class Simple:
             self.timer.stop()
             self.timer = None
         self.switch_btn_start()  # switch button to start
-        path = os.path.join(self.plugin.window.core.config.path, self.plugin.input_file)
+        path = self.plugin.get_input_path()
         self.plugin.window.core.audio.capture.set_path(path)
 
         if self.plugin.window.core.audio.capture.has_source():
@@ -203,7 +201,7 @@ class Simple:
 
     def on_stop(self):
         """Handle auto-transcribe"""
-        path = os.path.join(self.plugin.window.core.config.path, self.plugin.input_file)
+        path = self.plugin.get_input_path()
         self.plugin.window.core.audio.capture.set_path(path)
         self.plugin.window.core.audio.capture.stop()
         self.plugin.window.core.audio.capture.start()

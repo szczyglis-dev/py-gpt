@@ -256,14 +256,18 @@ class Indexing:
         :return: True if excluded
         """
         data_dir = self.window.core.config.get_user_dir("data")
-        # interpreter files
-        excluded = [
-            os.path.join(data_dir, ".interpreter.output.py"),
-            os.path.join(data_dir, ".interpreter.input.py"),
-            os.path.join(data_dir, ".interpreter.current.py"),
-            os.path.join(data_dir, ".interpreter.kernel.json"),
-            os.path.join(data_dir, ".canvas.html"),
+        tmp_dir = self.window.core.config.get_user_dir("tmp")
+        # interpreter/canvas temporary files; keep legacy data paths excluded too
+        names = [
+            ".interpreter.output.py",
+            ".interpreter.input.py",
+            ".interpreter.current.py",
+            ".interpreter.output.json",
+            ".interpreter.kernel.json",
+            ".canvas.html",
         ]
+        excluded = [os.path.join(tmp_dir, name) for name in names]
+        excluded.extend(os.path.join(data_dir, name) for name in names)
         if path in excluded:
             return True
         return False

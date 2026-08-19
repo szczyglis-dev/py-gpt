@@ -187,7 +187,7 @@ class AudioTranscriber(BaseTool):
 
         :param text: transcribed text
         """
-        path = os.path.join(self.window.core.config.get_user_path(), "transcript.txt")
+        path = os.path.join(self.window.core.config.get_user_dir("tmp"), "transcript.txt")
         with open(path, "w", encoding="utf-8") as f:
             f.write(text)
 
@@ -199,7 +199,7 @@ class AudioTranscriber(BaseTool):
     def restore(self):
         """Restore transcription from file"""
         data = ""
-        path = os.path.join(self.window.core.config.get_user_path(), "transcript.txt")
+        path = os.path.join(self.window.core.config.get_user_dir("tmp"), "transcript.txt")
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
                 try:

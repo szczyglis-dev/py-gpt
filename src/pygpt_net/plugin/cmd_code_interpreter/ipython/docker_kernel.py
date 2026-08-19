@@ -365,7 +365,7 @@ class DockerKernel:
 
         :return: Kernel file path.
         """
-        return os.path.join(self.plugin.window.core.config.get_user_dir("data"), self.kernel_file)
+        return os.path.join(self.plugin.window.core.config.get_user_dir("tmp"), self.kernel_file)
 
     def get_local_data_dir(self) -> str:
         """

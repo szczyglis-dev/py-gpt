@@ -77,10 +77,8 @@ class Plugin(BasePlugin):
         :return: temporary file path
         """
         name = uuid.uuid4().hex + f".{extension}"
-        dir = os.path.join(self.window.core.config.get_user_dir('data'), "tmp")
-        if not os.path.exists(dir):
-            os.makedirs(dir, exist_ok=True)
-        return os.path.join(dir, name)
+        tmp_dir = self.window.core.config.get_user_dir("tmp")
+        return os.path.join(tmp_dir, name)
 
     def handle(self, event: Event, *args, **kwargs):
         """

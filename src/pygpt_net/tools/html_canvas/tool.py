@@ -49,8 +49,26 @@ class HtmlCanvas(BaseTool):
 
     def setup(self):
         """Setup"""
+        self.migrate_legacy_output()
         self.load_output()
         self.update()
+
+    def migrate_legacy_output(self):
+        """Move the legacy canvas file from data to the temporary directory."""
+        legacy_path = os.path.join(
+            self.window.core.config.get_user_dir("data"),
+            self.file_output,
+        )
+        current_path = self.get_current_path()
+        if not os.path.exists(legacy_path):
+            return
+        try:
+            if not os.path.exists(current_path):
+                os.replace(legacy_path, current_path)
+            else:
+                os.remove(legacy_path)
+        except OSError:
+            pass
 
     def on_reload(self):
         """On app profile reload"""
@@ -89,7 +107,7 @@ class HtmlCanvas(BaseTool):
 
         :return: Output path
         """
-        return os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        return os.path.join(self.window.core.config.get_user_dir("tmp"), self.file_output)
 
     def get_dialog_id(self) -> str:
         """

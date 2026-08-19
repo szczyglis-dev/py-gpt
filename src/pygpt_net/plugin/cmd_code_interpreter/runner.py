@@ -263,6 +263,7 @@ class Runner:
         path = item["params"]['path']
         msg = "Executing Python file: {}".format(path)
         self.log(msg, sandbox=True)
+        path = self.prepare_path(path, on_host=False)
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
             filename=path,
         )
@@ -584,6 +585,19 @@ class Runner:
         """
         return os.path.isabs(path)
 
+    def is_interpreter_temp_path(self, path: str) -> bool:
+        """Check whether path is one of the interpreter's internal temporary files."""
+        if not path or self.is_absolute_path(path):
+            return False
+        name = os.path.normpath(path).replace("\\", "/")
+        interpreter = self.plugin.window.tools.get("interpreter")
+        return name in {
+            interpreter.file_current,
+            interpreter.file_input,
+            interpreter.file_output,
+            interpreter.file_output_json,
+        }
+
     def prepare_path(self, path: str, on_host: bool = True) -> str:
         """
         Prepare path
@@ -594,14 +608,21 @@ class Runner:
         """
         if self.is_absolute_path(path):
             return path
-        else:
-            if not self.is_sandbox() or on_host:
+
+        if self.is_interpreter_temp_path(path):
+            if on_host or not self.is_sandbox():
                 return os.path.join(
-                    self.plugin.window.core.config.get_user_dir('data'),
+                    self.plugin.window.core.config.get_user_dir("tmp"),
                     path,
                 )
-            else:
-                return path
+            return "/pygpt_tmp/{}".format(path.replace("\\", "/"))
+
+        if not self.is_sandbox() or on_host:
+            return os.path.join(
+                self.plugin.window.core.config.get_user_dir('data'),
+                path,
+            )
+        return path
 
     def error(self, err: any):
         """
