@@ -182,17 +182,27 @@ class Input:
         grid.setContentsMargins(0, 0, 0, 0)
         return grid
 
-    def setup_bottom(self) -> QHBoxLayout:
+    def setup_bottom(self) -> QGridLayout:
         """
         Setup input bottom
 
-        :return: QHBoxLayout
+        :return: QGridLayout
         """
         self.window.ui.plugin_addon['audio.output.bar'] = OutputBar(self.window)
-        layout = QHBoxLayout()
-        layout.addLayout(self.status.setup())
-        layout.addWidget(self.window.ui.plugin_addon['audio.output.bar'], alignment=Qt.AlignCenter)
-        layout.addLayout(self.setup_buttons())
+        left_layout = self.status.setup()
+        right_layout = self.setup_buttons()
+
+        layout = QGridLayout()
+        layout.addLayout(left_layout, 0, 0, alignment=Qt.AlignLeft)
+        layout.addWidget(self.window.ui.plugin_addon['audio.output.bar'], 0, 1, alignment=Qt.AlignCenter)
+        layout.addLayout(right_layout, 0, 2, alignment=Qt.AlignRight)
+
+        side_width = max(left_layout.sizeHint().width(), right_layout.sizeHint().width())
+        layout.setColumnMinimumWidth(0, side_width)
+        layout.setColumnMinimumWidth(2, side_width)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 0)
+        layout.setColumnStretch(2, 1)
         layout.setContentsMargins(2, 0, 2, 0)
         return layout
 
