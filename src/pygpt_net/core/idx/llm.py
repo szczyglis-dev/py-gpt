@@ -158,9 +158,7 @@ class Llm:
             provider = item.get("provider", "")
             if provider and provider == model.provider:
                 is_custom_provider = True
-                m = ModelItem()
-                m.provider = model.provider
-                client_args = self.window.core.models.prepare_client_args(MODE_CHAT, m)
+                client_args = self.window.core.models.prepare_client_args(MODE_CHAT, model)
                 model_name = item.get("model", "")
                 if not model_name:
                     model_name = model.id  # fallback to model id if not set in config (Ollama, etc)
@@ -179,7 +177,17 @@ class Llm:
                             "value": client_args.get("api_key", ""),
                         }
                     )
-                self.window.core.idx.log(f"Embeddings: trying to use {m.provider}, model_name: {model_name}")
+                if model.provider == "local_ai":
+                    custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
+                    if custom_api_endpoint:
+                        args.append(
+                            {
+                                "name": "api_base",
+                                "type": "str",
+                                "value": custom_api_endpoint,
+                            }
+                        )
+                self.window.core.idx.log(f"Embeddings: trying to use {model.provider}, model_name: {model_name}")
                 break
 
         if is_custom_provider:

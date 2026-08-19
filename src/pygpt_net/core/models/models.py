@@ -531,6 +531,15 @@ class Models:
             else:
                 self.window.core.debug.info("[api] Using client: OpenAI (default)")
 
+            custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
+            custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
+            if custom_api_key:
+                args["api_key"] = custom_api_key
+            if custom_api_endpoint:
+                args["base_url"] = custom_api_endpoint
+            if custom_api_key or custom_api_endpoint:
+                self.window.core.debug.info("[api] Applying model-specific API configuration")
+
             if model.provider != "openai":
                 if "organization" in args:
                     del args["organization"]

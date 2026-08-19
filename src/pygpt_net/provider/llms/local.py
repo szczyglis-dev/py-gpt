@@ -72,5 +72,13 @@ class LocalLLM(BaseLLM):
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
+
+        custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
+        custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
+        if custom_api_key:
+            args["api_key"] = custom_api_key
+        if custom_api_endpoint:
+            args["api_base"] = custom_api_endpoint
+
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILike(**args)

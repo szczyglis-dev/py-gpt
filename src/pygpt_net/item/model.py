@@ -27,6 +27,8 @@ from pygpt_net.core.types import (
 class ModelItem:
     id: Optional[str] = None
     ctx: int = 0
+    custom_api_endpoint: str = ""
+    custom_api_key: str = ""
     default: bool = False
     extra: dict = field(default_factory=dict)
     imported: bool = False
@@ -49,6 +51,8 @@ class ModelItem:
         :param id: Model ID
         """
         self.ctx = 0
+        self.custom_api_endpoint = ""
+        self.custom_api_key = ""
         self.default = False
         self.extra = {}
         self.id = id
@@ -73,6 +77,10 @@ class ModelItem:
         """
         if 'ctx' in data:
             self.ctx = data['ctx']
+        if 'custom_api_endpoint' in data:
+            self.custom_api_endpoint = data['custom_api_endpoint'] or ""
+        if 'custom_api_key' in data:
+            self.custom_api_key = data['custom_api_key'] or ""
         if 'default' in data:
             self.default = data['default']
         if 'extra' in data:
@@ -122,6 +130,8 @@ class ModelItem:
             'input': ','.join(self.input),
             'output': ','.join(self.output),
             'ctx': self.ctx,
+            'custom_api_endpoint': self.custom_api_endpoint,
+            'custom_api_key': self.custom_api_key,
             'tokens': self.tokens,
             'default': self.default,
             'extra': self.extra,
