@@ -67,6 +67,7 @@ def renderer(fake_window):
     r.parser.parse = MagicMock(side_effect=lambda x: x)
     r.helpers = MagicMock()
     r.helpers.format_chunk = MagicMock(side_effect=lambda x: x)
+    r.helpers.format_cmd_data = MagicMock(side_effect=lambda x, indent=False: x)
     r.helpers.format_user_text = MagicMock(side_effect=lambda x: x)
     r.helpers.post_format_text = MagicMock(side_effect=lambda x: x)
     r.helpers.pre_format_text = MagicMock(side_effect=lambda x: x)
@@ -724,7 +725,8 @@ class TestRenderer:
         node = fake_window.core.ctx.output.get_current(meta)
         node.page().runJavaScript = MagicMock()
         renderer.tool_output_update(meta, "content")
-        node.page().runJavaScript.assert_called()
+        renderer.helpers.format_cmd_data.assert_called_once_with("content", indent=True)
+        node.page().runJavaScript.assert_called_once()
 
     def test_tool_output_clear(self, renderer, fake_window):
         meta = DummyCtxMeta()
