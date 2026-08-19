@@ -55,14 +55,7 @@ class JsonFileProvider(BaseProvider):
                 shutil.copyfile(src, dst)
                 print("RECOVERY: Restored config file from base config: {}".format(src))
 
-        # data tmp
-        tmp_dir = os.path.join(self.window.core.config.get_user_dir('data'), 'tmp')
-        if not os.path.exists(tmp_dir):
-            try:
-                os.makedirs(tmp_dir, exist_ok=True)
-            except Exception as e:
-                print("WARNING: Cannot create ``{}`` data temp directory: {}".format(tmp_dir, e))
-
+        # temporary files are stored in the base workdir/tmp directory
         # base tmp
         tmp_dir = os.path.join(self.window.core.config.get_user_path(), 'tmp')
         if not os.path.exists(tmp_dir):

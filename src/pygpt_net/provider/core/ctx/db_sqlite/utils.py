@@ -106,7 +106,7 @@ def pack_item_value(value: Any) -> str:
     :return: JSON string or value itself
     """
     if isinstance(value, (list, dict)):
-        return json.dumps(value)
+        return json.dumps(value, ensure_ascii=False)
     return value
 
 

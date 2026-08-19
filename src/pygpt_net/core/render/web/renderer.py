@@ -1630,9 +1630,13 @@ class Renderer(BaseRenderer):
         :param content: content to set
         """
         try:
+            # TOOL_UPDATE is also used for the live/final tool response before
+            # the context is rebuilt.  Normalize valid JSON here as well so the
+            # user never sees nested Unicode escapes during the current turn.
+            display_content = self.helpers.format_cmd_data(content, indent=True)
             self.get_output_node(meta).page().runJavaScript(
                 f"""if (typeof window.updateToolOutput !== 'undefined') updateToolOutput({self.to_json(
-                    self.sanitize_html(content)
+                    self.sanitize_html(display_content)
                 )});"""
             )
         except Exception:
@@ -2449,7 +2453,13 @@ class Renderer(BaseRenderer):
                     and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
                 tool_result = str(ctx.input)
 
+            tool_result_display = ""
             if tool_result:
+                # Keep the model-facing payload untouched; normalize only the
+                # UI representation.  Tool results can contain JSON serialized
+                # inside JSON string fields, which otherwise leaves \uXXXX
+                # escapes visible in the WebView.
+                tool_result_display = self.helpers.format_cmd_data(tool_result, indent=True)
                 tool_output = self.helpers.format_cmd_text(tool_result, indent=True)
 
             # plugin-driven extra (HTML) – keep as-is to preserve functionality
@@ -2516,7 +2526,7 @@ class Renderer(BaseRenderer):
 
             block.extra.update({
                 "tool_calls": tool_calls,
-                "tool_result": tool_result,
+                "tool_result": tool_result_display,
                 "tool_output": tool_output,
                 "tool_output_visible": tool_output_visible,
                 "tool_extra_html": tool_extra_html,

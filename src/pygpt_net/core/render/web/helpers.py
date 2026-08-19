@@ -88,8 +88,10 @@ class Helpers:
             name = ""
             try:
                 data = json.loads(request)
-                if isinstance(data, dict) and data.get("cmd") is not None:
-                    name = str(data.get("cmd")).strip()
+                if isinstance(data, dict):
+                    if data.get("cmd") is not None:
+                        name = str(data.get("cmd")).strip()
+                    request = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
             except Exception:
                 pass
             calls.append({
@@ -263,23 +265,81 @@ class Helpers:
             s = f'<div class="cmd">&gt; {s}</div>'
         return s
 
-    def format_cmd_text(self, text: str, indent: bool = False) -> str:
+    def _normalize_json_display_value(self, value, unpack_string: bool = False):
         """
-        Post-format cmd text
+        Recursively normalize JSON values used by tool request/response display.
+
+        Tool responses may be serialized more than once, e.g. an outer result
+        list can contain ``request`` and ``result`` fields that are themselves
+        JSON strings. A single json.loads/json.dumps pass leaves Unicode in
+        those nested strings escaped as ``\\uXXXX``. Only known wrapper fields
+        are unpacked, so a tool's actual text content is never reinterpreted
+        merely because it happens to contain valid JSON.
+
+        :param value: decoded JSON value
+        :param unpack_string: allow this string value to be parsed as JSON
+        :return: normalized display value
+        """
+        if isinstance(value, dict):
+            normalized = {}
+            for key, item in value.items():
+                normalized[key] = self._normalize_json_display_value(
+                    item,
+                    unpack_string=(key in ("request", "result")),
+                )
+            return normalized
+
+        if isinstance(value, list):
+            return [self._normalize_json_display_value(item) for item in value]
+
+        if unpack_string and isinstance(value, str):
+            stripped = value.strip()
+            if len(stripped) >= 2 and (
+                    (stripped.startswith("{") and stripped.endswith("}"))
+                    or (stripped.startswith("[") and stripped.endswith("]"))
+            ):
+                try:
+                    nested = json.loads(stripped)
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    return value
+                if isinstance(nested, (dict, list)):
+                    return self._normalize_json_display_value(nested)
+
+        return value
+
+    def format_cmd_data(self, text: str, indent: bool = False) -> str:
+        """
+        Format command/tool JSON for plain-text UI display.
+
+        Nested JSON strings are unpacked recursively so escaped Unicode is
+        displayed as real characters.  This method does not HTML-escape the
+        result; callers that inject HTML must escape it separately.
 
         :param text: text to format
-        :param indent: whether to indent text
-        :return: formatted text
+        :param indent: whether to pretty-print JSON
+        :return: plain formatted text
         """
         if not text:
             return ""
-        if not indent:
-            return html.escape(text)
-        else:
-            try:
-                return html.escape(json.dumps(json.loads(text), indent=2))
-            except Exception:
-                return html.escape(text)
+
+        try:
+            data = json.loads(text)
+            data = self._normalize_json_display_value(data)
+            if indent:
+                return json.dumps(data, indent=2, ensure_ascii=False)
+            return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+        except Exception:
+            return str(text)
+
+    def format_cmd_text(self, text: str, indent: bool = False) -> str:
+        """
+        Post-format cmd text for HTML output.
+
+        :param text: text to format
+        :param indent: whether to indent text
+        :return: formatted and HTML-escaped text
+        """
+        return html.escape(self.format_cmd_data(text, indent=indent))
 
 
     def format_chunk(self, text: str) -> str:
