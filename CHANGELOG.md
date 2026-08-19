@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 2.8.4 (2026-08-19)
+
+- Added a new Security settings section for host-side plugin permissions.
+- Added separate read and write restrictions for local filesystem access outside the workdir `data` directory.
+- Added per-system Linux, Windows, and macOS system-command whitelists and blacklists, with the whitelist taking precedence when enabled.
+- Added shared filesystem and command security checks across filesystem-capable plugins and host-side command execution.
+- Added `Permission denied` tool responses that point to `Settings -> Security` when filesystem access is blocked.
+- Added a Computer Use tab in Security settings.
+- Added `Halt on potentially unsafe operation`, enabled by default.
+- Added explicit user confirmation for provider-flagged potentially unsafe Computer Use operations in OpenAI and Google providers.
+- Added per-model custom API endpoint and API key settings.
+- Improved the Models Editor advanced settings layout and added missing field descriptions and translations.
+- Moved application-managed temporary files for audio input, HTML Canvas, Code Interpreter/IPython, and the Transcript tool to the workdir `tmp` directory.
+- Centered the audio input/output level meter in the bottom input bar.
+- Fixed the Painter tool restoring the wrong color icon after application restart.
+- Fixed escaped Unicode characters in stored and displayed command/tool JSON, including nested tool responses.
+- Updated examples and documentation.
+
+
 ## 2.8.3 (2026-08-16)
 
 - Fixed duplicated attachments being displayed after tool calls.

@@ -25,7 +25,7 @@ Above where you type your messages, the interface shows you the number of tokens
 .. image:: images/v2_mode_chat.png
    :width: 800
 
-**Vision:** If you want to send photos from your disk or images from your camera for analysis, and the selected model does not support Vision, you must enable the ``Vision (inline)`` plugin in the Plugins menu. This plugin allows you to send photos or images from your camera for analysis in any Chat mode.
+**Vision:** If the currently selected model cannot accept image input, enable the ``Vision (inline)`` plugin in the Plugins menu. When compatible image content is detected, PyGPT temporarily routes that turn through Chat using the image-capable model configured in the plugin. The plugin model is selected by capabilities rather than by provider, so supported OpenAI, Google, Anthropic, xAI, OpenRouter, local/OpenAI-compatible, and other configured models can be used.
 
 
 .. image:: images/v3_vision_plugins.png
@@ -63,7 +63,7 @@ You can ask for: ``Query the file my_cars.txt about what color my car is.``
 
 And you will receive the response: ``Red``.
 
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option ``Auto-index readed files`` in plugin settings. Remember to enable ``+ Tools`` checkbox to allow usage of tools and commands from plugins.
+Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option ``Auto index reading files`` in plugin settings. Remember to enable ``+ Tools`` checkbox to allow usage of tools and commands from plugins.
 
 **Using Chat with Files mode**
 
@@ -119,11 +119,11 @@ Built-in file loaders:
 * Webpages (crawling any webpage content)
 * YouTube (transcriptions)
 
-You can configure data loaders in ``Settings / LlamaIndex / Data Loaders`` by providing list of keyword arguments for specified loaders.
+You can configure data loaders in ``Settings -> Indexes / LlamaIndex -> Data Loaders`` by providing list of keyword arguments for specified loaders.
 You can also develop and provide your own custom loader and register it within the application.
 
 LlamaIndex is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
-Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in ``Settings / LlamaIndex`` section.
+Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in ``Settings -> Indexes / LlamaIndex`` section.
 
 .. warning::
    Remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
@@ -137,20 +137,21 @@ Options for indexing existing context history or enabling real-time indexing new
 
 * ChromaVectorStore
 * ElasticsearchStore
-* PinecodeVectorStore
+* PineconeVectorStore
+* QdrantVectorStore
 * RedisVectorStore
 * SimpleVectorStore
 
-You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> LlamaIndex`` window. See the section: ``Configuration / Vector stores`` for configuration reference.
+You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / LlamaIndex`` window. See the section: ``Configuration / Vector stores`` for configuration reference.
 
 **Configuring data loaders**
 
-In the ``Settings -> LlamaIndex -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance. See the section: ``Configuration / Data Loaders`` for configuration reference.
+In the ``Settings -> Indexes / LlamaIndex -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance. See the section: ``Configuration / Data Loaders`` for configuration reference.
 
 
 Chat with Audio
 ---------------
-This mode works like the Chat mode but with native support for audio input and output using a Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
+This mode works like Chat mode but with native support for audio input and output using Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
 
 Currently, in beta. 
 
@@ -182,7 +183,7 @@ Additionally, this mode offers options for labeling the AI and the user, making 
 Image and video generation
 --------------------------
 
-**PyGPT** enables quick and easy image creation with models like ``DALL-E 3``, ``gpt-image-1``, ``Imagen 3/4``, and ``Nano Banana``, as well as video generation using ``Veo3`` and ``Sora2``.
+**PyGPT** enables quick and easy image creation with image-generation models such as ``gpt-image``, ``Imagen``, ``Gemini``, ``Nano Banana`` and ``Grok``, as well as video generation using models such as ``Veo`` and ``Sora``.
 Generating images and videos is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in ``Image generation`` mode or ask the model for the best prompt.
 
 .. image:: images/v3_img.png
@@ -207,9 +208,6 @@ To remix or extend from a previous image or video instead of creating a new one 
 **Raw mode**
 
 There is an option for switching prompt generation mode.
-
-.. image:: images/v2_dalle2.png
-   :width: 400
 
 If **Raw Mode** is enabled, a model will receive the prompt exactly as you have provided it.
 If **Raw Mode** is disabled, a model will generate the best prompt for you based on your instructions.
@@ -237,14 +235,7 @@ This mode expands on the basic chat functionality by including additional extern
 
 Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the ``OpenAI API``. Importing assistants you've previously created with OpenAI into **PyGPT** is also a seamless process.
 
-.. image:: images/v2_mode_assistant.png
-   :width: 800
-
-In Assistant mode you are allowed to storage your files in remote vector store (per Assistant) and manage them easily from app:
-
-.. image:: images/v2_mode_assistant_upload.png
-   :width: 800
-
+In Assistant mode you can store files in a remote vector store associated with an Assistant and manage them from the app:
 
 **Vector stores (via Assistants API)**
 
@@ -254,18 +245,10 @@ To enable the use of vector stores, enable the ``Chat with Files`` checkbox in t
 
 To manage external vector databases, click the DB icon next to the vector database selection list in the Assistant creation and editing window (screen below). In this management window, you can create a new vector database, edit an existing one, or import a list of all existing databases from the OpenAI server:
 
-.. image:: images/v2_assistant_stores.png
-   :width: 800
-
-
 You can define, using ``Expire days``, how long files should be automatically kept in the database before deletion (as storing files on OpenAI incurs costs). If the value is set to 0, files will not be automatically deleted.
 
 
 The vector database in use will be displayed in the list of uploaded files, on the field to the right—if a file is stored in a database, the name of the database will be displayed there; if not, information will be shown indicating that the file is only accessible within the thread.
-
-
-.. image:: images/v2_assistant_stores_upload.png
-   :width: 800
 
 
 Agent (LlamaIndex) 
@@ -472,9 +455,6 @@ If you want to use the LlamaIndex mode when running the agent, you can also spec
 .. code-block:: ini
 
    Settings / Agent (autonomous) / Index to use
-
-.. image:: images/v2_agent_settings.png
-   :width: 800
 
 Experts (Co-op, co-operation mode)
 ----------------------------------

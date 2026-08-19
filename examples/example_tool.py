@@ -1,212 +1,166 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 17:00:00                  #
+# PyGPT GUI tool tutorial                            #
+# Docs: https://pygpt.readthedocs.io/en/latest/      #
+# Updated: 2026-08-19                                #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QPushButton, QLabel, QVBoxLayout, QMenuBar
+from PySide6.QtWidgets import QLabel, QMenuBar, QPushButton, QVBoxLayout
 
-from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.tools.base import BaseTool
+from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
 
 
 class ExampleTool(BaseTool):
-    def __init__(self, *args, **kwargs):
-        """
-        ExampleTool
+    """Example application tool with one Tools-menu action and one dialog.
 
-        :param window: Window instance
-        """
-        super(ExampleTool, self).__init__(*args, **kwargs)
-        self.id = "example_tool"  # unique tool id
+    A BaseTool is a UI/application extension, not automatically a model-callable
+    tool. Model commands belong in plugins (see `example_plugin.py`).
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = "example_tool"  # must be unique
+        self.dialog_id = "example_dialog"
+        self.has_tab = False  # set True + implement as_tab() to expose a tab tool
+        self.tab_title = "Example Tool"
+        self.tab_icon = ":/icons/build.svg"
         self.dialog = None
         self.opened = False
 
     def setup(self):
-        """Setup tool"""
-        # setup actions here
-        print("Setting up example tool...")
+        """Called once after the tool is attached to the main window."""
+        # Connect signals/load persistent state here. `self.window` is available.
+        pass
 
-    def update(self):
-        """Update"""
-        # update actions here (e.g. menu update, etc.)
-        print("On update example tool...")
+    def post_setup(self):
+        """Called after plugins are also loaded; useful for cross-component wiring."""
+        pass
+
+    def on_update(self):
+        """Called by the application main-loop timer.
+
+        Keep this method lightweight. Do not print/log every tick in production.
+        """
+        pass
+
+    def on_post_update(self):
+        """Second update hook, called after the regular tool update pass."""
+        pass
+
+    def setup_theme(self):
+        """Refresh theme-dependent icons/styles when the UI theme changes."""
+        pass
+
+    def on_reload(self):
+        """Called when the active PyGPT profile/workdir is reloaded."""
+        pass
+
+    def on_exit(self):
+        """Release external resources here before application shutdown."""
+        pass
 
     def open(self):
-        """Open dialog window"""
-        print("Opening example dialog...")
-        self.window.ui.dialogs.open('example_dialog', width=800, height=600)
+        if self.opened:
+            return
+        self.window.ui.dialogs.open(self.dialog_id, width=800, height=600)
         self.opened = True
-        self.update()
 
     def close(self):
-        """Close dialog window"""
-        print("Closing example dialog...")
-        self.window.ui.dialogs.close('example_dialog')
+        self.window.ui.dialogs.close(self.dialog_id)
         self.opened = False
 
     def toggle(self):
-        """Toggle dialog window"""
-        print("On example dialog toggle...")
-        if self.opened:
-            self.close()
-        else:
-            self.open()
-
-    def example_action(self):
-        """Example action"""
-        print("Hello World!")
-        self.window.ui.dialogs.alert("Hello World!")  # show example alert
-
-    def show_hide(self, show: bool = True):
-        """
-        Show/hide dialog window
-
-        :param show: show/hide
-        """
-        print("On example dialog show/hide...")
-        if show:
-            self.open()
-        else:
-            self.close()
+        self.close() if self.opened else self.open()
 
     def on_close(self):
-        """On dialog close"""
-        print("On example dialog close...")
+        """Synchronize tool state when the user closes the dialog directly."""
         self.opened = False
 
-    def on_exit(self):
-        """On app exit"""
-        print("On exiting example tool...")
+    def example_action(self):
+        self.window.ui.dialogs.alert("Hello from Example Tool!")
 
     def setup_menu(self) -> dict:
-        """
-        Setup main menu (Tools)
+        """Return actions that the Tools menu manager should insert.
 
-        :return dict with menu actions
+        The manager prefixes returned keys with `tools.` internally. The key
+        below therefore becomes `tools.example` in the application's menu map.
         """
-        actions = {}
-        actions["example.tool"] = QAction(
-            QIcon(":/icons/warning.svg"),
-            trans("example.tool"),
+        action = QAction(
+            QIcon(":/icons/build.svg"),
+            "Example Tool",
             self.window,
             checkable=False,
         )
-        actions["example.tool"].triggered.connect(
-            lambda: self.toggle()
-        )
-        return actions
+        action.triggered.connect(self.toggle)
+        return {"example": action}
 
     def setup_dialogs(self):
-        """Setup dialogs (static)"""
-        # build all static dialogs here
-        self.dialog = DialogBuilder(self.window)
+        """Create static dialog instances before normal tool setup runs."""
+        self.dialog = DialogBuilder(self.window, self)
         self.dialog.setup()
 
     def get_lang_mappings(self) -> dict:
-        """
-        Get language mappings
+        """Optional menu-to-translation mappings.
 
-        :return: dict with language mappings
+        This self-contained tutorial uses a literal English menu label and ships
+        no locale file, so there is nothing to map. A localized tool can return
+        the same mapping shape used by PyGPT's built-in tools.
         """
-        return {
-            'menu.text': {
-                'tools.example.tool': 'menu.tools.example.tool',  # menu key => translation key
-            }
-        }
+        return {}
+
 
 class DialogBuilder:
-    def __init__(self, window=None):
-        """
-        Example dialog builder
+    """Build widgets/layout and register a static dialog in `window.ui.dialog`."""
 
-        :param window: Window instance
-        """
+    def __init__(self, window, tool: ExampleTool):
         self.window = window
+        self.tool = tool
         self.menu_bar = None
-        self.file_menu = None
-        self.actions = {}  # menu actions
+        self.actions = {}
 
     def setup_menu(self) -> QMenuBar:
-        """
-        Setup dialog menu
-
-        :return: QMenuBar
-        """
-        # create menu bar
         self.menu_bar = QMenuBar()
         self.menu_bar.setNativeMenuBar(False)
-        self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
+        file_menu = self.menu_bar.addMenu(trans("menu.file"))
 
-        # example action
-        self.actions["example_action"] = QAction(QIcon(":/icons/folder.svg"), "Example menu action")
-        self.actions["example_action"].triggered.connect(
-            lambda: self.window.tools.get("example_tool").example_action()
-        )
-
-        # add actions
-        self.file_menu.addAction(self.actions["example_action"])
+        action = QAction(QIcon(":/icons/info.svg"), "Example action", self.menu_bar)
+        action.triggered.connect(self.tool.example_action)
+        self.actions["example_action"] = action
+        file_menu.addAction(action)
         return self.menu_bar
 
     def setup(self):
-        """Setup dialog window"""
         label = QLabel("Hello World!")
-        btn = QPushButton("Example action!")
-        btn.clicked.connect(
-            lambda: self.window.tools.get("example_tool").example_action()
-        )
+        button = QPushButton("Example action")
+        button.clicked.connect(self.tool.example_action)
 
-        # layout
         layout = QVBoxLayout()
-        layout.setMenuBar(self.setup_menu())  # add menu bar
+        layout.setMenuBar(self.setup_menu())
         layout.addWidget(label, alignment=Qt.AlignCenter)
-        layout.addWidget(btn)
+        layout.addWidget(button)
 
-        # add dialog to the window
-        self.window.ui.dialog['example_dialog'] = ExampleDialog(self.window)
-        self.window.ui.dialog['example_dialog'].setLayout(layout)
-        self.window.ui.dialog['example_dialog'].setWindowTitle("Example Tool Dialog")
+        dialog = ExampleDialog(self.window, self.tool, id=self.tool.dialog_id)
+        dialog.setLayout(layout)
+        dialog.setWindowTitle("Example Tool")
+        self.window.ui.dialog[self.tool.dialog_id] = dialog
 
 
 class ExampleDialog(BaseDialog):
-    def __init__(self, window=None):
-        """
-        Example dialog
-
-        :param window: main window
-        """
-        super(ExampleDialog, self).__init__(window)
-        self.window = window
+    def __init__(self, window, tool: ExampleTool, id: str = None):
+        super().__init__(window, id=id)
+        self.tool = tool
 
     def closeEvent(self, event):
-        """
-        Close event
-
-        :param event: close event
-        """
-        self.cleanup()
-        super(ExampleDialog, self).closeEvent(event)
+        self.tool.on_close()
+        super().closeEvent(event)
 
     def keyPressEvent(self, event):
-        """
-        Key press event
-
-        :param event: key press event
-        """
         if event.key() == Qt.Key_Escape:
-            self.cleanup()
-            self.close()  # close dialog when the Esc key is pressed.
-        else:
-            super(ExampleDialog, self).keyPressEvent(event)
-
-    def cleanup(self):
-        """Cleanup on dialog close"""
-        self.window.tools.get("example_tool").on_close()
+            self.close()
+            return
+        super().keyPressEvent(event)

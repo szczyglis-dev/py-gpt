@@ -104,7 +104,7 @@ PyGPT has a preconfigured list of models (as of 2026-08-15):
 - ``veo-3.1-lite-generate-preview`` (Google)
 
 All models are specified in the configuration file ``models.json``, which you can customize. 
-This file is located in your working directory. You can add new models provided directly by ``OpenAI API`` (or compatible), ``Google Gen AI API``, ``Anthropic API``, ``xAI API``, and those supported by ``LlamaIndex`` or ``Ollama`` to this file. Configuration for LlamaIndex in placed in ``llama_index`` key.
+This file is located in your working directory. You can add new models provided directly by ``OpenAI API`` (or compatible), ``Google Gen AI API``, ``Anthropic API``, ``xAI API``, and those supported by ``LlamaIndex`` or ``Ollama`` to this file. LlamaIndex-specific configuration is stored in the ``llama_index`` key.
 
 You can import new models by manually editing ``models.json`` or by using the model importer in the ``Config -> Models -> Import`` menu.
 
@@ -137,6 +137,27 @@ There is built-in support for those LLM providers:
 * ``OpenRouter``
 * ``Perplexity``
 * ``xAI`` (native SDK)
+
+Per-model API base and API key
+------------------------------
+
+The Models Editor provides two optional fields in ``Advanced`` settings, directly after ``Tool calls``:
+
+* ``API base`` - model-specific API base URL.
+* ``API key`` - model-specific API key.
+
+When these fields are non-empty, normal OpenAI-compatible Chat requests use them instead of the
+provider/global API endpoint or key for that model. For the ``Local models (OpenAI API compatible)``
+provider, the same values are also passed to the LlamaIndex ``OpenAILike`` wrapper
+(``API base`` -> ``api_base``, ``API key`` -> ``api_key``).
+
+Leave either field empty to keep the normal provider/global value for that field. This is especially
+useful when multiple local/OpenAI-compatible servers are configured at the same time, because each model
+can point to its own server without changing the global OpenAI configuration.
+
+LlamaIndex ``**kwargs`` and ``ENV`` fields remain available for provider-specific advanced parameters.
+Built-in provider wrappers normally reuse the API keys configured in ``Config -> Settings -> API Keys``
+when an explicit key is not supplied in the model's LlamaIndex arguments.
 
 How to use local or non-GPT models
 ----------------------------------
@@ -220,71 +241,26 @@ Define parameters like model name and Ollama base URL in the Embeddings provider
 - name: ``base_url``, value: ``http://localhost:11434``, type: ``str``
 
 
-Google Gemini, Anthropic Claude, xAI Grok, etc.
-```````````````````````````````````````````````
-If you want to use non-OpenAI models in ``Chat with Files`` and ``Agents (LlamaIndex)`` modes, then remember to configure the required parameters like API keys in the model config fields. ``Chat`` mode works via OpenAI SDK (compatible API), ``Chat with Files`` and ``Agents (LlamaIndex)`` modes works via LlamaIndex.
+Provider configuration for LlamaIndex
+````````````````````````````````````````
 
-**Google Gemini**
+Built-in LlamaIndex wrappers use the provider selected in the model configuration. In most cases the
+provider API key is read automatically from ``Config -> Settings -> API Keys`` when it is not supplied
+explicitly in ``Advanced -> [LlamaIndex] LLM provider extra **kwargs``.
 
-Required ENV:
+Typical model configuration therefore only needs the model name in LlamaIndex arguments. Provider-specific
+arguments can still be added when required by a custom endpoint or integration.
 
-- GOOGLE_API_KEY = {api_key_google}
+Examples:
 
-Required **kwargs:
+* ``Google`` uses the configured Google API key by default.
+* ``Anthropic`` uses the configured Anthropic API key by default.
+* ``xAI`` uses the configured xAI API key and endpoint by default.
+* ``Mistral AI`` uses the configured Mistral API key by default.
+* ``Perplexity`` uses the configured Perplexity API key by default.
+* ``HuggingFace API`` uses the configured HuggingFace token by default.
+* ``DeepSeek`` and ``Anthropic`` use the configured VoyageAI key for their default embeddings integration.
 
-- model
-
-**Anthropic Claude**
-
-Required ENV:
-
-- ANTHROPIC_API_KEY = {api_key_anthropic}
-
-Required **kwargs:
-
-- model
-
-**xAI Grok** (Chat mode only)
-
-Required ENV:
-
-- OPENAI_API_KEY = {api_key_xai}
-- OPENAI_API_BASE = {api_endpoint_xai}
-
-Required **kwargs:
-
-- model
-
-**Mistral AI**
-
-Required ENV:
-
-- MISTRAL_API_KEY = {api_key_mistral}
-
-Required **kwargs:
-
-- model
-
-**Perplexity**
-
-Required ENV:
-
-- PPLX_API_KEY = {api_key_perplexity}
-
-Required **kwargs:
-
-- model
-
-**HuggingFace API** (Chat with Files mode only)
-
-Required ENV:
-
-- HUGGING_FACE_TOKEN = {api_key_hugging_face}
-
-Required **kwargs:
-
-- model_name | model
-- token
-- provider = auto
-
-
+For ``Local models (OpenAI API compatible)``, prefer the per-model ``API base`` and ``API key`` fields
+described above. Advanced LlamaIndex arguments can still be used for options such as ``is_chat_model``,
+``context_window``, or backend-specific parameters.

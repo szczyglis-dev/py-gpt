@@ -1,193 +1,115 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
-# This file is a part of PYGPT package               #
+# PyGPT custom launcher tutorial                     #
 # Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# Docs: https://pygpt.readthedocs.io/en/latest/      #
+# GitHub: https://github.com/szczyglis-dev/py-gpt    #
 # MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated: 2026-08-19                                #
 # ================================================== #
 
-# PyGPT custom launcher example.
+"""Run PyGPT with custom extension instances.
 
-# Uncomment these three lines below if you want to run the launcher directly from the source code,
-# without installing the `pygpt_net` package:
+`pygpt_net.app.run()` registers all built-in components first and then registers
+objects supplied in the keyword-argument lists below. This file is therefore a
+convenient integration point for private/company extensions without modifying
+PyGPT's own package.
+"""
 
+# If you run this file directly from the PyGPT source tree without installing
+# `pygpt-net`, uncomment this block. The repository layout is expected to be:
+#
+#   py-gpt/
+#     src/pygpt_net/
+#     examples/custom_launcher.py
+#
 # import sys
 # from pathlib import Path
-# sys.path.insert(0, str((Path(__file__).parent / '../src').resolve()))
+# sys.path.insert(0, str((Path(__file__).resolve().parent / "../src").resolve()))
 
 try:
-    from pygpt_net.app import run  # <-- import the "run" function from the app
-except ImportError:
-    msg = ("Please install the PyGPT package to run this example or if you want run it directly uncomment these lines:\n\n"
-            "# import sys\n"
-            "# from pathlib import Path\n"
-            "# sys.path.insert(0, str((Path(__file__).parent / '../src').resolve()))")
-    raise ImportError(msg)
+    from pygpt_net.app import run
+except ImportError as exc:
+    raise ImportError(
+        "PyGPT is not importable. Install the package or uncomment the source-tree "
+        "sys.path block at the top of examples/custom_launcher.py."
+    ) from exc
 
-from example_plugin import Plugin as ExamplePlugin
-from example_llm import ExampleLlm
-from example_vector_store import ExampleVectorStore
-from example_data_loader import ExampleDataLoader
+# Local example modules live next to this launcher, therefore direct imports are
+# appropriate when executing `python3 examples/custom_launcher.py`.
+from example_agent import ExampleAgent
 from example_audio_input import ExampleAudioInput
 from example_audio_output import ExampleAudioOutput
-from example_web_search import ExampleWebSearchEngine
+from example_data_loader import ExampleDataLoader
+from example_llm import ExampleLlm
+from example_plugin import Plugin as ExamplePlugin
 from example_tool import ExampleTool
+from example_vector_store import ExampleVectorStore
+from example_web_search import ExampleWebSearchEngine
 
-"""
-PyGPT can be extended with:
 
-    - Custom plugins
-    - Custom LLMs wrappers
-    - Custom vector store providers
-    - Custom data loaders
-    - Custom audio input providers
-    - Custom audio output providers
-    - Custom web search engine providers
-    - Custom tools
+def main():
+    """Create extension instances and start the application once."""
 
-    - You can pass custom plugin instances, LLMs wrappers, vector store providers and more to the launcher.
-    - This is useful if you want to extend PyGPT with your own plugins, vectors storage, LLMs or other data providers.
-    
-    First, create a custom launcher file, for example, "my_launcher.py," and register your extensions in it.
+    # Plugin: receives app/model events and can expose commands callable by models.
+    plugins = [
+        ExamplePlugin(),
+    ]
 
-    To register custom plugins create custom launcher, e.g. "my_launcher.py" and:
+    # LLM wrapper: used by LlamaIndex and, when implemented, embeddings.
+    # This is different from the native Chat API provider path.
+    llms = [
+        ExampleLlm(),
+    ]
 
-    - Pass a list with the plugin instances as 'plugins' keyword argument.
+    # Vector-store backend used by the LlamaIndex indexing subsystem.
+    vector_stores = [
+        ExampleVectorStore(),
+    ]
 
-    To register custom LLMs wrappers:
+    # File/web readers used when PyGPT indexes external data.
+    loaders = [
+        ExampleDataLoader(),
+    ]
 
-    - Pass a list with the LLMs wrappers instances as 'llms' keyword argument.
+    # Providers displayed in Audio Input / Audio Output plugin settings.
+    audio_input = [
+        ExampleAudioInput(),
+    ]
+    audio_output = [
+        ExampleAudioOutput(),
+    ]
 
-    To register custom vector store providers:
+    # Search-engine backend used by the Web Search plugin.
+    web = [
+        ExampleWebSearchEngine(),
+    ]
 
-    - Pass a list with the vector store provider instances as 'vector_stores' keyword argument.
+    # Agent workflow/provider shown in agent-type choices.
+    agents = [
+        ExampleAgent(),
+    ]
 
-    To register custom data loaders:
+    # GUI/application tool registered in the Tools subsystem.
+    tools = [
+        ExampleTool(),
+    ]
 
-    - Pass a list with the data loader instances as 'loaders' keyword argument.
+    # `run()` owns the application lifecycle and blocks until PyGPT exits.
+    # Call it only once.
+    run(
+        plugins=plugins,
+        llms=llms,
+        vector_stores=vector_stores,
+        loaders=loaders,
+        audio_input=audio_input,
+        audio_output=audio_output,
+        web=web,
+        agents=agents,
+        tools=tools,
+    )
 
-    To register custom audio input providers:
 
-    - Pass a list with the audio input provider instances as 'audio_input' keyword argument.
-
-    To register custom audio output providers:
-
-    - Pass a list with the audio output provider instances as 'audio_output' keyword argument.
-
-    To register custom web providers:
-
-    - Pass a list with the web provider instances as 'web' keyword argument.
-    
-    To register custom tools:
-    
-    - Pass a list with the tool instances as 'tools' keyword argument.
-
-    Example:
-    --------
-    ::
-
-        # custom_launcher.py
-
-        from pygpt_net.app import run
-        from plugins import CustomPlugin, OtherCustomPlugin
-        from llms import CustomLLM
-        from vector_stores import CustomVectorStore
-        from loaders import CustomLoader
-        from audio_input import CustomAudioInput
-        from audio_output import CustomAudioOutput
-        from web import CustomWebSearch
-        from tools import CustomTool
-
-        plugins = [
-            CustomPlugin(),
-            OtherCustomPlugin(),
-        ]
-        llms = [
-            CustomLLM(),
-        ]
-        vector_stores = [
-            CustomVectorStore(),
-        ]
-        loaders = [
-            CustomLoader(),
-        ]
-        audio_input = [
-            CustomAudioInput(),
-        ]
-        audio_output = [
-            CustomAudioOutput(),
-        ]
-        web = [
-            CustomWebSearch(),
-        ]
-        tools = [
-            CustomTool(),
-        ]
-
-        run(
-            plugins=plugins,
-            llms=llms,
-            vector_stores=vector_stores,
-            loaders=loaders,
-            audio_input=audio_input,
-            audio_output=audio_output,
-            web=web,
-            tools=tools,
-        )
-
-"""
-
-# Working example:
-
-# 1. Prepare instances of your custom plugins, LLMs, vector stores, data loaders and rest of providers:
-
-plugins = [
-    ExamplePlugin(),  # add your custom plugin instances here
-]
-llms = [
-    ExampleLlm(),  # add your custom LLM wrappers instances here
-]
-vector_stores = [
-    ExampleVectorStore(),  # add your custom vector store instances here
-]
-loaders = [
-    ExampleDataLoader(),  # add your custom data loader instances here
-]
-audio_input = [
-    ExampleAudioInput(),  # add your custom audio input provider instances here
-]
-audio_output = [
-    ExampleAudioOutput(),  # add your custom audio output provider instances here
-]
-web = [
-    ExampleWebSearchEngine(),  # add your custom web search engine provider instances here
-]
-tools = [
-    ExampleTool(),  # add your custom tool instances here
-]
-
-# 2. Register example plugins, LLM wrappers, vector stores, data loaders and rest of providers using the run function:
-
-run(
-    plugins=plugins,  # pass the list with the plugin instances
-    llms=llms,  # pass the list with the LLM provider instances
-    vector_stores=vector_stores,  # pass the list with the vector store instances
-    loaders=loaders,  # pass the list with the data loader instances
-    audio_input=audio_input,  # pass the list with the audio input instances
-    audio_output=audio_output,  # pass the list with the audio output instances
-    web=web,  # pass the list with the web search engine instances
-    tools=tools,  # pass the list with the tool instances
-)
-
-if __name__ == '__main__':
-    run()
-
-# 3. Run the app using this custom launcher instead of the default one:
-
-"""
-    $ source venv/bin/activate
-    $ python3 custom_launcher.py
-"""
+if __name__ == "__main__":
+    main()

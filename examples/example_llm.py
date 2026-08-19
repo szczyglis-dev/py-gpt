@@ -1,168 +1,96 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# PyGPT LlamaIndex LLM-provider tutorial             #
+# Docs: https://pygpt.readthedocs.io/en/latest/      #
+# Updated: 2026-08-19                                #
 # ================================================== #
 
-# from langchain_openai import OpenAI  # <--- Import OpenAI provider for Langchain (completion)
-# from langchain_openai import ChatOpenAI  # <--- Import ChatOpenAI provider for Langchain (chat)
+from typing import Dict, List, Optional
 
-from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.llms.openai import OpenAI as LlamaOpenAI  # <--- Import OpenAI provider for Llama-Index
-from llama_index.embeddings.openai import OpenAIEmbedding  # <--- Import OpenAI embeddings for Llama-Index
+from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.llms.openai import OpenAI as LlamaOpenAI
 
-from pygpt_net.provider.llms.base import BaseLLM  # <--- provider must inherit from BaseLLM class
-from pygpt_net.item.model import ModelItem  # <--- ModelItem class with selected model config
+from pygpt_net.core.types import MODE_LLAMA_INDEX
+from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.llms.base import BaseLLM
 
 
 class ExampleLlm(BaseLLM):
+    """Example LlamaIndex LLM + embeddings wrapper.
+
+    The launcher `llms=` registry is used by PyGPT's LlamaIndex subsystem. It is
+    not the native Chat-mode transport. Normal Chat uses the model's configured
+    API provider/OpenAI-compatible endpoint directly.
+    """
+
     def __init__(self, *args, **kwargs):
-        super(ExampleLlm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        self.id = "example_llm"  # model.provider must match this ID
+        self.name = "Example LlamaIndex provider"
+        self.description = "Tutorial provider backed by LlamaIndex OpenAI classes."
+        self.type = [MODE_LLAMA_INDEX, "embeddings"]
 
-        # Define provider ID and modes handled by the provider:
+    def llama(
+        self,
+        window,
+        model: ModelItem,
+        stream: bool = False,
+    ) -> LlamaBaseLLM:
+        """Return the LlamaIndex LLM instance for the selected PyGPT model."""
 
-        self.id = "example_llm"  # <--- ID of the provider, must be unique in the app
-        self.type = ["langchain", "llama_index"]  # <--- List with modes handled by the provider
+        # `model.llama_index` contains the per-model ENV/kwargs edited in the
+        # Models Editor. Passing `window` lets BaseLLM expand config placeholders
+        # such as `{api_key}` inside string values.
+        args = self.parse_args(model.llama_index, window)
 
-        # You can handle Langchain and Chat with files (llama-index) modes in the same provider
-        # Methods defined in this class will be used for each use case.
+        # A provider should normally supply a model name when the user has not
+        # explicitly provided one in the advanced LlamaIndex kwargs.
+        args.setdefault("model", model.id)
 
-    def completion(self, window, model: ModelItem, stream: bool = False):
-        """
-        Return Langchain LLM provider instance for completion mode.
+        # Use the global key as a fallback for this OpenAI-backed tutorial.
+        # Provider-specific implementations should use their own config keys.
+        if "api_key" not in args:
+            args["api_key"] = window.core.config.get("api_key", "")
 
-        ========= DEPRECATED FROM v2.5.20 =========
+        # Current ModelItem supports per-model API credentials. If your backend
+        # can use them, non-empty custom values should have highest priority.
+        custom_api_key = (model.custom_api_key or "").strip()
+        custom_api_endpoint = (model.custom_api_endpoint or "").strip()
+        if custom_api_key:
+            args["api_key"] = custom_api_key
+        if custom_api_endpoint:
+            args["api_base"] = custom_api_endpoint
 
-        This method is used for Langchain mode when getting provider to handle completion.
-        It must return an instance of the Langchain LLM provider for completion mode.
-        Instance returned by this method must provide methods for completion mode:
+        # PyGPT centralizes proxy-aware sync/async httpx clients in BaseLLM.
+        # Use this helper for LlamaIndex providers that accept these arguments.
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
 
-            - `invoke(message)` - method for completion
-            - `stream(message)` - method for completion in stream mode
+        return LlamaOpenAI(**args)
 
-        See: `pygpt_net.core.chain.completion` for more details how it is handled internally.
-
-        In this example, the method returns OpenAI provider instance.
-        Keyword arguments for the Langchain provider are parsed from the model config instance and can be
-        configured in 'Models' settings dialog (or manually, in '%workdir%/models.json' config file).
-
-        :param window: window instance
-        :param model: model instance - current model
-        :param stream: stream mode - True if stream mode is enabled
-        :return: Langchain LLM provider instance
-        
-        print("Using example provider (completion)...")
-        print("Using model:", model.id)
-        print("Model config:", model)
-
-        # arguments parser is provided by BaseLLM class
-        args = self.parse_args(model.langchain)  # <--- config for Langchain is stored in `model.langchain` dict
-        print("Keyword arguments for the example provider:", args)
-
-        # return OpenAI provider instance
-        return OpenAI(**args)  # <--- pass all parsed args from model config to the provider
-        """
-        pass
-
-    def chat(self, window, model: ModelItem, stream: bool = False):
-        """
-        Return Langchain LLM provider instance for chat mode.
-
-        ========= DEPRECATED FROM v2.5.20 =========
-
-        This method is used for Langchain mode when getting provider to handle chat.
-        It must return an instance of the Langchain LLM provider for chat mode.
-        Instance returned by this method must provide methods for chat mode:
-
-            - `invoke(messages)` - method for chat
-            - `stream(messages)` - method for chat in stream mode
-
-        See: `pygpt_net.core.chain.chat` for more details how it is handled internally.
-
-        In this example, the method returns ChatOpenAI provider instance.
-        Keyword arguments for the Langchain provider are parsed from the model config instance and can be
-        configured in 'Models' settings dialog (or manually, in '%workdir%/models.json' config file).
-
-        :param window: window instance
-        :param model: model instance - current model
-        :param stream: stream mode - True if stream mode is enabled
-        :return: Langchain LLM provider instance
-        
-        print("Using example provider (chat)...")
-        print("Using model:", model.id)
-        print("Model config:", model)
-
-        # arguments parser is provided by BaseLLM class
-        args = self.parse_args(model.langchain)  # <--- config for Langchain is stored in `model.langchain` dict
-        print("Keyword arguments for the example provider:", args)
-
-        # return ChatOpenAI provider instance
-        return ChatOpenAI(**args)  # <--- pass all parsed args from model config to the provider
-        """
-        pass
-
-    def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
-        """
-        Return LlamaIndex LLM provider instance for 'Chat with Files' (llama_index) mode.
-
-        This method is used for Llama-Index mode when getting provider to handle chat with files.
-        It must return an instance of the Llama-Index LLM which will be used in service context.
-
-        See how it is handled internally for more details:
-            - `pygpt_net.core.idx.llm.get`
-            - `pygpt_net.core.idx.llm.get_service_context`
-
-        In this example, the method returns LlamaOpenAI provider instance.
-        Keyword arguments for the Llama-Index provider are parsed from the model config instance and can be
-        configured in 'Models' settings dialog (or manually, in '%workdir%/models.json' config file).
-
-        :param window: window instance
-        :param model: model instance - current model
-        :param stream: stream mode - True if stream mode is enabled
-        :return: LLM provider instance
-        """
-        print("Using example provider (llama-index)...")
-        print("Using model:", model.id)
-        print("Model config:", model)
-
-        # arguments parser is provided by BaseLLM class
-        args = self.parse_args(model.llama_index)  # <--- config for Llama-index is stored in `model.llama_index` dict
-        print("Keyword arguments for the example provider:", args)
-
-        # return OpenAI provider instance
-        return LlamaOpenAI(**args)  # <--- pass all parsed args from model config to the provider
-
-    def get_embeddings_model(self, window, config: list = None) -> BaseEmbedding:
-        """
-        Return provider instance for embeddings
-
-        This method is used to get provider instance for embeddings.
-        It must return an instance of the Embedding provider which will be used for embeddings in Llama-Index.
-
-        See how it is handled internally for more details:
-            - `pygpt_net.core.idx.llm.get_embeddings_provider`
-
-        In this example, the method returns OpenAIEmbedding provider instance.
-        Keyword arguments for the Embedding provider are parsed from the global config and can be
-        configured in 'Config -> Indexes (Llama-index) -> Embeddings -> Embeddings provider **kwargs' option.
-
-        :param window: window instance
-        :param config: config keyword arguments list
-        :return: Embedding provider instance
-        """
-        print("Using example embeddings provider (llama-index)...")
-        print("Using config:", config)
-
-        # arguments parser is provided by BaseLLM class
+    def get_embeddings_model(
+        self,
+        window,
+        config: Optional[List[Dict]] = None,
+    ) -> BaseEmbedding:
+        """Return an embedding model for this provider."""
         args = {}
-        if config is not None:
-            args = self.parse_args({  # <--- config for embeddings is passed as a list of keyword arguments from the global config
-                "args": config,
-            })
-        return OpenAIEmbedding(**args)  # <--- pass all parsed args from model config to the provider
+        if config:
+            args = self.parse_args({"args": config}, window)
+
+        # OpenAIEmbedding expects `model_name`; PyGPT configs often use `model`.
+        if "model" in args and "model_name" not in args:
+            args["model_name"] = args.pop("model")
+
+        args.setdefault("api_key", window.core.config.get("api_key", ""))
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        return OpenAIEmbedding(**args)
+
+    # Optional extension point:
+    # def get_models(self, window) -> List[Dict]:
+    #     """Return [{"id": "model-id", "name": "Display name"}, ...]
+    #     if you want the Models importer to query this provider dynamically.
+    #     """
+    #     return []

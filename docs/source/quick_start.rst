@@ -29,4 +29,9 @@ Here, you can add or manage API keys for any supported provider.
 - **Anthropic, Google, etc.:** Follow similar steps on their respective platforms.
 
 .. note::
-   The ability to use models or services depends on your access level with the respective provider. If you wish to use custom API endpoints or local APIs that do not require API keys, simply enter any value into the API key field to bypass prompts about an empty key.
+   The ability to use models or services depends on your access level with the respective provider.
+
+   For a local or other OpenAI-compatible model, you can configure credentials per model in
+   ``Config -> Models -> Edit -> Advanced`` using ``API base`` and ``API key``. This avoids having to
+   reuse the global OpenAI endpoint/key for that model. If a compatible server expects a placeholder
+   token even though it does not authenticate requests, set that placeholder only on the model.

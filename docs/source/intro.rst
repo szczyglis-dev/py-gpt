@@ -36,7 +36,7 @@ Features
 * Speech recognition via ``OpenAI Whisper``, ``Google`` and ``Microsoft Speech Recognition``.
 * Plugins support with built-in plugins like ``Files I/O``, ``Code Interpreter``, ``Web Search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
 * MCP support.
-* Real-time video camera capture in Vision mode.
+* Camera capture for real-time image analysis in Chat and other supported modes.
 * Image analysis via vision models.
 * Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 * Handles and stores the full context of conversations (short and long-term memory).
@@ -44,21 +44,20 @@ Features
 * Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
 * Custom commands creation and execution.
 * Crontab / Task scheduler included.
-* Built-in real-time Python Code Interpreter.
+* Built-in real-time Python Code Interpreter / IPython.
 * Manages files and attachments with options to upload, download, and organize.
 * Context history with the capability to revert to previous contexts (long-term memory).
 * Allows you to easily manage prompts with handy editable presets.
 * Provides an intuitive operation and interface.
 * Includes a notepad.
 * Includes simple painter / drawing tool.
-* Includes an node-based Agents Builder.
+* Includes a node-based Agents Builder.
 * Supports multiple languages.
 * Requires no previous knowledge of using AI models.
 * Fully configurable.
 * Themes support.
 * Real-time code syntax highlighting.
 * Built-in token usage calculation.
-* Possesses the potential to support future OpenAI models.
 * **Open source**; source code is available on ``GitHub``.
 * Utilizes the user's own API key.
 * and many more.

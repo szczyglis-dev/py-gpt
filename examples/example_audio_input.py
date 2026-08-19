@@ -1,72 +1,57 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 19:00:00                  #
+# PyGPT audio-input provider tutorial                #
+# Docs: https://pygpt.readthedocs.io/en/latest/      #
+# Updated: 2026-08-19                                #
 # ================================================== #
 
-from pygpt_net.provider.audio_input.base import BaseProvider  # <--- provider must inherit from BaseProvider
+from pygpt_net.provider.audio_input.base import BaseProvider
 
 
 class ExampleAudioInput(BaseProvider):
-    def __init__(self, *args, **kwargs):
-        """
-        Example audio input (OpenAI Whisper provider is used here as an example)
+    """Minimal speech-to-text provider using OpenAI transcription as an example.
 
-        :param args: args
-        :param kwargs: kwargs
-        """
-        super(ExampleAudioInput, self).__init__(*args, **kwargs)
-        self.plugin = kwargs.get("plugin")
-        self.id = "example_audio_input"
-        self.name = "Example input provider (Whisper)"
+    PyGPT attaches the Audio Input plugin to this provider during registration.
+    Provider-specific settings are then added by `init_options()`.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = "example_audio_input"  # must be unique
+        self.name = "Example audio input (OpenAI transcription)"
 
     def init_options(self):
-        """Initialize options for plugin tab"""
+        """Declare settings displayed under this provider's plugin tab."""
         self.plugin.add_option(
-            "whisper_model",
+            "example_model",
             type="text",
             value="whisper-1",
-            label="Example model",
-            tab="example_audio_input",  # tab ID == provider iID
-            description="Example description",
+            label="Transcription model",
+            tab=self.id,
+            description="Model sent to the transcription API, e.g. whisper-1.",
         )
 
     def transcribe(self, path: str) -> str:
-        """
-        Audio to text transcription
+        """Transcribe the audio file at `path` and return plain text.
 
-        This method must return transcription of the audio file generated in `path`
-
-        :param path: path to audio file to transcribe
-        :return: transcribed text
+        Do not hard-code the recording filename. PyGPT currently keeps its own
+        audio-input file under the workdir `tmp` directory, but a provider should
+        simply consume the path it receives.
         """
         client = self.plugin.window.core.api.openai.get_client()
         with open(path, "rb") as audio_file:
             return client.audio.transcriptions.create(
-                model=self.plugin.get_option_value('whisper_model'),
+                model=self.plugin.get_option_value("example_model"),
                 file=audio_file,
                 response_format="text",
             )
 
     def is_configured(self) -> bool:
-        """
-        Check if provider is configured
-
-        This method should check that all required config options are provided (API keys, etc.)
-
-        :return: True if configured, False otherwise
-        """
-        return True
+        """Return False when credentials required by this provider are missing."""
+        api_key = self.plugin.window.core.config.get("api_key")
+        return bool(api_key)
 
     def get_config_message(self) -> str:
-        """
-        Return message to display when provider is not configured (no API keys, etc.)
-
-        :return: message
-        """
-        return "You must define an API key in the plugin settings!"
+        """Message shown when `is_configured()` returns False."""
+        return "OpenAI API key is not configured. Set it in Config -> Settings -> API Keys."

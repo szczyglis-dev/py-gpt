@@ -2,7 +2,7 @@
   "__meta__": {
     "version": "2.8.4",
     "app.version": "2.8.4",
-    "updated_at": "2026-08-16T00:00:00"
+    "updated_at": "2026-08-19T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -483,7 +483,7 @@
   "security.commands.whitelist.windows": "dir, tree, type, more, find, findstr, where, echo, ver, hostname, whoami, ipconfig, systeminfo, tasklist, fc, sort",
   "security.computer.halt_insecure": true,
   "security.filesystem.read.restrict": true,
-  "security.filesystem.write.restrict": false,
+  "security.filesystem.write.restrict": true,
   "send_clear": true,
   "send_mode": 1,
   "store_history": true,

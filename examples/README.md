@@ -1,76 +1,82 @@
-# Code examples
+# PyGPT extension examples
 
-In this folder, you'll find files with sample code that you can use if you want to develop and add new plugins, tools, LLM wrappers, vector stores, or data loaders to **PyGPT**.
+This directory contains small, runnable examples showing the extension points exposed by the current PyGPT launcher and runtime.
 
-There are example files here that can serve as tutorial and starting points for creating your own extensions:
+The examples are intentionally simple. They are meant to be copied, renamed, and adapted rather than used as production implementations unchanged.
 
-- `custom_launcher.py` - custom application launcher
+Full documentation: https://pygpt.readthedocs.io/en/latest/
 
-- `example_audio_input.py`  - example audio input provider (voice recognition)
+## What is included
 
-- `example_audio_output.py`  - example audio output provider (speech synthesis)
+- `custom_launcher.py` - registers all custom extension types and starts PyGPT.
+- `example_plugin.py` - plugin options, events, commands/tools, and command replies.
+- `example_tool.py` - a custom GUI tool with a Tools-menu action and dialog.
+- `example_agent.py` - a custom agent provider based on the built-in OpenAI Agents implementation.
+- `example_llm.py` - a LlamaIndex LLM + embeddings wrapper.
+- `example_vector_store.py` - a LlamaIndex vector-store provider.
+- `example_data_loader.py` - a file data loader and custom `BaseReader`.
+- `example_audio_input.py` - speech-to-text provider.
+- `example_audio_output.py` - text-to-speech provider using PyGPT's temporary audio-output helper.
+- `example_web_search.py` - web search-engine provider.
 
-- `example_data_loader.py`  - example data loader for LlamaIndex
+## How registration works
 
-- `example_llm.py`  - example LLM wrapper for LangChain and LlamaIndex
+`pygpt_net.app.run()` first registers PyGPT's built-in providers, plugins, tools, and agents. It then appends the lists supplied by a custom launcher:
 
-- `example_plugin.py`  - example plugin
+- `plugins=[...]`
+- `llms=[...]`
+- `vector_stores=[...]`
+- `loaders=[...]`
+- `audio_input=[...]`
+- `audio_output=[...]`
+- `web=[...]`
+- `agents=[...]`
+- `tools=[...]`
 
-- `example_vector_store.py`  - example vector store provider for LlamaIndex
+During application initialization PyGPT attaches the main `window` or owning plugin to registered objects. Do not assume these references are available while your extension object's `__init__()` is still running unless the base class explicitly provides them.
 
-- `example_web_search.py`  - example web search engine
+Every extension ID must be unique. Reusing a built-in ID may replace or shadow a built-in provider in the corresponding registry.
 
-- `example_tool.py`  - example tool
+## Running the examples
 
-## More examples
+From an installed package:
 
-To see more examples, look through the files that make up the application:
+```bash
+python3 examples/custom_launcher.py
+```
 
-**Audio input providers:**
+When running directly from the source tree without installing `pygpt-net`, uncomment the `sys.path` block at the top of `custom_launcher.py`.
 
-`pygpt_net.provider.audio_input.*`
+## Important distinctions
 
-in: `./src/pygpt_net/provider/audio_input/`
+### LLM wrappers vs. native Chat providers
 
-**Audio output providers:**
+The `llms=` extension point is used by PyGPT's LlamaIndex integration (Chat with Files / LlamaIndex agents) and embeddings. Normal Chat mode uses the configured API provider or an OpenAI-compatible endpoint directly.
 
-`pygpt_net.provider.audio_output.*`
+For OpenAI-compatible/local models, per-model `API base` and `API key` can be configured in the Models Editor. These values are stored in `ModelItem.custom_api_endpoint` and `ModelItem.custom_api_key`; a custom LLM wrapper should explicitly honor them if that is appropriate for its backend.
 
-in: `./src/pygpt_net/provider/audio_output/`
+### Plugins vs. Tools
 
-**Data loaders:**
+A **plugin** participates in model/application events and can expose callable commands to models.
 
-`pygpt_net.provider.loaders.*`
+A **tool** is primarily an application/UI component registered in the Tools subsystem. A tool can provide menu actions, dialogs, tabs, lifecycle hooks, and event handling, but it is not automatically a callable model command.
 
-in: `./src/pygpt_net/provider/loaders/`
+### Temporary files
 
-**LLM wrappers:**
+Application-managed temporary files belong under the workdir `tmp` directory. For audio output, use `BaseProvider.prepare_output_path()` instead of reusing a fixed output filename. This avoids clutter and file-lock problems.
 
-`pygpt_net.provider.llms.*`
+## Source code as reference
 
-in: `./src/pygpt_net/provider/llms/`
+The most useful built-in implementations live under:
 
-**Plugins:**
+- `pygpt_net.plugin.*`
+- `pygpt_net.tools.*`
+- `pygpt_net.provider.llms.*`
+- `pygpt_net.provider.vector_stores.*`
+- `pygpt_net.provider.loaders.*`
+- `pygpt_net.provider.audio_input.*`
+- `pygpt_net.provider.audio_output.*`
+- `pygpt_net.provider.web.*`
+- `pygpt_net.provider.agents.*`
 
-`pygpt_net.plugin.*`
-
-in: `./src/pygpt_net/plugin/`
-
-**Vector store providers:**
-
-`pygpt_net.provider.vector_stores.*`
-
-in: `./src/pygpt_net/provider/vector_stores/`
-
-**Web search engines:**
-
-`pygpt_net.provider.web.*`
-
-in: `./src/pygpt_net/provider/web/`
-
-**Tools:**
-
-`pygpt_net.tools.*`
-
-in: `./src/pygpt_net/tools/`
-
+The base interfaces are the source of truth for required method signatures.

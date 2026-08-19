@@ -29,11 +29,11 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``OpenGL hardware acceleration``: WebEngine / Chromium rendering engine only. Default: True.
 
-* ``Use proxy``: Enable this option to use a proxy for connections to APIs. Default: True.
+* ``Use proxy``: Enable this option to use a proxy for connections to APIs. Default: False.
 
 * ``Proxy address``: Optional proxy for API SDKs, e.g. http://proxy.example.com or socks5://user:pass@host:port.
 
-* ``Memory Limit``: Renderer memory limit; set to 0 to disable. If > 0, the app will try to free memory after the limit is reached. Accepted formats: 3.5GB, 2GB, 2048MB, 1_000_000. Minimum: 2GB. Default: 2GB.
+* ``Memory Limit``: Renderer memory limit; set to 0 to disable. If > 0, the app will try to free memory after the limit is reached. Accepted formats: 3.5GB, 2GB, 2048MB, 1_000_000. Minimum: 2GB. Default: 2.5GB.
 
 **API Keys**
 
@@ -47,7 +47,7 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Use Responses API in Chat mode``: Use Responses API instead of ChatCompletions API in Chat mode. Default: True.
 
-* ``Use Responses API in Chat with Files mode (LlamaIndex)``: Use Responses API instead of ChatCompletions API in Chat with Files mode (LlamaIndex). OpenAI models only. Default: False.
+* ``Use Responses API in Chat with Files mode (LlamaIndex)``: Use Responses API instead of ChatCompletions API in Chat with Files mode (LlamaIndex). OpenAI models only. Default: True.
 
 *Google*
 
@@ -57,7 +57,7 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Use native API SDK``: Use native GenAI SDK instead of compatible OpenAI client. Default: True.
 
-* ``Use VertexAI``: Enable to use VertexAI in Google GenAI SDK. Default: True.
+* ``Use VertexAI``: Enable to use VertexAI in Google GenAI SDK. Default: False.
 
 * ``Google Cloud project``: Provide your Google Cloud project name.
 
@@ -141,15 +141,15 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Chat output window zoom``: WebEngine / Chromium rendering engine only. Default: 1.0.
 
-* ``Font size (chat plain-text, notepads)``: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 12.
+* ``Font size (chat plain-text, notepads)``: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 16.
 
-* ``Font size (input)``: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 12.
+* ``Font size (input)``: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 16.
 
 * ``Font size (ctx list)``: Adjusts the font size in the contexts list. Default: 12.
 
 * ``Font size (toolbox)``: Adjusts the font size in the toolbox on the right. Default: 12.
 
-* ``Layout density``: Adjusts the density of layout elements. Default: 0.
+* ``Layout density``: Adjusts the density of layout elements. Default: -1.
 
 * ``DPI factor``: Restart of the application is required for this option to take effect. Default: 1.0.
 
@@ -167,13 +167,13 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Disable syntax highlight``: Disables syntax highlighting in code blocks. Default: False.
 
-* ``Highlight every N line (real-time)``: Syntax highlight: highlight every N line in stream. Default: 50.
+* ``Highlight every N line (real-time)``: Syntax highlight: highlight every N line in stream. Default: 5.
 
-* ``Highlight every N chars (real-time)``: Syntax highlight: highlight every N chars in stream. Default: 300.
+* ``Highlight every N chars (real-time)``: Syntax highlight: highlight every N chars in stream. Default: 1000.
 
-* ``Max lines to highlight (real-time)``: Syntax highlight: max lines to highlight in stream, 0 to disable. Default: 300.
+* ``Max lines to highlight (real-time)``: Syntax highlight: max lines to highlight in stream, 0 to disable. Default: 100.
 
-* ``Max lines to highlight (static)``: Syntax highlight: max lines to highlight in static content, 0 to disable. Default: 1500.
+* ``Max lines to highlight (static)``: Syntax highlight: max lines to highlight in static content, 0 to disable. Default: 3000.
 
 * ``Max chars to highlight (static)``: Syntax highlight: max chars to highlight in static content, 0 to disable. Default: 350000.
 
@@ -187,7 +187,7 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Append attachment only once (mode: always)``: If enabled, the sent attachment will be appended once to the sending message, rather than appended every time to the input prompt as additional context. Force mode - affects all models. Default: False.
 
-* ``Append attachment only once (mode: only if available, auto-detect)``: If enabled, the sent attachment will be appended once to the sending message, if the selected model and API handle the storage of sent messages on the server side. This may optimize token usage by sending attachments only once. Default: False.
+* ``Append attachment only once (mode: only if available, auto-detect)``: If enabled, the sent attachment will be appended once to the sending message, if the selected model and API handle the storage of sent messages on the server side. This may optimize token usage by sending attachments only once. Default: True.
 
 * ``Model for attachment content summary``: Model to use when generating a summary for the content of a file when the Summary option is selected. Default: gpt-4o-mini.
 
@@ -195,7 +195,7 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Use history in RAG query``: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary. Default: True.
 
-* ``RAG limit``: Only if the option 'Use history in RAG query' is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit. Default: 5.
+* ``RAG limit``: Only if the option 'Use history in RAG query' is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit. Default: 3.
 
 * ``Directory for file downloads``: Subdirectory for downloaded files, e.g. in Assistants mode, inside "data". Default: download.
 
@@ -207,7 +207,7 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Context auto-summary``: Enable automatic summarization of the context on the conversation list on the left. Default: True.
 
-* ``Show context groups on top of the context list``: Displays context groups at the top of the context list. Default: False.
+* ``Show context groups on top of the context list``: Displays context groups at the top of the context list. Default: True.
 
 * ``Show date separators on the context list``: Shows date separators on the context list. Default: True.
 
@@ -223,7 +223,7 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Lock incompatible modes``: Creates a new context when switching to an incompatible mode within an existing context. Default: True.
 
-* ``Search also in conversation content, not only in titles``: Enable search also in context items' content. Default: False.
+* ``Search also in conversation content, not only in titles``: Enable search also in context items' content. Default: True.
 
 * ``Show LlamaIndex sources``: If enabled, sources used will be displayed in the response (if available, it will not work in streamed chat). Default: True.
 
@@ -235,7 +235,7 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Use extra context output``: If enabled, plain text output (if available) from command results will be displayed alongside the JSON output. Default: True.
 
-* ``Open URLs in built-in browser``: Enable this option to open all URLs in the built-in browser (Chromium) instead of an external browser. Default: True.
+* ``Open URLs in built-in browser``: Enable this option to open all URLs in the built-in browser (Chromium) instead of an external browser. Default: False.
 
 **Remote tools**
 
@@ -245,15 +245,15 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Web Search``: Enable Web Search remote tool - Responses API only. Default: True.
 
-* ``Image generation``: Enable Image generation remote tool - Responses API only. Default: True.
+* ``Image generation``: Enable Image generation remote tool - Responses API only. Default: False.
 
-* ``Code Interpreter``: Enable Code Interpreter remote tool - Responses API only. Default: True.
+* ``Code Interpreter``: Enable Code Interpreter remote tool - Responses API only. Default: False.
 
-* ``Remote MCP``: Enable MCP remote tool - Responses API only. Default: True.
+* ``Remote MCP``: Enable MCP remote tool - Responses API only. Default: False.
 
 * ``Remote MCP configuration``: Configuration in JSON format (will be used in request).
 
-* ``File search``: Enable File Search remote tool - Responses API only. Default: True.
+* ``File search``: Enable File Search remote tool - Responses API only. Default: False.
 
 * ``File search vector store IDs``: Vector store IDs, separated by comma (,).
 
@@ -261,13 +261,13 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Web Search``: Enable Web Search remote tool. Default: True.
 
-* ``Google Maps``: Enable Google Maps remote tool. Default: True.
+* ``Google Maps``: Enable Google Maps remote tool. Default: False.
 
-* ``Code Interpreter``: Enable Code Interpreter remote tool. Default: True.
+* ``Code Interpreter``: Enable Code Interpreter remote tool. Default: False.
 
-* ``URL Context``: Enable URL Context remote tool. Default: True.
+* ``URL Context``: Enable URL Context remote tool. Default: False.
 
-* ``File search``: Enable File Search remote tool - Responses API only. Default: True.
+* ``File search``: Enable File Search remote tool - Responses API only. Default: False.
 
 * ``File search vector store IDs``: Vector store IDs, separated by comma (,).
 
@@ -275,11 +275,11 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Web Search``: Enable Web Search remote tool. Default: True.
 
-* ``Web Fetch``: Enable Web Fetch remote tool. Default: True.
+* ``Web Fetch``: Enable Web Fetch remote tool. Default: False.
 
-* ``Code Execution``: Enable Code Execution remote tool. Default: True.
+* ``Code Execution``: Enable Code Execution remote tool. Default: False.
 
-* ``Remote MCP``: Enable MCP remote tool/connector. Default: True.
+* ``Remote MCP``: Enable MCP remote tool/connector. Default: False.
 
 * ``Remote MCP configuration (tools)``: Configuration in JSON format (will be used in request).
 
@@ -289,15 +289,15 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Web Search``: Enable Web Search remote tool. Default: True.
 
-* ``X Search``: Enable X Search remote tool. Default: True.
+* ``X Search``: Enable X Search remote tool. Default: False.
 
-* ``Code Execution``: Enable Code Execution remote tool. Default: True.
+* ``Code Execution``: Enable Code Execution remote tool. Default: False.
 
-* ``Remote MCP``: Enable MCP remote tool - Responses API only. Default: True.
+* ``Remote MCP``: Enable MCP remote tool - Responses API only. Default: False.
 
 * ``Remote MCP configuration``: Configuration in JSON format (will be used in request).
 
-* ``Collections Search``: Enable Collections Search remote tool. Default: True.
+* ``Collections Search``: Enable Collections Search remote tool. Default: False.
 
 * ``Collection IDs``: Collection IDs, separated by comma (,) NOTE: Management API key is required for managing collections in Remote vector stores tool.
 
@@ -309,11 +309,11 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``RPM limit``: Specify the limit of maximum requests per minute (RPM), 0 = no limit. Default: 60.
 
-* ``Context threshold``: Tokens reserved for responses. Default: 80.
+* ``Context threshold``: Tokens reserved for responses. Default: 200.
 
-* ``Temperature``: Controls response randomness; lower values are more deterministic and higher values are more varied. Default: 0.0.
+* ``Temperature``: Controls response randomness; lower values are more deterministic and higher values are more varied. Default: 1.0.
 
-* ``Top-p``: Controls response diversity using nucleus sampling. Default: 0.0.
+* ``Top-p``: Controls response diversity using nucleus sampling. Default: 1.0.
 
 * ``Frequency Penalty``: Decreases the likelihood of repetition in the model's responses. Default: 0.0.
 
@@ -387,17 +387,17 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Capture height (in pixels)``: Sets the camera capture height in pixels. Default: 720.
 
-* ``Capture quality (%)``: Sets JPEG quality for captured camera images, in percent. Default: 85.
+* ``Capture quality (%)``: Sets JPEG quality for captured camera images, in percent. Default: 95.
 
 **Audio**
 
 *Devices*
 
-* ``Audio Input Backend``: Select the audio input backend. Default: 0.
+* ``Audio Input Backend``: Select the audio input backend. Default: native.
 
 * ``Audio Input Device``: Select the audio device for Microphone input. Default: 0.
 
-* ``Audio Output Backend``: Select the audio output backend. Default: 0.
+* ``Audio Output Backend``: Select the audio output backend. Default: native.
 
 * ``Audio Output Device``: Select the audio device for audio output. Default: 0.
 
@@ -439,9 +439,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 *Chat*
 
-* ``Chat mode``: Check LlamaIndex documentation for help. Default: default.
+* ``Chat mode``: Check LlamaIndex documentation for help. Default: context.
 
-* ``Use ReAct agent for tool calls in Chat with Files mode.``: If enabled, the ReAct agent will be used if the option "+Tools" is enabled. Default: True.
+* ``Use ReAct agent for tool calls in Chat with Files mode.``: If enabled, the ReAct agent will be used if the option "+Tools" is enabled. Default: False.
 
 * ``Auto-retrieve additional context``: If enabled, additional context will be retrieved with every query and appended to system prompt. Default: True.
 
@@ -459,7 +459,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 *Indexing*
 
-* ``Recursive directory indexing``: Enables recursive directory indexing. Default: False.
+* ``Recursive directory indexing``: Enables recursive directory indexing. Default: True.
 
 * ``Replace old document versions in the index during re-indexing``: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed. Default: True.
 
@@ -477,7 +477,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Additional keyword arguments (**kwargs) for data loaders``: Additional keyword arguments (**kwargs), such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the PyGPT documentation or LlamaHub loaders reference for a list of allowed arguments for the specified data loader. One argument per single row.
 
-* ``Use local models in Video/Audio and Image (vision) loaders``: Enable usage of local models in Video/Audio and Image (vision) loaders. If disabled, then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in the Python version (not compiled/Snap). Default: False.
+* ``Use local models in Video/Audio and Image (vision) loaders``: Enable usage of local models in Video/Audio and Image (vision) loaders. If disabled, the Image (vision) loader uses the image model configured in the ``Chat with Files (LlamaIndex, inline)`` plugin, while Video/Audio transcription uses the speech-recognition provider configured in the ``Audio Input`` plugin. Local models work only in the Python version (not compiled/Snap). Default: False.
 
 *Update*
 
@@ -491,9 +491,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 *Agents*
 
-* ``Max steps (per iteration)``: Max steps in one iteration before goal achieved. Default: 5.
+* ``Max steps (per iteration)``: Max steps in one iteration before goal achieved. Default: 10.
 
-* ``Max evaluation steps in loop``: Set the maximum evaluation steps to achieve the final result, 0 = infinity. Default: 5.
+* ``Max evaluation steps in loop``: Set the maximum evaluation steps to achieve the final result, 0 = infinity. Default: 3.
 
 * ``Model for evaluation``: Model used for evaluation with score/percentage (loop). If not selected, then current active model will be used.
 
@@ -503,11 +503,11 @@ Remote tools are available only when supported by the selected provider/API mode
 
 *General*
 
-* ``Auto retrieve additional context from RAG``: Auto retrieve additional context from RAG at the beginning if the index is provided. Default: True.
+* ``Auto retrieve additional context from RAG``: Auto retrieve additional context from RAG at the beginning if the index is provided. Default: False.
 
 * ``Display full agent output in chat view``: If enabled, then full output from agent will be displayed in chat window if agent is enabled. Default: True.
 
-* ``Display a tray notification when the goal is achieved.``: Displays a tray notification when an agent finishes or achieves its goal. Default: True.
+* ``Display a tray notification when the goal is achieved.``: Displays a tray notification when an agent finishes or achieves its goal. Default: False.
 
 *Autonomous*
 
@@ -517,7 +517,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Use native API function calls``: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts will not be used. Autonomous agent mode only. Default: False.
 
-* ``Use Responses API in Agent mode``: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: True.
+* ``Use Responses API in Agent mode``: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: False.
 
 *Experts*
 
@@ -527,19 +527,19 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Use native API function calls``: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts will not be used. Experts only. Default: False.
 
-* ``Use Responses API in Experts mode (master)``: Use Responses API instead of ChatCompletions API in Experts (master model). OpenAI models only. Default: True.
+* ``Use Responses API in Experts mode (master)``: Use Responses API instead of ChatCompletions API in Experts (master model). OpenAI models only. Default: False.
 
-* ``Use Responses API in Experts (slaves)``: Use Responses API instead of ChatCompletions API for Expert instances (slave models). OpenAI models only. Default: True.
+* ``Use Responses API in Experts (slaves)``: Use Responses API instead of ChatCompletions API for Expert instances (slave models). OpenAI models only. Default: False.
 
 **Accessibility**
 
 * ``Enable voice control (using microphone)``: Enables voice control using the microphone and configured voice commands. Default: False.
 
-* ``Model``: Model to use for command recognition in voice control. Default: gpt-3.5-turbo.
+* ``Model``: Model to use for command recognition in voice control. Default: gpt-4o-mini.
 
 * ``Use voice synthesis to describe events on the screen.``: Uses speech synthesis to describe application events shown on screen. Default: False.
 
-* ``Audio notify voice command execution``: Plays an audio notification when a recognized voice command is executed. Default: False.
+* ``Audio notify voice command execution``: Plays an audio notification when a recognized voice command is executed. Default: True.
 
 * ``Use audio output cache``: If enabled, all static audio outputs will be cached on the disk instead of being generated every time. Default: True.
 
@@ -555,9 +555,9 @@ Security settings control host-side filesystem access, system commands used by p
 
 *General*
 
-* ``Restrict plugin file reads to working directory``: When enabled, plugin-mediated reads of local files are limited to the current working data directory (the app workdir ``data`` directory, shown as the actual path in the Settings window). Default: True.
+* ``Restrict plugin file reads to working directory``: When enabled, plugin-mediated reads of local files are limited to the current workdir ``data`` directory. The application-owned internal ``tmp`` directory is also allowed so built-in temporary workflows such as IPython and Canvas can operate. Default: True.
 
-* ``Restrict plugin file writes to working directory``: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current working data directory. Default: True.
+* ``Restrict plugin file writes to working directory``: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current workdir ``data`` directory (plus the application-owned internal ``tmp`` directory). Default: False.
 
 * ``Enable system commands whitelist``: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
 
@@ -601,7 +601,7 @@ If access is blocked, the plugin returns a ``Permission denied`` result that poi
 
 * ``Log plugin usage to console``: Enables plugin usage logging in the console. Default: False.
 
-* ``Log DALL-E usage to console``: Enables image-generation usage logging in the console. Default: False.
+* ``Log image and video generation to console``: Enables image/video-generation usage logging in the console. Default: False.
 
 * ``Log attachments usage to console``: Enables attachment usage logging in the console. Default: False.
 
@@ -642,11 +642,12 @@ You can manually edit the configuration files in this directory (this is your wo
 * ``css`` - a directory for CSS stylesheets (user override)
 * ``history`` - a directory for context history in ``.txt`` format.
 * ``idx`` - ``LlamaIndex`` indexes
-* ``img`` - a directory for images generated with ``DALL-E 3`` and ``DALL-E 2``, saved as ``.png`` files.
+* ``img`` - a directory for generated images saved by the application.
 * ``locale`` - a directory for locales (user override)
 * ``data`` - a directory for data files and files downloaded/generated by models.
 * ``presets`` - a directory for presets stored as ``.json`` files.
 * ``upload`` - a directory for local copies of attachments coming from outside the workdir
+* ``tmp`` - application-managed temporary files (for example audio input, Canvas, Code Interpreter/IPython and Transcript working files); this is not the user-facing model output directory.
 * ``db.sqlite`` - a database with contexts, notepads and indexes data records
 * ``app.log`` - a file with error and debug log
 
@@ -740,7 +741,7 @@ Files loaders: https://github.com/run-llama/llama_index/tree/main/llama-index-in
 Web loaders: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-web
 
 .. tip::
-   To index an external data or data from the Web just ask for it, by using ``Web Search`` plugin, e.g. you can ask the model with ``Please index the youtube video: URL to video``, etc. Data loader for a specified content will be choosen automatically.
+   To index an external data or data from the Web just ask for it, by using ``Web Search`` plugin, e.g. you can ask the model with ``Please index the youtube video: URL to video``, etc. The data loader for the specified content will be chosen automatically.
 
 Allowed additional keyword arguments for built-in data loaders (files):
 
@@ -757,19 +758,24 @@ Allowed additional keyword arguments for built-in data loaders (files):
 **Image (vision)**  (file_image_vision)
 
 This loader can operate in two modes: local model and API.
-If the local mode is enabled, then the local model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
-If the API mode (default) is selected, then the OpenAI API and the standard vision model will be used. 
+
+If local mode is enabled, a local vision model is used. Local mode requires the Python/PyPi version of
+the application and is not available in compiled or Snap versions.
+
+If API mode (default) is selected, the loader uses the image model configured in
+``Plugins -> Settings -> Chat with Files (LlamaIndex, inline) -> Image model`` (default: ``gpt-4o``).
 
 .. note::
-   Usage of API mode consumes additional tokens in OpenAI API (for ``GPT-4 Vision`` model)!
+   API mode sends the image to the configured API model and may incur provider/API usage costs.
 
-Local mode requires ``torch``, ``transformers``, ``sentencepiece`` and ``Pillow`` to be installed and uses the ``Salesforce/blip2-opt-2.7b`` model to describing images.
+Local mode requires ``torch``, ``transformers``, ``sentencepiece`` and ``Pillow`` and uses
+``Salesforce/blip2-opt-2.7b`` to describe images.
 
 * ``keep_image`` - bool, default: ``False``
 * ``local_prompt`` - str, default: ``Question: describe what you see in this image. Answer:``
-* ``api_prompt`` - str, default: ``Describe what you see in this image`` - Prompt to use in API
-* ``api_model`` - str, default: ``gpt-4-vision-preview`` - Model to use in API
-* ``api_tokens`` - int, default: ``1000`` - Max output tokens in API
+* ``api_prompt`` - str, default: ``Describe what is visible in the image, do it as accurately as possible, including a comprehensive description of all details`` - Prompt used in API mode
+* ``api_model`` - str, default: ``gpt-4o`` - Fallback API model; inside PyGPT this is set from the plugin's ``Image model`` option
+* ``api_tokens`` - int, default: ``1000`` - Max output tokens in API mode
 
 **IPYNB Notebook files** (file_ipynb)
 
@@ -787,15 +793,21 @@ Local mode requires ``torch``, ``transformers``, ``sentencepiece`` and ``Pillow`
 
 **Video/Audio**  (file_video_audio)
 
-This loader can operate in two modes: local model and API.
-If the local mode is enabled, then the local ``Whisper`` model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
-If the API mode (default) is selected, then the currently selected provider in ``Audio Input`` plugin will be used. If the ``OpenAI Whisper`` is chosen then the OpenAI API and the API Whisper model will be used. 
+This loader can operate in two modes: local model and provider-based transcription.
 
-**Note:** Usage of Whisper via API consumes additional tokens in OpenAI API (for ``Whisper`` model)!
+If local mode is enabled, the local ``Whisper`` model is used. Local mode requires the Python/PyPi
+version of the application and is not available in compiled or Snap versions.
 
-Local mode requires ``torch`` and ``openai-whisper`` to be installed and uses the ``Whisper`` model locally to transcribing video and audio.
+If local mode is disabled (default), transcription is delegated to the provider currently configured in
+the ``Audio Input`` plugin. For example, when ``Whisper (via OpenAI API)`` is selected there, the loader
+uses that provider and its configured model.
 
-* ``model_version`` - str, default: ``base`` - Whisper model to use, available models: https://github.com/openai/whisper
+.. note::
+   Provider-based transcription may incur API usage costs depending on the selected ``Audio Input`` provider.
+
+Local mode requires ``torch`` and ``openai-whisper`` and uses the local Whisper model.
+
+* ``model_version`` - str, default: ``base`` - Local Whisper model to use; available models: https://github.com/openai/whisper
 
 **XML files** (file_xml)
 
@@ -902,12 +914,12 @@ Vector stores
 
 * ChromaVectorStore
 * ElasticsearchStore
-* PinecodeVectorStore
+* PineconeVectorStore
 * QdrantVectorStore
 * RedisVectorStore
 * SimpleVectorStore
 
-You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> LlamaIndex`` window. 
+You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / LlamaIndex`` window. 
 
 Arguments provided here (on list: ``Vector Store (**kwargs)`` in ``Advanced settings`` will be passed to selected vector store provider. You can check keyword arguments needed by selected provider on LlamaIndex API reference page: 
 
@@ -926,7 +938,7 @@ Keyword arguments for ElasticsearchStore(``**kwargs``):
 * any other keyword arguments provided on list
 
 
-**PinecodeVectorStore**
+**PineconeVectorStore**
 
 Keyword arguments for Pinecone(``**kwargs``):
 

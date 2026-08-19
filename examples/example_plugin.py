@@ -1,250 +1,133 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# PyGPT plugin tutorial                              #
+# Docs: https://pygpt.readthedocs.io/en/latest/      #
+# Updated: 2026-08-19                                #
 # ================================================== #
 
-from pygpt_net.plugin.base.plugin import BasePlugin  # <-- every plugin must inherit from BasePlugin
-from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.events import Event
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.plugin.base.plugin import BasePlugin
 
 
 class Plugin(BasePlugin):
+    """Small plugin demonstrating options, events and a callable model command."""
+
     def __init__(self, *args, **kwargs):
-        super(Plugin, self).__init__(*args, **kwargs)
-        self.id = "example_plugin"  # unique plugin id
+        super().__init__(*args, **kwargs)
+        self.id = "example_plugin"  # must be unique
         self.name = "Example Plugin"
-        self.description = "Example description"
-        self.allowed_cmds = [
-            "funny_cmd",  # list of allowed commands to be handled by this plugin
-        ]
-        self.init_options()  # initialize plugin options
+        self.description = "Tutorial plugin showing the current PyGPT plugin API."
+        self.prefix = "Example"
+        self.allowed_cmds = ["funny_cmd"]
+        self.init_options()
 
     def init_options(self):
-        """
-        Initialize options
+        """Declare plugin settings and callable commands.
 
-        See other plugins from `pygpt_net.plugin` for more examples of how to define options with different types.
-
-        You can define options here, for example:
+        `add_option()` controls the plugin settings UI. `add_cmd()` is the current
+        helper for declaring model-callable commands; do not manually recreate
+        the command schema unless you need custom behavior.
         """
         self.add_option(
-            "example_text_option",  # option name (key)
-            type="text",  # option type (text, textarea, bool, int, float, dict, combo)
-            value="Hello world",  # default value
-            label="Example text option",  # option label
-            description="Example description #1",  # option description
-            tooltip="Example tooltip #1",  # option tooltip
+            "append_footer",
+            type="bool",
+            value=False,
+            label="Append example footer",
+            description="Append a short instruction to the final system prompt.",
         )
         self.add_option(
-            "example_bool_option",  # option name (key)
-            type="bool",  # option type (text, textarea, bool, int, float, dict, combo)
-            value=True,  # default value
-            label="Example boolean option",  # option label
-            description="Example description #2",  # option description
-            tooltip="Example tooltip #2",  # option tooltip
+            "footer_text",
+            type="text",
+            value="End the response with: [example plugin enabled]",
+            label="Footer instruction",
+            description="Instruction appended when the example footer option is enabled.",
+            advanced=True,
+        )
+
+        self.add_cmd(
+            "funny_cmd",
+            instruction="return an example funny response for the provided query",
+            params=[
+                {
+                    "name": "query",
+                    "type": "str",
+                    "description": "topic or query to include in the example response",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable the example funny_cmd tool.",
         )
 
     def handle(self, event: Event, *args, **kwargs):
+        """Receive application/model events dispatched to enabled plugins.
+
+        The complete current event list is defined by
+        `pygpt_net.core.events.Event`. Keeping the list in one source file avoids
+        stale copies of event names in extension examples.
         """
-        Handle dispatched event here
+        name = event.name
+        data = event.data
+        ctx = event.ctx
 
-        This method is called externally by Event dispatcher every time when the event is dispatched.
+        # POST_PROMPT_END is useful when you want to alter the final prepared
+        # system prompt just before the request leaves the app.
+        if name == Event.POST_PROMPT_END:
+            if self.get_option_value("append_footer"):
+                data["value"] = self.append_footer(data.get("value", ""))
 
-        :param event: event object
-        :param args: event args
-        :param kwargs: event kwargs
-        """
-        name = event.name  # event name (str), e.g. Event.SYSTEM_PROMPT
-        data = event.data  # event data (dict) - additional data, e.g. {'value': 'Some value here'}
-        ctx = event.ctx  # event context (CtxItem) - current context item (input/output)
+        # Normal CMD_* events require +Tools. The INLINE variants are available
+        # to plugins that intentionally expose commands without that switch.
+        elif name in (Event.CMD_SYNTAX, Event.CMD_SYNTAX_INLINE):
+            self.cmd_syntax(data)
 
-        # Tip:
-        # Set the Log level (in Settings / Developer) to DEBUG to enable logging of debug data from all events
-        # to the console and to the %workdir%/app.log file.
+        elif name in (Event.CMD_EXECUTE, Event.CMD_INLINE):
+            self.cmd(ctx, data.get("commands", []))
 
-        # HANDLING EVENTS: you can handle all the events here, for example:
+        # Any handler can stop propagation to later listeners if necessary:
+        # event.stop = True
 
-        # 1) event called when system prompt is prepared
-        if name == Event.SYSTEM_PROMPT:
-            # Tip:
-            # When the system prompt tokens are recalculated due to an input change (for example, while typing),
-            # this event is triggered multiple times. The silent parameter is provided in this event to avoid multiple
-            # executions of the same code. Here, we are preventing from generating lots of logs when typing.
-            if "silent" not in data or not data["silent"]:
-                print("Handling example SYSTEM_PROMPT event...")
-                self.log("Handling example SYSTEM_PROMPT event...")  # use self.log() to log messages
-            else:
-                # event called in silent mode, tokens calculation here, do not handle the event
-                pass
-
-            # example of handling plugin options: let's modify the system prompt, based on the plugin option value
-            if self.get_option_value("example_bool_option"):  # bool
-                # modify the system prompt only if the option is enabled
-                data['value'] = self.on_system_prompt(data['value'])
-
-        # 2) event called when command syntax is prepared (before input is sent to the model)
-        elif name == Event.CMD_SYNTAX:
-            # Event.CMD_SYNTAX_INLINE is also available and do not require "+ Tools" to be enabled
-            print("Handling example CMD_SYNTAX event...")
-            self.cmd_syntax(data)  # list of syntax items is available in data['syntax']
-
-        # 3) event called when commands are executed (after model output is received)
-        elif name == Event.CMD_EXECUTE:
-            # Event.CMD_INLINE is also available and do not require "+ Tools" to be enabled
-            print("Handling example CMD_EXECUTE event...")
-            self.cmd(ctx, data['commands'])  # list of commands is available in data['commands']
-
-        # etc...
-        # See the plugins in `pygpt_net.plugin` for a more examples of how to handle rest of events.
-
-        """
-        All available events are defined in 'pygpt_net.core.dispatcher.Event' class:
-
-        Syntax: `event name` - triggered on, `event data` (data type):
-
-        AI_NAME = "ai.name" - when preparing an AI name, `data['value']` (string, name of the AI assistant)
-        AUDIO_INPUT_STOP = "audio.input.stop" - force stop audio input
-        AUDIO_INPUT_TOGGLE = "audio.input.toggle" - when speech input is enabled or disabled, `data['value']` 
-                             (bool, True/False)
-        AUDIO_OUTPUT_STOP = "audio.output.stop" - force stop audio output
-        AUDIO_OUTPUT_TOGGLE = "audio.output.toggle" - when speech output is enabled or disabled, `data['value']` 
-                             (bool, True/False)
-        AUDIO_READ_TEXT = "audio.read_text" - on text read with speech synthesis, `data['value']` (string)
-        CMD_EXECUTE = "cmd.execute" - when a command is executed, `data['commands']` (list, commands and arguments)
-        CMD_INLINE = "cmd.inline" - when an inline command is executed, `data['commands']` 
-                     (list, commands and arguments)
-        CMD_SYNTAX = "cmd.syntax" - when appending syntax for commands, `data['prompt'], data['syntax']` 
-                     (string, list, prompt and list with commands usage syntax)
-        CMD_SYNTAX_INLINE = "cmd.syntax.inline" - when appending syntax for commands (inline mode), `data['prompt'], 
-                             data['syntax']` (string, list, prompt and list with commands usage syntax)
-        CTX_AFTER = "ctx.after" - after the context item is sent, `ctx`
-        CTX_BEFORE = "ctx.before" - before the context item is sent, `ctx`
-        CTX_BEGIN = "ctx.begin" - when context item create, `ctx`
-        CTX_END = "ctx.end" - when context item handling is finished, `ctx`
-        CTX_SELECT = "ctx.select" - when context is selected on list, `data['value']` (int, ctx meta ID)
-        DISABLE = "disable" - when the plugin is disabled, `data['value']` (string, plugin ID)
-        ENABLE = "enable" - when the plugin is enabled, `data['value']` (string, plugin ID)
-        FORCE_STOP = "force.stop" - on force stop plugins
-        INPUT_BEFORE = "input.before" - upon receiving input from the textarea, `data['value']` 
-                       (string, text to be sent)
-        MODE_BEFORE = "mode.before" - before the mode is selected `data['value'], data['prompt']` 
-                      (string, string, mode ID)
-        MODE_SELECT = "mode.select" - on mode select `data['value']` (string, mode ID)
-        MODEL_BEFORE = "model.before" - before the model is selected `data['value']` (string, model ID)
-        MODEL_SELECT = "model.select" - on model select `data['value']` (string, model ID)
-        PLUGIN_SETTINGS_CHANGED = "plugin.settings.changed" - on plugin settings update
-        PLUGIN_OPTION_GET = "plugin.option.get" - on request for plugin option value `data['name'], data['value']` 
-                            (string, any, name of requested option, value)
-        POST_PROMPT = "post.prompt" - after preparing a system prompt, `data['value']` (string, system prompt)
-        PRE_PROMPT = "pre.prompt" - before preparing a system prompt, `data['value']` (string, system prompt)
-        SYSTEM_PROMPT = "system.prompt" - when preparing a system prompt, `data['value']` (string, system prompt)
-        UI_ATTACHMENTS = "ui.attachments" - when the attachment upload elements are rendered, `data['value']` 
-                         (bool, show True/False)
-        UI_VISION = "ui.vision" - when the vision elements are rendered, `data['value']` (bool, show True/False)
-        USER_NAME = "user.name" - when preparing a user's name, `data['value']` (string, name of the user)
-        USER_SEND = "user.send" - just before the input text is sent, `data['value']` (string, input text)
-        """
-
-        # If you want to stop event propagation, you can use:
-        # event.stop = True  # stop event propagation
-
-    def on_system_prompt(self, prompt: str) -> str:
-        """
-        Example of handling SYSTEM_PROMPT event
-
-        Method will call when SYSTEM_PROMPT event is dispatched and will be used to modify system prompt.
-        E.g. add instruction for model to always append 'END OF RESPONSE.' message to the end of every text response.
-
-        :param prompt: current system prompt
-        :return: updated system prompt with additional instructions
-        """
-        prompt += "\n" + "ALWAYS append the \"END OF RESPONSE.\" message to the end of every response."
-        return prompt
+    def append_footer(self, prompt: str) -> str:
+        """Append an instruction without destroying the existing system prompt."""
+        footer = str(self.get_option_value("footer_text") or "").strip()
+        if not footer:
+            return prompt
+        if prompt and not prompt.endswith("\n"):
+            prompt += "\n\n"
+        return prompt + footer
 
     def cmd_syntax(self, data: dict):
-        """
-        Example of handling CMD_SYNTAX event (command syntax)
-
-        Method will call when CMD_SYNTAX event is dispatched and will be used to add custom commands syntax.
-        Syntax is a list of strings with command syntax descriptions.
-
-        To call this command in the app just ask the model for: "Execute a funny command with a random funny query".
-        Model will generate the command in JSON format, and after the response with command will be received,
-        the Event.CMD_EXECUTE event will be dispatched with the command to be executed and its params.
-
-        Available parameter types:
-        - str
-        - int
-        - float
-        - bool
-        - dict
-        - list
-
-        :param data: event data dictionary
-        """
-        data['cmd'].append(
-            {
-                "cmd": "funny_cmd",
-                "instruction": "funny command for displaying funny responses for a specified query",  # instruction for model
-                "params": [
-                    {
-                        "name": "query",  # parameter name
-                        "type": "str",  # parameter type
-                        "description": "query",  # parameter description
-                        "required": True,
-                    }
-                ],
-            }
-        )
-        # You can register as many commands as you want, use the same syntax as above:
-        # data['cmd'].append(<command>)
+        """Publish enabled command schemas to the current model request."""
+        append = data["cmd"].append
+        for cmd_name in self.allowed_cmds:
+            if self.has_cmd(cmd_name):
+                append(self.get_cmd(cmd_name))
 
     def cmd(self, ctx: CtxItem, cmds: list):
-        """
-        Example of handling CMD_EXECUTE event (command execution)
+        """Execute commands belonging to this plugin and reply to the model."""
+        for item in cmds or []:
+            if not isinstance(item, dict):
+                continue
 
-        Method will call when CMD_EXECUTE event is dispatched and will be used to handle commands execution.
-        List of commands called by model and its params is passed as cmds list.
-        Every command item is a dict with keys: "cmd" and "params".
-        "cmd" is a command name, and "params" is a dict with command params.
+            cmd_name = item.get("cmd")
+            if cmd_name not in self.allowed_cmds or not self.has_cmd(cmd_name):
+                continue
 
-        :param ctx: CtxItem object - context item with current input
-        :param cmds: list of dictionaries with called commands and its params
-        """
-        # iterate over all called by the model commands
-        for item in cmds:
+            if cmd_name == "funny_cmd":
+                params = item.get("params") or {}
+                query = str(params.get("query", "")).strip()
 
-            # first, check if this command is allowed and should be handled by this plugin
-            if item["cmd"] in self.allowed_cmds:
-
-                print("Handling example command:", item)
-
-                self.log("Handling example command: " + str(item["cmd"]))  # use self.log() to log messages
-
-                # handle specific command by its name
-                if item["cmd"] == "funny_cmd":
-                    # get command params (provided by model)
-                    query = item["params"]["query"]
-
-                    # prepare request object to instruct the model for which command is current response
-                    request = {
-                        "cmd": item["cmd"],
-                    }
-
-                    # prepare example response data
-                    data = "My example response for a funny query: " + query
-
-                    # create response object
-                    response = {
-                        "request": request,  # request, must be provided in the "request" key
-                        "result": data,  # response, must be provided in the "result" key
-                    }
-
-                    # handle reply response (send result to the model)
-                    self.reply(response, ctx)  # from 2.1.28 use only reply() method for sending responses
+                # A plugin reply uses at least `request` + `result`. PyGPT stores
+                # the result in the context/tool output and routes it back to the
+                # model using the active command transport (native or internal).
+                response = {
+                    "request": {
+                        "cmd": cmd_name,
+                        "params": params,
+                    },
+                    "result": f"Example response for: {query or '(empty query)'}",
+                }
+                self.reply(response, ctx)
+                return

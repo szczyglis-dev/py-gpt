@@ -219,7 +219,7 @@ or (Poetry >= 2.0):
 
 Troubleshooting
 ---------------
-If you have a problems with ``xcb`` plugin with newer versions of PySide on Linux, e.g. like this:
+If you have problems with ``xcb`` plugin with newer versions of PySide on Linux, e.g. like this:
 
 .. code-block:: console
 
@@ -232,7 +232,7 @@ If you have a problems with ``xcb`` plugin with newer versions of PySide on Linu
 
     $ sudo apt install libxcb-cursor0
 
-If you have a problems with audio on Linux, then try to install ``portaudio19-dev`` and/or ``libasound2``:
+If you have problems with audio on Linux, then try to install ``portaudio19-dev`` and/or ``libasound2``:
 
 .. code-block:: console
 
@@ -247,7 +247,7 @@ If you have a problems with audio on Linux, then try to install ``portaudio19-de
 
 **Access to camera in Snap version:**
 
-To use camera in Vision mode in Snap version you must connect the camera with:
+To use camera capture and image analysis in the Snap version you must connect the camera with:
 
 .. code-block:: console
 
@@ -308,7 +308,7 @@ when trying to run the compiled version for Linux, try updating GLIBC to version
 
 **Access to microphone and audio in Windows version:**
 
-If you have a problems with audio or microphone in the non-binary PIP/Python version on Windows, check to see if FFmpeg is installed. If it's not, install it and add it to the PATH. You can find a tutorial on how to do this here: https://phoenixnap.com/kb/ffmpeg-windows. The binary version already includes FFmpeg.
+If you have problems with audio or microphone in the non-binary PIP/Python version on Windows, check to see if FFmpeg is installed. If it's not, install it and add it to the PATH. You can find a tutorial on how to do this here: https://phoenixnap.com/kb/ffmpeg-windows. The binary version already includes FFmpeg.
 
 
 **Windows and VC++ Redistributable**
@@ -325,7 +325,7 @@ It may also be necessary to add the path ``C:\path\to\venv\Lib\python3.x\site-pa
 
 **WebEngine/Chromium renderer and OpenGL problems**
 
-If you have a problems with ``WebEngine / Chromium`` renderer you can force the legacy mode by launching the app with command line arguments:
+If you have problems with ``WebEngine / Chromium`` renderer you can force the legacy mode by launching the app with command line arguments:
 
 .. code-block:: console
 

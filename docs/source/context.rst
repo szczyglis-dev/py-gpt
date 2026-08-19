@@ -10,9 +10,6 @@ Handling multiple contexts
 ---------------------------
 On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PyGPT** automatically generates a summary for each context, akin to the way ``ChatGPT`` operates and gives you the option to modify these titles itself.
 
-.. image:: images/v2_context_list.png
-   :width: 400
-
 You can disable context support in the settings by using the following option:
 
 .. code-block:: ini

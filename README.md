@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.3** | build: **2026-08-16** | Python: **>=3.10, <3.14**
+Release: **2.8.4** | build: **2026-08-19** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -24,7 +24,7 @@ It supports chat, assistants, agents, completions, Chat with Files (via `LlamaIn
 
 https://github.com/user-attachments/assets/22972e34-dc9f-451d-ae64-23a91e945e97
 
-**Screenshots** (version `2.8.3`, build `2026-08-16`):
+**Screenshots** (version `2.8.4`, build `2026-08-16`):
 
 Dark theme:
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main.png)
@@ -57,7 +57,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
 - Custom commands creation and execution.
 - Crontab / Task scheduler included.
-- Built-in real-time Python Code Interepreter.
+- Built-in real-time Python Code Interpreter / IPython.
 - Manages files and attachments with options to upload, download, and organize.
 - Context history with the capability to revert to previous contexts (long-term memory).
 - Allows you to easily manage prompts with handy editable presets.
@@ -71,7 +71,6 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Themes support.
 - Real-time code syntax highlighting.
 - Built-in token usage calculation.
-- Possesses the potential to support future OpenAI models.
 - **Open source**; source code is available on `GitHub`.
 - Utilizes the user's own API key.
 - and many more.
@@ -643,17 +642,15 @@ Images are stored in ``img`` directory in **PyGPT** user data folder.
 
 ## Assistants
 
-This mode uses the OpenAI's **Assistants API**.
+This mode uses the OpenAI's **Assistants API**. 
+
+**This mode is old and may be deprecated.**
 
 This mode expands on the basic chat functionality by including additional external tools like a `Code Interpreter` for executing code, `Retrieval Files` for accessing files, and custom `Functions` for enhanced interaction and integration with other APIs or services. In this mode, you can easily upload and download files. **PyGPT** streamlines file management, enabling you to quickly upload documents and manage files created by the model.
 
 Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PyGPT** is also a seamless process.
 
-![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_assistant.png)
-
 In Assistant mode you are allowed to storage your files in remote vector store (per Assistant) and manage them easily from app:
-
-![v2_mode_assistant_upload](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_assistant_upload.png)
 
 Please note that token usage calculation is unavailable in this mode. Nonetheless, file (attachment) 
 uploads are supported. Simply navigate to the `Files` tab to effortlessly manage files and attachments which 
@@ -665,16 +662,11 @@ Assistant mode supports the use of external vector databases offered by the Open
 
 To enable the use of vector stores, enable the `Chat with Files` checkbox in the Assistant settings. This enables the `File search` tool in Assistants API.
 
-To manage external vector databases, click the DB icon next to the vector database selection list in the Assistant creation and editing window (screen below). In this management window, you can create a new vector database, edit an existing one, or import a list of all existing databases from the OpenAI server:
-
-![v2_assistant_stores](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_assistant_stores.png)
+To manage external vector databases, click the DB icon next to the vector database selection list in the Assistant creation and editing window (screen below). In this management window, you can create a new vector database, edit an existing one, or import a list of all existing databases from the OpenAI server.
 
 You can define, using `Expire days`, how long files should be automatically kept in the database before deletion (as storing files on OpenAI incurs costs). If the value is set to 0, files will not be automatically deleted.
 
-The vector database in use will be displayed in the list of uploaded files, on the field to the right—if a file is stored in a database, the name of the database will be displayed there; if not, information will be shown indicating that the file is only accessible within the thread:
-
-![v2_assistant_stores_upload](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_assistant_stores_upload.png)
-
+The vector database in use will be displayed in the list of uploaded files, on the field to the right—if a file is stored in a database, the name of the database will be displayed there; if not, information will be shown indicating that the file is only accessible within the thread.
 
 ##  Agent (LlamaIndex) 
 
@@ -859,9 +851,6 @@ If you want to use the LlamaIndex mode when running the agent, you can also spec
 
 ```Settings / Agents and experts / Index to use```
 
-![v2_agent_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_agent_settings.png)
-
-
 ##  Experts (co-op, co-operation mode)
 
 Expert mode allows for the creation of experts (using presets) and then consulting them during a conversation. In this mode, a primary base context is created for conducting the conversation. From within this context, the model can make requests to an expert to perform a task and return the results to the main thread. When an expert is called in the background, a separate context is created for them with their own memory. This means that each expert, during the life of one main context, also has access to their own memory via their separate, isolated context.
@@ -932,8 +921,6 @@ Compiled binary and Snap versions have `chromium` preinstalled in the package.
 ## Handling multiple contexts
 
 On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PyGPT** automatically generates a summary for each context, akin to the way `ChatGPT` operates and gives you the option to modify these titles itself.
-
-![v2_context_list](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_context_list.png)
 
 You can disable context support in the settings by using the following option:
 
@@ -1576,8 +1563,6 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#crontab-task-
 
 With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
-![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_custom_cmd.png)
-
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#custom-commands
 
 ##  Experts (inline)
@@ -1940,110 +1925,21 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#x-twitter
 
 # Creating Your Own Plugins
 
-You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins.
+PyGPT can be extended with custom plugins, models, LLM wrappers, vector stores, data loaders, audio providers, web providers, and agents.
 
-PyGPT can be extended with:
+For implementation guides, launcher examples, plugin APIs, and complete code samples, see the full documentation:
 
-- custom models
-
-- custom plugins
-
-- custom LLMs
-
-- custom vector store providers
-
-- custom data loaders
-
-- custom audio input providers
-
-- custom audio output providers
-
-- custom web search engine providers
-
-- custom agents (LlamaIndex or OpenAI Agents)
-
-
-See the section `Extending PyGPT / Adding a custom plugin` for more details.
+https://pygpt.readthedocs.io/en/latest/extending.html
 
 # Functions, commands and tools
 
-**Tip** remember to enable the `+ Tools` checkbox to enable execution of tools and commands from plugins.
+PyGPT supports native API function calls as well as its internal command/tool system. Commands exposed by enabled plugins can be called by compatible models when the `+ Tools` option is active. Native function calls can be configured in `Config -> Settings -> Prompts`, and model-level support is controlled by the `Tool calls` option in the Models Editor.
 
-From version `2.2.20` PyGPT uses native API function calls by default. You can go back to internal syntax (described below) by switching off option `Config -> Settings -> Prompts -> Use native API function calls`. You must also enable `Tool calls` checkbox in model advanced settings to use native function calls with the specified model.
+Custom commands and API function schemas can be used together and are translated by PyGPT when required.
 
-In background, **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
+For command syntax, JSON schemas, custom command examples, and complete tool-call integration examples, see:
 
-```<tool>{"cmd": "send_email", "params": {"quote": "Why don't skeletons fight each other? They don't have the guts!"}}</tool>```
-
-It is a JSON object wrapped between `<tool>` tags. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the `Custom Commands` plugin, or simply by creating your own plugin and adding it to the application.
-
-**Tip:** The `+ Tools` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens and may slow down local models).
-
-![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_code_execute.png)
-
-When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the `+ Tools` option is active.
-
-However, there is an additional possibility to define your own commands and execute them with the help of model.
-These are functions / tools - defined on the API side and described using JSON objects. You can find a complete guide on how to define functions here:
-
-https://platform.openai.com/docs/guides/function-calling
-
-https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models
-
-PyGPT offers compatibility of these functions with commands (tools) used in the application. All you need to do is define the appropriate functions using the correct JSON schema, and PyGPT will do the rest, translating such syntax on the fly into its own internal format.
-
-Local functions and tools from plugins are available in all modes, except `Assistants`.
-
-To enable local functions for `Assistants` mode (in this mode remote tools are used by default), create a new Assistant, open the Preset edit dialog and import tools from plugins or add a new function using `+ Function` button e.g. with the following content:
-
-**Name:** `send_email`
-
-**Description:** `Send a quote using email`
-
-**Params (JSON):**
-
-```json
-{
-        "type": "object",
-        "properties": {
-            "quote": {
-                "type": "string",
-                "description": "A generated funny quote"
-            }
-        },
-        "required": [
-            "quote"
-        ]
-}
-```
-
-Then, in the `Custom Commands` plugin, create a new command with the same name and the same parameters:
-
-**Command name:** `send_email`
-
-**Instruction/prompt:** `send mail`
-
-**Params list:** `quote`
-
-**Command to execute:** `echo "OK. Email sent: {quote}"`
-
-At next, enable the `+ Tools` option and enable the plugin.
-
-Ask a model:
-
-```Create a funny quote and email it```
-
-In response you will receive prepared command, like this:
-
-```<tool>{"cmd": "send_email", "params": {"quote": "Why do we tell actors to 'break a leg?' Because every play has a cast!"}}</tool>```
-
-After receiving this, PyGPT will execute the system `echo` command with params given from `params` field and replacing `{quote}` placeholder with `quote` param value.
-
-As a result, response like this will be sent to the model:
-
-```[{"request": {"cmd": "send_email"}, "result": "OK. Email sent: Why do we tell actors to 'break a leg?' Because every play has a cast!"}]```
-
-With this flow you can use both forms - API provider JSON schema and PyGPT schema - to define and execute commands and functions in the application. They will cooperate with each other and you can use them interchangeably.
+https://pygpt.readthedocs.io/en/latest/functions.html
 
 # Tools
 
@@ -2185,30 +2081,11 @@ Connecting agents and memory is done using node connections via slots. To connec
 
 Agents built using this tool are compatible with both OpenAI Agents and LlamaIndex.
 
-**Notes:**
+**Notes:** Multi-branch agent flows automatically receive an internal routing instruction that tells the current agent which downstream route can be selected.
 
-Routing and system instruction: for every agent that has more than one connection leading to the next agent, a routing instruction is automatically injected just before your system prompt:
+For the complete routing schema, injected system-instruction example, and Agents Builder details, see:
 
-```
-You are a routing-capable agent in a multi-agent flow.
-Your id is: <current_id>, name: <agent_name>.
-You MUST respond ONLY with a single JSON object and nothing else.
-Schema:
-{
-  "route": "<ID of the next agent from allowed_routes OR the string 'end'>",
-  "content": "<final response text for the user (or tool result)>"
-}
-Rules:
-- allowed_routes: [<allowed>]
-- If you want to finish the flow, set route to "end".
-- content must contain the user-facing answer (you may include structured data as JSON or Markdown inside content).
-- Do NOT add any commentary outside of the JSON. No leading or trailing text.
-- If using tools, still return the final JSON with tool results summarized in content.
-- Human-friendly route names: <names>
-- Human-friendly route roles (optional): <roles>
-
-<here begins your system instruction>
-```
+https://pygpt.readthedocs.io/en/latest/tools.html#agents-builder-beta
 
 **INFO:** Agents Builder is in beta.
 
@@ -3367,519 +3244,13 @@ You can also manualy enable legacy mode by editing config file - open the `%WORK
 
 # Extending PyGPT
 
-## Quick start
+PyGPT can be extended with custom models, plugins, LLM wrappers, vector stores, data loaders, audio input/output providers, web providers, and custom agents. Extension components can be registered through a custom launcher.
 
-You can create your own extensions for **PyGPT** at any time.
+The repository also contains ready-to-use examples in the `examples` directory.
 
-PyGPT can be extended with:
+For complete Python examples, event handling, custom model configuration, provider interfaces, launcher code, and extension API reference, see:
 
-- custom models
-
-- custom plugins
-
-- custom LLM wrappers
-
-- custom vector store providers
-
-- custom data loaders
-
-- custom audio input providers
-
-- custom audio output providers
-
-- custom web search engine providers
-
-- custom agents (LlamaIndex or OpenAI Agents)
-
-**Examples (tutorial files)** 
-
-See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (LlamaIndex) provider and data loader:
-
-- `examples/custom_launcher.py`
-
-- `examples/example_audio_input.py`
-
-- `examples/example_audio_output.py`
-
-- `examples/example_data_loader.py`
-
-- `examples/example_llm.py`
-
-- `examples/example_plugin.py`
-
-- `examples/example_vector_store.py`
-
-- `examples/example_web_search.py`
-
-These example files can be used as a starting point for creating your own extensions for **PyGPT**.
-
-Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
-
-- You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
-
-- This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
-
-To register custom plugins:
-
-- Pass a list with the plugin instances as `plugins` keyword argument.
-
-To register custom LLMs wrappers:
-
-- Pass a list with the LLMs wrappers instances as `llms` keyword argument.
-
-To register custom vector store providers:
-
-- Pass a list with the vector store provider instances as `vector_stores` keyword argument.
-
-To register custom data loaders:
-
-- Pass a list with the data loader instances as `loaders` keyword argument.
-
-To register custom audio input providers:
-
-- Pass a list with the audio input provider instances as `audio_input` keyword argument.
-
-To register custom audio output providers:
-
-- Pass a list with the audio output provider instances as `audio_output` keyword argument.
-
-To register custom web providers:
-
-- Pass a list with the web provider instances as `web` keyword argument.
-
-## Adding a custom model
-
-To add a new model using the OpenAI API or LlamaIndex wrapper, use the editor in `Config -> Models` or manually edit the `models.json` file by inserting the model's configuration details. If you are adding a model via LlamaIndex, ensure to include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (such as `OpenAI` or `HuggingFace`), and, if you are using an external API-based model, an optional `API KEY` along with any other necessary environment settings.
-
-Example of models configuration - `%WORKDIR%/models.json`:
-
-```
-"gpt-3.5-turbo": {
-    "id": "gpt-3.5-turbo",
-    "name": "gpt-3.5-turbo",
-    "mode": [
-        "chat",
-        "assistant",
-        "langchain",
-        "llama_index"
-    ],
-    "provider": "openai"
-    "llama_index": {
-        "args": [
-            {
-                "name": "model",
-                "value": "gpt-3.5-turbo",
-                "type": "str"
-            }
-        ],
-        "env": [
-            {
-                "name": "OPENAI_API_KEY",
-                "value": "{api_key}"
-            }
-        ]
-    },
-    "ctx": 4096,
-    "tokens": 4096,
-    "default": false
-},
-```
-
-There is built-in support for those LLM providers:
-
-- Anthropic
-- Azure OpenAI
-- Deepseek API
-- Google
-- HuggingFace
-- Local models (OpenAI API compatible)
-- Ollama
-- OpenAI
-- OpenRouter
-- Perplexity
-- xAI
-
-**Tip**: `{api_key}` in `models.json` is a placeholder for the main OpenAI API KEY from the settings. It will be replaced by the configured key value.
-
-## Adding a custom plugin
-
-### Creating Your Own Plugin
-
-You can create your own plugin for **PyGPT**. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins.
-
-**Examples (tutorial files)** 
-
-See the example plugin in this `examples` directory:
-
-- `examples/example_plugin.py`
-
-These example file can be used as a starting point for creating your own plugin for **PyGPT**.
-
-To register a custom plugin:
-
-- Create a custom launcher for the app.
-
-- Pass a list with the custom plugin instances as `plugins` keyword argument.
-
-**Example of a custom launcher:**
-
-
-```python
-# custom_launcher.py
-
-from pygpt_net.app import run
-from plugins import CustomPlugin, OtherCustomPlugin
-from llms import CustomLLM
-from vector_stores import CustomVectorStore
-
-plugins = [
-    CustomPlugin(),
-    OtherCustomPlugin(),
-]
-llms = [
-    CustomLLM(),
-]
-vector_stores = [
-    CustomVectorStore(),
-]
-
-run(
-    plugins=plugins,
-    llms=llms,
-    vector_stores=vector_stores,
-)
-```
-
-### Handling events
-
-In the plugin, you can receive and modify dispatched events.
-To do this, create a method named `handle(self, event, *args, **kwargs)` and handle the received events like here:
-
-```python
-# custom_plugin.py
-
-from pygpt_net.core.events import Event
-
-
-def handle(self, event: Event, *args, **kwargs):
-    """
-    Handle dispatched events
-
-    :param event: event object
-    """
-    name = event.name
-    data = event.data
-    ctx = event.ctx
-
-    if name == Event.INPUT_BEFORE:
-        self.some_method(data['value'])
-    elif name == Event.CTX_BEGIN:
-        self.some_other_method(ctx)
-    else:
-    	# ...
-```
-
-### List of Events
-
-Event names are defined in `Event` class in `pygpt_net.core.events`.
-
-Syntax: `event name` - triggered on, `event data` *(data type)*:
-
-- `AI_NAME` - when preparing an AI name, `data['value']` *(string, name of the AI assistant)*
-
-- `AGENT_PROMPT` - on agent prompt in eval mode, `data['value']` *(string, prompt)*
-
-- `AUDIO_INPUT_RECORD_START` - start audio input recording
-
-- `AUDIO_INPUT_RECORD_STOP` -  stop audio input recording
-
-- `AUDIO_INPUT_RECORD_TOGGLE` - toggle audio input recording
-
-- `AUDIO_INPUT_TRANSCRIBE` - on audio file transcribe, `data['path']` *(string, path to audio file)*
-
-- `AUDIO_INPUT_STOP` - force stop audio input
-
-- `AUDIO_INPUT_TOGGLE` - when speech input is enabled or disabled, `data['value']` *(bool, True/False)*
-
-- `AUDIO_OUTPUT_STOP` - force stop audio output
-
-- `AUDIO_OUTPUT_TOGGLE` - when speech output is enabled or disabled, `data['value']` *(bool, True/False)*
-
-- `AUDIO_READ_TEXT` - on text read using speech synthesis, `data['text']` *(str, text to read)*
-
-- `CMD_EXECUTE` - when a command is executed, `data['commands']` *(list, commands and arguments)*
-
-- `CMD_INLINE` - when an inline command is executed, `data['commands']` *(list, commands and arguments)*
-
-- `CMD_SYNTAX` - when appending syntax for commands, `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
-
-- `CMD_SYNTAX_INLINE` - when appending syntax for commands (inline mode), `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
-
-- `CTX_AFTER` - after the context item is sent, `ctx`
-
-- `CTX_BEFORE` - before the context item is sent, `ctx`
-
-- `CTX_BEGIN` - when context item create, `ctx`
-
-- `CTX_END` - when context item handling is finished, `ctx`
-
-- `CTX_SELECT` - when context is selected on list, `data['value']` *(int, ctx meta ID)*
-
-- `DISABLE` - when the plugin is disabled, `data['value']` *(string, plugin ID)*
-
-- `ENABLE` - when the plugin is enabled, `data['value']` *(string, plugin ID)*
-
-- `FORCE_STOP` - on force stop plugins
-
-- `INPUT_BEFORE` - upon receiving input from the textarea, `data['value']` *(string, text to be sent)*
-
-- `MODE_BEFORE` - before the mode is selected `data['value'], data['prompt']` *(string, string, mode ID)*
-
-- `MODE_SELECT` - on mode select `data['value']` *(string, mode ID)*
-
-- `MODEL_BEFORE` - before the model is selected `data['value']` *(string, model ID)*
-
-- `MODEL_SELECT` - on model select `data['value']` *(string, model ID)*
-
-- `PLUGIN_SETTINGS_CHANGED` - on plugin settings update (saving settings)
-
-- `PLUGIN_OPTION_GET` - on request for plugin option value `data['name'], data['value']` *(string, any, name of requested option, value)*
-
-- `POST_PROMPT` - after preparing a system prompt, `data['value']` *(string, system prompt)*
-
-- `POST_PROMPT_ASYNC` - after preparing a system prompt, just before request in async thread, `data['value']` *(string, system prompt)*
-
-- `POST_PROMPT_END` - after preparing a system prompt, just before request in async thread, at the very end `data['value']` *(string, system prompt)*
-
-- `PRE_PROMPT` - before preparing a system prompt, `data['value']` *(string, system prompt)*
-
-- `SYSTEM_PROMPT` - when preparing a system prompt, `data['value']` *(string, system prompt)*
-
-- `TOOL_OUTPUT_RENDER` - when rendering extra content from tools from plugins, `data['content']` *(string, content)*
-
-- `UI_ATTACHMENTS` - when the attachment upload elements are rendered, `data['value']` *(bool, show True/False)*
-
-- `UI_VISION` - when the vision elements are rendered, `data['value']` *(bool, show True/False)*
-
-- `USER_NAME` - when preparing a user's name, `data['value']` *(string, name of the user)*
-
-- `USER_SEND` - just before the input text is sent, `data['value']` *(string, input text)*
-
-
-You can stop the propagation of a received event at any time by setting `stop` to `True`:
-
-```
-event.stop = True
-```
-
-Events flow can be debugged by enabling the option `Config -> Settings -> Developer -> Log and debug events`.
-
-## Adding a custom LLM provider
-
-Handling LLMs with LlamaIndex is implemented through separated wrappers. This allows for the addition of support for any provider and model available via LlamaIndex. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llms`.
-
-These wrappers are loaded into the application during startup using `launcher.add_llm()` method:
-
-```python
-# app.py
-
-from pygpt_net.provider.api.openai import OpenAILLM
-from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
-from pygpt_net.provider.llms.anthropic import AnthropicLLM
-from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
-from pygpt_net.provider.llms.ollama import OllamaLLM
-from pygpt_net.provider.llms.google import GoogleLLM
-
-
-def run(**kwargs):
-    """Runs the app."""
-    # Initialize the app
-    launcher = Launcher()
-    launcher.init()
-
-    # Register plugins
-    ...
-
-    # Register langchain and llama-index LLMs wrappers
-    launcher.add_llm(OpenAILLM())
-    launcher.add_llm(AzureOpenAILLM())
-    launcher.add_llm(AnthropicLLM())
-    launcher.add_llm(HuggingFaceLLM())
-    launcher.add_llm(OllamaLLM())
-    launcher.add_llm(GoogleLLM())
-
-    # Launch the app
-    launcher.run()
-```
-
-To add support for providers not included by default, you can create your own wrapper that returns a custom model to the application and then pass this custom wrapper to the launcher.
-
-Extending **PyGPT** with custom plugins and LLM wrappers is straightforward:
-
-- Pass instances of custom plugins and LLM wrappers directly to the launcher.
-
-To register custom LLM wrappers:
-
-- Provide a list of LLM wrapper instances as `llms` keyword argument.
-
-**Example:**
-
-
-```python
-# launcher.py
-
-from pygpt_net.app import run
-from plugins import CustomPlugin, OtherCustomPlugin
-from llms import CustomLLM
-
-plugins = [
-    CustomPlugin(),
-    OtherCustomPlugin(),
-]
-llms = [
-    CustomLLM(),  # <--- custom LLM provider (wrapper)
-]
-vector_stores = []
-
-run(
-    plugins=plugins, 
-    llms=llms, 
-    vector_stores=vector_stores,
-)
-```
-
-**Examples (tutorial files)** 
-
-See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM provider and data loader:
-
-- `examples/custom_launcher.py`
-
-- `examples/example_audio_input.py`
-
-- `examples/example_audio_output.py`
-
-- `examples/example_data_loader.py`
-
-- `examples/example_llm.py`  <-- use it as an example
-
-- `examples/example_plugin.py`
-
-- `examples/example_vector_store.py`
-
-- `examples/example_web_search.py`
-
-These example files can be used as a starting point for creating your own extensions for **PyGPT**.
-
-To integrate your own model or provider into **PyGPT**, you can also reference the classes located in the `pygpt_net.provider.llms`. These samples can act as an more complex example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
-
-Every single LLM provider (wrapper) inherits from `BaseLLM` class and can provide 2 components: provider for LlamaIndex, and provider for Embeddings.
-
-
-## Adding a custom vector store provider
-
-You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. To register your custom vector store provider or data loader, simply register it by passing the vector store provider instance to `vector_stores` keyword argument and loader instance in the `loaders` keyword argument:
-
-
-```python
-# app.py
-
-# vector stores
-from pygpt_net.provider.vector_stores.chroma import ChromaProvider
-from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
-from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
-from pygpt_net.provider.vector_stores.qdrant import QdrantProvider
-from pygpt_net.provider.vector_stores.redis import RedisProvider
-from pygpt_net.provider.vector_stores.simple import SimpleProvider
-
-def run(**kwargs):
-    # ...
-    # register base vector store providers (llama-index)
-    launcher.add_vector_store(ChromaProvider())
-    launcher.add_vector_store(ElasticsearchProvider())
-    launcher.add_vector_store(PinecodeProvider())
-    launcher.add_vector_store(QdrantProvider())
-    launcher.add_vector_store(RedisProvider())
-    launcher.add_vector_store(SimpleProvider())
-
-    # register custom vector store providers (llama-index)
-    vector_stores = kwargs.get('vector_stores', None)
-    if isinstance(vector_stores, list):
-        for store in vector_stores:
-            launcher.add_vector_store(store)
-
-    # ...
-```
-
-To register your custom vector store provider just register it by passing provider instance in `vector_stores` keyword argument:
-
-```python
-
-# custom_launcher.py
-
-from pygpt_net.app import run
-from plugins import CustomPlugin, OtherCustomPlugin
-from llms import CustomLLM
-from vector_stores import CustomVectorStore
-
-plugins = [
-    CustomPlugin(),
-    OtherCustomPlugin(),
-]
-llms = [
-    CustomLLM(),
-]
-vector_stores = [
-    CustomVectorStore(),  # <--- custom vector store provider
-]
-
-run(
-    plugins=plugins,
-    llms=llms,
-    vector_stores=vector_stores,
-)
-```
-
-The vector store provider must be an instance of `pygpt_net.provider.vector_stores.base.BaseStore`. 
-You can review the code of the built-in providers in `pygpt_net.provider.vector_stores` and use them as examples when creating a custom provider.
-
-### Adding a custom data loader
-
-
-```python
-
-# custom_launcher.py
-
-from pygpt_net.app import run
-from plugins import CustomPlugin, OtherCustomPlugin
-from llms import CustomLLM
-from vector_stores import CustomVectorStore
-from loaders import CustomLoader
-
-plugins = [
-    CustomPlugin(),
-    OtherCustomPlugin(),
-]
-llms = [
-    CustomLLM(),
-]
-vector_stores = [
-    CustomVectorStore(),
-]
-loaders = [
-    CustomLoader(),  # <---- custom data loader
-]
-
-run(
-    plugins=plugins,
-    llms=llms,
-    vector_stores=vector_stores,  # <--- list with custom vector store providers
-    loaders=loaders  # <--- list with custom data loaders
-)
-```
-
-The data loader must be an instance of `pygpt_net.provider.loaders.base.BaseLoader`. 
-You can review the code of the built-in loaders in `pygpt_net.provider.loaders` and use them as examples when creating a custom loader.
-
+https://pygpt.readthedocs.io/en/latest/extending.html
 
 # DISCLAIMER
 
@@ -3897,7 +3268,7 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.8.4 (2026-08-18)**
+**2.8.4 (2026-08-19)**
 
 - Added a new Security settings section for host-side plugin permissions.
 - Added separate read and write restrictions for local filesystem access outside the workdir `data` directory.
@@ -3906,11 +3277,14 @@ may consume additional tokens that are not displayed in the main window.
 - Added `Permission denied` tool responses that point to `Settings -> Security` when filesystem access is blocked.
 - Added a Computer Use tab in Security settings.
 - Added `Halt on potentially unsafe operation`, enabled by default.
-- Added explicit user confirmation for provider-flagged unsafe Computer Use operations in OpenAI and Google providers; type `continue` in chat to execute the paused action and acknowledge the safety check.
-- Security restrictions and Computer Use confirmation gates are bypassed in sandbox mode.
-- Updated non-English `input.placeholder` translations to match the English `Enter a message...` text.
-- Added Security and Computer Use safety translations for all bundled languages.
-- Updated README and configuration documentation for the new Security controls.
+- Added explicit user confirmation for provider-flagged potentially unsafe Computer Use operations in OpenAI and Google providers.
+- Added per-model custom API endpoint and API key settings.
+- Improved the Models Editor advanced settings layout and added missing field descriptions and translations.
+- Moved application-managed temporary files for audio input, HTML Canvas, Code Interpreter/IPython, and the Transcript tool to the workdir `tmp` directory.
+- Centered the audio input/output level meter in the bottom input bar.
+- Fixed the Painter tool restoring the wrong color icon after application restart.
+- Fixed escaped Unicode characters in stored and displayed command/tool JSON, including nested tool responses.
+- Updated examples and documentation.
 
 **2.8.3 (2026-08-16)**
 

@@ -1,106 +1,63 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 02:00:00                  #
+# PyGPT audio-output provider tutorial               #
+# Docs: https://pygpt.readthedocs.io/en/latest/      #
+# Updated: 2026-08-19                                #
 # ================================================== #
 
-import os
-
-from pygpt_net.provider.audio_output.base import BaseProvider  # <--- provider must inherit from BaseProvider
+from pygpt_net.provider.audio_output.base import BaseProvider
 
 
 class ExampleAudioOutput(BaseProvider):
-    def __init__(self, *args, **kwargs):
-        """
-        Example audio output (OpenAI Text to Speech used as example)
+    """Minimal text-to-speech provider using the OpenAI API as an example."""
 
-        :param args: args
-        :param kwargs: kwargs
-        """
-        super(ExampleAudioOutput, self).__init__(*args, **kwargs)
-        self.plugin = kwargs.get("plugin")
-        self.id = "example_audio_output"
-        self.name = "Example audio output"
-        self.allowed_voices = [
-            'alloy',
-            'echo',
-            'fable',
-            'onyx',
-            'nova',
-            'shimmer',
-        ]
-        self.allowed_models = [
-            'tts-1',
-            'tts-1-hd',
-        ]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = "example_audio_output"  # must be unique
+        self.name = "Example audio output (OpenAI TTS)"
 
     def init_options(self):
-        """Initialize options"""
+        """Declare provider-specific settings shown in the Audio Output plugin."""
         self.plugin.add_option(
-            "openai_model",
+            "example_model",
             type="text",
             value="tts-1",
-            label="Model",
-            tab="example_audio_output",
-            description="Example description #1",
+            label="TTS model",
+            tab=self.id,
+            description="Text-to-speech model sent to the provider.",
         )
         self.plugin.add_option(
-            "openai_voice",
+            "example_voice",
             type="text",
             value="alloy",
             label="Voice",
-            tab="example_audio_output",
-            description="Example description #2",
+            tab=self.id,
+            description="Voice name supported by the selected TTS model.",
         )
 
     def speech(self, text: str) -> str:
-        """
-        Speech text to audio
+        """Generate speech and return the path to the generated audio file.
 
-        Method must generate audio file with audio speech from provided text and return path to generated audio file
-
-        :param text: text to speech
-        :return: path to generated audio file or None if audio playback is handled here
+        Important: use `prepare_output_path()` instead of a fixed filename.
+        PyGPT stores generated TTS files below `workdir/tmp/audio_output`, gives
+        each file a unique name, and rotates old files. Unique files also avoid
+        Windows file-lock problems while audio is still being played.
         """
         client = self.plugin.window.core.api.openai.get_client()
-        output_file = self.plugin.output_file
-        voice = self.plugin.get_option_value('openai_voice')
-        model = self.plugin.get_option_value('openai_model')
-        if model not in self.allowed_models:
-            model = 'tts-1'
-        if voice not in self.allowed_voices:
-            voice = 'alloy'
-        path = os.path.join(
-            self.plugin.window.core.config.path,
-            output_file,
-        )
+        path = self.prepare_output_path(extension="mp3")
+
         response = client.audio.speech.create(
-            model=model,
-            voice=voice,
+            model=self.plugin.get_option_value("example_model"),
+            voice=self.plugin.get_option_value("example_voice"),
             input=text,
         )
         response.stream_to_file(path)
-        return path  # <--- return path to generated audio file
+        return str(path)
 
     def is_configured(self) -> bool:
-        """
-        Check if provider is configured
-
-        This method should check that all required config options are provided (API keys, etc.)
-
-        :return: True if configured, False otherwise
-        """
-        return True
+        api_key = self.plugin.window.core.config.get("api_key")
+        return bool(api_key)
 
     def get_config_message(self) -> str:
-        """
-        Return message to display when provider is not configured
-
-        :return: message
-        """
-        return "You must define an API key in the plugin settings!"
+        return "OpenAI API key is not configured. Set it in Config -> Settings -> API Keys."

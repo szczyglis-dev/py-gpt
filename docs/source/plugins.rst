@@ -268,9 +268,6 @@ Audio Output
 The plugin lets you turn text into speech using the TTS model from OpenAI or other services like ``Microsoft Azure``, ``Google``, and ``Eleven Labs``. You can add more text-to-speech providers to it too. ``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
 Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via ``Microsoft Azure``, ``Google`` or ``Eleven Labs``, you must configure the audio plugin with your API keys, regions and voices if required.
 
-.. image:: images/v2_azure.png
-   :width: 600
-
 Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
 
 To enable voice synthesis, activate the ``Audio Output`` plugin in the ``Plugins`` menu or turn on the ``Audio Output`` option in the ``Audio / Voice`` menu (both options in the menu achieve the same outcome).
@@ -594,7 +591,7 @@ When enabled, then question will be prepared before asking LlamaIndex first to c
 
 - ``Model for question preparation`` *model_prepare_question*
 
-Model used to prepare question before asking LlamaIndex. *Default:* `gpt-3.5-turbo`
+Model used to prepare question before asking LlamaIndex. *Default:* `gpt-4o-mini`
 
 - ``Max output tokens for question preparation`` *prepare_question_max_tokens*
 
@@ -780,7 +777,7 @@ Allows ``code_execute_file`` command execution. If enabled, provides Python code
 
 - ``Tool: render_html_output`` *cmd.render_html_output*
 
-Allows ``render_html_output`` command execution. If enabled, it allows to render HTML/JS code in built-it HTML/JS browser (HTML Canvas). *Default:* ``True``
+Allows ``render_html_output`` command execution. If enabled, it allows to render HTML/JS code in built-in HTML/JS browser (HTML Canvas). *Default:* ``True``
 
 - ``Tool: get_html_output`` *cmd.get_html_output*
 
@@ -859,7 +856,7 @@ Allows `remove_day_note` command execution. If enabled, it allows removing day n
 
 - ``Model`` *model_summarize*
 
-Model used for summarize. *Default:* `gpt-3.5-turbo`
+Model used for summarize. *Default:* `gpt-4o-mini`
 
 - ``Max summary tokens`` *summary_max_tokens*
 
@@ -902,9 +899,6 @@ If you are unfamiliar with Cron, consider visiting the Cron Guru page for assist
 
 Number of active tasks is always displayed in a tray dropdown menu:
 
-.. image:: images/v2_crontab_tray.png
-   :width: 400
-
 - ``Create a new context on job run`` *new_ctx*
 
 If enabled, then a new context will be created on every run of the job." *Default:* `True`
@@ -918,9 +912,6 @@ Custom Commands
 ------------------------
 
 With the ``Custom Commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
-
-.. image:: images/v2_custom_cmd.png
-   :width: 800
 
 To add a new custom command, click the **ADD** button and then:
 
@@ -978,10 +969,6 @@ With the setup above, every time you ask model to generate a song for you and sa
 .. code-block:: console
 
   > please execute tutorial test command
-
-.. image:: images/v2_custom_cmd_example.png
-   :width: 800
-
 
 Experts (inline)
 -----------------
@@ -1262,7 +1249,7 @@ Allows `query_file` command execution (in-memory index). If enabled, model will 
 
 - ``Model for query in-memory index`` *model_tmp_query*
 
-Model used for query temporary index for `query_file` command (in-memory index). *Default:* `gpt-3.5-turbo`
+Model used for query temporary index for `query_file` command (in-memory index). *Default:* `gpt-4o-mini`
 
 - ``Tool: indexing files to persistent index`` *cmd.file_index*
 
@@ -1688,9 +1675,6 @@ MCP
 
 With the ``MCP`` plugin, you can connect **PyGPT** to remote tools exposed by Model Context Protocol servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server and optionally cache discovery results for speed.
 
-.. image:: images/v2_mcp.png
-   :width: 800
-
 How it works
 ^^^^^^^^^^^^
 
@@ -2106,9 +2090,6 @@ Provides commands for reading and sending data to USB ports.
    In the Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
 
 You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
-
-.. image:: images/v2_serial.png
-   :width: 600
 
 Above is an example of co-operation with the following code uploaded to ``Arduino Uno`` and connected via USB:
 
@@ -2899,9 +2880,6 @@ Then, copy the following two items into **PyGPT**:
 
 These data must be configured in the appropriate fields in the ``Plugins / Settings...`` menu:
 
-.. image:: images/v2_plugin_google.png
-   :width: 600
-
 **Options**
 
 - ``Google Custom Search API KEY`` *google_api_key*
@@ -2989,7 +2967,7 @@ Allows `web_extract_images` command execution. If enabled, model will be able to
 
 - ``Model used for web page summarize`` *summary_model*
 
-Model used for web page summarize. *Default:* `gpt-3.5-turbo-1106`
+Model used for web page summarize. *Default:* `gpt-4o-mini`
 
 - ``Summarize prompt`` *prompt_summarize*
 
