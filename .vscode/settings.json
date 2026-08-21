@@ -1,0 +1,12 @@
+{
+    "makefile.extensionOutputFolder": "./.vscode",
+    "workbench.editor.sharedViewState": true,
+    "workbench.editor.alwaysShowEditorActions": true,
+    "workbench.editor.autoLockGroups": {
+        "default": true
+    },
+    "workbench.editor.centeredLayoutFixedWidth": true,
+    "workbench.editorAssociations": {
+        "workbench.editor.customLabels.patterns": "workbench.editor.chatSession"
+    }
+}
