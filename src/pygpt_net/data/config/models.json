@@ -5,6 +5,48 @@
         "updated_at": "2026-08-19T00:00:00"
     },
     "items": {
+        "music-3.0": {
+            "id": "music-3.0",
+            "name": "music-3.0",
+            "mode": ["img"],
+            "ctx": 0,
+            "tokens": 0,
+            "default": false,
+            "input": ["text"],
+            "output": ["audio"],
+            "extra": {},
+            "imported": false,
+            "provider": "minimax",
+            "tool_calls": false
+        },
+        "music-2.6": {
+            "id": "music-2.6",
+            "name": "music-2.6",
+            "mode": ["img"],
+            "ctx": 0,
+            "tokens": 0,
+            "default": false,
+            "input": ["text"],
+            "output": ["audio"],
+            "extra": {},
+            "imported": false,
+            "provider": "minimax",
+            "tool_calls": false
+        },
+        "music-cover": {
+            "id": "music-cover",
+            "name": "music-cover",
+            "mode": ["img"],
+            "ctx": 0,
+            "tokens": 0,
+            "default": false,
+            "input": ["audio"],
+            "output": ["audio"],
+            "extra": {},
+            "imported": false,
+            "provider": "minimax",
+            "tool_calls": false
+        },
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
             "id": "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M",
             "name": "bielik-11b-v2.3",

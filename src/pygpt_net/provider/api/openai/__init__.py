@@ -40,6 +40,7 @@ from .summarizer import Summarizer
 from .tools import Tools
 from .vision import Vision
 from .video import Video
+from .music import Music
 
 
 class ApiOpenAI:
@@ -66,6 +67,7 @@ class ApiOpenAI:
         self.tools = Tools(window)
         self.vision = Vision(window)
         self.video = Video(window)
+        self.music = Music(window)
         self.client = None
         self.locked = False
         self.last_client_args = None  # last client args used, for debug purposes
@@ -203,6 +205,8 @@ class ApiOpenAI:
                     context=context,
                     extra=extra,
                 )
+            elif media_mode == "music" and self.music.is_music_model(model.id if model else ""):
+                return self.music.generate(context=context, extra=extra)
 
         # vision
         elif mode == MODE_VISION:
