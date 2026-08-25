@@ -27,16 +27,12 @@ class Launcher:
 
     def post_setup(self):
         """Post setup launcher"""
-        # Check for updates first, then synchronize banners. Both operations
-        # are asynchronous and never block the UI thread.
+        # Check for updates. Asynchronous, never blocks the UI thread.
         if self.window.core.config.get('updater.check.launch'):
             self.window.core.updater.run_check(
                 force=True,
-                on_finished=self.window.core.banners.run_load,
                 event="launch",
             )
-        else:
-            self.window.core.banners.run_load()
 
     def show_api_monit(self):
         """Show empty API KEY monit"""
