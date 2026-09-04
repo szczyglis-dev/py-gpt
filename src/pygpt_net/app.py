@@ -276,6 +276,7 @@ def run(**kwargs):
         # from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
         from pygpt_net.provider.llms.hugging_face_api import HuggingFaceApiLLM
         from pygpt_net.provider.llms.hugging_face_router import HuggingFaceRouterLLM
+        from pygpt_net.provider.llms.llmman import LlmmanLLM
         from pygpt_net.provider.llms.local import LocalLLM
         from pygpt_net.provider.llms.mistral import MistralAILLM
         from pygpt_net.provider.llms.ollama import OllamaLLM
@@ -488,6 +489,7 @@ def run(**kwargs):
         launcher.add_llm(LocalLLM())
         launcher.add_llm(MistralAILLM())
         launcher.add_llm(OllamaLLM())
+        launcher.add_llm(LlmmanLLM())
         launcher.add_llm(DeepseekApiLLM())
         launcher.add_llm(PerplexityLLM())
         launcher.add_llm(xAILLM())

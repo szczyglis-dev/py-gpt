@@ -528,6 +528,11 @@ class Models:
                 args["api_key"] = "ollama"
                 args["base_url"] = self.window.core.models.ollama.get_base_url() + "/v1"
                 self.window.core.debug.info("[api] Using client: Ollama")
+            elif model.provider == "llmman":
+                from pygpt_net.provider.llms.llmman import LlmmanLLM
+                args["api_key"] = "llmman"
+                args["base_url"] = LlmmanLLM.get_base_url() + "/v1"
+                self.window.core.debug.info("[api] Using client: llmman")
             else:
                 self.window.core.debug.info("[api] Using client: OpenAI (default)")
 

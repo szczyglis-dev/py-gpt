@@ -124,6 +124,7 @@ There is built-in support for those LLM providers:
 * ``HuggingFace API``
 * ``HuggingFace Router`` (wrapper for OpenAI compatible ChatCompletions)
 * ``LiteLLM``
+* ``llmman``
 * ``Local models`` (OpenAI API compatible)
 * ``Mistral AI``
 * ``Ollama``
@@ -219,6 +220,18 @@ https://ollama.com/library
 https://github.com/ollama/ollama
 
 **IMPORTANT:** Remember to define the correct model name in the **kwargs list in the model settings.
+
+**Using llmman**
+
+`llmman <https://github.com/llmmanorg/llmman>`_ is a local model runner that serves the Ollama API (alongside OpenAI- and Anthropic-compatible ones) on port 17434. Models are pulled as OCI artifacts or straight from Hugging Face (``hf.co/org/model``) and served by ``llama.cpp``, ``vllm``, or ``mlx-lm``. Select the ``llmman`` provider for a model (or import models from a running instance with ``Config -> Models -> Import...``) and run:
+
+.. code-block:: sh
+
+    $ curl -fsSL https://raw.githubusercontent.com/llmmanorg/llmman/main/install.sh | sh
+    $ llmman serve
+    $ llmman pull gemma4
+
+The default endpoint is: http://localhost:17434 - override it with the ``LLMMAN_HOST`` environment variable (``[host][:port]``) in ``Settings -> General -> Advanced -> Application environment``.
 
 Using local embeddings
 ```````````````````````

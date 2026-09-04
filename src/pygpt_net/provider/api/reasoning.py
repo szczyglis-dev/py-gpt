@@ -37,7 +37,7 @@ def is_tagged_reasoning_model(model) -> bool:
         pass
 
     provider = str(getattr(model, "provider", "") or "").strip().lower()
-    if provider == "local_ai":
+    if provider in ("local_ai", "llmman"):
         return True
 
     llama_cfg = getattr(model, "llama_index", None)
