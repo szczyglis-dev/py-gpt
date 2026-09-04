@@ -15,6 +15,7 @@ OPENAI_COMPATIBLE_PROVIDERS = [
     "azure_openai",
     "google",
     "huggingface_router",
+    "llmman",
     "local_ai",
     "mistral_ai",
     "ollama",
