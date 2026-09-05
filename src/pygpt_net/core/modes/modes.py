@@ -59,6 +59,20 @@ class Modes:
         )
         self.items = {}
 
+    def get_ordered_keys(self) -> tuple[str, ...]:
+        """
+        Return mode IDs in the same order as the mode selector: regular
+        modes first and legacy modes last. Ordering inside each group follows
+        the source modes configuration.
+
+        :return: ordered mode IDs
+        """
+        regular = []
+        legacy = []
+        for mode_id, item in self.items.items():
+            (legacy if item.legacy else regular).append(mode_id)
+        return tuple(regular + legacy)
+
     def get_by_idx(self, idx) -> str:
         """
         Return mode by index
@@ -66,7 +80,7 @@ class Modes:
         :param idx: index of mode
         :return: mode name
         """
-        keys = tuple(self.items)
+        keys = self.get_ordered_keys()
         return keys[idx]
 
     def get_idx_by_name(self, name) -> int:
@@ -76,7 +90,7 @@ class Modes:
         :param name: mode name
         :return: mode index
         """
-        keys = tuple(self.items)
+        keys = self.get_ordered_keys()
         return keys.index(name)
 
     def get_all(self) -> Dict[str, List[str]]:
@@ -102,7 +116,7 @@ class Modes:
         :param mode: current mode
         :return: next mode
         """
-        keys = tuple(self.items)
+        keys = self.get_ordered_keys()
         idx = keys.index(mode)
         return keys[(idx + 1) % len(keys)]
 
@@ -113,7 +127,7 @@ class Modes:
         :param mode: current mode
         :return: previous mode
         """
-        keys = tuple(self.items)
+        keys = self.get_ordered_keys()
         idx = keys.index(mode)
         return keys[(idx - 1) % len(keys)]
 

@@ -47,49 +47,51 @@ class BaseListCombo(QWidget):
         self.initialized = True
 
     def update(self):
-        """Prepare items"""
+        """Prepare items."""
         combo = self.combo
         blocker = QSignalBlocker(combo)
         combo.setUpdatesEnabled(False)
         try:
             combo.clear()
             self._data_index_map = {}
-            idx = 0
             keys = self.keys
-            add_item = combo.addItem
+
+            def append_entry(key, value):
+                if isinstance(key, str) and key.startswith("section::"):
+                    combo.addSection(value)
+                    return
+                if isinstance(key, str) and key.startswith("separator::"):
+                    combo.addSeparator(value)
+                    return
+                row = combo.count()
+                combo.addItem(value, key)
+                if key not in self._data_index_map:
+                    self._data_index_map[key] = row
+
             if isinstance(keys, list):
                 for item in keys:
                     if isinstance(item, dict):
                         for key, value in item.items():
-                            add_item(value, key)
-                            if key not in self._data_index_map:
-                                self._data_index_map[key] = idx
-                            idx += 1
+                            append_entry(key, value)
                     else:
-                        add_item(item, item)
-                        if item not in self._data_index_map:
-                            self._data_index_map[item] = idx
-                        idx += 1
+                        append_entry(item, item)
             elif isinstance(keys, dict):
-                add_sep = combo.addSeparator
                 for key, value in keys.items():
-                    if isinstance(key, str) and key.startswith("separator::"):
-                        add_sep(value)
-                        idx += 1
-                    else:
-                        add_item(value, key)
-                        if key not in self._data_index_map:
-                            self._data_index_map[key] = idx
-                        idx += 1
+                    append_entry(key, value)
+
             cache = set()
             if isinstance(keys, list):
                 for item in keys:
                     if isinstance(item, dict):
-                        cache.update(item.keys())
-                    else:
+                        for key in item.keys():
+                            if not (isinstance(key, str) and key.startswith(("separator::", "section::"))):
+                                cache.add(key)
+                    elif not (isinstance(item, str) and item.startswith(("separator::", "section::"))):
                         cache.add(item)
             elif isinstance(keys, dict):
-                cache.update(keys.keys())
+                for key in keys.keys():
+                    if not (isinstance(key, str) and key.startswith(("separator::", "section::"))):
+                        cache.add(key)
             self._keys_cache = cache
             self._keys_cache_id = id(keys)
         finally:
@@ -140,11 +142,15 @@ class BaseListCombo(QWidget):
             if isinstance(keys, list):
                 for item in keys:
                     if isinstance(item, dict):
-                        cache.update(item.keys())
-                    else:
+                        for key in item.keys():
+                            if not (isinstance(key, str) and key.startswith(("separator::", "section::"))):
+                                cache.add(key)
+                    elif not (isinstance(item, str) and item.startswith(("separator::", "section::"))):
                         cache.add(item)
             elif isinstance(keys, dict):
-                cache.update(keys.keys())
+                for key in keys.keys():
+                    if not (isinstance(key, str) and key.startswith(("separator::", "section::"))):
+                        cache.add(key)
             self._keys_cache = cache
             self._keys_cache_id = id(keys)
         return name in self._keys_cache
