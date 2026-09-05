@@ -31,6 +31,7 @@ from pygpt_net.core.types import (
     MODE_RESEARCH,
     MODE_COMPUTER,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
 )
 from pygpt_net.item.ctx import CtxItem, CtxMeta, CtxGroup
 from pygpt_net.provider.core.ctx.base import BaseProvider
@@ -84,6 +85,7 @@ class Ctx:
             MODE_AGENT,
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
+            MODE_AGENT_V2,
             MODE_EXPERT,
             MODE_AUDIO,
             MODE_RESEARCH,
@@ -102,6 +104,7 @@ class Ctx:
             MODE_AGENT: self.all_modes,
             MODE_AGENT_LLAMA: self.all_modes,
             MODE_AGENT_OPENAI: self.all_modes,
+            MODE_AGENT_V2: self.all_modes,
             MODE_RESEARCH: self.all_modes,
             MODE_COMPUTER: self.all_modes,
         }

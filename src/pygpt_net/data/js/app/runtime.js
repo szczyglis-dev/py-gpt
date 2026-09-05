@@ -193,6 +193,70 @@ class Runtime {
 		el.replaceChildren();
 	};
 
+	// Agents v2: keep exactly one transient progress line below the active stream.
+	api_setAgentStatus = (text) => {
+		const value = String(text || '').trim();
+		let status = document.getElementById('_agents_v2_status_');
+
+		// A status can change faster than the CSS fade. Cancel callbacks from the
+		// previous value so they cannot remove or overwrite a newer status.
+		if (this._agentStatusRemoveTimer) {
+			window.clearTimeout(this._agentStatusRemoveTimer);
+			this._agentStatusRemoveTimer = null;
+		}
+		if (this._agentStatusChangeTimer) {
+			window.clearTimeout(this._agentStatusChangeTimer);
+			this._agentStatusChangeTimer = null;
+		}
+
+		if (!value) {
+			if (!status) return;
+			status.classList.remove('agents-v2-status--changing');
+			status.classList.add('agents-v2-status--leave');
+			this._agentStatusRemoveTimer = window.setTimeout(() => {
+				try { status.remove(); } catch (_) {}
+				this._agentStatusRemoveTimer = null;
+			}, 150);
+			return;
+		}
+
+		const output = this.dom.get('_append_output_') || this.dom.getStreamContainer();
+		if (!output) return;
+
+		if (!status) {
+			status = document.createElement('div');
+			status.id = '_agents_v2_status_';
+			status.className = 'agents-v2-status';
+			const label = document.createElement('span');
+			label.className = 'agents-v2-status__text';
+			status.appendChild(label);
+			// Keep the status outside _append_output_: StreamEngine may replace the
+			// stream container while Markdown chunks are being rendered.
+			if (output.parentNode) output.parentNode.insertBefore(status, output.nextSibling);
+			else output.appendChild(status);
+		}
+
+		status.classList.remove('agents-v2-status--leave');
+		const label = status.querySelector('.agents-v2-status__text') || status;
+		if (label.textContent !== value) {
+			status.classList.add('agents-v2-status--changing');
+			this._agentStatusChangeTimer = window.setTimeout(() => {
+				// The node may have been replaced by a stream reset; update only the live one.
+				const live = document.getElementById('_agents_v2_status_');
+				if (live === status) {
+					label.textContent = value;
+					status.classList.remove('agents-v2-status--changing');
+				}
+				this._agentStatusChangeTimer = null;
+			}, 90);
+		}
+		this.scrollMgr.scheduleScroll();
+	};
+
+	api_clearAgentStatus = () => {
+		this.api_setAgentStatus('');
+	};
+
 	// API: append/replace messages (non-streaming).
 	api_appendNode = (payload) => {
 		this.resetStreamState('appendNode');
@@ -488,6 +552,8 @@ window.appendStream = (name, chunk) => runtime.api_appendStream(name, chunk);
 window.appendStreamTyped = (type, name, chunk) => runtime.api_onChunk(name, chunk, type);
 window.nextStream = () => runtime.api_nextStream();
 window.clearStream = () => runtime.api_clearStream();
+window.setAgentStatus = (text) => runtime.api_setAgentStatus(text);
+window.clearAgentStatus = () => runtime.api_clearAgentStatus();
 
 window.begin = () => runtime.api_begin();
 window.end = () => runtime.api_end();

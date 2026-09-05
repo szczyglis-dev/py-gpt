@@ -16,6 +16,7 @@ from typing import Optional, Dict, Any
 
 from pygpt_net.core.types import (
     MODE_AGENT,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_CHAT,
     MODE_EXPERT,
@@ -93,7 +94,11 @@ class Bridge:
 
         # check if model is supported by selected mode - if not, then try to use supported mode
         if model is not None:
-            if not model.is_supported(mode):  # check selected mode
+            # Agents v2 is a virtual orchestration mode backed by the app's LlamaIndex
+            # LLM adapter, so model capability is checked against LlamaIndex separately.
+            if base_mode == MODE_AGENT_V2:
+                mode = MODE_AGENT_V2
+            elif not model.is_supported(mode):  # check selected mode
                 mode = self.window.core.models.get_supported_mode(model, mode)  # switch
                 if base_mode == MODE_CHAT and mode == MODE_LLAMA_INDEX:
                     context.idx = None # disable index if in Chat mode and switch to Llama Index

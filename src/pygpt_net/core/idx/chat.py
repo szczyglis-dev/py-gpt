@@ -21,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
 )
@@ -851,7 +852,7 @@ class Chat:
         :param msg: message
         """
         # disabled logging for thread safety
-        if self.window.core.config.get("mode") in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
+        if self.window.core.config.get("mode") in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2):
             return
         is_log = False
         if self.window.core.config.has("log.llama") \

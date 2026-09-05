@@ -188,7 +188,8 @@
     "agent_llama": "gpt-5.6-terra-high",
     "agent_openai": "gpt-5.6-terra-high",
     "expert": "gpt-5.6-terra-high",
-    "computer": "computer-use-preview"
+    "computer": "computer-use-preview",
+    "agent_v2": "gpt-5.6-terra-high"
   },
   "current_preset": {
     "chat": "",
@@ -201,7 +202,8 @@
     "agent_llama": "",
     "agent_openai": "",
     "expert": "",
-    "computer": ""
+    "computer": "",
+    "agent_v2": ""
   },
   "debug": false,
   "debug.render": false,

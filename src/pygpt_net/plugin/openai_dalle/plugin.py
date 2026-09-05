@@ -20,6 +20,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -247,7 +248,7 @@ class Plugin(BasePlugin):
                         # Existing OpenAI/Google image backends already use image_id
                         # to enter their native edit/remix path.
                         extra["image_id"] = reference_image
-                    sync = self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]
+                    sync = self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2]
 
                     # Use the native image provider selected by the configured image model.
                     if model.provider == "google" and self.window.core.config.get("api_native_google", False):

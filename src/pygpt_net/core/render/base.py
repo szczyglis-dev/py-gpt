@@ -457,6 +457,14 @@ class BaseRenderer:
         """
         pass
 
+    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str):
+        """Set transient agent workflow status (optional renderer capability)."""
+        pass
+
+    def agent_status_clear(self, meta: CtxMeta, ctx: CtxItem):
+        """Clear transient agent workflow status (optional renderer capability)."""
+        pass
+
     def append_live(
             self,
             meta: CtxMeta,

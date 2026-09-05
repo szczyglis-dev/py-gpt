@@ -21,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_OPENAI,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_V2,
     MODE_EXPERT,
     MODE_COMPUTER,
     OPENAI_DISABLE_TOOLS,
@@ -44,6 +45,7 @@ class Responses:
         MODE_AGENT,
         MODE_AGENT_LLAMA,
         MODE_AGENT_OPENAI,
+        MODE_AGENT_V2,
         MODE_EXPERT,
         MODE_COMPUTER,
     ]

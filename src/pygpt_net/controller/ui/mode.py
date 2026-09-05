@@ -19,6 +19,7 @@ from pygpt_net.core.types import (
     MODE_VISION,
     MODE_COMPUTER,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_COMPLETION,
     MODE_AUDIO,
 )
@@ -53,6 +54,7 @@ class Mode:
         is_agent = mode == MODE_AGENT
         is_agent_llama = mode == MODE_AGENT_LLAMA
         is_agent_openai = mode == MODE_AGENT_OPENAI
+        is_agent_v2 = mode == MODE_AGENT_V2
         is_expert = mode == MODE_EXPERT
         is_media = mode == MODE_IMAGE
         is_llama_index = mode == MODE_LLAMA_INDEX
@@ -99,7 +101,7 @@ class Mode:
             ui_nodes['env.widget'].setVisible(True)
 
         # agents/experts/presets label visibility
-        show_agents_label = is_agent or is_agent_llama or is_agent_openai
+        show_agents_label = is_agent or is_agent_llama or is_agent_openai or is_agent_v2
         if show_agents_label:
             ui_nodes['preset.agents.label'].setVisible(True)
             ui_nodes['preset.experts.label'].setVisible(False)
@@ -136,13 +138,29 @@ class Mode:
             ui_nodes['preset.editor.temperature'].setVisible(True)
             ui_nodes['preset.editor.idx'].setVisible(False)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent"))
+        elif is_agent_v2:
+            presets_editor.toggle_tab("experts", False)
+            presets_editor.toggle_tab("personalize", False)
+            presets_editor.toggle_tab("remote_tools", False)
+            ui_nodes['preset.editor.temperature'].setVisible(False)
+            ui_nodes['preset.editor.idx'].setVisible(True)
+            ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(True)
+            ui_nodes['preset.editor.modes'].setVisible(False)
+            ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_v2"))
         elif is_agent_llama:
             presets_editor.toggle_tab("experts", False)
             ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
         elif is_agent_openai:
@@ -150,6 +168,8 @@ class Mode:
             ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
         else:
@@ -161,6 +181,8 @@ class Mode:
             presets_editor.toggle_tab("experts", False)
             ui_nodes['preset.editor.temperature'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(True)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
 

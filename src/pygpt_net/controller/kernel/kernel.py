@@ -19,6 +19,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_EXPERT,
     MODE_LLAMA_INDEX,
@@ -65,6 +66,11 @@ class Kernel:
             KernelEvent.APPEND_END,
             KernelEvent.LIVE_APPEND,
             KernelEvent.LIVE_CLEAR,
+            KernelEvent.AGENT_V2_BEGIN,
+            KernelEvent.AGENT_V2_APPEND,
+            KernelEvent.AGENT_V2_STATUS,
+            KernelEvent.AGENT_V2_TOOL_EXEC,
+            KernelEvent.AGENT_V2_END,
         )
     )
     _STACK_ADD_EVENTS = frozenset((KernelEvent.TOOL_CALL, KernelEvent.AGENT_CONTINUE, KernelEvent.AGENT_CALL))
@@ -72,9 +78,9 @@ class Kernel:
     _QUEUE_EVENTS_ALL = _REQUEST_EVENTS | _OUTPUT_EVENTS | _STACK_ADD_EVENTS | _CALL_EVENTS
 
     _ASYNC_DISABLED_MODES = frozenset(
-        (MODE_ASSISTANT, MODE_AGENT, MODE_EXPERT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_LLAMA_INDEX)
+        (MODE_ASSISTANT, MODE_AGENT, MODE_EXPERT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2, MODE_LLAMA_INDEX)
     )
-    _THREADED_MODES = frozenset((MODE_AGENT_LLAMA, MODE_AGENT_OPENAI))
+    _THREADED_MODES = frozenset((MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2))
 
     def __init__(self, window=None):
         """
@@ -92,6 +98,9 @@ class Kernel:
         self.state = self.STATE_IDLE
         self.not_stop_on_events = [
             KernelEvent.APPEND_DATA,
+            KernelEvent.AGENT_V2_STATUS,
+            KernelEvent.AGENT_V2_TOOL_EXEC,
+            KernelEvent.AGENT_V2_END,
             KernelEvent.INPUT_USER,
             KernelEvent.FORCE_CALL,
             KernelEvent.STATUS,
@@ -273,6 +282,16 @@ class Kernel:
             return resp.live_append(context, extra)
         elif name == KernelEvent.LIVE_CLEAR:
             return resp.live_clear(context, extra)
+        elif name == KernelEvent.AGENT_V2_BEGIN:
+            return resp.agent_v2_begin(context, extra)
+        elif name == KernelEvent.AGENT_V2_APPEND:
+            return resp.agent_v2_append(context, extra, event.data.get("chunk", ""), event.data.get("begin", False))
+        elif name == KernelEvent.AGENT_V2_STATUS:
+            return resp.agent_v2_status(context, extra, event.data.get("status", ""))
+        elif name == KernelEvent.AGENT_V2_TOOL_EXEC:
+            return resp.agent_v2_tool_exec(context, extra, event.data.get("request"))
+        elif name == KernelEvent.AGENT_V2_END:
+            return resp.agent_v2_end(context, extra, event.data.get("final_answer", ""))
 
     def restart(self):
         """

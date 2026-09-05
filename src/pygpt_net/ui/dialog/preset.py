@@ -28,6 +28,7 @@ from pygpt_net.core.types import (
     MODE_RESEARCH,
     MODE_COMPUTER,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
 )
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
@@ -121,6 +122,7 @@ class Preset(BaseConfigDialog):
             MODE_EXPERT,
         ]
         mode_keys_right = [
+            MODE_AGENT_V2,
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
             MODE_AGENT,
@@ -195,6 +197,8 @@ class Preset(BaseConfigDialog):
             "agent_provider",
             "agent_provider_openai",
             "idx",
+            "agent_v2_allow_local_tools",
+            "agent_v2_allow_remote_tools",
         ]
         # personalize tab
         personalize_keys = [

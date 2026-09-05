@@ -20,6 +20,9 @@ class PresetItem:
     agent: bool = False
     agent_llama: bool = False
     agent_openai: bool = False
+    agent_v2: bool = False
+    agent_v2_allow_local_tools: bool = True
+    agent_v2_allow_remote_tools: bool = True
     agent_provider: Optional[str] = None
     agent_provider_openai: Optional[str] = None
     ai_avatar: str = ""
@@ -57,6 +60,9 @@ class PresetItem:
         self.agent = False
         self.agent_llama = False
         self.agent_openai = False
+        self.agent_v2 = False
+        self.agent_v2_allow_local_tools = True
+        self.agent_v2_allow_remote_tools = True
         self.agent_provider = None
         self.agent_provider_openai = None
         self.ai_avatar = ""
@@ -110,6 +116,9 @@ class PresetItem:
             "agent": self.agent,
             "agent_llama": self.agent_llama,
             "agent_openai": self.agent_openai,
+            "agent_v2": self.agent_v2,
+            "agent_v2_allow_local_tools": self.agent_v2_allow_local_tools,
+            "agent_v2_allow_remote_tools": self.agent_v2_allow_remote_tools,
             "agent_provider": self.agent_provider,
             "agent_provider_openai": self.agent_provider_openai,
             "ai_avatar": self.ai_avatar,
@@ -156,6 +165,12 @@ class PresetItem:
             self.agent_llama = data["agent_llama"]
         if "agent_openai" in data:
             self.agent_openai = data["agent_openai"]
+        if "agent_v2" in data:
+            self.agent_v2 = bool(data["agent_v2"])
+        if "agent_v2_allow_local_tools" in data:
+            self.agent_v2_allow_local_tools = bool(data["agent_v2_allow_local_tools"])
+        if "agent_v2_allow_remote_tools" in data:
+            self.agent_v2_allow_remote_tools = bool(data["agent_v2_allow_remote_tools"])
         if "agent_provider" in data:
             self.agent_provider = data["agent_provider"]
         if "agent_provider_openai" in data:
@@ -227,6 +242,7 @@ class PresetItem:
         self.agent = False
         self.agent_llama = False
         self.agent_openai = False
+        self.agent_v2 = False
         self.audio = False
         self.assistant = False
         self.chat = False
