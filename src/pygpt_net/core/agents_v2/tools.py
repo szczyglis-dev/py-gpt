@@ -8,9 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
-from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.types import MODE_AGENT_V2, MODE_CHAT, TOOL_QUERY_ENGINE_DESCRIPTION
-from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.types import TOOL_QUERY_ENGINE_DESCRIPTION
 
 
 class SchemaToolMetadata(ToolMetadata):
@@ -33,7 +31,7 @@ class WorkerToolFactory:
     RESERVED = {
         "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
-        "report_status", "shared_context", "remote_task", "query_index",
+        "report_status", "shared_context", "query_index",
     }
 
     def __init__(self, runtime):
@@ -72,19 +70,6 @@ class WorkerToolFactory:
         if rag is not None:
             tools.append(rag)
 
-        if self.runtime.allow_remote_tools and self._remote_available():
-            async def remote_task(task: str) -> str:
-                return await self._remote_task(worker, task)
-
-            tools.append(FunctionTool.from_defaults(
-                async_fn=remote_task,
-                name="remote_task",
-                description=(
-                    "Execute a focused subtask through the selected provider using PyGPT's currently enabled provider-side "
-                    "remote tools (web search, hosted code execution, file search, MCP, etc., depending on provider/config). "
-                    "The current turn attachments are forwarded and generated artifacts are propagated to the main response."
-                ),
-            ))
         return tools
 
     def build_orchestrator(self, actor) -> List[BaseTool]:
@@ -103,18 +88,6 @@ class WorkerToolFactory:
         rag = self._rag_tool()
         if rag is not None:
             tools.append(rag)
-        if self.runtime.allow_remote_tools and self._remote_available():
-            async def remote_task(task: str) -> str:
-                return await self._remote_task(actor, task)
-
-            tools.append(FunctionTool.from_defaults(
-                async_fn=remote_task,
-                name="remote_task",
-                description=(
-                    "Execute a focused task through the selected provider with PyGPT's enabled provider-side remote tools. "
-                    "Current attachments and produced artifacts are preserved."
-                ),
-            ))
         return tools
 
     async def _report_status(self, worker, status: str) -> str:
@@ -206,103 +179,3 @@ class WorkerToolFactory:
         except Exception as exc:
             core.debug.log(exc)
             return None
-
-    def _remote_available(self) -> bool:
-        """Ask the selected provider's own remote-tool builder instead of guessing config keys."""
-        model = self.runtime.model
-        if model is None:
-            return False
-        provider = model.get_provider()
-        cfg = self.window.core.config
-        try:
-            if provider == "openai":
-                tools = self.window.core.api.openai.remote_tools.append_to_tools(
-                    mode=MODE_CHAT,
-                    model=model,
-                    stream=False,
-                    is_expert_call=False,
-                    tools=[],
-                    preset=self.runtime.preset,
-                )
-                return bool(tools)
-            if provider == "google" and cfg.get("api_native_google", False):
-                return bool(self.window.core.api.google.remote_tools.build_remote_tools(model))
-            if provider == "anthropic" and cfg.get("api_native_anthropic", False):
-                return bool(self.window.core.api.anthropic.remote_tools.build_remote_tools(model))
-            if provider == "x_ai" and cfg.get("api_native_xai", False):
-                modern = self.window.core.api.xai.remote.build_for_chat(model=model, stream=False) or {}
-                if modern.get("tools"):
-                    return True
-                legacy = self.window.core.api.xai.remote.build_remote_tools(model) or {}
-                return bool((legacy.get("sdk") or {}).get("enabled") or legacy.get("http"))
-        except Exception as exc:
-            self.window.core.debug.log(exc)
-        return False
-
-    async def _remote_task(self, worker, task: str) -> str:
-        if self.runtime.is_stopped() or worker.stop_requested:
-            return "Execution cancelled."
-        task = str(task or "").strip()
-        if not task:
-            return "Remote task is empty."
-        self.runtime.emit_runtime_status(
-            "status.agent_v2.remote",
-            worker=worker if getattr(worker, "id", "") != "orchestrator" else None,
-        )
-        # Native provider wrappers cache mutable clients/token state. Serialize their
-        # focused subcalls per orchestration runtime; workers still execute concurrently.
-        async with self.runtime.remote_tool_lock:
-            # Provider wrappers are part of PyGPT's bridge stack and may share
-            # thread-affine/controller state. Keep the call on this BridgeWorker
-            # thread instead of asyncio's generic executor.
-            return self._remote_task_sync(worker, task)
-
-    def _remote_task_sync(self, worker, task: str) -> str:
-        model = self.runtime.model
-        tmp = CtxItem(MODE_CHAT)
-        tmp.meta = self.runtime.context.ctx.meta
-        tmp.meta_id = getattr(self.runtime.context.ctx, "meta_id", None)
-        tmp.internal = True
-        tmp.hidden = True
-        tmp.agent_call = True
-        tmp.model = getattr(self.runtime.context.ctx, "model", None)
-        tmp.set_input(task, "")
-        tmp.set_output(None, "")
-
-        ctx = BridgeContext(
-            attachments=self.runtime.context.attachments,
-            ctx=tmp,
-            file_ids=self.runtime.context.file_ids,
-            history=[],
-            max_tokens=self.runtime.context.max_tokens,
-            mode=MODE_CHAT,
-            model=model,
-            multimodal_ctx=self.runtime.context.multimodal_ctx,
-            parent_mode=MODE_AGENT_V2,
-            preset=self.runtime.preset,
-            prompt=task,
-            stream=False,
-            system_prompt=(
-                "Execute the requested focused task. Use provider-side remote tools enabled in PyGPT. "
-                "Use the supplied current-turn attachments when relevant. Return concrete findings/results and preserve "
-                "generated files, images and URLs."
-            ),
-        )
-        extra = {"mode": MODE_CHAT, "internal": True, "agents_v2_remote": True}
-        provider = model.get_provider() if model is not None else "openai"
-        try:
-            if provider == "google" and self.window.core.config.get("api_native_google", False):
-                ok = self.window.core.api.google.call(ctx, extra)
-            elif provider == "anthropic" and self.window.core.config.get("api_native_anthropic", False):
-                ok = self.window.core.api.anthropic.call(ctx, extra)
-            elif provider == "x_ai" and self.window.core.config.get("api_native_xai", False):
-                ok = self.window.core.api.xai.call(ctx, extra)
-            else:
-                ok = self.window.core.api.openai.call(ctx, extra)
-            self.runtime.collect_artifacts(tmp, worker)
-            if not ok:
-                return "Remote provider call failed."
-            return str(tmp.output or "Remote task completed without textual output.")
-        except Exception as exc:
-            self.window.core.debug.log(exc)
-            return f"Remote tool error: {exc}"

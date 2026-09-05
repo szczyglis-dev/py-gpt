@@ -57,7 +57,7 @@ class Runner:
             model=context.model,
             current_input=str(getattr(context.ctx, "input", "") or context.prompt or ""),
         )
-        llm = self.window.core.idx.llm.get(context.model, stream=True)
+        llm = runtime.get_llm(stream=True)
         orchestrator = runtime.build_agent(
             name="Orchestrator",
             description="PyGPT Agents v2 main orchestrator",
@@ -154,6 +154,10 @@ class Runner:
             if stop_task is not None:
                 stop_task.cancel()
                 await asyncio.gather(stop_task, return_exceptions=True)
+            # Provider-native hosted tools bypass local plugin CtxItems. Drain
+            # their captured metadata (e.g. OpenAI web-search source URLs) before
+            # the runtime is cleaned up and the final message is committed.
+            runtime.collect_llm_artifacts(llm)
             await runtime.cleanup()
             emitter.clear_status()
             emitter.finish(runtime.final_answer)

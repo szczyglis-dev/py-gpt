@@ -106,7 +106,10 @@ def to_dict_safe(obj: Any) -> Optional[dict]:
         return obj
     try:
         if hasattr(obj, "model_dump"):
-            return obj.model_dump()
+            try:
+                return obj.model_dump(warnings=False)
+            except TypeError:
+                return obj.model_dump()
     except Exception:
         pass
     try:

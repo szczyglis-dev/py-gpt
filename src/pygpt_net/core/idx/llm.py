@@ -94,6 +94,57 @@ class Llm:
             )
         return llm
 
+    def get_agent(
+            self,
+            model: Optional[ModelItem] = None,
+            stream: bool = False,
+            allow_remote_tools: bool = True
+    ) -> BaseLLM:
+        """
+        Get a LlamaIndex LLM configured for Agents v2.
+
+        This path lets each provider attach its native/server-side remote tools
+        directly to the LLM request while keeping the regular LlamaIndex path
+        unchanged.
+
+        :param model: Model item
+        :param stream: Stream mode
+        :param allow_remote_tools: Allow provider-native remote tools
+        :return: LlamaIndex LLM instance
+        """
+        if not self.initialized:
+            self.initialized = True
+
+        llm = None
+        if model is not None:
+            provider = model.get_provider()
+            llm_provider = self.window.core.llm.get(provider)
+            if llm_provider is not None:
+                # LlamaIndex provider settings/env are still the source of the
+                # model credentials for Agents v2.
+                llm_provider.init(
+                    window=self.window,
+                    model=model,
+                    mode=MODE_LLAMA_INDEX,
+                    sub_mode="",
+                )
+                llm = llm_provider.llama_agent(
+                    window=self.window,
+                    model=model,
+                    stream=stream,
+                    allow_remote_tools=allow_remote_tools,
+                )
+            elif self.window.core.llm.is_custom_provider(provider):
+                raise RuntimeError(f"Custom provider is not configured: {provider}")
+
+        if llm is None:
+            self.init()
+            llm = OpenAI(
+                temperature=0.0,
+                model=self.default_model,
+            )
+        return llm
+
     def get_embeddings_provider(self) -> BaseEmbedding:
         """
         Get current embeddings provider

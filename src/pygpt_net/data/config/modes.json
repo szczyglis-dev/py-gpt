@@ -16,6 +16,12 @@
             "name": "Index (LlamaIndex)",
             "label": "mode.llama_index",
             "default": false
+        },             
+        "agent_v2": {
+            "id": "agent_v2",
+            "name": "Agents v2",
+            "label": "mode.agent_v2",
+            "default": false
         },
         "audio": {
             "id": "audio",
@@ -28,13 +34,7 @@
             "name": "research",
             "label": "mode.research",
             "default": false
-        },        
-        "agent_v2": {
-            "id": "agent_v2",
-            "name": "Agents v2",
-            "label": "mode.agent_v2",
-            "default": false
-        },
+        },   
         "completion": {
             "id": "completion",
             "name": "completion",

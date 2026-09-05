@@ -59,7 +59,6 @@ class AgentsV2Runtime:
         # PyGPT plugin/provider API wrappers keep mutable state. Workers themselves run
         # concurrently, but shared side-effecting bridges are serialized per runtime.
         self.local_tool_lock = asyncio.Lock()
-        self.remote_tool_lock = asyncio.Lock()
 
         self.shared_context_text = self._build_shared_context()
         self.runtime_system_context = self._build_runtime_system_context()
@@ -123,6 +122,14 @@ class AgentsV2Runtime:
             return bool(llm.metadata.is_function_calling_model)
         except Exception:
             return False
+
+    def get_llm(self, stream: bool = False):
+        """Return provider LLM with native remote tools attached when enabled."""
+        return self.window.core.idx.llm.get_agent(
+            model=self.model,
+            stream=stream,
+            allow_remote_tools=self.allow_remote_tools,
+        )
 
     def build_agent(self, name: str, description: str, llm, system_prompt: str, tools):
         """Prefer native tool calling and retain ReAct as a compatibility fallback."""
@@ -221,6 +228,41 @@ class AgentsV2Runtime:
             self.emit_worker_status(worker, text)
         else:
             self.emitter.status(text, source="orchestrator")
+
+    def collect_llm_artifacts(self, llm, worker: Optional[WorkerState] = None):
+        """Drain provider-native artifacts captured by an Agents v2 LLM adapter.
+
+        Hosted/provider-side tools do not run through the local PyGPT plugin
+        ``CtxItem``, so their metadata (notably OpenAI web-search source URLs)
+        must be bridged explicitly back into the user-visible context.
+        """
+        if llm is None:
+            return
+        pop_urls = getattr(llm, "pop_pygpt_urls", None)
+        if not callable(pop_urls):
+            return
+        try:
+            urls = pop_urls() or []
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+            return
+        if not urls:
+            return
+
+        actor = worker if worker is not None else self.orchestrator_actor
+        source_ctx = getattr(actor, "tool_ctx", None)
+        if source_ctx is None:
+            return
+        if not isinstance(source_ctx.urls, list):
+            source_ctx.urls = []
+        seen = set(source_ctx.urls)
+        for url in urls:
+            value = str(url or "").strip()
+            if not value or value in seen:
+                continue
+            source_ctx.urls.append(value)
+            seen.add(value)
+        self.collect_artifacts(source_ctx, worker)
 
     def collect_artifacts(self, source_ctx: CtxItem, worker: Optional[WorkerState] = None):
         """Merge worker artifacts into the user-visible context and worker status payload."""
@@ -350,7 +392,7 @@ class AgentsV2Runtime:
             ),
             tool_ctx=self._make_worker_ctx(wid),
         )
-        llm = self.window.core.idx.llm.get(self.model, stream=False)
+        llm = self.get_llm(stream=False)
         state.agent = self.build_agent(
             name=name,
             description=instruction[:512],
@@ -386,7 +428,7 @@ class AgentsV2Runtime:
             state.system_prompt = system_prompt.strip()
 
         # Rebuild the agent definition while deliberately preserving Memory.
-        llm = self.window.core.idx.llm.get(self.model, stream=False)
+        llm = self.get_llm(stream=False)
         state.agent = self.build_agent(
             name=state.name,
             description=state.instruction[:512],
@@ -477,6 +519,7 @@ class AgentsV2Runtime:
             self.window.core.debug.log(exc)
             return ""
         finally:
+            self.collect_llm_artifacts(getattr(state.agent, "llm", None), state)
             self.collect_artifacts(state.tool_ctx, state)
 
     async def stop_worker(self, agent_id: str) -> str:
@@ -663,7 +706,6 @@ class AgentsV2Runtime:
         capabilities = [
             f"selected_model={getattr(self.model, 'id', '')}",
             f"allow_local_tools={self.allow_local_tools}",
-            f"allow_remote_tools={self.allow_remote_tools}",
             f"rag_index={self.index_id or 'none'}",
             f"shared_attachment_context={'yes' if self.shared_context_text else 'no'}",
             f"max_parallel_workers={self.MAX_WORKERS}",

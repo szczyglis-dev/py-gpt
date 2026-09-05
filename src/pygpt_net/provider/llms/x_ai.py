@@ -66,7 +66,8 @@ class xAILLM(BaseLLM):
             self,
             window,
             model: ModelItem,
-            stream: bool = False
+            stream: bool = False,
+            remote_tools: bool = True
     ) -> LlamaBaseLLM:
         """
         Return LLM provider instance for llama
@@ -94,11 +95,13 @@ class xAILLM(BaseLLM):
         # xAI Live Search via search_parameters (Chat Completions)
         # LlamaIndex OpenAILike supports 'additional_kwargs' passed to request body.
         # -----------------------------------------------------------
-        try:
-            xai_remote = window.core.api.xai.remote.build(model=model) or {}
-        except Exception as e:
-            window.core.debug.log(e)
-            xai_remote = {}
+        xai_remote = {}
+        if remote_tools:
+            try:
+                xai_remote = window.core.api.xai.remote.build(model=model) or {}
+            except Exception as e:
+                window.core.debug.log(e)
+                xai_remote = {}
 
         search_http = xai_remote.get("http")
         if search_http:
@@ -110,6 +113,80 @@ class xAILLM(BaseLLM):
             args["additional_kwargs"] = add_kwargs
 
         return OpenAILike(**args)
+
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True
+    ) -> LlamaBaseLLM:
+        """Return xAI LLM for Agents v2.
+
+        xAI removed Live Search ``search_parameters`` from Chat Completions.
+        When provider-native Agent Tools are enabled, use xAI's
+        OpenAI-compatible Responses API instead. Local FunctionAgent tools are
+        merged by LlamaIndex with the server-side xAI tool descriptors.
+        """
+        if not allow_remote_tools:
+            return self.llama(
+                window=window,
+                model=model,
+                stream=stream,
+                remote_tools=False,
+            )
+
+        try:
+            remote_cfg = window.core.api.xai.remote.build_for_responses(model=model) or {}
+        except Exception as e:
+            window.core.debug.log(e)
+            remote_cfg = {}
+
+        built_tools = remote_cfg.get("tools") or []
+        if not built_tools:
+            return self.llama(
+                window=window,
+                model=model,
+                stream=stream,
+                remote_tools=False,
+            )
+
+        from pygpt_net.provider.llms.x_ai_responses_agent import AgentXAIResponses
+
+        args = self.parse_args(model.llama_index, window)
+        args["model"] = args.get("model") or model.id
+        args["api_key"] = args.get("api_key") or window.core.config.get("api_key_xai", "")
+        args["api_base"] = args.get("api_base") or window.core.config.get(
+            "api_endpoint_xai",
+            "https://api.x.ai/v1",
+        )
+
+        # Mirror normal xAI Chat: older Grok 3 models do not support Agent
+        # Tools, so use the configured tools-capable fallback when necessary.
+        if str(args["model"] or "").lower().startswith("grok-3"):
+            args["model"] = window.core.config.get("xai_tools_fallback_model") or "grok-4.5-latest"
+
+        if "max_tokens" in args and "max_output_tokens" not in args:
+            args["max_output_tokens"] = args.pop("max_tokens")
+        args.pop("is_chat_model", None)
+        args.pop("is_function_calling_model", None)
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+
+        args["built_in_tools"] = built_tools
+        include = remote_cfg.get("include") or []
+        if include:
+            current = args.get("include")
+            if isinstance(current, list):
+                include = [*current, *include]
+            elif current:
+                include = [current, *include]
+            args["include"] = list(dict.fromkeys(include))
+
+        ctx_size = int(getattr(model, "ctx", 0) or 0)
+        if ctx_size > 0 and "context_window" not in args:
+            args["context_window"] = ctx_size
+
+        return AgentXAIResponses(**args)
 
     def llama_multimodal(
             self,

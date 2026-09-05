@@ -273,6 +273,103 @@ class Remote:
             "reason": http_reason,
         }
 
+    def build_for_responses(self, model: ModelItem = None) -> Dict[str, Any]:
+        """Build xAI Agent Tools descriptors for the OpenAI-compatible Responses API.
+
+        Live Search ``search_parameters`` on Chat Completions is deprecated by
+        xAI. Agents v2 uses these server-side tool descriptors directly on
+        ``/v1/responses`` instead.
+
+        :param model: Model item
+        :return: {"tools": [...], "include": [...]}
+        """
+        cfg = self.window.core.config
+        enabled_global = self.window.controller.chat.remote_tools.enabled
+        tools: List[dict] = []
+        include: List[str] = []
+
+        is_web_enabled = enabled_global(model, "web_search")
+        is_x_enabled = bool(cfg.get("remote_tools.xai.x_search", False))
+        is_code_enabled = bool(cfg.get("remote_tools.xai.code_execution", False))
+        is_mcp_enabled = bool(cfg.get("remote_tools.xai.mcp", False))
+        is_collections_enabled = bool(cfg.get("remote_tools.xai.collections", False))
+
+        if is_web_enabled:
+            tool: Dict[str, Any] = {"type": "web_search"}
+            filters: Dict[str, Any] = {}
+            allowed = self._as_list(cfg.get("remote_tools.xai.web.allowed_websites"), 5)
+            excluded = self._as_list(cfg.get("remote_tools.xai.web.excluded_websites"), 5)
+            if allowed and not excluded:
+                filters["allowed_domains"] = allowed
+            elif excluded and not allowed:
+                filters["excluded_domains"] = excluded
+            if filters:
+                tool["filters"] = filters
+            if bool(cfg.get("remote_tools.xai.web.enable_image_understanding", False)):
+                tool["enable_image_understanding"] = True
+            if bool(cfg.get("remote_tools.xai.web.enable_image_search", False)):
+                tool["enable_image_search"] = True
+            tools.append(tool)
+            include.append("web_search_call.action.sources")
+
+        if is_x_enabled:
+            tool = {"type": "x_search"}
+            inc = self._as_list(cfg.get("remote_tools.xai.x.included_handles"), 20)
+            exc = self._as_list(cfg.get("remote_tools.xai.x.excluded_handles"), 20)
+            if inc and not exc:
+                tool["allowed_x_handles"] = inc
+            elif exc and not inc:
+                tool["excluded_x_handles"] = exc
+            for cfg_key, out_key in (
+                ("remote_tools.xai.from_date", "from_date"),
+                ("remote_tools.xai.to_date", "to_date"),
+            ):
+                value = cfg.get(cfg_key)
+                if isinstance(value, str) and value.strip():
+                    tool[out_key] = value.strip()
+            if bool(cfg.get("remote_tools.xai.x.enable_image_understanding", False)):
+                tool["enable_image_understanding"] = True
+            if bool(cfg.get("remote_tools.xai.x.enable_video_understanding", False)):
+                tool["enable_video_understanding"] = True
+            tools.append(tool)
+
+        if is_code_enabled:
+            tools.append({"type": "code_interpreter"})
+            include.append("code_interpreter_call.outputs")
+
+        if is_collections_enabled:
+            ids = cfg.get("remote_tools.xai.collections.args", "")
+            ids_list: List[str] = []
+            if ids:
+                try:
+                    ids_list = [value.strip() for value in ids.split(",") if value.strip()]
+                except Exception:
+                    ids_list = []
+            if ids_list:
+                # xAI calls this collections_search in the native SDK, but the
+                # OpenAI-compatible Responses API uses file_search.
+                tools.append({
+                    "type": "file_search",
+                    "vector_store_ids": ids_list,
+                })
+                include.append("file_search_call.results")
+
+        if is_mcp_enabled:
+            raw = cfg.get("remote_tools.xai.mcp.args", "")
+            if raw:
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, dict):
+                        parsed.setdefault("type", "mcp")
+                        tools.append(parsed)
+                except Exception:
+                    pass
+
+        return {
+            "tools": tools,
+            "include": list(dict.fromkeys(include)),
+        }
+
     # ---------- Realtime tools (WebSocket) ----------
 
     def append_to_tools(

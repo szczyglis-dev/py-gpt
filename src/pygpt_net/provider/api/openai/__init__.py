@@ -121,6 +121,7 @@ class ApiOpenAI:
 
         # --- Responses API ----
         use_responses_api = self.responses.is_enabled(model, mode, parent_mode, is_expert_call, preset)
+
         if use_responses_api:
             ctx.chunk_type = ChunkType.API_CHAT_RESPONSES # Responses API
 
