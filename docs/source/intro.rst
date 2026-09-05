@@ -6,7 +6,7 @@ Overview
 
 **PyGPT** is an **all-in-one desktop AI assistant** supporting models from ``OpenAI`` (``GPT-5``, ``GPT-4``, ``o1``, ``o3``), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, and models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``Gemma 4``, ``Qwen 3.6``, ``Llama 4``, ``Mistral Small 3.2``, ``DeepSeek``, ``Bielik``, ``Nemotron``, and ``gpt-oss``.
 
-It supports chat, agents, completions, Chat with Files (via ``LlamaIndex``), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
+It supports chat, **Agents v2 (beta)** and other agent workflows, completions, Chat with Files (via ``LlamaIndex``), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
 
 **PyGPT** also provides speech synthesis through ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI``, plus speech recognition with ``OpenAI Whisper``, ``Google`` and ``Bing``. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
@@ -25,7 +25,7 @@ Features
 ---------
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
-* 10 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, Agents and Autonomous Mode.
+* 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, **Agents v2 (beta)**, Agents and Autonomous Mode.
 * Supports multiple models like ``OpenAI GPT-5``, ``GPT-4``, ``o1``, ``o3``, ``o4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``Gemma 4``, ``Qwen 3.6``, ``Llama 4``, ``Mistral Small 3.2``, ``DeepSeek``, ``Bielik``, ``Nemotron``, ``gpt-oss``, etc.
 * Chat with your own Files: integrated ``LlamaIndex`` support: chat with data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 * Built-in vector databases support and automated files and data embedding.
@@ -52,6 +52,7 @@ Features
 * Includes a notepad.
 * Includes simple painter / drawing tool.
 * Includes a node-based Agents Builder.
+* Includes **Agents v2 (beta)**, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
 * Supports multiple languages.
 * Requires no previous knowledge of using AI models.
 * Fully configurable.

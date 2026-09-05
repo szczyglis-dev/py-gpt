@@ -3,7 +3,7 @@
 # WARNING: minimum PyInstaller version required: 6.4
 # pip install pyinstaller==6.4.0
 
-VERSION="2.8.9"
+VERSION="2.8.10"
 
 cd "$(dirname "$0")"
 DIR_CURRENT="$(pwd)"

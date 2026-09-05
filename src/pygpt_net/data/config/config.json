@@ -50,7 +50,7 @@
   "agent.func_call.native": false,
   "agent.goal.notify": false,
   "agent.idx": "base",
-  "agent.idx.auto_retrieve": false,
+  "agent.idx.auto_retrieve": true,
   "agent.iterations": 3,
   "agent.llama.append_eval": false,
   "agent.llama.eval_model": "_",

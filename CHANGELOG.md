@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.8.10 (2026-09-06)
+
+- Added **Agents v2 (beta)**, a new advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically created specialist worker agents.
+- Added asynchronous worker lifecycle management in Agents v2, including create, update, run/reuse, status, wait, stop and remove operations, with concurrent execution for independent workers and runtime-local worker memory.
+- Added local plugin tools, provider-side remote tools, RAG index access, shared attachment context, supported native image input, artifact propagation, persistent Orchestrator memory and live workflow status rendering to Agents v2.
+- Added native function-calling support with a ReAct compatibility fallback for Agents v2 models where appropriate.
+- **Agents v2 is currently in beta; its behavior, workflow rules, preset options and provider compatibility may change in future releases.**
+
 ## 2.8.9 (2026-09-05)
 
 - Added a new **Custom Providers** tab to Settings, allowing users to create and use custom API providers at runtime without modifying the source code.
