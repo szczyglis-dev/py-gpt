@@ -11,6 +11,7 @@
 
 from typing import Dict, Any
 import time
+from pygpt_net.core.agents_v2.tool_bridge import is_pending, discard
 
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.core.types import (
@@ -407,13 +408,14 @@ class Response:
             # Async plugins mark the context as pending and will wake the agent
             # later through REPLY_ADD.
             if done is not None and not done.is_set():
-                pending = bool(isinstance(getattr(ctx, "extra", None), dict)
-                               and ctx.extra.get("_agents_v2_async_pending"))
+                pending = is_pending(ctx)
                 if response not in (None, [], {}) or not pending:
                     request["result"] = response
+                    discard(ctx, request)
                     done.set()
         except Exception as exc:
             request["error"] = exc
+            discard(ctx, request)
             self.window.core.debug.log(exc)
             if done is not None:
                 done.set()

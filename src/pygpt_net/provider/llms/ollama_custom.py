@@ -1,3 +1,4 @@
+import json
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -10,6 +11,7 @@ from typing import (
     Tuple,
     Type,
     Union,
+    cast,
 )
 
 from ollama import AsyncClient, Client
@@ -32,6 +34,8 @@ from llama_index.core.base.llms.types import (
     LLMMetadata,
     MessageRole,
     TextBlock,
+    ThinkingBlock,
+    ToolCallBlock,
 )
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 from llama_index.core.constants import DEFAULT_CONTEXT_WINDOW, DEFAULT_NUM_OUTPUTS
@@ -57,9 +61,34 @@ def get_additional_kwargs(
 
 
 def force_single_tool_call(response: ChatResponse) -> None:
-    tool_calls = response.message.additional_kwargs.get("tool_calls", [])
-    if len(tool_calls) > 1:
-        response.message.additional_kwargs["tool_calls"] = [tool_calls[0]]
+    """Keep only one tool call when the agent disables parallel calls."""
+    blocks = [b for b in response.message.blocks if isinstance(b, ToolCallBlock)]
+    if len(blocks) <= 1:
+        return
+    response.message.blocks = [
+        b for b in response.message.blocks if not isinstance(b, ToolCallBlock)
+    ] + [blocks[0]]
+
+
+def _plain_dict(value: Any) -> Dict[str, Any]:
+    """Normalize Ollama SDK Pydantic/dict objects without depending on SDK version."""
+    if isinstance(value, dict):
+        return dict(value)
+    dump = getattr(value, "model_dump", None)
+    if callable(dump):
+        return dump(exclude_none=True)
+    try:
+        return dict(value)
+    except Exception:
+        return {}
+
+
+def _tool_call_dict(value: Any) -> Dict[str, Any]:
+    item = _plain_dict(value)
+    fn = item.get("function")
+    if fn is not None and not isinstance(fn, dict):
+        item["function"] = _plain_dict(fn)
+    return item
 
 
 class Ollama(FunctionCallingLLM):
@@ -212,32 +241,80 @@ class Ollama(FunctionCallingLLM):
         # If the context window is still -1, use the default context window
         return self.context_window if self.context_window != -1 else DEFAULT_CONTEXT_WINDOW
 
-    def _convert_to_ollama_messages(self, messages: Sequence[ChatMessage]) -> Dict:
-        ollama_messages = []
+    def _convert_to_ollama_messages(self, messages: Sequence[ChatMessage]) -> List[Dict[str, Any]]:
+        """Convert LlamaIndex chat messages to Ollama native /api/chat messages.
+
+        FunctionAgent 0.14.23 stores tool results as ``role=tool`` with only
+        ``tool_call_id``.  For the native Ollama protocol the corresponding
+        function name is carried as ``tool_name``.  This adapter deliberately
+        uses the tool name as the tool id (see get_tool_calls_from_response),
+        so the mapping is lossless and does not rely on OpenAI-compatible ids.
+        """
+        ollama_messages: List[Dict[str, Any]] = []
         for message in messages:
-            cur_ollama_message = {
-                "role": message.role.value,
-                "content": "",
-            }
+            role = message.role.value if hasattr(message.role, "value") else str(message.role)
+            cur: Dict[str, Any] = {"role": role, "content": ""}
+            tool_calls: List[Dict[str, Any]] = []
+
             for block in message.blocks:
                 if isinstance(block, TextBlock):
-                    cur_ollama_message["content"] += block.text
+                    cur["content"] += block.text or ""
                 elif isinstance(block, ImageBlock):
-                    if "images" not in cur_ollama_message:
-                        cur_ollama_message["images"] = []
-                    cur_ollama_message["images"].append(
+                    cur.setdefault("images", []).append(
                         block.resolve_image(as_base64=True).read().decode("utf-8")
                     )
-                else:
-                    raise ValueError(f"Unsupported block type: {type(block)}")
+                elif isinstance(block, ThinkingBlock):
+                    if block.content:
+                        cur["thinking"] = block.content
+                elif isinstance(block, ToolCallBlock):
+                    kwargs = block.tool_kwargs
+                    if isinstance(kwargs, str):
+                        try:
+                            kwargs = json.loads(kwargs)
+                        except Exception:
+                            kwargs = {}
+                    tool_calls.append({
+                        "function": {
+                            "name": block.tool_name,
+                            "arguments": kwargs or {},
+                        }
+                    })
 
-            if "tool_calls" in message.additional_kwargs:
-                cur_ollama_message["tool_calls"] = message.additional_kwargs[
-                    "tool_calls"
-                ]
+            # Backward compatibility with LlamaIndex messages that keep tool calls
+            # only in additional_kwargs.
+            for raw_call in message.additional_kwargs.get("tool_calls", []) or []:
+                call = _tool_call_dict(raw_call)
+                fn = call.get("function") or {}
+                name = str(fn.get("name") or call.get("name") or "")
+                args = fn.get("arguments", call.get("arguments", {}))
+                if isinstance(args, str):
+                    try:
+                        args = json.loads(args)
+                    except Exception:
+                        args = {}
+                if name:
+                    key = (name, json.dumps(args or {}, sort_keys=True, default=str))
+                    existing = {
+                        (str((x.get("function") or {}).get("name") or ""),
+                         json.dumps((x.get("function") or {}).get("arguments") or {}, sort_keys=True, default=str))
+                        for x in tool_calls
+                    }
+                    if key not in existing:
+                        tool_calls.append({"function": {"name": name, "arguments": args or {}}})
 
-            ollama_messages.append(cur_ollama_message)
+            if tool_calls:
+                cur["tool_calls"] = tool_calls
 
+            if role == MessageRole.TOOL.value:
+                tool_name = (
+                    message.additional_kwargs.get("tool_name")
+                    or message.additional_kwargs.get("name")
+                    or message.additional_kwargs.get("tool_call_id")
+                )
+                if tool_name:
+                    cur["tool_name"] = str(tool_name)
+
+            ollama_messages.append(cur)
         return ollama_messages
 
     def _get_response_token_counts(self, raw_response: dict) -> dict:
@@ -272,7 +349,7 @@ class Ollama(FunctionCallingLLM):
         if isinstance(user_msg, str):
             user_msg = ChatMessage(role=MessageRole.USER, content=user_msg)
 
-        messages = chat_history or []
+        messages = list(chat_history or [])
         if user_msg:
             messages.append(user_msg)
 
@@ -298,227 +375,243 @@ class Ollama(FunctionCallingLLM):
         response: "ChatResponse",
         error_on_no_tool_call: bool = True,
     ) -> List[ToolSelection]:
-        """Predict and call the tool."""
-        if response.message.additional_kwargs.get("tool_calls", []) is None:
-            response.message.additional_kwargs["tool_calls"] = []
-        tool_calls = response.message.additional_kwargs.get("tool_calls", [])
-        if len(tool_calls) < 1:
+        """Extract native Ollama tool calls for LlamaIndex FunctionAgent."""
+        blocks = [b for b in response.message.blocks if isinstance(b, ToolCallBlock)]
+        if not blocks:
+            # Compatibility with older response objects.
+            for raw_call in response.message.additional_kwargs.get("tool_calls", []) or []:
+                call = _tool_call_dict(raw_call)
+                fn = call.get("function") or {}
+                name = str(fn.get("name") or call.get("name") or "")
+                args = fn.get("arguments", call.get("arguments", {}))
+                if isinstance(args, str):
+                    try:
+                        args = json.loads(args)
+                    except Exception:
+                        args = {}
+                if name:
+                    blocks.append(ToolCallBlock(tool_name=name, tool_kwargs=args or {}))
+
+        if not blocks:
             if error_on_no_tool_call:
-                raise ValueError(
-                    f"Expected at least one tool call, but got {len(tool_calls)} tool calls."
-                )
-            else:
-                return []
+                raise ValueError("Expected at least one tool call, but got 0 tool calls.")
+            return []
 
-        tool_selections = []
-        for tool_call in tool_calls:
-            argument_dict = tool_call["function"]["arguments"]
+        out: List[ToolSelection] = []
+        for call in blocks:
+            kwargs = call.tool_kwargs
+            if isinstance(kwargs, str):
+                try:
+                    kwargs = json.loads(kwargs)
+                except Exception:
+                    kwargs = {}
+            name = str(call.tool_name or "")
+            if not name:
+                continue
+            # Ollama native messages identify the tool result by tool_name rather
+            # than an OpenAI tool_call_id.  Reusing the name as the LlamaIndex id
+            # lets FunctionAgent's role=tool scratchpad map back to tool_name.
+            out.append(ToolSelection(
+                tool_id=name,
+                tool_name=name,
+                tool_kwargs=cast(Dict[str, Any], kwargs or {}),
+            ))
+        return out
 
-            tool_selections.append(
-                ToolSelection(
-                    # tool ids not provided by Ollama
-                    tool_id=tool_call["function"]["name"],
-                    tool_name=tool_call["function"]["name"],
-                    tool_kwargs=argument_dict,
-                )
-            )
-
-        return tool_selections
+    @staticmethod
+    def _blocks_from_native_message(message: Dict[str, Any], cumulative_text: Optional[str] = None, cumulative_thinking: Optional[str] = None, cumulative_calls: Optional[List[Dict[str, Any]]] = None):
+        blocks = []
+        thinking = cumulative_thinking if cumulative_thinking is not None else (message.get("thinking") or "")
+        text = cumulative_text if cumulative_text is not None else (message.get("content") or "")
+        calls = cumulative_calls if cumulative_calls is not None else [
+            _tool_call_dict(x) for x in (message.get("tool_calls") or [])
+        ]
+        if thinking:
+            blocks.append(ThinkingBlock(content=str(thinking)))
+        blocks.append(TextBlock(text=str(text or "")))
+        for call in calls:
+            fn = call.get("function") or {}
+            name = str(fn.get("name") or call.get("name") or "")
+            kwargs = fn.get("arguments", call.get("arguments", {}))
+            if isinstance(kwargs, str):
+                try:
+                    kwargs = json.loads(kwargs)
+                except Exception:
+                    kwargs = {}
+            if name:
+                blocks.append(ToolCallBlock(tool_name=name, tool_kwargs=kwargs or {}))
+        return blocks
 
     @llm_chat_callback()
     def chat(self, messages: Sequence[ChatMessage], **kwargs: Any) -> ChatResponse:
         ollama_messages = self._convert_to_ollama_messages(messages)
-
         tools = kwargs.pop("tools", None)
-        format = kwargs.pop("format", "json" if self.json_mode else None)
-
+        format_value = kwargs.pop("format", "json" if self.json_mode else None)
         response = self.client.chat(
             model=self.model,
             messages=ollama_messages,
             stream=False,
-            format=format,
+            format=format_value,
             tools=tools,
             options=self._model_kwargs,
             keep_alive=self.keep_alive,
         )
-
-        response = dict(response)
-
-        tool_calls = response["message"].get("tool_calls", [])
-        token_counts = self._get_response_token_counts(response)
+        raw = _plain_dict(response)
+        message = _plain_dict(raw.get("message") or {})
+        token_counts = self._get_response_token_counts(raw)
         if token_counts:
-            response["usage"] = token_counts
-
+            raw["usage"] = token_counts
         return ChatResponse(
             message=ChatMessage(
-                content=response["message"]["content"],
-                role=response["message"]["role"],
-                additional_kwargs={"tool_calls": tool_calls},
+                blocks=self._blocks_from_native_message(message),
+                role=message.get("role", MessageRole.ASSISTANT),
             ),
-            raw=response,
+            raw=raw,
         )
 
     @llm_chat_callback()
-    def stream_chat(
-        self, messages: Sequence[ChatMessage], **kwargs: Any
-    ) -> ChatResponseGen:
+    def stream_chat(self, messages: Sequence[ChatMessage], **kwargs: Any) -> ChatResponseGen:
         ollama_messages = self._convert_to_ollama_messages(messages)
-
         tools = kwargs.pop("tools", None)
-        format = kwargs.pop("format", "json" if self.json_mode else None)
+        format_value = kwargs.pop("format", "json" if self.json_mode else None)
 
         def gen() -> ChatResponseGen:
             response = self.client.chat(
                 model=self.model,
                 messages=ollama_messages,
                 stream=True,
-                format=format,
+                format=format_value,
                 tools=tools,
                 options=self._model_kwargs,
                 keep_alive=self.keep_alive,
             )
-
             response_txt = ""
+            thinking_txt = ""
             seen_tool_calls = set()
-            all_tool_calls = []
-
-            for r in response:
-                if r["message"]["content"] is None:
+            all_tool_calls: List[Dict[str, Any]] = []
+            for chunk in response:
+                raw = _plain_dict(chunk)
+                message = _plain_dict(raw.get("message") or {})
+                delta = str(message.get("content") or "")
+                thinking_delta = str(message.get("thinking") or "")
+                new_calls = [_tool_call_dict(x) for x in (message.get("tool_calls") or [])]
+                if not delta and not thinking_delta and not new_calls:
                     continue
-
-                r = dict(r)
-
-                response_txt += r["message"]["content"]
-
-                # FIX: 
-                if r["message"].get("tool_calls", []) is None:
-                    r["message"]["tool_calls"] = []
-
-                new_tool_calls = [dict(t) for t in r["message"].get("tool_calls", [])]
-                for tool_call in new_tool_calls:
-                    if (
-                        str(tool_call["function"]["name"]),
-                        str(tool_call["function"]["arguments"]),
-                    ) in seen_tool_calls:
-                        continue
-                    seen_tool_calls.add(
-                        (
-                            str(tool_call["function"]["name"]),
-                            str(tool_call["function"]["arguments"]),
-                        )
+                response_txt += delta
+                thinking_txt += thinking_delta
+                for call in new_calls:
+                    fn = call.get("function") or {}
+                    key = (
+                        str(fn.get("name") or call.get("name") or ""),
+                        json.dumps(fn.get("arguments", call.get("arguments", {})) or {}, sort_keys=True, default=str),
                     )
-                    all_tool_calls.append(tool_call)
-                token_counts = self._get_response_token_counts(r)
+                    if key in seen_tool_calls:
+                        continue
+                    seen_tool_calls.add(key)
+                    all_tool_calls.append(call)
+                token_counts = self._get_response_token_counts(raw)
                 if token_counts:
-                    r["usage"] = token_counts
-
+                    raw["usage"] = token_counts
                 yield ChatResponse(
                     message=ChatMessage(
-                        content=response_txt,
-                        role=r["message"]["role"],
-                        additional_kwargs={"tool_calls": list(set(all_tool_calls))},
+                        blocks=self._blocks_from_native_message(
+                            message,
+                            cumulative_text=response_txt,
+                            cumulative_thinking=thinking_txt,
+                            cumulative_calls=all_tool_calls,
+                        ),
+                        role=message.get("role", MessageRole.ASSISTANT),
                     ),
-                    delta=r["message"]["content"],
-                    raw=r,
+                    delta=delta,
+                    raw=raw,
+                    additional_kwargs={"thinking_delta": thinking_delta or None},
                 )
-
         return gen()
 
     @llm_chat_callback()
-    async def astream_chat(
-        self, messages: Sequence[ChatMessage], **kwargs: Any
-    ) -> ChatResponseAsyncGen:
+    async def astream_chat(self, messages: Sequence[ChatMessage], **kwargs: Any) -> ChatResponseAsyncGen:
         ollama_messages = self._convert_to_ollama_messages(messages)
-
         tools = kwargs.pop("tools", None)
-        format = kwargs.pop("format", "json" if self.json_mode else None)
+        format_value = kwargs.pop("format", "json" if self.json_mode else None)
 
         async def gen() -> ChatResponseAsyncGen:
             response = await self.async_client.chat(
                 model=self.model,
                 messages=ollama_messages,
                 stream=True,
-                format=format,
+                format=format_value,
                 tools=tools,
                 options=self._model_kwargs,
                 keep_alive=self.keep_alive,
             )
-
             response_txt = ""
+            thinking_txt = ""
             seen_tool_calls = set()
-            all_tool_calls = []
-
-            async for r in response:
-                if r["message"]["content"] is None:
+            all_tool_calls: List[Dict[str, Any]] = []
+            async for chunk in response:
+                raw = _plain_dict(chunk)
+                message = _plain_dict(raw.get("message") or {})
+                delta = str(message.get("content") or "")
+                thinking_delta = str(message.get("thinking") or "")
+                new_calls = [_tool_call_dict(x) for x in (message.get("tool_calls") or [])]
+                if not delta and not thinking_delta and not new_calls:
                     continue
-
-                r = dict(r)
-
-                response_txt += r["message"]["content"]
-
-                new_tool_calls = [dict(t) for t in r["message"].get("tool_calls", [])]
-                for tool_call in new_tool_calls:
-                    if (
-                        str(tool_call["function"]["name"]),
-                        str(tool_call["function"]["arguments"]),
-                    ) in seen_tool_calls:
-                        continue
-                    seen_tool_calls.add(
-                        (
-                            str(tool_call["function"]["name"]),
-                            str(tool_call["function"]["arguments"]),
-                        )
+                response_txt += delta
+                thinking_txt += thinking_delta
+                for call in new_calls:
+                    fn = call.get("function") or {}
+                    key = (
+                        str(fn.get("name") or call.get("name") or ""),
+                        json.dumps(fn.get("arguments", call.get("arguments", {})) or {}, sort_keys=True, default=str),
                     )
-                    all_tool_calls.append(tool_call)
-                token_counts = self._get_response_token_counts(r)
+                    if key in seen_tool_calls:
+                        continue
+                    seen_tool_calls.add(key)
+                    all_tool_calls.append(call)
+                token_counts = self._get_response_token_counts(raw)
                 if token_counts:
-                    r["usage"] = token_counts
-
+                    raw["usage"] = token_counts
                 yield ChatResponse(
                     message=ChatMessage(
-                        content=response_txt,
-                        role=r["message"]["role"],
-                        additional_kwargs={"tool_calls": all_tool_calls},
+                        blocks=self._blocks_from_native_message(
+                            message,
+                            cumulative_text=response_txt,
+                            cumulative_thinking=thinking_txt,
+                            cumulative_calls=all_tool_calls,
+                        ),
+                        role=message.get("role", MessageRole.ASSISTANT),
                     ),
-                    delta=r["message"]["content"],
-                    raw=r,
+                    delta=delta,
+                    raw=raw,
+                    additional_kwargs={"thinking_delta": thinking_delta or None},
                 )
-
         return gen()
 
     @llm_chat_callback()
-    async def achat(
-        self, messages: Sequence[ChatMessage], **kwargs: Any
-    ) -> ChatResponse:
+    async def achat(self, messages: Sequence[ChatMessage], **kwargs: Any) -> ChatResponse:
         ollama_messages = self._convert_to_ollama_messages(messages)
-
         tools = kwargs.pop("tools", None)
-        format = kwargs.pop("format", "json" if self.json_mode else None)
-
+        format_value = kwargs.pop("format", "json" if self.json_mode else None)
         response = await self.async_client.chat(
             model=self.model,
             messages=ollama_messages,
             stream=False,
-            format=format,
+            format=format_value,
             tools=tools,
             options=self._model_kwargs,
             keep_alive=self.keep_alive,
         )
-
-        response = dict(response)
-
-        tool_calls = response["message"].get("tool_calls", [])
-        token_counts = self._get_response_token_counts(response)
+        raw = _plain_dict(response)
+        message = _plain_dict(raw.get("message") or {})
+        token_counts = self._get_response_token_counts(raw)
         if token_counts:
-            response["usage"] = token_counts
-
+            raw["usage"] = token_counts
         return ChatResponse(
             message=ChatMessage(
-                content=response["message"]["content"],
-                role=response["message"]["role"],
-                additional_kwargs={"tool_calls": tool_calls},
+                blocks=self._blocks_from_native_message(message),
+                role=message.get("role", MessageRole.ASSISTANT),
             ),
-            raw=response,
+            raw=raw,
         )
 
     @llm_completion_callback()

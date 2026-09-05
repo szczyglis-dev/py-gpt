@@ -125,6 +125,7 @@ def extract_google_urls(payload: Any) -> list[str]:
             for chunk in chunks or []:
                 for path in (
                     "web.uri", "web.url",
+                    "image.source_uri", "image.sourceUri",
                     "retrieved_context.uri", "retrieved_context.url",
                     "retrievedContext.uri", "retrievedContext.url",
                     "source.web.uri", "source.web.url",
@@ -195,6 +196,29 @@ def extract_google_urls(payload: Any) -> list[str]:
         except Exception:
             pass
 
+    # Newer Gemini Interactions-style text annotations expose direct URL
+    # citations instead of legacy groundingChunks. Keep this generic so the
+    # same extractor works when the Google backend evolves.
+    def scan_annotations(node):
+        annotations = safe_get(node, "annotations") or []
+        try:
+            for annotation in annotations or []:
+                if str(safe_get(annotation, "type") or "") in ("url_citation", "urlCitation", "url"):
+                    add(safe_get(annotation, "url") or safe_get(annotation, "uri"))
+        except Exception:
+            pass
+
+    output = safe_get(payload, "output") or []
+    try:
+        for item in output or []:
+            scan_annotations(item)
+            content = safe_get(item, "content") or []
+            for part in content or []:
+                scan_annotations(part)
+    except Exception:
+        pass
+    scan_annotations(payload)
+
     # Full GenerateContentResponse.
     candidates = safe_get(payload, "candidates") or []
     if candidates:
@@ -236,6 +260,14 @@ def collect_google_citations(ctx, state, chunk: Any):
             state.citations.append(url)
         if url not in ctx.urls:
             ctx.urls.append(url)
+
+    # Central extractor handles current groundingChunks plus newer annotation
+    # formats. Keep the legacy scans below as compatibility fallback.
+    try:
+        for url in extract_google_urls(chunk):
+            _add_url(url)
+    except Exception:
+        pass
 
     for cand in cands:
         gm = safe_get(cand, "grounding_metadata") or safe_get(cand, "groundingMetadata")

@@ -120,6 +120,50 @@ class OllamaLLM(BaseLLM):
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILike(**args)
 
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True
+    ) -> LlamaBaseLLM:
+        """Return native Ollama LLM for Agents v2.
+
+        Agents v2 runs a real multi-turn function-calling loop.  Ollama's
+        OpenAI-compatible /v1/chat/completions transport is convenient for the
+        regular LlamaIndex path, but some native tool-calling models (notably
+        Gemma 4) lose or mis-associate tool-call state in that compatibility
+        layer.  Use Ollama's native /api/chat protocol for the agent path while
+        leaving Chat with Files untouched.
+        """
+        from pygpt_net.provider.llms.ollama_custom import Ollama
+
+        args = self.parse_args(model.llama_index, window)
+        model_id = (model.get_ollama_model() or model.id or "").strip()
+        if not model_id:
+            raise ValueError("Ollama model name is required")
+
+        # Resolve the same configured endpoint as normal Chat, then convert the
+        # OpenAI-compatible /v1 base back to Ollama's native server root.
+        client_args = window.core.models.prepare_client_args(MODE_CHAT, model)
+        base_url = str(client_args.get("base_url") or window.core.models.ollama.get_base_url()).rstrip("/")
+        if base_url.endswith("/v1"):
+            base_url = base_url[:-3].rstrip("/")
+
+        # model.llama_index args may contain OpenAI/OpenAILike-only options.
+        # Keep native Ollama options and normalize common aliases.
+        args.pop("api_key", None)
+        args.pop("api_base", None)
+        args.pop("base_url", None)
+        if "timeout" in args and "request_timeout" not in args:
+            args["request_timeout"] = args.pop("timeout")
+        args.setdefault("request_timeout", 300.0)
+        args["model"] = model_id
+        args["base_url"] = base_url
+        args["is_function_calling_model"] = bool(model.tool_calls)
+
+        return Ollama(**args)
+
     def get_embeddings_model(
             self,
             window,

@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.09.06 00:00:00                  #
+# ================================================== #
 
 from __future__ import annotations
 
@@ -9,6 +17,7 @@ import time
 from typing import Optional
 
 from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.agents_v2.tool_bridge import register, discard
 
 
 class RuntimeEmitter:
@@ -146,10 +155,7 @@ class RuntimeEmitter:
             "error": None,
             "cancelled": False,
         }
-        if not isinstance(tool_ctx.extra, dict):
-            tool_ctx.extra = {}
-        tool_ctx.extra["_agents_v2_tool_request"] = request
-        tool_ctx.extra.pop("_agents_v2_async_pending", None)
+        register(tool_ctx, request)
         self._emit(KernelEvent.AGENT_V2_TOOL_EXEC, request=request)
         started = time.monotonic()
         try:
@@ -168,10 +174,9 @@ class RuntimeEmitter:
                 return "Execution cancelled."
             return request.get("result")
         finally:
-            if isinstance(tool_ctx.extra, dict):
-                if tool_ctx.extra.get("_agents_v2_tool_request") is request:
-                    tool_ctx.extra.pop("_agents_v2_tool_request", None)
-                tool_ctx.extra.pop("_agents_v2_async_pending", None)
+            # Runtime-only synchronization state must never be stored in
+            # CtxItem.extra because plugin callbacks may persist that context.
+            discard(tool_ctx, request)
 
     def finish(self, final_answer: Optional[str] = None):
         if self._finished:

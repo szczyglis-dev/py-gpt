@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.09.06 00:00:00                  #
+# ================================================== #
 
 from __future__ import annotations
 
@@ -9,21 +17,11 @@ from typing import Any, Dict, List, Optional
 from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
 from pygpt_net.core.types import TOOL_QUERY_ENGINE_DESCRIPTION
+from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
 
 
-class SchemaToolMetadata(ToolMetadata):
-    """Tool metadata that preserves the JSON schema supplied by PyGPT plugins."""
-
-    def __init__(self, name: str, description: str, schema: dict):
-        super().__init__(name=name, description=description)
-        self.schema = schema or {"type": "object", "properties": {}}
-
-    def get_parameters_dict(self) -> Dict[str, Any]:
-        return {
-            k: v for k, v in self.schema.items()
-            if k in ("type", "properties", "required", "definitions", "$defs")
-        }
-
+class SchemaToolMetadata(JsonSchemaToolMetadata):
+    """Agents v2 plugin metadata using PyGPT JSON schemas verbatim."""
 
 class WorkerToolFactory:
     """Build tools bound to one actor/runtime instead of legacy global agent state."""
@@ -107,10 +105,35 @@ class WorkerToolFactory:
                 description = str(item.get("desc") or name)
                 schema = json.loads(item.get("params") or "{}")
 
-                def make_async_fn(tool_name: str):
+                def make_async_fn(tool_name: str, tool_schema: dict):
                     async def fn(**kwargs):
                         if self.runtime.is_stopped() or worker.stop_requested:
                             return "Execution cancelled."
+
+                        # Some providers may wrap function arguments once more in
+                        # ``params``/``arguments`` even though the advertised JSON
+                        # schema is already the parameter object. Normalize that
+                        # harmless shape before validating the call.
+                        call_args = dict(kwargs or {})
+                        for wrapper in ("params", "arguments"):
+                            wrapped = call_args.get(wrapper)
+                            if (isinstance(wrapped, dict) and len(call_args) == 1):
+                                call_args = dict(wrapped)
+                                break
+
+                        required = list((tool_schema or {}).get("required") or [])
+                        missing = [
+                            key for key in required
+                            if key not in call_args or call_args.get(key) is None
+                        ]
+                        if missing:
+                            return json.dumps({
+                                "error": "Missing required tool parameter(s).",
+                                "tool": tool_name,
+                                "missing": missing,
+                                "required": required,
+                                "received": sorted(call_args.keys()),
+                            }, ensure_ascii=False)
 
                         # Every Agents v2 actor must use a private CtxItem.  Keep these
                         # flags explicit before each call because legacy plugins mutate
@@ -122,7 +145,7 @@ class WorkerToolFactory:
                         tool_ctx.hidden = True
                         tool_ctx.reply = False
 
-                        cmd = {"cmd": tool_name, "params": kwargs}
+                        cmd = {"cmd": tool_name, "params": call_args}
                         self.runtime.emit_runtime_status(
                             "status.agent_v2.tool",
                             worker=worker if getattr(worker, "id", "") != "orchestrator" else None,
@@ -152,7 +175,7 @@ class WorkerToolFactory:
                     return fn
 
                 metadata = SchemaToolMetadata(name, description, schema)
-                out.append(FunctionTool(async_fn=make_async_fn(name), metadata=metadata))
+                out.append(FunctionTool(async_fn=make_async_fn(name, schema), metadata=metadata))
             except Exception as exc:
                 self.window.core.debug.log(exc)
         return out

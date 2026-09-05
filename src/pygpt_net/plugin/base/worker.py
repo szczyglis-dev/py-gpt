@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2026.09.06 00:00:00                  #
 # ================================================== #
 
 import json
@@ -15,6 +15,8 @@ from typing import Optional, Any, Dict, List
 
 from PySide6.QtCore import QRunnable
 from typing_extensions import deprecated
+
+from pygpt_net.core.agents_v2.tool_bridge import mark_pending
 
 from .plugin import BasePlugin
 from .signals import BaseSignals
@@ -325,10 +327,11 @@ class BaseWorker(QRunnable):
         try:
             if self.ctx is not None and isinstance(self.ctx.extra, dict) \
                     and self.ctx.extra.get("agents_v2_async_tool"):
-                self.ctx.extra["_agents_v2_async_pending"] = True
+                mark_pending(self.ctx, True)
         except Exception:
             pass
         if self.window:
             self.window.threadpool.start(self)
         else:
             self.run()
+

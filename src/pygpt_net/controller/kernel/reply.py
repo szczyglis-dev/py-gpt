@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2026.09.06 00:00:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,7 @@ from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import MODE_LLAMA_INDEX
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.agents_v2.tool_bridge import pop as pop_agent_v2_request
 
 class Reply:
     def __init__(self, window=None):
@@ -52,14 +53,14 @@ class Reply:
         self.on_post_response(ctx, extra)
 
         if ctx.agent_call:
-            # Agents v2 awaits plugin completion inside its own coroutine. A
-            # plugin may finish minutes after command dispatch, so wake that
-            # coroutine here instead of feeding the result through REPLY_RETURN.
-            ctx_extra = ctx.extra if isinstance(ctx.extra, dict) else {}
-            request = ctx_extra.get("_agents_v2_tool_request")
+            # Agents v2 awaits plugin completion inside its own coroutine. Keep
+            # request/future state in the process-only bridge registry; CtxItem.extra
+            # is persisted by several plugins (notably image generation) and must
+            # remain JSON-serializable.
+            request = pop_agent_v2_request(ctx)
             if isinstance(request, dict):
+                request["pending"] = False
                 request["result"] = list(ctx.results or [])
-                ctx_extra["_agents_v2_async_pending"] = False
                 done = request.get("done")
                 if done is not None:
                     done.set()

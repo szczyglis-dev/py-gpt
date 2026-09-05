@@ -51,7 +51,7 @@ class GoogleLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        from llama_index.llms.google_genai import GoogleGenAI
+        from pygpt_net.provider.llms.google_capture import PyGPTGoogleGenAI
         args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
@@ -90,7 +90,7 @@ class GoogleLLM(BaseLLM):
                         window.core.debug.log(e)
                         args["built_in_tool"] = built_tools[0]
 
-        return GoogleGenAI(**args)
+        return PyGPTGoogleGenAI(**args, pygpt_remote_tools=built_tools)
 
     def llama_agent(
             self,

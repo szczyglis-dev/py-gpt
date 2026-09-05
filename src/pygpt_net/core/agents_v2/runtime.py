@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.09.06 00:00:00                  #
+# ================================================== #
 
 from __future__ import annotations
 
@@ -32,7 +40,7 @@ class AgentsV2Runtime:
 
     # Code-level switch only (not exposed in presets/UI). Set to False to show
     # worker statuses without the "[Agent name]" prefix.
-    SHOW_AGENT_NAME_IN_STATUS = True
+    SHOW_AGENT_NAME_IN_STATUS = False
 
     def __init__(self, window, context, extra, signals, emitter):
         self.window = window
@@ -134,13 +142,21 @@ class AgentsV2Runtime:
     def build_agent(self, name: str, description: str, llm, system_prompt: str, tools):
         """Prefer native tool calling and retain ReAct as a compatibility fallback."""
         cls = FunctionAgent if self._supports_function_calling(llm) else ReActAgent
-        return cls(
-            name=name,
-            description=description,
-            llm=llm,
-            system_prompt=system_prompt,
-            tools=tools,
-        )
+        kwargs = {
+            "name": name,
+            "description": description,
+            "llm": llm,
+            "system_prompt": system_prompt,
+            "tools": tools,
+        }
+        # Ollama's native protocol supports parallel tool calls, but FunctionAgent
+        # identifies native Ollama calls by tool name because Ollama does not expose
+        # OpenAI-style call ids. Sequential calls keep the scratchpad mapping
+        # deterministic (and avoid Gemma4 multi-call parser edge cases) while workers
+        # themselves can still execute concurrently.
+        if cls is FunctionAgent and self.model is not None and self.model.is_ollama():
+            kwargs["allow_parallel_tool_calls"] = False
+        return cls(**kwargs)
 
     def _memory_token_limit(self) -> int:
         model_ctx = int(getattr(self.model, "ctx", 0) or 0)
