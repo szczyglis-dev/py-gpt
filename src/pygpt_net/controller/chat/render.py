@@ -231,6 +231,10 @@ class Render:
         :param ctx: context item
         :param stream: True if it is a stream
         """
+        # Pin every render segment to a concrete chat-tab PID. The first BEGIN
+        # prefers the active chat; later tool/agent segments can resolve the same
+        # mapped chat even if focus has moved to another split-screen column.
+        self.window.core.ctx.output.pin_render_pid(meta)
         self.instance().begin(meta, ctx, stream)
         self.update()
 
@@ -244,6 +248,11 @@ class Render:
         """
         self.instance().end(meta, ctx, stream)
         self.update()
+        # Rendering for this response segment is complete. Drop the pin so a
+        # later context/tab selection cannot inherit a stale target. A follow-up
+        # tool/agent segment will pin itself again on its next BEGIN, resolving
+        # the same mapped chat tab even if focus is currently on another column.
+        self.window.core.ctx.output.unpin_render_pid(meta=meta)
 
     def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False) -> None:
         """
