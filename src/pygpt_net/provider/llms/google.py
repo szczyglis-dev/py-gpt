@@ -40,7 +40,8 @@ class GoogleLLM(BaseLLM):
             self,
             window,
             model: ModelItem,
-            stream: bool = False
+            stream: bool = False,
+            remote_tools: bool = True
     ) -> LlamaBaseLLM:
         """
         Return LLM provider instance for llama
@@ -50,7 +51,7 @@ class GoogleLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        from llama_index.llms.google_genai import GoogleGenAI
+        from pygpt_net.provider.llms.google_capture import PyGPTGoogleGenAI
         args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
@@ -69,10 +70,11 @@ class GoogleLLM(BaseLLM):
         # If 1 tool -> use 'built_in_tool', if >1 -> pack into generation_config.tools
         # -----------------------------------------------------------
         built_tools = []
-        try:
-            built_tools = window.core.api.google.remote_tools.build_remote_tools(model=model) or []
-        except Exception as e:
-            window.core.debug.log(e)
+        if remote_tools:
+            try:
+                built_tools = window.core.api.google.remote_tools.build_remote_tools(model=model) or []
+            except Exception as e:
+                window.core.debug.log(e)
 
         if built_tools:
             # Only attach if user didn't already pass their own config
@@ -88,7 +90,42 @@ class GoogleLLM(BaseLLM):
                         window.core.debug.log(e)
                         args["built_in_tool"] = built_tools[0]
 
-        return GoogleGenAI(**args)
+        return PyGPTGoogleGenAI(**args, pygpt_remote_tools=built_tools)
+
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True
+    ) -> LlamaBaseLLM:
+        """Return Google GenAI configured for Agents v2.
+
+        Remote Google tools are merged with FunctionAgent tools at request time
+        by the adapter, and grounding URLs are collected for PyGPT artifacts.
+        """
+        from pygpt_net.provider.llms.google_agent import AgentGoogleGenAI
+
+        args = self.parse_args(model.llama_index, window)
+        if "model" not in args:
+            args["model"] = model.id
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_google", "")
+
+        window.core.api.google.setup_env()
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+
+        remote = []
+        if allow_remote_tools:
+            try:
+                remote = window.core.api.google.remote_tools.build_remote_tools(model=model) or []
+            except Exception as e:
+                window.core.debug.log(e)
+
+        return AgentGoogleGenAI(
+            **args,
+            pygpt_remote_tools=remote,
+        )
 
     def get_embeddings_model(
             self,

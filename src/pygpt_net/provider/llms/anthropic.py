@@ -39,7 +39,8 @@ class AnthropicLLM(BaseLLM):
             self,
             window,
             model: ModelItem,
-            stream: bool = False
+            stream: bool = False,
+            remote_tools: bool = True
     ) -> LlamaBaseLLM:
         """
         Return LLM provider instance for llama
@@ -85,30 +86,47 @@ class AnthropicLLM(BaseLLM):
         # We forward provider-native server tools via Anthropic "tools" param.
         # This keeps behavior identical to the native SDK configuration.
         # ---------------------------------------------
-        try:
-            remote_tools = window.core.api.anthropic.tools.build_remote_tools(model=model) or []
-        except Exception as e:
-            # Do not break if config builder throws; just skip tools
-            window.core.debug.log(e)
-            remote_tools = []
-
+        built_remote_tools = []
         if remote_tools:
+            try:
+                # Reuse the same native server-tool builder as normal Anthropic Chat.
+                built_remote_tools = window.core.api.anthropic.remote_tools.build_remote_tools(model=model) or []
+            except Exception as e:
+                # Do not break if config builder throws; just skip tools
+                window.core.debug.log(e)
+                built_remote_tools = []
+
+        if built_remote_tools:
             # Merge with any user-supplied 'tools' (avoid duplicates by (type, name))
             existing = args.get("tools") or []
             if isinstance(existing, list):
                 def _key(d: dict) -> str:
                     return f"{d.get('type')}::{d.get('name')}"
                 index = {_key(t): True for t in existing if isinstance(t, dict)}
-                for t in remote_tools:
+                for t in built_remote_tools:
                     k = _key(t) if isinstance(t, dict) else None
                     if k and k not in index:
                         existing.append(t)
                 args["tools"] = existing
             else:
                 # Defensive: if 'tools' was something unexpected, overwrite safely
-                args["tools"] = list(remote_tools)
+                args["tools"] = list(built_remote_tools)
 
         return AnthropicWithProxy(**args, proxy=proxy)
+
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True
+    ) -> LlamaBaseLLM:
+        return self.llama(
+            window=window,
+            model=model,
+            stream=stream,
+            remote_tools=allow_remote_tools,
+        )
 
     def get_embeddings_model(
             self,

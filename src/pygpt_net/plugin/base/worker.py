@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2026.09.06 00:00:00                  #
 # ================================================== #
 
 import json
@@ -15,6 +15,8 @@ from typing import Optional, Any, Dict, List
 
 from PySide6.QtCore import QRunnable
 from typing_extensions import deprecated
+
+from pygpt_net.core.agents_v2.tool_bridge import mark_pending
 
 from .plugin import BasePlugin
 from .signals import BaseSignals
@@ -107,10 +109,14 @@ class BaseWorker(QRunnable):
         :param response: response (dict)
         :param extra_data: extra data
         """
-        # if tool call from agent_llama mode, then send direct reply to plugin -> dispatcher -> reply
+        # Legacy agents historically called the plugin handler directly. Agents
+        # v2 must not do that from a QRunnable thread: emit the Qt signal instead
+        # so QObject slots and REPLY_ADD are delivered on the receiver thread.
         if self.ctx is not None and self.ctx.agent_call and self.plugin is not None:
-            self.plugin.handle_finished(response, self.ctx, extra_data)
-            return
+            extra = self.ctx.extra if isinstance(self.ctx.extra, dict) else {}
+            if not extra.get("agents_v2_async_tool"):
+                self.plugin.handle_finished(response, self.ctx, extra_data)
+                return
 
         if self.signals is not None and hasattr(self.signals, "finished"):
             self.signals.finished.emit(response, self.ctx, extra_data)
@@ -126,10 +132,13 @@ class BaseWorker(QRunnable):
         :param responses: list of responses dicts  TODO: add ResponseContext
         :param extra_data: extra data
         """
-        # if tool call from agent_llama mode, then send direct reply to plugin -> dispatcher -> reply
+        # See reply(): Agents v2 routes completion through Qt's queued signal
+        # path so plugin result handling never runs directly on a worker thread.
         if self.ctx.agent_call and self.plugin is not None:
-            self.plugin.handle_finished_more(responses, self.ctx, extra_data)
-            return
+            extra = self.ctx.extra if isinstance(self.ctx.extra, dict) else {}
+            if not extra.get("agents_v2_async_tool"):
+                self.plugin.handle_finished_more(responses, self.ctx, extra_data)
+                return
 
         if self.signals is not None and hasattr(self.signals, "finished_more"):
             self.signals.finished_more.emit(responses, self.ctx, extra_data)
@@ -310,8 +319,19 @@ class BaseWorker(QRunnable):
         self.run()
 
     def run_async(self):
-        """Run asynchronous"""
+        """Run asynchronous."""
+        # Agents v2 waits for the plugin reply instead of for dispatch() to
+        # return. Mark the context so the Qt-side bridge knows an asynchronous
+        # worker has actually been scheduled and must not complete the tool call
+        # prematurely.
+        try:
+            if self.ctx is not None and isinstance(self.ctx.extra, dict) \
+                    and self.ctx.extra.get("agents_v2_async_tool"):
+                mark_pending(self.ctx, True)
+        except Exception:
+            pass
         if self.window:
             self.window.threadpool.start(self)
         else:
             self.run()
+

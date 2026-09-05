@@ -31,6 +31,8 @@ class Patch:
         patcher = PatchBefore2_6_42(self.window)  # old patches (< 2.6.42) moved here
         migrated = patcher.execute(version)
 
+        is_agent_v2 = False
+
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
             updated = False
@@ -49,6 +51,23 @@ class Patch:
 
                 # > 2.6.42 below:
                 pass
+
+            # < 2.8.10
+            if old < parse_version("2.8.10"):
+                if 'agent_v2_pygpt.json' not in self.window.core.presets.items and not is_agent_v2:
+                    print("Migrating preset file from < 2.8.10...")
+                    files = [
+                        'agent_v2_pygpt.json',
+                        'current.agent_v2.json',
+                    ]
+                    for file in files:
+                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
+                                           'presets', file)
+                        shutil.copyfile(src, dst)
+                        print("Patched file: {}.".format(dst))
+                    updated = True
+                    is_agent_v2 = True  # prevent multiple copies
 
             # update file
             if updated:

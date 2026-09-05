@@ -15,6 +15,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_AUDIO,
     MODE_ASSISTANT,
     MODE_LLAMA_INDEX,
@@ -240,6 +241,8 @@ class Text:
         """
         core = self.window.core
         stream = core.config.get("stream")
+        if mode == MODE_AGENT_V2:
+            return True  # Agents v2 always renders one continuous orchestrator response
         if mode in (MODE_AGENT_LLAMA):
             return False  # TODO: check if this is correct in agent
         elif mode == MODE_LLAMA_INDEX:

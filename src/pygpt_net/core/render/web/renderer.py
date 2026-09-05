@@ -894,6 +894,25 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
+    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str):
+        """Set/replace the transient Agents v2 status in the active streamed message."""
+        try:
+            value = json.dumps(str(status or ""), ensure_ascii=False)
+            self.get_output_node(meta).page().runJavaScript(
+                f"if (typeof window.setAgentStatus !== 'undefined') window.setAgentStatus({value});"
+            )
+        except Exception:
+            pass
+
+    def agent_status_clear(self, meta: CtxMeta, ctx: CtxItem):
+        """Clear the transient Agents v2 status."""
+        try:
+            self.get_output_node(meta).page().runJavaScript(
+                "if (typeof window.clearAgentStatus !== 'undefined') window.clearAgentStatus();"
+            )
+        except Exception:
+            pass
+
     def append_live(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
         Append live output chunk to output (legacy live preview)

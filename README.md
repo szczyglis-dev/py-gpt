@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.9** | build: **2026-09-05** | Python: **>=3.10, <3.14**
+Release: **2.8.10** | build: **2026-09-06** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -16,7 +16,7 @@ Release: **2.8.9** | build: **2026-09-05** | Python: **>=3.10, <3.14**
 
 **PyGPT** is an **all-in-one desktop AI assistant** supporting models from `OpenAI` (`GPT-5`, `GPT-4`, `o1`, `o3`), `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `Perplexity / Sonar`, `DeepSeek`, and models available through `HuggingFace`, `LlamaIndex`, OpenAI-compatible APIs, and local `Ollama` installations such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, and `gpt-oss`.
 
-It supports chat, agents, completions, Chat with Files (via `LlamaIndex`), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google` and `Microsoft Bing`.
+It supports chat, **Agents v2 (beta)** and other agent workflows, completions, Chat with Files (via `LlamaIndex`), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google` and `Microsoft Bing`.
 
 **PyGPT** also provides speech synthesis through `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI`, plus speech recognition with `OpenAI Whisper`, `Google` and `Bing`. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
@@ -38,7 +38,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 10 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, Agents and Autonomous Mode.
+- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, **Agents v2 (beta)**, Agents and Autonomous Mode.
 - Supports multiple models like `OpenAI GPT-5`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -65,6 +65,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Includes a notepad.
 - Includes simple painter / drawing tool.
 - Includes an node-based Agents Builder.
+- Includes **Agents v2 (beta)**, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
 - Supports multiple languages.
 - Requires no previous knowledge of using AI models.
 - Fully configurable.
@@ -667,6 +668,37 @@ prompts for creating new images.
 
 Images are stored in ``img`` directory in **PyGPT** user data folder.
 
+
+## Agents v2 (beta)
+
+> **Beta:** Agents v2 is currently an experimental beta feature introduced in version `2.8.10`. Its behavior, preset options, workflow rules, and provider compatibility may change in subsequent releases.
+
+**Agents v2** is a new orchestrated multi-agent mode designed for complex tasks that benefit from planning, delegation, parallel execution, tool use, and verification. It uses a dedicated orchestration runtime built on LlamaIndex agent workflows and is separate from the older `Agent (LlamaIndex)`, `Agent (OpenAI)`, and `Agent (Autonomous)` modes.
+
+A single **Orchestrator** is responsible for the user-facing conversation and owns the task from start to finish. During a task it can dynamically create specialist **worker agents**, assign or update their roles, start or reuse them for follow-up work, inspect their state, wait for their results, stop them, or remove them. Workers keep their in-memory history while the current Agents v2 runtime is active, allowing the Orchestrator to continue or refine their work without recreating them. Up to 16 workers can exist in one runtime, and independent workers can execute concurrently.
+
+The Orchestrator can answer very small tasks directly, but for multi-step or action-oriented work it delegates execution to workers and integrates their results into the final response. Worker output is private to the orchestration runtime; the user sees the Orchestrator's streamed response plus a transient progress/status line.
+
+**Tools and provider capabilities**
+
+Agents v2 can use both local and provider-side capabilities:
+
+- **Local tools** from enabled PyGPT plugins can be made available to the Orchestrator and workers.
+- **Remote tools** exposed by the selected provider can be made available when supported by the provider/model and enabled in PyGPT.
+- Local and remote tools can be enabled or disabled independently in the Agents v2 preset with **Allow local tools** and **Allow remote tools**.
+- Models with native function calling use it when available; the runtime can fall back to a ReAct agent for compatible models without native function calling.
+
+**RAG, attachments and artifacts**
+
+If a valid index is selected in the preset, Agents v2 exposes it as a RAG query tool. User attachments and extracted attachment context are shared with the workflow, and image attachments are also passed as native image input when the selected model supports images. Files, images, URLs and attachments produced by workers or provider-side tools are collected by the runtime and propagated to the main response.
+
+**Memory and workflow lifecycle**
+
+The Orchestrator keeps its own hidden conversation memory across turns in the current conversation/preset, subject to the normal PyGPT token-window limits. Worker memory is runtime-local and is retained when the same worker is reused during that workflow. The Orchestrator cannot finalize a workflow while required workers are still running or when a newly created worker has never been started; it must first wait for, stop, run or remove those workers and then produce the final answer.
+
+**Recommended use cases** include coding and file operations, research with independent verification, RAG-assisted tasks, multi-stage analysis, workflows that combine multiple tools, and tasks that can be split into independent parallel subtasks.
+
+**Note:** Because Agents v2 is currently **beta**, use it with appropriate supervision when tools can modify files, execute code or system commands, or perform external actions.
 
 ##  Agent (LlamaIndex) 
 
@@ -3286,6 +3318,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.10 (2026-09-06)**
+
+- Added **Agents v2 (beta)**, a new advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically created specialist worker agents.
+- Added asynchronous worker lifecycle management in Agents v2, including create, update, run/reuse, status, wait, stop and remove operations, with concurrent execution for independent workers and runtime-local worker memory.
+- Added local plugin tools, provider-side remote tools, RAG index access, shared attachment context, supported native image input, artifact propagation, persistent Orchestrator memory and live workflow status rendering to Agents v2.
+- Added native function-calling support with a ReAct compatibility fallback for Agents v2 models where appropriate.
+- **Agents v2 is currently in beta; its behavior, workflow rules, preset options and provider compatibility may change in future releases.**
 
 **2.8.9 (2026-09-05)**
 

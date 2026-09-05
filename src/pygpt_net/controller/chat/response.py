@@ -10,11 +10,14 @@
 # ================================================== #
 
 from typing import Dict, Any
+import time
+from pygpt_net.core.agents_v2.tool_bridge import is_pending, discard
 
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_CHAT,
 )
@@ -37,6 +40,7 @@ class Response:
         super(Response, self).__init__()
         self.window = window
         self.last_response_id = None
+        self._agent_v2_last_store = {}
 
     def handle(
             self,
@@ -336,6 +340,115 @@ class Response:
         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
             "id": "chat",
         }))
+
+    def agent_v2_begin(self, context: BridgeContext, extra: Dict[str, Any]):
+        """Begin the single user-visible Agents v2 response stream."""
+        ctx = context.ctx
+        self.window.controller.chat.common.lock_input()
+        if ctx.output is None:
+            ctx.output = ""
+        self.window.dispatch(RenderEvent(RenderEvent.STREAM_BEGIN, {"meta": ctx.meta, "ctx": ctx}))
+
+    def agent_v2_append(self, context: BridgeContext, extra: Dict[str, Any], chunk: str, begin: bool = False):
+        """Append durable orchestrator prose to the same response."""
+        if self.window.controller.kernel.stopped():
+            return
+        ctx = context.ctx
+        if ctx.output is None:
+            ctx.output = ""
+        ctx.output += str(chunk or "")
+        ctx.stream = str(chunk or "")
+        # Persist live output at a modest cadence. Writing SQLite on every token
+        # can saturate the Qt event loop even though WebView itself batches JS.
+        key = getattr(ctx, "id", None) or id(ctx)
+        now = time.monotonic()
+        last = self._agent_v2_last_store.get(key, 0.0)
+        if now - last >= 0.25:
+            self.window.core.ctx.update_item(ctx)
+            self._agent_v2_last_store[key] = now
+        self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
+            "meta": ctx.meta, "ctx": ctx, "chunk": str(chunk or ""), "begin": bool(begin),
+        }))
+
+    def agent_v2_status(self, context: BridgeContext, extra: Dict[str, Any], status: str):
+        """Replace the transient Agents v2 status line without creating a new message."""
+        ctx = context.ctx
+        name = RenderEvent.AGENT_STATUS if status else RenderEvent.AGENT_STATUS_CLEAR
+        self.window.dispatch(RenderEvent(name, {"meta": ctx.meta, "ctx": ctx, "status": str(status or "")}))
+
+    def agent_v2_tool_exec(self, context: BridgeContext, extra: Dict[str, Any], request):
+        """Dispatch an Agents v2 plugin command without blocking Qt.
+
+        The plugin is allowed to start its normal QRunnable and return here
+        immediately. Completion is signalled later from kernel Reply.add().
+        """
+        if not request:
+            return
+        done = request.get("done")
+        ctx = request.get("ctx")
+        try:
+            if not self.window.controller.kernel.is_main_thread():
+                request["error"] = RuntimeError("Agents v2 plugin RPC reached a non-main Qt thread.")
+                if done is not None:
+                    done.set()
+                return
+            if self.window.controller.kernel.stopped():
+                request["cancelled"] = True
+                request["result"] = "Execution cancelled."
+                if done is not None:
+                    done.set()
+                return
+
+            response = self.window.controller.plugins.apply_cmds_all(
+                ctx,
+                request.get("cmds") or [],
+            )
+
+            # Synchronous/lightweight plugins may already have produced a reply.
+            # Async plugins mark the context as pending and will wake the agent
+            # later through REPLY_ADD.
+            if done is not None and not done.is_set():
+                pending = is_pending(ctx)
+                if response not in (None, [], {}) or not pending:
+                    request["result"] = response
+                    discard(ctx, request)
+                    done.set()
+        except Exception as exc:
+            request["error"] = exc
+            discard(ctx, request)
+            self.window.core.debug.log(exc)
+            if done is not None:
+                done.set()
+
+    def agent_v2_end(self, context: BridgeContext, extra: Dict[str, Any], final_answer: str = ""):
+        """Finalize Agents v2 once, then reuse the normal completed-output lifecycle."""
+        ctx = context.ctx
+        self.agent_v2_status(context, extra, "")
+        ctx.current = False
+        ctx.stream = None
+        if final_answer and not (ctx.output or "").strip():
+            ctx.output = str(final_answer)
+        self.window.core.ctx.update_item(ctx)
+        key = getattr(ctx, "id", None) or id(ctx)
+        self._agent_v2_last_store.pop(key, None)
+        self.window.dispatch(RenderEvent(RenderEvent.STREAM_END, {"meta": ctx.meta, "ctx": ctx}))
+
+        # Stop is an explicit cancellation boundary: keep already streamed text, close
+        # the renderer, but do not parse/execute commands from a partial answer. Reuse
+        # the normal end lifecycle so attachments, input state and kernel state are
+        # cleaned up exactly as for any other completed/cancelled response.
+        if self.window.controller.kernel.stopped():
+            self.window.controller.chat.output.handle_end(ctx=ctx, mode=MODE_AGENT_V2)
+            return
+
+        self.window.controller.chat.output.handle_after(ctx=ctx, mode=MODE_AGENT_V2, stream=True)
+        self.post_handle(
+            ctx=ctx,
+            mode=MODE_AGENT_V2,
+            stream=True,
+            reply=extra.get("reply", False),
+            internal=extra.get("internal", False),
+        )
 
     def live_append(
             self,

@@ -588,3 +588,44 @@ think {{
 .tips.visible {{
  opacity: 1;
 }}
+
+/* Agents v2: one transient replace-in-place workflow status line. */
+.agents-v2-status {{
+    display: block;
+    width: fit-content;
+    max-width: calc(100% - 24px);
+    margin: 6px 12px 12px 12px;
+    padding: 14px 0;
+    min-height: 1.3em;
+    font-size: 0.88em;
+    line-height: 1.35;
+    opacity: 0.82;
+    transition: opacity 140ms ease, transform 140ms ease;
+    pointer-events: none;
+}}
+.agents-v2-status__text {{
+    display: inline-block;
+    background-image: linear-gradient(90deg, #7f7f7f 0%, #7f7f7f 32%, #c5c5c5 48%, #7f7f7f 64%, #7f7f7f 100%);
+    background-size: 240% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: agents-v2-status-shimmer 1.8s linear infinite;
+}}
+.agents-v2-status--changing {{
+    opacity: 0.25;
+    transform: translateY(1px);
+}}
+.agents-v2-status--leave {{
+    opacity: 0;
+    transform: translateY(-2px);
+}}
+@keyframes agents-v2-status-shimmer {{
+    from {{ background-position: 100% 0; }}
+    to {{ background-position: -120% 0; }}
+}}
+@media (prefers-reduced-motion: reduce) {{
+    .agents-v2-status__text {{ animation: none; }}
+    .agents-v2-status, .agents-v2-status--changing, .agents-v2-status--leave {{ transition: none; }}
+}}

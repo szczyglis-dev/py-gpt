@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 20:00:00                  #
+# Updated Date: 2026.09.05 21:40:00
 # ================================================== #
 
 import copy
@@ -167,7 +167,9 @@ class Models:
         :param mode: mode name
         :return: True if model is allowed for mode
         """
-        return model in self.items and mode in self.items[model].mode
+        if model not in self.items:
+            return False
+        return mode in self.items[model].mode
 
     def get_id(
             self,

@@ -6,16 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 18:10:00                  #
+# Updated Date: 2026.09.05 21:40:00
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
+    MODE_AGENT_V2,
     MODE_CHAT, MODE_AUDIO,
 )
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+
+
+AGENTS2_IS_BETA = True
 
 
 class Mode:
@@ -136,9 +140,22 @@ class Mode:
         self.window.ui.nodes["prompt.mode"].set_value(mode)
 
     def init_list(self):
-        """Init modes list"""
+        """Init modes list."""
         data = self.window.core.modes.get_all()
-        items = {k: trans(v.label) for k, v in data.items()}
+        regular = {}
+        legacy = {}
+        for mode_id, item in data.items():
+            target = legacy if item.legacy else regular
+            label = trans(item.label)
+            if mode_id == MODE_AGENT_V2 and AGENTS2_IS_BETA:
+                label += " (beta)"
+            target[mode_id] = label
+
+        items = dict(regular)
+        if legacy:
+            items["separator::legacy"] = trans("mode.section.legacy")
+            items.update(legacy)
+
         self.window.ui.nodes["prompt.mode"].set_keys(items)
 
     def select_current(self):

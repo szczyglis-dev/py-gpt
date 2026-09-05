@@ -27,6 +27,38 @@ class Response:
         """
         self.window = window
 
+    def _collect_llm_urls(self, ctx: CtxItem, llm) -> None:
+        """Drain provider-native source URLs captured by a LlamaIndex LLM adapter."""
+        if ctx is None or llm is None:
+            return
+        pop_urls = getattr(llm, "pop_pygpt_urls", None)
+        if not callable(pop_urls):
+            return
+        try:
+            urls = pop_urls() or []
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+            return
+        if not urls:
+            return
+        if not isinstance(ctx.urls, list):
+            ctx.urls = []
+        seen = set(ctx.urls)
+        for url in urls:
+            value = str(url or "").strip()
+            if not value or value in seen:
+                continue
+            ctx.urls.append(value)
+            seen.add(value)
+
+    def _stream_with_llm_artifacts(self, ctx: CtxItem, llm, stream):
+        """Yield a sync LlamaIndex stream and collect provider artifacts at EOF."""
+        try:
+            for chunk in stream:
+                yield chunk
+        finally:
+            self._collect_llm_urls(ctx, llm)
+
     def _prepare_output(self, ctx: CtxItem, model: ModelItem, output: Any) -> str:
         """Normalize local <think> reasoning without affecting other providers."""
         text = str(output)
@@ -61,28 +93,28 @@ class Response:
         if cmd_enabled:
             # tools enabled
             if use_react:
-                self.from_react(ctx, model, response)  # TOOLS + REACT, non-stream
+                self.from_react(ctx, model, llm, response)  # TOOLS + REACT, non-stream
             else:
                 if stream:
                     if use_index:
-                        self.from_index_stream(ctx, model, response)  # INDEX + STREAM
+                        self.from_index_stream(ctx, model, llm, response)  # INDEX + STREAM
                     else:
                         self.from_llm_stream(ctx, model, llm, response)  # LLM + STREAM
                 else:
                     if use_index:
-                        self.from_index(ctx, model, response)  # TOOLS + INDEX
+                        self.from_index(ctx, model, llm, response)  # TOOLS + INDEX
                     else:
                         self.from_llm(ctx, model, llm, response)  # TOOLS + LLM
         else:
             # no tools
             if stream:
                 if use_index:
-                    self.from_index_stream(ctx, model, response)  # INDEX + STREAM
+                    self.from_index_stream(ctx, model, llm, response)  # INDEX + STREAM
                 else:
                     self.from_llm_stream(ctx, model, llm, response)  # LLM + STREAM
             else:
                 if use_index:
-                    self.from_index(ctx, model, response)  # INDEX
+                    self.from_index(ctx, model, llm, response)  # INDEX
                 else:
                     self.from_llm(ctx, model, llm, response)  # LLM
 
@@ -90,6 +122,7 @@ class Response:
             self,
             ctx: CtxItem,
             model: ModelItem,
+            llm,
             response: Any
     ) -> None:
         """
@@ -101,11 +134,13 @@ class Response:
         """
         output = self._prepare_output(ctx, model, response)
         ctx.set_output(output, "")
+        self._collect_llm_urls(ctx, llm)
 
     def from_index(
             self,
             ctx: CtxItem,
             model: ModelItem,
+            llm,
             response: Any
     ) -> None:
         """
@@ -117,6 +152,7 @@ class Response:
         """
         output = self._prepare_output(ctx, model, response.response)
         ctx.set_output(output, "")
+        self._collect_llm_urls(ctx, llm)
 
     def from_llm(
             self,
@@ -144,11 +180,13 @@ class Response:
         )
         ctx.set_output(output, "")
         ctx.tool_calls = self.window.core.command.unpack_tool_calls_from_llama(tool_calls)
+        self._collect_llm_urls(ctx, llm)
 
     def from_index_stream(
             self,
             ctx: CtxItem,
             model: ModelItem,
+            llm,
             response: Any
     ) -> None:
         """
@@ -158,7 +196,7 @@ class Response:
         :param model: ModelItem
         :param response: Response data
         """
-        ctx.stream = response.response_gen
+        ctx.stream = self._stream_with_llm_artifacts(ctx, llm, response.response_gen)
         ctx.set_output("", "")
 
     def from_llm_stream(
@@ -176,7 +214,8 @@ class Response:
         :param llm: LLM instance
         :param response: Response data
         """
-        ctx.stream = self._stream_with_prev_message(response)  # chunk is in response.delta
+        stream = self._stream_with_prev_message(response)  # chunk is in response.delta
+        ctx.stream = self._stream_with_llm_artifacts(ctx, llm, stream)
         ctx.set_output("", "")
 
     def _stream_with_prev_message(self, response: Any):

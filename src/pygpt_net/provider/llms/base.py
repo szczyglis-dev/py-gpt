@@ -156,6 +156,28 @@ class BaseLLM:
         """
         pass
 
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True
+    ) -> LlamaBaseLLM:
+        """
+        Return LlamaIndex LLM instance for Agents v2.
+
+        Providers with native/server-side remote tools can override this method
+        and attach them directly to the LLM request. The default implementation
+        simply reuses the regular LlamaIndex provider.
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :param allow_remote_tools: allow provider-native remote tools
+        :return: provider instance
+        """
+        return self.llama(window=window, model=model, stream=stream)
+
     def llama_multimodal(
             self,
             window,

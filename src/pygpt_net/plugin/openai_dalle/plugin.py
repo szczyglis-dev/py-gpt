@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 13:00:00                  #
+# Updated Date: 2026.09.06 00:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.agents_v2.tool_bridge import mark_pending
 from pygpt_net.core.image_state import (
     get_current_user_image_path,
     get_last_generated_image_path,
@@ -20,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -248,6 +250,10 @@ class Plugin(BasePlugin):
                         # to enter their native edit/remix path.
                         extra["image_id"] = reference_image
                     sync = self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]
+                    if (self.window.core.config.get("mode") == MODE_AGENT_V2
+                            and isinstance(ctx.extra, dict)
+                            and ctx.extra.get("agents_v2_async_tool")):
+                        mark_pending(ctx, True)
 
                     # Use the native image provider selected by the configured image model.
                     if model.provider == "google" and self.window.core.config.get("api_native_google", False):

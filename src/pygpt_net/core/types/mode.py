@@ -12,6 +12,7 @@
 MODE_AGENT = "agent"
 MODE_AGENT_LLAMA = "agent_llama"
 MODE_AGENT_OPENAI = "agent_openai"
+MODE_AGENT_V2 = "agent_v2"
 MODE_ASSISTANT = "assistant"
 MODE_AUDIO = "audio"
 MODE_CHAT = "chat"

@@ -16,6 +16,7 @@ from pygpt_net.core.bridge.context import MultimodalContext
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.types import (
     MODE_AGENT,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_IMAGE,
 )
@@ -118,6 +119,18 @@ class Input:
         :param context: bridge context
         :param extra: extra data
         """
+        # Agents v2 owns its tool feedback loop internally (LlamaIndex tool
+        # results -> orchestrator). A legacy plugin REPLY_RETURN must therefore
+        # never become a new Agents v2 chat turn. This is a defense-in-depth
+        # guard for plugins that accidentally escape an actor's private ctx.
+        if (self.window.core.config.get('mode') == MODE_AGENT_V2
+                and bool(extra.get("reply"))
+                and bool(extra.get("internal"))):
+            self.window.core.debug.info(
+                "[agents_v2] Ignoring legacy internal tool reply; tool feedback is handled in-runtime."
+            )
+            return
+
         self.execute(
             text=str(context.prompt),
             force=extra.get("force", False),

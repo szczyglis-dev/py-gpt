@@ -20,6 +20,7 @@ from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
 from pygpt_net.core.events import Event
 from pygpt_net.core.types import (
     TOOL_QUERY_ENGINE_NAME,
@@ -179,12 +180,33 @@ class Tools:
                 description = item['desc']
                 schema = json.loads(item['params'])  # from JSON to dict
 
-                def make_func(name, description):
+                def make_func(name, description, tool_schema):
                     def func(**kwargs):
                         self.log(f"[Plugin] Tool call: {name} {kwargs}")
+                        call_args = dict(kwargs or {})
+                        for wrapper in ("params", "arguments"):
+                            wrapped = call_args.get(wrapper)
+                            if isinstance(wrapped, dict) and len(call_args) == 1:
+                                call_args = dict(wrapped)
+                                break
+
+                        required = list((tool_schema or {}).get("required") or [])
+                        missing = [
+                            key for key in required
+                            if key not in call_args or call_args.get(key) is None
+                        ]
+                        if missing:
+                            return json.dumps({
+                                "error": "Missing required tool parameter(s).",
+                                "tool": name,
+                                "missing": missing,
+                                "required": required,
+                                "received": sorted(call_args.keys()),
+                            }, ensure_ascii=False)
+
                         cmd = {
                             "cmd": name,
-                            "params": kwargs,
+                            "params": call_args,
                         }
                         response = self.window.controller.plugins.apply_cmds_all(
                             ctx,  # current ctx
@@ -196,12 +218,12 @@ class Tools:
                     func.__doc__ = description
                     return func
 
-                func = make_func(name, description)
+                func = make_func(name, description, schema)
                 metadata = PluginToolMetadata(
                     name=name,
                     description=description,
+                    schema=schema,
                 )
-                metadata.schema = schema
                 tool = FunctionTool(
                     fn=func,
                     metadata=metadata,
@@ -540,23 +562,10 @@ class Tools:
             print(msg)
             self.window.core.debug.add(msg)
 
-class PluginToolMetadata(ToolMetadata):
-    def __init__(self, name: str, description: str):
-        super().__init__(name=name, description=description)
-        self.schema = None
+class PluginToolMetadata(JsonSchemaToolMetadata):
+    """Legacy/Chat-with-Files plugin metadata using the real plugin JSON schema."""
 
-    def get_parameters_dict(self) -> Dict[str, Any]:
-        """
-        Get parameters dictionary
-
-        :return: parameters
-        """
-        parameters = {
-            k: v
-            for k, v in self.schema.items()
-            if k in ["type", "properties", "required", "definitions"]
-        }
-        return parameters
+    pass
 
 class CodeExecutor:
     """Code executor for codeAct agent"""

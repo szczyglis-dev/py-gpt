@@ -21,6 +21,7 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_CHAT,
+    MODE_AGENT_V2,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -112,6 +113,70 @@ class OpenAILLM(BaseLLM):
             return LlamaOpenAIResponses(**args)
         else:
             return LlamaOpenAI(**args)
+
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True
+    ) -> LlamaBaseLLM:
+        """
+        Return OpenAI LLM for Agents v2.
+
+        Provider-native remote tools are attached directly to OpenAI Responses,
+        exactly through the same PyGPT remote-tools builder used by normal Chat.
+        Local FunctionAgent tools are merged by LlamaIndex at request time.
+        """
+        from llama_index.llms.openai import OpenAI as LlamaOpenAI
+        from pygpt_net.provider.llms.openai_responses_agent import AgentOpenAIResponses
+
+        args = self.parse_args(model.llama_index, window)
+        if "api_key" not in args:
+            args["api_key"] = window.core.config.get("api_key", "")
+        if "model" not in args:
+            args["model"] = model.id
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+
+        if allow_remote_tools:
+            tools = window.core.api.openai.remote_tools.append_to_tools(
+                mode=MODE_AGENT_V2,
+                model=model,
+                stream=stream,
+                is_expert_call=False,
+                tools=[],
+                preset=None,
+            )
+            if tools:
+                args["built_in_tools"] = tools
+
+                # Keep the same complete hosted-web-search sources payload that
+                # normal PyGPT Chat requests from the Responses API.
+                web_types = {
+                    "web_search",
+                    "web_search_preview",
+                    "web_search_2025_08_26",
+                    "web_search_preview_2025_03_11",
+                }
+                if any(
+                        isinstance(tool, dict) and tool.get("type") in web_types
+                        for tool in tools
+                ):
+                    include_value = args.get("include")
+                    if isinstance(include_value, list):
+                        include = list(include_value)
+                    elif include_value:
+                        include = [include_value]
+                    else:
+                        include = []
+                    source_field = "web_search_call.action.sources"
+                    if source_field not in include:
+                        include.append(source_field)
+                    args["include"] = include
+
+                return AgentOpenAIResponses(**args)
+
+        return LlamaOpenAI(**args)
 
     def llama_multimodal(
             self,

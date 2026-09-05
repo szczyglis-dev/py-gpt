@@ -17,6 +17,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_CHAT,
     MODE_LLAMA_INDEX,
 )
@@ -63,6 +64,7 @@ class Plugin(BasePlugin):
             MODE_AGENT,
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
+            MODE_AGENT_V2,
         ]
         self.worker = None
         self.config = Config(self)

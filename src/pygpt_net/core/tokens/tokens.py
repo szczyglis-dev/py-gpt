@@ -30,6 +30,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_COMPUTER,
 )
 from pygpt_net.item.ctx import CtxItem
@@ -43,6 +44,7 @@ CHAT_MODES = [
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_EXPERT,
     MODE_AUDIO,
     MODE_RESEARCH,

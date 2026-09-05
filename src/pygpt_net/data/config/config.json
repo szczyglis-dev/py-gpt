@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.8.9",
-    "app.version": "2.8.9",
+    "version": "2.8.10",
+    "app.version": "2.8.10",
     "updated_at": "2026-09-05T18:00:00"
   },
   "access.audio.event.speech": false,
@@ -50,7 +50,7 @@
   "agent.func_call.native": false,
   "agent.goal.notify": false,
   "agent.idx": "base",
-  "agent.idx.auto_retrieve": false,
+  "agent.idx.auto_retrieve": true,
   "agent.iterations": 3,
   "agent.llama.append_eval": false,
   "agent.llama.eval_model": "_",
@@ -188,7 +188,8 @@
     "agent_llama": "gpt-5.6-terra-high",
     "agent_openai": "gpt-5.6-terra-high",
     "expert": "gpt-5.6-terra-high",
-    "computer": "computer-use-preview"
+    "computer": "computer-use-preview",
+    "agent_v2": "gpt-5.6-terra-high"
   },
   "current_preset": {
     "chat": "",
@@ -201,7 +202,8 @@
     "agent_llama": "",
     "agent_openai": "",
     "expert": "",
-    "computer": ""
+    "computer": "",
+    "agent_v2": ""
   },
   "debug": false,
   "debug.render": false,

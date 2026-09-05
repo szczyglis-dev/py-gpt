@@ -14,6 +14,7 @@ from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_ASSISTANT,
@@ -83,6 +84,18 @@ class BridgeWorker(QRunnable):
                     extra=self.extra,
                     signals=self.signals,
                 )
+
+            # Agents v2 (new isolated orchestration runtime)
+            elif self.mode == MODE_AGENT_V2:
+                result = core.agents_v2.runner.call(
+                    context=self.context,
+                    extra=self.extra,
+                    signals=self.signals,
+                )
+                if result:
+                    self.cleanup()
+                    return
+                self.extra["error"] = str(core.agents_v2.runner.get_error())
 
             # Agents (OpenAI, Llama)
             elif self.mode in (
@@ -263,6 +276,6 @@ class BridgeWorker(QRunnable):
         if ad_context:
             self.context.prompt += f"\n\n{ad_context}"  # append to input text
             if (ad_mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT
-                    or self.mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]):
+                    or self.mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2]):
                 ctx.hidden_input = ad_context  # store for future use, only if query context
                 # if full context or summary, then whole extra context will be applied to current input

@@ -157,6 +157,11 @@ class Render:
         elif name == RenderEvent.LIVE_CLEAR:
             self.clear_live(data.get("meta"), data.get("ctx"))
 
+        elif name == RenderEvent.AGENT_STATUS:
+            self.agent_status(data.get("meta"), data.get("ctx"), data.get("status", ""))
+        elif name == RenderEvent.AGENT_STATUS_CLEAR:
+            self.agent_status_clear(data.get("meta"), data.get("ctx"))
+
         elif name == RenderEvent.ACTION_REGEN_SUBMIT:
             self.on_reply_submit(data.get("ctx"))
         elif name == RenderEvent.ACTION_EDIT_SUBMIT:
@@ -201,6 +206,14 @@ class Render:
         self.instance().clear_live(meta, ctx)
         self.update()
 
+    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str) -> None:
+        """Set/replace the one transient Agents v2 status line."""
+        self.instance().agent_status(meta, ctx, status)
+
+    def agent_status_clear(self, meta: CtxMeta, ctx: CtxItem) -> None:
+        """Clear the transient Agents v2 status line."""
+        self.instance().agent_status_clear(meta, ctx)
+
     def get_pid(self, meta: CtxMeta) -> int:
         """
         Get PID for context meta
@@ -218,6 +231,10 @@ class Render:
         :param ctx: context item
         :param stream: True if it is a stream
         """
+        # Pin every render segment to a concrete chat-tab PID. The first BEGIN
+        # prefers the active chat; later tool/agent segments can resolve the same
+        # mapped chat even if focus has moved to another split-screen column.
+        self.window.core.ctx.output.pin_render_pid(meta)
         self.instance().begin(meta, ctx, stream)
         self.update()
 
@@ -231,6 +248,11 @@ class Render:
         """
         self.instance().end(meta, ctx, stream)
         self.update()
+        # Rendering for this response segment is complete. Drop the pin so a
+        # later context/tab selection cannot inherit a stale target. A follow-up
+        # tool/agent segment will pin itself again on its next BEGIN, resolving
+        # the same mapped chat tab even if focus is currently on another column.
+        self.window.core.ctx.output.unpin_render_pid(meta=meta)
 
     def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False) -> None:
         """

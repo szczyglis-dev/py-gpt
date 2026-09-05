@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 18:30:00                  #
+# Updated Date: 2026.09.05 21:40:00
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -14,6 +14,7 @@ from packaging.version import parse as parse_version, Version
 from pygpt_net.core.types import (
     MODE_RESEARCH,
     MODE_CHAT,
+    MODE_AGENT_V2,
     MODE_AGENT_OPENAI,
     MODE_COMPUTER,
     MODE_EXPERT
@@ -422,6 +423,14 @@ class Patch:
 
                     if base_model.tool_calls and not existing_model.tool_calls:
                         existing_model.tool_calls = True
+                        updated = True
+
+            # <  2.8.10 <--- add Agents v2 capability to Chat models
+            if old < parse_version("2.8.10"):
+                print("Migrating models from < 2.8.10...")
+                for model in data.values():
+                    if model.has_mode(MODE_CHAT) and not model.has_mode(MODE_AGENT_V2):
+                        model.add_mode(MODE_AGENT_V2)
                         updated = True
 
         # update file

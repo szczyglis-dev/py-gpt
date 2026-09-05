@@ -23,6 +23,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -128,6 +129,10 @@ class Editor:
                 "type": "bool",
                 "label": "preset.agent_openai",
             },
+            MODE_AGENT_V2: {
+                "type": "bool",
+                "label": "preset.agent_v2",
+            },
             MODE_AUDIO: {
                 "type": "bool",
                 "label": "preset.audio",
@@ -178,6 +183,16 @@ class Editor:
                 "description": "preset.idx.desc",
                 "use": "idx",
             },
+            "agent_v2_allow_local_tools": {
+                "type": "bool",
+                "label": "preset.agent_v2.allow_local_tools",
+                "description": "preset.agent_v2.allow_local_tools.desc",
+            },
+            "agent_v2_allow_remote_tools": {
+                "type": "bool",
+                "label": "preset.agent_v2.allow_remote_tools",
+                "description": "preset.agent_v2.allow_remote_tools.desc",
+            },
             "agent_provider": {
                 "type": "combo",
                 "label": "preset.agent_provider",
@@ -205,6 +220,7 @@ class Editor:
             MODE_CHAT: ["idx"],
             MODE_AGENT_LLAMA: ["temperature"],
             MODE_AGENT_OPENAI: ["temperature"],
+            MODE_AGENT_V2: ["temperature"],
         }
         self.id = "preset"
         self.current = None
@@ -252,8 +268,6 @@ class Editor:
         # registration, so provider grouping is complete (including runtime
         # custom providers).
         self.update_models_list()
-
-        # update after agents register
         self.append_extra_config()
         self.update_providers_list()
 
@@ -645,6 +659,15 @@ class Editor:
 
         self.tab_options_idx = new_map
 
+    def update_models_list(self):
+        """Refresh model choices in the preset editor."""
+        config = self.window.ui.config.get(self.id, {})
+        widget = config.get("model")
+        if widget is None or not hasattr(widget, "set_keys"):
+            return
+        keys = self.window.controller.config.placeholder.apply_by_id("models")
+        widget.set_keys(keys, lock=True)
+
     def update_custom_agent_options(self, agent_id: str):
         """
         Rebuild extra option tabs for a given agent_id at runtime, keeping indices consistent.
@@ -865,15 +888,6 @@ class Editor:
             value=default_prompt,
         )
 
-    def update_models_list(self):
-        """Refresh model choices in the preset editor."""
-        config = self.window.ui.config.get(self.id, {})
-        widget = config.get("model")
-        if widget is None or not hasattr(widget, "set_keys"):
-            return
-        keys = self.window.controller.config.placeholder.apply_by_id("models")
-        widget.set_keys(keys, lock=True)
-
     def update_providers_list(self):
         """Update providers list in the preset editor"""
         self.window.ui.config[self.id]['agent_provider'].set_keys(
@@ -1012,6 +1026,8 @@ class Editor:
                 data.agent_llama = True
             elif mode == MODE_AGENT_OPENAI:
                 data.agent_openai = True
+            elif mode == MODE_AGENT_V2:
+                data.agent_v2 = True
             elif mode == MODE_AUDIO:
                 data.audio = True
             elif mode == MODE_RESEARCH:
@@ -1086,6 +1102,7 @@ class Editor:
             MODE_AGENT_LLAMA,
             MODE_AGENT,
             MODE_AGENT_OPENAI,
+            MODE_AGENT_V2,
             MODE_AUDIO,
             MODE_COMPUTER,
         ]
@@ -1172,6 +1189,10 @@ class Editor:
             itm = self.window.core.presets.items[preset_id]
             itm.reset_modes()
             itm.agent_openai = True
+        elif curr_mode == MODE_AGENT_V2:
+            itm = self.window.core.presets.items[preset_id]
+            itm.reset_modes()
+            itm.agent_v2 = True
 
         # apply changes to current active preset
         current = self.window.core.config.get('preset')

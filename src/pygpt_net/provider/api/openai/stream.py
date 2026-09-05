@@ -33,7 +33,10 @@ def _to_dict_safe(obj: Any) -> Optional[dict]:
     # Pydantic v2
     try:
         if hasattr(obj, "model_dump"):
-            return obj.model_dump()
+            try:
+                return obj.model_dump(warnings=False)
+            except TypeError:
+                return obj.model_dump()
     except Exception:
         pass
     # Pydantic v1 fallback

@@ -28,6 +28,10 @@ class Output:
         self.mapping: Dict[int, Dict[int, int]] = {}
         # [column_idx -> {meta_id -> pid}] (last used PID for meta)
         self.last_pids: Dict[int, Dict[int, int]] = {}
+        # [meta_id -> pid] render target pinned for the lifetime of the current
+        # request/tool chain. This keeps streaming bound to the chat tab where
+        # generation started even if focus moves to another split-screen column.
+        self.render_pids: Dict[int, int] = {}
         self.last_pid: int = 0  # last used PID
         self.initialized: bool = False
 
@@ -42,6 +46,8 @@ class Output:
 
         self.mapping.clear()
         self.last_pids.clear()
+        if force:
+            self.render_pids.clear()
 
         tabs = getattr(self.window, "core", None)
         tabs = getattr(tabs, "tabs", None)
@@ -220,9 +226,104 @@ class Output:
                 return False
         return True
 
+    def pin_render_pid(
+            self,
+            meta: Optional[CtxMeta],
+            pid: Optional[int] = None,
+            force: bool = False,
+    ) -> Optional[int]:
+        """
+        Pin a context meta to a concrete chat-tab PID for rendering.
+
+        Once pinned, renderer lookups no longer follow the currently focused
+        split-screen column. This is required for streaming responses: clicking
+        a tool (for example Code Interpreter) in the other column must not move
+        the in-flight response to another output widget.
+
+        Resolution deliberately does not depend on the current ``generating``
+        flag. If focus is on a non-chat tool, an already mapped chat tab for the
+        meta is used. This also keeps later tool/agent response segments on the
+        original chat column.
+
+        :param meta: Context meta
+        :param pid: Explicit chat tab PID; auto-resolve if None
+        :param force: Replace an existing pin
+        :return: Pinned PID or None
+        """
+        self.init()
+        if meta is None or getattr(meta, "id", None) is None:
+            return None
+
+        meta_id = meta.id
+        if not force:
+            pinned = self.render_pids.get(meta_id)
+            if pinned is not None:
+                tab = self.window.core.tabs.get_tab_by_pid(pinned)
+                if tab is not None and tab.type == Tab.TAB_CHAT:
+                    return pinned
+                self.render_pids.pop(meta_id, None)
+
+        tabs = self.window.core.tabs
+        if pid is None:
+            # Prefer the active tab only when it is a chat already displaying
+            # this meta. This is the normal top-level user-send path.
+            active_pid = tabs.get_active_pid()
+            active_tab = tabs.get_tab_by_pid(active_pid)
+            if active_tab is not None and active_tab.type == Tab.TAB_CHAT:
+                active_meta_id = self.mapping.get(active_tab.column_idx, {}).get(active_pid)
+                if active_meta_id == meta_id or getattr(active_tab, "data_id", None) == meta_id:
+                    pid = active_pid
+
+            # If focus moved to a tool/non-chat tab, resolve the already mapped
+            # chat target without using the active-column preference from
+            # get_mapped(). Prefer the most recently used matching PID when the
+            # same context is visible in more than one chat tab.
+            if pid is None:
+                candidates = []
+                for col_map in self.mapping.values():
+                    for mapped_pid, mapped_meta_id in col_map.items():
+                        if mapped_meta_id != meta_id:
+                            continue
+                        tab = tabs.get_tab_by_pid(mapped_pid)
+                        if tab is not None and tab.type == Tab.TAB_CHAT:
+                            candidates.append(mapped_pid)
+                if self.last_pid in candidates:
+                    pid = self.last_pid
+                elif candidates:
+                    pid = candidates[-1]
+
+            # New/unmapped context: only create the mapping from a real active
+            # chat tab. Never interpret store()'s legacy 0 sentinel as PID 0
+            # while a tool tab has focus.
+            if pid is None:
+                if active_tab is None or active_tab.type != Tab.TAB_CHAT:
+                    return None
+                pid = self.store(meta)
+
+        tab = tabs.get_tab_by_pid(pid) if pid is not None else None
+        if tab is None or tab.type != Tab.TAB_CHAT:
+            return None
+
+        self.render_pids[meta_id] = pid
+        return pid
+
+    def unpin_render_pid(self, meta: Optional[CtxMeta] = None, pid: Optional[int] = None):
+        """
+        Remove a pinned render target by meta or PID.
+
+        :param meta: Context meta
+        :param pid: Chat tab PID
+        """
+        if meta is not None and getattr(meta, "id", None) is not None:
+            self.render_pids.pop(meta.id, None)
+        if pid is not None:
+            for meta_id, pinned_pid in list(self.render_pids.items()):
+                if pinned_pid == pid:
+                    self.render_pids.pop(meta_id, None)
+
     def get_pid(self, meta: Optional[CtxMeta] = None) -> Optional[int]:
         """
-        Get PID by meta (prefer active PID)
+        Get PID by meta (pinned render target first, then active mapping).
 
         :param meta: Meta
         :return: PID or None
@@ -230,6 +331,17 @@ class Output:
         self.init()
         if meta is None:
             return None
+
+        meta_id = getattr(meta, "id", None)
+        if meta_id is not None:
+            pinned = self.render_pids.get(meta_id)
+            if pinned is not None:
+                tab = self.window.core.tabs.get_tab_by_pid(pinned)
+                if tab is not None and tab.type == Tab.TAB_CHAT:
+                    return pinned
+                # The pinned tab was closed/removed. Drop the stale pin and
+                # fall back to normal mapping resolution.
+                self.render_pids.pop(meta_id, None)
 
         tabs = self.window.core.tabs
         active_pid = tabs.get_active_pid()
@@ -331,6 +443,7 @@ class Output:
                 break
         if pid in self.last_pids:
             del self.last_pids[pid]
+        self.unpin_render_pid(pid=pid)
         if pid == self.last_pid:
             self.last_pid = 0
 
@@ -338,5 +451,6 @@ class Output:
         """Clear mapping"""
         self.mapping.clear()
         self.last_pids.clear()
+        self.render_pids.clear()
         self.last_pid = 0
         self.initialized = False
