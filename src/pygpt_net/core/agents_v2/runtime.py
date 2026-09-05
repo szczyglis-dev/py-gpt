@@ -62,6 +62,7 @@ class AgentsV2Runtime:
         self.remote_tool_lock = asyncio.Lock()
 
         self.shared_context_text = self._build_shared_context()
+        self.runtime_system_context = self._build_runtime_system_context()
         self.tool_factory = WorkerToolFactory(self)
         self._artifact_seen = {
             "files": set(), "images": set(), "urls": set(), "attachments": set()
@@ -87,6 +88,21 @@ class AgentsV2Runtime:
 
     def is_stopped(self) -> bool:
         return bool(self.window.controller.kernel.stopped())
+
+    def _build_runtime_system_context(self) -> str:
+        """Collect dynamic plugin runtime guidance published for Agents v2.
+
+        Some plugin system-prompt additions are generated only at Bridge
+        POST_PROMPT_END time. Agents v2 owns a separate Orchestrator/worker
+        system prompt, so those additions must be explicitly carried into the
+        runtime instead of assuming BridgeContext.system_prompt is consumed.
+        """
+        ctx = getattr(self.context, "ctx", None)
+        extra = getattr(ctx, "extra", None) if ctx is not None else None
+        if not isinstance(extra, dict):
+            return ""
+        value = extra.get("agents_v2_filesystem_context", "")
+        return str(value or "").strip()
 
     def _seed_artifact_seen(self):
         """Do not re-export user inputs that were already attached to the main message."""
@@ -292,6 +308,10 @@ class AgentsV2Runtime:
             WORKER_BASE_PROMPT,
             f"<workflow_language>\n{language}\n</workflow_language>",
             f"<worker_identity>\nname={name}\nrole_instruction={instruction}\n</worker_identity>",
+            (
+                f"<runtime_environment>\n{self.runtime_system_context}\n</runtime_environment>"
+                if self.runtime_system_context else ""
+            ),
             (
                 f"<orchestrator_system_instruction>\n{system_prompt}\n</orchestrator_system_instruction>"
                 if system_prompt else ""
@@ -648,9 +668,17 @@ class AgentsV2Runtime:
             f"shared_attachment_context={'yes' if self.shared_context_text else 'no'}",
             f"max_parallel_workers={self.MAX_WORKERS}",
         ]
+        runtime_environment = ""
+        if self.runtime_system_context:
+            runtime_environment = (
+                "\n\n<runtime_environment>\n"
+                + self.runtime_system_context
+                + "\n</runtime_environment>"
+            )
         return (
             ORCHESTRATOR_BASE_PROMPT
             + "\n\n<runtime_capabilities>\n" + "\n".join(capabilities) + "\n</runtime_capabilities>"
+            + runtime_environment
             + "\n\n<additional_instruction>\n" + additional + "\n</additional_instruction>"
         )
 
