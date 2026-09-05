@@ -371,7 +371,29 @@ class Placeholder:
                 data.append({mid: name})
             return data
 
-        for provider, provider_label in providers.items():
+        # The provider registry can be temporarily incomplete while the UI is
+        # being built (runtime custom providers may already be synchronized
+        # before the built-in providers are registered). Never treat a
+        # non-empty registry as the authoritative list of providers for model
+        # choices, otherwise models belonging to providers not registered yet
+        # disappear from combo boxes (notably the Preset model selector).
+        provider_choices = dict(providers)
+        missing_providers = {
+            models[mid].provider
+            for mid in items
+            if models[mid].provider not in provider_choices
+        }
+        for provider in sorted(
+                (p for p in missing_providers if p),
+                key=lambda value: str(value).lower(),
+        ):
+            # get_provider_name() returns the ID unchanged when the provider is
+            # not registered yet. Once the registry is fully initialized the
+            # preset editor refreshes the choices and the proper display name
+            # is used.
+            provider_choices[provider] = self.window.core.llm.get_provider_name(provider)
+
+        for provider, provider_label in provider_choices.items():
             provider_items = [(k, v) for k, v in items.items() if models[k].provider == provider]
             if provider_items:
                 data.append({f"separator::{provider}": provider_label})
