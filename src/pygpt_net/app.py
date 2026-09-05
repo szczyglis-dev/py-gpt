@@ -345,6 +345,7 @@ def run(**kwargs):
         from pygpt_net.provider.web.google_custom_search import GoogleCustomSearch
         from pygpt_net.provider.web.microsoft_bing import MicrosoftBingSearch
         from pygpt_net.provider.web.duckduck_search import DuckDuckGoSearch
+        from pygpt_net.provider.web.youcom_search import YouComSearch
 
         # tools
         from pygpt_net.tools.indexer import IndexerTool
@@ -390,6 +391,7 @@ def run(**kwargs):
         launcher.add_web(GoogleCustomSearch())
         launcher.add_web(MicrosoftBingSearch())
         launcher.add_web(DuckDuckGoSearch())
+        launcher.add_web(YouComSearch())
 
         # register custom web providers
         providers = kwargs.get('web', None)
