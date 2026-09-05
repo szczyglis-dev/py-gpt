@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 13:26:00
+# Updated Date: 2026.09.06 00:35:00
 # ================================================== #
 
 import copy
@@ -545,6 +545,15 @@ class Patch:
                 if "app_banners_api_url" in data:
                     data["app_banners_api_url"] = cfg_get_base("app_banners_api_url")
                     updated = True
+
+            # < 2.8.10
+            if old < parse_version("2.8.10"):
+                print("Migrating config from < 2.8.10...")
+                # Enable automatic RAG prefetch for Agents v2 by default.
+                # Set unconditionally so existing configs that stored False
+                # receive the new 2.8.10 default during migration.
+                data["agent.idx.auto_retrieve"] = True
+                updated = True
 
         # update file
         migrated = False

@@ -51,12 +51,19 @@ class Runner:
         emitter.begin()
         runtime.emit_runtime_status("status.agent_v2.planning")
 
+        current_input = str(getattr(context.ctx, "input", "") or context.prompt or "")
         history = runtime.memory_store.load_history(
             context.ctx,
             context.preset,
             model=context.model,
-            current_input=str(getattr(context.ctx, "input", "") or context.prompt or ""),
+            current_input=current_input,
         )
+        # Match the existing Agents/Chat with Files RAG behavior: when an index is
+        # selected and agent.idx.auto_retrieve is enabled, retrieve a relevant chunk
+        # before the first Orchestrator call. The runtime injects it into both the
+        # Orchestrator and every subsequently created worker system prompt.
+        rag_query = str(context.prompt or current_input)
+        runtime.prefetch_rag_context(rag_query)
         llm = runtime.get_llm(stream=True)
         orchestrator = runtime.build_agent(
             name="Orchestrator",

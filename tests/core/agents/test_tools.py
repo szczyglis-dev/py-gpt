@@ -179,8 +179,7 @@ def test_plugin_tool_metadata_get_parameters_dict():
         "required": ["x"],
         "extra": "ignore"
     }
-    meta = PluginToolMetadata("name", "desc")
-    meta.schema = schema
+    meta = PluginToolMetadata("name", "desc", schema)
     params = meta.get_parameters_dict()
     assert "type" in params
     assert "properties" in params
