@@ -16,7 +16,7 @@ Release: **2.8.9** | build: **2026-09-05** | Python: **>=3.10, <3.14**
 
 **PyGPT** is an **all-in-one desktop AI assistant** supporting models from `OpenAI` (`GPT-5`, `GPT-4`, `o1`, `o3`), `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `Perplexity / Sonar`, `DeepSeek`, and models available through `HuggingFace`, `LlamaIndex`, OpenAI-compatible APIs, and local `Ollama` installations such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, and `gpt-oss`.
 
-It supports chat, agents, completions, Chat with Files (via `LlamaIndex`), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google` and `Microsoft Bing`.
+It supports chat, agents, completions, Chat with Files (via `LlamaIndex`), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google`, `Microsoft Bing` and `You.com`.
 
 **PyGPT** also provides speech synthesis through `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI`, plus speech recognition with `OpenAI Whisper`, `Google` and `Bing`. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
@@ -44,7 +44,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Built-in vector databases support and automated files and data embedding.
 - Image generation via models like `gpt-image`, `Imagen`, `Gemini`, and `Nano Banana`.
 - Video generation via models like `Veo3` and `Sora2`.
-- Internet access via `DuckDuckGo`, `Google` and `Microsoft Bing`.
+- Internet access via `DuckDuckGo`, `Google`, `Microsoft Bing` and `You.com`.
 - Speech synthesis via `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services.
 - Speech recognition via `OpenAI Whisper`, `Google` and `Microsoft Speech Recognition`.
 - Plugins support with built-in plugins like `Files I/O`, `Code Interpreter`, `Web Search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
@@ -1888,7 +1888,7 @@ See the ``Accessibility`` section for more details.
 
 To activate this feature, turn on the `Web Search` plugin found in the `Plugins` menu.
 
-Web searches are provided by `Google Custom Search Engine` and `Microsoft Bing` APIs and can be extended with other search engine providers. 
+Web searches are provided by `DuckDuckGo`, `Google Custom Search Engine`, `Microsoft Bing` and `You.com` APIs and can be extended with other search engine providers. 
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#web-search
 
