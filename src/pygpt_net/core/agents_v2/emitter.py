@@ -22,6 +22,7 @@ class RuntimeEmitter:
         self._finished = False
         self.text = ""
         self.status_text = ""
+        self._block_break_pending = False
 
     def _emit(self, name: str, **data):
         if self.signals is None:
@@ -39,11 +40,29 @@ class RuntimeEmitter:
         self._begun = True
         self._emit(KernelEvent.AGENT_V2_BEGIN)
 
+    def mark_block_boundary(self):
+        """Start the next durable orchestrator pass in a new Markdown paragraph."""
+        if self._finished or not self.text:
+            return
+        self._block_break_pending = True
+
     def append(self, text: Optional[str]):
         if self._finished or not text:
             return
         self.begin()
         chunk = str(text)
+        if self._block_break_pending:
+            # A new LLM pass after a tool/worker interaction is still part of the
+            # same chat message, but should render as a separate Markdown block.
+            # Add only the missing newline(s), preserving already streamed Markdown.
+            if self.text.endswith("\n\n"):
+                prefix = ""
+            elif self.text.endswith("\n"):
+                prefix = "\n"
+            else:
+                prefix = "\n\n"
+            chunk = prefix + chunk
+            self._block_break_pending = False
         self.text += chunk
         self._emit(
             KernelEvent.AGENT_V2_APPEND,
@@ -99,8 +118,7 @@ class RuntimeEmitter:
             # workflow_finish carries the authoritative answer. Avoid duplicating an
             # identical suffix already streamed by the orchestrator.
             if final.strip() and not self.text.rstrip().endswith(final.strip()):
-                if self.text and not self.text.endswith(("\n", " ")):
-                    self.append("\n\n")
+                self.mark_block_boundary()
                 self.append(final)
         self._finished = True
         self._emit(

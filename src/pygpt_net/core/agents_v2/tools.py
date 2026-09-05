@@ -150,17 +150,11 @@ class WorkerToolFactory:
                         tool_ctx.reply = False
 
                         cmd = {"cmd": tool_name, "params": kwargs}
-                        # Provide a fallback progress signal only when the actor has
-                        # not already supplied a better, user-language status.
-                        if getattr(worker, "id", "") == "orchestrator":
-                            if not self.runtime.emitter.status_text:
-                                self.runtime.emitter.status(
-                                    f"Using tool: {tool_name}",
-                                    source="orchestrator",
-                                )
-                        elif not worker.progress or worker.progress == "Starting task":
-                            self.runtime.emit_worker_status(worker, f"Using tool: {tool_name}")
-
+                        self.runtime.emit_runtime_status(
+                            "status.agent_v2.tool",
+                            worker=worker if getattr(worker, "id", "") != "orchestrator" else None,
+                            tool=tool_name,
+                        )
                         # Plugin controller/API objects are shared with the rest of PyGPT.
                         # Keep their side effects serialized, while the worker LLM loops remain concurrent.
                         async with self.runtime.local_tool_lock:
@@ -251,7 +245,10 @@ class WorkerToolFactory:
         task = str(task or "").strip()
         if not task:
             return "Remote task is empty."
-        self.runtime.emit_worker_status(worker, "Using configured remote tools")
+        self.runtime.emit_runtime_status(
+            "status.agent_v2.remote",
+            worker=worker if getattr(worker, "id", "") != "orchestrator" else None,
+        )
         # Native provider wrappers cache mutable clients/token state. Serialize their
         # focused subcalls per orchestration runtime; workers still execute concurrently.
         async with self.runtime.remote_tool_lock:

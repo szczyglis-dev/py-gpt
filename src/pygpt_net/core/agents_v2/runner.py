@@ -6,7 +6,7 @@ from __future__ import annotations
 import asyncio
 from typing import Optional
 
-from llama_index.core.agent.workflow import AgentStream
+from llama_index.core.agent.workflow import AgentStream, ToolCall, ToolCallResult
 
 from .emitter import RuntimeEmitter
 from .runtime import AgentsV2Runtime
@@ -40,8 +40,8 @@ class Runner:
             self.last_error = exc
             self.window.core.debug.log(exc)
             try:
-                emitter.status("Agents v2 failed")
-                emitter.finish(f"Agents v2 error: {exc}")
+                emitter.clear_status()
+                emitter.finish(f"Agents v2: {exc}")
             except Exception:
                 pass
             return True
@@ -49,7 +49,7 @@ class Runner:
     async def _run(self, context, extra, signals, emitter: RuntimeEmitter):
         runtime = AgentsV2Runtime(self.window, context, extra, signals, emitter)
         emitter.begin()
-        emitter.status("Planning task")
+        runtime.emit_runtime_status("status.agent_v2.planning")
 
         history = runtime.memory_store.load_history(
             context.ctx,
@@ -122,6 +122,14 @@ class Runner:
                         pass
                     break
 
+                if isinstance(event, (ToolCall, ToolCallResult)):
+                    # A tool roundtrip ends one orchestrator LLM pass. The next
+                    # user-visible text belongs to a new paragraph, while remaining
+                    # inside the same response/message. Multiple tool events collapse
+                    # into one pending boundary.
+                    emitter.mark_block_boundary()
+                    continue
+
                 if isinstance(event, AgentStream) and getattr(event, "delta", None):
                     emitter.append(event.delta)
 
@@ -129,10 +137,11 @@ class Runner:
                 if not runtime.finished:
                     result = await handler
                     fallback = runtime._result_text(result)
-                    runtime.final_answer = fallback or emitter.text.strip() or "Task completed."
+                    runtime.final_answer = fallback or emitter.text.strip() or "OK"
                     runtime.finished = True
                     if fallback and fallback.strip() not in emitter.text.strip():
-                        emitter.append(("\n\n" if emitter.text.strip() else "") + fallback)
+                        emitter.mark_block_boundary()
+                        emitter.append(fallback)
 
                 final_text = runtime.final_answer or emitter.text.strip()
                 runtime.memory_store.append_turn(

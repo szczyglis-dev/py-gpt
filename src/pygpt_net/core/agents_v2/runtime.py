@@ -17,7 +17,7 @@ from llama_index.core.tools import FunctionTool
 
 from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.utils import is_image
+from pygpt_net.utils import is_image, trans
 
 from .memory import OrchestratorMemoryStore
 from .prompts import ORCHESTRATOR_BASE_PROMPT, WORKER_BASE_PROMPT
@@ -29,6 +29,10 @@ class AgentsV2Runtime:
     """One isolated orchestration runtime bound to a single user turn."""
 
     MAX_WORKERS = 16
+
+    # Code-level switch only (not exposed in presets/UI). Set to False to show
+    # worker statuses without the "[Agent name]" prefix.
+    SHOW_AGENT_NAME_IN_STATUS = True
 
     def __init__(self, window, context, extra, signals, emitter):
         self.window = window
@@ -181,7 +185,26 @@ class AgentsV2Runtime:
             # available through agent_status, while recent events are returned by agent_wait.
             if len(self.status_events) > 256:
                 del self.status_events[:-256]
-            self.emitter.status(f"{worker.name}: {worker.progress}", source=worker.id)
+            display = worker.progress
+            if self.SHOW_AGENT_NAME_IN_STATUS and worker.name:
+                display = f"[{worker.name}] {display}"
+            self.emitter.status(display, source=worker.id)
+
+    @staticmethod
+    def translated_status(key: str, **kwargs) -> str:
+        """Translate a runtime-generated status and safely interpolate placeholders."""
+        value = trans(key)
+        try:
+            return value.format(**kwargs)
+        except (KeyError, IndexError, ValueError):
+            return value
+
+    def emit_runtime_status(self, key: str, worker: Optional[WorkerState] = None, **kwargs):
+        text = self.translated_status(key, **kwargs)
+        if worker is not None:
+            self.emit_worker_status(worker, text)
+        else:
+            self.emitter.status(text, source="orchestrator")
 
     def collect_artifacts(self, source_ctx: CtxItem, worker: Optional[WorkerState] = None):
         """Merge worker artifacts into the user-visible context and worker status payload."""
@@ -264,9 +287,10 @@ class AgentsV2Runtime:
         ctx.extra["agents_v2_worker"] = worker_id
         return ctx
 
-    def _worker_prompt(self, name: str, instruction: str, system_prompt: str) -> str:
+    def _worker_prompt(self, name: str, instruction: str, language: str, system_prompt: str) -> str:
         return "\n\n".join(filter(None, [
             WORKER_BASE_PROMPT,
+            f"<workflow_language>\n{language}\n</workflow_language>",
             f"<worker_identity>\nname={name}\nrole_instruction={instruction}\n</worker_identity>",
             (
                 f"<orchestrator_system_instruction>\n{system_prompt}\n</orchestrator_system_instruction>"
@@ -274,16 +298,30 @@ class AgentsV2Runtime:
             ),
         ])).strip()
 
-    async def create_worker(self, name: str, instruction: str, system_prompt: str = "", task: str = "") -> str:
+    async def create_worker(
+            self,
+            name: str,
+            instruction: str,
+            language: str,
+            system_prompt: str = "",
+            task: str = "",
+    ) -> str:
         if len(self.workers) >= self.MAX_WORKERS:
             return json.dumps({"error": f"Maximum workers reached ({self.MAX_WORKERS})."})
         wid = self._worker_id()
         name = (name or "Worker").strip()[:80]
         instruction = (instruction or "General specialist").strip()
+        language = str(language or "").strip()
+        if not language:
+            return json.dumps({
+                "error": "Worker language is required.",
+                "action": "Pass the language of the current end-user request (for example: Polish, English, German).",
+            }, ensure_ascii=False)
         state = WorkerState(
             id=wid,
             name=name,
             instruction=instruction,
+            language=language[:80],
             system_prompt=system_prompt or "",
             agent=None,
             memory=Memory.from_defaults(
@@ -297,7 +335,7 @@ class AgentsV2Runtime:
             name=name,
             description=instruction[:512],
             llm=llm,
-            system_prompt=self._worker_prompt(name, instruction, system_prompt or ""),
+            system_prompt=self._worker_prompt(name, instruction, state.language, system_prompt or ""),
             tools=self.tool_factory.build(state),
         )
         self.workers[wid] = state
@@ -310,6 +348,7 @@ class AgentsV2Runtime:
             agent_id: str,
             name: Optional[str] = None,
             instruction: Optional[str] = None,
+            language: Optional[str] = None,
             system_prompt: Optional[str] = None,
     ) -> str:
         state = self.workers.get(agent_id)
@@ -321,6 +360,8 @@ class AgentsV2Runtime:
             state.name = name.strip()[:80]
         if instruction is not None and instruction.strip():
             state.instruction = instruction.strip()
+        if language is not None and language.strip():
+            state.language = language.strip()[:80]
         if system_prompt is not None:
             state.system_prompt = system_prompt.strip()
 
@@ -330,7 +371,7 @@ class AgentsV2Runtime:
             name=state.name,
             description=state.instruction[:512],
             llm=llm,
-            system_prompt=self._worker_prompt(state.name, state.instruction, state.system_prompt),
+            system_prompt=self._worker_prompt(state.name, state.instruction, state.language, state.system_prompt),
             tools=self.tool_factory.build(state),
         )
         state.status = WorkerStatus.CREATED
@@ -349,7 +390,7 @@ class AgentsV2Runtime:
             return json.dumps({"error": "Task is empty", "id": agent_id})
         state.stop_requested = False
         state.status = WorkerStatus.RUNNING
-        state.progress = "Starting task"
+        state.progress = ""
         # Keep the worker-local tool context aligned with the current assignment.
         # Some PyGPT plugins inspect ctx.input/output even when invoked as tools.
         state.tool_ctx.set_input(state.current_task, "orchestrator")
@@ -357,7 +398,7 @@ class AgentsV2Runtime:
         state.error = ""
         state.last_result = ""
         state.generation += 1
-        self.emit_worker_status(state, "Starting task")
+        self.emit_runtime_status("status.agent_v2.starting", worker=state)
         state.task = asyncio.create_task(
             self._worker_loop(state, state.current_task),
             name=f"agents-v2:{agent_id}",
@@ -395,7 +436,7 @@ class AgentsV2Runtime:
             result = await handler
             state.last_result = self._result_text(result)
             state.status = WorkerStatus.COMPLETED
-            state.progress = "Completed"
+            self.emit_runtime_status("status.agent_v2.completed", worker=state)
             self.collect_artifacts(state.tool_ctx, state)
             return state.last_result
         except asyncio.CancelledError:
@@ -407,22 +448,16 @@ class AgentsV2Runtime:
                 except Exception:
                     pass
             state.status = WorkerStatus.STOPPED
-            state.progress = "Stopped"
+            self.emit_runtime_status("status.agent_v2.stopped", worker=state)
             return ""
         except Exception as exc:
             state.status = WorkerStatus.FAILED
             state.error = str(exc)
-            state.progress = "Failed"
+            self.emit_runtime_status("status.agent_v2.failed", worker=state)
             self.window.core.debug.log(exc)
             return ""
         finally:
             self.collect_artifacts(state.tool_ctx, state)
-            if state.status == WorkerStatus.COMPLETED:
-                self.emit_worker_status(state, "Completed")
-            elif state.status == WorkerStatus.FAILED:
-                self.emit_worker_status(state, "Failed")
-            elif state.status == WorkerStatus.STOPPED:
-                self.emit_worker_status(state, "Stopped")
 
     async def stop_worker(self, agent_id: str) -> str:
         state = self.workers.get(agent_id)
@@ -435,7 +470,6 @@ class AgentsV2Runtime:
             await asyncio.gather(state.task, return_exceptions=True)
         if state.status != WorkerStatus.REMOVED:
             state.status = WorkerStatus.STOPPED
-            state.progress = "Stopped"
         return json.dumps(state.public_dict(), ensure_ascii=False, default=str)
 
     async def remove_worker(self, agent_id: str) -> str:
@@ -474,8 +508,9 @@ class AgentsV2Runtime:
         mode = str(wait_for or "all").lower()
         if mode not in ("all", "any"):
             mode = "all"
-        self.emitter.status("Waiting for " + ", ".join(s.name for s in states), source="orchestrator")
         if tasks:
+            waiting_names = ", ".join(s.name for s in states if s.task is not None and not s.task.done())
+            self.emit_runtime_status("status.agent_v2.waiting", name=waiting_names)
             timeout = max(1, min(int(timeout_seconds or 60), 600))
             try:
                 await asyncio.wait(
@@ -530,7 +565,8 @@ class AgentsV2Runtime:
         self.emitter.clear_status()
         tail = self.emitter.text.rstrip()
         if not tail.endswith(self.final_answer):
-            self.emitter.append(("\n\n" if tail else "") + self.final_answer)
+            self.emitter.mark_block_boundary()
+            self.emitter.append(self.final_answer)
         return "Workflow marked as finished. The runtime will stop the orchestrator now."
 
     def orchestrator_tools(self) -> List[FunctionTool]:
@@ -539,14 +575,15 @@ class AgentsV2Runtime:
                 async_fn=self.create_worker,
                 name="agent_create",
                 description=(
-                    "Create a runtime worker. Parameters: name, instruction, optional system_prompt, optional task. "
+                    "Create a runtime worker. Parameters: name, instruction, language, optional system_prompt, optional task. "
+                    "language is REQUIRED and must match the language of the current end-user request. "
                     "When task is provided the worker starts immediately and runs asynchronously."
                 ),
             ),
             FunctionTool.from_defaults(
                 async_fn=self.update_worker,
                 name="agent_update",
-                description="Update an idle worker's name/role/system prompt while preserving its in-memory history.",
+                description="Update an idle worker's name/role/language/system prompt while preserving its in-memory history.",
             ),
             FunctionTool.from_defaults(
                 async_fn=self.start_worker,

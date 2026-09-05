@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2026.09.05 20:35:00                  #
 # ================================================== #
 
 import os
@@ -109,8 +109,44 @@ class Plugin(BasePlugin):
         :return: updated system prompt
         """
         if self.get_option_value("auto_cwd") and self.window.core.command.is_cmd(inline=False):
-            prompt += "\n\nCURRENT WORKING DIRECTORY: " + self.window.core.config.get_user_dir('data')
+            host_data_dir = self.window.core.config.get_user_dir("data")
+            prompt += "\n\nCURRENT WORKING DIRECTORY: " + host_data_dir
+
+            if self.is_ipython_sandbox_active():
+                prompt += (
+                    "\n\nIMPORTANT FILESYSTEM CONTEXT: The CURRENT WORKING DIRECTORY shown above is a path "
+                    "on the HOST filesystem and applies only to host-side Files I/O tools "
+                    "(for example read_file, save_file, append_file, list_dir, mkdir, file_* and "
+                    "other Files I/O operations). The Code Interpreter IPython environment is running "
+                    "inside a Docker sandbox and must not use the host path directly. Inside IPython "
+                    "code, IPython shell/magic commands and ipython_sys_exec, use /data for the same "
+                    "working directory. The container path /data is mapped to the host directory: " + host_data_dir
+                )
         return prompt
+
+    def is_ipython_sandbox_active(self) -> bool:
+        """
+        Check whether the enabled Code Interpreter uses the IPython Docker sandbox.
+
+        This is evaluated at prompt-build time so switching either the plugin or its
+        sandbox option immediately changes the filesystem guidance without requiring
+        a restart.
+
+        :return: True if Code Interpreter is enabled and IPython sandbox is active
+        """
+        plugin_id = "cmd_code_interpreter"
+        try:
+            if not self.window.controller.plugins.is_enabled(plugin_id):
+                return False
+
+            plugin = self.window.core.plugins.get(plugin_id)
+            if plugin is None:
+                return False
+
+            return bool(plugin.get_option_value("sandbox_ipython"))
+        except Exception as e:
+            self.window.core.debug.log(e)
+            return False
 
     def cmd_syntax(self, data: dict):
         """

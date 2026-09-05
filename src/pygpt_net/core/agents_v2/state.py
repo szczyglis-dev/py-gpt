@@ -25,6 +25,7 @@ class WorkerState:
     id: str
     name: str
     instruction: str
+    language: str
     system_prompt: str
     agent: Any
     memory: Any
@@ -65,6 +66,7 @@ class WorkerState:
         data = {
             "id": self.id,
             "name": self.name,
+            "language": self.language,
             "status": self.status.value,
             "progress": self.progress,
             "current_task": self.current_task,
