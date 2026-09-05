@@ -263,7 +263,11 @@ class Editor:
 
     def setup(self):
         """Setup preset editor"""
-        # update after agents register
+        # The dialog widgets are created before the built-in LLM providers are
+        # registered. Refresh the model choices now, after provider
+        # registration, so provider grouping is complete (including runtime
+        # custom providers).
+        self.update_models_list()
         self.append_extra_config()
         self.update_providers_list()
 
@@ -654,6 +658,15 @@ class Editor:
             new_map[a_id].append(i)
 
         self.tab_options_idx = new_map
+
+    def update_models_list(self):
+        """Refresh model choices in the preset editor."""
+        config = self.window.ui.config.get(self.id, {})
+        widget = config.get("model")
+        if widget is None or not hasattr(widget, "set_keys"):
+            return
+        keys = self.window.controller.config.placeholder.apply_by_id("models")
+        widget.set_keys(keys, lock=True)
 
     def update_custom_agent_options(self, agent_id: str):
         """

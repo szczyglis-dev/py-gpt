@@ -275,6 +275,14 @@ class Editor:
             option = self.window.controller.model.importer.get_providers_option()
             widget.set_keys(option.get('keys', []))
 
+        # Preset editor model list. The widget is created before all built-in
+        # LLM providers are registered, and custom providers can also change at
+        # runtime, so always rebuild its grouped model choices here.
+        presets = getattr(self.window.controller, 'presets', None)
+        preset_editor = getattr(presets, 'editor', None) if presets is not None else None
+        if preset_editor is not None and hasattr(preset_editor, 'update_models_list'):
+            preset_editor.update_models_list()
+
     def config_changed(self, key: str) -> bool:
         """
         Check if config changed
