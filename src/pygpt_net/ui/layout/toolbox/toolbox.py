@@ -16,7 +16,6 @@ from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
 from .assistants import Assistants
-from .banner import Banner
 from .indexes import Indexes
 from .mode import Mode
 from .model import Model
@@ -35,7 +34,6 @@ class ToolboxMain:
         """
         self.window = window
         self.assistants = Assistants(window)
-        self.banner = Banner(window)
         self.indexes = Indexes(window)
         self.footer = Footer(window)
         self.mode = Mode(window)
@@ -61,7 +59,6 @@ class ToolboxMain:
         # presets / assistants
         toolbox_mode = QWidget(self.window)
         layout = QVBoxLayout(toolbox_mode)
-        layout.addWidget(self.banner.setup(), alignment=Qt.AlignTop | Qt.AlignRight)  # banner
         layout.addWidget(self.mode.setup())  # modes
         layout.addWidget(self.model.setup())  # models
         layout.addWidget(tip)
