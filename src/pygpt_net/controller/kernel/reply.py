@@ -52,8 +52,18 @@ class Reply:
         self.on_post_response(ctx, extra)
 
         if ctx.agent_call:
-            # TODO: clear() here?
-            return ctx.results # abort if called by agent, TODO: check if needed!!!!!
+            # Agents v2 awaits plugin completion inside its own coroutine. A
+            # plugin may finish minutes after command dispatch, so wake that
+            # coroutine here instead of feeding the result through REPLY_RETURN.
+            ctx_extra = ctx.extra if isinstance(ctx.extra, dict) else {}
+            request = ctx_extra.get("_agents_v2_tool_request")
+            if isinstance(request, dict):
+                request["result"] = list(ctx.results or [])
+                ctx_extra["_agents_v2_async_pending"] = False
+                done = request.get("done")
+                if done is not None:
+                    done.set()
+            return ctx.results
 
         core.debug.info("Reply...")
         if core.debug.enabled() and self.is_log():

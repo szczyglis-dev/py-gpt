@@ -10,6 +10,7 @@
 # ================================================== #
 
 from typing import Dict, Any
+import time
 
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.core.types import (
@@ -38,6 +39,7 @@ class Response:
         super(Response, self).__init__()
         self.window = window
         self.last_response_id = None
+        self._agent_v2_last_store = {}
 
     def handle(
             self,
@@ -355,7 +357,14 @@ class Response:
             ctx.output = ""
         ctx.output += str(chunk or "")
         ctx.stream = str(chunk or "")
-        self.window.core.ctx.update_item(ctx)
+        # Persist live output at a modest cadence. Writing SQLite on every token
+        # can saturate the Qt event loop even though WebView itself batches JS.
+        key = getattr(ctx, "id", None) or id(ctx)
+        now = time.monotonic()
+        last = self._agent_v2_last_store.get(key, 0.0)
+        if now - last >= 0.25:
+            self.window.core.ctx.update_item(ctx)
+            self._agent_v2_last_store[key] = now
         self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
             "meta": ctx.meta, "ctx": ctx, "chunk": str(chunk or ""), "begin": bool(begin),
         }))
@@ -367,26 +376,45 @@ class Response:
         self.window.dispatch(RenderEvent(name, {"meta": ctx.meta, "ctx": ctx, "status": str(status or "")}))
 
     def agent_v2_tool_exec(self, context: BridgeContext, extra: Dict[str, Any], request):
-        """Execute an Agents v2 local plugin command on the Qt/main thread and wake the worker."""
+        """Dispatch an Agents v2 plugin command without blocking Qt.
+
+        The plugin is allowed to start its normal QRunnable and return here
+        immediately. Completion is signalled later from kernel Reply.add().
+        """
         if not request:
             return
         done = request.get("done")
+        ctx = request.get("ctx")
         try:
             if not self.window.controller.kernel.is_main_thread():
                 request["error"] = RuntimeError("Agents v2 plugin RPC reached a non-main Qt thread.")
+                if done is not None:
+                    done.set()
                 return
             if self.window.controller.kernel.stopped():
                 request["cancelled"] = True
                 request["result"] = "Execution cancelled."
+                if done is not None:
+                    done.set()
                 return
-            request["result"] = self.window.controller.plugins.apply_cmds_all(
-                request.get("ctx"),
+
+            response = self.window.controller.plugins.apply_cmds_all(
+                ctx,
                 request.get("cmds") or [],
             )
+
+            # Synchronous/lightweight plugins may already have produced a reply.
+            # Async plugins mark the context as pending and will wake the agent
+            # later through REPLY_ADD.
+            if done is not None and not done.is_set():
+                pending = bool(isinstance(getattr(ctx, "extra", None), dict)
+                               and ctx.extra.get("_agents_v2_async_pending"))
+                if response not in (None, [], {}) or not pending:
+                    request["result"] = response
+                    done.set()
         except Exception as exc:
             request["error"] = exc
             self.window.core.debug.log(exc)
-        finally:
             if done is not None:
                 done.set()
 
@@ -399,6 +427,8 @@ class Response:
         if final_answer and not (ctx.output or "").strip():
             ctx.output = str(final_answer)
         self.window.core.ctx.update_item(ctx)
+        key = getattr(ctx, "id", None) or id(ctx)
+        self._agent_v2_last_store.pop(key, None)
         self.window.dispatch(RenderEvent(RenderEvent.STREAM_END, {"meta": ctx.meta, "ctx": ctx}))
 
         # Stop is an explicit cancellation boundary: keep already streamed text, close

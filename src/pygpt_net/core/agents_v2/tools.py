@@ -117,7 +117,7 @@ class WorkerToolFactory:
                         # reply/results while producing their response.
                         tool_ctx = worker.tool_ctx
                         tool_ctx.agent_call = True
-                        tool_ctx.async_disabled = True
+                        tool_ctx.async_disabled = False
                         tool_ctx.internal = True
                         tool_ctx.hidden = True
                         tool_ctx.reply = False
@@ -131,9 +131,9 @@ class WorkerToolFactory:
                         # Plugin controller/API objects are shared with the rest of PyGPT.
                         # Keep their side effects serialized, while the worker LLM loops remain concurrent.
                         async with self.runtime.local_tool_lock:
-                            # Plugin/controller execution touches Qt UI/state. Proxy it to the
-                            # main thread and block only this orchestration runtime until the
-                            # command result is available.
+                            # Only command dispatch touches the Qt thread. Long-running plugin
+                            # work uses the plugin's normal QRunnable path; this coroutine
+                            # awaits its reply without blocking the GUI event loop.
                             response = await self.runtime.emitter.execute_plugin(
                                 tool_ctx,
                                 [cmd],

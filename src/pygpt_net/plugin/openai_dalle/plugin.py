@@ -248,7 +248,11 @@ class Plugin(BasePlugin):
                         # Existing OpenAI/Google image backends already use image_id
                         # to enter their native edit/remix path.
                         extra["image_id"] = reference_image
-                    sync = self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2]
+                    sync = self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]
+                    if (self.window.core.config.get("mode") == MODE_AGENT_V2
+                            and isinstance(ctx.extra, dict)
+                            and ctx.extra.get("agents_v2_async_tool")):
+                        ctx.extra["_agents_v2_async_pending"] = True
 
                     # Use the native image provider selected by the configured image model.
                     if model.provider == "google" and self.window.core.config.get("api_native_google", False):

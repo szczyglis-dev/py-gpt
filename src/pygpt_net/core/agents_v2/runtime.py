@@ -333,11 +333,18 @@ class AgentsV2Runtime:
             ctx.doc_ids = list(parent.doc_ids or [])
             ctx.hidden_input = parent.hidden_input
         ctx.agent_call = True
-        ctx.async_disabled = True
+        ctx.async_disabled = False
         ctx.internal = True
         ctx.hidden = True
         ctx.current = False
-        ctx.extra = {"agents_v2_actor": actor_id, "run_id": self.run_id}
+        ctx.extra = {
+            "agents_v2_actor": actor_id,
+            "run_id": self.run_id,
+            # Let normal PyGPT plugins use their own QRunnable workers. The agent
+            # awaits the result through the Agents v2 completion bridge instead
+            # of forcing the plugin to execute synchronously on the Qt GUI thread.
+            "agents_v2_async_tool": True,
+        }
         return ctx
 
     def _make_worker_ctx(self, worker_id: str) -> CtxItem:

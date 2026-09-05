@@ -396,6 +396,13 @@ class Kernel:
         :param ctx: CtxItem: The context item containing information about the current operation.
         :return: bool: True if asynchronous operations are allowed, False otherwise.
         """
+        # Agents v2 tool calls are awaited by the orchestration runtime, but the
+        # underlying plugin itself must remain asynchronous. This lets plugin
+        # QRunnables (image generation, Files I/O, Code Interpreter, web, etc.)
+        # run off the Qt GUI thread while the agent waits for REPLY_ADD.
+        extra = getattr(ctx, "extra", None)
+        if isinstance(extra, dict) and extra.get("agents_v2_async_tool"):
+            return True
         if self.window.core.config.get("mode") in self._ASYNC_DISABLED_MODES:
             return False
         if ctx.agent_call:
