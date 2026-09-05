@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 20:35:00                  #
+# Updated Date: 2026.09.06 00:30:00                  #
 # ================================================== #
 
 import os
@@ -50,6 +50,8 @@ class Plugin(BasePlugin):
             "send_file",
             "cwd",
             "file_index",
+            "pack_archive",
+            "unpack_archive",
         ]
         self.use_locale = True
         self.worker = None

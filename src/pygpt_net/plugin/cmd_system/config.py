@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 14:55:00                  #
+# Updated Date: 2026.09.06 00:30:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -30,7 +30,7 @@ ARG PYGPT_UID=1000
 ARG PYGPT_GID=1000
 
 # Small set of commonly useful command-line tools plus passwordless sudo.
-RUN apk add --no-cache git curl ca-certificates sudo
+RUN apk add --no-cache git curl wget ca-certificates sudo bash zip unzip tar gzip bzip2 xz jq file coreutils findutils
 
 RUN set -eux; \
     group_name="$(awk -F: -v gid="$PYGPT_GID" '$3 == gid {print $1; exit}' /etc/group)"; \

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.14 01:00:00                  #
+# Updated Date: 2026.09.06 00:30:00                  #
 # ================================================== #
 
 import fnmatch
@@ -14,6 +14,9 @@ import mimetypes
 import os.path
 import shutil
 import ssl
+import stat
+import tarfile
+import zipfile
 
 from typing import Tuple, List, Dict
 from urllib.request import Request, urlopen
@@ -100,6 +103,14 @@ class Worker(BaseWorker):
                         # move
                         elif item["cmd"] == "move":
                             response = self.cmd_move(item)
+
+                        # pack archive
+                        elif item["cmd"] == "pack_archive":
+                            response = self.cmd_pack_archive(item)
+
+                        # unpack archive
+                        elif item["cmd"] == "unpack_archive":
+                            response = self.cmd_unpack_archive(item)
 
                         # is dir
                         elif item["cmd"] == "is_dir":
@@ -197,6 +208,16 @@ class Worker(BaseWorker):
             for path in paths("src"):
                 self.security_read(path)
                 self.security_write(path)
+            for path in paths("dst"):
+                self.security_write(path)
+        elif cmd == "pack_archive":
+            for path in paths("src"):
+                self.security_read(path)
+            for path in paths("dst"):
+                self.security_write(path)
+        elif cmd == "unpack_archive":
+            for path in paths("src"):
+                self.security_read(path)
             for path in paths("dst"):
                 self.security_write(path)
         elif cmd == "download_file":
@@ -592,6 +613,242 @@ class Worker(BaseWorker):
             shutil.move(src, dst)
             result = "OK"
             self.log("Moved: {} into {}".format(src, dst))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    @staticmethod
+    def _archive_format(path: str) -> tuple[str, str]:
+        """Return archive family and write mode from file extension."""
+        lower = str(path).lower()
+        if lower.endswith(".zip"):
+            return "zip", "w"
+        if lower.endswith((".tar.gz", ".tgz")):
+            return "tar", "w:gz"
+        if lower.endswith((".tar.bz2", ".tbz2", ".tbz")):
+            return "tar", "w:bz2"
+        if lower.endswith((".tar.xz", ".txz")):
+            return "tar", "w:xz"
+        if lower.endswith(".tar"):
+            return "tar", "w"
+        raise ValueError(
+            "Unsupported archive format. Use .zip, .tar, .tar.gz/.tgz, "
+            ".tar.bz2/.tbz2 or .tar.xz/.txz"
+        )
+
+    @staticmethod
+    def _archive_member_target(dst: str, member_name: str) -> str:
+        """Resolve an archive member path and reject path traversal."""
+        name = str(member_name or "").replace("\\", "/")
+        if not name or name.startswith("/"):
+            raise ValueError(f"Unsafe archive member path: {member_name}")
+        drive, _ = os.path.splitdrive(name)
+        if drive:
+            raise ValueError(f"Unsafe archive member path: {member_name}")
+
+        target = os.path.realpath(os.path.abspath(os.path.join(dst, *name.split("/"))))
+        base = os.path.realpath(os.path.abspath(dst))
+        try:
+            if os.path.commonpath([base, target]) != base:
+                raise ValueError(f"Unsafe archive member path: {member_name}")
+        except ValueError:
+            raise ValueError(f"Unsafe archive member path: {member_name}")
+        return target
+
+    @staticmethod
+    def _archive_sources(value) -> list:
+        """Normalize archive source parameter to a non-empty list."""
+        if isinstance(value, (list, tuple, set)):
+            sources = [str(v) for v in value if v not in (None, "")]
+        elif value not in (None, ""):
+            sources = [str(value)]
+        else:
+            sources = []
+        if not sources:
+            raise ValueError("Source path(s) not provided")
+        return sources
+
+    def _zip_add_path(self, archive: zipfile.ZipFile, src: str) -> int:
+        """Add a file or directory recursively to a ZIP archive."""
+        count = 0
+        src = os.path.abspath(src)
+        arc_root = os.path.basename(os.path.normpath(src)) or "data"
+
+        if os.path.isdir(src):
+            for root, dirs, files in os.walk(src, followlinks=False):
+                rel_root = os.path.relpath(root, src)
+                arc_dir = arc_root if rel_root == "." else os.path.join(arc_root, rel_root)
+                archive.write(root, arc_dir)
+                count += 1
+
+                # Do not follow directory symlinks; store only normal directory trees.
+                dirs[:] = [name for name in dirs if not os.path.islink(os.path.join(root, name))]
+                for filename in files:
+                    path = os.path.join(root, filename)
+                    if os.path.islink(path):
+                        continue
+                    archive.write(path, os.path.join(arc_dir, filename))
+                    count += 1
+        else:
+            if os.path.islink(src):
+                raise ValueError(f"Refusing to archive symbolic link: {src}")
+            archive.write(src, arc_root)
+            count += 1
+        return count
+
+    def cmd_pack_archive(self, item: dict) -> dict:
+        """Pack files or directories into ZIP/TAR archive."""
+        try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
+
+            src_values = self._archive_sources(item["params"]["src"])
+            sources = [self.prepare_path(value) for value in src_values]
+            dst = self.prepare_path(item["params"]["dst"])
+            kind, mode = self._archive_format(dst)
+
+            dst_real = os.path.realpath(os.path.abspath(dst))
+            for src in sources:
+                if not os.path.exists(src):
+                    return self.make_response(item, f"File or directory not found: {src}")
+                src_real = os.path.realpath(os.path.abspath(src))
+                if src_real == dst_real:
+                    raise ValueError("Destination archive must be different from source path")
+                if os.path.isdir(src_real):
+                    try:
+                        if os.path.commonpath([src_real, dst_real]) == src_real:
+                            raise ValueError("Destination archive cannot be created inside a source directory")
+                    except ValueError as exc:
+                        if str(exc).startswith("Destination archive"):
+                            raise
+
+            self.msg = "Packing archive: {}".format(dst)
+            self.log(self.msg)
+            count = 0
+
+            if kind == "zip":
+                with zipfile.ZipFile(dst, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
+                    for src in sources:
+                        count += self._zip_add_path(archive, src)
+            else:
+                with tarfile.open(dst, mode) as archive:
+                    for src in sources:
+                        if os.path.islink(src):
+                            raise ValueError(f"Refusing to archive symbolic link: {src}")
+                        arcname = os.path.basename(os.path.normpath(src)) or "data"
+                        archive.add(src, arcname=arcname, recursive=True, filter=self._tar_pack_filter)
+                    count = len(archive.getmembers())
+
+            size = os.path.getsize(dst)
+            result = {
+                "result": "OK",
+                "archive": dst,
+                "format": kind,
+                "sources": len(sources),
+                "entries": count,
+                "size_bytes": size,
+                "size_human": self.get_human_readable_size(size),
+            }
+            self.log("Archive created: {}".format(dst))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    @staticmethod
+    def _tar_pack_filter(member: tarfile.TarInfo):
+        """Skip symlinks, hard links and special files while creating TAR archives."""
+        if member.issym() or member.islnk() or member.isdev() or member.isfifo():
+            return None
+        return member
+
+    def _unpack_zip(self, src: str, dst: str) -> int:
+        """Safely extract ZIP archive without path traversal or symlinks."""
+        count = 0
+        with zipfile.ZipFile(src, "r") as archive:
+            for info in archive.infolist():
+                target = self._archive_member_target(dst, info.filename)
+                mode = (info.external_attr >> 16) & 0xFFFF
+                if stat.S_ISLNK(mode):
+                    raise ValueError(f"Refusing to extract symbolic link: {info.filename}")
+
+                if info.is_dir() or info.filename.endswith("/"):
+                    os.makedirs(target, exist_ok=True)
+                    continue
+
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                with archive.open(info, "r") as source, open(target, "wb") as output:
+                    shutil.copyfileobj(source, output)
+                if mode & 0o777:
+                    try:
+                        os.chmod(target, mode & 0o777)
+                    except OSError:
+                        pass
+                count += 1
+        return count
+
+    def _unpack_tar(self, src: str, dst: str) -> int:
+        """Safely extract TAR archive without path traversal, links or special files."""
+        count = 0
+        with tarfile.open(src, "r:*") as archive:
+            for member in archive.getmembers():
+                target = self._archive_member_target(dst, member.name)
+                if member.issym() or member.islnk():
+                    raise ValueError(f"Refusing to extract archive link: {member.name}")
+                if member.isdev() or member.isfifo():
+                    raise ValueError(f"Refusing to extract special archive member: {member.name}")
+
+                if member.isdir():
+                    # Keep destination directories writable while extracting child entries.
+                    os.makedirs(target, exist_ok=True)
+                    continue
+                if not member.isfile():
+                    continue
+
+                source = archive.extractfile(member)
+                if source is None:
+                    continue
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                with source, open(target, "wb") as output:
+                    shutil.copyfileobj(source, output)
+                try:
+                    os.chmod(target, member.mode & 0o777)
+                except OSError:
+                    pass
+                count += 1
+        return count
+
+    def cmd_unpack_archive(self, item: dict) -> dict:
+        """Unpack ZIP/TAR archive into a directory."""
+        try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
+
+            src = self.prepare_path(item["params"]["src"])
+            dst = self.prepare_path(item["params"]["dst"])
+            if not os.path.isfile(src):
+                return self.make_response(item, "Archive file not found")
+
+            self.msg = "Unpacking archive: {} into {}".format(src, dst)
+            self.log(self.msg)
+            os.makedirs(dst, exist_ok=True)
+
+            if zipfile.is_zipfile(src):
+                kind = "zip"
+                count = self._unpack_zip(src, dst)
+            elif tarfile.is_tarfile(src):
+                kind = "tar"
+                count = self._unpack_tar(src, dst)
+            else:
+                raise ValueError("Unsupported or invalid archive. Expected ZIP or TAR archive")
+
+            result = {
+                "result": "OK",
+                "archive": src,
+                "destination": dst,
+                "format": kind,
+                "files_extracted": count,
+            }
+            self.log("Archive unpacked: {} into {}".format(src, dst))
         except Exception as e:
             result = self.throw_error(e)
         return self.make_response(item, result)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2026.09.06 00:30:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -420,6 +420,46 @@ class Config(BaseConfig):
             ],
             enabled=True,
             description="If enabled, model will be able to index file or directory using Llama-index",
+        )
+        plugin.add_cmd(
+            "pack_archive",
+            instruction="pack files or directories into a ZIP or TAR archive; archive format is detected from destination extension",
+            params=[
+                {
+                    "name": "src",
+                    "type": "list",
+                    "description": "source file(s) or directory/directories to pack",
+                    "required": True,
+                },
+                {
+                    "name": "dst",
+                    "type": "str",
+                    "description": "destination archive path (.zip, .tar, .tar.gz/.tgz, .tar.bz2/.tbz2, .tar.xz/.txz)",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Pack files/directories into ZIP or TAR archive",
+        )
+        plugin.add_cmd(
+            "unpack_archive",
+            instruction="unpack a ZIP or TAR archive into a directory; archive format is detected automatically",
+            params=[
+                {
+                    "name": "src",
+                    "type": "str",
+                    "description": "source archive path (.zip, .tar, .tar.gz/.tgz, .tar.bz2/.tbz2, .tar.xz/.txz)",
+                    "required": True,
+                },
+                {
+                    "name": "dst",
+                    "type": "str",
+                    "description": "destination directory",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Unpack ZIP or TAR archive",
         )
         plugin.add_cmd(
             "find",
