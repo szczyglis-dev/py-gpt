@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.8.9",
-        "app.version": "2.8.9",
-        "updated_at": "2026-09-05T18:30:00"
+        "version": "2.8.10",
+        "app.version": "2.8.10",
+        "updated_at": "2026-09-05T21:35:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M": {
@@ -10,6 +10,7 @@
             "name": "bielik-11b-v3.0",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
@@ -45,6 +46,7 @@
             "name": "claude-fable-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -87,6 +89,7 @@
             "name": "claude-haiku-4-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -129,6 +132,7 @@
             "name": "claude-opus-4-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -171,6 +175,7 @@
             "name": "claude-opus-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -213,6 +218,7 @@
             "name": "claude-sonnet-4-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -255,6 +261,7 @@
             "name": "claude-sonnet-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -466,6 +473,7 @@
             "name": "deepseek-r1:8b",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
@@ -505,6 +513,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "agent_openai"
             ],
             "llama_index": {
@@ -550,6 +559,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "agent_openai"
             ],
             "llama_index": {
@@ -632,6 +642,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -753,6 +764,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -793,6 +805,7 @@
             "name": "gemini-3-flash-preview",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -996,6 +1009,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -1040,6 +1054,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -1084,6 +1099,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -1128,6 +1144,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -1172,6 +1189,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -1216,6 +1234,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -1260,6 +1279,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -1300,6 +1320,7 @@
             "name": "gemma4:e4b",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
@@ -1336,6 +1357,7 @@
             "name": "gpt-3.5-turbo",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -1412,6 +1434,7 @@
             "name": "gpt-4",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -1464,6 +1487,7 @@
             "name": "gpt-4-turbo",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -1518,6 +1542,7 @@
             "name": "gpt-4.1",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -1572,6 +1597,7 @@
             "name": "gpt-4.1-mini",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -1626,6 +1652,7 @@
             "name": "gpt-4.1-nano",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -1680,6 +1707,7 @@
             "name": "gpt-4o",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -1734,6 +1762,7 @@
             "name": "gpt-4o-mini",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -1788,6 +1817,7 @@
             "name": "gpt-5 (medium)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -1842,6 +1872,7 @@
             "name": "gpt-5 (high)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -1898,6 +1929,7 @@
             "name": "gpt-5 (low)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -1954,6 +1986,7 @@
             "name": "gpt-5-mini (medium)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2008,6 +2041,7 @@
             "name": "gpt-5-mini (high)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2064,6 +2098,7 @@
             "name": "gpt-5-mini (low)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2120,6 +2155,7 @@
             "name": "gpt-5-nano (medium)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2174,6 +2210,7 @@
             "name": "gpt-5-nano (high)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2230,6 +2267,7 @@
             "name": "gpt-5-nano (low)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2286,6 +2324,7 @@
             "name": "gpt-5.2 (high)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -2345,6 +2384,7 @@
             "name": "gpt-5.2 (low)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -2404,6 +2444,7 @@
             "name": "gpt-5.2 (medium)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -2463,6 +2504,7 @@
             "name": "gpt-5.6-luna (high)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2519,6 +2561,7 @@
             "name": "gpt-5.6-luna (low)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2575,6 +2618,7 @@
             "name": "gpt-5.6-luna (medium)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2631,6 +2675,7 @@
             "name": "gpt-5.6-sol (high)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2687,6 +2732,7 @@
             "name": "gpt-5.6-sol (low)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2743,6 +2789,7 @@
             "name": "gpt-5.6-sol (medium)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2799,6 +2846,7 @@
             "name": "gpt-5.6-terra (high)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2855,6 +2903,7 @@
             "name": "gpt-5.6-terra (low)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -2911,6 +2960,7 @@
             "name": "gpt-5.6-terra (medium)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -3100,6 +3150,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],
@@ -3136,6 +3187,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],
@@ -3181,6 +3233,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],
@@ -3217,6 +3270,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],
@@ -3419,6 +3473,7 @@
             "name": "grok-2-vision",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent_openai"
             ],
@@ -3461,6 +3516,7 @@
             "name": "grok-3-mini",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -3505,6 +3561,7 @@
             "name": "grok-3-mini-fast",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
@@ -3549,6 +3606,7 @@
             "name": "grok-4.3",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -3598,6 +3656,7 @@
             "name": "grok-4.5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -3647,6 +3706,7 @@
             "name": "grok-4.6",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
@@ -3906,7 +3966,8 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "chat"
+                "chat",
+                "agent_v2"
             ],
             "llama_index": {
                 "args": [
@@ -3937,6 +3998,7 @@
             "name": "llama3.1",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
@@ -3973,6 +4035,7 @@
             "name": "llama4:scout",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
@@ -4009,6 +4072,7 @@
             "name": "mistral-small3.2",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
@@ -4083,6 +4147,7 @@
             "name": "nemotron-3.5-lightning:30b",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
@@ -4118,6 +4183,7 @@
             "name": "o1",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent",
                 "expert",
@@ -4172,6 +4238,7 @@
             "name": "o1-pro",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent",
                 "expert",
@@ -4226,6 +4293,7 @@
             "name": "o3",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent",
                 "expert",
@@ -4280,6 +4348,7 @@
             "name": "o3-deep-research",
             "mode": [
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],
@@ -4330,6 +4399,7 @@
             "name": "o3-mini (high)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "agent",
                 "expert",
                 "llama_index",
@@ -4384,6 +4454,7 @@
             "name": "o3-mini (low)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "agent",
                 "expert",
                 "llama_index",
@@ -4438,6 +4509,7 @@
             "name": "o3-mini (medium)",
             "mode": [
                 "chat",
+                "agent_v2",
                 "agent",
                 "expert",
                 "llama_index",
@@ -4492,6 +4564,7 @@
             "name": "o3-pro",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent",
                 "expert",
@@ -4546,6 +4619,7 @@
             "name": "o4-mini",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "expert",
@@ -4599,6 +4673,7 @@
             "name": "o4-mini-deep-research",
             "mode": [
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],
@@ -4649,6 +4724,7 @@
             "name": "qwen3.6:27b",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
@@ -4685,6 +4761,7 @@
             "name": "qwen3.5:9b",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
@@ -4725,6 +4802,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],
@@ -4770,6 +4848,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],
@@ -4815,6 +4894,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],
@@ -4860,6 +4940,7 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
                 "agent_openai"
             ],

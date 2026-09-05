@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 20:00:00                  #
+# Updated Date: 2026.09.05 21:40:00
 # ================================================== #
 
 import copy
@@ -21,7 +21,6 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
-    MODE_AGENT_V2,
     MODE_RESEARCH,
     MULTIMODAL_TEXT,
     MULTIMODAL_IMAGE,
@@ -170,8 +169,6 @@ class Models:
         """
         if model not in self.items:
             return False
-        if mode == MODE_AGENT_V2:
-            return MODE_LLAMA_INDEX in self.items[model].mode
         return mode in self.items[model].mode
 
     def get_id(
@@ -212,8 +209,6 @@ class Models:
         :param mode: mode name
         :return: models dict for mode
         """
-        if mode == MODE_AGENT_V2:
-            return {k: v for k, v in self.items.items() if MODE_LLAMA_INDEX in v.mode}
         return {k: v for k, v in self.items.items() if mode in v.mode}
 
     def get_next(
