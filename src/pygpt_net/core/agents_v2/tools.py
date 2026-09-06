@@ -90,6 +90,7 @@ class WorkerToolFactory:
 
     async def _report_status(self, worker, status: str) -> str:
         text = str(status or "").strip()[:240]
+        self.runtime.verbose.log("REPORT STATUS CALL", {"status": status}, actor=getattr(worker, "id", "worker"))
         worker.progress = text
         if text:
             self.runtime.emit_worker_status(worker, text)
@@ -107,7 +108,13 @@ class WorkerToolFactory:
 
                 def make_async_fn(tool_name: str, tool_schema: dict):
                     async def fn(**kwargs):
+                        actor_id = getattr(worker, "id", "worker")
+                        self.runtime.verbose.log("LOCAL TOOL CALL", {
+                            "tool": tool_name,
+                            "raw_arguments": kwargs,
+                        }, actor=actor_id)
                         if self.runtime.is_stopped() or worker.stop_requested:
+                            self.runtime.verbose.log("LOCAL TOOL CANCELLED", {"tool": tool_name}, actor=actor_id)
                             return "Execution cancelled."
 
                         # Some providers may wrap function arguments once more in
@@ -127,13 +134,15 @@ class WorkerToolFactory:
                             if key not in call_args or call_args.get(key) is None
                         ]
                         if missing:
-                            return json.dumps({
+                            error = {
                                 "error": "Missing required tool parameter(s).",
                                 "tool": tool_name,
                                 "missing": missing,
                                 "required": required,
                                 "received": sorted(call_args.keys()),
-                            }, ensure_ascii=False)
+                            }
+                            self.runtime.verbose.log("LOCAL TOOL REJECTED", error, actor=actor_id)
+                            return json.dumps(error, ensure_ascii=False)
 
                         # Every Agents v2 actor must use a private CtxItem.  Keep these
                         # flags explicit before each call because legacy plugins mutate
@@ -146,6 +155,7 @@ class WorkerToolFactory:
                         tool_ctx.reply = False
 
                         cmd = {"cmd": tool_name, "params": call_args}
+                        self.runtime.verbose.log("LOCAL TOOL REQUEST", cmd, actor=actor_id)
                         self.runtime.emit_runtime_status(
                             "status.agent_v2.tool",
                             worker=worker if getattr(worker, "id", "") != "orchestrator" else None,
@@ -163,6 +173,12 @@ class WorkerToolFactory:
                                 self.runtime.is_stopped,
                             )
 
+                        self.runtime.verbose.log("LOCAL TOOL RESPONSE", {
+                            "tool": tool_name,
+                            "response": response,
+                            "ctx_results": getattr(tool_ctx, "results", None),
+                            "ctx_extra": getattr(tool_ctx, "extra", None),
+                        }, actor=actor_id)
                         self.runtime.collect_artifacts(tool_ctx, worker)
                         # `reply` is a legacy chat-loop flag. It is useful while a plugin
                         # builds its response, but must not survive on a reusable actor ctx.

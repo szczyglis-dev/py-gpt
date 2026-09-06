@@ -555,6 +555,13 @@ class Patch:
                 data["agent.idx.auto_retrieve"] = True
                 updated = True
 
+            # < 2.8.11
+            if old < parse_version("2.8.11"):
+                print("Migrating config from < 2.8.11...")
+                if "agent.v2.verbose" not in data:
+                    data["agent.v2.verbose"] = cfg_get_base("agent.v2.verbose")
+                    updated = True
+
         # update file
         migrated = False
         if updated:

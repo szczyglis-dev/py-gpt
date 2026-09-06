@@ -3278,6 +3278,20 @@
     "advanced": false,
     "tab": "general"
   },
+  "agent.v2.verbose": {
+    "section": "debug",
+    "type": "bool",
+    "slider": false,
+    "label": "settings.agent.v2.verbose",
+    "description": "settings.agent.v2.verbose.desc",
+    "value": false,
+    "min": 0,
+    "max": 0,
+    "multiplier": 1,
+    "step": 1,
+    "advanced": false,
+    "tab": "general"
+  },
   "log.llama": {
     "section": "debug",
     "type": "bool",

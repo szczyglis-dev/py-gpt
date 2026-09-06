@@ -52,12 +52,14 @@ class Runner:
         runtime.emit_runtime_status("status.agent_v2.planning")
 
         current_input = str(getattr(context.ctx, "input", "") or context.prompt or "")
+        runtime.verbose_text("USER INPUT", current_input)
         history = runtime.memory_store.load_history(
             context.ctx,
             context.preset,
             model=context.model,
             current_input=current_input,
         )
+        runtime.verbose_log("ORCHESTRATOR HISTORY", history)
         # Match the existing Agents/Chat with Files RAG behavior: when an index is
         # selected and agent.idx.auto_retrieve is enabled, retrieve a relevant chunk
         # before the first Orchestrator call. The runtime injects it into both the
@@ -83,8 +85,10 @@ class Runner:
                     "Use shared_context for extracted text/manifest. Current image attachments are also supplied "
                     "as native image blocks when the selected model supports image input.\n</turn_context>"
                 )
+            orchestrator_input = runtime.build_user_message(str(context.prompt or "") + shared)
+            runtime.verbose_log("ORCHESTRATOR INPUT", orchestrator_input)
             handler = orchestrator.run(
-                user_msg=runtime.build_user_message(str(context.prompt or "") + shared),
+                user_msg=orchestrator_input,
                 chat_history=history,
                 max_iterations=48,
                 early_stopping_method="generate",
@@ -93,6 +97,7 @@ class Runner:
             async def watch_stop():
                 while not runtime.finished:
                     if runtime.is_stopped():
+                        runtime.verbose_log("STOP REQUESTED", {"source": "kernel"})
                         for state in list(runtime.workers.values()):
                             if state.task and not state.task.done():
                                 state.stop_requested = True
@@ -109,6 +114,7 @@ class Runner:
             stop_task = asyncio.create_task(watch_stop(), name="agents-v2:stop-watch")
 
             async for event in handler.stream_events():
+                runtime.verbose_event(event, actor="orchestrator")
                 if runtime.is_stopped():
                     try:
                         await handler.cancel_run()
@@ -144,6 +150,7 @@ class Runner:
                 if not runtime.finished:
                     result = await handler
                     fallback = runtime._result_text(result)
+                    runtime.verbose_text("ORCHESTRATOR RESULT", fallback)
                     runtime.final_answer = fallback or emitter.text.strip() or "OK"
                     runtime.finished = True
                     if fallback and fallback.strip() not in emitter.text.strip():
@@ -151,13 +158,17 @@ class Runner:
                         emitter.append(fallback)
 
                 final_text = runtime.final_answer or emitter.text.strip()
+                runtime.verbose_text("ORCHESTRATOR FINAL TEXT", final_text)
+                memory_input = str(getattr(context.ctx, "input", "") or context.prompt or "")
                 runtime.memory_store.append_turn(
                     context.ctx,
                     context.preset,
-                    str(getattr(context.ctx, "input", "") or context.prompt or ""),
+                    memory_input,
                     final_text,
                 )
+                runtime.verbose_log("MEMORY APPEND", {"input": memory_input, "output": final_text})
         finally:
+            runtime.verbose_log("RUNNER FINALIZE BEGIN", {"finished": runtime.finished, "stopped": runtime.is_stopped()})
             if stop_task is not None:
                 stop_task.cancel()
                 await asyncio.gather(stop_task, return_exceptions=True)
@@ -168,3 +179,4 @@ class Runner:
             await runtime.cleanup()
             emitter.clear_status()
             emitter.finish(runtime.final_answer)
+            runtime.verbose_log("RUNNER FINALIZE END", {"final_answer": runtime.final_answer})

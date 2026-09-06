@@ -18,7 +18,7 @@ import uuid
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional
 
-from llama_index.core.agent.workflow import AgentStream, FunctionAgent, ReActAgent
+from llama_index.core.agent.workflow import AgentStream, FunctionAgent, ReActAgent, ToolCall, ToolCallResult
 from llama_index.core.base.llms.types import ChatMessage, ImageBlock, MessageRole, TextBlock
 from llama_index.core.memory import Memory
 from llama_index.core.tools import FunctionTool
@@ -31,6 +31,7 @@ from .memory import OrchestratorMemoryStore
 from .prompts import ORCHESTRATOR_BASE_PROMPT, WORKER_BASE_PROMPT
 from .state import WorkerState, WorkerStatus
 from .tools import WorkerToolFactory
+from .verbose import AgentsV2VerboseLogger
 
 
 class AgentsV2Runtime:
@@ -55,6 +56,7 @@ class AgentsV2Runtime:
         self.finished = False
         self.final_answer = ""
         self.run_id = uuid.uuid4().hex[:12]
+        self.verbose = AgentsV2VerboseLogger(window, self.run_id)
         self.status_events: List[Dict[str, Any]] = []
         self._status_seq = 0
         self.memory_store = OrchestratorMemoryStore(window)
@@ -98,6 +100,37 @@ class AgentsV2Runtime:
             "orchestrator",
         )
         self.orchestrator_actor.tool_ctx.set_output("", "Orchestrator")
+        self.verbose.log("RUNTIME INIT", {
+            "model": getattr(self.model, "id", None),
+            "provider": getattr(self.model, "provider", None) if self.model is not None else None,
+            "preset": getattr(self.preset, "name", None) or getattr(self.preset, "id", None),
+            "allow_local_tools": self.allow_local_tools,
+            "allow_remote_tools": self.allow_remote_tools,
+            "index_id": self.index_id,
+            "shared_context": self.shared_context_text,
+            "runtime_system_context": self.runtime_system_context,
+            "max_workers": self.MAX_WORKERS,
+        })
+
+    def verbose_log(self, event: str, data: Any = None, actor: str = "orchestrator"):
+        self.verbose.log(event, data, actor=actor)
+
+    def verbose_text(self, event: str, text: Any, actor: str = "orchestrator"):
+        self.verbose.text(event, text, actor=actor)
+
+    def verbose_event(self, event: Any, actor: str = "orchestrator"):
+        if isinstance(event, ToolCall):
+            self.verbose.log("TOOL CALL", event, actor=actor)
+        elif isinstance(event, ToolCallResult):
+            self.verbose.log("TOOL RESULT", event, actor=actor)
+        elif isinstance(event, AgentStream):
+            delta = getattr(event, "delta", None)
+            if delta:
+                self.verbose.text("STREAM", delta, actor=actor)
+            else:
+                self.verbose.log("AGENT STREAM", event, actor=actor)
+        else:
+            self.verbose.log(event.__class__.__name__, event, actor=actor)
 
     def is_stopped(self) -> bool:
         return bool(self.window.controller.kernel.stopped())
@@ -115,12 +148,16 @@ class AgentsV2Runtime:
     def prefetch_rag_context(self, query: str) -> str:
         """Retrieve initial RAG context using the same helper as Chat with Files/legacy Agents."""
         self.rag_context_text = ""
+        self.verbose_log("RAG PREFETCH REQUEST", {"query": query, "index_id": self.index_id})
         if not self.has_rag_index():
+            self.verbose_log("RAG PREFETCH SKIP", "No valid RAG index selected.")
             return ""
         if not self.window.core.config.get("agent.idx.auto_retrieve", True):
+            self.verbose_log("RAG PREFETCH SKIP", "Automatic RAG retrieval is disabled.")
             return ""
         value = str(query or "").strip()
         if not value:
+            self.verbose_log("RAG PREFETCH SKIP", "Empty RAG query.")
             return ""
         try:
             result = self.window.core.idx.chat.query_retrieval(
@@ -130,8 +167,10 @@ class AgentsV2Runtime:
             )
             if result:
                 self.rag_context_text = str(result).strip()
+            self.verbose_text("RAG PREFETCH RESULT", self.rag_context_text)
         except Exception as exc:
             self.window.core.debug.log(exc)
+            self.verbose_log("RAG PREFETCH ERROR", exc)
         return self.rag_context_text
 
     def _rag_prompt_context(self) -> str:
@@ -194,11 +233,17 @@ class AgentsV2Runtime:
 
     def get_llm(self, stream: bool = False):
         """Return provider LLM with native remote tools attached when enabled."""
-        return self.window.core.idx.llm.get_agent(
+        llm = self.window.core.idx.llm.get_agent(
             model=self.model,
             stream=stream,
             allow_remote_tools=self.allow_remote_tools,
         )
+        self.verbose.log("LLM CREATED", {
+            "stream": stream,
+            "allow_remote_tools": self.allow_remote_tools,
+            "class": llm.__class__.__name__ if llm is not None else None,
+        })
+        return llm
 
     def build_agent(self, name: str, description: str, llm, system_prompt: str, tools):
         """Prefer native tool calling and retain ReAct as a compatibility fallback."""
@@ -217,6 +262,16 @@ class AgentsV2Runtime:
         # themselves can still execute concurrently.
         if cls is FunctionAgent and self.model is not None and self.model.is_ollama():
             kwargs["allow_parallel_tool_calls"] = False
+        actor = "orchestrator" if str(name).lower() == "orchestrator" else str(name)
+        self.verbose.log("AGENT BUILD", {
+            "name": name,
+            "description": description,
+            "agent_class": cls.__name__,
+            "allow_parallel_tool_calls": kwargs.get("allow_parallel_tool_calls", True),
+        }, actor=actor)
+        self.verbose.text("SYSTEM PROMPT", system_prompt, actor=actor)
+        self.verbose.tool_inventory(tools, actor=actor)
+        self.verbose.llm_state(llm, actor=actor)
         return cls(**kwargs)
 
     def _memory_token_limit(self) -> int:
@@ -325,6 +380,13 @@ class AgentsV2Runtime:
             display = worker.progress
             if self.SHOW_AGENT_NAME_IN_STATUS and worker.name:
                 display = f"[{worker.name}] {display}"
+            self.verbose.log("WORKER STATUS", {
+                "id": worker.id,
+                "name": worker.name,
+                "state": worker.status.value,
+                "progress": worker.progress,
+                "generation": worker.generation,
+            }, actor=worker.id)
             self.emitter.status(display, source=worker.id)
 
     @staticmethod
@@ -341,6 +403,7 @@ class AgentsV2Runtime:
         if worker is not None:
             self.emit_worker_status(worker, text)
         else:
+            self.verbose.log("ORCHESTRATOR STATUS", {"key": key, "status": text, "args": kwargs})
             self.emitter.status(text, source="orchestrator")
 
     def collect_llm_artifacts(self, llm, worker: Optional[WorkerState] = None):
@@ -364,6 +427,7 @@ class AgentsV2Runtime:
             return
 
         actor = worker if worker is not None else self.orchestrator_actor
+        self.verbose.log("REMOTE TOOL ARTIFACTS", {"urls": urls}, actor=getattr(actor, "id", "orchestrator"))
         source_ctx = getattr(actor, "tool_ctx", None)
         if source_ctx is None:
             return
@@ -404,6 +468,7 @@ class AgentsV2Runtime:
                 target.append(value)
                 if worker is not None:
                     worker.artifacts[attr].append(value)
+                self.verbose.log("ARTIFACT", {"type": attr, "value": value}, actor=getattr(worker, "id", "orchestrator") if worker is not None else "orchestrator")
         try:
             self.window.core.ctx.update_item(main)
         except Exception:
@@ -490,8 +555,17 @@ class AgentsV2Runtime:
             system_prompt: str = "",
             task: str = "",
     ) -> str:
+        self.verbose.log("AGENT CREATE REQUEST", {
+            "name": name,
+            "instruction": instruction,
+            "language": language,
+            "system_prompt": system_prompt,
+            "task": task,
+        })
         if len(self.workers) >= self.MAX_WORKERS:
-            return json.dumps({"error": f"Maximum workers reached ({self.MAX_WORKERS})."})
+            result = json.dumps({"error": f"Maximum workers reached ({self.MAX_WORKERS})."})
+            self.verbose.log("AGENT CREATE REJECTED", result)
+            return result
         wid = self._worker_id()
         name = (name or "Worker").strip()[:80]
         instruction = (instruction or "General specialist").strip()
@@ -523,9 +597,12 @@ class AgentsV2Runtime:
             tools=self.tool_factory.build(state),
         )
         self.workers[wid] = state
+        self.verbose.log("AGENT CREATED", state.public_dict(), actor=wid)
         if task:
             await self.start_worker(wid, task)
-        return json.dumps(state.public_dict(), ensure_ascii=False, default=str)
+        result = json.dumps(state.public_dict(), ensure_ascii=False, default=str)
+        self.verbose.log("AGENT CREATE RESULT", state.public_dict(), actor=wid)
+        return result
 
     async def update_worker(
             self,
@@ -535,6 +612,13 @@ class AgentsV2Runtime:
             language: Optional[str] = None,
             system_prompt: Optional[str] = None,
     ) -> str:
+        self.verbose.log("AGENT UPDATE REQUEST", {
+            "agent_id": agent_id,
+            "name": name,
+            "instruction": instruction,
+            "language": language,
+            "system_prompt": system_prompt,
+        }, actor=agent_id)
         state = self.workers.get(agent_id)
         if state is None or state.status == WorkerStatus.REMOVED:
             return json.dumps({"error": "Worker not found", "id": agent_id})
@@ -561,9 +645,12 @@ class AgentsV2Runtime:
         state.status = WorkerStatus.CREATED
         state.progress = ""
         state.error = ""
-        return json.dumps(state.public_dict(), ensure_ascii=False, default=str)
+        result = state.public_dict()
+        self.verbose.log("AGENT UPDATED", result, actor=agent_id)
+        return json.dumps(result, ensure_ascii=False, default=str)
 
     async def start_worker(self, agent_id: str, task: str) -> str:
+        self.verbose.log("AGENT RUN REQUEST", {"agent_id": agent_id, "task": task}, actor=agent_id)
         state = self.workers.get(agent_id)
         if state is None or state.status == WorkerStatus.REMOVED:
             return json.dumps({"error": "Worker not found", "id": agent_id})
@@ -583,11 +670,14 @@ class AgentsV2Runtime:
         state.last_result = ""
         state.generation += 1
         self.emit_runtime_status("status.agent_v2.starting", worker=state)
+        self.verbose.log("AGENT RUNNING", state.public_dict(include_result=False), actor=agent_id)
         state.task = asyncio.create_task(
             self._worker_loop(state, state.current_task),
             name=f"agents-v2:{agent_id}",
         )
-        return json.dumps(state.public_dict(include_result=False), ensure_ascii=False, default=str)
+        result = state.public_dict(include_result=False)
+        self.verbose.log("AGENT RUN RESULT", result, actor=agent_id)
+        return json.dumps(result, ensure_ascii=False, default=str)
 
     async def _worker_loop(self, state: WorkerState, task: str):
         handler = None
@@ -598,13 +688,16 @@ class AgentsV2Runtime:
                     "\n\nThis workflow has shared user attachments/context. Use shared_context for extracted text/manifest; "
                     "image inputs from the current turn are also attached to this task when the selected model supports them."
                 )
+            worker_input = self.build_user_message(f"Task from Orchestrator:\n{task}{shared_hint}")
+            self.verbose.log("WORKER INPUT", worker_input, actor=state.id)
             handler = state.agent.run(
-                user_msg=self.build_user_message(f"Task from Orchestrator:\n{task}{shared_hint}"),
+                user_msg=worker_input,
                 memory=state.memory,
                 max_iterations=24,
                 early_stopping_method="generate",
             )
             async for event in handler.stream_events():
+                self.verbose_event(event, actor=state.id)
                 if self.is_stopped() or state.stop_requested:
                     state.status = WorkerStatus.STOPPING
                     try:
@@ -619,6 +712,7 @@ class AgentsV2Runtime:
                     continue
             result = await handler
             state.last_result = self._result_text(result)
+            self.verbose_text("WORKER OUTPUT", state.last_result, actor=state.id)
             state.status = WorkerStatus.COMPLETED
             self.emit_runtime_status("status.agent_v2.completed", worker=state)
             self.collect_artifacts(state.tool_ctx, state)
@@ -632,11 +726,13 @@ class AgentsV2Runtime:
                 except Exception:
                     pass
             state.status = WorkerStatus.STOPPED
+            self.verbose.log("WORKER CANCELLED", state.public_dict(), actor=state.id)
             self.emit_runtime_status("status.agent_v2.stopped", worker=state)
             return ""
         except Exception as exc:
             state.status = WorkerStatus.FAILED
             state.error = str(exc)
+            self.verbose.log("WORKER ERROR", {"error": str(exc), "state": state.public_dict()}, actor=state.id)
             self.emit_runtime_status("status.agent_v2.failed", worker=state)
             self.window.core.debug.log(exc)
             return ""
@@ -645,6 +741,7 @@ class AgentsV2Runtime:
             self.collect_artifacts(state.tool_ctx, state)
 
     async def stop_worker(self, agent_id: str) -> str:
+        self.verbose.log("AGENT STOP REQUEST", {"agent_id": agent_id}, actor=agent_id)
         state = self.workers.get(agent_id)
         if state is None:
             return json.dumps({"error": "Worker not found", "id": agent_id})
@@ -655,9 +752,12 @@ class AgentsV2Runtime:
             await asyncio.gather(state.task, return_exceptions=True)
         if state.status != WorkerStatus.REMOVED:
             state.status = WorkerStatus.STOPPED
-        return json.dumps(state.public_dict(), ensure_ascii=False, default=str)
+        result = state.public_dict()
+        self.verbose.log("AGENT STOPPED", result, actor=agent_id)
+        return json.dumps(result, ensure_ascii=False, default=str)
 
     async def remove_worker(self, agent_id: str) -> str:
+        self.verbose.log("AGENT REMOVE REQUEST", {"agent_id": agent_id}, actor=agent_id)
         state = self.workers.get(agent_id)
         if state is None:
             return json.dumps({"error": "Worker not found", "id": agent_id})
@@ -665,22 +765,29 @@ class AgentsV2Runtime:
             await self.stop_worker(agent_id)
         state.status = WorkerStatus.REMOVED
         self.workers.pop(agent_id, None)
-        return json.dumps({"id": agent_id, "removed": True})
+        result = {"id": agent_id, "removed": True}
+        self.verbose.log("AGENT REMOVED", result, actor=agent_id)
+        return json.dumps(result)
 
     async def worker_status(self, agent_id: str) -> str:
         state = self.workers.get(agent_id)
         if state is None:
             return json.dumps({"error": "Worker not found", "id": agent_id})
-        return json.dumps(state.public_dict(), ensure_ascii=False, default=str)
+        result = state.public_dict()
+        self.verbose.log("AGENT STATUS", result, actor=agent_id)
+        return json.dumps(result, ensure_ascii=False, default=str)
 
     async def worker_list(self) -> str:
-        return json.dumps(
-            [w.public_dict(include_result=False) for w in self.workers.values()],
-            ensure_ascii=False,
-            default=str,
-        )
+        result = [w.public_dict(include_result=False) for w in self.workers.values()]
+        self.verbose.log("AGENT LIST", result)
+        return json.dumps(result, ensure_ascii=False, default=str)
 
     async def wait_workers(self, agent_ids: str = "", wait_for: str = "all", timeout_seconds: int = 60) -> str:
+        self.verbose.log("AGENT WAIT REQUEST", {
+            "agent_ids": agent_ids,
+            "wait_for": wait_for,
+            "timeout_seconds": timeout_seconds,
+        })
         ids = [x.strip() for x in str(agent_ids or "").split(",") if x.strip()]
         if not ids:
             ids = list(self.workers.keys())
@@ -713,15 +820,20 @@ class AgentsV2Runtime:
                 event for event in self.status_events if event.get("agent_id") in selected_ids
             ][-64:],
         }
+        self.verbose.log("AGENT WAIT RESULT", payload)
         return json.dumps(payload, ensure_ascii=False, default=str)
 
     async def set_status(self, status: str) -> str:
-        self.emitter.status(str(status or "").strip(), source="orchestrator")
+        value = str(status or "").strip()
+        self.verbose.log("WORKFLOW STATUS", {"status": value})
+        self.emitter.status(value, source="orchestrator")
         return "Status updated."
 
     async def finish_workflow(self, final_answer: str) -> str:
         """Finalize only after the orchestration graph has reached a stable state."""
+        self.verbose_text("WORKFLOW FINISH REQUEST", final_answer)
         if self.finished:
+            self.verbose.log("WORKFLOW FINISH REJECTED", "Workflow is already finished.")
             return "Workflow is already finished."
 
         running = [w for w in self.workers.values() if w.busy]
@@ -736,6 +848,7 @@ class AgentsV2Runtime:
                 "never_started": [w.public_dict(include_result=False) for w in never_started],
                 "action": "Wait for/stop running workers and run or remove unused workers, then call workflow_finish again.",
             }
+            self.verbose.log("WORKFLOW FINISH REJECTED", payload)
             return json.dumps(payload, ensure_ascii=False, default=str)
 
         answer = str(final_answer or "").strip()
@@ -747,6 +860,7 @@ class AgentsV2Runtime:
 
         self.finished = True
         self.final_answer = answer
+        self.verbose_text("FINAL ANSWER", answer)
         self.emitter.clear_status()
         tail = self.emitter.text.rstrip()
         if not tail.endswith(self.final_answer):
@@ -843,15 +957,17 @@ class AgentsV2Runtime:
         rag_context = self._rag_prompt_context()
         if rag_context:
             rag_context = "\n\n" + rag_context
-        return (
+        prompt = (
             ORCHESTRATOR_BASE_PROMPT
             + "\n\n<runtime_capabilities>\n" + "\n".join(capabilities) + "\n</runtime_capabilities>"
             + runtime_environment
             + rag_context
             + "\n\n<additional_instruction>\n" + additional + "\n</additional_instruction>"
         )
+        return prompt
 
     async def cleanup(self):
+        self.verbose.log("CLEANUP BEGIN", [w.public_dict() for w in self.workers.values()])
         for state in list(self.workers.values()):
             if state.task and not state.task.done():
                 state.stop_requested = True
@@ -860,3 +976,4 @@ class AgentsV2Runtime:
         if pending:
             await asyncio.gather(*pending, return_exceptions=True)
         self.workers.clear()
+        self.verbose.log("CLEANUP END", {"workers": 0, "finished": self.finished})

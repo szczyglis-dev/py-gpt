@@ -62,6 +62,7 @@
   "agent.llama.provider": "openai",
   "agent.llama.steps": 10,
   "agent.llama.verbose": false,
+  "agent.v2.verbose": false,
   "agent.mode": "chat",
   "agent.openai.provider": "openai_agent_base",
   "agent.openai.response.split": true,
