@@ -64,6 +64,7 @@
   "agent.llama.verbose": false,
   "agent.v2.verbose": false,
   "agent.v2.log_workflow": false,
+  "agent.v2.show_tool_chain": false,
   "agent.mode": "chat",
   "agent.openai.provider": "openai_agent_base",
   "agent.openai.response.split": true,

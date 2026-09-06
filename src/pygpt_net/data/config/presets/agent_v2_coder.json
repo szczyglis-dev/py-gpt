@@ -21,7 +21,7 @@
     "computer": false,
     "temperature": 1.0,
     "filename": "agent_v2_coder",
-    "model": "gpt-5.6-sol-low",
+    "model": "gpt-5.6-sol-high",
     "tools": {
         "function": []
     },

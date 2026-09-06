@@ -512,13 +512,17 @@ See :doc:`indexing` for the complete description of global context indexing, iso
 
 * ``Split response messages``: Split response messages into separate context items in OpenAI Agents mode. Default: True.
 
-*General*
+*General / v2*
 
-* ``Auto retrieve additional context from RAG``: Auto retrieve additional context from RAG at the beginning if the index is provided. Default: False.
+* ``Auto retrieve additional context from RAG``: Automatically retrieves additional RAG context at the beginning of a run when an index is provided. Default: True.
 
-* ``Display full agent output in chat view``: If enabled, then full output from agent will be displayed in chat window if agent is enabled. Default: True.
+* ``Show full tool-chain in Agents v2``: When enabled, the final Agents v2 response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 
-* ``Display a tray notification when the goal is achieved.``: Displays a tray notification when an agent finishes or achieves its goal. Default: False.
+*Legacy*
+
+* ``Display full agent output in chat view``: Controls whether the complete output from legacy agent modes is rendered in the chat view. This setting is kept for older agent implementations and does not control the Agents v2 tool-chain display. Default: True.
+
+* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a legacy agent finishes or achieves its goal. This setting does not control Agents v2 workflow status or tool-chain rendering. Default: False.
 
 *Autonomous*
 

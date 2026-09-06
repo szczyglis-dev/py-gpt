@@ -2999,7 +2999,7 @@
     "multiplier": 1,
     "step": 1,
     "advanced": false,
-    "tab": "general"
+    "tab": "legacy"
   },
   "agent.mode": {
     "section": "agent",
@@ -3145,7 +3145,7 @@
     "multiplier": 1,
     "step": 1,
     "advanced": false,
-    "tab": "general"
+    "tab": "legacy"
   },
   "updater.check.launch": {
     "section": "updates",

@@ -1,3 +1,11 @@
+2.8.11 (2026-09-06)
+
+- Added 4 predefined presets to Agents v2: Coder, Researcher, Scientist, and Brainstorm.
+- Added auto-scroll and a configurable maximum entries limit to the Code Interpreter window.
+- Added support for passing sys_exec inputs to the Code Interpreter window.
+- Added verbose mode to Agents v2.
+- Added tool execution results in the main context for Agents v2 (disabled by default, can be enabled in Settings -> Agents).
+
 2.8.10 (2026-09-06)
 
 - Added Agents v2 (beta), a new advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically created specialist worker agents.

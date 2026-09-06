@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.10** | build: **2026-09-06** | Python: **>=3.10, <3.14**
+Release: **2.8.11** | build: **2026-09-06** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -264,7 +264,7 @@ poetry run python3 run.py
 ```
 
 **Tip**: you can use `PyInstaller` to create a compiled version of
-the application for your system (required version >= `6.14.0`).
+the application for your system (required version `6.4.0`).
 
 ### Troubleshooting
 
@@ -687,6 +687,12 @@ Agents v2 can use both local and provider-side capabilities:
 - **Remote tools** exposed by the selected provider can be made available when supported by the provider/model and enabled in PyGPT.
 - Local and remote tools can be enabled or disabled independently in the Agents v2 preset with **Allow local tools** and **Allow remote tools**.
 - Models with native function calling use it when available; the runtime can fall back to a ReAct agent for compatible models without native function calling.
+
+**Settings**
+
+Agent-related application settings are organized under `Settings -> Agents and experts`. The **General / v2** tab contains settings intended for the current Agents v2 workflow. **Show full tool-chain in Agents v2** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
+
+Settings kept only for older agent implementations are separated into the **Legacy** tab. **Display full agent output in chat view** controls rendering of full output from legacy agent modes, while **Display a tray notification when the goal is achieved** controls legacy agent completion notifications. These Legacy options do not control the Agents v2 tool-chain display.
 
 **RAG, attachments and artifacts**
 
@@ -3318,6 +3324,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.11 (2026-09-06)**
+
+- Added 4 predefined presets to Agents v2: Coder, Researcher, Scientist, and Brainstorm.
+- Added auto-scroll and a configurable maximum entries limit to the Code Interpreter window.
+- Added support for passing `sys_exec` inputs to the Code Interpreter window.
+- Added verbose mode to Agents v2.
+- Added tool execution results in the main context for Agents v2 (disabled by default, can be enabled in Settings -> Agents).
 
 **2.8.10 (2026-09-06)**
 
