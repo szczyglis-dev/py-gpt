@@ -30,7 +30,7 @@ ARG PYGPT_UID=1000
 ARG PYGPT_GID=1000
 
 # Small set of commonly useful command-line tools plus passwordless sudo.
-RUN apk add --no-cache git curl wget ca-certificates sudo bash zip unzip tar gzip bzip2 xz jq file coreutils findutils
+RUN apk add --no-cache git curl wget ca-certificates sudo bash zip unzip tar gzip bzip2 xz jq file tree coreutils findutils
 
 RUN set -eux; \
     group_name="$(awk -F: -v gid="$PYGPT_GID" '$3 == gid {print $1; exit}' /etc/group)"; \
