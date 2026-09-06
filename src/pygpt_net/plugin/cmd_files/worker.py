@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:30:00                  #
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 import fnmatch
@@ -939,7 +939,7 @@ class Worker(BaseWorker):
                 size = os.path.getsize(path)
                 result = {
                     'size_bytes': size,
-                    'size_human': self.plugin.human_readable_size(size),
+                    'size_human': self.get_human_readable_size(size),
                 }
                 self.log("File size: {}".format(size))
             else:

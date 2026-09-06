@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:30:00                  #
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -165,6 +165,14 @@ class Config(BaseConfig):
             value=True,
             label="Auto-append CWD to sys_exec",
             description="Automatically append current working directory to sys_exec command",
+            tab="general",
+        )
+        plugin.add_option(
+            "attach_output",
+            type="bool",
+            value=True,
+            label="Connect to the Python code interpreter window",
+            description="Attach sys_exec command input/output to the Python code interpreter window.",
             tab="general",
         )
         plugin.add_cmd(

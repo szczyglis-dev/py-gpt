@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 13:30:00                  #
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -16,6 +16,8 @@ from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 class WorkerSignals(BaseSignals):
     output = Signal(object, str)
+    output_begin = Signal(str)
+    output_end = Signal(str)
     html_output = Signal(object)
     ipython_output = Signal(object)
     build_finished = Signal()

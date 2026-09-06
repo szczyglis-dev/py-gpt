@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:30:00
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -420,6 +420,16 @@ class Config(BaseConfig):
             value=True,
             label="Connect to the Python code interpreter window",
             description="Attach code input/output to the Python code interpreter window.",
+            tab="general",
+        )
+        plugin.add_option(
+            "output_max_entries",
+            type="int",
+            value=30,
+            min=0,
+            max=10000,
+            label="Max interpreter window entries",
+            description="Maximum number of input/output blocks kept in the Python code interpreter window. Set to 0 for no limit.",
             tab="general",
         )
         plugin.add_option(

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 import json
@@ -169,6 +169,17 @@ class CodeInterpreter(BaseTool):
         :param line: Output line
         """
         self.append_output(line)
+
+    def get_output_max_entries(self) -> int:
+        """Return the configured interpreter output block limit (0 = unlimited)."""
+        try:
+            plugin = self.window.core.plugins.get("cmd_code_interpreter")
+            if plugin is None:
+                return 30
+            value = plugin.get_option_value("output_max_entries")
+            return max(0, int(value))
+        except (TypeError, ValueError):
+            return 30
 
     def on_reload(self):
         """On app profile reload"""
@@ -345,6 +356,25 @@ class CodeInterpreter(BaseTool):
                 files=item.get("files", []),
             )
             nodes.append(node)
+
+        # Enforce the configured output limit on persisted data as well.
+        # This keeps the JSON/plain-text state bounded immediately on startup,
+        # even before any new interpreter output is appended.
+        max_entries = self.get_output_max_entries()
+        if max_entries > 0:
+            limited_nodes = [
+                node for node in nodes
+                if node.content != "" or node.images or node.files
+            ]
+            if len(limited_nodes) > max_entries:
+                limited_nodes = limited_nodes[-max_entries:]
+            if len(limited_nodes) != len(nodes):
+                nodes = limited_nodes
+                self.save_output_nodes(nodes)
+                path = self.get_path_output()
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write("".join(str(node.content) for node in nodes))
+
         self.signals.restore_nodes.emit(nodes)
 
     def save_output(self):
@@ -357,9 +387,10 @@ class CodeInterpreter(BaseTool):
         # save nodes
         self.save_output_nodes()
 
-    def save_output_nodes(self):
-        """Save output nodes to file"""
-        nodes = self.get_widget_output().get_nodes()
+    def save_output_nodes(self, nodes: list = None):
+        """Save output nodes to file."""
+        if nodes is None:
+            nodes = self.get_widget_output().get_nodes()
         items = []
         for node in nodes:
             item = {

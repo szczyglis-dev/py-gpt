@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -234,6 +234,7 @@ class ToolWidget:
         :param nodes: Nodes
         """
         self.output.restore_nodes(nodes)
+        self.output.trim_nodes(self.tool.get_output_max_entries())
 
     @Slot(str)
     def begin_output(self, type: str = "stdout"):
@@ -259,6 +260,8 @@ class ToolWidget:
         if not self.output:
             return
         self.output.end_output(type=type, ctx=ctx)
+        if self.output.trim_nodes(self.tool.get_output_max_entries()):
+            self.tool.save_output()
 
     @Slot(str, str)
     def set_output(self, output: str, type="stdout", live: bool = True):

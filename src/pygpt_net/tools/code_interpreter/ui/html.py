@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 import json
@@ -339,11 +339,51 @@ class HtmlOutput(QWebEngineView):
         """
         self.init()
         self.nodes = []
+        self.set_plaintext(
+            "".join(str(node.content) for node in nodes if isinstance(node, CodeBlock))
+        )
         if not self.page():
             return
         self.page().runJavaScript(
             f"clearOutput();")
         self.insert_nodes(nodes)
+
+    def trim_nodes(self, max_entries: int) -> bool:
+        """
+        Keep only the newest output blocks.
+
+        :param max_entries: Maximum number of blocks, 0 for unlimited
+        :return: True if the buffer was changed
+        """
+        try:
+            max_entries = int(max_entries)
+        except (TypeError, ValueError):
+            return False
+        if max_entries <= 0:
+            return False
+
+        nodes = [
+            node for node in self.nodes
+            if isinstance(node, CodeBlock)
+            and (node.content != "" or node.images or node.files)
+        ]
+        changed = len(nodes) != len(self.nodes)
+        if len(nodes) > max_entries:
+            nodes = nodes[-max_entries:]
+            changed = True
+        if not changed:
+            return False
+
+        self.nodes = list(nodes)
+        self.set_plaintext("".join(str(node.content) for node in self.nodes))
+
+        if self.loaded and self.page():
+            self.page().runJavaScript("clearOutput();")
+            for node in self.nodes:
+                self.insert_output(node)
+            QTimer.singleShot(0, self.scroll_to_bottom)
+        self.update_current_content()
+        return True
 
     def insert_nodes(self, nodes: list):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 13:20:00
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 import os
@@ -373,6 +373,8 @@ class Plugin(BasePlugin):
 
         :param type: output type
         """
+        if not self.get_option_value("attach_output"):
+            return
         self.window.tools.get("interpreter").output_begin(type)
 
     @Slot(str)
@@ -382,11 +384,15 @@ class Plugin(BasePlugin):
 
         :param type: output type
         """
+        if not self.get_option_value("attach_output"):
+            return
         self.window.tools.get("interpreter").output_end(type)
 
     @Slot()
     def handle_interpreter_clear(self):
         """Handle interpreter clear"""
+        if not self.get_option_value("attach_output"):
+            return
         self.window.tools.get("interpreter").clear_output()
 
     @Slot(object)

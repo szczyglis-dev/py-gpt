@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.23 07:00:00                  #
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 import os.path
@@ -44,6 +44,27 @@ class Runner:
         """
         self.signals = signals
 
+    def send_interpreter_output_begin(self, type: str):
+        """Begin an output block in the Python interpreter window."""
+        if self.signals is not None:
+            self.signals.output_begin.emit(type)
+
+    def send_interpreter_output(self, data: str, type: str):
+        """Send content to the Python interpreter window."""
+        if self.signals is not None:
+            self.signals.output.emit(str(data), type)
+
+    def send_interpreter_output_end(self, type: str):
+        """End an output block in the Python interpreter window."""
+        if self.signals is not None:
+            self.signals.output_end.emit(type)
+
+    def send_interpreter_input(self, data: str):
+        """Send a command as an input block to the Python interpreter window."""
+        self.send_interpreter_output_begin("stdin")
+        self.send_interpreter_output(data, "stdin")
+        self.send_interpreter_output_end("stdin")
+
     # -------------------------------
     # Common helpers / logging
     # -------------------------------
@@ -58,9 +79,11 @@ class Runner:
         result = None
         if stdout:
             result = stdout.decode("utf-8", errors="replace")
+            self.send_interpreter_output(result, "stdout")
             self.log("STDOUT: {}".format(result))
         if stderr:
             err = stderr.decode("utf-8", errors="replace")
+            self.send_interpreter_output(err, "stderr")
             # Prefer stderr if non-empty
             result = err if err else result
             self.log("STDERR: {}".format(err))
@@ -82,6 +105,8 @@ class Runner:
                 result = response.decode('utf-8', errors="replace")
             except Exception:
                 result = str(response)
+        if result is not None:
+            self.send_interpreter_output(result, "stdout")
         self.log(
             "Result: {}".format(result),
             sandbox=True,
@@ -139,9 +164,11 @@ class Runner:
         Execute system command on host
         """
         self.plugin.window.core.security.ensure_command(item["params"]['command'], sandbox=False)
+        self.send_interpreter_input(item["params"]['command'])
         msg = "Executing system command: {}".format(item["params"]['command'])
         self.log(msg)
         self.log("Running command: {}".format(item["params"]['command']))
+        self.send_interpreter_output_begin("stdout")
         try:
             process = subprocess.Popen(
                 item["params"]['command'],
@@ -155,6 +182,7 @@ class Runner:
             stdout = None
             stderr = str(e).encode("utf-8")
         result = self.handle_result(stdout, stderr)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
@@ -165,14 +193,17 @@ class Runner:
         """
         Execute system command in sandbox (docker)
         """
+        self.send_interpreter_input(item["params"]['command'])
         msg = "Executing system command: {}".format(item["params"]['command'])
         self.log(msg, sandbox=True)
         self.log(
             "Running command: {}".format(item["params"]['command']),
             sandbox=True,
         )
+        self.send_interpreter_output_begin("stdout")
         response = self.run_docker(item["params"]['command'])
         result = self.handle_result_docker(response)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
