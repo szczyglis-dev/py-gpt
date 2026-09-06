@@ -22,7 +22,7 @@
     "computer": false,
     "temperature": 1.0,
     "filename": "current.agent_v2",
-    "model": "gpt-4o",
+    "model": "gpt-5.6-sol-medium",
     "tools": {"function": []},
     "experts": [],
     "idx": null,

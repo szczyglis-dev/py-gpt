@@ -21,7 +21,7 @@
     "computer": false,
     "temperature": 1.0,
     "filename": "pygpt_agent_20260905214806",
-    "model": "gpt-4o",
+    "model": "gpt-5.6-sol-medium",
     "tools": {
         "function": []
     },
