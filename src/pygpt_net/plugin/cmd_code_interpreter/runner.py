@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 13:20:00
+# Updated Date: 2026.09.06 13:30:00
 # ================================================== #
 
 import os.path
@@ -390,6 +390,7 @@ class Runner:
         self.plugin.window.core.security.ensure_command(command, sandbox=False)
         self.log("Executing IPython system command: {}".format(command))
         self.log("Running command: {}".format(command))
+        self.send_interpreter_input(command)  # show command in interpreter output
         try:
             self.send_interpreter_output_begin("stdout")
             process = subprocess.Popen(
@@ -416,6 +417,7 @@ class Runner:
         command = item["params"]["command"]
         self.log("Executing IPython system command: {}".format(command), sandbox=True)
         self.log("Running command: {}".format(command), sandbox=True)
+        self.send_interpreter_input(command)  # show command in interpreter output
         self.send_interpreter_output_begin("stdout")
         response = self.plugin.ipython_docker.execute_system(command)
         result = self.handle_result_docker(response)
@@ -432,6 +434,7 @@ class Runner:
         self.plugin.window.core.security.ensure_command(command, sandbox=False)
         self.log("Executing legacy Python system command: {}".format(command))
         self.log("Running command: {}".format(command))
+        self.send_interpreter_input(command)  # show command in interpreter output
         try:
             self.send_interpreter_output_begin("stdout")
             process = subprocess.Popen(
@@ -458,6 +461,7 @@ class Runner:
         command = item["params"]["command"]
         self.log("Executing legacy Python system command: {}".format(command), sandbox=True)
         self.log("Running command: {}".format(command), sandbox=True)
+        self.send_interpreter_input(command)  # show command in interpreter output
         self.send_interpreter_output_begin("stdout")
         response = self.plugin.docker.execute(command)
         result = self.handle_result_docker(response)

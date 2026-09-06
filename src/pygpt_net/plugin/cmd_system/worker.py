@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.23 07:00:00                  #
+# Updated Date: 2026.09.06 13:30:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -189,6 +189,10 @@ class Worker(BaseWorker):
             extra["code"]["input"] = {}
             extra["code"]["input"]["lang"] = lang
             extra["code"]["input"]["content"] = str(item["params"]["code"])
+        elif cmd == "sys_exec" and "params" in item and "command" in item["params"]:
+            extra["code"]["input"] = {}
+            extra["code"]["input"]["lang"] = "bash"
+            extra["code"]["input"]["content"] = str(item["params"]["command"])
         if isinstance(result, dict) and "result" in result:
             extra["code"]["output"] = {}
             extra["code"]["output"]["lang"] = lang

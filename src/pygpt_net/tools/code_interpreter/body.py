@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.06 13:30:00
 # ================================================== #
 
 import os
@@ -187,18 +187,22 @@ class Body:
             });
         }
         function scrollToBottom() {
-            getScrollPosition();  // store using bridge
+            // Always follow interpreter output. Do not depend on the previous
+            // stored position: on initial restore it may already equal the
+            // document height even though the view itself is still at the top.
             if (scrollTimeout !== null) {
                 return;
             }
-            if (document.body.scrollHeight > prevScroll) {
-                scrollTimeout = setTimeout(function() {
-                    window.scrollTo(0, document.body.scrollHeight);
-                    prevScroll = document.body.scrollHeight;
-                    getScrollPosition();  // store using bridge
-                    scrollTimeout = null;
-                }, 30);
-            }
+            scrollTimeout = setTimeout(function() {
+                const height = Math.max(
+                    document.body ? document.body.scrollHeight : 0,
+                    document.documentElement ? document.documentElement.scrollHeight : 0
+                );
+                window.scrollTo(0, height);
+                prevScroll = height;
+                getScrollPosition();  // store using bridge
+                scrollTimeout = null;
+            }, 30);
         }
         
         // ----------------------------------
@@ -283,9 +287,11 @@ class Body:
                 img.classList.add('output-image');
                 img.alt = 'Output Image';
                 img.title = 'Output Image';
+                img.addEventListener('load', scrollToBottom, {once: true});
                 a.appendChild(img);
                 element.appendChild(a);
             }
+            scrollToBottom();
         }
         
         function clearOutput() {
