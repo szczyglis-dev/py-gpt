@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 00:00:00                  #
+# Updated Date: 2026.09.06 13:00:00                  #
 # ================================================== #
 
 import os
@@ -32,6 +32,7 @@ class Patch:
         migrated = patcher.execute(version)
 
         is_agent_v2 = False
+        is_agent_v2_presets = False
 
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
@@ -68,6 +69,34 @@ class Patch:
                         print("Patched file: {}.".format(dst))
                     updated = True
                     is_agent_v2 = True  # prevent multiple copies
+
+            # < 2.8.11
+            if old < parse_version("2.8.11") and not is_agent_v2_presets:
+                print("Migrating Agents v2 presets from < 2.8.11...")
+                files = [
+                    'agent_v2_brainstorm.json',
+                    'agent_v2_coder.json',
+                    'agent_v2_researcher.json',
+                    'agent_v2_scientist.json',
+                ]
+                copied = False
+                for file in files:
+                    dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                    if os.path.exists(dst):
+                        continue
+                    src = os.path.join(
+                        self.window.core.config.get_app_path(),
+                        'data',
+                        'config',
+                        'presets',
+                        file,
+                    )
+                    shutil.copyfile(src, dst)
+                    print("Patched file: {}.".format(dst))
+                    copied = True
+                if copied:
+                    updated = True
+                is_agent_v2_presets = True  # prevent multiple copy attempts
 
             # update file
             if updated:
