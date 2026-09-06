@@ -116,7 +116,15 @@ class Reply:
                 and core.config.get("ctx.use_extra")):
             tool_data = self.reply_ctx.extra_ctx  # if extra content is set, use it as data to send
 
+        # Preserve the lineage of this tool call before creating the synthetic
+        # internal reply. The active UI column/mode may change while an async
+        # plugin is running, but the result must return to the mode/model that
+        # issued the call.
+        reply_mode = getattr(self.reply_ctx, "mode", None)
+        reply_model = getattr(self.reply_ctx, "model", None)
         prev_ctx = core.ctx.as_previous(self.reply_ctx)  # copy result to previous ctx and clear current ctx
+        prev_ctx.mode = reply_mode
+        prev_ctx.model = reply_model
         core.ctx.update_item(self.reply_ctx)  # update context in db
         self.window.update_status('...')
 
@@ -131,8 +139,9 @@ class Reply:
         }))
         self.clear()
 
-        # disable reply if LlamaIndex agent is used
-        mode = core.config.get("mode")
+        # disable reply if the originating LlamaIndex request used ReAct.
+        # Do not inspect the currently focused mode here.
+        mode = reply_mode or core.config.get("mode")
         if mode == MODE_LLAMA_INDEX and core.config.get("llama.idx.react", False):
             return
 

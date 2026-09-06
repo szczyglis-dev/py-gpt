@@ -403,7 +403,8 @@ class Kernel:
         extra = getattr(ctx, "extra", None)
         if isinstance(extra, dict) and extra.get("agents_v2_async_tool"):
             return True
-        if self.window.core.config.get("mode") in self._ASYNC_DISABLED_MODES:
+        mode = getattr(ctx, "mode", None) or self.window.core.config.get("mode")
+        if mode in self._ASYNC_DISABLED_MODES:
             return False
         if ctx.agent_call:
             return False

@@ -119,13 +119,17 @@ class Input:
         :param context: bridge context
         :param extra: extra data
         """
-        # Agents v2 owns its tool feedback loop internally (LlamaIndex tool
-        # results -> orchestrator). A legacy plugin REPLY_RETURN must therefore
-        # never become a new Agents v2 chat turn. This is a defense-in-depth
-        # guard for plugins that accidentally escape an actor's private ctx.
-        if (self.window.core.config.get('mode') == MODE_AGENT_V2
-                and bool(extra.get("reply"))
-                and bool(extra.get("internal"))):
+        is_internal_reply = bool(extra.get("reply")) and bool(extra.get("internal"))
+        origin_ctx = context.ctx
+        origin_mode = getattr(origin_ctx, "mode", None) if origin_ctx is not None else None
+        origin_model = getattr(origin_ctx, "model", None) if origin_ctx is not None else None
+
+        # Agents v2 owns only replies originating from its own private tool
+        # contexts. Do not use the currently focused/global UI mode here: in a
+        # split view another column may become active while a Chat with Files
+        # tool is still running, and its REPLY_RETURN must continue in the mode
+        # that created the tool call.
+        if is_internal_reply and origin_mode == MODE_AGENT_V2:
             self.window.core.debug.info(
                 "[agents_v2] Ignoring legacy internal tool reply; tool feedback is handled in-runtime."
             )
@@ -138,6 +142,8 @@ class Input:
             internal=extra.get("internal", False),
             prev_ctx=context.ctx,
             multimodal_ctx=context.multimodal_ctx,
+            mode_override=origin_mode if is_internal_reply else None,
+            model_override=origin_model if is_internal_reply else None,
         )
 
     def execute(
@@ -148,6 +154,8 @@ class Input:
             internal: bool = False,
             prev_ctx: Optional[CtxItem] = None,
             multimodal_ctx: Optional[MultimodalContext] = None,
+            mode_override: Optional[str] = None,
+            model_override: Optional[str] = None,
     ):
         """
         Execute send input text to API
@@ -158,6 +166,8 @@ class Input:
         :param internal: internal call
         :param prev_ctx: previous context (if reply)
         :param multimodal_ctx: multimodal context
+        :param mode_override: originating mode for an internal tool reply
+        :param model_override: originating model key for an internal tool reply
         """
         core = self.window.core
         controller = self.window.controller
@@ -176,7 +186,7 @@ class Input:
         self.generating = True  # set generating flag
 
         # check if assistant is selected
-        mode = core.config.get('mode')
+        mode = mode_override or core.config.get('mode')
         if mode == MODE_ASSISTANT:
             if not controller.assistant.check():
                 self.generating = False  # unlock
@@ -245,6 +255,8 @@ class Input:
                 internal=internal,
                 prev_ctx=prev_ctx,
                 multimodal_ctx=multimodal_ctx,
+                mode_override=mode_override,
+                model_override=model_override,
             )  # text mode: OpenAI, LlamaIndex, etc.
 
     def handle_attachment(self, mode: str, text: str) -> bool:

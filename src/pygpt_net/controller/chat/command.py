@@ -95,7 +95,7 @@ class Command:
         if self.window.controller.kernel.stopped():
             return
 
-        mode = self.window.core.config.get('mode')
+        mode = getattr(ctx, "mode", None) or self.window.core.config.get('mode')
 
         # extract commands
         cmds = ctx.cmds_before  # from llama index tool calls pre-handler

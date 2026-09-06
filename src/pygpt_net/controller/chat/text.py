@@ -44,6 +44,8 @@ class Text:
             internal: bool = False,
             prev_ctx: Optional[CtxItem] = None,
             multimodal_ctx: Optional[MultimodalContext] = None,
+            mode_override: Optional[str] = None,
+            model_override: Optional[str] = None,
     ) -> CtxItem:
         """
         Send text message
@@ -53,6 +55,8 @@ class Text:
         :param internal: internal call
         :param prev_ctx: previous context item (if reply)
         :param multimodal_ctx: multimodal context
+        :param mode_override: originating mode for an internal tool reply
+        :param model_override: originating model key for an internal tool reply
         :return: CtxItem instance
         """
         self.window.update_status(trans("status.sending"))
@@ -78,8 +82,8 @@ class Text:
         ai_name = event.data["value"]
 
         # prepare mode, model, etc.
-        mode = config.get("mode")
-        model = config.get("model")
+        mode = mode_override or config.get("mode")
+        model = model_override or config.get("model")
         model_data = core.models.get(model)
         sys_prompt = config.get("prompt")
         sys_prompt_raw = sys_prompt  # store raw prompt (without addons)

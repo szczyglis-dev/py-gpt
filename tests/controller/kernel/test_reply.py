@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2026.09.06 02:00:00                  #
 # ================================================== #
 import json
 import pytest
@@ -54,7 +54,8 @@ def reply_instance():
 
 # Helper to create a fake context item.
 def create_fake_ctx(agent_call=False, reply=True, results=None, pid=1,
-                      internal=False, extra_ctx="extra", sub_call=False, meta_id=999):
+                      internal=False, extra_ctx="extra", sub_call=False, meta_id=999,
+                      mode=None, model=None):
     ctx = MagicMock()
     ctx.agent_call = agent_call
     ctx.reply = reply
@@ -63,6 +64,8 @@ def create_fake_ctx(agent_call=False, reply=True, results=None, pid=1,
     ctx.internal = internal
     ctx.extra_ctx = extra_ctx
     ctx.sub_call = sub_call
+    ctx.mode = mode
+    ctx.model = model
     fake_meta = MagicMock()
     fake_meta.id = meta_id
     ctx.meta = fake_meta
@@ -140,10 +143,29 @@ def test_flush_internal_legacy(reply_instance):
 # Test flush branch with LlamaIndex agent.
 def test_flush_mode_llama_index(reply_instance):
     reply, window = reply_instance
-    fake_ctx = create_fake_ctx()
+    fake_ctx = create_fake_ctx(mode=MODE_LLAMA_INDEX)
     reply.reply_ctx = fake_ctx
     reply.reply_stack = [[{"result": "llama"}]]
-    # Override config to simulate LlamaIndex ReAct mode.
+    # The active UI mode may already point elsewhere; the originating context
+    # must still control ReAct reply handling.
+    window.core.config.get.side_effect = lambda key, default=None: {
+         "ctx.use_extra": True,
+         "mode": "other_mode",
+         "llama.idx.react": True,
+         "log.events": True
+    }.get(key, default)
+    reply.flush()
+    # ReAct consumes the tool result itself, so only TOOL_UPDATE is dispatched.
+    assert window.dispatch.call_count == 1
+
+
+def test_flush_uses_origin_mode_not_active_llama_index_mode(reply_instance):
+    reply, window = reply_instance
+    fake_ctx = create_fake_ctx(mode="chat")
+    reply.reply_ctx = fake_ctx
+    reply.reply_stack = [[{"result": "chat-tool"}]]
+    # Simulate focus switching to Chat with Files/ReAct while a tool from a
+    # regular chat context is completing. The reply must follow its origin.
     window.core.config.get.side_effect = lambda key, default=None: {
          "ctx.use_extra": True,
          "mode": MODE_LLAMA_INDEX,
@@ -151,8 +173,8 @@ def test_flush_mode_llama_index(reply_instance):
          "log.events": True
     }.get(key, default)
     reply.flush()
-    # Only the RenderEvent dispatch should occur.
-    assert window.dispatch.call_count == 1
+    # TOOL_UPDATE + REPLY_RETURN.
+    assert window.dispatch.call_count == 2
 
 # Test on_post_response triggering file explorer update.
 def test_on_post_response_update(reply_instance):

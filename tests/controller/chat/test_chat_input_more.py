@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.18 17:20:00                  #
+# Updated Date: 2026.09.06 02:00:00                  #
 # ================================================== #
 import os
 from unittest.mock import MagicMock, call, ANY
@@ -21,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_IMAGE,
     MODE_CHAT,
+    MODE_AGENT_V2,
 )
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -305,7 +306,56 @@ def test_send_calls_execute():
         internal=True,
         prev_ctx="prev_ctx",
         multimodal_ctx="mm_ctx",
+        mode_override=None,
+        model_override=None,
     )
+
+def test_send_internal_reply_preserves_origin_mode_and_model():
+    win = create_dummy_window()
+    inp = Input(win)
+    inp.execute = MagicMock()
+
+    origin = CtxItem()
+    origin.mode = MODE_LLAMA_INDEX
+    origin.model = "origin-model"
+
+    context = BridgeContext()
+    context.prompt = "tool result"
+    context.ctx = origin
+    context.multimodal_ctx = None
+
+    inp.send(context, {"force": True, "reply": True, "internal": True})
+
+    inp.execute.assert_called_once_with(
+        text="tool result",
+        force=True,
+        reply=True,
+        internal=True,
+        prev_ctx=origin,
+        multimodal_ctx=None,
+        mode_override=MODE_LLAMA_INDEX,
+        model_override="origin-model",
+    )
+
+
+def test_send_internal_reply_agents_v2_is_not_forwarded_to_legacy_pipeline():
+    win = create_dummy_window()
+    inp = Input(win)
+    inp.execute = MagicMock()
+
+    origin = CtxItem()
+    origin.mode = MODE_AGENT_V2
+    origin.model = "agent-model"
+
+    context = BridgeContext()
+    context.prompt = "tool result"
+    context.ctx = origin
+    context.multimodal_ctx = None
+
+    inp.send(context, {"force": True, "reply": True, "internal": True})
+
+    inp.execute.assert_not_called()
+
 
 def test_execute_assistant_no_assistant():
     win = create_dummy_window()
@@ -335,7 +385,15 @@ def test_execute_handle_allowed():
     mm_ctx = MagicMock()
     mm_ctx.is_audio_input = False
     inp.execute(text="non empty", force=True, reply=False, internal=False, prev_ctx="prev", multimodal_ctx=mm_ctx)
-    win.controller.chat.text.send.assert_called_once_with(text="non empty", reply=False, internal=False, prev_ctx="prev", multimodal_ctx=ANY)
+    win.controller.chat.text.send.assert_called_once_with(
+        text="non empty",
+        reply=False,
+        internal=False,
+        prev_ctx="prev",
+        multimodal_ctx=ANY,
+        mode_override=None,
+        model_override=None,
+    )
 
 def test_execute_empty_text():
     win = create_dummy_window()

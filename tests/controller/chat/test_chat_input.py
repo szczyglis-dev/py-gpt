@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2026.09.06 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -65,6 +65,8 @@ def test_send(mock_window):
         internal=False,
         prev_ctx=None,
         multimodal_ctx=context.multimodal_ctx,
+        mode_override=None,
+        model_override=None,
     )
 
 
@@ -93,6 +95,8 @@ def test_execute_text(mock_window):
             internal=False,
             prev_ctx=None,
             multimodal_ctx=None,
+            mode_override=None,
+            model_override=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -155,6 +159,8 @@ def test_execute_no_ctx(mock_window):
             internal=False,
             prev_ctx=None,
             multimodal_ctx=None,
+            mode_override=None,
+            model_override=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -210,6 +216,8 @@ def test_execute_vision_mode(mock_window):
             internal=False,
             prev_ctx=None,
             multimodal_ctx=None,
+            mode_override=None,
+            model_override=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -252,6 +260,8 @@ def test_execute_vision_plugin(mock_window):
             internal=False,
             prev_ctx=None,
             multimodal_ctx=None,
+            mode_override=None,
+            model_override=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
