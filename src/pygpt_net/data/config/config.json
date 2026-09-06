@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.8.10",
-    "app.version": "2.8.10",
-    "updated_at": "2026-09-05T18:00:00"
+    "version": "2.8.11",
+    "app.version": "2.8.11",
+    "updated_at": "2026-09-06T18:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -469,7 +469,7 @@
   "remote_tools.xai.web_search": true,
   "remote_tools.xai.x_search": false,
   "render.blocks": true,
-  "render.code_syntax": "github-dark",
+  "render.code_syntax": "darcula",
   "render.code_syntax.disabled": false,
   "render.code_syntax.final_max_chars": 350000,
   "render.code_syntax.final_max_lines": 3000,
