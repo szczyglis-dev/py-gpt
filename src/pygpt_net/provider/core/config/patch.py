@@ -561,6 +561,9 @@ class Patch:
                 if "agent.v2.verbose" not in data:
                     data["agent.v2.verbose"] = cfg_get_base("agent.v2.verbose")
                     updated = True
+                if "agent.v2.log_workflow" not in data:
+                    data["agent.v2.log_workflow"] = cfg_get_base("agent.v2.log_workflow")
+                    updated = True
 
         # update file
         migrated = False
