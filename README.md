@@ -18,7 +18,7 @@ Release: **2.8.11** | build: **2026-09-06** | Python: **>=3.10, <3.14**
 
 It supports chat, **Agents v2 (beta)** and other agent workflows, completions, Chat with Files (via `LlamaIndex`), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google` and `Microsoft Bing`.
 
-**PyGPT** also provides speech synthesis through `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI`, plus speech recognition with `OpenAI Whisper`, `Google` and `Bing`. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
+**PyGPT** also provides speech synthesis through `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI`, plus speech recognition with `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Bing` and `xAI Grok Voice`. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
 **Showcase** (mp4, version `2.8.3`, build `2026-08-16`):
 
@@ -45,8 +45,8 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Image generation via models like `gpt-image`, `Imagen`, `Gemini`, and `Nano Banana`.
 - Video generation via models like `Veo3` and `Sora2`.
 - Internet access via `DuckDuckGo`, `Google` and `Microsoft Bing`.
-- Speech synthesis via `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services.
-- Speech recognition via `OpenAI Whisper`, `Google` and `Microsoft Speech Recognition`.
+- Speech synthesis via `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI` Text-To-Speech services.
+- Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing` and `xAI Grok Voice`.
 - Plugins support with built-in plugins like `Files I/O`, `Code Interpreter`, `Web Search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
 - MCP support.
 - Camera capture for real-time image analysis in Chat and other supported modes.
@@ -595,7 +595,7 @@ You can configure selected vector store by providing config options like `api_ke
 
 **Configuring data loaders**
 
-In the `Settings -> LlamaIndex -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance. See the section: `Configuration / Data Loaders` for configuration reference.
+In the `Settings -> Indexes / LlamaIndex -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance. See the section: `Configuration / Data Loaders` for configuration reference.
 
 
 ## Chat with Audio
@@ -642,7 +642,7 @@ Plugin allows you to generate images in Chat mode:
 
 For OpenAI models, you can also enable remote image generation in `Config -> Settings -> Remote Tools`. If enabled, image generation will be available natively within the conversation, without plugins, in Chat mode.
 
-To use `Imagen` models you must enable `VertexAI` in `Config -> Settings -> API Keys -> Google -> Advanced options`.
+To use `Imagen` models you must enable `Use Vertex AI` in `Config -> Settings -> API Keys -> Google -> Advanced options`.
 
 ### Remix, Edit, or Extend
 
@@ -745,7 +745,7 @@ You can choose between two methods of evaluation:
 - By the percentage of tasks completed
 - By the accuracy (score) of the final response
 
-You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> LlamaIndex agents -> Max evaluation steps `. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
+You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> Agents -> Max evaluation steps in loop`. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
 
 You can change the prompts used for evaluating the response in `Settings -> Prompts -> Agent: evaluation prompt in loop`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
@@ -877,13 +877,13 @@ In opposition to `Auto-stop`, when the `Always continue...` option is enabled, t
 The agent is essentially a **virtual** mode that internally sequences the execution of a selected underlying mode. 
 You can choose which internal mode the agent should use in the settings:
 
-```Settings / Agent (autonomous) / Sub-mode to use```
+```Settings -> Agents and experts -> Autonomous -> Sub-mode for agents```
 
 Default mode is: `Chat`.
 
 If you want to use the LlamaIndex mode when running the agent, you can also specify which index `LlamaIndex` should use with the option:
 
-```Settings / Agents and experts / Index to use```
+```Settings -> Agents and experts -> Autonomous -> Index to use```
 
 ##  Experts (co-op, co-operation mode)
 
@@ -905,7 +905,7 @@ Experts can also be used in `Agent (autonomous)` mode - by creating a new agent 
 
 You can also use experts in "inline" mode - by activating the `Experts (inline)` plugin. This allows for the use of experts in any mode, such as normal chat.
 
-Expert mode, like agent mode, is a "virtual" mode - you need to select a target mode of operation for it, which can be done in the settings at `Settings / Agent (autonomous) / Sub-mode for experts`.
+Expert mode, like agent mode, is a "virtual" mode - you need to select a target mode of operation for it, which can be done in the settings at `Settings -> Agents and experts -> Experts -> Sub-mode for experts`.
 
 You can also ask for a list of active experts at any time:
 
@@ -1055,7 +1055,7 @@ To use the `RAG` mode, the file must be indexed in the vector database. This occ
 
 **Embeddings**
 
-When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: `Config -> Settings -> Files and Attachments`. You can also choose the embedding models for specified providers in `Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Default embedding models` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
+When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: `Config -> Settings -> Files and Attachments`. You can also choose the embedding models for specified providers in `Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Default embedding providers for attachments` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
 
 For example, if the RAG query model is `gpt-4o-mini`, then the default model for the provider `OpenAI` will be used. If the default model for `OpenAI` is not specified on the list, the global provider and model will be used.
 
@@ -1487,7 +1487,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#api-calls
 
 ## Audio Input
 
-The plugin facilitates speech recognition (by default using the `Whisper` model from OpenAI, `Google` and `Bing` are also available). It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new `Speak` option will appear at the bottom near the `Send` button  -  when this is enabled, the application will respond to the voice received from the microphone.
+The plugin facilitates speech recognition. OpenAI Whisper is the default provider; local Whisper, Google, Google Cloud, Google GenAI, Bing, and xAI Grok Voice providers are also available. It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new `Speak` option will appear at the bottom near the `Send` button  -  when this is enabled, the application will respond to the voice received from the microphone.
 
 The plugin can be extended with other speech recognition providers.
 
@@ -1495,8 +1495,8 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-input
 
 ## Audio Output
 
-The plugin lets you turn text into speech using the TTS model from OpenAI or other services like `Microsoft Azure`, `Google`, and `Eleven Labs`. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
-Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via `Microsoft Azure`, `Google` or `Eleven Labs`, you must configure the audio plugin with your API keys, regions and voices if required.
+The plugin lets you turn text into speech using OpenAI TTS or providers such as `Microsoft Azure`, `Google Cloud TTS`, `Google GenAI TTS`, `Eleven Labs`, and `xAI TTS`. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
+Provider-specific credentials are required where applicable: Azure and Eleven Labs use plugin credentials, Google GenAI uses the Google API key from Settings, and xAI TTS uses the xAI API key from Settings. Configure voices, regions, and provider-specific options in the plugin settings.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
 
@@ -1505,7 +1505,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
 **WARNING: Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
 The plugin activates autonomous mode in standard chat modes, where AI begins a conversation with itself. 
-You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
+You can set this loop to run for any number of iterations. The plugin also has an **Always continue** option (default: disabled) that forces another iteration even when the goal has already been reached. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
 This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation.
@@ -1571,7 +1571,7 @@ sudo snap connect pygpt:docker-executables docker:docker-executables
 sudo snap connect pygpt:docker docker:docker-daemon
 ````
 
-**Code interpreter:** a real-time Python Code Interpreter is built-in. Click the `<>` icon to open the interpreter window. Both the input and output of the interpreter are connected to the plugin. Any output generated by the executed code will be displayed in the interpreter. Additionally, you can request the model to retrieve contents from the interpreter window output.
+**Code interpreter:** a real-time Python Code Interpreter is built-in. Click the `<>` icon to open the interpreter window. Plugin code input/output is mirrored there only when **Connect to the Python code interpreter window** is enabled (default: enabled). The window keeps 30 input/output blocks by default (`0` = unlimited), and **Always run code in a fresh kernel** is disabled by default.
 
 ![v2_python](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_python.png)
 
@@ -1772,7 +1772,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
 
 ## MCP (Model Context Protocol)
 
-With the `MCP` plugin, you can connect **PyGPT** to remote tools exposed by `Model Context Protocol` servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server and optionally cache discovery results for speed.
+With the `MCP` plugin, you can connect **PyGPT** to remote tools exposed by `Model Context Protocol` servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server. Tool discovery caching is enabled by default with a 300-second TTL.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
 
@@ -1853,7 +1853,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#slack
 
 ## System (OS)
 
-The plugin provides access to the operating system and executes system commands.
+The plugin provides access to the operating system and executes system commands. `sys_exec` input/output is mirrored to the Python Code Interpreter window when **Connect to the Python code interpreter window** is enabled (default: enabled). Docker sandbox execution is disabled by default; the stock sandbox runs as the unprivileged `pygpt` user by default, with passwordless `sudo` available when elevated commands are needed.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#system-os
 
@@ -1884,7 +1884,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#telegram
 
 The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless interactions with your smart devices via the Tuya Cloud API. This plugin provides a user-friendly interface to manage and control devices directly from your assistant.
 
-* Provide your Tuya Cloud credentials to enable communication.
+* Provide your Tuya Cloud Client ID, Client Secret, and linked App Account UID to enable communication; access/refresh tokens and the device cache are managed automatically.
 * Access and list all smart devices connected to your Tuya app account.
 * Retrieve detailed information about each device, including its status and supported functions.
 * Effortlessly search for devices by their names using cached data for quick access.
@@ -1902,7 +1902,7 @@ The TwelveLabs plugin brings native video understanding to PyGPT through the [Tw
 * Create a multimodal text embedding that lives in the same vector space as Marengo video embeddings, useful for text-to-video search (`tl_embed_text`, Marengo).
 * Configure the Pegasus and Marengo model names, default max tokens, temperature, and request timeout.
 
-Provide your API key in the plugin settings, or set the `TWELVELABS_API_KEY` environment variable. You can grab a free API key at https://twelvelabs.io — there is a generous free tier.
+Provide your API key in the plugin settings, or set the `TWELVELABS_API_KEY` environment variable. Defaults are `pegasus1.5` for analysis, `marengo3.0` for embeddings, 2048 max tokens, temperature 0.2, and a 300-second request timeout. You can grab a free API key at https://twelvelabs.io — there is a generous free tier.
 
 ## Vision (inline)
 
@@ -1916,9 +1916,9 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#vision-inline
 
 ## Voice Control (inline)
 
-The plugin provides voice control command execution within a conversation.
+The plugin provides voice control command execution within a conversation. The optional **Magic prefix for voice commands** defaults to `Execute voice command`.
 
-See the ``Accessibility`` section for more details.
+See the `Accessibility` section for more details.
 
 ## Web Search
 
@@ -1926,7 +1926,7 @@ See the ``Accessibility`` section for more details.
 
 To activate this feature, turn on the `Web Search` plugin found in the `Plugins` menu.
 
-Web searches are provided by `Google Custom Search Engine` and `Microsoft Bing` APIs and can be extended with other search engine providers. 
+Web searches can use `DuckDuckGo`, `Google Custom Search Engine`, or `Microsoft Bing` and can be extended with other search engine providers. DuckDuckGo does not require an API key. The default provider is Google Custom Search; the plugin opens at most 3 URLs at once by default, fetches thumbnail images, and currently has SSL verification disabled for crawling by default. 
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#web-search
 
@@ -2196,7 +2196,7 @@ Turn on the voice control option in `Config / Accessibility`:
 
 
 ```bash
-Enable voice control (using microphone)
+Enable voice control (using the microphone)
 ```
 
 Once you enable this option, an `Voice Control` button will appear at the bottom right corner of the window. When you click on this button, the microphone will start listening; clicking it again stops listening and starts recognizing the voice command you said. You can cancel voice recording at any time with the `ESC` key. You can also set a keyboard shortcut to turn voice recording on/off.
@@ -2268,14 +2268,14 @@ For convenience, you can enable a short sound to play when voice recording start
 
 
 ```bash
-Audio notify microphone listening start/stop
+Audio notification for microphone listening start/stop
 ```
 
 To enable a sound notification when a voice command is recognized and command execution begins, turn on the option:
 
 
 ```bash
-Audio notify voice command execution
+Audio notification for voice command execution
 ```
 
 For voice translation of on-screen events and information about completed commands via speech synthesis, you can turn on the option:
@@ -2297,7 +2297,7 @@ Config -> Settings...
 
 ![v2_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_settings.png)
 
-The options below mirror the current application settings defined in `settings.json`. Provider- and feature-specific options are grouped by the same tabs used in the Settings window.
+The options below follow the current Settings UI metadata from `settings.json` and the packaged fresh-install defaults from `config.json`. Provider- and feature-specific options are grouped by the same tabs used in the Settings window.
 
 **General**
 
@@ -2313,11 +2313,11 @@ The options below mirror the current application settings defined in `settings.j
 
 - `OpenGL hardware acceleration`: WebEngine / Chromium rendering engine only. Default: True.
 
-- `Use proxy`: Enable this option to use a proxy for connections to APIs. Default: True.
+- `Use proxy`: Enable this option to use a proxy for connections to APIs. Default: False.
 
 - `Proxy address`: Optional proxy for API SDKs, e.g. http://proxy.example.com or socks5://user:pass@host:port.
 
-- `Memory Limit`: Renderer memory limit; set to 0 to disable. If > 0, the app will try to free memory after the limit is reached. Accepted formats: 3.5GB, 2GB, 2048MB, 1_000_000. Minimum: 2GB. Default: 2GB.
+- `Memory Limit`: Renderer memory limit; set to 0 to disable. If > 0, the app will try to free memory after the limit is reached. Accepted formats: 3.5GB, 2GB, 2048MB, 1_000_000. Minimum: 2GB. Default: 2.5GB.
 
 **API Keys**
 
@@ -2329,9 +2329,9 @@ The options below mirror the current application settings defined in `settings.j
 
 - `API Endpoint`: OpenAI API (or compatible) endpoint URL, default: https://api.openai.com/v1.
 
-- `Use Responses API in Chat mode`: Use Responses API instead of ChatCompletions API in Chat mode. Default: True.
+- `Use the Responses API in Chat mode`: Use Responses API instead of ChatCompletions API in Chat mode. Default: True.
 
-- `Use Responses API in Chat with Files mode (LlamaIndex)`: Use Responses API instead of ChatCompletions API in Chat with Files mode (LlamaIndex). OpenAI models only. Default: False.
+- `Use the Responses API in Chat with Files mode (LlamaIndex)`: Use Responses API instead of ChatCompletions API in Chat with Files mode (LlamaIndex). OpenAI models only. Default: True.
 
 *Google*
 
@@ -2341,7 +2341,7 @@ The options below mirror the current application settings defined in `settings.j
 
 - `Use native API SDK`: Use native GenAI SDK instead of compatible OpenAI client. Default: True.
 
-- `Use VertexAI`: Enable to use VertexAI in Google GenAI SDK. Default: True.
+- `Use Vertex AI`: Enable this option to use Vertex AI with the Google Gen AI SDK. Default: False.
 
 - `Google Cloud project`: Provide your Google Cloud project name.
 
@@ -2359,7 +2359,7 @@ The options below mirror the current application settings defined in `settings.j
 
 *HuggingFace*
 
-- `HuggingFace API key`: Required for the HuggingFace API.
+- `Hugging Face API key`: Required for the HuggingFace API.
 
 - `Router API Endpoint`: API Endpoint for HuggingFace Router provider (OpenAI compatible ChatCompletions). Default: https://router.huggingface.co/v1.
 
@@ -2399,7 +2399,7 @@ The options below mirror the current application settings defined in `settings.j
 
 *VoyageAI*
 
-- `VoyageAI API key`: Required for the Voyage API - embeddings for Anthropic and DeepSeek API.
+- `Voyage AI API key`: Required for the Voyage API - embeddings for Anthropic and DeepSeek API.
 
 *OpenRouter*
 
@@ -2429,15 +2429,15 @@ The options below mirror the current application settings defined in `settings.j
 
 - `Chat output window zoom`: WebEngine / Chromium rendering engine only. Default: 1.0.
 
-- `Font size (chat plain-text, notepads)`: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 12.
+- `Font size (chat plain text, notepads)`: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 16.
 
-- `Font size (input)`: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 12.
+- `Font size (input)`: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 16.
 
-- `Font size (ctx list)`: Adjusts the font size in the contexts list. Default: 12.
+- `Font size (context list)`: Adjusts the font size in the contexts list. Default: 12.
 
 - `Font size (toolbox)`: Adjusts the font size in the toolbox on the right. Default: 12.
 
-- `Layout density`: Adjusts the density of layout elements. Default: 0.
+- `Layout density`: Adjusts the density of layout elements. Default: -1.
 
 - `DPI factor`: Restart of the application is required for this option to take effect. Default: 1.0.
 
@@ -2451,17 +2451,17 @@ The options below mirror the current application settings defined in `settings.j
 
 *Code syntax*
 
-- `Code syntax highlight`: WebEngine / Chromium rendering engine only. Default: github-dark.
+- `Code syntax highlighting`: WebEngine / Chromium rendering engine only. Default: darcula.
 
-- `Disable syntax highlight`: Disables syntax highlighting in code blocks. Default: False.
+- `Disable syntax highlighting`: Disables syntax highlighting in code blocks. Default: False.
 
-- `Highlight every N line (real-time)`: Syntax highlight: highlight every N line in stream. Default: 50.
+- `Highlight every Nth line (real-time)`: Syntax highlighting: highlight every Nth line in the stream. Default: 5.
 
-- `Highlight every N chars (real-time)`: Syntax highlight: highlight every N chars in stream. Default: 300.
+- `Highlight every N chars (real-time)`: Syntax highlighting: highlight every N characters in the stream. Default: 1000.
 
-- `Max lines to highlight (real-time)`: Syntax highlight: max lines to highlight in stream, 0 to disable. Default: 300.
+- `Max lines to highlight (real-time)`: Syntax highlighting: maximum lines to highlight in the stream; 0 to disable. Default: 100.
 
-- `Max lines to highlight (static)`: Syntax highlight: max lines to highlight in static content, 0 to disable. Default: 1500.
+- `Max lines to highlight (static)`: Syntax highlighting: maximum lines to highlight in static content; 0 to disable. Default: 3000.
 
 - `Max chars to highlight (static)`: Syntax highlight: max chars to highlight in static content, 0 to disable. Default: 350000.
 
@@ -2469,15 +2469,13 @@ The options below mirror the current application settings defined in `settings.j
 
 - `Store attachments in the workdir upload directory`: Enable to store a local copy of uploaded attachments for future use. Default: True.
 
-- `Prefer native file upload when supported`: If enabled, PyGPT will try to send supported attachments directly through the selected provider's native file API instead of processing them locally. Availability depends on the provider, model, file type, and file size. If native upload is unavailable or fails, the standard local attachment-processing path is used automatically. Default: False.
-
 - `Store images, captures, and uploads in the data directory`: Enable to store everything in a single data directory. Default: False.
 
 - `Allow images as additional context`: If enabled, images can be used as additional context. Default: False.
 
 - `Append attachment only once (mode: always)`: If enabled, the sent attachment will be appended once to the sending message, rather than appended every time to the input prompt as additional context. Force mode - affects all models. Default: False.
 
-- `Append attachment only once (mode: only if available, auto-detect)`: If enabled, the sent attachment will be appended once to the sending message, if the selected model and API handle the storage of sent messages on the server side. This may optimize token usage by sending attachments only once. Default: False.
+- `Append attachment only once (mode: only if available, auto-detect)`: If enabled, the sent attachment will be appended once to the sending message if the selected model and API store sent messages on the server side. This may optimize token usage by avoiding repeated attachment transmission. Default: True.
 
 - `Model for attachment content summary`: Model to use when generating a summary for the content of a file when the Summary option is selected. Default: gpt-4o-mini.
 
@@ -2485,7 +2483,7 @@ The options below mirror the current application settings defined in `settings.j
 
 - `Use history in RAG query`: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary. Default: True.
 
-- `RAG limit`: Only if the option 'Use history in RAG query' is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit. Default: 5.
+- `RAG limit`: Only if the option 'Use history in RAG query' is enabled. Specify how many recent conversation entries will be used when generating a query for RAG. 0 = no limit. Default: 3.
 
 - `Directory for file downloads`: Subdirectory for downloaded files inside `data`. Default: download.
 
@@ -2497,13 +2495,13 @@ The options below mirror the current application settings defined in `settings.j
 
 - `Context auto-summary`: Enable automatic summarization of the context on the conversation list on the left. Default: True.
 
-- `Show projects on top of the context list`: Displays projects at the top of the context list. Default: False.
+- `Show projects at the top of the context list`: Places projects above contexts not assigned to a project in the context list. Default: True.
 
-- `Show date separators on the context list`: Shows date separators on the context list. Default: True.
+- `Show date separators in the context list`: Shows date separators on the context list. Default: True.
 
-- `Show date separators in projects on the context list`: Shows date separators inside projects. Default: True.
+- `Show date separators in projects in the context list`: Shows date separators inside projects. Default: True.
 
-- `Show date separators in pinned items on the context list`: Shows date separators for pinned context items. Default: False.
+- `Show date separators in pinned items in the context list`: Shows date separators for pinned context items. Default: False.
 
 - `Use context (memory)`: Toggles the use of conversation context (memory of previous inputs). Default: True.
 
@@ -2513,9 +2511,11 @@ The options below mirror the current application settings defined in `settings.j
 
 - `Lock incompatible modes`: Creates a new context when switching to an incompatible mode within an existing context. Default: True.
 
-- `Search also in conversation content, not only in titles`: Enable search also in context items' content. Default: False.
+- `Search conversation content as well as titles`: Also search the content of context items. Default: True.
 
 - `Show LlamaIndex sources`: If enabled, sources used will be displayed in the response (if available, it will not work in streamed chat). Default: True.
+
+- `Show Code Interpreter output`: When enabled, displays output returned by an external Code Interpreter. Default: True.
 
 
 - `Show reasoning in real-time`: Show provider reasoning/thinking while the response is being generated. Default: True.
@@ -2524,7 +2524,7 @@ The options below mirror the current application settings defined in `settings.j
 
 - `Use extra context output`: If enabled, plain text output (if available) from command results will be displayed alongside the JSON output. Default: True.
 
-- `Open URLs in built-in browser`: Enable this option to open all URLs in the built-in browser (Chromium) instead of an external browser. Default: True.
+- `Open URLs in built-in browser`: Enable this option to open all URLs in the built-in browser (Chromium) instead of an external browser. Default: False.
 
 **Remote tools**
 
@@ -2534,15 +2534,15 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Web Search`: Enable Web Search remote tool - Responses API only. Default: True.
 
-- `Image generation`: Enable Image generation remote tool - Responses API only. Default: True.
+- `Image generation`: Enable Image generation remote tool - Responses API only. Default: False.
 
-- `Code Interpreter`: Enable Code Interpreter remote tool - Responses API only. Default: True.
+- `Code Interpreter`: Enable Code Interpreter remote tool - Responses API only. Default: False.
 
-- `Remote MCP`: Enable MCP remote tool - Responses API only. Default: True.
+- `Remote MCP`: Enable MCP remote tool - Responses API only. Default: False.
 
 - `Remote MCP configuration`: Configuration in JSON format (will be used in request).
 
-- `File search`: Enable File Search remote tool - Responses API only. Default: True.
+- `File search`: Enable File Search remote tool - Responses API only. Default: False.
 
 - `File search vector store IDs`: Vector store IDs, separated by comma (,).
 
@@ -2550,13 +2550,13 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Web Search`: Enable Web Search remote tool. Default: True.
 
-- `Google Maps`: Enable Google Maps remote tool. Default: True.
+- `Google Maps`: Enable Google Maps remote tool. Default: False.
 
-- `Code Interpreter`: Enable Code Interpreter remote tool. Default: True.
+- `Code Interpreter`: Enable Code Interpreter remote tool. Default: False.
 
-- `URL Context`: Enable URL Context remote tool. Default: True.
+- `URL Context`: Enable URL Context remote tool. Default: False.
 
-- `File search`: Enable File Search remote tool - Responses API only. Default: True.
+- `File search`: Enable File Search remote tool - Responses API only. Default: False.
 
 - `File search vector store IDs`: Vector store IDs, separated by comma (,).
 
@@ -2564,11 +2564,11 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Web Search`: Enable Web Search remote tool. Default: True.
 
-- `Web Fetch`: Enable Web Fetch remote tool. Default: True.
+- `Web Fetch`: Enable Web Fetch remote tool. Default: False.
 
-- `Code Execution`: Enable Code Execution remote tool. Default: True.
+- `Code Execution`: Enable Code Execution remote tool. Default: False.
 
-- `Remote MCP`: Enable MCP remote tool/connector. Default: True.
+- `Remote MCP`: Enable MCP remote tool/connector. Default: False.
 
 - `Remote MCP configuration (tools)`: Configuration in JSON format (will be used in request).
 
@@ -2578,15 +2578,15 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Web Search`: Enable Web Search remote tool. Default: True.
 
-- `X Search`: Enable X Search remote tool. Default: True.
+- `X Search`: Enable X Search remote tool. Default: False.
 
-- `Code Execution`: Enable Code Execution remote tool. Default: True.
+- `Code Execution`: Enable Code Execution remote tool. Default: False.
 
-- `Remote MCP`: Enable MCP remote tool - Responses API only. Default: True.
+- `Remote MCP`: Enable MCP remote tool - Responses API only. Default: False.
 
 - `Remote MCP configuration`: Configuration in JSON format (will be used in request).
 
-- `Collections Search`: Enable Collections Search remote tool. Default: True.
+- `Collections Search`: Enable Collections Search remote tool. Default: False.
 
 - `Collection IDs`: Collection IDs, separated by comma (,) NOTE: Management API key is required for managing collections in Remote vector stores tool.
 
@@ -2598,11 +2598,11 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `RPM limit`: Specify the limit of maximum requests per minute (RPM), 0 = no limit. Default: 60.
 
-- `Context threshold`: Tokens reserved for responses. Default: 80.
+- `Context threshold`: Tokens reserved for responses. Default: 200.
 
-- `Temperature`: Controls response randomness; lower values are more deterministic and higher values are more varied. Default: 0.0.
+- `Temperature`: Controls response randomness; lower values are more deterministic and higher values are more varied. Default: 1.0.
 
-- `Top-p`: Controls response diversity using nucleus sampling. Default: 0.0.
+- `Top-p`: Controls response diversity using nucleus sampling. Default: 1.0.
 
 - `Frequency Penalty`: Decreases the likelihood of repetition in the model's responses. Default: 0.0.
 
@@ -2612,8 +2612,11 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Use native API function calls`: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts from below will not be used. Chat mode. Default: True.
 
-- `Command execute: instruction`: Placeholders: {schema}, {extra}.
+- `Command execution: instruction`: Instruction used by the legacy/internal tool-call format. Placeholders: {schema}, {extra}.
 
+- `Command execution: extra footer`: Extra footer appended to the internal tool-call instruction.
+
+- `Legacy command execution footer`: Compatibility footer used by legacy assistant/tool execution paths.
 
 
 - `Context: auto-summary (system prompt)`: System prompt used for automatic context summarization.
@@ -2674,17 +2677,17 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Capture height (in pixels)`: Sets the camera capture height in pixels. Default: 720.
 
-- `Capture quality (%)`: Sets JPEG quality for captured camera images, in percent. Default: 85.
+- `Capture quality (%)`: Sets JPEG quality for captured camera images, in percent. Default: 95.
 
 **Audio**
 
 *Devices*
 
-- `Audio Input Backend`: Select the audio input backend. Default: 0.
+- `Audio Input Backend`: Select the audio input backend. Default: native.
 
 - `Audio Input Device`: Select the audio device for Microphone input. Default: 0.
 
-- `Audio Output Backend`: Select the audio output backend. Default: 0.
+- `Audio Output Backend`: Select the audio output backend. Default: native.
 
 - `Audio Output Device`: Select the audio device for audio output. Default: 0.
 
@@ -2706,7 +2709,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `VAD end silence (in ms)`: Sets VAD end-silence duration in milliseconds for real-time audio mode. Default: 2000.
 
-- `Audio notify microphone listening start/stop`: Plays an audio notification when microphone listening starts or stops. Default: False.
+- `Audio notification for microphone listening start/stop`: Plays an audio notification when microphone listening starts or stops. Default: False.
 
 *Cache*
 
@@ -2726,9 +2729,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 *Chat*
 
-- `Chat mode`: Check LlamaIndex documentation for help. Default: default.
+- `Chat mode`: Check LlamaIndex documentation for help. Default: context.
 
-- `Use ReAct agent for tool calls in Chat with Files mode.`: If enabled, the ReAct agent will be used if the option "+Tools" is enabled. Default: True.
+- `Use ReAct agent for tool calls in Chat with Files mode.`: If enabled, the ReAct agent will be used if the option "+Tools" is enabled. Default: False.
 
 - `Auto-retrieve additional context`: If enabled, additional context will be retrieved with every query and appended to system prompt. Default: True.
 
@@ -2736,7 +2739,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Embeddings provider`: Selects the global embeddings provider used for indexing and Chat with Files. Default: openai.
 
-- `RPM limit`: Limit for embeddings API calls - specify the limit of maximum requests per minute (RPM), 0 = no limit. Default: 60.
+- `RPM limit`: Limit for embeddings API calls - specify the limit of maximum requests per minute (RPM), 0 = no limit. Default: 100.
 
 - `Embeddings provider ENV vars`: Environment to set up before embedding provider initialization, such as API keys, etc. Use {config_key} as a placeholder to use the value from the application configuration.
 
@@ -2746,7 +2749,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 *File indexing*
 
-- `Recursive directory indexing`: Enables recursive directory indexing. Default: False.
+- `Recursive directory indexing`: Enables recursive directory indexing. Default: True.
 
 - `Replace old document versions in the index during re-indexing`: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed. Default: True.
 
@@ -2756,9 +2759,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Stop indexing when an error occurs`: If enabled, indexing will be stopped when any error occurs. Default: True.
 
-- `Custom metadata to append/replace to indexed documents (files)`: Define custom metadata key => value fields for specified file extensions, separate extensions by comma. Allowed placeholders: {path}, {relative_path} {filename}, {dirname}, {relative_dir} {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}.
+- `Custom metadata to add to or replace in indexed documents (files)`: Define custom metadata key => value fields for specified file extensions, separate extensions by comma. Allowed placeholders: {path}, {relative_path} {filename}, {dirname}, {relative_dir} {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}.
 
-- `Custom metadata to append/replace to indexed documents (web/external content)`: Define custom metadata key => value fields for specified external data loaders. Allowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}.
+- `Custom metadata to add to or replace in indexed documents (web/external content)`: Define custom metadata key => value fields for specified external data loaders. Allowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}.
 
 *Context indexing*
 
@@ -2784,23 +2787,27 @@ Remote tools are available only when supported by the selected provider/API mode
 
 *Agents*
 
-- `Max steps (per iteration)`: Max steps in one iteration before goal achieved. Default: 5.
+- `Max steps (per iteration)`: Max steps in one iteration before goal achieved. Default: 10.
 
-- `Max evaluation steps in loop`: Set the maximum evaluation steps to achieve the final result, 0 = infinity. Default: 5.
+- `Max evaluation steps in loop`: Set the maximum evaluation steps to achieve the final result, 0 = infinity. Default: 3.
 
 - `Model for evaluation`: Model used for evaluation with score/percentage (loop). If not selected, then current active model will be used.
 
-- `Append and compare previous evaluation prompt in next evaluation`: If enabled, previous improvement prompt will be checked in next eval in loop. Default: False.
+- `Append and compare the previous evaluation prompt in the next evaluation`: If enabled, previous improvement prompt will be checked in next eval in loop. Default: False.
 
 - `Split response messages`: Split response messages into separate context items in OpenAI Agents mode. Default: True.
 
-*General*
+*General / v2*
 
-- `Auto retrieve additional context from RAG`: Auto retrieve additional context from RAG at the beginning if the index is provided. Default: True.
+- `Automatically retrieve additional context from RAG`: Automatically retrieves additional RAG context at the beginning of a run when an index is provided. Default: True.
 
-- `Display full agent output in chat view`: If enabled, then full output from agent will be displayed in chat window if agent is enabled. Default: True.
+- `Show full tool-chain in Agents v2`: When enabled, the final Agents v2 response stores and displays the full sequence of normal tool calls executed across the workflow. Each call is shown as an expandable Request/Response pair. Internal orchestration and worker-management calls are excluded. Default: False.
 
-- `Display a tray notification when the goal is achieved.`: Displays a tray notification when an agent finishes or achieves its goal. Default: True.
+*Legacy*
+
+- `Display full agent output in chat view`: Controls whether the complete output from legacy agent modes is rendered in chat. This setting does not control the Agents v2 tool-chain display. Default: True.
+
+- `Display a tray notification when the goal is achieved.`: Shows a system tray notification when a legacy agent finishes or achieves its goal. This setting does not control Agents v2 workflow status or tool-chain rendering. Default: False.
 
 *Autonomous*
 
@@ -2810,7 +2817,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Use native API function calls`: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts will not be used. Autonomous agent mode only. Default: False.
 
-- `Use Responses API in Agent mode`: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: True.
+- `Use the Responses API in Agent mode`: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: False.
 
 *Experts*
 
@@ -2820,19 +2827,19 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Use native API function calls`: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts will not be used. Experts only. Default: False.
 
-- `Use Responses API in Experts mode (master)`: Use Responses API instead of ChatCompletions API in Experts (master model). OpenAI models only. Default: True.
+- `Use the Responses API in Experts mode (master)`: Use Responses API instead of ChatCompletions API in Experts (master model). OpenAI models only. Default: False.
 
-- `Use Responses API in Experts (slaves)`: Use Responses API instead of ChatCompletions API for Expert instances (slave models). OpenAI models only. Default: True.
+- `Use the Responses API in Experts mode (slaves)`: Use Responses API instead of ChatCompletions API for Expert instances (slave models). OpenAI models only. Default: False.
 
 **Accessibility**
 
-- `Enable voice control (using microphone)`: Enables voice control using the microphone and configured voice commands. Default: False.
+- `Enable voice control (using the microphone)`: Enables voice control using the microphone and configured voice commands. Default: False.
 
-- `Model`: Model to use for command recognition in voice control. Default: gpt-3.5-turbo.
+- `Model`: Model to use for command recognition in voice control. Default: gpt-4o-mini.
 
 - `Use voice synthesis to describe events on the screen.`: Uses speech synthesis to describe application events shown on screen. Default: False.
 
-- `Audio notify voice command execution`: Plays an audio notification when a recognized voice command is executed. Default: False.
+- `Audio notification for voice command execution`: Plays an audio notification when a recognized voice command begins execution. Default: True.
 
 - `Use audio output cache`: If enabled, all static audio outputs will be cached on the disk instead of being generated every time. Default: True.
 
@@ -2840,7 +2847,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Blacklist for voice synthesis event descriptions (ignored events)`: Add to this list all the actions that should not be described using audio synthesis.
 
-- `Voice control actions blacklist`: Disable actions in voice control; add actions to the blacklist to prevent execution through voice commands.
+- `Voice control action blacklist`: Disable actions in voice control; add actions to the blacklist to prevent execution through voice commands.
 
 **Security**
 
@@ -2848,11 +2855,11 @@ Security settings control host-side filesystem access, system commands used by p
 
 *General*
 
-- `Restrict plugin file reads to working directory`: When enabled, plugin-mediated reads of local files are limited to the current working data directory (the app workdir `data` directory, shown as the actual path in the Settings window). Default: True.
+- `Restrict plugin file reads to working directory`: When enabled, plugin-mediated reads are limited to the current workdir `data` directory. The application-owned internal `tmp` directory is also permitted for built-in temporary workflows. Default: True.
 
-- `Restrict plugin file writes to working directory`: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current working data directory. Default: True.
+- `Restrict plugin file writes to working directory`: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current workdir `data` directory plus the application-owned internal `tmp` directory. Default: True.
 
-- `Enable system commands whitelist`: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
+- `Enable system command whitelist`: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
 
 *Computer use*
 
@@ -2860,9 +2867,9 @@ Security settings control host-side filesystem access, system commands used by p
 
 *Linux / Windows / macOS*
 
-- `System commands whitelist`: Per-OS comma- or semicolon-separated list of executable/command names allowed for non-sandbox plugin execution. Each OS tab is pre-populated with common file-listing, inspection, and text-processing commands (for example `ls`, `cat`, `grep`, `sed` on Linux/macOS, and `dir`, `type`, `findstr` on Windows).
+- `System command whitelist`: Per-OS comma- or semicolon-separated list of executable/command names allowed for non-sandbox plugin execution. Each OS tab is pre-populated with common file-listing, inspection, and text-processing commands (for example `ls`, `cat`, `grep`, `sed` on Linux/macOS, and `dir`, `type`, `findstr` on Windows).
 
-- `System commands blacklist`: Per-OS comma- or semicolon-separated list of executable/command names blocked for non-sandbox plugin execution when the whitelist is disabled. The default blacklist is empty to preserve existing behavior.
+- `System command blacklist`: Per-OS comma- or semicolon-separated list of executable/command names blocked for non-sandbox plugin execution when the whitelist is disabled. The default blacklist is empty to preserve existing behavior.
 
 If access is blocked, the plugin returns a `Permission denied` result that points to `Settings -> Security`. The checks are shared by filesystem-capable plugins and host-side command execution, including Files I/O, Web Search file upload/download paths, System (OS), Custom Commands, Code Interpreter host execution, server transfers, and integrations that upload or save local files.
 
@@ -2876,7 +2883,7 @@ If access is blocked, the plugin returns a `Permission denied` result that point
 
 **Updates**
 
-- `Check for updates on start`: Checks for application updates when PyGPT starts. Default: True.
+- `Check for updates at startup`: Checks for application updates when PyGPT starts. Default: True.
 
 - `Check for updates in the background`: Checks for application updates periodically in the background. Default: True.
 
@@ -2892,7 +2899,7 @@ If access is blocked, the plugin returns a `Permission denied` result that point
 
 - `Log plugin usage to console`: Enables plugin usage logging in the console. Default: False.
 
-- `Log image generation usage to console`: Enables image-generation usage logging in the console. Default: False.
+- `Log image and video generation to console`: Enables image/video-generation usage logging in the console. Default: False.
 
 - `Log attachments usage to console`: Enables attachment usage logging in the console. Default: False.
 
@@ -2904,6 +2911,12 @@ If access is blocked, the plugin returns a `Permission denied` result that point
 *General*
 
 - `Log Agents usage to console`: Enables agent usage logging in the console. Default: False.
+
+- `Log agents v2 workflow`: Logs a concise Agents v2 workflow trace without full prompts or large payloads. Default: False.
+
+- `Agents v2 verbose (log full flow to console)`: Logs the complete Agents v2 orchestration flow. This may include sensitive prompt/tool content. Default: False.
+
+- `Log legacy API usage to console`: Enables logging for legacy API/assistant paths. Default: False.
 
 ## JSON files
 
@@ -3012,7 +3025,7 @@ pre {{
 
 **Configuring data loaders**
 
-In the `Settings -> LlamaIndex -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance.
+In the `Settings -> Indexes / LlamaIndex -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance.
 
 In most cases, an internal LlamaIndex loaders are used internally. 
 You can check these base loaders e.g. here:

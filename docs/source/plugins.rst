@@ -124,7 +124,7 @@ User agent to use when making requests, default: ``Mozilla/5.0``. *Default:* `Mo
 Audio Input
 ------------
 
-The plugin facilitates speech recognition (by default using the ``Whisper`` model from OpenAI, ``Google`` and ``Bing`` are also available). It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new ``Speak`` option will appear at the bottom near the ``Send`` button  -  when this is enabled, the application will respond to the voice received from the microphone.
+The plugin facilitates speech recognition. The default provider is OpenAI Whisper; local Whisper, Google, Google Cloud, Google GenAI, Microsoft Bing, and xAI Grok Voice providers are also available. It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new ``Speak`` option will appear at the bottom near the ``Send`` button  -  when this is enabled, the application will respond to the voice received from the microphone.
 
 The plugin can be extended with other speech recognition providers.
 
@@ -141,6 +141,8 @@ Available providers:
 * Google (via ``SpeechRecognition`` library)
 * Google Cloud (via ``SpeechRecognition`` library)
 * Microsoft Bing (via ``SpeechRecognition`` library)
+* Google GenAI
+* xAI Grok Voice
 
 **Whisper (API)**
 
@@ -156,6 +158,14 @@ Choose the local model. *Default:* `base`
 
 Available models: https://github.com/openai/whisper
 
+- ``Custom model name override`` *whisper_local_model_custom*
+
+Optional custom model name or local checkpoint path. When set, it overrides the model selected above. *Default:* empty
+
+- ``Keep model in RAM`` *whisper_local_keep_in_memory*
+
+Keep the local Whisper model loaded between transcriptions. Disable this to reduce RAM usage at the cost of reloading it from the local cache for each transcription. *Default:* `True`
+
 **Google**
 
 - ``Additional keywords arguments`` *google_args*
@@ -164,9 +174,26 @@ Additional keywords arguments for r.recognize_google(audio, **kwargs)
 
 **Google Cloud**
 
-- ``Additional keywords arguments`` *google_args*
+- ``Additional keywords arguments`` *google_cloud_args*
 
-Additional keywords arguments for r.recognize_google_cloud(audio, **kwargs)
+Additional keyword arguments passed to ``recognize_google_cloud(audio, **kwargs)``. The default list contains ``language=en-US``.
+
+**Google GenAI**
+
+- ``Model`` *google_genai_audio_model*
+
+Gemini model used for audio transcription. *Default:* ``gemini-2.5-flash``
+
+- ``System Prompt`` *google_genai_audio_prompt*
+
+System instruction used to guide transcription output.
+
+**xAI Grok Voice**
+
+- ``Sample rate (Hz)`` *xai_voice_audio_sample_rate* - PCM input sample rate. *Default:* ``16000``
+- ``System Prompt`` *xai_voice_system_prompt* - system instruction used to guide transcription output.
+- ``Region (optional)`` *xai_voice_region* - optional regional endpoint such as ``us-east-1``; empty uses the global endpoint.
+- ``Chunk size (ms)`` *xai_voice_chunk_ms* - WebSocket audio chunk size. *Default:* ``200``
 
 **Bing**
 
@@ -265,8 +292,8 @@ Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 Audio Output
 -------------------------
 
-The plugin lets you turn text into speech using the TTS model from OpenAI or other services like ``Microsoft Azure``, ``Google``, and ``Eleven Labs``. You can add more text-to-speech providers to it too. ``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
-Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via ``Microsoft Azure``, ``Google`` or ``Eleven Labs``, you must configure the audio plugin with your API keys, regions and voices if required.
+The plugin lets you turn text into speech using OpenAI TTS or providers such as ``Microsoft Azure``, ``Google Cloud TTS``, ``Google GenAI TTS``, ``Eleven Labs``, and ``xAI TTS``. You can add more text-to-speech providers to it too. ``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
+Provider-specific credentials are required where applicable: Azure and Eleven Labs use plugin credentials, Google GenAI uses the Google API key from Settings, and xAI TTS uses the xAI API key from Settings. Configure voices, regions, and provider-specific options in the plugin settings.
 
 Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
 
@@ -283,7 +310,9 @@ Available providers:
 * OpenAI TTS
 * Microsoft Azure TTS
 * Google TTS
+* Google GenAI TTS
 * Eleven Labs TTS
+* xAI TTS
 
 **OpenAI Text-To-Speech**
 
@@ -337,9 +366,19 @@ You can obtain your own API key at: https://console.cloud.google.com/apis/librar
 
 Specify voice. Voices: https://cloud.google.com/text-to-speech/docs/voices
 
-- ``Language code`` *google_api_key*
+- ``Language code`` *google_lang*
 
-Language code. Language codes: https://cloud.google.com/speech-to-text/docs/speech-to-text-supported-languages
+Language code used for synthesis. *Default:* ``en-US``. Language codes: https://cloud.google.com/speech-to-text/docs/speech-to-text-supported-languages
+
+**Google GenAI Text-To-Speech**
+
+- ``Model`` *google_genai_tts_model*
+
+Gemini TTS model. *Default:* ``gemini-2.5-flash-preview-tts``
+
+- ``Voice`` *google_genai_tts_voice*
+
+Gemini TTS voice name; values are case-sensitive. *Default:* ``Kore``
 
 **Eleven Labs Text-To-Speech**
 
@@ -354,6 +393,14 @@ Voice ID. Voices: https://elevenlabs.io/voice-library
 - ``Model`` *eleven_labs_model*
 
 Specify model. Models: https://elevenlabs.io/docs/speech-synthesis/models
+
+**xAI Text-To-Speech**
+
+- ``Voice`` *xai_tts_voice* - Grok Voice name (Ara, Rex, Sal, Eve, Leo). *Default:* ``Ara``
+- ``Sample rate (Hz)`` *xai_tts_sample_rate* - PCM output sample rate. *Default:* ``24000``
+- ``System Prompt`` *xai_tts_instructions* - instruction controlling speaking style. *Default:* neutral, clear, verbatim TTS instruction.
+- ``File container`` *xai_tts_file_container* - ``wav`` or ``raw``. *Default:* ``wav``
+- ``Region (optional)`` *xai_tts_region* - optional regional endpoint; empty uses the global endpoint.
 
 
 If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via model.
@@ -393,6 +440,10 @@ First active prompt on list will be used to handle autonomous mode.
 - ``Auto-stop after goal is reached`` *auto_stop*
 
 If enabled, plugin will stop after goal is reached. *Default:* `True`
+
+- ``Always continue`` *always_continue*
+
+If enabled, the plugin proceeds to the next iteration even when the goal has already been reached. *Default:* `False`
 
 - ``Reverse roles between iterations`` *reverse_roles*
 
@@ -655,7 +706,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
     $ sudo snap connect pygpt:docker docker:docker-daemon
 
-**Code interpreter:** a real-time Python code interpreter is built-in. Click the ``<>`` icon to open the interpreter window. Both the input and output of the interpreter are connected to the plugin. Any output generated by the executed code will be displayed in the interpreter. Additionally, you can request the model to retrieve contents from the interpreter window output.
+**Code interpreter:** a real-time Python code interpreter is built-in. Click the ``<>`` icon to open the interpreter window. Code input/output is mirrored to this window when ``Connect to the Python code interpreter window`` is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set ``Max interpreter window entries`` to ``0`` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
 
 .. image:: images/v2_python.png
    :width: 600
@@ -674,6 +725,14 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
 Automatically attach code input/output to the Python code interpreter window. *Default:* ``True``
 
+- ``Max interpreter window entries`` *output_max_entries*
+
+Maximum number of input/output blocks kept in the interpreter window. Set to ``0`` for no limit. *Default:* ``30``
+
+- ``Always run code in a fresh kernel`` *fresh_kernel*
+
+If enabled, each code execution uses the same path as the interpreter's **Run in a fresh kernel** action instead of reusing the current kernel state. *Default:* ``False``
+
 - ``Tool: get_python_output`` *cmd.get_python_output*
 
 Allows ``get_python_output`` command execution. If enabled, it allows retrieval of the output from the Python code interpreter window. *Default:* ``True``
@@ -691,9 +750,13 @@ Allows ``clear_python_output`` command execution. If enabled, it allows clear th
 
 - ``Sandbox (docker container)`` *sandbox_ipython*
 
-Executes IPython in sandbox (docker container). Docker must be installed and running.
+Executes IPython in a Docker sandbox. Docker must be installed and running. *Default:* ``False``
 
-- ``Dockerfile`` *ipython_dockerfile*
+- ``Run as root`` *ipython_run_as_root*
+
+Run the IPython sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. *Default:* ``False``
+
+- ``Dockerfile for IPython kernel`` *ipython_dockerfile*
 
 You can customize the Dockerfile for the image used by IPython by editing the configuration above and rebuilding the image via Tools -> Rebuild IPython Docker Image.
 
@@ -746,7 +809,11 @@ Allows to restart IPython kernel. *Default:* ``True``
 
 - ``Sandbox (docker container)`` *sandbox_docker*
 
-Executes commands in sandbox (docker container). Docker must be installed and running.
+Executes legacy Python commands in a Docker sandbox. Docker must be installed and running. *Default:* ``False``
+
+- ``Run as root`` *docker_run_as_root*
+
+Run the legacy Python sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. *Default:* ``False``
 
 - ``Python command template`` *python_cmd_tpl*
 
@@ -762,7 +829,19 @@ Custom Docker image name
 
 - ``Docker container name`` *container_name*
 
-Custom Docker container name
+Custom Docker container name. *Default:* ``pygpt_python_legacy_container``
+
+- ``Docker run command`` *docker_entrypoint*
+
+Command used to keep the legacy Python container alive. *Default:* ``tail -f /dev/null``
+
+- ``Docker volumes`` *docker_volumes*
+
+Host-to-container volume mappings. The stock configuration maps the PyGPT workdir to ``/data``.
+
+- ``Docker ports`` *docker_ports*
+
+Optional host-to-container port mappings. The default list is empty.
 
 - ``Tool: code_execute`` *cmd.code_execute*
 
@@ -787,13 +866,6 @@ Allows ``render_html_output`` command execution. If enabled, it allows to render
 
 Allows ``get_html_output`` command execution. If enabled, it allows retrieval current output from HTML Canvas. *Default:* ``True``
 
-- ``Sandbox (docker container)`` *sandbox_docker*
-
-Execute commands in sandbox (docker container). Docker must be installed and running. *Default:* ``False``
-
-- ``Docker image`` *sandbox_docker_image*
-
-Docker image to use for sandbox *Default:* ``python:3.8-alpine``
 
 Context history (calendar, inline)
 ----------------------------------
@@ -1033,6 +1105,10 @@ Matches one of the valid OAuth Redirect URIs in your Meta App.
 - ``Scopes`` *oauth2_scopes*
 
 Space-separated authorized permissions. 
+
+- ``(auto) nonce`` *oauth2_nonce*
+
+Generated automatically by ``fb_oauth_begin`` for the OIDC flow. This is an internal cached value and normally should not be edited manually. *Secret*
 
 - ``User Access Token`` *oauth2_access_token*
 
@@ -1335,6 +1411,10 @@ The plugin provides seamless integration with GitHub, allowing various operation
 - ``Auto-start auth when required`` *oauth_auto_begin*
 
   Start Device Flow automatically when a command requires a token. *Default:* `True`
+
+- ``(auto) Granted scopes`` *oauth_scope_granted*
+
+  Scopes returned after successful authorization. This value is maintained automatically.
 
 **Tokens**
 
@@ -1793,8 +1873,8 @@ The model will see commands like:
 Caching (Tools Cache)
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Enable “Cache tools list” to avoid discovering tools on every prompt.
-- TTL defines how long (in seconds) the cache stays valid per server (default: 300).
+- ``Cache tools list`` *tools_cache_enabled* - cache discovered tools so they do not have to be rediscovered for every prompt. *Default:* ``True``
+- ``Cache TTL (seconds)`` *tools_cache_ttl* - how long the tool list remains valid per server. *Default:* ``300``
 - The plugin automatically invalidates the cache if you change server configuration (label, address, authorization, allow/deny lists).
 - To force refresh immediately, toggle a server off/on or modify any of its fields and save.
 
@@ -1863,6 +1943,10 @@ Allows keyboard typing. *Default:* `True`
 
 Allows making screenshots. *Default:* `True`
 
+- ``Auto-focus on the window`` *auto_focus*
+
+Clicks/focuses the target window before keyboard typing. *Default:* ``False``
+
 - ``Tool: mouse_get_pos`` *cmd.mouse_get_pos*
 
 Allows ``mouse_get_pos`` command execution. *Default:* `True`
@@ -1897,13 +1981,13 @@ Allows ``keyboard_type`` command execution. *Default:* `True`
 
 **Sandbox (Playwright)**
 
-- ``Browsers directory`` - Path to Playwright browsers installation - leave empty to use default
-- ``Engine`` - Playwright browser engine to use (chromium, firefox, webkit) - must be installed
-- ``Headles mode`` - Run Playwright browser in headless mode (default: False)
-- ``Browser args`` - Additional Playwright browser arguments (comma-separated)
-- ``Home URL`` - Playwright browser home URL
-- ``Viewport width`` - Playwright viewport width in pixels
-- ``Viewport height`` - Playwright viewport height in pixels
+- ``Browsers directory`` *sandbox_path* - path to the Playwright browser installation; leave empty to use the default.
+- ``Engine`` *sandbox_engine* - Playwright browser engine: ``chromium``, ``firefox``, or ``webkit``. *Default:* ``chromium``
+- ``Headless mode`` *sandbox_headless* - run the Playwright browser without a visible window. *Default:* ``False``
+- ``Browser args`` *sandbox_args* - additional comma-separated browser arguments. *Default:* ``--disable-extensions, --disable-file-system``
+- ``Home URL`` *sandbox_home* - browser home page. *Default:* ``https://duckduckgo.com``
+- ``Viewport width`` *sandbox_viewport_w* - viewport width in pixels. *Default:* ``1440``
+- ``Viewport height`` *sandbox_viewport_h* - viewport height in pixels. *Default:* ``900``
 
 You can run this mode in Sandbox (using ``Playwright`` - https://playwright.dev/) - to do it, just enable the ``Sandbox`` switch in the toolbox. Playwright browsers must be installed on your system. To do so, run:
 
@@ -1912,7 +1996,7 @@ You can run this mode in Sandbox (using ``Playwright`` - https://playwright.dev/
    pip install playwright
    playwright install <chromium|firefox|webkit>
 
-After that, set the path to directory with installed browsers in ``Mouse and Keyborad`` plugin settings option: ``Sandbox (Playwright) / Browsers directory``.
+After that, set the path to directory with installed browsers in ``Mouse and Keyboard`` plugin settings option: ``Sandbox (Playwright) / Browsers directory``.
 
 Compiled binary and Snap versions have ``chromium`` preinstalled in the package.
 
@@ -2462,6 +2546,10 @@ The plugin provides access to the operating system and executes system commands.
 
 Automatically append current working directory to ``sys_exec`` command. *Default:* ``True``
 
+- ``Connect to the Python code interpreter window`` *attach_output*
+
+Mirror ``sys_exec`` command input and output to the Python code interpreter window. *Default:* ``True``
+
 - ``Tool: sys_exec`` *cmd.sys_exec*
 
 Allows ``sys_exec`` command execution. If enabled, provides system commands execution. *Default:* ``True``
@@ -2472,9 +2560,13 @@ Allows ``sys_exec`` command execution. If enabled, provides system commands exec
 
   Executes all ``sys_exec`` shell commands inside an isolated Docker container. Requires Docker to be installed and running. Default: ``False``
 
+- ``Run as root`` *docker_run_as_root*
+
+  Run the System sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` can be used for commands that require root privileges. Default: ``False``
+
 - ``Dockerfile`` *dockerfile*
 
-  The Dockerfile used to build the sandbox image. You can customize it and rebuild via Tools → “Rebuild Docker sandbox Images”. Default: a minimal Python image with ``/data`` workdir.
+  The Dockerfile used to build the sandbox image. The stock image is based on Python 3.12 Alpine, includes commonly used shell/network utilities, uses ``/data`` as the workdir, and runs as the unprivileged ``pygpt`` user by default. You can customize it and rebuild via Tools → “Rebuild Docker sandbox Images”.
 
 - ``Docker image name`` *image_name*
 
@@ -2724,6 +2816,30 @@ The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless in
 
   Language setting for API interactions. *Default:* `en`
 
+**Credentials**
+
+- ``Tuya Client ID`` *tuya_client_id*
+
+  Client ID from the Tuya IoT Platform Cloud project. *Secret*
+
+- ``Tuya Client Secret`` *tuya_client_secret*
+
+  Client secret from the Tuya IoT Platform Cloud project. *Secret*
+
+- ``Tuya UID (App Account)`` *tuya_uid*
+
+  UID of the linked Tuya App account; required for listing devices.
+
+**Automatically managed state**
+
+The following plugin fields are maintained by the Tuya integration and normally should not be edited manually:
+
+- ``(auto) Access token`` *tuya_access_token* - stored access token. *Secret*
+- ``(auto) Refresh token`` *tuya_refresh_token* - stored refresh token when provided. *Secret*
+- ``(auto) Expires in (s)`` *tuya_token_expires_in* - token lifetime in seconds.
+- ``(auto) Expire at (epoch s)`` *tuya_token_expire_at* - expiration timestamp. *Default:* ``0``
+- ``(auto) Cached devices`` *tuya_cached_devices* - cached device list used by name search. *Default:* ``[]``
+
 **Commands**
 
 **Auth**
@@ -2798,6 +2914,15 @@ The TwelveLabs plugin brings native video understanding to PyGPT through the `Tw
 
 Provide your API key in the plugin settings, or set the ``TWELVELABS_API_KEY`` environment variable. You can grab a free API key at https://twelvelabs.io — there is a generous free tier.
 
+**Options**
+
+- ``API Key`` *api_key* - TwelveLabs API key; if empty, ``TWELVELABS_API_KEY`` is used.
+- ``Pegasus model`` *pegasus_model* - model used for video analysis. *Default:* ``pegasus1.5``
+- ``Marengo model`` *marengo_model* - model used for multimodal embeddings. *Default:* ``marengo3.0``
+- ``Max tokens`` *max_tokens* - default maximum output tokens for Pegasus analysis. *Default:* ``2048``
+- ``Temperature`` *temperature* - default Pegasus sampling temperature. *Default:* ``0.2``
+- ``Request timeout (s)`` *timeout* - TwelveLabs API request timeout. *Default:* ``300``
+
 **Commands**
 
 - ``tl_analyze_video``
@@ -2847,6 +2972,10 @@ Voice Control (inline)
 
 The plugin provides voice control command execution within a conversation.
 
+**Options**
+
+- ``Magic prefix for voice commands`` *cmd_prefix* - optional phrase required before an inline voice command is accepted. *Default:* ``Execute voice command``
+
 See the ``Accessibility`` section for more details.
 
 
@@ -2867,8 +2996,18 @@ Choose the provider. *Default:* `Google`
 
 Available providers:
 
+- DuckDuckGo
 - Google
 - Microsoft Bing
+
+**DuckDuckGo**
+
+DuckDuckGo does not require an API key. In source/PyPI installations it requires the ``duckduckgo-search`` or ``ddgs`` package.
+
+- ``Region (kl)`` *ddg_region* - regional search setting, e.g. ``us-en``, ``pl-pl``, or ``wt-wt``. *Default:* ``us-en``
+- ``SafeSearch`` *ddg_safesearch* - ``on``, ``moderate``, or ``off``. *Default:* ``off``
+- ``Time limit (df)`` *ddg_timelimit* - ``d``, ``w``, ``m``, ``y``, or empty for any time. *Default:* empty
+- ``Backend`` *ddg_backend* - ``auto``, ``html``, or ``lite``. *Default:* ``html``
 
 **Google**
 
@@ -2912,7 +3051,11 @@ API endpoint for Bing Search API, default: https://api.bing.microsoft.com/v7.0/s
 
 - ``Number of pages to search`` *num_pages*
 
-Number of max pages to search per query. *Default:* `10`
+Maximum number of search results/pages requested per query. *Default:* `10`
+
+- ``Number of max URLs to open at once`` *max_open_urls*
+
+Maximum number of URLs that the plugin opens in one batch. *Default:* ``3``
 
 - ``Max content characters`` *max_page_content_length*
 
@@ -2924,11 +3067,15 @@ Per-page content chunk size (max characters per chunk). *Default:* `20000`
 
 - ``Disable SSL verify`` *disable_ssl*
 
-Disables SSL verification when crawling web pages. *Default:* `False`
+Disables SSL certificate verification when crawling web pages. *Default:* `True`
 
 - ``Use raw content (without summarization)`` *raw*
 
 Return raw content from web search instead of summarized content. Provides more data but consumes more tokens. *Default:* `True`
+
+- ``Show thumbnail images`` *img_thumbnail*
+
+Fetch thumbnail images from opened websites when available. *Default:* ``True``
 
 - ``Timeout`` *timeout*
 

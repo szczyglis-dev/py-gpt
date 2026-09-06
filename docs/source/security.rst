@@ -13,7 +13,7 @@ Filesystem access
 Two independent restrictions are available:
 
 * ``Restrict plugin file reads to working directory`` - enabled by default.
-* ``Restrict plugin file writes to working directory`` - disabled by default.
+* ``Restrict plugin file writes to working directory`` - enabled by default.
 
 When a restriction is enabled, plugin-mediated host filesystem access is limited to the user-facing
 ``%workdir%/data`` directory. PyGPT also allows its own internal ``%workdir%/tmp`` directory so

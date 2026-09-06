@@ -90,7 +90,7 @@ To use the ``RAG`` mode, the file must be indexed in the vector database. This o
 
 **Embeddings**
 
-When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: ``Config -> Settings -> Files and Attachments``. You can also choose the embedding models for specified providers in ``Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Default embedding models`` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
+When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: ``Config -> Settings -> Files and Attachments``. You can also choose the embedding models for specified providers in ``Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Default embedding providers for attachments`` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
 
 For example, if the RAG query model is ``gpt-4o-mini``, then the default model for the provider ``OpenAI`` will be used. If the default model for ``OpenAI`` is not specified on the list, the global provider and model will be used.
 

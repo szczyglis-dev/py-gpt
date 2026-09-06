@@ -13,7 +13,7 @@ The following basic options can be modified directly within the application:
 .. image:: images/v2_settings.png
    :width: 400
 
-The options below mirror the current application settings defined in ``settings.json``. Provider- and feature-specific options are grouped by the same tabs used in the Settings window.
+The options below follow the current Settings UI metadata from ``settings.json`` and the packaged fresh-install defaults from ``config.json``. Provider- and feature-specific options are grouped by the same tabs used in the Settings window.
 
 **General**
 
@@ -45,9 +45,9 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``API Endpoint``: OpenAI API (or compatible) endpoint URL, default: https://api.openai.com/v1.
 
-* ``Use Responses API in Chat mode``: Use Responses API instead of ChatCompletions API in Chat mode. Default: True.
+* ``Use the Responses API in Chat mode``: Use Responses API instead of ChatCompletions API in Chat mode. Default: True.
 
-* ``Use Responses API in Chat with Files mode (LlamaIndex)``: Use Responses API instead of ChatCompletions API in Chat with Files mode (LlamaIndex). OpenAI models only. Default: True.
+* ``Use the Responses API in Chat with Files mode (LlamaIndex)``: Use Responses API instead of ChatCompletions API in Chat with Files mode (LlamaIndex). OpenAI models only. Default: True.
 
 *Google*
 
@@ -57,7 +57,7 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Use native API SDK``: Use native GenAI SDK instead of compatible OpenAI client. Default: True.
 
-* ``Use VertexAI``: Enable to use VertexAI in Google GenAI SDK. Default: False.
+* ``Use Vertex AI``: Enable this option to use Vertex AI with the Google Gen AI SDK. Default: False.
 
 * ``Google Cloud project``: Provide your Google Cloud project name.
 
@@ -75,7 +75,7 @@ The options below mirror the current application settings defined in ``settings.
 
 *HuggingFace*
 
-* ``HuggingFace API key``: Required for the HuggingFace API.
+* ``Hugging Face API key``: Required for the HuggingFace API.
 
 * ``Router API Endpoint``: API Endpoint for HuggingFace Router provider (OpenAI compatible ChatCompletions). Default: https://router.huggingface.co/v1.
 
@@ -115,7 +115,7 @@ The options below mirror the current application settings defined in ``settings.
 
 *VoyageAI*
 
-* ``VoyageAI API key``: Required for the Voyage API - embeddings for Anthropic and DeepSeek API.
+* ``Voyage AI API key``: Required for the Voyage API - embeddings for Anthropic and DeepSeek API.
 
 *OpenRouter*
 
@@ -147,11 +147,11 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Chat output window zoom``: WebEngine / Chromium rendering engine only. Default: 1.0.
 
-* ``Font size (chat plain-text, notepads)``: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 16.
+* ``Font size (chat plain text, notepads)``: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 16.
 
 * ``Font size (input)``: Tip: You can change the font size using CTRL + Mouse Wheel. Default: 16.
 
-* ``Font size (ctx list)``: Adjusts the font size in the contexts list. Default: 12.
+* ``Font size (context list)``: Adjusts the font size in the contexts list. Default: 12.
 
 * ``Font size (toolbox)``: Adjusts the font size in the toolbox on the right. Default: 12.
 
@@ -169,17 +169,17 @@ The options below mirror the current application settings defined in ``settings.
 
 *Code syntax*
 
-* ``Code syntax highlight``: WebEngine / Chromium rendering engine only. Default: github-dark.
+* ``Code syntax highlighting``: WebEngine / Chromium rendering engine only. Default: darcula.
 
-* ``Disable syntax highlight``: Disables syntax highlighting in code blocks. Default: False.
+* ``Disable syntax highlighting``: Disables syntax highlighting in code blocks. Default: False.
 
-* ``Highlight every N line (real-time)``: Syntax highlight: highlight every N line in stream. Default: 5.
+* ``Highlight every Nth line (real-time)``: Syntax highlighting: highlight every Nth line in the stream. Default: 5.
 
-* ``Highlight every N chars (real-time)``: Syntax highlight: highlight every N chars in stream. Default: 1000.
+* ``Highlight every N chars (real-time)``: Syntax highlighting: highlight every N characters in the stream. Default: 1000.
 
-* ``Max lines to highlight (real-time)``: Syntax highlight: max lines to highlight in stream, 0 to disable. Default: 100.
+* ``Max lines to highlight (real-time)``: Syntax highlighting: maximum lines to highlight in the stream; 0 to disable. Default: 100.
 
-* ``Max lines to highlight (static)``: Syntax highlight: max lines to highlight in static content, 0 to disable. Default: 3000.
+* ``Max lines to highlight (static)``: Syntax highlighting: maximum lines to highlight in static content; 0 to disable. Default: 3000.
 
 * ``Max chars to highlight (static)``: Syntax highlight: max chars to highlight in static content, 0 to disable. Default: 350000.
 
@@ -213,13 +213,13 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Context auto-summary``: Enable automatic summarization of the context on the conversation list on the left. Default: True.
 
-* ``Show projects on top of the context list``: Displays projects at the top of the context list. Default: True.
+* ``Show projects at the top of the context list``: Displays projects at the top of the context list. Default: True.
 
-* ``Show date separators on the context list``: Shows date separators on the context list. Default: True.
+* ``Show date separators in the context list``: Shows date separators on the context list. Default: True.
 
-* ``Show date separators in projects on the context list``: Shows date separators inside projects. Default: True.
+* ``Show date separators in projects in the context list``: Shows date separators inside projects. Default: True.
 
-* ``Show date separators in pinned items on the context list``: Shows date separators for pinned context items. Default: False.
+* ``Show date separators in pinned items in the context list``: Shows date separators for pinned context items. Default: False.
 
 * ``Use context (memory)``: Toggles the use of conversation context (memory of previous inputs). Default: True.
 
@@ -229,9 +229,11 @@ The options below mirror the current application settings defined in ``settings.
 
 * ``Lock incompatible modes``: Creates a new context when switching to an incompatible mode within an existing context. Default: True.
 
-* ``Search also in conversation content, not only in titles``: Enable search also in context items' content. Default: True.
+* ``Search conversation content as well as titles``: Enable search also in context items' content. Default: True.
 
 * ``Show LlamaIndex sources``: If enabled, sources used will be displayed in the response (if available, it will not work in streamed chat). Default: True.
+
+* ``Show Code Interpreter output``: When enabled, displays output returned by an external Code Interpreter. Default: True.
 
 
 * ``Show reasoning in real-time``: Show provider reasoning/thinking while the response is being generated. Default: True.
@@ -328,8 +330,11 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Use native API function calls``: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts from below will not be used. Chat mode. Default: True.
 
-* ``Command execute: instruction``: Placeholders: {schema}, {extra}.
+* ``Command execution: instruction``: Instruction used by the legacy/internal tool-call format. Placeholders: {schema}, {extra}.
 
+* ``Command execution: extra footer``: Extra footer appended to the internal tool-call instruction.
+
+* ``Legacy command execution footer``: Compatibility footer used by legacy assistant/tool execution paths.
 
 
 * ``Context: auto-summary (system prompt)``: System prompt used for automatic context summarization.
@@ -422,7 +427,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``VAD end silence (in ms)``: Sets VAD end-silence duration in milliseconds for real-time audio mode. Default: 2000.
 
-* ``Audio notify microphone listening start/stop``: Plays an audio notification when microphone listening starts or stops. Default: False.
+* ``Audio notification for microphone listening start/stop``: Plays an audio notification when microphone listening starts or stops. Default: False.
 
 *Cache*
 
@@ -442,9 +447,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 *Chat*
 
-* ``Chat mode``: Check LlamaIndex documentation for help. Default: default.
+* ``Chat mode``: Check LlamaIndex documentation for help. Default: context.
 
-* ``Use ReAct agent for tool calls in Chat with Files mode.``: If enabled, the ReAct agent will be used if the option "+Tools" is enabled. Default: True.
+* ``Use ReAct agent for tool calls in Chat with Files mode.``: If enabled, the ReAct agent will be used if the option "+Tools" is enabled. Default: False.
 
 * ``Auto-retrieve additional context``: If enabled, additional context will be retrieved with every query and appended to system prompt. Default: True.
 
@@ -452,7 +457,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Embeddings provider``: Selects the global embeddings provider used for indexing and Chat with Files. Default: openai.
 
-* ``RPM limit``: Limit for embeddings API calls - specify the limit of maximum requests per minute (RPM), 0 = no limit. Default: 60.
+* ``RPM limit``: Limit for embeddings API calls - specify the limit of maximum requests per minute (RPM), 0 = no limit. Default: 100.
 
 * ``Embeddings provider ENV vars``: Environment to set up before embedding provider initialization, such as API keys, etc. Use {config_key} as a placeholder to use the value from the application configuration.
 
@@ -462,7 +467,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 *File indexing*
 
-* ``Recursive directory indexing``: Enables recursive directory indexing. Default: False.
+* ``Recursive directory indexing``: Enables recursive directory indexing. Default: True.
 
 * ``Replace old document versions in the index during re-indexing``: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed. Default: True.
 
@@ -472,9 +477,9 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Stop indexing when an error occurs``: If enabled, indexing will be stopped when any error occurs. Default: True.
 
-* ``Custom metadata to append/replace to indexed documents (files)``: Define custom metadata key => value fields for specified file extensions, separate extensions by comma. Allowed placeholders: {path}, {relative_path}, {filename}, {dirname}, {relative_dir}, {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}.
+* ``Custom metadata to add to or replace in indexed documents (files)``: Define custom metadata key => value fields for specified file extensions, separate extensions by comma. Allowed placeholders: {path}, {relative_path}, {filename}, {dirname}, {relative_dir}, {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}.
 
-* ``Custom metadata to append/replace to indexed documents (web/external content)``: Define custom metadata key => value fields for specified external data loaders. Allowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}.
+* ``Custom metadata to add to or replace in indexed documents (web/external content)``: Define custom metadata key => value fields for specified external data loaders. Allowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}.
 
 *Context indexing*
 
@@ -508,13 +513,13 @@ See :doc:`indexing` for the complete description of global context indexing, iso
 
 * ``Model for evaluation``: Model used for evaluation with score/percentage (loop). If not selected, then current active model will be used.
 
-* ``Append and compare previous evaluation prompt in next evaluation``: If enabled, previous improvement prompt will be checked in next eval in loop. Default: False.
+* ``Append and compare the previous evaluation prompt in the next evaluation``: If enabled, previous improvement prompt will be checked in next eval in loop. Default: False.
 
 * ``Split response messages``: Split response messages into separate context items in OpenAI Agents mode. Default: True.
 
 *General / v2*
 
-* ``Auto retrieve additional context from RAG``: Automatically retrieves additional RAG context at the beginning of a run when an index is provided. Default: True.
+* ``Automatically retrieve additional context from RAG``: Automatically retrieves additional RAG context at the beginning of a run when an index is provided. Default: True.
 
 * ``Show full tool-chain in Agents v2``: When enabled, the final Agents v2 response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 
@@ -532,7 +537,7 @@ See :doc:`indexing` for the complete description of global context indexing, iso
 
 * ``Use native API function calls``: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts will not be used. Autonomous agent mode only. Default: False.
 
-* ``Use Responses API in Agent mode``: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: False.
+* ``Use the Responses API in Agent mode``: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: False.
 
 *Experts*
 
@@ -542,19 +547,19 @@ See :doc:`indexing` for the complete description of global context indexing, iso
 
 * ``Use native API function calls``: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts will not be used. Experts only. Default: False.
 
-* ``Use Responses API in Experts mode (master)``: Use Responses API instead of ChatCompletions API in Experts (master model). OpenAI models only. Default: False.
+* ``Use the Responses API in Experts mode (master)``: Use Responses API instead of ChatCompletions API in Experts (master model). OpenAI models only. Default: False.
 
-* ``Use Responses API in Experts (slaves)``: Use Responses API instead of ChatCompletions API for Expert instances (slave models). OpenAI models only. Default: False.
+* ``Use the Responses API in Experts mode (slaves)``: Use Responses API instead of ChatCompletions API for Expert instances (slave models). OpenAI models only. Default: False.
 
 **Accessibility**
 
-* ``Enable voice control (using microphone)``: Enables voice control using the microphone and configured voice commands. Default: False.
+* ``Enable voice control (using the microphone)``: Enables voice control using the microphone and configured voice commands. Default: False.
 
 * ``Model``: Model to use for command recognition in voice control. Default: gpt-4o-mini.
 
 * ``Use voice synthesis to describe events on the screen.``: Uses speech synthesis to describe application events shown on screen. Default: False.
 
-* ``Audio notify voice command execution``: Plays an audio notification when a recognized voice command is executed. Default: True.
+* ``Audio notification for voice command execution``: Plays an audio notification when a recognized voice command is executed. Default: True.
 
 * ``Use audio output cache``: If enabled, all static audio outputs will be cached on the disk instead of being generated every time. Default: True.
 
@@ -562,7 +567,7 @@ See :doc:`indexing` for the complete description of global context indexing, iso
 
 * ``Blacklist for voice synthesis event descriptions (ignored events)``: Add to this list all the actions that should not be described using audio synthesis.
 
-* ``Voice control actions blacklist``: Disable actions in voice control; add actions to the blacklist to prevent execution through voice commands.
+* ``Voice control action blacklist``: Disable actions in voice control; add actions to the blacklist to prevent execution through voice commands.
 
 **Security**
 
@@ -572,9 +577,9 @@ Security settings control host-side filesystem access, system commands used by p
 
 * ``Restrict plugin file reads to working directory``: When enabled, plugin-mediated reads of local files are limited to the current workdir ``data`` directory. The application-owned internal ``tmp`` directory is also allowed so built-in temporary workflows such as IPython and Canvas can operate. Default: True.
 
-* ``Restrict plugin file writes to working directory``: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current workdir ``data`` directory (plus the application-owned internal ``tmp`` directory). Default: False.
+* ``Restrict plugin file writes to working directory``: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current workdir ``data`` directory (plus the application-owned internal ``tmp`` directory). Default: True.
 
-* ``Enable system commands whitelist``: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
+* ``Enable system command whitelist``: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
 
 *Computer use*
 
@@ -582,9 +587,9 @@ Security settings control host-side filesystem access, system commands used by p
 
 *Linux / Windows / macOS*
 
-* ``System commands whitelist``: Per-OS comma- or semicolon-separated list of executable/command names allowed for non-sandbox plugin execution. Each OS tab is pre-populated with common file-listing, inspection, and text-processing commands (for example ``ls``, ``cat``, ``grep``, ``sed`` on Linux/macOS, and ``dir``, ``type``, ``findstr`` on Windows).
+* ``System command whitelist``: Per-OS comma- or semicolon-separated list of executable/command names allowed for non-sandbox plugin execution. Each OS tab is pre-populated with common file-listing, inspection, and text-processing commands (for example ``ls``, ``cat``, ``grep``, ``sed`` on Linux/macOS, and ``dir``, ``type``, ``findstr`` on Windows).
 
-* ``System commands blacklist``: Per-OS comma- or semicolon-separated list of executable/command names blocked for non-sandbox plugin execution when the whitelist is disabled. The default blacklist is empty to preserve existing behavior.
+* ``System command blacklist``: Per-OS comma- or semicolon-separated list of executable/command names blocked for non-sandbox plugin execution when the whitelist is disabled. The default blacklist is empty to preserve existing behavior.
 
 If access is blocked, the plugin returns a ``Permission denied`` result that points to ``Settings -> Security``. The checks are shared by filesystem-capable plugins and host-side command execution, including Files I/O, Web Search file upload/download paths, System (OS), Custom Commands, Code Interpreter host execution, server transfers, and integrations that upload or save local files.
 
@@ -600,7 +605,7 @@ If access is blocked, the plugin returns a ``Permission denied`` result that poi
 
 **Updates**
 
-* ``Check for updates on start``: Checks for application updates when PyGPT starts. Default: True.
+* ``Check for updates at startup``: Checks for application updates when PyGPT starts. Default: True.
 
 * ``Check for updates in the background``: Checks for application updates periodically in the background. Default: True.
 
@@ -624,10 +629,13 @@ If access is blocked, the plugin returns a ``Permission denied`` result that poi
 
 * ``Log Realtime sessions to console``: Enables Realtime session logging in the console. Default: False.
 
-
-*General*
-
 * ``Log Agents usage to console``: Enables agent usage logging in the console. Default: False.
+
+* ``Log agents v2 workflow``: Logs a concise Agents v2 workflow trace, including orchestration events, tool names, statuses, waits, and response previews without full prompts or large payloads. Default: False.
+
+* ``Agents v2 verbose (log full flow to console)``: Logs the complete Agents v2 orchestration flow, including system prompts, tool calls, worker state, RAG context, inputs, and outputs. This may contain sensitive data. Default: False.
+
+* ``Log legacy API usage to console``: Enables logging for legacy API/assistant paths. Default: False.
 
 JSON files
 -----------
@@ -744,7 +752,7 @@ Data Loaders
 
 **Configuring data loaders**
 
-In the ``Settings -> LlamaIndex -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance.
+In the ``Settings -> Indexes / LlamaIndex -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance.
 
 In most cases, an internal LlamaIndex loaders are used internally. 
 You can check these base loaders e.g. here:

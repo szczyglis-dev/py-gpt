@@ -8,7 +8,7 @@ Overview
 
 It supports chat, **Agents v2 (beta)** and other agent workflows, completions, Chat with Files (via ``LlamaIndex``), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
 
-**PyGPT** also provides speech synthesis through ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI``, plus speech recognition with ``OpenAI Whisper``, ``Google`` and ``Bing``. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
+**PyGPT** also provides speech synthesis through ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs`` and ``xAI``, plus speech recognition with ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Bing`` and ``xAI Grok Voice``. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
 *Dark theme*
 
@@ -32,8 +32,8 @@ Features
 * Image generation via models like ``gpt-image``, ``Imagen``, ``Gemini`` and ``Nano Banana``.
 * Video generation via models like ``Veo3`` and ``Sora2``.
 * Internet access via ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
-* Speech synthesis via ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI`` Text-To-Speech services.
-* Speech recognition via ``OpenAI Whisper``, ``Google`` and ``Microsoft Speech Recognition``.
+* Speech synthesis via ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs`` and ``xAI`` Text-To-Speech services.
+* Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing`` and ``xAI Grok Voice``.
 * Plugins support with built-in plugins like ``Files I/O``, ``Code Interpreter``, ``Web Search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
 * MCP support.
 * Camera capture for real-time image analysis in Chat and other supported modes.

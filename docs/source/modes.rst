@@ -205,7 +205,7 @@ Plugin allows you to generate images in Chat mode:
 
 For OpenAI models, you can also enable remote image generation in ``Config -> Settings -> Remote Tools``. If enabled, image generation will be available natively within the conversation, without plugins, in Chat mode.
 
-To use ``Imagen`` models you must enable ``VertexAI`` in ``Config -> Settings -> API Keys -> Google -> Advanced options``.
+To use ``Imagen`` models you must enable ``Use Vertex AI`` in ``Config -> Settings -> API Keys -> Google -> Advanced options``.
 
 **Remix, Edit, or Extend**
 
@@ -339,7 +339,7 @@ You can choose between two methods of evaluation:
 - By the percentage of tasks completed
 - By the accuracy (score) of the final response
 
-You can set the limit of steps in such a loop by going to ``Settings -> Agents and experts -> LlamaIndex agents -> Max evaluation steps``. The default value is ``3``, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
+You can set the limit of steps in such a loop by going to ``Settings -> Agents and experts -> Agents -> Max evaluation steps in loop``. The default value is ``3``, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
 
 You can change the prompts used for evaluating the response in ``Settings -> Prompts -> Agent: evaluation prompt in loop``. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
@@ -490,7 +490,7 @@ You can choose which internal mode the agent should use in the settings:
 
 .. code-block:: ini
 
-   Settings / Agent (autonomous) / Sub-mode to use
+   Settings -> Agents and experts -> Autonomous -> Sub-mode for agents
 
 Default mode is: ``Chat``.
 
@@ -498,7 +498,7 @@ If you want to use the LlamaIndex mode when running the agent, you can also spec
 
 .. code-block:: ini
 
-   Settings / Agent (autonomous) / Index to use
+   Settings -> Agents and experts -> Autonomous -> Index to use
 
 Experts (Co-op, co-operation mode)
 ----------------------------------
@@ -521,7 +521,7 @@ Experts can also be used in ``Agent (autonomous)`` mode - by creating a new agen
 
 You can also use experts in "inline" mode - by activating the ``Experts (inline)`` plugin. This allows for the use of experts in any mode, such as normal chat.
 
-Expert mode, like agent mode, is a "virtual" mode - you need to select a target mode of operation for it, which can be done in the settings at ``Settings / Agent (autonomous) / Sub-mode for experts``.
+Expert mode, like agent mode, is a "virtual" mode - you need to select a target mode of operation for it, which can be done in the settings at ``Settings -> Agents and experts -> Experts -> Sub-mode for experts``.
 
 You can also ask for a list of active experts at any time:
 
