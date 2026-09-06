@@ -259,6 +259,12 @@ Agents v2 can use both local and provider-side capabilities:
 
 Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Code Interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
 
+**Settings**
+
+Agent-related application settings are available under ``Settings -> Agents and experts``. The **General / v2** tab contains settings intended for the current Agents v2 workflow. ``Show full tool-chain in Agents v2`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
+
+Options specific to older agent implementations are kept in the **Legacy** tab. ``Display full agent output in chat view`` controls full output rendering for legacy agent modes, while ``Display a tray notification when the goal is achieved`` controls legacy agent completion notifications. These Legacy options do not control the Agents v2 tool-chain display.
+
 **RAG, attachments and artifacts**
 
 If a valid index is selected in the Agents v2 preset, a ``query_index`` RAG tool is exposed to the workflow. User attachments and extracted attachment context are shared with the Orchestrator and workers. When the selected model supports image input, current image attachments are also supplied as native image blocks.

@@ -314,30 +314,100 @@ class NodeTemplateEngine {
 		let toolNamesAttr = '';
 		if (hasToolCalls) {
 			const rawNames = toolCalls.map((call) => String(call.name || 'tool'));
-			const names = rawNames.map((name) => this._escapeHtml(name));
+			const hasPerCallResponses = toolCalls.some((call) =>
+				call && Object.prototype.hasOwnProperty.call(call, 'response')
+			);
+			// A persisted Agents v2 workflow can contain several executed tools on one
+			// final message. Mirror the normal cross-message grouping UI: one outer
+			// "Tools" accordion, then one independently collapsible "Tool" row per call.
+			const groupedInMessage = hasPerCallResponses && rawNames.length > 1;
+			let displayNames = rawNames;
+			if (groupedInMessage) {
+				const shown = rawNames.slice().reverse().slice(0, 2);
+				const remaining = rawNames.length - shown.length;
+				let summary = shown.join(', ');
+				if (remaining > 0) {
+					const tpl = (typeof window !== 'undefined' && window.LOCALE_TOOL_MORE)
+						? String(window.LOCALE_TOOL_MORE)
+						: 'and {count} more';
+					const more = tpl.split('{count}').join(String(remaining));
+					summary += `${summary ? ' … ' : ''}${more}`;
+				}
+				displayNames = [summary];
+			}
+			const names = displayNames.map((name) => this._escapeHtml(name));
 			toolNamesAttr = this._escapeHtml(JSON.stringify(rawNames));
-			const requests = toolCalls
-				.map((call) => this._renderToolCode(call.request))
-				.join('');
 			const resultCode = this._renderToolCode(toolResult);
 
 			const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow' width='25' height='25' alt=''>`;
+			const titleLabel = groupedInMessage && typeof window !== 'undefined' && window.LOCALE_TOOLS
+				? String(window.LOCALE_TOOLS)
+				: toolLabel;
 			titleHtml =
 				`<button type='button' class='tool-output-toggle' onclick='toggleToolOutput(${this._esc(block.id)});' ` +
 				`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
-				`<span class='tool-output-label'><b>${this._escapeHtml(toolLabel)}:</b>&nbsp;</span>` +
+				`<span class='tool-output-label'><b>${this._escapeHtml(titleLabel)}:</b>&nbsp;</span>` +
 				`<span class='tool-output-name'>${names.join(', ')}</span>${arrowHtml}` +
 				`</button>`;
-			const responseDisplay = resultCode ? '' : 'display:none';
-			contentHtml =
-				`<div class='tool-output-section'>` +
-				`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
-				`<div class='tool-output-data tool-output-request-data'>${requests}</div>` +
-				`</div>` +
-				`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
-				`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
-				`<div class='tool-output-data tool-output-result-data'>${resultCode}</div>` +
-				`</div>`;
+
+			if (hasPerCallResponses) {
+				const renderPair = (call) => {
+					const requestCode = this._renderToolCode(call && call.request);
+					const hasResponse = !!call && Object.prototype.hasOwnProperty.call(call, 'response');
+					const responseCode = hasResponse ? this._renderToolCode(call.response) : '';
+					const responseDisplay = hasResponse ? '' : 'display:none';
+					return (
+						`<div class='tool-output-pair'>` +
+						`<div class='tool-output-section'>` +
+						`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
+						`<div class='tool-output-data tool-output-request-data'>${requestCode}</div>` +
+						`</div>` +
+						`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
+						`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
+						`<div class='tool-output-data tool-output-result-data'>${responseCode}</div>` +
+						`</div>` +
+						`</div>`
+					);
+				};
+
+				if (groupedInMessage) {
+					contentHtml = toolCalls.map((call, index) => {
+						const callName = this._escapeHtml(String((call && call.name) || 'tool'));
+						const itemId = `tool-call-${this._esc(block.id)}-${index}`;
+						const itemArrow = `<img src='${this._esc(expIcon)}' class='tool-output-arrow tool-group-arrow' width='25' height='25' alt=''>`;
+						return (
+							`<div class='tool-output-group tool-output-item' id='${itemId}'>` +
+							`<button type='button' class='tool-output-toggle tool-group-toggle' ` +
+							`onclick="toggleToolGroup('${itemId}');" ` +
+							`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
+							`<span class='tool-output-label'><b>${this._escapeHtml(toolLabel)}:</b>&nbsp;</span>` +
+							`<span class='tool-output-name'>${callName}</span>${itemArrow}` +
+							`</button>` +
+							`<div class='tool-group-content' style='display:none'>${renderPair(call)}</div>` +
+							`</div>`
+						);
+					}).join('');
+				} else {
+					contentHtml = renderPair(toolCalls[0]);
+				}
+			} else {
+				// Legacy/single-turn tool rendering keeps its existing common response
+				// section, including incremental ToolOutput.update() behavior.
+				const requests = toolCalls
+					.map((call) => this._renderToolCode(call.request))
+					.join('');
+				const responseDisplay = resultCode ? '' : 'display:none';
+				contentHtml =
+					`<div class='tool-output-section'>` +
+					`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
+					`<div class='tool-output-data tool-output-request-data'>${requests}</div>` +
+					`</div>` +
+					`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
+					`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
+					`<div class='tool-output-data tool-output-result-data'>${resultCode}</div>` +
+					`</div>`;
+			}
+
 		}
 
 		const legacyToggleHtml = hasToolCalls ? '' :

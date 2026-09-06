@@ -2697,6 +2697,10 @@ class Renderer(BaseRenderer):
             # Tool calls are rendered as a compact header (tool name + expand arrow).
             # Their request payload is moved into the same collapsible area as the result.
             tool_calls = self.helpers.extract_tool_calls(output_text)
+            if (not tool_calls
+                    and isinstance(ctx.extra, dict)
+                    and ctx.extra.get("agents_v2_tool_calls_display") is True):
+                tool_calls = self.helpers.extract_extra_tool_calls(ctx.extra.get("tool_calls"))
             visible_output_text = self.helpers.strip_tool_calls(output_text) if tool_calls else output_text
 
             # Pre/post format raw markdown via Helpers to preserve placeholders ([!cmd], think) and workdir tokens.

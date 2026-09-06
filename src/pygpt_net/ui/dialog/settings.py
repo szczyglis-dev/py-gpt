@@ -200,9 +200,16 @@ class Settings(BaseConfigDialog):
                 tab_order = (["general"] + [tid for tid in content_tabs if
                                             tid != "general"]) if "general" in content_tabs else list(content_tabs)
 
+                # keep legacy agent options separated at the end
+                if section_id == "agent" and "legacy" in tab_order:
+                    tab_order = [tid for tid in tab_order if tid != "legacy"] + ["legacy"]
+
                 for tab_id in tab_order:
                     if tab_id == "general":
-                        name_key = trans("settings.section.tab.general")
+                        if section_id == "agent":
+                            name_key = trans("settings.section.agent.general")
+                        else:
+                            name_key = trans("settings.section.tab.general")
                     else:
                         name_key = trans("settings.section." + section_id + "." + tab_id)
                     tab_name = name_key

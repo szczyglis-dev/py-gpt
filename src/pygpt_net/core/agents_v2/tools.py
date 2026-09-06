@@ -164,13 +164,36 @@ class WorkerToolFactory:
                         # Plugin controller/API objects are shared with the rest of PyGPT.
                         # Keep their side effects serialized, while the worker LLM loops remain concurrent.
                         async with self.runtime.local_tool_lock:
+                            # Persist the call in the exact order in which it reaches
+                            # the serialized plugin dispatcher, with normalized params.
+                            display_call_id = self.runtime.record_local_plugin_tool_call(
+                                tool_name, call_args, actor=actor_id
+                            )
                             # Only command dispatch touches the Qt thread. Long-running plugin
                             # work uses the plugin's normal QRunnable path; this coroutine
                             # awaits its reply without blocking the GUI event loop.
-                            response = await self.runtime.emitter.execute_plugin(
-                                tool_ctx,
-                                [cmd],
-                                self.runtime.is_stopped,
+                            try:
+                                response = await self.runtime.emitter.execute_plugin(
+                                    tool_ctx,
+                                    [cmd],
+                                    self.runtime.is_stopped,
+                                )
+                            except Exception as exc:
+                                # Keep failed executions inspectable as a completed
+                                # request/response pair, then preserve the original
+                                # exception semantics for the agent workflow.
+                                self.runtime.record_local_plugin_tool_result(
+                                    display_call_id,
+                                    tool_name,
+                                    {"error": str(exc)},
+                                    actor=actor_id,
+                                )
+                                raise
+                            self.runtime.record_local_plugin_tool_result(
+                                display_call_id,
+                                tool_name,
+                                response,
+                                actor=actor_id,
                             )
 
                         self.runtime.verbose.log("LOCAL TOOL RESPONSE", {
@@ -190,6 +213,7 @@ class WorkerToolFactory:
                     fn.__name__ = tool_name
                     return fn
 
+                self.runtime.register_local_plugin_tool(name)
                 metadata = SchemaToolMetadata(name, description, schema)
                 out.append(FunctionTool(async_fn=make_async_fn(name, schema), metadata=metadata))
             except Exception as exc:

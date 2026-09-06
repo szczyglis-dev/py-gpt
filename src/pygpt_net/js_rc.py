@@ -78171,7 +78171,7 @@ dingRoots.clear(\
  {}\x0a\x09\x09this._pend\
 ingDoc = false;\x0a\
 \x09}\x0a}\
-\x00\x00B[\
+\x00\x00OJ\
 /\
 / ==============\
 ================\
@@ -78925,316 +78925,523 @@ s = toolCalls.ma\
 p((call) => Stri\
 ng(call.name || \
 'tool'));\x0a\x09\x09\x09con\
-st names = rawNa\
-mes.map((name) =\
-> this._escapeHt\
-ml(name));\x0a\x09\x09\x09to\
-olNamesAttr = th\
-is._escapeHtml(J\
-SON.stringify(ra\
-wNames));\x0a\x09\x09\x09con\
-st requests = to\
-olCalls\x0a\x09\x09\x09\x09.map\
-((call) => this.\
-_renderToolCode(\
-call.request))\x0a\x09\
-\x09\x09\x09.join('');\x0a\x09\x09\
-\x09const resultCod\
-e = this._render\
-ToolCode(toolRes\
-ult);\x0a\x0a\x09\x09\x09const \
-arrowHtml = `<im\
-g src='${this._e\
-sc(expIcon)}' cl\
-ass='tool-output\
--arrow' width='2\
-5' height='25' a\
-lt=''>`;\x0a\x09\x09\x09titl\
-eHtml =\x0a\x09\x09\x09\x09`<bu\
-tton type='butto\
-n' class='tool-o\
-utput-toggle' on\
-click='toggleToo\
-lOutput(${this._\
-esc(block.id)});\
-' ` +\x0a\x09\x09\x09\x09`title\
-='${this._escape\
-Html(toggleTitle\
-)}' aria-expande\
-d='false'>` +\x0a\x09\x09\
-\x09\x09`<span class='\
-tool-output-labe\
-l'><b>${this._es\
-capeHtml(toolLab\
-el)}:</b>&nbsp;<\
-/span>` +\x0a\x09\x09\x09\x09`<\
+st hasPerCallRes\
+ponses = toolCal\
+ls.some((call) =\
+>\x0a\x09\x09\x09\x09call && Ob\
+ject.prototype.h\
+asOwnProperty.ca\
+ll(call, 'respon\
+se')\x0a\x09\x09\x09);\x0a\x09\x09\x09//\
+ A persisted Age\
+nts v2 workflow \
+can contain seve\
+ral executed too\
+ls on one\x0a\x09\x09\x09// \
+final message. M\
+irror the normal\
+ cross-message g\
+rouping UI: one \
+outer\x0a\x09\x09\x09// \x22Too\
+ls\x22 accordion, t\
+hen one independ\
+ently collapsibl\
+e \x22Tool\x22 row per\
+ call.\x0a\x09\x09\x09const \
+groupedInMessage\
+ = hasPerCallRes\
+ponses && rawNam\
+es.length > 1;\x0a\x09\
+\x09\x09let displayNam\
+es = rawNames;\x0a\x09\
+\x09\x09if (groupedInM\
+essage) {\x0a\x09\x09\x09\x09co\
+nst shown = rawN\
+ames.slice().rev\
+erse().slice(0, \
+2);\x0a\x09\x09\x09\x09const re\
+maining = rawNam\
+es.length - show\
+n.length;\x0a\x09\x09\x09\x09le\
+t summary = show\
+n.join(', ');\x0a\x09\x09\
+\x09\x09if (remaining \
+> 0) {\x0a\x09\x09\x09\x09\x09cons\
+t tpl = (typeof \
+window !== 'unde\
+fined' && window\
+.LOCALE_TOOL_MOR\
+E)\x0a\x09\x09\x09\x09\x09\x09? Strin\
+g(window.LOCALE_\
+TOOL_MORE)\x0a\x09\x09\x09\x09\x09\
+\x09: 'and {count} \
+more';\x0a\x09\x09\x09\x09\x09cons\
+t more = tpl.spl\
+it('{count}').jo\
+in(String(remain\
+ing));\x0a\x09\x09\x09\x09\x09summ\
+ary += `${summar\
+y ? ' \xe2\x80\xa6 ' : ''\
+}${more}`;\x0a\x09\x09\x09\x09}\
+\x0a\x09\x09\x09\x09displayName\
+s = [summary];\x0a\x09\
+\x09\x09}\x0a\x09\x09\x09const nam\
+es = displayName\
+s.map((name) => \
+this._escapeHtml\
+(name));\x0a\x09\x09\x09tool\
+NamesAttr = this\
+._escapeHtml(JSO\
+N.stringify(rawN\
+ames));\x0a\x09\x09\x09const\
+ resultCode = th\
+is._renderToolCo\
+de(toolResult);\x0a\
+\x0a\x09\x09\x09const arrowH\
+tml = `<img src=\
+'${this._esc(exp\
+Icon)}' class='t\
+ool-output-arrow\
+' width='25' hei\
+ght='25' alt=''>\
+`;\x0a\x09\x09\x09const titl\
+eLabel = grouped\
+InMessage && typ\
+eof window !== '\
+undefined' && wi\
+ndow.LOCALE_TOOL\
+S\x0a\x09\x09\x09\x09? String(w\
+indow.LOCALE_TOO\
+LS)\x0a\x09\x09\x09\x09: toolLa\
+bel;\x0a\x09\x09\x09titleHtm\
+l =\x0a\x09\x09\x09\x09`<button\
+ type='button' c\
+lass='tool-outpu\
+t-toggle' onclic\
+k='toggleToolOut\
+put(${this._esc(\
+block.id)});' ` \
++\x0a\x09\x09\x09\x09`title='${\
+this._escapeHtml\
+(toggleTitle)}' \
+aria-expanded='f\
+alse'>` +\x0a\x09\x09\x09\x09`<\
 span class='tool\
--output-name'>${\
-names.join(', ')\
-}</span>${arrowH\
-tml}` +\x0a\x09\x09\x09\x09`</b\
-utton>`;\x0a\x09\x09\x09cons\
-t responseDispla\
-y = resultCode ?\
- '' : 'display:n\
-one';\x0a\x09\x09\x09content\
-Html =\x0a\x09\x09\x09\x09`<div\
- class='tool-out\
-put-section'>` +\
-\x0a\x09\x09\x09\x09`<div class\
-='tool-output-he\
-ader'>${this._es\
-capeHtml(request\
-Label)}</div>` +\
-\x0a\x09\x09\x09\x09`<div class\
+-output-label'><\
+b>${this._escape\
+Html(titleLabel)\
+}:</b>&nbsp;</sp\
+an>` +\x0a\x09\x09\x09\x09`<spa\
+n class='tool-ou\
+tput-name'>${nam\
+es.join(', ')}</\
+span>${arrowHtml\
+}` +\x0a\x09\x09\x09\x09`</butt\
+on>`;\x0a\x0a\x09\x09\x09if (ha\
+sPerCallResponse\
+s) {\x0a\x09\x09\x09\x09const r\
+enderPair = (cal\
+l) => {\x0a\x09\x09\x09\x09\x09con\
+st requestCode =\
+ this._renderToo\
+lCode(call && ca\
+ll.request);\x0a\x09\x09\x09\
+\x09\x09const hasRespo\
+nse = !!call && \
+Object.prototype\
+.hasOwnProperty.\
+call(call, 'resp\
+onse');\x0a\x09\x09\x09\x09\x09con\
+st responseCode \
+= hasResponse ? \
+this._renderTool\
+Code(call.respon\
+se) : '';\x0a\x09\x09\x09\x09\x09c\
+onst responseDis\
+play = hasRespon\
+se ? '' : 'displ\
+ay:none';\x0a\x09\x09\x09\x09\x09r\
+eturn (\x0a\x09\x09\x09\x09\x09\x09`<\
+div class='tool-\
+output-pair'>` +\
+\x0a\x09\x09\x09\x09\x09\x09`<div cla\
+ss='tool-output-\
+section'>` +\x0a\x09\x09\x09\
+\x09\x09\x09`<div class='\
+tool-output-head\
+er'>${this._esca\
+peHtml(requestLa\
+bel)}</div>` +\x0a\x09\
+\x09\x09\x09\x09\x09`<div class\
 ='tool-output-da\
 ta tool-output-r\
 equest-data'>${r\
-equests}</div>` \
-+\x0a\x09\x09\x09\x09`</div>` +\
-\x0a\x09\x09\x09\x09`<div class\
-='tool-output-se\
-ction tool-outpu\
-t-response-secti\
-on' style='${res\
-ponseDisplay}'>`\
- +\x0a\x09\x09\x09\x09`<div cla\
-ss='tool-output-\
-header'>${this._\
-escapeHtml(respo\
-nseLabel)}</div>\
-` +\x0a\x09\x09\x09\x09`<div cl\
+equestCode}</div\
+>` +\x0a\x09\x09\x09\x09\x09\x09`</di\
+v>` +\x0a\x09\x09\x09\x09\x09\x09`<di\
+v class='tool-ou\
+tput-section too\
+l-output-respons\
+e-section' style\
+='${responseDisp\
+lay}'>` +\x0a\x09\x09\x09\x09\x09\x09\
+`<div class='too\
+l-output-header'\
+>${this._escapeH\
+tml(responseLabe\
+l)}</div>` +\x0a\x09\x09\x09\
+\x09\x09\x09`<div class='\
+tool-output-data\
+ tool-output-res\
+ult-data'>${resp\
+onseCode}</div>`\
+ +\x0a\x09\x09\x09\x09\x09\x09`</div>\
+` +\x0a\x09\x09\x09\x09\x09\x09`</div\
+>`\x0a\x09\x09\x09\x09\x09);\x0a\x09\x09\x09\x09}\
+;\x0a\x0a\x09\x09\x09\x09if (group\
+edInMessage) {\x0a\x09\
+\x09\x09\x09\x09contentHtml \
+= toolCalls.map(\
+(call, index) =>\
+ {\x0a\x09\x09\x09\x09\x09\x09const c\
+allName = this._\
+escapeHtml(Strin\
+g((call && call.\
+name) || 'tool')\
+);\x0a\x09\x09\x09\x09\x09\x09const i\
+temId = `tool-ca\
+ll-${this._esc(b\
+lock.id)}-${inde\
+x}`;\x0a\x09\x09\x09\x09\x09\x09const\
+ itemArrow = `<i\
+mg src='${this._\
+esc(expIcon)}' c\
+lass='tool-outpu\
+t-arrow tool-gro\
+up-arrow' width=\
+'25' height='25'\
+ alt=''>`;\x0a\x09\x09\x09\x09\x09\
+\x09return (\x0a\x09\x09\x09\x09\x09\x09\
+\x09`<div class='to\
+ol-output-group \
+tool-output-item\
+' id='${itemId}'\
+>` +\x0a\x09\x09\x09\x09\x09\x09\x09`<bu\
+tton type='butto\
+n' class='tool-o\
+utput-toggle too\
+l-group-toggle' \
+` +\x0a\x09\x09\x09\x09\x09\x09\x09`oncl\
+ick=\x22toggleToolG\
+roup('${itemId}'\
+);\x22 ` +\x0a\x09\x09\x09\x09\x09\x09\x09`\
+title='${this._e\
+scapeHtml(toggle\
+Title)}' aria-ex\
+panded='false'>`\
+ +\x0a\x09\x09\x09\x09\x09\x09\x09`<span\
+ class='tool-out\
+put-label'><b>${\
+this._escapeHtml\
+(toolLabel)}:</b\
+>&nbsp;</span>` \
++\x0a\x09\x09\x09\x09\x09\x09\x09`<span \
+class='tool-outp\
+ut-name'>${callN\
+ame}</span>${ite\
+mArrow}` +\x0a\x09\x09\x09\x09\x09\
+\x09\x09`</button>` +\x0a\
+\x09\x09\x09\x09\x09\x09\x09`<div cla\
+ss='tool-group-c\
+ontent' style='d\
+isplay:none'>${r\
+enderPair(call)}\
+</div>` +\x0a\x09\x09\x09\x09\x09\x09\
+\x09`</div>`\x0a\x09\x09\x09\x09\x09\x09\
+);\x0a\x09\x09\x09\x09\x09}).join(\
+'');\x0a\x09\x09\x09\x09} else \
+{\x0a\x09\x09\x09\x09\x09contentHt\
+ml = renderPair(\
+toolCalls[0]);\x0a\x09\
+\x09\x09\x09}\x0a\x09\x09\x09} else {\
+\x0a\x09\x09\x09\x09// Legacy/s\
+ingle-turn tool \
+rendering keeps \
+its existing com\
+mon response\x0a\x09\x09\x09\
+\x09// section, inc\
+luding increment\
+al ToolOutput.up\
+date() behavior.\
+\x0a\x09\x09\x09\x09const reque\
+sts = toolCalls\x0a\
+\x09\x09\x09\x09\x09.map((call)\
+ => this._render\
+ToolCode(call.re\
+quest))\x0a\x09\x09\x09\x09\x09.jo\
+in('');\x0a\x09\x09\x09\x09cons\
+t responseDispla\
+y = resultCode ?\
+ '' : 'display:n\
+one';\x0a\x09\x09\x09\x09conten\
+tHtml =\x0a\x09\x09\x09\x09\x09`<d\
+iv class='tool-o\
+utput-section'>`\
+ +\x0a\x09\x09\x09\x09\x09`<div cl\
 ass='tool-output\
--data tool-outpu\
-t-result-data'>$\
-{resultCode}</di\
-v>` +\x0a\x09\x09\x09\x09`</div\
->`;\x0a\x09\x09}\x0a\x0a\x09\x09const\
- legacyToggleHtm\
-l = hasToolCalls\
- ? '' :\x0a\x09\x09\x09`<spa\
-n class='toggle-\
-cmd-output' oncl\
-ick='toggleToolO\
-utput(${this._es\
-c(block.id)});' \
-` +\x0a\x09\x09\x09`title='$\
+-header'>${this.\
+_escapeHtml(requ\
+estLabel)}</div>\
+` +\x0a\x09\x09\x09\x09\x09`<div c\
+lass='tool-outpu\
+t-data tool-outp\
+ut-request-data'\
+>${requests}</di\
+v>` +\x0a\x09\x09\x09\x09\x09`</di\
+v>` +\x0a\x09\x09\x09\x09\x09`<div\
+ class='tool-out\
+put-section tool\
+-output-response\
+-section' style=\
+'${responseDispl\
+ay}'>` +\x0a\x09\x09\x09\x09\x09`<\
+div class='tool-\
+output-header'>$\
 {this._escapeHtm\
-l(toggleTitle)}'\
- role='button'>`\
- +\x0a\x09\x09\x09`<img src=\
-'${this._esc(exp\
-Icon)}' width='2\
-5' height='25' v\
-align='middle'>`\
- +\x0a\x09\x09\x09`</span>`;\
-\x0a\x0a\x09\x09const toolAt\
-trs = hasToolCal\
-ls\x0a\x09\x09\x09? ` id='to\
-ol-output-${this\
-._esc(block.id)}\
-' data-tool-name\
-s='${toolNamesAt\
-tr}'`\x0a\x09\x09\x09: '';\x0a\x0a\
-\x09\x09const contentC\
-lass = hasToolCa\
-lls ? 'tool-outp\
-ut-content' : 'c\
-ontent';\x0a\x0a\x09\x09retu\
-rn (\x0a\x09\x09\x09`<div cl\
-ass='tool-output\
-'${toolAttrs} st\
-yle='${wrapperDi\
-splay}'>` +\x0a\x09\x09\x09`\
-${titleHtml}${le\
-gacyToggleHtml}`\
- +\x0a\x09\x09\x09`<div clas\
-s='${contentClas\
-s}' style='displ\
-ay:none' data-tr\
-usted='1'>${cont\
-entHtml}</div>` \
+l(responseLabel)\
+}</div>` +\x0a\x09\x09\x09\x09\x09\
+`<div class='too\
+l-output-data to\
+ol-output-result\
+-data'>${resultC\
+ode}</div>` +\x0a\x09\x09\
+\x09\x09\x09`</div>`;\x0a\x09\x09\x09\
+}\x0a\x0a\x09\x09}\x0a\x0a\x09\x09const \
+legacyToggleHtml\
+ = hasToolCalls \
+? '' :\x0a\x09\x09\x09`<span\
+ class='toggle-c\
+md-output' oncli\
+ck='toggleToolOu\
+tput(${this._esc\
+(block.id)});' `\
+ +\x0a\x09\x09\x09`title='${\
+this._escapeHtml\
+(toggleTitle)}' \
+role='button'>` \
++\x0a\x09\x09\x09`<img src='\
+${this._esc(expI\
+con)}' width='25\
+' height='25' va\
+lign='middle'>` \
++\x0a\x09\x09\x09`</span>`;\x0a\
+\x0a\x09\x09const toolAtt\
+rs = hasToolCall\
+s\x0a\x09\x09\x09? ` id='too\
+l-output-${this.\
+_esc(block.id)}'\
+ data-tool-names\
+='${toolNamesAtt\
+r}'`\x0a\x09\x09\x09: '';\x0a\x0a\x09\
+\x09const contentCl\
+ass = hasToolCal\
+ls ? 'tool-outpu\
+t-content' : 'co\
+ntent';\x0a\x0a\x09\x09retur\
+n (\x0a\x09\x09\x09`<div cla\
+ss='tool-output'\
+${toolAttrs} sty\
+le='${wrapperDis\
+play}'>` +\x0a\x09\x09\x09`$\
+{titleHtml}${leg\
+acyToggleHtml}` \
++\x0a\x09\x09\x09`<div class\
+='${contentClass\
+}' style='displa\
+y:none' data-tru\
+sted='1'>${conte\
+ntHtml}</div>` +\
+\x0a\x09\x09\x09`</div>`\x0a\x09\x09)\
+;\x0a\x09}\x0a\x0a\x09// Render\
+ bot message blo\
+ck (md-block-mar\
+kdown)\x0a\x09_renderB\
+ot(block) {\x0a\x09\x09co\
+nst id = block.i\
+d;\x0a\x09\x09const out =\
+ block.output ||\
+ {};\x0a\x09\x09const msg\
+Id = `msg-bot-${\
+id}`;\x0a\x0a\x09\x09// time\
+stamps intention\
+ally disabled on\
+ frontend\x0a\x09\x09// l\
+et ts = '';\x0a\x09\x09//\
+ if (out.timesta\
+mp) { ... }\x0a\x0a\x09\x09c\
+onst personalize\
+ = !!(block && b\
+lock.extra && bl\
+ock.extra.person\
+alize === true);\
+\x0a\x09\x09const nameHea\
+der = personaliz\
+e ? this._nameHe\
+ader('bot', out.\
+name || '', out.\
+avatar_img || nu\
+ll) : '';\x0a\x0a\x09\x09con\
+st mdText = this\
+._escapeHtml(out\
+.text || '');\x0a\x09\x09\
+const mdBlock = \
+mdText ? `<div c\
+lass='md-block' \
+md-block-markdow\
+n='1'>${mdText}<\
+/div>` : '';\x0a\x09\x09c\
+onst toolWrap = \
+this._renderTool\
+OutputWrapper(bl\
+ock);\x0a\x09\x09const ex\
+tras = this._ren\
+derExtras(block)\
+;\x0a\x09\x09const action\
+s = (block.extra\
+ && block.extra.\
+footer_icons) ? \
+this._renderActi\
+ons(block) : '';\
+\x0a\x09\x09const debug =\
+ (block.extra &&\
+ block.extra.deb\
+ug_html) ? Strin\
+g(block.extra.de\
+bug_html) : '';\x0a\
+\x09\x09const toolCall\
+s = Array.isArra\
+y(block.extra &&\
+ block.extra.too\
+l_calls)\x0a\x09\x09\x09? bl\
+ock.extra.tool_c\
+alls.filter(Bool\
+ean)\x0a\x09\x09\x09: [];\x0a\x09\x09\
+const hasToolCal\
+ls = toolCalls.l\
+ength > 0;\x0a\x09\x09// \
+A tool-chain ite\
+m may still carr\
+y invisible/auxi\
+liary extras (to\
+ol_extra_html,\x0a\x09\
+\x09// files, actio\
+ns, debug wrappe\
+rs, etc.).  Thos\
+e must not preve\
+nt grouping.\x0a\x09\x09/\
+/ The decisive c\
+ondition is that\
+ after stripping\
+ the tool call t\
+here is no\x0a\x09\x09// \
+normal assistant\
+ text.  Keep the\
+ continuation ma\
+rker on every to\
+ol-call\x0a\x09\x09// mes\
+sage so the DOM \
+grouping pass ca\
+n use the exact \
+persisted chain \
+edge.\x0a\x09\x09const to\
+olOnly = hasTool\
+Calls && !mdText\
+;\x0a\x09\x09const chainC\
+ontinuation = !!\
+(block.extra && \
+block.extra.tool\
+_chain_continuat\
+ion === true);\x0a\x09\
+\x09const toolChain\
+Attrs = hasToolC\
+alls\x0a\x09\x09\x09? ` data\
+-tool-only='${to\
+olOnly ? '1' : '\
+0'}' data-tool-c\
+hain-continuatio\
+n='${chainContin\
+uation ? '1' : '\
+0'}'`\x0a\x09\x09\x09: '';\x0a\x0a\
+\x09\x09return (\x0a\x09\x09\x09`<\
+div class='msg-b\
+ox msg-bot' id='\
+${msgId}'${toolC\
+hainAttrs}>` +\x0a\x09\
+\x09\x09`${nameHeader}\
+` +\x0a\x09\x09\x09`<div cla\
+ss='msg'>` +\x0a\x09\x09\x09\
+`${mdBlock}` +\x0a\x09\
+\x09\x09`<div class='m\
+sg-tool-extra'><\
+/div>` +\x0a\x09\x09\x09`${t\
+oolWrap}` +\x0a\x09\x09\x09`\
+<div class='msg-\
+extra'>${extras}\
+</div>` +\x0a\x09\x09\x09`${\
+actions}${debug}\
+` +\x0a\x09\x09\x09`</div>` \
 +\x0a\x09\x09\x09`</div>`\x0a\x09\x09\
 );\x0a\x09}\x0a\x0a\x09// Rende\
-r bot message bl\
-ock (md-block-ma\
-rkdown)\x0a\x09_render\
-Bot(block) {\x0a\x09\x09c\
-onst id = block.\
-id;\x0a\x09\x09const out \
-= block.output |\
-| {};\x0a\x09\x09const ms\
-gId = `msg-bot-$\
-{id}`;\x0a\x0a\x09\x09// tim\
-estamps intentio\
-nally disabled o\
-n frontend\x0a\x09\x09// \
-let ts = '';\x0a\x09\x09/\
-/ if (out.timest\
-amp) { ... }\x0a\x0a\x09\x09\
-const personaliz\
-e = !!(block && \
-block.extra && b\
-lock.extra.perso\
-nalize === true)\
-;\x0a\x09\x09const nameHe\
-ader = personali\
-ze ? this._nameH\
-eader('bot', out\
-.name || '', out\
-.avatar_img || n\
-ull) : '';\x0a\x0a\x09\x09co\
-nst mdText = thi\
-s._escapeHtml(ou\
-t.text || '');\x0a\x09\
-\x09const mdBlock =\
- mdText ? `<div \
-class='md-block'\
- md-block-markdo\
-wn='1'>${mdText}\
-</div>` : '';\x0a\x09\x09\
-const toolWrap =\
- this._renderToo\
-lOutputWrapper(b\
-lock);\x0a\x09\x09const e\
-xtras = this._re\
-nderExtras(block\
-);\x0a\x09\x09const actio\
-ns = (block.extr\
-a && block.extra\
-.footer_icons) ?\
- this._renderAct\
-ions(block) : ''\
-;\x0a\x09\x09const debug \
-= (block.extra &\
-& block.extra.de\
-bug_html) ? Stri\
-ng(block.extra.d\
-ebug_html) : '';\
-\x0a\x09\x09const toolCal\
-ls = Array.isArr\
-ay(block.extra &\
-& block.extra.to\
-ol_calls)\x0a\x09\x09\x09? b\
-lock.extra.tool_\
-calls.filter(Boo\
-lean)\x0a\x09\x09\x09: [];\x0a\x09\
-\x09const hasToolCa\
-lls = toolCalls.\
-length > 0;\x0a\x09\x09//\
- A tool-chain it\
-em may still car\
-ry invisible/aux\
-iliary extras (t\
-ool_extra_html,\x0a\
-\x09\x09// files, acti\
-ons, debug wrapp\
-ers, etc.).  Tho\
-se must not prev\
-ent grouping.\x0a\x09\x09\
-// The decisive \
-condition is tha\
-t after strippin\
-g the tool call \
-there is no\x0a\x09\x09//\
- normal assistan\
-t text.  Keep th\
-e continuation m\
-arker on every t\
-ool-call\x0a\x09\x09// me\
-ssage so the DOM\
- grouping pass c\
-an use the exact\
- persisted chain\
- edge.\x0a\x09\x09const t\
-oolOnly = hasToo\
-lCalls && !mdTex\
-t;\x0a\x09\x09const chain\
-Continuation = !\
-!(block.extra &&\
- block.extra.too\
-l_chain_continua\
-tion === true);\x0a\
-\x09\x09const toolChai\
-nAttrs = hasTool\
-Calls\x0a\x09\x09\x09? ` dat\
-a-tool-only='${t\
-oolOnly ? '1' : \
-'0'}' data-tool-\
-chain-continuati\
-on='${chainConti\
-nuation ? '1' : \
-'0'}'`\x0a\x09\x09\x09: '';\x0a\
-\x0a\x09\x09return (\x0a\x09\x09\x09`\
-<div class='msg-\
-box msg-bot' id=\
-'${msgId}'${tool\
-ChainAttrs}>` +\x0a\
-\x09\x09\x09`${nameHeader\
-}` +\x0a\x09\x09\x09`<div cl\
-ass='msg'>` +\x0a\x09\x09\
-\x09`${mdBlock}` +\x0a\
-\x09\x09\x09`<div class='\
-msg-tool-extra'>\
-</div>` +\x0a\x09\x09\x09`${\
-toolWrap}` +\x0a\x09\x09\x09\
-`<div class='msg\
--extra'>${extras\
-}</div>` +\x0a\x09\x09\x09`$\
-{actions}${debug\
-}` +\x0a\x09\x09\x09`</div>`\
- +\x0a\x09\x09\x09`</div>`\x0a\x09\
-\x09);\x0a\x09}\x0a\x0a\x09// Rend\
-er one RenderBlo\
-ck into HTML (ma\
-y produce 1 or 2\
- messages \xe2\x80\x93 in\
-put and/or outpu\
-t)\x0a\x09renderNode(b\
-lock) {\x0a\x09\x09const \
-parts = [];\x0a\x09\x09if\
- (block && block\
-.input && block.\
-input.text) part\
-s.push(this._ren\
-derUser(block));\
-\x0a\x09\x09if (block && \
-block.output) {\x0a\
-\x09\x09\x09const extra =\
- block.extra || \
-{};\x0a\x09\x09\x09const has\
-ToolCalls = Arra\
-y.isArray(extra.\
-tool_calls) && e\
-xtra.tool_calls.\
-length > 0;\x0a\x09\x09\x09i\
-f (block.output.\
-text || hasToolC\
-alls || extra.to\
-ol_output_visibl\
-e === true) {\x0a\x09\x09\
-\x09\x09parts.push(thi\
-s._renderBot(blo\
-ck));\x0a\x09\x09\x09}\x0a\x09\x09}\x0a\x09\
-\x09return parts.jo\
-in('');\x0a\x09}\x0a\x0a\x09// \
-Render array of \
-blocks\x0a\x09renderNo\
-des(blocks) {\x0a\x09\x09\
-if (!Array.isArr\
-ay(blocks)) retu\
-rn '';\x0a\x09\x09const o\
-ut = [];\x0a\x09\x09for (\
-let i = 0; i < b\
-locks.length; i+\
-+) {\x0a\x09\x09\x09const b \
-= blocks[i] || n\
-ull;\x0a\x09\x09\x09if (!b) \
-continue;\x0a\x09\x09\x09out\
-.push(this.rende\
-rNode(b));\x0a\x09\x09}\x0a\x09\
-\x09return out.join\
-('');\x0a\x09}\x0a}\
+r one RenderBloc\
+k into HTML (may\
+ produce 1 or 2 \
+messages \xe2\x80\x93 inp\
+ut and/or output\
+)\x0a\x09renderNode(bl\
+ock) {\x0a\x09\x09const p\
+arts = [];\x0a\x09\x09if \
+(block && block.\
+input && block.i\
+nput.text) parts\
+.push(this._rend\
+erUser(block));\x0a\
+\x09\x09if (block && b\
+lock.output) {\x0a\x09\
+\x09\x09const extra = \
+block.extra || {\
+};\x0a\x09\x09\x09const hasT\
+oolCalls = Array\
+.isArray(extra.t\
+ool_calls) && ex\
+tra.tool_calls.l\
+ength > 0;\x0a\x09\x09\x09if\
+ (block.output.t\
+ext || hasToolCa\
+lls || extra.too\
+l_output_visible\
+ === true) {\x0a\x09\x09\x09\
+\x09parts.push(this\
+._renderBot(bloc\
+k));\x0a\x09\x09\x09}\x0a\x09\x09}\x0a\x09\x09\
+return parts.joi\
+n('');\x0a\x09}\x0a\x0a\x09// R\
+ender array of b\
+locks\x0a\x09renderNod\
+es(blocks) {\x0a\x09\x09i\
+f (!Array.isArra\
+y(blocks)) retur\
+n '';\x0a\x09\x09const ou\
+t = [];\x0a\x09\x09for (l\
+et i = 0; i < bl\
+ocks.length; i++\
+) {\x0a\x09\x09\x09const b =\
+ blocks[i] || nu\
+ll;\x0a\x09\x09\x09if (!b) c\
+ontinue;\x0a\x09\x09\x09out.\
+push(this.render\
+Node(b));\x0a\x09\x09}\x0a\x09\x09\
+return out.join(\
+'');\x0a\x09}\x0a}\
 \x00\x00\x09J\
 /\
 / ==============\
@@ -115754,7 +115961,7 @@ r,r.macros=r.mac\
 ros||{},d(e,r)}}\
 (),i=i.default}(\
 )}));\
-\x00\x03\xeb\xa5\
+\x00\x03\xf8\x94\
 /\
 * app.min.js \xe2\x80\x94\
  generated on 20\
@@ -128472,3349 +128679,3556 @@ rawNames = toolC\
 alls.map((call) \
 => String(call.n\
 ame || 'tool'));\
-\x0a\x09\x09\x09const names \
-= rawNames.map((\
-name) => this._e\
-scapeHtml(name))\
-;\x0a\x09\x09\x09toolNamesAt\
-tr = this._escap\
-eHtml(JSON.strin\
-gify(rawNames));\
-\x0a\x09\x09\x09const reques\
-ts = toolCalls\x0a\x09\
-\x09\x09\x09.map((call) =\
-> this._renderTo\
-olCode(call.requ\
-est))\x0a\x09\x09\x09\x09.join(\
-'');\x0a\x09\x09\x09const re\
-sultCode = this.\
-_renderToolCode(\
-toolResult);\x0a\x0a\x09\x09\
-\x09const arrowHtml\
- = `<img src='${\
-this._esc(expIco\
-n)}' class='tool\
--output-arrow' w\
-idth='25' height\
-='25' alt=''>`;\x0a\
-\x09\x09\x09titleHtml =\x0a\x09\
+\x0a\x09\x09\x09const hasPer\
+CallResponses = \
+toolCalls.some((\
+call) =>\x0a\x09\x09\x09\x09cal\
+l && Object.prot\
+otype.hasOwnProp\
+erty.call(call, \
+'response')\x0a\x09\x09\x09)\
+;\x0a\x09\x09\x09// A persis\
+ted Agents v2 wo\
+rkflow can conta\
+in several execu\
+ted tools on one\
+\x0a\x09\x09\x09// final mes\
+sage. Mirror the\
+ normal cross-me\
+ssage grouping U\
+I: one outer\x0a\x09\x09\x09\
+// \x22Tools\x22 accor\
+dion, then one i\
+ndependently col\
+lapsible \x22Tool\x22 \
+row per call.\x0a\x09\x09\
+\x09const groupedIn\
+Message = hasPer\
+CallResponses &&\
+ rawNames.length\
+ > 1;\x0a\x09\x09\x09let dis\
+playNames = rawN\
+ames;\x0a\x09\x09\x09if (gro\
+upedInMessage) {\
+\x0a\x09\x09\x09\x09const shown\
+ = rawNames.slic\
+e().reverse().sl\
+ice(0, 2);\x0a\x09\x09\x09\x09c\
+onst remaining =\
+ rawNames.length\
+ - shown.length;\
+\x0a\x09\x09\x09\x09let summary\
+ = shown.join(',\
+ ');\x0a\x09\x09\x09\x09if (rem\
+aining > 0) {\x0a\x09\x09\
+\x09\x09\x09const tpl = (\
+typeof window !=\
+= 'undefined' &&\
+ window.LOCALE_T\
+OOL_MORE)\x0a\x09\x09\x09\x09\x09\x09\
+? String(window.\
+LOCALE_TOOL_MORE\
+)\x0a\x09\x09\x09\x09\x09\x09: 'and {\
+count} more';\x0a\x09\x09\
+\x09\x09\x09const more = \
+tpl.split('{coun\
+t}').join(String\
+(remaining));\x0a\x09\x09\
+\x09\x09\x09summary += `$\
+{summary ? ' \xe2\x80\xa6\
+ ' : ''}${more}`\
+;\x0a\x09\x09\x09\x09}\x0a\x09\x09\x09\x09disp\
+layNames = [summ\
+ary];\x0a\x09\x09\x09}\x0a\x09\x09\x09co\
+nst names = disp\
+layNames.map((na\
+me) => this._esc\
+apeHtml(name));\x0a\
+\x09\x09\x09toolNamesAttr\
+ = this._escapeH\
+tml(JSON.stringi\
+fy(rawNames));\x0a\x09\
+\x09\x09const resultCo\
+de = this._rende\
+rToolCode(toolRe\
+sult);\x0a\x0a\x09\x09\x09const\
+ arrowHtml = `<i\
+mg src='${this._\
+esc(expIcon)}' c\
+lass='tool-outpu\
+t-arrow' width='\
+25' height='25' \
+alt=''>`;\x0a\x09\x09\x09con\
+st titleLabel = \
+groupedInMessage\
+ && typeof windo\
+w !== 'undefined\
+' && window.LOCA\
+LE_TOOLS\x0a\x09\x09\x09\x09? S\
+tring(window.LOC\
+ALE_TOOLS)\x0a\x09\x09\x09\x09:\
+ toolLabel;\x0a\x09\x09\x09t\
+itleHtml =\x0a\x09\x09\x09\x09`\
+<button type='bu\
+tton' class='too\
+l-output-toggle'\
+ onclick='toggle\
+ToolOutput(${thi\
+s._esc(block.id)\
+});' ` +\x0a\x09\x09\x09\x09`ti\
+tle='${this._esc\
+apeHtml(toggleTi\
+tle)}' aria-expa\
+nded='false'>` +\
+\x0a\x09\x09\x09\x09`<span clas\
+s='tool-output-l\
+abel'><b>${this.\
+_escapeHtml(titl\
+eLabel)}:</b>&nb\
+sp;</span>` +\x0a\x09\x09\
+\x09\x09`<span class='\
+tool-output-name\
+'>${names.join('\
+, ')}</span>${ar\
+rowHtml}` +\x0a\x09\x09\x09\x09\
+`</button>`;\x0a\x0a\x09\x09\
+\x09if (hasPerCallR\
+esponses) {\x0a\x09\x09\x09\x09\
+const renderPair\
+ = (call) => {\x0a\x09\
+\x09\x09\x09\x09const reques\
+tCode = this._re\
+nderToolCode(cal\
+l && call.reques\
+t);\x0a\x09\x09\x09\x09\x09const h\
+asResponse = !!c\
+all && Object.pr\
+ototype.hasOwnPr\
+operty.call(call\
+, 'response');\x0a\x09\
+\x09\x09\x09\x09const respon\
+seCode = hasResp\
+onse ? this._ren\
+derToolCode(call\
+.response) : '';\
+\x0a\x09\x09\x09\x09\x09const resp\
+onseDisplay = ha\
+sResponse ? '' :\
+ 'display:none';\
+\x0a\x09\x09\x09\x09\x09return (\x0a\x09\
+\x09\x09\x09\x09\x09`<div class\
+='tool-output-pa\
+ir'>` +\x0a\x09\x09\x09\x09\x09\x09`<\
+div class='tool-\
+output-section'>\
+` +\x0a\x09\x09\x09\x09\x09\x09`<div \
+class='tool-outp\
+ut-header'>${thi\
+s._escapeHtml(re\
+questLabel)}</di\
+v>` +\x0a\x09\x09\x09\x09\x09\x09`<di\
+v class='tool-ou\
+tput-data tool-o\
+utput-request-da\
+ta'>${requestCod\
+e}</div>` +\x0a\x09\x09\x09\x09\
+\x09\x09`</div>` +\x0a\x09\x09\x09\
+\x09\x09\x09`<div class='\
+tool-output-sect\
+ion tool-output-\
+response-section\
+' style='${respo\
+nseDisplay}'>` +\
+\x0a\x09\x09\x09\x09\x09\x09`<div cla\
+ss='tool-output-\
+header'>${this._\
+escapeHtml(respo\
+nseLabel)}</div>\
+` +\x0a\x09\x09\x09\x09\x09\x09`<div \
+class='tool-outp\
+ut-data tool-out\
+put-result-data'\
+>${responseCode}\
+</div>` +\x0a\x09\x09\x09\x09\x09\x09\
+`</div>` +\x0a\x09\x09\x09\x09\x09\
+\x09`</div>`\x0a\x09\x09\x09\x09\x09)\
+;\x0a\x09\x09\x09\x09};\x0a\x0a\x09\x09\x09\x09if\
+ (groupedInMessa\
+ge) {\x0a\x09\x09\x09\x09\x09conte\
+ntHtml = toolCal\
+ls.map((call, in\
+dex) => {\x0a\x09\x09\x09\x09\x09\x09\
+const callName =\
+ this._escapeHtm\
+l(String((call &\
+& call.name) || \
+'tool'));\x0a\x09\x09\x09\x09\x09\x09\
+const itemId = `\
+tool-call-${this\
+._esc(block.id)}\
+-${index}`;\x0a\x09\x09\x09\x09\
+\x09\x09const itemArro\
+w = `<img src='$\
+{this._esc(expIc\
+on)}' class='too\
+l-output-arrow t\
+ool-group-arrow'\
+ width='25' heig\
+ht='25' alt=''>`\
+;\x0a\x09\x09\x09\x09\x09\x09return (\
+\x0a\x09\x09\x09\x09\x09\x09\x09`<div cl\
+ass='tool-output\
+-group tool-outp\
+ut-item' id='${i\
+temId}'>` +\x0a\x09\x09\x09\x09\
 \x09\x09\x09`<button type\
 ='button' class=\
 'tool-output-tog\
-gle' onclick='to\
-ggleToolOutput($\
-{this._esc(block\
-.id)});' ` +\x0a\x09\x09\x09\
-\x09`title='${this.\
-_escapeHtml(togg\
-leTitle)}' aria-\
-expanded='false'\
->` +\x0a\x09\x09\x09\x09`<span \
-class='tool-outp\
-ut-label'><b>${t\
-his._escapeHtml(\
-toolLabel)}:</b>\
-&nbsp;</span>` +\
-\x0a\x09\x09\x09\x09`<span clas\
-s='tool-output-n\
-ame'>${names.joi\
-n(', ')}</span>$\
-{arrowHtml}` +\x0a\x09\
-\x09\x09\x09`</button>`;\x0a\
+gle tool-group-t\
+oggle' ` +\x0a\x09\x09\x09\x09\x09\
+\x09\x09`onclick=\x22togg\
+leToolGroup('${i\
+temId}');\x22 ` +\x0a\x09\
+\x09\x09\x09\x09\x09\x09`title='${\
+this._escapeHtml\
+(toggleTitle)}' \
+aria-expanded='f\
+alse'>` +\x0a\x09\x09\x09\x09\x09\x09\
+\x09`<span class='t\
+ool-output-label\
+'><b>${this._esc\
+apeHtml(toolLabe\
+l)}:</b>&nbsp;</\
+span>` +\x0a\x09\x09\x09\x09\x09\x09\x09\
+`<span class='to\
+ol-output-name'>\
+${callName}</spa\
+n>${itemArrow}` \
++\x0a\x09\x09\x09\x09\x09\x09\x09`</butt\
+on>` +\x0a\x09\x09\x09\x09\x09\x09\x09`<\
+div class='tool-\
+group-content' s\
+tyle='display:no\
+ne'>${renderPair\
+(call)}</div>` +\
+\x0a\x09\x09\x09\x09\x09\x09\x09`</div>`\
+\x0a\x09\x09\x09\x09\x09\x09);\x0a\x09\x09\x09\x09\x09}\
+).join('');\x0a\x09\x09\x09\x09\
+} else {\x0a\x09\x09\x09\x09\x09co\
+ntentHtml = rend\
+erPair(toolCalls\
+[0]);\x0a\x09\x09\x09\x09}\x0a\x09\x09\x09}\
+ else {\x0a\x09\x09\x09\x09// L\
+egacy/single-tur\
+n tool rendering\
+ keeps its exist\
+ing common respo\
+nse\x0a\x09\x09\x09\x09// secti\
+on, including in\
+cremental ToolOu\
+tput.update() be\
+havior.\x0a\x09\x09\x09\x09cons\
+t requests = too\
+lCalls\x0a\x09\x09\x09\x09\x09.map\
+((call) => this.\
+_renderToolCode(\
+call.request))\x0a\x09\
+\x09\x09\x09\x09.join('');\x0a\x09\
 \x09\x09\x09const respons\
 eDisplay = resul\
 tCode ? '' : 'di\
 splay:none';\x0a\x09\x09\x09\
-contentHtml =\x0a\x09\x09\
+\x09contentHtml =\x0a\x09\
+\x09\x09\x09\x09`<div class=\
+'tool-output-sec\
+tion'>` +\x0a\x09\x09\x09\x09\x09`\
+<div class='tool\
+-output-header'>\
+${this._escapeHt\
+ml(requestLabel)\
+}</div>` +\x0a\x09\x09\x09\x09\x09\
+`<div class='too\
+l-output-data to\
+ol-output-reques\
+t-data'>${reques\
+ts}</div>` +\x0a\x09\x09\x09\
+\x09\x09`</div>` +\x0a\x09\x09\x09\
 \x09\x09`<div class='t\
 ool-output-secti\
-on'>` +\x0a\x09\x09\x09\x09`<di\
-v class='tool-ou\
-tput-header'>${t\
-his._escapeHtml(\
-requestLabel)}</\
-div>` +\x0a\x09\x09\x09\x09`<di\
-v class='tool-ou\
-tput-data tool-o\
-utput-request-da\
-ta'>${requests}<\
-/div>` +\x0a\x09\x09\x09\x09`</\
-div>` +\x0a\x09\x09\x09\x09`<di\
-v class='tool-ou\
-tput-section too\
-l-output-respons\
-e-section' style\
-='${responseDisp\
-lay}'>` +\x0a\x09\x09\x09\x09`<\
+on tool-output-r\
+esponse-section'\
+ style='${respon\
+seDisplay}'>` +\x0a\
+\x09\x09\x09\x09\x09`<div class\
+='tool-output-he\
+ader'>${this._es\
+capeHtml(respons\
+eLabel)}</div>` \
++\x0a\x09\x09\x09\x09\x09`<div cla\
+ss='tool-output-\
+data tool-output\
+-result-data'>${\
+resultCode}</div\
+>` +\x0a\x09\x09\x09\x09\x09`</div\
+>`;\x0a\x09\x09\x09}\x0a\x0a\x09\x09}\x0a\x0a\x09\
+\x09const legacyTog\
+gleHtml = hasToo\
+lCalls ? '' :\x0a\x09\x09\
+\x09`<span class='t\
+oggle-cmd-output\
+' onclick='toggl\
+eToolOutput(${th\
+is._esc(block.id\
+)});' ` +\x0a\x09\x09\x09`ti\
+tle='${this._esc\
+apeHtml(toggleTi\
+tle)}' role='but\
+ton'>` +\x0a\x09\x09\x09`<im\
+g src='${this._e\
+sc(expIcon)}' wi\
+dth='25' height=\
+'25' valign='mid\
+dle'>` +\x0a\x09\x09\x09`</s\
+pan>`;\x0a\x0a\x09\x09const \
+toolAttrs = hasT\
+oolCalls\x0a\x09\x09\x09? ` \
+id='tool-output-\
+${this._esc(bloc\
+k.id)}' data-too\
+l-names='${toolN\
+amesAttr}'`\x0a\x09\x09\x09:\
+ '';\x0a\x0a\x09\x09const co\
+ntentClass = has\
+ToolCalls ? 'too\
+l-output-content\
+' : 'content';\x0a\x0a\
+\x09\x09return (\x0a\x09\x09\x09`<\
 div class='tool-\
-output-header'>$\
-{this._escapeHtm\
-l(responseLabel)\
-}</div>` +\x0a\x09\x09\x09\x09`\
-<div class='tool\
--output-data too\
-l-output-result-\
-data'>${resultCo\
-de}</div>` +\x0a\x09\x09\x09\
-\x09`</div>`;\x0a\x09\x09}\x0a\x0a\
-\x09\x09const legacyTo\
-ggleHtml = hasTo\
-olCalls ? '' :\x0a\x09\
-\x09\x09`<span class='\
-toggle-cmd-outpu\
-t' onclick='togg\
-leToolOutput(${t\
-his._esc(block.i\
-d)});' ` +\x0a\x09\x09\x09`t\
-itle='${this._es\
-capeHtml(toggleT\
-itle)}' role='bu\
-tton'>` +\x0a\x09\x09\x09`<i\
-mg src='${this._\
-esc(expIcon)}' w\
-idth='25' height\
-='25' valign='mi\
-ddle'>` +\x0a\x09\x09\x09`</\
-span>`;\x0a\x0a\x09\x09const\
- toolAttrs = has\
-ToolCalls\x0a\x09\x09\x09? `\
- id='tool-output\
--${this._esc(blo\
-ck.id)}' data-to\
-ol-names='${tool\
-NamesAttr}'`\x0a\x09\x09\x09\
-: '';\x0a\x0a\x09\x09const c\
-ontentClass = ha\
-sToolCalls ? 'to\
-ol-output-conten\
-t' : 'content';\x0a\
-\x0a\x09\x09return (\x0a\x09\x09\x09`\
-<div class='tool\
--output'${toolAt\
-trs} style='${wr\
-apperDisplay}'>`\
- +\x0a\x09\x09\x09`${titleHt\
-ml}${legacyToggl\
-eHtml}` +\x0a\x09\x09\x09`<d\
-iv class='${cont\
-entClass}' style\
-='display:none' \
-data-trusted='1'\
->${contentHtml}<\
+output'${toolAtt\
+rs} style='${wra\
+pperDisplay}'>` \
++\x0a\x09\x09\x09`${titleHtm\
+l}${legacyToggle\
+Html}` +\x0a\x09\x09\x09`<di\
+v class='${conte\
+ntClass}' style=\
+'display:none' d\
+ata-trusted='1'>\
+${contentHtml}</\
+div>` +\x0a\x09\x09\x09`</di\
+v>`\x0a\x09\x09);\x0a\x09}\x0a\x0a\x09//\
+ Render bot mess\
+age block (md-bl\
+ock-markdown)\x0a\x09_\
+renderBot(block)\
+ {\x0a\x09\x09const id = \
+block.id;\x0a\x09\x09cons\
+t out = block.ou\
+tput || {};\x0a\x09\x09co\
+nst msgId = `msg\
+-bot-${id}`;\x0a\x0a\x09\x09\
+// timestamps in\
+tentionally disa\
+bled on frontend\
+\x0a\x09\x09// let ts = '\
+';\x0a\x09\x09// if (out.\
+timestamp) { ...\
+ }\x0a\x0a\x09\x09const pers\
+onalize = !!(blo\
+ck && block.extr\
+a && block.extra\
+.personalize ===\
+ true);\x0a\x09\x09const \
+nameHeader = per\
+sonalize ? this.\
+_nameHeader('bot\
+', out.name || '\
+', out.avatar_im\
+g || null) : '';\
+\x0a\x0a\x09\x09const mdText\
+ = this._escapeH\
+tml(out.text || \
+'');\x0a\x09\x09const mdB\
+lock = mdText ? \
+`<div class='md-\
+block' md-block-\
+markdown='1'>${m\
+dText}</div>` : \
+'';\x0a\x09\x09const tool\
+Wrap = this._ren\
+derToolOutputWra\
+pper(block);\x0a\x09\x09c\
+onst extras = th\
+is._renderExtras\
+(block);\x0a\x09\x09const\
+ actions = (bloc\
+k.extra && block\
+.extra.footer_ic\
+ons) ? this._ren\
+derActions(block\
+) : '';\x0a\x09\x09const \
+debug = (block.e\
+xtra && block.ex\
+tra.debug_html) \
+? String(block.e\
+xtra.debug_html)\
+ : '';\x0a\x09\x09const t\
+oolCalls = Array\
+.isArray(block.e\
+xtra && block.ex\
+tra.tool_calls)\x0a\
+\x09\x09\x09? block.extra\
+.tool_calls.filt\
+er(Boolean)\x0a\x09\x09\x09:\
+ [];\x0a\x09\x09const has\
+ToolCalls = tool\
+Calls.length > 0\
+;\x0a\x09\x09// A tool-ch\
+ain item may sti\
+ll carry invisib\
+le/auxiliary ext\
+ras (tool_extra_\
+html,\x0a\x09\x09// files\
+, actions, debug\
+ wrappers, etc.)\
+.  Those must no\
+t prevent groupi\
+ng.\x0a\x09\x09// The dec\
+isive condition \
+is that after st\
+ripping the tool\
+ call there is n\
+o\x0a\x09\x09// normal as\
+sistant text.  K\
+eep the continua\
+tion marker on e\
+very tool-call\x0a\x09\
+\x09// message so t\
+he DOM grouping \
+pass can use the\
+ exact persisted\
+ chain edge.\x0a\x09\x09c\
+onst toolOnly = \
+hasToolCalls && \
+!mdText;\x0a\x09\x09const\
+ chainContinuati\
+on = !!(block.ex\
+tra && block.ext\
+ra.tool_chain_co\
+ntinuation === t\
+rue);\x0a\x09\x09const to\
+olChainAttrs = h\
+asToolCalls\x0a\x09\x09\x09?\
+ ` data-tool-onl\
+y='${toolOnly ? \
+'1' : '0'}' data\
+-tool-chain-cont\
+inuation='${chai\
+nContinuation ? \
+'1' : '0'}'`\x0a\x09\x09\x09\
+: '';\x0a\x0a\x09\x09return \
+(\x0a\x09\x09\x09`<div class\
+='msg-box msg-bo\
+t' id='${msgId}'\
+${toolChainAttrs\
+}>` +\x0a\x09\x09\x09`${name\
+Header}` +\x0a\x09\x09\x09`<\
+div class='msg'>\
+` +\x0a\x09\x09\x09`${mdBloc\
+k}` +\x0a\x09\x09\x09`<div c\
+lass='msg-tool-e\
+xtra'></div>` +\x0a\
+\x09\x09\x09`${toolWrap}`\
+ +\x0a\x09\x09\x09`<div clas\
+s='msg-extra'>${\
+extras}</div>` +\
+\x0a\x09\x09\x09`${actions}$\
+{debug}` +\x0a\x09\x09\x09`<\
 /div>` +\x0a\x09\x09\x09`</d\
 iv>`\x0a\x09\x09);\x0a\x09}\x0a\x0a\x09/\
-/ Render bot mes\
-sage block (md-b\
-lock-markdown)\x0a\x09\
-_renderBot(block\
-) {\x0a\x09\x09const id =\
- block.id;\x0a\x09\x09con\
-st out = block.o\
-utput || {};\x0a\x09\x09c\
-onst msgId = `ms\
-g-bot-${id}`;\x0a\x0a\x09\
-\x09// timestamps i\
-ntentionally dis\
-abled on fronten\
-d\x0a\x09\x09// let ts = \
-'';\x0a\x09\x09// if (out\
-.timestamp) { ..\
-. }\x0a\x0a\x09\x09const per\
-sonalize = !!(bl\
-ock && block.ext\
-ra && block.extr\
-a.personalize ==\
-= true);\x0a\x09\x09const\
- nameHeader = pe\
-rsonalize ? this\
-._nameHeader('bo\
-t', out.name || \
-'', out.avatar_i\
-mg || null) : ''\
-;\x0a\x0a\x09\x09const mdTex\
-t = this._escape\
-Html(out.text ||\
- '');\x0a\x09\x09const md\
-Block = mdText ?\
- `<div class='md\
--block' md-block\
--markdown='1'>${\
-mdText}</div>` :\
- '';\x0a\x09\x09const too\
-lWrap = this._re\
-nderToolOutputWr\
-apper(block);\x0a\x09\x09\
-const extras = t\
-his._renderExtra\
-s(block);\x0a\x09\x09cons\
-t actions = (blo\
-ck.extra && bloc\
-k.extra.footer_i\
-cons) ? this._re\
-nderActions(bloc\
-k) : '';\x0a\x09\x09const\
- debug = (block.\
-extra && block.e\
-xtra.debug_html)\
- ? String(block.\
-extra.debug_html\
-) : '';\x0a\x09\x09const \
-toolCalls = Arra\
-y.isArray(block.\
-extra && block.e\
-xtra.tool_calls)\
-\x0a\x09\x09\x09? block.extr\
-a.tool_calls.fil\
-ter(Boolean)\x0a\x09\x09\x09\
-: [];\x0a\x09\x09const ha\
-sToolCalls = too\
-lCalls.length > \
-0;\x0a\x09\x09// A tool-c\
-hain item may st\
-ill carry invisi\
-ble/auxiliary ex\
-tras (tool_extra\
-_html,\x0a\x09\x09// file\
-s, actions, debu\
-g wrappers, etc.\
-).  Those must n\
-ot prevent group\
-ing.\x0a\x09\x09// The de\
-cisive condition\
- is that after s\
-tripping the too\
-l call there is \
-no\x0a\x09\x09// normal a\
-ssistant text.  \
-Keep the continu\
-ation marker on \
-every tool-call\x0a\
-\x09\x09// message so \
-the DOM grouping\
- pass can use th\
-e exact persiste\
-d chain edge.\x0a\x09\x09\
-const toolOnly =\
- hasToolCalls &&\
- !mdText;\x0a\x09\x09cons\
-t chainContinuat\
-ion = !!(block.e\
-xtra && block.ex\
-tra.tool_chain_c\
-ontinuation === \
-true);\x0a\x09\x09const t\
-oolChainAttrs = \
-hasToolCalls\x0a\x09\x09\x09\
-? ` data-tool-on\
-ly='${toolOnly ?\
- '1' : '0'}' dat\
-a-tool-chain-con\
-tinuation='${cha\
-inContinuation ?\
- '1' : '0'}'`\x0a\x09\x09\
-\x09: '';\x0a\x0a\x09\x09return\
- (\x0a\x09\x09\x09`<div clas\
-s='msg-box msg-b\
-ot' id='${msgId}\
-'${toolChainAttr\
-s}>` +\x0a\x09\x09\x09`${nam\
-eHeader}` +\x0a\x09\x09\x09`\
-<div class='msg'\
->` +\x0a\x09\x09\x09`${mdBlo\
-ck}` +\x0a\x09\x09\x09`<div \
-class='msg-tool-\
-extra'></div>` +\
-\x0a\x09\x09\x09`${toolWrap}\
-` +\x0a\x09\x09\x09`<div cla\
-ss='msg-extra'>$\
-{extras}</div>` \
-+\x0a\x09\x09\x09`${actions}\
-${debug}` +\x0a\x09\x09\x09`\
-</div>` +\x0a\x09\x09\x09`</\
-div>`\x0a\x09\x09);\x0a\x09}\x0a\x0a\x09\
-// Render one Re\
-nderBlock into H\
-TML (may produce\
- 1 or 2 messages\
- \xe2\x80\x93 input and/o\
-r output)\x0a\x09rende\
-rNode(block) {\x0a\x09\
-\x09const parts = [\
-];\x0a\x09\x09if (block &\
-& block.input &&\
- block.input.tex\
-t) parts.push(th\
-is._renderUser(b\
-lock));\x0a\x09\x09if (bl\
-ock && block.out\
-put) {\x0a\x09\x09\x09const \
-extra = block.ex\
-tra || {};\x0a\x09\x09\x09co\
-nst hasToolCalls\
- = Array.isArray\
-(extra.tool_call\
-s) && extra.tool\
-_calls.length > \
-0;\x0a\x09\x09\x09if (block.\
-output.text || h\
-asToolCalls || e\
-xtra.tool_output\
-_visible === tru\
-e) {\x0a\x09\x09\x09\x09parts.p\
-ush(this._render\
-Bot(block));\x0a\x09\x09\x09\
-}\x0a\x09\x09}\x0a\x09\x09return p\
-arts.join('');\x0a\x09\
-}\x0a\x0a\x09// Render ar\
-ray of blocks\x0a\x09r\
-enderNodes(block\
-s) {\x0a\x09\x09if (!Arra\
-y.isArray(blocks\
-)) return '';\x0a\x09\x09\
-const out = [];\x0a\
-\x09\x09for (let i = 0\
-; i < blocks.len\
-gth; i++) {\x0a\x09\x09\x09c\
-onst b = blocks[\
-i] || null;\x0a\x09\x09\x09i\
-f (!b) continue;\
-\x0a\x09\x09\x09out.push(thi\
-s.renderNode(b))\
-;\x0a\x09\x09}\x0a\x09\x09return o\
-ut.join('');\x0a\x09}\x0a\
-}\x0a\x0a/* data/js/ap\
-p/tool.js */\x0a// \
+/ Render one Ren\
+derBlock into HT\
+ML (may produce \
+1 or 2 messages \
+\xe2\x80\x93 input and/or\
+ output)\x0a\x09render\
+Node(block) {\x0a\x09\x09\
+const parts = []\
+;\x0a\x09\x09if (block &&\
+ block.input && \
+block.input.text\
+) parts.push(thi\
+s._renderUser(bl\
+ock));\x0a\x09\x09if (blo\
+ck && block.outp\
+ut) {\x0a\x09\x09\x09const e\
+xtra = block.ext\
+ra || {};\x0a\x09\x09\x09con\
+st hasToolCalls \
+= Array.isArray(\
+extra.tool_calls\
+) && extra.tool_\
+calls.length > 0\
+;\x0a\x09\x09\x09if (block.o\
+utput.text || ha\
+sToolCalls || ex\
+tra.tool_output_\
+visible === true\
+) {\x0a\x09\x09\x09\x09parts.pu\
+sh(this._renderB\
+ot(block));\x0a\x09\x09\x09}\
+\x0a\x09\x09}\x0a\x09\x09return pa\
+rts.join('');\x0a\x09}\
+\x0a\x0a\x09// Render arr\
+ay of blocks\x0a\x09re\
+nderNodes(blocks\
+) {\x0a\x09\x09if (!Array\
+.isArray(blocks)\
+) return '';\x0a\x09\x09c\
+onst out = [];\x0a\x09\
+\x09for (let i = 0;\
+ i < blocks.leng\
+th; i++) {\x0a\x09\x09\x09co\
+nst b = blocks[i\
+] || null;\x0a\x09\x09\x09if\
+ (!b) continue;\x0a\
+\x09\x09\x09out.push(this\
+.renderNode(b));\
+\x0a\x09\x09}\x0a\x09\x09return ou\
+t.join('');\x0a\x09}\x0a}\
+\x0a\x0a/* data/js/app\
+/tool.js */\x0a// =\
 ================\
 ================\
 ================\
 ================\
-==========\x0a// To\
-ol output\x0a// ===\
+=========\x0a// Too\
+l output\x0a// ====\
 ================\
 ================\
 ================\
 ================\
-=======\x0a\x0aclass T\
-oolOutput {\x0a\x0a\x09co\
-nstructor() {\x0a\x09\x09\
-this._groupSeq =\
- 0;\x0a\x09}\x0a\x0a\x09// Retu\
-rn direct child \
-matching selecto\
-r without relyin\
-g on :scope supp\
-ort.\x0a\x09_directChi\
-ld(parent, selec\
-tor) {\x0a\x09\x09if (!pa\
-rent || !parent.\
-children) return\
- null;\x0a\x09\x09const c\
-hildren = Array.\
-from(parent.chil\
-dren);\x0a\x09\x09for (le\
-t i = 0; i < chi\
-ldren.length; i+\
-+) {\x0a\x09\x09\x09const ch\
-ild = children[i\
-];\x0a\x09\x09\x09try {\x0a\x09\x09\x09\x09\
-if (child.matche\
-s(selector)) ret\
-urn child;\x0a\x09\x09\x09} \
+======\x0a\x0aclass To\
+olOutput {\x0a\x0a\x09con\
+structor() {\x0a\x09\x09t\
+his._groupSeq = \
+0;\x0a\x09}\x0a\x0a\x09// Retur\
+n direct child m\
+atching selector\
+ without relying\
+ on :scope suppo\
+rt.\x0a\x09_directChil\
+d(parent, select\
+or) {\x0a\x09\x09if (!par\
+ent || !parent.c\
+hildren) return \
+null;\x0a\x09\x09const ch\
+ildren = Array.f\
+rom(parent.child\
+ren);\x0a\x09\x09for (let\
+ i = 0; i < chil\
+dren.length; i++\
+) {\x0a\x09\x09\x09const chi\
+ld = children[i]\
+;\x0a\x09\x09\x09try {\x0a\x09\x09\x09\x09i\
+f (child.matches\
+(selector)) retu\
+rn child;\x0a\x09\x09\x09} c\
+atch (_) {}\x0a\x09\x09}\x0a\
+\x09\x09return null;\x0a\x09\
+}\x0a\x0a\x09// Extract r\
+aw tool names fr\
+om a rendered to\
+ol-output wrappe\
+r.\x0a\x09_toolNames(o\
+utputEl) {\x0a\x09\x09if \
+(!outputEl) retu\
+rn [];\x0a\x09\x09const r\
+aw = outputEl.ge\
+tAttribute('data\
+-tool-names') ||\
+ '';\x0a\x09\x09if (raw) \
+{\x0a\x09\x09\x09try {\x0a\x09\x09\x09\x09c\
+onst parsed = JS\
+ON.parse(raw);\x0a\x09\
+\x09\x09\x09if (Array.isA\
+rray(parsed)) re\
+turn parsed.map(\
+v => String(v ||\
+ 'tool'));\x0a\x09\x09\x09} \
 catch (_) {}\x0a\x09\x09}\
-\x0a\x09\x09return null;\x0a\
-\x09}\x0a\x0a\x09// Extract \
-raw tool names f\
-rom a rendered t\
-ool-output wrapp\
-er.\x0a\x09_toolNames(\
-outputEl) {\x0a\x09\x09if\
- (!outputEl) ret\
-urn [];\x0a\x09\x09const \
-raw = outputEl.g\
-etAttribute('dat\
-a-tool-names') |\
-| '';\x0a\x09\x09if (raw)\
- {\x0a\x09\x09\x09try {\x0a\x09\x09\x09\x09\
-const parsed = J\
-SON.parse(raw);\x0a\
-\x09\x09\x09\x09if (Array.is\
-Array(parsed)) r\
-eturn parsed.map\
-(v => String(v |\
-| 'tool'));\x0a\x09\x09\x09}\
- catch (_) {}\x0a\x09\x09\
-}\x0a\x09\x09const nameEl\
- = outputEl.quer\
-ySelector('.tool\
--output-name');\x0a\
-\x09\x09if (!nameEl) r\
-eturn [];\x0a\x09\x09cons\
-t text = String(\
-nameEl.textConte\
-nt || '').trim()\
-;\x0a\x09\x09return text \
-? [text] : [];\x0a\x09\
-}\x0a\x0a\x09// Build the\
- compact parent \
-label: \x22Tools: a\
-, b \xe2\x80\xa6 and N mo\
-re\x22.\x0a\x09_groupSumm\
-ary(groupEl) {\x0a\x09\
-\x09if (!groupEl) r\
-eturn;\x0a\x09\x09const n\
-ames = [];\x0a\x09\x09con\
+\x0a\x09\x09const nameEl \
+= outputEl.query\
+Selector('.tool-\
+output-name');\x0a\x09\
+\x09if (!nameEl) re\
+turn [];\x0a\x09\x09const\
+ text = String(n\
+ameEl.textConten\
+t || '').trim();\
+\x0a\x09\x09return text ?\
+ [text] : [];\x0a\x09}\
+\x0a\x0a\x09// Build the \
+compact parent l\
+abel: \x22Tools: a,\
+ b \xe2\x80\xa6 and N mor\
+e\x22.\x0a\x09_groupSumma\
+ry(groupEl) {\x0a\x09\x09\
+if (!groupEl) re\
+turn;\x0a\x09\x09const na\
+mes = [];\x0a\x09\x09cons\
+t content = this\
+._directChild(gr\
+oupEl, '.tool-gr\
+oup-content');\x0a\x09\
+\x09if (content) {\x0a\
+\x09\x09\x09const outputs\
+ = content.query\
+SelectorAll('.to\
+ol-output:not(.t\
+ool-output-group\
+)');\x0a\x09\x09\x09outputs.\
+forEach(el => na\
+mes.push(...this\
+._toolNames(el))\
+);\x0a\x09\x09}\x0a\x0a\x09\x09const \
+namesEl = this._\
+directChild(\x0a\x09\x09\x09\
+this._directChil\
+d(groupEl, '.too\
+l-output-toggle.\
+tool-group-toggl\
+e'),\x0a\x09\x09\x09'.tool-o\
+utput-name.tool-\
+group-names'\x0a\x09\x09)\
+;\x0a\x09\x09if (!namesEl\
+) return;\x0a\x0a\x09\x09// \
+Parent summary o\
+nly: show the ne\
+west tools first\
+. The expanded\x0a\x09\
+\x09// group conten\
+t itself keeps t\
+he original chro\
+nological order.\
+\x0a\x09\x09const shown =\
+ names.slice().r\
+everse().slice(0\
+, 2);\x0a\x09\x09let labe\
+l = shown.join('\
+, ');\x0a\x09\x09const re\
+maining = Math.m\
+ax(0, names.leng\
+th - shown.lengt\
+h);\x0a\x09\x09if (remain\
+ing > 0) {\x0a\x09\x09\x09co\
+nst tpl = (typeo\
+f window !== 'un\
+defined' && wind\
+ow.LOCALE_TOOL_M\
+ORE)\x0a\x09\x09\x09\x09? Strin\
+g(window.LOCALE_\
+TOOL_MORE)\x0a\x09\x09\x09\x09:\
+ 'and {count} mo\
+re';\x0a\x09\x09\x09const mo\
+re = tpl.split('\
+{count}').join(S\
+tring(remaining)\
+);\x0a\x09\x09\x09label += `\
+${label ? ' \xe2\x80\xa6 \
+' : ''}${more}`;\
+\x0a\x09\x09}\x0a\x09\x09namesEl.t\
+extContent = lab\
+el || 'tool';\x0a\x09}\
+\x0a\x0a\x09// Return met\
+adata for a dire\
+ct message box t\
+hat can particip\
+ate in grouping.\
+\x0a\x09_groupCandidat\
+e(box) {\x0a\x09\x09if (!\
+box || !box.clas\
+sList || !box.cl\
+assList.contains\
+('msg-bot')) ret\
+urn null;\x0a\x0a\x09\x09if \
+(box.classList.c\
+ontains('tool-gr\
+oup-box')) {\x0a\x09\x09\x09\
+const msg = this\
+._directChild(bo\
+x, '.msg');\x0a\x09\x09\x09c\
+onst group = thi\
+s._directChild(m\
+sg, '.tool-outpu\
+t-group');\x0a\x09\x09\x09re\
+turn (msg && gro\
+up) ? {box, msg,\
+ group} : null;\x0a\
+\x09\x09}\x0a\x0a\x09\x09const msg\
+ = this._directC\
+hild(box, '.msg'\
+);\x0a\x09\x09const outpu\
+t = this._direct\
+Child(msg, '.too\
+l-output:not(.to\
+ol-output-group)\
+');\x0a\x09\x09if (!msg |\
+| !output) retur\
+n null;\x0a\x0a\x09\x09let t\
+oolOnly = box.ge\
+tAttribute('data\
+-tool-only');\x0a\x09\x09\
+if (toolOnly == \
+null) {\x0a\x09\x09\x09// Ba\
+ckward/alternate\
+ render-path fal\
+lback.  A named \
+tool-output with\
+ no\x0a\x09\x09\x09// markdo\
+wn response is t\
+he same \x22tool-on\
+ly\x22 shape used b\
+y the template.\x0a\
+\x09\x09\x09const hasName\
+dTool = !!output\
+.getAttribute('d\
+ata-tool-names')\
+;\x0a\x09\x09\x09const hasAs\
+sistantText = !!\
+this._directChil\
+d(msg, '.md-bloc\
+k');\x0a\x09\x09\x09toolOnly\
+ = (hasNamedTool\
+ && !hasAssistan\
+tText) ? '1' : '\
+0';\x0a\x09\x09}\x0a\x09\x09if (to\
+olOnly !== '1') \
+return null;\x0a\x09\x09r\
+eturn {box, msg,\
+ output, group: \
+null};\x0a\x09}\x0a\x0a\x09// C\
+reate a parent t\
+ool group around\
+ two consecutive\
+ tool-only messa\
+ges.\x0a\x09_createGro\
+up(first, second\
+) {\x0a\x09\x09if (!first\
+ || !second || !\
+first.box || !se\
+cond.box) return\
+ first;\x0a\x09\x09const \
+parent = documen\
+t.createElement(\
+'div');\x0a\x09\x09parent\
+.className = 'ms\
+g-box msg-bot to\
+ol-group-box';\x0a\x09\
+\x09parent.setAttri\
+bute('data-tool-\
+only', '1');\x0a\x0a\x09\x09\
+const firstHeade\
+r = this._direct\
+Child(first.box,\
+ '.name-header')\
+;\x0a\x09\x09if (firstHea\
+der) parent.appe\
+ndChild(firstHea\
+der);\x0a\x0a\x09\x09const m\
+sg = document.cr\
+eateElement('div\
+');\x0a\x09\x09msg.classN\
+ame = 'msg';\x0a\x09\x09c\
+onst group = doc\
+ument.createElem\
+ent('div');\x0a\x09\x09gr\
+oup.className = \
+'tool-output too\
+l-output-group';\
+\x0a\x09\x09const firstId\
+ = first.box.id \
+|| `runtime-${++\
+this._groupSeq}`\
+;\x0a\x09\x09const groupI\
+d = `tool-group-\
+${firstId}`;\x0a\x09\x09g\
+roup.id = groupI\
+d;\x0a\x0a\x09\x09const togg\
+le = document.cr\
+eateElement('but\
+ton');\x0a\x09\x09toggle.\
+type = 'button';\
+\x0a\x09\x09toggle.classN\
+ame = 'tool-outp\
+ut-toggle tool-g\
+roup-toggle';\x0a\x09\x09\
+toggle.setAttrib\
+ute('aria-expand\
+ed', 'false');\x0a\x09\
+\x09const expandTit\
+le = (typeof tra\
+ns !== 'undefine\
+d' && trans) ? t\
+rans('action.cmd\
+.expand') : 'Exp\
+and';\x0a\x09\x09toggle.s\
+etAttribute('tit\
+le', expandTitle\
+);\x0a\x09\x09toggle.addE\
+ventListener('cl\
+ick', () => this\
+.toggleGroup(gro\
+upId));\x0a\x0a\x09\x09const\
+ label = documen\
+t.createElement(\
+'span');\x0a\x09\x09label\
+.className = 'to\
+ol-output-label'\
+;\x0a\x09\x09const strong\
+ = document.crea\
+teElement('b');\x0a\
+\x09\x09strong.textCon\
+tent = (typeof w\
+indow !== 'undef\
+ined' && window.\
+LOCALE_TOOLS)\x0a\x09\x09\
+\x09? String(window\
+.LOCALE_TOOLS)\x0a\x09\
+\x09\x09: 'Tools';\x0a\x09\x09l\
+abel.appendChild\
+(strong);\x0a\x09\x09labe\
+l.appendChild(do\
+cument.createTex\
+tNode(':\x5cu00a0')\
+);\x0a\x0a\x09\x09const name\
+s = document.cre\
+ateElement('span\
+');\x0a\x09\x09names.clas\
+sName = 'tool-ou\
+tput-name tool-g\
+roup-names';\x0a\x0a\x09\x09\
+const arrow = do\
+cument.createEle\
+ment('img');\x0a\x09\x09a\
+rrow.className =\
+ 'tool-output-ar\
+row tool-group-a\
+rrow';\x0a\x09\x09arrow.w\
+idth = 25;\x0a\x09\x09arr\
+ow.height = 25;\x0a\
+\x09\x09arrow.alt = ''\
+;\x0a\x09\x09if (typeof w\
+indow !== 'undef\
+ined' && window.\
+ICON_EXPAND) arr\
+ow.src = window.\
+ICON_EXPAND;\x0a\x0a\x09\x09\
+toggle.appendChi\
+ld(label);\x0a\x09\x09tog\
+gle.appendChild(\
+names);\x0a\x09\x09toggle\
+.appendChild(arr\
+ow);\x0a\x0a\x09\x09const co\
+ntent = document\
+.createElement('\
+div');\x0a\x09\x09content\
+.className = 'to\
+ol-group-content\
+';\x0a\x09\x09content.sty\
+le.display = 'no\
+ne';\x0a\x0a\x09\x09group.ap\
+pendChild(toggle\
+);\x0a\x09\x09group.appen\
+dChild(content);\
+\x0a\x09\x09msg.appendChi\
+ld(group);\x0a\x09\x09par\
+ent.appendChild(\
+msg);\x0a\x0a\x09\x09first.b\
+ox.parentNode.in\
+sertBefore(paren\
+t, first.box);\x0a\x09\
+\x09content.appendC\
+hild(first.box);\
+\x0a\x09\x09content.appen\
+dChild(second.bo\
+x);\x0a\x09\x09this._grou\
+pSummary(group);\
+\x0a\x09\x09return {box: \
+parent, msg, gro\
+up};\x0a\x09}\x0a\x0a\x09// App\
+end another cons\
+ecutive tool-onl\
+y message to an \
+existing parent \
+group.\x0a\x09_appendT\
+oGroup(groupCand\
+idate, next) {\x0a\x09\
+\x09if (!groupCandi\
+date || !groupCa\
+ndidate.group ||\
+ !next || !next.\
+box) return grou\
+pCandidate;\x0a\x09\x09co\
+nst content = th\
+is._directChild(\
+groupCandidate.g\
+roup, '.tool-gro\
+up-content');\x0a\x09\x09\
+if (!content) re\
+turn groupCandid\
+ate;\x0a\x09\x09content.a\
+ppendChild(next.\
+box);\x0a\x09\x09this._gr\
+oupSummary(group\
+Candidate.group)\
+;\x0a\x09\x09return group\
+Candidate;\x0a\x09}\x0a\x0a\x09\
+// Group only ex\
+plicit continuat\
+ion edges. This \
+runs after both \
+full-history\x0a\x09//\
+ rendering and i\
+ncremental appen\
+ds, so behavior \
+stays identical \
+in real time.\x0a\x09g\
+roupConsecutive(\
+root) {\x0a\x09\x09if (!r\
+oot || !root.chi\
+ldren) return;\x0a\x09\
+\x09const boxes = A\
+rray.from(root.c\
+hildren);\x0a\x09\x09let \
+anchor = null;\x0a\x0a\
+\x09\x09for (let i = 0\
+; i < boxes.leng\
+th; i++) {\x0a\x09\x09\x09co\
+nst box = boxes[\
+i];\x0a\x09\x09\x09const can\
+didate = this._g\
+roupCandidate(bo\
+x);\x0a\x09\x09\x09if (!cand\
+idate) {\x0a\x09\x09\x09\x09anc\
+hor = null;\x0a\x09\x09\x09\x09\
+continue;\x0a\x09\x09\x09}\x0a\x0a\
+\x09\x09\x09if (!anchor) \
+{\x0a\x09\x09\x09\x09anchor = c\
+andidate;\x0a\x09\x09\x09\x09co\
+ntinue;\x0a\x09\x09\x09}\x0a\x0a\x09\x09\
+\x09// An already-b\
+uilt group may a\
+bsorb the next e\
+xplicit continua\
+tion.\x0a\x09\x09\x09// A fr\
+esh tool message\
+ joins the prece\
+ding one only wh\
+en Python marked\
+\x0a\x09\x09\x09// it as the\
+ internal contin\
+uation of that e\
+xact tool reques\
+t.\x0a\x09\x09\x09const isCo\
+ntinuation = box\
+.getAttribute('d\
+ata-tool-chain-c\
+ontinuation') ==\
+= '1';\x0a\x09\x09\x09if (!i\
+sContinuation) {\
+\x0a\x09\x09\x09\x09anchor = ca\
+ndidate;\x0a\x09\x09\x09\x09con\
+tinue;\x0a\x09\x09\x09}\x0a\x0a\x09\x09\x09\
+if (anchor.group\
+) anchor = this.\
+_appendToGroup(a\
+nchor, candidate\
+);\x0a\x09\x09\x09else ancho\
+r = this._create\
+Group(anchor, ca\
+ndidate);\x0a\x09\x09}\x0a\x09}\
+\x0a\x0a\x09// Toggle a p\
+arent tool group\
+. Individual too\
+ls remain indepe\
+ndently collapse\
+d.\x0a\x09toggleGroup(\
+id) {\x0a\x09\x09const gr\
+oupEl = document\
+.getElementById(\
+String(id || '')\
+);\x0a\x09\x09if (!groupE\
+l) return;\x0a\x09\x09con\
 st content = thi\
 s._directChild(g\
 roupEl, '.tool-g\
 roup-content');\x0a\
-\x09\x09if (content) {\
-\x0a\x09\x09\x09const output\
-s = content.quer\
-ySelectorAll('.t\
-ool-output:not(.\
-tool-output-grou\
-p)');\x0a\x09\x09\x09outputs\
-.forEach(el => n\
-ames.push(...thi\
-s._toolNames(el)\
-));\x0a\x09\x09}\x0a\x0a\x09\x09const\
- namesEl = this.\
-_directChild(\x0a\x09\x09\
-\x09this._directChi\
-ld(groupEl, '.to\
-ol-output-toggle\
-.tool-group-togg\
-le'),\x0a\x09\x09\x09'.tool-\
-output-name.tool\
--group-names'\x0a\x09\x09\
-);\x0a\x09\x09if (!namesE\
-l) return;\x0a\x0a\x09\x09//\
- Parent summary \
-only: show the n\
-ewest tools firs\
-t. The expanded\x0a\
-\x09\x09// group conte\
-nt itself keeps \
-the original chr\
-onological order\
-.\x0a\x09\x09const shown \
-= names.slice().\
-reverse().slice(\
-0, 2);\x0a\x09\x09let lab\
-el = shown.join(\
-', ');\x0a\x09\x09const r\
-emaining = Math.\
-max(0, names.len\
-gth - shown.leng\
-th);\x0a\x09\x09if (remai\
-ning > 0) {\x0a\x09\x09\x09c\
-onst tpl = (type\
-of window !== 'u\
-ndefined' && win\
-dow.LOCALE_TOOL_\
-MORE)\x0a\x09\x09\x09\x09? Stri\
-ng(window.LOCALE\
-_TOOL_MORE)\x0a\x09\x09\x09\x09\
-: 'and {count} m\
-ore';\x0a\x09\x09\x09const m\
-ore = tpl.split(\
-'{count}').join(\
-String(remaining\
-));\x0a\x09\x09\x09label += \
-`${label ? ' \xe2\x80\xa6\
- ' : ''}${more}`\
-;\x0a\x09\x09}\x0a\x09\x09namesEl.\
-textContent = la\
-bel || 'tool';\x0a\x09\
-}\x0a\x0a\x09// Return me\
-tadata for a dir\
-ect message box \
-that can partici\
-pate in grouping\
-.\x0a\x09_groupCandida\
-te(box) {\x0a\x09\x09if (\
-!box || !box.cla\
-ssList || !box.c\
-lassList.contain\
-s('msg-bot')) re\
-turn null;\x0a\x0a\x09\x09if\
- (box.classList.\
-contains('tool-g\
-roup-box')) {\x0a\x09\x09\
-\x09const msg = thi\
-s._directChild(b\
-ox, '.msg');\x0a\x09\x09\x09\
-const group = th\
-is._directChild(\
-msg, '.tool-outp\
-ut-group');\x0a\x09\x09\x09r\
-eturn (msg && gr\
-oup) ? {box, msg\
-, group} : null;\
-\x0a\x09\x09}\x0a\x0a\x09\x09const ms\
-g = this._direct\
-Child(box, '.msg\
-');\x0a\x09\x09const outp\
-ut = this._direc\
-tChild(msg, '.to\
-ol-output:not(.t\
-ool-output-group\
-)');\x0a\x09\x09if (!msg \
-|| !output) retu\
-rn null;\x0a\x0a\x09\x09let \
-toolOnly = box.g\
-etAttribute('dat\
-a-tool-only');\x0a\x09\
-\x09if (toolOnly ==\
- null) {\x0a\x09\x09\x09// B\
-ackward/alternat\
-e render-path fa\
-llback.  A named\
- tool-output wit\
-h no\x0a\x09\x09\x09// markd\
-own response is \
-the same \x22tool-o\
-nly\x22 shape used \
-by the template.\
-\x0a\x09\x09\x09const hasNam\
-edTool = !!outpu\
-t.getAttribute('\
-data-tool-names'\
-);\x0a\x09\x09\x09const hasA\
-ssistantText = !\
-!this._directChi\
-ld(msg, '.md-blo\
-ck');\x0a\x09\x09\x09toolOnl\
-y = (hasNamedToo\
-l && !hasAssista\
-ntText) ? '1' : \
-'0';\x0a\x09\x09}\x0a\x09\x09if (t\
-oolOnly !== '1')\
- return null;\x0a\x09\x09\
-return {box, msg\
-, output, group:\
- null};\x0a\x09}\x0a\x0a\x09// \
-Create a parent \
-tool group aroun\
-d two consecutiv\
-e tool-only mess\
-ages.\x0a\x09_createGr\
-oup(first, secon\
-d) {\x0a\x09\x09if (!firs\
-t || !second || \
-!first.box || !s\
-econd.box) retur\
-n first;\x0a\x09\x09const\
- parent = docume\
-nt.createElement\
-('div');\x0a\x09\x09paren\
-t.className = 'm\
-sg-box msg-bot t\
-ool-group-box';\x0a\
-\x09\x09parent.setAttr\
-ibute('data-tool\
--only', '1');\x0a\x0a\x09\
-\x09const firstHead\
-er = this._direc\
-tChild(first.box\
-, '.name-header'\
-);\x0a\x09\x09if (firstHe\
-ader) parent.app\
-endChild(firstHe\
-ader);\x0a\x0a\x09\x09const \
-msg = document.c\
-reateElement('di\
-v');\x0a\x09\x09msg.class\
-Name = 'msg';\x0a\x09\x09\
-const group = do\
-cument.createEle\
-ment('div');\x0a\x09\x09g\
-roup.className =\
- 'tool-output to\
-ol-output-group'\
-;\x0a\x09\x09const firstI\
-d = first.box.id\
- || `runtime-${+\
-+this._groupSeq}\
-`;\x0a\x09\x09const group\
-Id = `tool-group\
--${firstId}`;\x0a\x09\x09\
-group.id = group\
-Id;\x0a\x0a\x09\x09const tog\
-gle = document.c\
-reateElement('bu\
-tton');\x0a\x09\x09toggle\
-.type = 'button'\
-;\x0a\x09\x09toggle.class\
-Name = 'tool-out\
-put-toggle tool-\
-group-toggle';\x0a\x09\
-\x09toggle.setAttri\
-bute('aria-expan\
-ded', 'false');\x0a\
-\x09\x09const expandTi\
-tle = (typeof tr\
-ans !== 'undefin\
-ed' && trans) ? \
-trans('action.cm\
-d.expand') : 'Ex\
-pand';\x0a\x09\x09toggle.\
-setAttribute('ti\
-tle', expandTitl\
-e);\x0a\x09\x09toggle.add\
-EventListener('c\
-lick', () => thi\
-s.toggleGroup(gr\
-oupId));\x0a\x0a\x09\x09cons\
-t label = docume\
-nt.createElement\
-('span');\x0a\x09\x09labe\
-l.className = 't\
-ool-output-label\
-';\x0a\x09\x09const stron\
-g = document.cre\
-ateElement('b');\
-\x0a\x09\x09strong.textCo\
-ntent = (typeof \
-window !== 'unde\
-fined' && window\
-.LOCALE_TOOLS)\x0a\x09\
-\x09\x09? String(windo\
-w.LOCALE_TOOLS)\x0a\
-\x09\x09\x09: 'Tools';\x0a\x09\x09\
-label.appendChil\
-d(strong);\x0a\x09\x09lab\
-el.appendChild(d\
-ocument.createTe\
-xtNode(':\x5cu00a0'\
-));\x0a\x0a\x09\x09const nam\
-es = document.cr\
-eateElement('spa\
-n');\x0a\x09\x09names.cla\
-ssName = 'tool-o\
-utput-name tool-\
-group-names';\x0a\x0a\x09\
-\x09const arrow = d\
-ocument.createEl\
-ement('img');\x0a\x09\x09\
-arrow.className \
-= 'tool-output-a\
-rrow tool-group-\
-arrow';\x0a\x09\x09arrow.\
-width = 25;\x0a\x09\x09ar\
-row.height = 25;\
-\x0a\x09\x09arrow.alt = '\
-';\x0a\x09\x09if (typeof \
-window !== 'unde\
-fined' && window\
-.ICON_EXPAND) ar\
-row.src = window\
-.ICON_EXPAND;\x0a\x0a\x09\
-\x09toggle.appendCh\
-ild(label);\x0a\x09\x09to\
-ggle.appendChild\
-(names);\x0a\x09\x09toggl\
-e.appendChild(ar\
-row);\x0a\x0a\x09\x09const c\
-ontent = documen\
-t.createElement(\
-'div');\x0a\x09\x09conten\
-t.className = 't\
-ool-group-conten\
-t';\x0a\x09\x09content.st\
-yle.display = 'n\
-one';\x0a\x0a\x09\x09group.a\
-ppendChild(toggl\
-e);\x0a\x09\x09group.appe\
-ndChild(content)\
-;\x0a\x09\x09msg.appendCh\
-ild(group);\x0a\x09\x09pa\
-rent.appendChild\
-(msg);\x0a\x0a\x09\x09first.\
-box.parentNode.i\
-nsertBefore(pare\
-nt, first.box);\x0a\
-\x09\x09content.append\
-Child(first.box)\
-;\x0a\x09\x09content.appe\
-ndChild(second.b\
-ox);\x0a\x09\x09this._gro\
-upSummary(group)\
-;\x0a\x09\x09return {box:\
- parent, msg, gr\
-oup};\x0a\x09}\x0a\x0a\x09// Ap\
-pend another con\
-secutive tool-on\
-ly message to an\
- existing parent\
- group.\x0a\x09_append\
-ToGroup(groupCan\
-didate, next) {\x0a\
-\x09\x09if (!groupCand\
-idate || !groupC\
-andidate.group |\
-| !next || !next\
-.box) return gro\
-upCandidate;\x0a\x09\x09c\
-onst content = t\
-his._directChild\
-(groupCandidate.\
-group, '.tool-gr\
-oup-content');\x0a\x09\
-\x09if (!content) r\
-eturn groupCandi\
-date;\x0a\x09\x09content.\
-appendChild(next\
-.box);\x0a\x09\x09this._g\
-roupSummary(grou\
-pCandidate.group\
-);\x0a\x09\x09return grou\
-pCandidate;\x0a\x09}\x0a\x0a\
-\x09// Group only e\
-xplicit continua\
-tion edges. This\
- runs after both\
- full-history\x0a\x09/\
-/ rendering and \
-incremental appe\
-nds, so behavior\
- stays identical\
- in real time.\x0a\x09\
-groupConsecutive\
-(root) {\x0a\x09\x09if (!\
-root || !root.ch\
-ildren) return;\x0a\
-\x09\x09const boxes = \
-Array.from(root.\
-children);\x0a\x09\x09let\
- anchor = null;\x0a\
-\x0a\x09\x09for (let i = \
-0; i < boxes.len\
-gth; i++) {\x0a\x09\x09\x09c\
-onst box = boxes\
-[i];\x0a\x09\x09\x09const ca\
-ndidate = this._\
-groupCandidate(b\
-ox);\x0a\x09\x09\x09if (!can\
-didate) {\x0a\x09\x09\x09\x09an\
-chor = null;\x0a\x09\x09\x09\
-\x09continue;\x0a\x09\x09\x09}\x0a\
-\x0a\x09\x09\x09if (!anchor)\
- {\x0a\x09\x09\x09\x09anchor = \
-candidate;\x0a\x09\x09\x09\x09c\
-ontinue;\x0a\x09\x09\x09}\x0a\x0a\x09\
-\x09\x09// An already-\
-built group may \
-absorb the next \
-explicit continu\
-ation.\x0a\x09\x09\x09// A f\
-resh tool messag\
-e joins the prec\
-eding one only w\
-hen Python marke\
-d\x0a\x09\x09\x09// it as th\
-e internal conti\
-nuation of that \
-exact tool reque\
-st.\x0a\x09\x09\x09const isC\
-ontinuation = bo\
-x.getAttribute('\
-data-tool-chain-\
-continuation') =\
-== '1';\x0a\x09\x09\x09if (!\
-isContinuation) \
-{\x0a\x09\x09\x09\x09anchor = c\
-andidate;\x0a\x09\x09\x09\x09co\
-ntinue;\x0a\x09\x09\x09}\x0a\x0a\x09\x09\
-\x09if (anchor.grou\
-p) anchor = this\
-._appendToGroup(\
-anchor, candidat\
-e);\x0a\x09\x09\x09else anch\
-or = this._creat\
-eGroup(anchor, c\
-andidate);\x0a\x09\x09}\x0a\x09\
-}\x0a\x0a\x09// Toggle a \
-parent tool grou\
-p. Individual to\
-ols remain indep\
-endently collaps\
-ed.\x0a\x09toggleGroup\
-(id) {\x0a\x09\x09const g\
-roupEl = documen\
-t.getElementById\
-(String(id || ''\
-));\x0a\x09\x09if (!group\
-El) return;\x0a\x09\x09co\
-nst content = th\
-is._directChild(\
-groupEl, '.tool-\
-group-content');\
-\x0a\x09\x09if (!content)\
- return;\x0a\x09\x09const\
- expanded = cont\
-ent.style.displa\
-y === 'none';\x0a\x09\x09\
-content.style.di\
-splay = expanded\
- ? 'block' : 'no\
-ne';\x0a\x0a\x09\x09const he\
-ader = this._dir\
-ectChild(groupEl\
-, '.tool-output-\
-toggle.tool-grou\
-p-toggle');\x0a\x09\x09if\
- (header) header\
-.setAttribute('a\
-ria-expanded', e\
-xpanded ? 'true'\
- : 'false');\x0a\x09\x09c\
-onst arrow = hea\
-der ? header.que\
-rySelector('.too\
-l-group-arrow') \
-: null;\x0a\x09\x09if (ar\
-row) arrow.class\
-List.toggle('tog\
-gle-expanded', e\
-xpanded);\x0a\x09}\x0a\x0a\x09/\
-/ Return the col\
-lapsible body wh\
-ile keeping comp\
-atibility with H\
-TML produced\x0a\x09//\
- by older fronte\
-nd bundles that \
-used the generic\
- `.content` clas\
-s.\x0a\x09_content(out\
-putEl) {\x0a\x09\x09if (!\
-outputEl) return\
- null;\x0a\x09\x09return \
-outputEl.querySe\
-lector('.tool-ou\
-tput-content, .c\
-ontent');\x0a\x09}\x0a\x0a\x09/\
-/ Pretty-print v\
-alid JSON, prese\
-rving arbitrary \
-non-JSON tool ou\
-tput as text.\x0a\x09_\
-formatPayload(va\
-lue) {\x0a\x09\x09if (val\
-ue == null) retu\
-rn '';\x0a\x09\x09const r\
-aw = String(valu\
-e);\x0a\x09\x09const trim\
-med = raw.trim()\
-;\x0a\x09\x09if (!trimmed\
-) return '';\x0a\x09\x09t\
-ry {\x0a\x09\x09\x09return J\
-SON.stringify(JS\
-ON.parse(trimmed\
-), null, 2);\x0a\x09\x09}\
- catch (_) {\x0a\x09\x09\x09\
-return raw;\x0a\x09\x09}\x0a\
-\x09}\x0a\x0a\x09// Build a \
-robust JSON fenc\
-e accepted by th\
-e same Markdown \
-parser used for\x0a\
-\x09// regular assi\
-stant messages.\x0a\
-\x09_codeMarkdown(v\
-alue) {\x0a\x09\x09const \
-text = this._for\
-matPayload(value\
-);\x0a\x09\x09if (!text) \
-return '';\x0a\x09\x09let\
- maxTicks = 0;\x0a\x09\
-\x09const runs = te\
-xt.match(/`+/g);\
-\x0a\x09\x09if (runs) run\
-s.forEach(run =>\
- { maxTicks = Ma\
-th.max(maxTicks,\
- run.length); })\
-;\x0a\x09\x09const fence \
-= '`'.repeat(Mat\
-h.max(3, maxTick\
-s + 1));\x0a\x09\x09retur\
-n `${fence}json\x5c\
-n${text}\x5cn${fenc\
-e}`;\x0a\x09}\x0a\x0a\x09// Rec\
-over currently d\
-isplayed structu\
-red result for a\
-ppend() calls.\x0a\x09\
-_resultRaw(resul\
-tEl) {\x0a\x09\x09if (!re\
-sultEl) return '\
-';\x0a\x09\x09if (Object.\
-prototype.hasOwn\
-Property.call(re\
-sultEl, '_toolRa\
-w')) {\x0a\x09\x09\x09return\
- String(resultEl\
-._toolRaw || '')\
-;\x0a\x09\x09}\x0a\x0a\x09\x09const c\
-ode = resultEl.q\
-uerySelector('.c\
-ode-wrapper pre \
-code');\x0a\x09\x09if (co\
-de) return code.\
-textContent || '\
-';\x0a\x0a\x09\x09const pend\
-ing = resultEl.q\
-uerySelector('[m\
-d-block-markdown\
-]');\x0a\x09\x09if (pendi\
-ng) {\x0a\x09\x09\x09const s\
-rc = pending.tex\
-tContent || '';\x0a\
-\x09\x09\x09const match =\
- src.match(/^(`{\
-3,})json[^\x5cn]*\x5cn\
-([\x5cs\x5cS]*?)\x5cn\x5c1\x5cs\
-*$/i);\x0a\x09\x09\x09if (ma\
-tch) return matc\
-h[2];\x0a\x09\x09\x09return \
-src;\x0a\x09\x09}\x0a\x0a\x09\x09retu\
-rn resultEl.text\
+\x09\x09if (!content) \
+return;\x0a\x09\x09const \
+expanded = conte\
+nt.style.display\
+ === 'none';\x0a\x09\x09c\
+ontent.style.dis\
+play = expanded \
+? 'block' : 'non\
+e';\x0a\x0a\x09\x09const hea\
+der = this._dire\
+ctChild(groupEl,\
+ '.tool-output-t\
+oggle.tool-group\
+-toggle');\x0a\x09\x09if \
+(header) header.\
+setAttribute('ar\
+ia-expanded', ex\
+panded ? 'true' \
+: 'false');\x0a\x09\x09co\
+nst arrow = head\
+er ? header.quer\
+ySelector('.tool\
+-group-arrow') :\
+ null;\x0a\x09\x09if (arr\
+ow) arrow.classL\
+ist.toggle('togg\
+le-expanded', ex\
+panded);\x0a\x09}\x0a\x0a\x09//\
+ Return the coll\
+apsible body whi\
+le keeping compa\
+tibility with HT\
+ML produced\x0a\x09// \
+by older fronten\
+d bundles that u\
+sed the generic \
+`.content` class\
+.\x0a\x09_content(outp\
+utEl) {\x0a\x09\x09if (!o\
+utputEl) return \
+null;\x0a\x09\x09return o\
+utputEl.querySel\
+ector('.tool-out\
+put-content, .co\
+ntent');\x0a\x09}\x0a\x0a\x09//\
+ Pretty-print va\
+lid JSON, preser\
+ving arbitrary n\
+on-JSON tool out\
+put as text.\x0a\x09_f\
+ormatPayload(val\
+ue) {\x0a\x09\x09if (valu\
+e == null) retur\
+n '';\x0a\x09\x09const ra\
+w = String(value\
+);\x0a\x09\x09const trimm\
+ed = raw.trim();\
+\x0a\x09\x09if (!trimmed)\
+ return '';\x0a\x09\x09tr\
+y {\x0a\x09\x09\x09return JS\
+ON.stringify(JSO\
+N.parse(trimmed)\
+, null, 2);\x0a\x09\x09} \
+catch (_) {\x0a\x09\x09\x09r\
+eturn raw;\x0a\x09\x09}\x0a\x09\
+}\x0a\x0a\x09// Build a r\
+obust JSON fence\
+ accepted by the\
+ same Markdown p\
+arser used for\x0a\x09\
+// regular assis\
+tant messages.\x0a\x09\
+_codeMarkdown(va\
+lue) {\x0a\x09\x09const t\
+ext = this._form\
+atPayload(value)\
+;\x0a\x09\x09if (!text) r\
+eturn '';\x0a\x09\x09let \
+maxTicks = 0;\x0a\x09\x09\
+const runs = tex\
+t.match(/`+/g);\x0a\
+\x09\x09if (runs) runs\
+.forEach(run => \
+{ maxTicks = Mat\
+h.max(maxTicks, \
+run.length); });\
+\x0a\x09\x09const fence =\
+ '`'.repeat(Math\
+.max(3, maxTicks\
+ + 1));\x0a\x09\x09return\
+ `${fence}json\x5cn\
+${text}\x5cn${fence\
+}`;\x0a\x09}\x0a\x0a\x09// Reco\
+ver currently di\
+splayed structur\
+ed result for ap\
+pend() calls.\x0a\x09_\
+resultRaw(result\
+El) {\x0a\x09\x09if (!res\
+ultEl) return ''\
+;\x0a\x09\x09if (Object.p\
+rototype.hasOwnP\
+roperty.call(res\
+ultEl, '_toolRaw\
+')) {\x0a\x09\x09\x09return \
+String(resultEl.\
+_toolRaw || '');\
+\x0a\x09\x09}\x0a\x0a\x09\x09const co\
+de = resultEl.qu\
+erySelector('.co\
+de-wrapper pre c\
+ode');\x0a\x09\x09if (cod\
+e) return code.t\
+extContent || ''\
+;\x0a\x0a\x09\x09const pendi\
+ng = resultEl.qu\
+erySelector('[md\
+-block-markdown]\
+');\x0a\x09\x09if (pendin\
+g) {\x0a\x09\x09\x09const sr\
+c = pending.text\
 Content || '';\x0a\x09\
-}\x0a\x0a\x09// Rebuild t\
-he structured Re\
-sult section as \
-Markdown and let\
- the regular\x0a\x09//\
- renderer create\
-/highlight the c\
-ode block. The o\
-uter container s\
-tays stable\x0a\x09// \
-so live tool upd\
-ates can replace\
- it repeatedly.\x0a\
-\x09_renderStructur\
+\x09\x09const match = \
+src.match(/^(`{3\
+,})json[^\x5cn]*\x5cn(\
+[\x5cs\x5cS]*?)\x5cn\x5c1\x5cs*\
+$/i);\x0a\x09\x09\x09if (mat\
+ch) return match\
+[2];\x0a\x09\x09\x09return s\
+rc;\x0a\x09\x09}\x0a\x0a\x09\x09retur\
+n resultEl.textC\
+ontent || '';\x0a\x09}\
+\x0a\x0a\x09// Rebuild th\
+e structured Res\
+ult section as M\
+arkdown and let \
+the regular\x0a\x09// \
+renderer create/\
+highlight the co\
+de block. The ou\
+ter container st\
+ays stable\x0a\x09// s\
+o live tool upda\
+tes can replace \
+it repeatedly.\x0a\x09\
+_renderStructure\
+dResult(resultEl\
+, content) {\x0a\x09\x09i\
+f (!resultEl) re\
+turn;\x0a\x09\x09const ra\
+w = content == n\
+ull ? '' : Strin\
+g(content);\x0a\x09\x09co\
+nst hasContent =\
+ raw.trim() !== \
+'';\x0a\x09\x09resultEl._\
+toolRaw = raw;\x0a\x0a\
+\x09\x09const response\
+Section = result\
+El.closest('.too\
+l-output-respons\
+e-section');\x0a\x09\x09i\
+f (responseSecti\
+on) responseSect\
+ion.style.displa\
+y = hasContent ?\
+ '' : 'none';\x0a\x0a\x09\
+\x09resultEl.replac\
+eChildren();\x0a\x09\x09i\
+f (!hasContent) \
+return;\x0a\x0a\x09\x09const\
+ md = document.c\
+reateElement('di\
+v');\x0a\x09\x09md.classN\
+ame = 'tool-outp\
+ut-markdown';\x0a\x09\x09\
+md.setAttribute(\
+'md-block-markdo\
+wn', '1');\x0a\x09\x09md.\
+textContent = th\
+is._codeMarkdown\
+(raw);\x0a\x09\x09resultE\
+l.appendChild(md\
+);\x0a\x0a\x09\x09try {\x0a\x09\x09\x09c\
+onst renderer = \
+(typeof runtime \
+!== 'undefined' \
+&& runtime) ? ru\
+ntime.renderer :\
+ null;\x0a\x09\x09\x09if (re\
+nderer && typeof\
+ renderer.render\
+PendingMarkdown \
+=== 'function') \
+{\x0a\x09\x09\x09\x09const pend\
+ing = renderer.r\
+enderPendingMark\
+down(resultEl);\x0a\
+\x09\x09\x09\x09if (pending \
+&& typeof pendin\
+g.catch === 'fun\
+ction') pending.\
+catch(() => {});\
+\x0a\x09\x09\x09}\x0a\x09\x09} catch \
+(_) {}\x0a\x09}\x0a\x0a\x09// P\
+laceholder for l\
+oader show (can \
+be extended by h\
+ost).\x0a\x09showLoade\
+r() {\x0a\x09\x09return;\x0a\
+\x09}\x0a\x0a\x09// Hide spi\
+nner elements in\
+ bot messages.\x0a\x09\
+hideLoader() {\x0a\x09\
+\x09const elements \
+= document.query\
+SelectorAll('.ms\
+g-bot');\x0a\x09\x09if (e\
+lements.length >\
+ 0) elements.for\
+Each(el => {\x0a\x09\x09\x09\
+const s = el.que\
+rySelector('.spi\
+nner');\x0a\x09\x09\x09if (s\
+) s.style.displa\
+y = 'none';\x0a\x09\x09})\
+;\x0a\x09}\x0a\x0a\x09// Begins\
+ a new tool sess\
+ion.\x0a\x09begin() {\x0a\
+\x09\x09this.showLoade\
+r();\x0a\x09}\x0a\x0a\x09// End\
+s the current to\
+ol session.\x0a\x09end\
+() {\x0a\x09\x09this.hide\
+Loader();\x0a\x09}\x0a\x0a\x09/\
+/ Enables the to\
+ol output area.\x0a\
+\x09enable() {\x0a\x09\x09co\
+nst els = docume\
+nt.querySelector\
+All('.tool-outpu\
+t');\x0a\x09\x09if (els.l\
+ength) els[els.l\
+ength - 1].style\
+.display = 'bloc\
+k';\x0a\x09}\x0a\x0a\x09// Disa\
+bles the tool ou\
+tput area.\x0a\x09disa\
+ble() {\x0a\x09\x09const \
+els = document.q\
+uerySelectorAll(\
+'.tool-output');\
+\x0a\x09\x09if (els.lengt\
+h) els[els.lengt\
+h - 1].style.dis\
+play = 'none';\x0a\x09\
+}\x0a\x0a\x09// Append to\
+ol output. Struc\
+tured tool block\
+s keep the reque\
+st intact and\x0a\x09/\
+/ append only to\
+ the Result sect\
+ion; legacy bloc\
+ks keep the old \
+HTML path.\x0a\x09appe\
+nd(content) {\x0a\x09\x09\
+this.hideLoader(\
+);\x0a\x09\x09this.enable\
+();\x0a\x09\x09const els \
+= document.query\
+SelectorAll('.to\
+ol-output');\x0a\x09\x09i\
+f (els.length) {\
+\x0a\x09\x09\x09const conten\
+tEl = this._cont\
+ent(els[els.leng\
+th - 1]);\x0a\x09\x09\x09if \
+(!contentEl) ret\
+urn;\x0a\x09\x09\x09const re\
+sultEl = content\
+El.querySelector\
+('.tool-output-r\
+esult-data');\x0a\x09\x09\
+\x09if (resultEl) {\
+\x0a\x09\x09\x09\x09const next \
+= this._resultRa\
+w(resultEl) + (c\
+ontent == null ?\
+ '' : String(con\
+tent));\x0a\x09\x09\x09\x09this\
+._renderStructur\
 edResult(resultE\
-l, content) {\x0a\x09\x09\
-if (!resultEl) r\
-eturn;\x0a\x09\x09const r\
-aw = content == \
-null ? '' : Stri\
-ng(content);\x0a\x09\x09c\
-onst hasContent \
-= raw.trim() !==\
- '';\x0a\x09\x09resultEl.\
-_toolRaw = raw;\x0a\
-\x0a\x09\x09const respons\
-eSection = resul\
-tEl.closest('.to\
-ol-output-respon\
-se-section');\x0a\x09\x09\
-if (responseSect\
-ion) responseSec\
-tion.style.displ\
-ay = hasContent \
-? '' : 'none';\x0a\x0a\
-\x09\x09resultEl.repla\
-ceChildren();\x0a\x09\x09\
-if (!hasContent)\
- return;\x0a\x0a\x09\x09cons\
-t md = document.\
-createElement('d\
-iv');\x0a\x09\x09md.class\
-Name = 'tool-out\
-put-markdown';\x0a\x09\
-\x09md.setAttribute\
-('md-block-markd\
-own', '1');\x0a\x09\x09md\
-.textContent = t\
-his._codeMarkdow\
-n(raw);\x0a\x09\x09result\
-El.appendChild(m\
-d);\x0a\x0a\x09\x09try {\x0a\x09\x09\x09\
-const renderer =\
- (typeof runtime\
- !== 'undefined'\
- && runtime) ? r\
-untime.renderer \
-: null;\x0a\x09\x09\x09if (r\
-enderer && typeo\
-f renderer.rende\
-rPendingMarkdown\
- === 'function')\
- {\x0a\x09\x09\x09\x09const pen\
-ding = renderer.\
-renderPendingMar\
-kdown(resultEl);\
-\x0a\x09\x09\x09\x09if (pending\
- && typeof pendi\
-ng.catch === 'fu\
-nction') pending\
-.catch(() => {})\
-;\x0a\x09\x09\x09}\x0a\x09\x09} catch\
- (_) {}\x0a\x09}\x0a\x0a\x09// \
-Placeholder for \
-loader show (can\
- be extended by \
-host).\x0a\x09showLoad\
-er() {\x0a\x09\x09return;\
-\x0a\x09}\x0a\x0a\x09// Hide sp\
-inner elements i\
-n bot messages.\x0a\
-\x09hideLoader() {\x0a\
-\x09\x09const elements\
- = document.quer\
-ySelectorAll('.m\
-sg-bot');\x0a\x09\x09if (\
-elements.length \
-> 0) elements.fo\
-rEach(el => {\x0a\x09\x09\
-\x09const s = el.qu\
-erySelector('.sp\
-inner');\x0a\x09\x09\x09if (\
-s) s.style.displ\
-ay = 'none';\x0a\x09\x09}\
-);\x0a\x09}\x0a\x0a\x09// Begin\
-s a new tool ses\
-sion.\x0a\x09begin() {\
-\x0a\x09\x09this.showLoad\
-er();\x0a\x09}\x0a\x0a\x09// En\
-ds the current t\
-ool session.\x0a\x09en\
-d() {\x0a\x09\x09this.hid\
-eLoader();\x0a\x09}\x0a\x0a\x09\
-// Enables the t\
-ool output area.\
-\x0a\x09enable() {\x0a\x09\x09c\
-onst els = docum\
-ent.querySelecto\
-rAll('.tool-outp\
-ut');\x0a\x09\x09if (els.\
-length) els[els.\
-length - 1].styl\
-e.display = 'blo\
-ck';\x0a\x09}\x0a\x0a\x09// Dis\
-ables the tool o\
-utput area.\x0a\x09dis\
-able() {\x0a\x09\x09const\
- els = document.\
-querySelectorAll\
-('.tool-output')\
-;\x0a\x09\x09if (els.leng\
-th) els[els.leng\
-th - 1].style.di\
-splay = 'none';\x0a\
-\x09}\x0a\x0a\x09// Append t\
-ool output. Stru\
-ctured tool bloc\
-ks keep the requ\
-est intact and\x0a\x09\
-// append only t\
-o the Result sec\
-tion; legacy blo\
-cks keep the old\
- HTML path.\x0a\x09app\
-end(content) {\x0a\x09\
-\x09this.hideLoader\
-();\x0a\x09\x09this.enabl\
-e();\x0a\x09\x09const els\
- = document.quer\
-ySelectorAll('.t\
-ool-output');\x0a\x09\x09\
-if (els.length) \
-{\x0a\x09\x09\x09const conte\
-ntEl = this._con\
-tent(els[els.len\
-gth - 1]);\x0a\x09\x09\x09if\
- (!contentEl) re\
-turn;\x0a\x09\x09\x09const r\
-esultEl = conten\
-tEl.querySelecto\
-r('.tool-output-\
-result-data');\x0a\x09\
-\x09\x09if (resultEl) \
-{\x0a\x09\x09\x09\x09const next\
- = this._resultR\
-aw(resultEl) + (\
-content == null \
-? '' : String(co\
-ntent));\x0a\x09\x09\x09\x09thi\
-s._renderStructu\
-redResult(result\
-El, next);\x0a\x09\x09\x09} \
-else {\x0a\x09\x09\x09\x09conte\
-ntEl.insertAdjac\
-entHTML('beforee\
-nd', content == \
-null ? '' : Stri\
-ng(content));\x0a\x09\x09\
-\x09}\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09// R\
-eplace tool outp\
-ut. Structured t\
-ool blocks repla\
-ce only Result, \
-keeping\x0a\x09// the \
-Tool request vis\
-ible after expan\
-sion.\x0a\x09update(co\
-ntent) {\x0a\x09\x09this.\
-hideLoader();\x0a\x09\x09\
-this.enable();\x0a\x09\
-\x09const els = doc\
-ument.querySelec\
-torAll('.tool-ou\
-tput');\x0a\x09\x09if (el\
-s.length) {\x0a\x09\x09\x09c\
-onst contentEl =\
- this._content(e\
-ls[els.length - \
-1]);\x0a\x09\x09\x09if (!con\
-tentEl) return;\x0a\
-\x09\x09\x09const resultE\
-l = contentEl.qu\
-erySelector('.to\
-ol-output-result\
--data');\x0a\x09\x09\x09if (\
-resultEl) {\x0a\x09\x09\x09\x09\
-this._renderStru\
-cturedResult(res\
-ultEl, content);\
-\x0a\x09\x09\x09} else {\x0a\x09\x09\x09\
-\x09contentEl.inner\
-HTML = content =\
-= null ? '' : St\
-ring(content);\x0a\x09\
-\x09\x09}\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09// \
-Clear only Resul\
-t in structured \
-tool blocks; leg\
-acy blocks are c\
-leared\x0a\x09// exact\
-ly as before.\x0a\x09c\
-lear() {\x0a\x09\x09this.\
-hideLoader();\x0a\x09\x09\
-this.enable();\x0a\x09\
-\x09const els = doc\
-ument.querySelec\
-torAll('.tool-ou\
-tput');\x0a\x09\x09if (el\
-s.length) {\x0a\x09\x09\x09c\
-onst contentEl =\
- this._content(e\
-ls[els.length - \
-1]);\x0a\x09\x09\x09if (!con\
-tentEl) return;\x0a\
-\x09\x09\x09const resultE\
-l = contentEl.qu\
-erySelector('.to\
-ol-output-result\
--data');\x0a\x09\x09\x09if (\
-resultEl) this._\
-renderStructured\
-Result(resultEl,\
- '');\x0a\x09\x09\x09else co\
-ntentEl.replaceC\
-hildren();\x0a\x09\x09}\x0a\x09\
-}\x0a\x09\x0a\x09// Toggle v\
-isibility of a s\
-pecific tool out\
-put block by mes\
-sage id.\x0a\x09toggle\
-(id) {\x0a\x09\x09let out\
-putEl = document\
-.getElementById(\
-'tool-output-' +\
- id);\x0a\x09\x09if (!out\
-putEl) {\x0a\x09\x09\x09cons\
-t el = document.\
+l, next);\x0a\x09\x09\x09} e\
+lse {\x0a\x09\x09\x09\x09conten\
+tEl.insertAdjace\
+ntHTML('beforeen\
+d', content == n\
+ull ? '' : Strin\
+g(content));\x0a\x09\x09\x09\
+}\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09// Re\
+place tool outpu\
+t. Structured to\
+ol blocks replac\
+e only Result, k\
+eeping\x0a\x09// the T\
+ool request visi\
+ble after expans\
+ion.\x0a\x09update(con\
+tent) {\x0a\x09\x09this.h\
+ideLoader();\x0a\x09\x09t\
+his.enable();\x0a\x09\x09\
+const els = docu\
+ment.querySelect\
+orAll('.tool-out\
+put');\x0a\x09\x09if (els\
+.length) {\x0a\x09\x09\x09co\
+nst contentEl = \
+this._content(el\
+s[els.length - 1\
+]);\x0a\x09\x09\x09if (!cont\
+entEl) return;\x0a\x09\
+\x09\x09const resultEl\
+ = contentEl.que\
+rySelector('.too\
+l-output-result-\
+data');\x0a\x09\x09\x09if (r\
+esultEl) {\x0a\x09\x09\x09\x09t\
+his._renderStruc\
+turedResult(resu\
+ltEl, content);\x0a\
+\x09\x09\x09} else {\x0a\x09\x09\x09\x09\
+contentEl.innerH\
+TML = content ==\
+ null ? '' : Str\
+ing(content);\x0a\x09\x09\
+\x09}\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09// C\
+lear only Result\
+ in structured t\
+ool blocks; lega\
+cy blocks are cl\
+eared\x0a\x09// exactl\
+y as before.\x0a\x09cl\
+ear() {\x0a\x09\x09this.h\
+ideLoader();\x0a\x09\x09t\
+his.enable();\x0a\x09\x09\
+const els = docu\
+ment.querySelect\
+orAll('.tool-out\
+put');\x0a\x09\x09if (els\
+.length) {\x0a\x09\x09\x09co\
+nst contentEl = \
+this._content(el\
+s[els.length - 1\
+]);\x0a\x09\x09\x09if (!cont\
+entEl) return;\x0a\x09\
+\x09\x09const resultEl\
+ = contentEl.que\
+rySelector('.too\
+l-output-result-\
+data');\x0a\x09\x09\x09if (r\
+esultEl) this._r\
+enderStructuredR\
+esult(resultEl, \
+'');\x0a\x09\x09\x09else con\
+tentEl.replaceCh\
+ildren();\x0a\x09\x09}\x0a\x09}\
+\x0a\x09\x0a\x09// Toggle vi\
+sibility of a sp\
+ecific tool outp\
+ut block by mess\
+age id.\x0a\x09toggle(\
+id) {\x0a\x09\x09let outp\
+utEl = document.\
 getElementById('\
-msg-bot-' + id);\
-\x0a\x09\x09\x09if (!el) ret\
-urn;\x0a\x09\x09\x09outputEl\
- = el.querySelec\
-tor('.tool-outpu\
-t:not(.tool-outp\
-ut-group)');\x0a\x09\x09}\
-\x0a\x09\x09if (!outputEl\
-) return;\x0a\x09\x09cons\
-t contentEl = th\
-is._content(outp\
-utEl);\x0a\x09\x09if (!co\
-ntentEl) return;\
-\x0a\x0a\x09\x09const expand\
-ed = contentEl.s\
-tyle.display ===\
- 'none';\x0a\x09\x09conte\
-ntEl.style.displ\
-ay = expanded ? \
-'block' : 'none'\
-;\x0a\x0a\x09\x09const heade\
-rEl = outputEl.q\
-uerySelector('.t\
-ool-output-toggl\
-e');\x0a\x09\x09if (heade\
-rEl) headerEl.se\
-tAttribute('aria\
--expanded', expa\
-nded ? 'true' : \
-'false');\x0a\x0a\x09\x09con\
-st arrowEl = out\
-putEl.querySelec\
-tor('.tool-outpu\
-t-arrow') || out\
-putEl.querySelec\
-tor('.toggle-cmd\
--output img');\x0a\x09\
-\x09if (arrowEl) ar\
-rowEl.classList.\
-toggle('toggle-e\
-xpanded', expand\
-ed);\x0a\x09}\x0a}\x0a\x0a/* da\
-ta/js/app/ui.js \
-*/\x0aclass UIManag\
-er{updateCSS(sty\
-les){let style=d\
-ocument.getEleme\
-ntById('app-styl\
-e');if(!style){s\
-tyle=document.cr\
-eateElement('sty\
-le');style.id='a\
-pp-style';docume\
-nt.head.appendCh\
-ild(style);}\x0asty\
-le.textContent=s\
-tyles;}\x0aensureSt\
-ickyHeaderStyle(\
-){let style=docu\
-ment.getElementB\
-yId('code-sticky\
--style');if(styl\
-e)return;style=d\
-ocument.createEl\
-ement('style');s\
-tyle.id='code-st\
-icky-style';styl\
-e.textContent=['\
-.code-wrapper { \
-position: relati\
-ve; }','.code-wr\
-apper .code-head\
-er-wrapper { pos\
-ition: sticky; t\
-op: var(--code-h\
-eader-sticky-top\
-, -2px); z-index\
-: 2; box-shadow:\
- 0 1px 0 rgba(0,\
-0,0,.06); }','.c\
-ode-wrapper pre \
-{ overflow: visi\
-ble; margin-top:\
- 0; }','.code-wr\
-apper pre code {\
- display: block;\
- white-space: pr\
-e; max-height: 1\
-00dvh; overflow:\
- auto;','  overs\
-croll-behavior: \
-contain; -webkit\
--overflow-scroll\
-ing: touch; over\
-flow-anchor: non\
-e; scrollbar-gut\
-ter: stable both\
--edges; scroll-b\
-ehavior: auto; }\
-','#_loader_.hid\
-den { display: n\
-one !important; \
-visibility: hidd\
-en !important; }\
-','#_loader_.vis\
-ible { display: \
-block; visibilit\
-y: visible; }','\
-.msg-box.msg-use\
-r .msg { positio\
-n: relative; }',\
-'.msg-box.msg-us\
-er .msg > .uc-co\
-ntent { display:\
- block; overflow\
+tool-output-' + \
+id);\x0a\x09\x09if (!outp\
+utEl) {\x0a\x09\x09\x09const\
+ el = document.g\
+etElementById('m\
+sg-bot-' + id);\x0a\
+\x09\x09\x09if (!el) retu\
+rn;\x0a\x09\x09\x09outputEl \
+= el.querySelect\
+or('.tool-output\
+:not(.tool-outpu\
+t-group)');\x0a\x09\x09}\x0a\
+\x09\x09if (!outputEl)\
+ return;\x0a\x09\x09const\
+ contentEl = thi\
+s._content(outpu\
+tEl);\x0a\x09\x09if (!con\
+tentEl) return;\x0a\
+\x0a\x09\x09const expande\
+d = contentEl.st\
+yle.display === \
+'none';\x0a\x09\x09conten\
+tEl.style.displa\
+y = expanded ? '\
+block' : 'none';\
+\x0a\x0a\x09\x09const header\
+El = outputEl.qu\
+erySelector('.to\
+ol-output-toggle\
+');\x0a\x09\x09if (header\
+El) headerEl.set\
+Attribute('aria-\
+expanded', expan\
+ded ? 'true' : '\
+false');\x0a\x0a\x09\x09cons\
+t arrowEl = outp\
+utEl.querySelect\
+or('.tool-output\
+-arrow') || outp\
+utEl.querySelect\
+or('.toggle-cmd-\
+output img');\x0a\x09\x09\
+if (arrowEl) arr\
+owEl.classList.t\
+oggle('toggle-ex\
+panded', expande\
+d);\x0a\x09}\x0a}\x0a\x0a/* dat\
+a/js/app/ui.js *\
+/\x0aclass UIManage\
+r{updateCSS(styl\
+es){let style=do\
+cument.getElemen\
+tById('app-style\
+');if(!style){st\
+yle=document.cre\
+ateElement('styl\
+e');style.id='ap\
+p-style';documen\
+t.head.appendChi\
+ld(style);}\x0astyl\
+e.textContent=st\
+yles;}\x0aensureSti\
+ckyHeaderStyle()\
+{let style=docum\
+ent.getElementBy\
+Id('code-sticky-\
+style');if(style\
+)return;style=do\
+cument.createEle\
+ment('style');st\
+yle.id='code-sti\
+cky-style';style\
+.textContent=['.\
+code-wrapper { p\
+osition: relativ\
+e; }','.code-wra\
+pper .code-heade\
+r-wrapper { posi\
+tion: sticky; to\
+p: var(--code-he\
+ader-sticky-top,\
+ -2px); z-index:\
+ 2; box-shadow: \
+0 1px 0 rgba(0,0\
+,0,.06); }','.co\
+de-wrapper pre {\
+ overflow: visib\
+le; margin-top: \
+0; }','.code-wra\
+pper pre code { \
+display: block; \
+white-space: pre\
+; max-height: 10\
+0dvh; overflow: \
+auto;','  oversc\
+roll-behavior: c\
+ontain; -webkit-\
+overflow-scrolli\
+ng: touch; overf\
+low-anchor: none\
+; scrollbar-gutt\
+er: stable both-\
+edges; scroll-be\
+havior: auto; }'\
+,'#_loader_.hidd\
+en { display: no\
+ne !important; v\
+isibility: hidde\
+n !important; }'\
+,'#_loader_.visi\
+ble { display: b\
+lock; visibility\
 : visible; }','.\
 msg-box.msg-user\
- .msg > .uc-cont\
-ent.uc-collapsed\
- {','  max-heigh\
-t: var(--user-ms\
-g-collapse-max-h\
-, 1000px);','  o\
-verflow: hidden;\
-','  -webkit-mas\
-k-image: linear-\
-gradient(to bott\
-om, rgba(0,0,0,1\
-) calc(100% - va\
-r(--uc-fade-heig\
-ht, 64px)), rgba\
-(0,0,0,0) 100%);\
-','  mask-image:\
- linear-gradient\
-(to bottom, rgba\
-(0,0,0,1) calc(1\
-00% - var(--uc-f\
-ade-height, 64px\
-)), rgba(0,0,0,0\
-) 100%);','  -we\
-bkit-mask-size: \
-100% 100%;','  m\
-ask-size: 100% 1\
-00%;','  -webkit\
--mask-repeat: no\
--repeat;','  mas\
-k-repeat: no-rep\
-eat;','}','.msg-\
-box.msg-user .ms\
-g > .uc-content.\
-uc-expanded {','\
-  -webkit-mask-i\
-mage: none;','  \
-mask-image: none\
-;','}','.msg-box\
-.msg-user .msg >\
- .uc-toggle { di\
-splay: none; mar\
-gin-top: 8px; te\
-xt-align: center\
-; cursor: pointe\
-r; user-select: \
-none; }','.msg-b\
+ .msg { position\
+: relative; }','\
+.msg-box.msg-use\
+r .msg > .uc-con\
+tent { display: \
+block; overflow:\
+ visible; }','.m\
+sg-box.msg-user \
+.msg > .uc-conte\
+nt.uc-collapsed \
+{','  max-height\
+: var(--user-msg\
+-collapse-max-h,\
+ 1000px);','  ov\
+erflow: hidden;'\
+,'  -webkit-mask\
+-image: linear-g\
+radient(to botto\
+m, rgba(0,0,0,1)\
+ calc(100% - var\
+(--uc-fade-heigh\
+t, 64px)), rgba(\
+0,0,0,0) 100%);'\
+,'  mask-image: \
+linear-gradient(\
+to bottom, rgba(\
+0,0,0,1) calc(10\
+0% - var(--uc-fa\
+de-height, 64px)\
+), rgba(0,0,0,0)\
+ 100%);','  -web\
+kit-mask-size: 1\
+00% 100%;','  ma\
+sk-size: 100% 10\
+0%;','  -webkit-\
+mask-repeat: no-\
+repeat;','  mask\
+-repeat: no-repe\
+at;','}','.msg-b\
 ox.msg-user .msg\
- > .uc-toggle.vi\
-sible { display:\
- block; }','.msg\
+ > .uc-content.u\
+c-expanded {',' \
+ -webkit-mask-im\
+age: none;','  m\
+ask-image: none;\
+','}','.msg-box.\
+msg-user .msg > \
+.uc-toggle { dis\
+play: none; marg\
+in-top: 8px; tex\
+t-align: center;\
+ cursor: pointer\
+; user-select: n\
+one; }','.msg-bo\
+x.msg-user .msg \
+> .uc-toggle.vis\
+ible { display: \
+block; }','.msg-\
+box.msg-user .ms\
+g > .uc-toggle i\
+mg { width: var(\
+--uc-toggle-icon\
+-size, 26px); he\
+ight: var(--uc-t\
+oggle-icon-size,\
+ 26px); opacity:\
+ .8; }','.msg-bo\
+x.msg-user .msg \
+> .uc-toggle:hov\
+er img { opacity\
+: 1; }','.msg-bo\
+x.msg-user .msg \
+.msg-copy-btn { \
+position: absolu\
+te; top: 2px; ri\
+ght: 0px; z-inde\
+x: 3;','  opacit\
+y: 0; pointer-ev\
+ents: none; tran\
+sition: opacity \
+.15s ease, trans\
+form .15s ease, \
+background-color\
+ .15s ease, bord\
+er-color .15s ea\
+se;','  border-r\
+adius: 6px; padd\
+ing: 4px; line-h\
+eight: 0; border\
+: 1px solid tran\
+sparent; backgro\
+und: transparent\
+; }','.msg-box.m\
+sg-user .msg:hov\
+er .msg-copy-btn\
+, .msg-box.msg-u\
+ser .msg:focus-w\
+ithin .msg-copy-\
+btn { opacity: 1\
+; pointer-events\
+: auto; }','.msg\
 -box.msg-user .m\
-sg > .uc-toggle \
-img { width: var\
-(--uc-toggle-ico\
-n-size, 26px); h\
-eight: var(--uc-\
-toggle-icon-size\
-, 26px); opacity\
-: .8; }','.msg-b\
+sg .msg-copy-btn\
+:hover { transfo\
+rm: scale(1.06);\
+ background: var\
+(--copy-btn-bg-h\
+over, rgba(0,0,0\
+,.86)); border-c\
+olor: var(--copy\
+-btn-border, rgb\
+a(0,0,0,.08)); }\
+','.msg-box.msg-\
+user .msg .msg-c\
+opy-btn.copied {\
+ background: var\
+(--copy-btn-bg-c\
+opied, rgba(150,\
+150,150,.12)); b\
+order-color: var\
+(--copy-btn-bord\
+er-copied, rgba(\
+150,150,150,.35)\
+); animation: ms\
+g-copy-pop .25s \
+ease; }','.msg-b\
 ox.msg-user .msg\
- > .uc-toggle:ho\
-ver img { opacit\
-y: 1; }','.msg-b\
-ox.msg-user .msg\
- .msg-copy-btn {\
- position: absol\
-ute; top: 2px; r\
-ight: 0px; z-ind\
-ex: 3;','  opaci\
-ty: 0; pointer-e\
-vents: none; tra\
-nsition: opacity\
- .15s ease, tran\
-sform .15s ease,\
- background-colo\
-r .15s ease, bor\
-der-color .15s e\
-ase;','  border-\
-radius: 6px; pad\
-ding: 4px; line-\
-height: 0; borde\
-r: 1px solid tra\
-nsparent; backgr\
-ound: transparen\
-t; }','.msg-box.\
-msg-user .msg:ho\
-ver .msg-copy-bt\
-n, .msg-box.msg-\
-user .msg:focus-\
-within .msg-copy\
--btn { opacity: \
-1; pointer-event\
-s: auto; }','.ms\
-g-box.msg-user .\
-msg .msg-copy-bt\
-n:hover { transf\
-orm: scale(1.06)\
-; background: va\
-r(--copy-btn-bg-\
-hover, rgba(0,0,\
-0,.86)); border-\
-color: var(--cop\
-y-btn-border, rg\
-ba(0,0,0,.08)); \
-}','.msg-box.msg\
--user .msg .msg-\
-copy-btn.copied \
-{ background: va\
-r(--copy-btn-bg-\
-copied, rgba(150\
-,150,150,.12)); \
-border-color: va\
-r(--copy-btn-bor\
-der-copied, rgba\
-(150,150,150,.35\
-)); animation: m\
-sg-copy-pop .25s\
- ease; }','.msg-\
-box.msg-user .ms\
-g .msg-copy-btn \
-img { display: b\
-lock; width: 18p\
-x; height: 18px;\
- }','.code-wrapp\
-er .code-header-\
-action.code-head\
-er-copy,','.code\
--wrapper .code-h\
-eader-action.cod\
-e-header-collaps\
-e { display: inl\
-ine-flex; align-\
-items: center; b\
-order-radius: 6p\
-x; padding: 2px;\
- line-height: 0;\
- border: 1px sol\
-id transparent; \
-transition: tran\
-sform .15s ease,\
- background-colo\
-r .15s ease, bor\
-der-color .15s e\
-ase; }','.code-w\
-rapper .code-hea\
-der-action.code-\
-header-copy:hove\
-r,','.code-wrapp\
-er .code-header-\
-action.code-head\
-er-collapse:hove\
-r { transform: s\
-cale(1.06); bord\
-er-color: var(--\
-copy-btn-border,\
- rgba(0,0,0,.08)\
-); }','.code-wra\
-pper .code-heade\
-r-action.copied \
-{ background: va\
-r(--copy-btn-bg-\
-copied, rgba(150\
-,150,150,.12)); \
-border-color: va\
-r(--copy-btn-bor\
-der-copied, rgba\
-(150,150,150,.35\
-)); animation: m\
-sg-copy-pop .25s\
- ease; }','@keyf\
-rames msg-copy-p\
-op { 0%{ transfo\
-rm: scale(1); } \
-60%{ transform: \
-scale(1.1); } 10\
+ .msg-copy-btn i\
+mg { display: bl\
+ock; width: 18px\
+; height: 18px; \
+}','.code-wrappe\
+r .code-header-a\
+ction.code-heade\
+r-copy,','.code-\
+wrapper .code-he\
+ader-action.code\
+-header-collapse\
+ { display: inli\
+ne-flex; align-i\
+tems: center; bo\
+rder-radius: 6px\
+; padding: 2px; \
+line-height: 0; \
+border: 1px soli\
+d transparent; t\
+ransition: trans\
+form .15s ease, \
+background-color\
+ .15s ease, bord\
+er-color .15s ea\
+se; }','.code-wr\
+apper .code-head\
+er-action.code-h\
+eader-copy:hover\
+,','.code-wrappe\
+r .code-header-a\
+ction.code-heade\
+r-collapse:hover\
+ { transform: sc\
+ale(1.06); borde\
+r-color: var(--c\
+opy-btn-border, \
+rgba(0,0,0,.08))\
+; }','.code-wrap\
+per .code-header\
+-action.copied {\
+ background: var\
+(--copy-btn-bg-c\
+opied, rgba(150,\
+150,150,.12)); b\
+order-color: var\
+(--copy-btn-bord\
+er-copied, rgba(\
+150,150,150,.35)\
+); animation: ms\
+g-copy-pop .25s \
+ease; }','@keyfr\
+ames msg-copy-po\
+p { 0%{ transfor\
+m: scale(1); } 6\
 0%{ transform: s\
-cale(1); } }'].j\
-oin('\x5cn');docume\
-nt.head.appendCh\
-ild(style);}\x0atog\
-gleExtraItems(bu\
-tton){if(!button\
-)return;const li\
-st=button.closes\
-t?button.closest\
-('.extra-items-l\
-ist'):null;if(!l\
-ist)return;const\
- hidden=list.que\
-rySelector('.ext\
-ra-items-hidden'\
-);if(!hidden)ret\
-urn;const isHidd\
-en=hidden.style.\
-display==='none'\
-||getComputedSty\
-le(hidden).displ\
-ay==='none';hidd\
-en.style.display\
-=isHidden?'block\
-':'none';button.\
-setAttribute('ar\
-ia-expanded',isH\
-idden?'true':'fa\
-lse');const arro\
-w=button.querySe\
-lector('.extra-i\
-tems-toggle-arro\
-w');if(arrow)arr\
-ow.classList.tog\
-gle('toggle-expa\
-nded',isHidden);\
-const expandTitl\
-e=(typeof window\
-!=='undefined'&&\
-window.LOCALE_EX\
-PAND)?String(win\
-dow.LOCALE_EXPAN\
-D):'Expand';cons\
-t collapseTitle=\
-(typeof window!=\
-='undefined'&&wi\
-ndow.LOCALE_COLL\
-APSE)?String(win\
+cale(1.1); } 100\
+%{ transform: sc\
+ale(1); } }'].jo\
+in('\x5cn');documen\
+t.head.appendChi\
+ld(style);}\x0atogg\
+leExtraItems(but\
+ton){if(!button)\
+return;const lis\
+t=button.closest\
+?button.closest(\
+'.extra-items-li\
+st'):null;if(!li\
+st)return;const \
+hidden=list.quer\
+ySelector('.extr\
+a-items-hidden')\
+;if(!hidden)retu\
+rn;const isHidde\
+n=hidden.style.d\
+isplay==='none'|\
+|getComputedStyl\
+e(hidden).displa\
+y==='none';hidde\
+n.style.display=\
+isHidden?'block'\
+:'none';button.s\
+etAttribute('ari\
+a-expanded',isHi\
+dden?'true':'fal\
+se');const arrow\
+=button.querySel\
+ector('.extra-it\
+ems-toggle-arrow\
+');if(arrow)arro\
+w.classList.togg\
+le('toggle-expan\
+ded',isHidden);c\
+onst expandTitle\
+=(typeof window!\
+=='undefined'&&w\
+indow.LOCALE_EXP\
+AND)?String(wind\
+ow.LOCALE_EXPAND\
+):'Expand';const\
+ collapseTitle=(\
+typeof window!==\
+'undefined'&&win\
 dow.LOCALE_COLLA\
-PSE):'Collapse';\
-button.setAttrib\
-ute('title',isHi\
-dden?collapseTit\
-le:expandTitle);\
-}\x0aenableEditIcon\
-s(){document.bod\
-y&&document.body\
-.classList.add('\
-display-edit-ico\
-ns');}\x0adisableEd\
-itIcons(){docume\
-nt.body&&documen\
-t.body.classList\
-.remove('display\
--edit-icons');}\x0a\
-enableTimestamp(\
-){document.body&\
-&document.body.c\
-lassList.add('di\
-splay-timestamp'\
-);}\x0adisableTimes\
-tamp(){document.\
-body&&document.b\
-ody.classList.re\
-move('display-ti\
-mestamp');}\x0aenab\
-leBlocks(){docum\
-ent.body&&docume\
-nt.body.classLis\
-t.add('display-b\
-locks');}\x0adisabl\
+PSE)?String(wind\
+ow.LOCALE_COLLAP\
+SE):'Collapse';b\
+utton.setAttribu\
+te('title',isHid\
+den?collapseTitl\
+e:expandTitle);}\
+\x0aenableEditIcons\
+(){document.body\
+&&document.body.\
+classList.add('d\
+isplay-edit-icon\
+s');}\x0adisableEdi\
+tIcons(){documen\
+t.body&&document\
+.body.classList.\
+remove('display-\
+edit-icons');}\x0ae\
+nableTimestamp()\
+{document.body&&\
+document.body.cl\
+assList.add('dis\
+play-timestamp')\
+;}\x0adisableTimest\
+amp(){document.b\
+ody&&document.bo\
+dy.classList.rem\
+ove('display-tim\
+estamp');}\x0aenabl\
 eBlocks(){docume\
 nt.body&&documen\
 t.body.classList\
-.remove('display\
--blocks');}};\x0a\x0a/\
-* data/js/app/us\
-er.js */\x0aclass U\
-serCollapseManag\
-er{constructor(c\
-fg){this.cfg=cfg\
-||{};this.thresh\
-old=Utils.g('USE\
-R_MSG_COLLAPSE_H\
-EIGHT_PX',1000);\
-this._processed=\
-new Set();}\x0a_ico\
-ns(){const I=(th\
-is.cfg&&this.cfg\
-.ICONS)||{};retu\
-rn{expand:I.EXPA\
-ND||'',collapse:\
-I.COLLAPSE||''};\
-}\x0a_labels(){cons\
-t L=(this.cfg&&t\
-his.cfg.LOCALE)|\
-|{};return{expan\
-d:L.EXPAND||'Exp\
-and',collapse:L.\
-COLLAPSE||'Colla\
-pse'};}\x0a_afterLa\
-yout(fn){try{if(\
-typeof runtime!=\
-='undefined'&&ru\
-ntime.raf&&typeo\
-f runtime.raf.sc\
-hedule==='functi\
-on'){const key={\
-t:'UC:afterLayou\
-t',i:Math.random\
-()};runtime.raf.\
-schedule(key,()=\
->{try{fn&&fn();}\
-catch(_){}},'Use\
-rCollapse',0);re\
-turn;}}catch(_){\
-}\x0atry{requestAni\
-mationFrame(()=>\
+.add('display-bl\
+ocks');}\x0adisable\
+Blocks(){documen\
+t.body&&document\
+.body.classList.\
+remove('display-\
+blocks');}};\x0a\x0a/*\
+ data/js/app/use\
+r.js */\x0aclass Us\
+erCollapseManage\
+r{constructor(cf\
+g){this.cfg=cfg|\
+|{};this.thresho\
+ld=Utils.g('USER\
+_MSG_COLLAPSE_HE\
+IGHT_PX',1000);t\
+his._processed=n\
+ew Set();}\x0a_icon\
+s(){const I=(thi\
+s.cfg&&this.cfg.\
+ICONS)||{};retur\
+n{expand:I.EXPAN\
+D||'',collapse:I\
+.COLLAPSE||''};}\
+\x0a_labels(){const\
+ L=(this.cfg&&th\
+is.cfg.LOCALE)||\
+{};return{expand\
+:L.EXPAND||'Expa\
+nd',collapse:L.C\
+OLLAPSE||'Collap\
+se'};}\x0a_afterLay\
+out(fn){try{if(t\
+ypeof runtime!==\
+'undefined'&&run\
+time.raf&&typeof\
+ runtime.raf.sch\
+edule==='functio\
+n'){const key={t\
+:'UC:afterLayout\
+',i:Math.random(\
+)};runtime.raf.s\
+chedule(key,()=>\
 {try{fn&&fn();}c\
-atch(_){}});}cat\
-ch(_){setTimeout\
-(()=>{try{fn&&fn\
-();}catch(__){}}\
-,0);}}\x0a_scrollTo\
-ggleIntoView(tog\
-gleEl){if(!toggl\
-eEl||!toggleEl.i\
-sConnected)retur\
-n;try{if(runtime\
-&&runtime.scroll\
-Mgr){runtime.scr\
-ollMgr.userInter\
-acted=true;runti\
-me.scrollMgr.aut\
-oFollow=false;}}\
-catch(_){}\x0athis.\
-_afterLayout(()=\
->{try{if(toggleE\
-l.scrollIntoView\
-){try{toggleEl.s\
-crollIntoView({b\
-lock:'nearest',i\
-nline:'nearest',\
-behavior:'instan\
-t'});}catch(_){t\
-oggleEl.scrollIn\
-toView(false);}}\
-}catch(_){}});}\x0a\
-_ensureStructure\
-(msg){if(!msg||!\
-msg.isConnected)\
-return null;let \
-content=msg.quer\
-ySelector('.uc-c\
-ontent');if(!con\
-tent){content=do\
-cument.createEle\
-ment('div');cont\
-ent.className='u\
-c-content';const\
- frag=document.c\
-reateDocumentFra\
-gment();while(ms\
-g.firstChild)fra\
-g.appendChild(ms\
-g.firstChild);co\
-ntent.appendChil\
-d(frag);msg.appe\
-ndChild(content)\
-;}\x0alet toggle=ms\
-g.querySelector(\
-'.uc-toggle');if\
-(!toggle){const \
-icons=this._icon\
-s();const labels\
-=this._labels();\
-toggle=document.\
-createElement('d\
-iv');toggle.clas\
-sName='uc-toggle\
-';toggle.tabInde\
-x=0;toggle.setAt\
-tribute('role','\
-button');toggle.\
-setAttribute('ar\
-ia-expanded','fa\
-lse');toggle.tit\
-le=labels.expand\
-;const img=docum\
-ent.createElemen\
-t('img');img.cla\
-ssName='uc-toggl\
-e-icon';img.alt=\
-labels.expand;im\
-g.src=icons.expa\
-nd;img.width=26;\
-img.height=26;to\
-ggle.appendChild\
-(img);toggle.add\
-EventListener('c\
-lick',(ev)=>{ev.\
-preventDefault()\
-;ev.stopPropagat\
-ion();this.toggl\
-eFromToggle(togg\
-le);});toggle.ad\
-dEventListener('\
-keydown',(ev)=>{\
-if(ev.key==='Ent\
-er'||ev.key===' \
-'){ev.preventDef\
-ault();ev.stopPr\
-opagation();this\
-.toggleFromToggl\
-e(toggle);}},{pa\
-ssive:false});ms\
-g.appendChild(to\
-ggle);}\x0athis._pr\
-ocessed.add(msg)\
-;msg.dataset.ucI\
-nit='1';return{c\
-ontent,toggle};}\
-\x0a_ensureEllipsis\
-El(msg,contentEl\
-){const content=\
-contentEl||(msg&\
-&msg.querySelect\
-or('.uc-content'\
-));if(!content)r\
-eturn null;try{c\
-onst legacy=cont\
-ent.querySelecto\
-r('.uc-ellipsis'\
-);if(legacy&&leg\
-acy.parentNode){\
-legacy.parentNod\
-e.removeChild(le\
-gacy);}}catch(_)\
-{}\x0areturn null;}\
-\x0a_showEllipsis(m\
-sg,contentEl){th\
-is._ensureEllips\
-isEl(msg,content\
-El);}\x0a_hideEllip\
-sis(msg){this._e\
-nsureEllipsisEl(\
-msg,null);}\x0aappl\
-y(root){const sc\
-ope=root||docume\
-nt;let list;if(s\
-cope.nodeType===\
-1)list=scope.que\
-rySelectorAll('.\
-msg-box.msg-user\
- .msg');else lis\
-t=document.query\
-SelectorAll('.ms\
-g-box.msg-user .\
-msg');if(!list||\
-!list.length)ret\
-urn;for(let i=0;\
-i<list.length;i+\
-+){const msg=lis\
-t[i];const st=th\
-is._ensureStruct\
-ure(msg);if(!st)\
-continue;this._u\
-pdate(msg,st.con\
-tent,st.toggle);\
-}}\x0a_update(msg,c\
-ontentEl,toggleE\
-l){const c=conte\
-ntEl||(msg&&msg.\
-querySelector('.\
-uc-content'));if\
-(!msg||!c)return\
-;if(this.thresho\
-ld===0||this.thr\
-eshold==='0'){co\
-nst t=toggleEl||\
-msg.querySelecto\
-r('.uc-toggle');\
-const labels=thi\
-s._labels();c.cl\
-assList.remove('\
-uc-collapsed');c\
-.classList.remov\
-e('uc-expanded')\
-;msg.dataset.ucS\
-tate='expanded';\
-this._hideEllips\
-is(msg);if(t){t.\
-classList.remove\
-('visible');t.se\
-tAttribute('aria\
--expanded','fals\
-e');t.title=labe\
-ls.expand;const \
-img=t.querySelec\
-tor('img');if(im\
-g){img.alt=label\
-s.expand;}}\x0aretu\
-rn;}\x0ac.classList\
-.remove('uc-coll\
-apsed');c.classL\
-ist.remove('uc-e\
-xpanded');const \
-fullHeight=Math.\
-ceil(c.scrollHei\
-ght);const label\
-s=this._labels()\
-;const icons=thi\
-s._icons();const\
- t=toggleEl||msg\
+atch(_){}},'User\
+Collapse',0);ret\
+urn;}}catch(_){}\
+\x0atry{requestAnim\
+ationFrame(()=>{\
+try{fn&&fn();}ca\
+tch(_){}});}catc\
+h(_){setTimeout(\
+()=>{try{fn&&fn(\
+);}catch(__){}},\
+0);}}\x0a_scrollTog\
+gleIntoView(togg\
+leEl){if(!toggle\
+El||!toggleEl.is\
+Connected)return\
+;try{if(runtime&\
+&runtime.scrollM\
+gr){runtime.scro\
+llMgr.userIntera\
+cted=true;runtim\
+e.scrollMgr.auto\
+Follow=false;}}c\
+atch(_){}\x0athis._\
+afterLayout(()=>\
+{try{if(toggleEl\
+.scrollIntoView)\
+{try{toggleEl.sc\
+rollIntoView({bl\
+ock:'nearest',in\
+line:'nearest',b\
+ehavior:'instant\
+'});}catch(_){to\
+ggleEl.scrollInt\
+oView(false);}}}\
+catch(_){}});}\x0a_\
+ensureStructure(\
+msg){if(!msg||!m\
+sg.isConnected)r\
+eturn null;let c\
+ontent=msg.query\
+Selector('.uc-co\
+ntent');if(!cont\
+ent){content=doc\
+ument.createElem\
+ent('div');conte\
+nt.className='uc\
+-content';const \
+frag=document.cr\
+eateDocumentFrag\
+ment();while(msg\
+.firstChild)frag\
+.appendChild(msg\
+.firstChild);con\
+tent.appendChild\
+(frag);msg.appen\
+dChild(content);\
+}\x0alet toggle=msg\
 .querySelector('\
 .uc-toggle');if(\
-fullHeight>this.\
-threshold){if(t)\
-t.classList.add(\
-'visible');const\
- desired=msg.dat\
-aset.ucState||'c\
-ollapsed';const \
-expand=(desired=\
-=='expanded');if\
-(expand){c.class\
-List.add('uc-exp\
-anded');this._hi\
-deEllipsis(msg);\
-}else{c.classLis\
-t.add('uc-collap\
-sed');this._show\
-Ellipsis(msg,c);\
-}\x0aif(t){const im\
-g=t.querySelecto\
-r('img');if(img)\
-{if(expand){img.\
-src=icons.collap\
-se;img.alt=label\
-s.collapse;}else\
-{img.src=icons.e\
-xpand;img.alt=la\
-bels.expand;}}\x0at\
-.setAttribute('a\
-ria-expanded',ex\
-pand?'true':'fal\
-se');t.title=exp\
-and?labels.colla\
-pse:labels.expan\
-d;}}else{c.class\
-List.remove('uc-\
-collapsed');c.cl\
-assList.remove('\
-uc-expanded');ms\
-g.dataset.ucStat\
-e='expanded';thi\
-s._hideEllipsis(\
-msg);if(t){t.cla\
-ssList.remove('v\
-isible');t.setAt\
-tribute('aria-ex\
-panded','false')\
-;t.title=labels.\
-expand;}}}\x0atoggl\
-eFromToggle(togg\
-leEl){const msg=\
-toggleEl&&toggle\
-El.closest?toggl\
-eEl.closest('.ms\
-g-box.msg-user .\
-msg'):null;if(!m\
-sg)return;this.t\
-oggle(msg);}\x0atog\
-gle(msg){if(!msg\
-||!msg.isConnect\
-ed)return;const \
-c=msg.querySelec\
-tor('.uc-content\
-');if(!c)return;\
-const t=msg.quer\
-ySelector('.uc-t\
-oggle');const la\
-bels=this._label\
-s();const icons=\
-this._icons();co\
-nst isCollapsed=\
-c.classList.cont\
-ains('uc-collaps\
-ed');if(isCollap\
-sed){c.classList\
-.remove('uc-coll\
-apsed');c.classL\
+!toggle){const i\
+cons=this._icons\
+();const labels=\
+this._labels();t\
+oggle=document.c\
+reateElement('di\
+v');toggle.class\
+Name='uc-toggle'\
+;toggle.tabIndex\
+=0;toggle.setAtt\
+ribute('role','b\
+utton');toggle.s\
+etAttribute('ari\
+a-expanded','fal\
+se');toggle.titl\
+e=labels.expand;\
+const img=docume\
+nt.createElement\
+('img');img.clas\
+sName='uc-toggle\
+-icon';img.alt=l\
+abels.expand;img\
+.src=icons.expan\
+d;img.width=26;i\
+mg.height=26;tog\
+gle.appendChild(\
+img);toggle.addE\
+ventListener('cl\
+ick',(ev)=>{ev.p\
+reventDefault();\
+ev.stopPropagati\
+on();this.toggle\
+FromToggle(toggl\
+e);});toggle.add\
+EventListener('k\
+eydown',(ev)=>{i\
+f(ev.key==='Ente\
+r'||ev.key===' '\
+){ev.preventDefa\
+ult();ev.stopPro\
+pagation();this.\
+toggleFromToggle\
+(toggle);}},{pas\
+sive:false});msg\
+.appendChild(tog\
+gle);}\x0athis._pro\
+cessed.add(msg);\
+msg.dataset.ucIn\
+it='1';return{co\
+ntent,toggle};}\x0a\
+_ensureEllipsisE\
+l(msg,contentEl)\
+{const content=c\
+ontentEl||(msg&&\
+msg.querySelecto\
+r('.uc-content')\
+);if(!content)re\
+turn null;try{co\
+nst legacy=conte\
+nt.querySelector\
+('.uc-ellipsis')\
+;if(legacy&&lega\
+cy.parentNode){l\
+egacy.parentNode\
+.removeChild(leg\
+acy);}}catch(_){\
+}\x0areturn null;}\x0a\
+_showEllipsis(ms\
+g,contentEl){thi\
+s._ensureEllipsi\
+sEl(msg,contentE\
+l);}\x0a_hideEllips\
+is(msg){this._en\
+sureEllipsisEl(m\
+sg,null);}\x0aapply\
+(root){const sco\
+pe=root||documen\
+t;let list;if(sc\
+ope.nodeType===1\
+)list=scope.quer\
+ySelectorAll('.m\
+sg-box.msg-user \
+.msg');else list\
+=document.queryS\
+electorAll('.msg\
+-box.msg-user .m\
+sg');if(!list||!\
+list.length)retu\
+rn;for(let i=0;i\
+<list.length;i++\
+){const msg=list\
+[i];const st=thi\
+s._ensureStructu\
+re(msg);if(!st)c\
+ontinue;this._up\
+date(msg,st.cont\
+ent,st.toggle);}\
+}\x0a_update(msg,co\
+ntentEl,toggleEl\
+){const c=conten\
+tEl||(msg&&msg.q\
+uerySelector('.u\
+c-content'));if(\
+!msg||!c)return;\
+if(this.threshol\
+d===0||this.thre\
+shold==='0'){con\
+st t=toggleEl||m\
+sg.querySelector\
+('.uc-toggle');c\
+onst labels=this\
+._labels();c.cla\
+ssList.remove('u\
+c-collapsed');c.\
+classList.remove\
+('uc-expanded');\
+msg.dataset.ucSt\
+ate='expanded';t\
+his._hideEllipsi\
+s(msg);if(t){t.c\
+lassList.remove(\
+'visible');t.set\
+Attribute('aria-\
+expanded','false\
+');t.title=label\
+s.expand;const i\
+mg=t.querySelect\
+or('img');if(img\
+){img.alt=labels\
+.expand;}}\x0aretur\
+n;}\x0ac.classList.\
+remove('uc-colla\
+psed');c.classLi\
+st.remove('uc-ex\
+panded');const f\
+ullHeight=Math.c\
+eil(c.scrollHeig\
+ht);const labels\
+=this._labels();\
+const icons=this\
+._icons();const \
+t=toggleEl||msg.\
+querySelector('.\
+uc-toggle');if(f\
+ullHeight>this.t\
+hreshold){if(t)t\
+.classList.add('\
+visible');const \
+desired=msg.data\
+set.ucState||'co\
+llapsed';const e\
+xpand=(desired==\
+='expanded');if(\
+expand){c.classL\
 ist.add('uc-expa\
-nded');msg.datas\
-et.ucState='expa\
-nded';this._hide\
-Ellipsis(msg);if\
+nded');this._hid\
+eEllipsis(msg);}\
+else{c.classList\
+.add('uc-collaps\
+ed');this._showE\
+llipsis(msg,c);}\
+\x0aif(t){const img\
+=t.querySelector\
+('img');if(img){\
+if(expand){img.s\
+rc=icons.collaps\
+e;img.alt=labels\
+.collapse;}else{\
+img.src=icons.ex\
+pand;img.alt=lab\
+els.expand;}}\x0at.\
+setAttribute('ar\
+ia-expanded',exp\
+and?'true':'fals\
+e');t.title=expa\
+nd?labels.collap\
+se:labels.expand\
+;}}else{c.classL\
+ist.remove('uc-c\
+ollapsed');c.cla\
+ssList.remove('u\
+c-expanded');msg\
+.dataset.ucState\
+='expanded';this\
+._hideEllipsis(m\
+sg);if(t){t.clas\
+sList.remove('vi\
+sible');t.setAtt\
+ribute('aria-exp\
+anded','false');\
+t.title=labels.e\
+xpand;}}}\x0atoggle\
+FromToggle(toggl\
+eEl){const msg=t\
+oggleEl&&toggleE\
+l.closest?toggle\
+El.closest('.msg\
+-box.msg-user .m\
+sg'):null;if(!ms\
+g)return;this.to\
+ggle(msg);}\x0atogg\
+le(msg){if(!msg|\
+|!msg.isConnecte\
+d)return;const c\
+=msg.querySelect\
+or('.uc-content'\
+);if(!c)return;c\
+onst t=msg.query\
+Selector('.uc-to\
+ggle');const lab\
+els=this._labels\
+();const icons=t\
+his._icons();con\
+st isCollapsed=c\
+.classList.conta\
+ins('uc-collapse\
+d');if(isCollaps\
+ed){c.classList.\
+remove('uc-colla\
+psed');c.classLi\
+st.add('uc-expan\
+ded');msg.datase\
+t.ucState='expan\
+ded';this._hideE\
+llipsis(msg);if(\
+t){t.setAttribut\
+e('aria-expanded\
+','true');t.titl\
+e=labels.collaps\
+e;const img=t.qu\
+erySelector('img\
+');if(img){img.s\
+rc=icons.collaps\
+e;img.alt=labels\
+.collapse;}}}els\
+e{c.classList.re\
+move('uc-expande\
+d');c.classList.\
+add('uc-collapse\
+d');msg.dataset.\
+ucState='collaps\
+ed';this._showEl\
+lipsis(msg,c);if\
 (t){t.setAttribu\
 te('aria-expande\
-d','true');t.tit\
-le=labels.collap\
-se;const img=t.q\
-uerySelector('im\
-g');if(img){img.\
-src=icons.collap\
-se;img.alt=label\
-s.collapse;}}}el\
-se{c.classList.r\
-emove('uc-expand\
-ed');c.classList\
-.add('uc-collaps\
-ed');msg.dataset\
-.ucState='collap\
-sed';this._showE\
-llipsis(msg,c);i\
-f(t){t.setAttrib\
-ute('aria-expand\
-ed','false');t.t\
-itle=labels.expa\
-nd;const img=t.q\
-uerySelector('im\
-g');if(img){img.\
-src=icons.expand\
-;img.alt=labels.\
-expand;}\x0athis._s\
-crollToggleIntoV\
-iew(t);}}}\x0aremea\
-sureAll(){const \
-arr=Array.from(t\
-his._processed||\
-[]);for(let i=0;\
-i<arr.length;i++\
-){const msg=arr[\
-i];if(!msg||!msg\
-.isConnected){th\
-is._processed.de\
-lete(msg);contin\
-ue;}\x0athis._updat\
-e(msg);}}};\x0a\x0a/* \
-data/js/app/util\
-s.js */\x0aclass Ut\
-ils{static g(nam\
-e,dflt){return(t\
-ypeof window[nam\
-e]!=='undefined'\
-)?window[name]:d\
-flt;}\x0astatic now\
-(){return(typeof\
- performance!=='\
-undefined'&&perf\
-ormance.now)?per\
-formance.now():D\
-ate.now();}\x0astat\
-ic escapeHtml(s)\
-{const d=Utils._\
-escDiv||(Utils._\
-escDiv=document.\
-createElement('d\
-iv'));d.textCont\
-ent=String(s??''\
-);return d.inner\
-HTML;}\x0astatic co\
-untNewlines(s){i\
-f(!s)return 0;le\
-t c=0,i=-1;while\
-((i=s.indexOf('\x5c\
-n',i+1))!==-1)c+\
-+;return c;}\x0asta\
-tic reEscape(s){\
-return String(s)\
-.replace(/[.*+?^\
-${}()|[\x5c]\x5c\x5c]/g,'\
-\x5c\x5c$&');}\x0astatic \
-idle(fn,timeout)\
-{if('requestIdle\
-Callback'in wind\
-ow)return reques\
-tIdleCallback(fn\
-,{timeout:timeou\
-t||800});return \
-setTimeout(fn,50\
-);}\x0astatic cance\
-lIdle(id){try{if\
-('cancelIdleCall\
-back'in window)c\
-ancelIdleCallbac\
-k(id);else clear\
-Timeout(id);}cat\
-ch(_){}}\x0astatic \
-get SE(){return \
-document.scrolli\
-ngElement||docum\
-ent.documentElem\
-ent;}\x0astatic utf\
-8Decode(bytes){i\
-f(!Utils._td)Uti\
-ls._td=new TextD\
-ecoder('utf-8');\
-return Utils._td\
-.decode(bytes);}\
-};\x0a\x0a/* data/js/a\
-pp/runtime.js */\
-\x0a// ============\
+d','false');t.ti\
+tle=labels.expan\
+d;const img=t.qu\
+erySelector('img\
+');if(img){img.s\
+rc=icons.expand;\
+img.alt=labels.e\
+xpand;}\x0athis._sc\
+rollToggleIntoVi\
+ew(t);}}}\x0aremeas\
+ureAll(){const a\
+rr=Array.from(th\
+is._processed||[\
+]);for(let i=0;i\
+<arr.length;i++)\
+{const msg=arr[i\
+];if(!msg||!msg.\
+isConnected){thi\
+s._processed.del\
+ete(msg);continu\
+e;}\x0athis._update\
+(msg);}}};\x0a\x0a/* d\
+ata/js/app/utils\
+.js */\x0aclass Uti\
+ls{static g(name\
+,dflt){return(ty\
+peof window[name\
+]!=='undefined')\
+?window[name]:df\
+lt;}\x0astatic now(\
+){return(typeof \
+performance!=='u\
+ndefined'&&perfo\
+rmance.now)?perf\
+ormance.now():Da\
+te.now();}\x0astati\
+c escapeHtml(s){\
+const d=Utils._e\
+scDiv||(Utils._e\
+scDiv=document.c\
+reateElement('di\
+v'));d.textConte\
+nt=String(s??'')\
+;return d.innerH\
+TML;}\x0astatic cou\
+ntNewlines(s){if\
+(!s)return 0;let\
+ c=0,i=-1;while(\
+(i=s.indexOf('\x5cn\
+',i+1))!==-1)c++\
+;return c;}\x0astat\
+ic reEscape(s){r\
+eturn String(s).\
+replace(/[.*+?^$\
+{}()|[\x5c]\x5c\x5c]/g,'\x5c\
+\x5c$&');}\x0astatic i\
+dle(fn,timeout){\
+if('requestIdleC\
+allback'in windo\
+w)return request\
+IdleCallback(fn,\
+{timeout:timeout\
+||800});return s\
+etTimeout(fn,50)\
+;}\x0astatic cancel\
+Idle(id){try{if(\
+'cancelIdleCallb\
+ack'in window)ca\
+ncelIdleCallback\
+(id);else clearT\
+imeout(id);}catc\
+h(_){}}\x0astatic g\
+et SE(){return d\
+ocument.scrollin\
+gElement||docume\
+nt.documentEleme\
+nt;}\x0astatic utf8\
+Decode(bytes){if\
+(!Utils._td)Util\
+s._td=new TextDe\
+coder('utf-8');r\
+eturn Utils._td.\
+decode(bytes);}}\
+;\x0a\x0a/* data/js/ap\
+p/runtime.js */\x0a\
+// =============\
 ================\
 ================\
 ================\
-==============\x0a/\
-/ Runtime\x0a// ===\
+=============\x0a//\
+ Runtime\x0a// ====\
 ================\
 ================\
 ================\
 ================\
-=======\x0a\x0aclass R\
-untime {\x0a\x0a\x09// Ma\
-in runtime manag\
-er for the appli\
-cation.\x0a\x09constru\
-ctor() {\x0a\x09\x09this.\
-cfg = new Config\
-();\x0a\x09\x09this.logge\
-r = new Logger(t\
-his.cfg);\x0a\x0a\x09\x09thi\
-s.dom = new DOMR\
-efs();\x0a\x09\x09this.cu\
-stomMarkup = new\
- CustomMarkup(th\
-is.cfg, this.log\
-ger);\x0a\x09\x09this.raf\
- = new RafManage\
-r(this.cfg);\x0a\x0a\x09\x09\
-// Ensure logger\
- uses central Ra\
-fManager for its\
- internal tick p\
-ump.\x0a\x09\x09try {\x0a\x09\x09\x09\
-this.logger.bind\
-Raf(this.raf);\x0a\x09\
-\x09} catch (_) {}\x0a\
-\x0a\x09\x09this.async = \
-new AsyncRunner(\
-this.cfg, this.r\
-af);\x0a\x09\x09this.rend\
-erer = new Markd\
-ownRenderer(this\
-.cfg, this.custo\
-mMarkup, this.lo\
-gger, this.async\
-, this.raf);\x0a\x0a\x09\x09\
-this.math = new \
-MathRenderer(thi\
-s.cfg, this.raf,\
- this.async);\x0a\x09\x09\
-this.codeScroll \
-= new CodeScroll\
-State(this.cfg, \
-this.raf);\x0a\x09\x09thi\
-s.highlighter = \
-new Highlighter(\
-this.cfg, this.c\
-odeScroll, this.\
-raf);\x0a\x09\x09this.scr\
-ollMgr = new Scr\
-ollManager(this.\
-cfg, this.dom, t\
+======\x0a\x0aclass Ru\
+ntime {\x0a\x0a\x09// Mai\
+n runtime manage\
+r for the applic\
+ation.\x0a\x09construc\
+tor() {\x0a\x09\x09this.c\
+fg = new Config(\
+);\x0a\x09\x09this.logger\
+ = new Logger(th\
+is.cfg);\x0a\x0a\x09\x09this\
+.dom = new DOMRe\
+fs();\x0a\x09\x09this.cus\
+tomMarkup = new \
+CustomMarkup(thi\
+s.cfg, this.logg\
+er);\x0a\x09\x09this.raf \
+= new RafManager\
+(this.cfg);\x0a\x0a\x09\x09/\
+/ Ensure logger \
+uses central Raf\
+Manager for its \
+internal tick pu\
+mp.\x0a\x09\x09try {\x0a\x09\x09\x09t\
+his.logger.bindR\
+af(this.raf);\x0a\x09\x09\
+} catch (_) {}\x0a\x0a\
+\x09\x09this.async = n\
+ew AsyncRunner(t\
+his.cfg, this.ra\
+f);\x0a\x09\x09this.rende\
+rer = new Markdo\
+wnRenderer(this.\
+cfg, this.custom\
+Markup, this.log\
+ger, this.async,\
+ this.raf);\x0a\x0a\x09\x09t\
+his.math = new M\
+athRenderer(this\
+.cfg, this.raf, \
+this.async);\x0a\x09\x09t\
+his.codeScroll =\
+ new CodeScrollS\
+tate(this.cfg, t\
 his.raf);\x0a\x09\x09this\
-.toolOutput = ne\
-w ToolOutput();\x0a\
-\x09\x09this.loading =\
- new Loading(thi\
-s.dom);\x0a\x09\x09this.n\
-odes = new Nodes\
-Manager(this.dom\
-, this.renderer,\
- this.highlighte\
-r, this.math, th\
-is.toolOutput);\x0a\
-\x09\x09this.bridge = \
-new BridgeManage\
-r(this.cfg, this\
-.logger);\x0a\x09\x09this\
-.ui = new UIMana\
-ger();\x0a\x09\x09this.st\
-ream = new Strea\
-mEngine(this.cfg\
-, this.dom, this\
-.renderer, this.\
-math, this.highl\
-ighter, this.cod\
-eScroll, this.sc\
-rollMgr, this.ra\
-f, this.async, t\
-his.logger);\x0a\x09\x09t\
-his.streamQ = ne\
-w StreamQueue(th\
-is.cfg, this.str\
-eam, this.scroll\
-Mgr, this.raf);\x0a\
-\x09\x09this.events = \
-new EventManager\
+.highlighter = n\
+ew Highlighter(t\
+his.cfg, this.co\
+deScroll, this.r\
+af);\x0a\x09\x09this.scro\
+llMgr = new Scro\
+llManager(this.c\
+fg, this.dom, th\
+is.raf);\x0a\x09\x09this.\
+toolOutput = new\
+ ToolOutput();\x0a\x09\
+\x09this.loading = \
+new Loading(this\
+.dom);\x0a\x09\x09this.no\
+des = new NodesM\
+anager(this.dom,\
+ this.renderer, \
+this.highlighter\
+, this.math, thi\
+s.toolOutput);\x0a\x09\
+\x09this.bridge = n\
+ew BridgeManager\
 (this.cfg, this.\
-dom, this.scroll\
-Mgr, this.highli\
+logger);\x0a\x09\x09this.\
+ui = new UIManag\
+er();\x0a\x09\x09this.str\
+eam = new Stream\
+Engine(this.cfg,\
+ this.dom, this.\
+renderer, this.m\
+ath, this.highli\
 ghter, this.code\
-Scroll, this.too\
-lOutput, this.br\
-idge);\x0a\x0a\x09\x09try {\x0a\
-\x09\x09\x09this.stream.s\
-etCustomFenceSpe\
-cs(this.customMa\
-rkup.getSourceFe\
-nceSpecs());\x0a\x09\x09}\
- catch (_) {}\x0a\x0a\x09\
-\x09this.templates \
-= new NodeTempla\
-teEngine(this.cf\
-g, this.logger);\
-\x0a\x09\x09this.data = n\
-ew DataReceiver(\
-this.cfg, this.t\
-emplates, this.n\
-odes, this.scrol\
-lMgr);\x0a\x0a\x09\x09this.t\
-ips = null;\x0a\x09\x09th\
-is._lastHeavyRes\
-etMs = 0;\x0a\x0a\x09\x09thi\
-s.renderer.hooks\
-.observeNewCode \
-= (root, opts) =\
-> this.highlight\
-er.observeNewCod\
-e(root, opts, th\
-is.stream.active\
-Code);\x0a\x09\x09this.re\
-nderer.hooks.obs\
-erveMsgBoxes = (\
-root) => this.hi\
-ghlighter.observ\
-eMsgBoxes(root, \
-(box) => {\x0a\x09\x09\x09th\
-is.highlighter.o\
-bserveNewCode(bo\
-x, {\x0a\x09\x09\x09\x09deferLa\
-stIfStreaming: t\
-rue,\x0a\x09\x09\x09\x09minLine\
-sForLast: this.c\
-fg.PROFILE_CODE.\
-minLinesForHL,\x0a\x09\
-\x09\x09\x09minCharsForLa\
-st: this.cfg.PRO\
-FILE_CODE.minCha\
-rsForHL\x0a\x09\x09\x09}, th\
-is.stream.active\
-Code);\x0a\x09\x09\x09this.c\
-odeScroll.initSc\
-rollableBlocks(b\
-ox);\x0a\x09\x09});\x0a\x09\x09thi\
-s.renderer.hooks\
-.scheduleMathRen\
-der = (root) => \
-{\x0a\x09\x09\x09const mm = \
-getMathMode();\x0a\x09\
-\x09\x09if (mm === 'id\
-le') this.math.s\
-chedule(root);\x0a\x09\
-\x09\x09else if (mm ==\
-= 'always') this\
-.math.schedule(r\
-oot, 0, true);\x0a\x09\
-\x09};\x0a\x09\x09this.rende\
-rer.hooks.codeSc\
-rollInit = (root\
-) => this.codeSc\
-roll.initScrolla\
-bleBlocks(root);\
-\x0a\x09}\x0a\x0a\x09// Reset s\
-tream state and \
-optionally perfo\
-rm a heavy reset\
- of schedulers a\
-nd observers.\x0a\x09r\
-esetStreamState(\
-origin, opts) {\x0a\
-\x09\x09try {\x0a\x09\x09\x09this.\
-streamQ.clear();\
-\x0a\x09\x09} catch (_) {\
-}\x0a\x0a\x09\x09const def =\
- Object.assign({\
-\x0a\x09\x09\x09finalizeActi\
-ve: true,\x0a\x09\x09\x09cle\
-arBuffer: true,\x0a\
-\x09\x09\x09clearMsg: fal\
-se,\x0a\x09\x09\x09defuseOrp\
-hans: true,\x0a\x09\x09\x09f\
-orceHeavy: false\
-,\x0a\x09\x09\x09reason: Str\
-ing(origin || 'e\
-xternal-op')\x0a\x09\x09}\
-, (opts || {}));\
-\x0a\x0a\x09\x09const now = \
-Utils.now();\x0a\x09\x09c\
-onst withinDebou\
-nce = (now - (th\
-is._lastHeavyRes\
-etMs || 0)) <= (\
-this.cfg.RESET.H\
-EAVY_DEBOUNCE_MS\
- || 24);\x0a\x09\x09const\
- mustHeavyByOrig\
-in =\x0a\x09\x09\x09def.forc\
-eHeavy === true \
-|| def.clearMsg \
-=== true ||\x0a\x09\x09\x09o\
-rigin === 'begin\
-Stream' || origi\
-n === 'nextStrea\
-m' ||\x0a\x09\x09\x09origin \
-=== 'clearStream\
-' || origin === \
-'replaceNodes' |\
-|\x0a\x09\x09\x09origin === \
-'clearNodes' || \
-origin === 'clea\
-rOutput' ||\x0a\x09\x09\x09o\
-rigin === 'clear\
-Live' || origin \
-=== 'clearInput'\
-;\x0a\x09\x09const should\
-Heavy = mustHeav\
-yByOrigin || !wi\
-thinDebounce;\x0a\x09\x09\
-const suppressLo\
-g = withinDeboun\
-ce && origin !==\
- 'beginStream';\x0a\
-\x0a\x09\x09try {\x0a\x09\x09\x09this\
-.stream.abortAnd\
-Reset({\x0a\x09\x09\x09\x09...d\
-ef,\x0a\x09\x09\x09\x09suppress\
-Log\x0a\x09\x09\x09});\x0a\x09\x09} c\
-atch (_) {}\x0a\x0a\x09\x09i\
-f (shouldHeavy) \
-{\x0a\x09\x09\x09try {\x0a\x09\x09\x09\x09t\
-his.highlighter.\
-cleanup();\x0a\x09\x09\x09} \
-catch (_) {}\x0a\x09\x09\x09\
-try {\x0a\x09\x09\x09\x09this.m\
-ath.cleanup();\x0a\x09\
-\x09\x09} catch (_) {}\
-\x0a\x09\x09\x09try {\x0a\x09\x09\x09\x09th\
-is.codeScroll.ca\
-ncelAllScrolls()\
-;\x0a\x09\x09\x09} catch (_)\
- {}\x0a\x09\x09\x09try {\x0a\x09\x09\x09\
-\x09this.scrollMgr.\
-cancelPendingScr\
-oll();\x0a\x09\x09\x09} catc\
-h (_) {}\x0a\x09\x09\x09try \
-{\x0a\x09\x09\x09\x09this.raf.c\
-ancelAll();\x0a\x09\x09\x09}\
- catch (_) {}\x0a\x09\x09\
-\x09this._lastHeavy\
-ResetMs = now;\x0a\x09\
-\x09} else {\x0a\x09\x09\x09try\
- {\x0a\x09\x09\x09\x09this.raf.\
-cancelGroup('Str\
-eamQueue');\x0a\x09\x09\x09}\
- catch (_) {}\x0a\x09\x09\
-}\x0a\x0a\x09\x09try {\x0a\x09\x09\x09th\
-is.tips && this.\
-tips.hide();\x0a\x09\x09}\
- catch (_) {}\x0a\x09}\
-\x0a\x0a\x09// API: handl\
-e incoming chunk\
- (from bridge).\x0a\
-\x09api_onChunk = (\
-name, chunk, typ\
-e) => {\x0a\x09\x09const \
-t = String(type \
-|| 'text_delta')\
-;\x0a\x09\x09if (t === 't\
-ext_delta') {\x0a\x09\x09\
-\x09this.api_append\
-Stream(name, chu\
-nk);\x0a\x09\x09\x09return;\x0a\
-\x09\x09}\x0a\x09\x09// Future-\
-proof: add other\
- chunk types her\
-e (attachments, \
-status, etc.)\x0a\x09\x09\
-// No-op for unk\
-nown types to ke\
-ep current behav\
-ior.\x0a\x09\x09this.logg\
-er.debug('STREAM\
-', 'IGNORED_NON_\
-TEXT_CHUNK', {\x0a\x09\
-\x09\x09type: t,\x0a\x09\x09\x09le\
-n: (chunk ? Stri\
-ng(chunk).length\
- : 0)\x0a\x09\x09});\x0a\x09};\x0a\
-\x0a\x09// API: begin \
-stream.\x0a\x09api_beg\
-inStream = (chun\
-k = false) => {\x0a\
-\x09\x09this.tips && t\
-his.tips.hide();\
-\x0a\x09\x09this.resetStr\
-eamState('beginS\
-tream', {\x0a\x09\x09\x09cle\
-arMsg: true,\x0a\x09\x09\x09\
-finalizeActive: \
-false,\x0a\x09\x09\x09forceH\
-eavy: true\x0a\x09\x09});\
-\x0a\x09\x09this.stream.b\
-eginStream(chunk\
-);\x0a\x09};\x0a\x0a\x09// API:\
- end stream.\x0a\x09ap\
-i_endStream = ()\
- => {\x0a\x09\x09this.str\
-eam.endStream();\
-\x0a\x09};\x0a\x0a\x09// API: a\
-pply chunk.\x0a\x09api\
-_applyStream = (\
-name, chunk) => \
-{\x0a\x09\x09this.stream.\
-applyStream(name\
-, chunk);\x0a\x09};\x0a\x0a\x09\
-// API: enqueue \
-chunk (drained o\
-n rAF).\x0a\x09api_app\
-endStream = (nam\
-e, chunk) => {\x0a\x09\
-\x09this.streamQ.en\
-queue(name, chun\
-k);\x0a\x09};\x0a\x0a\x09// API\
-: move current o\
-utput to \x22before\
-\x22 area and prepa\
-re for next stre\
-am.\x0a\x09api_nextStr\
-eam = () => {\x0a\x09\x09\
-this.tips && thi\
-s.tips.hide();\x0a\x09\
-\x09const element =\
- this.dom.get('_\
-append_output_')\
-;\x0a\x09\x09const before\
- = this.dom.get(\
-'_append_output_\
-before_');\x0a\x09\x09if \
-(element && befo\
-re) {\x0a\x09\x09\x09const f\
-rag = document.c\
-reateDocumentFra\
-gment();\x0a\x09\x09\x09whil\
-e (element.first\
-Child) frag.appe\
-ndChild(element.\
-firstChild);\x0a\x09\x09\x09\
-before.appendChi\
-ld(frag);\x0a\x09\x09}\x0a\x09\x09\
-this.resetStream\
-State('nextStrea\
-m', {\x0a\x09\x09\x09clearMs\
-g: true,\x0a\x09\x09\x09fina\
-lizeActive: fals\
-e,\x0a\x09\x09\x09forceHeavy\
-: true\x0a\x09\x09});\x0a\x09\x09t\
-his.scrollMgr.sc\
-heduleScroll();\x0a\
-\x09};\x0a\x0a\x09// API: cl\
-ear streaming ou\
-tput area entire\
-ly.\x0a\x09api_clearSt\
-ream = () => {\x0a\x09\
-\x09this.tips && th\
-is.tips.hide();\x0a\
-\x09\x09this.resetStre\
-amState('clearSt\
-ream', {\x0a\x09\x09\x09clea\
-rMsg: true,\x0a\x09\x09\x09f\
-orceHeavy: true\x0a\
-\x09\x09});\x0a\x09\x09const el\
- = this.dom.getS\
-treamContainer()\
-;\x0a\x09\x09if (!el) ret\
-urn;\x0a\x09\x09el.replac\
-eChildren();\x0a\x09};\
-\x0a\x0a\x09// Agents v2:\
- keep exactly on\
-e transient prog\
-ress line below \
-the active strea\
-m.\x0a\x09api_setAgent\
-Status = (text) \
-=> {\x0a\x09\x09const val\
-ue = String(text\
- || '').trim();\x0a\
-\x09\x09let status = d\
-ocument.getEleme\
-ntById('_agents_\
-v2_status_');\x0a\x0a\x09\
-\x09// A status can\
- change faster t\
-han the CSS fade\
-. Cancel callbac\
-ks from the\x0a\x09\x09//\
- previous value \
-so they cannot r\
-emove or overwri\
-te a newer statu\
-s.\x0a\x09\x09if (this._a\
-gentStatusRemove\
-Timer) {\x0a\x09\x09\x09wind\
-ow.clearTimeout(\
-this._agentStatu\
-sRemoveTimer);\x0a\x09\
-\x09\x09this._agentSta\
-tusRemoveTimer =\
- null;\x0a\x09\x09}\x0a\x09\x09if \
-(this._agentStat\
-usChangeTimer) {\
-\x0a\x09\x09\x09window.clear\
-Timeout(this._ag\
-entStatusChangeT\
-imer);\x0a\x09\x09\x09this._\
-agentStatusChang\
-eTimer = null;\x0a\x09\
-\x09}\x0a\x0a\x09\x09if (!value\
-) {\x0a\x09\x09\x09if (!stat\
-us) return;\x0a\x09\x09\x09s\
-tatus.classList.\
-remove('agents-v\
-2-status--changi\
-ng');\x0a\x09\x09\x09status.\
-classList.add('a\
-gents-v2-status-\
--leave');\x0a\x09\x09\x09thi\
-s._agentStatusRe\
-moveTimer = wind\
-ow.setTimeout(()\
- => {\x0a\x09\x09\x09\x09try { \
-status.remove();\
- } catch (_) {}\x0a\
-\x09\x09\x09\x09this._agentS\
-tatusRemoveTimer\
- = null;\x0a\x09\x09\x09}, 1\
-50);\x0a\x09\x09\x09return;\x0a\
-\x09\x09}\x0a\x0a\x09\x09const out\
-put = this.dom.g\
-et('_append_outp\
-ut_') || this.do\
-m.getStreamConta\
-iner();\x0a\x09\x09if (!o\
-utput) return;\x0a\x0a\
-\x09\x09if (!status) {\
-\x0a\x09\x09\x09status = doc\
-ument.createElem\
-ent('div');\x0a\x09\x09\x09s\
-tatus.id = '_age\
-nts_v2_status_';\
-\x0a\x09\x09\x09status.class\
-Name = 'agents-v\
-2-status';\x0a\x09\x09\x09co\
-nst label = docu\
-ment.createEleme\
-nt('span');\x0a\x09\x09\x09l\
-abel.className =\
- 'agents-v2-stat\
-us__text';\x0a\x09\x09\x09st\
-atus.appendChild\
-(label);\x0a\x09\x09\x09// K\
-eep the status o\
-utside _append_o\
-utput_: StreamEn\
-gine may replace\
- the\x0a\x09\x09\x09// strea\
-m container whil\
-e Markdown chunk\
-s are being rend\
-ered.\x0a\x09\x09\x09if (out\
-put.parentNode) \
-output.parentNod\
-e.insertBefore(s\
-tatus, output.ne\
-xtSibling);\x0a\x09\x09\x09e\
-lse output.appen\
-dChild(status);\x0a\
-\x09\x09}\x0a\x0a\x09\x09status.cl\
-assList.remove('\
-agents-v2-status\
---leave');\x0a\x09\x09con\
-st label = statu\
-s.querySelector(\
-'.agents-v2-stat\
-us__text') || st\
-atus;\x0a\x09\x09if (labe\
-l.textContent !=\
-= value) {\x0a\x09\x09\x09st\
-atus.classList.a\
-dd('agents-v2-st\
-atus--changing')\
-;\x0a\x09\x09\x09this._agent\
-StatusChangeTime\
-r = window.setTi\
-meout(() => {\x0a\x09\x09\
-\x09\x09// The node ma\
-y have been repl\
-aced by a stream\
- reset; update o\
-nly the live one\
-.\x0a\x09\x09\x09\x09const live\
- = document.getE\
-lementById('_age\
-nts_v2_status_')\
-;\x0a\x09\x09\x09\x09if (live =\
-== status) {\x0a\x09\x09\x09\
-\x09\x09label.textCont\
-ent = value;\x0a\x09\x09\x09\
-\x09\x09status.classLi\
-st.remove('agent\
-s-v2-status--cha\
-nging');\x0a\x09\x09\x09\x09}\x0a\x09\
-\x09\x09\x09this._agentSt\
-atusChangeTimer \
-= null;\x0a\x09\x09\x09}, 90\
-);\x0a\x09\x09}\x0a\x09\x09this.sc\
-rollMgr.schedule\
-Scroll();\x0a\x09};\x0a\x0a\x09\
-api_clearAgentSt\
-atus = () => {\x0a\x09\
-\x09this.api_setAge\
-ntStatus('');\x0a\x09}\
-;\x0a\x0a\x09// API: appe\
-nd/replace messa\
-ges (non-streami\
-ng).\x0a\x09api_append\
-Node = (payload)\
- => {\x0a\x09\x09this.res\
-etStreamState('a\
-ppendNode');\x0a\x09\x09t\
-his.data.append(\
-payload);\x0a\x09\x09this\
-.scrollMgr.sched\
-uleScroll();\x0a\x09};\
-\x0a\x0a\x09api_replaceNo\
-des = (payload) \
-=> {\x0a\x09\x09this.rese\
-tStreamState('re\
-placeNodes', {\x0a\x09\
-\x09\x09clearMsg: true\
-,\x0a\x09\x09\x09forceHeavy:\
- true\x0a\x09\x09});\x0a\x09\x09th\
-is.dom.clearNode\
-s();\x0a\x09\x09this.data\
-.replace(payload\
-);\x0a\x09};\x0a\x0a\x09// API:\
- append to input\
- area.\x0a\x09api_appe\
-ndToInput = (pay\
-load) => {\x0a\x09\x09thi\
-s.nodes.appendTo\
-Input(payload);\x0a\
-\x0a\x09\x09// Ensure ini\
-tial auto-follow\
- is ON for the n\
-ext stream that \
-will start right\
- after user inpu\
-t.\x0a\x09\x09// Rational\
-e: previously, i\
-f the user had s\
-crolled up, auto\
-Follow could rem\
-ain false and th\
-e\x0a\x09\x09// live stre\
-am would not fol\
-low even though \
-we just sent a n\
-ew input.\x0a\x09\x09this\
-.scrollMgr.autoF\
-ollow = true; //\
- explicitly re-e\
-nable page auto-\
-follow\x0a\x09\x09this.sc\
-rollMgr.userInte\
-racted = false; \
-// Reset interac\
-tion so live scr\
-oll is allowed\x0a\x0a\
-\x09\x09// Keep lastSc\
-rollTop in sync \
-to avoid misclas\
-sification in th\
-e next onscroll \
-handler.\x0a\x09\x09try {\
-\x0a\x09\x09\x09this.scrollM\
-gr.lastScrollTop\
- = Utils.SE.scro\
-llTop | 0;\x0a\x09\x09} c\
-atch (_) {}\x0a\x0a\x09\x09/\
-/ Non-live scrol\
-l to bottom righ\
-t away, independ\
-ent of autoFollo\
-w state.\x0a\x09\x09this.\
-scrollMgr.schedu\
-leScroll();\x0a\x09\x09//\
- NOTE: No resetS\
-treamState() her\
-e to avoid flick\
-er/reflow issues\
- while previewin\
-g user input.\x0a\x09}\
-;\x0a\x0a\x09// API: clea\
-r messages list.\
-\x0a\x09api_clearNodes\
- = () => {\x0a\x09\x09thi\
-s.dom.clearNodes\
-();\x0a\x09\x09this.reset\
-StreamState('cle\
-arNodes', {\x0a\x09\x09\x09c\
-learMsg: true,\x0a\x09\
-\x09\x09forceHeavy: tr\
-ue\x0a\x09\x09});\x0a\x09};\x0a\x0a\x09/\
-/ API: clear inp\
-ut area.\x0a\x09api_cl\
-earInput = () =>\
- {\x0a\x09\x09this.resetS\
-treamState('clea\
-rInput', {\x0a\x09\x09\x09fo\
-rceHeavy: true\x0a\x09\
-\x09});\x0a\x09\x09this.dom.\
-clearInput();\x0a\x09}\
-;\x0a\x0a\x09// API: clea\
-r output area.\x0a\x09\
-api_clearOutput \
-= () => {\x0a\x09\x09this\
-.dom.clearOutput\
-();\x0a\x09\x09this.reset\
-StreamState('cle\
-arOutput', {\x0a\x09\x09\x09\
-clearMsg: true,\x0a\
-\x09\x09\x09forceHeavy: t\
-rue\x0a\x09\x09});\x0a\x09};\x0a\x0a\x09\
-// API: clear li\
-ve area.\x0a\x09api_cl\
-earLive = () => \
-{\x0a\x09\x09this.dom.cle\
-arLive();\x0a\x09\x09this\
-.resetStreamStat\
-e('clearLive', {\
-\x0a\x09\x09\x09forceHeavy: \
-true\x0a\x09\x09});\x0a\x09};\x0a\x0a\
-\x09// API: tool ou\
-tput helpers.\x0a\x09a\
-pi_appendToolOut\
-put = (c) => thi\
-s.toolOutput.app\
-end(c);\x0a\x09api_upd\
-ateToolOutput = \
-(c) => this.tool\
-Output.update(c)\
-;\x0a\x09api_clearTool\
-Output = () => t\
-his.toolOutput.c\
-lear();\x0a\x09api_beg\
-inToolOutput = (\
-) => this.toolOu\
-tput.begin();\x0a\x09a\
-pi_endToolOutput\
- = () => this.to\
-olOutput.end();\x0a\
-\x09api_enableToolO\
-utput = () => th\
-is.toolOutput.en\
-able();\x0a\x09api_dis\
-ableToolOutput =\
- () => this.tool\
-Output.disable()\
-;\x0a\x09api_toggleToo\
-lOutput = (id) =\
-> this.toolOutpu\
-t.toggle(id);\x0a\x09a\
-pi_toggleToolGro\
-up = (id) => thi\
-s.toolOutput.tog\
-gleGroup(id);\x0a\x0a\x09\
-// API: toggle c\
-ollapsed file/UR\
-L extras.\x0a\x09api_t\
-oggleExtraItems \
-= (button) => th\
-is.ui.toggleExtr\
-aItems(button);\x0a\
-\x0a\x09// API: append\
- extra content t\
-o a bot message.\
-\x0a\x09api_appendExtr\
-a = (id, c) => t\
-his.nodes.append\
-Extra(id, c, thi\
-s.scrollMgr);\x0a\x0a\x09\
-// API: remove o\
-ne message by id\
-.\x0a\x09api_removeNod\
-e = (id) => this\
-.nodes.removeNod\
-e(id, this.scrol\
-lMgr);\x0a\x0a\x09// API:\
- remove all mess\
-ages starting fr\
-om id.\x0a\x09api_remo\
-veNodesFromId = \
-(id) => this.nod\
-es.removeNodesFr\
-omId(id, this.sc\
-rollMgr);\x0a\x0a\x09// A\
-PI: replace live\
- area content (w\
-ith local post-p\
-rocessing).\x0a\x09api\
-_replaceLive = (\
-content) => {\x0a\x09\x09\
-const el = this.\
-dom.get('_append\
-_live_');\x0a\x09\x09if (\
-!el) return;\x0a\x09\x09i\
-f (el.classList.\
-contains('hidden\
-')) {\x0a\x09\x09\x09el.clas\
-sList.remove('hi\
-dden');\x0a\x09\x09\x09el.cl\
-assList.add('vis\
-ible');\x0a\x09\x09}\x0a\x09\x09el\
-.innerHTML = con\
-tent;\x0a\x0a\x09\x09try {\x0a\x09\
-\x09\x09const maybePro\
-mise = this.rend\
-erer.renderPendi\
-ngMarkdown(el);\x0a\
-\x0a\x09\x09\x09const post =\
- () => {\x0a\x09\x09\x09\x09try\
- {\x0a\x09\x09\x09\x09\x09this.hig\
+Scroll, this.scr\
+ollMgr, this.raf\
+, this.async, th\
+is.logger);\x0a\x09\x09th\
+is.streamQ = new\
+ StreamQueue(thi\
+s.cfg, this.stre\
+am, this.scrollM\
+gr, this.raf);\x0a\x09\
+\x09this.events = n\
+ew EventManager(\
+this.cfg, this.d\
+om, this.scrollM\
+gr, this.highlig\
+hter, this.codeS\
+croll, this.tool\
+Output, this.bri\
+dge);\x0a\x0a\x09\x09try {\x0a\x09\
+\x09\x09this.stream.se\
+tCustomFenceSpec\
+s(this.customMar\
+kup.getSourceFen\
+ceSpecs());\x0a\x09\x09} \
+catch (_) {}\x0a\x0a\x09\x09\
+this.templates =\
+ new NodeTemplat\
+eEngine(this.cfg\
+, this.logger);\x0a\
+\x09\x09this.data = ne\
+w DataReceiver(t\
+his.cfg, this.te\
+mplates, this.no\
+des, this.scroll\
+Mgr);\x0a\x0a\x09\x09this.ti\
+ps = null;\x0a\x09\x09thi\
+s._lastHeavyRese\
+tMs = 0;\x0a\x0a\x09\x09this\
+.renderer.hooks.\
+observeNewCode =\
+ (root, opts) =>\
+ this.highlighte\
+r.observeNewCode\
+(root, opts, thi\
+s.stream.activeC\
+ode);\x0a\x09\x09this.ren\
+derer.hooks.obse\
+rveMsgBoxes = (r\
+oot) => this.hig\
 hlighter.observe\
-NewCode(el, {\x0a\x09\x09\
-\x09\x09\x09\x09deferLastIfS\
-treaming: true,\x0a\
-\x09\x09\x09\x09\x09\x09minLinesFo\
-rLast: this.cfg.\
-PROFILE_CODE.min\
-LinesForHL,\x0a\x09\x09\x09\x09\
+MsgBoxes(root, (\
+box) => {\x0a\x09\x09\x09thi\
+s.highlighter.ob\
+serveNewCode(box\
+, {\x0a\x09\x09\x09\x09deferLas\
+tIfStreaming: tr\
+ue,\x0a\x09\x09\x09\x09minLines\
+ForLast: this.cf\
+g.PROFILE_CODE.m\
+inLinesForHL,\x0a\x09\x09\
 \x09\x09minCharsForLas\
 t: this.cfg.PROF\
 ILE_CODE.minChar\
-sForHL\x0a\x09\x09\x09\x09\x09}, t\
-his.stream.activ\
-eCode);\x0a\x0a\x09\x09\x09\x09\x09th\
-is.highlighter.o\
-bserveMsgBoxes(e\
-l, (box) => {\x0a\x09\x09\
-\x09\x09\x09\x09this.highlig\
-hter.observeNewC\
-ode(box, {\x0a\x09\x09\x09\x09\x09\
-\x09\x09deferLastIfStr\
-eaming: true,\x0a\x09\x09\
+sForHL\x0a\x09\x09\x09}, thi\
+s.stream.activeC\
+ode);\x0a\x09\x09\x09this.co\
+deScroll.initScr\
+ollableBlocks(bo\
+x);\x0a\x09\x09});\x0a\x09\x09this\
+.renderer.hooks.\
+scheduleMathRend\
+er = (root) => {\
+\x0a\x09\x09\x09const mm = g\
+etMathMode();\x0a\x09\x09\
+\x09if (mm === 'idl\
+e') this.math.sc\
+hedule(root);\x0a\x09\x09\
+\x09else if (mm ===\
+ 'always') this.\
+math.schedule(ro\
+ot, 0, true);\x0a\x09\x09\
+};\x0a\x09\x09this.render\
+er.hooks.codeScr\
+ollInit = (root)\
+ => this.codeScr\
+oll.initScrollab\
+leBlocks(root);\x0a\
+\x09}\x0a\x0a\x09// Reset st\
+ream state and o\
+ptionally perfor\
+m a heavy reset \
+of schedulers an\
+d observers.\x0a\x09re\
+setStreamState(o\
+rigin, opts) {\x0a\x09\
+\x09try {\x0a\x09\x09\x09this.s\
+treamQ.clear();\x0a\
+\x09\x09} catch (_) {}\
+\x0a\x0a\x09\x09const def = \
+Object.assign({\x0a\
+\x09\x09\x09finalizeActiv\
+e: true,\x0a\x09\x09\x09clea\
+rBuffer: true,\x0a\x09\
+\x09\x09clearMsg: fals\
+e,\x0a\x09\x09\x09defuseOrph\
+ans: true,\x0a\x09\x09\x09fo\
+rceHeavy: false,\
+\x0a\x09\x09\x09reason: Stri\
+ng(origin || 'ex\
+ternal-op')\x0a\x09\x09},\
+ (opts || {}));\x0a\
+\x0a\x09\x09const now = U\
+tils.now();\x0a\x09\x09co\
+nst withinDeboun\
+ce = (now - (thi\
+s._lastHeavyRese\
+tMs || 0)) <= (t\
+his.cfg.RESET.HE\
+AVY_DEBOUNCE_MS \
+|| 24);\x0a\x09\x09const \
+mustHeavyByOrigi\
+n =\x0a\x09\x09\x09def.force\
+Heavy === true |\
+| def.clearMsg =\
+== true ||\x0a\x09\x09\x09or\
+igin === 'beginS\
+tream' || origin\
+ === 'nextStream\
+' ||\x0a\x09\x09\x09origin =\
+== 'clearStream'\
+ || origin === '\
+replaceNodes' ||\
+\x0a\x09\x09\x09origin === '\
+clearNodes' || o\
+rigin === 'clear\
+Output' ||\x0a\x09\x09\x09or\
+igin === 'clearL\
+ive' || origin =\
+== 'clearInput';\
+\x0a\x09\x09const shouldH\
+eavy = mustHeavy\
+ByOrigin || !wit\
+hinDebounce;\x0a\x09\x09c\
+onst suppressLog\
+ = withinDebounc\
+e && origin !== \
+'beginStream';\x0a\x0a\
+\x09\x09try {\x0a\x09\x09\x09this.\
+stream.abortAndR\
+eset({\x0a\x09\x09\x09\x09...de\
+f,\x0a\x09\x09\x09\x09suppressL\
+og\x0a\x09\x09\x09});\x0a\x09\x09} ca\
+tch (_) {}\x0a\x0a\x09\x09if\
+ (shouldHeavy) {\
+\x0a\x09\x09\x09try {\x0a\x09\x09\x09\x09th\
+is.highlighter.c\
+leanup();\x0a\x09\x09\x09} c\
+atch (_) {}\x0a\x09\x09\x09t\
+ry {\x0a\x09\x09\x09\x09this.ma\
+th.cleanup();\x0a\x09\x09\
+\x09} catch (_) {}\x0a\
+\x09\x09\x09try {\x0a\x09\x09\x09\x09thi\
+s.codeScroll.can\
+celAllScrolls();\
+\x0a\x09\x09\x09} catch (_) \
+{}\x0a\x09\x09\x09try {\x0a\x09\x09\x09\x09\
+this.scrollMgr.c\
+ancelPendingScro\
+ll();\x0a\x09\x09\x09} catch\
+ (_) {}\x0a\x09\x09\x09try {\
+\x0a\x09\x09\x09\x09this.raf.ca\
+ncelAll();\x0a\x09\x09\x09} \
+catch (_) {}\x0a\x09\x09\x09\
+this._lastHeavyR\
+esetMs = now;\x0a\x09\x09\
+} else {\x0a\x09\x09\x09try \
+{\x0a\x09\x09\x09\x09this.raf.c\
+ancelGroup('Stre\
+amQueue');\x0a\x09\x09\x09} \
+catch (_) {}\x0a\x09\x09}\
+\x0a\x0a\x09\x09try {\x0a\x09\x09\x09thi\
+s.tips && this.t\
+ips.hide();\x0a\x09\x09} \
+catch (_) {}\x0a\x09}\x0a\
+\x0a\x09// API: handle\
+ incoming chunk \
+(from bridge).\x0a\x09\
+api_onChunk = (n\
+ame, chunk, type\
+) => {\x0a\x09\x09const t\
+ = String(type |\
+| 'text_delta');\
+\x0a\x09\x09if (t === 'te\
+xt_delta') {\x0a\x09\x09\x09\
+this.api_appendS\
+tream(name, chun\
+k);\x0a\x09\x09\x09return;\x0a\x09\
+\x09}\x0a\x09\x09// Future-p\
+roof: add other \
+chunk types here\
+ (attachments, s\
+tatus, etc.)\x0a\x09\x09/\
+/ No-op for unkn\
+own types to kee\
+p current behavi\
+or.\x0a\x09\x09this.logge\
+r.debug('STREAM'\
+, 'IGNORED_NON_T\
+EXT_CHUNK', {\x0a\x09\x09\
+\x09type: t,\x0a\x09\x09\x09len\
+: (chunk ? Strin\
+g(chunk).length \
+: 0)\x0a\x09\x09});\x0a\x09};\x0a\x0a\
+\x09// API: begin s\
+tream.\x0a\x09api_begi\
+nStream = (chunk\
+ = false) => {\x0a\x09\
+\x09this.tips && th\
+is.tips.hide();\x0a\
+\x09\x09this.resetStre\
+amState('beginSt\
+ream', {\x0a\x09\x09\x09clea\
+rMsg: true,\x0a\x09\x09\x09f\
+inalizeActive: f\
+alse,\x0a\x09\x09\x09forceHe\
+avy: true\x0a\x09\x09});\x0a\
+\x09\x09this.stream.be\
+ginStream(chunk)\
+;\x0a\x09};\x0a\x0a\x09// API: \
+end stream.\x0a\x09api\
+_endStream = () \
+=> {\x0a\x09\x09this.stre\
+am.endStream();\x0a\
+\x09};\x0a\x0a\x09// API: ap\
+ply chunk.\x0a\x09api_\
+applyStream = (n\
+ame, chunk) => {\
+\x0a\x09\x09this.stream.a\
+pplyStream(name,\
+ chunk);\x0a\x09};\x0a\x0a\x09/\
+/ API: enqueue c\
+hunk (drained on\
+ rAF).\x0a\x09api_appe\
+ndStream = (name\
+, chunk) => {\x0a\x09\x09\
+this.streamQ.enq\
+ueue(name, chunk\
+);\x0a\x09};\x0a\x0a\x09// API:\
+ move current ou\
+tput to \x22before\x22\
+ area and prepar\
+e for next strea\
+m.\x0a\x09api_nextStre\
+am = () => {\x0a\x09\x09t\
+his.tips && this\
+.tips.hide();\x0a\x09\x09\
+const element = \
+this.dom.get('_a\
+ppend_output_');\
+\x0a\x09\x09const before \
+= this.dom.get('\
+_append_output_b\
+efore_');\x0a\x09\x09if (\
+element && befor\
+e) {\x0a\x09\x09\x09const fr\
+ag = document.cr\
+eateDocumentFrag\
+ment();\x0a\x09\x09\x09while\
+ (element.firstC\
+hild) frag.appen\
+dChild(element.f\
+irstChild);\x0a\x09\x09\x09b\
+efore.appendChil\
+d(frag);\x0a\x09\x09}\x0a\x09\x09t\
+his.resetStreamS\
+tate('nextStream\
+', {\x0a\x09\x09\x09clearMsg\
+: true,\x0a\x09\x09\x09final\
+izeActive: false\
+,\x0a\x09\x09\x09forceHeavy:\
+ true\x0a\x09\x09});\x0a\x09\x09th\
+is.scrollMgr.sch\
+eduleScroll();\x0a\x09\
+};\x0a\x0a\x09// API: cle\
+ar streaming out\
+put area entirel\
+y.\x0a\x09api_clearStr\
+eam = () => {\x0a\x09\x09\
+this.tips && thi\
+s.tips.hide();\x0a\x09\
+\x09this.resetStrea\
+mState('clearStr\
+eam', {\x0a\x09\x09\x09clear\
+Msg: true,\x0a\x09\x09\x09fo\
+rceHeavy: true\x0a\x09\
+\x09});\x0a\x09\x09const el \
+= this.dom.getSt\
+reamContainer();\
+\x0a\x09\x09if (!el) retu\
+rn;\x0a\x09\x09el.replace\
+Children();\x0a\x09};\x0a\
+\x0a\x09// Agents v2: \
+keep exactly one\
+ transient progr\
+ess line below t\
+he active stream\
+.\x0a\x09api_setAgentS\
+tatus = (text) =\
+> {\x0a\x09\x09const valu\
+e = String(text \
+|| '').trim();\x0a\x09\
+\x09let status = do\
+cument.getElemen\
+tById('_agents_v\
+2_status_');\x0a\x0a\x09\x09\
+// A status can \
+change faster th\
+an the CSS fade.\
+ Cancel callback\
+s from the\x0a\x09\x09// \
+previous value s\
+o they cannot re\
+move or overwrit\
+e a newer status\
+.\x0a\x09\x09if (this._ag\
+entStatusRemoveT\
+imer) {\x0a\x09\x09\x09windo\
+w.clearTimeout(t\
+his._agentStatus\
+RemoveTimer);\x0a\x09\x09\
+\x09this._agentStat\
+usRemoveTimer = \
+null;\x0a\x09\x09}\x0a\x09\x09if (\
+this._agentStatu\
+sChangeTimer) {\x0a\
+\x09\x09\x09window.clearT\
+imeout(this._age\
+ntStatusChangeTi\
+mer);\x0a\x09\x09\x09this._a\
+gentStatusChange\
+Timer = null;\x0a\x09\x09\
+}\x0a\x0a\x09\x09if (!value)\
+ {\x0a\x09\x09\x09if (!statu\
+s) return;\x0a\x09\x09\x09st\
+atus.classList.r\
+emove('agents-v2\
+-status--changin\
+g');\x0a\x09\x09\x09status.c\
+lassList.add('ag\
+ents-v2-status--\
+leave');\x0a\x09\x09\x09this\
+._agentStatusRem\
+oveTimer = windo\
+w.setTimeout(() \
+=> {\x0a\x09\x09\x09\x09try { s\
+tatus.remove(); \
+} catch (_) {}\x0a\x09\
+\x09\x09\x09this._agentSt\
+atusRemoveTimer \
+= null;\x0a\x09\x09\x09}, 15\
+0);\x0a\x09\x09\x09return;\x0a\x09\
+\x09}\x0a\x0a\x09\x09const outp\
+ut = this.dom.ge\
+t('_append_outpu\
+t_') || this.dom\
+.getStreamContai\
+ner();\x0a\x09\x09if (!ou\
+tput) return;\x0a\x0a\x09\
+\x09if (!status) {\x0a\
+\x09\x09\x09status = docu\
+ment.createEleme\
+nt('div');\x0a\x09\x09\x09st\
+atus.id = '_agen\
+ts_v2_status_';\x0a\
+\x09\x09\x09status.classN\
+ame = 'agents-v2\
+-status';\x0a\x09\x09\x09con\
+st label = docum\
+ent.createElemen\
+t('span');\x0a\x09\x09\x09la\
+bel.className = \
+'agents-v2-statu\
+s__text';\x0a\x09\x09\x09sta\
+tus.appendChild(\
+label);\x0a\x09\x09\x09// Ke\
+ep the status ou\
+tside _append_ou\
+tput_: StreamEng\
+ine may replace \
+the\x0a\x09\x09\x09// stream\
+ container while\
+ Markdown chunks\
+ are being rende\
+red.\x0a\x09\x09\x09if (outp\
+ut.parentNode) o\
+utput.parentNode\
+.insertBefore(st\
+atus, output.nex\
+tSibling);\x0a\x09\x09\x09el\
+se output.append\
+Child(status);\x0a\x09\
+\x09}\x0a\x0a\x09\x09status.cla\
+ssList.remove('a\
+gents-v2-status-\
+-leave');\x0a\x09\x09cons\
+t label = status\
+.querySelector('\
+.agents-v2-statu\
+s__text') || sta\
+tus;\x0a\x09\x09if (label\
+.textContent !==\
+ value) {\x0a\x09\x09\x09sta\
+tus.classList.ad\
+d('agents-v2-sta\
+tus--changing');\
+\x0a\x09\x09\x09this._agentS\
+tatusChangeTimer\
+ = window.setTim\
+eout(() => {\x0a\x09\x09\x09\
+\x09// The node may\
+ have been repla\
+ced by a stream \
+reset; update on\
+ly the live one.\
+\x0a\x09\x09\x09\x09const live \
+= document.getEl\
+ementById('_agen\
+ts_v2_status_');\
+\x0a\x09\x09\x09\x09if (live ==\
+= status) {\x0a\x09\x09\x09\x09\
+\x09label.textConte\
+nt = value;\x0a\x09\x09\x09\x09\
+\x09status.classLis\
+t.remove('agents\
+-v2-status--chan\
+ging');\x0a\x09\x09\x09\x09}\x0a\x09\x09\
+\x09\x09this._agentSta\
+tusChangeTimer =\
+ null;\x0a\x09\x09\x09}, 90)\
+;\x0a\x09\x09}\x0a\x09\x09this.scr\
+ollMgr.scheduleS\
+croll();\x0a\x09};\x0a\x0a\x09a\
+pi_clearAgentSta\
+tus = () => {\x0a\x09\x09\
+this.api_setAgen\
+tStatus('');\x0a\x09};\
+\x0a\x0a\x09// API: appen\
+d/replace messag\
+es (non-streamin\
+g).\x0a\x09api_appendN\
+ode = (payload) \
+=> {\x0a\x09\x09this.rese\
+tStreamState('ap\
+pendNode');\x0a\x09\x09th\
+is.data.append(p\
+ayload);\x0a\x09\x09this.\
+scrollMgr.schedu\
+leScroll();\x0a\x09};\x0a\
+\x0a\x09api_replaceNod\
+es = (payload) =\
+> {\x0a\x09\x09this.reset\
+StreamState('rep\
+laceNodes', {\x0a\x09\x09\
+\x09clearMsg: true,\
+\x0a\x09\x09\x09forceHeavy: \
+true\x0a\x09\x09});\x0a\x09\x09thi\
+s.dom.clearNodes\
+();\x0a\x09\x09this.data.\
+replace(payload)\
+;\x0a\x09};\x0a\x0a\x09// API: \
+append to input \
+area.\x0a\x09api_appen\
+dToInput = (payl\
+oad) => {\x0a\x09\x09this\
+.nodes.appendToI\
+nput(payload);\x0a\x0a\
+\x09\x09// Ensure init\
+ial auto-follow \
+is ON for the ne\
+xt stream that w\
+ill start right \
+after user input\
+.\x0a\x09\x09// Rationale\
+: previously, if\
+ the user had sc\
+rolled up, autoF\
+ollow could rema\
+in false and the\
+\x0a\x09\x09// live strea\
+m would not foll\
+ow even though w\
+e just sent a ne\
+w input.\x0a\x09\x09this.\
+scrollMgr.autoFo\
+llow = true; // \
+explicitly re-en\
+able page auto-f\
+ollow\x0a\x09\x09this.scr\
+ollMgr.userInter\
+acted = false; /\
+/ Reset interact\
+ion so live scro\
+ll is allowed\x0a\x0a\x09\
+\x09// Keep lastScr\
+ollTop in sync t\
+o avoid misclass\
+ification in the\
+ next onscroll h\
+andler.\x0a\x09\x09try {\x0a\
+\x09\x09\x09this.scrollMg\
+r.lastScrollTop \
+= Utils.SE.scrol\
+lTop | 0;\x0a\x09\x09} ca\
+tch (_) {}\x0a\x0a\x09\x09//\
+ Non-live scroll\
+ to bottom right\
+ away, independe\
+nt of autoFollow\
+ state.\x0a\x09\x09this.s\
+crollMgr.schedul\
+eScroll();\x0a\x09\x09// \
+NOTE: No resetSt\
+reamState() here\
+ to avoid flicke\
+r/reflow issues \
+while previewing\
+ user input.\x0a\x09};\
+\x0a\x0a\x09// API: clear\
+ messages list.\x0a\
+\x09api_clearNodes \
+= () => {\x0a\x09\x09this\
+.dom.clearNodes(\
+);\x0a\x09\x09this.resetS\
+treamState('clea\
+rNodes', {\x0a\x09\x09\x09cl\
+earMsg: true,\x0a\x09\x09\
+\x09forceHeavy: tru\
+e\x0a\x09\x09});\x0a\x09};\x0a\x0a\x09//\
+ API: clear inpu\
+t area.\x0a\x09api_cle\
+arInput = () => \
+{\x0a\x09\x09this.resetSt\
+reamState('clear\
+Input', {\x0a\x09\x09\x09for\
+ceHeavy: true\x0a\x09\x09\
+});\x0a\x09\x09this.dom.c\
+learInput();\x0a\x09};\
+\x0a\x0a\x09// API: clear\
+ output area.\x0a\x09a\
+pi_clearOutput =\
+ () => {\x0a\x09\x09this.\
+dom.clearOutput(\
+);\x0a\x09\x09this.resetS\
+treamState('clea\
+rOutput', {\x0a\x09\x09\x09c\
+learMsg: true,\x0a\x09\
+\x09\x09forceHeavy: tr\
+ue\x0a\x09\x09});\x0a\x09};\x0a\x0a\x09/\
+/ API: clear liv\
+e area.\x0a\x09api_cle\
+arLive = () => {\
+\x0a\x09\x09this.dom.clea\
+rLive();\x0a\x09\x09this.\
+resetStreamState\
+('clearLive', {\x0a\
+\x09\x09\x09forceHeavy: t\
+rue\x0a\x09\x09});\x0a\x09};\x0a\x0a\x09\
+// API: tool out\
+put helpers.\x0a\x09ap\
+i_appendToolOutp\
+ut = (c) => this\
+.toolOutput.appe\
+nd(c);\x0a\x09api_upda\
+teToolOutput = (\
+c) => this.toolO\
+utput.update(c);\
+\x0a\x09api_clearToolO\
+utput = () => th\
+is.toolOutput.cl\
+ear();\x0a\x09api_begi\
+nToolOutput = ()\
+ => this.toolOut\
+put.begin();\x0a\x09ap\
+i_endToolOutput \
+= () => this.too\
+lOutput.end();\x0a\x09\
+api_enableToolOu\
+tput = () => thi\
+s.toolOutput.ena\
+ble();\x0a\x09api_disa\
+bleToolOutput = \
+() => this.toolO\
+utput.disable();\
+\x0a\x09api_toggleTool\
+Output = (id) =>\
+ this.toolOutput\
+.toggle(id);\x0a\x09ap\
+i_toggleToolGrou\
+p = (id) => this\
+.toolOutput.togg\
+leGroup(id);\x0a\x0a\x09/\
+/ API: toggle co\
+llapsed file/URL\
+ extras.\x0a\x09api_to\
+ggleExtraItems =\
+ (button) => thi\
+s.ui.toggleExtra\
+Items(button);\x0a\x0a\
+\x09// API: append \
+extra content to\
+ a bot message.\x0a\
+\x09api_appendExtra\
+ = (id, c) => th\
+is.nodes.appendE\
+xtra(id, c, this\
+.scrollMgr);\x0a\x0a\x09/\
+/ API: remove on\
+e message by id.\
+\x0a\x09api_removeNode\
+ = (id) => this.\
+nodes.removeNode\
+(id, this.scroll\
+Mgr);\x0a\x0a\x09// API: \
+remove all messa\
+ges starting fro\
+m id.\x0a\x09api_remov\
+eNodesFromId = (\
+id) => this.node\
+s.removeNodesFro\
+mId(id, this.scr\
+ollMgr);\x0a\x0a\x09// AP\
+I: replace live \
+area content (wi\
+th local post-pr\
+ocessing).\x0a\x09api_\
+replaceLive = (c\
+ontent) => {\x0a\x09\x09c\
+onst el = this.d\
+om.get('_append_\
+live_');\x0a\x09\x09if (!\
+el) return;\x0a\x09\x09if\
+ (el.classList.c\
+ontains('hidden'\
+)) {\x0a\x09\x09\x09el.class\
+List.remove('hid\
+den');\x0a\x09\x09\x09el.cla\
+ssList.add('visi\
+ble');\x0a\x09\x09}\x0a\x09\x09el.\
+innerHTML = cont\
+ent;\x0a\x0a\x09\x09try {\x0a\x09\x09\
+\x09const maybeProm\
+ise = this.rende\
+rer.renderPendin\
+gMarkdown(el);\x0a\x0a\
+\x09\x09\x09const post = \
+() => {\x0a\x09\x09\x09\x09try \
+{\x0a\x09\x09\x09\x09\x09this.high\
+lighter.observeN\
+ewCode(el, {\x0a\x09\x09\x09\
+\x09\x09\x09deferLastIfSt\
+reaming: true,\x0a\x09\
 \x09\x09\x09\x09\x09minLinesFor\
 Last: this.cfg.P\
 ROFILE_CODE.minL\
 inesForHL,\x0a\x09\x09\x09\x09\x09\
-\x09\x09minCharsForLas\
-t: this.cfg.PROF\
-ILE_CODE.minChar\
-sForHL\x0a\x09\x09\x09\x09\x09\x09}, \
-this.stream.acti\
-veCode);\x0a\x09\x09\x09\x09\x09\x09t\
-his.codeScroll.i\
-nitScrollableBlo\
-cks(box);\x0a\x09\x09\x09\x09\x09}\
-);\x0a\x09\x09\x09\x09} catch (\
-_) {}\x0a\x0a\x09\x09\x09\x09try {\
-\x0a\x09\x09\x09\x09\x09const mm =\
- getMathMode();\x0a\
-\x09\x09\x09\x09\x09// In final\
-ize-only we must\
- force now; othe\
-rwise normal sch\
-edule is fine.\x0a\x09\
-\x09\x09\x09\x09if (mm === '\
-finalize-only') \
-this.math.schedu\
-le(el, 0, true);\
-\x0a\x09\x09\x09\x09\x09else this.\
-math.schedule(el\
-);\x0a\x09\x09\x09\x09} catch (\
-_) {}\x0a\x0a\x09\x09\x09\x09this.\
-scrollMgr.schedu\
-leScroll();\x0a\x09\x09\x09}\
-;\x0a\x0a\x09\x09\x09if (maybeP\
-romise && typeof\
- maybePromise.th\
-en === 'function\
-') {\x0a\x09\x09\x09\x09maybePr\
-omise.then(post)\
-;\x0a\x09\x09\x09} else {\x0a\x09\x09\
-\x09\x09post();\x0a\x09\x09\x09}\x0a\x09\
-\x09} catch (_) {\x0a\x09\
-\x09\x09// Worst-case:\
- keep UX respons\
-ive even if some\
-thing throws bef\
-ore post-process\
-ing\x0a\x09\x09\x09this.scro\
-llMgr.scheduleSc\
-roll();\x0a\x09\x09}\x0a\x09};\x0a\
-\x0a\x09// API: update\
- footer content.\
-\x0a\x09api_updateFoot\
-er = (html) => {\
-\x0a\x09\x09const el = th\
-is.dom.get('_foo\
-ter_');\x0a\x09\x09if (el\
-) el.innerHTML =\
- html;\x0a\x09};\x0a\x0a\x09// \
-API: toggle UI f\
-eatures.\x0a\x09api_en\
-ableEditIcons = \
-() => this.ui.en\
-ableEditIcons();\
-\x0a\x09api_disableEdi\
-tIcons = () => t\
-his.ui.disableEd\
-itIcons();\x0a\x09api_\
-enableTimestamp \
-= () => this.ui.\
-enableTimestamp(\
-);\x0a\x09api_disableT\
-imestamp = () =>\
- this.ui.disable\
-Timestamp();\x0a\x09ap\
-i_enableBlocks =\
+\x09minCharsForLast\
+: this.cfg.PROFI\
+LE_CODE.minChars\
+ForHL\x0a\x09\x09\x09\x09\x09}, th\
+is.stream.active\
+Code);\x0a\x0a\x09\x09\x09\x09\x09thi\
+s.highlighter.ob\
+serveMsgBoxes(el\
+, (box) => {\x0a\x09\x09\x09\
+\x09\x09\x09this.highligh\
+ter.observeNewCo\
+de(box, {\x0a\x09\x09\x09\x09\x09\x09\
+\x09deferLastIfStre\
+aming: true,\x0a\x09\x09\x09\
+\x09\x09\x09\x09minLinesForL\
+ast: this.cfg.PR\
+OFILE_CODE.minLi\
+nesForHL,\x0a\x09\x09\x09\x09\x09\x09\
+\x09minCharsForLast\
+: this.cfg.PROFI\
+LE_CODE.minChars\
+ForHL\x0a\x09\x09\x09\x09\x09\x09}, t\
+his.stream.activ\
+eCode);\x0a\x09\x09\x09\x09\x09\x09th\
+is.codeScroll.in\
+itScrollableBloc\
+ks(box);\x0a\x09\x09\x09\x09\x09})\
+;\x0a\x09\x09\x09\x09} catch (_\
+) {}\x0a\x0a\x09\x09\x09\x09try {\x0a\
+\x09\x09\x09\x09\x09const mm = \
+getMathMode();\x0a\x09\
+\x09\x09\x09\x09// In finali\
+ze-only we must \
+force now; other\
+wise normal sche\
+dule is fine.\x0a\x09\x09\
+\x09\x09\x09if (mm === 'f\
+inalize-only') t\
+his.math.schedul\
+e(el, 0, true);\x0a\
+\x09\x09\x09\x09\x09else this.m\
+ath.schedule(el)\
+;\x0a\x09\x09\x09\x09} catch (_\
+) {}\x0a\x0a\x09\x09\x09\x09this.s\
+crollMgr.schedul\
+eScroll();\x0a\x09\x09\x09};\
+\x0a\x0a\x09\x09\x09if (maybePr\
+omise && typeof \
+maybePromise.the\
+n === 'function'\
+) {\x0a\x09\x09\x09\x09maybePro\
+mise.then(post);\
+\x0a\x09\x09\x09} else {\x0a\x09\x09\x09\
+\x09post();\x0a\x09\x09\x09}\x0a\x09\x09\
+} catch (_) {\x0a\x09\x09\
+\x09// Worst-case: \
+keep UX responsi\
+ve even if somet\
+hing throws befo\
+re post-processi\
+ng\x0a\x09\x09\x09this.scrol\
+lMgr.scheduleScr\
+oll();\x0a\x09\x09}\x0a\x09};\x0a\x0a\
+\x09// API: update \
+footer content.\x0a\
+\x09api_updateFoote\
+r = (html) => {\x0a\
+\x09\x09const el = thi\
+s.dom.get('_foot\
+er_');\x0a\x09\x09if (el)\
+ el.innerHTML = \
+html;\x0a\x09};\x0a\x0a\x09// A\
+PI: toggle UI fe\
+atures.\x0a\x09api_ena\
+bleEditIcons = (\
+) => this.ui.ena\
+bleEditIcons();\x0a\
+\x09api_disableEdit\
+Icons = () => th\
+is.ui.disableEdi\
+tIcons();\x0a\x09api_e\
+nableTimestamp =\
  () => this.ui.e\
-nableBlocks();\x0a\x09\
-api_disableBlock\
-s = () => this.u\
-i.disableBlocks(\
-);\x0a\x09api_updateCS\
-S = (styles) => \
-this.ui.updateCS\
-S(styles);\x0a\x0a\x09// \
-API: sync scroll\
- position with h\
-ost.\x0a\x09api_getScr\
-ollPosition = ()\
- => {\x0a\x09\x09this.bri\
-dge.updateScroll\
-Position(window.\
-scrollY);\x0a\x09};\x0a\x09a\
-pi_setScrollPosi\
-tion = (pos) => \
-{\x0a\x09\x09try {\x0a\x09\x09\x09win\
-dow.scrollTo(0, \
-pos);\x0a\x09\x09\x09this.sc\
-rollMgr.prevScro\
-ll = parseInt(po\
-s);\x0a\x09\x09} catch (_\
-) {}\x0a\x09};\x0a\x0a\x09// AP\
-I: show/hide loa\
-ding overlay.\x0a\x09a\
-pi_showLoading =\
- () => this.load\
-ing.show();\x0a\x09api\
-_hideLoading = (\
-) => this.loadin\
-g.hide();\x0a\x0a\x09// A\
-PI: restore coll\
-apsed state of c\
-odes in a given \
-root.\x0a\x09api_resto\
-reCollapsedCode \
-= (root) => this\
-.renderer.restor\
-eCollapsedCode(r\
-oot);\x0a\x0a\x09// API: \
-user-triggered p\
-age scroll.\x0a\x09api\
-_scrollToTopUser\
- = () => this.sc\
-rollMgr.scrollTo\
-TopUser();\x0a\x09api_\
-scrollToBottomUs\
-er = () => this.\
-scrollMgr.scroll\
-ToBottomUser();\x0a\
-\x0a\x09// API: tips v\
-isibility contro\
-l.\x0a\x09api_showTips\
- = () => this.ti\
-ps.show();\x0a\x09api_\
-hideTips = () =>\
- this.tips.hide(\
-);\x0a\x0a\x09// API: beg\
-in/end.\x0a\x09api_beg\
-in = () => {};\x0a\x09\
-api_end = () => \
-{\x0a\x09    this.scro\
-llMgr.forceScrol\
-lToBottomImmedia\
-teAtEnd();\x0a\x09}\x0a\x0a\x09\
-// API: custom m\
-arkup rules cont\
-rol.\x0a\x09api_getCus\
-tomMarkupRules =\
- () => this.cust\
-omMarkup.getRule\
-s();\x0a\x09api_setCus\
-tomMarkupRules =\
- (rules) => {\x0a\x09\x09\
-this.customMarku\
-p.setRules(rules\
-);\x0a\x09\x09// Keep Str\
-eamEngine in syn\
-c with rules pro\
-ducing fenced co\
-de\x0a\x09\x09try {\x0a\x09\x09\x09th\
-is.stream.setCus\
-tomFenceSpecs(th\
-is.customMarkup.\
-getSourceFenceSp\
-ecs());\x0a\x09\x09} catc\
-h (_) {}\x0a\x09};\x0a\x0a\x09/\
-/ Initialize run\
-time (called on \
-DOMContentLoaded\
-).\x0a\x09init() {\x0a\x09\x09t\
-his.highlighter.\
-initHLJS();\x0a\x09\x09th\
-is.dom.init();\x0a\x09\
-\x09this.ui.ensureS\
-tickyHeaderStyle\
-();\x0a\x0a\x09\x09this.tips\
- = new TipsManag\
-er(this.dom);\x0a\x09\x09\
-this.events.inst\
-all();\x0a\x0a\x09\x09this.b\
-ridge.initQWebCh\
-annel(this.cfg.P\
-ID, (bridge) => \
-{\x0a\x09\x09\x09const onChu\
-nk = (name, chun\
-k, type) => this\
-.api_onChunk(nam\
-e, chunk, type);\
-\x0a\x09\x09\x09const onNode\
- = (payload) => \
-this.api_appendN\
-ode(payload);\x0a\x09\x09\
-\x09const onNodeRep\
-lace = (payload)\
- => this.api_rep\
-laceNodes(payloa\
-d);\x0a\x09\x09\x09const onN\
-odeInput = (html\
-) => this.api_ap\
-pendToInput(html\
-);\x0a\x09\x09\x09this.bridg\
-e.connect(onChun\
-k, onNode, onNod\
-eReplace, onNode\
-Input);\x0a\x09\x09\x09try {\
-\x0a\x09\x09\x09\x09this.logger\
-.bindBridge(this\
-.bridge.bridge |\
-| this.bridge);\x0a\
-\x09\x09\x09} catch (_) {\
-}\x0a\x09\x09});\x0a\x0a\x09\x09this.\
-renderer.init();\
-\x0a\x09\x09try {\x0a\x09\x09\x09this\
-.renderer.render\
-PendingMarkdown(\
-document);\x0a\x09\x09} c\
-atch (_) {}\x0a\x0a\x09\x09t\
-his.highlighter.\
-observeMsgBoxes(\
-document, (box) \
-=> {\x0a\x09\x09\x09this.hig\
-hlighter.observe\
-NewCode(box, {\x0a\x09\
-\x09\x09\x09deferLastIfSt\
-reaming: true,\x0a\x09\
-\x09\x09\x09minLinesForLa\
-st: this.cfg.PRO\
-FILE_CODE.minLin\
-esForHL,\x0a\x09\x09\x09\x09min\
+nableTimestamp()\
+;\x0a\x09api_disableTi\
+mestamp = () => \
+this.ui.disableT\
+imestamp();\x0a\x09api\
+_enableBlocks = \
+() => this.ui.en\
+ableBlocks();\x0a\x09a\
+pi_disableBlocks\
+ = () => this.ui\
+.disableBlocks()\
+;\x0a\x09api_updateCSS\
+ = (styles) => t\
+his.ui.updateCSS\
+(styles);\x0a\x0a\x09// A\
+PI: sync scroll \
+position with ho\
+st.\x0a\x09api_getScro\
+llPosition = () \
+=> {\x0a\x09\x09this.brid\
+ge.updateScrollP\
+osition(window.s\
+crollY);\x0a\x09};\x0a\x09ap\
+i_setScrollPosit\
+ion = (pos) => {\
+\x0a\x09\x09try {\x0a\x09\x09\x09wind\
+ow.scrollTo(0, p\
+os);\x0a\x09\x09\x09this.scr\
+ollMgr.prevScrol\
+l = parseInt(pos\
+);\x0a\x09\x09} catch (_)\
+ {}\x0a\x09};\x0a\x0a\x09// API\
+: show/hide load\
+ing overlay.\x0a\x09ap\
+i_showLoading = \
+() => this.loadi\
+ng.show();\x0a\x09api_\
+hideLoading = ()\
+ => this.loading\
+.hide();\x0a\x0a\x09// AP\
+I: restore colla\
+psed state of co\
+des in a given r\
+oot.\x0a\x09api_restor\
+eCollapsedCode =\
+ (root) => this.\
+renderer.restore\
+CollapsedCode(ro\
+ot);\x0a\x0a\x09// API: u\
+ser-triggered pa\
+ge scroll.\x0a\x09api_\
+scrollToTopUser \
+= () => this.scr\
+ollMgr.scrollToT\
+opUser();\x0a\x09api_s\
+crollToBottomUse\
+r = () => this.s\
+crollMgr.scrollT\
+oBottomUser();\x0a\x0a\
+\x09// API: tips vi\
+sibility control\
+.\x0a\x09api_showTips \
+= () => this.tip\
+s.show();\x0a\x09api_h\
+ideTips = () => \
+this.tips.hide()\
+;\x0a\x0a\x09// API: begi\
+n/end.\x0a\x09api_begi\
+n = () => {};\x0a\x09a\
+pi_end = () => {\
+\x0a\x09    this.scrol\
+lMgr.forceScroll\
+ToBottomImmediat\
+eAtEnd();\x0a\x09}\x0a\x0a\x09/\
+/ API: custom ma\
+rkup rules contr\
+ol.\x0a\x09api_getCust\
+omMarkupRules = \
+() => this.custo\
+mMarkup.getRules\
+();\x0a\x09api_setCust\
+omMarkupRules = \
+(rules) => {\x0a\x09\x09t\
+his.customMarkup\
+.setRules(rules)\
+;\x0a\x09\x09// Keep Stre\
+amEngine in sync\
+ with rules prod\
+ucing fenced cod\
+e\x0a\x09\x09try {\x0a\x09\x09\x09thi\
+s.stream.setCust\
+omFenceSpecs(thi\
+s.customMarkup.g\
+etSourceFenceSpe\
+cs());\x0a\x09\x09} catch\
+ (_) {}\x0a\x09};\x0a\x0a\x09//\
+ Initialize runt\
+ime (called on D\
+OMContentLoaded)\
+.\x0a\x09init() {\x0a\x09\x09th\
+is.highlighter.i\
+nitHLJS();\x0a\x09\x09thi\
+s.dom.init();\x0a\x09\x09\
+this.ui.ensureSt\
+ickyHeaderStyle(\
+);\x0a\x0a\x09\x09this.tips \
+= new TipsManage\
+r(this.dom);\x0a\x09\x09t\
+his.events.insta\
+ll();\x0a\x0a\x09\x09this.br\
+idge.initQWebCha\
+nnel(this.cfg.PI\
+D, (bridge) => {\
+\x0a\x09\x09\x09const onChun\
+k = (name, chunk\
+, type) => this.\
+api_onChunk(name\
+, chunk, type);\x0a\
+\x09\x09\x09const onNode \
+= (payload) => t\
+his.api_appendNo\
+de(payload);\x0a\x09\x09\x09\
+const onNodeRepl\
+ace = (payload) \
+=> this.api_repl\
+aceNodes(payload\
+);\x0a\x09\x09\x09const onNo\
+deInput = (html)\
+ => this.api_app\
+endToInput(html)\
+;\x0a\x09\x09\x09this.bridge\
+.connect(onChunk\
+, onNode, onNode\
+Replace, onNodeI\
+nput);\x0a\x09\x09\x09try {\x0a\
+\x09\x09\x09\x09this.logger.\
+bindBridge(this.\
+bridge.bridge ||\
+ this.bridge);\x0a\x09\
+\x09\x09} catch (_) {}\
+\x0a\x09\x09});\x0a\x0a\x09\x09this.r\
+enderer.init();\x0a\
+\x09\x09try {\x0a\x09\x09\x09this.\
+renderer.renderP\
+endingMarkdown(d\
+ocument);\x0a\x09\x09} ca\
+tch (_) {}\x0a\x0a\x09\x09th\
+is.highlighter.o\
+bserveMsgBoxes(d\
+ocument, (box) =\
+> {\x0a\x09\x09\x09this.high\
+lighter.observeN\
+ewCode(box, {\x0a\x09\x09\
+\x09\x09deferLastIfStr\
+eaming: true,\x0a\x09\x09\
+\x09\x09minLinesForLas\
+t: this.cfg.PROF\
+ILE_CODE.minLine\
+sForHL,\x0a\x09\x09\x09\x09minC\
+harsForLast: thi\
+s.cfg.PROFILE_CO\
+DE.minCharsForHL\
+\x0a\x09\x09\x09}, this.stre\
+am.activeCode);\x0a\
+\x09\x09\x09this.codeScro\
+ll.initScrollabl\
+eBlocks(box);\x0a\x09\x09\
+});\x0a\x09\x09this.highl\
+ighter.observeNe\
+wCode(document, \
+{\x0a\x09\x09\x09deferLastIf\
+Streaming: true,\
+\x0a\x09\x09\x09minLinesForL\
+ast: this.cfg.PR\
+OFILE_CODE.minLi\
+nesForHL,\x0a\x09\x09\x09min\
 CharsForLast: th\
 is.cfg.PROFILE_C\
 ODE.minCharsForH\
-L\x0a\x09\x09\x09}, this.str\
-eam.activeCode);\
-\x0a\x09\x09\x09this.codeScr\
-oll.initScrollab\
-leBlocks(box);\x0a\x09\
-\x09});\x0a\x09\x09this.high\
-lighter.observeN\
-ewCode(document,\
- {\x0a\x09\x09\x09deferLastI\
-fStreaming: true\
-,\x0a\x09\x09\x09minLinesFor\
-Last: this.cfg.P\
-ROFILE_CODE.minL\
-inesForHL,\x0a\x09\x09\x09mi\
-nCharsForLast: t\
-his.cfg.PROFILE_\
-CODE.minCharsFor\
-HL\x0a\x09\x09}, this.str\
-eam.activeCode);\
-\x0a\x09\x09this.highligh\
-ter.scheduleScan\
-VisibleCodes(thi\
-s.stream.activeC\
-ode);\x0a\x0a\x09\x09this.ti\
-ps.cycle();\x0a\x09\x09th\
-is.scrollMgr.upd\
-ateScrollFab(tru\
-e);\x0a\x09}\x0a\x0a\x09// Clea\
-nup runtime and \
-detach from DOM/\
-bridge.\x0a\x09cleanup\
-() {\x0a\x09\x09this.tips\
-.cleanup();\x0a\x09\x09tr\
-y {\x0a\x09\x09\x09this.brid\
-ge.disconnect();\
-\x0a\x09\x09} catch (_) {\
-}\x0a\x09\x09this.events.\
-cleanup();\x0a\x09\x09thi\
-s.highlighter.cl\
-eanup();\x0a\x09\x09this.\
-math.cleanup();\x0a\
-\x09\x09this.streamQ.c\
-lear();\x0a\x09\x09this.d\
-om.cleanup();\x0a\x09}\
-\x0a}\x0a\x0a// Ensure Ra\
-fManager.cancel \
-uses the correct\
- group key clean\
-up.\x0aif (typeof R\
-afManager !== 'u\
-ndefined' && Raf\
-Manager.prototyp\
-e && typeof RafM\
+L\x0a\x09\x09}, this.stre\
+am.activeCode);\x0a\
+\x09\x09this.highlight\
+er.scheduleScanV\
+isibleCodes(this\
+.stream.activeCo\
+de);\x0a\x0a\x09\x09this.tip\
+s.cycle();\x0a\x09\x09thi\
+s.scrollMgr.upda\
+teScrollFab(true\
+);\x0a\x09}\x0a\x0a\x09// Clean\
+up runtime and d\
+etach from DOM/b\
+ridge.\x0a\x09cleanup(\
+) {\x0a\x09\x09this.tips.\
+cleanup();\x0a\x09\x09try\
+ {\x0a\x09\x09\x09this.bridg\
+e.disconnect();\x0a\
+\x09\x09} catch (_) {}\
+\x0a\x09\x09this.events.c\
+leanup();\x0a\x09\x09this\
+.highlighter.cle\
+anup();\x0a\x09\x09this.m\
+ath.cleanup();\x0a\x09\
+\x09this.streamQ.cl\
+ear();\x0a\x09\x09this.do\
+m.cleanup();\x0a\x09}\x0a\
+}\x0a\x0a// Ensure Raf\
+Manager.cancel u\
+ses the correct \
+group key cleanu\
+p.\x0aif (typeof Ra\
+fManager !== 'un\
+defined' && RafM\
 anager.prototype\
-.cancel === 'fun\
-ction') {\x0a\x09RafMa\
+ && typeof RafMa\
 nager.prototype.\
-cancel = functio\
-n(key) {\x0a\x09\x09const\
- t = this.tasks.\
-get(key);\x0a\x09\x09if (\
-!t) return;\x0a\x09\x09th\
-is.tasks.delete(\
-key);\x0a\x09\x09if (t.gr\
-oup) {\x0a\x09\x09\x09const \
-set = this.group\
-s.get(t.group);\x0a\
-\x09\x09\x09if (set) {\x0a\x09\x09\
-\x09\x09set.delete(key\
-);\x0a\x09\x09\x09\x09if (set.s\
-ize === 0) this.\
-groups.delete(t.\
-group);\x0a\x09\x09\x09}\x0a\x09\x09}\
-\x0a\x09};\x0a}\x0a\x0awindow._\
-_collapsed_idx =\
- window.__collap\
-sed_idx || [];\x0a\x0a\
-const runtime = \
-new Runtime();\x0a\x0a\
-document.addEven\
-tListener('DOMCo\
-ntentLoaded', ()\
- => runtime.init\
-());\x0a\x0aObject.def\
-ineProperty(wind\
-ow, 'SE', {\x0a\x09get\
-() {\x0a\x09\x09return Ut\
-ils.SE;\x0a\x09}\x0a});\x0a\x0a\
-window.beginStre\
-am = (chunk) => \
-runtime.api_begi\
-nStream(chunk);\x0a\
-window.endStream\
- = () => runtime\
-.api_endStream()\
-;\x0awindow.applySt\
-ream = (name, ch\
-unk) => runtime.\
-api_applyStream(\
-name, chunk);\x0awi\
-ndow.appendStrea\
-m = (name, chunk\
-) => runtime.api\
-_appendStream(na\
-me, chunk);\x0awind\
-ow.appendStreamT\
-yped = (type, na\
-me, chunk) => ru\
-ntime.api_onChun\
-k(name, chunk, t\
-ype);\x0awindow.nex\
-tStream = () => \
-runtime.api_next\
-Stream();\x0awindow\
-.clearStream = (\
-) => runtime.api\
-_clearStream();\x0a\
-window.setAgentS\
-tatus = (text) =\
-> runtime.api_se\
-tAgentStatus(tex\
-t);\x0awindow.clear\
-AgentStatus = ()\
- => runtime.api_\
-clearAgentStatus\
-();\x0a\x0awindow.begi\
-n = () => runtim\
-e.api_begin();\x0aw\
-indow.end = () =\
-> runtime.api_en\
-d();\x0a\x0awindow.app\
-endNode = (paylo\
-ad) => runtime.a\
-pi_appendNode(pa\
-yload);\x0awindow.r\
-eplaceNodes = (p\
-ayload) => runti\
-me.api_replaceNo\
-des(payload);\x0awi\
-ndow.appendToInp\
-ut = (html) => r\
-untime.api_appen\
-dToInput(html);\x0a\
-\x0awindow.clearNod\
-es = () => runti\
-me.api_clearNode\
-s();\x0awindow.clea\
-rInput = () => r\
-untime.api_clear\
-Input();\x0awindow.\
-clearOutput = ()\
- => runtime.api_\
-clearOutput();\x0aw\
-indow.clearLive \
+cancel === 'func\
+tion') {\x0a\x09RafMan\
+ager.prototype.c\
+ancel = function\
+(key) {\x0a\x09\x09const \
+t = this.tasks.g\
+et(key);\x0a\x09\x09if (!\
+t) return;\x0a\x09\x09thi\
+s.tasks.delete(k\
+ey);\x0a\x09\x09if (t.gro\
+up) {\x0a\x09\x09\x09const s\
+et = this.groups\
+.get(t.group);\x0a\x09\
+\x09\x09if (set) {\x0a\x09\x09\x09\
+\x09set.delete(key)\
+;\x0a\x09\x09\x09\x09if (set.si\
+ze === 0) this.g\
+roups.delete(t.g\
+roup);\x0a\x09\x09\x09}\x0a\x09\x09}\x0a\
+\x09};\x0a}\x0a\x0awindow.__\
+collapsed_idx = \
+window.__collaps\
+ed_idx || [];\x0a\x0ac\
+onst runtime = n\
+ew Runtime();\x0a\x0ad\
+ocument.addEvent\
+Listener('DOMCon\
+tentLoaded', () \
+=> runtime.init(\
+));\x0a\x0aObject.defi\
+neProperty(windo\
+w, 'SE', {\x0a\x09get(\
+) {\x0a\x09\x09return Uti\
+ls.SE;\x0a\x09}\x0a});\x0a\x0aw\
+indow.beginStrea\
+m = (chunk) => r\
+untime.api_begin\
+Stream(chunk);\x0aw\
+indow.endStream \
 = () => runtime.\
-api_clearLive();\
-\x0a\x0awindow.appendT\
-oolOutput = (c) \
-=> runtime.api_a\
-ppendToolOutput(\
-c);\x0awindow.updat\
-eToolOutput = (c\
-) => runtime.api\
-_updateToolOutpu\
-t(c);\x0awindow.cle\
-arToolOutput = (\
-) => runtime.api\
-_clearToolOutput\
-();\x0awindow.begin\
-ToolOutput = () \
-=> runtime.api_b\
-eginToolOutput()\
-;\x0awindow.endTool\
-Output = () => r\
-untime.api_endTo\
-olOutput();\x0awind\
-ow.enableToolOut\
-put = () => runt\
-ime.api_enableTo\
-olOutput();\x0awind\
-ow.disableToolOu\
-tput = () => run\
-time.api_disable\
-ToolOutput();\x0awi\
-ndow.toggleToolO\
-utput = (id) => \
-runtime.api_togg\
-leToolOutput(id)\
-;\x0awindow.toggleT\
-oolGroup = (id) \
-=> runtime.api_t\
-oggleToolGroup(i\
-d);\x0awindow.toggl\
-eExtraItems = (b\
-utton) => runtim\
-e.api_toggleExtr\
-aItems(button);\x0a\
-\x0awindow.appendEx\
-tra = (id, c) =>\
- runtime.api_app\
-endExtra(id, c);\
-\x0awindow.removeNo\
-de = (id) => run\
-time.api_removeN\
-ode(id);\x0awindow.\
-removeNodesFromI\
-d = (id) => runt\
-ime.api_removeNo\
-desFromId(id);\x0a\x0a\
-window.replaceLi\
-ve = (c) => runt\
-ime.api_replaceL\
-ive(c);\x0awindow.u\
-pdateFooter = (c\
-) => runtime.api\
-_updateFooter(c)\
-;\x0a\x0awindow.enable\
-EditIcons = () =\
-> runtime.api_en\
-ableEditIcons();\
-\x0awindow.disableE\
-ditIcons = () =>\
- runtime.api_dis\
-ableEditIcons();\
-\x0awindow.enableTi\
-mestamp = () => \
-runtime.api_enab\
-leTimestamp();\x0aw\
-indow.disableTim\
-estamp = () => r\
-untime.api_disab\
-leTimestamp();\x0aw\
-indow.enableBloc\
-ks = () => runti\
-me.api_enableBlo\
-cks();\x0awindow.di\
-sableBlocks = ()\
+api_endStream();\
+\x0awindow.applyStr\
+eam = (name, chu\
+nk) => runtime.a\
+pi_applyStream(n\
+ame, chunk);\x0awin\
+dow.appendStream\
+ = (name, chunk)\
  => runtime.api_\
-disableBlocks();\
-\x0awindow.updateCS\
-S = (s) => runti\
-me.api_updateCSS\
-(s);\x0a\x0awindow.get\
-ScrollPosition =\
+appendStream(nam\
+e, chunk);\x0awindo\
+w.appendStreamTy\
+ped = (type, nam\
+e, chunk) => run\
+time.api_onChunk\
+(name, chunk, ty\
+pe);\x0awindow.next\
+Stream = () => r\
+untime.api_nextS\
+tream();\x0awindow.\
+clearStream = ()\
+ => runtime.api_\
+clearStream();\x0aw\
+indow.setAgentSt\
+atus = (text) =>\
+ runtime.api_set\
+AgentStatus(text\
+);\x0awindow.clearA\
+gentStatus = () \
+=> runtime.api_c\
+learAgentStatus(\
+);\x0a\x0awindow.begin\
+ = () => runtime\
+.api_begin();\x0awi\
+ndow.end = () =>\
+ runtime.api_end\
+();\x0a\x0awindow.appe\
+ndNode = (payloa\
+d) => runtime.ap\
+i_appendNode(pay\
+load);\x0awindow.re\
+placeNodes = (pa\
+yload) => runtim\
+e.api_replaceNod\
+es(payload);\x0awin\
+dow.appendToInpu\
+t = (html) => ru\
+ntime.api_append\
+ToInput(html);\x0a\x0a\
+window.clearNode\
+s = () => runtim\
+e.api_clearNodes\
+();\x0awindow.clear\
+Input = () => ru\
+ntime.api_clearI\
+nput();\x0awindow.c\
+learOutput = () \
+=> runtime.api_c\
+learOutput();\x0awi\
+ndow.clearLive =\
  () => runtime.a\
-pi_getScrollPosi\
-tion();\x0awindow.s\
-etScrollPosition\
- = (pos) => runt\
-ime.api_setScrol\
-lPosition(pos);\x0a\
-\x0awindow.showLoad\
-ing = () => runt\
-ime.api_showLoad\
-ing();\x0awindow.hi\
-deLoading = () =\
-> runtime.api_hi\
-deLoading();\x0a\x0awi\
-ndow.restoreColl\
-apsedCode = (roo\
-t) => runtime.ap\
-i_restoreCollaps\
-edCode(root);\x0awi\
-ndow.scrollToTop\
+pi_clearLive();\x0a\
+\x0awindow.appendTo\
+olOutput = (c) =\
+> runtime.api_ap\
+pendToolOutput(c\
+);\x0awindow.update\
+ToolOutput = (c)\
+ => runtime.api_\
+updateToolOutput\
+(c);\x0awindow.clea\
+rToolOutput = ()\
+ => runtime.api_\
+clearToolOutput(\
+);\x0awindow.beginT\
+oolOutput = () =\
+> runtime.api_be\
+ginToolOutput();\
+\x0awindow.endToolO\
+utput = () => ru\
+ntime.api_endToo\
+lOutput();\x0awindo\
+w.enableToolOutp\
+ut = () => runti\
+me.api_enableToo\
+lOutput();\x0awindo\
+w.disableToolOut\
+put = () => runt\
+ime.api_disableT\
+oolOutput();\x0awin\
+dow.toggleToolOu\
+tput = (id) => r\
+untime.api_toggl\
+eToolOutput(id);\
+\x0awindow.toggleTo\
+olGroup = (id) =\
+> runtime.api_to\
+ggleToolGroup(id\
+);\x0awindow.toggle\
+ExtraItems = (bu\
+tton) => runtime\
+.api_toggleExtra\
+Items(button);\x0a\x0a\
+window.appendExt\
+ra = (id, c) => \
+runtime.api_appe\
+ndExtra(id, c);\x0a\
+window.removeNod\
+e = (id) => runt\
+ime.api_removeNo\
+de(id);\x0awindow.r\
+emoveNodesFromId\
+ = (id) => runti\
+me.api_removeNod\
+esFromId(id);\x0a\x0aw\
+indow.replaceLiv\
+e = (c) => runti\
+me.api_replaceLi\
+ve(c);\x0awindow.up\
+dateFooter = (c)\
+ => runtime.api_\
+updateFooter(c);\
+\x0a\x0awindow.enableE\
+ditIcons = () =>\
+ runtime.api_ena\
+bleEditIcons();\x0a\
+window.disableEd\
+itIcons = () => \
+runtime.api_disa\
+bleEditIcons();\x0a\
+window.enableTim\
+estamp = () => r\
+untime.api_enabl\
+eTimestamp();\x0awi\
+ndow.disableTime\
+stamp = () => ru\
+ntime.api_disabl\
+eTimestamp();\x0awi\
+ndow.enableBlock\
+s = () => runtim\
+e.api_enableBloc\
+ks();\x0awindow.dis\
+ableBlocks = () \
+=> runtime.api_d\
+isableBlocks();\x0a\
+window.updateCSS\
+ = (s) => runtim\
+e.api_updateCSS(\
+s);\x0a\x0awindow.getS\
+crollPosition = \
+() => runtime.ap\
+i_getScrollPosit\
+ion();\x0awindow.se\
+tScrollPosition \
+= (pos) => runti\
+me.api_setScroll\
+Position(pos);\x0a\x0a\
+window.showLoadi\
+ng = () => runti\
+me.api_showLoadi\
+ng();\x0awindow.hid\
+eLoading = () =>\
+ runtime.api_hid\
+eLoading();\x0a\x0awin\
+dow.restoreColla\
+psedCode = (root\
+) => runtime.api\
+_restoreCollapse\
+dCode(root);\x0awin\
+dow.scrollToTopU\
+ser = () => runt\
+ime.api_scrollTo\
+TopUser();\x0awindo\
+w.scrollToBottom\
 User = () => run\
 time.api_scrollT\
-oTopUser();\x0awind\
-ow.scrollToBotto\
-mUser = () => ru\
-ntime.api_scroll\
-ToBottomUser();\x0a\
-\x0awindow.showTips\
- = () => runtime\
-.api_showTips();\
-\x0awindow.hideTips\
- = () => runtime\
-.api_hideTips();\
-\x0a\x0awindow.getCust\
-omMarkupRules = \
-() => runtime.ap\
-i_getCustomMarku\
-pRules();\x0awindow\
-.setCustomMarkup\
-Rules = (rules) \
-=> runtime.api_s\
-etCustomMarkupRu\
-les(rules);\x0a\x0awin\
-dow.__pygpt_clea\
-nup = () => runt\
-ime.cleanup();\x0a\x0a\
-\x0aRafManager.prot\
-otype.stats = fu\
-nction() {\x0a  con\
-st byGroup = new\
- Map();\x0a  for (c\
-onst [key, t] of\
- this.tasks) {\x0a \
-   const g = t.g\
-roup || 'default\
-';\x0a    byGroup.s\
-et(g, (byGroup.g\
-et(g) || 0) + 1)\
-;\x0a  }\x0a  return {\
-\x0a    tasks: this\
-.tasks.size,\x0a   \
- groups: Array.f\
-rom(byGroup, ([g\
-roup, count]) =>\
- ({ group, count\
- }))\x0a      .sort\
-((a,b) => b.coun\
-t - a.count)\x0a  }\
-;\x0a};\x0a\x0aRafManager\
-.prototype.dumpH\
-otGroups = funct\
-ion(label='') {\x0a\
-  const s = this\
-.stats();\x0a  cons\
-ole.log('[RAF]',\
- label, 'tasks='\
-, s.tasks, 'byGr\
-oup=', s.groups.\
-slice(0,8));\x0a};\x0a\
+oBottomUser();\x0a\x0a\
+window.showTips \
+= () => runtime.\
+api_showTips();\x0a\
+window.hideTips \
+= () => runtime.\
+api_hideTips();\x0a\
+\x0awindow.getCusto\
+mMarkupRules = (\
+) => runtime.api\
+_getCustomMarkup\
+Rules();\x0awindow.\
+setCustomMarkupR\
+ules = (rules) =\
+> runtime.api_se\
+tCustomMarkupRul\
+es(rules);\x0a\x0awind\
+ow.__pygpt_clean\
+up = () => runti\
+me.cleanup();\x0a\x0a\x0a\
 RafManager.proto\
-type.findDomTask\
-s = function() {\
-\x0a  const out = [\
-];\x0a  for (const \
-[key, t] of this\
-.tasks) {\x0a    le\
-t el = null;\x0a   \
- if (key && key.\
-nodeType === 1) \
-el = key;\x0a    el\
-se if (key && ke\
-y.el && key.el.n\
+type.stats = fun\
+ction() {\x0a  cons\
+t byGroup = new \
+Map();\x0a  for (co\
+nst [key, t] of \
+this.tasks) {\x0a  \
+  const g = t.gr\
+oup || 'default'\
+;\x0a    byGroup.se\
+t(g, (byGroup.ge\
+t(g) || 0) + 1);\
+\x0a  }\x0a  return {\x0a\
+    tasks: this.\
+tasks.size,\x0a    \
+groups: Array.fr\
+om(byGroup, ([gr\
+oup, count]) => \
+({ group, count \
+}))\x0a      .sort(\
+(a,b) => b.count\
+ - a.count)\x0a  };\
+\x0a};\x0a\x0aRafManager.\
+prototype.dumpHo\
+tGroups = functi\
+on(label='') {\x0a \
+ const s = this.\
+stats();\x0a  conso\
+le.log('[RAF]', \
+label, 'tasks=',\
+ s.tasks, 'byGro\
+up=', s.groups.s\
+lice(0,8));\x0a};\x0aR\
+afManager.protot\
+ype.findDomTasks\
+ = function() {\x0a\
+  const out = []\
+;\x0a  for (const [\
+key, t] of this.\
+tasks) {\x0a    let\
+ el = null;\x0a    \
+if (key && key.n\
 odeType === 1) e\
-l = key.el;\x0a    \
-if (el) out.push\
-({ group: t.grou\
-p, tag: el.tagNa\
-me, connected: e\
-l.isConnected })\
-;\x0a  }\x0a  return o\
-ut;\x0a};\x0a// setInt\
-erval(() => runt\
-ime.raf.dumpHotG\
-roups('tick'), 1\
-000);\x0a\x0afunction \
-gaugeSE(se) {\x0a  \
-const ropeLen = \
-(se.streamBuf.le\
-ngth + se._sbLen\
-);\x0a  const ac = \
-se.activeCode;\x0a \
- const domFrozen\
- = ac?.frozenEl?\
-.textContent?.le\
-ngth || 0;\x0a  con\
-st domTail = ac?\
-.tailEl?.textCon\
-tent?.length || \
-0;\x0a  const domLe\
-n = domFrozen + \
-domTail;\x0a  retur\
-n {\x0a    ropeLen,\
-\x0a    domLen,\x0a   \
- totalChars: rop\
-eLen + domLen,\x0a \
-   ratioRopeToDo\
-m: (domLen ? (ro\
-peLen / domLen).\
-toFixed(2) : 'n/\
-a'),\x0a    fenceOp\
-en: se.fenceOpen\
-,\x0a    codeOpen: \
-se.codeStream?.o\
-pen\x0a  };\x0a}\x0a\x0a/*\x0as\
-etInterval(() =>\
- {\x0a  const g = g\
-augeSE(runtime.s\
-tream);\x0a  consol\
-e.log('[SE gauge\
-]', g);\x0a}, 2000)\
-;*/\x0a\
+l = key;\x0a    els\
+e if (key && key\
+.el && key.el.no\
+deType === 1) el\
+ = key.el;\x0a    i\
+f (el) out.push(\
+{ group: t.group\
+, tag: el.tagNam\
+e, connected: el\
+.isConnected });\
+\x0a  }\x0a  return ou\
+t;\x0a};\x0a// setInte\
+rval(() => runti\
+me.raf.dumpHotGr\
+oups('tick'), 10\
+00);\x0a\x0afunction g\
+augeSE(se) {\x0a  c\
+onst ropeLen = (\
+se.streamBuf.len\
+gth + se._sbLen)\
+;\x0a  const ac = s\
+e.activeCode;\x0a  \
+const domFrozen \
+= ac?.frozenEl?.\
+textContent?.len\
+gth || 0;\x0a  cons\
+t domTail = ac?.\
+tailEl?.textCont\
+ent?.length || 0\
+;\x0a  const domLen\
+ = domFrozen + d\
+omTail;\x0a  return\
+ {\x0a    ropeLen,\x0a\
+    domLen,\x0a    \
+totalChars: rope\
+Len + domLen,\x0a  \
+  ratioRopeToDom\
+: (domLen ? (rop\
+eLen / domLen).t\
+oFixed(2) : 'n/a\
+'),\x0a    fenceOpe\
+n: se.fenceOpen,\
+\x0a    codeOpen: s\
+e.codeStream?.op\
+en\x0a  };\x0a}\x0a\x0a/*\x0ase\
+tInterval(() => \
+{\x0a  const g = ga\
+ugeSE(runtime.st\
+ream);\x0a  console\
+.log('[SE gauge]\
+', g);\x0a}, 2000);\
+*/\x0a\
 "
 
 qt_resource_name = b"\
@@ -131950,30 +132364,30 @@ qt_resource_struct = b"\
 \x00\x00\x01V\x00\x00\x00\x00\x00\x01\x00\x12\xf5p\
 \x00\x00\x00p\x00\x00\x00\x00\x00\x01\x00\x10\xde9\
 \x00\x00\x01r\x00\x00\x00\x00\x00\x01\x00\x13\x13\xc9\
-\x00\x00\x02h\x00\x00\x00\x00\x00\x01\x00\x185\xe2\
+\x00\x00\x02h\x00\x00\x00\x00\x00\x01\x00\x18B\xd1\
 \x00\x00\x000\x00\x00\x00\x00\x00\x01\x00\x10s\xea\
-\x00\x00\x02\x88\x00\x00\x00\x00\x00\x01\x00\x18Rs\
-\x00\x00\x030\x00\x00\x00\x00\x00\x01\x00\x1b\xaaF\
-\x00\x00\x02\x0e\x00\x00\x00\x00\x00\x01\x00\x13\xbda\
-\x00\x00\x03\x9c\x00\x00\x00\x00\x00\x01\x00\x1c>R\
-\x00\x00\x01\xb2\x00\x00\x00\x00\x00\x01\x00\x13_v\
+\x00\x00\x02\x88\x00\x00\x00\x00\x00\x01\x00\x18_b\
+\x00\x00\x030\x00\x00\x00\x00\x00\x01\x00\x1b\xb75\
+\x00\x00\x02\x0e\x00\x00\x00\x00\x00\x01\x00\x13\xcaP\
+\x00\x00\x03\x9c\x00\x00\x00\x00\x00\x01\x00\x1cKA\
+\x00\x00\x01\xb2\x00\x00\x00\x00\x00\x01\x00\x13le\
 \x00\x00\x00\xf8\x00\x00\x00\x00\x00\x01\x00\x11O\x86\
-\x00\x00\x01\xf0\x00\x00\x00\x00\x00\x01\x00\x13\xb6[\
+\x00\x00\x01\xf0\x00\x00\x00\x00\x00\x01\x00\x13\xc3J\
 \x00\x00\x00J\x00\x00\x00\x00\x00\x01\x00\x10\x8c-\
 \x00\x00\x016\x00\x00\x00\x00\x00\x01\x00\x11qi\
-\x00\x00\x02\xb2\x00\x00\x00\x00\x00\x01\x00\x1a5Y\
-\x00\x00\x03R\x00\x00\x00\x00\x00\x01\x00\x1c\x00|\
-\x00\x00\x02\xd0\x00\x00\x00\x00\x00\x01\x00\x1af\xb3\
-\x00\x00\x01\x96\x00\x00\x00\x00\x00\x01\x00\x13V(\
-\x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x13\xd4w\
+\x00\x00\x02\xb2\x00\x00\x00\x00\x00\x01\x00\x1aBH\
+\x00\x00\x03R\x00\x00\x00\x00\x00\x01\x00\x1c\x0dk\
+\x00\x00\x02\xd0\x00\x00\x00\x00\x00\x01\x00\x1as\xa2\
+\x00\x00\x01\x96\x00\x00\x00\x00\x00\x01\x00\x13c\x17\
+\x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x13\xe1f\
 \x00\x00\x00\x0a\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\
-\x00\x00\x03\x14\x00\x00\x00\x00\x00\x01\x00\x1br\xc6\
-\x00\x00\x02L\x00\x00\x00\x00\x00\x01\x00\x18\x0d\x90\
-\x00\x00\x01\xd0\x00\x00\x00\x00\x00\x01\x00\x13|\xdd\
+\x00\x00\x03\x14\x00\x00\x00\x00\x00\x01\x00\x1b\x7f\xb5\
+\x00\x00\x02L\x00\x00\x00\x00\x00\x01\x00\x18\x1a\x7f\
+\x00\x00\x01\xd0\x00\x00\x00\x00\x00\x01\x00\x13\x89\xcc\
 \x00\x00\x00\x8a\x00\x00\x00\x00\x00\x01\x00\x11\x07\xcf\
-\x00\x00\x02\xf0\x00\x00\x00\x00\x00\x01\x00\x1a\xde\x85\
+\x00\x00\x02\xf0\x00\x00\x00\x00\x00\x01\x00\x1a\xebt\
 \x00\x00\x00\xc2\x00\x00\x00\x00\x00\x01\x00\x11H\xfc\
-\x00\x00\x03r\x00\x00\x00\x00\x00\x01\x00\x1c0\xb8\
+\x00\x00\x03r\x00\x00\x00\x00\x00\x01\x00\x1c=\xa7\
 \x00\x00\x01\x16\x00\x00\x00\x00\x00\x01\x00\x11g\xb5\
 "
 

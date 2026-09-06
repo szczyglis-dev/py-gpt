@@ -100,6 +100,57 @@ class Helpers:
             })
         return calls
 
+    def extract_extra_tool_calls(self, tool_calls) -> list:
+        """Normalize persisted API-shaped tool calls for the WebView renderer.
+
+        Agents v2 stores these calls in ``ctx.extra["tool_calls"]`` without
+        injecting <tool> tags into the assistant answer, so they remain display
+        metadata and can never be mistaken for commands to execute again.
+        """
+        if not isinstance(tool_calls, list):
+            return []
+
+        calls = []
+        for tool_call in tool_calls:
+            if not isinstance(tool_call, dict):
+                continue
+            function = tool_call.get("function")
+            if not isinstance(function, dict):
+                continue
+            name = str(function.get("name") or "").strip()
+            if not name:
+                continue
+            arguments = function.get("arguments", {})
+            if isinstance(arguments, str):
+                try:
+                    arguments = json.loads(arguments)
+                except Exception:
+                    pass
+            request = {
+                "cmd": name,
+                "params": arguments,
+            }
+            item = {
+                "name": name,
+                "request": json.dumps(request, ensure_ascii=False, separators=(",", ":"), default=str),
+            }
+            # Agents v2 stores each executed response next to its originating call.
+            # Keep the key absent for unfinished/cancelled calls so the frontend can
+            # distinguish "no response yet" from a valid empty response.
+            if "agents_v2_response" in tool_call:
+                response = tool_call.get("agents_v2_response")
+                if isinstance(response, str):
+                    item["response"] = response
+                else:
+                    item["response"] = json.dumps(
+                        response,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                        default=str,
+                    )
+            calls.append(item)
+        return calls
+
     def strip_tool_calls(self, text: str) -> str:
         """
         Remove <tool>...</tool> tags from assistant output used for visible markdown.

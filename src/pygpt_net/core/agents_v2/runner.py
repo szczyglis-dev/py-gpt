@@ -177,6 +177,7 @@ class Runner:
             # the runtime is cleaned up and the final message is committed.
             runtime.collect_llm_artifacts(llm)
             await runtime.cleanup()
+            runtime.export_tool_calls_to_main_ctx()
             emitter.clear_status()
             emitter.finish(runtime.final_answer)
             runtime.verbose_log("RUNNER FINALIZE END", {"final_answer": runtime.final_answer})

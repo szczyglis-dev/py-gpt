@@ -1036,6 +1036,11 @@ class Chat:
         last = items[-1]
         if not (last.extra and isinstance(last.extra, dict)):
             return
+        # Agents v2 may persist executed tool calls on the final user-visible
+        # message strictly for inspection. They are not an unfinished native
+        # tool turn and must never be replayed into xAI chat history.
+        if last.extra.get("agents_v2_tool_calls_display") is True:
+            return
         tool_calls = last.extra.get("tool_calls")
         tool_output = last.extra.get("tool_output")
         if not (tool_calls and isinstance(tool_calls, list)):

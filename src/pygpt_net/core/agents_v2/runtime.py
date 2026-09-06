@@ -43,6 +43,19 @@ class AgentsV2Runtime:
     # worker statuses without the "[Agent name]" prefix.
     SHOW_AGENT_NAME_IN_STATUS = False
 
+    # Fallback default for the Settings option ``agent.v2.show_tool_chain``.
+    # When enabled, normal tool calls made anywhere in the Agents v2 flow are
+    # exported to the main conversation CtxItem under ``ctx.extra["tool_calls"]``
+    # for durable UI inspection. Orchestration/worker-management plumbing is
+    # deliberately excluded.
+    RETURN_TOOL_CALLS_TO_MAIN_CTX = False
+
+    _TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX = {
+        "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
+        "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
+        "report_status", "shared_context",
+    }
+
     def __init__(self, window, context, extra, signals, emitter):
         self.window = window
         self.context = context
@@ -59,6 +72,15 @@ class AgentsV2Runtime:
         self.verbose = AgentsV2VerboseLogger(window, self.run_id)
         self.status_events: List[Dict[str, Any]] = []
         self._status_seq = 0
+        self._main_tool_calls: List[Dict[str, Any]] = []
+        self._main_tool_call_seq = 0
+        self._local_plugin_tool_names = set()
+        self.return_tool_calls_to_main_ctx = bool(
+            self.window.core.config.get(
+                "agent.v2.show_tool_chain",
+                self.RETURN_TOOL_CALLS_TO_MAIN_CTX,
+            )
+        )
         self.memory_store = OrchestratorMemoryStore(window)
         self.allow_local_tools = bool(getattr(self.preset, "agent_v2_allow_local_tools", True))
         self.allow_remote_tools = bool(getattr(self.preset, "agent_v2_allow_remote_tools", True))
@@ -106,6 +128,7 @@ class AgentsV2Runtime:
             "preset": getattr(self.preset, "name", None) or getattr(self.preset, "id", None),
             "allow_local_tools": self.allow_local_tools,
             "allow_remote_tools": self.allow_remote_tools,
+            "show_tool_chain": self.return_tool_calls_to_main_ctx,
             "index_id": self.index_id,
             "shared_context": self.shared_context_text,
             "runtime_system_context": self.runtime_system_context,
@@ -120,8 +143,10 @@ class AgentsV2Runtime:
 
     def verbose_event(self, event: Any, actor: str = "orchestrator"):
         if isinstance(event, ToolCall):
+            self.record_tool_call(event, actor=actor)
             self.verbose.log("TOOL CALL", event, actor=actor)
         elif isinstance(event, ToolCallResult):
+            self.record_tool_result(event, actor=actor)
             self.verbose.log("TOOL RESULT", event, actor=actor)
         elif isinstance(event, AgentStream):
             delta = getattr(event, "delta", None)
@@ -131,6 +156,253 @@ class AgentsV2Runtime:
                 self.verbose.log("AGENT STREAM", event, actor=actor)
         else:
             self.verbose.log(event.__class__.__name__, event, actor=actor)
+
+    @staticmethod
+    def _tool_event_value(event: Any, *keys: str):
+        for key in keys:
+            if isinstance(event, dict):
+                value = event.get(key)
+            else:
+                value = getattr(event, key, None)
+            if value not in (None, ""):
+                return value
+        return None
+
+    @staticmethod
+    def _json_safe_tool_value(value: Any) -> Any:
+        if value is None:
+            return {}
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped:
+                try:
+                    return json.loads(stripped)
+                except Exception:
+                    return value
+            return ""
+        try:
+            # Round-trip with ``default=str`` so a provider-specific scalar or
+            # Pydantic value can never make CtxItem persistence fail.
+            return json.loads(json.dumps(value, ensure_ascii=False, default=str))
+        except Exception:
+            return str(value)
+
+    @staticmethod
+    def _json_safe_tool_result(value: Any) -> Any:
+        """Return a persistence-safe tool response without changing plain text."""
+        if value is None:
+            return ""
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped:
+                try:
+                    return json.loads(stripped)
+                except Exception:
+                    return value
+            return ""
+        try:
+            return json.loads(json.dumps(value, ensure_ascii=False, default=str))
+        except Exception:
+            return str(value)
+
+    @staticmethod
+    def _tool_result_value(event: Any) -> Any:
+        """Extract the actual ToolCallResult payload, including valid empty output."""
+        for key in ("tool_output", "output", "result", "response"):
+            if isinstance(event, dict):
+                if key not in event:
+                    continue
+                value = event.get(key)
+            else:
+                if not hasattr(event, key):
+                    continue
+                value = getattr(event, key, None)
+            if value is None:
+                continue
+            if isinstance(value, dict) and "content" in value:
+                return value.get("content")
+            content = getattr(value, "content", None)
+            if content is not None:
+                return content
+            return value
+        return ""
+
+    def register_local_plugin_tool(self, name: str):
+        value = str(name or "").strip()
+        if value:
+            self._local_plugin_tool_names.add(value)
+
+    def _append_main_tool_call(self, name: str, args: Any, actor: str, call_id: Any = None) -> Optional[str]:
+        if not self.return_tool_calls_to_main_ctx:
+            return None
+        name = str(name or "").strip()
+        if not name or name in self._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX:
+            return None
+
+        args = self._json_safe_tool_value(args)
+        # Match the local plugin bridge: providers occasionally wrap the real
+        # function payload once more in params/arguments.
+        if isinstance(args, dict) and len(args) == 1:
+            for wrapper in ("params", "arguments"):
+                wrapped = args.get(wrapper)
+                if isinstance(wrapped, dict):
+                    args = dict(wrapped)
+                    break
+
+        self._main_tool_call_seq += 1
+        value = str(call_id or f"agents_v2_{self.run_id}_{self._main_tool_call_seq}")
+        self._main_tool_calls.append({
+            "id": value,
+            "call_id": value,
+            "type": "function",
+            "function": {
+                "name": name,
+                "arguments": args,
+            },
+            # Kept as metadata for diagnostics; the regular tool renderer ignores it.
+            "agents_v2_actor": str(actor or "orchestrator"),
+        })
+        return value
+
+    def _set_main_tool_result(
+            self,
+            result: Any,
+            actor: str,
+            name: str = "",
+            call_id: Any = None,
+    ) -> bool:
+        """Attach a response to the matching persisted call without reordering it."""
+        if not self.return_tool_calls_to_main_ctx:
+            return False
+        actor = str(actor or "orchestrator")
+        name = str(name or "").strip()
+        call_id = str(call_id).strip() if call_id not in (None, "") else ""
+
+        def matches(item: Dict[str, Any], require_id: bool) -> bool:
+            if "agents_v2_response" in item:
+                return False
+            if str(item.get("agents_v2_actor") or "orchestrator") != actor:
+                return False
+            function = item.get("function") or {}
+            if name and str(function.get("name") or "") != name:
+                return False
+            if require_id:
+                item_id = str(item.get("call_id") or item.get("id") or "")
+                if item_id != call_id:
+                    return False
+            return True
+
+        # Prefer the provider/LlamaIndex call id. If a provider does not preserve
+        # it on ToolCallResult, fall back to the oldest unmatched call with the
+        # same actor + name. This also handles repeated calls to one tool.
+        if call_id:
+            for item in self._main_tool_calls:
+                if matches(item, True):
+                    item["agents_v2_response"] = self._json_safe_tool_result(result)
+                    return True
+        for item in self._main_tool_calls:
+            if matches(item, False):
+                item["agents_v2_response"] = self._json_safe_tool_result(result)
+                return True
+        return False
+
+    def record_local_plugin_tool_call(
+            self, name: str, args: Any, actor: str = "orchestrator"
+    ) -> Optional[str]:
+        """Record a validated local plugin call and return its display call id."""
+        return self._append_main_tool_call(name, args, actor)
+
+    def record_local_plugin_tool_result(
+            self, call_id: Any, name: str, result: Any, actor: str = "orchestrator"
+    ):
+        """Attach the exact local plugin response to its already recorded call."""
+        if not call_id:
+            return
+        self._set_main_tool_result(result, actor=actor, name=name, call_id=call_id)
+
+    def record_tool_call(self, event: Any, actor: str = "orchestrator"):
+        """Record a non-plugin normal tool invocation from an agent ToolCall event.
+
+        Local plugins are recorded by their execution wrapper after argument
+        normalization/validation, so their persisted params exactly match the
+        command sent to PyGPT. Other normal tools (for example query_index) are
+        captured centrally from the Orchestrator/worker event streams.
+        """
+        if not self.return_tool_calls_to_main_ctx:
+            return
+
+        name = self._tool_event_value(event, "tool_name", "name", "tool")
+        name = str(name or "").strip()
+        if not name or name in self._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX:
+            return
+        if name in self._local_plugin_tool_names:
+            return
+
+        args = self._tool_event_value(
+            event,
+            "tool_kwargs", "tool_args", "arguments", "kwargs", "args", "raw_arguments",
+        )
+        event_id = self._tool_event_value(event, "tool_id", "call_id", "id")
+        self._append_main_tool_call(name, args, actor, call_id=event_id)
+
+    def record_tool_result(self, event: Any, actor: str = "orchestrator"):
+        """Attach a ToolCallResult to the corresponding non-plugin normal call."""
+        if not self.return_tool_calls_to_main_ctx:
+            return
+
+        name = self._tool_event_value(event, "tool_name", "name", "tool")
+        name = str(name or "").strip()
+        if not name or name in self._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX:
+            return
+        # Local plugins are paired directly around execute_plugin(), which gives
+        # us the exact response returned to the agent and avoids duplicate event
+        # accounting when LlamaIndex also emits a ToolCallResult for FunctionTool.
+        if name in self._local_plugin_tool_names:
+            return
+
+        event_id = self._tool_event_value(event, "tool_id", "call_id", "id")
+        result = self._tool_result_value(event)
+        self._set_main_tool_result(result, actor=actor, name=name, call_id=event_id)
+
+    def export_tool_calls_to_main_ctx(self):
+        """Persist the collected normal tool calls on the user-visible turn.
+
+        Intentionally do *not* assign ``main.tool_calls`` and do not synthesize
+        ``tool_output``. Those fields participate in the legacy execution/reply
+        pipeline and could cause the already executed tools to be replayed.
+        """
+        main = getattr(self.context, "ctx", None)
+        if main is None:
+            return
+        if not isinstance(main.extra, dict):
+            main.extra = {}
+
+        # If the option was disabled after this CtxItem previously received an
+        # Agents v2 display-only export (for example before Regenerate), remove
+        # only that export. Never touch tool data owned by another mode.
+        if not self.return_tool_calls_to_main_ctx:
+            if main.extra.get("agents_v2_tool_calls_display"):
+                main.extra.pop("tool_calls", None)
+                main.extra.pop("agents_v2_tool_calls_display", None)
+                try:
+                    self.window.core.ctx.update_item(main)
+                except Exception as exc:
+                    self.window.core.debug.log(exc)
+            return
+
+        # Always replace a previous Agents v2 export (e.g. after Regenerate) so
+        # the main item reflects exactly this workflow execution.
+        if self._main_tool_calls:
+            main.extra["tool_calls"] = list(self._main_tool_calls)
+            main.extra["agents_v2_tool_calls_display"] = True
+        elif main.extra.get("agents_v2_tool_calls_display"):
+            main.extra.pop("tool_calls", None)
+            main.extra.pop("agents_v2_tool_calls_display", None)
+
+        try:
+            self.window.core.ctx.update_item(main)
+        except Exception as exc:
+            self.window.core.debug.log(exc)
 
     def is_stopped(self) -> bool:
         return bool(self.window.controller.kernel.stopped())
