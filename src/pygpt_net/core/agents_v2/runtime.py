@@ -69,6 +69,11 @@ class AgentsV2Runtime:
         # concurrently, but shared side-effecting bridges are serialized per runtime.
         self.local_tool_lock = asyncio.Lock()
 
+        # Native image input in Agents v2 uses ImageBlock directly, outside the
+        # normal LlamaIndex Context.append_images() path. Persist the same image
+        # references on the main CtxItem so they survive reload and are rendered
+        # with the conversation item just like images sent in Chat/Chat with Files.
+        self._persist_input_images()
         self.shared_context_text = self._build_shared_context()
         self.runtime_system_context = self._build_runtime_system_context()
         self.tool_factory = WorkerToolFactory(self)
@@ -222,6 +227,48 @@ class AgentsV2Runtime:
             limit = min(limit, configured)
         return max(2048, min(limit, 128000))
 
+    def _input_image_paths(self) -> List[str]:
+        """Return unique local image attachments accepted by the selected model."""
+        if self.model is None or not self.model.is_image_input():
+            return []
+        paths: List[str] = []
+        seen = set()
+        for attachment in (self.context.attachments or {}).values():
+            path = str(getattr(attachment, "path", "") or "")
+            if not path or path in seen or not os.path.isfile(path) or not is_image(path):
+                continue
+            seen.add(path)
+            paths.append(path)
+        return paths
+
+    def _persist_input_images(self):
+        """Store Agents v2 native image inputs on the main conversation CtxItem."""
+        ctx = getattr(self.context, "ctx", None)
+        if ctx is None:
+            return
+        paths = self._input_image_paths()
+        if not paths:
+            return
+        try:
+            images = self.window.core.filesystem.make_local_list(paths)
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+            images = paths
+
+        current = list(getattr(ctx, "images", None) or [])
+        changed = False
+        for image in images:
+            if image not in current:
+                current.append(image)
+                changed = True
+        if not changed:
+            return
+        ctx.images = current
+        try:
+            self.window.core.ctx.update_item(ctx)
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+
     def build_user_message(self, text: str) -> ChatMessage:
         """Build the same turn input for orchestrator/workers, including native image blocks when supported."""
         value = str(text or "")
@@ -229,12 +276,7 @@ class AgentsV2Runtime:
             return ChatMessage(role=MessageRole.USER, content=value)
 
         blocks = [TextBlock(text=value)]
-        seen = set()
-        for attachment in (self.context.attachments or {}).values():
-            path = str(getattr(attachment, "path", "") or "")
-            if not path or path in seen or not os.path.isfile(path) or not is_image(path):
-                continue
-            seen.add(path)
+        for path in self._input_image_paths():
             blocks.append(ImageBlock(path=path))
         return ChatMessage(role=MessageRole.USER, blocks=blocks)
 
