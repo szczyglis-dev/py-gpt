@@ -224,7 +224,7 @@ class ToolWidget:
 
         :return: Nodes
         """
-        return self.output.buffer_output
+        return self.output.get_nodes()
 
     @Slot(list)
     def restore_nodes(self, nodes: list):
