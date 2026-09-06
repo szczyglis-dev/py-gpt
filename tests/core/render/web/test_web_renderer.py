@@ -286,23 +286,55 @@ class TestRenderer:
         renderer.get_or_create_pid = MagicMock(return_value=1)
         renderer.update_names = MagicMock()
         renderer.tool_output_end = MagicMock()
-        renderer.is_stream = MagicMock(return_value=False)
-        renderer.append_node = MagicMock()
+        renderer.prepare_input = MagicMock(return_value="prepared input")
+        block = MagicMock()
+        block.to_json.return_value = "render-block-json"
+        renderer._build_render_block = MagicMock(return_value=block)
+        renderer.append = MagicMock()
         renderer.pids = {1: MagicMock()}
 
+        renderer.append_input(meta, ctx, flush=True, append=False)
+
+        renderer.tool_output_end.assert_called_once_with()
+        renderer.get_or_create_pid.assert_called_once_with(meta)
+        renderer.update_names.assert_called_once_with(meta, ctx)
+        renderer.prepare_input.assert_called_once_with(meta, ctx, True, False)
+        renderer._build_render_block.assert_called_once_with(
+            meta, ctx, input_text="prepared input", output_text=None
+        )
+        block.to_json.assert_called_once_with(wrap=True)
+        renderer.append.assert_called_once_with(1, "render-block-json")
+
     def test_append_chunk(self, renderer, fake_window):
-        return  # todo: mock QTimer
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
+        ctx.id = 2
+        previous = DummyCtxItem()
+        previous.id = 1
+        pctx = SimpleNamespace(item=previous, header="")
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(buffer="")}
-        renderer.is_debug = MagicMock(return_value=False)
+        renderer.pids = {1: pctx}
+        renderer._hide_previous_agent_action_icons = MagicMock()
+        renderer._stream_reset = MagicMock()
+        renderer._stream_push = MagicMock()
+        renderer.update_names = MagicMock()
+        renderer.get_name_header = MagicMock(return_value="header")
         node = fake_window.core.ctx.output.get_current(meta)
+        renderer.get_output_node = MagicMock(return_value=node)
         node.page().runJavaScript = MagicMock()
-        renderer.prev_chunk_newline = False
-        renderer.prev_chunk_replace = False
-        renderer.append_chunk(meta, ctx, "chunk", True)
-        node.page().runJavaScript.assert_called()
+
+        renderer.append_chunk(meta, ctx, "chunk", begin=True)
+
+        assert pctx.item is ctx
+        assert pctx.header == "header"
+        assert renderer._loading_visible[1] is False
+        renderer._hide_previous_agent_action_icons.assert_called_once_with(meta, ctx)
+        renderer._stream_reset.assert_called_once_with(1)
+        renderer.update_names.assert_called_once_with(meta, ctx)
+        node.page().runJavaScript.assert_called_once_with(
+            "if (typeof window.beginStream !== 'undefined') beginStream(true);"
+        )
+        renderer._stream_push.assert_called_once_with(1, "header", "chunk")
 
     def test_next_chunk(self, renderer, fake_window):
         meta = DummyCtxMeta()

@@ -75,7 +75,7 @@ def test_handle_cmd_execute(mock_window):
     mock_window.threadpool.start.assert_called_once()
 
 
-def test_embed_text_missing_key(mock_window):
+def test_embed_text_missing_key(mock_window, monkeypatch):
     """Worker should fail clearly when no API key is configured"""
     from pygpt_net.plugin.twelvelabs.worker import Worker
 
@@ -86,14 +86,10 @@ def test_embed_text_missing_key(mock_window):
 
     worker = Worker()
     worker.from_defaults(plugin)
-    # ensure env var does not leak a key into the test
-    old = os.environ.pop("TWELVELABS_API_KEY", None)
-    try:
-        with pytest.raises(RuntimeError):
-            worker.get_client()
-    finally:
-        if old is not None:
-            os.environ["TWELVELABS_API_KEY"] = old
+    # Isolate the process environment and restore the original value automatically.
+    monkeypatch.delenv("TWELVELABS_API_KEY", raising=False)
+    with pytest.raises(RuntimeError):
+        worker.get_client()
 
 
 @pytest.mark.skipif(

@@ -50,8 +50,8 @@ def test_get_documents(mock_window):
         }
     }
     idx.loaders = loaders
-    with patch("os.path.isdir") as mock_isdir:
-        mock_isdir.return_value = False
+    with patch("os.path.isdir", return_value=False), \
+            patch.object(idx, "is_excluded_path", return_value=False):
         documents = idx.get_documents("file.pdf")
     assert documents == docs
 

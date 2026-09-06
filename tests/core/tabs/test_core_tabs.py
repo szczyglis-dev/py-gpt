@@ -16,6 +16,7 @@ import pytest
 from PySide6.QtWidgets import QWidget
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.tabs import Tabs
+import pygpt_net.core.tabs.tabs as tabs_module
 
 class FakeTabs:
     def __init__(self):
@@ -447,8 +448,46 @@ def test_toggle_debug(tabs_instance, fake_window):
     tabs_instance.toggle_debug(False)
     fake_window.core.config.save.assert_called()
 
-def test_from_widget(tabs_instance, fake_window):
-    pass
+def test_from_widget(tabs_instance, fake_window, monkeypatch):
+    class FakeLayout:
+        def __init__(self):
+            self.widgets = []
+            self.margins = None
+
+        def addWidget(self, widget):
+            self.widgets.append(widget)
+
+        def setContentsMargins(self, *margins):
+            self.margins = margins
+
+    class FakeTabBody:
+        def __init__(self, window):
+            self.window = window
+            self.body = []
+            self.refs = []
+            self.layout = None
+
+        def append(self, widget):
+            self.body.append(widget)
+
+        def setLayout(self, layout):
+            self.layout = layout
+
+        def add_ref(self, widget):
+            self.refs.append(widget)
+
+    monkeypatch.setattr(tabs_module, "QVBoxLayout", FakeLayout)
+    monkeypatch.setattr(tabs_module, "TabBody", FakeTabBody)
+    source_widget = object()
+
+    result = tabs_instance.from_widget(source_widget)
+
+    assert isinstance(result, FakeTabBody)
+    assert result.window is fake_window
+    assert result.body == [source_widget]
+    assert result.refs == [source_widget]
+    assert result.layout.widgets == [source_widget]
+    assert result.layout.margins == (0, 0, 0, 0)
 
 def test_save(tabs_instance, fake_window):
     fake_tab = MagicMock()

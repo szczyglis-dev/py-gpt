@@ -33,14 +33,16 @@ def test_get_user_path(mock_window_conf):
     assert config.get_user_path() == 'test_path'
 
 
-def test_get_available_langs(mock_window_conf):
+def test_get_available_langs(mock_window_conf, monkeypatch):
     """
     Test get available languages
     """
     config = Config(mock_window_conf)
     config.get_app_path = MagicMock(return_value='test_path')
     config.get_user_path = MagicMock(return_value='test_path')
-    os.path.exists = MagicMock(return_value=True)
-    os.listdir = MagicMock(return_value=['locale.en.ini', 'locale.de.ini', 'locale.fr.ini'])
+    exists_mock = MagicMock(return_value=True)
+    listdir_mock = MagicMock(return_value=['locale.en.ini', 'locale.de.ini', 'locale.fr.ini'])
+    monkeypatch.setattr(os.path, 'exists', exists_mock)
+    monkeypatch.setattr(os, 'listdir', listdir_mock)
     assert config.get_available_langs() == ['en', 'de', 'fr']
 

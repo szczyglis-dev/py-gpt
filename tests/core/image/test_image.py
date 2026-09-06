@@ -17,13 +17,15 @@ from tests.mocks import mock_window
 from pygpt_net.core.image import Image
 
 
-def test_install(mock_window):
+def test_install(mock_window, monkeypatch):
     """Test install"""
     image = Image(mock_window)
-    os.path.exists = MagicMock(return_value=False)
-    os.makedirs = MagicMock()
+    exists_mock = MagicMock(return_value=False)
+    makedirs_mock = MagicMock()
+    monkeypatch.setattr(os.path, "exists", exists_mock)
+    monkeypatch.setattr(os, "makedirs", makedirs_mock)
     image.install()
-    os.makedirs.assert_called()
+    makedirs_mock.assert_called()
 
 
 def test_handle_finished(mock_window):

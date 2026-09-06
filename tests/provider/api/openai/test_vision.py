@@ -74,7 +74,7 @@ def test_reset_tokens(mock_window_conf):
     assert vision.input_tokens == 0
 
 
-def test_build(mock_window_conf):
+def test_build(mock_window_conf, monkeypatch):
     """
     Test build vision content
     """
@@ -85,7 +85,7 @@ def test_build(mock_window_conf):
     attachments = {'test_uuid': MagicMock()}
     attachments['test_uuid'].path = 'test_path'
 
-    os.path.exists = MagicMock(return_value=True)
+    monkeypatch.setattr(os.path, 'exists', MagicMock(return_value=True))
     content = vision.build_content('test_text', attachments)
     assert len(content) == 3
     assert content[0]['type'] == 'text'

@@ -19,14 +19,16 @@ from tests.mocks import mock_window
 from pygpt_net.core.filesystem import Filesystem
 
 
-def test_install(mock_window):
+def test_install(mock_window, monkeypatch):
     """Test install"""
     filesystem = Filesystem(mock_window)
-    os.path.exists = MagicMock(return_value=False)
-    os.mkdir = MagicMock()
+    exists_mock = MagicMock(return_value=False)
+    mkdir_mock = MagicMock()
+    monkeypatch.setattr(os.path, "exists", exists_mock)
+    monkeypatch.setattr(os, "mkdir", mkdir_mock)
     filesystem.install()
-    os.path.exists.assert_called()
-    os.mkdir.assert_called()
+    exists_mock.assert_called()
+    mkdir_mock.assert_called()
 
 
 def test_make_local(mock_window):

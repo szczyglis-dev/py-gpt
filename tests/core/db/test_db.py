@@ -28,9 +28,13 @@ def test_prepare(mock_window):
     """Test prepare"""
     db = Database(mock_window)
     db.is_installed = MagicMock(return_value=True)
-    db.prepare()
-    db.is_installed.assert_called_once()
-    assert db.engine is not None
+    try:
+        db.prepare()
+        db.is_installed.assert_called_once()
+        assert db.engine is not None
+    finally:
+        if db.engine is not None:
+            db.close()
 
 
 def test_install(mock_window):

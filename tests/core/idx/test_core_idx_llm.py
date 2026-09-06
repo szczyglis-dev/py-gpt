@@ -32,8 +32,13 @@ def patch_openai(monkeypatch):
     monkeypatch.setattr("pygpt_net.core.idx.llm.OpenAI", DummyOpenAI)
     return DummyOpenAI, instances
 
+@pytest.fixture
+def isolate_openai_env(monkeypatch):
+    """Track OpenAI env keys so direct writes by Llm are undone after the test."""
+    for key in ("OPENAI_API_KEY", "OPENAI_API_BASE", "OPENAI_ORGANIZATION"):
+        monkeypatch.setenv(key, "__PYGPT_TEST_SENTINEL__")
 
-def test_init_sets_all_envs(mock_window):
+def test_init_sets_all_envs(mock_window, isolate_openai_env):
     mock_window.core.config.set("api_key", "KEY")
     mock_window.core.config.set("api_endpoint", "https://api.example.com")
     mock_window.core.config.set("organization_key", "ORG")
@@ -79,7 +84,7 @@ def test_get_calls_init_and_llama_with_stream_and_sets_initialized(mock_window):
 
 
 
-def test_get_returns_default_openai_when_model_none_and_sets_env(mock_window, patch_openai):
+def test_get_returns_default_openai_when_model_none_and_sets_env(mock_window, patch_openai, isolate_openai_env):
     DummyOpenAI, instances = patch_openai
     mock_window.core.config.set("api_key", "KEYX")
     mock_window.core.config.set("api_endpoint", "https://api.test")
@@ -99,7 +104,7 @@ def test_get_returns_default_openai_when_model_none_and_sets_env(mock_window, pa
     assert os.environ["OPENAI_ORGANIZATION"] == "ORGX"
 
 
-def test_get_returns_default_openai_when_provider_missing(mock_window, patch_openai):
+def test_get_returns_default_openai_when_provider_missing(mock_window, patch_openai, isolate_openai_env):
     DummyOpenAI, instances = patch_openai
     model = ModelItem()
     model.provider = "not-registered"

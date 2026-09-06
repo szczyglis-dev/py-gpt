@@ -14,7 +14,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 import pytest
 
-mod = importlib.import_module("pygpt_net.core.bridge")
+mod = importlib.import_module("pygpt_net.core.bridge.bridge")
 
 Bridge = mod.Bridge
 
@@ -243,10 +243,17 @@ def test_apply_rate_limit_with_sleep(monkeypatch):
     window.core.config.has = Mock(return_value=True)
     window.core.config.get = Mock(return_value="30")
     b = Bridge(window)
-    now = mod.datetime.now()
+    fixed_now = mod.datetime(2025, 1, 1, 12, 0, 0)
+
+    class FixedDateTime:
+        @classmethod
+        def now(cls):
+            return fixed_now
+
+    monkeypatch.setattr(mod, "datetime", FixedDateTime)
     interval = mod.timedelta(minutes=1) / 30
     extra = mod.timedelta(seconds=0.5)
-    b.last_call = now - interval + extra
+    b.last_call = fixed_now - interval + extra
     sleep_mock = Mock()
     monkeypatch.setattr(mod.time, "sleep", sleep_mock)
     window.core.debug.debug = Mock()

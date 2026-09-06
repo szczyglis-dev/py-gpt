@@ -312,10 +312,9 @@ def test_update_title_other(importer, mock_window):
     importer.update_title()
     mock_window.ui.nodes["models.importer.url"].setText.assert_called_with("Test Provider Name")
 
-def test_update_title_ollama(importer, mock_window):
+def test_update_title_ollama(importer, mock_window, monkeypatch):
     importer.provider = "ollama"
-    if "OLLAMA_API_BASE" in os.environ:
-        del os.environ["OLLAMA_API_BASE"]
+    monkeypatch.delenv("OLLAMA_API_BASE", raising=False)
     importer.update_title()
     mock_window.ui.nodes["models.importer.url"].setText.assert_called_with("http://localhost:11434")
 

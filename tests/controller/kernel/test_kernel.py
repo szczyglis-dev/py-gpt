@@ -261,20 +261,18 @@ def test_terminate(kernel, fake_window):
     fake_window.controller.chat.common.stop.assert_called_once()
     fake_window.controller.audio.stop_audio.assert_called_once()
 
-def test_stop(kernel, fake_window):
+def test_stop(kernel, fake_window, monkeypatch):
     fake_window.dispatch = MagicMock()
     fake_window.controller.chat.common.stop = MagicMock()
     fake_window.controller.audio.stop_audio = MagicMock()
     from pygpt_net import utils
-    original_trans = utils.trans
-    utils.trans = lambda msg: msg
+    monkeypatch.setattr(utils, "trans", lambda msg: msg)
     kernel.stop(exit=False)
     assert kernel.halt is True
     fake_window.controller.chat.common.stop.assert_called_with(exit=False)
     fake_window.controller.audio.stop_audio.assert_called_once()
     dispatched = [e.name for e in fake_window.events]
     #assert KernelEvent.STOP in dispatched
-    utils.trans = original_trans
 
 def test_set_state_busy(kernel, fake_window):
     event = DummyEvent(KernelEvent.STATE_BUSY, {"msg": "busy msg"})

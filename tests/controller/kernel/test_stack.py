@@ -17,18 +17,6 @@ from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 
-# Set dummy constant values if not already defined
-if not hasattr(ReplyContext, "EXPERT_CALL"):
-    ReplyContext.EXPERT_CALL = "EXPERT_CALL"
-if not hasattr(ReplyContext, "CMD_EXECUTE"):
-    ReplyContext.CMD_EXECUTE = "CMD_EXECUTE"
-if not hasattr(ReplyContext, "CMD_EXECUTE_FORCE"):
-    ReplyContext.CMD_EXECUTE_FORCE = "CMD_EXECUTE_FORCE"
-if not hasattr(ReplyContext, "CMD_EXECUTE_INLINE"):
-    ReplyContext.CMD_EXECUTE_INLINE = "CMD_EXECUTE_INLINE"
-if not hasattr(ReplyContext, "AGENT_CONTINUE"):
-    ReplyContext.AGENT_CONTINUE = "AGENT_CONTINUE"
-
 
 class DummyReplyContext:
     def __init__(self, type, ctx="ctx", input="input", parent_id="pid", cmds=None):
