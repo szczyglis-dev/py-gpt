@@ -215,7 +215,7 @@ or (Poetry >= 2.0):
 
 
 .. tip::
-    You can use ``PyInstaller`` to create a compiled version of the application for your system (required version >= ``6.4.0``).
+    You can use ``PyInstaller`` to create a compiled version of the application for your system (required version >= ``6.14.0``).
 
 Troubleshooting
 ---------------

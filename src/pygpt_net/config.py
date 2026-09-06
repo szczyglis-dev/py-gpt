@@ -13,6 +13,7 @@ import copy
 import datetime
 import os
 import re
+import sys
 
 from pathlib import Path
 from packaging.version import Version
@@ -100,7 +101,7 @@ class Config:
 
         :return: True if compiled version
         """
-        return __file__.endswith('.pyc')
+        return bool(getattr(sys, 'frozen', False))
 
     def install(self):
         """Install database and provider data"""
@@ -272,12 +273,16 @@ class Config:
 
         :return: app root path
         """
-        if hasattr(self, '_app_path') and self._app_path is not None:
+        if hasattr(self, "_app_path") and self._app_path is not None:
             return self._app_path
-        if self.is_compiled():
-            self._app_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+
+        if self.is_compiled() and hasattr(sys, "_MEIPASS"):
+            path = sys._MEIPASS
         else:
-            self._app_path = os.path.abspath(os.path.dirname(__file__))
+            path = os.path.dirname(__file__)
+
+        self._app_path = os.path.abspath(path)
+
         return self._app_path
 
     def get_user_path(self) -> str:

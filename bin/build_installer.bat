@@ -11,8 +11,8 @@ SET WIX=C:\Program Files (x86)\WiX Toolset v3.14
 SET SIGNTOOL=C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool
 
 REM Build the installer for download
-IF EXIST "%SourceDir%\_internal\.ms_store" (
-    del "%SourceDir%\_internal\.ms_store"
+IF EXIST "%SourceDir%\_internal\pygpt_net\.ms_store" (
+    del "%SourceDir%\_internal\pygpt_net\.ms_store"
 )
 
 REM 1. Generate the components file using heat.exe

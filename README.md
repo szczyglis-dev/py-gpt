@@ -264,7 +264,7 @@ poetry run python3 run.py
 ```
 
 **Tip**: you can use `PyInstaller` to create a compiled version of
-the application for your system (required version >= `6.0.0`).
+the application for your system (required version >= `6.14.0`).
 
 ### Troubleshooting
 

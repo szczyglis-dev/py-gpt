@@ -129,11 +129,13 @@ hiddenimports = [
     'IPython.core.display',
     'IPython.core.interactiveshell',
     'jupyter_client',
+    'aiosqlite',
+    'sqlalchemy.dialects.sqlite.aiosqlite',
 ]
 for pkg in [
     'chromadb', 'chromadb.migrations', 'chromadb.telemetry',
     'chromadb.api', 'chromadb.db',
-    'httpx', 'httpx_socks', 'nbconvert',
+    'httpx', 'httpx_socks', 'nbconvert', 'aiosqlite',
 ]:
     hiddenimports += collect_submodules(pkg)
 

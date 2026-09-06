@@ -11,8 +11,8 @@ SET WIX=C:\Program Files (x86)\WiX Toolset v3.14
 SET SIGNTOOL=C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool
 
 REM Build the installer for MS Store
-IF NOT EXIST "%SourceDir%\_internal\.ms_store" (
-    echo. > "%SourceDir%\_internal\.ms_store"
+IF NOT EXIST "%SourceDir%\_internal\pygpt_net\.ms_store" (
+    echo. > "%SourceDir%\_internal\pygpt_net\.ms_store"
 )
 IF NOT EXIST "%InstallerOutputFolder%\store" (
     mkdir "%InstallerOutputFolder%\store"

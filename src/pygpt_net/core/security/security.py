@@ -94,6 +94,7 @@ class Security:
             return path
         if sandbox or not self.is_read_restricted() or self.is_in_allowed_workdir(path):
             return path
+        print(path, sandbox)
         raise SecurityError(
             "Permission denied - filesystem read access outside the workdir data directory is disabled. "
             "Enable filesystem access outside workdir in Settings -> Security "
@@ -107,6 +108,7 @@ class Security:
             return path
         if sandbox or not self.is_write_restricted() or self.is_in_allowed_workdir(path):
             return path
+        print(path, sandbox)
         raise SecurityError(
             "Permission denied - filesystem write access outside the workdir data directory is disabled. "
             "Enable filesystem access outside workdir in Settings -> Security "
