@@ -54,3 +54,30 @@ def test_find_input_text_change_forwards_to_finder():
     widget = SimpleNamespace(window=MagicMock())
     FindInput._on_text_changed(widget, "query")
     widget.window.controller.finder.search_text_changed.assert_called_once_with("query")
+
+
+def test_find_input_enter_and_focus_forward_current_text(qapp):
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QFocusEvent, QKeyEvent
+
+    window = MagicMock()
+    widget = FindInput(None, "find")
+    widget.window = window
+    widget.setText("needle")
+
+    widget.keyPressEvent(QKeyEvent(QEvent.KeyPress, Qt.Key_Return, Qt.NoModifier))
+    widget.focusInEvent(QFocusEvent(QEvent.FocusIn))
+
+    assert window.controller.finder.focus_input.call_count == 2
+    window.controller.finder.focus_input.assert_called_with("needle")
+
+
+def test_find_input_non_enter_does_not_force_focus_search(qapp):
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QKeyEvent
+
+    window = MagicMock()
+    widget = FindInput(None, "find")
+    widget.window = window
+    widget.keyPressEvent(QKeyEvent(QEvent.KeyPress, Qt.Key_Escape, Qt.NoModifier))
+    window.controller.finder.focus_input.assert_not_called()

@@ -110,3 +110,84 @@ def test_specialized_combo_callbacks_delegate_to_controllers():
     window.controller.mode.select.assert_called_once_with("chat")
     window.controller.model.select.assert_called_once_with("gpt")
     window.controller.idx.select_mode.assert_called_once_with("query")
+
+
+def test_base_list_combo_update_builds_sections_separators_items_and_cache():
+    combo = MagicMock()
+    combo.count.side_effect = [0, 1]
+    widget = SimpleNamespace(
+        combo=combo,
+        keys=[{"section::main": "Main"}, {"one": "One"}, {"separator::x": ""}, "two"],
+        _data_index_map={"old": 9},
+        _keys_cache=None,
+        _keys_cache_id=0,
+    )
+    with patch("pygpt_net.ui.widget.lists.base_list_combo.QSignalBlocker"):
+        BaseListCombo.update(widget)
+    combo.clear.assert_called_once()
+    combo.addSection.assert_called_once_with("Main")
+    combo.addSeparator.assert_called_once_with("")
+    combo.addItem.assert_any_call("One", "one")
+    combo.addItem.assert_any_call("two", "two")
+    assert widget._data_index_map == {"one": 0, "two": 1}
+    assert widget._keys_cache == {"one", "two"}
+    combo.setUpdatesEnabled.assert_any_call(False)
+    combo.setUpdatesEnabled.assert_any_call(True)
+
+
+def test_base_list_combo_update_accepts_mapping_and_preserves_first_duplicate_index():
+    combo = MagicMock()
+    combo.count.side_effect = [0, 1]
+    widget = SimpleNamespace(combo=combo, keys={"one": "One", "two": "Two"}, _data_index_map={}, _keys_cache=None, _keys_cache_id=0)
+    with patch("pygpt_net.ui.widget.lists.base_list_combo.QSignalBlocker"):
+        BaseListCombo.update(widget)
+    assert widget._data_index_map == {"one": 0, "two": 1}
+    assert widget._keys_cache == {"one", "two"}
+
+
+def test_base_list_combo_set_value_falls_back_to_find_and_caches_index():
+    combo = MagicMock()
+    combo.findData.return_value = 3
+    combo.currentIndex.return_value = 3
+    widget = SimpleNamespace(combo=combo, _data_index_map={}, current_id=None, locked=False)
+    with patch("pygpt_net.ui.widget.lists.base_list_combo.QSignalBlocker"):
+        BaseListCombo.set_value(widget, "target")
+    combo.findData.assert_called_once_with("target")
+    combo.setCurrentIndex.assert_not_called()
+    assert widget._data_index_map["target"] == 3
+    assert widget.current_id == "target"
+    assert widget.locked is False
+
+
+def test_base_list_combo_set_value_missing_keeps_current_id():
+    combo = MagicMock()
+    combo.findData.return_value = -1
+    widget = SimpleNamespace(combo=combo, _data_index_map={}, current_id="old", locked=False)
+    with patch("pygpt_net.ui.widget.lists.base_list_combo.QSignalBlocker"):
+        BaseListCombo.set_value(widget, "missing")
+    assert widget.current_id == "old"
+    combo.setCurrentIndex.assert_not_called()
+    assert widget.locked is False
+
+
+def test_base_list_combo_set_keys_invalidates_cache_updates_and_unlocks():
+    widget = SimpleNamespace(keys=[], locked=False, _keys_cache={"old"}, _keys_cache_id=99, update=MagicMock())
+    values = ["one", "two"]
+    BaseListCombo.set_keys(widget, values)
+    assert widget.keys is values
+    assert widget._keys_cache is None
+    assert widget._keys_cache_id == 0
+    widget.update.assert_called_once()
+    assert widget.locked is False
+
+
+def test_specialized_combo_callbacks_ignore_locked_or_uninitialized_state():
+    window = MagicMock()
+    for cls, widget, controller in (
+        (ModeCombo, SimpleNamespace(initialized=False, locked=False, combo=MagicMock(), current_id="old", window=window), window.controller.mode.select),
+        (ModelCombo, SimpleNamespace(initialized=True, locked=True, combo=MagicMock(), current_id="old", window=window), window.controller.model.select),
+        (LlamaModeCombo, SimpleNamespace(initialized=False, combo=MagicMock(), current_id="old", window=window), window.controller.idx.select_mode),
+    ):
+        cls.on_combo_change(widget, 1)
+        assert widget.current_id == "old"
+        controller.assert_not_called()
