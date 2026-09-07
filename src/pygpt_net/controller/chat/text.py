@@ -81,24 +81,39 @@ class Text:
         dispatch(event)
         ai_name = event.data["value"]
 
+        # Internal tool feedback is a continuation of the same durable turn.
+        continuation_parent = None
+        if reply and internal and prev_ctx is not None:
+            continuation_parent = getattr(prev_ctx, "turn_parent", None)
+
         # prepare mode, model, etc.
-        mode = mode_override or config.get("mode")
-        model = model_override or config.get("model")
+        mode = mode_override or (getattr(continuation_parent, "mode", None) if continuation_parent else None) or config.get("mode")
+        model = model_override or (getattr(continuation_parent, "model", None) if continuation_parent else None) or config.get("model")
         model_data = core.models.get(model)
         sys_prompt = config.get("prompt")
         sys_prompt_raw = sys_prompt  # store raw prompt (without addons)
         max_tokens = config.get("max_output_tokens")  # max output tokens
         idx_mode = config.get("llama.idx.mode")
         base_mode = mode  # store base parent mode
-        stream = self.is_stream(mode)  # check if stream is enabled for given mode
+        # Tool-result continuations stay in the same durable CtxItem, but they
+        # should use the mode's normal streaming policy just like the initial
+        # response. The ephemeral continuation is merged into the durable parent
+        # only after its stream finishes (see controller.chat.stream).
+        stream = self.is_stream(mode)
 
         functions = []  # functions to call
         tools_outputs = []  # tools outputs (assistant only)
 
         # create ctx item
-        meta = core.ctx.get_current_meta()
-        if meta:
+        meta = continuation_parent.meta if continuation_parent is not None else core.ctx.get_current_meta()
+        if meta and continuation_parent is None:
             meta.preset = config.get("preset")  # current preset
+
+        # Capture the owning chat before rendering starts.  The shared input can
+        # be used while keyboard focus is inside Code Interpreter/another tool
+        # in the second column; that focus must not redirect or orphan the send.
+        if meta is not None:
+            core.ctx.output.pin_render_pid(meta)
 
         ctx = CtxItem()
         ctx.meta = meta  # CtxMeta (owner object)
@@ -108,9 +123,18 @@ class Text:
         ctx.model = model  # store model list key, not real model id
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
-        ctx.prev_ctx = prev_ctx  # store previous context item if exists
+        ctx.prev_ctx = prev_ctx  # provider-facing previous reply lineage
         ctx.live = True
         ctx.pid = self.ctx_pid  # store PID
+        if continuation_parent is not None:
+            ctx.turn_parent = continuation_parent
+            ctx.turn_previous_part = getattr(prev_ctx, "turn_previous_part", None)
+            ctx.turn_continuation = True
+            # Do not allocate a new partial for every tool round. A partial is a
+            # textual assistant fragment; tool-only continuations keep appending
+            # CtxItemPartTask rows to the current partial. merge_continuation()
+            # decides whether an actual new text response needs a new partial.
+            ctx.turn_part = continuation_parent.get_active_part()
 
         self.ctx_pid += 1  # increment PID
 
@@ -122,7 +146,8 @@ class Text:
             ctx.extra["sub_reply"] = True  # mark as sub reply in extra data
 
         controller.files.reset()  # clear uploaded files IDs
-        controller.ctx.store_history(ctx, "input")  # store to history
+        if continuation_parent is None:
+            controller.ctx.store_history(ctx, "input")  # store only the user-visible turn input
         controller.chat.log_ctx(ctx, "input")  # log
 
         # assistant: create thread, upload attachments
@@ -154,23 +179,25 @@ class Text:
 
         log("Appending input to chat window...")
 
-        # render: begin
-        dispatch(RenderEvent(RenderEvent.BEGIN, {
-            "meta": ctx.meta,
-            "ctx": ctx,
-            "stream": stream,
-        }))
-        # render: append input text
-        dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
-            "meta": ctx.meta,
-            "ctx": ctx,
-        }))
-
-        # add ctx to DB here and only update it after response,
-        # MUST BE REMOVED AFTER AS FIRST MSG (LAST ON LIST)
-        core.ctx.add(ctx)
-        core.ctx.set_last_item(ctx)  # mark as last item
-        controller.ctx.update(reload=True, all=False)
+        if continuation_parent is None:
+            # One BEGIN/input pair per user-visible turn. Tool feedback never
+            # creates another chat row.
+            dispatch(RenderEvent(RenderEvent.BEGIN, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "stream": stream,
+            }))
+            dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+            }))
+            core.ctx.add(ctx)
+            core.ctx.set_last_item(ctx)
+            controller.ctx.update(reload=True, all=False)
+        else:
+            # Keep the durable parent as the active/last turn. ctx exists only
+            # long enough to preserve the provider's tool-result protocol shape.
+            core.ctx.set_last_item(continuation_parent)
 
         # prepare user and plugin tools (native mode only)
         functions.extend(core.command.get_functions())
@@ -195,7 +222,7 @@ class Text:
                 ctx=ctx, # CtxItem instance
                 external_functions=functions,  # external functions
                 file_ids=controller.files.get_ids(),  # uploaded files IDs
-                history=core.ctx.all(),  # get all ctx items
+                history=(core.ctx.all() + [ctx]) if continuation_parent is not None else core.ctx.all(),
                 idx=controller.idx.get_current(),  # current idx
                 idx_mode=idx_mode,  # llama index mode (chat or query)
                 max_tokens=max_tokens,  # max output tokens

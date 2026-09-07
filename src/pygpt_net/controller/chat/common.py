@@ -282,12 +282,25 @@ class Common:
             "value": False,
         }))  # stop audio input
         controller.kernel.halt = True
-        dispatch(RenderEvent(RenderEvent.TOOL_END))  # show waiting
+        # STOP/ESC must remove transient tool/agent waiting rows immediately.
+        # TOOL_END only hides the legacy loader and does not remove the status
+        # containers introduced by the partial-item flow.
+        current_ctx = core.ctx.get_last_item()
+        current_meta = (
+            core.ctx.output.get_request_meta()
+            or getattr(current_ctx, "meta", None)
+            or core.ctx.get_current_meta()
+        )
+        dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": current_meta}))
+        dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": current_meta, "ctx": current_ctx}))
+        dispatch(RenderEvent(RenderEvent.TOOL_END))
         self.unlock_input()
 
         controller.chat.input.generating = False
         self.window.update_status(trans('status.stopped'))
-        dispatch(KernelEvent(KernelEvent.STATE_IDLE))  # state: idle
+        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {"meta": current_meta}))  # state: idle
+        core.ctx.output.finish_request(meta=current_meta)
+        controller.ui.tabs.sync_focused_chat_context()
 
         # remotely stop assistant
         mode = core.config.get('mode')

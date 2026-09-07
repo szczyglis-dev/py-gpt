@@ -113,6 +113,7 @@ class Agent(BaseAgent):
             preset=preset,
             verbose=verbose,
             tools=tools,
+            system_prompt_extra=self.get_system_prompt_extra(agent_kwargs),
         )
         if experts:
             agent_kwargs["handoffs"] = experts

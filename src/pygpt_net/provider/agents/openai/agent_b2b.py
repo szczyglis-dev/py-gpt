@@ -73,9 +73,13 @@ class Agent(BaseAgent):
         handoffs = kwargs.get("handoffs", [])
         id = kwargs.get("bot_id", 1)
         option_key = f"bot_{id}"
+        instructions = self.append_system_prompt_extra(
+            self.get_option(preset, option_key, "prompt"),
+            kwargs,
+        )
         kwargs = {
             "name": self.get_option(preset, option_key, "name"),
-            "instructions": self.get_option(preset, option_key, "prompt"),
+            "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model),
         }
         if handoffs:
@@ -225,6 +229,7 @@ class Agent(BaseAgent):
             preset=preset,
             verbose=verbose,
             tools=tools,
+            system_prompt_extra=self.get_system_prompt_extra(agent_kwargs),
         )
 
         bot_1_name = self.get_option(preset, "bot_1", "name")

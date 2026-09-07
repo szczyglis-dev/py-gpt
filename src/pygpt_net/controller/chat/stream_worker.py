@@ -202,6 +202,11 @@ class StreamWorker(QRunnable):
                         pass
 
         ctx.msg_id = None
+        ctx.stopped = True
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        ctx.extra["response_interrupted"] = True
+        ctx.extra.pop("response_final", None)
         state.stopped = True
         return True
 
@@ -461,6 +466,15 @@ class StreamWorker(QRunnable):
                 state.reasoning_provider or state.usage_vendor or "",
                 state.usage_payload.get("reasoning", 0),
             )
+
+        # Provider/stream errors are unfinished responses as well. Preserve that
+        # fact in the durable extra metadata so a later WebView/history rebuild
+        # may retain the last runtime statuses only for this newest broken turn.
+        if state.error:
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            ctx.extra["response_interrupted"] = True
+            ctx.extra.pop("response_final", None)
 
         core.ctx.update_item(ctx)
 

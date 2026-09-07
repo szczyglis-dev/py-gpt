@@ -17,6 +17,10 @@ import time
 
 from typing import Optional
 from dataclasses import dataclass, field
+from uuid import uuid4
+
+from .ctx_part import CtxItemPart
+from .ctx_part_task import CtxItemPartTask
 
 
 def _additional_ctx_archive_key(item: dict):
@@ -137,6 +141,8 @@ class CtxItem:
     output_name: Optional[str] = None
     output_timestamp: Optional[int] = None
     output_tokens: int = 0
+    parts: list = field(default_factory=list)
+    active_part: Optional[CtxItemPart] = None
     partial: bool = False
     pid: int = 0
     prev_ctx: Optional["CtxItem"] = None
@@ -153,6 +159,10 @@ class CtxItem:
     sub_tool_call: bool = False
     thread: Optional[object] = None
     tool_calls: list = field(default_factory=list)
+    turn_parent: Optional["CtxItem"] = None
+    turn_part: Optional[CtxItemPart] = None
+    turn_previous_part: Optional[CtxItemPart] = None
+    turn_continuation: bool = False
     total_tokens: int = 0
     urls: list = field(default_factory=list)
     urls_before: list = field(default_factory=list)
@@ -213,6 +223,8 @@ class CtxItem:
         self.output_name = None
         self.output_timestamp = None
         self.output_tokens = 0
+        self.parts = []  # durable logical fragments of this user-visible turn
+        self.active_part = None
         self.partial = False  # not final output, used in cycle next ctx, force wait for final output, do not eval, etc
         self.pid = 0
         self.prev_ctx = None  # previous context (reply output)
@@ -229,6 +241,10 @@ class CtxItem:
         self.sub_tool_call = False  # sub tool call
         self.thread = None
         self.tool_calls = []  # API tool calls
+        self.turn_parent = None  # runtime-only parent for an ephemeral tool continuation
+        self.turn_part = None  # runtime-only DB partial receiving this continuation response
+        self.turn_previous_part = None  # runtime-only part whose tool result triggered this continuation
+        self.turn_continuation = False
         self.total_tokens = 0
         self.urls = []
         self.urls_before = []
@@ -250,16 +266,104 @@ class CtxItem:
 
     @property
     def final_output(self) -> Optional[str]:
-        """
-        Final output
-
-        :return: output text
-        """
-        if self.output is None:
+        """Final output, composed from partial items when they are available."""
+        output = self.compose_output() if self.parts else self.output
+        if output is None:
             return None
         if self.hidden_output:
-            return "\n\n".join([self.output, self.hidden_output])
+            return "\n\n".join([output, self.hidden_output])
+        return output
+
+    def compose_output(self) -> Optional[str]:
+        """Compose the durable assistant output from partial items.
+
+        ``ctx_item.output`` remains a compatibility/cache field. New records use
+        parts as the structural source of truth and are folded here in order.
+        """
+        if not self.parts:
+            return self.output
+        chunks = []
+        for index, part in enumerate(self.parts):
+            value = getattr(part, "output", None)
+            if value is None or value == "":
+                continue
+            joiner = ""
+            if index > 0 and isinstance(getattr(part, "extra", None), dict):
+                joiner = str(part.extra.get("joiner") or "")
+            chunks.append(joiner + str(value))
+        if not chunks:
+            return "" if any(getattr(part, "output", None) == "" for part in self.parts) else self.output
+        return "".join(chunks)
+
+    def sync_output_from_parts(self) -> Optional[str]:
+        """Refresh the legacy/cache output field from parts and return it."""
+        self.output = self.compose_output()
         return self.output
+
+    def get_active_part(self) -> Optional[CtxItemPart]:
+        if self.active_part is not None:
+            return self.active_part
+        if self.parts:
+            self.active_part = self.parts[-1]
+        return self.active_part
+
+    def set_active_part(self, part: Optional[CtxItemPart]):
+        self.active_part = part
+        if part is not None and part not in self.parts:
+            self.parts.append(part)
+
+    def get_part_tool_calls(
+            self,
+            visible_only: bool = True,
+            part: Optional[CtxItemPart] = None,
+            tool_round: Optional[int] = None,
+    ) -> list:
+        """Return DB task records normalized to renderer/API-shaped tool calls.
+
+        ``part`` and ``tool_round`` let renderers preserve the exact chronology
+        of text/tool/text sequences instead of flattening every task from the
+        whole turn into one tool block. Existing callers without filters keep
+        the legacy all-parts behavior.
+        """
+        calls = []
+        parts = [part] if part is not None else (self.parts or [])
+        for current_part in parts:
+            for task in getattr(current_part, "tasks", None) or []:
+                extra = task.extra if isinstance(task.extra, dict) else {}
+                if not task.tool_call_id and not extra.get("tool_name"):
+                    continue
+                if tool_round is not None:
+                    try:
+                        round_id = max(1, int(extra.get("tool_round") or 1))
+                    except (TypeError, ValueError):
+                        round_id = 1
+                    if round_id != int(tool_round):
+                        continue
+                if visible_only and not task.is_ui_ready():
+                    continue
+                if visible_only and extra.get("ui_visible") is False:
+                    continue
+                name = str(extra.get("tool_name") or task.task_name or task.name or "tool")
+                args = task.tool_input if task.tool_input not in (None, "") else task.input
+                protocol_call_id = task.tool_call_id or task.uuid
+                item = {
+                    "id": extra.get("tool_item_id") or protocol_call_id,
+                    "call_id": protocol_call_id,
+                    "type": extra.get("tool_type") or "function",
+                    "function": {"name": name, "arguments": args if args is not None else {}},
+                }
+                if task.tool_output is not None or (isinstance(task.extra, dict) and task.extra.get("status") == "completed"):
+                    item["agents_v2_response"] = task.tool_output if task.tool_output is not None else task.output
+                calls.append(item)
+        return calls
+
+    def get_agents_v2_final_output(self) -> Optional[str]:
+        """Return the authoritative Agents v2 final partial output, if present."""
+        for part in reversed(self.parts or []):
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if extra.get("agents_v2_final") is True:
+                return getattr(part, "output", None)
+        return None
 
     def get_display_output(self, output: Optional[str] = None) -> Optional[str]:
         """
@@ -277,8 +381,11 @@ class CtxItem:
         :param output: Optional already-selected output (e.g. final agent output)
         :return: UI output text or None
         """
-        if output is None:
-            output = self.output
+        final_output = self.get_agents_v2_final_output()
+        if final_output is not None:
+            output = final_output
+        elif output is None:
+            output = self.compose_output() if self.parts else self.output
 
         # A completed response takes precedence over persisted reasoning.  The
         # reasoning remains stored in ctx.extra for metadata/history purposes,
@@ -475,6 +582,23 @@ class CtxItem:
             "output_name": self.output_name,
             "output_timestamp": self.output_timestamp,
             "output_tokens": self.output_tokens,
+            "parts": [
+                {
+                    "id": part.id, "uuid": part.uuid, "parent_item_id": part.parent_item_id,
+                    "agent_id": part.agent_id, "name": part.name, "output": part.output,
+                    "extra": part.extra, "created_at": part.created_at, "updated_at": part.updated_at,
+                    "tasks": [
+                        {
+                            "id": task.id, "uuid": task.uuid, "parent_item_part_id": task.parent_item_part_id,
+                            "agent_id": task.agent_id, "name": task.name, "task_name": task.task_name,
+                            "task_summary": task.task_summary, "input": task.input, "output": task.output,
+                            "tool_call_id": task.tool_call_id, "tool_input": task.tool_input,
+                            "tool_output": task.tool_output, "extra": task.extra,
+                            "created_at": task.created_at, "updated_at": task.updated_at,
+                        } for task in (part.tasks or [])
+                    ],
+                } for part in (self.parts or [])
+            ],
             "pid": self.pid,
             "reply": self.reply,
             "results": self.results,
@@ -552,6 +676,46 @@ class CtxItem:
         self.output_name = g("output_name", None)
         self.output_timestamp = g("output_timestamp", None)
         self.output_tokens = g("output_tokens", 0)
+        self.parts = []
+        for part_data in g("parts", []) or []:
+            if not isinstance(part_data, dict):
+                continue
+            part = CtxItemPart(
+                id=part_data.get("id"),
+                uuid=part_data.get("uuid") or str(uuid4()),
+                parent_item_id=part_data.get("parent_item_id"),
+                agent_id=part_data.get("agent_id"),
+                name=part_data.get("name"),
+                output=part_data.get("output"),
+                extra=part_data.get("extra") if isinstance(part_data.get("extra"), dict) else {},
+                created_at=int(part_data.get("created_at") or 0),
+                updated_at=int(part_data.get("updated_at") or 0),
+            )
+            for task_data in part_data.get("tasks", []) or []:
+                if not isinstance(task_data, dict):
+                    continue
+                task = CtxItemPartTask(
+                    id=task_data.get("id"),
+                    uuid=task_data.get("uuid") or str(uuid4()),
+                    parent_item_part_id=task_data.get("parent_item_part_id"),
+                    agent_id=task_data.get("agent_id"),
+                    name=task_data.get("name"),
+                    task_name=task_data.get("task_name"),
+                    task_summary=task_data.get("task_summary"),
+                    input=task_data.get("input"),
+                    output=task_data.get("output"),
+                    tool_call_id=task_data.get("tool_call_id"),
+                    tool_input=task_data.get("tool_input", {}),
+                    tool_output=task_data.get("tool_output"),
+                    extra=task_data.get("extra") if isinstance(task_data.get("extra"), dict) else {},
+                    created_at=int(task_data.get("created_at") or 0),
+                    updated_at=int(task_data.get("updated_at") or 0),
+                )
+                part.tasks.append(task)
+            self.parts.append(part)
+        self.active_part = self.parts[-1] if self.parts else None
+        if self.parts:
+            self.sync_output_from_parts()
         self.results = g("results", [])
         self.reply = g("reply", False)
         self.run_id = g("run_id", None)

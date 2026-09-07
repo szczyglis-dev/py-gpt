@@ -59,6 +59,7 @@ class Agent(BaseAgent):
         default_model: ModelItem = kwargs.get("model", ModelItem())
 
         base_prompt = self.get_option(preset, "base", "prompt")
+        system_prompt_extra = self.get_system_prompt_extra(kwargs)
         allow_local_tools_default = bool(self.get_option(preset, "base", "allow_local_tools"))
         allow_remote_tools_default = bool(self.get_option(preset, "base", "allow_remote_tools"))
         max_iterations = int(self.get_option(preset, "base", "max_iterations") or kwargs.get("max_iterations", 20))
@@ -84,6 +85,7 @@ class Agent(BaseAgent):
             tools=tools,
             stream=stream,
             base_prompt=base_prompt,
+            system_prompt_extra=system_prompt_extra,
             timeout=120,
             verbose=verbose,
         )

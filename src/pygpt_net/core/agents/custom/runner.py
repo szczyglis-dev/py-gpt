@@ -201,6 +201,7 @@ class FlowOrchestrator:
         stream: bool,
         use_partial_ctx: bool,
         base_prompt: Optional[str],
+        system_prompt_extra: Optional[str],
         allow_local_tools_default: bool,
         allow_remote_tools_default: bool,
         function_tools: List[dict],
@@ -279,6 +280,7 @@ class FlowOrchestrator:
                 option_get=option_get,
                 default_model=model,
                 base_prompt=base_prompt,
+                system_prompt_extra=system_prompt_extra,
                 schema_allow_local=node.allow_local_tools,
                 schema_allow_remote=node.allow_remote_tools,
                 default_allow_local=allow_local_tools_default,
@@ -324,6 +326,7 @@ class FlowOrchestrator:
                 friendly_map=allowed_map,
                 handoffs_enabled=True,
                 context=agent_kwargs.get("context"),
+                system_prompt_extra=system_prompt_extra or "",
             )
             agent = built.instance
             multi_output = built.multi_output

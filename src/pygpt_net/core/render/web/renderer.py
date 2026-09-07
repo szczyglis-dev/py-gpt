@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 13:58:00                  #
+# Updated Date: 2026.09.08 11:15:00                  #
 # ================================================== #
 
 import json
@@ -23,6 +23,7 @@ from io import StringIO
 from PySide6.QtCore import QTimer, QCoreApplication, QEventLoop, QEvent
 
 from pygpt_net.core.render.base import BaseRenderer
+from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
@@ -182,6 +183,20 @@ class Renderer(BaseRenderer):
         self._stream_last_flush: dict[int, float] = {}
         self._stream_last_cleanup: float = 0.0
 
+        # Inline partial streaming keeps post-tool text inside the already
+        # materialized bot message (same durable CtxItem) instead of creating a
+        # second live msg-box below it. Keys are (pid, parent_item_id, part_key).
+        self._partial_stream_acc: dict[tuple, Renderer._AppendBuffer] = {}
+        self._partial_stream_timer: dict[tuple, QTimer] = {}
+        self._partial_stream_started: set[tuple] = set()
+
+        # UI-only chronological workflow statuses. They intentionally do not go
+        # to ctx_item/ctx_item_partial tables; the renderer keeps them only for
+        # the lifetime of the loaded chat so RELOAD can rebuild the same live
+        # timeline without moving statuses below message action icons.
+        self._workflow_statuses: dict[tuple, list[dict]] = {}
+        self._workflow_status_seq: int = 0
+
         # Desired loading-indicator state per chat PID.  A WebEngine reload
         # recreates ``#_loader_`` with the default ``hidden`` class, so a
         # STATE_BUSY emitted while the page is reloading would otherwise be
@@ -211,6 +226,8 @@ class Renderer(BaseRenderer):
         """Prepare renderer"""
         self.pids = {}
         self._loading_visible = {}
+        self._workflow_statuses = {}
+        self._workflow_status_seq = 0
 
     def on_load(self, meta: CtxMeta = None):
         """
@@ -366,20 +383,17 @@ class Renderer(BaseRenderer):
                     except Exception:
                         pass
 
-        elif state == RenderEvent.STATE_IDLE:
-            for pid in self.pids:
-                self._loading_visible[pid] = False
-                node = self.get_output_node_by_pid(pid)
-                if node is not None:
-                    try:
-                        node.page().runJavaScript(
-                            "if (typeof window.hideLoading !== 'undefined') hideLoading();"
-                        )
-                    except Exception:
-                        pass
+        elif state in (RenderEvent.STATE_IDLE, RenderEvent.STATE_ERROR):
+            # A request completion/error belongs to one chat. Hide only that
+            # chat's loader when meta is known; global events (app stop, legacy
+            # callers without context) may still clear all loaders.
+            if meta is not None:
+                pid = self.get_pid(meta)
+                target_pids = (pid,) if pid is not None else ()
+            else:
+                target_pids = tuple(self.pids.keys())
 
-        elif state == RenderEvent.STATE_ERROR:
-            for pid in self.pids:
+            for pid in target_pids:
                 self._loading_visible[pid] = False
                 node = self.get_output_node_by_pid(pid)
                 if node is not None:
@@ -433,7 +447,7 @@ class Renderer(BaseRenderer):
             self.append_context_item(meta, self.pids[pid].item)
             self.pids[pid].item = None
         else:
-            self.reload()
+            self.reload(meta)
 
         try:
             self.get_output_node(meta).page().runJavaScript("if (typeof window.end !== 'undefined') end();")
@@ -466,10 +480,42 @@ class Renderer(BaseRenderer):
             pctx.clear()
             self._stream_reset(pid)
         self.prev_chunk_replace = False
+
+        # A provider continuation starts after a tool result has been returned to
+        # the model. Its animated ``Tools: ...`` row can still live in the
+        # provisional stream box when STREAM_BEGIN arrives. Generic beginStream()
+        # clears that box immediately, which used to leave only the global spinner
+        # visible until the first response token arrived. Rebind the durable parent
+        # and replay the UI-only workflow rows in the same JS turn so the waiting
+        # status remains visible for the whole provider TTFT window.
+        parent_ctx = getattr(ctx, "turn_parent", None)
         try:
-            self.get_output_node(meta).page().runJavaScript(
-                "if (typeof window.beginStream !== 'undefined') beginStream();"
-            )
+            if parent_ctx is not None:
+                header = self.get_name_header(ctx, stream=True)
+                parent_id = json.dumps(
+                    str(getattr(parent_ctx, "id", "") or ""), ensure_ascii=False
+                )
+                header_json = json.dumps(header or "", ensure_ascii=False)
+                status_records = self._workflow_status_records(parent_ctx)
+                records_json = json.dumps(
+                    status_records,
+                    ensure_ascii=False,
+                    default=str,
+                )
+                if status_records:
+                    self.get_output_node(meta).page().runJavaScript(
+                        "if (typeof window.beginStream !== 'undefined') beginStream();"
+                        "if (typeof window.bindWorkflowStream !== 'undefined') "
+                        f"bindWorkflowStream({parent_id}, {header_json}, {records_json});"
+                    )
+                else:
+                    self.get_output_node(meta).page().runJavaScript(
+                        "if (typeof window.beginStream !== 'undefined') beginStream();"
+                    )
+            else:
+                self.get_output_node(meta).page().runJavaScript(
+                    "if (typeof window.beginStream !== 'undefined') beginStream();"
+                )
         except Exception:
             pass
 
@@ -492,6 +538,12 @@ class Renderer(BaseRenderer):
             return
 
         self._stream_flush(pid, force=True)
+        # Flush the last inline partial delta before teardown. The durable parent
+        # is authoritative and will be rebuilt by RELOAD immediately afterwards,
+        # but flushing first avoids a visible tail truncation between STREAM_END
+        # and that replacement.
+        self.flush_part_streams(meta)
+        self._partial_stream_reset(pid)
         if self.window.controller.agent.legacy.enabled():
             if self.pids[pid].item is not None:
                 self.append_context_item(meta, self.pids[pid].item)
@@ -502,6 +554,7 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
         self._stream_reset(pid)
+        self._partial_stream_reset(pid)
         self.auto_cleanup(meta)
 
     def auto_cleanup(self, meta: CtxMeta):
@@ -596,6 +649,10 @@ class Renderer(BaseRenderer):
         prev_ctx = None
         next_item = None
         total = len(items)
+        latest_visible_index = next(
+            (i for i in range(total - 1, -1, -1) if not getattr(items[i], "hidden", False)),
+            -1,
+        )
         for i, item in enumerate(items):
             self.update_names(meta, item)
             item.idx = i
@@ -620,6 +677,8 @@ class Renderer(BaseRenderer):
                 prev_ctx=prev_ctx,
                 next_ctx=next_item,
                 action_state=action_state,
+                rebuild=True,
+                is_latest_ctx=(i == latest_visible_index),
             )
             if block:
                 self.append(pid, block.to_json(wrap=True))
@@ -655,6 +714,10 @@ class Renderer(BaseRenderer):
         next_ctx = None
         total = len(items)
         nodes: List[dict] = []
+        latest_visible_index = next(
+            (i for i in range(total - 1, -1, -1) if not getattr(items[i], "hidden", False)),
+            -1,
+        )
 
         for i, item in enumerate(items):
             self.update_names(meta, item)
@@ -678,6 +741,8 @@ class Renderer(BaseRenderer):
                 prev_ctx=prev_ctx,
                 next_ctx=next_ctx,
                 action_state=action_state,
+                rebuild=True,
+                is_latest_ctx=(i == latest_visible_index),
             )
             if block:
                 nodes.append(block.to_dict())
@@ -775,12 +840,18 @@ class Renderer(BaseRenderer):
             else:
                 output = ctx.extra["output"]  # final output only
 
+        # Agents v2 persists working orchestrator prose for future orchestrator
+        # memory, but completed chat rendering is final-answer-only. This override
+        # is independent of the reasoning visibility setting below.
+        final_agent_output = ctx.get_agents_v2_final_output()
+        if final_agent_output is not None:
+            output = final_agent_output
         # Reasoning/thinking returned by providers is persisted separately from
         # ctx.output so it does not contaminate conversation history. Persisted
         # reasoning is shown only as a fallback when the regular output is empty
         # and real-time reasoning display is enabled. The same setting therefore
         # acts as a master UI switch for <think> blocks without deleting metadata.
-        if self.window.core.config.get("ctx.reasoning.show_realtime", True):
+        elif self.window.core.config.get("ctx.reasoning.show_realtime", True):
             output = ctx.get_display_output(output or "")
         return str(output).strip() if output else None
 
@@ -797,7 +868,7 @@ class Renderer(BaseRenderer):
         """
         self.tool_output_end()
         output = self.prepare_output(meta=meta, ctx=ctx, flush=flush, prev_ctx=prev_ctx, next_ctx=next_ctx)
-        if output:
+        if output or ctx.get_part_tool_calls(visible_only=True):
             self._hide_previous_agent_action_icons(meta, ctx)
             block = self._build_render_block(meta, ctx, input_text=None, output_text=output,
                                              prev_ctx=prev_ctx, next_ctx=next_ctx)
@@ -830,17 +901,28 @@ class Renderer(BaseRenderer):
         pctx.item = ctx
 
         if begin:
-            # JS beginStream(true) hides the loader because this is the first
-            # response chunk.  Mirror that state in Python so a concurrent
-            # WebEngine reload cannot restore a stale BUSY spinner afterwards.
+            # JS beginStream(true) recreates the transient stream container.
+            # Rebind it to the durable ctx id and replay UI-only workflow rows
+            # immediately afterwards, otherwise a status shown before the first
+            # token disappears or is later reattached below message controls.
             self._loading_visible[pid] = False
+            pctx.header = self.get_name_header(ctx, stream=True)
+            parent_id = str(getattr(ctx, "id", "") or "")
+            self._workflow_status_freeze(meta, ctx)
+            status_records = self._workflow_status_records(ctx)
             try:
+                parent_json = json.dumps(parent_id, ensure_ascii=False)
+                header_json = json.dumps(pctx.header or "", ensure_ascii=False)
+                records_json = json.dumps(status_records, ensure_ascii=False, default=str)
                 self.get_output_node(meta).page().runJavaScript(
+                    "if (typeof window.freezeWorkflowStatus !== 'undefined') "
+                    f"freezeWorkflowStatus({parent_json});"
                     "if (typeof window.beginStream !== 'undefined') beginStream(true);"
+                    "if (typeof window.bindWorkflowStream !== 'undefined') "
+                    f"bindWorkflowStream({parent_json}, {header_json}, {records_json});"
                 )
             except Exception:
                 pass
-            pctx.header = self.get_name_header(ctx, stream=True)
             self._stream_reset(pid)
             self.update_names(meta, ctx)
 
@@ -848,6 +930,158 @@ class Renderer(BaseRenderer):
             return
 
         self._stream_push(pid, pctx.header or "", str(text_chunk))
+
+    def append_part_chunk(
+            self,
+            meta: CtxMeta,
+            parent_ctx: CtxItem,
+            part_key: object,
+            text_chunk: str,
+            begin: bool = False,
+    ):
+        """Stream a chronological partial inside one existing bot message.
+
+        This is used after a tool boundary. The durable parent CtxItem has
+        already been materialized by RELOAD; the new text is appended as a
+        ``.msg-part`` under ``msg-bot-<parent id>``. No additional CtxItem /
+        msg-box is created. The final RELOAD replaces this transient part with
+        the persisted CtxItemPart.
+        """
+        pid = self.get_or_create_pid(meta)
+        parent_id = getattr(parent_ctx, "id", None)
+        if pid is None or parent_id is None:
+            # Defensive fallback for not-yet-persisted turns.
+            self.append_chunk(meta, parent_ctx, text_chunk, begin)
+            return
+
+        self._loading_visible[pid] = False
+        pctx = self.pids[pid]
+        pctx.item = parent_ctx
+        key = (pid, str(parent_id), str(part_key or "live"))
+
+        if begin:
+            # A new text partial follows the status/tool that was visible just
+            # before it. Keep that row in the chronological timeline; only stop
+            # its active shimmer. Removing it here made the workflow jump and
+            # caused the following text to appear as if the tool never happened.
+            self._partial_stream_reset(pid)
+            self._workflow_status_freeze(meta, parent_ctx)
+            try:
+                parent_id_json = json.dumps(str(parent_id), ensure_ascii=False)
+                self.get_output_node(meta).page().runJavaScript(
+                    "if (typeof window.freezeWorkflowStatus !== 'undefined') "
+                    f"freezeWorkflowStatus({parent_id_json});"
+                )
+            except Exception:
+                pass
+            self._partial_stream_started.discard(key)
+
+        if not text_chunk:
+            return
+
+        buf, timer = self._partial_stream_get(key)
+        buf.append(str(text_chunk))
+        pending_size = getattr(buf, "_size", 0)
+        if pending_size >= self._stream_emergency_bytes or pending_size >= self._stream_max_bytes:
+            self._partial_stream_flush(key, force=True)
+            return
+        if not timer.isActive():
+            try:
+                timer.start()
+            except Exception:
+                self._partial_stream_flush(key, force=True)
+
+    def _partial_stream_get(self, key: tuple) -> tuple[_AppendBuffer, QTimer]:
+        buf = self._partial_stream_acc.get(key)
+        if buf is None:
+            buf = Renderer._AppendBuffer()
+            self._partial_stream_acc[key] = buf
+
+        timer = self._partial_stream_timer.get(key)
+        if timer is None:
+            timer = QTimer(self.window)
+            timer.setSingleShot(True)
+            timer.setInterval(self._stream_interval_ms)
+
+            def on_timeout(key=key):
+                self._partial_stream_flush(key, force=False)
+
+            timer.timeout.connect(on_timeout)
+            self._partial_stream_timer[key] = timer
+        return buf, timer
+
+    def _partial_stream_flush(self, key: tuple, force: bool = False):
+        buf = self._partial_stream_acc.get(key)
+        if buf is None or buf.is_empty():
+            timer = self._partial_stream_timer.get(key)
+            if timer and timer.isActive():
+                try:
+                    timer.stop()
+                except Exception:
+                    pass
+            return
+
+        pid, parent_id, part_key = key
+        node = self.get_output_node_by_pid(pid)
+        if node is None:
+            buf.clear()
+            return
+
+        timer = self._partial_stream_timer.get(key)
+        if timer and timer.isActive():
+            try:
+                timer.stop()
+            except Exception:
+                pass
+
+        data = buf.get_and_clear()
+        begin = key not in self._partial_stream_started
+        self._partial_stream_started.add(key)
+        try:
+            node.page().runJavaScript(
+                "if (typeof window.appendPartialStream !== 'undefined') "
+                f"appendPartialStream({json.dumps(parent_id, ensure_ascii=False)},"
+                f"{json.dumps(part_key, ensure_ascii=False)},"
+                f"{json.dumps(data, ensure_ascii=False)},"
+                f"{'true' if begin else 'false'});"
+            )
+        except Exception:
+            pass
+
+    def _partial_stream_reset(self, pid: Optional[int] = None, keep: Optional[tuple] = None):
+        """Stop/discard Python buffers for transient inline partials.
+
+        The durable CtxItemPart is authoritative across a RELOAD, therefore
+        pending inline chunks must never fire afterwards and recreate stale UI.
+        """
+        keys = set(self._partial_stream_acc) | set(self._partial_stream_timer) | set(self._partial_stream_started)
+        for key in list(keys):
+            if pid is not None and key[0] != pid:
+                continue
+            if keep is not None and key == keep:
+                continue
+            timer = self._partial_stream_timer.pop(key, None)
+            if timer and timer.isActive():
+                try:
+                    timer.stop()
+                except Exception:
+                    pass
+            buf = self._partial_stream_acc.pop(key, None)
+            if buf is not None:
+                buf.clear()
+            self._partial_stream_started.discard(key)
+
+    def flush_part_streams(self, meta: Optional[CtxMeta] = None):
+        """Flush active inline partial buffers before stream completion."""
+        pid = self.get_pid(meta) if meta is not None else None
+        for key in list(self._partial_stream_acc):
+            if pid is None or key[0] == pid:
+                self._partial_stream_flush(key, force=True)
+
+    def discard_part_streams(self, meta: Optional[CtxMeta] = None):
+        """Discard transient inline buffers before a durable RELOAD boundary."""
+        pid = self.get_pid(meta) if meta is not None else None
+        self._partial_stream_reset(pid)
 
     def next_chunk(self, meta: CtxMeta, ctx: CtxItem):
         """
@@ -894,21 +1128,199 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str):
-        """Set/replace the transient Agents v2 status in the active streamed message."""
+    def agent_v2_final_begin(self, meta: CtxMeta, ctx: CtxItem):
+        """Reset only the live stream before the final chronological segment."""
+        pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return
+        # Discard Python-side chunks from the working phase before clearing the
+        # DOM; otherwise a delayed micro-batch timer could re-append stale prose.
+        self._stream_reset(pid)
+        self._partial_stream_reset(pid)
+        self._loading_visible[pid] = False
+        pctx = self.pids[pid]
+        pctx.item = ctx
         try:
-            value = json.dumps(str(status or ""), ensure_ascii=False)
+            pctx.header = self.get_name_header(ctx, stream=True)
+        except Exception:
+            pctx.header = ""
+        try:
+            node = self.get_output_node(meta)
+            page = node.page()
+            # Use the same QWebChannel chunk path as streamed text so the final
+            # reset is ordered strictly before subsequent final-answer chunks.
+            # The JS handler keeps the materialized workflow node and clears only
+            # transient stream/status containers.
+            page.bridge.chunk.emit("", str(getattr(ctx, "id", None) or ""), "final_reset")
+        except Exception:
+            try:
+                self.get_output_node(meta).page().runJavaScript(
+                    "if (typeof window.clearAgentStatus !== 'undefined') window.clearAgentStatus();"
+                    "if (typeof window.clearStream !== 'undefined') window.clearStream();"
+                )
+            except Exception:
+                pass
+        self.update_names(meta, ctx)
+
+    def _workflow_status_ctx(self, meta: CtxMeta, ctx: Optional[CtxItem] = None):
+        """Resolve the durable turn used by a live workflow status.
+
+        Tool feedback can use an ephemeral provider continuation. UI status rows
+        must always attach to its durable parent item, never to that temporary
+        continuation (which has no stable msg-box in the WebView).
+        """
+        if meta is None and ctx is not None:
+            meta = getattr(ctx, "meta", None)
+        if meta is None:
+            return None, ctx
+        pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return None, ctx
+        if ctx is None and pid in self.pids:
+            ctx = self.pids[pid].item
+        parent = getattr(ctx, "turn_parent", None) if ctx is not None else None
+        if parent is not None:
+            ctx = parent
+        return pid, ctx
+
+    def _workflow_status_key(self, meta: CtxMeta, ctx: Optional[CtxItem] = None):
+        pid, ctx = self._workflow_status_ctx(meta, ctx)
+        parent_id = getattr(ctx, "id", None) if ctx is not None else None
+        if pid is None or parent_id is None:
+            return None, pid, ctx
+        return (pid, str(parent_id)), pid, ctx
+
+    def _workflow_status_add(
+            self,
+            meta: CtxMeta,
+            ctx: Optional[CtxItem],
+            *,
+            kind: str,
+            text: str = "",
+            tool_names: Optional[list] = None,
+    ) -> Optional[str]:
+        """Append one UI-only workflow event in strict display order.
+
+        The record stores whether it happened before or after the currently
+        active partial. This matters when a status is emitted before the first
+        model token: once that partial later receives text, the status still
+        has to stay above that text after a full WebView reload.
+        """
+        key, _pid, ctx = self._workflow_status_key(meta, ctx)
+        if key is None or ctx is None:
+            return None
+
+        records = self._workflow_statuses.setdefault(key, [])
+        names = [str(name) for name in (tool_names or []) if str(name)]
+        value = str(text or "")
+
+        # Repeated updates of the *currently active* row are idempotent. The
+        # same text/tool emitted again after a completed row is a new event and
+        # must get a new timeline slot.
+        if records:
+            last = records[-1]
+            if (last.get("active")
+                    and last.get("kind") == kind
+                    and str(last.get("text") or "") == value
+                    and list(last.get("tool_names") or []) == names):
+                return str(last.get("id") or "") or None
+
+        # Only the newest row shimmers. Historical rows remain visible.
+        for record in records:
+            if record.get("active"):
+                record["active"] = False
+
+        part = ctx.get_active_part() if hasattr(ctx, "get_active_part") else None
+        part_uuid = str(getattr(part, "uuid", "") or "") or None
+        if part is None:
+            placement = "head"
+        else:
+            has_payload = bool(str(getattr(part, "output", None) or "").strip()) \
+                or bool(getattr(part, "tasks", None))
+            placement = "after" if has_payload else "before"
+
+        self._workflow_status_seq += 1
+        status_id = f"wf-{key[0]}-{key[1]}-{self._workflow_status_seq}"
+        records.append({
+            "id": status_id,
+            "kind": str(kind or "agent"),
+            "text": value,
+            "tool_names": names,
+            "part_uuid": part_uuid,
+            "placement": placement,
+            # Backward-compatible field for code that may inspect old records.
+            "after_part_uuid": part_uuid if placement == "after" else None,
+            "active": True,
+            "seq": self._workflow_status_seq,
+        })
+        return status_id
+
+    def _workflow_status_freeze(
+            self,
+            meta: CtxMeta,
+            ctx: Optional[CtxItem] = None,
+            kind: Optional[str] = None,
+    ) -> None:
+        """Deactivate current status rows but never remove timeline history."""
+        key, _pid, _ctx = self._workflow_status_key(meta, ctx)
+        if key is None:
+            return
+        for record in self._workflow_statuses.get(key, []):
+            if kind is None or record.get("kind") == kind:
+                record["active"] = False
+
+    def _workflow_status_records(self, ctx: CtxItem) -> list[dict]:
+        meta = getattr(ctx, "meta", None)
+        key, _pid, _ctx = self._workflow_status_key(meta, ctx) if meta is not None else (None, None, ctx)
+        if key is None:
+            return []
+        return [dict(record) for record in self._workflow_statuses.get(key, [])]
+
+    def _workflow_status_drop_pid(self, pid: Optional[int]) -> None:
+        if pid is None:
+            return
+        for key in list(self._workflow_statuses):
+            if key and key[0] == pid:
+                self._workflow_statuses.pop(key, None)
+
+    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str):
+        """Append a live agent status inside the current durable turn."""
+        value_text = str(status or "").strip()
+        if not value_text:
+            self.agent_status_clear(meta, ctx)
+            return
+        _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
+        if resolved_ctx is None:
+            resolved_ctx = ctx
+        status_id = self._workflow_status_add(
+            meta, resolved_ctx, kind="agent", text=value_text,
+        )
+        try:
+            value = json.dumps(value_text, ensure_ascii=False)
+            parent_id = json.dumps(
+                str(getattr(resolved_ctx, "id", "") or ""), ensure_ascii=False
+            )
+            sid = json.dumps(str(status_id or ""), ensure_ascii=False)
             self.get_output_node(meta).page().runJavaScript(
-                f"if (typeof window.setAgentStatus !== 'undefined') window.setAgentStatus({value});"
+                "if (typeof window.setAgentStatus !== 'undefined') "
+                f"window.setAgentStatus({value}, {parent_id}, {sid});"
             )
         except Exception:
             pass
 
     def agent_status_clear(self, meta: CtxMeta, ctx: CtxItem):
-        """Clear the transient Agents v2 status."""
+        """Freeze the active status; historical workflow rows stay visible."""
+        _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
+        if resolved_ctx is None:
+            resolved_ctx = ctx
+        self._workflow_status_freeze(meta, resolved_ctx)
         try:
+            parent_id = json.dumps(
+                str(getattr(resolved_ctx, "id", "") or ""), ensure_ascii=False
+            )
             self.get_output_node(meta).page().runJavaScript(
-                "if (typeof window.clearAgentStatus !== 'undefined') window.clearAgentStatus();"
+                "if (typeof window.freezeWorkflowStatus !== 'undefined') "
+                f"window.freezeWorkflowStatus({parent_id});"
             )
         except Exception:
             pass
@@ -1185,6 +1597,7 @@ class Renderer(BaseRenderer):
         self.reset_names_by_pid(pid)
         self.prev_chunk_replace = False
         self._stream_reset(pid)
+        self._partial_stream_reset(pid)
 
     def clear_input(self):
         """Clear input"""
@@ -1379,9 +1792,9 @@ class Renderer(BaseRenderer):
             except Exception:
                 pass
 
-    def reload(self):
+    def reload(self, meta: Optional[CtxMeta] = None):
         """Reload output, called externally only on theme change to redraw content"""
-        self.window.controller.ctx.refresh_output()
+        self.window.controller.ctx.refresh_output(meta)
 
     def flush(self, pid: Optional[int]):
         """
@@ -1426,6 +1839,7 @@ class Renderer(BaseRenderer):
             self._pending_nodes[pid] = []
             node.unload()  # unload web page
             self._stream_reset(pid)
+            self._partial_stream_reset(pid)
             self.pids[pid].clear(all=True)
             self.pids[pid].loaded = False
             self.recycle(node, meta)
@@ -1632,6 +2046,7 @@ class Renderer(BaseRenderer):
 
     def clear_all(self):
         """Clear all tabs"""
+        self._workflow_statuses.clear()
         for pid in self.pids:
             self.clear_chunks(pid)
             self.clear_nodes(pid)
@@ -1721,28 +2136,44 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-    def tool_output_clear(self, meta: CtxMeta):
-        """
-        Clear tool output
-
-        :param meta: context meta
-        """
+    def tool_output_clear(self, meta: CtxMeta, ctx: Optional[CtxItem] = None):
+        """Freeze tool waiting status and clear only the legacy live result area."""
+        _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
+        self._workflow_status_freeze(meta, resolved_ctx, kind="tool")
         try:
+            parent_id = json.dumps(
+                str(getattr(resolved_ctx, "id", "") or ""), ensure_ascii=False
+            )
             self.get_output_node(meta).page().runJavaScript(
-                f"if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();"
+                "if (typeof window.freezeWorkflowStatus !== 'undefined') "
+                f"freezeWorkflowStatus({parent_id}, 'tool');"
+                "if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();"
             )
         except Exception:
             pass
 
-    def tool_output_begin(self, meta: CtxMeta):
-        """
-        Begin tool output
-
-        :param meta: context meta
-        """
+    def tool_output_begin(
+            self,
+            meta: CtxMeta,
+            tool_names: Optional[list] = None,
+            ctx: Optional[CtxItem] = None,
+    ):
+        """Show an animated tool row inside the chronological message body."""
+        names_list = list(tool_names or [])
+        _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
+        status_id = self._workflow_status_add(
+            meta, resolved_ctx, kind="tool", tool_names=names_list,
+        ) if resolved_ctx is not None else None
         try:
+            names = json.dumps(names_list, ensure_ascii=False)
+            parent_id = json.dumps(
+                str(getattr(resolved_ctx, "id", "") or ""), ensure_ascii=False
+            )
+            sid = json.dumps(str(status_id or ""), ensure_ascii=False)
             self.get_output_node(meta).page().runJavaScript(
-                f"if (typeof window.beginToolOutput !== 'undefined') beginToolOutput();"
+                "if (typeof window.setToolStatus !== 'undefined') "
+                f"setToolStatus({names}, {parent_id}, {sid});"
+                "else if (typeof window.beginToolOutput !== 'undefined') beginToolOutput();"
             )
         except Exception:
             pass
@@ -1816,6 +2247,7 @@ class Renderer(BaseRenderer):
         """
         if pid in self.pids:
             del self.pids[pid]
+        self._workflow_status_drop_pid(pid)
         self._stream_reset(pid)
         t = self._stream_timer.pop(pid, None)
         if t:
@@ -2646,6 +3078,324 @@ class Renderer(BaseRenderer):
             "delete_end_id": None,
         }
 
+    def _has_text_payload(self, value: object) -> bool:
+        """Return True only for user-visible assistant prose.
+
+        Tool protocol markup is not textual output. This distinction is used
+        only when rebuilding a persisted/history view; live tool/status rows are
+        still rendered immediately while the turn is running.
+        """
+        if value is None:
+            return False
+        text = str(value)
+        if not text.strip():
+            return False
+        try:
+            text = self.helpers.strip_tool_calls(text)
+        except Exception:
+            pass
+        return bool(str(text or "").strip())
+
+    def _ctx_has_textual_output(self, ctx: Optional[CtxItem]) -> bool:
+        """Check the durable item and its visible partials for assistant prose."""
+        if ctx is None or getattr(ctx, "hidden", False):
+            return False
+
+        # When partials exist they are the structural source of truth. Do not let
+        # the compatibility ctx.output cache make a hidden worker-only partial
+        # look like visible assistant prose.
+        parts = list(getattr(ctx, "parts", None) or [])
+        if parts:
+            for part in parts:
+                part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+                if part_extra.get("agents_v2_worker") is True or part_extra.get("ui_visible") is False:
+                    continue
+                if self._has_text_payload(getattr(part, "output", None)):
+                    return True
+        elif self._has_text_payload(getattr(ctx, "output", None)):
+            return True
+
+        extra = getattr(ctx, "extra", None)
+        if isinstance(extra, dict) and self._has_text_payload(extra.get("output")):
+            return True
+
+        if self._has_text_payload(getattr(ctx, "agent_final_response", None)):
+            return True
+        return False
+
+    def _ctx_has_final_answer(self, ctx: Optional[CtxItem]) -> bool:
+        """Return True when the durable turn is known to have completed."""
+        if ctx is None:
+            return False
+
+        try:
+            final = ctx.get_agents_v2_final_output()
+        except Exception:
+            final = None
+        if self._has_text_payload(final):
+            return True
+
+        extra = getattr(ctx, "extra", None)
+        if isinstance(extra, dict) and extra.get("response_final") is True:
+            return True
+
+        if getattr(ctx, "use_agent_final_response", False) \
+                and self._has_text_payload(getattr(ctx, "agent_final_response", None)):
+            return True
+        return False
+
+    def _should_replay_workflow_statuses(
+            self,
+            ctx: Optional[CtxItem],
+            is_latest_ctx: bool,
+    ) -> bool:
+        """Replay transient statuses only for the newest unfinished text turn."""
+        return bool(
+            is_latest_ctx
+            and self._ctx_has_textual_output(ctx)
+            and not self._ctx_has_final_answer(ctx)
+        )
+
+    def _show_tool_chain_for_ctx(self, ctx: CtxItem) -> bool:
+        """Return whether persisted tool calls should be rendered for this turn.
+
+        Agents v2 stores tool tasks independently from the display preference so
+        changing ``agent.v2.show_tool_chain`` also applies to already persisted
+        conversations. Other modes keep their existing rendering semantics.
+        """
+        if str(getattr(ctx, "mode", "") or "") != MODE_AGENT_V2:
+            return True
+        return bool(self.window.core.config.get("agent.v2.show_tool_chain", False))
+
+    def _build_partial_timeline(
+            self,
+            ctx: CtxItem,
+            include_workflow_statuses: bool = True,
+            include_tool_calls: bool = True,
+    ) -> list:
+        """Build one chronological timeline for a durable assistant turn.
+
+        Text is always reconstructed from persisted data. Structured/legacy tool
+        calls are included only when ``include_tool_calls`` is true. Runtime-only
+        workflow statuses are included only when requested by the history/reload
+        policy. Footer/actions are intentionally rendered after the whole timeline.
+        """
+        workflow_statuses = sorted(
+            self._workflow_status_records(ctx) if include_workflow_statuses else [],
+            key=lambda record: int(record.get("seq", 0) or 0),
+        )
+
+        all_parts = []
+        for part in list(getattr(ctx, "parts", None) or []):
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if extra.get("agents_v2_worker") is True or extra.get("ui_visible") is False:
+                continue
+            all_parts.append(part)
+
+        anchored_uuids = {
+            str(record.get("part_uuid") or record.get("after_part_uuid") or "")
+            for record in workflow_statuses
+            if str(record.get("part_uuid") or record.get("after_part_uuid") or "")
+        }
+        parts = []
+        for part in all_parts:
+            part_uuid = str(getattr(part, "uuid", "") or "")
+            if (getattr(part, "output", None) not in (None, "")
+                    or bool(getattr(part, "tasks", None))
+                    or part_uuid in anchored_uuids):
+                parts.append(part)
+
+        if not parts and not workflow_statuses:
+            return []
+
+        has_visible_structured_tools = bool(include_tool_calls) and any(
+            bool(ctx.get_part_tool_calls(visible_only=True, part=part))
+            for part in parts
+        )
+        # A single plain text part needs no sub-timeline. Any status, tool or
+        # multiple partials do, because relative ordering then matters.
+        if len(parts) == 1 and not has_visible_structured_tools and not workflow_statuses:
+            return []
+
+        timeline = []
+        seq = 0
+        base_id = getattr(ctx, "id", None)
+        try:
+            base_id = abs(int(base_id or 0)) + 1
+        except (TypeError, ValueError):
+            base_id = 1
+
+        def append_segment(part, text="", tool_calls=None):
+            nonlocal seq
+            tool_calls = list(tool_calls or [])
+            if not text and not tool_calls:
+                return
+            seq += 1
+            md_text = ""
+            if text:
+                md_src = self.helpers.pre_format_text(str(text))
+                md_text = self.helpers.post_format_text(md_src)
+            timeline.append({
+                "part_id": getattr(part, "id", None),
+                "part_uuid": getattr(part, "uuid", None),
+                "render_id": -(base_id * 10000 + seq),
+                "text": md_text,
+                "tool_calls": tool_calls,
+            })
+
+        def append_status(record):
+            nonlocal seq
+            seq += 1
+            timeline.append({
+                "part_id": None,
+                "part_uuid": None,
+                "render_id": -(base_id * 10000 + seq),
+                "text": "",
+                "tool_calls": [],
+                "status_id": str(record.get("id") or ""),
+                "status_kind": str(record.get("kind") or "agent"),
+                "status_text": str(record.get("text") or ""),
+                "status_tool_names": list(record.get("tool_names") or []),
+                "status_active": bool(record.get("active")),
+            })
+
+        part_by_uuid = {
+            str(getattr(part, "uuid", "") or ""): part
+            for part in parts
+            if str(getattr(part, "uuid", "") or "")
+        }
+        head_statuses = []
+        before_by_part = {}
+        after_by_part = {}
+        tail_statuses = []
+
+        for record in workflow_statuses:
+            anchor = str(record.get("part_uuid") or record.get("after_part_uuid") or "")
+            placement = str(record.get("placement") or ("after" if record.get("after_part_uuid") else "tail"))
+            if placement == "head":
+                head_statuses.append(record)
+            elif anchor and anchor in part_by_uuid:
+                target = before_by_part if placement == "before" else after_by_part
+                target.setdefault(anchor, []).append(record)
+            else:
+                # Legacy/unanchored runtime records belong to this turn but have
+                # no reliable partial boundary; retain arrival order at the tail.
+                tail_statuses.append(record)
+
+        for record in head_statuses:
+            append_status(record)
+
+        def visible_tool_names(part):
+            if not include_tool_calls:
+                return set()
+            calls = self.helpers.extract_extra_tool_calls(
+                ctx.get_part_tool_calls(visible_only=True, part=part)
+            )
+            return {
+                str(call.get("name") or "")
+                for call in calls
+                if isinstance(call, dict) and call.get("name")
+            }
+
+        def append_part_statuses(records, part):
+            names = visible_tool_names(part)
+            for record in records:
+                # A pending "Using tool" row is the temporary representation of
+                # the real structured tool block. Once that block is UI-ready,
+                # keep only the actual Tool/Tools accordion, not both copies.
+                record_names = {str(name) for name in record.get("tool_names", []) if str(name)}
+                if (record.get("kind") == "tool" and record_names
+                        and record_names.issubset(names)):
+                    continue
+                append_status(record)
+
+        for part in parts:
+            part_uuid = str(getattr(part, "uuid", "") or "")
+            append_part_statuses(before_by_part.get(part_uuid, []), part)
+
+            raw_text = str(getattr(part, "output", None) or "")
+            part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            try:
+                text_after_round = int(part_extra.get("text_after_tool_round", 0) or 0)
+            except (TypeError, ValueError):
+                text_after_round = 0
+
+            round_ids = set()
+            if include_tool_calls:
+                for task in getattr(part, "tasks", None) or []:
+                    extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
+                    if not (task.tool_call_id or extra.get("tool_name")):
+                        continue
+                    if not task.is_ui_ready() or extra.get("ui_visible") is False:
+                        continue
+                    try:
+                        round_ids.add(max(1, int(extra.get("tool_round") or 1)))
+                    except (TypeError, ValueError):
+                        round_ids.add(1)
+
+            text_emitted = False
+            if round_ids:
+                # Structured tasks are authoritative; strip compatibility <tool>
+                # tags so the request is never rendered twice.
+                visible_text = self.helpers.strip_tool_calls(raw_text)
+                for round_id in sorted(round_ids):
+                    calls = self.helpers.extract_extra_tool_calls(
+                        ctx.get_part_tool_calls(
+                            visible_only=True,
+                            part=part,
+                            tool_round=round_id,
+                        )
+                    )
+                    if visible_text and not text_emitted and round_id > text_after_round:
+                        append_segment(part, text=visible_text)
+                        text_emitted = True
+                    append_segment(part, tool_calls=calls)
+                if visible_text and not text_emitted:
+                    append_segment(part, text=visible_text)
+            else:
+                # Strip persisted compatibility tags even when tool-chain display
+                # is disabled, otherwise old Agents v2 turns could leak raw
+                # <tool> payloads into the assistant text.
+                legacy_calls = self.helpers.extract_tool_calls(raw_text)
+                visible_text = self.helpers.strip_tool_calls(raw_text) if legacy_calls else raw_text
+                if visible_text:
+                    append_segment(part, text=visible_text)
+                if include_tool_calls and legacy_calls:
+                    append_segment(part, tool_calls=legacy_calls)
+
+            append_part_statuses(after_by_part.get(part_uuid, []), part)
+
+        for record in tail_statuses:
+            append_status(record)
+
+        # Consecutive tool-only segments inside one durable ctx/partial timeline
+        # represent the same visual tool-chain group that used to span separate
+        # CtxItems. Merge only directly adjacent tool segments; text/status rows
+        # are hard chronology boundaries and must never be crossed. The frontend
+        # already knows how to render one segment containing multiple tool calls
+        # as a compact `Tools: ...` parent with one collapsible `Tool: ...` row
+        # per request/response pair.
+        grouped_timeline = []
+        for segment in timeline:
+            calls = list(segment.get("tool_calls") or [])
+            is_tool_only = bool(calls) and not segment.get("text") \
+                and not segment.get("status_id") and not segment.get("status_kind")
+
+            if is_tool_only and grouped_timeline:
+                previous = grouped_timeline[-1]
+                previous_calls = list(previous.get("tool_calls") or [])
+                previous_is_tool_only = bool(previous_calls) \
+                    and not previous.get("text") \
+                    and not previous.get("status_id") \
+                    and not previous.get("status_kind")
+                if previous_is_tool_only:
+                    previous["tool_calls"] = previous_calls + calls
+                    continue
+
+            grouped_timeline.append(segment)
+
+        return grouped_timeline
+
     def _build_render_block(
             self,
             meta: CtxMeta,
@@ -2654,7 +3404,9 @@ class Renderer(BaseRenderer):
             output_text: Optional[str],
             prev_ctx: Optional[CtxItem] = None,
             next_ctx: Optional[CtxItem] = None,
-            action_state: Optional[dict] = None
+            action_state: Optional[dict] = None,
+            rebuild: bool = False,
+            is_latest_ctx: bool = False,
     ) -> Optional[RenderBlock]:
         """
         Build RenderBlock for given ctx and payloads (input/output).
@@ -2693,15 +3445,43 @@ class Renderer(BaseRenderer):
             }
 
         # output
-        if output_text:
-            # Tool calls are rendered as a compact header (tool name + expand arrow).
-            # Their request payload is moved into the same collapsible area as the result.
-            tool_calls = self.helpers.extract_tool_calls(output_text)
-            if (not tool_calls
+        # Runtime statuses are not persisted assistant content. During a history
+        # rebuild they may be replayed only for the newest unfinished turn that
+        # already owns textual model output. Therefore status-only turns collapse
+        # back to the user message, while persisted tools/extras keep their normal
+        # rendering semantics. Live rendering remains unchanged.
+        replay_statuses = (
+            True
+            if not rebuild
+            else self._should_replay_workflow_statuses(ctx, is_latest_ctx)
+        )
+        show_tool_chain = self._show_tool_chain_for_ctx(ctx)
+        partial_timeline = self._build_partial_timeline(
+            ctx,
+            include_workflow_statuses=replay_statuses,
+            include_tool_calls=show_tool_chain,
+        )
+        part_tool_calls = [] if partial_timeline or not show_tool_chain else self.helpers.extract_extra_tool_calls(
+            ctx.get_part_tool_calls(visible_only=True)
+        )
+        if output_text or part_tool_calls or partial_timeline:
+            # New contexts render structured DB tasks. Legacy contexts still fall
+            # back to <tool> tags / display-only Agents v2 metadata. A partial
+            # timeline owns its tool/text rendering and must not also be flattened
+            # into the block-level output/tool wrapper.
+            legacy_output_calls = self.helpers.extract_tool_calls(output_text or "")
+            tool_calls = [] if partial_timeline or not show_tool_chain else (
+                part_tool_calls or legacy_output_calls
+            )
+            if (show_tool_chain
+                    and not tool_calls
                     and isinstance(ctx.extra, dict)
                     and ctx.extra.get("agents_v2_tool_calls_display") is True):
                 tool_calls = self.helpers.extract_extra_tool_calls(ctx.extra.get("tool_calls"))
-            visible_output_text = self.helpers.strip_tool_calls(output_text) if tool_calls else output_text
+            visible_output_text = "" if partial_timeline else (
+                self.helpers.strip_tool_calls(output_text or "")
+                if legacy_output_calls else (output_text or "")
+            )
 
             # Pre/post format raw markdown via Helpers to preserve placeholders ([!cmd], think) and workdir tokens.
             md_src = self.helpers.pre_format_text(visible_output_text)
@@ -2812,6 +3592,7 @@ class Renderer(BaseRenderer):
 
             block.extra.update({
                 "tool_calls": tool_calls,
+                "partial_timeline": partial_timeline,
                 "tool_result": tool_result_display,
                 "tool_output": tool_output,
                 "tool_output_visible": tool_output_visible,

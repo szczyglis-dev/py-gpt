@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:00:00                  #
+# Updated Date: 2026.09.08 11:20:00                  #
 # ================================================== #
 
 import threading
@@ -31,6 +31,13 @@ from pygpt_net.utils import trans
 
 from .reply import Reply
 from .stack import Stack
+
+
+# Backward-compatible event name. Some incremental patch installs may
+# still have an older KernelEvent class without this constant.
+AGENT_V2_FINAL_BEGIN = getattr(
+    KernelEvent, "AGENT_V2_FINAL_BEGIN", "kernel.agent_v2.final_begin"
+)
 
 
 class Kernel:
@@ -67,6 +74,7 @@ class Kernel:
             KernelEvent.LIVE_APPEND,
             KernelEvent.LIVE_CLEAR,
             KernelEvent.AGENT_V2_BEGIN,
+            AGENT_V2_FINAL_BEGIN,
             KernelEvent.AGENT_V2_APPEND,
             KernelEvent.AGENT_V2_STATUS,
             KernelEvent.AGENT_V2_TOOL_EXEC,
@@ -99,6 +107,7 @@ class Kernel:
         self.not_stop_on_events = [
             KernelEvent.APPEND_DATA,
             KernelEvent.AGENT_V2_STATUS,
+            AGENT_V2_FINAL_BEGIN,
             KernelEvent.AGENT_V2_TOOL_EXEC,
             KernelEvent.AGENT_V2_END,
             KernelEvent.INPUT_USER,
@@ -284,8 +293,14 @@ class Kernel:
             return resp.live_clear(context, extra)
         elif name == KernelEvent.AGENT_V2_BEGIN:
             return resp.agent_v2_begin(context, extra)
+        elif name == AGENT_V2_FINAL_BEGIN:
+            return resp.agent_v2_final_begin(context, extra)
         elif name == KernelEvent.AGENT_V2_APPEND:
-            return resp.agent_v2_append(context, extra, event.data.get("chunk", ""), event.data.get("begin", False))
+            return resp.agent_v2_append(
+                context, extra, event.data.get("chunk", ""),
+                event.data.get("begin", False), event.data.get("part_begin", False),
+                event.data.get("part_uuid"),
+            )
         elif name == KernelEvent.AGENT_V2_STATUS:
             return resp.agent_v2_status(context, extra, event.data.get("status", ""))
         elif name == KernelEvent.AGENT_V2_TOOL_EXEC:
@@ -334,24 +349,34 @@ class Kernel:
         tray = w.ui.tray
         is_main = self.is_main_thread()
 
+        # Keep renderer state scoped to the chat that emitted the kernel state.
+        # Falling back to whichever context is globally selected is unsafe with
+        # two visible chat columns.
+        state_meta = event.data.get("meta")
+        if state_meta is None and event.ctx is not None:
+            state_meta = getattr(event.ctx, "meta", None)
+        if state_meta is None:
+            state_meta = w.core.ctx.output.get_request_meta()
+        render_data = {"meta": state_meta} if state_meta is not None else {}
+
         if name == KernelEvent.STATE_BUSY:
             self.busy = True
             self.state = self.STATE_BUSY
             tray.set_icon(self.STATE_BUSY)
             if not self.halt and is_main:
-                w.dispatch(RenderEvent(RenderEvent.STATE_BUSY))
+                w.dispatch(RenderEvent(RenderEvent.STATE_BUSY, render_data))
         elif name == KernelEvent.STATE_IDLE:
             self.busy = False
             self.state = self.STATE_IDLE
             tray.set_icon(self.STATE_IDLE)
             if is_main:
-                w.dispatch(RenderEvent(RenderEvent.STATE_IDLE))
+                w.dispatch(RenderEvent(RenderEvent.STATE_IDLE, render_data))
         elif name == KernelEvent.STATE_ERROR:
             self.busy = False
             self.state = self.STATE_ERROR
             tray.set_icon(self.STATE_ERROR)
             if is_main:
-                w.dispatch(RenderEvent(RenderEvent.STATE_ERROR))
+                w.dispatch(RenderEvent(RenderEvent.STATE_ERROR, render_data))
 
         msg = event.data.get("msg", None)
         if msg is not None:

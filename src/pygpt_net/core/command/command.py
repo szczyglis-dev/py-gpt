@@ -141,6 +141,12 @@ class Command:
             pass
         return cmds
 
+    def strip_cmds(self, text: Optional[str]) -> Optional[str]:
+        """Remove legacy <tool> request blocks from assistant-visible text."""
+        if text is None:
+            return None
+        return self._RE_TOOL_BLOCKS.sub("", str(text)).strip()
+
     def extract_cmd(self, chunk: str) -> Optional[Dict[str, Any]]:
         """
         Extract command from text chunk (JSON string)
@@ -228,6 +234,7 @@ class Command:
                 parsed.append(
                     {
                         "id": tool_call.id,
+                        "call_id": getattr(tool_call, "call_id", None) or tool_call.id,
                         "type": "function",
                         "function": {
                             "name": tool_call.name,

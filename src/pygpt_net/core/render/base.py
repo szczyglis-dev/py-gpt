@@ -165,7 +165,7 @@ class BaseRenderer:
         """
         pass
 
-    def reload(self):
+    def reload(self, meta: Optional[CtxMeta] = None):
         """Reload all outputs, called externally only on theme change to redraw content"""
         pass
 
@@ -420,7 +420,8 @@ class BaseRenderer:
 
     def tool_output_clear(
             self,
-            meta: CtxMeta
+            meta: CtxMeta,
+            ctx: Optional[CtxItem] = None,
     ):
         """
         Clear tool output
@@ -431,7 +432,9 @@ class BaseRenderer:
 
     def tool_output_begin(
             self,
-            meta: CtxMeta
+            meta: CtxMeta,
+            tool_names: Optional[list] = None,
+            ctx: Optional[CtxItem] = None,
     ):
         """
         Begin tool output

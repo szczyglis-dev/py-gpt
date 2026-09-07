@@ -70,13 +70,53 @@ class Reply:
         if core.debug.enabled() and self.is_log():
             core.debug.debug("CTX REPLY: " + str(ctx))
 
-        if ctx.reply:
-            if self.reply_idx >= ctx.pid:  # prevent multiple replies per ctx
-                return []
-            self.reply_idx = ctx.pid
-            self.append(ctx)
+        # In the partial-item flow a durable CtxItem can execute many tool rounds.
+        # The old reply_idx/pid de-duplication assumed that every tool result
+        # created a new CtxItem, so using it here can drop a perfectly valid
+        # result from a later tool cycle (and leave the task permanently pending).
+        # Structured tasks are therefore de-duplicated by their own completion
+        # state instead of by the parent CtxItem pid.
+        part = ctx.get_active_part()
+        part_tasks = list(getattr(part, "tasks", None) or []) if part is not None else []
+        structured = bool(part_tasks)
+        pending_after = False
 
-        if flush or self.window.controller.kernel.async_allowed(ctx):
+        if ctx.reply:
+            if structured:
+                responses = list(ctx.results or [])
+                if not responses:
+                    return []
+
+                completed = core.ctx.complete_part_tasks(ctx, responses, part)
+                pending_after = any(
+                    not (isinstance(task.extra, dict) and task.extra.get("status") == "completed")
+                    for task in part_tasks
+                )
+
+                # A repeated/late signal for an already completed task must not
+                # enqueue the same tool result a second time. complete_part_tasks
+                # always consumes a pending task (with request-order fallback), so
+                # no completed rows here means this reply was already consumed.
+                if not completed:
+                    core.debug.info("Reply ignored: no pending partial task matched plugin result.")
+                    ctx.results = []
+                    return []
+
+                self.append(ctx)
+            else:
+                # Legacy contexts keep the old pid-based guard for backward
+                # compatibility with flows which do not use partial tasks.
+                if self.reply_idx >= ctx.pid:
+                    return []
+                self.reply_idx = ctx.pid
+                self.append(ctx)
+
+        # Synchronous plugin execution is flushed by controller.command.dispatch
+        # after all enabled plugins were visited. Async execution has no such
+        # trailing flush, therefore flush here once every task in the current
+        # partial has completed. This also correctly waits for parallel tool
+        # calls handled by different plugins.
+        if flush or (self.window.controller.kernel.async_allowed(ctx) and not pending_after):
             self.flush()
 
         return ctx.results
@@ -109,34 +149,46 @@ class Reply:
         self.window.update_status("")  # clear status
         self.window.controller.agent.on_reply(self.reply_ctx)  # handle reply in agent
 
-        # prepare data to send as reply
-        tool_data = json.dumps(results)
-        if (len(self.reply_stack) < 2
-                and self.reply_ctx.extra_ctx
-                and core.config.get("ctx.use_extra")):
-            tool_data = self.reply_ctx.extra_ctx  # if extra content is set, use it as data to send
-
         # Preserve the lineage of this tool call before creating the synthetic
         # internal reply. The active UI column/mode may change while an async
         # plugin is running, but the result must return to the mode/model that
         # issued the call.
         reply_mode = getattr(self.reply_ctx, "mode", None)
         reply_model = getattr(self.reply_ctx, "model", None)
-        prev_ctx = core.ctx.as_previous(self.reply_ctx)  # copy result to previous ctx and clear current ctx
+        root_ctx = self.reply_ctx
+        completed_part = root_ctx.get_active_part()
+
+        # Structured rows are already completed from the exact current plugin
+        # replies in add(). Do not rebuild from every task in completed_part here:
+        # one partial may now contain several sequential tool rounds, and replaying
+        # all older outputs would resend previous function results to the model.
+
+        # prepare data to send as reply
+        tool_data = json.dumps(results, ensure_ascii=False, default=str)
+        if (len(self.reply_stack) < 2
+                and self.reply_ctx.extra_ctx
+                and core.config.get("ctx.use_extra")):
+            tool_data = self.reply_ctx.extra_ctx  # if extra content is set, use it as data to send
+
+        # Keep the old provider-facing lineage object, but make it explicitly
+        # ephemeral. Text.send() will use it only for protocol history and will
+        # attach the next model response to root_ctx instead of inserting a new
+        # ctx_item row.
+        prev_ctx = core.ctx.as_previous(root_ctx)
         prev_ctx.mode = reply_mode
         prev_ctx.model = reply_model
-        core.ctx.update_item(self.reply_ctx)  # update context in db
+        prev_ctx.turn_parent = root_ctx
+        prev_ctx.turn_previous_part = completed_part
+        prev_ctx.turn_continuation = True
+        core.ctx.update_item(root_ctx)
         self.window.update_status('...')
 
-        # append tool calls from previous context (used for tool results handling)
-        if self.reply_ctx.tool_calls:
-            prev_ctx.extra["prev_tool_calls"] = self.reply_ctx.tool_calls
+        if root_ctx.tool_calls:
+            prev_ctx.extra["prev_tool_calls"] = list(root_ctx.tool_calls)
 
-        # tool output append
-        dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, {
-            "meta": self.reply_ctx.meta,
-            "tool_data": tool_data,
-        }))
+        # Do not expose a finished button yet. The waiting status is cleared and
+        # the task is promoted to UI-ready only after the model consumes this
+        # result and returns its next response.
         self.clear()
 
         # disable reply if the originating LlamaIndex request used ReAct.

@@ -116,7 +116,7 @@ class Renderer(BaseRenderer):
         :param stream: True if it is a stream
         """
         if stream:
-            self.reload()  # reload ctx items only if stream
+            self.reload(meta)  # reload owning ctx items only if stream
 
     def end_extra(
             self,
@@ -571,11 +571,11 @@ class Renderer(BaseRenderer):
             self.pids[pid].images_appended = []
             self.pids[pid].urls_appended = []
 
-    def reload(self):
+    def reload(self, meta: Optional[CtxMeta] = None):
         """
         Reload output, called externally only on theme change to redraw content
         """
-        self.window.controller.ctx.refresh_output()  # if clear all and appends all items again
+        self.window.controller.ctx.refresh_output(meta)  # rebuild the requested chat only
 
     def clear_output(
             self,

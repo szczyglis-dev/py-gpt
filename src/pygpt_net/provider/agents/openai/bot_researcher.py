@@ -137,6 +137,16 @@ class Agent(BaseAgent):
         if custom_prompt and custom_prompt.strip() != "":
             prompt = custom_prompt
 
+        planner_prompt = self.append_system_prompt_extra(
+            self.get_option(preset, "planner", "prompt"),
+            agent_kwargs,
+        )
+        search_prompt = self.append_system_prompt_extra(
+            self.get_option(preset, "search", "prompt"),
+            agent_kwargs,
+        )
+        prompt = self.append_system_prompt_extra(prompt, agent_kwargs)
+
         model_planner = window.core.models.get(
             self.get_option(preset, "planner", "model")
         )
@@ -155,6 +165,7 @@ class Agent(BaseAgent):
             preset=preset,
             verbose=verbose,
             tools=tools,
+            system_prompt_extra=self.get_system_prompt_extra(agent_kwargs),
         )
 
         bot = ResearchManager(
@@ -165,7 +176,7 @@ class Agent(BaseAgent):
             bridge=bridge,
             stream=stream,
             planner_config={
-                "prompt": self.get_option(preset, "planner", "prompt"),
+                "prompt": planner_prompt,
                 "model": model_planner,
                 "allow_local_tools": self.get_option(preset, "planner", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "planner", "allow_remote_tools"),
@@ -173,7 +184,7 @@ class Agent(BaseAgent):
                 "experts": experts,
             },
             search_config={
-                "prompt": self.get_option(preset, "search", "prompt"),
+                "prompt": search_prompt,
                 "model": model_search,
                 "allow_local_tools": self.get_option(preset, "search", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "search", "allow_remote_tools"),

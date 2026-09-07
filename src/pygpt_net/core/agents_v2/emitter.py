@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 import threading
 import time
 from typing import Optional
@@ -32,7 +33,9 @@ class RuntimeEmitter:
         self._finished = False
         self.text = ""
         self.status_text = ""
-        self._block_break_pending = False
+        self._pending_part_uuid = None
+        self._last_emitted_part_uuid = None
+        self.final_started = False
         # Keep high-frequency model deltas off the Qt event queue. The Web renderer
         # already batches JS work, but without this layer every token still crossed
         # the Qt signal boundary and triggered Python-side response handling/DB work.
@@ -41,6 +44,14 @@ class RuntimeEmitter:
         self._stream_emit_interval = 0.04
         self._stream_emit_chars = 512
         self._stream_flush_handle = None
+        # ``workflow_finish`` receives the complete final answer as a tool
+        # argument, so there are no provider token deltas left to forward at
+        # that point. When UI streaming is enabled, replay that authoritative
+        # final text through the normal AGENT_V2_APPEND stream in small chunks
+        # instead of emitting one monolithic append.
+        self._final_stream_enabled = bool(getattr(context, "stream", False))
+        self._final_stream_chunk_chars = 24
+        self._final_stream_delay = 0.015
 
     def _emit(self, name: str, **data):
         if self.signals is None:
@@ -59,10 +70,18 @@ class RuntimeEmitter:
         self._emit(KernelEvent.AGENT_V2_BEGIN)
 
     def mark_block_boundary(self):
-        """Start the next durable orchestrator pass in a new Markdown paragraph."""
-        if self._finished or not self.text:
+        """Flush the current pass before a tool/result boundary.
+
+        Partial boundaries are owned by AgentsV2Runtime and are identified by the
+        durable part UUID supplied to append(). Tool events themselves must never
+        create/arm a new partial because tool-only LLM passes stay on the current
+        partial by design.
+        """
+        if self._finished:
             return
-        self._block_break_pending = True
+        # Flush the previous pass so a later append carrying another part UUID
+        # can never be batched together with it.
+        self._flush_stream()
 
     def _flush_stream(self):
         handle = self._stream_flush_handle
@@ -75,13 +94,24 @@ class RuntimeEmitter:
         if not self._pending_chunk or self._finished:
             return
         chunk = self._pending_chunk
+        part_uuid = self._pending_part_uuid
         self._pending_chunk = ""
+        self._pending_part_uuid = None
         self._last_stream_emit = time.monotonic()
+        part_begin = bool(
+            part_uuid
+            and self._last_emitted_part_uuid
+            and part_uuid != self._last_emitted_part_uuid
+        )
         self._emit(
             KernelEvent.AGENT_V2_APPEND,
             chunk=chunk,
             begin=self._first_chunk,
+            part_begin=part_begin,
+            part_uuid=part_uuid,
         )
+        if part_uuid:
+            self._last_emitted_part_uuid = part_uuid
         self._first_chunk = False
 
     def _schedule_stream_flush(self):
@@ -96,22 +126,17 @@ class RuntimeEmitter:
         except RuntimeError:
             self._flush_stream()
 
-    def append(self, text: Optional[str]):
+    def append(self, text: Optional[str], part_uuid: Optional[str] = None):
         if self._finished or not text:
             return
         self.begin()
+        value_part_uuid = str(part_uuid) if part_uuid else None
+        if (self._pending_chunk and self._pending_part_uuid
+                and value_part_uuid and self._pending_part_uuid != value_part_uuid):
+            self._flush_stream()
+        if value_part_uuid:
+            self._pending_part_uuid = value_part_uuid
         chunk = str(text)
-        if self._block_break_pending:
-            # A new LLM pass after a tool/worker interaction is still part of the
-            # same chat message, but should render as a separate Markdown block.
-            if self.text.endswith("\n\n"):
-                prefix = ""
-            elif self.text.endswith("\n"):
-                prefix = "\n"
-            else:
-                prefix = "\n\n"
-            chunk = prefix + chunk
-            self._block_break_pending = False
         self.text += chunk
         self._pending_chunk += chunk
         now = time.monotonic()
@@ -121,11 +146,114 @@ class RuntimeEmitter:
         else:
             self._schedule_stream_flush()
 
+    def _begin_final(self, text: Optional[str]) -> str:
+        """Reset the live working draft and return normalized final text."""
+        if self._finished:
+            return ""
+        final = str(text or "").strip()
+        if not final:
+            return ""
+        self._flush_stream()
+        self.clear_status()
+        self.begin()
+        self._pending_chunk = ""
+        self._pending_part_uuid = None
+        self._last_emitted_part_uuid = None
+        self.text = ""
+        self.final_started = True
+
+        # Explicit UI barrier: clear the working orchestrator draft and all
+        # transient status rows before any final-answer text is emitted. The
+        # corresponding main-thread handler also drops renderer micro-buffers.
+        self._emit(getattr(KernelEvent, "AGENT_V2_FINAL_BEGIN", "kernel.agent_v2.final_begin"))
+        # The first authoritative final chunk is a new live stream segment. Keep
+        # begin=True so the renderer performs a second, token-adjacent transient
+        # status cleanup immediately before the first final token is painted.
+        self._first_chunk = True
+        return final
+
+    def _final_chunks(self, text: str):
+        """Split final Markdown on word/whitespace boundaries without rewriting it."""
+        pieces = re.findall(r"\S+\s*|\s+", str(text or ""))
+        if not pieces:
+            return []
+        chunks = []
+        current = ""
+        limit = max(1, int(self._final_stream_chunk_chars or 24))
+        for piece in pieces:
+            # Keep long Markdown/URL tokens intact instead of slicing through
+            # syntax. Ordinary prose is grouped into small stream-sized chunks.
+            if current and len(current) + len(piece) > limit:
+                chunks.append(current)
+                current = ""
+            if len(piece) > limit and not current:
+                chunks.append(piece)
+            else:
+                current += piece
+        if current:
+            chunks.append(current)
+        return chunks
+
+    def start_final(self, text: Optional[str], part_uuid: Optional[str] = None):
+        """Start final output immediately (non-stream/fallback path)."""
+        final = self._begin_final(text)
+        if not final:
+            return
+        self.append(final, part_uuid=part_uuid)
+        self._flush_stream()
+
+    async def stream_final(self, text: Optional[str], part_uuid: Optional[str] = None):
+        """Emit the authoritative final answer incrementally when streaming is enabled.
+
+        ``workflow_finish`` receives a complete final-answer tool argument, so the
+        provider has already finished producing that argument. This method keeps
+        the user-facing Agents v2 contract consistent with Chat streaming by
+        forwarding the final answer through the same live append pipeline in
+        ordered Markdown-safe chunks.
+        """
+        final = self._begin_final(text)
+        if not final:
+            return
+        if not self._final_stream_enabled:
+            self.append(final, part_uuid=part_uuid)
+            self._flush_stream()
+            return
+
+        chunks = self._final_chunks(final)
+        for index, chunk in enumerate(chunks):
+            if self._finished:
+                break
+            self.append(chunk, part_uuid=part_uuid)
+            # Force each chunk across the Qt boundary instead of letting the
+            # emitter's normal 512-char batching collapse the final into one event.
+            self._flush_stream()
+            if index + 1 < len(chunks):
+                await asyncio.sleep(self._final_stream_delay)
+
+    def accept_streamed_final(self):
+        """Treat the already-streamed current part as the final answer.
+
+        Used when the agent handler's terminal result is the same prose that was
+        already emitted through AgentStream. Replaying it through start_final()
+        would create a duplicate final partial/output.
+        """
+        if self._finished:
+            return
+        self._flush_stream()
+        self.clear_status()
+        self.final_started = True
+
     def status(self, text: Optional[str], source: str = "orchestrator"):
         if self._finished:
             return
         self._flush_stream()
         value = (text or "").strip()
+        # Once the authoritative final answer starts, transient workflow/tool
+        # statuses are no longer allowed to reappear. Events emitted before the
+        # final barrier may still be queued on the Qt side; the Web runtime has
+        # the same final-mode guard as a second line of defence.
+        if self.final_started and value:
+            return
         if value == self.status_text:
             return
         self.status_text = value
@@ -178,16 +306,11 @@ class RuntimeEmitter:
             # CtxItem.extra because plugin callbacks may persist that context.
             discard(tool_ctx, request)
 
-    def finish(self, final_answer: Optional[str] = None):
+    def finish(self, final_answer: Optional[str] = None, part_uuid: Optional[str] = None):
         if self._finished:
             return
-        if final_answer:
-            final = str(final_answer)
-            # workflow_finish carries the authoritative answer. Avoid duplicating an
-            # identical suffix already streamed by the orchestrator.
-            if final.strip() and not self.text.rstrip().endswith(final.strip()):
-                self.mark_block_boundary()
-                self.append(final)
+        if final_answer and not self.final_started:
+            self.start_final(final_answer, part_uuid=part_uuid)
         self._flush_stream()
         self._finished = True
         self._emit(

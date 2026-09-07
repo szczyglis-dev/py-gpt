@@ -123,7 +123,10 @@ class Plugin(BasePlugin):
 
         elif name == Event.TOOL_OUTPUT_RENDER:
             if data['tool'] == self.id:
-                data['html'] = self.output.handle(ctx, data['content'])
+                # Input/output is already represented by the tool-chain and,
+                # when enabled, forwarded to the interpreter view. Do not
+                # duplicate the same payload in the message footer.
+                data['html'] = ''
 
     def cmd_syntax(self, data: dict):
         """

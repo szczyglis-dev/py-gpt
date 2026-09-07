@@ -64,6 +64,7 @@ class KernelEvent(BaseEvent):
 
     # Agents v2: one durable stream + one replace-in-place status line
     AGENT_V2_BEGIN = "kernel.agent_v2.begin"
+    AGENT_V2_FINAL_BEGIN = "kernel.agent_v2.final_begin"
     AGENT_V2_APPEND = "kernel.agent_v2.append"
     AGENT_V2_STATUS = "kernel.agent_v2.status"
     AGENT_V2_TOOL_EXEC = "kernel.agent_v2.tool_exec"

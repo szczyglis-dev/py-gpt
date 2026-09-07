@@ -57,6 +57,8 @@ class SupervisorAgent(BaseAgent):
             prompt_supervisor = SUPERVISOR_PROMPT
         if not prompt_worker:
             prompt_worker = WORKER_PROMPT
+        prompt_supervisor = self.append_system_prompt_extra(prompt_supervisor, kwargs)
+        prompt_worker = self.append_system_prompt_extra(prompt_worker, kwargs)
 
         # get worker LLM from options
         model_worker = window.core.models.get(

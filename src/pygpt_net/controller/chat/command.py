@@ -98,8 +98,10 @@ class Command:
         mode = getattr(ctx, "mode", None) or self.window.core.config.get('mode')
 
         # extract commands
-        cmds = ctx.cmds_before  # from llama index tool calls pre-handler
-        if not cmds:  # if no commands in context (from llama index tool calls)
+        cmds = ctx.cmds_before  # native/llama tool calls are prepared before rendering
+        if not cmds and ctx.tool_calls:
+            cmds = self.window.core.command.tool_calls_to_cmds(ctx.tool_calls)
+        if not cmds:
             cmds = self.window.core.command.extract_cmds(ctx.output)
 
         if len(cmds) > 0:
@@ -136,7 +138,19 @@ class Command:
                     and not internal
                     and self.window.core.security.should_halt_computer(ctx)):
                 self._pause_for_safety_confirmation(ctx)
-                return
+                return True
+
+            # Persist the request before execution. Native tool calls retain provider
+            # call IDs; legacy inline commands receive stable task UUID-based IDs.
+            if ctx.tool_calls:
+                tool_calls = ctx.tool_calls
+            else:
+                tool_calls = []
+                for cmd in cmds:
+                    tool_calls.append({
+                        "function": {"name": cmd.get("cmd", "tool"), "arguments": cmd.get("params", {})}
+                    })
+            self.window.core.ctx.record_tool_calls(ctx, tool_calls)
 
             # plugins
             self.log("[cmd] Preparing command reply context...")
@@ -154,8 +168,15 @@ class Command:
             if internal and ctx.force_call:
                 reply.type = ReplyContext.CMD_EXECUTE
 
+            # Rebuild the current durable item before showing the waiting row.
+            # This removes streamed legacy <tool> markup and, because the freshly
+            # persisted tasks are not ui_ready yet, cannot expose a Tool button
+            # prematurely. The pending status is attached after the reload.
+            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
             data = {
                 "meta": ctx.meta,
+                "ctx": ctx,
+                "tool_names": [str(cmd.get("cmd") or "tool") for cmd in cmds],
             }
             event = RenderEvent(RenderEvent.TOOL_BEGIN, data)
             self.window.dispatch(event)  # show waiting
@@ -185,7 +206,7 @@ class Command:
                         reply.ctx,
                         reply.cmds,
                     )
-                return ctx.results
+                return True
             else:
                 # force call
                 if ctx.force_call:
@@ -201,6 +222,9 @@ class Command:
                         'extra': {},
                     })
                     self.window.dispatch(event)
+                return True
+
+        return False
 
     def log(self, data: Any):
         """

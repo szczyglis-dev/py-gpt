@@ -176,6 +176,9 @@ class Runner:
                 "schema": schema,
             }
             provider = self.window.core.agents.provider.get(agent_id, context.mode)
+            # Preserve late/plugin system-prompt additions for providers that use
+            # their own per-agent instructions instead of context.system_prompt.
+            agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
             agent = provider.get_agent(self.window, agent_kwargs)
             agent_run = provider.run
             if verbose:
@@ -296,6 +299,7 @@ class Runner:
                 "preset": context.preset if context else None,
             }
             provider = self.window.core.agents.provider.get(agent_id)
+            agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
             agent = provider.get_agent(self.window, agent_kwargs)
             if verbose:
                 print(f"Using Agent: {agent_id}, model: {model.id}")

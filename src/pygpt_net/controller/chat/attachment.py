@@ -740,10 +740,14 @@ class Attachment(QObject):
 
         :param error: Exception
         """
+        request_meta = self.window.core.ctx.output.get_request_meta()
         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
             "id": "chat",
-            "msg": f"Error processing attachments: {str(error)}"
+            "msg": f"Error processing attachments: {str(error)}",
+            "meta": request_meta,
         }))
+        self.window.core.ctx.output.finish_request(meta=request_meta)
+        self.window.controller.ui.tabs.sync_focused_chat_context()
 
     @Slot(str)
     def handle_upload_success(self, text: str):

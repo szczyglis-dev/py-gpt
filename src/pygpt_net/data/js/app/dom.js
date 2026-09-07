@@ -216,7 +216,50 @@ class DOMRefs {
     }
   }
 
-  // Get or create current streaming message container (.msg-box > .msg > .md-snapshot-root).
+  // Return/create the chronological body of one assistant message.
+  // Everything that is part of the workflow (text, tools, statuses and live
+  // partials) lives here. Message extras/actions stay outside this container.
+  getMsgTimeline(msg, create = true) {
+    if (!msg) return null;
+    let timeline = null;
+    try { timeline = msg.querySelector(':scope > .msg-timeline'); } catch (_) { timeline = msg.querySelector('.msg-timeline'); }
+    if (timeline || !create) return timeline;
+
+    timeline = document.createElement('div');
+    timeline.className = 'msg-timeline';
+
+    let anchor = null;
+    try {
+      anchor = msg.querySelector(':scope > .msg-tool-extra, :scope > .msg-extra, :scope > .action-icons');
+    } catch (_) {
+      anchor = msg.querySelector('.msg-tool-extra, .msg-extra, .action-icons');
+    }
+
+    // Migrate only known chronological children. This keeps compatibility with
+    // messages created by older runtime code without moving extras/actions.
+    const move = [];
+    for (const node of Array.from(msg.childNodes || [])) {
+      if (!node || node === timeline) continue;
+      if (node.nodeType !== Node.ELEMENT_NODE) continue;
+      const el = node;
+      if (
+        el.classList.contains('md-block') ||
+        el.classList.contains('md-snapshot-root') ||
+        el.classList.contains('msg-part') ||
+        el.classList.contains('tool-output') ||
+        el.classList.contains('workflow-status-list') ||
+        el.classList.contains('agents-v2-status-list')
+      ) move.push(el);
+    }
+
+    if (anchor) msg.insertBefore(timeline, anchor);
+    else msg.insertBefore(timeline, msg.firstChild || null);
+    for (const node of move) timeline.appendChild(node);
+    return timeline;
+  }
+
+  // Get or create current streaming message container
+  // (.msg-box > .msg > .msg-timeline > .md-snapshot-root).
   getStreamMsg(create, name_header) {
     const container = this.getStreamContainer();
     if (!container) return null;
@@ -251,9 +294,10 @@ class DOMRefs {
       const newMsg = document.createElement('div');
       newMsg.classList.add('msg');
 
+      const timeline = this.getMsgTimeline(newMsg, true);
       const snap = document.createElement('div');
       snap.className = 'md-snapshot-root';
-      newMsg.appendChild(snap);
+      timeline.appendChild(snap);
 
       newBox.appendChild(newMsg);
       frag.appendChild(newBox);
@@ -273,10 +317,13 @@ class DOMRefs {
         msg.classList.add('msg');
         box.appendChild(msg);
       }
-      if (!msg.querySelector('.md-snapshot-root')) {
-        const snap = document.createElement('div');
+      const timeline = this.getMsgTimeline(msg, true);
+      let snap = timeline ? timeline.querySelector('.md-snapshot-root') : null;
+      if (!snap) {
+        snap = document.createElement('div');
         snap.className = 'md-snapshot-root';
-        msg.appendChild(snap);
+        if (timeline) timeline.appendChild(snap);
+        else msg.appendChild(snap);
       }
       this._domStreamBoxRef = (typeof WeakRef !== 'undefined') ? new WeakRef(box) : null;
       this._domStreamMsgRef = (typeof WeakRef !== 'undefined') ? new WeakRef(msg) : null;

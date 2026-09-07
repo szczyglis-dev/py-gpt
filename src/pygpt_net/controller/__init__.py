@@ -161,8 +161,17 @@ class Controller:
         try:
             self.ui.tabs.locked = True  # lock tabs
             self.window.core.reload()  # db, config, patch, etc.
-            self.ui.tabs.reload()
+
+            # Profile/workdir reload is intentionally two-phase. First rebuild
+            # tab widgets from the *new profile* config, but do not restore any
+            # chat selection yet. CtxMeta records still belong to the previous
+            # profile until ctx.reload() has finished. Restoring a tab earlier
+            # can therefore resolve the new tab's data_id against the old DB
+            # (IDs are profile-local and may overlap), producing wrong titles
+            # and even wrong context assignments.
+            self.ui.tabs.reload(restore_data=False)
             self.ctx.reload()
+            self.ui.tabs.restore_after_ctx_reload()
             self.ui.tabs.locked = False  # unlock tabs
 
             self.settings.reload()

@@ -275,31 +275,57 @@ class Image:
         render_ctx.meta = ctx.meta
         render_ctx.images = list(local_urls)
 
-        # WARNING:
-        # if internal (sync) mode, then re-send OK status response, if not, append only img result
-        # it will only inform system that image was generated, user will see it in chat with image after render
-        # of ctx item (link to images are appended to ctx item)
+        # Image generation has its own async provider worker and therefore does
+        # not pass through BasePlugin.handle_finished(). Detect a structured
+        # image task explicitly and feed its result back into the normal Reply
+        # pipeline; otherwise the partial task stays ``pending`` forever.
+        part = ctx.get_active_part()
+        pending_image_task = False
+        if part is not None:
+            for task in list(getattr(part, "tasks", None) or []):
+                extra = task.extra if isinstance(task.extra, dict) else {}
+                tool_name = str(extra.get("tool_name") or task.task_name or task.name or "")
+                if tool_name == "image" and extra.get("status") != "completed":
+                    pending_image_task = True
+                    break
+
+        # Send a compact structured tool result back to the model, but do not
+        # expose local/sandbox file paths there. The generated images are
+        # already persisted in ctx.images and rendered in the UI separately.
+        # Raw paths here caused the model to echo sandbox:/... markdown links.
+        # Return generated image paths to the model as workdir-local paths
+        # ("%workdir%/..."), not sandbox/file URLs. This keeps the result useful
+        # for follow-up tool calls without leaking bridge/sandbox link prefixes.
+        tool_response = {
+            "cmd": "image",
+            "request": {
+                "cmd": "image",
+            },
+            "result": "OK. Generated {} image(s).".format(len(paths)),
+            "paths": list(local_urls),
+            "meta": {
+                "images_count": len(paths),
+                "images_attached": True,
+            },
+        }
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        render_data = {
+            "meta": ctx.meta,
+            "ctx": render_ctx,
+        }
+
+        # Agents/other internal calls already relied on REPLY_ADD. Keep that
+        # behavior, but use EXTRA_END (the old code accidentally appended the
+        # same image block twice). ``agent_call`` is consumed specially by
+        # controller.kernel.reply and does not require ctx.reply=True.
         if ctx.internal:
-            ctx.results.append(
-                {
-                    "request": {
-                        "cmd": "image",
-                    },
-                    "result": "OK. Generated {} image(s).".format(len(paths)),
-                    "paths": paths,
-                }
-            )
+            ctx.results.append(tool_response)
             ctx.reply = False
-            data = {
-                "meta": ctx.meta,
-                "ctx": ctx,
-            }
-            render_data = {
-                "meta": ctx.meta,
-                "ctx": render_ctx,
-            }
-            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))  # show generated image only
-            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))  # end extra
+            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))
+            dispatch(RenderEvent(RenderEvent.EXTRA_END, data))
 
             context = BridgeContext()
             context.ctx = ctx
@@ -309,21 +335,34 @@ class Image:
                     "flush": True,
                 },
             }))
-            controller.chat.common.unlock_input()  # unlock input
-            dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))  # end of tool, hide spinner icon
+            controller.chat.common.unlock_input()
+            dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))
             return
 
-        # NOT internal-mode, user called, so append only img output to chat (show images now):
-        data = {
-            "meta": ctx.meta,
-            "ctx": ctx,
-        }
-        render_data = {
-            "meta": ctx.meta,
-            "ctx": render_ctx,
-        }
-        dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))  # show generated image only
-        dispatch(RenderEvent(RenderEvent.EXTRA_END, data))  # end extra
+        if pending_image_task:
+            # Normal Chat tool call: the image worker finished asynchronously,
+            # so now complete the matching ctx_item_partial_task and continue
+            # the SAME durable turn. Do not unlock/end the tool renderer here;
+            # Reply.flush() sends the function output to the model, and the
+            # continuation response will promote the task to ui_ready and clear
+            # the animated Tool: image status.
+            ctx.results.append(tool_response)
+            ctx.reply = True
+            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))
+            dispatch(RenderEvent(RenderEvent.EXTRA_END, data))
 
-        controller.chat.common.unlock_input()  # unlock input
-        dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))  # end of tool, hide spinner icon
+            context = BridgeContext()
+            context.ctx = ctx
+            dispatch(KernelEvent(KernelEvent.REPLY_ADD, {
+                'context': context,
+                'extra': {},
+            }))
+            return
+
+        # Standalone/non-tool inline image generation: show the image and finish
+        # exactly as before; there is no model continuation to wait for.
+        dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))
+        dispatch(RenderEvent(RenderEvent.EXTRA_END, data))
+
+        controller.chat.common.unlock_input()
+        dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))

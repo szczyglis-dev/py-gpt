@@ -124,6 +124,7 @@ class CodeActAgent(BaseWorkflowAgent):
     _plugin_specs: Optional[List] = PrivateAttr(default_factory=list)
     _plugin_tool_fn: Union[Callable, Awaitable] = PrivateAttr(default=None)
     _on_stop: Optional[Callable] = PrivateAttr(default=None)
+    _runtime_system_prompt: str = PrivateAttr(default="")
 
     # Always emit this human-friendly agent name in workflow events for UI consumption.
     _display_agent_name: str = PrivateAttr(default="CodeAct")
@@ -135,6 +136,7 @@ class CodeActAgent(BaseWorkflowAgent):
         name: str = "code_act_agent",
         description: str = "A workflow agent that can execute code and call plugin tools.",
         system_prompt: Optional[str] = None,
+        runtime_system_prompt: Optional[str] = None,
         tools: Optional[List[Union[BaseTool, Callable]]] = None,
         plugin_tools: Optional[Dict[str, Callable]] = None,
         plugin_specs: Optional[List] = None,
@@ -151,6 +153,7 @@ class CodeActAgent(BaseWorkflowAgent):
         object.__setattr__(self, "_plugin_tool_fn", plugin_tool_fn)
         object.__setattr__(self, "_plugin_specs", plugin_specs or [])
         object.__setattr__(self, "_on_stop", on_stop)
+        object.__setattr__(self, "_runtime_system_prompt", str(runtime_system_prompt or "").strip())
 
         if self._plugin_tools and self._plugin_specs:
             available_commands = "\n".join(self._plugin_specs)
@@ -383,6 +386,8 @@ class CodeActAgent(BaseWorkflowAgent):
         current_llm_input = [*llm_input, *scratchpad]
         tool_descriptions = self._get_tool_descriptions(tools)
         system_prompt = self.code_act_system_prompt.format(tool_descriptions=tool_descriptions)
+        if self._runtime_system_prompt and self._runtime_system_prompt not in system_prompt:
+            system_prompt += "\n\n" + self._runtime_system_prompt
 
         has_system = False
         for i, msg in enumerate(current_llm_input):

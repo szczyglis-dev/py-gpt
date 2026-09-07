@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.08 11:15:00                  #
 # ================================================== #
 
 from typing import List
@@ -107,14 +107,61 @@ class Container:
 
     def get_active_pid(self) -> int:
         """
-        Get active PID
+        Get PID of the chat that owns the active context.
 
-        :return: PID
+        An in-flight request is authoritative. Once a render target has been
+        pinned, context reads/writes must stay on that chat even if another chat
+        in the second column receives focus. Without this, the shared Ctx core
+        can start reading the second tab's Bag while the first request is still
+        running, which makes histories/responses bleed between both WebViews.
+
+        :return: chat-tab PID
         """
+        core = self.window.core
+        tabs = core.tabs
+        ctx = getattr(core, "ctx", None)
+        output = getattr(ctx, "output", None) if ctx is not None else None
+        meta = ctx.get_current_meta() if ctx is not None else None
+
+        # A top-level request owner is stronger than both global context and UI
+        # focus. It also exists before a new/empty chat has a CtxMeta.
+        if output is not None:
+            chat_pid = output.get_request_pid()
+            if chat_pid is not None:
+                return chat_pid
+
+        # Request/render pin has priority over UI focus, including focus on a
+        # *different chat tab*. This is the important split-view isolation rule.
+        if output is not None and meta is not None:
+            chat_pid = output.get_pinned_pid(meta)
+            if chat_pid is not None:
+                return chat_pid
+
+        # Normal idle case: the focused chat owns its own Bag.
         pid = self.window.controller.ui.tabs.get_current_pid()
-        if pid is not None:
+        tab = tabs.get_tab_by_pid(pid) if pid is not None else None
+        if tab is not None and tab.type == Tab.TAB_CHAT:
             return pid
-        return 0  # default bag
+
+        # Focus is on a non-chat tab (Code Interpreter, Files, etc.). Resolve
+        # the current meta's mapped chat instead of allocating a Bag for tool PID.
+        if output is not None and meta is not None:
+            chat_pid = output.get_pid(meta)
+            chat_tab = tabs.get_tab_by_pid(chat_pid) if chat_pid is not None else None
+            if chat_tab is not None and chat_tab.type == Tab.TAB_CHAT:
+                return chat_pid
+
+        if output is not None:
+            chat_pid = output.get_last_chat_pid()
+            chat_tab = tabs.get_tab_by_pid(chat_pid) if chat_pid is not None else None
+            if chat_tab is not None and chat_tab.type == Tab.TAB_CHAT:
+                return chat_pid
+
+        first_chat = tabs.get_first_tab_by_type(Tab.TAB_CHAT)
+        if first_chat is not None:
+            return first_chat.pid
+
+        return 0
 
     def get_active_tab_id(self) -> int:
         """

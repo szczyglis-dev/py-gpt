@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.02.05 23:00:00                  #
+# Updated Date: 2026.09.08 11:45:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -152,18 +152,31 @@ class Tabs:
         for col in columns:
             col.setUpdatesEnabled(True)
 
-    def reload(self):
-        """Reload tabs"""
+    def reload(self, restore_data: bool = True):
+        """
+        Reload tab widgets from the current profile config.
+
+        During a profile/workdir switch ``restore_data`` must be False. The
+        new profile's tabs can be created immediately, but their ``data_id``
+        values must not be resolved until ``ctx.reload()`` has loaded CtxMeta
+        records from the new profile database.
+        """
         self.unload()
         columns = self.window.ui.layout.columns
         for col in columns:
             col.setUpdatesEnabled(False)
         self.setup(reload=True)
-        self.restore_data()
-        self.window.dispatch(RenderEvent(RenderEvent.PREPARE))
+        if restore_data:
+            self.restore_after_ctx_reload()
         self.debug()
         for col in columns:
             col.setUpdatesEnabled(True)
+
+    def restore_after_ctx_reload(self):
+        """Restore active tabs only after the current profile CtxMeta is ready."""
+        self.restore_data()
+        self.window.dispatch(RenderEvent(RenderEvent.PREPARE))
+        self.debug()
 
     def reload_after(self):
         """Reload tabs after"""
@@ -183,6 +196,59 @@ class Tabs:
                 out_plain.setVisible(False)
                 out.setVisible(True)
         self.debug()
+
+    def _request_active(self) -> bool:
+        """Return True while a chat request owns a split-view tab."""
+        try:
+            return self.window.core.ctx.output.has_request()
+        except Exception:
+            return False
+
+    def get_effective_current_pid(self) -> Optional[int]:
+        """Return current chat/tool PID, honoring a not-yet-applied focus event."""
+        column_idx = self._pending_focus_idx if self._pending_focus_idx is not None else self.column_idx
+        tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+        if tabs is None:
+            return None
+        tab = self.window.core.tabs.get_tab_by_index(tabs.currentIndex(), column_idx)
+        return tab.pid if tab is not None else None
+
+    def sync_focused_chat_context(self):
+        """Synchronize global ctx state with the focused chat after a request."""
+        if self._request_active():
+            return
+        tab = self.get_current_tab()
+        if tab is None or tab.type != Tab.TAB_CHAT:
+            return
+
+        core = self.window.core
+        controller = self.window.controller
+        meta_id = getattr(tab, "data_id", None)
+        if meta_id is None:
+            # A chat tab can be opened while another chat is generating. Keep it
+            # visually empty during that request and materialize its context only
+            # after ownership has been released.
+            meta = core.ctx.new()
+            if meta is None:
+                return
+            core.ctx.output.store(meta, pid=tab.pid)
+            tab.data_id = meta.id
+            controller.ctx.update(reload=True, all=True)
+            controller.ctx.fresh_output(meta)
+            controller.ctx.set_selected(meta.id)
+            self.update_title_by_tab(tab, meta.name)
+            return
+
+        if core.ctx.get_current() == meta_id:
+            return
+        meta = core.ctx.get_meta_by_id(meta_id)
+        if meta is None:
+            return
+        pid_data = controller.chat.render.get_pid_data(tab.pid)
+        if not pid_data or not pid_data.loaded:
+            controller.ctx.load(meta.id)
+        else:
+            controller.ctx.select_on_list_only(meta.id)
 
     def on_tab_changed(
             self,
@@ -212,7 +278,7 @@ class Tabs:
             self.appended = False
             if tab.type == Tab.TAB_CHAT:
                 self.current = idx
-                if self.create_new_on_tab:
+                if self.create_new_on_tab and not self._request_active():
                     meta = w.controller.ctx.new()
                     if meta is not None:
                         w.controller.ctx.load(meta.id)
@@ -234,16 +300,21 @@ class Tabs:
             if appended:
                 w.controller.notepad.focus_opened(tab)
         elif tab.type == Tab.TAB_CHAT:
-            meta_id = tab.data_id
-            if meta_id is None:
-                meta_id = core.ctx.output.prepare_meta(tab)
-            meta = core.ctx.get_meta_by_id(meta_id)
-            if meta is not None:
-                pid_data = w.controller.chat.render.get_pid_data(tab.pid)
-                if not pid_data or not pid_data.loaded:
-                    w.controller.ctx.load(meta.id)
-                else:
-                    w.controller.ctx.select_on_list_only(meta.id)
+            # During an in-flight request focus/tab selection is purely visual.
+            # Do not mutate the shared core.ctx state or its active Bag; the
+            # request owner will release it after its final reload and then the
+            # focused tab is synchronized in one place.
+            if not self._request_active():
+                meta_id = tab.data_id
+                if meta_id is None:
+                    meta_id = core.ctx.output.prepare_meta(tab)
+                meta = core.ctx.get_meta_by_id(meta_id)
+                if meta is not None:
+                    pid_data = w.controller.chat.render.get_pid_data(tab.pid)
+                    if not pid_data or not pid_data.loaded:
+                        w.controller.ctx.load(meta.id)
+                    else:
+                        w.controller.ctx.select_on_list_only(meta.id)
         elif tab.type == Tab.TAB_TOOL_PAINTER:
             if core.config.get('vision.capture.enabled'):
                 w.controller.camera.enable_capture()
@@ -384,16 +455,19 @@ class Tabs:
         if tab is None:
             return
 
-        if tab.type == Tab.TAB_CHAT and self.column_idx == 1 and not getattr(tab, "loaded", False):
+        request_active = self._request_active()
+        if (not request_active and tab.type == Tab.TAB_CHAT
+                and self.column_idx == 1 and not getattr(tab, "loaded", False)):
             meta = self.window.core.ctx.get_meta_by_id(tab.data_id)
             if meta is not None:
                 self.window.controller.ctx.load(meta.id, no_fresh=True)
             tab.loaded = True
 
-        current_ctx = self.window.core.ctx.get_current()
-        if (current_ctx is not None and current_ctx != tab.data_id) or current_ctx is None:
-            if tab.type == Tab.TAB_CHAT:
-                self.window.controller.ctx.select_on_list_only(tab.data_id)
+        if not request_active:
+            current_ctx = self.window.core.ctx.get_current()
+            if (current_ctx is not None and current_ctx != tab.data_id) or current_ctx is None:
+                if tab.type == Tab.TAB_CHAT and tab.data_id is not None:
+                    self.window.controller.ctx.select_on_list_only(tab.data_id)
         self.window.controller.ui.update()
         self.update_current()
         self.debug()
@@ -426,6 +500,10 @@ class Tabs:
         performed in _apply_column_focus().
         """
         if idx == self.column_idx:
+            # A stale deferred focus for the other column may still be queued.
+            # Cancel it when the user has already returned to this column; the
+            # scheduled callback will then become a harmless no-op.
+            self._pending_focus_idx = None
             return
         self._pending_focus_idx = idx
         if self._focus_sync_scheduled:
@@ -671,6 +749,7 @@ class Tabs:
         tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
         if tab is None:
             return
+        self.tmp_column_idx = column_idx
         self.window.ui.dialog['rename'].id = 'tab'
         self.window.ui.dialog['rename'].input.setText(tab.title)
         self.window.ui.dialog['rename'].current = idx
@@ -689,7 +768,18 @@ class Tabs:
         :param name: new title
         :param close: close dialog
         """
-        self.window.core.tabs.update_title(idx, name, name)
+        changed = self.window.core.tabs.update_title(
+            idx,
+            name,
+            name,
+            column_idx=self.tmp_column_idx,
+            custom_name=True,
+            title_source="custom",
+        )
+        if changed:
+            # A manual rename is user data. Persist it immediately instead of
+            # waiting for a clean application shutdown.
+            self.window.core.tabs.save()
         if close:
             self.window.ui.dialog['rename'].close()
         self.debug()
@@ -702,62 +792,166 @@ class Tabs:
         """
         self.update_name(self.current, name)
 
+    def _format_tab_title(self, title: str) -> Tuple[str, str]:
+        """Return display title and full tooltip text."""
+        tooltip = "" if title is None else str(title)
+        display = tooltip
+        if len(display) > self.TAB_CHAT_MAX_CHARS:
+            display = display[:self.TAB_CHAT_MAX_CHARS] + '...'
+        return display, tooltip
+
+    def _legacy_chat_title_is_automatic(self, tab: Tab, meta: CtxMeta) -> bool:
+        """Best-effort migration for tabs saved before title_source existed."""
+        display, tooltip = self._format_tab_title(meta.name)
+        saved_title = "" if tab.title is None else str(tab.title)
+        saved_tooltip = "" if tab.tooltip is None else str(tab.tooltip)
+
+        # Exact context title (or its old shortened display) was produced by the
+        # automatic title path, even though older code could mark it custom.
+        if saved_title == display or saved_tooltip == tooltip:
+            return True
+
+        placeholders = {"", "...", str(trans('ctx.new.prefix'))}
+        if saved_title in placeholders or saved_tooltip in placeholders:
+            return True
+
+        default_chat = str(trans('output.tab.chat'))
+        if saved_title == default_chat or saved_title.startswith(default_chat + " "):
+            return True
+        return False
+
     def update_title(
             self,
             idx: int,
             title: str
     ):
-        """
-        Update tab title
+        """Update the current chat tab from its context title."""
+        tab = self.window.core.tabs.get_tab_by_index(idx, self.column_idx)
+        if tab is None or tab.type != Tab.TAB_CHAT:
+            return False
+        return self.update_title_by_tab(tab, title)
 
-        :param idx: tab idx
-        :param title: new title
+    def update_title_by_tab(self, tab: Tab, title: str, force: bool = False) -> bool:
         """
-        if self.get_current_type() != Tab.TAB_CHAT:
-            return
-        tabs = self.window.ui.layout.get_tabs_by_idx(self.column_idx)
-        tooltip = title
-        tabs.setTabToolTip(idx, tooltip)
-        if len(title) > self.TAB_CHAT_MAX_CHARS:
-            title = title[:self.TAB_CHAT_MAX_CHARS] + '...'
-        self.window.core.tabs.update_title(idx, title, tooltip)
-        self.debug()
+        Apply an automatic title to a tab.
 
-    def update_title_by_tab(self, tab: Tab, title: str):
-        """
-        Update tab title by Tab instance
-
-        :param tab: Tab instance
-        :param title: new title
+        Explicit user names are never overwritten. For chat tabs this method is
+        the context-name synchronization path; for tool tabs it remains an
+        automatic/dynamic title update.
         """
         if tab is None:
-            return
+            return False
+        if not force and (tab.custom_name or tab.title_source == "custom"):
+            return False
+
         tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
-        tooltip = title
+        if tabs is None or tab.idx is None or tab.idx < 0 or tab.idx >= tabs.count():
+            return False
+
+        display, tooltip = self._format_tab_title(title)
+        source = "context" if tab.type == Tab.TAB_CHAT else "auto"
+        old = (tab.title, tab.tooltip, tab.custom_name, tab.title_source)
+
+        tab.title = display
+        tab.tooltip = tooltip
+        tab.custom_name = False
+        tab.title_source = source
+        tabs.setTabText(tab.idx, display)
         tabs.setTabToolTip(tab.idx, tooltip)
-        if len(title) > self.TAB_CHAT_MAX_CHARS:
-            title = title[:self.TAB_CHAT_MAX_CHARS] + '...'
-        tabs.setTabText(tab.idx, title)
         self.debug()
+        return old != (tab.title, tab.tooltip, tab.custom_name, tab.title_source)
+
+    def _reset_unbound_chat_title(self, tab: Tab) -> bool:
+        """Reset an automatically named chat tab after a stale binding is removed."""
+        if tab is None or tab.type != Tab.TAB_CHAT:
+            return False
+        if tab.custom_name or tab.title_source == "custom":
+            return False
+
+        tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
+        if tabs is None or tab.idx is None or tab.idx < 0 or tab.idx >= tabs.count():
+            return False
+
+        title = str(trans('output.tab.chat'))
+        old = (tab.title, tab.tooltip, tab.custom_name, tab.title_source)
+        tab.title = title
+        tab.tooltip = title
+        tab.custom_name = False
+        tab.title_source = "default"
+        tabs.setTabText(tab.idx, title)
+        tabs.setTabToolTip(tab.idx, title)
+        return old != (tab.title, tab.tooltip, tab.custom_name, tab.title_source)
+
+    def sync_chat_titles(self, meta_id: Optional[int] = None) -> bool:
+        """
+        Synchronize chat tabs with CtxMeta names and repair stale bindings.
+
+        A full sync (``meta_id is None``) is also the profile/startup
+        reconciliation pass: every persisted ``data_id`` is verified against
+        the database that is active *now*. A missing ID is detached instead of
+        being allowed to survive as a misleading tab assignment.
+        """
+        changed = False
+        core = self.window.core
+        for tab in core.tabs.pids.values():
+            if tab.type != Tab.TAB_CHAT:
+                continue
+
+            # A context-derived title without a binding is stale. This can be
+            # left behind by old configs or by deleting a context while the tab
+            # is persisted. Keep explicit user labels, reset automatic ones.
+            if tab.data_id is None:
+                if meta_id is None and tab.title_source == "context":
+                    if self._reset_unbound_chat_title(tab):
+                        changed = True
+                continue
+
+            if meta_id is not None and tab.data_id != meta_id:
+                continue
+
+            meta = core.ctx.get_meta_by_id(tab.data_id)
+            if meta is None:
+                # Full startup/profile reconciliation: this ID does not exist
+                # in the active profile DB. Never keep a dangling assignment;
+                # a later focus/send must treat this as a genuinely empty tab.
+                if meta_id is None:
+                    core.ctx.output.remove_pid(tab.pid)
+                    tab.data_id = None
+                    tab.loaded = False
+                    self._reset_unbound_chat_title(tab)
+                    changed = True
+                continue
+            if meta.name is None:
+                continue
+
+            # Legacy configs have no title_source. Older automatic updates could
+            # incorrectly set custom_name=True, so migrate only values that can
+            # be identified safely as automatic. Any other divergent name stays
+            # custom to avoid destroying a user's label.
+            if tab.title_source is None:
+                if tab.custom_name and not self._legacy_chat_title_is_automatic(tab, meta):
+                    tab.title_source = "custom"
+                    continue
+                tab.custom_name = False
+                tab.title_source = "context"
+                changed = True
+
+            if tab.title_source == "custom" or tab.custom_name:
+                continue
+            if self.update_title_by_tab(tab, meta.name):
+                changed = True
+        return changed
 
     def update_title_current(self, title: str):
-        """
-        Update current tab title
-
-        :param title: new title
-        """
-        self.update_title(self.current, title)
+        """Update current chat tab title from the current context."""
+        return self.update_title(self.current, title)
 
     def on_load_ctx(self, meta: CtxMeta):
-        """
-        Load context
-
-        :param meta: context meta
-        """
+        """Bind loaded context to the current chat tab and sync its title."""
         tab = self.get_current_tab()
         if tab is not None and tab.type == Tab.TAB_CHAT:
             tab.data_id = meta.id
-        self.update_title_current(meta.name)
+            self.update_title_by_tab(tab, meta.name)
         self.debug()
 
     def open_by_type(self, type: int):
@@ -787,15 +981,26 @@ class Tabs:
         )
 
     def restore_data(self):
-        """Restore tab data"""
+        """Restore opened tabs and reconcile chat labels with persisted contexts."""
+        # ctx.setup() has already loaded CtxMeta records at this point. Repair
+        # stale/legacy labels before the restored tabs become visible/active.
+        titles_changed = self.sync_chat_titles()
+
         data = self.window.core.config.get("tabs.opened", [])
         if not data:
             self.switch_tab_by_idx(0, 0)
+            if titles_changed:
+                self.window.core.tabs.save()
             return
         for col_idx, tab_idx in reversed(list(data.items())):
             self.switch_tab_by_idx(int(tab_idx), int(col_idx))
         self.column_idx = 0
         self.on_column_changed()
+
+        if titles_changed:
+            # Persist the migration/synchronization immediately so an unclean
+            # later exit cannot bring the stale labels back on the next launch.
+            self.window.core.tabs.save()
         self.debug()
 
     def move_tab(
@@ -966,8 +1171,11 @@ class Tabs:
                         self.on_column_focus(tab.column_idx)
                     if meta is not None:
                         self.on_column_focus(tab.column_idx)
-                        self.window.controller.ctx.load(meta.id)
-                        QTimer.singleShot(100, lambda: self.window.controller.ctx.load(meta.id))
+                        if not self._request_active():
+                            self.window.controller.ctx.load(meta.id)
+                            QTimer.singleShot(100, lambda mid=meta.id: (
+                                None if self._request_active() else self.window.controller.ctx.load(mid)
+                            ))
                         self.on_column_focus(tab.column_idx)
                     tabs.setCurrentIndex(idx)
             else:
@@ -978,8 +1186,10 @@ class Tabs:
                 if second_tab is not None and second_tab.type == type:
                     self.on_column_focus(second_column_idx)
                     tabs.setCurrentIndex(second_tabs_idx)
-                    if meta:
-                        QTimer.singleShot(100, lambda: self.window.controller.ctx.load(meta.id))
+                    if meta and not self._request_active():
+                        QTimer.singleShot(100, lambda mid=meta.id: (
+                            None if self._request_active() else self.window.controller.ctx.load(mid)
+                        ))
 
             if tab and tab.column_idx == 1:
                 if not self.is_split_screen_enabled():

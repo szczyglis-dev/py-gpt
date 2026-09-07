@@ -12,6 +12,7 @@
 import copy
 import datetime
 import uuid
+import json
 from typing import Optional, Tuple, List, Dict
 
 from packaging.version import Version
@@ -34,6 +35,8 @@ from pygpt_net.core.types import (
     MODE_AGENT_V2,
 )
 from pygpt_net.item.ctx import CtxItem, CtxMeta, CtxGroup
+from pygpt_net.item.ctx_part import CtxItemPart
+from pygpt_net.item.ctx_part_task import CtxItemPartTask
 from pygpt_net.provider.core.ctx.base import BaseProvider
 from pygpt_net.provider.core.ctx.db_sqlite import DbSqliteProvider
 from pygpt_net.utils import trans
@@ -524,12 +527,382 @@ class Ctx:
             self.provider.append_item(meta, item)
 
     def update_item(self, item: CtxItem):
-        """
-        Update CtxItem in context
-
-        :param item: CtxItem to update
-        """
+        """Update a turn and keep its compatibility output cache in sync."""
+        if item is None:
+            return
+        if item.parts:
+            # Legacy/simple paths still write directly to CtxItem.output. Mirror
+            # that into the sole part automatically; multi-part paths update the
+            # active part explicitly and are only folded here.
+            if len(item.parts) == 1:
+                part = item.get_active_part()
+                if part is not None and part.output != item.output:
+                    part.set_output(item.output)
+                    self.provider.update_part(part)
+            else:
+                item.sync_output_from_parts()
         self.provider.update_item(item)
+
+    def ensure_part(
+            self,
+            item: CtxItem,
+            agent_id: Optional[str] = None,
+            name: Optional[str] = None,
+    ) -> CtxItemPart:
+        """Return the active partial item, creating it if necessary."""
+        part = item.get_active_part()
+        if part is not None:
+            return part
+        return self.begin_part(item, agent_id=agent_id, name=name, output=item.output)
+
+    def begin_part(
+            self,
+            item: CtxItem,
+            agent_id: Optional[str] = None,
+            name: Optional[str] = None,
+            output: Optional[str] = None,
+            extra: Optional[dict] = None,
+            joiner: str = "",
+    ) -> CtxItemPart:
+        """Create and persist a logical fragment inside one context turn."""
+        if item is None or item.id is None:
+            part = CtxItemPart(parent_item_id=getattr(item, 'id', None))
+        else:
+            part = CtxItemPart(parent_item_id=item.id)
+        part.agent_id = agent_id
+        part.name = name
+        part.output = output
+        part.extra = dict(extra or {})
+        if joiner:
+            part.extra["joiner"] = joiner
+        if item.id is not None:
+            self.provider.append_part(part)
+        item.set_active_part(part)
+        return part
+
+    def update_part(self, item: CtxItem, part: Optional[CtxItemPart] = None, sync_item: bool = True):
+        """Persist a partial item and optionally refresh the parent output cache."""
+        part = part or item.get_active_part()
+        if part is None:
+            return
+        if part.id is not None:
+            self.provider.update_part(part)
+        if sync_item:
+            item.sync_output_from_parts()
+            if item.id is not None:
+                self.provider.update_item(item)
+
+    def add_part_task(
+            self,
+            item: CtxItem,
+            part: Optional[CtxItemPart] = None,
+            *,
+            agent_id: Optional[str] = None,
+            name: Optional[str] = None,
+            task_name: Optional[str] = None,
+            task_summary: Optional[str] = None,
+            input: Optional[str] = None,
+            output: Optional[str] = None,
+            tool_call_id: Optional[str] = None,
+            tool_input=None,
+            tool_output=None,
+            extra: Optional[dict] = None,
+    ) -> CtxItemPartTask:
+        """Create and persist one task under a partial item."""
+        part = part or self.ensure_part(item, agent_id=agent_id, name=name)
+        task = CtxItemPartTask(
+            parent_item_part_id=part.id, agent_id=agent_id, name=name, task_name=task_name,
+            task_summary=task_summary, input=input, output=output, tool_call_id=tool_call_id,
+            tool_input=tool_input if tool_input is not None else {}, tool_output=tool_output,
+            extra=dict(extra or {}),
+        )
+        part.add_task(task)
+        if part.id is not None:
+            self.provider.append_part_task(task)
+        return task
+
+    def update_part_task(self, task: CtxItemPartTask):
+        if task is not None and task.id is not None:
+            self.provider.update_part_task(task)
+
+    @staticmethod
+    def _part_has_text(part: Optional[CtxItemPart]) -> bool:
+        """Return True only when a partial already owns assistant-visible text."""
+        if part is None:
+            return False
+        return bool(str(getattr(part, "output", None) or "").strip())
+
+    @staticmethod
+    def _task_tool_round(task: CtxItemPartTask) -> int:
+        """Return persisted tool round; pre-v8 rows belong to round 1."""
+        extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
+        try:
+            value = int(extra.get("tool_round") or 1)
+        except (TypeError, ValueError):
+            value = 1
+        return max(1, value)
+
+    @staticmethod
+    def _task_in_provider_history(task: CtxItemPartTask) -> bool:
+        extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
+        return extra.get("provider_history") is not False
+
+    def _part_max_tool_round(self, part: Optional[CtxItemPart]) -> int:
+        if part is None:
+            return 0
+        rounds = [
+            self._task_tool_round(task)
+            for task in (getattr(part, "tasks", None) or [])
+            if self._task_in_provider_history(task)
+            and (task.tool_call_id or (isinstance(task.extra, dict) and task.extra.get("tool_name")))
+        ]
+        return max(rounds) if rounds else 0
+
+    def _part_tool_round_ids(self, part: Optional[CtxItemPart]) -> list:
+        if part is None:
+            return []
+        return sorted({
+            self._task_tool_round(task)
+            for task in (getattr(part, "tasks", None) or [])
+            if self._task_in_provider_history(task)
+            and (task.tool_call_id or (isinstance(task.extra, dict) and task.extra.get("tool_name")))
+        })
+
+    def record_tool_calls(
+            self,
+            item: CtxItem,
+            tool_calls: list,
+            part: Optional[CtxItemPart] = None,
+            agent_id: Optional[str] = None,
+            agent_name: Optional[str] = None,
+            task_name: Optional[str] = None,
+            update_legacy_cache: bool = True,
+            ui_visible: bool = True,
+            provider_history: bool = True,
+    ) -> list:
+        """Persist native/legacy tool requests as tasks without ending the turn."""
+        part = part or self.ensure_part(item, agent_id=agent_id, name=agent_name)
+        existing = {}
+        for task in part.tasks:
+            if task.tool_call_id:
+                existing[str(task.tool_call_id)] = task
+            task_extra = task.extra if isinstance(task.extra, dict) else {}
+            item_id = task_extra.get("tool_item_id")
+            if item_id:
+                existing[str(item_id)] = task
+
+        # One call to record_tool_calls() represents one model tool-response
+        # round. All sibling calls from that response share the same round, while
+        # later tool-only continuations stay in this same CtxItemPart and receive
+        # the next round number.
+        next_tool_round = self._part_max_tool_round(part) + 1
+        new_round_used = False
+        tasks = []
+        for index, call in enumerate(tool_calls or []):
+            if not isinstance(call, dict):
+                continue
+            fn = call.get("function") if isinstance(call.get("function"), dict) else {}
+            name = str(fn.get("name") or call.get("name") or "tool")
+            args = fn.get("arguments", call.get("arguments", {}))
+
+            # OpenAI Responses exposes two different identifiers for a function
+            # call: ``id`` (e.g. fc_...) identifies the output item, whereas
+            # ``call_id`` (e.g. call_...) is the protocol identifier that MUST
+            # be echoed by function_call_output. Persist the protocol call_id as
+            # the task's canonical ID and keep the provider item ID separately.
+            provider_item_id = str(call.get("id") or "")
+            call_id = str(call.get("call_id") or provider_item_id or f"{part.uuid}:{index}")
+            lookup_ids = [value for value in (call_id, provider_item_id) if value]
+            existing_task = next((existing[value] for value in lookup_ids if value in existing), None)
+            if existing_task is not None:
+                # Repair tasks created by older partial-flow builds which stored
+                # Responses' fc_* item ID in tool_call_id and lost call_id.
+                changed = False
+                if existing_task.tool_call_id != call_id:
+                    existing_task.tool_call_id = call_id
+                    changed = True
+                if not isinstance(existing_task.extra, dict):
+                    existing_task.extra = {}
+                if provider_item_id and existing_task.extra.get("tool_item_id") != provider_item_id:
+                    existing_task.extra["tool_item_id"] = provider_item_id
+                    changed = True
+                tool_type = str(call.get("type") or "function")
+                if existing_task.extra.get("tool_type") != tool_type:
+                    existing_task.extra["tool_type"] = tool_type
+                    changed = True
+                if not existing_task.extra.get("tool_round"):
+                    existing_task.extra["tool_round"] = 1
+                    changed = True
+                if existing_task.extra.get("provider_history") != bool(provider_history):
+                    existing_task.extra["provider_history"] = bool(provider_history)
+                    changed = True
+                if changed:
+                    self.update_part_task(existing_task)
+                tasks.append(existing_task)
+                continue
+
+            request = {"cmd": name, "params": args}
+            tool_type = str(call.get("type") or "function")
+            if not new_round_used:
+                # If this partial already contains its one text response, remember
+                # how many tool rounds happened before that text. This lets the
+                # provider-history projection place text and tool calls in their
+                # original protocol order without creating more DB partials.
+                if (provider_history
+                        and self._part_has_text(part)
+                        and isinstance(part.extra, dict)):
+                    part.extra.setdefault("text_after_tool_round", next_tool_round - 1)
+                    self.update_part(item, part, sync_item=False)
+                new_round_used = True
+            task = self.add_part_task(
+                item, part, agent_id=agent_id, name=agent_name,
+                task_name=task_name or name, input=json.dumps(request, ensure_ascii=False, default=str),
+                tool_call_id=call_id, tool_input=args,
+                extra={
+                    "status": "pending", "ui_ready": False,
+                    "agent_name": agent_name, "tool_name": name,
+                    "tool_item_id": provider_item_id or call_id,
+                    "tool_type": tool_type,
+                    "tool_round": next_tool_round,
+                    "ui_visible": bool(ui_visible),
+                    "provider_history": bool(provider_history),
+                },
+            )
+            tasks.append(task)
+        if tasks and update_legacy_cache and isinstance(item.extra, dict):
+            item.extra["tool_calls"] = list(tool_calls or [])
+        return tasks
+
+    def complete_part_tasks(self, item: CtxItem, results: list, part: Optional[CtxItemPart] = None) -> list:
+        """Attach plugin results to pending tasks while preserving request order."""
+        part = part or item.get_active_part()
+        if part is None:
+            return []
+        pending = [t for t in part.tasks if not (isinstance(t.extra, dict) and t.extra.get("status") == "completed")]
+        completed = []
+        by_name = {}
+        for task in pending:
+            tool_name = (task.extra or {}).get("tool_name") if isinstance(task.extra, dict) else None
+            by_name.setdefault(str(tool_name or task.task_name or task.name or ""), []).append(task)
+        fallback = list(pending)
+        for response in results or []:
+            req = response.get("request") if isinstance(response, dict) else None
+            name = str(req.get("cmd") or "") if isinstance(req, dict) else ""
+            task = None
+            if name and by_name.get(name):
+                task = by_name[name].pop(0)
+                if task in fallback:
+                    fallback.remove(task)
+            elif fallback:
+                task = fallback.pop(0)
+            if task is None:
+                continue
+            result = response.get("result") if isinstance(response, dict) and "result" in response else response
+            # Persist the full structured plugin/tool response exactly as it is
+            # forwarded through the tool-result loop. The plain-text output column
+            # keeps a compact human-readable summary for quick inspection/UI.
+            task.tool_output = copy.deepcopy(response)
+            task.output = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, default=str)
+            if not isinstance(task.extra, dict):
+                task.extra = {}
+            task.extra["status"] = "completed"
+            task.extra["response"] = response
+            task.touch()
+            self.update_part_task(task)
+            completed.append(task)
+        return completed
+
+    def mark_part_tasks_ui_ready(self, part: Optional[CtxItemPart], ready: bool = True):
+        """Promote completed tool tasks from waiting status into renderable buttons."""
+        if part is None:
+            return
+        for task in part.tasks or []:
+            if isinstance(task.extra, dict) and task.extra.get("status") == "completed":
+                task.mark_ui_ready(ready)
+                self.update_part_task(task)
+
+    def merge_continuation(self, continuation: CtxItem) -> CtxItem:
+        """Merge a post-tool model response into the same durable user turn.
+
+        Tool-only responses reuse the active part so consecutive tool rounds stay
+        compact. As soon as provider output contains visible assistant text after
+        one or more tools, that text gets a new partial. This keeps the durable UI
+        timeline chronological: text -> tool(s) -> later text.
+        """
+        parent = continuation.turn_parent
+        if parent is None:
+            return continuation
+
+        current_part = parent.get_active_part()
+        if current_part is None:
+            current_part = self.ensure_part(parent)
+
+        raw_output = str(continuation.output or "")
+        legacy_cmds = self.window.core.command.extract_cmds(raw_output)
+        visible_output = self.window.core.command.strip_cmds(raw_output) or ""
+        has_text = bool(visible_output.strip())
+
+        part = current_part
+        if has_text:
+            if (self._part_has_text(current_part)
+                    or self._part_max_tool_round(current_part) > 0):
+                part = self.begin_part(
+                    parent,
+                    name=continuation.output_name,
+                    output=None,
+                    joiner="\n\n" if (parent.compose_output() or "").strip() else "",
+                )
+            elif part is None:
+                part = self.begin_part(parent, name=continuation.output_name, output=None)
+
+            if not isinstance(part.extra, dict):
+                part.extra = {}
+            # A newly allocated text partial has no preceding tool rounds. For
+            # legacy/reused empty parts retain ordering metadata so old contexts
+            # can still be projected correctly after reload.
+            part.extra.setdefault("text_after_tool_round", self._part_max_tool_round(part))
+            part.output = visible_output
+            if continuation.output_name:
+                part.name = continuation.output_name
+            self.update_part(parent, part, sync_item=False)
+        else:
+            # Tool-only continuation: do not clear prior text and do not create a
+            # new partial. Legacy <tool> markup is represented solely by tasks.
+            part = current_part
+
+        continuation.turn_part = part
+
+        # Promote only tasks that existed before this provider call. New calls
+        # from the response are recorded afterwards, so they remain pending.
+        self.mark_part_tasks_ui_ready(continuation.turn_previous_part, True)
+
+        for attr in ("urls", "images", "files", "attachments", "results", "doc_ids"):
+            target = getattr(parent, attr, None)
+            source = getattr(continuation, attr, None)
+            if isinstance(target, list) and source:
+                for value in source:
+                    if value not in target:
+                        target.append(value)
+        parent.input_tokens += int(continuation.input_tokens or 0)
+        parent.output_tokens += int(continuation.output_tokens or 0)
+        parent.total_tokens += int(continuation.total_tokens or 0)
+        parent.output_timestamp = continuation.output_timestamp or parent.output_timestamp
+        parent.msg_id = continuation.msg_id or parent.msg_id
+        parent.response = continuation.response
+        parent.tool_calls = list(continuation.tool_calls or [])
+        parent.cmds = list(continuation.cmds or [])
+        parent.cmds_before = list(continuation.cmds_before or legacy_cmds or [])
+        if isinstance(continuation.extra, dict):
+            if not isinstance(parent.extra, dict):
+                parent.extra = {}
+            for key, value in continuation.extra.items():
+                if key not in ("sub_reply",):
+                    parent.extra[key] = copy.deepcopy(value)
+        if not parent.tool_calls and isinstance(parent.extra, dict):
+            parent.extra.pop("tool_calls", None)
+        parent.sync_output_from_parts()
+        self.provider.update_item(parent)
+        return parent
 
     def update_indexed_ts_by_id(self, id: int, ts: int):
         """
@@ -723,17 +1096,26 @@ class Ctx:
         for id in self.get_meta():
             return id
 
-    def get_meta_by_id(self, id: int) -> CtxMeta:
+    def get_meta_by_id(self, id: int) -> Optional[CtxMeta]:
         """
         Return ctx meta by id
 
         :param id: ctx id
         :return: ctx meta object
         """
+        if id is None:
+            return None
         if id in self.meta:
             return self.meta[id]
-        else:
-            self.load_tmp_meta(id)
+
+        # Context lists can be paginated. A tab may legitimately point to a
+        # context that is not in the currently loaded page, so resolve it from
+        # the provider and return it in this same call. Previously load_tmp_meta
+        # populated ``self.meta`` but get_meta_by_id() still returned None on
+        # the first lookup, which made tab restore intermittently fall back to
+        # "New" until another lookup happened.
+        self.load_tmp_meta(id)
+        return self.meta.get(id)
 
     def get_last(self) -> Optional[CtxItem]:
         """
@@ -982,6 +1364,247 @@ class Ctx:
         """
         return self.provider.get_last_meta_id()
 
+    @staticmethod
+    def _part_tool_calls(
+            part: CtxItemPart,
+            legacy_calls: Optional[list] = None,
+            tool_round: Optional[int] = None,
+    ) -> list:
+        """Normalize persisted part tasks to provider-compatible tool calls.
+
+        ``tool_call_id`` is the protocol call ID. Provider-specific output-item
+        IDs (notably OpenAI Responses' ``fc_*`` IDs) live in ``extra.tool_item_id``.
+        ``legacy_calls`` is used only to repair rows written by early versions of
+        the partial-item migration which stored ``id`` instead of ``call_id``.
+        """
+        calls = []
+        legacy_calls = legacy_calls if isinstance(legacy_calls, list) else []
+        for task in getattr(part, "tasks", None) or []:
+            extra = task.extra if isinstance(task.extra, dict) else {}
+            if extra.get("provider_history") is False:
+                continue
+            if not task.tool_call_id and not extra.get("tool_name"):
+                continue
+            if tool_round is not None and Ctx._task_tool_round(task) != int(tool_round):
+                continue
+            name = str(extra.get("tool_name") or task.task_name or task.name or "tool")
+            args = task.tool_input if task.tool_input not in (None, "") else task.input
+            protocol_call_id = str(task.tool_call_id or task.uuid)
+            item_id = str(extra.get("tool_item_id") or protocol_call_id)
+            tool_type = str(extra.get("tool_type") or "function")
+
+            # Compatibility repair for rows created before call_id and id were
+            # separated. The current durable item's legacy tool_calls cache still
+            # contains both identifiers for the active/latest tool round.
+            if protocol_call_id.startswith("fc_"):
+                for legacy in legacy_calls:
+                    if not isinstance(legacy, dict):
+                        continue
+                    legacy_id = str(legacy.get("id") or "")
+                    legacy_call_id = str(legacy.get("call_id") or "")
+                    legacy_fn = legacy.get("function") if isinstance(legacy.get("function"), dict) else {}
+                    if legacy_id == protocol_call_id and legacy_call_id:
+                        protocol_call_id = legacy_call_id
+                        item_id = legacy_id
+                        tool_type = str(legacy.get("type") or tool_type)
+                        if not name and legacy_fn.get("name"):
+                            name = str(legacy_fn.get("name"))
+                        break
+
+            calls.append({
+                "id": item_id,
+                "call_id": protocol_call_id,
+                "type": tool_type,
+                "function": {
+                    "name": name,
+                    "arguments": args if args is not None else {},
+                },
+            })
+        return calls
+
+    @staticmethod
+    def _part_tool_outputs(part: CtxItemPart, tool_round: Optional[int] = None) -> list:
+        """Return persisted structured tool responses for one partial item.
+
+        New partial-task rows store the full JSON response produced by the
+        plugin/tool loop. Rebuild a provider-friendly payload from that stored
+        structure, preserving request/result metadata and backfilling the legacy
+        top-level ``cmd`` key for older provider adapters.
+        """
+        outputs = []
+        for task in getattr(part, "tasks", None) or []:
+            extra = task.extra if isinstance(task.extra, dict) else {}
+            if extra.get("provider_history") is False:
+                continue
+            if not task.tool_call_id and not extra.get("tool_name"):
+                continue
+            if tool_round is not None and Ctx._task_tool_round(task) != int(tool_round):
+                continue
+            completed = (
+                task.tool_output is not None
+                or (isinstance(task.extra, dict) and task.extra.get("status") == "completed")
+            )
+            if not completed:
+                continue
+
+            tool_name = str((task.extra or {}).get("tool_name") or task.task_name or task.name or "tool")
+            stored = copy.deepcopy(task.tool_output)
+            if isinstance(stored, dict):
+                if "request" not in stored or not isinstance(stored.get("request"), dict):
+                    stored["request"] = {"cmd": tool_name, "params": copy.deepcopy(task.tool_input or {})}
+                else:
+                    stored["request"].setdefault("cmd", tool_name)
+                    stored["request"].setdefault("params", copy.deepcopy(task.tool_input or {}))
+                if "cmd" not in stored:
+                    stored["cmd"] = str(stored.get("request", {}).get("cmd") or tool_name)
+                if "result" not in stored:
+                    stored["result"] = task.output
+                outputs.append(stored)
+                continue
+
+            result = stored if stored is not None else task.output
+            outputs.append({
+                "cmd": tool_name,
+                "request": {
+                    "cmd": tool_name,
+                    "params": copy.deepcopy(task.tool_input or {}),
+                },
+                "result": result,
+            })
+        return outputs
+
+    def expand_history_item(self, item: CtxItem) -> List[CtxItem]:
+        """Project one durable turn to provider-facing protocol segments.
+
+        A DB partial is a text fragment and may contain many sequential tool
+        rounds. Those rounds are expanded only in memory so providers still see
+        assistant-call -> tool-result ordering without extra ctx_item_partial rows.
+        """
+        parts = list(getattr(item, "parts", None) or [])
+        if not parts:
+            return [item]
+
+        usable = []
+        for part in parts:
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if extra.get("provider_history") is False or extra.get("agents_v2_worker") is True:
+                continue
+            if (getattr(part, "output", None) not in (None, "")
+                    or bool(getattr(part, "tasks", None))):
+                usable.append(part)
+        if not usable:
+            return [item]
+
+        expanded: List[CtxItem] = []
+        previous_clone = None
+        previous_calls = []
+        previous_outputs = []
+        first_segment = True
+        pack_cmds = self.window.core.command.pack_cmds
+        to_cmds = self.window.core.command.tool_calls_to_cmds
+        legacy_calls = item.extra.get("tool_calls") if isinstance(item.extra, dict) else None
+
+        def build_tool_input(calls, outputs):
+            if not outputs:
+                return None
+            values = []
+            for call, value in zip(calls or [], outputs or []):
+                if not isinstance(value, dict):
+                    value = {"result": value}
+                request = value.get("request") if isinstance(value.get("request"), dict) else {}
+                values.append({
+                    "request": {
+                        "cmd": value.get("cmd") or request.get("cmd") or call.get("function", {}).get("name"),
+                        "params": request.get("params", call.get("function", {}).get("arguments", {})),
+                    },
+                    "result": value.get("result", value),
+                })
+            return json.dumps(values, ensure_ascii=False, default=str)
+
+        for part in usable:
+            round_ids = self._part_tool_round_ids(part)
+            raw_text = str(getattr(part, "output", None) or "")
+            part_extra = part.extra if isinstance(part.extra, dict) else {}
+            try:
+                text_after_round = int(part_extra.get("text_after_tool_round", 0) or 0)
+            except (TypeError, ValueError):
+                text_after_round = 0
+            text_emitted = False
+
+            segments = []
+            if round_ids:
+                for round_id in round_ids:
+                    calls = self._part_tool_calls(part, legacy_calls, tool_round=round_id)
+                    outputs = self._part_tool_outputs(part, tool_round=round_id)
+                    segment_text = ""
+                    if raw_text and not text_emitted and round_id > text_after_round:
+                        segment_text = raw_text
+                        text_emitted = True
+                    segments.append((segment_text, calls, outputs))
+                if raw_text and not text_emitted:
+                    segments.append((raw_text, [], []))
+                    text_emitted = True
+            else:
+                segments.append((raw_text, [], []))
+                text_emitted = bool(raw_text)
+
+            for segment_text, calls, outputs in segments:
+                if not segment_text and not calls:
+                    continue
+                clone = copy.copy(item)
+                clone.parts = []
+                clone.active_part = None
+                clone.turn_parent = None
+                clone.turn_part = None
+                clone.turn_previous_part = None
+                clone.turn_continuation = False
+                clone.prev_ctx = previous_clone
+                clone.extra = copy.deepcopy(item.extra) if isinstance(item.extra, dict) else {}
+                clone.cmds = []
+                clone.cmds_before = []
+                clone.tool_calls = []
+                clone.hidden_output = None
+
+                if first_segment:
+                    clone.input = item.input
+                    clone.hidden_input = item.hidden_input
+                    first_segment = False
+                else:
+                    clone.input = build_tool_input(previous_calls, previous_outputs)
+                    clone.hidden_input = None
+                    clone.internal = True
+
+                clone.output = segment_text or ""
+                if calls:
+                    clone.output += pack_cmds(to_cmds(calls))
+                    clone.tool_calls = copy.deepcopy(calls)
+                    clone.extra["tool_calls"] = copy.deepcopy(calls)
+                    clone.extra["prev_tool_calls"] = copy.deepcopy(calls)
+                    if outputs:
+                        clone.extra["tool_output"] = copy.deepcopy(outputs)
+                    else:
+                        clone.extra.pop("tool_output", None)
+                else:
+                    clone.extra.pop("tool_calls", None)
+                    clone.extra.pop("tool_output", None)
+                    clone.extra.pop("prev_tool_calls", None)
+
+                expanded.append(clone)
+                previous_clone = clone
+                previous_calls = calls
+                previous_outputs = outputs
+
+        if expanded:
+            expanded[-1].hidden_output = item.hidden_output
+        return expanded or [item]
+
+    def expand_history(self, history_items: List[CtxItem]) -> List[CtxItem]:
+        """Project durable context turns to provider-facing history items."""
+        result: List[CtxItem] = []
+        for item in history_items:
+            result.extend(self.expand_history_item(item))
+        return result
+
     def count_history(
             self,
             history_items: List[CtxItem],
@@ -1004,7 +1627,8 @@ class Ctx:
         tokens = used_tokens
         context_tokens = 0
         from_ctx = self.window.core.tokens.from_ctx
-        for item in reversed(history_items):
+        expanded_items = self.expand_history(history_items)
+        for item in reversed(expanded_items):
             num = from_ctx(item, mode, model)
             new_total = tokens + num
             if 0 < max_tokens < new_total:
@@ -1037,12 +1661,13 @@ class Ctx:
         """
         items = []
         tokens = used_tokens
-        is_first = True
+        # Ignore the current durable turn before expansion. Otherwise a single
+        # turn containing multiple partials would accidentally skip only its last
+        # protocol fragment instead of the whole current item.
+        source_items = history_items[:-1] if ignore_first and history_items else history_items
+        expanded_items = self.expand_history(source_items)
         from_ctx = self.window.core.tokens.from_ctx
-        for item in reversed(history_items):
-            if is_first and ignore_first:
-                is_first = False
-                continue
+        for item in reversed(expanded_items):
             cost = from_ctx(item, mode, model)
             new_total = tokens + cost
             if 0 < max_tokens < new_total:

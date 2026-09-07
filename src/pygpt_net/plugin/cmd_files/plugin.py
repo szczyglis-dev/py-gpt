@@ -100,31 +100,28 @@ class Plugin(BasePlugin):
             data['value'] = self.on_post_prompt(
                 data['value'],
                 ctx,
+                data.get('mode'),
             )
 
-    def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:
+    def on_post_prompt(self, prompt: str, ctx: CtxItem, mode: str = None) -> str:
         """
         Event: POST_PROMPT
 
         :param prompt: system prompt
         :param ctx: CtxItem
+        :param mode: originating bridge/chat mode
         :return: updated system prompt
         """
+        # Filesystem guidance is request/runtime state, not conversation data.
+        # Never persist it in CtxItem.extra. Remove a stale key left by older
+        # builds and append the dynamic context only to the in-flight system prompt.
+        if ctx is not None and isinstance(ctx.extra, dict):
+            ctx.extra.pop("agents_v2_filesystem_context", None)
+
         if self.get_option_value("auto_cwd") and self.window.core.command.is_cmd(inline=False):
             runtime_context = self.build_runtime_filesystem_context()
             if runtime_context:
                 prompt += "\n\n" + runtime_context
-
-                # Agents v2 builds its own system prompts and therefore does not
-                # consume the final BridgeContext.system_prompt directly. Publish
-                # this dynamic Files I/O context on the current CtxItem so the
-                # orchestrator runtime can inject the exact same information into
-                # both the Orchestrator and every worker agent.
-                try:
-                    if ctx is not None:
-                        ctx.extra["agents_v2_filesystem_context"] = runtime_context
-                except Exception as e:
-                    self.window.core.debug.log(e)
         return prompt
 
     def build_runtime_filesystem_context(self) -> str:

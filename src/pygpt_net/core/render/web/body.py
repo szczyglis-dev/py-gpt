@@ -524,7 +524,7 @@ class Body:
         if not extra:
             return ""
 
-        parts: List[str] = ['<div class="msg-extra">']
+        parts: List[str] = []
 
         if "plugin" in extra:
             event = Event(Event.TOOL_OUTPUT_RENDER, {
@@ -553,8 +553,9 @@ class Body:
                 if event.data['html']:
                     parts.append(f'<div class="tool-output-block">{event.data["html"]}</div>')
 
-        parts.append("</div>")
-        return "".join(parts)
+        if not parts:
+            return ""
+        return '<div class="msg-extra">{}</div>'.format("".join(parts))
 
     def get_all_tips(self) -> str:
         """

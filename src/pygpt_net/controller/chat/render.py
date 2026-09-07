@@ -73,7 +73,7 @@ class Render:
         elif name == RenderEvent.END:
             self.end(data.get("meta"), data.get("ctx"), data.get("stream", False))
         elif name == RenderEvent.RELOAD:
-            self.reload()
+            self.reload(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.RESET:
             self.reset(data.get("meta"))
         elif name == RenderEvent.PREPARE:
@@ -82,12 +82,21 @@ class Render:
         elif name == RenderEvent.STREAM_BEGIN:
             self.stream_begin(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.STREAM_APPEND:
-            self.instance().append_chunk(
-                data.get("meta"),
-                data.get("ctx"),
-                data.get("chunk", ""),
-                data.get("begin", False),
-            )
+            if data.get("partial", False):
+                self.instance().append_part_chunk(
+                    data.get("meta"),
+                    data.get("ctx"),
+                    data.get("part_key"),
+                    data.get("chunk", ""),
+                    data.get("begin", False),
+                )
+            else:
+                self.instance().append_chunk(
+                    data.get("meta"),
+                    data.get("ctx"),
+                    data.get("chunk", ""),
+                    data.get("begin", False),
+                )
         elif name == RenderEvent.STREAM_NEXT:
             self.next_chunk(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.STREAM_END:
@@ -124,9 +133,13 @@ class Render:
         elif name == RenderEvent.TOOL_UPDATE:
             self.tool_output_update(data.get("meta"), data.get("tool_data"))
         elif name == RenderEvent.TOOL_CLEAR:
-            self.tool_output_clear(data.get("meta"))
+            self.tool_output_clear(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.TOOL_BEGIN:
-            self.tool_output_begin(data.get("meta"))
+            self.tool_output_begin(
+                data.get("meta"),
+                data.get("tool_names") or [],
+                data.get("ctx"),
+            )
         elif name == RenderEvent.TOOL_END:
             self.tool_output_end()
 
@@ -248,11 +261,13 @@ class Render:
         """
         self.instance().end(meta, ctx, stream)
         self.update()
-        # Rendering for this response segment is complete. Drop the pin so a
-        # later context/tab selection cannot inherit a stale target. A follow-up
-        # tool/agent segment will pin itself again on its next BEGIN, resolving
-        # the same mapped chat tab even if focus is currently on another column.
-        self.window.core.ctx.output.unpin_render_pid(meta=meta)
+        # A top-level request owns one chat for its whole lifetime, including
+        # tool/agent continuation segments. Do not create a routing gap between
+        # END and the next BEGIN just because keyboard focus moved elsewhere.
+        # finish_request() drops the pin after the final owning-chat reload.
+        output = self.window.core.ctx.output
+        if not output.has_request():
+            output.unpin_render_pid(meta=meta)
 
     def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False) -> None:
         """
@@ -325,9 +340,21 @@ class Render:
         self.instance().reset(meta)  # TODO: get meta id on load
         self.update()
 
-    def reload(self) -> None:
-        """Reload current output"""
-        self.instance().reload()  # TODO: or all outputs?
+    def reload(
+            self,
+            meta: Optional[CtxMeta] = None,
+            ctx: Optional[CtxItem] = None,
+    ) -> None:
+        """
+        Reload the output that owns the event.
+
+        Do not resolve the target from keyboard focus/current column: a tool in
+        the other split-screen column may own focus while this chat is being
+        rebuilt.
+        """
+        if meta is None and ctx is not None:
+            meta = getattr(ctx, "meta", None)
+        self.instance().reload(meta)
         self.update()
 
     def append_context(self, meta: CtxMeta, items: List[CtxItem], clear: bool = True) -> None:
@@ -566,22 +593,25 @@ class Render:
         self.instance().tool_output_update(meta, content)
         self.update()
 
-    def tool_output_clear(self, meta: CtxMeta) -> None:
-        """
-        Clear tool output
-
-        :param meta: context meta
-        """
-        self.instance().tool_output_clear(meta)
+    def tool_output_clear(self, meta: CtxMeta, ctx: Optional[CtxItem] = None) -> None:
+        """Freeze the active tool status without removing workflow history."""
+        self.instance().tool_output_clear(meta, ctx)
         self.update()
 
-    def tool_output_begin(self, meta: CtxMeta) -> None:
-        """
-        Begin tool output
-
-        :param meta: context meta
-        """
-        self.instance().tool_output_begin(meta)
+    def tool_output_begin(
+            self,
+            meta: CtxMeta,
+            tool_names: Optional[list] = None,
+            ctx: Optional[CtxItem] = None,
+    ) -> None:
+        """Begin a chronological tool waiting status inside the current turn."""
+        # A queued TOOL_BEGIN can arrive just after STOP/ESC. Never resurrect a
+        # waiting status once the kernel has been halted.
+        if self.window.controller.kernel.stopped():
+            self.instance().tool_output_clear(meta, ctx)
+            self.update()
+            return
+        self.instance().tool_output_begin(meta, tool_names or [], ctx)
         self.update()
 
     def tool_output_end(self) -> None:

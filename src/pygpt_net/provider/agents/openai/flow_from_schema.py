@@ -58,6 +58,7 @@ class Agent(BaseAgent):
         function_tools: list = agent_kwargs.get("function_tools", [])
 
         base_prompt = self.get_option(preset, "base", "prompt")
+        system_prompt_extra = self.get_system_prompt_extra(agent_kwargs)
         allow_local_tools_default = bool(self.get_option(preset, "base", "allow_local_tools"))
         allow_remote_tools_default = bool(self.get_option(preset, "base", "allow_remote_tools"))
         max_iterations = int(self.get_option(preset, "base", "max_iterations") or agent_kwargs.get("max_iterations", 20))
@@ -81,6 +82,7 @@ class Agent(BaseAgent):
             stream=stream,
             use_partial_ctx=use_partial_ctx or False,
             base_prompt=base_prompt,
+            system_prompt_extra=system_prompt_extra,
             allow_local_tools_default=allow_local_tools_default,
             allow_remote_tools_default=allow_remote_tools_default,
             function_tools=function_tools,

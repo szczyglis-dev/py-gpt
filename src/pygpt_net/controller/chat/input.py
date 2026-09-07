@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 12:00:00                  #
+# Updated Date: 2026.09.08 11:15:00                  #
 # ================================================== #
 
 from typing import Optional, Any, Dict
@@ -21,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_IMAGE,
 )
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 
 
@@ -46,6 +47,51 @@ class Input:
             "halt",
         ]
 
+    def _finish_request(self, meta=None):
+        """Release request routing and apply any chat focus chosen meanwhile."""
+        output = self.window.core.ctx.output
+        output.finish_request(meta)
+        self.window.controller.ui.tabs.sync_focused_chat_context()
+
+    def _pin_user_chat(self, pid: Optional[int] = None):
+        """Bind a manual send to the chat tab that actually invoked it."""
+        core = self.window.core
+        tabs_ui = self.window.controller.ui.tabs
+
+        # ``pid`` is normally snapshotted at the very beginning of send_input(),
+        # before USER_SEND/plugins can mutate focus. Keep a local fallback for
+        # direct callers/tests.
+        if pid is None:
+            pid = tabs_ui.get_effective_current_pid()
+        request_pid = core.ctx.output.begin_request(pid)
+        tab = core.tabs.get_tab_by_pid(request_pid) if request_pid is not None else None
+        if tab is None or tab.type != Tab.TAB_CHAT:
+            return None
+
+        meta_id = getattr(tab, "data_id", None)
+        meta = core.ctx.get_meta_by_id(meta_id) if meta_id is not None else None
+
+        if meta is None:
+            # A tab opened while another request was running can intentionally
+            # have no context yet. A stale/deleted data_id is equivalent: never
+            # let it leave an owner pinned to a context that cannot be resolved.
+            tab.data_id = None
+            meta = core.ctx.new()
+            if meta is not None:
+                tab.data_id = meta.id
+                core.ctx.output.bind_request_meta(meta)
+                self.window.controller.ctx.update(reload=True, all=True)
+                self.window.controller.ctx.fresh_output(meta)
+                tabs_ui.update_title_by_tab(tab, meta.name)
+        else:
+            # The source tab is authoritative. Synchronize shared ctx state once
+            # before provider/history building, then freeze it for this request.
+            if core.ctx.get_current() != meta.id:
+                self.window.controller.ctx.select_on_list_only(meta.id)
+            core.ctx.output.bind_request_meta(meta)
+
+        return meta
+
     def send_input(self, force: bool = False):
         """
         Send text from user input (called from UI)
@@ -53,6 +99,10 @@ class Input:
         :param force: force send
         """
         dispatch = self.window.dispatch
+        # Snapshot the invoker before any input/plugin event can move focus.
+        # get_effective_current_pid() also sees the latest deferred column-focus
+        # request, so a click+immediate Send is routed to the clicked chat.
+        source_pid = self.window.controller.ui.tabs.get_effective_current_pid()
         mode = self.window.core.config.get('mode')
         event = Event(Event.INPUT_BEGIN, {
             'mode': mode,
@@ -88,6 +138,12 @@ class Input:
                     dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
                 return
 
+        # A top-level request may already own a chat while attachments are still
+        # being processed (generating can still be False in that phase). Never
+        # let a second manual send steal/release that owner. STOP is handled above.
+        if self.window.core.ctx.output.has_request():
+            return
+
         # event: user input send (manually)
         event = Event(Event.USER_SEND, {
             'mode': mode,
@@ -95,6 +151,18 @@ class Input:
         })
         dispatch(event)
         text = event.data['value']
+
+        # Capture the invoking chat before attachment processing / provider
+        # dispatch can move focus or mutate the globally selected context.
+        request_meta = self._pin_user_chat(source_pid)
+        if request_meta is None:
+            # begin_request() may have resolved a valid source PID even if its
+            # context creation failed. Never leave such an owner dangling.
+            self.window.core.ctx.output.finish_request()
+            return
+        # _pin_user_chat may have synchronized a different visible chat, so use
+        # that chat's restored mode for the actual send/attachment pipeline.
+        mode = self.window.core.config.get('mode')
 
         # if attachments, return here - send will be handled via signal after upload
         if self.handle_attachment(mode, text):
@@ -174,12 +242,26 @@ class Input:
         dispatch = self.window.dispatch
         log = controller.chat.log
 
+        # Programmatic/internal sends may bypass send_input(). Preserve an
+        # existing top-level owner; otherwise derive one from the originating ctx.
+        request_meta = getattr(prev_ctx, "meta", None) if prev_ctx is not None else core.ctx.output.get_request_meta()
+        if request_meta is None:
+            request_meta = core.ctx.get_current_meta()
+        if request_meta is not None:
+            if not core.ctx.output.has_request():
+                owner_pid = core.ctx.output.get_pid(request_meta)
+                core.ctx.output.begin_request(owner_pid)
+            core.ctx.output.bind_request_meta(request_meta)
+            core.ctx.output.pin_render_pid(request_meta)
+
         dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "chat",
+            "meta": request_meta,
         }))
 
         # check if input is not locked
         if self.locked and not force and not internal:
+            self._finish_request(request_meta)
             return
 
         log("Begin.")
@@ -190,6 +272,7 @@ class Input:
         if mode == MODE_ASSISTANT:
             if not controller.assistant.check():
                 self.generating = False  # unlock
+                self._finish_request(request_meta)
                 return
 
         # handle camera capture
@@ -219,13 +302,16 @@ class Input:
             if not silent:
                 dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
                     "id": "chat",
+                    "meta": request_meta,
                 }))
+            self._finish_request(request_meta)
             return
 
         # set state to: busy
         dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
             "id": "chat",
             "msg": trans('status.sending'),
+            "meta": request_meta,
         }))
 
         # clear input field if clear-on-send is enabled
@@ -279,14 +365,18 @@ class Input:
                 status = "Processing attachments..."
             dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
                 "id": "chat",
-                "msg": status
+                "msg": status,
+                "meta": self.window.core.ctx.output.get_request_meta(),
             }))
             try:
                 controller.chat.attachment.handle(mode, text)
             except Exception as e:
+                request_meta = self.window.core.ctx.output.get_request_meta()
                 dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
                     "id": "chat",
-                    "msg": f"Error processing attachments: {e}"
+                    "msg": f"Error processing attachments: {e}",
+                    "meta": request_meta,
                 }))
+                self._finish_request(request_meta)
 
         return exists

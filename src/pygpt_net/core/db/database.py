@@ -86,6 +86,16 @@ class Database:
             'audio_id',
             'audio_expires_ts',
         ]
+        columns["ctx_item_partial"] = [
+            'id', 'uuid', 'parent_item_id', 'agent_id', 'name', 'output',
+            'extra_json', 'created_at', 'updated_at',
+        ]
+        columns["ctx_item_partial_task"] = [
+            'id', 'uuid', 'parent_item_part_id', 'agent_id', 'name',
+            'task_name', 'task_summary', 'input', 'output', 'tool_call_id',
+            'tool_input_json', 'tool_output_json', 'extra_json',
+            'created_at', 'updated_at',
+        ]
         columns["ctx_meta"] = [
             'id',
             'name',
@@ -236,6 +246,27 @@ class Database:
                 'timestamp_columns': ['input_ts', 'output_ts', 'audio_expires_ts'],
                 'json_columns': ['cmds_json', 'results_json', 'urls_json', 'images_json', 'files_json',
                                  'attachments_json', 'docs_json', 'additional_ctx_json'],
+                'default_sort': 'id',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'ctx_item_partial': {
+                'columns': columns["ctx_item_partial"],
+                'sort_by': columns["ctx_item_partial"],
+                'search_fields': ['id', 'uuid', 'parent_item_id', 'agent_id', 'name', 'output'],
+                'timestamp_columns': ['created_at', 'updated_at'],
+                'json_columns': ['extra_json'],
+                'default_sort': 'id',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'ctx_item_partial_task': {
+                'columns': columns["ctx_item_partial_task"],
+                'sort_by': columns["ctx_item_partial_task"],
+                'search_fields': ['id', 'uuid', 'parent_item_part_id', 'agent_id', 'name', 'task_name',
+                                  'task_summary', 'input', 'output', 'tool_call_id'],
+                'timestamp_columns': ['created_at', 'updated_at'],
+                'json_columns': ['tool_input_json', 'tool_output_json', 'extra_json'],
                 'default_sort': 'id',
                 'default_order': 'DESC',
                 'primary_key': 'id',

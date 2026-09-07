@@ -119,24 +119,53 @@ class Stream(QObject):
         controller.ui.update_tokens()
         mode = pid_data["mode"]
 
+        source_ctx = ctx
+        is_continuation = bool(getattr(source_ctx, "turn_parent", None))
+        durable_ctx = source_ctx
+        if is_continuation:
+            # The stream worker has now consumed the provider generator and
+            # populated source_ctx.output/tool_calls. Only now is it safe to fold
+            # the ephemeral continuation into the durable user turn.
+            durable_ctx = self.window.core.ctx.merge_continuation(source_ctx)
+            pid_data["ctx"] = durable_ctx
+            bridge_context = pid_data.get("context")
+            if bridge_context is not None:
+                bridge_context.ctx = durable_ctx
+
         data = {
-            "meta": pid_data["ctx"].meta,
-            "ctx": pid_data["ctx"]
+            "meta": durable_ctx.meta,
+            "ctx": durable_ctx
         }
         event = RenderEvent(RenderEvent.STREAM_END, data)
         self.window.dispatch(event)
         controller.chat.output.handle_after(
-            ctx=ctx,
+            ctx=durable_ctx,
             mode=mode,
             stream=True,
         )
 
+        if is_continuation:
+            # First materialize the completed tool/result (and any completed
+            # continuation text) in the durable parent. Only then freeze/clear the
+            # transient waiting row. This makes the hand-off atomic from the
+            # user's perspective: ``Tools: ...`` never disappears into a spinner-
+            # only gap before the real Tool/Tools accordion is available.
+            #
+            # Rebuild before post_handle(). If this streamed response contains a
+            # new tool call, post_handle() will create its pending status after
+            # the reload instead of having that transient status wiped by it.
+            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": durable_ctx.meta, "ctx": durable_ctx}))
+            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                "meta": durable_ctx.meta,
+                "ctx": durable_ctx,
+            }))
+
         if mode == MODE_ASSISTANT:
-            controller.assistant.threads.handle_output_message_after_stream(ctx)
+            controller.assistant.threads.handle_output_message_after_stream(durable_ctx)
         else:
             if pid_data["is_response"]:
                 controller.chat.response.post_handle(
-                    ctx=ctx,
+                    ctx=durable_ctx,
                     mode=mode,
                     stream=True,
                     reply=pid_data["reply"],
@@ -160,6 +189,42 @@ class Stream(QObject):
         :param chunk: Chunk of data
         :param begin: Whether this is the beginning of the stream
         """
+        # Tool feedback is an ephemeral provider call, but its visible prose
+        # belongs to the same durable user turn. Once text appears after a tool,
+        # materialize the completed tool round and stream the new text into a
+        # nested partial of the *parent* msg-box. Never open another live msg-box
+        # for the continuation, because that looks like a new CtxItem.
+        parent = getattr(ctx, "turn_parent", None)
+        if parent is not None:
+            renderer = self.instance()
+            if begin:
+                previous_part = getattr(ctx, "turn_previous_part", None)
+                if previous_part is not None:
+                    self.window.core.ctx.mark_part_tasks_ui_ready(previous_part, True)
+                    self.window.core.ctx.update_part(parent, previous_part, sync_item=True)
+                # The durable parent becomes the authoritative DOM skeleton:
+                # previous text/tool partials are rendered in their real order.
+                # Discard any old inline timer before replacing that DOM.
+                if hasattr(renderer, "discard_part_streams"):
+                    renderer.discard_part_streams(parent.meta)
+                # Replace the live waiting row with the now UI-ready durable
+                # tool block before clearing the transient status. RELOAD is a
+                # single replaceNodes() operation, so there is no spinner-only
+                # frame between the two representations.
+                self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": parent.meta, "ctx": parent}))
+                self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                    "meta": parent.meta, "ctx": parent,
+                }))
+
+            renderer.append_part_chunk(
+                parent.meta,
+                parent,
+                f"chat-{getattr(ctx, 'pid', id(ctx))}",
+                chunk,
+                begin,
+            )
+            return
+
         # direct call to the renderer to avoid overhead of event queue
         self.instance().append_chunk(
             ctx.meta,
@@ -192,19 +257,34 @@ class Stream(QObject):
         pid_data = self.pids[pid]
 
         self.window.core.debug.log(error)
+        failed_meta = getattr(pid_data.get("ctx"), "meta", None)
+        self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": failed_meta}))
+        self.window.dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": failed_meta, "ctx": pid_data.get("ctx")}))
         if pid_data["is_response"]:
             if not isinstance(pid_data["extra"], dict):
                 pid_data["extra"] = {}
             pid_data["extra"]["error"] = error
+            pid_data["extra"]["_stream_worker_error"] = True
+            failed_ctx = pid_data["ctx"]
+            parent = getattr(failed_ctx, "turn_parent", None)
+            if parent is not None:
+                failed_ctx = parent
+                if pid_data.get("context") is not None:
+                    pid_data["context"].ctx = parent
             self.window.controller.chat.response.failed(pid_data["context"], pid_data["extra"])
             self.window.controller.chat.response.post_handle(
-                ctx=pid_data["ctx"],
+                ctx=failed_ctx,
                 mode=pid_data["mode"],
                 stream=True,
                 reply=pid_data["reply"],
                 internal=pid_data["internal"],
             )
-        # TODO: remove PID from tracking on error?
+
+            # response.failed()+post_handle() above is the complete response
+            # error lifecycle. Consume the paired end signal by removing this
+            # worker now, otherwise handleEnd() would finalize it a second time.
+            pid_data["worker"] = None
+            self.pids.pop(pid, None)
 
     def log(self, data: object):
         """

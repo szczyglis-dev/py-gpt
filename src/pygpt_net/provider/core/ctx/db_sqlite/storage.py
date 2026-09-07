@@ -18,11 +18,15 @@ from sqlalchemy import text
 
 from pygpt_net.utils import get_tz_offset
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
+from pygpt_net.item.ctx_part import CtxItemPart
+from pygpt_net.item.ctx_part_task import CtxItemPartTask
 from .utils import \
     search_by_date_string, \
     pack_item_value, \
     unpack_meta, \
     unpack_item, \
+    unpack_part, \
+    unpack_part_task, \
     get_month_start_end_timestamps, \
     get_year_start_end_timestamps, \
     unpack_group
@@ -267,26 +271,73 @@ class Storage:
                 items[meta.id] = meta
         return items
 
-    def get_item_by_id(self, id: int) -> Optional[CtxItem]:
-        """
-        Return ctx item by ID
-
-        :return: CtxItem
-        """
-        stmt = text("""
-            SELECT * FROM ctx_item WHERE id = :id
-        """).bindparams(id=id)
+    def _get_items_with_parts(self, where: str, params: dict) -> List[CtxItem]:
+        """Load items, partial items and tasks in one JOIN and compose outputs."""
+        stmt = text(f"""
+            SELECT
+                i.*,
+                p.id AS p_id, p.uuid AS p_uuid, p.parent_item_id AS p_parent_item_id,
+                p.agent_id AS p_agent_id, p.name AS p_name, p.output AS p_output,
+                p.extra_json AS p_extra_json, p.created_at AS p_created_at, p.updated_at AS p_updated_at,
+                t.id AS t_id, t.uuid AS t_uuid, t.parent_item_part_id AS t_parent_item_part_id,
+                t.agent_id AS t_agent_id, t.name AS t_name, t.task_name AS t_task_name,
+                t.task_summary AS t_task_summary, t.input AS t_input, t.output AS t_output,
+                t.tool_call_id AS t_tool_call_id, t.tool_input_json AS t_tool_input_json,
+                t.tool_output_json AS t_tool_output_json, t.extra_json AS t_extra_json,
+                t.created_at AS t_created_at, t.updated_at AS t_updated_at
+            FROM ctx_item i
+            LEFT JOIN ctx_item_partial p ON p.parent_item_id = i.id
+            LEFT JOIN ctx_item_partial_task t ON t.parent_item_part_id = p.id
+            WHERE {where}
+            ORDER BY i.id ASC, p.id ASC, t.id ASC
+        """).bindparams(**params)
         db = self.window.core.db.get_db()
+        items = {}
+        parts = {}
         with db.connect() as conn:
-            result = conn.execute(stmt)
-            row = result.fetchone()
-            if row:
-                item = CtxItem()
-                unpack_item(item, row._asdict())
-                meta = self.get_meta_by_id(item.meta_id)  # append meta
-                item.meta = meta
-                return item
-        return None
+            for row in conn.execute(stmt):
+                data = row._asdict()
+                item_id = int(data['id'])
+                item = items.get(item_id)
+                if item is None:
+                    item = CtxItem()
+                    unpack_item(item, data)
+                    item.parts = []
+                    item.active_part = None
+                    items[item_id] = item
+
+                part_id = data.get('p_id')
+                if part_id is None:
+                    continue
+                part_id = int(part_id)
+                part = parts.get(part_id)
+                if part is None:
+                    part = CtxItemPart()
+                    unpack_part(part, data, prefix='p_')
+                    parts[part_id] = part
+                    item.parts.append(part)
+                    item.active_part = part
+
+                task_id = data.get('t_id')
+                if task_id is not None and not any(t.id == int(task_id) for t in part.tasks):
+                    task = CtxItemPartTask()
+                    unpack_part_task(task, data, prefix='t_')
+                    part.tasks.append(task)
+
+        result = list(items.values())
+        for item in result:
+            if item.parts:
+                item.sync_output_from_parts()
+        return result
+
+    def get_item_by_id(self, id: int) -> Optional[CtxItem]:
+        """Return ctx item by ID with partial items/tasks eagerly loaded."""
+        items = self._get_items_with_parts("i.id = :id", {"id": id})
+        if not items:
+            return None
+        item = items[0]
+        item.meta = self.get_meta_by_id(item.meta_id)
+        return item
 
     def get_meta_by_root_id_and_preset_id(
             self,
@@ -352,23 +403,8 @@ class Storage:
         return 0
 
     def get_items(self, id: int) -> List[CtxItem]:
-        """
-        Return ctx items list by ctx meta ID
-
-        :return: list of CtxItem
-        """
-        stmt = text("""
-            SELECT * FROM ctx_item WHERE meta_id = :id ORDER BY id ASC
-        """).bindparams(id=id)
-        items = []
-        db = self.window.core.db.get_db()
-        with db.connect() as conn:
-            result = conn.execute(stmt)
-            for row in result:
-                item = CtxItem()
-                unpack_item(item, row._asdict())
-                items.append(item)
-        return items
+        """Return ctx items with partial items/tasks eagerly loaded."""
+        return self._get_items_with_parts("i.meta_id = :id", {"id": id})
 
     def truncate_all(self, reset: bool = True) -> bool:
         """
@@ -379,11 +415,12 @@ class Storage:
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_item_partial_task"))
+            conn.execute(text("DELETE FROM ctx_item_partial"))
             conn.execute(text("DELETE FROM ctx_item"))
             conn.execute(text("DELETE FROM ctx_meta"))
             if reset:  # reset table sequence (autoincrement)
-                conn.execute(text(f"DELETE FROM sqlite_sequence WHERE name='ctx_item'"))
-                conn.execute(text(f"DELETE FROM sqlite_sequence WHERE name='ctx_meta'"))
+                conn.execute(text("DELETE FROM sqlite_sequence WHERE name IN ('ctx_item_partial_task','ctx_item_partial','ctx_item','ctx_meta')"))
         return True
 
     def delete_meta_by_id(self, id: int) -> bool:
@@ -395,6 +432,8 @@ class Storage:
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT p.id FROM ctx_item_partial p JOIN ctx_item i ON i.id=p.parent_item_id WHERE i.meta_id=:id)").bindparams(id=id))
+            conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id IN (SELECT id FROM ctx_item WHERE meta_id=:id)").bindparams(id=id))
             conn.execute(text("DELETE FROM ctx_item WHERE meta_id = :id").bindparams(id=id))
             conn.execute(text("DELETE FROM ctx_meta WHERE id = :id").bindparams(id=id))
         return True
@@ -406,11 +445,11 @@ class Storage:
         :param id: ctx item ID
         :return: True if deleted
         """
-        stmt = text("""
-            DELETE FROM ctx_item WHERE id = :id
-        """).bindparams(id=id)
+        stmt = text("DELETE FROM ctx_item WHERE id = :id").bindparams(id=id)
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT id FROM ctx_item_partial WHERE parent_item_id=:id)").bindparams(id=id))
+            conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id=:id").bindparams(id=id))
             conn.execute(stmt)
         return True
 
@@ -430,6 +469,8 @@ class Storage:
         )
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT p.id FROM ctx_item_partial p JOIN ctx_item i ON i.id=p.parent_item_id WHERE i.id>=:item_id AND i.meta_id=:meta_id)").bindparams(item_id=item_id, meta_id=meta_id))
+            conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id IN (SELECT id FROM ctx_item WHERE id>=:item_id AND meta_id=:meta_id)").bindparams(item_id=item_id, meta_id=meta_id))
             conn.execute(stmt)
         return True
 
@@ -445,6 +486,8 @@ class Storage:
         """).bindparams(id=id)
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT p.id FROM ctx_item_partial p JOIN ctx_item i ON i.id=p.parent_item_id WHERE i.meta_id=:id)").bindparams(id=id))
+            conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id IN (SELECT id FROM ctx_item WHERE meta_id=:id)").bindparams(id=id))
             conn.execute(stmt)
         return True
 
@@ -802,6 +845,86 @@ class Storage:
             meta.id = result.lastrowid
             return meta.id
 
+    def insert_part(self, part: CtxItemPart) -> int:
+        db = self.window.core.db.get_db()
+        now = int(time.time())
+        if not part.created_at:
+            part.created_at = now
+        part.updated_at = now
+        stmt = text("""
+            INSERT INTO ctx_item_partial
+            (uuid, parent_item_id, agent_id, name, output, extra_json, created_at, updated_at)
+            VALUES (:uuid, :parent_item_id, :agent_id, :name, :output, :extra_json, :created_at, :updated_at)
+        """).bindparams(
+            uuid=part.uuid, parent_item_id=part.parent_item_id, agent_id=part.agent_id,
+            name=part.name, output=part.output, extra_json=pack_item_value(part.extra),
+            created_at=int(part.created_at or now), updated_at=int(part.updated_at or now),
+        )
+        with db.begin() as conn:
+            result = conn.execute(stmt)
+            part.id = result.lastrowid
+        return part.id
+
+    def update_part(self, part: CtxItemPart) -> bool:
+        if part.id is None:
+            return False
+        part.updated_at = int(time.time())
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_item_partial SET agent_id=:agent_id, name=:name, output=:output,
+                extra_json=:extra_json, updated_at=:updated_at WHERE id=:id
+        """).bindparams(
+            id=part.id, agent_id=part.agent_id, name=part.name, output=part.output,
+            extra_json=pack_item_value(part.extra), updated_at=part.updated_at,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+        return True
+
+    def insert_part_task(self, task: CtxItemPartTask) -> int:
+        db = self.window.core.db.get_db()
+        now = int(time.time())
+        if not task.created_at:
+            task.created_at = now
+        task.updated_at = now
+        stmt = text("""
+            INSERT INTO ctx_item_partial_task
+            (uuid, parent_item_part_id, agent_id, name, task_name, task_summary, input, output,
+             tool_call_id, tool_input_json, tool_output_json, extra_json, created_at, updated_at)
+            VALUES (:uuid, :parent, :agent_id, :name, :task_name, :task_summary, :input, :output,
+                    :tool_call_id, :tool_input, :tool_output, :extra, :created_at, :updated_at)
+        """).bindparams(
+            uuid=task.uuid, parent=task.parent_item_part_id, agent_id=task.agent_id, name=task.name,
+            task_name=task.task_name, task_summary=task.task_summary, input=task.input, output=task.output,
+            tool_call_id=task.tool_call_id, tool_input=pack_item_value(task.tool_input),
+            tool_output=pack_item_value(task.tool_output), extra=pack_item_value(task.extra),
+            created_at=int(task.created_at or now), updated_at=int(task.updated_at or now),
+        )
+        with db.begin() as conn:
+            result = conn.execute(stmt)
+            task.id = result.lastrowid
+        return task.id
+
+    def update_part_task(self, task: CtxItemPartTask) -> bool:
+        if task.id is None:
+            return False
+        task.updated_at = int(time.time())
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_item_partial_task SET agent_id=:agent_id, name=:name, task_name=:task_name,
+                task_summary=:task_summary, input=:input, output=:output, tool_call_id=:tool_call_id,
+                tool_input_json=:tool_input, tool_output_json=:tool_output, extra_json=:extra,
+                updated_at=:updated_at WHERE id=:id
+        """).bindparams(
+            id=task.id, agent_id=task.agent_id, name=task.name, task_name=task.task_name,
+            task_summary=task.task_summary, input=task.input, output=task.output, tool_call_id=task.tool_call_id,
+            tool_input=pack_item_value(task.tool_input), tool_output=pack_item_value(task.tool_output),
+            extra=pack_item_value(task.extra), updated_at=task.updated_at,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+        return True
+
     def insert_item(self, meta: CtxMeta, item: CtxItem) -> int:
         """
         Insert ctx item
@@ -914,6 +1037,29 @@ class Storage:
             result = conn.execute(stmt)
             item.id = result.lastrowid
 
+        # Every newly created turn starts with a durable partial item. Existing
+        # databases without partial rows remain readable through the JOIN fallback.
+        # If this CtxItem already carries a part/task graph (e.g. context
+        # duplication/import via save_all), persist the whole graph and remap all
+        # parent IDs to the newly inserted ctx_item instead of dropping structure.
+        if not item.parts:
+            part = CtxItemPart(parent_item_id=item.id, output=item.output)
+            self.insert_part(part)
+            item.parts.append(part)
+            item.active_part = part
+        else:
+            for part in item.parts:
+                tasks = list(part.tasks or [])
+                part.id = None
+                part.parent_item_id = item.id
+                self.insert_part(part)
+                for task in tasks:
+                    task.id = None
+                    task.parent_item_part_id = part.id
+                    self.insert_part_task(task)
+            item.active_part = item.parts[-1]
+            item.sync_output_from_parts()
+            self.update_item(item)
         return item.id
 
     def update_item(self, item: CtxItem) -> bool:

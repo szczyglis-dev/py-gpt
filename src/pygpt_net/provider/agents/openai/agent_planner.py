@@ -371,7 +371,10 @@ Overall Task: {task}
 
         # Use prompt from options if provided; fallback to internal default.
         step_prompt = self.get_option(preset, "step", "prompt") if preset else None
-        base_instructions = step_prompt or self.PROMPT
+        base_instructions = self.append_system_prompt_extra(
+            step_prompt or self.PROMPT,
+            kwargs,
+        )
 
         allow_local_tools = bool(kwargs.get("allow_local_tools", False))
         allow_remote_tools = bool(kwargs.get("allow_remote_tools", False))
@@ -417,6 +420,7 @@ Overall Task: {task}
             tools: list,
             allow_local_tools: bool = False,
             allow_remote_tools: bool = False,
+            system_prompt_extra: str = "",
     ) -> OpenAIAgent:
         """
         Return Agent provider instance producing a structured Plan.
@@ -424,7 +428,10 @@ Overall Task: {task}
         kwargs = {
             "name": "StructuredPlanner",
             # Minimal instructions; the full template is injected as user content.
-            "instructions": "Return a JSON object matching the provided schema.",
+            "instructions": self.append_system_prompt_extra(
+                "Return a JSON object matching the provided schema.",
+                {"system_prompt_extra": system_prompt_extra},
+            ),
             "model": window.core.agents.provider.get_openai_model(model),
             "output_type": Plan,
         }
@@ -447,13 +454,17 @@ Overall Task: {task}
             tools: list,
             allow_local_tools: bool = False,
             allow_remote_tools: bool = False,
+            system_prompt_extra: str = "",
     ) -> OpenAIAgent:
         """
         Return Agent provider instance producing a structured PlanRefinement.
         """
         kwargs = {
             "name": "PlanRefiner",
-            "instructions": "Refine remaining plan steps and return a strict JSON object as instructed.",
+            "instructions": self.append_system_prompt_extra(
+                "Refine remaining plan steps and return a strict JSON object as instructed.",
+                {"system_prompt_extra": system_prompt_extra},
+            ),
             "model": window.core.agents.provider.get_openai_model(model),
             "output_type": PlanRefinement,
         }
@@ -500,6 +511,7 @@ Overall Task: {task}
         max_steps = int(agent_kwargs.get("max_iterations", 10))
         tools = agent_kwargs.get("function_tools", [])
         preset = context.preset
+        system_prompt_extra = self.get_system_prompt_extra(agent_kwargs)
 
         # add experts
         experts = get_experts(
@@ -507,6 +519,7 @@ Overall Task: {task}
             preset=preset,
             verbose=verbose,
             tools=tools,
+            system_prompt_extra=self.get_system_prompt_extra(agent_kwargs),
         )
         if experts:
             agent_kwargs["handoffs"] = experts
@@ -567,6 +580,7 @@ Overall Task: {task}
             tools=tools,
             allow_local_tools=planner_allow_local_tools,
             allow_remote_tools=planner_allow_remote_tools,
+            system_prompt_extra=system_prompt_extra,
         )
 
         plan_prompt = self._render_prompt(
@@ -763,6 +777,7 @@ Overall Task: {task}
                     tools=tools,
                     allow_local_tools=refine_allow_local_tools,
                     allow_remote_tools=refine_allow_remote_tools,
+                    system_prompt_extra=system_prompt_extra,
                 )
 
                 refinement: Optional[PlanRefinement] = None

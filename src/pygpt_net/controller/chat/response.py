@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 14:20:00                  #
+# Updated Date: 2026.09.08 11:20:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -41,6 +41,11 @@ class Response:
         self.window = window
         self.last_response_id = None
         self._agent_v2_last_store = {}
+        self._agent_v2_parts = {}
+        self._agent_v2_finalizing = set()
+        # Runtime part UUID currently rendered inline inside the durable bot
+        # message. This is UI-only state; the parent CtxItem remains unchanged.
+        self._agent_v2_inline_parts = {}
 
     def handle(
             self,
@@ -74,38 +79,70 @@ class Response:
             if controller.kernel.stopped():
                 return
 
+        source_ctx = ctx
+        is_continuation = bool(getattr(source_ctx, "turn_parent", None))
+        stream = bool(context.stream)
+        if is_continuation:
+            # Non-stream continuations can be folded immediately. A streamed
+            # continuation must keep its ephemeral CtxItem until StreamWorker has
+            # consumed the provider generator; merging it here would replace
+            # context.ctx with the durable parent before the stream even starts.
+            if status and not stream:
+                ctx = core.ctx.merge_continuation(source_ctx)
+                context.ctx = ctx
+            elif not status:
+                ctx = source_ctx.turn_parent
+                context.ctx = ctx
+                dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta}))
+            else:
+                ctx = source_ctx
+
         ctx.current = False  # reset current state
-        stream = context.stream
         mode = extra.get('mode', MODE_CHAT)
         reply = extra.get('reply', False)
         internal = extra.get('internal', False)
-        core.ctx.update_item(ctx)
+        if not is_continuation:
+            core.ctx.update_item(ctx)
 
         # fix frozen chat
         if not status:
+            failed_meta = getattr(ctx, "meta", None)
             dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
-                "meta": ctx.meta,
+                "meta": failed_meta,
             }))  # hide cmd waiting
             if not controller.kernel.stopped():
                 controller.chat.common.unlock_input()  # unlock input
             dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
                 "id": "chat",
+                "meta": failed_meta,
             }))
+            controller.chat.input.generating = False
+            if ctx is not None and failed_meta is not None:
+                dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": failed_meta, "ctx": ctx}))
+            core.ctx.output.finish_request(meta=failed_meta)
+            controller.ui.tabs.sync_focused_chat_context()
             return
 
         try:
             if mode != MODE_ASSISTANT:
-                ctx.from_previous()  # append previous result if exists
+                if not is_continuation:
+                    ctx.from_previous()
                 controller.chat.output.handle(
-                    ctx,
-                    mode,
-                    stream,
-                    is_response=True,
-                    reply=reply,
-                    internal=internal,
-                    context=context,
-                    extra=extra,
+                    ctx, mode, stream, is_response=True, reply=reply, internal=internal,
+                    context=context, extra=extra, render=not is_continuation,
                 )
+                if is_continuation:
+                    # Normalize/persist the continuation first. This prevents a
+                    # legacy <tool> request from being rendered as a completed
+                    # button before it has even been executed. Keep the waiting
+                    # row alive until that durable replacement is dispatched, so
+                    # non-stream replies have the same gap-free hand-off as
+                    # streamed replies.
+                    dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+                    dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                        "meta": ctx.meta,
+                        "ctx": ctx,
+                    }))
         except Exception as e:
             extra["error"] = e
             self.failed(context, extra)
@@ -141,8 +178,10 @@ class Response:
         :param internal: True if internal mode
         """
         output = self.window.controller.chat.output
-        output.post_handle(ctx, mode, stream, reply, internal)
-        output.handle_end(ctx, mode)  # handle end.
+        finished = output.post_handle(ctx, mode, stream, reply, internal)
+        if finished:
+            output.handle_end(ctx, mode)
+        return bool(finished)
 
     def begin(
             self,
@@ -155,6 +194,18 @@ class Response:
         :param context: BridgeContext
         :param extra: Extra data
         """
+        ctx = context.ctx
+        ctx.stopped = False
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        ctx.extra.pop("response_final", None)
+        ctx.extra.pop("response_interrupted", None)
+        if ctx.id is not None:
+            try:
+                self.window.core.ctx.update_item(ctx)
+            except Exception:
+                pass
+
         msg = extra.get("msg", "")
         self.window.controller.chat.common.lock_input()  # lock input
         if msg:
@@ -184,12 +235,19 @@ class Response:
             # if ctx.output and has_unclosed_code_tag(ctx.output):
                 # ctx.output += "\n```"
             ctx.msg_id = None
+            ctx.stopped = True
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            ctx.extra["response_interrupted"] = True
+            ctx.extra.pop("response_final", None)
             if ctx.id is None:
                 if not ctx.is_empty():
                     core.ctx.add(ctx)  # store context to prevent current output from being lost
                 controller.ctx.prepare_name(ctx)  # summarize if not yet
+            if ctx.id is not None:
+                core.ctx.update_item(ctx)
             dispatch(AppEvent(AppEvent.CTX_END))  # finish render
-            dispatch(RenderEvent(RenderEvent.RELOAD))  # reload chat window
+            dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))  # reload owning chat
             return
 
         prev_ctx = ctx.prev_ctx
@@ -260,7 +318,7 @@ class Response:
         # post-handle, execute cmd, etc.
         chat_output.post_handle(ctx, mode, stream, reply, internal)
         chat_output.handle_end(ctx, mode)  # handle end.
-        dispatch(RenderEvent(RenderEvent.RELOAD))
+        dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
 
         # ----------- EVALUATE AGENT RESPONSE -----------
 
@@ -291,6 +349,7 @@ class Response:
             dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
                 "id": "agent",
                 "msg": trans("status.agent.reasoning"),
+                "meta": getattr(ctx, "meta", None),
             }))
 
         # agent final response, with fix for async delayed finish (prevent multiple calls for the same response)
@@ -319,6 +378,7 @@ class Response:
         self.window.controller.chat.common.unlock_input()  # unlock input
         self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "chat",
+            "meta": getattr(getattr(context, "ctx", None), "meta", None),
         }))
 
     def failed(
@@ -332,6 +392,17 @@ class Response:
         :param context: BridgeContext
         :param extra: Extra data
         """
+        ctx = context.ctx
+        if ctx is not None:
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            ctx.extra["response_interrupted"] = True
+            ctx.extra.pop("response_final", None)
+            try:
+                self.window.core.ctx.update_item(ctx)
+            except Exception:
+                pass
+
         msg = extra.get("error") if "error" in extra else None
         self.window.controller.chat.log(f"Output ERROR: {msg}")  # log
         self.window.controller.chat.handle_error(msg)
@@ -339,42 +410,233 @@ class Response:
         print(f"Error in sending text: {msg}")
         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
             "id": "chat",
+            "meta": getattr(ctx, "meta", None),
         }))
+        if not extra.get("_stream_worker_error", False):
+            self.window.controller.chat.input.generating = False
+            if ctx is not None and getattr(ctx, "meta", None) is not None:
+                self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+            self.window.core.ctx.output.finish_request(meta=getattr(ctx, "meta", None))
+            self.window.controller.ui.tabs.sync_focused_chat_context()
 
     def agent_v2_begin(self, context: BridgeContext, extra: Dict[str, Any]):
         """Begin the single user-visible Agents v2 response stream."""
         ctx = context.ctx
+        ctx.stopped = False
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        ctx.extra.pop("response_final", None)
+        ctx.extra.pop("response_interrupted", None)
+        if ctx.id is not None:
+            try:
+                self.window.core.ctx.update_item(ctx)
+            except Exception:
+                pass
+        key = getattr(ctx, "id", None) or id(ctx)
+        self._agent_v2_finalizing.discard(key)
+        self._agent_v2_inline_parts.pop(key, None)
         self.window.controller.chat.common.lock_input()
+        # Do not allocate a durable partial from the Qt/UI side. The runtime is
+        # the sole owner of Agents v2 partial creation and supplies the exact UUID
+        # with every text append. Having both threads create the initial row made
+        # duplicate empty/identical partials possible under signal timing races.
+        part = ctx.get_active_part()
+        if part is not None:
+            self._agent_v2_parts[key] = part
         if ctx.output is None:
             ctx.output = ""
         self.window.dispatch(RenderEvent(RenderEvent.STREAM_BEGIN, {"meta": ctx.meta, "ctx": ctx}))
 
-    def agent_v2_append(self, context: BridgeContext, extra: Dict[str, Any], chunk: str, begin: bool = False):
-        """Append durable orchestrator prose to the same response."""
+    def agent_v2_final_begin(self, context: BridgeContext, extra: Dict[str, Any]):
+        """Materialize prior workflow and begin the final timeline segment.
+
+        FINAL_BEGIN is emitted before the first final-answer chunk. Persisted
+        partials/tools are reloaded first, then only the transient stream area is
+        reset. The already rendered workflow remains visible above the final text.
+        """
+        ctx = context.ctx
+        key = getattr(ctx, "id", None) or id(ctx)
+        self._agent_v2_finalizing.add(key)
+        self.agent_v2_status(context, extra, "")
+        # The previous inline partial is already complete in the durable model.
+        # Cancel its UI micro-batch before replacing the DOM, otherwise a late
+        # timer could append stale text after RELOAD.
+        renderer = self.window.controller.chat.render.instance()
+        if hasattr(renderer, "discard_part_streams"):
+            renderer.discard_part_streams(ctx.meta)
+        # Clear transient statuses, then materialize every completed partial/tool
+        # inside the same durable CtxItem before the final partial starts.
+        self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
+        self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+        try:
+            renderer.agent_v2_final_begin(ctx.meta, ctx)
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+
+    def agent_v2_append(
+            self,
+            context: BridgeContext,
+            extra: Dict[str, Any],
+            chunk: str,
+            begin: bool = False,
+            part_begin: bool = False,
+            part_uuid: str = None,
+    ):
+        """Append orchestrator prose, persisting each LLM pass as a partial item."""
         if self.window.controller.kernel.stopped():
             return
         ctx = context.ctx
-        if ctx.output is None:
-            ctx.output = ""
-        ctx.output += str(chunk or "")
-        ctx.stream = str(chunk or "")
+        core_ctx = self.window.core.ctx
+        key = getattr(ctx, "id", None) or id(ctx)
+        previous_part = self._agent_v2_parts.get(key)
+        part = None
+        if part_uuid:
+            for candidate in ctx.parts or []:
+                if str(getattr(candidate, "uuid", "")) == str(part_uuid):
+                    part = candidate
+                    break
+        if part is None:
+            part = self._agent_v2_parts.get(key)
+        if part_uuid and part is not None and str(getattr(part, "uuid", "")) != str(part_uuid):
+            part = None
+
+        if part is None and not part_uuid:
+            # Compatibility fallback for legacy emitters which did not send a
+            # durable part UUID. Current Agents v2 runtime always sends one.
+            part = self._agent_v2_parts.get(key) or ctx.get_active_part()
+            if part is None:
+                part = core_ctx.ensure_part(ctx)
+                if part is not None:
+                    part.agent_id = "orchestrator"
+                    part.name = "Orchestrator"
+        elif part is None and part_uuid:
+            # Never synthesize a replacement row for a UUID created by the
+            # runtime. Doing so is exactly how one logical orchestrator output
+            # could become two ctx_item_partial rows. Keep rendering the chunk;
+            # the final commit remains defensive, but do not duplicate storage.
+            try:
+                self.window.core.debug.info(
+                    f"[agents_v2] Missing runtime partial for UUID: {part_uuid}"
+                )
+            except Exception:
+                pass
+
+        # Flush the complete previous partial when the runtime switches UUIDs.
+        # Per-part throttling avoids token-level SQLite writes, but without this
+        # handoff flush the tail received inside the 250 ms window could remain
+        # only in memory once streaming moved to the next partial.
+        part_changed = bool(
+            previous_part is not None
+            and part is not None
+            and previous_part is not part
+            and str(getattr(previous_part, "uuid", "")) != str(getattr(part, "uuid", ""))
+        )
+        if part_changed:
+            core_ctx.update_part(ctx, previous_part, sync_item=True)
+
+        # A real runtime part boundary means that the preceding tool/text segment
+        # is complete. Materialize it in the durable parent and then stream the
+        # new prose as an *inline partial* of that same msg-box. Do not begin a
+        # second generic stream row: that visually behaves like a new CtxItem.
+        if part_begin and part_changed and key not in self._agent_v2_finalizing:
+            renderer = self.window.controller.chat.render.instance()
+            if hasattr(renderer, "discard_part_streams"):
+                renderer.discard_part_streams(ctx.meta)
+            self.window.dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
+            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
+            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+
+        self._agent_v2_parts[key] = part
+
+        value = str(chunk or "")
+        if key in self._agent_v2_finalizing and begin:
+            # Token-adjacent cleanup: a status event queued before FINAL_BEGIN may
+            # be delivered later by Qt. Remove it again immediately before the
+            # first authoritative final token is handed to the renderer.
+            self.window.dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
+            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
+        if part is not None:
+            if value and not str(part.output or "").strip():
+                if not isinstance(part.extra, dict):
+                    part.extra = {}
+                part.extra.setdefault("output_created_at", int(time.time() * 1000))
+            part.append_output(value)
+        # Part boundaries are rendered as separate chronological segments. Do
+        # not fake that separation by prepending newlines to one shared live draft.
+        render_value = value
+        ctx.stream = render_value
+
         # Persist live output at a modest cadence. Writing SQLite on every token
         # can saturate the Qt event loop even though WebView itself batches JS.
-        key = getattr(ctx, "id", None) or id(ctx)
         now = time.monotonic()
-        last = self._agent_v2_last_store.get(key, 0.0)
+        part_store_key = (
+            key,
+            str(getattr(part, "uuid", "") or id(part)) if part is not None else "ctx",
+        )
+        last = self._agent_v2_last_store.get(part_store_key, 0.0)
         if now - last >= 0.25:
-            self.window.core.ctx.update_item(ctx)
-            self._agent_v2_last_store[key] = now
-        self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
-            "meta": ctx.meta, "ctx": ctx, "chunk": str(chunk or ""), "begin": bool(begin),
-        }))
+            if part is not None:
+                core_ctx.update_part(ctx, part, sync_item=True)
+            else:
+                core_ctx.update_item(ctx)
+            self._agent_v2_last_store[part_store_key] = now
+        else:
+            ctx.sync_output_from_parts()
+        # After the first materialized boundary, all later prose is streamed
+        # inside ``msg-bot-<ctx.id>`` as a partial. Track the runtime UUID so
+        # subsequent chunks of the same part stay in that nested segment.
+        current_part_key = str(part_uuid or getattr(part, "uuid", "") or "")
+        inline_part = False
+        inline_begin = False
+        tracked_part_key = self._agent_v2_inline_parts.get(key)
+
+        if current_part_key and key in self._agent_v2_finalizing:
+            inline_part = True
+            if tracked_part_key != current_part_key:
+                self._agent_v2_inline_parts[key] = current_part_key
+                inline_begin = True
+        elif current_part_key and part_changed:
+            inline_part = True
+            self._agent_v2_inline_parts[key] = current_part_key
+            inline_begin = True
+        elif current_part_key and tracked_part_key == current_part_key:
+            inline_part = True
+
+        if inline_part:
+            self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "chunk": render_value,
+                "begin": bool(inline_begin),
+                "partial": True,
+                "part_key": current_part_key,
+            }))
+        else:
+            # Initial orchestrator prose still uses the normal live stream because
+            # no durable bot node exists yet. It will be materialized on the first
+            # real part/tool boundary.
+            self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "chunk": render_value,
+                "begin": bool(begin),
+            }))
 
     def agent_v2_status(self, context: BridgeContext, extra: Dict[str, Any], status: str):
         """Replace the transient Agents v2 status line without creating a new message."""
         ctx = context.ctx
-        name = RenderEvent.AGENT_STATUS if status else RenderEvent.AGENT_STATUS_CLEAR
-        self.window.dispatch(RenderEvent(name, {"meta": ctx.meta, "ctx": ctx, "status": str(status or "")}))
+        value = str(status or "")
+        key = getattr(ctx, "id", None) or id(ctx)
+        # FINAL_BEGIN is an authoritative UI barrier. Non-empty statuses queued
+        # before it must not be allowed to reappear during the final stream.
+        if key in self._agent_v2_finalizing and value:
+            value = ""
+        # Status events can already be queued when the user presses STOP/ESC.
+        # Once halted, only allow cleanup events so stale rows cannot reappear.
+        if self.window.controller.kernel.stopped():
+            value = ""
+        name = RenderEvent.AGENT_STATUS if value else RenderEvent.AGENT_STATUS_CLEAR
+        self.window.dispatch(RenderEvent(name, {"meta": ctx.meta, "ctx": ctx, "status": value}))
 
     def agent_v2_tool_exec(self, context: BridgeContext, extra: Dict[str, Any], request):
         """Dispatch an Agents v2 plugin command without blocking Qt.
@@ -421,24 +683,73 @@ class Response:
                 done.set()
 
     def agent_v2_end(self, context: BridgeContext, extra: Dict[str, Any], final_answer: str = ""):
-        """Finalize Agents v2 once, then reuse the normal completed-output lifecycle."""
+        """Finalize Agents v2 and commit only the authoritative final answer to UI."""
         ctx = context.ctx
+        core_ctx = self.window.core.ctx
         self.agent_v2_status(context, extra, "")
         ctx.current = False
         ctx.stream = None
-        if final_answer and not (ctx.output or "").strip():
-            ctx.output = str(final_answer)
-        self.window.core.ctx.update_item(ctx)
         key = getattr(ctx, "id", None) or id(ctx)
-        self._agent_v2_last_store.pop(key, None)
+
+        # The runtime marks the final orchestrator partial before starting the
+        # final stream. Keep a defensive fallback for errors/legacy emitters.
+        final_part = None
+        for candidate in reversed(ctx.parts or []):
+            candidate_extra = candidate.extra if isinstance(candidate.extra, dict) else {}
+            if candidate_extra.get("agents_v2_final") is True:
+                final_part = candidate
+                break
+        if final_answer:
+            if final_part is None:
+                final_part = self._agent_v2_parts.get(key) or ctx.get_active_part() or core_ctx.ensure_part(ctx)
+                if final_part is not None:
+                    if not isinstance(final_part.extra, dict):
+                        final_part.extra = {}
+                    final_part.extra["agents_v2_orchestrator"] = True
+                    final_part.extra["agents_v2_final"] = True
+            if final_part is not None:
+                # AGENT_V2_APPEND normally persisted this already. Only fill it
+                # here when a queued final chunk did not reach the UI thread.
+                if not str(final_part.output or "").strip():
+                    final_part.set_output(str(final_answer))
+                core_ctx.update_part(ctx, final_part, sync_item=True)
+            elif not str(ctx.output or "").strip():
+                ctx.output = str(final_answer)
+        else:
+            part = self._agent_v2_parts.get(key)
+            if part is not None:
+                core_ctx.update_part(ctx, part, sync_item=True)
+
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        has_final = bool(str(final_answer or "").strip())
+        if not has_final:
+            try:
+                has_final = bool(str(ctx.get_agents_v2_final_output() or "").strip())
+            except Exception:
+                has_final = False
+        if has_final:
+            ctx.stopped = False
+            ctx.extra["response_final"] = True
+            ctx.extra.pop("response_interrupted", None)
+        elif self.window.controller.kernel.stopped():
+            ctx.stopped = True
+            ctx.extra["response_interrupted"] = True
+            ctx.extra.pop("response_final", None)
+
+        core_ctx.update_item(ctx)
+        for store_key in list(self._agent_v2_last_store):
+            if isinstance(store_key, tuple) and store_key and store_key[0] == key:
+                self._agent_v2_last_store.pop(store_key, None)
+            elif store_key == key:  # compatibility with pre-change in-memory keys
+                self._agent_v2_last_store.pop(store_key, None)
+        self._agent_v2_parts.pop(key, None)
+        self._agent_v2_inline_parts.pop(key, None)
         self.window.dispatch(RenderEvent(RenderEvent.STREAM_END, {"meta": ctx.meta, "ctx": ctx}))
 
-        # Stop is an explicit cancellation boundary: keep already streamed text, close
-        # the renderer, but do not parse/execute commands from a partial answer. Reuse
-        # the normal end lifecycle so attachments, input state and kernel state are
-        # cleaned up exactly as for any other completed/cancelled response.
         if self.window.controller.kernel.stopped():
             self.window.controller.chat.output.handle_end(ctx=ctx, mode=MODE_AGENT_V2)
+            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
             return
 
         self.window.controller.chat.output.handle_after(ctx=ctx, mode=MODE_AGENT_V2, stream=True)
@@ -449,6 +760,11 @@ class Response:
             reply=extra.get("reply", False),
             internal=extra.get("internal", False),
         )
+
+        # Rebuild the completed message once after streaming. get_display_output()
+        # returns only the final Agents v2 partial, while structured partial tasks
+        # are now rendered as the grouped Tool/Tools block when the setting is on.
+        self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
 
     def live_append(
             self,

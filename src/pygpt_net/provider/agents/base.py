@@ -133,6 +133,63 @@ class BaseAgent:
         return option
 
 
+    @staticmethod
+    def extract_system_prompt_extra(final_prompt: str, raw_prompt: str) -> str:
+        """Return runtime/plugin additions from the final bridge system prompt.
+
+        ``BridgeContext.system_prompt_raw`` contains the preset prompt before the
+        prompt/plugin pipeline, while ``system_prompt`` contains the final value
+        after plugins (including late runtime additions such as Real Time and
+        Files I/O).  Agent providers with their own internal prompts must receive
+        only those additions, otherwise the preset/base prompt would be duplicated.
+        """
+        final = str(final_prompt or "").strip()
+        raw = str(raw_prompt or "").strip()
+        if not final or final == raw:
+            return ""
+        if not raw:
+            return final
+
+        idx = final.find(raw)
+        if idx >= 0:
+            before = final[:idx].strip()
+            after = final[idx + len(raw):].strip()
+            return "\n\n".join(part for part in (before, after) if part)
+
+        # A plugin may intentionally replace the original prompt (for example a
+        # vision prompt in replace mode).  In that case the final prompt is the
+        # only authoritative runtime contribution available to nested agents.
+        return final
+
+    def get_system_prompt_extra(self, kwargs: Dict[str, Any]) -> str:
+        """Return plugin/runtime system-prompt additions for this agent run."""
+        if not isinstance(kwargs, dict):
+            return ""
+        explicit = kwargs.get("system_prompt_extra")
+        if explicit is not None:
+            return str(explicit or "").strip()
+
+        context = kwargs.get("context")
+        final_prompt = kwargs.get("system_prompt", "")
+        raw_prompt = ""
+        if context is not None:
+            if not final_prompt:
+                final_prompt = getattr(context, "system_prompt", "")
+            raw_prompt = getattr(context, "system_prompt_raw", "")
+        return self.extract_system_prompt_extra(final_prompt, raw_prompt)
+
+    def append_system_prompt_extra(self, prompt: str, kwargs: Dict[str, Any]) -> str:
+        """Append runtime/plugin prompt additions to an agent-specific prompt once."""
+        base = str(prompt or "").strip()
+        extra = self.get_system_prompt_extra(kwargs)
+        if not extra:
+            return base
+        if extra in base:
+            return base
+        if not base:
+            return extra
+        return base + "\n\n" + extra
+
     def get_default(self, section: str, key: str) -> Any:
         """
         Get default option value

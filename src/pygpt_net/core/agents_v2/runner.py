@@ -60,6 +60,21 @@ class Runner:
             current_input=current_input,
         )
         runtime.verbose_log("ORCHESTRATOR HISTORY", history)
+
+        # Persist the user side of this orchestrator turn immediately after the
+        # previous history has been loaded.  If the user stops Agents v2 while a
+        # tool is running, this input-only memory row survives and is available in
+        # chat_history on the next turn instead of losing the interrupted request.
+        memory_turn = runtime.memory_store.begin_turn(
+            context.ctx,
+            context.preset,
+            current_input,
+        )
+        runtime.verbose_log("MEMORY BEGIN", {
+            "input": current_input,
+            "memory_item_id": getattr(memory_turn, "id", None),
+        })
+
         # Match the existing Agents/Chat with Files RAG behavior: when an index is
         # selected and agent.idx.auto_retrieve is enabled, retrieve a relevant chunk
         # before the first Orchestrator call. The runtime injects it into both the
@@ -144,29 +159,44 @@ class Runner:
                     continue
 
                 if isinstance(event, AgentStream) and getattr(event, "delta", None):
-                    emitter.append(event.delta)
+                    emitter.append(
+                        event.delta,
+                        part_uuid=runtime.actor_part_uuid("orchestrator"),
+                    )
 
             if not runtime.is_stopped():
                 if not runtime.finished:
                     result = await handler
                     fallback = runtime._result_text(result)
                     runtime.verbose_text("ORCHESTRATOR RESULT", fallback)
-                    runtime.final_answer = fallback or emitter.text.strip() or "OK"
+                    last_output = runtime.last_orchestrator_output()
+                    runtime.final_answer = fallback or last_output or "OK"
                     runtime.finished = True
-                    if fallback and fallback.strip() not in emitter.text.strip():
-                        emitter.mark_block_boundary()
-                        emitter.append(fallback)
+                    # LlamaIndex's terminal handler result commonly repeats the
+                    # exact AgentStream prose that was already persisted. Reuse
+                    # that partial instead of writing/replaying the same output a
+                    # second time. If the terminal result is genuinely new text,
+                    # it receives its own final partial as expected.
+                    if last_output and runtime.final_answer.strip() == last_output.strip():
+                        runtime.mark_current_part_final()
+                        emitter.accept_streamed_final()
+                    else:
+                        final_part = runtime._prepare_final_part()
+                        emitter.start_final(
+                            runtime.final_answer,
+                            part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
+                        )
 
-                final_text = runtime.final_answer or emitter.text.strip()
+                final_text = runtime.final_answer or runtime.last_orchestrator_output()
                 runtime.verbose_text("ORCHESTRATOR FINAL TEXT", final_text)
-                memory_input = str(getattr(context.ctx, "input", "") or context.prompt or "")
-                runtime.memory_store.append_turn(
-                    context.ctx,
-                    context.preset,
-                    memory_input,
-                    final_text,
-                )
-                runtime.verbose_log("MEMORY APPEND", {"input": memory_input, "output": final_text})
+                memory_output = runtime.orchestrator_memory_output(final_text)
+                runtime.memory_store.complete_turn(memory_turn, memory_output)
+                runtime.verbose_log("MEMORY COMPLETE", {
+                    "input": current_input,
+                    "final_output": final_text,
+                    "assistant_output": memory_output,
+                    "memory_item_id": getattr(memory_turn, "id", None),
+                })
         finally:
             runtime.verbose_log("RUNNER FINALIZE BEGIN", {"finished": runtime.finished, "stopped": runtime.is_stopped()})
             if stop_task is not None:
@@ -179,5 +209,7 @@ class Runner:
             await runtime.cleanup()
             runtime.export_tool_calls_to_main_ctx()
             emitter.clear_status()
-            emitter.finish(runtime.final_answer)
+            final_part = runtime._actor_part("orchestrator", create=False)
+            final_part_uuid = getattr(final_part, "uuid", None) if final_part is not None else None
+            emitter.finish(runtime.final_answer, part_uuid=final_part_uuid)
             runtime.verbose_log("RUNNER FINALIZE END", {"final_answer": runtime.final_answer})

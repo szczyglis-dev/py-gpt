@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 12:20:00                  #
+# Updated Date: 2026.09.08 11:45:00                  #
 # ================================================== #
 
 from typing import Optional, List, Union
@@ -115,9 +115,16 @@ class Ctx:
         else:
             id = core.config.get('ctx')
             if id is not None:
-                # Keep previously selected id; if it's not in the current page
-                # we will inject a placeholder into the list (see update_list).
-                core.ctx.set_current(id)
+                # Keep a previously selected context even when it is outside
+                # the paginated list, but verify that it actually belongs to
+                # the database active for this profile. get_meta_by_id() can
+                # lazily load an off-page meta; a stale profile-local ID must
+                # never survive a profile/workdir switch as the current ctx.
+                meta = core.ctx.get_meta_by_id(id)
+                if meta is not None:
+                    core.ctx.set_current(id)
+                else:
+                    core.ctx.set_current(core.ctx.get_first())
             else:
                 core.ctx.set_current(core.ctx.get_first())
 
@@ -473,11 +480,34 @@ class Ctx:
             restore_model,
         )
 
-    def refresh_output(self):
-        """Refresh output"""
+    def refresh_output(self, meta: Optional[CtxMeta] = None):
+        """
+        Refresh one chat output.
+
+        A renderer reload can be triggered while keyboard focus is in another
+        split-screen column (for example Code Interpreter).  In that case the
+        reload must use the meta that owns the response, not whichever context
+        happens to be globally/currently selected by the UI.
+
+        :param meta: Context meta to rebuild; current meta when omitted
+        """
+        core_ctx = self.window.core.ctx
+        if meta is None:
+            meta = core_ctx.get_current_meta()
+        if meta is None:
+            return
+
+        # Use the already loaded in-memory container only when it belongs to the
+        # requested meta. For an off-focus chat, load its full history directly
+        # without changing the globally selected context.
+        if core_ctx.get_current() == meta.id:
+            items = core_ctx.get_items()
+        else:
+            items = core_ctx.all(meta.id)
+
         data = {
-            "meta": self.window.core.ctx.get_current_meta(),
-            "items": self.window.core.ctx.get_items(),
+            "meta": meta,
+            "items": items,
             "clear": True,
         }
         event = RenderEvent(RenderEvent.CTX_APPEND, data)
@@ -500,6 +530,12 @@ class Ctx:
         :param new_tab: open in new tab
         :param no_fresh: do not fresh output
         """
+        if self.context_change_locked():
+            request_meta = self.window.core.ctx.output.get_request_meta()
+            request_meta_id = getattr(request_meta, "id", None)
+            if request_meta_id is None or id != request_meta_id:
+                return
+
         if new_tab:
             col_idx = self.window.controller.ui.tabs.column_idx
             self.window.controller.ui.tabs.create_new_on_tab = False
@@ -990,13 +1026,19 @@ class Ctx:
         else:
             self.update(reload=True, all=False, no_scroll=True)
 
+        tabs_changed = False
         for id in ctx_id:
             if id not in self.window.core.ctx.get_meta():
                 continue
             meta = self.window.core.ctx.get_meta_by_id(id)
             if meta is not None:
-                if id == self.window.core.ctx.get_current():
-                    self.window.controller.ui.tabs.update_title_current(meta.name)
+                if self.window.controller.ui.tabs.sync_chat_titles(meta.id):
+                    tabs_changed = True
+
+        if tabs_changed:
+            # Context summaries/renames are durable metadata. Keep every open
+            # non-custom chat tab in sync and persist the labels immediately.
+            self.window.core.tabs.save()
 
     def update_name_current(self, name: str):
         """
@@ -1082,7 +1124,10 @@ class Ctx:
 
         :return: True if locked
         """
-        return self.window.controller.chat.input.generating
+        return (
+            self.window.controller.chat.input.generating
+            or self.window.core.ctx.output.has_request()
+        )
 
     def select_index_by_id(self, id: int):
         """

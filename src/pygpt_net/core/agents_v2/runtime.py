@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import time
 import uuid
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional
@@ -75,6 +76,16 @@ class AgentsV2Runtime:
         self._main_tool_calls: List[Dict[str, Any]] = []
         self._main_tool_call_seq = 0
         self._local_plugin_tool_names = set()
+        self._actor_parts = {}
+        self._actor_needs_new_part = {}
+        self._actor_part_seq = {}
+        self._persisted_tool_tasks = {}
+        # Workers keep their own agent Memory strictly in RAM. For persistence
+        # we only remember which orchestrator partial launched the current worker
+        # run, so worker tool tasks/output can be attached there without creating
+        # worker CtxItemPart rows.
+        self._worker_parent_parts = {}
+        self._stored_worker_context_runs = set()
         self.return_tool_calls_to_main_ctx = bool(
             self.window.core.config.get(
                 "agent.v2.show_tool_chain",
@@ -100,6 +111,16 @@ class AgentsV2Runtime:
         self._persist_input_images()
         self.shared_context_text = self._build_shared_context()
         self.runtime_system_context = self._build_runtime_system_context()
+        # BridgeWorker has already executed POST_PROMPT_END before Agents v2 is
+        # started. Consume that final prompt verbatim so every enabled plugin
+        # (Real Time, Files I/O, Extra Prompt, Vision, etc.) contributes exactly
+        # the same system-prompt additions as it does in Chat.
+        self.bridge_system_prompt = str(getattr(context, "system_prompt", "") or "").strip()
+        # Older builds persisted this runtime-only value. Strip it from the live
+        # item so any subsequent context update also removes it from storage.
+        main_ctx = getattr(context, "ctx", None)
+        if main_ctx is not None and isinstance(getattr(main_ctx, "extra", None), dict):
+            main_ctx.extra.pop("agents_v2_filesystem_context", None)
         self.tool_factory = WorkerToolFactory(self)
         self._artifact_seen = {
             "files": set(), "images": set(), "urls": set(), "attachments": set()
@@ -132,6 +153,7 @@ class AgentsV2Runtime:
             "index_id": self.index_id,
             "shared_context": self.shared_context_text,
             "runtime_system_context": self.runtime_system_context,
+            "bridge_system_prompt": self.bridge_system_prompt,
             "max_workers": self.MAX_WORKERS,
         })
 
@@ -143,14 +165,24 @@ class AgentsV2Runtime:
 
     def verbose_event(self, event: Any, actor: str = "orchestrator"):
         if isinstance(event, ToolCall):
+            # A tool-only model pass stays in the current partial. The previous
+            # result has nevertheless been consumed, so expose completed tasks
+            # before persisting the next call under that same partial.
+            self._promote_actor_tasks(actor)
             self.record_tool_call(event, actor=actor)
             self.verbose.log("TOOL CALL", event, actor=actor)
         elif isinstance(event, ToolCallResult):
             self.record_tool_result(event, actor=actor)
+            if str(actor or "orchestrator") == "orchestrator":
+                self._actor_needs_new_part["orchestrator"] = True
             self.verbose.log("TOOL RESULT", event, actor=actor)
         elif isinstance(event, AgentStream):
             delta = getattr(event, "delta", None)
             if delta:
+                # Only actual assistant prose can rotate a partial. Empty stream
+                # bookkeeping events must not create DB rows.
+                self._prepare_actor_response_part(actor)
+                self._promote_actor_tasks(actor)
                 self.verbose.text("STREAM", delta, actor=actor)
             else:
                 self.verbose.log("AGENT STREAM", event, actor=actor)
@@ -232,6 +264,257 @@ class AgentsV2Runtime:
         if value:
             self._local_plugin_tool_names.add(value)
 
+    def _actor_metadata(self, actor: str):
+        actor = str(actor or "orchestrator")
+        if actor == "orchestrator":
+            return "orchestrator", "Orchestrator", ""
+        state = self.workers.get(actor)
+        if state is None:
+            return actor, actor, ""
+        return state.id, state.name, str(state.current_task or "")
+
+    def _actor_part(self, actor: str, create: bool = True):
+        """Return the durable orchestrator partial associated with an actor.
+
+        Workers never own durable partials. Their private LlamaIndex memory stays
+        in RAM; any persisted worker tool calls/results are attached to the
+        orchestrator partial from which that worker run was started.
+        """
+        actor = str(actor or "orchestrator")
+        main = getattr(self.context, "ctx", None)
+        if main is None:
+            return None
+        if actor != "orchestrator":
+            part = self._worker_parent_parts.get(actor)
+            if part is not None and part in (main.parts or []):
+                return part
+            return self._actor_parts.get("orchestrator") or (main.parts[-1] if main.parts else None)
+        part = self._actor_parts.get(actor)
+        if part is not None and part in (main.parts or []):
+            return part
+        if not create:
+            return None
+        return self._begin_actor_part(actor, reuse_initial=True)
+
+    def _begin_actor_part(
+            self,
+            actor: str,
+            reuse_initial: bool = False,
+            extra: Optional[dict] = None,
+            joiner: str = "",
+    ):
+        """Create a durable actor partial, optionally adopting the auto-created first row."""
+        actor = str(actor or "orchestrator")
+        main = getattr(self.context, "ctx", None)
+        if main is None:
+            return None
+        if actor != "orchestrator":
+            # Worker partials are intentionally not durable.
+            return self._actor_part(actor, create=False)
+        actor_id, agent_name, task_name = self._actor_metadata(actor)
+        seq = int(self._actor_part_seq.get(actor, 0)) + 1
+        self._actor_part_seq[actor] = seq
+        payload = {
+            "agents_v2_actor": actor_id,
+            "agent_task": task_name,
+            "agent_generation": seq,
+        }
+        if isinstance(extra, dict):
+            payload.update(extra)
+
+        part = None
+        if reuse_initial:
+            for candidate in main.parts or []:
+                candidate_actor = str(getattr(candidate, "agent_id", "") or "")
+                candidate_extra = candidate.extra if isinstance(candidate.extra, dict) else {}
+                extra_actor = str(candidate_extra.get("agents_v2_actor", "") or "")
+                # AGENT_V2_BEGIN is delivered through Qt while the runtime works
+                # in its worker thread. Either side may label the auto-created
+                # first part first. Adopt it when it is still empty and belongs
+                # to this actor instead of creating a duplicate orchestrator row.
+                actor_matches = (
+                    not candidate_actor or candidate_actor == str(actor_id)
+                ) and (
+                    not extra_actor or extra_actor == str(actor_id)
+                )
+                if (actor_matches
+                        and not (candidate.output or "")
+                        and not (candidate.tasks or [])):
+                    part = candidate
+                    part.agent_id = actor_id
+                    part.name = agent_name
+                    if not isinstance(part.extra, dict):
+                        part.extra = {}
+                    part.extra.update(payload)
+                    self.window.core.ctx.update_part(main, part, sync_item=False)
+                    break
+        if part is None:
+            part = self.window.core.ctx.begin_part(
+                main, agent_id=actor_id, name=agent_name, output="",
+                extra=payload, joiner=joiner,
+            )
+        self._actor_parts[actor] = part
+        return part
+
+    def _prepare_actor_response_part(self, actor: str):
+        """Rotate the orchestrator partial at the first event of its next LLM pass."""
+        actor = str(actor or "orchestrator")
+        main = getattr(self.context, "ctx", None)
+        if actor != "orchestrator":
+            # Worker prose is private and lives only in its in-memory Memory.
+            return None
+        if self._actor_needs_new_part.get(actor):
+            previous = self._actor_part(actor, create=False)
+            if previous is not None:
+                self._promote_part_tasks(previous)
+            self._actor_needs_new_part[actor] = False
+            # A ToolCallResult marks a chronological boundary. Tool-only passes
+            # keep using the current partial, but the first real prose after the
+            # completed tool chain must live in a fresh partial so the WebView can
+            # render: previous text/tool(s) -> new text.
+            return self._begin_actor_part(
+                actor, reuse_initial=False,
+                extra={"agents_v2_orchestrator": True},
+                joiner="\n\n",
+            )
+        part = self._actor_part(actor, create=True)
+        if part is not None:
+            if not isinstance(part.extra, dict):
+                part.extra = {}
+            part.extra.setdefault("agents_v2_orchestrator", True)
+            if not str(part.output or "").strip() and part.tasks:
+                part.extra.setdefault(
+                    "text_after_tool_round",
+                    self.window.core.ctx._part_max_tool_round(part),
+                )
+                self.window.core.ctx.update_part(main, part, sync_item=False)
+        return part
+
+    def actor_part_uuid(self, actor: str = "orchestrator", prepare_response: bool = False) -> Optional[str]:
+        """Return the UUID used by the UI stream to target the same DB partial."""
+        part = self._prepare_actor_response_part(actor) if prepare_response else self._actor_part(actor, create=True)
+        return getattr(part, "uuid", None) if part is not None else None
+
+    def _new_tool_call_id(self, call_id: Any = None) -> str:
+        if call_id not in (None, ""):
+            return str(call_id)
+        self._main_tool_call_seq += 1
+        return f"agents_v2_{self.run_id}_{self._main_tool_call_seq}"
+
+    def _persist_tool_call(self, name: str, args: Any, actor: str, call_id: Any = None) -> str:
+        """Persist every Agents v2 tool invocation, independent of UI settings."""
+        name = str(name or "tool").strip() or "tool"
+        actor_id, agent_name, current_task = self._actor_metadata(actor)
+        part = self._actor_part(actor, create=True)
+        value = self._new_tool_call_id(call_id)
+        safe_args = self._json_safe_tool_value(args)
+        if isinstance(safe_args, dict) and len(safe_args) == 1:
+            for wrapper in ("params", "arguments"):
+                wrapped = safe_args.get(wrapper)
+                if isinstance(wrapped, dict):
+                    safe_args = dict(wrapped)
+                    break
+        if part is None:
+            return value
+        calls = [{
+            "id": value, "call_id": value, "type": "function",
+            "function": {"name": name, "arguments": safe_args},
+        }]
+        tasks = self.window.core.ctx.record_tool_calls(
+            getattr(self.context, "ctx", None), calls, part=part,
+            agent_id=actor_id, agent_name=agent_name,
+            task_name=current_task or name, update_legacy_cache=False,
+            ui_visible=(
+                self.return_tool_calls_to_main_ctx
+                and name not in self._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX
+            ),
+            provider_history=(str(actor or "orchestrator") == "orchestrator"),
+        )
+        if tasks:
+            task = tasks[0]
+            if not isinstance(task.extra, dict):
+                task.extra = {}
+            task.extra["agents_v2_actor"] = actor_id
+            task.extra["tool_name"] = name
+            task.extra["ui_ready"] = False
+            self.window.core.ctx.update_part_task(task)
+            self._persisted_tool_tasks[f"{actor_id}:{value}"] = task
+        return value
+
+    def _persist_tool_result(
+            self, result: Any, actor: str, name: str = "", call_id: Any = None
+    ) -> bool:
+        actor_id, _agent_name, _task_name = self._actor_metadata(actor)
+        name = str(name or "").strip()
+        value = str(call_id).strip() if call_id not in (None, "") else ""
+        task = self._persisted_tool_tasks.get(f"{actor_id}:{value}") if value else None
+        main = getattr(self.context, "ctx", None)
+        if task is None and main is not None:
+            for part in main.parts or []:
+                for candidate in part.tasks or []:
+                    extra = candidate.extra if isinstance(candidate.extra, dict) else {}
+                    if str(candidate.agent_id or "") != actor_id:
+                        continue
+                    if extra.get("status") == "completed":
+                        continue
+                    if value and str(candidate.tool_call_id or "") != value:
+                        continue
+                    tool_name = str(extra.get("tool_name") or candidate.task_name or "")
+                    if name and tool_name != name:
+                        continue
+                    task = candidate
+                    break
+                if task is not None:
+                    break
+        if task is None:
+            return False
+        safe_result = self._json_safe_tool_result(result)
+        task.tool_output = safe_result
+        task.output = safe_result if isinstance(safe_result, str) else json.dumps(
+            safe_result, ensure_ascii=False, default=str
+        )
+        if not isinstance(task.extra, dict):
+            task.extra = {}
+        task.extra["status"] = "completed"
+        task.extra["ui_ready"] = False
+        task.task_summary = f"Tool {task.extra.get('tool_name') or name or 'tool'} completed"
+        task.touch()
+        self.window.core.ctx.update_part_task(task)
+        return True
+
+    def _promote_part_tasks(self, part):
+        """Expose completed tasks once the model has produced its next response."""
+        if part is None:
+            return
+        for task in part.tasks or []:
+            extra = task.extra if isinstance(task.extra, dict) else {}
+            if extra.get("status") == "completed" and not extra.get("ui_ready"):
+                task.mark_ui_ready(True)
+                self.window.core.ctx.update_part_task(task)
+
+    def _promote_actor_tasks(self, actor: str):
+        """Expose completed calls once that actor has produced a next response."""
+        actor_id, _agent_name, _task_name = self._actor_metadata(actor)
+        main = getattr(self.context, "ctx", None)
+        if main is None:
+            return
+        for part in main.parts or []:
+            for task in part.tasks or []:
+                if str(getattr(task, "agent_id", "") or "") != str(actor_id):
+                    continue
+                extra = task.extra if isinstance(task.extra, dict) else {}
+                if extra.get("status") == "completed" and not extra.get("ui_ready"):
+                    task.mark_ui_ready(True)
+                    self.window.core.ctx.update_part_task(task)
+
+    def _promote_all_tasks(self):
+        """Expose every completed displayable tool before the final UI commit."""
+        main = getattr(self.context, "ctx", None)
+        if main is None:
+            return
+        for part in main.parts or []:
+            self._promote_part_tasks(part)
+
     def _append_main_tool_call(self, name: str, args: Any, actor: str, call_id: Any = None) -> Optional[str]:
         if not self.return_tool_calls_to_main_ctx:
             return None
@@ -249,8 +532,7 @@ class AgentsV2Runtime:
                     args = dict(wrapped)
                     break
 
-        self._main_tool_call_seq += 1
-        value = str(call_id or f"agents_v2_{self.run_id}_{self._main_tool_call_seq}")
+        value = self._new_tool_call_id(call_id)
         self._main_tool_calls.append({
             "id": value,
             "call_id": value,
@@ -309,59 +591,42 @@ class AgentsV2Runtime:
     def record_local_plugin_tool_call(
             self, name: str, args: Any, actor: str = "orchestrator"
     ) -> Optional[str]:
-        """Record a validated local plugin call and return its display call id."""
-        return self._append_main_tool_call(name, args, actor)
+        """Persist a validated local plugin call and optionally mirror it to UI cache."""
+        call_id = self._persist_tool_call(name, args, actor)
+        self._append_main_tool_call(name, args, actor, call_id=call_id)
+        return call_id
 
     def record_local_plugin_tool_result(
             self, call_id: Any, name: str, result: Any, actor: str = "orchestrator"
     ):
-        """Attach the exact local plugin response to its already recorded call."""
+        """Attach the exact local plugin response to its persisted task/call."""
         if not call_id:
             return
+        self._persist_tool_result(result, actor=actor, name=name, call_id=call_id)
         self._set_main_tool_result(result, actor=actor, name=name, call_id=call_id)
 
     def record_tool_call(self, event: Any, actor: str = "orchestrator"):
-        """Record a non-plugin normal tool invocation from an agent ToolCall event.
-
-        Local plugins are recorded by their execution wrapper after argument
-        normalization/validation, so their persisted params exactly match the
-        command sent to PyGPT. Other normal tools (for example query_index) are
-        captured centrally from the Orchestrator/worker event streams.
-        """
-        if not self.return_tool_calls_to_main_ctx:
-            return
-
+        """Persist a non-plugin tool invocation and optionally mirror it to legacy UI."""
         name = self._tool_event_value(event, "tool_name", "name", "tool")
         name = str(name or "").strip()
-        if not name or name in self._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX:
+        if not name or name in self._local_plugin_tool_names:
             return
-        if name in self._local_plugin_tool_names:
-            return
-
         args = self._tool_event_value(
-            event,
-            "tool_kwargs", "tool_args", "arguments", "kwargs", "args", "raw_arguments",
+            event, "tool_kwargs", "tool_args", "arguments", "kwargs", "args", "raw_arguments",
         )
         event_id = self._tool_event_value(event, "tool_id", "call_id", "id")
-        self._append_main_tool_call(name, args, actor, call_id=event_id)
+        call_id = self._persist_tool_call(name, args, actor, call_id=event_id)
+        self._append_main_tool_call(name, args, actor, call_id=call_id)
 
     def record_tool_result(self, event: Any, actor: str = "orchestrator"):
-        """Attach a ToolCallResult to the corresponding non-plugin normal call."""
-        if not self.return_tool_calls_to_main_ctx:
-            return
-
+        """Persist the corresponding ToolCallResult for a non-plugin invocation."""
         name = self._tool_event_value(event, "tool_name", "name", "tool")
         name = str(name or "").strip()
-        if not name or name in self._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX:
+        if not name or name in self._local_plugin_tool_names:
             return
-        # Local plugins are paired directly around execute_plugin(), which gives
-        # us the exact response returned to the agent and avoids duplicate event
-        # accounting when LlamaIndex also emits a ToolCallResult for FunctionTool.
-        if name in self._local_plugin_tool_names:
-            return
-
         event_id = self._tool_event_value(event, "tool_id", "call_id", "id")
         result = self._tool_result_value(event)
+        self._persist_tool_result(result, actor=actor, name=name, call_id=event_id)
         self._set_main_tool_result(result, actor=actor, name=name, call_id=event_id)
 
     def export_tool_calls_to_main_ctx(self):
@@ -469,19 +734,33 @@ class AgentsV2Runtime:
         return "\n".join(parts)
 
     def _build_runtime_system_context(self) -> str:
-        """Collect dynamic plugin runtime guidance published for Agents v2.
+        """Build dynamic Files I/O guidance directly from the live plugin.
 
-        Some plugin system-prompt additions are generated only at Bridge
-        POST_PROMPT_END time. Agents v2 owns a separate Orchestrator/worker
-        system prompt, so those additions must be explicitly carried into the
-        runtime instead of assuming BridgeContext.system_prompt is consumed.
+        Runtime filesystem details must never be persisted in CtxItem.extra. The
+        final BridgeContext.system_prompt already contains normal plugin prompt
+        additions; this direct lookup is only a runtime fallback/explicit source
+        for Agents v2 and is de-duplicated when composing actor prompts.
         """
-        ctx = getattr(self.context, "ctx", None)
-        extra = getattr(ctx, "extra", None) if ctx is not None else None
-        if not isinstance(extra, dict):
+        try:
+            plugin_id = "cmd_files"
+            controller = getattr(self.window, "controller", None)
+            plugins_controller = getattr(controller, "plugins", None)
+            if plugins_controller is not None and not plugins_controller.is_enabled(plugin_id):
+                return ""
+            plugin = self.window.core.plugins.get(plugin_id)
+            if plugin is None:
+                return ""
+            if not plugin.get_option_value("auto_cwd"):
+                return ""
+            if not self.window.core.command.is_cmd(inline=False):
+                return ""
+            builder = getattr(plugin, "build_runtime_filesystem_context", None)
+            if not callable(builder):
+                return ""
+            return str(builder() or "").strip()
+        except Exception as exc:
+            self.window.core.debug.log(exc)
             return ""
-        value = extra.get("agents_v2_filesystem_context", "")
-        return str(value or "").strip()
 
     def _seed_artifact_seen(self):
         """Do not re-export user inputs that were already attached to the main message."""
@@ -804,14 +1083,23 @@ class AgentsV2Runtime:
         return ctx
 
     def _worker_prompt(self, name: str, instruction: str, language: str, system_prompt: str) -> str:
+        bridge_prompt = str(self.bridge_system_prompt or "").strip()
+        runtime_context = str(self.runtime_system_context or "").strip()
+        # Files I/O historically published a separate Agents-v2 runtime context.
+        # Keep that fallback for compatibility, but do not duplicate it now that
+        # the final Bridge system prompt is consumed directly.
+        runtime_block = ""
+        if runtime_context and runtime_context not in bridge_prompt:
+            runtime_block = f"<runtime_environment>\n{runtime_context}\n</runtime_environment>"
         return "\n\n".join(filter(None, [
             WORKER_BASE_PROMPT,
             f"<workflow_language>\n{language}\n</workflow_language>",
             f"<worker_identity>\nname={name}\nrole_instruction={instruction}\n</worker_identity>",
             (
-                f"<runtime_environment>\n{self.runtime_system_context}\n</runtime_environment>"
-                if self.runtime_system_context else ""
+                f"<pygpt_system_prompt>\n{bridge_prompt}\n</pygpt_system_prompt>"
+                if bridge_prompt else ""
             ),
+            runtime_block,
             self._rag_prompt_context(),
             (
                 f"<orchestrator_system_instruction>\n{system_prompt}\n</orchestrator_system_instruction>"
@@ -941,6 +1229,10 @@ class AgentsV2Runtime:
         state.error = ""
         state.last_result = ""
         state.generation += 1
+        # Worker conversation state remains in-memory only. Remember the current
+        # orchestrator partial as the durable origin for this run; worker tool
+        # task rows and the final worker_context record are attached there.
+        self._worker_parent_parts[state.id] = self._actor_part("orchestrator", create=True)
         self.emit_runtime_status("status.agent_v2.starting", worker=state)
         self.verbose.log("AGENT RUNNING", state.public_dict(include_result=False), actor=agent_id)
         state.task = asyncio.create_task(
@@ -1011,6 +1303,156 @@ class AgentsV2Runtime:
         finally:
             self.collect_llm_artifacts(getattr(state.agent, "llm", None), state)
             self.collect_artifacts(state.tool_ctx, state)
+            self._store_worker_output(state)
+
+    @staticmethod
+    def _legacy_worker_context_record(value: Any) -> Optional[Dict[str, Any]]:
+        """Convert the short-lived ``worker_outputs`` format to ``worker_context``.
+
+        The previous Agents v2 implementation already persisted worker finals on
+        the launching orchestrator partial, but under a larger runtime-oriented
+        structure.  Keep those rows useful after upgrade without continuing to
+        duplicate status/artifact data in every partial.
+        """
+        if not isinstance(value, dict):
+            return None
+        output = value.get("output")
+        if output is None:
+            output = value.get("output_text")
+        created_at = value.get("created_at")
+        if created_at is None:
+            created_at = value.get("output_created_at")
+        try:
+            created_at = int(created_at or 0)
+        except (TypeError, ValueError):
+            created_at = 0
+        return {
+            "id": str(value.get("id") or value.get("worker_id") or ""),
+            "name": str(value.get("name") or value.get("worker_name") or ""),
+            "input": str(value.get("input") or value.get("task") or ""),
+            "output": str(output or ""),
+            "created_at": created_at,
+        }
+
+    def _store_worker_output(self, state: WorkerState):
+        """Persist one worker final as orchestrator-only restore context.
+
+        Workers keep their private LlamaIndex Memory in RAM.  What must survive a
+        reload is only what the Orchestrator learned from a worker during this
+        turn.  Store that compact payload on the orchestrator partial which
+        launched the run; when history is rebuilt it is inserted immediately
+        after that partial's prose and before the following partial.
+        """
+        part = self._worker_parent_parts.get(state.id)
+        main = getattr(self.context, "ctx", None)
+        if part is None or main is None or part not in (main.parts or []):
+            return
+        run_key = (str(state.id or ""), int(state.generation or 0))
+        if run_key in self._stored_worker_context_runs:
+            return
+        if not isinstance(part.extra, dict):
+            part.extra = {}
+
+        values = part.extra.get("worker_context")
+        if not isinstance(values, list):
+            values = []
+            # Best-effort in-place migration for runs saved by the immediately
+            # preceding implementation.  New writes use only worker_context.
+            legacy = part.extra.pop("worker_outputs", None)
+            if isinstance(legacy, list):
+                for item in legacy:
+                    converted = self._legacy_worker_context_record(item)
+                    if converted is not None:
+                        values.append(converted)
+            part.extra["worker_context"] = values
+
+        record = {
+            "id": str(state.id or ""),
+            "name": str(state.name or ""),
+            "input": str(state.current_task or ""),
+            "output": str(state.last_result or ""),
+            "created_at": int(time.time() * 1000),
+        }
+        values.append(record)
+        values.sort(key=lambda item: int(item.get("created_at") or 0) if isinstance(item, dict) else 0)
+        self.window.core.ctx.update_part(main, part, sync_item=False)
+        self._stored_worker_context_runs.add(run_key)
+
+    def _prepare_final_part(self):
+        """Return/mark the durable orchestrator partial containing final answer."""
+        main = getattr(self.context, "ctx", None)
+        if main is None:
+            return None
+        previous = self._actor_part("orchestrator", create=True)
+        self._promote_all_tasks()
+        if previous is not None and (
+                str(previous.output or "").strip()
+                or bool(getattr(previous, "tasks", None))
+        ):
+            # Final prose after any visible work/tool activity is a new timeline
+            # segment as well. Reusing a tool-only partial would place the final
+            # answer above that tool after a reload.
+            part = self._begin_actor_part(
+                "orchestrator", reuse_initial=False,
+                extra={"agents_v2_orchestrator": True, "agents_v2_final": True},
+                joiner="\n\n",
+            )
+        else:
+            part = previous
+            if part is not None:
+                if not isinstance(part.extra, dict):
+                    part.extra = {}
+                part.extra["agents_v2_orchestrator"] = True
+                part.extra["agents_v2_final"] = True
+                self.window.core.ctx.update_part(main, part, sync_item=False)
+        self._actor_needs_new_part["orchestrator"] = False
+        if part is not None:
+            self._actor_parts["orchestrator"] = part
+        return part
+
+    def last_orchestrator_output(self) -> str:
+        """Return the latest persisted orchestrator prose fragment only.
+
+        This is intentionally not the composed parent output. Agents v2 may own
+        several textual partials in one user turn, and folding them here would
+        turn the whole working trace into a synthetic final answer.
+        """
+        main = getattr(self.context, "ctx", None)
+        if main is None:
+            return ""
+        for part in reversed(getattr(main, "parts", None) or []):
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if extra.get("agents_v2_worker") is True or extra.get("provider_history") is False:
+                continue
+            value = str(getattr(part, "output", None) or "").strip()
+            if value:
+                return value
+        return ""
+
+    def mark_current_part_final(self):
+        """Mark the current orchestrator partial as the authoritative final one."""
+        main = getattr(self.context, "ctx", None)
+        if main is None:
+            return None
+        part = self._actor_part("orchestrator", create=False)
+        if part is None:
+            return None
+        self._promote_all_tasks()
+        if not isinstance(part.extra, dict):
+            part.extra = {}
+        part.extra["agents_v2_orchestrator"] = True
+        part.extra["agents_v2_final"] = True
+        self.window.core.ctx.update_part(main, part, sync_item=False)
+        self._actor_needs_new_part["orchestrator"] = False
+        self._actor_parts["orchestrator"] = part
+        return part
+
+    def orchestrator_memory_output(self, final_answer: str = "") -> str:
+        """Build compact persisted orchestrator memory for future turns."""
+        return self.memory_store.compose_turn_output(
+            getattr(self.context, "ctx", None),
+            final_answer=final_answer or self.final_answer,
+        )
 
     async def stop_worker(self, agent_id: str) -> str:
         self.verbose.log("AGENT STOP REQUEST", {"agent_id": agent_id}, actor=agent_id)
@@ -1133,11 +1575,11 @@ class AgentsV2Runtime:
         self.finished = True
         self.final_answer = answer
         self.verbose_text("FINAL ANSWER", answer)
-        self.emitter.clear_status()
-        tail = self.emitter.text.rstrip()
-        if not tail.endswith(self.final_answer):
-            self.emitter.mark_block_boundary()
-            self.emitter.append(self.final_answer)
+        final_part = self._prepare_final_part()
+        await self.emitter.stream_final(
+            self.final_answer,
+            part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
+        )
         return "Workflow marked as finished. The runtime will stop the orchestrator now."
 
     def orchestrator_tools(self) -> List[FunctionTool]:
@@ -1208,8 +1650,11 @@ class AgentsV2Runtime:
         return tools
 
     def orchestrator_prompt(self) -> str:
-        additional = ""
-        if self.preset is not None:
+        # ``context.system_prompt`` is already the final PyGPT system prompt after
+        # PRE/POST/POST_PROMPT_END processing. Prefer it over preset.prompt so
+        # plugin additions are not lost and the base preset is not duplicated.
+        additional = str(self.bridge_system_prompt or "").strip()
+        if not additional and self.preset is not None:
             additional = str(getattr(self.preset, "prompt", "") or "").strip()
         capabilities = [
             f"selected_model={getattr(self.model, 'id', '')}",
@@ -1220,7 +1665,7 @@ class AgentsV2Runtime:
             f"max_parallel_workers={self.MAX_WORKERS}",
         ]
         runtime_environment = ""
-        if self.runtime_system_context:
+        if self.runtime_system_context and self.runtime_system_context not in additional:
             runtime_environment = (
                 "\n\n<runtime_environment>\n"
                 + self.runtime_system_context
@@ -1234,7 +1679,7 @@ class AgentsV2Runtime:
             + "\n\n<runtime_capabilities>\n" + "\n".join(capabilities) + "\n</runtime_capabilities>"
             + runtime_environment
             + rag_context
-            + "\n\n<additional_instruction>\n" + additional + "\n</additional_instruction>"
+            + "\n\n<pygpt_system_prompt>\n" + additional + "\n</pygpt_system_prompt>"
         )
         return prompt
 
@@ -1248,4 +1693,6 @@ class AgentsV2Runtime:
         if pending:
             await asyncio.gather(*pending, return_exceptions=True)
         self.workers.clear()
+        self._worker_parent_parts.clear()
+        self._stored_worker_context_runs.clear()
         self.verbose.log("CLEANUP END", {"workers": 0, "finished": self.finished})

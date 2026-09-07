@@ -116,6 +116,7 @@ class DynamicFlowWorkflowLI(Workflow):
         tools: List[Any],
         stream: bool,
         base_prompt: Optional[str],
+        system_prompt_extra: Optional[str] = None,
         timeout: int = 120,
         verbose: bool = True,
     ):
@@ -143,6 +144,7 @@ class DynamicFlowWorkflowLI(Workflow):
         self.tools_base = tools or []
         self.stream = bool(stream)  # kept for symmetry with OpenAI; LI agents don't stream tokens
         self.base_prompt = base_prompt or ""
+        self.system_prompt_extra = system_prompt_extra or ""
 
         # Runtime
         self._on_stop = None
@@ -266,6 +268,7 @@ class DynamicFlowWorkflowLI(Workflow):
             option_get=self.option_get,
             default_model=self.default_model,
             base_prompt=self.base_prompt,
+            system_prompt_extra=self.system_prompt_extra,
             schema_allow_local=node.allow_local_tools,
             schema_allow_remote=node.allow_remote_tools,
             default_allow_local=self.allow_local_tools_default,

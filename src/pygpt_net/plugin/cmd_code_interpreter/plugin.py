@@ -131,7 +131,10 @@ class Plugin(BasePlugin):
 
         elif name == Event.TOOL_OUTPUT_RENDER:
             if data['tool'] == self.id:
-                data['html'] = self.output.handle(ctx, data['content'])
+                # Input/output is already available in the dedicated Code
+                # Interpreter view and in the tool chain. Do not duplicate it
+                # in the message footer.
+                data['html'] = ''
 
     def cmd_syntax(self, data: dict):
         """

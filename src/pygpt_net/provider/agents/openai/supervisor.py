@@ -292,9 +292,13 @@ class Agent(BaseAgent):
         agent_name = "Supervisor"  # hard-coded UI name
 
         worker_tool = kwargs.get("worker_tool", None)
+        instructions = self.append_system_prompt_extra(
+            self.get_option(preset, "supervisor", "prompt"),
+            kwargs,
+        )
         kwargs = {
             "name": agent_name,
-            "instructions": self.get_option(preset, "supervisor", "prompt"),
+            "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model)
         }
         if worker_tool:
@@ -317,9 +321,13 @@ class Agent(BaseAgent):
             self.get_option(preset, "worker", "model")
         )
         handoffs = kwargs.get("handoffs", [])
+        instructions = self.append_system_prompt_extra(
+            self.get_option(preset, "worker", "prompt"),
+            kwargs,
+        )
         kwargs = {
             "name": agent_name,
-            "instructions": self.get_option(preset, "worker", "prompt"),
+            "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model)
         }
         if handoffs:
@@ -374,6 +382,7 @@ class Agent(BaseAgent):
             preset=preset,
             verbose=verbose,
             tools=tools,
+            system_prompt_extra=self.get_system_prompt_extra(agent_kwargs),
         )
         if experts:
             agent_kwargs["handoffs"] = experts

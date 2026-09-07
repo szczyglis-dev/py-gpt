@@ -430,6 +430,70 @@ class NodeTemplateEngine {
 		);
 	}
 
+	// Render chronological sub-items inside one durable assistant turn.
+	_renderPartialTimeline(block) {
+		const extra = block.extra || {};
+		const timeline = Array.isArray(extra.partial_timeline) ? extra.partial_timeline.filter(Boolean) : [];
+		if (!timeline.length) return '';
+
+		const parts = [];
+		for (let i = 0; i < timeline.length; i++) {
+			const segment = timeline[i] || {};
+
+			// Runtime-only workflow/status rows are rendered in the same timeline
+			// as text and tools, before message extras/actions. They survive RELOAD
+			// through Python renderer state but are intentionally not persisted in DB.
+			const statusId = String(segment.status_id || '');
+			const statusKind = String(segment.status_kind || '');
+			if (statusId || statusKind) {
+				let label = String(segment.status_text || '');
+				const toolNames = Array.isArray(segment.status_tool_names)
+					? segment.status_tool_names.filter(Boolean).map(v => String(v))
+					: [];
+				if (!label && statusKind === 'tool' && toolNames.length) {
+					const prefix = toolNames.length > 1
+						? ((typeof window !== 'undefined' && window.LOCALE_TOOLS) ? String(window.LOCALE_TOOLS) : 'Tools')
+						: ((typeof window !== 'undefined' && window.LOCALE_TOOL) ? String(window.LOCALE_TOOL) : 'Tool');
+					label = `${prefix}: ${toolNames.join(', ')}...`;
+				}
+				if (label) {
+					const activeClass = segment.status_active ? ' agents-v2-status--active' : '';
+					const sid = this._escapeHtml(statusId);
+					const skind = this._escapeHtml(statusKind || 'agent');
+					parts.push(
+						`<div class='msg-part msg-part-status' data-status-part='1'>` +
+						`<div class='agents-v2-status workflow-status${activeClass}' ` +
+						`data-workflow-status-id='${sid}' data-status-kind='${skind}'>` +
+						`<span class='agents-v2-status__text'>${this._escapeHtml(label)}</span>` +
+						`</div></div>`
+					);
+				}
+				continue;
+			}
+
+			const mdText = this._escapeHtml(segment.text || '');
+			const mdBlock = mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '';
+			const calls = Array.isArray(segment.tool_calls) ? segment.tool_calls.filter(Boolean) : [];
+			let toolWrap = '';
+			if (calls.length) {
+				const toolBlock = {
+					id: segment.render_id,
+					extra: {
+						tool_calls: calls,
+						tool_output_visible: true,
+						tool_result: '',
+						tool_output: ''
+					}
+				};
+				toolWrap = this._renderToolOutputWrapper(toolBlock);
+			}
+			if (!mdBlock && !toolWrap) continue;
+			const partId = this._esc(segment.part_uuid || segment.part_id || i);
+			parts.push(`<div class='msg-part' data-part-id='${partId}'>${mdBlock}${toolWrap}</div>`);
+		}
+		return parts.join('');
+	}
+
 	// Render bot message block (md-block-markdown)
 	_renderBot(block) {
 		const id = block.id;
@@ -444,8 +508,9 @@ class NodeTemplateEngine {
 		const nameHeader = personalize ? this._nameHeader('bot', out.name || '', out.avatar_img || null) : '';
 
 		const mdText = this._escapeHtml(out.text || '');
-		const mdBlock = mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '';
-		const toolWrap = this._renderToolOutputWrapper(block);
+		const timelineHtml = this._renderPartialTimeline(block);
+		const mdBlock = timelineHtml ? '' : (mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '');
+		const toolWrap = timelineHtml ? '' : this._renderToolOutputWrapper(block);
 		const extras = this._renderExtras(block);
 		const actions = (block.extra && block.extra.footer_icons) ? this._renderActions(block) : '';
 		const debug = (block.extra && block.extra.debug_html) ? String(block.extra.debug_html) : '';
@@ -468,9 +533,8 @@ class NodeTemplateEngine {
 			`<div class='msg-box msg-bot' id='${msgId}'${toolChainAttrs}>` +
 			`${nameHeader}` +
 			`<div class='msg'>` +
-			`${mdBlock}` +
+			`<div class='msg-timeline'>${timelineHtml || mdBlock}${toolWrap}</div>` +
 			`<div class='msg-tool-extra'></div>` +
-			`${toolWrap}` +
 			`<div class='msg-extra'>${extras}</div>` +
 			`${actions}${debug}` +
 			`</div>` +
@@ -485,7 +549,8 @@ class NodeTemplateEngine {
 		if (block && block.output) {
 			const extra = block.extra || {};
 			const hasToolCalls = Array.isArray(extra.tool_calls) && extra.tool_calls.length > 0;
-			if (block.output.text || hasToolCalls || extra.tool_output_visible === true) {
+			const hasTimeline = Array.isArray(extra.partial_timeline) && extra.partial_timeline.length > 0;
+			if (block.output.text || hasToolCalls || hasTimeline || extra.tool_output_visible === true) {
 				parts.push(this._renderBot(block));
 			}
 		}

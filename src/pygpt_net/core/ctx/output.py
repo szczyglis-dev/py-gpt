@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 04:00:00                  #
+# Updated Date: 2026.09.08 11:15:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -32,6 +32,11 @@ class Output:
         # request/tool chain. This keeps streaming bound to the chat tab where
         # generation started even if focus moves to another split-screen column.
         self.render_pids: Dict[int, int] = {}
+        # Top-level request owner. Unlike render_pids this exists even before a
+        # new/empty chat has a CtxMeta and therefore is the authoritative
+        # routing key for the whole send -> stream -> final reload lifecycle.
+        self.request_pid: Optional[int] = None
+        self.request_meta_id: Optional[int] = None
         self.last_pid: int = 0  # last used PID
         self.initialized: bool = False
 
@@ -48,6 +53,8 @@ class Output:
         self.last_pids.clear()
         if force:
             self.render_pids.clear()
+            self.request_pid = None
+            self.request_meta_id = None
 
         tabs = getattr(self.window, "core", None)
         tabs = getattr(tabs, "tabs", None)
@@ -59,20 +66,22 @@ class Output:
 
         self.initialized = True
 
-    def store(self, meta: CtxMeta) -> int:
+    def store(self, meta: CtxMeta, pid: Optional[int] = None) -> Optional[int]:
         """
         Store meta in mapping
 
         :param meta: Meta
-        :return: PID
+        :param pid: Explicit chat-tab PID; active tab is used when omitted
+        :return: PID or None
         """
         self.init()
 
         tabs = self.window.core.tabs
-        pid = tabs.get_active_pid()
-        tab = tabs.get_tab_by_pid(pid)
+        if pid is None:
+            pid = tabs.get_active_pid()
+        tab = tabs.get_tab_by_pid(pid) if pid is not None else None
         if tab is None or tab.type != Tab.TAB_CHAT:
-            return 0
+            return None
 
         col_idx = tab.column_idx
 
@@ -165,6 +174,117 @@ class Output:
             self.last_pid = pid
         return meta_id
 
+    def begin_request(self, pid: Optional[int] = None) -> Optional[int]:
+        """Bind a top-level request to one concrete chat tab."""
+        self.init()
+        existing = self.get_request_pid()
+        if existing is not None:
+            return existing
+        tabs = self.window.core.tabs
+        if pid is None:
+            pid = tabs.get_active_pid()
+        tab = tabs.get_tab_by_pid(pid) if pid is not None else None
+        if tab is None or tab.type != Tab.TAB_CHAT:
+            pid = self.get_last_chat_pid()
+            tab = tabs.get_tab_by_pid(pid) if pid is not None else None
+        if tab is None or tab.type != Tab.TAB_CHAT:
+            return None
+        self.request_pid = pid
+        self.request_meta_id = getattr(tab, "data_id", None)
+        self.last_pid = pid
+        return pid
+
+    def get_request_pid(self) -> Optional[int]:
+        """Return the valid chat PID that owns the current top-level request."""
+        pid = self.request_pid
+        if pid is None:
+            return None
+        tab = self.window.core.tabs.get_tab_by_pid(pid)
+        if tab is None or tab.type != Tab.TAB_CHAT:
+            self.request_pid = None
+            self.request_meta_id = None
+            return None
+        return pid
+
+    def has_request(self) -> bool:
+        """Return True while a top-level request owns a chat tab."""
+        return self.get_request_pid() is not None
+
+    def bind_request_meta(self, meta: Optional[CtxMeta]) -> Optional[int]:
+        """Attach a newly resolved/created meta to the current request owner."""
+        pid = self.get_request_pid()
+        if pid is None or meta is None or getattr(meta, "id", None) is None:
+            return None
+        self.request_meta_id = meta.id
+        self.store(meta, pid=pid)
+        self.render_pids[meta.id] = pid
+        return pid
+
+    def get_request_meta(self) -> Optional[CtxMeta]:
+        """Return the request meta when it is already known."""
+        meta_id = self.request_meta_id
+        if meta_id is None:
+            return None
+        return self.window.core.ctx.get_meta_by_id(meta_id)
+
+    def finish_request(self, meta: Optional[CtxMeta] = None):
+        """Release request ownership after the final owning-chat reload."""
+        meta_id = getattr(meta, "id", None) if meta is not None else self.request_meta_id
+        if meta is not None and self.request_meta_id not in (None, meta_id):
+            return
+        if meta_id is not None:
+            self.render_pids.pop(meta_id, None)
+        self.request_pid = None
+        self.request_meta_id = None
+
+    def get_pinned_pid(self, meta: Optional[CtxMeta]) -> Optional[int]:
+        """Return the valid render PID explicitly pinned for ``meta``."""
+        self.init()
+        if meta is None or getattr(meta, "id", None) is None:
+            return None
+
+        meta_id = meta.id
+        pid = self.render_pids.get(meta_id)
+        if pid is None:
+            return None
+
+        tab = self.window.core.tabs.get_tab_by_pid(pid)
+        if tab is not None and tab.type == Tab.TAB_CHAT:
+            return pid
+
+        # Drop stale pin immediately. Never let a removed/non-chat PID fall
+        # through to an arbitrary output widget.
+        self.render_pids.pop(meta_id, None)
+        return None
+
+    def get_last_chat_pid(self) -> Optional[int]:
+        """
+        Return the most recently used valid chat-tab PID.
+
+        Focus may currently be inside a tool tab in the other split-screen
+        column.  Rendering and user sends must still target the chat that was
+        active before focus moved away from it.
+        """
+        self.init()
+        tabs = self.window.core.tabs
+
+        if self.last_pid is not None:
+            tab = tabs.get_tab_by_pid(self.last_pid)
+            if tab is not None and tab.type == Tab.TAB_CHAT:
+                return self.last_pid
+
+        # Fall back to the most recently remembered PID from the per-column
+        # mappings.  Do not use the currently focused non-chat tab as a target.
+        candidates = []
+        for last_map in self.last_pids.values():
+            if not isinstance(last_map, dict):
+                continue
+            for mapped_pid in last_map.values():
+                tab = tabs.get_tab_by_pid(mapped_pid)
+                if tab is not None and tab.type == Tab.TAB_CHAT:
+                    candidates.append(mapped_pid)
+        return candidates[-1] if candidates else None
+
     def get_mapped(self, meta: CtxMeta) -> Optional[int]:
         """
         Get PID by meta for the current column (prefer active PID)
@@ -206,8 +326,19 @@ class Output:
                 if pid is not None:
                     break
 
-        if in_second_column and not self.window.controller.chat.input.generating:
-            return None # allow remapping only when not generating
+        # Remapping is useful only when the user is actually focused on a
+        # *different chat* column.  A tool/non-chat tab (Code Interpreter,
+        # Files, Painter, etc.) must never invalidate the existing chat target.
+        if (in_second_column
+                and tab is not None
+                and tab.type == Tab.TAB_CHAT
+                and getattr(tab, "data_id", None) == meta.id
+                and not self.window.controller.chat.input.generating
+                and not self.has_request()):
+            # Remap only after an explicit tab/context assignment. Merely
+            # focusing another chat with a different data_id must never make a
+            # delayed render event overwrite that tab's mapping.
+            return None
 
         return pid  # return last found PID
 
@@ -255,13 +386,17 @@ class Output:
             return None
 
         meta_id = meta.id
+        request_pid = self.get_request_pid()
+        if request_pid is not None and self.request_meta_id in (None, meta_id):
+            self.request_meta_id = meta_id
+            self.store(meta, pid=request_pid)
+            self.render_pids[meta_id] = request_pid
+            return request_pid
+
         if not force:
-            pinned = self.render_pids.get(meta_id)
+            pinned = self.get_pinned_pid(meta)
             if pinned is not None:
-                tab = self.window.core.tabs.get_tab_by_pid(pinned)
-                if tab is not None and tab.type == Tab.TAB_CHAT:
-                    return pinned
-                self.render_pids.pop(meta_id, None)
+                return pinned
 
         tabs = self.window.core.tabs
         if pid is None:
@@ -292,13 +427,21 @@ class Output:
                 elif candidates:
                     pid = candidates[-1]
 
-            # New/unmapped context: only create the mapping from a real active
-            # chat tab. Never interpret store()'s legacy 0 sentinel as PID 0
-            # while a tool tab has focus.
+            # New/unmapped context.  If focus is on a tool in another column,
+            # keep using the most recently active chat instead of dropping the
+            # render target.  This also covers sending a new input while Code
+            # Interpreter (or another tool tab) owns keyboard focus.
             if pid is None:
-                if active_tab is None or active_tab.type != Tab.TAB_CHAT:
+                target_pid = None
+                if active_tab is not None and active_tab.type == Tab.TAB_CHAT:
+                    target_pid = active_pid
+                else:
+                    current_meta = self.window.core.ctx.get_current_meta()
+                    if current_meta is not None and getattr(current_meta, "id", None) == meta_id:
+                        target_pid = self.get_last_chat_pid()
+                if target_pid is None:
                     return None
-                pid = self.store(meta)
+                pid = self.store(meta, pid=target_pid)
 
         tab = tabs.get_tab_by_pid(pid) if pid is not None else None
         if tab is None or tab.type != Tab.TAB_CHAT:
@@ -333,85 +476,94 @@ class Output:
             return None
 
         meta_id = getattr(meta, "id", None)
+        request_pid = self.get_request_pid()
+        if request_pid is not None and self.request_meta_id in (None, meta_id):
+            if meta_id is not None:
+                self.request_meta_id = meta_id
+                self.store(meta, pid=request_pid)
+            return request_pid
+
         if meta_id is not None:
-            pinned = self.render_pids.get(meta_id)
+            pinned = self.get_pinned_pid(meta)
             if pinned is not None:
-                tab = self.window.core.tabs.get_tab_by_pid(pinned)
-                if tab is not None and tab.type == Tab.TAB_CHAT:
-                    return pinned
-                # The pinned tab was closed/removed. Drop the stale pin and
-                # fall back to normal mapping resolution.
-                self.render_pids.pop(meta_id, None)
+                return pinned
 
         tabs = self.window.core.tabs
         active_pid = tabs.get_active_pid()
         mapped_pid = self.get_mapped(meta)
         if mapped_pid == active_pid:
-            pid = active_pid
-        else:
-            if mapped_pid is None:
-                pid = self.store(meta)
-            else:
-                pid = mapped_pid
-        return pid
+            return active_pid
+        if mapped_pid is not None:
+            return mapped_pid
+
+        active_tab = tabs.get_tab_by_pid(active_pid) if active_pid is not None else None
+        if active_tab is not None and active_tab.type == Tab.TAB_CHAT:
+            return self.store(meta, pid=active_pid)
+
+        # Keyboard focus is in a non-chat tab.  Never let that make a renderer
+        # fall back to PID 0 / an arbitrary output node.
+        current_meta = self.window.core.ctx.get_current_meta()
+        if current_meta is not None and getattr(current_meta, "id", None) == meta_id:
+            target_pid = self.get_last_chat_pid()
+            if target_pid is not None:
+                return self.store(meta, pid=target_pid)
+        return None
 
     def get_current(self, meta: Optional[CtxMeta] = None):
         """
-        Get current output node by meta
+        Get current output node by meta.
+
+        When a meta was supplied, failure to resolve its PID must return None;
+        falling back to the first WebView can leak one chat's render into a
+        different visible tab.
 
         :param meta: Meta
         :return: Node
         """
-        pid = self.get_pid(meta)
         nodes = self.window.ui.nodes['output']
-        if pid is not None:
-            node = nodes.get(pid)
-            if node is not None:
-                return node
-        # fallback
+        if meta is not None:
+            pid = self.get_pid(meta)
+            return nodes.get(pid) if pid is not None else None
         return next(iter(nodes.values()), None)
 
     def get_current_plain(self, meta: Optional[CtxMeta] = None):
         """
-        Get current output plain node by meta
+        Get current output plain node by meta.
 
         :param meta: Meta
         :return: Node
         """
-        pid = self.get_pid(meta)
         nodes = self.window.ui.nodes['output_plain']
-        if pid is not None:
-            node = nodes.get(pid)
-            if node is not None:
-                return node
+        if meta is not None:
+            pid = self.get_pid(meta)
+            return nodes.get(pid) if pid is not None else None
         return next(iter(nodes.values()), None)
 
     def get_by_pid(self, pid: Optional[int] = None):
         """
-        Get output node by PID
+        Get output node by PID.
+
+        An explicit unknown PID is an invalid render target, not a request for
+        an arbitrary fallback tab.
 
         :param pid: PID
         :return: Node widget
         """
         nodes = self.window.ui.nodes['output']
         if pid is not None:
-            node = nodes.get(pid)
-            if node is not None:
-                return node
+            return nodes.get(pid)
         return next(iter(nodes.values()), None)
 
     def get_by_pid_plain(self, pid: Optional[int] = None):
         """
-        Get output plain node by PID
+        Get output plain node by PID.
 
         :param pid: PID
         :return: Node widget
         """
         nodes = self.window.ui.nodes['output_plain']
         if pid is not None:
-            node = nodes.get(pid)
-            if node is not None:
-                return node
+            return nodes.get(pid)
         return next(iter(nodes.values()), None)
 
     def get_all(self) -> List:
@@ -441,9 +593,16 @@ class Output:
             if pid in self.mapping[col_idx]:
                 del self.mapping[col_idx][pid]
                 break
-        if pid in self.last_pids:
-            del self.last_pids[pid]
+        for col_idx, last_map in self.last_pids.items():
+            if not isinstance(last_map, dict):
+                continue
+            for meta_id, mapped_pid in list(last_map.items()):
+                if mapped_pid == pid:
+                    del last_map[meta_id]
         self.unpin_render_pid(pid=pid)
+        if self.request_pid == pid:
+            self.request_pid = None
+            self.request_meta_id = None
         if pid == self.last_pid:
             self.last_pid = 0
 
@@ -452,5 +611,7 @@ class Output:
         self.mapping.clear()
         self.last_pids.clear()
         self.render_pids.clear()
+        self.request_pid = None
+        self.request_meta_id = None
         self.last_pid = 0
         self.initialized = False

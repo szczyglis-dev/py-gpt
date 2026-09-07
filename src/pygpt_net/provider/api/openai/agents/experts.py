@@ -21,6 +21,7 @@ def get_experts(
     verbose: bool = False,
     preset: PresetItem = None,
     tools: list = None,
+    system_prompt_extra: str = "",
 ):
     """
     Return list of expert agents based on the preset
@@ -29,6 +30,7 @@ def get_experts(
     :param verbose: bool - if True, print expert names
     :param preset: PresetItem - preset containing expert UUIDs
     :param tools: list - list of function tools to append to experts
+    :param system_prompt_extra: Runtime/plugin system-prompt additions
     :return: list of OpenAIAgent instances
     """
     experts = []
@@ -47,6 +49,7 @@ def get_experts(
             model=model,
             preset=expert,
             tools=tools,
+            system_prompt_extra=system_prompt_extra,
         )
         expert_agents.append(expert_agent)
         if verbose:
@@ -59,6 +62,7 @@ def get_expert(
         model: ModelItem,
         preset: PresetItem = None,
         tools: list = None,
+        system_prompt_extra: str = "",
 ) -> OpenAIAgent:
     """
     Return Agent provider instance
@@ -68,12 +72,17 @@ def get_expert(
     :param model: Model item
     :param preset: Preset item
     :param tools: List of function tools
+    :param system_prompt_extra: Runtime/plugin system-prompt additions
     :return: Agent provider instance
     """
     agent_name = preset.name if preset else "Agent"
+    instructions = str(prompt or "").strip()
+    extra = str(system_prompt_extra or "").strip()
+    if extra and extra not in instructions:
+        instructions = f"{instructions}\n\n{extra}" if instructions else extra
     kwargs = {
         "name": agent_name,
-        "instructions": prompt,
+        "instructions": instructions,
         "model": window.core.agents.provider.get_openai_model(model),
     }
     tool_kwargs = append_tools(
