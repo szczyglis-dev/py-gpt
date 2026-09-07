@@ -104,3 +104,62 @@ def test_console_enter_dispatches_send_and_accepts_event():
 
 def test_focus_traversal_is_disabled():
     assert ConsoleInput.focusNextPrevChild(SimpleNamespace(), True) is False
+
+
+def test_set_commands_accepts_list_or_tuple_and_ignores_other_types():
+    widget = _console(_commands=["old"])
+
+    ConsoleInput.set_commands(widget, ("help", "clear"))
+    assert widget._commands == ["help", "clear"]
+
+    ConsoleInput.set_commands(widget, "history")
+    assert widget._commands == ["help", "clear"]
+
+
+def test_history_navigation_beeps_on_empty_or_invalid_direction():
+    widget = _console(_history=[])
+    with patch("pygpt_net.ui.widget.textarea.console.QApplication.beep") as beep:
+        ConsoleInput._history_prev(widget)
+        ConsoleInput._history_next(widget)
+    assert beep.call_count == 2
+
+    widget = _console(_history=["one"], _history_index=1, _in_history_mode=False)
+    with patch("pygpt_net.ui.widget.textarea.console.QApplication.beep") as beep:
+        ConsoleInput._history_next(widget)
+    beep.assert_called_once()
+
+
+def test_history_previous_at_oldest_item_beeps_without_changing_text():
+    widget = _console(_history=["one"], _history_index=0, _in_history_mode=True)
+    with patch("pygpt_net.ui.widget.textarea.console.QApplication.beep") as beep:
+        ConsoleInput._history_prev(widget)
+    beep.assert_called_once()
+    widget.setText.assert_not_called()
+
+
+def test_console_up_down_and_tab_keys_delegate_and_accept_event():
+    widget = _console(_history_prev=MagicMock(), _history_next=MagicMock(), _try_autocomplete=MagicMock(return_value=True))
+
+    for key, expected in (
+        (QtCore.Qt.Key_Up, widget._history_prev),
+        (QtCore.Qt.Key_Down, widget._history_next),
+        (QtCore.Qt.Key_Tab, widget._try_autocomplete),
+    ):
+        event = MagicMock()
+        event.key.return_value = key
+        ConsoleInput.keyPressEvent(widget, event)
+        expected.assert_called_once()
+        expected.reset_mock()
+        event.accept.assert_called_once()
+
+
+def test_console_failed_tab_autocomplete_beeps_and_accepts_event():
+    widget = _console(_try_autocomplete=MagicMock(return_value=False))
+    event = MagicMock()
+    event.key.return_value = QtCore.Qt.Key_Backtab
+
+    with patch("pygpt_net.ui.widget.textarea.console.QApplication.beep") as beep:
+        ConsoleInput.keyPressEvent(widget, event)
+
+    beep.assert_called_once()
+    event.accept.assert_called_once()

@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from PySide6.QtCore import QRect, QSize
+from PySide6.QtCore import QRect, QSize, Qt
 
 from pygpt_net.ui.base.flow_layout import FlowLayout
 
@@ -66,3 +66,18 @@ def test_flow_layout_wraps_items_and_test_mode_does_not_set_geometry(qapp):
     first.setGeometry.assert_not_called()
     second.setGeometry.assert_not_called()
     assert layout.heightForWidth(60) == 35
+
+
+def test_flow_layout_reports_no_expanding_directions(qapp):
+    layout = FlowLayout()
+    assert layout.expandingDirections() == Qt.Orientations(0)
+
+
+def test_flow_layout_set_geometry_applies_item_geometry(qapp):
+    layout = FlowLayout(spacing=0)
+    item = _layout_item(20, 10)
+    layout.addItem(item)
+
+    layout.setGeometry(QRect(0, 0, 100, 40))
+
+    item.setGeometry.assert_called_once()
