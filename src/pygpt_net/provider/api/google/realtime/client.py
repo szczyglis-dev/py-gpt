@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.07 23:00:00                  #
+# Updated Date: 2026.09.08 13:45:00                  #
 # ================================================== #
 
 import asyncio
@@ -891,15 +891,21 @@ class GoogleLiveClient:
                                 self._last_tool_calls = list(self._rt_state["tool_calls"])
                                 turn_finished = True  # let the app run tools now
 
-                            # Text part
+                            # Plain model_turn text is intentionally not emitted for AUDIO Live sessions.
+                            # The session requests output_audio_transcription, which is the authoritative
+                            # transcript of the audio actually spoken by the model. model_turn.parts[].text
+                            # may contain internal/thought text and can also duplicate the spoken transcript.
+                            # Keep processing structured parts (tools, code, images, etc.) below, but expose
+                            # normal assistant text only through server_content.output_transcription above.
                             txt = getattr(p, "text", None) or (p.get("text") if isinstance(p, dict) else None)
-                            if txt and self._on_text:
-                                s = str(txt)
-                                self._turn_text_parts.append(s)
-                                try:
-                                    await self._on_text(s)
-                                except Exception:
-                                    pass
+                            if txt and self.debug:
+                                is_thought = bool(
+                                    getattr(p, "thought", False)
+                                    if not isinstance(p, dict)
+                                    else p.get("thought", False)
+                                )
+                                kind = "thought" if is_thought else "model_turn text"
+                                print(f"[google.live] suppressed {kind}: {str(txt)[:200]}")
 
                             # Code execution parts
                             ex = getattr(p, "executable_code", None) or (p.get("executable_code") if isinstance(p, dict) else None)

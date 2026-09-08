@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 12:00:00                  #
+# Updated Date: 2026.09.08 13:40:00                  #
 # ================================================== #
 
 import asyncio
@@ -39,7 +39,7 @@ from pygpt_net.core.realtime.shared.tools import (
     tools_signature,
     build_tool_outputs_payload,
 )
-from pygpt_net.core.realtime.shared.turn import TurnMode, apply_turn_mode_openai
+from pygpt_net.core.realtime.shared.turn import TurnMode
 from pygpt_net.core.realtime.shared.session import set_ctx_rt_handle, set_rt_session_expires_at
 
 
@@ -50,7 +50,7 @@ class OpenAIRealtimeClient:
     Key points:
     - A single background asyncio loop runs in its own thread for the lifetime of the client.
     - One websocket connection (session) at a time; multiple "turns" (send_turn) are serialized.
-    - No server VAD: manual turn control via input_audio_buffer.* + response.create.
+    - Manual turn control by default, with optional server/semantic VAD for auto-turn.
     - Safe to call run()/send_turn()/reset()/shutdown() from any thread or event loop.
 
     Session resumption:
@@ -336,9 +336,9 @@ class OpenAIRealtimeClient:
         url_with_sid = f"{self.WS_URL}?{urlencode(base_q)}"
         url_no_sid = f"{self.WS_URL}?{urlencode({'model': model_id})}"
 
+        # GA Realtime endpoint no longer uses the legacy OpenAI-Beta header.
         headers = {
             "Authorization": f"Bearer {api_key}",
-            "OpenAI-Beta": "realtime=v1",
         }
 
         # Transcription toggle
@@ -384,21 +384,34 @@ class OpenAIRealtimeClient:
         if self.debug:
             print("[open_session] WS connected")
 
-        # Session payload (manual by default; prepared for auto)
+        # Realtime GA session shape. Audio output already includes a transcript,
+        # therefore output_modalities must be ["audio"] rather than ["text", "audio"].
         session_payload = {
             "type": "session.update",
             "session": {
-                "modalities": ["text", "audio"],
-                "voice": voice,
-                "input_audio_format": "pcm16",
-                "output_audio_format": "pcm16",
-                # turn_detection set below via apply_turn_mode_openai
+                "type": "realtime",
+                "output_modalities": ["audio"],
+                "audio": {
+                    "input": {
+                        "format": {
+                            "type": "audio/pcm",
+                            "rate": self._DEFAULT_RATE,
+                        },
+                    },
+                    "output": {
+                        "format": {
+                            "type": "audio/pcm",
+                            "rate": self._DEFAULT_RATE,
+                        },
+                        "voice": voice,
+                    },
+                },
                 **({"instructions": str(getattr(opts, "system_prompt"))} if getattr(opts, "system_prompt", None) else {}),
             },
         }
         turn_mode = TurnMode.AUTO if bool(getattr(opts, "auto_turn", False)) else TurnMode.MANUAL
-        apply_turn_mode_openai(session_payload, turn_mode)
-        self._tune_openai_vad(session_payload, opts)
+        self._apply_openai_turn_mode(session_payload, turn_mode)
+        self._configure_openai_vad(session_payload, opts)
 
         # Attach tools to session (remote + functions)
         try:
@@ -415,14 +428,14 @@ class OpenAIRealtimeClient:
                 print(f"[open_session] tools sanitize error: {_e}")
             self._cached_session_tools_sig = tools_signature([])
 
-        # Attach native input transcription if requested
+        # Attach native input transcription using the GA audio.input.transcription shape.
         try:
             if transcribe_enabled:
                 iat = {"model": "whisper-1"}
                 lang = getattr(opts, "transcribe_language", None) or getattr(opts, "language", None)
                 if lang:
                     iat["language"] = str(lang)
-                session_payload["session"]["input_audio_transcription"] = iat
+                session_payload["session"]["audio"]["input"]["transcription"] = iat
         except Exception:
             pass
 
@@ -626,8 +639,8 @@ class OpenAIRealtimeClient:
                     self._response_done = asyncio.Event()
             wait_curr = self._response_done  # snapshot for race-free waiting
 
-            # Build optional response payload (modalities + tools/tool_choice)
-            resp_obj = {"modalities": ["text", "audio"]}
+            # Build optional GA response payload (output modalities + tools/tool_choice)
+            resp_obj = {"output_modalities": ["audio"]}
             try:
                 resp_tools, tool_choice = prepare_tools_for_response(self._last_opts)
                 if resp_tools:
@@ -830,8 +843,8 @@ class OpenAIRealtimeClient:
                 except Exception:
                     self._response_done = asyncio.Event()
 
-            # 3) Build response payload (modalities + tools/tool_choice like in _send_turn_internal)
-            resp_obj = {"modalities": ["text", "audio"]}
+            # 3) Build GA response payload (output modalities + tools/tool_choice)
+            resp_obj = {"output_modalities": ["audio"]}
             try:
                 resp_tools, tool_choice = prepare_tools_for_response(self._last_opts)
                 if resp_tools:
@@ -922,7 +935,10 @@ class OpenAIRealtimeClient:
             try:
                 payload = {
                     "type": "session.update",
-                    "session": {"tools": session_tools}
+                    "session": {
+                        "type": "realtime",
+                        "tools": session_tools,
+                    },
                 }
                 await self.ws.send(json.dumps(payload))
                 self._cached_session_tools_sig = new_sig
@@ -1164,7 +1180,7 @@ class OpenAIRealtimeClient:
                                 await self._on_text(str(delta))
                             except Exception:
                                 pass
-                elif etype == "response.audio_transcript.delta":
+                elif etype in ("response.output_audio_transcript.delta", "response.audio_transcript.delta"):
                     if self._transcribe_enabled():
                         delta = ev.get("delta") or ev.get("text")
                         if isinstance(delta, dict) and "text" in delta:
@@ -1177,14 +1193,19 @@ class OpenAIRealtimeClient:
                                 except Exception:
                                     pass
 
-                elif etype in ("response.text.done", "response.output_text.done", "response.audio_transcript.done"):
+                elif etype in (
+                    "response.text.done",
+                    "response.output_text.done",
+                    "response.output_audio_transcript.done",
+                    "response.audio_transcript.done",
+                ):
                     if self.debug:
                         print("[_recv_loop] text done")
 
                 elif etype == "response.content_part.added":
                     part = ev.get("part") or {}
                     ptype = part.get("type")
-                    if ptype == "text":
+                    if ptype in ("text", "output_text"):
                         txt = part.get("text") or ""
                         if txt:
                             self._rt_append_text(txt)
@@ -1193,7 +1214,7 @@ class OpenAIRealtimeClient:
                                     await self._on_text(str(txt))
                                 except Exception:
                                     pass
-                    elif ptype == "audio":
+                    elif ptype in ("audio", "output_audio"):
                         b64 = part.get("audio")
                         if b64 and self._on_audio:
                             try:
@@ -1210,7 +1231,7 @@ class OpenAIRealtimeClient:
                                 except Exception:
                                     pass
 
-                elif etype == "response.audio.delta":
+                elif etype in ("response.output_audio.delta", "response.audio.delta"):
                     b64 = ev.get("delta")
                     if b64 and self._on_audio:
                         try:
@@ -1219,7 +1240,7 @@ class OpenAIRealtimeClient:
                         except Exception:
                             pass
 
-                elif etype == "response.audio.done":
+                elif etype in ("response.output_audio.done", "response.audio.done"):
                     if self.debug:
                         print("[_recv_loop] audio done")
                     if not audio_done and self._on_audio:
@@ -1556,7 +1577,7 @@ class OpenAIRealtimeClient:
                 if not isinstance(c, dict):
                     continue
                 ctype = c.get("type")
-                if ctype == "audio" and self._transcribe_enabled():
+                if ctype in ("audio", "output_audio") and self._transcribe_enabled():
                     tr = c.get("transcript")
                     if tr:
                         parts.append(str(tr))
@@ -1662,26 +1683,57 @@ class OpenAIRealtimeClient:
         except Exception:
             pass
 
-    def _tune_openai_vad(self, session_payload: dict, opts) -> None:
-        """
-        Increase end-of-speech hold for server VAD (auto-turn) to reduce premature turn endings.
-        """
-        try:
-            sess = session_payload.get("session") or {}
-            td = sess.get("turn_detection")
-            if not isinstance(td, dict):
-                return  # manual mode or VAD disabled
+    @staticmethod
+    def _openai_audio_input(session_payload: dict) -> dict:
+        """Return/create the Realtime GA session.audio.input object."""
+        sess = session_payload.setdefault("session", {})
+        sess.setdefault("type", "realtime")
+        audio = sess.setdefault("audio", {})
+        return audio.setdefault("input", {})
 
-            # Resolve target silence (default +2000 ms)
+    def _apply_openai_turn_mode(self, session_payload: dict, mode: TurnMode) -> None:
+        """Apply manual/server-VAD turn detection using the Realtime GA shape."""
+        audio_input = self._openai_audio_input(session_payload)
+        if mode == TurnMode.AUTO:
+            audio_input["turn_detection"] = {"type": "server_vad"}
+        else:
+            audio_input["turn_detection"] = None
+
+    def _configure_openai_vad(self, session_payload: dict, opts) -> None:
+        """Apply OpenAI VAD settings to session.audio.input.turn_detection."""
+        try:
+            audio_input = self._openai_audio_input(session_payload)
+            td = audio_input.get("turn_detection")
+            if not isinstance(td, dict):
+                return
+
+            # Optional VAD type override. GA semantic_vad has a different parameter set
+            # from server_vad, so server-only options are applied conditionally below.
+            vad_type = getattr(opts, "vad_type", None)
+            if isinstance(vad_type, str) and vad_type in ("server_vad", "semantic_vad"):
+                td["type"] = vad_type
+
+            create_response = getattr(opts, "vad_create_response", None)
+            if isinstance(create_response, bool):
+                td["create_response"] = create_response
+
+            interrupt_response = getattr(opts, "vad_interrupt_response", None)
+            if isinstance(interrupt_response, bool):
+                td["interrupt_response"] = interrupt_response
+
+            if td.get("type") != "server_vad":
+                return
+
+            threshold = getattr(opts, "vad_threshold", None)
+            if isinstance(threshold, (int, float)):
+                td["threshold"] = float(threshold)
+
             target_ms = getattr(opts, "vad_end_silence_ms", None)
             if not isinstance(target_ms, (int, float)) or target_ms <= 0:
-                # If user didn't override, ensure at least 2000 ms
                 base = int(td.get("silence_duration_ms") or 500)
                 target_ms = max(base, 2000)
-
             td["silence_duration_ms"] = int(target_ms)
 
-            # Optional: prefix padding before detected speech
             prefix_ms = getattr(opts, "vad_prefix_padding_ms", None)
             if isinstance(prefix_ms, (int, float)) and prefix_ms >= 0:
                 td["prefix_padding_ms"] = int(prefix_ms)
@@ -1739,55 +1791,25 @@ class OpenAIRealtimeClient:
 
         async with self._send_lock:
             try:
-                # Build base session.update; let helper set correct turn_detection shape
-                payload: dict = {"type": "session.update", "session": {}}
+                # Build a Realtime GA session.update with turn detection nested under audio.input.
+                payload: dict = {
+                    "type": "session.update",
+                    "session": {"type": "realtime"},
+                }
                 turn_mode = TurnMode.AUTO if enabled else TurnMode.MANUAL
-                apply_turn_mode_openai(payload, turn_mode)  # sets session.turn_detection (AUTO) or None (MANUAL)
+                self._apply_openai_turn_mode(payload, turn_mode)
 
                 if enabled:
-                    sess = payload.get("session", {})
-                    td = sess.get("turn_detection")
+                    self._configure_openai_vad(payload, self._last_opts)
+                    td = self._openai_audio_input(payload).get("turn_detection")
 
-                    # Optional VAD type override via opts.vad_type ("server_vad" | "semantic_vad")
-                    try:
-                        vad_type = getattr(self._last_opts, "vad_type", None)
-                        if isinstance(vad_type, str) and vad_type in ("server_vad", "semantic_vad"):
-                            if isinstance(td, dict):
-                                td["type"] = vad_type
-                    except Exception:
-                        pass
-
-                    # Optional threshold for server_vad
-                    try:
-                        thr = getattr(self._last_opts, "vad_threshold", None)
-                        if isinstance(thr, (int, float)) and isinstance(td, dict) and td.get("type") == "server_vad":
-                            td["threshold"] = float(thr)
-                    except Exception:
-                        pass
-
-                    # Apply defaults based on opts first
-                    self._tune_openai_vad(payload, self._last_opts)
-
-                    # Then hard-override with explicit args (user provided values win)
-                    if isinstance(td, dict):
+                    # Explicit runtime overrides win over values stored in opts.
+                    # silence/prefix are valid for server_vad only.
+                    if isinstance(td, dict) and td.get("type") == "server_vad":
                         if silence_ms is not None:
                             td["silence_duration_ms"] = int(silence_ms)
                         if prefix_ms is not None:
                             td["prefix_padding_ms"] = int(prefix_ms)
-
-                        # Optional flags from opts
-                        try:
-                            cr = getattr(self._last_opts, "vad_create_response", None)
-                            if isinstance(cr, bool):
-                                td["create_response"] = cr
-                        except Exception:
-                            pass
-                        try:
-                            ir = getattr(self._last_opts, "vad_interrupt_response", None)
-                            if isinstance(ir, bool):
-                                td["interrupt_response"] = ir
-                        except Exception:
-                            pass
 
                 # Send the update
                 await self.ws.send(json.dumps(payload))
@@ -1804,7 +1826,11 @@ class OpenAIRealtimeClient:
                     pass
 
                 if self.debug:
-                    td_dbg = (payload.get("session", {}) or {}).get("turn_detection")
+                    td_dbg = (
+                        ((payload.get("session", {}) or {}).get("audio", {}) or {})
+                        .get("input", {})
+                        .get("turn_detection")
+                    )
                     print(f"[update_session_autoturn] session.update sent; auto_turn={enabled}, td={td_dbg}")
 
             except Exception as e:
