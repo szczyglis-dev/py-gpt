@@ -66,14 +66,17 @@ def test_agents_v2_memory_load_history_applies_model_context_window():
         current_input="current prompt",
     )
 
-    window.core.ctx.get_history.assert_called_once_with(
-        original,
-        "model-x",
-        MODE_AGENT_V2,
-        25,
-        300,
-        ignore_first=False,
-    )
+    window.core.ctx.get_history.assert_called_once()
+    args, kwargs = window.core.ctx.get_history.call_args
+    prepared = args[0]
+    assert len(prepared) == 1
+    assert prepared[0] is not original[0]
+    assert prepared[0].input == "old"
+    assert prepared[0].output == "answer"
+    assert prepared[0].parts == []
+    assert prepared[0].active_part is None
+    assert args[1:] == ("model-x", MODE_AGENT_V2, 25, 300)
+    assert kwargs == {"ignore_first": False}
     assert [message.content for message in history] == ["kept", "kept answer"]
 
 

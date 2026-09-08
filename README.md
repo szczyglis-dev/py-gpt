@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.11** | build: **2026-09-06** | Python: **>=3.10, <3.14**
+Release: **2.8.12** | build: **2026-09-08** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -3337,6 +3337,18 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.12 (2026-09-08)**
+
+- Improved, extended, and fixed several bugs in the following modes: Chat, Realtime + Audio, Computer Use, Autonomous Agent, and Agents v2.
+- Added new models: **GPT-6 Astra** and **Claude Fable 5.1**.
+- Added a new remote tool in **Settings**: **Computer Use**, which allows you to control the computer in standard Chat mode.
+- Added item limits, a **Show more** option, and collapsible items to the project list.
+- Model responses are now split into partials and stored in the database.
+- Fixed multi-column context handling.
+- Fixed sandbox image URLs.
+- Removed redundant tool input/output from message footers.
+- Removed old and deprecated models.
 
 **2.8.11 (2026-09-06)**
 

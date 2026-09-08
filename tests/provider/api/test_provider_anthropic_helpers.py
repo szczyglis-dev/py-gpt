@@ -105,7 +105,7 @@ def test_tools_get_all_tools_combines_remote_tools():
 
 
 def attachment(path):
-    return SimpleNamespace(path=str(path), consumed=False)
+    return SimpleNamespace(path=str(path), consumed=False, extra={})
 
 
 def test_vision_build_blocks_encodes_only_existing_images(tmp_path):
@@ -158,10 +158,10 @@ def test_computer_safe_json_prune_id_and_ctx_memory(monkeypatch):
 
     ctx = SimpleNamespace(extra=None)
     mem = comp._ensure_ctx_memory(ctx)
-    assert mem == {"buffers": {}, "index_to_id": {}, "active_ids": []}
+    assert mem == {"buffers": {}, "index_to_id": {}, "active_ids": [], "meta": {}}
     ctx.extra["anthropic_computer"] = {"active_ids": "bad"}
     mem = comp._ensure_ctx_memory(ctx)
-    assert mem == {"buffers": {}, "index_to_id": {}, "active_ids": []}
+    assert mem == {"buffers": {}, "index_to_id": {}, "active_ids": [], "meta": {}}
 
 
 def test_computer_coordinate_key_and_scroll_normalization():

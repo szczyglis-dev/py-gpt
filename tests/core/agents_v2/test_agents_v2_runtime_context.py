@@ -125,11 +125,19 @@ def test_agents_v2_runtime_shared_context_contains_hidden_input_attachment_manif
 def test_agents_v2_runtime_system_context_reads_filesystem_runtime_prompt_only():
     runtime = bare_runtime()
     runtime.context.ctx = SimpleNamespace(extra={
-        "agents_v2_filesystem_context": " filesystem instructions ",
+        "agents_v2_filesystem_context": "stale persisted value must be ignored",
         "other": "ignore",
     })
+    plugin = MagicMock()
+    plugin.get_option_value.return_value = True
+    plugin.build_runtime_filesystem_context.return_value = " filesystem instructions "
+    runtime.window.controller.plugins.is_enabled.return_value = True
+    runtime.window.core.plugins.get.return_value = plugin
+    runtime.window.core.command.is_cmd.return_value = True
 
     assert runtime._build_runtime_system_context() == "filesystem instructions"
+    runtime.window.core.plugins.get.assert_called_once_with("cmd_files")
+    plugin.build_runtime_filesystem_context.assert_called_once_with()
 
 
 def test_agents_v2_runtime_prefetch_rag_context_uses_selected_index():

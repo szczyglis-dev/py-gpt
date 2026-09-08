@@ -15,6 +15,7 @@ from unittest.mock import MagicMock
 from pygpt_net.item.ctx import CtxItem
 from tests.mocks import mock_window
 from pygpt_net.controller.agent.legacy import Legacy
+from pygpt_net.core.types import MODE_AGENT
 
 def test_setup(mock_window):
     """Test setup"""
@@ -52,16 +53,16 @@ def test_update(mock_window):
 def test_on_system_prompt(mock_window):
     """Test on system prompt"""
     legacy = Legacy(mock_window)
-    legacy.window.core.command.is_native_enabled = MagicMock(return_value=False)
+    legacy.get_goal_prompt = MagicMock(return_value="goal prompt")
     result = legacy.on_system_prompt("prompt", "append_prompt", True)
-    assert result.startswith("prompt\nappend_prompt\n\nSTATUS UPDATE:")
+    assert result == "prompt\n\nappend_prompt\n\ngoal prompt"
 
 
 def test_on_input_before(mock_window):
     """Test on input before"""
     legacy = Legacy(mock_window)
     result = legacy.on_input_before("prompt")
-    assert result == "user: prompt"
+    assert result == "prompt"
 
 
 def test_on_user_send(mock_window):
@@ -98,9 +99,9 @@ def test_on_ctx_end_stop(mock_window):
     legacy.prev_output = "output"
     legacy.on_ctx_end(ctx, iterations=iterations)
     assert legacy.iteration == 0
-    assert legacy.stop is False
-    assert legacy.prev_output is None
-    # assert mock_window.controller.agent.update.called
+    assert legacy.stop is True
+    assert legacy.prev_output == "output"
+    # A terminal stop is intentionally preserved until the next USER_SEND.
 
 
 def test_on_ctx_before(mock_window):
@@ -127,28 +128,34 @@ def test_on_ctx_after(mock_window):
 
 def test_on_cmd(mock_window):
     """Test on cmd"""
+    mock_window.core.config.set('mode', MODE_AGENT)
     mock_window.core.config.set('agent.auto_stop', True)
+    mock_window.core.config.set('agent.continue.always', False)
     ctx = CtxItem()
     ctx.output = "output"
     legacy = Legacy(mock_window)
-    legacy.on_cmd(ctx, [{"cmd": "goal_update", "params": {"status": "finished"}}])
-    assert legacy.stop is True
+    result = legacy.on_cmd(ctx, [{"cmd": "goal_update", "params": {"status": "finished"}}])
+    assert result is True
+    assert legacy.stop is False
+    assert legacy.finished is True
+    assert legacy.terminal_status == "finished"
     assert legacy.prev_output is None
-    assert legacy.iteration == 0
-    assert legacy.is_user is True
 
 
 def test_cmd(mock_window):
     """Test cmd"""
+    mock_window.core.config.set('mode', MODE_AGENT)
     mock_window.core.config.set('agent.auto_stop', True)
+    mock_window.core.config.set('agent.continue.always', False)
     ctx = CtxItem()
     ctx.output = "output"
     legacy = Legacy(mock_window)
-    legacy.cmd(ctx, [{"cmd": "goal_update", "params": {"status": "finished"}}])
-    assert legacy.stop is True
+    result = legacy.cmd(ctx, [{"cmd": "goal_update", "params": {"status": "finished"}}])
+    assert result is True
+    assert legacy.stop is False
+    assert legacy.finished is True
+    assert legacy.terminal_status == "finished"
     assert legacy.prev_output is None
-    assert legacy.iteration == 0
-    assert legacy.is_user is True
 
 
 def test_on_stop(mock_window):

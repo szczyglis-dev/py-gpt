@@ -42,10 +42,10 @@ def test_agents_v2_emitter_append_streams_and_inserts_block_boundary():
     emitter.append("second")
 
     append_events = [e for e in emitted_events(signals) if e.name == KernelEvent.AGENT_V2_APPEND]
-    assert emitter.text == "first\n\nsecond"
+    assert emitter.text == "firstsecond"
     assert append_events[0].data["chunk"] == "first"
     assert append_events[0].data["begin"] is True
-    assert append_events[1].data["chunk"] == "\n\nsecond"
+    assert append_events[1].data["chunk"] == "second"
     assert append_events[1].data["begin"] is False
 
 
@@ -75,7 +75,11 @@ def test_agents_v2_emitter_finish_does_not_duplicate_already_streamed_final_answ
     events = emitted_events(signals)
     after = len([e for e in events if e.name == KernelEvent.AGENT_V2_APPEND])
     end_events = [e for e in events if e.name == KernelEvent.AGENT_V2_END]
-    assert after == before
+    # finish() starts an authoritative final segment, replacing the working draft.
+    assert after == before + 1
+    final_begin = [e for e in events if e.name == KernelEvent.AGENT_V2_FINAL_BEGIN]
+    assert len(final_begin) == 1
+    assert emitter.text == "final answer"
     assert len(end_events) == 1
     assert end_events[0].data["final_answer"] == "final answer"
 

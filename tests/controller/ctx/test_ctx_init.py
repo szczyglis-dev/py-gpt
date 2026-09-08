@@ -207,6 +207,8 @@ def test_load(mock_window):
     ctx.common.update_label = MagicMock()
     mock_window.controller.chat.render.reset = MagicMock()
     mock_window.core.ctx.select = MagicMock()
+    mock_window.core.ctx.output.has_request = MagicMock(return_value=False)
+    mock_window.controller.chat.input.generating = False
 
     mock_window.core.models.has_model = MagicMock(return_value=True)
 
@@ -377,4 +379,5 @@ def test_context_change_locked(mock_window):
     mock_window.controller.chat.input.generating = True
     assert ctx.context_change_locked() is True
     mock_window.controller.chat.input.generating = False
+    mock_window.core.ctx.output.has_request = MagicMock(return_value=False)
     assert ctx.context_change_locked() is False

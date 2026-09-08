@@ -13,10 +13,36 @@ def make_runtime(enabled=True, extra=None):
     runtime._main_tool_calls = []
     runtime._main_tool_call_seq = 0
     runtime._local_plugin_tool_names = set()
+    runtime._actor_parts = {}
+    runtime._actor_needs_new_part = {}
+    runtime._actor_part_seq = {}
+    runtime._persisted_tool_tasks = {}
+    runtime._worker_parent_parts = {}
+    runtime.workers = {}
     runtime.run_id = "run123"
-    main = SimpleNamespace(extra={} if extra is None else extra)
+
+    part = SimpleNamespace(
+        agent_id="orchestrator", name="Orchestrator", extra={}, output="",
+        tasks=[], uuid="part-1"
+    )
+    main = SimpleNamespace(extra={} if extra is None else extra, parts=[part], active_part=part)
     runtime.context = SimpleNamespace(ctx=main)
     runtime.window = MagicMock()
+    runtime._actor_parts["orchestrator"] = part
+
+    def record_tool_calls(_main, calls, part=None, agent_id=None, agent_name=None,
+                          task_name=None, **_kwargs):
+        call = calls[0]
+        task = SimpleNamespace(
+            extra={}, agent_id=agent_id, task_name=task_name,
+            tool_call_id=call.get("call_id") or call.get("id"),
+            tool_output=None, output="", task_summary="",
+            touch=MagicMock(), mark_ui_ready=MagicMock(),
+        )
+        part.tasks.append(task)
+        return [task]
+
+    runtime.window.core.ctx.record_tool_calls.side_effect = record_tool_calls
     return runtime, main
 
 

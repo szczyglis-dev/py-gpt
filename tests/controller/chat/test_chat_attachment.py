@@ -48,6 +48,10 @@ class DummyCore:
         self.attachments.native.get_provider = MagicMock(return_value=None)
         self.attachments.native.get_refs = MagicMock(return_value=[])
         self.attachments.context = MagicMock()
+        self.attachments.context.is_project_share_enabled = MagicMock(return_value=False)
+        self.attachments.context.get_all = MagicMock(
+            side_effect=lambda meta: meta.get_additional_ctx() if meta is not None and hasattr(meta, "get_additional_ctx") else []
+        )
         self.attachments.context.upload = MagicMock(return_value={'uuid': 'dummy', 'path': 'dummy.txt'})
         self.attachments.context.get_context = MagicMock(return_value="content")
         self.attachments.context.get_used_files = MagicMock(return_value=["file1"])
@@ -305,12 +309,14 @@ class TestAttachment:
         item = {"k": "v"}
         dummy_meta.additional_ctx = None
         att.append_to_meta(dummy_meta, item)
-        assert dummy_meta.additional_ctx is not None
+        assert dummy_meta.additional_ctx == [item]
         dummy_meta.additional_ctx = []
         group = DummyGroup()
         dummy_meta.group = group
+        dummy_window.core.attachments.context.is_project_share_enabled.return_value = True
         att.append_to_meta(dummy_meta, item)
-        assert group.additional_ctx is not None
+        assert group.additional_ctx == [item]
+        assert dummy_meta.additional_ctx_current[-1] == item
 
     def test_upload_web(self, dummy_window, dummy_meta):
         att = Attachment(dummy_window)
@@ -322,7 +328,7 @@ class TestAttachment:
 
     def test_has_context(self, dummy_window, dummy_meta):
         att = Attachment(dummy_window)
-        dummy_meta.has_additional_ctx = MagicMock(return_value=True)
+        dummy_meta.additional_ctx = [{"type": "text"}]
         assert att.has_context(dummy_meta) is True
         assert att.has_context(None) is False
 
@@ -485,6 +491,7 @@ class TestAttachment:
     def test_get_current_tokens(self, dummy_window, dummy_meta):
         dummy_meta.additional_ctx = [{"tokens": "5"}, {"tokens": "notanumber"}]
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
+        dummy_window.core.attachments.context.get_all.return_value = dummy_meta.additional_ctx
         att = Attachment(dummy_window)
         att.mode = Attachment.MODE_FULL_CONTEXT
         tokens = att.get_current_tokens()

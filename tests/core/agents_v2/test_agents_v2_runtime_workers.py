@@ -4,7 +4,7 @@
 import asyncio
 import json
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, AsyncMock
 
 from pygpt_net.core.agents_v2.runtime import AgentsV2Runtime
 from pygpt_net.core.agents_v2.state import WorkerState, WorkerStatus
@@ -39,9 +39,12 @@ def make_runtime():
     runtime.runtime_system_context = ""
     runtime.emitter = MagicMock()
     runtime.emitter.text = ""
+    runtime.emitter.stream_final = AsyncMock()
     runtime.verbose = MagicMock()
     runtime.verbose_text = MagicMock()
     runtime.window = MagicMock()
+    runtime._worker_parent_parts = {}
+    runtime._stored_worker_context_runs = set()
     runtime.SHOW_AGENT_NAME_IN_STATUS = False
     return runtime
 
@@ -157,14 +160,18 @@ def test_agents_v2_runtime_finish_workflow_appends_final_answer_once_and_marks_f
     runtime = make_runtime()
     runtime.emitter.text = "intermediate text"
 
+    final_part = SimpleNamespace(uuid="final-part")
+    runtime._prepare_final_part = MagicMock(return_value=final_part)
+
     result = asyncio.run(runtime.finish_workflow(" final answer "))
 
     assert result.startswith("Workflow marked as finished")
     assert runtime.finished is True
     assert runtime.final_answer == "final answer"
-    runtime.emitter.clear_status.assert_called_once()
-    runtime.emitter.mark_block_boundary.assert_called_once()
-    runtime.emitter.append.assert_called_once_with("final answer")
+    runtime._prepare_final_part.assert_called_once_with()
+    runtime.emitter.stream_final.assert_awaited_once_with(
+        "final answer", part_uuid="final-part"
+    )
 
 
 def test_agents_v2_runtime_cleanup_cancels_pending_tasks_and_clears_workers():

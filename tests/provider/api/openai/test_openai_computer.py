@@ -37,8 +37,7 @@ def test_get_current_env(fake_window):
 def test_get_tool(fake_window):
     comp = Computer(window=fake_window)
     tool = comp.get_tool()
-    assert tool["type"] == "computer_use_preview"
-    assert tool["environment"] == {"env": "test"}
+    assert tool == {"type": "computer"}
 
 def test_handle_stream_chunk_no_computer_call():
     comp = Computer(window=None)
@@ -81,9 +80,9 @@ def test_handle_action_click():
     assert call["id"] == "id"
     assert call["call_id"] == "call"
     assert call["type"] == "computer_call"
-    assert call["function"]["name"] == "mouse_move"
+    assert call["function"]["name"] == "mouse_click"
     args = json.loads(call["function"]["arguments"])
-    assert args == {"x": 10, "y": 20, "click": "left", "num_clicks": 1}
+    assert args == {"coordinate_space": "screen", "x": 10, "y": 20, "button": "left", "num_clicks": 1, "keys": []}
 
 @pytest.mark.parametrize("dbl_type", ["double_click", "dblclick", "dbl_click"])
 def test_handle_action_double_click(dbl_type):
@@ -93,9 +92,9 @@ def test_handle_action_double_click(dbl_type):
     assert has_calls is True
     assert len(tool_calls) == 1
     call = tool_calls[0]
-    assert call["function"]["name"] == "mouse_move"
+    assert call["function"]["name"] == "mouse_click"
     args = json.loads(call["function"]["arguments"])
-    assert args == {"x": 15, "y": 25, "click": "left", "num_clicks": 2}
+    assert args == {"coordinate_space": "screen", "x": 15, "y": 25, "button": "left", "num_clicks": 2, "keys": []}
 
 def test_handle_action_move():
     comp = Computer(window=None)
@@ -105,7 +104,7 @@ def test_handle_action_move():
     call = tool_calls[0]
     assert call["function"]["name"] == "mouse_move"
     args = json.loads(call["function"]["arguments"])
-    assert args == {"x": 30, "y": 40}
+    assert args == {"coordinate_space": "screen", "x": 30, "y": 40, "keys": []}
 
 def test_handle_action_screenshot():
     comp = Computer(window=None)
@@ -114,7 +113,7 @@ def test_handle_action_screenshot():
     assert has_calls is True
     call = tool_calls[0]
     assert call["function"]["name"] == "get_screenshot"
-    assert call["function"]["arguments"] == "{}"
+    assert json.loads(call["function"]["arguments"]) == {"coordinate_space": "screen"}
 
 def test_handle_action_type():
     comp = Computer(window=None)
@@ -124,7 +123,7 @@ def test_handle_action_type():
     call = tool_calls[0]
     assert call["function"]["name"] == "keyboard_type"
     args = json.loads(call["function"]["arguments"])
-    assert args == {"text": "hello"}
+    assert args == {"coordinate_space": "screen", "text": "hello"}
 
 def test_handle_action_keypress():
     comp = Computer(window=None)
@@ -134,7 +133,7 @@ def test_handle_action_keypress():
     call = tool_calls[0]
     assert call["function"]["name"] == "keyboard_keys"
     args = json.loads(call["function"]["arguments"])
-    assert args == {"keys": ["a", "b", "c"]}
+    assert args == {"coordinate_space": "screen", "keys": ["a", "b", "c"]}
 
 def test_handle_action_scroll():
     comp = Computer(window=None)
@@ -144,7 +143,7 @@ def test_handle_action_scroll():
     call = tool_calls[0]
     assert call["function"]["name"] == "mouse_scroll"
     args = json.loads(call["function"]["arguments"])
-    assert args == {"x": 50, "y": 60, "dx": 5, "dy": -10, "unit": "px"}
+    assert args == {"coordinate_space": "screen", "x": 50, "y": 60, "dx": 5, "dy": 10, "unit": "px", "scroll_mode": "viewport", "keys": []}
 
 def test_handle_action_wait():
     comp = Computer(window=None)
@@ -153,7 +152,7 @@ def test_handle_action_wait():
     assert has_calls is True
     call = tool_calls[0]
     assert call["function"]["name"] == "wait"
-    assert call["function"]["arguments"] == "{}"
+    assert json.loads(call["function"]["arguments"]) == {"coordinate_space": "screen"}
 
 def test_handle_action_drag():
     comp = Computer(window=None)
@@ -165,7 +164,7 @@ def test_handle_action_drag():
     call = tool_calls[0]
     assert call["function"]["name"] == "mouse_drag"
     args = json.loads(call["function"]["arguments"])
-    assert args == {"x": 100, "y": 200, "dx": 150, "dy": 250}
+    assert args == {"coordinate_space": "screen", "path": [{"x": 100, "y": 200}, {"x": 150, "y": 250}], "keys": []}
 
 def test_handle_action_unknown():
     comp = Computer(window=None)
@@ -174,4 +173,4 @@ def test_handle_action_unknown():
     assert has_calls is True
     call = tool_calls[0]
     assert call["function"]["name"] == "wait"
-    assert call["function"]["arguments"] == "{}"
+    assert json.loads(call["function"]["arguments"]) == {"coordinate_space": "screen"}

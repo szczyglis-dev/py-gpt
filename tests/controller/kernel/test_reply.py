@@ -103,8 +103,8 @@ def test_add_with_reply_and_flush(reply_instance):
     # flush should clear the stack
     assert reply.reply_stack == []
     assert reply.reply_ctx is None
-    # flush dispatches two events (RenderEvent and KernelEvent)
-    assert window.dispatch.call_count == 2
+    # The structured partial owns tool UI updates; flush emits only REPLY_RETURN.
+    assert window.dispatch.call_count == 1
     # update_status is called twice: first with "" then with "..."
     assert window.update_status.call_count == 2
 
@@ -137,8 +137,8 @@ def test_flush_internal_legacy(reply_instance):
     reply.reply_stack = [[{"result": "legacy"}]]
     window.controller.agent.legacy.enabled.return_value = True
     reply.flush()
-    # Two dispatch events are expected.
-    assert window.dispatch.call_count == 2
+    # Tool UI is already persisted in the partial; only REPLY_RETURN is emitted.
+    assert window.dispatch.call_count == 1
 
 # Test flush branch with LlamaIndex agent.
 def test_flush_mode_llama_index(reply_instance):
@@ -155,8 +155,8 @@ def test_flush_mode_llama_index(reply_instance):
          "log.events": True
     }.get(key, default)
     reply.flush()
-    # ReAct consumes the tool result itself, so only TOOL_UPDATE is dispatched.
-    assert window.dispatch.call_count == 1
+    # ReAct consumes the tool result itself, so no REPLY_RETURN is emitted.
+    assert window.dispatch.call_count == 0
 
 
 def test_flush_uses_origin_mode_not_active_llama_index_mode(reply_instance):
@@ -173,8 +173,8 @@ def test_flush_uses_origin_mode_not_active_llama_index_mode(reply_instance):
          "log.events": True
     }.get(key, default)
     reply.flush()
-    # TOOL_UPDATE + REPLY_RETURN.
-    assert window.dispatch.call_count == 2
+    # The originating non-ReAct chat receives one REPLY_RETURN.
+    assert window.dispatch.call_count == 1
 
 # Test on_post_response triggering file explorer update.
 def test_on_post_response_update(reply_instance):

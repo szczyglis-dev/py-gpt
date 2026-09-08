@@ -10,6 +10,7 @@
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
+from types import SimpleNamespace
 
 from tests.mocks import mock_window_conf
 from pygpt_net.core.ctx import Ctx
@@ -193,6 +194,10 @@ def test_update_item():
     Test update item
     """
     ctx = Ctx()
+    ctx.window = SimpleNamespace(core=SimpleNamespace(
+        filesystem=MagicMock(), attachments=MagicMock()
+    ))
+    ctx.window.core.attachments.get_ctx_excluded_paths.return_value = []
     ctx.provider = MagicMock()
     ctx.provider.update_item = MagicMock()
     item = CtxItem()

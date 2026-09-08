@@ -17,6 +17,7 @@ def _realtime():
     realtime.current_active = None
     realtime.allowed_modes = [MODE_AUDIO]
     realtime.manual_commit_sent = False
+    realtime._continuation_text_started = set()
     realtime.window.core.config.get.side_effect = lambda key, default=None: {
         "mode": MODE_AUDIO,
         "audio.input.loop": False,
@@ -260,7 +261,7 @@ def test_realtime_manual_commit_routes_to_active_provider(provider, api_attr):
 def test_realtime_end_turn_calls_all_chat_output_stages():
     realtime = _realtime()
     realtime.set_idle = MagicMock()
-    ctx = MagicMock()
+    ctx = SimpleNamespace(meta=MagicMock(), turn_parent=None)
 
     realtime.end_turn(ctx)
 

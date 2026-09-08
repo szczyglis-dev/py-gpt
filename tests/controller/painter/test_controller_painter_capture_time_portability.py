@@ -39,7 +39,9 @@ def test_painter_screenshot_playwright_uses_fixed_clock_and_mocks_browser_page()
 
     assert result == expected_path
     page.screenshot.assert_called_once_with(path=expected_path, full_page=False)
-    capture.attach.assert_called_once_with(expected_name, expected_path, "screenshot", silent=False)
+    capture.attach.assert_called_once_with(
+        expected_name, expected_path, "screenshot", silent=False, append_to_ctx=True
+    )
     window.controller.painter.open.assert_called_once_with(expected_path)
     event = window.dispatch.call_args.args[0]
     assert isinstance(event, KernelEvent)

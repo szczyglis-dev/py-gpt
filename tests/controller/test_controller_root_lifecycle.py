@@ -118,7 +118,7 @@ def test_controller_reload_success_unlocks_and_restarts_components():
     controller.presets.lock.assert_called_once_with()
     controller.presets.unlock.assert_called_once_with()
     controller.window.core.reload.assert_called_once_with()
-    controller.ui.tabs.reload.assert_called_once_with()
+    controller.ui.tabs.reload.assert_called_once_with(restore_data=False)
     controller.ctx.reload.assert_called_once_with()
     controller.ui.tabs.reload_after.assert_called_once_with()
     controller.ctx.reload_after.assert_called_once_with()

@@ -9,6 +9,7 @@
 # Updated Date: 2026.09.06 02:00:00                  #
 # ================================================== #
 import os
+from types import SimpleNamespace
 from unittest.mock import MagicMock, call, ANY
 import pytest
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
@@ -24,6 +25,7 @@ from pygpt_net.core.types import (
     MODE_AGENT_V2,
 )
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 from pygpt_net.controller.chat.input import Input
 
@@ -102,7 +104,18 @@ def create_dummy_window():
     win.core.attachments.native.get_provider = MagicMock(return_value=None)
     win.core.ctx = MagicMock()
     win.core.ctx.count_meta = MagicMock(return_value=1)
-    win.core.ctx.get_current = MagicMock(return_value="ctx")
+    meta = SimpleNamespace(id=1, name="Chat")
+    tab = SimpleNamespace(pid=1, type=Tab.TAB_CHAT, data_id=1, column_idx=0)
+    win.core.tabs = MagicMock()
+    win.core.tabs.get_tab_by_pid = MagicMock(return_value=tab)
+    win.core.ctx.output = MagicMock()
+    win.core.ctx.output.has_request = MagicMock(return_value=False)
+    win.core.ctx.output.begin_request = MagicMock(return_value=1)
+    win.core.ctx.output.get_request_meta = MagicMock(return_value=meta)
+    win.core.ctx.get_meta_by_id = MagicMock(return_value=meta)
+    win.core.ctx.get_current_meta = MagicMock(return_value=meta)
+    win.core.ctx.get_current = MagicMock(return_value=1)
+    win.controller.ui.tabs.get_effective_current_pid = MagicMock(return_value=1)
     win.dispatch = MagicMock()
     return win
 
@@ -308,6 +321,7 @@ def test_send_calls_execute():
         multimodal_ctx="mm_ctx",
         mode_override=None,
         model_override=None,
+        agent_continue=False,
     )
 
 def test_send_internal_reply_preserves_origin_mode_and_model():
@@ -335,6 +349,7 @@ def test_send_internal_reply_preserves_origin_mode_and_model():
         multimodal_ctx=None,
         mode_override=MODE_LLAMA_INDEX,
         model_override="origin-model",
+        agent_continue=False,
     )
 
 
@@ -393,6 +408,7 @@ def test_execute_handle_allowed():
         multimodal_ctx=ANY,
         mode_override=None,
         model_override=None,
+        agent_continue=False,
     )
 
 def test_execute_empty_text():

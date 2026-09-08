@@ -62,6 +62,7 @@ def dummy_window():
     legacy = MagicMock()
     legacy.enabled.return_value = False
     legacy.on_system_prompt.side_effect = lambda sys_prompt, append_prompt, auto_stop: "ModifiedPrompt"
+    legacy.normalize_instruction_prompt.side_effect = lambda prompt: str(prompt or "").strip()
     win.controller.agent = MagicMock()
     win.controller.agent.legacy = legacy
 

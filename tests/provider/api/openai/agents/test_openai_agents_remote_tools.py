@@ -23,6 +23,8 @@ class DummyModel:
         self._is_gpt = is_gpt_value
     def is_gpt(self):
         return self._is_gpt
+    def has_mode(self, mode):
+        return False
 
 class DummyPreset:
     def __init__(self, remote_tools):
@@ -46,7 +48,7 @@ class DummyWindow:
 def test_is_computer_tool_non_gpt():
     model = DummyModel("any", False)
     preset = DummyPreset("a,b")
-    window = object()
+    window = DummyWindow({})
     assert is_computer_tool(window, model, preset, False) is False
 
 def test_is_computer_tool_non_expert_true():
@@ -58,7 +60,7 @@ def test_is_computer_tool_non_expert_true():
 def test_is_computer_tool_non_expert_false():
     model = DummyModel("not-computer", True)
     preset = DummyPreset("irrelevant")
-    window = object()
+    window = DummyWindow({})
     assert is_computer_tool(window, model, preset, False) is False
 
 def test_is_computer_tool_expert_true():
@@ -96,7 +98,7 @@ def test_append_tools_all_allowed(monkeypatch):
     window = object()
     local_tools = ["local1"]
     result = append_tools(local_tools, window, model, preset, True, True, False)
-    assert result.get("model_settings") == ModelSettings(truncation="auto")
+    assert "model_settings" not in result
     assert result.get("tools") == ["remote1", "remote2", "local1"]
 
 def test_append_tools_no_local(monkeypatch):
@@ -111,7 +113,7 @@ def test_append_tools_no_local(monkeypatch):
     window = object()
     local_tools = ["local1"]
     result = append_tools(local_tools, window, model, preset, False, True, False)
-    assert result.get("model_settings") == ModelSettings(truncation="auto")
+    assert "model_settings" not in result
     assert result.get("tools") == ["remote1"]
 
 def test_append_tools_no_remote(monkeypatch):

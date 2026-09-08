@@ -23,6 +23,7 @@ def _make_item(id=None, name=None, path=None):
     obj.name = name
     obj.path = path
     obj.consumed = False
+    obj.extra = {}
 
     def serialize():
         return {

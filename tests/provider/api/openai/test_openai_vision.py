@@ -88,7 +88,7 @@ def test_build_content_with_url(vision):
     assert vision.urls == ["http://example.com/image.jpg"]
 
 def test_build_content_with_attachment(vision, monkeypatch):
-    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False)
+    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False, extra={})
     monkeypatch.setattr(os.path, "exists", lambda path: True)
     monkeypatch.setattr(Vision, "encode_image", lambda self, p: "dummy_encoded")
     content = vision.build_content("test", {"att1": dummy})
@@ -98,7 +98,7 @@ def test_build_content_with_attachment(vision, monkeypatch):
     assert dummy.consumed is True
 
 def test_build_agent_input(vision, monkeypatch):
-    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False)
+    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False, extra={})
     monkeypatch.setattr(os.path, "exists", lambda path: True)
     monkeypatch.setattr(Vision, "encode_image", lambda self, p: "dummy_encoded")
     items = vision.build_agent_input("http://example.com/image.jpg prompt", {"att1": dummy})
@@ -112,7 +112,7 @@ def test_build_agent_input(vision, monkeypatch):
     assert dummy.consumed is True
 
 def test_get_attachment(vision, monkeypatch):
-    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False)
+    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False, extra={})
     attachments = {"att1": dummy}
     monkeypatch.setattr(os.path, "exists", lambda path: True)
     monkeypatch.setattr(Vision, "encode_image", lambda self, p: "dummy_encoded")

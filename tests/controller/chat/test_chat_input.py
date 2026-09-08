@@ -67,6 +67,7 @@ def test_send(mock_window):
         multimodal_ctx=context.multimodal_ctx,
         mode_override=None,
         model_override=None,
+        agent_continue=False,
     )
 
 
@@ -97,6 +98,7 @@ def test_execute_text(mock_window):
             multimodal_ctx=None,
             mode_override=None,
             model_override=None,
+            agent_continue=False,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -161,6 +163,7 @@ def test_execute_no_ctx(mock_window):
             multimodal_ctx=None,
             mode_override=None,
             model_override=None,
+            agent_continue=False,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -218,6 +221,7 @@ def test_execute_vision_mode(mock_window):
             multimodal_ctx=None,
             mode_override=None,
             model_override=None,
+            agent_continue=False,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -262,6 +266,7 @@ def test_execute_vision_plugin(mock_window):
             multimodal_ctx=None,
             mode_override=None,
             model_override=None,
+            agent_continue=False,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 

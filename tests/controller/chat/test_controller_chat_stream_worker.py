@@ -40,7 +40,7 @@ def test_stream_worker_should_stop_closes_generator_and_marks_context():
     ctrl.kernel.stopped.return_value = True
     gen = MagicMock()
     state = WorkerState(generator=gen)
-    ctx = SimpleNamespace(msg_id='m1')
+    ctx = SimpleNamespace(msg_id='m1', extra={})
 
     assert worker._should_stop(ctrl, state, ctx) is True
     gen.close.assert_called_once_with()
@@ -53,7 +53,7 @@ def test_stream_worker_should_stop_is_false_when_kernel_is_running():
     ctrl = MagicMock()
     ctrl.kernel.stopped.return_value = False
     state = WorkerState(generator=MagicMock())
-    ctx = SimpleNamespace(msg_id='m1')
+    ctx = SimpleNamespace(msg_id='m1', extra={})
     assert worker._should_stop(ctrl, state, ctx) is False
     state.generator.close.assert_not_called()
 

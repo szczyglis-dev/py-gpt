@@ -21,6 +21,7 @@ def test_handle(mock_window):
     output = Output(mock_window)
     output.handle_complete = MagicMock()
 
+    mock_window.core.command.extract_cmds = MagicMock(return_value=[])
     ctx = CtxItem()
     meta = CtxMeta()
     ctx.meta = meta

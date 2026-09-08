@@ -32,6 +32,11 @@ def make_window(config=None, model=None):
     window.core.api.anthropic = SimpleNamespace(get_client=MagicMock())
     window.core.api.xai = SimpleNamespace(get_client=MagicMock())
     window.core.ctx = SimpleNamespace(get_current_meta=MagicMock(return_value=None))
+    window.core.attachments = SimpleNamespace(
+        context=SimpleNamespace(
+            get_all=MagicMock(side_effect=lambda meta: meta.get_additional_ctx())
+        )
+    )
     return window
 
 

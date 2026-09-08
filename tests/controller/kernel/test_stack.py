@@ -110,7 +110,7 @@ def test_execute_agent_continue(dummy_window):
     event = args[0]
     assert isinstance(event, KernelEvent)
     assert event.name == KernelEvent.INPUT_SYSTEM
-    expected_extra = {"force": True, "internal": True}
+    expected_extra = {"force": True, "internal": True, "agent_continue": True}
     assert event.data.get("extra") == expected_extra
     bridge_context = event.data.get("context")
     assert isinstance(bridge_context, BridgeContext)

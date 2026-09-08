@@ -21,9 +21,10 @@ from pygpt_net.core.events import KernelEvent, RenderEvent
 
 # Dummy event and context classes
 class DummyEvent:
-    def __init__(self, name, data=None):
+    def __init__(self, name, data=None, ctx=None):
         self.name = name
         self.data = data if data is not None else {}
+        self.ctx = ctx
 
 class DummyContext:
     def __init__(self, reply_context=None, agent_call=False):
@@ -116,6 +117,9 @@ class FakeCore:
     def __init__(self):
         self.bridge = FakeBridge()
         self.config = {"mode": "normal"}
+        self.ctx = type("FakeCtx", (), {})()
+        self.ctx.output = MagicMock()
+        self.ctx.output.get_request_meta.return_value = None
 
 # FakeWindow as a QObject subclass
 class FakeWindow(QObject):

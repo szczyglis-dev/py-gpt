@@ -82,7 +82,8 @@ def test_handle_routes_execute_and_tool_output(mock_window):
     event.name = Event.TOOL_OUTPUT_RENDER
     event.data = {"tool": plugin.id, "content": {"code": {}}, "html": ""}
     plugin.handle(event)
-    assert event.data["html"] == "<html>"
+    assert event.data["html"] == ""
+    plugin.output.handle.assert_not_called()
 
 
 def test_cmd_ignores_unrelated_commands(mock_window):

@@ -251,7 +251,9 @@ def test_handleError():
     error = Exception("test error")
     stream_obj.handleError(dummy_ctx, error)
     window.core.debug.log.assert_called_once_with(error)
-    window.controller.chat.response.failed.assert_called_once_with("dummy_context", {"error": error})
+    window.controller.chat.response.failed.assert_called_once_with(
+        "dummy_context", {"error": error, "_stream_worker_error": True}
+    )
     window.controller.chat.response.post_handle.assert_called_once_with(ctx=dummy_ctx, mode=None, stream=True, reply=False, internal=False)
 
 def test_log():

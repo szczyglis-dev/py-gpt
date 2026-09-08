@@ -90,11 +90,11 @@ def test_store_returns_zero_if_no_tab_or_wrong_type(window):
     out = Output(window)
     window.core.tabs.set_active(1)
     meta = Meta(5)
-    assert out.store(meta) == 0
+    assert out.store(meta) is None
     tab = FakeTab(pid=2, column_idx=0, type_="not_chat")
     window.core.tabs.add_tab(tab)
     window.core.tabs.set_active(2)
-    assert out.store(meta) == 0
+    assert out.store(meta) is None
 
 
 def test_store_maps_meta_and_sets_tab_data_id(window):
@@ -209,12 +209,14 @@ def test_get_current_and_plain_use_get_pid_and_nodes(window):
     out.get_pid = Mock(return_value=7)
     assert out.get_current(Meta(0)) is node2
     out.get_pid = Mock(return_value=999)
-    assert out.get_current(Meta(0)) is node1
+    assert out.get_current(Meta(0)) is None
+    assert out.get_current() is node1
     window.ui.nodes["output_plain"] = {2: "plain1", 3: "plain2"}
     out.get_pid = Mock(return_value=3)
     assert out.get_current_plain(Meta(0)) == "plain2"
     out.get_pid = Mock(return_value=999)
-    assert out.get_current_plain(Meta(0)) == "plain1"
+    assert out.get_current_plain(Meta(0)) is None
+    assert out.get_current_plain() == "plain1"
 
 
 def test_get_by_pid_and_plain_return_specific_or_first(window):
@@ -223,10 +225,12 @@ def test_get_by_pid_and_plain_return_specific_or_first(window):
     node2 = object()
     window.ui.nodes["output"] = {3: node1, 4: node2}
     assert out.get_by_pid(4) is node2
-    assert out.get_by_pid(999) is node1
+    assert out.get_by_pid(999) is None
+    assert out.get_by_pid() is node1
     window.ui.nodes["output_plain"] = {8: "p1", 9: "p2"}
     assert out.get_by_pid_plain(9) == "p2"
-    assert out.get_by_pid_plain(999) == "p1"
+    assert out.get_by_pid_plain(999) is None
+    assert out.get_by_pid_plain() == "p1"
 
 
 def test_get_all_and_get_all_plain(window):
@@ -251,8 +255,8 @@ def test_remove_pid_behaviour(window):
     assert 20 not in out.mapping[1]
     assert out.last_pid == 0
     out.init()
-    out.last_pids[30] = "to_delete"
+    out.last_pids[0][300] = 30
     out.last_pid = 30
     out.remove_pid(30)
-    assert 30 not in out.last_pids
+    assert 300 not in out.last_pids[0]
     assert out.last_pid == 0

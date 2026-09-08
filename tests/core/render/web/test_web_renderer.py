@@ -71,7 +71,11 @@ def renderer(fake_window):
     r.helpers.format_user_text = MagicMock(side_effect=lambda x: x)
     r.helpers.post_format_text = MagicMock(side_effect=lambda x: x)
     r.helpers.pre_format_text = MagicMock(side_effect=lambda x: x)
+    r.helpers.extract_tool_calls = MagicMock(return_value=[])
+    r.helpers.extract_extra_tool_calls = MagicMock(return_value=[])
+    r.helpers.strip_tool_calls = MagicMock(side_effect=lambda x: x)
     r.body = MagicMock()
+    r.body.build_extras_dicts = MagicMock(return_value=({}, {}, {}, {}))
     r.body.get_image_html = MagicMock(side_effect=lambda image, n, c: f"<img>{image}</img>")
     r.body.get_file_html = MagicMock(side_effect=lambda file, n, c: f"<file>{file}</file>")
     r.body.get_url_html = MagicMock(side_effect=lambda url, n, c: f"<url>{url}</url>")
@@ -120,6 +124,15 @@ class DummyCtxItem:
         self.meta = DummyCtxMeta()
     def get_display_output(self, output=None):
         return self.output if output is None else output
+
+    def get_agents_v2_response_output(self):
+        return None
+
+    def get_agents_v2_final_output(self):
+        return None
+
+    def get_part_tool_calls(self, visible_only=False, part=None):
+        return []
 
     def to_dict(self):
         return {"id": self.id}
@@ -332,7 +345,9 @@ class TestRenderer:
         renderer._stream_reset.assert_called_once_with(1)
         renderer.update_names.assert_called_once_with(meta, ctx)
         node.page().runJavaScript.assert_called_once_with(
+            "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
             "if (typeof window.beginStream !== 'undefined') beginStream(true);"
+            "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", []);"
         )
         renderer._stream_push.assert_called_once_with(1, "header", "chunk")
 

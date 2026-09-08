@@ -101,7 +101,7 @@ def test_handle_finished_more_prepares_each_response_and_disables_screenshot_on_
     plugin.handle_finished_more(responses, ctx)
     assert plugin.prepare_reply_ctx.call_count == 2
     assert ctx.reply is True
-    plugin.handle_delayed.assert_called_once_with(ctx, False)
+    plugin.handle_delayed.assert_called_once_with(ctx, True)
 
 
 def test_handle_delayed_uses_qtimer_only_when_screenshot_allowed(mock_window):
@@ -129,8 +129,10 @@ def test_delayed_screenshot_native_attaches_local_image_and_dispatches(mock_wind
     ctx = CtxItem()
     plugin.delayed_screenshot(ctx)
     mock_window.controller.attachment.clear_silent.assert_called_once_with()
-    mock_window.controller.painter.capture.screenshot.assert_called_once_with(attach_cursor=True, silent=True)
-    assert ctx.images_before == ["local:a.png"]
+    mock_window.controller.painter.capture.screenshot.assert_called_once_with(attach_cursor=True, silent=True, append_to_ctx=False)
+    assert ctx.images_before == []
+    assert ctx.transport_images == ["local:a.png"]
+    mock_window.core.attachments.register_ctx_excluded_path.assert_called_once_with("/tmp/a.png")
     mock_window.dispatch.assert_called_once()
 
 
@@ -141,8 +143,12 @@ def test_delayed_screenshot_sandbox_uses_playwright_capture(mock_window):
     mock_window.core.filesystem.make_local.return_value = "local:a.png"
     ctx = CtxItem()
     plugin.delayed_screenshot(ctx)
-    mock_window.controller.painter.capture.screenshot_playwright.assert_called_once_with(page=plugin.page, silent=True)
-    assert ctx.images_before == ["local:a.png"]
+    mock_window.controller.painter.capture.screenshot_playwright.assert_called_once_with(
+        page=plugin.page, silent=True, append_to_ctx=False, attach_cursor=True, cursor_position=(0, 0)
+    )
+    assert ctx.images_before == []
+    assert ctx.transport_images == ["local:a.png"]
+    mock_window.core.attachments.register_ctx_excluded_path.assert_called_once_with("/tmp/a.png")
 
 
 def test_key_mapping_and_viewport_helpers(mock_window):

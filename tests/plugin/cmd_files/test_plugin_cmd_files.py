@@ -55,7 +55,7 @@ def test_handle_cmd_syntax(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert len(event.data["cmd"]) == 24
+    assert len(event.data["cmd"]) == 25
 
 
 def test_handle_cmd_execute(mock_window):
