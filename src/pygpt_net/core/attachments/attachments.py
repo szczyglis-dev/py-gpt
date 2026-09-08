@@ -35,6 +35,10 @@ class Attachments:
         self.native = Native(window)
         self.items = {}
         self.current = None
+        # Runtime registry of attachments that are transport-only (for example
+        # automatic Computer Use screenshots). Paths registered here must never
+        # be copied into CtxItem.images / images_json.
+        self.ctx_excluded_paths = set()
 
     def install(self):
         """Install provider data"""
@@ -217,6 +221,9 @@ class Attachments:
 
         if extra is not None:
             attachment.extra = extra
+
+        if isinstance(attachment.extra, dict) and attachment.extra.get("append_to_ctx", True) is False:
+            self.register_ctx_excluded_path(attachment.path)
 
         if mode not in self.items:
             self.items[mode] = {}
@@ -456,9 +463,37 @@ class Attachments:
             attachment = attachments[id]
             self.add(mode, attachment)
 
+    def _ctx_path_key(self, path: Optional[str]) -> Optional[str]:
+        """Return a stable key for comparing absolute and %workdir% paths."""
+        if path is None:
+            return None
+        value = str(path)
+        if value.startswith(("http://", "https://", "data:")):
+            return value
+        try:
+            return self.window.core.filesystem.make_local(value)
+        except Exception:
+            return value
+
+    def register_ctx_excluded_path(self, path: Optional[str]):
+        """Remember a runtime-only attachment path independently of attachment lifetime."""
+        key = self._ctx_path_key(path)
+        if key:
+            self.ctx_excluded_paths.add(key)
+
+    def get_ctx_excluded_paths(self) -> set:
+        """Return transport-only image/file paths that must not be persisted in ctx."""
+        return set(self.ctx_excluded_paths)
+
+    def is_ctx_excluded_path(self, path: Optional[str]) -> bool:
+        """Check whether path belongs to a transport-only attachment."""
+        key = self._ctx_path_key(path)
+        return bool(key and key in self.ctx_excluded_paths)
+
     def load(self):
         """Load attachments"""
         self.items = self.provider.load()
+        self.ctx_excluded_paths = set()
         # replace workdir placeholder with current workdir
         for mode in self.items:
             for id in self.items[mode]:
@@ -467,6 +502,8 @@ class Attachments:
                     attachment.path = self.window.core.filesystem.to_workdir(
                         attachment.path,
                     )
+                if isinstance(attachment.extra, dict) and attachment.extra.get("append_to_ctx", True) is False:
+                    self.register_ctx_excluded_path(attachment.path)
 
     def save(self):
         """Save attachments"""

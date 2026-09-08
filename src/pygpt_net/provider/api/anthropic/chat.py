@@ -83,7 +83,7 @@ class Chat:
 
         # Enable Computer Use tool in computer mode (use the official Tool/ComputerUse object)
         if mode == MODE_COMPUTER or (model and isinstance(model.id, str) and "computer-use" in model.id.lower()):
-            tool = self.window.core.api.anthropic.computer.get_tool()
+            tool = self.window.core.api.anthropic.computer.get_tool(model=model)
             tools = [tool]  # reset tools to only Computer Use (multiple tools not supported together)
 
         # MCP: servers from config
@@ -186,7 +186,30 @@ class Chat:
 
         calls = self.extract_tool_calls(response)
         if calls:
-            ctx.tool_calls = calls
+            # Keep the raw Anthropic computer tool_use block for the required
+            # tool_result continuation, then map its action to PyGPT plugin calls.
+            raw_computer_uses = []
+            try:
+                for block in getattr(response, "content", None) or []:
+                    if getattr(block, "type", "") != "tool_use":
+                        continue
+                    name = str(getattr(block, "name", "") or "")
+                    if name not in self.window.core.api.anthropic.computer.COMPUTER_TOOL_NAMES:
+                        continue
+                    raw_computer_uses.append({
+                        "id": str(getattr(block, "id", "") or ""),
+                        "name": name,
+                        "input": getattr(block, "input", {}) or {},
+                    })
+            except Exception:
+                raw_computer_uses = []
+            if raw_computer_uses:
+                if not isinstance(ctx.extra, dict):
+                    ctx.extra = {}
+                ctx.extra["anthropic_tool_uses"] = raw_computer_uses
+                ctx.tool_calls = self.window.core.api.anthropic.computer.rewrite_tool_calls(calls)
+            else:
+                ctx.tool_calls = calls
 
         # Usage
         try:
@@ -561,7 +584,9 @@ class Chat:
             elif ttype == "mcp_toolset":
                 is_mcp = True
                 betas.add("mcp-client-2025-11-20")
-            elif ttype.startswith("computer_"):
+            elif ttype == "computer_20251124":
+                betas.add("computer-use-2025-11-24")
+            elif ttype == "computer_20250124":
                 betas.add("computer-use-2025-01-24")
         if is_mcp and mcp_servers:
             betas.add("mcp-client-2025-11-20")

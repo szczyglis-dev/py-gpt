@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:35:00
+# Updated Date: 2026.09.08 13:40:00
 # ================================================== #
 
 import copy
@@ -567,6 +567,37 @@ class Patch:
                 if "agent.v2.show_tool_chain" not in data:
                     data["agent.v2.show_tool_chain"] = cfg_get_base("agent.v2.show_tool_chain")
                     updated = True
+
+            # < 2.8.12
+            if old < parse_version("2.8.12"):
+                print("Migrating config from < 2.8.12...")
+
+                # Replace the retired OpenAI Computer Use preview model with a
+                # current GA-capable GPT-5.6 model in persisted mode selections.
+                current_models = data.get("current_model")
+                if isinstance(current_models, dict):
+                    current_computer = str(current_models.get("computer", "") or "")
+                    normalized = current_computer.replace("_", "-")
+                    if normalized.startswith("computer-use-preview"):
+                        current_models["computer"] = "gpt-5.6-sol-medium"
+                        updated = True
+
+                current_model = str(data.get("model", "") or "")
+                if data.get("mode") == "computer" \
+                        and current_model.replace("_", "-").startswith("computer-use-preview"):
+                    data["model"] = "gpt-5.6-sol-medium"
+                    updated = True
+
+                # Computer Use can also be enabled as a Remote Tool. Keep it
+                # opt-in for all providers when upgrading an existing profile.
+                for key in (
+                        "remote_tools.computer_use",
+                        "remote_tools.google.computer_use",
+                        "remote_tools.anthropic.computer_use",
+                ):
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
 
         # update file
         migrated = False

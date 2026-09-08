@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.09.08 14:20:00                  #
 # ================================================== #
 
 from google.genai import types as gtypes
@@ -15,6 +15,15 @@ from pygpt_net.item.model import ModelItem
 
 
 class RemoteTools:
+    # Models supported by the Generate Content Computer Use API used by this adapter.
+    COMPUTER_USE_MODELS = {
+        "gemini-3.7-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-flash",
+        "gemini-3-flash-preview",
+        "gemini-2.5-computer-use-preview-10-2025",
+    }
+
     def __init__(self, window=None):
         """
         Remote Tools helpers for Google GenAI.
@@ -22,6 +31,20 @@ class RemoteTools:
         :param window: Window instance
         """
         self.window = window
+
+    def supports_computer_use(self, model: ModelItem = None) -> bool:
+        """Return True when the selected Gemini model supports Computer Use."""
+        model_id = str(getattr(model, "id", "") or "").lower()
+        if model_id.startswith("models/"):
+            model_id = model_id[7:]
+        return model_id in self.COMPUTER_USE_MODELS
+
+    def is_computer_use_enabled(self, model: ModelItem = None) -> bool:
+        """Return True when Computer Use is enabled as a Google remote tool."""
+        return bool(
+            self.window.core.config.get("remote_tools.google.computer_use", False)
+            and self.supports_computer_use(model)
+        )
 
     def build_remote_tools(self, model: ModelItem = None) -> list:
         """
@@ -76,6 +99,14 @@ class RemoteTools:
         if cfg.get("remote_tools.google.maps") and "image" not in model.id:
             try:
                 tools.append(gtypes.Tool(google_maps=gtypes.GoogleMaps()))
+            except Exception as e:
+                self.window.core.debug.log(e)
+
+        # Computer Use. Chat.send keeps it exclusive because the current GenAI
+        # Computer Use flow in PyGPT must not be combined with function declarations.
+        if self.is_computer_use_enabled(model) and "image" not in model.id:
+            try:
+                tools.append(self.window.core.api.google.computer.get_tool())
             except Exception as e:
                 self.window.core.debug.log(e)
 

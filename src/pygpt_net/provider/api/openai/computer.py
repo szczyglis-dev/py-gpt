@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 02:00:00                  #
+# Updated Date: 2026.09.08 14:59:00                  #
 # ================================================== #
 
 import json
@@ -25,6 +25,23 @@ class Computer:
         """
         self.window = window
 
+    @staticmethod
+    def _get(obj, key: str, default=None):
+        """
+        Read a field from either an SDK object or a raw dictionary.
+
+        Responses streaming may expose Computer Use actions as plain dicts
+        even when the surrounding response item is a typed SDK object.
+
+        :param obj: source object or dictionary
+        :param key: field name
+        :param default: fallback value
+        :return: field value
+        """
+        if isinstance(obj, dict):
+            return obj.get(key, default)
+        return getattr(obj, key, default)
+
     def get_current_env(self) -> Dict[str, Any]:
         """
         Get current computer environment
@@ -36,29 +53,83 @@ class Computer:
 
     def get_tool(self) -> dict:
         """
-        Get Computer use tool
+        Get the GA Computer Use tool definition.
+
+        Display dimensions and environment were part of the retired
+        ``computer_use_preview`` tool shape. The current Responses API
+        discovers the screen state from the screenshots returned by the client.
+
         :return: dict
         """
-        is_sandbox = bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
-        env = self.get_current_env()
-        screen = self.window.app.primaryScreen()
-        size = screen.size()
-        screen_x = size.width()
-        screen_y = size.height()
+        return {"type": "computer"}
 
-        # if sandbox, get resolution from plugin settings (Playwright viewport)
-        if is_sandbox:
-            try:
-                screen_x = int(self.window.core.plugins.get_option("cmd_mouse_control", "sandbox_viewport_w"))
-                screen_y = int(self.window.core.plugins.get_option("cmd_mouse_control", "sandbox_viewport_h"))
-            except Exception:
-                pass
-        return {
-            "type": "computer_use_preview",
-            "display_width": screen_x,
-            "display_height": screen_y,
-            "environment": env,  # "browser", "mac", "windows", "linux"
-        }
+    @staticmethod
+    def get_actions(item) -> list:
+        """
+        Return ordered Computer Use actions from a response item.
+
+        GA Computer Use returns a batched ``actions`` array. Keep a fallback
+        for the legacy single ``action`` field so saved/mock response objects
+        and compatible providers do not break during migration.
+
+        :param item: computer_call response item
+        :return: ordered list of actions
+        """
+        actions = Computer._get(item, "actions")
+        if actions:
+            return list(actions)
+        action = Computer._get(item, "action")
+        return [action] if action is not None else []
+
+    def handle_actions(
+            self,
+            id: str,
+            call_id: str,
+            actions: list,
+            tool_calls: list
+    ) -> Tuple[List, bool]:
+        """
+        Convert an ordered batch of Computer Use actions into local tool calls.
+
+        :param id: response item ID
+        :param call_id: Computer Use call ID
+        :param actions: ordered actions returned by the model
+        :param tool_calls: destination tool-call list
+        :return: tool calls and whether at least one action was converted
+        """
+        has_calls = False
+        for action in actions or []:
+            tool_calls, is_call = self.handle_action(
+                id=id,
+                call_id=call_id,
+                action=action,
+                tool_calls=tool_calls,
+            )
+            has_calls = has_calls or is_call
+        return tool_calls, has_calls
+
+    @staticmethod
+    def store_pending_safety_checks(ctx: CtxItem, item):
+        """
+        Preserve legacy preview safety checks when present.
+
+        GA Computer Use no longer uses the old pending-safety-check payload,
+        but keeping this tolerant reader avoids regressions with stored/mock
+        legacy response objects.
+
+        :param ctx: context item
+        :param item: computer_call response item
+        """
+        pending = Computer._get(item, "pending_safety_checks") or []
+        if not pending:
+            return
+        ctx.extra["pending_safety_checks"] = []
+        for check in pending:
+            ctx.extra["pending_safety_checks"].append({
+                "id": Computer._get(check, "id"),
+                "code": Computer._get(check, "code"),
+                "message": Computer._get(check, "message"),
+            })
 
     def handle_stream_chunk(self, ctx: CtxItem, chunk, tool_calls: list) -> Tuple[List, bool]:
         """
@@ -71,25 +142,17 @@ class Computer:
         """
         has_calls = False
 
-        if chunk.item.type == "computer_call":
-            id = chunk.item.id
-            call_id = chunk.item.call_id
-            action = chunk.item.action
-            tool_calls, has_calls = self.handle_action(
+        item = self._get(chunk, "item")
+        if item is not None and self._get(item, "type") == "computer_call":
+            id = self._get(item, "id")
+            call_id = self._get(item, "call_id")
+            tool_calls, has_calls = self.handle_actions(
                 id=id,
                 call_id=call_id,
-                action=action,
+                actions=self.get_actions(item),
                 tool_calls=tool_calls,
             )
-            if chunk.item.pending_safety_checks:
-                ctx.extra["pending_safety_checks"] = []
-                for item in chunk.item.pending_safety_checks:
-                    check = {
-                        "id": item.id,
-                        "code": item.code,
-                        "message": item.message,
-                    }
-                    ctx.extra["pending_safety_checks"].append(check)
+            self.store_pending_safety_checks(ctx, item)
         return tool_calls, has_calls
 
     def handle_action(
@@ -109,11 +172,13 @@ class Computer:
         """
         has_calls = False
 
+        action_type = self._get(action, "type")
+
         # mouse click
-        if action.type == "click":
-            button = action.button
-            x = action.x
-            y = action.y
+        if action_type == "click":
+            button = self._get(action, "button", "left")
+            x = self._get(action, "x")
+            y = self._get(action, "y")
             tool_calls.append({
                 "id": id,
                 "call_id": call_id,
@@ -131,9 +196,9 @@ class Computer:
             has_calls = True
 
         # mouse double click
-        elif action.type in ["double_click", "dblclick", "dbl_click"]:
-            x = action.x
-            y = action.y
+        elif action_type in ["double_click", "dblclick", "dbl_click"]:
+            x = self._get(action, "x")
+            y = self._get(action, "y")
             tool_calls.append({
                 "id": id,
                 "call_id": call_id,
@@ -151,9 +216,9 @@ class Computer:
             has_calls = True
 
         # mouse move
-        elif action.type == "move":
-            x = action.x
-            y = action.y
+        elif action_type == "move":
+            x = self._get(action, "x")
+            y = self._get(action, "y")
             tool_calls.append({
                 "id": id,
                 "call_id": call_id,
@@ -169,7 +234,7 @@ class Computer:
             has_calls = True
 
         # get screenshot
-        elif action.type == "screenshot":
+        elif action_type == "screenshot":
             tool_calls.append({
                 "id": id,
                 "call_id": call_id,
@@ -182,8 +247,8 @@ class Computer:
             has_calls = True
 
         # keyboard type
-        elif action.type == "type":
-            text = action.text
+        elif action_type == "type":
+            text = self._get(action, "text", "")
             tool_calls.append({
                 "id": id,
                 "call_id": call_id,
@@ -198,8 +263,8 @@ class Computer:
             has_calls = True
 
         # keyboard keys
-        elif action.type == "keypress":
-            keys = action.keys
+        elif action_type == "keypress":
+            keys = self._get(action, "keys", [])
             tool_calls.append({
                 "id": id,
                 "call_id": call_id,
@@ -214,11 +279,11 @@ class Computer:
             has_calls = True
 
         # mouse scroll
-        elif action.type == "scroll":
-            x = action.x
-            y = action.y
-            dx = action.scroll_x
-            dy = action.scroll_y
+        elif action_type == "scroll":
+            x = self._get(action, "x")
+            y = self._get(action, "y")
+            dx = self._get(action, "scroll_x", 0)
+            dy = self._get(action, "scroll_y", 0)
             tool_calls.append({
                 "id": id,
                 "call_id": call_id,
@@ -237,7 +302,7 @@ class Computer:
             has_calls = True
 
         # wait for a while
-        elif action.type == "wait":
+        elif action_type == "wait":
             tool_calls.append({
                 "id": id,
                 "call_id": call_id,
@@ -249,11 +314,15 @@ class Computer:
             })
             has_calls = True
 
-        elif action.type == "drag":
-            x = action.path[0].x
-            y = action.path[0].y
-            dx = action.path[1].x
-            dy = action.path[1].y
+        elif action_type == "drag":
+            path = self._get(action, "path", [])
+            if len(path) < 2:
+                print("Invalid drag action path")
+                return tool_calls, False
+            x = self._get(path[0], "x")
+            y = self._get(path[0], "y")
+            dx = self._get(path[1], "x")
+            dy = self._get(path[1], "y")
             tool_calls.append({
                 "id": id,
                 "call_id": call_id,
@@ -281,7 +350,7 @@ class Computer:
                 }
             })
             has_calls = True
-            print(f"Unrecognized action type: {action.type}")
+            print(f"Unrecognized action type: {action_type}")
 
         return tool_calls, has_calls
 
@@ -303,13 +372,13 @@ class Computer:
         :return: Updated tool_calls list
         """
         has_calls = False
-        action_type = action.type
+        action_type = self._get(action, "type")
         try:
             match action_type:
                 case "click":
                     has_calls = True
-                    x, y = action.x, action.y
-                    button = action.button
+                    x, y = self._get(action, "x"), self._get(action, "y")
+                    button = self._get(action, "button", "left")
                     print(f"Action: click at ({x}, {y}) with button '{button}'")
                     # Not handling things like middle click, etc.
                     if button != "left" and button != "right":
@@ -318,15 +387,15 @@ class Computer:
 
                 case "scroll":
                     has_calls = True
-                    x, y = action.x, action.y
-                    scroll_x, scroll_y = action.scroll_x, action.scroll_y
+                    x, y = self._get(action, "x"), self._get(action, "y")
+                    scroll_x, scroll_y = self._get(action, "scroll_x", 0), self._get(action, "scroll_y", 0)
                     print(f"Action: scroll at ({x}, {y}) with offsets (scroll_x={scroll_x}, scroll_y={scroll_y})")
                     page.mouse.move(x, y)
                     page.evaluate(f"window.scrollBy({scroll_x}, {scroll_y})")
 
                 case "keypress":
                     has_calls = True
-                    keys = action.keys
+                    keys = self._get(action, "keys", [])
                     for k in keys:
                         print(f"Action: keypress '{k}'")
                         # A simple mapping for common keys; expand as needed.
@@ -339,7 +408,7 @@ class Computer:
 
                 case "type":
                     has_calls = True
-                    text = action.text
+                    text = self._get(action, "text", "")
                     print(f"Action: type text: {text}")
                     page.keyboard.type(text)
 

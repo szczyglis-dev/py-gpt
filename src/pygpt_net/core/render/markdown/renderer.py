@@ -278,6 +278,11 @@ class Renderer(BaseRenderer):
         if c > 0:
             n = 1
             for image in ctx.images:
+                attachments = getattr(self.window.core, "attachments", None)
+                if (attachments is not None
+                        and hasattr(attachments, "is_ctx_excluded_path")
+                        and attachments.is_ctx_excluded_path(image)):
+                    continue
                 # don't append if it is an external url
                 if image.startswith("http"):
                     continue

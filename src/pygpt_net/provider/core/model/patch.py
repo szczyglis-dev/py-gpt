@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 21:40:00
+# Updated Date: 2026.09.08 13:40:00
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -431,6 +431,46 @@ class Patch:
                 for model in data.values():
                     if model.has_mode(MODE_CHAT) and not model.has_mode(MODE_AGENT_V2):
                         model.add_mode(MODE_AGENT_V2)
+                        updated = True
+
+            # <  2.8.12 <--- refresh Computer Use models and add new API models
+            if old < parse_version("2.8.12"):
+                print("Migrating models from < 2.8.12...")
+
+                # Add newly released models without duplicating a model that the
+                # user may already have imported manually under another key.
+                for key in ("gpt-6-astra", "claude-fable-5-1"):
+                    base_model = from_base(key)
+                    if not base_model:
+                        continue
+                    if not any(
+                            str(getattr(model, "id", "") or "") == base_model.id
+                            for model in data.values()
+                    ):
+                        data[key] = base_model
+                        updated = True
+
+                # GA Computer Use is supported by every GPT-5.6 family variant
+                # and GPT-6 Astra. Match by API model ID so custom user keys and
+                # all reasoning variants are migrated as well.
+                for model in data.values():
+                    model_id = str(getattr(model, "id", "") or "")
+                    if (model_id.startswith("gpt-5.6-") or model_id == "gpt-6-astra") \
+                            and not model.has_mode(MODE_COMPUTER):
+                        model.add_mode(MODE_COMPUTER)
+                        updated = True
+
+                deprecated_openai_prefixes = (
+                    "computer-use-preview",
+                    "o3-deep-research",
+                    "o4-mini-deep-research",
+                )
+                for key in list(data.keys()):
+                    model = data.get(key)
+                    model_id = str(getattr(model, "id", "") or "")
+                    if str(key).startswith(deprecated_openai_prefixes) \
+                            or model_id.startswith(deprecated_openai_prefixes):
+                        del data[key]
                         updated = True
 
         # update file

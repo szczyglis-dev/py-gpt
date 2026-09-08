@@ -1471,6 +1471,11 @@ class Renderer(BaseRenderer):
             for image in ctx.images:
                 if image is None:
                     continue
+                attachments = getattr(self.window.core, "attachments", None)
+                if (attachments is not None
+                        and hasattr(attachments, "is_ctx_excluded_path")
+                        and attachments.is_ctx_excluded_path(image)):
+                    continue
                 if image in appended or image in self.pids[pid].images_appended:
                     continue
                 try:

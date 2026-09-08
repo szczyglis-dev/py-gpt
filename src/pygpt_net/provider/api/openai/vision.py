@@ -32,6 +32,7 @@ class Vision:
         """
         self.window = window
         self.attachments = {}
+        self.hidden_attachments = set()
         self.urls = []
         self.input_tokens = 0
 
@@ -195,6 +196,7 @@ class Vision:
         prompt = content[0]['text']
 
         self.attachments = {}  # reset attachments, only current prompt
+        self.hidden_attachments = set()
         self.urls = []
 
         # extract URLs from prompt
@@ -244,6 +246,8 @@ class Vision:
                                 }
                             )
                         self.attachments[id] = attachment.path
+                        if isinstance(attachment.extra, dict) and attachment.extra.get("append_to_ctx", True) is False:
+                            self.hidden_attachments.add(id)
                         attachment.consumed = True
 
         return content
@@ -263,6 +267,7 @@ class Vision:
         items = []
         content = []
         self.attachments = {}  # reset attachments, only current prompt
+        self.hidden_attachments = set()
         self.urls = []
 
         # extract URLs from prompt
@@ -293,6 +298,8 @@ class Vision:
                             }
                         )
                         self.attachments[id] = attachment.path
+                        if isinstance(attachment.extra, dict) and attachment.extra.get("append_to_ctx", True) is False:
+                            self.hidden_attachments.add(id)
                         attachment.consumed = True
 
         if content:
@@ -317,6 +324,8 @@ class Vision:
         :param attachments: attachments dict
         :return: base64 encoded image or empty string if no image found
         """
+        self.attachments = {}
+        self.hidden_attachments = set()
         if attachments is not None and len(attachments) > 0:
             for id in attachments:
                 attachment = attachments[id]
@@ -324,6 +333,9 @@ class Vision:
                     # check if it's an image
                     if self.is_image(attachment.path):
                         base64_image = self.encode_image(attachment.path)
+                        self.attachments[id] = attachment.path
+                        if isinstance(attachment.extra, dict) and attachment.extra.get("append_to_ctx", True) is False:
+                            self.hidden_attachments.add(id)
                         attachment.consumed = True
                         return base64_image
 
@@ -372,6 +384,7 @@ class Vision:
     def reset(self):
         """Reset attachments, urls and input tokens"""
         self.attachments = {}
+        self.hidden_attachments = set()
         self.urls = []
         self.input_tokens = 0
 
@@ -410,7 +423,9 @@ class Vision:
 
         # store sent images in ctx
         if len(images) > 0:
-            ctx.images = self.window.core.filesystem.make_local_list(list(images.values()))
+            visible = [path for id_, path in images.items() if id_ not in self.hidden_attachments]
+            if visible:
+                ctx.images = self.window.core.filesystem.make_local_list(visible)
         if len(urls) > 0:
             ctx.images = urls
             ctx.urls = urls

@@ -26,6 +26,7 @@ class Vision:
         """
         self.window = window
         self.attachments: Dict[str, str] = {}
+        self.hidden_attachments = set()
         self.urls: List[str] = []
         self.input_tokens = 0
 
@@ -43,6 +44,7 @@ class Vision:
         """
         blocks: List[dict] = []
         self.attachments = {}
+        self.hidden_attachments = set()
         self.urls = []
 
         if attachments:
@@ -62,6 +64,8 @@ class Vision:
                             }
                         })
                         self.attachments[id_] = attachment.path
+                        if isinstance(attachment.extra, dict) and attachment.extra.get("append_to_ctx", True) is False:
+                            self.hidden_attachments.add(id_)
                         attachment.consumed = True
 
         return blocks
@@ -105,7 +109,9 @@ class Vision:
         """
         images = self.get_attachments()
         if len(images) > 0:
-            ctx.images = self.window.core.filesystem.make_local_list(list(images.values()))
+            visible = [path for id_, path in images.items() if id_ not in self.hidden_attachments]
+            if visible:
+                ctx.images = self.window.core.filesystem.make_local_list(visible)
 
     def get_attachments(self) -> Dict[str, str]:
         """
@@ -138,5 +144,6 @@ class Vision:
     def reset(self):
         """Reset state."""
         self.attachments = {}
+        self.hidden_attachments = set()
         self.urls = []
         self.input_tokens = 0

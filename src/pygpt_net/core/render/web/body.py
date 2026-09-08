@@ -670,6 +670,11 @@ class Body:
             for img in ctx.images:
                 if img is None:
                     continue
+                attachments = getattr(self.window.core, "attachments", None)
+                if (attachments is not None
+                        and hasattr(attachments, "is_ctx_excluded_path")
+                        and attachments.is_ctx_excluded_path(img)):
+                    continue
                 try:
                     url, path = self._extract_local_url(img)
                     basename = os.path.basename(path)

@@ -87,13 +87,15 @@ class Capture:
     def screenshot(
             self,
             attach_cursor: bool = False,
-            silent: bool = False
+            silent: bool = False,
+            append_to_ctx: bool = True
     ) -> Optional[Union[str, bool]]:
         """
         Make screenshot and append to attachments
 
         :param attach_cursor: True to with custom cursor
         :param silent: Silent mode
+        :param append_to_ctx: If False, mark attachment as transport-only (do not persist/render in ctx)
         :return: Path to screenshot or False if failed
         """
         if not silent:
@@ -121,7 +123,7 @@ class Capture:
                     sct_img = sct.grab(monitor)
                     mss.tools.to_png(sct_img.rgb, sct_img.size, output=path)
 
-            self.attach(name, path, 'screenshot', silent=silent)
+            self.attach(name, path, 'screenshot', silent=silent, append_to_ctx=append_to_ctx)
 
             if not silent:
                 self.window.controller.painter.open(path)
@@ -223,13 +225,15 @@ class Capture:
     def screenshot_playwright(
             self,
             page,
-            silent: bool = False
+            silent: bool = False,
+            append_to_ctx: bool = True
     ) -> Optional[Union[str, bool]]:
         """
         Make screenshot and append to attachments
 
         :param page : Playwright page
         :param silent: Silent mode
+        :param append_to_ctx: If False, mark attachment as transport-only (do not persist/render in ctx)
         :return: Path to screenshot or False if failed
         """
         if not silent:
@@ -253,7 +257,7 @@ class Capture:
             else:
                 return False
 
-            self.attach(name, path, 'screenshot', silent=silent)
+            self.attach(name, path, 'screenshot', silent=silent, append_to_ctx=append_to_ctx)
 
             if not silent:
                 self.window.controller.painter.open(path)
@@ -306,7 +310,8 @@ class Capture:
             name: str,
             path: str,
             type: str = 'drawing',
-            silent: bool = False
+            silent: bool = False,
+            append_to_ctx: bool = True
     ):
         """
         Attach image to attachments
@@ -315,6 +320,7 @@ class Capture:
         :param path: image path
         :param type: capture type (drawing, screenshot)
         :param silent: silent mode
+        :param append_to_ctx: If False, attachment is available to the provider but hidden from ctx/UI
         """
         mode = self.window.core.config.get('mode')
         if type == 'drawing':
@@ -326,7 +332,8 @@ class Capture:
         title = title.replace('cap-', '').replace('_', ' ')
 
         # make attachment
-        self.window.core.attachments.new(mode, title, path, False)
+        extra = {"append_to_ctx": bool(append_to_ctx)}
+        self.window.core.attachments.new(mode, title, path, False, extra=extra)
         self.window.core.attachments.save()
 
         if not silent:

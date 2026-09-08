@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.09.08 14:20:00                  #
 # ================================================== #
 
 import json
@@ -89,6 +89,11 @@ class RemoteTools:
                 }
                 tool_def["user_location"] = {k: v for k, v in tool_def["user_location"].items() if v is not None}
             tools.append(tool_def)
+
+        # --- Computer Use (Anthropic-defined client tool) ---
+        if cfg_bool("remote_tools.anthropic.computer_use", default=False) \
+                and self.window.core.api.anthropic.computer.supports_model(model):
+            tools.append(self.window.core.api.anthropic.computer.get_tool(model=model))
 
         # --- Code Execution (server tool) ---
         is_code_exec = cfg_bool("remote_tools.anthropic.code_execution", default=False)

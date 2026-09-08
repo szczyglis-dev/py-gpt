@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.09.08 14:20:00                  #
 # ================================================== #
 
 import os
@@ -31,6 +31,14 @@ class Chat:
         self.window = window
         self.input_tokens = 0
 
+    def _is_computer_use_active(self, mode: str, model: ModelItem = None) -> bool:
+        if mode == MODE_COMPUTER:
+            return True
+        model_id = str(getattr(model, "id", "") or "").lower()
+        if "computer-use" in model_id:
+            return True
+        return self.window.core.api.google.remote_tools.is_computer_use_enabled(model)
+
     def send(
             self,
             context: BridgeContext,
@@ -52,6 +60,10 @@ class Chat:
         multimodal_ctx = context.multimodal_ctx
         mode = context.mode
         ctx = context.ctx or CtxItem()
+        computer_use_active = self._is_computer_use_active(mode, model)
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        ctx.extra["google_computer_use_active"] = computer_use_active
 
         client = self.window.core.api.google.get_client(context.mode, model)
 
@@ -120,10 +132,11 @@ class Chat:
             remote_tools = []
         tools = (base_tools or []) + (remote_tools or [])
 
-        # Enable Computer Use tool in computer mode (use the official Tool/ComputerUse object)
-        if mode == MODE_COMPUTER or (model and isinstance(model.id, str) and "computer-use" in model.id.lower()):
+        # Computer Use uses the existing dedicated execution loop. It is also
+        # available as a Remote Tool in regular Chat for supported Gemini models.
+        if computer_use_active:
             tool = self.window.core.api.google.computer.get_tool()
-            tools = [tool]  # reset tools to only Computer Use (multiple tools not supported together)
+            tools = [tool]  # keep Computer Use exclusive in this adapter
 
         # Some models cannot use tools; keep behavior for image-only models
         if model and isinstance(model.id, str) and "-image" in model.id:
@@ -322,9 +335,12 @@ class Chat:
         if calls:
             ctx.tool_calls = calls
 
-        # 2) In MODE_COMPUTER: capture raw model parts (with thought_signature) for next FunctionResponse turn
-        #    and translate Computer Use calls into plugin commands now.
-        if mode == MODE_COMPUTER:
+        # 2) For Computer Use (dedicated mode or Remote Tool): capture raw model
+        #    parts for the next FunctionResponse turn and translate actions now.
+        computer_use_active = mode == MODE_COMPUTER or bool(
+            isinstance(ctx.extra, dict) and ctx.extra.get("google_computer_use_active")
+        )
+        if computer_use_active:
             candidate = None
             try:
                 cands = getattr(response, "candidates", None) or []
@@ -540,8 +556,10 @@ class Chat:
         :param mode: MODE_CHAT / MODE_AUDIO / MODE_COMPUTER
         :return: List of Content
         """
+        computer_use_active = self._is_computer_use_active(mode, model)
+
         # FunctionResponse turn for Computer Use (strictly immediate after functionCall)
-        if mode == MODE_COMPUTER and self.window.core.config.get('use_context'):
+        if computer_use_active and self.window.core.config.get('use_context'):
             hist = self.window.core.ctx.get_history(
                 history,
                 model.id,
@@ -576,13 +594,17 @@ class Chat:
             if item.final_output:
                 contents.append(Content(role="model", parts=[Part.from_text(text=str(item.final_output))]))
 
-        # Current user message:
-        # - In MODE_COMPUTER attach initial screenshot only on the very first turn
-        if mode == MODE_COMPUTER:
+        # Current user message: for Computer Use attach an initial screenshot only
+        # on the first turn (also when enabled as a Remote Tool in Chat).
+        if computer_use_active:
             initial_attachments = {}
             if is_first_turn and not attachments and not is_sandbox:
                 self.window.controller.attachment.clear_silent()
-                self.window.controller.painter.capture.screenshot(attach_cursor=True, silent=True)
+                self.window.controller.painter.capture.screenshot(
+                    attach_cursor=True,
+                    silent=True,
+                    append_to_ctx=False,
+                )
                 initial_attachments = self.window.core.attachments.get_all(mode)
             send_attachments = initial_attachments if initial_attachments else attachments
             parts = self._build_user_parts(

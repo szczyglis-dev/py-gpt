@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 13:09:00                  #
+# Updated Date: 2026.09.08 13:40:00                  #
 # ================================================== #
 
 import base64
@@ -191,9 +191,7 @@ class Responses:
         if system_prompt:
             response_kwargs['instructions'] = system_prompt
 
-        # http://platform.openai.com/docs/guides/tools-computer-use
-        if mode == MODE_COMPUTER or model.id.startswith("computer-use"):
-            response_kwargs['truncation'] = "auto"
+        if mode == MODE_COMPUTER:
             response_kwargs.setdefault('reasoning', {})["summary"] = "concise"
 
         model_id = (model.get_ollama_model() or model.id or "").strip() if model.is_ollama() else (model.id or "")
@@ -379,8 +377,9 @@ class Responses:
                                                     "call_id": tool_call["call_id"],
                                                     "type": "computer_call_output",
                                                     "output": {
-                                                        "type": "input_image",
-                                                        "image_url": f"data:image/png;base64,{base64img}"
+                                                        "type": "computer_screenshot",
+                                                        "image_url": f"data:image/png;base64,{base64img}",
+                                                        "detail": "original",
                                                     },
                                                 }
                                                 # safety checks
@@ -411,9 +410,7 @@ class Responses:
         # use vision and audio if available in current model
         if not is_tool_output:  # append current prompt only if not tool output
             content = str(prompt)
-            if (model.is_image_input()
-                    and mode != MODE_COMPUTER
-                    and not model.id.startswith("computer-use")):
+            if model.is_image_input() and mode != MODE_COMPUTER:
                 content = self.window.core.api.openai.vision.build_content(
                     content=content,
                     attachments=attachments,
@@ -544,22 +541,14 @@ class Responses:
             elif output.type == "computer_call":
                 id = output.id
                 call_id = output.call_id
-                action = output.action
-                tool_calls, is_call = self.window.core.api.openai.computer.handle_action(
+                computer = self.window.core.api.openai.computer
+                tool_calls, is_call = computer.handle_actions(
                     id=id,
                     call_id=call_id,
-                    action=action,
+                    actions=computer.get_actions(output),
                     tool_calls=tool_calls,
                 )
-                if output.pending_safety_checks:
-                    ctx.extra["pending_safety_checks"] = []
-                    for item in output.pending_safety_checks:
-                        check = {
-                            "id": item.id,
-                            "code": item.code,
-                            "message": item.message,
-                        }
-                        ctx.extra["pending_safety_checks"].append(check)
+                computer.store_pending_safety_checks(ctx, output)
                 if is_call:
                     force_func_call = True  # force function call for computer use
 
@@ -728,12 +717,33 @@ class Responses:
         allowed = False  # default is not to use responses API
         if model is not None:
             if model.is_gpt():
-                if model.id.startswith("computer-use"):
-                    return True
+                effective_parent_mode = parent_mode or mode
 
+                # GA Computer Use is a Responses API tool. When it is enabled
+                # from Remote Tools, force the Responses path regardless of the
+                # user's generic api_use_responses preference; otherwise the
+                # setting would be silently ignored by Chat Completions.
+                preset_computer_use = False
+                if is_expert_call and preset and preset.remote_tools:
+                    preset_tools = {
+                        item.strip() for item in str(preset.remote_tools).split(",") if item.strip()
+                    }
+                    preset_computer_use = "computer_use" in preset_tools
+
+                remote_computer_use = bool(
+                    model.has_mode(MODE_COMPUTER)
+                    and (
+                        self.window.core.config.get("remote_tools.computer_use", False)
+                        or preset_computer_use
+                    )
+                )
+                if (remote_computer_use
+                        and mode in self.RESPONSES_ALLOWED_MODES
+                        and effective_parent_mode in self.RESPONSES_ALLOWED_MODES):
+                    allowed = True
                 # check mode
-                if (mode in self.RESPONSES_ALLOWED_MODES
-                        and parent_mode in self.RESPONSES_ALLOWED_MODES
+                elif (mode in self.RESPONSES_ALLOWED_MODES
+                        and effective_parent_mode in self.RESPONSES_ALLOWED_MODES
                         and self.window.core.config.get('api_use_responses', False)):
                     allowed = True  # use responses API for chat mode, only OpenAI models
 

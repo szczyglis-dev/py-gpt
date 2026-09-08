@@ -22,6 +22,10 @@ from .config import Config
 
 
 class Plugin(BasePlugin):
+    # Keep Computer Use screenshots as transport-only attachments by default.
+    # Set to True to also persist/render them as context images in the chat UI.
+    APPEND_SCREENSHOT_TO_CTX = False
+
 
     SLEEP_TIME = 1000  # 1 second
 
@@ -257,12 +261,54 @@ class Plugin(BasePlugin):
         """
         self.window.controller.attachment.clear_silent()
         if self.is_sandbox():
-            path = self.window.controller.painter.capture.screenshot_playwright(page=self.page, silent=True)  # Playwright screenshot
+            path = self.window.controller.painter.capture.screenshot_playwright(
+                page=self.page,
+                silent=True,
+                append_to_ctx=self.APPEND_SCREENSHOT_TO_CTX,
+            )  # Playwright screenshot
         else:
-            path = self.window.controller.painter.capture.screenshot(attach_cursor=True, silent=True)  # attach screenshot
+            path = self.window.controller.painter.capture.screenshot(
+                attach_cursor=True,
+                silent=True,
+                append_to_ctx=self.APPEND_SCREENSHOT_TO_CTX,
+            )  # attach screenshot
         if path:
             img_path = self.window.core.filesystem.make_local(path)
-            ctx.images_before.append(img_path)
+            if self.APPEND_SCREENSHOT_TO_CTX:
+                ctx.images_before.append(img_path)
+            else:
+                # Keep the screenshot available to the provider, but never as a
+                # conversation image. Register it independently of the current
+                # attachment list (which is cleared between Computer Use rounds)
+                # and scrub every ctx object in the current runtime lineage.
+                attachments = self.window.core.attachments
+                if hasattr(attachments, "register_ctx_excluded_path"):
+                    attachments.register_ctx_excluded_path(path)
+
+                targets = []
+                candidate = ctx
+                seen = set()
+                for _ in range(4):
+                    if candidate is None or id(candidate) in seen:
+                        break
+                    seen.add(id(candidate))
+                    targets.append(candidate)
+                    candidate = getattr(candidate, "turn_parent", None) or getattr(candidate, "prev_ctx", None)
+
+                filesystem = self.window.core.filesystem
+                for target in targets:
+                    if not isinstance(getattr(target, "transport_images", None), list):
+                        target.transport_images = []
+                    if img_path not in target.transport_images:
+                        target.transport_images.append(img_path)
+                    for attr in ("images", "images_before"):
+                        values = getattr(target, attr, None)
+                        if not isinstance(values, list) or not values:
+                            continue
+                        setattr(target, attr, [
+                            value for value in values
+                            if filesystem.make_local(str(value)) != img_path
+                        ])
             context = BridgeContext()
             context.ctx = ctx
             event = KernelEvent(KernelEvent.REPLY_ADD, {

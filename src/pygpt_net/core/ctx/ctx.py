@@ -526,10 +526,73 @@ class Ctx:
         if meta is not None:
             self.provider.append_item(meta, item)
 
+    def _filter_transport_images(self, item: Optional[CtxItem]):
+        """Strip transport-only screenshots from all durable ctx image fields.
+
+        Computer Use screenshots are ordinary attachments only for provider
+        transport. They must never become user-visible/persistent ctx images.
+        The attachment registry is the authoritative runtime source because a
+        screenshot attachment may already have been cleared before a later tool
+        round persists the same durable turn. ``transport_images`` remains as a
+        per-CtxItem fallback for compatibility with an in-flight tool chain.
+        """
+        if item is None:
+            return
+
+        filesystem = self.window.core.filesystem
+
+        def image_key(value):
+            if value is None:
+                return None
+            value = str(value)
+            if value.startswith(("http://", "https://", "data:")):
+                return value
+            try:
+                return filesystem.make_local(value)
+            except Exception:
+                return value
+
+        hidden = []
+        # Item-local markers. Also include markers from runtime lineage because
+        # plugin replies may execute against an ephemeral continuation object.
+        seen_ctx = set()
+        candidate = item
+        for _ in range(4):
+            if candidate is None or id(candidate) in seen_ctx:
+                break
+            seen_ctx.add(id(candidate))
+            hidden.extend(list(getattr(candidate, "transport_images", None) or []))
+            candidate = getattr(candidate, "turn_parent", None) or getattr(candidate, "prev_ctx", None)
+
+        # Global runtime registry survives attachment.clear_silent(), so an old
+        # screenshot from an earlier Computer Use round is still excluded when
+        # the durable item is written several rounds later.
+        attachments = getattr(self.window.core, "attachments", None)
+        if attachments is not None and hasattr(attachments, "get_ctx_excluded_paths"):
+            try:
+                hidden.extend(list(attachments.get_ctx_excluded_paths()))
+            except Exception:
+                pass
+
+        hidden_keys = {image_key(value) for value in hidden if value is not None}
+        hidden_keys.discard(None)
+        if not hidden_keys:
+            return
+
+        for attr in ("images", "images_before"):
+            values = getattr(item, attr, None)
+            if not isinstance(values, list) or not values:
+                continue
+            setattr(item, attr, [
+                value for value in values
+                if image_key(value) not in hidden_keys
+            ])
+
     def update_item(self, item: CtxItem):
         """Update a turn and keep its compatibility output cache in sync."""
         if item is None:
             return
+        self._filter_transport_images(item)
         if item.parts:
             # Legacy/simple paths still write directly to CtxItem.output. Mirror
             # that into the sole part automatically; multi-part paths update the
@@ -589,6 +652,7 @@ class Ctx:
             self.provider.update_part(part)
         if sync_item:
             item.sync_output_from_parts()
+            self._filter_transport_images(item)
             if item.id is not None:
                 self.provider.update_item(item)
 
@@ -872,6 +936,16 @@ class Ctx:
 
         continuation.turn_part = part
 
+        # Runtime-only transport images belong to the durable parent for the
+        # lifetime of the current tool chain. Carry markers forward before
+        # merging continuation fields so a provider cannot accidentally persist
+        # a Computer Use screenshot in images_json.
+        if not isinstance(getattr(parent, "transport_images", None), list):
+            parent.transport_images = []
+        for value in list(getattr(continuation, "transport_images", None) or []):
+            if value not in parent.transport_images:
+                parent.transport_images.append(value)
+
         # Promote only tasks that existed before this provider call. New calls
         # from the response are recorded afterwards, so they remain pending.
         self.mark_part_tasks_ui_ready(continuation.turn_previous_part, True)
@@ -901,6 +975,7 @@ class Ctx:
         if not parent.tool_calls and isinstance(parent.extra, dict):
             parent.extra.pop("tool_calls", None)
         parent.sync_output_from_parts()
+        self._filter_transport_images(parent)
         self.provider.update_item(parent)
         return parent
 
@@ -2220,9 +2295,13 @@ class Ctx:
         :param ctx: CtxItem instance (current)
         :return: CtxItem instance (previous)
         """
+        # Do this before copying fields into the provider-facing ephemeral ctx.
+        # Otherwise a transport screenshot can be resurrected by from_previous()
+        # even if update_item() strips it from the durable row moments later.
+        self._filter_transport_images(ctx)
         prev_ctx = CtxItem()
         for name in (
-            "urls", "urls_before", "images", "images_before", "files", "files_before",
+            "urls", "urls_before", "images", "images_before", "transport_images", "files", "files_before",
             "attachments", "attachments_before", "results", "index_meta", "doc_ids",
             "input_name", "output_name"
         ):

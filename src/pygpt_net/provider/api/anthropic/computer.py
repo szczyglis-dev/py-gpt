@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.09.08 14:20:00                  #
 # ================================================== #
 
 import json
@@ -121,10 +121,40 @@ class Computer:
         idx = self.window.ui.nodes["computer_env"].currentIndex()
         return self.window.ui.nodes["computer_env"].itemData(idx)
 
-    def get_tool(self) -> dict:
+    COMPUTER_20251124_MODELS = (
+        "claude-fable-5",
+        "claude-mythos-5",
+        "claude-opus-5",
+        "claude-sonnet-5",
+        "claude-opus-4-8",
+        "claude-opus-4-7",
+        "claude-opus-4-6",
+        "claude-sonnet-4-6",
+        "claude-opus-4-5",
+    )
+    COMPUTER_20250124_MODELS = (
+        "claude-sonnet-4-5",
+        "claude-haiku-4-5",
+    )
+
+    def get_tool_type(self, model=None) -> Optional[str]:
+        model_id = str(getattr(model, "id", model) or "").lower()
+        if any(model_id.startswith(prefix) for prefix in self.COMPUTER_20251124_MODELS):
+            return "computer_20251124"
+        if any(model_id.startswith(prefix) for prefix in self.COMPUTER_20250124_MODELS):
+            return "computer_20250124"
+        return None
+
+    def supports_model(self, model=None) -> bool:
+        return self.get_tool_type(model) is not None
+
+    def get_tool(self, model=None) -> dict:
         is_sandbox = bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
         screen_w, screen_h = self._resolve_display_size(is_sandbox=is_sandbox)
-        tool_type = str(self.window.core.config.get("remote_tools.anthropic.computer.type", "computer_20250124")).strip() or "computer_20250124"
+        tool_type = self.get_tool_type(model)
+        if tool_type is None:
+            # Preserve dedicated-mode compatibility for custom Anthropic models.
+            tool_type = "computer_20251124"
         return {
             "name": "computer",
             "type": tool_type,

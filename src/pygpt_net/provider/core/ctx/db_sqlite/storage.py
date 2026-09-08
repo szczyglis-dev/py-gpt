@@ -49,6 +49,14 @@ class Storage:
         """
         self.window = window
 
+    def _pack_ctx_images(self, item: CtxItem) -> str:
+        """Pack ctx images while defensively excluding transport-only attachments."""
+        images = list(item.images or []) if isinstance(item.images, list) else item.images
+        attachments = getattr(getattr(self.window, "core", None), "attachments", None)
+        if isinstance(images, list) and attachments is not None and hasattr(attachments, "is_ctx_excluded_path"):
+            images = [value for value in images if not attachments.is_ctx_excluded_path(value)]
+        return pack_item_value(images)
+
     def prepare_query(
             self,
             search_string: Optional[str] = None,
@@ -1020,7 +1028,7 @@ class Storage:
             cmds_json=pack_item_value(item.cmds),
             results_json=pack_item_value(item.results),
             urls_json=pack_item_value(item.urls),
-            images_json=pack_item_value(item.images),
+            images_json=self._pack_ctx_images(item),
             files_json=pack_item_value(item.files),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),
@@ -1119,7 +1127,7 @@ class Storage:
             cmds_json=pack_item_value(item.cmds),
             results_json=pack_item_value(item.results),
             urls_json=pack_item_value(item.urls),
-            images_json=pack_item_value(item.images),
+            images_json=self._pack_ctx_images(item),
             files_json=pack_item_value(item.files),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2026.09.08 13:40:00                  #
 # ================================================== #
 
 import base64
@@ -230,7 +230,7 @@ class Agent:
 
     def __init__(
         self,
-        model="computer-use-preview",
+        model="gpt-5.6-sol",
         computer: LocalComputer = None,
         tools: list[dict] = [],
         acknowledge_safety_check_callback: Callable = lambda: False,
@@ -249,13 +249,9 @@ class Agent:
         self.begin = True
 
         if computer:
-            dimensions = computer.dimensions
             self.tools += [
                 {
-                    "type": "computer-preview",
-                    "display_width": dimensions[0],
-                    "display_height": dimensions[1],
-                    "environment": computer.environment,
+                    "type": "computer",
                 },
             ]
 
@@ -308,24 +304,29 @@ class Agent:
             ]
 
         if item["type"] == "computer_call":
-            action = item["action"]
-            action_type = action["type"]
-            action_args = {k: v for k, v in action.items() if k != "type"}
-            if self.debug:
-                print(f"{action_type}({action_args})")
+            # GA Computer Use may batch several actions in one call. Execute
+            # them in the order returned, then send one screenshot for the call.
+            actions = item.get("actions") or []
+            if not actions and item.get("action"):
+                actions = [item["action"]]  # legacy compatibility
 
-            method = getattr(self.computer, action_type)
-            method(**action_args)
+            for action in actions:
+                action_type = action["type"]
+                action_args = {k: v for k, v in action.items() if k != "type"}
+                if self.debug:
+                    print(f"{action_type}({action_args})")
+
+                method = getattr(self.computer, action_type)
+                method(**action_args)
 
             screenshot_base64 = self.computer.screenshot()
-            pending_checks = item.get("pending_safety_checks", [])
             call_output = {
                 "type": "computer_call_output",
                 "call_id": item["call_id"],
-                "acknowledged_safety_checks": pending_checks,
                 "output": {
-                    "type": "input_image",
+                    "type": "computer_screenshot",
                     "image_url": f"data:image/png;base64,{screenshot_base64}",
+                    "detail": "original",
                 },
             }
 
@@ -363,7 +364,6 @@ class Agent:
                 model=self.model,
                 input=input + new_items,
                 tools=self.tools,
-                truncation="auto",
             )
             self.debug_print(response)
 

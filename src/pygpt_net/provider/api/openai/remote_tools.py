@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 05:00:00                  #
+# Updated Date: 2026.09.08 14:20:00                  #
 # ================================================== #
 
 import json
@@ -96,7 +96,14 @@ class RemoteTools:
             enabled["code_interpreter"] = self.window.core.config.get("remote_tools.code_interpreter", False)
             enabled["mcp"] = self.window.core.config.get("remote_tools.mcp", False)
             enabled["file_search"] = self.window.core.config.get("remote_tools.file_search", False)
-            enabled["computer_use"] = (mode == MODE_COMPUTER or model.id.startswith("computer-use"))
+            enabled["computer_use"] = (
+                mode == MODE_COMPUTER
+                or model.id.startswith("computer-use")
+                or (
+                    self.window.core.config.get("remote_tools.computer_use", False)
+                    and model.has_mode(MODE_COMPUTER)
+                )
+            )
         else:
             # for expert call, get from preset config
             if preset:
@@ -108,51 +115,57 @@ class RemoteTools:
                         if item in enabled:
                             enabled[item] = True
 
+        # Never expose Computer Use through an expert preset on a model that
+        # does not advertise the Computer capability.
+        if enabled["computer_use"] and not (
+                model.id.startswith("computer-use") or model.has_mode(MODE_COMPUTER)
+        ):
+            enabled["computer_use"] = False
+
         # o1, o3, models do not support remote tools
         # TODO: check if really not supported
         if model.id.startswith("o1") or model.id.startswith("o3"):
             return tools
 
-        # extend local tools with remote tools
-        if enabled["computer_use"]:
-            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE:
-                tools.append(self.window.core.api.openai.computer.get_tool())
-        else:
-            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH:
-                if enabled["web_search"]:
-                    tools.append({"type": "web_search_preview"})
+        # Extend local tools with remote tools. In dedicated Computer mode the
+        # computer tool remains exclusive, matching the existing mode behavior.
+        # When enabled from Settings -> Remote tools it behaves as a regular
+        # Responses API tool and may coexist with other supported remote tools.
+        dedicated_computer = mode == MODE_COMPUTER or model.id.startswith("computer-use")
+        if enabled["computer_use"] and model.id not in OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE:
+            tools.append(self.window.core.api.openai.computer.get_tool())
 
-            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER:
-                if enabled["code_interpreter"]:
+        if not dedicated_computer:
+            if model.id not in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH and enabled["web_search"]:
+                tools.append({"type": "web_search_preview"})
+
+            if model.id not in OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER and enabled["code_interpreter"]:
+                tools.append({
+                    "type": "code_interpreter",
+                    "container": {
+                        "type": "auto"
+                    }
+                })
+
+            if model.id not in OPENAI_REMOTE_TOOL_DISABLE_IMAGE and enabled["image"]:
+                tool = {"type": "image_generation"}
+                if stream:
+                    tool["partial_images"] = 1  # required for streaming
+                tools.append(tool)
+
+            if model.id not in OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH and enabled["file_search"]:
+                vector_store_ids = self.window.core.config.get("remote_tools.file_search.args", "")
+                if vector_store_ids:
+                    vector_store_ids = [store.strip() for store in vector_store_ids.split(",") if store.strip()]
                     tools.append({
-                        "type": "code_interpreter",
-                        "container": {
-                            "type": "auto"
-                        }
+                        "type": "file_search",
+                        "vector_store_ids": vector_store_ids,
                     })
 
-            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_IMAGE:
-                if enabled["image"]:
-                    tool = {"type": "image_generation"}
-                    if stream:
-                        tool["partial_images"] = 1  # required for streaming
-                    tools.append(tool)
-
-            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH:
-                if enabled["file_search"]:
-                    vector_store_ids = self.window.core.config.get("remote_tools.file_search.args", "")
-                    if vector_store_ids:
-                        vector_store_ids = [store.strip() for store in vector_store_ids.split(",") if store.strip()]
-                        tools.append({
-                            "type": "file_search",
-                            "vector_store_ids": vector_store_ids,
-                        })
-
-            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_MCP:
-                if enabled["mcp"]:
-                    mcp_tool = self.window.core.config.get("remote_tools.mcp.args", "")
-                    if mcp_tool:
-                        mcp_tool = json.loads(mcp_tool)
-                        tools.append(mcp_tool)
+            if model.id not in OPENAI_REMOTE_TOOL_DISABLE_MCP and enabled["mcp"]:
+                mcp_tool = self.window.core.config.get("remote_tools.mcp.args", "")
+                if mcp_tool:
+                    mcp_tool = json.loads(mcp_tool)
+                    tools.append(mcp_tool)
 
         return tools

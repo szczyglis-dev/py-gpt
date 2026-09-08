@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.8.11",
-    "app.version": "2.8.11",
-    "updated_at": "2026-09-06T18:00:00"
+    "version": "2.8.12",
+    "app.version": "2.8.12",
+    "updated_at": "2026-09-08T14:20:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -191,7 +191,7 @@
     "agent_llama": "gpt-5.6-terra-high",
     "agent_openai": "gpt-5.6-terra-high",
     "expert": "gpt-5.6-terra-high",
-    "computer": "computer-use-preview",
+    "computer": "gpt-5.6-sol-medium",
     "agent_v2": "gpt-5.6-terra-high"
   },
   "current_preset": {
@@ -435,6 +435,7 @@
   "prompt.video": "Convert the user's request into a single, production-ready description for generating one continuous video clip. Output only the description text, nothing else.\n\nWrite in concise, vivid, present-tense language. Do not use commands (no “please generate”), model names, parameters, or metadata. Do not mention duration, aspect ratio, FPS, resolution, shot numbers, cuts, or lists. Focus on visuals only; no dialogue, captions, on‑screen text, watermarks, logos, or UI.\n\nInclude, in a coherent way:\n- Clear subject(s) and what they are doing.\n- Setting, time of day, atmosphere, and weather.\n- Camera perspective and motion (e.g., wide establishing, low‑angle tracking, slow dolly in, aerial, handheld), framing and composition.\n- Lens and focus behavior (e.g., 24 mm wide, shallow depth of field, gentle rack focus).\n- Lighting style and quality (e.g., soft golden hour rim light, moody volumetric shafts).\n- Color palette and grading (e.g., warm cinematic teal‑and‑orange, desaturated documentary).\n- Visual style or medium (e.g., photoreal live‑action, stylized anime, stop‑motion clay, watercolor animation).\n- Material and surface details that reinforce realism or the chosen style.\n- Temporal progression within one shot (use cues like “as…”, “then…”, “while…”), maintaining physical plausibility and continuity.\n\nIf the user specifies a genre or style (e.g., cyberpunk, nature documentary), keep it and expand with consistent, concrete visual traits. If the request is vague, infer specific but reasonable details that enhance clarity without contradicting the user’s intent.\n\nReturn only the final visual description.",
   "remote_store.hide_threads": true,
   "remote_store.provider": "openai",
+  "remote_tools.anthropic.computer_use": false,
   "remote_tools.anthropic.code_execution": false,
   "remote_tools.anthropic.mcp": false,
   "remote_tools.anthropic.mcp.mcp_servers": "[\n   {\n        \"type\": \"url\",\n        \"url\": \"https://mcp.example.com/sse\",\n        \"name\": \"example-mcp\",\n        \"authorization_token\": \"YOUR_TOKEN\"\n   }\n]",
@@ -442,11 +443,13 @@
   "remote_tools.anthropic.web_fetch": false,
   "remote_tools.anthropic.web_search": true,
   "remote_tools.code_interpreter": false,
+  "remote_tools.computer_use": false,
   "remote_tools.computer_use.env": "",
   "remote_tools.computer_use.sandbox": false,
   "remote_tools.file_search": false,
   "remote_tools.file_search.args": "",
   "remote_tools.global.web_search": true,
+  "remote_tools.google.computer_use": false,
   "remote_tools.google.code_interpreter": false,
   "remote_tools.google.file_search": false,
   "remote_tools.google.file_search.args": "",

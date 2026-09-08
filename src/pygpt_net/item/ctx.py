@@ -123,6 +123,10 @@ class CtxItem:
     idx: int = 0
     images: list = field(default_factory=list)
     images_before: list = field(default_factory=list)
+    # Runtime-only image paths used by provider/tool transport (for example
+    # Computer Use screenshots). This field is intentionally omitted from
+    # to_dict()/from_dict() and therefore never persisted in images_json/extra_json.
+    transport_images: list = field(default_factory=list, repr=False)
     index_meta: dict = field(default_factory=dict)
     input: Optional[str] = None
     input_name: Optional[str] = None
