@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:05:00                  #
+# Updated Date: 2026.09.08 22:30:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -705,8 +705,14 @@ class CtxList:
         yesterday = today - timedelta(days=1)
         date = datetime.fromtimestamp(timestamp).date()
 
-        days_ago = (today - date).days
+        days_ago = max(0, (today - date).days)
         weeks_ago = days_ago // 7
+
+        def relative(key: str, count: int) -> str:
+            label = trans(key)
+            if "{n}" in label:
+                return label.format(n=count)
+            return f"{count} {label}"
 
         if date == today:
             return trans('dt.today')
@@ -714,14 +720,29 @@ class CtxList:
             return trans('dt.yesterday')
         elif weeks_ago == 1:
             return trans('dt.week')
-        elif 1 < weeks_ago < 4:
-            return f"{weeks_ago} " + trans('dt.weeks')
+        elif 1 < weeks_ago and days_ago < 30:
+            return relative('dt.weeks', weeks_ago)
         elif days_ago < 30:
-            return f"{days_ago} " + trans('dt.days_ago')
-        elif 30 <= days_ago < 32:
-            return trans('dt.month')
-        else:
-            return date.strftime("%Y-%m-%d")
+            return relative('dt.days_ago', days_ago)
+
+        # Keep older context headers relative as well. The grouping becomes
+        # intentionally wider with age: individual days/weeks above, then
+        # months, and finally whole years. This avoids falling back to one
+        # section per calendar date for old conversations.
+        months_ago = (today.year - date.year) * 12 + today.month - date.month
+        if date.day > today.day:
+            months_ago -= 1
+        months_ago = max(1, months_ago)
+
+        if months_ago < 12:
+            if months_ago == 1:
+                return trans('dt.month')
+            return relative('dt.months', months_ago)
+
+        years_ago = max(1, months_ago // 12)
+        if years_ago == 1:
+            return trans('dt.year')
+        return relative('dt.years', years_ago)
 
     # ===========================
     # Helpers for group icons
