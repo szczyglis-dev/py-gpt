@@ -167,5 +167,6 @@ class Agent:
         :param ctx: CtxItem: Context item to handle reply for
         """
         if ctx.internal and self.legacy.enabled():
-            self.legacy.add_run()
+            # Tool-result roundtrips belong to the current autonomous step and
+            # must not consume an iteration. The counter advances only on CTX_END.
             self.legacy.update()

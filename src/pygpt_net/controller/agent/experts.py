@@ -49,7 +49,12 @@ class Experts:
         # if agent enabled
         if controller.agent.legacy.enabled():
             prev_prompt = sys_prompt
-            sys_prompt = core.prompt.get("agent.instruction")
+            # Upgrade the historical self-dialogue default at runtime while
+            # preserving genuinely custom user prompts. This avoids a config
+            # migration and makes existing installations use the new loop.
+            sys_prompt = controller.agent.legacy.normalize_instruction_prompt(
+                core.prompt.get("agent.instruction")
+            )
             if prev_prompt is not None and prev_prompt.strip() != "":
                 sys_prompt = sys_prompt + "\n\n" + prev_prompt  # append previous prompt
 

@@ -588,6 +588,11 @@ class Patch:
                     data["model"] = "gpt-5.6-sol-medium"
                     updated = True
 
+                # Autonomous Agent now defaults to the OpenAI Responses API.
+                if data.get("agent.api_use_responses") is not True:
+                    data["agent.api_use_responses"] = True
+                    updated = True
+
                 # Computer Use can also be enabled as a Remote Tool. Keep it
                 # opt-in for all providers when upgrading an existing profile.
                 for key in (

@@ -1623,7 +1623,7 @@ class Ctx:
                 segments.append((raw_text, [], []))
                 text_emitted = bool(raw_text)
 
-            for segment_text, calls, outputs in segments:
+            for segment_index, (segment_text, calls, outputs) in enumerate(segments):
                 if not segment_text and not calls:
                     continue
                 clone = copy.copy(item)
@@ -1645,7 +1645,17 @@ class Ctx:
                     clone.hidden_input = item.hidden_input
                     first_segment = False
                 else:
-                    clone.input = build_tool_input(previous_calls, previous_outputs)
+                    # Autonomous Agent continuation prompts are stored as partial
+                    # metadata rather than extra CtxItems. Rehydrate that hidden
+                    # provider-facing input only for the first protocol segment of
+                    # the corresponding partial. Tool-result segments keep using
+                    # their structured previous call/output pair below.
+                    input_before = part_extra.get("input_before") if segment_index == 0 else None
+                    clone.input = (
+                        str(input_before)
+                        if input_before not in (None, "")
+                        else build_tool_input(previous_calls, previous_outputs)
+                    )
                     clone.hidden_input = None
                     clone.internal = True
 

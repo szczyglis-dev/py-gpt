@@ -544,7 +544,14 @@ class Renderer(BaseRenderer):
         # and that replacement.
         self.flush_part_streams(meta)
         self._partial_stream_reset(pid)
-        if self.window.controller.agent.legacy.enabled():
+        # Historical autonomous mode used one CtxItem per iteration and needed
+        # STREAM_END to append that whole item. New autonomous continuations are
+        # nested CtxItemPart streams of one durable parent; appending the parent
+        # here duplicates/replaces the live partial and makes it look as if no
+        # streaming occurred. Keep the legacy materialization only for a top-level
+        # stream; partial continuations are finalized by Stream.handleEnd().
+        if (self.window.controller.agent.legacy.enabled()
+                and not (getattr(ctx, "parts", None) or [])):
             if self.pids[pid].item is not None:
                 self.append_context_item(meta, self.pids[pid].item)
                 self.pids[pid].item = None

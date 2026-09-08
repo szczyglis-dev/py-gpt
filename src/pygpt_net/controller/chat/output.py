@@ -13,6 +13,7 @@ from typing import Any, Optional
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
+    MODE_AGENT,
     MODE_ASSISTANT,
     MODE_IMAGE,
     MODE_AUDIO,
@@ -134,6 +135,14 @@ class Output:
             if not ctx.cmds_before:
                 ctx.cmds_before = core.command.tool_calls_to_cmds(ctx.tool_calls)
             log("Tool call received...")
+
+        # ``goal_update`` in autonomous Agent mode is a local run-control signal,
+        # not an executable plugin tool. Consume it before deciding whether this
+        # response needs a tool roundtrip. This is especially important for
+        # native function calls: a terminal goal_update-only response must finish
+        # the current turn instead of waiting forever for a synthetic tool result.
+        if mode == MODE_AGENT:
+            self.window.controller.agent.legacy.consume_control_commands(ctx)
 
         has_tool_request = bool(ctx.tool_calls or ctx.cmds_before)
         part = ctx.get_active_part()

@@ -121,6 +121,11 @@ class Stream(QObject):
 
         source_ctx = ctx
         is_continuation = bool(getattr(source_ctx, "turn_parent", None))
+        is_agent_continue = bool(
+            is_continuation
+            and isinstance(getattr(source_ctx, "extra", None), dict)
+            and source_ctx.extra.get("agent_continue")
+        )
         durable_ctx = source_ctx
         if is_continuation:
             # The stream worker has now consumed the provider generator and
@@ -145,20 +150,16 @@ class Stream(QObject):
         )
 
         if is_continuation:
-            # First materialize the completed tool/result (and any completed
-            # continuation text) in the durable parent. Only then freeze/clear the
-            # transient waiting row. This makes the hand-off atomic from the
-            # user's perspective: ``Tools: ...`` never disappears into a spinner-
-            # only gap before the real Tool/Tools accordion is available.
-            #
-            # Rebuild before post_handle(). If this streamed response contains a
-            # new tool call, post_handle() will create its pending status after
-            # the reload instead of having that transient status wiped by it.
+            # Materialize the completed continuation in the durable parent before
+            # post_handle(). Autonomous iterations are plain assistant partials,
+            # not post-tool hand-offs, so they must not clear a tool status that
+            # belongs to an unrelated/previous round.
             self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": durable_ctx.meta, "ctx": durable_ctx}))
-            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
-                "meta": durable_ctx.meta,
-                "ctx": durable_ctx,
-            }))
+            if not is_agent_continue:
+                self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                    "meta": durable_ctx.meta,
+                    "ctx": durable_ctx,
+                }))
 
         if mode == MODE_ASSISTANT:
             controller.assistant.threads.handle_output_message_after_stream(durable_ctx)
@@ -197,32 +198,49 @@ class Stream(QObject):
         parent = getattr(ctx, "turn_parent", None)
         if parent is not None:
             renderer = self.instance()
-            if begin:
+            is_agent_continue = bool(
+                isinstance(getattr(ctx, "extra", None), dict)
+                and ctx.extra.get("agent_continue")
+            )
+            if begin and not is_agent_continue:
+                # Tool-result continuation: promote the finished tool round into
+                # the durable timeline before prose starts streaming.
                 previous_part = getattr(ctx, "turn_previous_part", None)
                 if previous_part is not None:
                     self.window.core.ctx.mark_part_tasks_ui_ready(previous_part, True)
                     self.window.core.ctx.update_part(parent, previous_part, sync_item=True)
-                # The durable parent becomes the authoritative DOM skeleton:
-                # previous text/tool partials are rendered in their real order.
-                # Discard any old inline timer before replacing that DOM.
                 if hasattr(renderer, "discard_part_streams"):
                     renderer.discard_part_streams(parent.meta)
-                # Replace the live waiting row with the now UI-ready durable
-                # tool block before clearing the transient status. RELOAD is a
-                # single replaceNodes() operation, so there is no spinner-only
-                # frame between the two representations.
                 self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": parent.meta, "ctx": parent}))
                 self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
                     "meta": parent.meta, "ctx": parent,
                 }))
 
-            renderer.append_part_chunk(
-                parent.meta,
-                parent,
-                f"chat-{getattr(ctx, 'pid', id(ctx))}",
-                chunk,
-                begin,
-            )
+            # Autonomous continuation already owns a freshly persisted empty
+            # CtxItemPart. Stream directly into that part under the existing
+            # durable message; a tool-style RELOAD on the first token races the
+            # live partial and makes the iteration appear non-streaming. Use the
+            # part UUID as a stable stream key so batching never changes identity.
+            part = getattr(ctx, "turn_part", None)
+            part_key = getattr(part, "uuid", None) or f"chat-{getattr(ctx, 'pid', id(ctx))}"
+            if hasattr(renderer, "append_part_chunk"):
+                renderer.append_part_chunk(
+                    parent.meta,
+                    parent,
+                    part_key,
+                    chunk,
+                    begin,
+                )
+            else:
+                # Non-Web renderers do not implement nested partial streaming.
+                # Fall back to their ordinary stream path instead of dropping
+                # autonomous deltas or raising from the GUI slot.
+                renderer.append_chunk(
+                    parent.meta,
+                    parent,
+                    chunk,
+                    begin,
+                )
             return
 
         # direct call to the renderer to avoid overhead of event queue

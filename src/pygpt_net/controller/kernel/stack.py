@@ -98,6 +98,11 @@ class Stack:
                 'extra': {
                     "force": True,
                     "internal": True,
+                    # Explicitly keep autonomous Agent continuations inside the
+                    # same durable CtxItem.  This marker is intentionally
+                    # separate from tool replies (reply=True), so other internal
+                    # INPUT_SYSTEM callers keep their existing behaviour.
+                    "agent_continue": True,
                 },
             }))
 

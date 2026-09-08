@@ -188,9 +188,18 @@ class Input:
         :param extra: extra data
         """
         is_internal_reply = bool(extra.get("reply")) and bool(extra.get("internal"))
+        is_agent_continue = bool(extra.get("agent_continue")) and bool(extra.get("internal"))
         origin_ctx = context.ctx
         origin_mode = getattr(origin_ctx, "mode", None) if origin_ctx is not None else None
         origin_model = getattr(origin_ctx, "model", None) if origin_ctx is not None else None
+
+        # Autonomous Agent iterations are explicit internal continuations of one
+        # user-visible turn. The originating mode may be MODE_AGENT itself or an
+        # ordinary mode with the inline autonomous plugin enabled, so the explicit
+        # marker (rather than the currently focused UI mode) is authoritative.
+        if is_agent_continue and origin_ctx is None:
+            self.window.core.debug.info("[agent] Ignoring continuation without an originating context.")
+            return
 
         # Agents v2 owns only replies originating from its own private tool
         # contexts. Do not use the currently focused/global UI mode here: in a
@@ -210,8 +219,9 @@ class Input:
             internal=extra.get("internal", False),
             prev_ctx=context.ctx,
             multimodal_ctx=context.multimodal_ctx,
-            mode_override=origin_mode if is_internal_reply else None,
-            model_override=origin_model if is_internal_reply else None,
+            mode_override=origin_mode if (is_internal_reply or is_agent_continue) else None,
+            model_override=origin_model if (is_internal_reply or is_agent_continue) else None,
+            agent_continue=is_agent_continue,
         )
 
     def execute(
@@ -224,6 +234,7 @@ class Input:
             multimodal_ctx: Optional[MultimodalContext] = None,
             mode_override: Optional[str] = None,
             model_override: Optional[str] = None,
+            agent_continue: bool = False,
     ):
         """
         Execute send input text to API
@@ -234,8 +245,9 @@ class Input:
         :param internal: internal call
         :param prev_ctx: previous context (if reply)
         :param multimodal_ctx: multimodal context
-        :param mode_override: originating mode for an internal tool reply
-        :param model_override: originating model key for an internal tool reply
+        :param mode_override: originating mode for an internal tool reply/agent continuation
+        :param model_override: originating model key for an internal tool reply/agent continuation
+        :param agent_continue: keep an autonomous Agent iteration in the same durable turn
         """
         core = self.window.core
         controller = self.window.controller
@@ -343,6 +355,7 @@ class Input:
                 multimodal_ctx=multimodal_ctx,
                 mode_override=mode_override,
                 model_override=model_override,
+                agent_continue=agent_continue,
             )  # text mode: OpenAI, LlamaIndex, etc.
 
     def handle_attachment(self, mode: str, text: str) -> bool:

@@ -81,6 +81,11 @@ class Response:
 
         source_ctx = ctx
         is_continuation = bool(getattr(source_ctx, "turn_parent", None))
+        is_agent_continue = bool(
+            is_continuation
+            and isinstance(getattr(source_ctx, "extra", None), dict)
+            and source_ctx.extra.get("agent_continue")
+        )
         stream = bool(context.stream)
         if is_continuation:
             # Non-stream continuations can be folded immediately. A streamed
@@ -131,13 +136,12 @@ class Response:
                     ctx, mode, stream, is_response=True, reply=reply, internal=internal,
                     context=context, extra=extra, render=not is_continuation,
                 )
-                if is_continuation:
-                    # Normalize/persist the continuation first. This prevents a
-                    # legacy <tool> request from being rendered as a completed
-                    # button before it has even been executed. Keep the waiting
-                    # row alive until that durable replacement is dispatched, so
-                    # non-stream replies have the same gap-free hand-off as
-                    # streamed replies.
+                if is_continuation and not (stream and is_agent_continue):
+                    # Tool-result continuations need an immediate durable hand-off.
+                    # A streamed autonomous iteration does not: its empty partial
+                    # is already persisted and Stream.handleChunk() appends into it
+                    # directly. Reloading here clears/races the live stream before
+                    # the first token is painted.
                     dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
                     dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
                         "meta": ctx.meta,

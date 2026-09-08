@@ -130,11 +130,12 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
-        pre_prompt = ("YOU ARE NOW AN AUTONOMOUS AGENT AND YOU ARE ENTERING NOW INTO AGENT MODE.\n"
-                      "Use below instructions in every agent run iteration:\n\n")
-        return pre_prompt + self.window.controller.agent.legacy.on_system_prompt(
+        legacy = self.window.controller.agent.legacy
+        pre_prompt = ("AUTONOMOUS MODE IS ACTIVE.\n"
+                      "Apply the following execution rules throughout this run:\n\n")
+        return pre_prompt + legacy.on_system_prompt(
             prompt,
-            append_prompt=self.get_first_active_prompt(),
+            append_prompt=legacy.normalize_instruction_prompt(self.get_first_active_prompt()),
             auto_stop=self.get_option_value("auto_stop"),
         )
 

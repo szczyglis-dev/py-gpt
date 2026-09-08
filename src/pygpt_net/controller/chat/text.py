@@ -46,6 +46,7 @@ class Text:
             multimodal_ctx: Optional[MultimodalContext] = None,
             mode_override: Optional[str] = None,
             model_override: Optional[str] = None,
+            agent_continue: bool = False,
     ) -> CtxItem:
         """
         Send text message
@@ -55,8 +56,9 @@ class Text:
         :param internal: internal call
         :param prev_ctx: previous context item (if reply)
         :param multimodal_ctx: multimodal context
-        :param mode_override: originating mode for an internal tool reply
-        :param model_override: originating model key for an internal tool reply
+        :param mode_override: originating mode for an internal tool reply/agent continuation
+        :param model_override: originating model key for an internal tool reply/agent continuation
+        :param agent_continue: autonomous Agent continuation within the current durable turn
         :return: CtxItem instance
         """
         self.window.update_status(trans("status.sending"))
@@ -81,10 +83,16 @@ class Text:
         dispatch(event)
         ai_name = event.data["value"]
 
-        # Internal tool feedback is a continuation of the same durable turn.
+        # Internal tool feedback and explicit autonomous Agent iterations are
+        # continuations of the same durable turn.  Tool replies arrive through an
+        # ephemeral ``as_previous`` object whose turn_parent points at the root.
+        # Agent continuations are queued directly against the durable root itself.
         continuation_parent = None
-        if reply and internal and prev_ctx is not None:
-            continuation_parent = getattr(prev_ctx, "turn_parent", None)
+        if internal and prev_ctx is not None:
+            if reply:
+                continuation_parent = getattr(prev_ctx, "turn_parent", None)
+            elif agent_continue:
+                continuation_parent = getattr(prev_ctx, "turn_parent", None) or prev_ctx
 
         # prepare mode, model, etc.
         mode = mode_override or (getattr(continuation_parent, "mode", None) if continuation_parent else None) or config.get("mode")
@@ -128,13 +136,38 @@ class Text:
         ctx.pid = self.ctx_pid  # store PID
         if continuation_parent is not None:
             ctx.turn_parent = continuation_parent
-            ctx.turn_previous_part = getattr(prev_ctx, "turn_previous_part", None)
+            previous_part = (
+                getattr(prev_ctx, "turn_previous_part", None)
+                or continuation_parent.get_active_part()
+            )
+            ctx.turn_previous_part = previous_part
             ctx.turn_continuation = True
-            # Do not allocate a new partial for every tool round. A partial is a
-            # textual assistant fragment; tool-only continuations keep appending
-            # CtxItemPartTask rows to the current partial. merge_continuation()
-            # decides whether an actual new text response needs a new partial.
-            ctx.turn_part = continuation_parent.get_active_part()
+            if agent_continue:
+                ctx.extra["agent_continue"] = True
+                if not isinstance(continuation_parent.extra, dict):
+                    continuation_parent.extra = {}
+                continuation_parent.extra.pop("response_final", None)
+                continuation_parent.extra.pop("response_interrupted", None)
+                core.ctx.update_item(continuation_parent)
+                # Each autonomous provider turn gets its own durable partial up
+                # front. The internal continuation prompt is metadata only: it is
+                # never rendered as another user message/CtxItem, but history
+                # expansion can restore the exact provider role sequence.
+                ctx.turn_part = core.ctx.begin_part(
+                    continuation_parent,
+                    name=ai_name,
+                    output=None,
+                    extra={
+                        "agent_continue": True,
+                        "input_before": text,
+                    },
+                    joiner="\n\n" if (continuation_parent.compose_output() or "").strip() else "",
+                )
+            else:
+                # Do not allocate a new partial for every tool round. A partial is
+                # a textual assistant fragment; tool-only continuations keep
+                # appending CtxItemPartTask rows to the current partial.
+                ctx.turn_part = continuation_parent.get_active_part()
 
         self.ctx_pid += 1  # increment PID
 
