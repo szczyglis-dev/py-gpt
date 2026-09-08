@@ -672,15 +672,17 @@ class Chat:
         # 3) Build a single tool content with N FunctionResponse parts (one per functionCall)
         screenshot_part = self._screenshot_function_response_part(attachments)
         fr_parts: List[Part] = []
+        response_index = 0
         for p in model_parts:
             if getattr(p, "function_call", None):
                 fn = p.function_call
                 fr = Part.from_function_response(
                     name=fn.name,
-                    response=self._minimal_tool_response(last_item),
+                    response=self._minimal_tool_response(last_item, response_index),
                     parts=[screenshot_part] if screenshot_part else None
                 )
                 fr_parts.append(fr)
+                response_index += 1
 
         if not fr_parts:
             return None
@@ -782,7 +784,7 @@ class Chat:
         except Exception:
             return None
 
-    def _minimal_tool_response(self, item: CtxItem) -> Dict[str, Any]:
+    def _minimal_tool_response(self, item: CtxItem, index: int = 0) -> Dict[str, Any]:
         """
         Construct a minimal structured payload for FunctionResponse.response.
         """
@@ -791,12 +793,16 @@ class Chat:
             if item and item.extra and isinstance(item.extra, dict):
                 outputs = item.extra.get("tool_output")
                 if isinstance(outputs, list) and len(outputs) > 0:
-                    last = outputs[-1]
-                    if isinstance(last, dict):
-                        if "result" in last and isinstance(last["result"], dict):
-                            resp = last["result"]
-                        if "error" in last:
-                            resp["error"] = last["error"]
+                    selected = outputs[index] if 0 <= index < len(outputs) else outputs[-1]
+                    if isinstance(selected, dict):
+                        value = selected.get("result")
+                        if isinstance(value, dict):
+                            resp = dict(value)
+                        elif value is not None:
+                            resp = {"ok": not str(value).lower().startswith("error"), "result": value}
+                        if selected.get("error"):
+                            resp["error"] = selected["error"]
+                            resp["ok"] = False
         except Exception:
             pass
 

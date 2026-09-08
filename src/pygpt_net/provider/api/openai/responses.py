@@ -314,7 +314,7 @@ class Responses:
 
                     # ---- tool output ----
                     is_tool_output = False  # reset tool output flag
-                    is_last_item = item == items[-1] if items else False
+                    is_last_item = item is items[-1] if items else False
 
                     # MCP approval request
                     if is_last_item and tool_call_native_enabled and item.extra and isinstance(item.extra, dict):

@@ -60,9 +60,19 @@ class Worker(BaseWorker):
     def run(self):
         try:
             responses = []
+            stop_on_error = bool(getattr(self.ctx, "extra", {}).get("computer_stop_on_error", False))
+            batch_failed = False
             for item in self.cmds:
                 if self.is_stopped():
                     break
+                if stop_on_error and batch_failed:
+                    responses.append(self.make_response(item, {
+                        "result": "error",
+                        "error": "Not executed: an earlier computer action in this turn failed.",
+                        "not_executed": True,
+                        "no_screenshot": True,
+                    }))
+                    continue
 
                 response = None
                 try:
@@ -81,12 +91,20 @@ class Worker(BaseWorker):
                     if isinstance(allowed, (list, set, tuple)) and cmd not in allowed:
                         continue
 
-                    response = self._dispatch(item)
+                    permission_error = self._permission_error(cmd)
+                    if permission_error:
+                        response = self.make_response(item, {"result": "error", "error": permission_error})
+                    else:
+                        response = self._dispatch(item)
                     if response:
                         responses.append(response)
+                        if stop_on_error and self._response_has_error(response):
+                            batch_failed = True
 
                 except Exception as e:
                     responses.append(self.make_response(item, self.throw_error(e)))
+                    if stop_on_error:
+                        batch_failed = True
 
             if responses:
                 self.reply_more(responses)
@@ -176,6 +194,26 @@ class Worker(BaseWorker):
             handler = self.cmd_scroll
         elif cmd == "drag":
             handler = self.cmd_drag
+        elif cmd == "mouse_down":
+            handler = self.cmd_mouse_down
+        elif cmd == "mouse_up":
+            handler = self.cmd_mouse_up
+        elif cmd == "key_down":
+            handler = self.cmd_key_down
+        elif cmd == "key_up":
+            handler = self.cmd_key_up
+        elif cmd == "hold_key":
+            handler = self.cmd_hold_key
+        elif cmd == "long_press":
+            handler = self.cmd_long_press
+        elif cmd == "press_key":
+            handler = self.cmd_keyboard_key
+        elif cmd == "hotkey":
+            handler = self.cmd_keyboard_keys
+        elif cmd == "take_screenshot":
+            handler = self.cmd_make_screenshot
+        elif cmd in ("triple_click", "middle_click", "right_click"):
+            handler = self.cmd_named_click
 
         if not handler:
             return None
@@ -251,6 +289,57 @@ class Worker(BaseWorker):
         y_norm = max(0, min(999, int(y_norm)))
         return int(round(y_norm / 1000.0 * self.viewport_h))
 
+    def _coordinate_space(self, item: dict) -> str:
+        space = str(self.get_param(item, "coordinate_space", "screen") or "screen").lower().strip()
+        if space in {"normalized", "normalized_1000", "google"}:
+            return "normalized"
+        return "screen"
+
+    def _to_viewport_point(self, item: dict, x, y) -> tuple:
+        xi, yi = int(x), int(y)
+        if self._coordinate_space(item) == "normalized":
+            return self._denorm_x(xi), self._denorm_y(yi)
+        return (max(0, min(self.viewport_w - 1, xi)),
+                max(0, min(self.viewport_h - 1, yi)))
+
+    def _normalize_drag_path(self, item: dict, path) -> list:
+        points = []
+        for point in path or []:
+            if isinstance(point, dict):
+                x, y = point.get("x"), point.get("y")
+            elif isinstance(point, (list, tuple)) and len(point) >= 2:
+                x, y = point[0], point[1]
+            else:
+                continue
+            points.append(self._to_viewport_point(item, x, y))
+        return points
+
+    def _permission_error(self, cmd: str) -> Optional[str]:
+        groups = {
+            "allow_mouse_move": {"mouse_move", "mouse_drag", "move", "drag", "drag_and_drop", "hover_at"},
+            "allow_mouse_click": {"mouse_click", "click", "double_click", "triple_click", "middle_click",
+                                  "right_click", "click_at", "mouse_down", "mouse_up", "long_press"},
+            "allow_mouse_scroll": {"mouse_scroll", "scroll", "scroll_at", "scroll_document"},
+            "allow_screenshot": {"get_screenshot", "take_screenshot", "screenshot"},
+            "allow_keyboard": {"keyboard_key", "keyboard_keys", "keyboard_type", "keypress", "press_key",
+                               "hotkey", "key_combination", "key_down", "key_up", "hold_key", "type", "type_text_at"},
+        }
+        for option, commands in groups.items():
+            if cmd in commands and not self._permit(option):
+                return f"Computer Use action '{cmd}' is not permitted by plugin settings."
+        return None
+
+    @staticmethod
+    def _response_has_error(response: dict) -> bool:
+        if not isinstance(response, dict):
+            return False
+        result = response.get("result")
+        if isinstance(result, dict):
+            if result.get("error"):
+                return True
+            return str(result.get("result", "")).lower() in {"error", "failed", "failure"}
+        return isinstance(result, str) and result.lower().startswith("error")
+
     def _button_from_name(self, name: Optional[str]) -> str:
         if not name:
             return "left"
@@ -325,8 +414,11 @@ class Worker(BaseWorker):
             if not self._permit("allow_mouse_move"):
                 raise RuntimeError("Mouse move not permitted by settings.")
             self._ensure_browser()
-            x = int(self.get_param(item, "x", self.get_param(item, "mouse_x", 0)))
-            y = int(self.get_param(item, "y", self.get_param(item, "mouse_y", 0)))
+            x, y = self._to_viewport_point(
+                item,
+                self.get_param(item, "x", self.get_param(item, "mouse_x", 0)),
+                self.get_param(item, "y", self.get_param(item, "mouse_y", 0)),
+            )
             click = self.get_param(item, "click", None)
             num = int(self.get_param(item, "num_clicks", 1))
             if click:
@@ -356,8 +448,8 @@ class Worker(BaseWorker):
             y = self.get_param(item, "y", None)
             payload = {"button": button, "count": max(1, num)}
             if x is not None and y is not None:
-                payload["x"] = int(x)
-                payload["y"] = int(y)
+                payload["x"], payload["y"] = self._to_viewport_point(item, x, y)
+            payload["keys"] = self.get_param(item, "keys", []) or []
             self._call("click", payload)
             result = self._get_current(item)
         except Exception as e:
@@ -379,10 +471,9 @@ class Worker(BaseWorker):
             if unit == "step":
                 dx = int(dx) * 30
                 dy = int(dy) * 30
-            payload = {"dx": dx, "dy": dy}
+            payload = {"dx": dx, "dy": dy, "keys": self.get_param(item, "keys", []) or []}
             if x is not None and y is not None:
-                payload["x"] = int(x)
-                payload["y"] = int(y)
+                payload["x"], payload["y"] = self._to_viewport_point(item, x, y)
             self._call("scroll", payload)
             result = self._get_current(item)
         except Exception as e:
@@ -394,11 +485,19 @@ class Worker(BaseWorker):
     def cmd_mouse_drag(self, item: dict) -> dict:
         try:
             self._ensure_browser()
-            x = int(self.get_param(item, "x"))
-            y = int(self.get_param(item, "y"))
-            dx = int(self.get_param(item, "dx"))
-            dy = int(self.get_param(item, "dy"))
-            self._call("drag", {"x": x, "y": y, "dx": dx, "dy": dy})
+            path = self.get_param(item, "path", None)
+            points = self._normalize_drag_path(item, path) if path else []
+            if len(points) < 2:
+                x = self.get_param(item, "x", None); y = self.get_param(item, "y", None)
+                dx = self.get_param(item, "dx", None); dy = self.get_param(item, "dy", None)
+                if None in (x, y, dx, dy):
+                    raise ValueError("mouse_drag requires path or x/y/dx/dy")
+                points = [self._to_viewport_point(item, x, y), self._to_viewport_point(item, dx, dy)]
+            payload = {
+                "path": [{"x": x, "y": y} for x, y in points],
+                "keys": self.get_param(item, "keys", []) or [],
+            }
+            self._call("drag", payload)
             result = self._get_current(item)
         except Exception as e:
             result = self.throw_error(e)
@@ -413,7 +512,8 @@ class Worker(BaseWorker):
                 raise RuntimeError("Keyboard not permitted by settings.")
             self._ensure_browser()
             keys = self.get_param(item, "keys", []) or []
-            self._call("keypress_combo", {"keys": keys})
+            repeat = max(1, int(self.get_param(item, "repeat", 1) or 1))
+            self._call("keypress_combo", {"keys": keys, "repeat": repeat})
             result = self._get_current(item)
         except Exception as e:
             error = str(e)
@@ -453,7 +553,7 @@ class Worker(BaseWorker):
             self._ensure_browser()
             text = self.get_param(item, "text", "") or ""
             modifier = self.get_param(item, "modifier", None)
-            payload = {"text": text}
+            payload = {"text": text, "press_enter": bool(self.get_param(item, "press_enter", False))}
             if modifier:
                 payload["modifier"] = modifier
             self._call("type", payload)
@@ -644,86 +744,95 @@ class Worker(BaseWorker):
     # ========================= Action-style convenience ========================= #
 
     def cmd_click(self, item: dict) -> dict:
-        item2 = dict(item)
-        if self.has_param(item, "x") and self.has_param(item, "y"):
-            x = int(self.get_param(item, "x")); y = int(self.get_param(item, "y"))
-            if 0 <= x <= 999 and 0 <= y <= 999:
-                item2["params"] = dict(item.get("params", {}))
-                item2["params"]["x"] = self._denorm_x(x)
-                item2["params"]["y"] = self._denorm_y(y)
+        item2 = {"cmd": "mouse_click", "params": dict(item.get("params", {}))}
         return self.cmd_mouse_click(item2)
 
     def cmd_double_click(self, item: dict) -> dict:
-        item2 = dict(item)
+        p = dict(item.get("params", {})); p["num_clicks"] = 2
+        return self.cmd_mouse_click({"cmd": "mouse_click", "params": p})
+
+    def cmd_named_click(self, item: dict) -> dict:
         p = dict(item.get("params", {}))
-        p["num_clicks"] = 2
-        item2["params"] = p
-        return self.cmd_click(item2)
+        cmd = item.get("cmd")
+        if cmd == "triple_click": p["num_clicks"] = 3
+        elif cmd == "middle_click": p["button"] = "middle"
+        elif cmd == "right_click": p["button"] = "right"
+        return self.cmd_mouse_click({"cmd": "mouse_click", "params": p})
 
     def cmd_move(self, item: dict) -> dict:
-        item2 = dict(item)
-        p = dict(item.get("params", {}))
-        if "x" in p and "y" in p:
-            x = int(p["x"]); y = int(p["y"])
-            if 0 <= x <= 999 and 0 <= y <= 999:
-                p["x"] = self._denorm_x(x); p["y"] = self._denorm_y(y)
-        item2["params"] = p
-        item2["cmd"] = "mouse_move"
-        return self.cmd_mouse_move(item2)
+        return self.cmd_mouse_move({"cmd": "mouse_move", "params": dict(item.get("params", {}))})
 
     def cmd_type_text(self, item: dict) -> dict:
-        item2 = dict(item)
-        item2["cmd"] = "keyboard_type"
-        return self.cmd_keyboard_type(item2)
+        return self.cmd_keyboard_type({"cmd": "keyboard_type", "params": dict(item.get("params", {}))})
 
     def cmd_keypress(self, item: dict) -> dict:
+        return self.cmd_keyboard_keys({"cmd": "keyboard_keys", "params": dict(item.get("params", {}))})
+
+    def cmd_scroll(self, item: dict) -> dict:
+        p = dict(item.get("params", {}))
+        p["dx"] = int(p.get("scroll_x", p.get("dx", 0)) or 0)
+        p["dy"] = int(p.get("scroll_y", p.get("dy", 0)) or 0)
+        p.setdefault("unit", "px")
+        return self.cmd_mouse_scroll({"cmd": "mouse_scroll", "params": p})
+
+    def cmd_drag(self, item: dict) -> dict:
+        return self.cmd_mouse_drag({"cmd": "mouse_drag", "params": dict(item.get("params", {}))})
+
+    def cmd_mouse_down(self, item: dict) -> dict:
         try:
             self._ensure_browser()
-            keys = self.get_param(item, "keys", []) or []
-            for k in keys:
-                self._call("keypress", {"key": k})
+            p = dict(item.get("params", {}))
+            if p.get("x") is not None and p.get("y") is not None:
+                p["x"], p["y"] = self._to_viewport_point(item, p["x"], p["y"])
+            self._call("mouse_down", p)
             result = self._get_current(item)
         except Exception as e:
             result = self.throw_error(e)
         return self.make_response(item, result)
 
-    def cmd_scroll(self, item: dict) -> dict:
-        item2 = dict(item)
-        p = dict(item.get("params", {}))
-        x = p.get("x", None); y = p.get("y", None)
-        if x is not None and y is not None:
-            if 0 <= int(x) <= 999 and 0 <= int(y) <= 999:
-                p["x"] = self._denorm_x(int(x)); p["y"] = self._denorm_y(int(y))
-        dx = int(p.get("scroll_x", p.get("dx", 0))); dy = int(p.get("scroll_y", p.get("dy", 0)))
-        p["dx"], p["dy"] = dx, dy
-        p["unit"] = "px"
-        item2["params"] = p
-        item2["cmd"] = "mouse_scroll"
-        return self.cmd_mouse_scroll(item2)
-
-    def cmd_drag(self, item: dict) -> dict:
+    def cmd_mouse_up(self, item: dict) -> dict:
         try:
             self._ensure_browser()
-            path = self.get_param(item, "path", [])
-            if not path or len(path) < 2:
-                x = self.get_param(item, "x", None)
-                y = self.get_param(item, "y", None)
-                dx = self.get_param(item, "dx", None)
-                dy = self.get_param(item, "dy", None)
-                if None in (x, y, dx, dy):
-                    return self.make_response(item, self._get_current(item))
-                pts = [{"x": x, "y": y}, {"x": dx, "y": dy}]
-            else:
-                pts = path
+            p = dict(item.get("params", {}))
+            if p.get("x") is not None and p.get("y") is not None:
+                p["x"], p["y"] = self._to_viewport_point(item, p["x"], p["y"])
+            self._call("mouse_up", p)
+            result = self._get_current(item)
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
-            def den(p):
-                xx = int(p["x"]); yy = int(p["y"])
-                if 0 <= xx <= 999 and 0 <= yy <= 999:
-                    return self._denorm_x(xx), self._denorm_y(yy)
-                return xx, yy
+    def cmd_key_down(self, item: dict) -> dict:
+        try:
+            self._ensure_browser(); self._call("key_down", {"key": self.get_param(item, "key")}); result = self._get_current(item)
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
-            x0, y0 = den(pts[0]); x1, y1 = den(pts[1])
-            self._call("drag", {"x": x0, "y": y0, "dx": x1, "dy": y1})
+    def cmd_key_up(self, item: dict) -> dict:
+        try:
+            self._ensure_browser(); self._call("key_up", {"key": self.get_param(item, "key")}); result = self._get_current(item)
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_hold_key(self, item: dict) -> dict:
+        try:
+            self._ensure_browser()
+            keys = self.get_param(item, "keys", self.get_param(item, "key", []))
+            if isinstance(keys, str): keys = [p.strip() for p in keys.replace("+", " ").split() if p.strip()]
+            self._call("hold_key", {"keys": keys or [], "duration": self.get_param(item, "duration", 0.1)})
+            result = self._get_current(item)
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_long_press(self, item: dict) -> dict:
+        try:
+            self._ensure_browser()
+            p = dict(item.get("params", {}))
+            p["x"], p["y"] = self._to_viewport_point(item, p.get("x", 0), p.get("y", 0))
+            self._call("long_press", p)
             result = self._get_current(item)
         except Exception as e:
             result = self.throw_error(e)

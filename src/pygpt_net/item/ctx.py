@@ -208,6 +208,9 @@ class CtxItem:
         self.idx = 0
         self.images = []
         self.images_before = []
+        # Runtime-only provider/tool transport images. CtxItem defines a custom
+        # __init__, so dataclass defaults are not assigned automatically.
+        self.transport_images = []
         self.index_meta = {}  # llama-index metadata ctx used
         self.input = None
         self.input_name = None

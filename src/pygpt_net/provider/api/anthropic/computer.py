@@ -121,12 +121,14 @@ class Computer:
         idx = self.window.ui.nodes["computer_env"].currentIndex()
         return self.window.ui.nodes["computer_env"].itemData(idx)
 
-    COMPUTER_20251124_MODELS = (
+    COMPUTER_TOOLSET_20260801_MODELS = (
         "claude-fable-5",
         "claude-mythos-5",
         "claude-opus-5",
         "claude-sonnet-5",
         "claude-opus-4-8",
+    )
+    COMPUTER_20251124_MODELS = (
         "claude-opus-4-7",
         "claude-opus-4-6",
         "claude-sonnet-4-6",
@@ -136,9 +138,17 @@ class Computer:
         "claude-sonnet-4-5",
         "claude-haiku-4-5",
     )
+    TOOLSET_MEMBER_NAMES = {
+        "screenshot", "zoom", "left_click", "right_click", "middle_click",
+        "double_click", "triple_click", "left_click_drag", "mouse_move",
+        "left_mouse_down", "left_mouse_up", "cursor_position", "scroll",
+        "type", "key", "hold_key", "wait",
+    }
 
     def get_tool_type(self, model=None) -> Optional[str]:
         model_id = str(getattr(model, "id", model) or "").lower()
+        if any(model_id.startswith(prefix) for prefix in self.COMPUTER_TOOLSET_20260801_MODELS):
+            return "computer_toolset_20260801"
         if any(model_id.startswith(prefix) for prefix in self.COMPUTER_20251124_MODELS):
             return "computer_20251124"
         if any(model_id.startswith(prefix) for prefix in self.COMPUTER_20250124_MODELS):
@@ -149,12 +159,20 @@ class Computer:
         return self.get_tool_type(model) is not None
 
     def get_tool(self, model=None) -> dict:
-        is_sandbox = bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
-        screen_w, screen_h = self._resolve_display_size(is_sandbox=is_sandbox)
         tool_type = self.get_tool_type(model)
         if tool_type is None:
-            # Preserve dedicated-mode compatibility for custom Anthropic models.
+            # Preserve compatibility for custom/aliased Anthropic models.
             tool_type = "computer_20251124"
+        if tool_type == "computer_toolset_20260801":
+            # PyGPT currently implements the standard member tools. Disable zoom until
+            # a zoomed-image coordinate transform is implemented end-to-end.
+            return {
+                "type": tool_type,
+                "configs": {"zoom": {"enabled": False}},
+            }
+
+        is_sandbox = bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
+        screen_w, screen_h = self._resolve_display_size(is_sandbox=is_sandbox)
         return {
             "name": "computer",
             "type": tool_type,
@@ -163,50 +181,59 @@ class Computer:
         }
 
     def _resolve_display_size(self, is_sandbox: bool) -> Tuple[int, int]:
-        screen_w = screen_h = 0
-        try:
-            screen = self.window.app.primaryScreen()
-            size = screen.size()
-            screen_w = int(size.width())
-            screen_h = int(size.height())
-        except Exception:
-            screen_w, screen_h = 1440, 900
-
         if is_sandbox:
             try:
                 vw = int(self.window.core.plugins.get_option("cmd_mouse_control", "sandbox_viewport_w"))
                 vh = int(self.window.core.plugins.get_option("cmd_mouse_control", "sandbox_viewport_h"))
                 if vw > 0 and vh > 0:
-                    screen_w, screen_h = vw, vh
+                    return vw, vh
             except Exception:
                 pass
 
-        return screen_w, screen_h
+        # Native screenshots are captured with MSS. Use the exact same monitor pixel
+        # geometry here so legacy Claude coordinates match the screenshot even on HiDPI.
+        try:
+            import mss
+            with mss.mss() as sct:
+                monitor = sct.monitors[1]
+                width = int(monitor.get("width", 0))
+                height = int(monitor.get("height", 0))
+                if width > 0 and height > 0:
+                    return width, height
+        except Exception:
+            pass
+
+        try:
+            screen = self.window.app.primaryScreen()
+            size = screen.size()
+            return int(size.width()), int(size.height())
+        except Exception:
+            return 1440, 900
 
     # --------------- Streaming handling --------------- #
 
     def handle_stream_chunk(self, ctx: CtxItem, chunk, tool_calls: list) -> Tuple[List, bool]:
-        """
-        Convert Computer Use 'tool_use' streaming events into plugin tool calls.
-        Supports:
-          - content_block_delta/input_json_delta
-          - top-level input_json_delta
-        """
+        """Convert legacy Computer Use and 20260801 toolset stream blocks to local calls."""
         has_calls = False
         etype = str(getattr(chunk, "type", "") or "")
-
         cmem = self._ensure_ctx_memory(ctx)
 
         if etype == "content_block_start":
             cb = getattr(chunk, "content_block", None)
             if cb and getattr(cb, "type", "") == "tool_use":
                 name = str(getattr(cb, "name", "") or "")
-                if name in self.COMPUTER_TOOL_NAMES:
+                toolset_name = str(getattr(cb, "toolset_name", "") or "")
+                is_legacy = name in self.COMPUTER_TOOL_NAMES
+                is_toolset = toolset_name == "computer" and name in self.TOOLSET_MEMBER_NAMES
+                if is_legacy or is_toolset:
                     idx = str(getattr(chunk, "index", 0) or 0)
                     tid = str(getattr(cb, "id", "") or self._gen_id(prefix="ac"))
                     cmem["index_to_id"][idx] = tid
                     cmem["buffers"].setdefault(tid, "")
+                    cmem["meta"][tid] = {"name": name, "toolset_name": toolset_name}
                     cmem["active_ids"].append(tid)
+                    if is_toolset:
+                        ctx.extra["computer_stop_on_error"] = True
 
         elif etype == "input_json_delta":
             pj = getattr(chunk, "partial_json", "") or ""
@@ -220,66 +247,59 @@ class Computer:
                 idx = str(getattr(chunk, "index", 0) or 0)
                 tid = cmem["index_to_id"].get(idx)
                 if tid:
-                    pj = getattr(delta, "partial_json", "") or ""
-                    cmem["buffers"][tid] = cmem["buffers"].get(tid, "") + pj
+                    cmem["buffers"][tid] = cmem["buffers"].get(tid, "") + (getattr(delta, "partial_json", "") or "")
 
         elif etype == "content_block_stop":
             idx = str(getattr(chunk, "index", 0) or 0)
             tid = cmem["index_to_id"].pop(idx, None)
             if not tid and cmem["active_ids"]:
                 tid = cmem["active_ids"].pop()
-            elif tid and cmem["active_ids"]:
-                if cmem["active_ids"] and cmem["active_ids"][-1] == tid:
-                    cmem["active_ids"].pop()
-                else:
-                    try:
-                        cmem["active_ids"].remove(tid)
-                    except ValueError:
-                        pass
-
+            elif tid and tid in cmem["active_ids"]:
+                cmem["active_ids"].remove(tid)
             if tid:
-                payload = self._safe_json_loads(cmem["buffers"].pop(tid, ""))
-                if payload is not None:
-                    try:
-                        if not isinstance(ctx.extra, dict):
-                            ctx.extra = {}
-                        tu_list = ctx.extra.get("anthropic_tool_uses")
-                        if not isinstance(tu_list, list):
-                            tu_list = []
-                        tu_list.append({"id": tid, "name": "computer", "input": payload})
-                        ctx.extra["anthropic_tool_uses"] = tu_list
-                        self.window.core.ctx.update_item(ctx)
-                    except Exception:
-                        pass
-
-                    mapped = self._payload_to_tool_calls(tid, tid, payload)
-                    if mapped:
-                        tool_calls.extend(mapped)
-                        has_calls = True
+                mapped = self._finish_stream_tool_use(ctx, cmem, tid)
+                if mapped:
+                    tool_calls.extend(mapped)
+                    has_calls = True
 
         elif etype == "message_stop":
             while cmem["active_ids"]:
-                tid = cmem["active_ids"].pop()
-                payload = self._safe_json_loads(cmem["buffers"].pop(tid, ""))
-                if payload is None:
-                    continue
-                try:
-                    if not isinstance(ctx.extra, dict):
-                        ctx.extra = {}
-                    tu_list = ctx.extra.get("anthropic_tool_uses")
-                    if not isinstance(tu_list, list):
-                        tu_list = []
-                    tu_list.append({"id": tid, "name": "computer", "input": payload})
-                    ctx.extra["anthropic_tool_uses"] = tu_list
-                    self.window.core.ctx.update_item(ctx)
-                except Exception:
-                    pass
-                mapped = self._payload_to_tool_calls(tid, tid, payload)
+                tid = cmem["active_ids"].pop(0)
+                mapped = self._finish_stream_tool_use(ctx, cmem, tid)
                 if mapped:
                     tool_calls.extend(mapped)
                     has_calls = True
 
         return tool_calls, has_calls
+
+    def _finish_stream_tool_use(self, ctx: CtxItem, cmem: dict, tid: str) -> List[dict]:
+        payload = self._safe_json_loads(cmem["buffers"].pop(tid, ""))
+        meta = cmem.get("meta", {}).pop(tid, {})
+        if payload is None:
+            payload = {}
+        name = str(meta.get("name", "computer") or "computer")
+        toolset_name = str(meta.get("toolset_name", "") or "")
+        record = {"id": tid, "name": name, "input": payload}
+        if toolset_name:
+            record["toolset_name"] = toolset_name
+        try:
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            uses = ctx.extra.get("anthropic_tool_uses")
+            if not isinstance(uses, list):
+                uses = []
+            uses.append(record)
+            ctx.extra["anthropic_tool_uses"] = uses
+            if toolset_name == "computer":
+                ctx.extra["computer_stop_on_error"] = True
+            self.window.core.ctx.update_item(ctx)
+        except Exception:
+            pass
+
+        if toolset_name == "computer" and name in self.TOOLSET_MEMBER_NAMES:
+            call = self._member_to_tool_call(name, payload, tid, tid)
+            return [call] if call else []
+        return self._payload_to_tool_calls(tid, tid, payload)
 
     # --------------- Public normalization for function tools --------------- #
 
@@ -306,17 +326,7 @@ class Computer:
     # --------------- Non-stream helpers --------------- #
 
     def rewrite_tool_calls(self, tool_calls: List[dict]) -> List[dict]:
-        """
-        Rewrites:
-        - tool_use(computer) payloads into a sequence of plugin tool calls
-        - direct function calls that already use plugin commands but carry Anthropic-style args
-          (e.g., coordinate/action) into plugin-ready args
-        - action-name synonyms (e.g., left_click, hover) into canonical plugin commands
-
-        Important: this method mutates the incoming items IN-PLACE so that even if caller
-        ignores the return value and continues using the original list/reference, the
-        rewritten arguments and names are preserved (prevents leaking 'action'/'coordinate').
-        """
+        """Rewrite Anthropic Computer Use blocks into one canonical local call per provider call."""
         out: List[dict] = []
         for i, tc in enumerate(tool_calls or []):
             try:
@@ -324,44 +334,107 @@ class Computer:
                 name = str(f.get("name", "") or "")
                 args_raw = f.get("arguments", {})
                 args = self._safe_json_loads(args_raw) if isinstance(args_raw, str) else args_raw
+                toolset_name = str(tc.get("toolset_name", "") or "")
 
-                # Case 1: Anthropic "computer" tool_use payload -> expand to sequence of plugin calls
-                if name in self.COMPUTER_TOOL_NAMES and isinstance(args, (dict, list)):
-                    calls = self._payload_to_tool_calls(tc.get("id") or self._gen_id(),
-                                                        tc.get("call_id") or tc.get("id") or self._gen_id(),
-                                                        args)
-                    if calls:
-                        out.extend(calls)
-                        continue
-                    else:
-                        out.append(tc)
-                        continue
-
-                # Case 2: Direct function calls -> normalize and FILTER, then mutate in place
-                if isinstance(args, dict):
-                    target_name, coerced = self._retarget_function_name_and_args(name, args)
-                    norm = self._normalize_params_for_plugin(target_name, coerced)
-                    norm = self._filter_args_for_plugin(target_name, norm)
-                    pruned = self._prune_none(norm)
-
-                    f["name"] = target_name
-                    f["arguments"] = json.dumps(pruned, ensure_ascii=False)
-                    tc["function"] = f
-
-                    # Mutate the original reference inside the incoming list as well
-                    tool_calls[i] = tc
-
-                    out.append(tc)
+                if toolset_name == "computer" and name in self.TOOLSET_MEMBER_NAMES and isinstance(args, dict):
+                    call = self._member_to_tool_call(
+                        name, args, tc.get("id") or self._gen_id(), tc.get("call_id") or tc.get("id") or self._gen_id()
+                    )
+                    if call:
+                        out.append(call)
                     continue
 
-                # Fallback: leave unchanged
-                out.append(tc)
+                if name in self.COMPUTER_TOOL_NAMES and isinstance(args, (dict, list)):
+                    calls = self._payload_to_tool_calls(tc.get("id") or self._gen_id(),
+                                                        tc.get("call_id") or tc.get("id") or self._gen_id(), args)
+                    out.extend(calls or [tc])
+                    continue
 
+                if isinstance(args, dict):
+                    target_name, coerced = self._retarget_function_name_and_args(name, args)
+                    norm = self._filter_args_for_plugin(target_name, self._normalize_params_for_plugin(target_name, coerced))
+                    f["name"] = target_name
+                    f["arguments"] = json.dumps(self._prune_none(norm), ensure_ascii=False)
+                    tc["function"] = f
+                    tool_calls[i] = tc
+                out.append(tc)
             except Exception:
                 out.append(tc)
         return out
 
     # --------------- Parsers / mappers --------------- #
+
+    def _member_to_tool_call(self, name: str, payload: dict, id_: str, call_id: str) -> Optional[dict]:
+        """Map one `computer_toolset_20260801` member call to the canonical executor."""
+        p = dict(payload or {})
+        coord = p.get("coordinate")
+        x = y = None
+        if isinstance(coord, (list, tuple)) and len(coord) >= 2:
+            x, y = coord[0], coord[1]
+        elif isinstance(coord, dict):
+            x, y = coord.get("x"), coord.get("y")
+        modifiers = self._parse_keys_list(p.get("text", "")) if name not in {"type", "key", "hold_key"} else []
+        base = {"coordinate_space": "screen"}
+
+        if name == "screenshot":
+            return self._build_call(id_, call_id, "get_screenshot", {}, suppress_screenshot=False)
+        if name == "zoom":
+            # Disabled in tool config; defensive fallback if a server still emits it.
+            return self._build_call(id_, call_id, "get_screenshot", {}, suppress_screenshot=False)
+        if name in {"left_click", "right_click", "middle_click", "double_click", "triple_click"}:
+            button = "right" if name == "right_click" else "middle" if name == "middle_click" else "left"
+            count = 2 if name == "double_click" else 3 if name == "triple_click" else 1
+            args = {**base, "button": button, "num_clicks": count, "keys": modifiers}
+            if x is not None and y is not None: args.update({"x": x, "y": y})
+            return self._build_call(id_, call_id, "mouse_click", args)
+        if name == "mouse_move":
+            return self._build_call(id_, call_id, "mouse_move", {**base, "x": x, "y": y})
+        if name == "left_click_drag":
+            start = p.get("start_coordinate") or p.get("start")
+            end = p.get("coordinate") or p.get("end_coordinate") or p.get("end")
+            path = []
+            for point in (start, end):
+                if isinstance(point, (list, tuple)) and len(point) >= 2:
+                    path.append({"x": point[0], "y": point[1]})
+                elif isinstance(point, dict):
+                    path.append({"x": point.get("x"), "y": point.get("y")})
+            return self._build_call(id_, call_id, "mouse_drag", {**base, "path": path, "keys": modifiers})
+        if name == "left_mouse_down":
+            args = {**base, "button": "left"}
+            if x is not None and y is not None: args.update({"x": x, "y": y})
+            return self._build_call(id_, call_id, "mouse_down", args)
+        if name == "left_mouse_up":
+            args = {**base, "button": "left"}
+            if x is not None and y is not None: args.update({"x": x, "y": y})
+            return self._build_call(id_, call_id, "mouse_up", args)
+        if name == "cursor_position":
+            return self._build_call(id_, call_id, "get_mouse_position", {})
+        if name == "scroll":
+            amount = int(p.get("scroll_amount", 0) or 0)
+            direction = str(p.get("scroll_direction", p.get("direction", "down")) or "down").lower()
+            dx = dy = 0
+            if direction == "down": dy = amount
+            elif direction == "up": dy = -amount
+            elif direction == "right": dx = amount
+            elif direction == "left": dx = -amount
+            args = {**base, "dx": dx, "dy": dy, "unit": "step", "scroll_mode": "viewport", "keys": modifiers}
+            if x is not None and y is not None: args.update({"x": x, "y": y})
+            return self._build_call(id_, call_id, "mouse_scroll", args)
+        if name == "type":
+            return self._build_call(id_, call_id, "keyboard_type", {"text": str(p.get("text", "") or "")})
+        if name == "key":
+            return self._build_call(id_, call_id, "keyboard_keys", {
+                "keys": self._parse_keys_list(p.get("text", "")),
+                "repeat": max(1, int(p.get("repeat", 1) or 1)),
+            })
+        if name == "hold_key":
+            return self._build_call(id_, call_id, "hold_key", {
+                "keys": self._parse_keys_list(p.get("text", "")),
+                "duration": float(p.get("duration", 0.1) or 0.1),
+            })
+        if name == "wait":
+            return self._build_call(id_, call_id, "wait", {"seconds": float(p.get("duration", p.get("seconds", 1)) or 1)})
+        return None
 
     def _payload_to_tool_calls(self, id_: str, call_id: str, payload: Any) -> List[dict]:
         actions = self._extract_actions(payload)
@@ -490,7 +563,8 @@ class Computer:
             if atype == "left_click":
                 button = "left"
                 num_clicks = 1 if "num_clicks" not in action else num_clicks
-            args = {"button": button, "num_clicks": num_clicks}
+            args = {"button": button, "num_clicks": num_clicks, "coordinate_space": "screen",
+                    "keys": self._parse_keys_list(action.get("keys", []))}
             if x is not None and y is not None:
                 args["x"] = x
                 args["y"] = y
@@ -499,7 +573,7 @@ class Computer:
         # Move / Hover
         if atype in {"move", "mouse_move", "hover"}:
             x, y = self._extract_xy(action)
-            args = {}
+            args = {"coordinate_space": "screen", "keys": self._parse_keys_list(action.get("keys", []))}
             if x is not None and y is not None:
                 args["x"] = x
                 args["y"] = y
@@ -509,7 +583,8 @@ class Computer:
         if atype in {"scroll", "mouse_scroll"}:
             x, y = self._extract_xy(action)
             dx, dy = self._extract_dxdy(action)
-            args = {"dx": dx, "dy": dy, "unit": "px"}
+            args = {"dx": dx, "dy": dy, "unit": "px", "scroll_mode": "viewport",
+                    "coordinate_space": "screen", "keys": self._parse_keys_list(action.get("keys", []))}
             if x is not None and y is not None:
                 args["x"] = x
                 args["y"] = y
@@ -531,16 +606,17 @@ class Computer:
         # Drag and drop
         if atype in {"drag", "drag_and_drop", "mouse_drag"}:
             path = action.get("path")
-            if isinstance(path, list) and len(path) >= 2 and isinstance(path[0], dict) and isinstance(path[1], dict):
-                try:
-                    x0 = int(path[0].get("x")); y0 = int(path[0].get("y"))
-                    x1 = int(path[1].get("x")); y1 = int(path[1].get("y"))
-                    args = {"x": x0, "y": y0, "dx": x1, "dy": y1}
-                except Exception:
-                    x0, y0 = self._extract_xy(path[0])
-                    x1, y1 = self._extract_xy(path[1])
-                    args = {"x": int(x0 or 0), "y": int(y0 or 0), "dx": int(x1 or 0), "dy": int(y1 or 0)}
-                return self._build_call(id_, call_id, "mouse_drag", args)
+            if isinstance(path, list) and len(path) >= 2:
+                normalized_path = []
+                for point in path:
+                    px, py = self._extract_xy(point if isinstance(point, dict) else {"coordinate": point})
+                    if px is not None and py is not None:
+                        normalized_path.append({"x": px, "y": py})
+                if len(normalized_path) >= 2:
+                    return self._build_call(id_, call_id, "mouse_drag", {
+                        "path": normalized_path, "coordinate_space": "screen",
+                        "keys": self._parse_keys_list(action.get("keys", [])),
+                    })
             fx, fy = None, None
             tx, ty = None, None
             f = action.get("from")
@@ -559,7 +635,8 @@ class Computer:
                         break
             if tx is None or ty is None:
                 tx, ty = self._extract_dxdy(action)
-            args = {"x": int(fx or 0), "y": int(fy or 0), "dx": int(tx or 0), "dy": int(ty or 0)}
+            args = {"x": int(fx or 0), "y": int(fy or 0), "dx": int(tx or 0), "dy": int(ty or 0),
+                    "coordinate_space": "screen", "keys": self._parse_keys_list(action.get("keys", []))}
             return self._build_call(id_, call_id, "mouse_drag", args)
 
         # Screenshot
@@ -685,11 +762,11 @@ class Computer:
     def _append_call(self, tool_calls: list, id_: str, call_id: str, name: str, args: dict) -> None:
         tool_calls.append(self._build_call(id_, call_id, name, args))
 
-    def _build_call(self, id_: str, call_id: str, name: str, args: dict) -> dict:
+    def _build_call(self, id_: str, call_id: str, name: str, args: dict, suppress_screenshot: bool = True) -> dict:
         norm = self._normalize_params_for_plugin(name, args or {})
         norm = self._filter_args_for_plugin(name, norm)
         norm = self._prune_none(norm)
-        if name != "get_screenshot":
+        if suppress_screenshot and name != "get_screenshot":
             norm["no_screenshot"] = True
         return {
             "id": id_,
@@ -741,38 +818,32 @@ class Computer:
         are passed to Worker. Also performs a few defensive conversions (click->button, etc.).
         """
         allow: Dict[str, set] = {
-            "mouse_move": {"x", "y", "click", "num_clicks"},
-            "mouse_click": {"x", "y", "button", "num_clicks"},
-            "mouse_scroll": {"x", "y", "dx", "dy", "unit"},
-            "mouse_drag": {"x", "y", "dx", "dy"},
+            "mouse_move": {"x", "y", "click", "num_clicks", "coordinate_space", "keys"},
+            "mouse_click": {"x", "y", "button", "num_clicks", "coordinate_space", "keys"},
+            "mouse_scroll": {"x", "y", "dx", "dy", "unit", "scroll_mode", "coordinate_space", "keys"},
+            "mouse_drag": {"x", "y", "dx", "dy", "path", "coordinate_space", "keys"},
+            "mouse_down": {"x", "y", "button", "coordinate_space"},
+            "mouse_up": {"x", "y", "button", "coordinate_space"},
             "keyboard_key": {"key", "modifier"},
-            "keyboard_keys": {"keys"},
-            "keyboard_type": {"text", "modifier"},
+            "keyboard_keys": {"keys", "repeat", "hold"},
+            "hold_key": {"keys", "key", "duration"},
+            "keyboard_type": {"text", "modifier", "press_enter"},
             "open_web_browser": {"url", "no_screenshot"},
             "get_mouse_position": {"no_screenshot"},
             "get_screenshot": {"no_screenshot"},
             "wait": {"seconds", "no_screenshot"},
-            # native extras
-            "wait_5_seconds": set(),
-            "go_back": set(),
-            "go_forward": set(),
-            "search": set(),
-            "navigate": {"url"},
-            "click_at": {"x", "y"},
-            "hover_at": {"x", "y"},
-            "type_text_at": {"x", "y", "text", "press_enter", "clear_before_typing"},
-            "key_combination": {"keys"},
-            "scroll_document": {"direction", "magnitude"},
+            "wait_5_seconds": set(), "go_back": set(), "go_forward": set(), "search": set(),
+            "navigate": {"url"}, "click_at": {"x", "y"}, "hover_at": {"x", "y"},
+            "type_text_at": {"x", "y", "text", "press_enter", "clear_before_typing", "coordinate_space"},
+            "key_combination": {"keys"}, "scroll_document": {"direction", "magnitude"},
             "scroll_at": {"direction", "magnitude", "x", "y"},
             "drag_and_drop": {"x", "y", "destination_x", "destination_y"},
-            # action-style
-            "click": {"x", "y", "button", "num_clicks"},
-            "double_click": {"x", "y", "button", "num_clicks"},
-            "move": {"x", "y"},
-            "type": {"text"},
-            "keypress": {"keys"},
-            "scroll": {"x", "y", "dx", "dy", "unit"},
-            "drag": {"x", "y", "dx", "dy", "path"},
+            "click": {"x", "y", "button", "num_clicks", "coordinate_space", "keys"},
+            "double_click": {"x", "y", "button", "num_clicks", "coordinate_space", "keys"},
+            "move": {"x", "y", "coordinate_space", "keys"}, "type": {"text"},
+            "keypress": {"keys", "repeat"},
+            "scroll": {"x", "y", "dx", "dy", "unit", "scroll_mode", "coordinate_space", "keys"},
+            "drag": {"x", "y", "dx", "dy", "path", "coordinate_space", "keys"},
         }
         res: Dict[str, Any] = {}
 
@@ -828,6 +899,7 @@ class Computer:
                 "buffers": {},
                 "index_to_id": {},
                 "active_ids": [],
+                "meta": {},
             }
         else:
             mem = ctx.extra["anthropic_computer"]
@@ -837,6 +909,8 @@ class Computer:
                 mem["index_to_id"] = {}
             if "active_ids" not in mem or not isinstance(mem["active_ids"], list):
                 mem["active_ids"] = []
+            if "meta" not in mem or not isinstance(mem["meta"], dict):
+                mem["meta"] = {}
         return ctx.extra["anthropic_computer"]
 
     @staticmethod

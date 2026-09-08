@@ -101,6 +101,7 @@ class LocalComputer(Computer):
                 "y": y,
                 "click": str(button),
                 "num_clicks": 1,
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)
@@ -119,6 +120,7 @@ class LocalComputer(Computer):
                 "y": y,
                 "click": "left",
                 "num_clicks": 2,
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)
@@ -138,8 +140,10 @@ class LocalComputer(Computer):
                 "x": x,
                 "y": y,
                 "dx": scroll_x,
-                "dy": -scroll_y,  # invert scroll direction
+                "dy": scroll_y,
                 "unit": "px",
+                "scroll_mode": "viewport",
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)
@@ -178,6 +182,7 @@ class LocalComputer(Computer):
             "params": {
                 "x": x,
                 "y": y,
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)
@@ -201,19 +206,13 @@ class LocalComputer(Computer):
 
         :param path: A list of tuples where each tuple contains the x and y coordinates.
         """
-        if not path:
+        if not path or len(path) < 2:
             return
-        x = path[0][0]
-        y = path[0][1]
-        dx = path[1][0]
-        dy = path[1][1]
         item = {
             "cmd": "mouse_drag",
             "params": {
-                "x": x,
-                "y": y,
-                "dx": dx,
-                "dy": dy,
+                "path": [{"x": int(x), "y": int(y)} for x, y in path],
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)

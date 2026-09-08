@@ -98,7 +98,7 @@ class Context:
                     messages.append(msg)
 
                 # ---- if tool output ----
-                is_last_item = item == items[-1] if items else False
+                is_last_item = item is items[-1] if items else False
                 if (is_last_item
                         and prev_message
                         and allow_native_tool_calls

@@ -162,197 +162,82 @@ class Computer:
             action,
             tool_calls: list
     ) -> Tuple[List, bool]:
-        """
-        Handle action for computer use
-
-        :param id: unique identifier for the action
-        :param call_id: unique identifier for the call
-        :param tool_calls: list of tool calls
-        :return: Tool calls and a boolean indicating if there are calls
-        """
-        has_calls = False
-
+        """Map one OpenAI Computer Use action to the local canonical executor."""
         action_type = self._get(action, "type")
+        common = {"coordinate_space": "screen"}
+        keys = self._get(action, "keys", []) or []
 
-        # mouse click
+        def append(name: str, args: dict = None):
+            payload = dict(common)
+            payload.update(args or {})
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": name,
+                    "arguments": json.dumps(payload),
+                },
+            })
+
         if action_type == "click":
-            button = self._get(action, "button", "left")
-            x = self._get(action, "x")
-            y = self._get(action, "y")
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "mouse_move",
-                    "arguments": json.dumps({
-                        "x": x,
-                        "y": y,
-                        "click": button,
-                        "num_clicks": 1,
-                    })
-                }
+            append("mouse_click", {
+                "x": self._get(action, "x"),
+                "y": self._get(action, "y"),
+                "button": self._get(action, "button", "left"),
+                "num_clicks": 1,
+                "keys": keys,
             })
-            has_calls = True
-
-        # mouse double click
-        elif action_type in ["double_click", "dblclick", "dbl_click"]:
-            x = self._get(action, "x")
-            y = self._get(action, "y")
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "mouse_move",
-                    "arguments": json.dumps({
-                        "x": x,
-                        "y": y,
-                        "click": "left",  # default to left click
-                        "num_clicks": 2,
-                    })
-                }
+        elif action_type in {"double_click", "dblclick", "dbl_click"}:
+            append("mouse_click", {
+                "x": self._get(action, "x"),
+                "y": self._get(action, "y"),
+                "button": "left",
+                "num_clicks": 2,
+                "keys": keys,
             })
-            has_calls = True
-
-        # mouse move
         elif action_type == "move":
-            x = self._get(action, "x")
-            y = self._get(action, "y")
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "mouse_move",
-                    "arguments": json.dumps({
-                        "x": x,
-                        "y": y,
-                    })
-                }
+            append("mouse_move", {
+                "x": self._get(action, "x"),
+                "y": self._get(action, "y"),
+                "keys": keys,
             })
-            has_calls = True
-
-        # get screenshot
         elif action_type == "screenshot":
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "get_screenshot",
-                    "arguments": "{}"
-                }
-            })
-            has_calls = True
-
-        # keyboard type
+            append("get_screenshot", {})
         elif action_type == "type":
-            text = self._get(action, "text", "")
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "keyboard_type",
-                    "arguments": json.dumps({
-                        "text": text,
-                    })
-                }
-            })
-            has_calls = True
-
-        # keyboard keys
+            append("keyboard_type", {"text": self._get(action, "text", "")})
         elif action_type == "keypress":
-            keys = self._get(action, "keys", [])
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "keyboard_keys",
-                    "arguments": json.dumps({
-                        "keys": keys, # sequence in list
-                    })
-                }
-            })
-            has_calls = True
-
-        # mouse scroll
+            append("keyboard_keys", {"keys": self._get(action, "keys", []) or []})
         elif action_type == "scroll":
-            x = self._get(action, "x")
-            y = self._get(action, "y")
-            dx = self._get(action, "scroll_x", 0)
-            dy = self._get(action, "scroll_y", 0)
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "mouse_scroll",
-                    "arguments": json.dumps({
-                        "x": x,
-                        "y": y,
-                        "dx": dx,
-                        "dy": -dy,  # invert scroll direction
-                        "unit": "px",
-                    })
-                }
+            append("mouse_scroll", {
+                "x": self._get(action, "x"),
+                "y": self._get(action, "y"),
+                "dx": self._get(action, "scroll_x", 0),
+                "dy": self._get(action, "scroll_y", 0),
+                "unit": "px",
+                "scroll_mode": "viewport",
+                "keys": keys,
             })
-            has_calls = True
-
-        # wait for a while
         elif action_type == "wait":
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "wait",
-                    "arguments": "{}"
-                }
-            })
-            has_calls = True
-
+            append("wait", {})
         elif action_type == "drag":
-            path = self._get(action, "path", [])
+            path = self._get(action, "path", []) or []
             if len(path) < 2:
                 print("Invalid drag action path")
                 return tool_calls, False
-            x = self._get(path[0], "x")
-            y = self._get(path[0], "y")
-            dx = self._get(path[1], "x")
-            dy = self._get(path[1], "y")
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "mouse_drag",
-                    "arguments": json.dumps({
-                        "x": x,
-                        "y": y,
-                        "dx": dx,
-                        "dy": dy,
-                    })
-                }
+            append("mouse_drag", {
+                "path": [
+                    {"x": self._get(point, "x"), "y": self._get(point, "y")}
+                    for point in path
+                ],
+                "keys": keys,
             })
-            has_calls = True
         else:
-            # append empty to store tool call
-            tool_calls.append({
-                "id": id,
-                "call_id": call_id,
-                "type": "computer_call",
-                "function": {
-                    "name": "wait",
-                    "arguments": "{}"
-                }
-            })
-            has_calls = True
+            # Preserve the call/continuation rather than dropping an unknown action.
+            append("wait", {})
             print(f"Unrecognized action type: {action_type}")
 
-        return tool_calls, has_calls
+        return tool_calls, True
 
     def handle_browser(self,
             id: str,

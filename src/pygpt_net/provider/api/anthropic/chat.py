@@ -194,13 +194,23 @@ class Chat:
                     if getattr(block, "type", "") != "tool_use":
                         continue
                     name = str(getattr(block, "name", "") or "")
-                    if name not in self.window.core.api.anthropic.computer.COMPUTER_TOOL_NAMES:
+                    toolset_name = str(getattr(block, "toolset_name", "") or "")
+                    computer = self.window.core.api.anthropic.computer
+                    is_legacy = name in computer.COMPUTER_TOOL_NAMES
+                    is_toolset = toolset_name == "computer" and name in computer.TOOLSET_MEMBER_NAMES
+                    if not (is_legacy or is_toolset):
                         continue
-                    raw_computer_uses.append({
+                    record = {
                         "id": str(getattr(block, "id", "") or ""),
                         "name": name,
                         "input": getattr(block, "input", {}) or {},
-                    })
+                    }
+                    if toolset_name:
+                        record["toolset_name"] = toolset_name
+                        if not isinstance(ctx.extra, dict):
+                            ctx.extra = {}
+                        ctx.extra["computer_stop_on_error"] = True
+                    raw_computer_uses.append(record)
             except Exception:
                 raw_computer_uses = []
             if raw_computer_uses:
@@ -329,14 +339,18 @@ class Chat:
         try:
             for blk in getattr(response, "content", []) or []:
                 if getattr(blk, "type", "") == "tool_use":
-                    out.append({
+                    call = {
                         "id": getattr(blk, "id", "") or "",
                         "type": "function",
                         "function": {
                             "name": getattr(blk, "name", "") or "",
                             "arguments": to_plain(getattr(blk, "input", {}) or {}),
                         }
-                    })
+                    }
+                    toolset_name = getattr(blk, "toolset_name", None)
+                    if toolset_name:
+                        call["toolset_name"] = str(toolset_name)
+                    out.append(call)
         except Exception:
             pass
         return out
@@ -639,38 +653,65 @@ class Chat:
         if prior_user_text:
             user_msg_1 = {"role": "user", "content": [{"type": "text", "text": prior_user_text}]}
 
-        # Recreate assistant tool_use block(s)
+        # Recreate every assistant tool_use exactly as Anthropic emitted it.
         assistant_parts: List[dict] = []
         for tu in tool_uses:
-            tid = str(tu.get("id", "") or "")
-            name = str(tu.get("name", "") or "computer")
-            inp = tu.get("input", {}) or {}
-            assistant_parts.append({
+            block = {
                 "type": "tool_use",
-                "id": tid,
-                "name": name,
-                "input": inp,
-            })
+                "id": str(tu.get("id", "") or ""),
+                "name": str(tu.get("name", "") or "computer"),
+                "input": tu.get("input", {}) or {},
+            }
+            if tu.get("toolset_name"):
+                block["toolset_name"] = str(tu.get("toolset_name"))
+            assistant_parts.append(block)
         assistant_msg = {"role": "assistant", "content": assistant_parts} if assistant_parts else None
 
-        # Build tool_result with last tool output; attach screenshot images (if any) as additional blocks
-        result_text = self._best_tool_result_text(tool_output)
-        last_tool_use_id = str(tool_uses[-1].get("id", "") or "")
-
-        tool_result_block = {
-            "type": "tool_result",
-            "tool_use_id": last_tool_use_id,
-            "content": [{"type": "text", "text": result_text}],
-        }
-
-        # Convert current attachments to image blocks and append after tool_result in the same user message
+        # Computer toolset requires exactly one tool_result for every member tool_use,
+        # in the same order. A screenshot image belongs inside the screenshot result.
         image_blocks: List[dict] = []
         if attachments:
-            img_parts = self.window.core.api.anthropic.vision.build_blocks("", attachments)
-            for part in img_parts:
-                if isinstance(part, dict) and part.get("type") in ("image", "input_image", "document"):
+            for part in self.window.core.api.anthropic.vision.build_blocks("", attachments):
+                if isinstance(part, dict) and part.get("type") in ("image", "input_image"):
                     image_blocks.append(part)
+        screenshot_block = image_blocks[0] if image_blocks else None
 
+        result_blocks: List[dict] = []
+        has_toolset_batch = any(str(tu.get("toolset_name", "") or "") == "computer" for tu in tool_uses)
+        for index, tu in enumerate(tool_uses):
+            # Toolset calls map 1:1 to local outputs. Legacy `computer` payloads may
+            # expand internally, so preserve the old behavior of using the final result.
+            if has_toolset_batch:
+                output = tool_output[index] if index < len(tool_output) else None
+            else:
+                output = tool_output[index] if len(tool_uses) > 1 and index < len(tool_output) else tool_output[-1]
+            name = str(tu.get("name", "") or "computer")
+            toolset_name = str(tu.get("toolset_name", "") or "")
+            text, is_error = self._tool_result_text(output)
+            if toolset_name == "computer" and name == "cursor_position" and not is_error:
+                try:
+                    value = output.get("result", {}) if isinstance(output, dict) else {}
+                    if isinstance(value, dict) and value.get("mouse_x") is not None and value.get("mouse_y") is not None:
+                        text = f"X={int(value['mouse_x'])}, Y={int(value['mouse_y'])}"
+                except Exception:
+                    pass
+            content: List[dict]
+            if toolset_name == "computer" and name in ("screenshot", "zoom") and screenshot_block and not is_error:
+                content = [screenshot_block]
+            else:
+                content = [{"type": "text", "text": text or "OK"}]
+            result = {
+                "type": "tool_result",
+                "tool_use_id": str(tu.get("id", "") or ""),
+                "content": content,
+            }
+            if toolset_name:
+                result["toolset_name"] = toolset_name
+            if is_error:
+                result["is_error"] = True
+            result_blocks.append(result)
+
+        # Native user attachments are unrelated to Computer Use transport screenshots.
         native_blocks: List[dict] = []
         for ref in self.window.core.attachments.native.get_refs(attachments, "anthropic"):
             native_blocks.append({
@@ -678,7 +719,8 @@ class Chat:
                 "source": {"type": "file", "file_id": ref["id"]},
             })
 
-        user_msg_2 = {"role": "user", "content": [tool_result_block] + image_blocks + native_blocks}
+        extra_legacy_images = [] if has_toolset_batch else image_blocks
+        user_msg_2 = {"role": "user", "content": result_blocks + extra_legacy_images + native_blocks}
 
         out: List[dict] = []
         if user_msg_1:
@@ -687,6 +729,30 @@ class Chat:
             out.append(assistant_msg)
         out.append(user_msg_2)
         return out
+
+    @staticmethod
+    def _tool_result_text(output) -> tuple[str, bool]:
+        if output is None:
+            return "Missing tool output", True
+        try:
+            if isinstance(output, dict):
+                value = output.get("result", output)
+                if isinstance(value, dict):
+                    error = value.get("error")
+                    if error:
+                        return str(error), True
+                    status = str(value.get("result", "") or "").lower()
+                    if status in {"error", "failed", "failure"}:
+                        return json.dumps(value, ensure_ascii=False), True
+                    # Toolset ordinary actions only need a short success result.
+                    if status == "success" or value.get("ok") is True:
+                        return "OK", False
+                    return json.dumps(value, ensure_ascii=False), False
+                text = str(value)
+                return text, text.lower().startswith("error")
+            return str(output), False
+        except Exception:
+            return "OK", False
 
     @staticmethod
     def _best_tool_result_text(tool_output: List[dict]) -> str:
