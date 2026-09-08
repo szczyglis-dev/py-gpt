@@ -92,8 +92,9 @@ RULES
    different language for a particular artifact/translation. Do not switch languages because tools, documentation or
    search results use another language.
 5. Call report_status with a short present-tense activity whenever you begin a meaningful phase or are waiting on a
-   long operation. Before returning your final worker response, call report_status once more with a short completion
-   status in <workflow_language>.
+   long operation. report_status is for INTERMEDIATE progress only. Do NOT call it merely to announce completion.
+   When the assigned work is complete, return the final worker response immediately; the runtime records completion
+   automatically.
 6. For files you create or modify, return the exact paths and verify the resulting state when practical. If a file should
    be delivered back to the user and an attachment/export tool is available, use it after creating the file.
 7. For large user-provided attachment context, call shared_context rather than guessing what was attached.

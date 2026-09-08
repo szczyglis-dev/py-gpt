@@ -140,6 +140,10 @@ class Worker(BaseWorker):
                         elif item["cmd"] == "send_file":
                             response = self.cmd_send_file(item)
 
+                        # attach file to the current Agents v2 runtime only
+                        elif item["cmd"] == "attach_runtime_file":
+                            response = self.cmd_attach_runtime_file(item)
+
                         # index file or directory
                         elif item["cmd"] == "file_index":
                             response = self.cmd_file_index(item)
@@ -186,7 +190,8 @@ class Worker(BaseWorker):
 
         read_path = {
             "read_file", "query_file", "list_dir", "tree", "is_dir", "is_file",
-            "file_exists", "file_size", "file_info", "send_file", "file_index", "find",
+            "file_exists", "file_size", "file_info", "send_file", "attach_runtime_file",
+            "file_index", "find",
         }
         write_path = {"save_file", "append_file", "delete_file", "mkdir", "rmdir"}
 
@@ -1032,6 +1037,54 @@ class Worker(BaseWorker):
         except Exception as e:
             result = self.throw_error(e)
         return self.make_response(item, result)
+
+    def cmd_attach_runtime_file(self, item: dict) -> dict:
+        """Attach local file(s) to the current agent tool result without touching global chat attachments."""
+        try:
+            params = item.get("params") or {}
+            if "path" not in params:
+                return self.make_response(item, "Path not provided")
+
+            raw_paths = params.get("path")
+            if isinstance(raw_paths, (list, tuple, set)):
+                values = list(raw_paths)
+            else:
+                values = [raw_paths]
+
+            attachments = []
+            missing = []
+            for value in values:
+                if value in (None, ""):
+                    continue
+                path = self.prepare_path(value)
+                if os.path.isfile(path):
+                    attachments.append({
+                        "path": path,
+                        "name": os.path.basename(path),
+                    })
+                else:
+                    missing.append(path)
+
+            if not attachments:
+                result = "File not found"
+                if missing:
+                    result += ": " + ", ".join(missing)
+                return self.make_response(item, result)
+
+            names = [entry["name"] for entry in attachments]
+            result = "Attached to current agent runtime: {}".format(", ".join(names))
+            if missing:
+                result += ". Not found: {}".format(", ".join(missing))
+
+            self.msg = result
+            self.log(result)
+            return self.make_response(
+                item,
+                result,
+                extra={"agent_runtime_attachments": attachments},
+            )
+        except Exception as e:
+            return self.make_response(item, self.throw_error(e))
 
     def cmd_file_index(self, item: dict) -> dict:
         """

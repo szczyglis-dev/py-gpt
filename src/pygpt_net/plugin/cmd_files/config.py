@@ -93,7 +93,10 @@ class Config(BaseConfig):
         # commands
         plugin.add_cmd(
             "send_file",
-            instruction="send file as attachment from my computer to you for analyze",
+            instruction=(
+                "send file as a normal chat attachment; in an Agents v2 run, use attach_runtime_file instead "
+                "when you need the file available immediately in the current agent/model loop"
+            ),
             params=[
                 {
                     "name": "path",
@@ -104,6 +107,24 @@ class Config(BaseConfig):
             ],
             enabled=True,
             description="Enable: Upload file as attachment",
+        )
+        plugin.add_cmd(
+            "attach_runtime_file",
+            instruction=(
+                "attach one or more existing local files to the current agent runtime so you can inspect them "
+                "immediately in this same tool/agent loop; use this for screenshots, images, PDFs or other files "
+                "created or found during the current task"
+            ),
+            params=[
+                {
+                    "name": "path",
+                    "type": "list",
+                    "description": "path(s) to local files to attach to the current agent runtime",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Attach file to current agent runtime",
         )
         plugin.add_cmd(
             "read_file",

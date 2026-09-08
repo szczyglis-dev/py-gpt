@@ -48,6 +48,7 @@ class Plugin(BasePlugin):
             "file_size",
             "file_info",
             "send_file",
+            "attach_runtime_file",
             "cwd",
             "file_index",
             "pack_archive",

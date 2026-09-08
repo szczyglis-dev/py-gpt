@@ -12,12 +12,15 @@
 from __future__ import annotations
 
 import json
+import os
 from typing import Any, Dict, List, Optional
 
+from llama_index.core.base.llms.types import DocumentBlock, ImageBlock, TextBlock
 from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
 from pygpt_net.core.types import TOOL_QUERY_ENGINE_DESCRIPTION
 from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
+from pygpt_net.utils import is_image
 
 
 class SchemaToolMetadata(JsonSchemaToolMetadata):
@@ -51,8 +54,9 @@ class WorkerToolFactory:
             async_fn=report_status,
             name="report_status",
             description=(
-                "Report a short current activity/progress status to the Orchestrator and the user's transient status line. "
-                "Use this before meaningful or potentially long phases."
+                "Report a short INTERMEDIATE activity/progress status to the Orchestrator and the user's transient "
+                "status line. Use this before meaningful or potentially long phases. Do not use report_status to "
+                "announce final completion; when work is complete, return the final worker response directly."
             ),
         ))
         tools.append(FunctionTool.from_defaults(
@@ -95,6 +99,128 @@ class WorkerToolFactory:
         if text:
             self.runtime.emit_worker_status(worker, text)
         return "Status updated."
+
+    @staticmethod
+    def _extract_runtime_attachments(value: Any) -> List[Dict[str, str]]:
+        """Collect private runtime-attachment markers returned by plugins."""
+        out: List[Dict[str, str]] = []
+
+        def walk(item):
+            if isinstance(item, dict):
+                marked = item.get("agent_runtime_attachments")
+                if isinstance(marked, list):
+                    for entry in marked:
+                        if isinstance(entry, dict):
+                            path = str(entry.get("path") or "").strip()
+                            if path:
+                                out.append({
+                                    "path": path,
+                                    "name": str(entry.get("name") or os.path.basename(path)),
+                                })
+                        elif entry:
+                            path = str(entry).strip()
+                            if path:
+                                out.append({"path": path, "name": os.path.basename(path)})
+                for key, child in item.items():
+                    if key != "agent_runtime_attachments":
+                        walk(child)
+            elif isinstance(item, list):
+                for child in item:
+                    walk(child)
+
+        walk(value)
+        unique: List[Dict[str, str]] = []
+        seen = set()
+        for entry in out:
+            path = entry["path"]
+            if path in seen:
+                continue
+            seen.add(path)
+            unique.append(entry)
+        return unique
+
+    @staticmethod
+    def _strip_runtime_attachment_markers(value: Any) -> Any:
+        """Remove transport-only marker data from the visible/persisted tool result."""
+        if isinstance(value, dict):
+            return {
+                key: WorkerToolFactory._strip_runtime_attachment_markers(child)
+                for key, child in value.items()
+                if key != "agent_runtime_attachments"
+            }
+        if isinstance(value, list):
+            return [WorkerToolFactory._strip_runtime_attachment_markers(child) for child in value]
+        return value
+
+    @staticmethod
+    def _response_text(response: Any) -> str:
+        if isinstance(response, (dict, list)):
+            return json.dumps(response, ensure_ascii=False, indent=2, default=str)
+        return str(response)
+
+    def _drain_transport_images(self, tool_ctx) -> List[Dict[str, str]]:
+        """Drain screenshots/images produced only for the current tool/model round."""
+        values = list(getattr(tool_ctx, "transport_images", None) or [])
+        if not values:
+            return []
+
+        # Actor CtxItems are reused across tool rounds. Once the current result
+        # has received these images as blocks, do not accidentally re-attach a
+        # stale screenshot to the next unrelated tool call.
+        tool_ctx.transport_images = []
+        out = []
+        filesystem = self.window.core.filesystem
+        for value in values:
+            raw = str(value or "").strip()
+            if not raw:
+                continue
+            try:
+                path = filesystem.to_workdir(raw, auto_prefix=False)
+            except Exception:
+                path = raw
+            if os.path.isfile(path):
+                out.append({"path": path, "name": os.path.basename(path)})
+        return out
+
+    def _runtime_attachment_blocks(
+            self,
+            response: Any,
+            attachments: List[Dict[str, str]],
+    ) -> List[Any]:
+        """Convert plugin runtime attachments into LlamaIndex multimodal tool-output blocks."""
+        blocks: List[Any] = [TextBlock(text=self._response_text(response))]
+        model = self.runtime.model
+        attached = []
+        skipped = []
+
+        for entry in attachments:
+            path = str(entry.get("path") or "")
+            name = str(entry.get("name") or os.path.basename(path))
+            if not path or not os.path.isfile(path):
+                skipped.append(name or path)
+                continue
+
+            if is_image(path):
+                if model is not None and not model.is_image_input():
+                    skipped.append(name)
+                    continue
+                blocks.append(ImageBlock(path=path))
+            else:
+                blocks.append(DocumentBlock(path=path, title=name))
+            attached.append(path)
+
+        if attached:
+            self.runtime.verbose.log("RUNTIME ATTACHMENTS", {
+                "attached": attached,
+                "skipped": skipped,
+            })
+        if skipped:
+            blocks[0] = TextBlock(text=(
+                self._response_text(response)
+                + "\nRuntime attachment skipped by the current model/provider: "
+                + ", ".join(skipped)
+            ))
+        return blocks
 
     def _plugin_tools(self, worker) -> List[BaseTool]:
         out: List[BaseTool] = []
@@ -189,10 +315,26 @@ class WorkerToolFactory:
                                     actor=actor_id,
                                 )
                                 raise
+                            runtime_attachments = self._extract_runtime_attachments(response)
+                            runtime_attachments.extend(self._drain_transport_images(tool_ctx))
+                            if runtime_attachments:
+                                unique = []
+                                seen_paths = set()
+                                for entry in runtime_attachments:
+                                    path = str(entry.get("path") or "")
+                                    if not path or path in seen_paths:
+                                        continue
+                                    seen_paths.add(path)
+                                    unique.append(entry)
+                                runtime_attachments = unique
+                            display_response = (
+                                self._strip_runtime_attachment_markers(response)
+                                if runtime_attachments else response
+                            )
                             self.runtime.record_local_plugin_tool_result(
                                 display_call_id,
                                 tool_name,
-                                response,
+                                display_response,
                                 actor=actor_id,
                             )
 
@@ -207,9 +349,9 @@ class WorkerToolFactory:
                         # builds its response, but must not survive on a reusable actor ctx.
                         tool_ctx.reply = False
 
-                        if isinstance(response, (dict, list)):
-                            return json.dumps(response, ensure_ascii=False, indent=2, default=str)
-                        return str(response)
+                        if runtime_attachments:
+                            return self._runtime_attachment_blocks(display_response, runtime_attachments)
+                        return self._response_text(response)
                     fn.__name__ = tool_name
                     return fn
 

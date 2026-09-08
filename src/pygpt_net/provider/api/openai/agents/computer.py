@@ -80,7 +80,10 @@ class LocalComputer(Computer):
         print("Taking screenshot of the viewport...")
         self.window.controller.attachment.clear_silent()
         path = self.window.controller.painter.capture.screenshot(attach_cursor=True,
-                                                                 silent=True)  # attach screenshot
+                                                                 silent=True,
+                                                                 append_to_ctx=False)  # transport-only screenshot
+        if not path:
+            raise RuntimeError("Unable to capture Computer Use screenshot")
         with open(path, "rb") as image_file:
             data = base64.b64encode(image_file.read()).decode('utf-8')
         self.window.controller.attachment.clear_silent()

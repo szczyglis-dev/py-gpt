@@ -789,6 +789,12 @@ class AgentsV2Runtime:
             stream=stream,
             allow_remote_tools=self.allow_remote_tools,
         )
+        # Provider adapters that need access to the current workflow (for
+        # example OpenAI Computer Use) are bound to this isolated runtime here.
+        # Keep this opt-in so normal LlamaIndex providers remain untouched.
+        binder = getattr(llm, "bind_agents_v2_runtime", None)
+        if callable(binder):
+            binder(self)
         self.verbose.log("LLM CREATED", {
             "stream": stream,
             "allow_remote_tools": self.allow_remote_tools,
