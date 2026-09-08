@@ -18,8 +18,15 @@ from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.ui.layout.ctx.search_input import SearchInput
 from pygpt_net.ui.widget.element.button import NewCtxButton
 from pygpt_net.ui.widget.element.labels import TitleLabel
-from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, SectionItem
+from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, SectionItem, ShowMoreItem
 from pygpt_net.utils import trans
+
+
+# Context-list presentation limits. Project contexts are still loaded from the
+# provider in full; these constants only cap how many rows are rendered until
+# the user explicitly expands the corresponding list.
+MAX_PROJECTS_DISPLAY = 10
+MAX_PROJECT_CONTEXTS_DISPLAY = 10
 
 
 class CtxList:
@@ -308,13 +315,42 @@ class CtxList:
             if gid is not None and gid != 0:
                 grouped.setdefault(gid, []).append((meta_id, meta))
 
-        project_total = 0
+        # Keep contexts inside every project newest-first. ``load_meta()``
+        # intentionally loads grouped contexts without pagination, but pinned
+        # and grouped result sets are merged before reaching the UI, so sort
+        # explicitly here instead of depending on dict insertion order.
+        for group_id in grouped:
+            grouped[group_id].sort(
+                key=lambda entry: (
+                    int(getattr(entry[1], 'updated', 0) or 0),
+                    int(entry[0] or 0),
+                ),
+                reverse=True,
+            )
+
+        # Projects are ordered by the newest updated context they contain.
+        # Empty projects have no context activity and therefore stay at the end;
+        # name/id provide a deterministic order for ties.
+        project_rows = []
         for group_id in groups:
             group = groups[group_id]
-            c = len(grouped.get(group.id, []))
-            if c == 0 and search_string:
+            items_in_group = grouped.get(group.id, [])
+            if not items_in_group and search_string:
                 continue
-            project_total += 1
+            latest_ctx_updated = max(
+                (int(getattr(meta, 'updated', 0) or 0) for _, meta in items_in_group),
+                default=0,
+            )
+            project_rows.append((group, items_in_group, latest_ctx_updated))
+
+        project_rows.sort(
+            key=lambda row: (
+                -row[2],
+                str(row[0].name or '').casefold(),
+                int(row[0].id or 0),
+            )
+        )
+        project_total = len(project_rows)
 
         # Ensure icons for closed/open folder states are loaded once
         if getattr(self, "_folder_icon", None) is None:
@@ -325,13 +361,34 @@ class CtxList:
         node = self.window.ui.nodes[id]
         section_added = False
 
-        for group_id in groups:
+        # If the active context belongs to a project which would otherwise be
+        # outside the visual project limit, reveal all projects so the current
+        # row never disappears from the left-hand navigation.
+        current_group_id = None
+        try:
+            current_meta = self.window.core.ctx.get_current_meta()
+            if current_meta is not None and current_meta.group_id:
+                current_group_id = int(current_meta.group_id)
+        except Exception:
+            current_group_id = None
+
+        max_projects = max(0, int(MAX_PROJECTS_DISPLAY or 0))
+        if (
+                max_projects > 0
+                and not node.show_all_projects
+                and not node.projects_limit_collapsed_by_user
+                and current_group_id is not None
+                and current_group_id not in [row[0].id for row in project_rows[:max_projects]]
+        ):
+            node.show_all_projects = True
+
+        visible_project_rows = project_rows
+        if max_projects > 0 and not node.show_all_projects:
+            visible_project_rows = project_rows[:max_projects]
+
+        for group, items_in_group, _latest_ctx_updated in visible_project_rows:
             last_dt_str = None
-            group = groups[group_id]
-            items_in_group = grouped.get(group.id, [])
             c = len(items_in_group)
-            if c == 0 and search_string:
-                continue
 
             if not section_added:
                 self.append_list_section(
@@ -365,8 +422,30 @@ class CtxList:
 
             group_item.setData(custom_data, QtCore.Qt.ItemDataRole.UserRole)
 
+            max_contexts = max(0, int(MAX_PROJECT_CONTEXTS_DISPLAY or 0))
+
+            # As with projects, never hide the active context behind the visual
+            # limiter. This matters after restoring an older context directly
+            # from config/history.
+            if (
+                    max_contexts > 0
+                    and group.id not in node.show_all_project_contexts
+                    and group.id not in node.project_contexts_limit_collapsed_by_user
+                    and current_group_id == int(group.id)
+            ):
+                try:
+                    current_id = int(self.window.core.ctx.get_current())
+                except Exception:
+                    current_id = None
+                if current_id is not None and current_id not in [entry[0] for entry in items_in_group[:max_contexts]]:
+                    node.show_all_project_contexts.add(group.id)
+
+            visible_items = items_in_group
+            if max_contexts > 0 and group.id not in node.show_all_project_contexts:
+                visible_items = items_in_group[:max_contexts]
+
             i = 0
-            for meta_id, meta in items_in_group:
+            for meta_id, meta in visible_items:
                 item = self.build_item(meta_id, meta, is_group=True)
                 if self._group_separators and (not item.isPinned or self._pinned_separators):
                     if i == 0 or last_dt_str != item.dt:
@@ -377,6 +456,22 @@ class CtxList:
                 group_item.appendRow(item)
                 i += 1
 
+            hidden_contexts = c - len(visible_items)
+            if hidden_contexts > 0:
+                group_item.appendRow(ShowMoreItem(
+                    trans('ctx.list.show_more').format(count=hidden_contexts),
+                    scope=ShowMoreItem.PROJECT_CONTEXTS,
+                    group_id=group.id,
+                    remaining_count=hidden_contexts,
+                ))
+            elif max_contexts > 0 and c > max_contexts and group.id in node.show_all_project_contexts:
+                group_item.appendRow(ShowMoreItem(
+                    trans('ctx.list.less'),
+                    scope=ShowMoreItem.PROJECT_CONTEXTS,
+                    group_id=group.id,
+                    collapse=True,
+                ))
+
             model.appendRow(group_item)
 
             # Always reflect persisted expansion state so groups stay open after actions
@@ -385,6 +480,28 @@ class CtxList:
             if node.isExpanded(idx) != desired:
                 node.setExpanded(idx, desired)
             self._set_group_icon_for_index(idx, desired)
+
+        hidden_projects = project_total - len(visible_project_rows)
+        if hidden_projects > 0:
+            if not section_added:
+                self.append_list_section(
+                    model,
+                    'ctx.list.section.projects',
+                    action='new_project',
+                    section_count=project_total,
+                )
+                section_added = True
+            model.appendRow(ShowMoreItem(
+                trans('ctx.list.show_more').format(count=hidden_projects),
+                scope=ShowMoreItem.PROJECTS,
+                remaining_count=hidden_projects,
+            ))
+        elif max_projects > 0 and project_total > max_projects and node.show_all_projects:
+            model.appendRow(ShowMoreItem(
+                trans('ctx.list.less'),
+                scope=ShowMoreItem.PROJECTS,
+                collapse=True,
+            ))
 
     def count_in_group(self, group_id: int, data: dict) -> int:
         """

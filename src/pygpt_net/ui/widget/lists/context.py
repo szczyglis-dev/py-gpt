@@ -34,6 +34,15 @@ class ContextList(BaseList):
         self.window = window
         self.id = id
         self.expanded_items = set()
+        # Runtime-only visual expansion state for capped project/project-context
+        # lists. The underlying grouped context data remains fully loaded.
+        self.show_all_projects = False
+        self.show_all_project_contexts = set()
+        # Track an explicit user collapse separately from automatic reveal of
+        # the currently active project/context. This makes the trailing "less"
+        # action authoritative even when the active row is beyond the cap.
+        self.projects_limit_collapsed_by_user = False
+        self.project_contexts_limit_collapsed_by_user = set()
         # Top-level context-list sections (Pinned / Projects / Recent) have
         # their own persisted collapsed state. Missing/invalid config values
         # intentionally mean "all expanded" for backward compatibility.
@@ -605,6 +614,47 @@ class ContextList(BaseList):
         it = self._model.itemFromIndex(index)
         return bool(isinstance(it, GroupItem))
 
+    def _is_show_more_index(self, index: QtCore.QModelIndex) -> bool:
+        """Return True if index points to a visual project-list expander row."""
+        try:
+            if not index.isValid():
+                return False
+            return isinstance(self._model.itemFromIndex(index), ShowMoreItem)
+        except Exception:
+            return False
+
+    def _handle_show_more_click(self, index: QtCore.QModelIndex) -> bool:
+        """Expand or collapse a capped project/project-context list."""
+        if not self._is_show_more_index(index):
+            return False
+        try:
+            item = self._model.itemFromIndex(index)
+            if item.scope == ShowMoreItem.PROJECTS:
+                if item.collapse:
+                    self.show_all_projects = False
+                    self.projects_limit_collapsed_by_user = True
+                else:
+                    self.show_all_projects = True
+                    self.projects_limit_collapsed_by_user = False
+            elif item.scope == ShowMoreItem.PROJECT_CONTEXTS and item.group_id is not None:
+                group_id = int(item.group_id)
+                if item.collapse:
+                    self.show_all_project_contexts.discard(group_id)
+                    self.project_contexts_limit_collapsed_by_user.add(group_id)
+                else:
+                    self.show_all_project_contexts.add(group_id)
+                    self.project_contexts_limit_collapsed_by_user.discard(group_id)
+            else:
+                return False
+
+            # Rebuild from already-loaded meta only. This is intentionally a
+            # presentation toggle and must not trigger another DB page load.
+            self.window.controller.ctx.update_list(reload=False, restore_scroll=True)
+            QtCore.QTimer.singleShot(0, self._refresh_hover_from_cursor)
+            return True
+        except Exception:
+            return False
+
     def _is_section_action_index(self, index: QtCore.QModelIndex) -> bool:
         """Return True if index points to an actionable top-level section row."""
         try:
@@ -1087,6 +1137,12 @@ class ContextList(BaseList):
         if event.button() == Qt.LeftButton:
             pos = self._event_pos_to_point(event)
             index = self.indexAt(pos)
+
+            # Visual project-list limit controls are handled manually because they use
+            # the same disabled/header styling as section labels.
+            if self._handle_show_more_click(index):
+                event.accept()
+                return
 
             # Section-header add icons are independent actions. Consume the
             # click before section collapsing so add.svg never toggles a section.
@@ -2450,6 +2506,24 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         except Exception:
             item = None
 
+        # Project-list limit controls are clickable presentation rows but deliberately use
+        # the exact disabled/bold typography of context-list headers. Paint it
+        # through the native item-view style and center the text across the row.
+        if isinstance(item, ShowMoreItem):
+            opt = QtWidgets.QStyleOptionViewItem(option)
+            self.initStyleOption(opt, index)
+            opt.state &= ~QtWidgets.QStyle.State_MouseOver
+            opt.text = item.title
+            opt.displayAlignment = QtCore.Qt.AlignCenter
+            style = opt.widget.style() if opt.widget is not None else QtWidgets.QApplication.style()
+            style.drawControl(
+                QtWidgets.QStyle.CE_ItemViewItem,
+                opt,
+                painter,
+                opt.widget,
+            )
+            return
+
         # A collapsed top-level section always shows its full item count on
         # the right. This takes precedence over hover actions (add.svg) and
         # over Recent's inline date label.
@@ -2911,3 +2985,26 @@ class SectionItem(QStandardItem):
         font = self.font()
         font.setBold(True)
         self.setFont(font)
+
+
+class ShowMoreItem(SectionItem):
+    """Centered expand/collapse control for capped project lists."""
+
+    PROJECTS = 'projects'
+    PROJECT_CONTEXTS = 'project_contexts'
+
+    def __init__(
+            self,
+            title: str,
+            scope: str,
+            group_id: int | None = None,
+            remaining_count: int = 0,
+            collapse: bool = False,
+    ):
+        super().__init__(title, group=group_id is not None)
+        self.title = title
+        self.scope = scope
+        self.group_id = group_id
+        self.remaining_count = int(remaining_count or 0)
+        self.collapse = bool(collapse)
+        self.setTextAlignment(QtCore.Qt.AlignCenter)
