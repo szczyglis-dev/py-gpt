@@ -133,7 +133,19 @@ class OpenAIRealtimeClient:
         :param should_stop: Sync callback to signal barge-in (cancel active response)
         """
         self._ensure_background_loop()
+
+        # A persistent realtime session keeps one receiver loop alive across
+        # multiple user turns. Refresh the per-turn binding on *every* run, not
+        # only when the socket/session is first opened. Otherwise the receiver
+        # keeps calling the callbacks captured by the first RealtimeWorker: live
+        # deltas are then rendered into that old CtxItem while response.done is
+        # persisted into the current one. The mismatch becomes visible as text
+        # streaming inside an earlier message until the WebView is reloaded.
         self._ctx = ctx
+        self._on_text = on_text
+        self._on_audio = on_audio
+        self._should_stop = should_stop or (lambda: False)
+        self._last_opts = opts
 
         # If a different resumable handle is provided, reset to attempt best-effort resume.
         try:

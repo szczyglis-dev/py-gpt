@@ -96,10 +96,15 @@ class Realtime:
                         tool_results = json.loads(tool_results)
                     except Exception:
                         pass
+                    # The tool-result send can synchronously wait for the follow-up
+                    # model response. Bind the continuation context first, otherwise
+                    # that response is written/rendered against the previous tool-call
+                    # context and can replace the preceding message.
+                    self.handler.update_ctx(context.ctx)
+                    self.window.controller.realtime.manager.update_ctx(context.ctx)
                     self.handler.send_tool_results_sync({
                         tool_call_id: tool_results
                     })
-                    self.handler.update_ctx(context.ctx)
                     return True  # do not start new session, just send tool results
 
         # Resolve last session ID from history only (do not fallback anywhere)
@@ -138,6 +143,7 @@ class Realtime:
         if auto_turn and self.handler.is_session_active() and (context.prompt.strip() == "" or context.prompt == "..."):
             self.handler.update_session_tools_sync(tools, remote_tools)
             self.handler.update_ctx(context.ctx)
+            self.window.controller.realtime.manager.update_ctx(context.ctx)
             self.window.update_status(trans("speech.listening"))
             return True # do not send new request if session is active
 

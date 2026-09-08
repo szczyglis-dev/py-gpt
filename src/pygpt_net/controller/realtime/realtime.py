@@ -40,6 +40,7 @@ class Realtime:
         self.current_active = None # openai | google
         self.allowed_modes = [MODE_AUDIO]
         self.manual_commit_sent = False
+        self._continuation_text_started = set()
 
     def setup(self):
         """Setup realtime core, signals, etc. in main thread"""
@@ -126,12 +127,23 @@ class Realtime:
             ctx = event.data.get('ctx', None)
             chunk = event.data.get('chunk', "")
             if chunk and ctx:
-                self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
-                    "meta": ctx.meta,
-                    "ctx": ctx,
-                    "chunk": chunk,
-                    "begin": False,
-                }))
+                # A tool-result response is an ephemeral continuation of the same
+                # durable user turn. Reuse the normal chat stream continuation
+                # renderer so the completed tool row stays in chronological order
+                # and the follow-up text is appended as a new partial instead of
+                # replacing the previous assistant content.
+                if getattr(ctx, "turn_parent", None) is not None:
+                    key = id(ctx)
+                    begin = key not in self._continuation_text_started
+                    self.window.controller.chat.stream.handleChunk(ctx, chunk, begin)
+                    self._continuation_text_started.add(key)
+                else:
+                    self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
+                        "meta": ctx.meta,
+                        "ctx": ctx,
+                        "chunk": chunk,
+                        "begin": False,
+                    }))
 
         # audio end: on stop audio playback
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_END:
@@ -144,11 +156,11 @@ class Realtime:
         elif event.name == RealtimeEvent.RT_OUTPUT_TURN_END:
             self.set_idle()
             ctx = event.data.get('ctx', None)
-            if ctx:
-                self.end_turn(ctx)
-            if self.window.controller.audio.is_recording():
-                self.window.update_status(trans("speech.listening"))
-            self.window.controller.chat.common.unlock_input()
+            finished = self.end_turn(ctx) if ctx else True
+            if finished:
+                if self.window.controller.audio.is_recording():
+                    self.window.update_status(trans("speech.listening"))
+                self.window.controller.chat.common.unlock_input()
 
         # volume change: update volume in audio output handler
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_VOLUME_CHANGED:
@@ -223,28 +235,66 @@ class Realtime:
 
     def end_turn(self, ctx):
         """
-        End of realtime turn - finalize the response
+        End of realtime turn - finalize the response.
+
+        Tool calls are intermediate rounds of the same durable CtxItem. A realtime
+        tool-result response therefore follows the same continuation lifecycle as
+        streamed chat: merge the ephemeral response into its parent, materialize
+        completed tools, and call handle_end() only when no next tool is pending.
 
         :param ctx: Context instance
         """
         self.set_idle()
         if not ctx:
-            return
+            return True
+
+        source_ctx = ctx
+        self._continuation_text_started.discard(id(source_ctx))
+        is_continuation = getattr(source_ctx, "turn_parent", None) is not None
+        if is_continuation:
+            ctx = self.window.core.ctx.merge_continuation(source_ctx)
+
+        self.window.dispatch(RenderEvent(RenderEvent.STREAM_END, {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }))
+
         self.window.controller.chat.output.handle_after(
             ctx=ctx,
             mode=MODE_AUDIO,
             stream=True,
         )
-        self.window.controller.chat.output.post_handle(
+
+        if is_continuation:
+            # Replace the transient waiting row with the now-completed durable tool
+            # block before a potential next tool status is created by post_handle().
+            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+            }))
+            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+            }))
+
+        finished = self.window.controller.chat.output.post_handle(
             ctx=ctx,
             mode=MODE_AUDIO,
             stream=True,
         )
+        if not finished:
+            # command.handle() has started the tool and emitted TOOL_BEGIN. Keep the
+            # turn/request open; handle_end() would immediately reload the view and
+            # wipe that status before the tool result arrives.
+            self.set_busy()
+            return False
+
         self.window.controller.chat.output.handle_end(
             ctx=ctx,
             mode=MODE_AUDIO,
         )
         self.window.controller.chat.common.show_response_tokens(ctx)
+        return True
 
     def shutdown(self):
         """Shutdown all realtime threads and async loops"""
@@ -267,6 +317,7 @@ class Realtime:
 
     def reset(self):
         """Reset realtime session"""
+        self._continuation_text_started.clear()
         try:
             self.window.core.api.openai.realtime.reset()
         except Exception as e:
