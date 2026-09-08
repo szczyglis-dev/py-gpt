@@ -13,6 +13,7 @@ import json
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
+from pygpt_net.core.types import MODE_COMPUTER
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -153,6 +154,12 @@ class Computer:
             return "computer_20251124"
         if any(model_id.startswith(prefix) for prefix in self.COMPUTER_20250124_MODELS):
             return "computer_20250124"
+
+        # Future/custom Anthropic models explicitly marked as Computer-capable are
+        # treated like whitelisted models. Known IDs above still select their exact
+        # legacy tool version; unknown capable models use the newest supported toolset.
+        if model is not None and hasattr(model, "has_mode") and model.has_mode(MODE_COMPUTER):
+            return "computer_toolset_20260801"
         return None
 
     def supports_model(self, model=None) -> bool:
@@ -161,8 +168,8 @@ class Computer:
     def get_tool(self, model=None) -> dict:
         tool_type = self.get_tool_type(model)
         if tool_type is None:
-            # Preserve compatibility for custom/aliased Anthropic models.
-            tool_type = "computer_20251124"
+            # Preserve compatibility for direct/custom calls that bypass supports_model().
+            tool_type = "computer_toolset_20260801"
         if tool_type == "computer_toolset_20260801":
             # PyGPT currently implements the standard member tools. Disable zoom until
             # a zoomed-image coordinate transform is implemented end-to-end.

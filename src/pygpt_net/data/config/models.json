@@ -51,7 +51,8 @@
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -94,7 +95,8 @@
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -137,7 +139,8 @@
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -180,7 +183,8 @@
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -223,7 +227,8 @@
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -266,7 +271,8 @@
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -309,7 +315,8 @@
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -805,7 +812,8 @@
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -1050,7 +1058,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -1095,7 +1104,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -1185,7 +1195,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -4060,7 +4071,7 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
-            "tool_calls": true
+            "tool_calls": false
         },
         "sonar-deep-research": {
             "id": "sonar-deep-research",
@@ -4106,7 +4117,7 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
-            "tool_calls": true
+            "tool_calls": false
         },
         "sonar-pro": {
             "id": "sonar-pro",
@@ -4152,7 +4163,7 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
-            "tool_calls": true
+            "tool_calls": false
         },
         "sonar-reasoning-pro": {
             "id": "sonar-reasoning-pro",
@@ -4198,7 +4209,7 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
-            "tool_calls": true
+            "tool_calls": false
         },
         "sora-2": {
             "id": "sora-2",

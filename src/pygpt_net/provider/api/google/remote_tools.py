@@ -11,12 +11,14 @@
 
 from google.genai import types as gtypes
 
+from pygpt_net.core.types import MODE_COMPUTER
 from pygpt_net.item.model import ModelItem
 
 
 class RemoteTools:
     # Models supported by the Generate Content Computer Use API used by this adapter.
     COMPUTER_USE_MODELS = {
+        "gemini-3.8-flash",
         "gemini-3.7-flash",
         "gemini-3.5-flash-lite",
         "gemini-3.5-flash",
@@ -33,11 +35,13 @@ class RemoteTools:
         self.window = window
 
     def supports_computer_use(self, model: ModelItem = None) -> bool:
-        """Return True when the selected Gemini model supports Computer Use."""
+        """Return True for known models or models advertising Computer mode."""
         model_id = str(getattr(model, "id", "") or "").lower()
         if model_id.startswith("models/"):
             model_id = model_id[7:]
-        return model_id in self.COMPUTER_USE_MODELS
+        if model_id in self.COMPUTER_USE_MODELS:
+            return True
+        return bool(model and model.has_mode(MODE_COMPUTER))
 
     def is_computer_use_enabled(self, model: ModelItem = None) -> bool:
         """Return True when Computer Use is enabled as a Google remote tool."""
