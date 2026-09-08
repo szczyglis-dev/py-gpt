@@ -14,7 +14,7 @@ from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from datetime import datetime, timedelta
 
-from pygpt_net.item.ctx import CtxMeta
+from pygpt_net.item.ctx import CtxMeta, get_additional_ctx_display_names
 from pygpt_net.ui.layout.ctx.search_input import SearchInput
 from pygpt_net.ui.widget.element.button import NewCtxButton
 from pygpt_net.ui.widget.element.labels import TitleLabel
@@ -399,8 +399,13 @@ class CtxList:
                 )
                 section_added = True
 
-            # Display only the group name; the counter is drawn by delegate on the right
-            is_attachment = group.has_additional_ctx()
+            # Project attachment marker is meaningful only when project-wide
+            # sharing is enabled. With per-chat attachments, the project row
+            # must stay clean even if old shared metadata still exists.
+            project_share = bool(
+                self.window.core.config.get("ctx.attachment.project_share", False)
+            )
+            is_attachment = project_share and group.has_additional_ctx()
             group_name = group.name
             group_item = GroupItem(self._folder_icon, group_name, group.id)
             group_item.hasAttachments = is_attachment
@@ -565,8 +570,14 @@ class CtxList:
         append_dt = True
         label = data.label
         is_important = data.important
-        is_attachment = data.has_additional_ctx()
         in_group = bool(data.group)
+        project_share = bool(
+            self.window.core.config.get("ctx.attachment.project_share", False)
+        )
+        if in_group and not project_share:
+            is_attachment = bool(data.additional_ctx)
+        else:
+            is_attachment = data.has_additional_ctx()
         append_dt = False if (is_group and self._group_separators) or ((not is_group) and self._group_separators) else append_dt
 
         dt = self.convert_date(data.updated)
@@ -581,7 +592,10 @@ class CtxList:
         tooltip_text = f"{date_time_str}: {data.name}{mode_str} #{id}"
 
         if is_attachment:
-            files = data.get_attachment_names()
+            if in_group and not project_share:
+                files = get_additional_ctx_display_names(data.additional_ctx or [])
+            else:
+                files = data.get_attachment_names()
             files_str = ", ".join(files)
             if len(files_str) > 40:
                 files_str = files_str[:40] + '...'

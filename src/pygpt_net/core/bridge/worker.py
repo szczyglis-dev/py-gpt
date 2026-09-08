@@ -260,7 +260,10 @@ class BridgeWorker(QRunnable):
                 only_current = True
 
         # if group additional context exists, append it to current additional context
-        if only_current and ctx.meta.group:
+        if (
+                only_current
+                and self.window.core.attachments.context.is_project_share_enabled(ctx.meta)
+        ):
             if ctx.meta.group.additional_ctx is None:
                 ctx.meta.group.additional_ctx = []
             if ctx.meta.additional_ctx_current is None:

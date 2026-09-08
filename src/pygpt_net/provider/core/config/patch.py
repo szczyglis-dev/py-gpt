@@ -593,6 +593,15 @@ class Patch:
                     data["agent.api_use_responses"] = True
                     updated = True
 
+                # Project attachments are now opt-in. Existing profiles should
+                # keep standard per-chat attachment scoping unless explicitly
+                # enabled by the user.
+                if "ctx.attachment.project_share" not in data:
+                    data["ctx.attachment.project_share"] = cfg_get_base(
+                        "ctx.attachment.project_share"
+                    )
+                    updated = True
+
                 # Computer Use can also be enabled as a Remote Tool. Keep it
                 # opt-in for all providers when upgrading an existing profile.
                 for key in (

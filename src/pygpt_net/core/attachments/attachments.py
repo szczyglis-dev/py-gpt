@@ -167,7 +167,7 @@ class Attachments:
         if meta is None:
             return []
         attachments = []
-        for attachment in meta.get_additional_ctx():
+        for attachment in self.context.get_all(meta):
             if isinstance(attachment, dict) and attachment.get("active", True) is False:
                 continue
             item = AttachmentItem()

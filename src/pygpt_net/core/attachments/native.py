@@ -326,7 +326,7 @@ class Native:
             except Exception:
                 meta = None
             if meta is not None:
-                for item in meta.get_additional_ctx():
+                for item in self.window.core.attachments.context.get_all(meta):
                     if not isinstance(item, dict):
                         continue
                     if item.get("active", True) is False:

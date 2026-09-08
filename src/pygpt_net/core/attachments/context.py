@@ -100,6 +100,45 @@ class Context:
             return True
         return item.get("active", True) is not False
 
+
+    def is_project_share_enabled(self, meta: Optional[CtxMeta] = None) -> bool:
+        """Return whether project-wide attachment sharing is enabled for meta."""
+        return bool(
+            meta is not None
+            and meta.group is not None
+            and self.window.core.config.get("ctx.attachment.project_share", False)
+        )
+
+    def get_meta_items(self, meta: Optional[CtxMeta]) -> list:
+        """Return attachments visible for the given context under current sharing policy."""
+        if meta is None:
+            return []
+        if self.is_project_share_enabled(meta) and meta.group.additional_ctx:
+            return meta.group.additional_ctx
+        return meta.additional_ctx or []
+
+    def _use_project_scope(self, meta: Optional[CtxMeta]) -> bool:
+        """Return whether the currently visible attachment set comes from the project."""
+        return bool(
+            self.is_project_share_enabled(meta)
+            and meta.group is not None
+            and meta.group.additional_ctx
+        )
+
+    def _scope_items(self, meta: CtxMeta, project_scope: bool) -> list:
+        if project_scope and meta.group is not None:
+            if meta.group.additional_ctx is None:
+                meta.group.additional_ctx = []
+            return meta.group.additional_ctx
+        if meta.additional_ctx is None:
+            meta.additional_ctx = []
+        return meta.additional_ctx
+
+    def _item_project_scope(self, meta: CtxMeta, item: Dict[str, Any]) -> bool:
+        if not self.is_project_share_enabled(meta) or meta.group is None:
+            return False
+        return item in (meta.group.additional_ctx or [])
+
     def _remove_item_from_index(self, meta: CtxMeta, item: Dict[str, Any]) -> bool:
         """Remove one attachment's indexed documents without deleting its stored content."""
         doc_ids = item.get("doc_ids") if isinstance(item, dict) else None
@@ -204,7 +243,7 @@ class Context:
                     uuid_current.append(item["uuid"])
 
         if os.path.exists(meta_path) and os.path.isdir(meta_path):
-            for file in meta.get_additional_ctx():
+            for file in self.get_meta_items(meta):
                 if not self.is_active(file):
                     continue
                 if ("type" not in file
@@ -271,7 +310,7 @@ class Context:
         metadata_changed = False
         has_local_context = False
         # index local files if not indexed by auto_index; native refs bypass local RAG entirely
-        for i, file in enumerate(meta.get_additional_ctx()):
+        for i, file in enumerate(self.get_meta_items(meta)):
             if not self.is_active(file):
                 if self._remove_item_from_index(meta, file):
                     metadata_changed = True
@@ -432,7 +471,7 @@ class Context:
         :return: Dict with attachment data
         """
         if self.is_verbose():
-            if meta.group:
+            if self.is_project_share_enabled(meta):
                 print("Uploading for project ID: {}".format(meta.group.id))
             else:
                 print("Uploading for meta ID: {}".format(meta.id))
@@ -440,7 +479,10 @@ class Context:
         # prepare idx dir
         name = os.path.basename(attachment.path)
         file_id = str(uuid.uuid4())
-        meta_path = self.get_dir(meta)
+        meta_path = self.get_dir(
+            meta,
+            project_scope=self.is_project_share_enabled(meta),
+        )
         file_idx_path = os.path.join(meta_path, file_id)
         index_path = os.path.join(meta_path, self.dir_index)
 
@@ -763,7 +805,7 @@ class Context:
         :param meta: CtxMeta instance
         :return: list of raw attachments
         """
-        return meta.get_additional_ctx()
+        return self.get_meta_items(meta)
 
     def get_display_all(self, meta: CtxMeta) -> list:
         """
@@ -776,7 +818,7 @@ class Context:
         :return: list of UI attachment dicts
         """
         result = []
-        for group in group_additional_ctx_items(meta.get_additional_ctx()):
+        for group in group_additional_ctx_items(self.get_meta_items(meta)):
             members = group["items"]
             if not members:
                 continue
@@ -826,15 +868,26 @@ class Context:
 
         return result
 
-    def get_dir(self, meta: CtxMeta) -> str:
+    def get_dir(
+            self,
+            meta: CtxMeta,
+            project_scope: Optional[bool] = None
+    ) -> str:
         """
-        Get directory for meta
+        Get directory for meta.
+
+        Project storage is used only when project-wide sharing is enabled. When
+        no explicit scope is supplied, the directory follows the attachment set
+        currently visible for the context.
 
         :param meta: CtxMeta instance
+        :param project_scope: force project/local storage scope
         :return: directory path
         """
+        if project_scope is None:
+            project_scope = self._use_project_scope(meta)
         meta_uuid = str(meta.uuid)
-        if meta.group:
+        if project_scope and meta.group is not None:
             meta_uuid = str(meta.group.uuid)
         return os.path.join(self.window.core.config.get_user_dir("ctx_idx"), meta_uuid)
 
@@ -903,19 +956,16 @@ class Context:
             item: Dict[str, Any],
             delete_files: bool = False
     ):
-        """
-        Delete attachment
-
-        :param meta: CtxMeta instance
-        :param item: Attachment item dict
-        :param delete_files: delete files
-        """
-        meta.remove_additional_ctx(item)
+        """Delete one attachment from its effective local/project scope."""
+        project_scope = self._item_project_scope(meta, item)
+        items = self._scope_items(meta, project_scope)
+        if item in items:
+            items.remove(item)
         self.window.core.ctx.save(meta.id)
         if delete_files:
-            self.delete_local(meta, item)
-        if len(meta.get_additional_ctx()) == 0:
-            self.delete_index(meta)
+            self.delete_local(meta, item, project_scope=project_scope)
+        if len(items) == 0:
+            self.delete_index(meta, project_scope=project_scope)
 
     def delete_display_item(
             self,
@@ -928,24 +978,17 @@ class Context:
         if not members:
             members = [item]
 
+        visible = self.get_meta_items(meta)
         for member in list(members):
-            if member in meta.get_additional_ctx():
+            if member in visible:
                 self.delete(meta, member, delete_files=delete_files)
 
     def delete_by_meta(self, meta: CtxMeta):
-        """
-        Delete all attachments for meta
-
-        :param meta: CtxMeta instance
-        """
+        """Delete attachment index for the currently effective scope."""
         self.delete_index(meta)
 
     def delete_by_meta_id(self, meta_id: int):
-        """
-        Delete all attachments for meta by id
-
-        :param meta_id: Meta id
-        """
+        """Delete attachment index for meta by id."""
         meta = self.window.core.ctx.get_meta_by_id(meta_id)
         if meta is not None:
             self.delete_index(meta)
@@ -955,28 +998,20 @@ class Context:
             meta: CtxMeta,
             delete_files: bool = False
     ):
-        """
-        Delete all attachments for meta
-
-        :param meta: CtxMeta instance
-        :param delete_files: delete files
-        """
-        meta.reset_additional_ctx()
+        """Delete all attachments in the currently effective scope."""
+        project_scope = self._use_project_scope(meta)
+        items = self._scope_items(meta, project_scope)
+        items.clear()
         self.window.core.ctx.save(meta.id)
         if delete_files:
-            self.delete_index(meta)
+            self.delete_index(meta, project_scope=project_scope)
 
     def reset_by_meta_id(
             self,
             meta_id: int,
             delete_files: bool = False
     ):
-        """
-        Delete all attachments for meta by id
-
-        :param meta_id: Meta id
-        :param delete_files: delete files
-        """
+        """Delete all attachments for meta by id."""
         meta = self.window.core.ctx.get_meta_by_id(meta_id)
         if meta is not None:
             self.reset_by_meta(meta, delete_files)
@@ -986,24 +1021,21 @@ class Context:
             meta: CtxMeta,
             delete_files: bool = False
     ):
-        """
-        Clear all attachments by ctx meta
-
-        :param meta: CtxMeta instance
-        :param delete_files: delete files
-        """
-        meta.reset_additional_ctx()
+        """Clear all attachments in the currently effective scope."""
+        project_scope = self._use_project_scope(meta)
+        items = self._scope_items(meta, project_scope)
+        items.clear()
         self.window.core.ctx.save(meta.id)
         if delete_files:
-            self.delete_index(meta)
+            self.delete_index(meta, project_scope=project_scope)
 
-    def delete_index(self, meta: CtxMeta):
-        """
-        Delete index by ctx meta
-
-        :param meta: CtxMeta instance
-        """
-        meta_path = self.get_dir(meta)
+    def delete_index(
+            self,
+            meta: CtxMeta,
+            project_scope: Optional[bool] = None
+    ):
+        """Delete attachment index/storage directory for the requested scope."""
+        meta_path = self.get_dir(meta, project_scope=project_scope)
         if os.path.exists(meta_path) and os.path.isdir(meta_path):
             shutil.rmtree(meta_path)
             if self.is_verbose():
@@ -1012,16 +1044,12 @@ class Context:
     def delete_local(
             self,
             meta: CtxMeta,
-            item: Dict[str, Any]
+            item: Dict[str, Any],
+            project_scope: Optional[bool] = None
     ):
-        """
-        Delete local attachment
-
-        :param meta: CtxMeta instance
-        :param item: additional context item
-        """
+        """Delete one attachment's local files/index records."""
         file_id = item["uuid"]
-        meta_path = self.get_dir(meta)
+        meta_path = self.get_dir(meta, project_scope=project_scope)
         index_path = os.path.join(meta_path, self.dir_index)
         file_idx_path = os.path.join(meta_path, file_id)
         if item["type"] == "local_file":
@@ -1032,7 +1060,6 @@ class Context:
                         print("Attachment deleted: {}".format(f))
                 os.rmdir(file_idx_path)
 
-        # delete from index
         if "doc_ids" in item and isinstance(item["doc_ids"], list):
             for doc_id in item["doc_ids"]:
                 self.window.core.idx.indexing.remove_attachment(index_path, doc_id)
