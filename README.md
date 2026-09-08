@@ -14,7 +14,7 @@ Release: **2.8.12** | build: **2026-09-08** | Python: **>=3.10, <3.14**
 
 ## Overview
 
-**PyGPT** is an **all-in-one desktop AI assistant** supporting models from `OpenAI` (`GPT-5`, `GPT-4`, `o1`, `o3`), `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `Perplexity / Sonar`, `DeepSeek`, and models available through `HuggingFace`, `LlamaIndex`, OpenAI-compatible APIs, and local `Ollama` installations such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, and `gpt-oss`.
+**PyGPT** is an **all-in-one desktop AI assistant** supporting models from `OpenAI` (`GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`), `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `Perplexity / Sonar`, `DeepSeek`, and models available through `HuggingFace`, `LlamaIndex`, OpenAI-compatible APIs, and local `Ollama` installations such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, and `gpt-oss`.
 
 It supports chat, **Agents v2 (beta)** and other agent workflows, completions, Chat with Files (via `LlamaIndex`), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google` and `Microsoft Bing`.
 
@@ -39,7 +39,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, **Agents v2 (beta)**, Agents and Autonomous Mode.
-- Supports multiple models like `OpenAI GPT-5`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
+- Supports multiple models like `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
 - Image generation via models like `gpt-image`, `Imagen`, `Gemini`, and `Nano Banana`.
@@ -427,7 +427,7 @@ Here, you can add or manage API keys for any supported provider.
 
 **+ Inline vision and image generation**
 
-In **PyGPT**, this mode lets you chat with models such as `GPT-5`, `GPT-4`, `o1`, `o3`, `Claude`, `Gemini`, `Grok`, `Perplexity (Sonar)`, `DeepSeek`, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible APIs, including `Responses API` and `ChatCompletions API` compatible endpoints where supported.
+In **PyGPT**, this mode lets you chat with models such as `GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`, `Claude`, `Gemini`, `Grok`, `Perplexity (Sonar)`, `DeepSeek`, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible APIs, including `Responses API` and `ChatCompletions API` compatible endpoints where supported.
 
 **Tip:** This mode uses the provider SDK directly. If there's no native client built into the app, models like Sonar or local Ollama models such as Qwen 3.6 and Gemma 4 are supported in Chat mode via LlamaIndex or OpenAI-compatible API endpoints. The app automatically switches to these endpoints when using non-OpenAI models. You can enable or disable the use of the native API SDK (per provider) in `Settings -> API Keys`. If the native SDK is disabled, the OpenAI SDK will be used via the compatible ChatCompletions API endpoint.
 
@@ -917,7 +917,7 @@ Give me a list of active experts.
 
 This mode allows for autonomous computer control.
 
-In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. The `Computer use` remote tool is used here: https://platform.openai.com/docs/guides/tools-computer-use, combined with the `Mouse and Keyboard` plugin.
+In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. PyGPT uses the selected provider's native `Computer use` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in `Mouse and Keyboard` integration.
 
 **Example of use:**
 
@@ -989,7 +989,7 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 **PyGPT** makes it simple for users to upload files and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Attachments` tab next to the text input area specifically for managing file uploads. 
 
-**Tip: Attachments uploaded in a project are available in all contexts in that project**.
+**Tip:** Project-wide attachment sharing is optional. Enable `Settings -> Files and attachments -> Make attachments available in the whole project` to make attachments added in one chat available to all chats in the same project. The option is disabled by default; when disabled, attachments remain available only in the chat where they were added.
 
 ![v2_file_input](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
@@ -1107,22 +1107,21 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has a preconfigured list of models (as of 2026-09-02):
+PyGPT has a preconfigured list of models (as of 2026-09-08):
 
 ```markdown
 - `claude-fable-5` (Anthropic)
+- `claude-fable-5-1` (Anthropic)
 - `claude-haiku-4-5` (Anthropic)
 - `claude-opus-4-5` (Anthropic)
 - `claude-opus-5` (Anthropic)
 - `claude-sonnet-4-5` (Anthropic)
 - `claude-sonnet-5` (Anthropic)
-- `computer-use-preview` (OpenAI)
+- `deepseek-v4-flash` (DeepSeek)
+- `deepseek-v4-pro` (DeepSeek)
 - `deep-research-max-preview-04-2026` (Google)
 - `deep-research-preview-04-2026` (Google)
 - `deep-research-pro-preview-12-2025` (Google)
-- `deepseek-r1:8b` (Ollama)
-- `deepseek-v4-flash` (DeepSeek)
-- `deepseek-v4-pro` (DeepSeek)
 - `gemini-2.5-computer-use-preview-10-2025` (Google)
 - `gemini-2.5-flash` (Google)
 - `gemini-2.5-flash-image` (Google)
@@ -1137,32 +1136,66 @@ PyGPT has a preconfigured list of models (as of 2026-09-02):
 - `gemini-3.5-flash` (Google)
 - `gemini-3.5-flash-lite` (Google)
 - `gemini-3.6-flash` (Google)
+- `gemini-3.7-flash` (Google)
+- `gemini-flash-latest` (Google)
+- `gemini-pro-latest` (Google)
+- `imagen-4.0-generate-001` (Google)
+- `nano-banana-pro-preview` (Google)
+- `veo-3.1-fast-generate-preview` (Google)
+- `veo-3.1-generate-preview` (Google)
+- `veo-3.1-lite-generate-preview` (Google)
+- `openai/gpt-oss-120b:novita` (HuggingFace Router)
+- `openai/gpt-oss-20b:novita` (HuggingFace Router)
+- `deepseek-r1:8b` (Ollama)
 - `gemma4:e4b` (Ollama)
+- `gpt-oss:120b` (Ollama)
+- `gpt-oss:20b` (Ollama)
+- `llama2-uncensored` (Ollama)
+- `llama3.1` (Ollama)
+- `llama4:scout` (Ollama)
+- `mistral-small3.2:latest` (Ollama)
+- `nemotron-3.5-lightning:30b` (Ollama)
+- `qwen3.5:9b` (Ollama)
+- `qwen3.6:27b` (Ollama)
+- `SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M` (Ollama)
 - `gpt-3.5-turbo` (OpenAI)
 - `gpt-3.5-turbo-instruct` (OpenAI)
 - `gpt-4` (OpenAI)
 - `gpt-4-turbo` (OpenAI)
-- `gpt-4.1` (OpenAI)
-- `gpt-4.1-mini` (OpenAI)
-- `gpt-4.1-nano` (OpenAI)
 - `gpt-4o` (OpenAI)
 - `gpt-4o-mini` (OpenAI)
-- `gpt-5` (OpenAI)
-- `gpt-5-mini` (OpenAI)
-- `gpt-5-nano` (OpenAI)
-- `gpt-5.2` (OpenAI)
-- `gpt-5.6-luna` (OpenAI)
-- `gpt-5.6-sol` (OpenAI)
-- `gpt-5.6-terra` (OpenAI)
+- `gpt-5.6-luna (high)` (OpenAI)
+- `gpt-5.6-luna (low)` (OpenAI)
+- `gpt-5.6-luna (medium)` (OpenAI)
+- `gpt-5.6-sol (high)` (OpenAI)
+- `gpt-5.6-sol (low)` (OpenAI)
+- `gpt-5.6-sol (medium)` (OpenAI)
+- `gpt-5.6-terra (high)` (OpenAI)
+- `gpt-5.6-terra (low)` (OpenAI)
+- `gpt-5.6-terra (medium)` (OpenAI)
+- `gpt-6-astra (high)` (OpenAI)
+- `gpt-6-astra (low)` (OpenAI)
+- `gpt-6-astra (medium)` (OpenAI)
 - `gpt-image-1` (OpenAI)
 - `gpt-image-1.5` (OpenAI)
 - `gpt-image-2` (OpenAI)
-- `gpt-oss:20b` (OpenAI - via Ollama and HuggingFace Router)
-- `gpt-oss:120b` (OpenAI - via Ollama and HuggingFace Router)
 - `gpt-realtime` (OpenAI, real-time)
 - `gpt-realtime-2.1` (OpenAI, real-time)
 - `gpt-realtime-2.1-mini` (OpenAI, real-time)
-- `grok-2-image-1212` (xAI)
+- `o1` (OpenAI)
+- `o1-pro` (OpenAI)
+- `o3` (OpenAI)
+- `o3-mini (high)` (OpenAI)
+- `o3-mini (low)` (OpenAI)
+- `o3-mini (medium)` (OpenAI)
+- `o3-pro` (OpenAI)
+- `o4-mini` (OpenAI)
+- `sora-2` (OpenAI)
+- `sora-2-pro` (OpenAI)
+- `sonar` (Perplexity)
+- `sonar-deep-research` (Perplexity)
+- `sonar-pro` (Perplexity)
+- `sonar-reasoning-pro` (Perplexity)
 - `grok-2-vision` (xAI)
 - `grok-3-mini` (xAI)
 - `grok-3-mini-fast` (xAI)
@@ -1173,33 +1206,6 @@ PyGPT has a preconfigured list of models (as of 2026-09-02):
 - `grok-imagine-image-quality-latest` (xAI)
 - `grok-imagine-video` (xAI)
 - `grok-imagine-video-1.5` (xAI)
-- `imagen-4.0-generate-001` (Google)
-- `llama2-uncensored` (Ollama)
-- `llama3.1:8b` (Ollama)
-- `llama4:scout` (Ollama)
-- `mistral-small3.2` (Ollama)
-- `nano-banana-pro-preview` (Google)
-- `nemotron-3.5-lightning:30b` (Ollama)
-- `o1` (OpenAI)
-- `o1-pro` (OpenAI)
-- `o3` (OpenAI)
-- `o3-deep-research` (OpenAI)
-- `o3-mini` (OpenAI)
-- `o3-pro` (OpenAI)
-- `o4-mini` (OpenAI)
-- `o4-mini-deep-research` (OpenAI)
-- `qwen3.6:27b` (Ollama)
-- `qwen3.5:9b` (Ollama)
-- `sonar` (Perplexity)
-- `sonar-deep-research` (Perplexity)
-- `sonar-pro` (Perplexity)
-- `sonar-reasoning-pro` (Perplexity)
-- `sora-2` (OpenAI)
-- `sora-2-pro` (OpenAI)
-- `SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M` (Ollama)
-- `veo-3.1-fast-generate-preview` (Google)
-- `veo-3.1-generate-preview` (Google)
-- `veo-3.1-lite-generate-preview` (Google)
 ```
 
 All models are specified in the configuration file `models.json`, which you can customize. 
@@ -2471,6 +2477,8 @@ The options below follow the current Settings UI metadata from `settings.json` a
 
 - `Store images, captures, and uploads in the data directory`: Enable to store everything in a single data directory. Default: False.
 
+- `Make attachments available in the whole project`: When enabled, attachments added to a chat in a project are available in all chats in that project. When disabled, attachments remain available only in the chat where they were added. Default: False.
+
 - `Allow images as additional context`: If enabled, images can be used as additional context. Default: False.
 
 - `Append attachment only once (mode: always)`: If enabled, the sent attachment will be appended once to the sending message, rather than appended every time to the input prompt as additional context. Force mode - affects all models. Default: False.
@@ -2534,6 +2542,8 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Web Search`: Enable Web Search remote tool - Responses API only. Default: True.
 
+- `Computer use`: Enable the Computer Use remote tool (supported models only). Default: False.
+
 - `Image generation`: Enable Image generation remote tool - Responses API only. Default: False.
 
 - `Code Interpreter`: Enable Code Interpreter remote tool - Responses API only. Default: False.
@@ -2549,6 +2559,10 @@ Remote tools are available only when supported by the selected provider/API mode
 *Google*
 
 - `Web Search`: Enable Web Search remote tool. Default: True.
+
+- `Computer use`: Enable Anthropic Computer Use (supported models only). Default: False.
+
+- `Computer use`: Enable Google Computer Use (supported models only). Default: False.
 
 - `Google Maps`: Enable Google Maps remote tool. Default: False.
 
@@ -2817,7 +2831,7 @@ Remote tools are available only when supported by the selected provider/API mode
 
 - `Use native API function calls`: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts will not be used. Autonomous agent mode only. Default: False.
 
-- `Use the Responses API in Agent mode`: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: False.
+- `Use the Responses API in Agent mode`: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: True.
 
 *Experts*
 

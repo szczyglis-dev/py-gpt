@@ -6,7 +6,7 @@ Chat
 
 **+ Inline Vision and Image generation**
 
-In **PyGPT**, this mode lets you chat with models such as ``GPT-5``, ``GPT-4``, ``o1``, ``o3``, ``Claude``, ``Gemini``, ``Grok``, ``Perplexity (Sonar)``, ``DeepSeek``, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible APIs, including ``Responses API`` and ``ChatCompletions API`` compatible endpoints where supported.
+In **PyGPT**, this mode lets you chat with models such as ``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``o1``, ``o3``, ``Claude``, ``Gemini``, ``Grok``, ``Perplexity (Sonar)``, ``DeepSeek``, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible APIs, including ``Responses API`` and ``ChatCompletions API`` compatible endpoints where supported.
 
 
 .. note::
@@ -536,7 +536,7 @@ This mode allows for autonomous computer control.
 
 In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. 
 
-The ``Computer use`` remote tool is used here: https://platform.openai.com/docs/guides/tools-computer-use, combined with the ``Mouse and Keyboard`` plugin.
+PyGPT uses the selected provider's native ``Computer use`` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in ``Mouse and Keyboard`` integration.
 
 **Example of use:**
 

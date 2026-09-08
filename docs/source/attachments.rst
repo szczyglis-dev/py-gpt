@@ -18,7 +18,7 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 
 .. tip::
-   Attachments uploaded in a project are available in all contexts in that project.
+   Project-wide attachment sharing is optional. Enable ``Settings -> Files and attachments -> Make attachments available in the whole project`` to make attachments added in one chat available to all chats in the same project. The option is disabled by default; when disabled, attachments remain available only in the chat where they were added.
 
 .. image:: images/v2_file_input.png
    :width: 800

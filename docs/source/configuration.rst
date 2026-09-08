@@ -189,6 +189,8 @@ The options below follow the current Settings UI metadata from ``settings.json``
 
 * ``Store images, captures, and uploads in the data directory``: Enable to store everything in a single data directory. Default: False.
 
+* ``Make attachments available in the whole project``: When enabled, attachments added to a chat in a project are available in all chats in that project. When disabled, attachments remain available only in the chat where they were added. Default: False.
+
 * ``Allow images as additional context``: If enabled, images can be used as additional context. Default: False.
 
 * ``Append attachment only once (mode: always)``: If enabled, the sent attachment will be appended once to the sending message, rather than appended every time to the input prompt as additional context. Force mode - affects all models. Default: False.
@@ -252,6 +254,8 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Web Search``: Enable Web Search remote tool - Responses API only. Default: True.
 
+* ``Computer use``: Enable the Computer Use remote tool (supported models only). Default: False.
+
 * ``Image generation``: Enable Image generation remote tool - Responses API only. Default: False.
 
 * ``Code Interpreter``: Enable Code Interpreter remote tool - Responses API only. Default: False.
@@ -268,6 +272,8 @@ Remote tools are available only when supported by the selected provider/API mode
 
 * ``Web Search``: Enable Web Search remote tool. Default: True.
 
+* ``Computer use``: Enable Google Computer Use (supported models only). Default: False.
+
 * ``Google Maps``: Enable Google Maps remote tool. Default: False.
 
 * ``Code Interpreter``: Enable Code Interpreter remote tool. Default: False.
@@ -281,6 +287,8 @@ Remote tools are available only when supported by the selected provider/API mode
 *Anthropic*
 
 * ``Web Search``: Enable Web Search remote tool. Default: True.
+
+* ``Computer use``: Enable Anthropic Computer Use (supported models only). Default: False.
 
 * ``Web Fetch``: Enable Web Fetch remote tool. Default: False.
 
@@ -537,7 +545,7 @@ See :doc:`indexing` for the complete description of global context indexing, iso
 
 * ``Use native API function calls``: If enabled, the application will use native API function calls instead of the internal pygpt format and the command prompts will not be used. Autonomous agent mode only. Default: False.
 
-* ``Use the Responses API in Agent mode``: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: False.
+* ``Use the Responses API in Agent mode``: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: True.
 
 *Experts*
 
