@@ -16,6 +16,7 @@ import html
 class Helpers:
 
     _RE_HTML_ANGLE_OR_MATH = re.compile(r'(\\\[.*?\\\])|(<)|(>)', flags=re.DOTALL)
+    _RE_SANDBOX_TOKEN = re.compile(r'\(sandbox:([^)]+)\)', flags=re.IGNORECASE)
     _RE_WORKDIR_TOKEN = re.compile(r'\(%workdir%([^)]+)\)')
     _RE_APPDIR_TOKEN = re.compile(r'\(%appdir%([^)]+)\)')
 
@@ -272,6 +273,13 @@ class Helpers:
         s = self.replace_execute_tags(s)
 
         # replace local path tokens with valid, encoded file URLs
+        if "sandbox:" in s.lower():
+            fs = self.window.core.filesystem
+            s = self._RE_SANDBOX_TOKEN.sub(
+                lambda m: f'({fs.get_local_url("sandbox:" + m.group(1))})',
+                s,
+            )
+
         if "%workdir%" in s:
             fs = self.window.core.filesystem
             s = self._RE_WORKDIR_TOKEN.sub(

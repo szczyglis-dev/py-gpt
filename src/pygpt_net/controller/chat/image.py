@@ -301,7 +301,10 @@ class Image:
             "request": {
                 "cmd": "image",
             },
-            "result": "OK. Generated {} image(s).".format(len(paths)),
+            "result": (
+                "OK. Generated {} image(s). The generated image is attached to the chat automatically; "
+                "do not include sandbox:, file://, or local filesystem paths in the user-facing reply."
+            ).format(len(paths)),
             "paths": list(local_urls),
             "meta": {
                 "images_count": len(paths),

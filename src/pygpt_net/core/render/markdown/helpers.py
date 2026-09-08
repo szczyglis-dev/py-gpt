@@ -48,6 +48,18 @@ class Helpers:
         # replace cmd tags
         text = self.replace_code_tags(text)
 
+        # Resolve model-facing sandbox links against the user's current
+        # workdir instead of treating /... as a host-root absolute path.
+        try:
+            text = re.sub(
+                r'\(sandbox:([^)]+)\)',
+                lambda m: f'({self.window.core.filesystem.get_local_url("sandbox:" + m.group(1))})',
+                text,
+                flags=re.IGNORECASE,
+            )
+        except Exception:
+            pass
+
         # replace %workdir% with a valid local file URL
         # (QUrl.fromLocalFile converts Windows backslashes to URL slashes)
         try:

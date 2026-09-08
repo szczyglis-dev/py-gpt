@@ -82,7 +82,7 @@ class Output:
         nodes['icon.audio.input'].clicked.connect(lambda: ctrl.plugins.toggle('audio_input'))
 
         nodes['icon.interpreter'] = IconLabel(":/icons/code.svg", window=self.window)
-        nodes['icon.interpreter'].setToolTip("Python Code Interpreter")
+        nodes['icon.interpreter'].setToolTip("Python/OS")
         nodes['icon.interpreter'].clicked.connect(lambda: tools.get("interpreter").toggle())
 
         nodes['icon.indexer'] = IconLabel(":/icons/db.svg", window=self.window)

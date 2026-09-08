@@ -109,6 +109,7 @@ class HtmlOutput(QWebEngineView):
         self.loaded = False  # flag to check if loaded
         self.is_dialog = False
         self.nodes = []  # code blocks
+        self._scroll_on_first_show = True
 
         # OpenGL widgets
         self._glwidget = None
@@ -405,6 +406,21 @@ class HtmlOutput(QWebEngineView):
             return
         self.page().runJavaScript(
             f"scrollToBottom();")
+
+    def showEvent(self, event):
+        """Ensure restored interpreter output starts at the newest entry."""
+        super(HtmlOutput, self).showEvent(event)
+        if not self._scroll_on_first_show:
+            return
+        if not self.nodes and not self.plain:
+            return
+
+        # A tool tab can be restored while it is still hidden during startup.
+        # Scrolling at loadFinished time then has no reliable layout height in
+        # QWebEngineView. Repeat it once when the view actually becomes visible.
+        self._scroll_on_first_show = False
+        QTimer.singleShot(0, self.scroll_to_bottom)
+        QTimer.singleShot(100, self.scroll_to_bottom)
 
     def insert_output(self, node: CodeBlock):
         """

@@ -160,6 +160,14 @@ class Filesystem:
 
         path = unquote(path)
 
+        # ``sandbox:/...`` is a model-facing virtual path used by some tool
+        # runtimes. In the desktop app it represents a path relative to the
+        # current PyGPT workdir, not an absolute path from the host filesystem
+        # root. Normalize it before file:// handling so renderers can resolve
+        # model-emitted sandbox links consistently.
+        if path.lower().startswith('sandbox:'):
+            path = path[len('sandbox:'):].lstrip('/\\')
+
         if path.startswith('file://'):
             # Legacy Windows links could contain backslashes inside file:///.
             # Normalize them before asking Qt to convert the URL to a path.

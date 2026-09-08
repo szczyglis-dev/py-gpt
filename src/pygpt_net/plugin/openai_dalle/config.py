@@ -31,13 +31,16 @@ class Config(BaseConfig):
             "pass that image path in reference_image. If the user explicitly requests image dimensions, pass them "
             "in resolution; it overrides the configured image resolution for that tool call when supported by the "
             "selected image model/provider. "
+            "Generated images are attached to the chat automatically. Do not include or invent sandbox:, file://, "
+            "or local filesystem image links/paths in the user-facing reply. "
             "After the image is generated, continue the conversation normally."
         )
         prompt_func = (
             "Generate an image requested by the user. Put a clear, detailed English image-generation prompt "
             "in the query parameter and preserve the user's intent. Optionally pass resolution to override the "
             "configured image size for this call. Optionally pass reference_image when editing/remixing an existing "
-            "image; use the exact path supplied in the runtime image context."
+            "image; use the exact path supplied in the runtime image context. The generated image is attached to "
+            "the chat automatically; do not expose sandbox:, file://, or local filesystem paths to the user."
         )
         plugin.add_option(
             "model",
