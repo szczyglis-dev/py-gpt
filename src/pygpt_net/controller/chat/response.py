@@ -708,13 +708,16 @@ class Response:
                     final_part.extra["agents_v2_orchestrator"] = True
                     final_part.extra["agents_v2_final"] = True
             if final_part is not None:
-                # AGENT_V2_APPEND normally persisted this already. Only fill it
-                # here when a queued final chunk did not reach the UI thread.
-                if not str(final_part.output or "").strip():
-                    final_part.set_output(str(final_answer))
-                core_ctx.update_part(ctx, final_part, sync_item=True)
-            elif not str(ctx.output or "").strip():
-                ctx.output = str(final_answer)
+                # final_answer is authoritative. AGENT_V2_APPEND is intentionally
+                # throttled/queued, so the partial may contain only a prefix when
+                # AGENT_V2_END reaches the UI thread. Always replace the streamed
+                # draft with the complete final value before committing it.
+                final_part.set_output(str(final_answer))
+                core_ctx.update_part(ctx, final_part, sync_item=False)
+            # Keep ctx_item.output as the compact user-facing final response. The
+            # complete orchestrator trace remains in ctx_item_partial and is
+            # reconstructed only by AgentsV2Memory for orchestrator history.
+            ctx.output = str(final_answer)
         else:
             part = self._agent_v2_parts.get(key)
             if part is not None:

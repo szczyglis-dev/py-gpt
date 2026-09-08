@@ -270,8 +270,10 @@ class CtxItem:
 
     @property
     def final_output(self) -> Optional[str]:
-        """Final output, composed from partial items when they are available."""
-        output = self.compose_output() if self.parts else self.output
+        """Return model-facing output, using the compact Agents v2 final when complete."""
+        output = self.get_agents_v2_response_output()
+        if output is None:
+            output = self.compose_output() if self.parts else self.output
         if output is None:
             return None
         if self.hidden_output:
@@ -300,7 +302,19 @@ class CtxItem:
         return "".join(chunks)
 
     def sync_output_from_parts(self) -> Optional[str]:
-        """Refresh the legacy/cache output field from parts and return it."""
+        """Refresh the parent output cache from durable partials.
+
+        A completed Agents v2 turn keeps the full orchestrator trace in partials,
+        but the parent ``ctx_item.output`` contains only the authoritative final
+        response. Unfinished/interrupted turns still compose all partials.
+        """
+        extra = self.extra if isinstance(self.extra, dict) else {}
+        if str(self.mode or "") == "agent_v2" and extra.get("response_final") is True:
+            final_output = self.get_agents_v2_final_output()
+            if final_output is not None and str(final_output).strip():
+                self.output = final_output
+                return self.output
+
         self.output = self.compose_output()
         return self.output
 
@@ -369,6 +383,24 @@ class CtxItem:
                 return getattr(part, "output", None)
         return None
 
+    def get_agents_v2_response_output(self) -> Optional[str]:
+        """Return the completed user-facing Agents v2 final response.
+
+        Never trust ``ctx_item.output`` to identify the final response: older
+        records may contain the entire composed partial trace there. The durable
+        partial explicitly marked ``agents_v2_final`` is the source of truth.
+        If that final does not exist, callers must fall back to the full partials.
+        """
+        if str(getattr(self, "mode", "") or "") != "agent_v2":
+            return None
+        extra = self.extra if isinstance(getattr(self, "extra", None), dict) else {}
+        if extra.get("response_final") is not True:
+            return None
+        final = self.get_agents_v2_final_output()
+        if final is not None and str(final).strip():
+            return final
+        return None
+
     def get_display_output(self, output: Optional[str] = None) -> Optional[str]:
         """
         Return output prepared for UI rendering.
@@ -385,11 +417,15 @@ class CtxItem:
         :param output: Optional already-selected output (e.g. final agent output)
         :return: UI output text or None
         """
-        final_output = self.get_agents_v2_final_output()
+        final_output = self.get_agents_v2_response_output()
         if final_output is not None:
             output = final_output
-        elif output is None:
-            output = self.compose_output() if self.parts else self.output
+        else:
+            streamed_final = self.get_agents_v2_final_output()
+            if streamed_final is not None:
+                output = streamed_final
+            elif output is None:
+                output = self.compose_output() if self.parts else self.output
 
         # A completed response takes precedence over persisted reasoning.  The
         # reasoning remains stored in ctx.extra for metadata/history purposes,

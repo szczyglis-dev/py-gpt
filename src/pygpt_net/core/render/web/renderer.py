@@ -841,17 +841,22 @@ class Renderer(BaseRenderer):
                 output = ctx.extra["output"]  # final output only
 
         # Agents v2 persists working orchestrator prose for future orchestrator
-        # memory, but completed chat rendering is final-answer-only. This override
-        # is independent of the reasoning visibility setting below.
-        final_agent_output = ctx.get_agents_v2_final_output()
+        # memory, but completed chat rendering is final-answer-only. Prefer the
+        # compact ctx_item.output after completion; during live final streaming
+        # fall back to the current final partial.
+        final_agent_output = ctx.get_agents_v2_response_output()
         if final_agent_output is not None:
             output = final_agent_output
+        else:
+            streamed_final = ctx.get_agents_v2_final_output()
+            if streamed_final is not None:
+                output = streamed_final
         # Reasoning/thinking returned by providers is persisted separately from
         # ctx.output so it does not contaminate conversation history. Persisted
         # reasoning is shown only as a fallback when the regular output is empty
         # and real-time reasoning display is enabled. The same setting therefore
         # acts as a master UI switch for <think> blocks without deleting metadata.
-        elif self.window.core.config.get("ctx.reasoning.show_realtime", True):
+        if final_agent_output is None and self.window.core.config.get("ctx.reasoning.show_realtime", True):
             output = ctx.get_display_output(output or "")
         return str(output).strip() if output else None
 
@@ -3177,13 +3182,18 @@ class Renderer(BaseRenderer):
             ctx: CtxItem,
             include_workflow_statuses: bool = True,
             include_tool_calls: bool = True,
+            final_only_text: bool = False,
+            final_output_text: Optional[str] = None,
     ) -> list:
         """Build one chronological timeline for a durable assistant turn.
 
-        Text is always reconstructed from persisted data. Structured/legacy tool
-        calls are included only when ``include_tool_calls`` is true. Runtime-only
-        workflow statuses are included only when requested by the history/reload
-        policy. Footer/actions are intentionally rendered after the whole timeline.
+        Structured/legacy tool calls are included only when ``include_tool_calls``
+        is true. Runtime-only workflow statuses are included only when requested by
+        the history/reload policy. For a completed Agents v2 history rebuild,
+        ``final_only_text`` suppresses working orchestrator prose while preserving
+        the optional structured tool chain; the authoritative final response is
+        rendered once at its final partial (or at the tail for legacy rows).
+        Footer/actions are intentionally rendered after the whole timeline.
         """
         workflow_statuses = sorted(
             self._workflow_status_records(ctx) if include_workflow_statuses else [],
@@ -3314,12 +3324,22 @@ class Renderer(BaseRenderer):
                     continue
                 append_status(record)
 
+        final_text_emitted = False
         for part in parts:
             part_uuid = str(getattr(part, "uuid", "") or "")
             append_part_statuses(before_by_part.get(part_uuid, []), part)
 
-            raw_text = str(getattr(part, "output", None) or "")
             part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            source_text = str(getattr(part, "output", None) or "")
+            if final_only_text:
+                if part_extra.get("agents_v2_final") is True:
+                    raw_text = str(final_output_text if final_output_text is not None else source_text)
+                    if raw_text.strip():
+                        final_text_emitted = True
+                else:
+                    raw_text = ""
+            else:
+                raw_text = source_text
             try:
                 text_after_round = int(part_extra.get("text_after_tool_round", 0) or 0)
             except (TypeError, ValueError):
@@ -3361,7 +3381,7 @@ class Renderer(BaseRenderer):
                 # Strip persisted compatibility tags even when tool-chain display
                 # is disabled, otherwise old Agents v2 turns could leak raw
                 # <tool> payloads into the assistant text.
-                legacy_calls = self.helpers.extract_tool_calls(raw_text)
+                legacy_calls = self.helpers.extract_tool_calls(source_text)
                 visible_text = self.helpers.strip_tool_calls(raw_text) if legacy_calls else raw_text
                 if visible_text:
                     append_segment(part, text=visible_text)
@@ -3372,6 +3392,13 @@ class Renderer(BaseRenderer):
 
         for record in tail_statuses:
             append_status(record)
+
+        if final_only_text and not final_text_emitted and final_output_text:
+            # Legacy completed rows may have only the compact parent final and no
+            # explicitly marked final partial. Keep any requested tool chain, then
+            # place that authoritative response once at the end of the timeline.
+            anchor_part = parts[-1] if parts else None
+            append_segment(anchor_part, text=str(final_output_text))
 
         # Consecutive tool-only segments inside one durable ctx/partial timeline
         # represent the same visual tool-chain group that used to span separate
@@ -3461,10 +3488,15 @@ class Renderer(BaseRenderer):
             else self._should_replay_workflow_statuses(ctx, is_latest_ctx)
         )
         show_tool_chain = self._show_tool_chain_for_ctx(ctx)
+        completed_agents_v2_output = None
+        if rebuild and str(getattr(ctx, "mode", "") or "") == MODE_AGENT_V2:
+            completed_agents_v2_output = ctx.get_agents_v2_response_output()
         partial_timeline = self._build_partial_timeline(
             ctx,
             include_workflow_statuses=replay_statuses,
             include_tool_calls=show_tool_chain,
+            final_only_text=completed_agents_v2_output is not None,
+            final_output_text=completed_agents_v2_output,
         )
         part_tool_calls = [] if partial_timeline or not show_tool_chain else self.helpers.extract_extra_tool_calls(
             ctx.get_part_tool_calls(visible_only=True)
