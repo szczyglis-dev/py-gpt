@@ -84,7 +84,7 @@ class Runner:
         llm = runtime.get_llm(stream=True)
         orchestrator = runtime.build_agent(
             name="Orchestrator",
-            description="PyGPT Agents v2 main orchestrator",
+            description="Main orchestrator agent",
             llm=llm,
             system_prompt=runtime.orchestrator_prompt(),
             tools=runtime.orchestrator_tools(),

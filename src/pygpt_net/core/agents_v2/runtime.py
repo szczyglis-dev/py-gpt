@@ -1096,7 +1096,7 @@ class AgentsV2Runtime:
             f"<workflow_language>\n{language}\n</workflow_language>",
             f"<worker_identity>\nname={name}\nrole_instruction={instruction}\n</worker_identity>",
             (
-                f"<pygpt_system_prompt>\n{bridge_prompt}\n</pygpt_system_prompt>"
+                f"<additional_system_prompt>\n{bridge_prompt}\n</additional_system_prompt>"
                 if bridge_prompt else ""
             ),
             runtime_block,
@@ -1679,7 +1679,7 @@ class AgentsV2Runtime:
             + "\n\n<runtime_capabilities>\n" + "\n".join(capabilities) + "\n</runtime_capabilities>"
             + runtime_environment
             + rag_context
-            + "\n\n<pygpt_system_prompt>\n" + additional + "\n</pygpt_system_prompt>"
+            + "\n\n<additional_system_prompt>\n" + additional + "\n</additional_system_prompt>"
         )
         return prompt
 
