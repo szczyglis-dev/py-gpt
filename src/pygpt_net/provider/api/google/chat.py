@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 14:20:00                  #
+# Updated Date: 2026.09.09 00:30:00                  #
 # ================================================== #
 
+import base64
 import os
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -630,7 +631,12 @@ class Chat:
         """
         Build FunctionResponse contents for the immediate next turn after executing
         Computer Use function calls. It reconstructs the last user -> model(functionCall) turn
-        and returns [user_content, model_function_call_content, tool_function_response_content].
+        and returns [user_content, model_function_call_content, user_function_response_content].
+
+        Gemini generate_content accepts only user/model conversation roles here. Computer Use
+        FunctionResponse parts therefore have to be sent in a ``role=user`` Content, not in a
+        synthetic ``role=tool`` Content. The provider function-call id and thought signature are
+        also echoed when available; Gemini 3 validates both during multi-step tool use.
         """
         if not self.window.core.config.get('use_context') or not history:
             return None
@@ -661,10 +667,13 @@ class Chat:
         model_parts = self._rehydrate_model_parts(raw_parts)
         if not model_parts:
             model_parts = self._rehydrate_from_tool_calls(getattr(last_item, "tool_calls", []))
-        # append also text part if not empty
+        # When the raw provider parts came from a non-stream response they already contain any
+        # visible text. Streaming captures those parts too, but retain this fallback for contexts
+        # created by older builds where only the functionCall was stored.
         if getattr(last_item, "final_output", None):
             output_text = str(last_item.final_output).strip()
-            if output_text:
+            has_text_part = any(bool(getattr(p, "text", None)) for p in model_parts)
+            if output_text and not has_text_part:
                 model_parts.append(Part.from_text(text=output_text))
 
         model_fc_content = Content(role="model", parts=model_parts)
@@ -676,10 +685,10 @@ class Chat:
         for p in model_parts:
             if getattr(p, "function_call", None):
                 fn = p.function_call
-                fr = Part.from_function_response(
-                    name=fn.name,
+                fr = self._build_function_response_part(
+                    fn=fn,
                     response=self._minimal_tool_response(last_item, response_index),
-                    parts=[screenshot_part] if screenshot_part else None
+                    screenshot_part=screenshot_part,
                 )
                 fr_parts.append(fr)
                 response_index += 1
@@ -687,7 +696,9 @@ class Chat:
         if not fr_parts:
             return None
 
-        tool_content = Content(role="tool", parts=fr_parts)
+        # Computer Use continuation is a user turn containing function_response parts.
+        # ``role=tool`` is rejected by Gemini generate_content with INVALID_ARGUMENT.
+        tool_content = Content(role="user", parts=fr_parts)
 
         return [user_content, model_fc_content, tool_content]
 
@@ -709,25 +720,84 @@ class Chat:
             parts.append(Part.from_function_call(name=name, args=args))
         return parts
 
+    @staticmethod
+    def _serialize_thought_signature(value: Any) -> Any:
+        """Make the opaque SDK thought signature safe for ctx.extra JSON persistence."""
+        if value is None:
+            return None
+        if isinstance(value, (bytes, bytearray)):
+            return {
+                "__pygpt_type__": "bytes",
+                "encoding": "base64",
+                "data": base64.b64encode(bytes(value)).decode("ascii"),
+            }
+        # Older google-genai builds may expose a JSON-safe scalar already.
+        if isinstance(value, (str, int, float, bool)):
+            return value
+        return str(value)
+
+    @classmethod
+    def _json_safe_value(cls, value: Any) -> Any:
+        """Convert SDK mapping/model values used in ctx.extra to plain JSON-safe values."""
+        if value is None or isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, (bytes, bytearray)):
+            return base64.b64encode(bytes(value)).decode("ascii")
+        try:
+            if hasattr(value, "to_json_dict"):
+                return cls._json_safe_value(value.to_json_dict())
+            if hasattr(value, "model_dump"):
+                return cls._json_safe_value(value.model_dump())
+            if hasattr(value, "to_dict"):
+                return cls._json_safe_value(value.to_dict())
+        except Exception:
+            pass
+        if isinstance(value, dict) or hasattr(value, "items"):
+            try:
+                return {str(k): cls._json_safe_value(v) for k, v in value.items()}
+            except Exception:
+                pass
+        if isinstance(value, (list, tuple, set)):
+            return [cls._json_safe_value(v) for v in value]
+        return str(value)
+
+    @staticmethod
+    def _deserialize_thought_signature(value: Any) -> Any:
+        """Restore a thought signature serialized by _serialize_thought_signature()."""
+        if isinstance(value, dict) and value.get("__pygpt_type__") == "bytes":
+            try:
+                return base64.b64decode(value.get("data", ""))
+            except Exception:
+                return None
+        return value
+
     def _dump_model_parts(self, parts: List[Part]) -> List[dict]:
         """
         Dump model parts into a JSON-serializable structure, preserving thought_signature.
         """
         out: List[dict] = []
         for p in parts or []:
-            ts = getattr(p, "thought_signature", None)
+            ts = self._serialize_thought_signature(getattr(p, "thought_signature", None))
             if getattr(p, "function_call", None):
                 fn = p.function_call
                 name = getattr(fn, "name", "") or ""
-                args = getattr(fn, "args", {}) or {}
+                args = self._json_safe_value(getattr(fn, "args", {}) or {})
                 out.append({
                     "type": "function_call",
+                    "id": getattr(fn, "id", None) or "",
                     "name": name,
                     "args": args,
                     "thought_signature": ts,
                 })
             elif getattr(p, "text", None):
-                out.append({"type": "text", "text": str(p.text)})
+                item = {
+                    "type": "text",
+                    "text": str(p.text),
+                    "thought": bool(getattr(p, "thought", False)),
+                }
+                if ts is not None:
+                    item["thought_signature"] = ts
+                out.append(item)
         return out
 
     def _rehydrate_model_parts(self, raw_parts: List[dict]) -> List[Part]:
@@ -740,13 +810,60 @@ class Chat:
             if t == "function_call":
                 name = it.get("name")
                 args = it.get("args") or {}
-                ts = it.get("thought_signature")
+                call_id = it.get("id") or None
+                ts = self._deserialize_thought_signature(it.get("thought_signature"))
                 if name:
-                    parts.append(Part(function_call=gtypes.FunctionCall(name=name, args=args),
-                                      thought_signature=ts))
+                    try:
+                        fn = gtypes.FunctionCall(id=call_id, name=name, args=args) if call_id \
+                            else gtypes.FunctionCall(name=name, args=args)
+                    except Exception:
+                        # Compatibility with older google-genai releases without FunctionCall.id.
+                        fn = gtypes.FunctionCall(name=name, args=args)
+                    parts.append(Part(function_call=fn, thought_signature=ts))
             elif t == "text":
-                parts.append(Part.from_text(text=str(it.get("text", ""))))
+                text = str(it.get("text", ""))
+                thought = bool(it.get("thought", False))
+                ts = self._deserialize_thought_signature(it.get("thought_signature"))
+                if thought or ts is not None:
+                    try:
+                        parts.append(Part(text=text, thought=thought, thought_signature=ts))
+                    except Exception:
+                        parts.append(Part.from_text(text=text))
+                else:
+                    parts.append(Part.from_text(text=text))
         return parts
+
+    def _build_function_response_part(
+            self,
+            fn: gtypes.FunctionCall,
+            response: Dict[str, Any],
+            screenshot_part: Optional[gtypes.FunctionResponsePart] = None,
+    ) -> Part:
+        """
+        Build a Computer Use FunctionResponse and echo FunctionCall.id when supported.
+
+        Part.from_function_response() does not expose the response id in all SDK versions,
+        therefore the FunctionResponse object is created explicitly first.
+        """
+        kwargs: Dict[str, Any] = {
+            "name": getattr(fn, "name", "") or "",
+            "response": response,
+        }
+        if screenshot_part is not None:
+            kwargs["parts"] = [screenshot_part]
+
+        call_id = getattr(fn, "id", None) or None
+        try:
+            fr = gtypes.FunctionResponse(id=call_id, **kwargs) if call_id \
+                else gtypes.FunctionResponse(**kwargs)
+            return Part(function_response=fr)
+        except Exception:
+            # Compatibility fallback for older google-genai releases.
+            return Part.from_function_response(
+                name=kwargs["name"],
+                response=response,
+                parts=kwargs.get("parts"),
+            )
 
     def _screenshot_function_response_part(
             self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 14:20:00                  #
+# Updated Date: 2026.09.09 00:30:00                  #
 # ================================================== #
 
 import base64
@@ -60,6 +60,10 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
         fc_list = []
 
     new_calls = []
+    computer_use_active = bool(
+        isinstance(getattr(ctx, "extra", None), dict)
+        and ctx.extra.get("google_computer_use_active")
+    )
 
     def _to_plain_dict(obj: Any):
         """Best-effort conversion of SDK objects to plain dict/list."""
@@ -134,6 +138,61 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                 if p not in ctx.images:
                     ctx.images.append(p)
 
+    # Preserve Gemini's provider-facing model parts for the immediate Computer Use
+    # FunctionResponse turn. In particular, Gemini 3 requires the opaque
+    # thought_signature to be returned unchanged with the functionCall. Streaming
+    # responses must capture it here because unpack_response() is not used.
+    if computer_use_active:
+        try:
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            stored_parts = ctx.extra.setdefault("prev_model_parts", [])
+            if not isinstance(stored_parts, list):
+                stored_parts = []
+                ctx.extra["prev_model_parts"] = stored_parts
+
+            for cand in getattr(chunk, "candidates", None) or []:
+                parts = getattr(getattr(cand, "content", None), "parts", None) or []
+                dumped = core.api.google.chat._dump_model_parts(parts)
+                for item in dumped:
+                    if not isinstance(item, dict):
+                        continue
+                    if item.get("type") == "function_call":
+                        # SDK streams may expose the same completed call through more than
+                        # one aggregate chunk. Keep one protocol part per provider id/call.
+                        item_id = str(item.get("id") or "")
+                        fingerprint = (
+                            item_id,
+                            str(item.get("name") or ""),
+                            json.dumps(item.get("args") or {}, sort_keys=True,
+                                       ensure_ascii=False, default=str),
+                        )
+                        duplicate = False
+                        for old in stored_parts:
+                            if not isinstance(old, dict) or old.get("type") != "function_call":
+                                continue
+                            old_fp = (
+                                str(old.get("id") or ""),
+                                str(old.get("name") or ""),
+                                json.dumps(old.get("args") or {}, sort_keys=True,
+                                           ensure_ascii=False, default=str),
+                            )
+                            if old_fp == fingerprint:
+                                duplicate = True
+                                # Prefer the later copy if it carries a thought signature.
+                                if item.get("thought_signature") is not None:
+                                    old.update(item)
+                                break
+                        if not duplicate:
+                            stored_parts.append(item)
+                    elif item.get("type") == "text":
+                        # Text parts are deltas in generate_content_stream; preserving them
+                        # in arrival order recreates candidate.content without mixing them
+                        # into the local tool call list.
+                        stored_parts.append(item)
+        except Exception:
+            pass
+
     # GenerateContent thought summaries arrive as ordinary text parts carrying
     # part.thought=True. Parse parts directly so they are not mixed into the
     # final answer exposed by chunk.text.
@@ -155,60 +214,64 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
     except Exception:
         pass
 
-    # Collect function calls from Responses API style stream
-    if fc_list:
-        for fc in fc_list:
-            name = getattr(fc, "name", "") or ""
-            args_obj = getattr(fc, "args", {}) or {}
-            args_dict = _to_plain_dict(args_obj) or {}
-            new_calls.append({
-                "id": getattr(fc, "id", "") or "",
-                "type": "function",
-                "function": {
-                    "name": name,
-                    "arguments": json.dumps(args_dict, ensure_ascii=False),
-                }
-            })
-    else:
-        try:
-            cands = getattr(chunk, "candidates", None) or []
-            for cand in cands:
-                content = getattr(cand, "content", None)
-                parts = getattr(content, "parts", None) or []
-                for p in parts:
-                    # Download Files API file_data parts if present
-                    try:
-                        fdata = getattr(p, "file_data", None)
-                        if fdata:
-                            uri = getattr(fdata, "file_uri", None) or getattr(fdata, "uri", None)
-                            name = getattr(fdata, "file_name", None) or getattr(fdata, "display_name", None)
-                            if uri and isinstance(uri, str):
-                                if not hasattr(state, "google_downloaded_uris"):
-                                    state.google_downloaded_uris = set()
-                                if uri not in state.google_downloaded_uris:
-                                    save = _try_download_uri(uri, name)
-                                    if save:
-                                        _append_downloaded([save])
-                                        state.google_downloaded_uris.add(uri)
-                    except Exception:
-                        pass
+    # Collect ordinary Google function calls. Computer Use is intentionally excluded:
+    # its raw Gemini name (e.g. ``hotkey``) must not be added here and then added a
+    # second time by computer.handle_stream_chunk() as the mapped local command
+    # (e.g. ``keyboard_keys``). That double path caused every action to run twice.
+    if not computer_use_active:
+        if fc_list:
+            for fc in fc_list:
+                name = getattr(fc, "name", "") or ""
+                args_obj = getattr(fc, "args", {}) or {}
+                args_dict = _to_plain_dict(args_obj) or {}
+                new_calls.append({
+                    "id": getattr(fc, "id", "") or "",
+                    "type": "function",
+                    "function": {
+                        "name": name,
+                        "arguments": json.dumps(args_dict, ensure_ascii=False),
+                    }
+                })
+        else:
+            try:
+                cands = getattr(chunk, "candidates", None) or []
+                for cand in cands:
+                    content = getattr(cand, "content", None)
+                    parts = getattr(content, "parts", None) or []
+                    for p in parts:
+                        # Download Files API file_data parts if present
+                        try:
+                            fdata = getattr(p, "file_data", None)
+                            if fdata:
+                                uri = getattr(fdata, "file_uri", None) or getattr(fdata, "uri", None)
+                                name = getattr(fdata, "file_name", None) or getattr(fdata, "display_name", None)
+                                if uri and isinstance(uri, str):
+                                    if not hasattr(state, "google_downloaded_uris"):
+                                        state.google_downloaded_uris = set()
+                                    if uri not in state.google_downloaded_uris:
+                                        save = _try_download_uri(uri, name)
+                                        if save:
+                                            _append_downloaded([save])
+                                            state.google_downloaded_uris.add(uri)
+                        except Exception:
+                            pass
 
-                    fn = getattr(p, "function_call", None)
-                    if not fn:
-                        continue
-                    name = getattr(fn, "name", "") or ""
-                    args_obj = getattr(fn, "args", {}) or {}
-                    args_dict = _to_plain_dict(args_obj) or {}
-                    new_calls.append({
-                        "id": getattr(fn, "id", "") or "",
-                        "type": "function",
-                        "function": {
-                            "name": name,
-                            "arguments": json.dumps(args_dict, ensure_ascii=False),
-                        }
-                    })
-        except Exception:
-            pass
+                        fn = getattr(p, "function_call", None)
+                        if not fn:
+                            continue
+                        name = getattr(fn, "name", "") or ""
+                        args_obj = getattr(fn, "args", {}) or {}
+                        args_dict = _to_plain_dict(args_obj) or {}
+                        new_calls.append({
+                            "id": getattr(fn, "id", "") or "",
+                            "type": "function",
+                            "function": {
+                                "name": name,
+                                "arguments": json.dumps(args_dict, ensure_ascii=False),
+                            }
+                        })
+            except Exception:
+                pass
 
     # Interactions API / Deep Research: collect streaming deltas and metadata
     try:
@@ -491,10 +554,6 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
 
     # Let the Computer Use handler inspect chunks only for an active Computer
     # session; ordinary Google function calls must keep their normal flow.
-    computer_use_active = bool(
-        isinstance(getattr(ctx, "extra", None), dict)
-        and ctx.extra.get("google_computer_use_active")
-    )
     if computer_use_active:
         new_calls, has_calls = core.api.google.computer.handle_stream_chunk(ctx, chunk, new_calls)
         if has_calls:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.01.02 02:00:00                  #
+# Updated Date: 2026.09.09 00:30:00                  #
 # ================================================== #
 
 import json
@@ -243,11 +243,13 @@ class Computer:
         has_calls = False
 
         # Case A: Google SDK function_call parts (recommended)
-        for fname, fargs in self._iter_function_calls(chunk):
+        for fname, fargs, provider_call_id in self._iter_function_calls(chunk):
             if not fname:
                 continue
             self._record_safety_decision(ctx, fname, fargs or {})
-            id_ = self._next_id()
+            # Keep Gemini's protocol id when the SDK supplies one. It is persisted
+            # with the local task and echoed by Chat in the following FunctionResponse.
+            id_ = str(provider_call_id or self._next_id())
             call_id = id_
             try:
                 local_name, local_args = self._map_function(fname, fargs or {})
@@ -282,6 +284,7 @@ class Computer:
     # --------------- Parsers --------------- #
 
     def _iter_function_calls(self, resp) -> List[tuple]:
+        """Return (name, args, provider_call_id) tuples from Gemini responses/chunks."""
         calls = []
         try:
             candidates = getattr(resp, "candidates", None)
@@ -296,7 +299,8 @@ class Computer:
                                 if fc:
                                     name = getattr(fc, "name", None)
                                     args = getattr(fc, "args", {}) or {}
-                                    calls.append((name, args))
+                                    call_id = getattr(fc, "id", None) or ""
+                                    calls.append((name, args, call_id))
             else:
                 if isinstance(resp, dict):
                     content = resp.get("content", {})
@@ -304,7 +308,7 @@ class Computer:
                     for part in parts:
                         if "function_call" in part:
                             fc = part["function_call"]
-                            calls.append((fc.get("name"), fc.get("args", {})))
+                            calls.append((fc.get("name"), fc.get("args", {}), fc.get("id", "")))
         except Exception as e:
             print(f"Gemini: failed to parse function_call: {e}")
         return calls
