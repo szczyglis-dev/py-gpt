@@ -570,6 +570,20 @@ class Importer:
                         'type': 'str'
                     }
                 ]
+            elif self.provider == "api_route":
+                m.tool_calls = True
+                m.llama_index['args'].extend([
+                    {
+                        'name': 'api_key',
+                        'value': '{api_key_api_route}',
+                        'type': 'str'
+                    },
+                    {
+                        'name': 'api_base',
+                        'value': '{api_endpoint_api_route}',
+                        'type': 'str'
+                    }
+                ])
             elif self.provider == "x_ai":
                 m.tool_calls = True
                 m.llama_index['env'] = [

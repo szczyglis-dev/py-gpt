@@ -562,6 +562,43 @@
     "advanced": false,
     "tab": "OpenRouter"
   },
+  "api_key_api_route": {
+    "section": "api_keys",
+    "type": "text",
+    "slider": false,
+    "label": "settings.api_key.api_route",
+    "description": "settings.api_key.api_route.desc",
+    "value": "",
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "extra": {
+      "bold": true
+    },
+    "urls": {
+      "API Keys": "https://www.api-route.com/api-keys"
+    },
+    "secret": true,
+    "persist": true,
+    "advanced": false,
+    "tab": "API Route"
+  },
+  "api_endpoint_api_route": {
+    "section": "api_keys",
+    "type": "text",
+    "slider": false,
+    "label": "settings.api_endpoint_api_route",
+    "description": "settings.api_endpoint_api_route.desc",
+    "value": "https://global.api-route.com/v1",
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "secret": false,
+    "advanced": false,
+    "tab": "API Route"
+  },
   "api_key_forge": {
     "section": "api_keys",
     "type": "text",

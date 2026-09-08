@@ -516,6 +516,14 @@ class Models:
                 args["api_key"] = cfg.get('api_key_open_router', "")
                 args["base_url"] = cfg.get('api_endpoint_open_router', "")
                 self.window.core.debug.info("[api] Using client: OpenRouter API")
+            elif model.provider == "api_route":
+                args["api_key"] = cfg.get('api_key_api_route', "") or os.environ.get(
+                    "API_ROUTE_API_KEY", ""
+                )
+                args["base_url"] = cfg.get('api_endpoint_api_route', "") or os.environ.get(
+                    "API_ROUTE_API_BASE", "https://global.api-route.com/v1"
+                )
+                self.window.core.debug.info("[api] Using client: API Route")
             elif model.provider == "forge":
                 args["api_key"] = cfg.get('api_key_forge', "") or os.environ.get("FORGE_API_KEY", "")
                 args["base_url"] = cfg.get('api_endpoint_forge', "") or os.environ.get(
