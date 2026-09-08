@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2026.09.08 23:08:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -307,8 +307,8 @@ class Text:
         stream = core.config.get("stream")
         if mode == MODE_AGENT_V2:
             return True  # Agents v2 always renders one continuous orchestrator response
-        if mode in (MODE_AGENT_LLAMA):
-            return False  # TODO: check if this is correct in agent
+        if mode == MODE_AGENT_LLAMA:
+            return False  # LlamaIndex agent workflow uses its own streaming lifecycle
         elif mode == MODE_LLAMA_INDEX:
             if core.config.get("llama.idx.mode") == "retrieval":
                 return False
