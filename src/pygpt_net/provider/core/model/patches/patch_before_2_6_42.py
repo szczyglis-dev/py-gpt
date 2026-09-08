@@ -719,32 +719,16 @@ class Patch:
                             model.mode.remove("agent_openai")
                 updated = True
 
-            # <  2.5.91  <--- GPT-5
+            # <  2.5.91  <--- GPT-5 (legacy catalog entry; no longer added)
             if old < parse_version("2.5.91"):
                 print("Migrating models from < 2.5.91...")
-                if "gpt-5" not in data:
-                    data["gpt-5"] = from_base("gpt-5")
-                if "gpt-5-mini" not in data:
-                    data["gpt-5-mini"] = from_base("gpt-5-mini")
-                if "gpt-5-nano" not in data:
-                    data["gpt-5-nano"] = from_base("gpt-5-nano")
+                # Keep an existing user model, but do not add removed GPT-5 defaults.
                 updated = True
 
-            # <  2.5.93  <--- GPT-5 low and high
+            # <  2.5.93  <--- GPT-5 low and high (legacy catalog entries; no longer added)
             if old < parse_version("2.5.93"):
                 print("Migrating models from < 2.5.93...")
-                if "gpt-5-low" not in data:
-                    data["gpt-5-low"] = from_base("gpt-5-low")
-                if "gpt-5-mini-low" not in data:
-                    data["gpt-5-mini-low"] = from_base("gpt-5-mini-low")
-                if "gpt-5-nano-low" not in data:
-                    data["gpt-5-nano-low"] = from_base("gpt-5-nano-low")
-                if "gpt-5-high" not in data:
-                    data["gpt-5-high"] = from_base("gpt-5-high")
-                if "gpt-5-mini-high" not in data:
-                    data["gpt-5-mini-high"] = from_base("gpt-5-mini-high")
-                if "gpt-5-nano-high" not in data:
-                    data["gpt-5-nano-high"] = from_base("gpt-5-nano-high")
+                # Keep existing user variants, but do not add removed GPT-5 defaults.
                 updated = True
 
             # <  2.5.94  <--- gpt-oss
@@ -758,8 +742,8 @@ class Patch:
                     data["gpt-oss-20b-huggingface-router"] = from_base("gpt-oss-20b-huggingface-router")
                 if "gpt-oss-120b-huggingface-router" not in data:
                     data["gpt-oss-120b-huggingface-router"] = from_base("gpt-oss-120b-huggingface-router")
-                if "gpt-4.1-nano" not in data:
-                    data["gpt-4.1-nano"] = from_base("gpt-4.1-nano")
+                # gpt-4.1-nano is no longer part of the default catalog;
+                # preserve it only when already present in the user's models.
                 updated = True
 
             # < 2.6.21 <-- add OpenAI Agents to Ollama

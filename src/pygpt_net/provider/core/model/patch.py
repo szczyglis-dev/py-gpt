@@ -437,18 +437,37 @@ class Patch:
             if old < parse_version("2.8.12"):
                 print("Migrating models from < 2.8.12...")
 
-                # Add newly released models without duplicating a model that the
-                # user may already have imported manually under another key.
-                for key in ("gpt-6-astra", "claude-fable-5-1"):
+                # Add GPT-6 Astra
+                for key in (
+                        "gpt-6-astra-low",
+                        "gpt-6-astra-medium",
+                        "gpt-6-astra-high",
+                ):
                     base_model = from_base(key)
                     if not base_model:
                         continue
+                    base_effort = str(
+                        (getattr(base_model, "extra", None) or {}).get("reasoning_effort", "")
+                    )
                     if not any(
                             str(getattr(model, "id", "") or "") == base_model.id
+                            and str(
+                                (getattr(model, "extra", None) or {}).get("reasoning_effort", "")
+                            ) == base_effort
                             for model in data.values()
                     ):
                         data[key] = base_model
                         updated = True
+
+                # Add Claude Fable 5.1
+                key = "claude-fable-5-1"
+                base_model = from_base(key)
+                if base_model and not any(
+                        str(getattr(model, "id", "") or "") == base_model.id
+                        for model in data.values()
+                ):
+                    data[key] = base_model
+                    updated = True
 
                 # GA Computer Use is supported by every GPT-5.6 family variant
                 # and GPT-6 Astra. Match by API model ID so custom user keys and
