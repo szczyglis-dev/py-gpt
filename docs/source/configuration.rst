@@ -135,6 +135,12 @@ The options below follow the current Settings UI metadata from ``settings.json``
 
 * ``API Endpoint``: Eden AI API endpoint URL, default: https://api.edenai.run/v3.
 
+*Atlas Cloud*
+
+* ``Atlas Cloud API key``: Required for the optional Atlas Cloud provider. It can also be supplied with ``ATLASCLOUD_API_KEY``.
+
+* ``API Endpoint``: Atlas Cloud's OpenAI-compatible endpoint, default: https://api.atlascloud.ai/v1.
+
 **Custom providers**
 
 * ``Custom providers``: A runtime list of model providers compatible with the OpenAI Chat Completions API. Each row contains ``Provider name``, ``API base URL``, and ``API key``. Entries are stored in ``config.json`` as ``api_custom_providers`` and are registered immediately after Settings are saved.

@@ -612,6 +612,20 @@ class Importer:
                         'type': 'str'
                     }
                 ])
+            elif self.provider == "atlas_cloud":
+                m.tool_calls = True
+                m.llama_index['args'].extend([
+                    {
+                        'name': 'api_key',
+                        'value': '{api_key_atlas_cloud}',
+                        'type': 'str'
+                    },
+                    {
+                        'name': 'api_base',
+                        'value': '{api_endpoint_atlas_cloud}',
+                        'type': 'str'
+                    }
+                ])
             models[key] = m
         provider_name = self.window.core.llm.get_provider_name(self.provider)
         self.set_status(trans('models.importer.loaded').replace("{provider}", provider_name))
