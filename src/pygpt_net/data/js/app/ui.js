@@ -38,7 +38,7 @@ class UIManager {
 			'.msg-box.msg-user .msg { position: relative; }',
 			'.msg-box.msg-user .msg > .uc-content { display: block; overflow: visible; }',
 			'.msg-box.msg-user .msg > .uc-content.uc-collapsed {',
-			'  max-height: var(--user-msg-collapse-max-h, 1000px);',
+			'  max-height: var(--user-msg-collapse-max-h, 350px);',
 			'  overflow: hidden;',
 			'  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) calc(100% - var(--uc-fade-height, 64px)), rgba(0,0,0,0) 100%);',
 			'  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) calc(100% - var(--uc-fade-height, 64px)), rgba(0,0,0,0) 100%);',

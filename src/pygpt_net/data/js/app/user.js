@@ -10,7 +10,7 @@ class UserCollapseManager {
 	constructor(cfg) {
 		this.cfg = cfg || {};
 		// Collapse threshold in pixels (can be overridden via window.USER_MSG_COLLAPSE_HEIGHT_PX).
-		this.threshold = Utils.g('USER_MSG_COLLAPSE_HEIGHT_PX', 1000);
+		this.threshold = Utils.g('USER_MSG_COLLAPSE_HEIGHT_PX', 350);
 		// Track processed .msg elements to allow cheap remeasure on resize if needed.
 		this._processed = new Set();
 
