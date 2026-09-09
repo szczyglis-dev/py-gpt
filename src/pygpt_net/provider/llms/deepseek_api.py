@@ -88,24 +88,3 @@ class DeepseekApiLLM(BaseLLM):
             timeout=timeout,
             max_retries=max_retries,
         )
-
-    def get_models(
-            self,
-            window,
-    ) -> List[Dict]:
-        """
-        Return list of models for the provider
-
-        :param window: window instance
-        :return: list of models
-        """
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
-        return items

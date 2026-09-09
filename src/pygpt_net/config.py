@@ -322,26 +322,35 @@ class Config:
             self.load(all)
             self.initialized = True
 
+    def _load_app_meta(self) -> None:
+        """Read __init__.py once and cache version and build strings."""
+        try:
+            path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
+            with open(path, 'r', encoding="utf-8") as f:
+                data = f.read()
+            ver = _RE_VERSION.search(data)
+            build = _RE_BUILD.search(data)
+            self._version_cache = ver.group(1) if ver is not None else "0.0.0"
+            self._build_cache = build.group(1) if build is not None else "0.0.0"
+        except Exception as e:
+            if self.window is not None:
+                self.window.core.debug.log(e)
+            else:
+                print(f"Error loading app metadata file: {e}")
+            if not hasattr(self, '_version_cache') or self._version_cache is None:
+                self._version_cache = "0.0.0"
+            if not hasattr(self, '_build_cache') or self._build_cache is None:
+                self._build_cache = "0.0.0"
+
     def get_version(self) -> str:
         """
         Return version
 
         :return: version string
         """
-        if hasattr(self, '_version_cache') and self._version_cache is not None:
-            return self._version_cache
-        path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
-        try:
-            with open(path, 'r', encoding="utf-8") as f:
-                data = f.read()
-                result = _RE_VERSION.search(data)
-                self._version_cache = result.group(1)
-                return self._version_cache
-        except Exception as e:
-            if self.window is not None:
-                self.window.core.debug.log(e)
-            else:
-                print(f"Error loading version file: {e}")
+        if not hasattr(self, '_version_cache') or self._version_cache is None:
+            self._load_app_meta()
+        return self._version_cache
 
     def get_build(self) -> str:
         """
@@ -349,20 +358,9 @@ class Config:
 
         :return: build string
         """
-        if self._build_cache is not None:
-            return self._build_cache
-        path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
-        try:
-            with open(path, 'r', encoding="utf-8") as f:
-                data = f.read()
-                result = _RE_BUILD.search(data)
-                self._build_cache = result.group(1)
-                return self._build_cache
-        except Exception as e:
-            if self.window is not None:
-                self.window.core.debug.log(e)
-            else:
-                print(f"Error loading version file: {e}")
+        if not hasattr(self, '_build_cache') or self._build_cache is None:
+            self._load_app_meta()
+        return self._build_cache
 
     def get_options(self) -> dict:
         """

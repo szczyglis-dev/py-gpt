@@ -80,7 +80,10 @@ class Plugins:
             plugin = pm.get(pid)
             fn = getattr(plugin, "setup_ui", None)
             if callable(fn):
-                fn()
+                try:
+                    fn()
+                except Exception as e:
+                    self.window.core.debug.error(e)
 
         self.handle_types()
 

@@ -165,14 +165,17 @@ class GoogleLLM(BaseLLM):
         :return: list of models
         """
         items = []
-        client = window.core.api.google.get_client()
-        models_list = client.models.list()
-        for item in models_list:
-            id = item.name.replace("models/", "")
-            items.append({
-                "id": id,
-                "name": id,  # TODO: token limit get from API
-            })
+        try:
+            client = window.core.api.google.get_client()
+            models_list = client.models.list()
+            for item in models_list:
+                id = item.name.replace("models/", "")
+                items.append({
+                    "id": id,
+                    "name": id,  # TODO: token limit get from API
+                })
+        except Exception as e:
+            window.core.debug.log(e)
         return items
 
     def inject_llamaindex_http_clients(self, args: dict, cfg) -> dict:

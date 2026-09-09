@@ -229,12 +229,27 @@ class BaseLLM:
             window,
     ) -> List[Dict]:
         """
-        Return list of models for the provider
+        Return list of models for the provider.
+
+        The default implementation queries the OpenAI-compatible ``/models``
+        endpoint and is safe to call when the endpoint is unreachable: it logs
+        the failure and returns an empty list instead of raising. Providers
+        with a non-OpenAI schema must override this method.
 
         :param window: window instance
         :return: list of models
         """
-        return []
+        items: List[Dict] = []
+        try:
+            client = self.get_client(window)
+            models_list = client.models.list()
+            if models_list.data:
+                items.extend(
+                    {"id": item.id, "name": item.id} for item in models_list.data
+                )
+        except Exception as e:
+            window.core.debug.log(e)
+        return items
 
     def get_client(self, window):
         """

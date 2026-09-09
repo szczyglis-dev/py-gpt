@@ -9,8 +9,6 @@
 # Updated Date: 2026.09.05 12:30:00                  #
 # ================================================== #
 
-from typing import List, Dict
-
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.core.types import MODE_LLAMA_INDEX
@@ -73,16 +71,3 @@ class CustomLLM(BaseLLM):
 
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILike(**args)
-
-    def get_models(self, window) -> List[Dict]:
-        """Return models exposed by the provider's OpenAI-compatible /models endpoint."""
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
-        return items

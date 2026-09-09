@@ -175,15 +175,18 @@ class AnthropicLLM(BaseLLM):
         :param window: window instance
         :return: list of models
         """
-        model = ModelItem()
-        model.provider = "anthropic"
-        client = window.core.api.anthropic.get_client(MODE_CHAT, model)
-        models_list = client.models.list()
         items = []
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
+        try:
+            model = ModelItem()
+            model.provider = "anthropic"
+            client = window.core.api.anthropic.get_client(MODE_CHAT, model)
+            models_list = client.models.list()
+            if models_list.data:
+                for item in models_list.data:
+                    items.append({
+                        "id": item.id,
+                        "name": item.id,
+                    })
+        except Exception as e:
+            window.core.debug.log(e)
         return items

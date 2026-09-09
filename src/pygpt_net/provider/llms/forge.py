@@ -58,15 +58,3 @@ class ForgeLLM(BaseLLM):
             args["model_name"] = args.pop("model")
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILikeEmbedding(**args)
-
-    def get_models(self, window) -> List[Dict]:
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
-        return items
