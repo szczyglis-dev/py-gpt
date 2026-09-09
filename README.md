@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.12** | build: **2026-09-08** | Python: **>=3.10, <3.14**
+Release: **2.8.13** | build: **2026-09-09** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2550,6 +2550,21 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.8.13 (2026-09-09)**
+
+- Fixed issue with empty parameters in the Anthropic API remote tool for computer use.
+- Added support for the use of computer use remote tool in Agents v2 for Anthropic and Google.
+- Added **OSINT v2** preset to Agents v2.
+- Added a new plugin: **Memory (inline)**.
+- Updated IPython Dockerfile: included default installation of pandas, matplotlib, scikit-learn, and other useful libraries.
+- Integrated Google remote tool - MCP.
+- Added validation for pasting large directory attachments.
+- Enhanced CSS in chat view for better aesthetics.
+- Improved handling of multiple tabs.
+- Fixed issue with hiding date separators in context list view.
+- Corrected profile switch components restoration.
+- Other fixes.
+
 **2.8.12 (2026-09-08)**
 
 - Improved, extended, and fixed several bugs in the following modes: Chat, Realtime + Audio, Computer Use, Autonomous Agent, and Agents v2.
@@ -2577,52 +2592,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added local plugin tools, provider-side remote tools, RAG index access, shared attachment context, supported native image input, artifact propagation, persistent Orchestrator memory and live workflow status rendering to Agents v2.
 - Added native function-calling support with a ReAct compatibility fallback for Agents v2 models where appropriate.
 - **Agents v2 is currently in beta; its behavior, workflow rules, preset options and provider compatibility may change in future releases.**
-
-**2.8.9 (2026-09-05)**
-
-- Added a new **Custom Providers** tab to Settings, allowing users to create and use custom API providers at runtime without modifying the source code.
-- Added sandboxed system command execution to the **Code Interpreter** plugin.
-- Added an **Active** checkbox to the uploaded attachments list, allowing attachments to be enabled or disabled at runtime.
-- Added rendering of tool results as formatted JSON code blocks.
-- Fixed busy-state rendering in Agents workflows.
-- Removed image footers from the WebView.
-
-**2.8.8 (2026-09-05)**
-
-- Added runtime **Custom providers** for OpenAI Chat Completions-compatible APIs, including provider management in Settings, model importing, native OpenAI SDK Chat routing, and LlamaIndex `OpenAILike` support.
-- Fixed tool call responses in Chat with Files when using the Responses API.
-- Fixed attachment uploads in Chat with Files mode.
-- Fixed an issue where the remote store `after_update` hook silently failed to run — PR #203.
-- Improved agent response rendering.
-- Improved vector store cleanup when deleting contexts.
-- Added image editing and remixing features to the inline Image Generation plugin, allowing images to be edited and remixed directly in chat.
-- Upgraded the default Docker image definitions for sandboxed IPython and System environments: Python 3.12 is now the default, essential packages were added, and containers now run as a non-root user by default.
-- Added isolated per-project LlamaIndex indexes, created and resolved automatically as **Current project** without adding project-specific entries to the regular indexes list.
-- Added project-aware context auto-indexing with **Off**, **Auto-index all conversations**, and **Auto-index only in projects** policies, plus a **Use isolated index per project** option.
-- Added incremental project context indexing with per-project progress tracking, project index update/truncate actions, cleanup on project deletion, and index rebuilding when duplicating projects.
-- Added project-aware indexing and retrieval to **Chat with Files**, the **Chat with Files (LlamaIndex, inline)** plugin, **Files I/O**, and the Files context menu.
-- Added **Clear and truncate** index management, including permanent deletion of stored indexes and batch truncation of project indexes.
-- Improved index/file tracking with lazy loading to avoid loading the complete indexed-files database into memory.
-- Reorganized LlamaIndex settings into **File indexing**, **Context indexing**, **Data loaders**, and **Clear and truncate** sections and clarified that removing an index from the configured list does not delete its stored data.
-
-
-**2.8.7 (2026-09-04)**
-
-- Improved Painter with new drawing modes: **Free**, **Arrow**, **Rectangle**, **Circle**, and **Line**, making it faster and easier to annotate images and screenshots with common shapes and symbols.
-- Improved UI consistency by simplifying selected icons, labels, and controls across the application.
-- Fixed and refined UI translations, descriptions, and tooltips for improved clarity and consistency.
-
-**2.8.6 (2026-09-03)**
-
-- Added tool-chain grouping in the chat view, combining consecutive tool calls into a single expandable group.
-- Improved the context list UI: added section headers, added **New context** / **New project** actions directly to section rows, added support for collapsing and expanding sections, improved section interaction and layout.
-- Renamed **Groups** to **Projects** throughout the application.
-- Fixed toolbox minimum-width calculation to prevent individual modes or controls from unexpectedly expanding the toolbox.
-- Added new UI icons and tooltips for improved usability and consistency.
-- Added a visual screen flash / blink effect after screenshot and camera capture.
-- Fixed math rendering of < and > symbols in KaTeX expressions.
-- Fixed rendering of the \neq / \ne math symbols - issue #199.
-
 
 # Credits and links
 

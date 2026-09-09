@@ -6,6 +6,7 @@
     <MediaTemplate EmbedCab="yes" />
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
     <Property Id="REBOOT" Value="ReallySuppress" />
+    <Property Id="REINSTALLMODE" Value="amus" />
     <UIRef Id="WixUI_InstallDir" />
     <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\_internal\USER-LICENSE.rtf" />
     <WixVariable Id="WixUIBannerBmp" Value="$(var.SourceDir)\_internal\banner.bmp" />
@@ -34,7 +35,7 @@
 
   <Fragment>
   <DirectoryRef Id="INSTALLDIR">
-    <Component Id="ApplicationComponent" Guid="CA1F1874-D8DD-4ADB-B157-DAA45AD22A41">
+    <Component Id="ApplicationComponent" Guid="A7065E7D-AA1F-4D86-B5FD-D6594735DF11">
       <File Id="PygptExe" Source="$(var.SourceDir)\pygpt.exe" KeyPath="yes">
         <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />
         <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />

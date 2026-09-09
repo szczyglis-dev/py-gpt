@@ -24,7 +24,7 @@ a:hover {{
     color: #426f90 !important;
 }}
 .msg-user {{
-    background-color: #e8f3fe;
+    background-color: #e1f0ff;
     color: #000;
 }}
 .msg-user p {{
@@ -112,6 +112,6 @@ code {{
 }}
 
 code {{
-    background: #ebebeb;
+    background: #e1f0ff;
     padding: 6px;
 }}

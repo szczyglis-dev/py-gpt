@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2.8.13 (2026-09-09)
+
+- Fixed issue with empty parameters in the Anthropic API remote tool for computer use.
+- Added support for the use of computer use remote tool in Agents v2 for Anthropic and Google.
+- Added **OSINT v2** preset to Agents v2.
+- Added a new plugin: **Memory (inline)**.
+- Updated IPython Dockerfile: included default installation of pandas, matplotlib, scikit-learn, and other useful libraries.
+- Integrated Google remote tool - MCP.
+- Added validation for pasting large directory attachments.
+- Enhanced CSS in chat view for better aesthetics.
+- Improved handling of multiple tabs.
+- Fixed issue with hiding date separators in context list view.
+- Corrected profile switch components restoration.
+- Other fixes.
+
 ## 2.8.12 (2026-09-08)
 
 - Improved, extended, and fixed several bugs in the following modes: Chat, Realtime + Audio, Computer Use, Autonomous Agent, and Agents v2.
