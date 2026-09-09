@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 14:15:00                  #
+# Updated Date: 2026.09.09 16:30:00                  #
 # ================================================== #
 
 import os
@@ -23,8 +23,10 @@ from .config import (
     Config,
     IPYTHON_DOCKERFILE,
     IPYTHON_DOCKERFILE_LEGACY,
+    IPYTHON_DOCKERFILE_PRE_BUNDLED,
     PYTHON_LEGACY_DOCKERFILE,
     PYTHON_LEGACY_DOCKERFILE_39,
+    PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
 )
 from .docker import Docker
 from .builder import Builder
@@ -80,20 +82,36 @@ class Plugin(BasePlugin):
         self.config.from_defaults(self)
 
     def migrate_docker_defaults(self) -> bool:
-        """Upgrade unchanged stock Dockerfiles from the old Python 3.9 images."""
-        migrated = migrate_default_dockerfile(
+        """Upgrade unchanged stock Dockerfiles without overwriting user customizations."""
+        migrated_ipython = migrate_default_dockerfile(
             self,
             "ipython_dockerfile",
             IPYTHON_DOCKERFILE_LEGACY,
             IPYTHON_DOCKERFILE,
         )
-        migrated_legacy = migrate_default_dockerfile(
+        if not migrated_ipython:
+            migrated_ipython = migrate_default_dockerfile(
+                self,
+                "ipython_dockerfile",
+                IPYTHON_DOCKERFILE_PRE_BUNDLED,
+                IPYTHON_DOCKERFILE,
+            )
+
+        migrated_python = migrate_default_dockerfile(
             self,
             "dockerfile",
             PYTHON_LEGACY_DOCKERFILE_39,
             PYTHON_LEGACY_DOCKERFILE,
         )
-        return migrated or migrated_legacy
+        if not migrated_python:
+            migrated_python = migrate_default_dockerfile(
+                self,
+                "dockerfile",
+                PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
+                PYTHON_LEGACY_DOCKERFILE,
+            )
+
+        return migrated_ipython or migrated_python
 
     def make_temp_file_path(self, extension: str = "png"):
         """
