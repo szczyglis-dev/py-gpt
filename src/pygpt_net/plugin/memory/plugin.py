@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 19:45:00                  #
+# Updated Date: 2026.09.09 20:45:00                  #
 # ================================================== #
 
 import threading
@@ -28,18 +28,78 @@ Rules:
 - Return ONLY the full updated memory content. Do not wrap it in XML, JSON, Markdown fences, or commentary.
 - Keep only durable, useful information that is likely to matter in future conversations: stable preferences, ongoing projects, important decisions, constraints, recurring workflows, durable facts, and unresolved follow-ups.
 - Do not store routine chatter, temporary details, duplicated facts, transient tool output, or information that is already represented more clearly elsewhere in the memory.
+- Treat memory as a canonical compact state, not an append-only log. Before creating a new line, look for an existing entry about the same subject, entity, preference, plan, task, or time frame and merge compatible information into that entry whenever possible.
+- Prefer contextual consolidation over accumulation. For example, if memory says "User tomorrow will buy beer" and the new information says "User tomorrow will also buy pizza", rewrite the existing fact as "User tomorrow will buy beer and pizza" instead of keeping two separate lines.
 - Merge duplicates, reconcile newer information with older information, and remove obsolete or contradicted details when the new turn clearly supersedes them.
 - Treat explicit user instructions to correct, forget, or remove remembered information as authoritative and update the memory accordingly.
 - Preserve important existing memory that is still valid even when the new turn does not mention it.
 - Organize the memory for fast future use. Prefer concise lines or short grouped sections.
-- Keep the complete result within {max_lines} lines. If space is tight, retain the most important and durable information first.
+- Keep the complete result within approximately {max_chars} characters. If space is tight, retain the most important and durable information first.
 - If the new turn adds nothing worth remembering, return the existing memory unchanged.
+"""
+
+    GLOBAL_UPDATE_SYSTEM_PROMPT = """You maintain a compact long-term global memory about the user who is talking with the AI assistant.
+Update the existing memory using the newest completed conversation turn.
+
+The purpose of this global memory is to preserve the most important durable information ABOUT THE USER so future conversations can be better personalized and do not require the user to repeat important context.
+
+Rules:
+- Return ONLY the full updated memory content. Do not wrap it in XML, JSON, Markdown fences, or commentary.
+- Prioritize durable user information: stable preferences, communication style, technical level, interests, background, recurring habits and workflows, long-term goals, persistent constraints, important decisions, frequently used technologies/tools, and other facts that are likely to remain useful across unrelated future conversations.
+- Prefer information explicitly stated by the user. Do not turn weak guesses, temporary behavior, or assistant speculation into facts about the user.
+- Keep information about a specific task, temporary debugging session, one-off request, transient tool output, or short-lived project detail only when it reveals a durable and broadly useful fact about the user.
+- Do not preserve routine chatter, generic assistant output, duplicated facts, or details that are useful only inside one conversation.
+- Treat memory as a canonical compact state, not an append-only log. Before creating a new line, look for an existing entry about the same subject, entity, preference, plan, task, or time frame and merge compatible information into that entry whenever possible.
+- Prefer contextual consolidation over accumulation. For example, if memory says "User tomorrow will buy beer" and the new information says "User tomorrow will also buy pizza", rewrite the existing fact as "User tomorrow will buy beer and pizza" instead of keeping two separate lines.
+- Merge duplicates, reconcile newer information with older information, and remove obsolete or contradicted details when the new turn clearly supersedes them.
+- Treat explicit user instructions to correct, forget, or remove remembered information as authoritative and update the memory accordingly.
+- Preserve important existing user information that is still valid even when the new turn does not mention it.
+- Organize the memory for fast future use. Prefer concise lines or short grouped sections.
+- Keep the complete result within approximately {max_chars} characters. If space is tight, retain the most important, stable, and broadly reusable information about the user first.
+- If the new turn adds nothing important about the user, return the existing memory unchanged.
+"""
+
+    ADD_SYSTEM_PROMPT = """You maintain a compact long-term memory cache for an AI assistant.
+Merge a selected important memory addition into the existing memory and rewrite the complete memory when useful.
+
+Rules:
+- Return ONLY the full updated memory content. Do not wrap it in XML, JSON, Markdown fences, or commentary.
+- memory_add is intended for selective, high-value memory writes, not routine logging. Preserve the addition only if it is important enough to be useful later; if it is plainly routine, temporary, redundant, or low-value, return the existing memory unchanged.
+- The content inside <memory_addition> is the candidate information to incorporate into memory.
+- Integrate it naturally with existing information instead of blindly appending raw text.
+- Preserve important existing memory that remains valid.
+- Treat memory as a canonical compact state, not an append-only log. Before creating a new line, look for an existing entry about the same subject, entity, preference, plan, task, or time frame and merge compatible information into that entry whenever possible.
+- Prefer contextual consolidation over accumulation. For example, if memory says "User tomorrow will buy beer" and the new information says "User tomorrow will also buy pizza", rewrite the existing fact as "User tomorrow will buy beer and pizza" instead of keeping two separate lines.
+- Merge duplicates, reconcile compatible facts, and replace older information when the addition clearly supersedes it.
+- Keep the memory concise, structured, and useful for future conversations.
+- Aim to keep the complete result within approximately {max_chars} characters. This is a target, not a reason to drop important information from the requested addition.
+- Prefer concise lines or short grouped sections and remove redundant wording when space is tight.
+"""
+
+    GLOBAL_ADD_SYSTEM_PROMPT = """You maintain a compact long-term global memory about the user who is talking with the AI assistant.
+Merge a selected important memory addition into the existing global user memory and rewrite the complete memory when useful.
+
+Rules:
+- Return ONLY the full updated memory content. Do not wrap it in XML, JSON, Markdown fences, or commentary.
+- memory_add is intended for selective, high-value memory writes, not routine logging. Preserve the addition only if it is an important, durable fact about the user that is likely to matter across future conversations; if it is plainly routine, temporary, redundant, or low-value, return the existing memory unchanged.
+- The content inside <memory_addition> is the candidate information to incorporate into memory.
+- Integrate it naturally with existing information instead of blindly appending raw text.
+- Preserve important existing user information that remains valid.
+- Prefer durable facts about the user: stable preferences, communication style, technical level, interests, background, recurring workflows, long-term goals, persistent constraints, important decisions, and frequently used technologies or tools.
+- Do not convert assistant speculation into facts about the user.
+- Treat memory as a canonical compact state, not an append-only log. Before creating a new line, look for an existing entry about the same subject, entity, preference, plan, task, or time frame and merge compatible information into that entry whenever possible.
+- Prefer contextual consolidation over accumulation. For example, if memory says "User tomorrow will buy beer" and the new information says "User tomorrow will also buy pizza", rewrite the existing fact as "User tomorrow will buy beer and pizza" instead of keeping two separate lines.
+- Merge duplicates, reconcile compatible facts, and replace older information when the addition clearly supersedes it.
+- Keep the memory concise, structured, and useful across unrelated future conversations.
+- Aim to keep the complete result within approximately {max_chars} characters. This is a target, not a reason to drop important information from the requested addition.
+- Prefer concise lines or short grouped sections and remove redundant wording when space is tight.
 """
 
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "memory"
-        self.name = "Memory"
+        self.name = "Memory (inline)"
+        self.type = ["cmd.inline"]
         self.description = "Provides global and per-project long-term memory backed by the local database."
         self.prefix = "Memory"
         self.order = 3
@@ -69,9 +129,15 @@ Rules:
         data = event.data
         ctx = event.ctx
 
-        if name == Event.CMD_SYNTAX:
+        if name in [
+            Event.CMD_SYNTAX,
+            Event.CMD_SYNTAX_INLINE,
+        ]:
             self.cmd_syntax(data)
-        elif name == Event.CMD_EXECUTE:
+        elif name in [
+            Event.CMD_EXECUTE,
+            Event.CMD_INLINE,
+        ]:
             self.cmd(ctx, data.get("commands", []))
         elif name == Event.POST_PROMPT:
             data["value"] = self.attach_memory_to_prompt(data.get("value", ""), ctx)
@@ -123,25 +189,34 @@ Rules:
             return None
         return group_id if group_id > 0 else None
 
-    def get_max_lines(self) -> int:
+    def get_max_chars(self) -> int:
         try:
-            return max(1, int(self.get_option_value("max_lines") or 300))
+            return max(1, int(self.get_option_value("max_chars") or 15000))
         except (TypeError, ValueError):
-            return 300
+            return 15000
 
-    def limit_lines(self, content: str, keep: str = "first") -> str:
+    def get_hard_max_chars(self) -> int:
+        """Return the storage safety limit (configured target + 300 characters)."""
+        return self.get_max_chars() + 300
+
+    def limit_chars(self, content: str, keep: str = "first") -> str:
+        """Apply the hard character safety limit without any line-based truncation."""
         content = str(content or "").strip()
         if not content:
             return ""
-        lines = content.splitlines()
-        limit = self.get_max_lines()
-        if len(lines) <= limit:
-            return content
-        if keep == "last":
-            lines = lines[-limit:]
-        else:
-            lines = lines[:limit]
-        return "\n".join(lines).strip()
+
+        char_limit = self.get_hard_max_chars()
+        if len(content) > char_limit:
+            if keep == "last":
+                content = content[-char_limit:]
+            else:
+                content = content[:char_limit]
+            content = content.strip()
+
+        return content
+
+    def should_refine_add(self) -> bool:
+        return bool(self.get_option_value("refine_add"))
 
     def get_memory(self, project_id: Optional[int] = None) -> str:
         return self.store.get(project_id)
@@ -153,11 +228,11 @@ Rules:
         with self.update_lock:
             current = self.store.get(project_id)
             merged = addition if not current.strip() else current.rstrip() + "\n" + addition
-            merged = self.limit_lines(merged, keep="last")
+            merged = self.limit_chars(merged, keep="last")
             return self.store.set(merged, project_id)
 
     def update_memory(self, text: str, project_id: Optional[int] = None) -> str:
-        content = self.limit_lines(str(text or ""), keep="first")
+        content = self.limit_chars(str(text or ""), keep="first")
         if not content:
             return self.store.get(project_id)
         with self.update_lock:
@@ -246,6 +321,26 @@ Rules:
             model = self.window.core.models.get(model_id)
         return model
 
+    def get_update_system_prompt(self, project_id: Optional[int]) -> str:
+        """Return the updater prompt for project-scoped or global memory."""
+        if project_id is None:
+            return self.GLOBAL_UPDATE_SYSTEM_PROMPT.format(
+                max_chars=self.get_max_chars()
+            )
+        return self.UPDATE_SYSTEM_PROMPT.format(
+            max_chars=self.get_max_chars()
+        )
+
+    def get_add_system_prompt(self, project_id: Optional[int]) -> str:
+        """Return the merge prompt used by memory_add."""
+        if project_id is None:
+            return self.GLOBAL_ADD_SYSTEM_PROMPT.format(
+                max_chars=self.get_max_chars()
+            )
+        return self.ADD_SYSTEM_PROMPT.format(
+            max_chars=self.get_max_chars()
+        )
+
     def build_update_input(self, current: str, snapshot: str) -> str:
         current = str(current or "").strip()
         if not current:
@@ -256,6 +351,18 @@ Rules:
             + "\n</existing_memory>\n\n<new_completed_turn>\n"
             + str(snapshot or "").strip()
             + "\n</new_completed_turn>"
+        )
+
+    def build_add_input(self, current: str, addition: str) -> str:
+        current = str(current or "").strip()
+        if not current:
+            current = "(empty)"
+        return (
+            "<existing_memory>\n"
+            + current
+            + "\n</existing_memory>\n\n<memory_addition>\n"
+            + str(addition or "").strip()
+            + "\n</memory_addition>"
         )
 
     def clean_model_memory(self, content: str) -> str:

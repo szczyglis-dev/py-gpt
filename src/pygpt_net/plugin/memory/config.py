@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 19:45:00                  #
+# Updated Date: 2026.09.09 20:45:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -25,19 +25,37 @@ class Config(BaseConfig):
             type="combo",
             value=MODEL_DEFAULT_MINI,
             label="Memory update model",
-            description="Model used in the background to update memory after a completed conversation turn.",
-            tooltip="Model used for automatic memory updates.",
+            description="Model used for automatic memory updates and, when enabled, for refining memory_add operations.",
+            tooltip="Model used to update and refine memory.",
             use="models",
         )
         plugin.add_option(
-            "max_lines",
+            "max_chars",
             type="int",
-            value=300,
-            label="Maximum memory lines",
-            description="Maximum number of lines stored in one global or project memory entry.",
-            tooltip="Maximum number of lines kept in one memory entry.",
+            value=15000,
+            label="Maximum memory characters",
+            description=(
+                "Target maximum memory size in characters. The model is asked to stay within this limit; "
+                "storage allows an additional 300-character safety margin before hard truncation."
+            ),
+            tooltip="Target memory size in characters; a 300-character safety margin is allowed before hard truncation.",
             min=1,
             max=None,
+        )
+        plugin.add_option(
+            "refine_add",
+            type="bool",
+            value=True,
+            label="Refine memory before adding",
+            description=(
+                "Applies only to manual memory_add calls. When enabled, the configured memory update model "
+                "merges and rewrites the added information into the existing memory instead of appending raw text. "
+                "Automatic end-of-context memory updates are always refined by the model regardless of this setting."
+            ),
+            tooltip=(
+                "Refine manual memory_add calls with the configured model. Automatic context memory updates "
+                "are always refined."
+            ),
         )
         plugin.add_option(
             "auto_attach",
@@ -65,17 +83,24 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "memory_add",
-            instruction="append text to the current global or project memory",
+            instruction=(
+                "add only highly important, durable information to the current global or project memory and merge it "
+                "with existing memory; use this tool sparingly and do not write memory for routine, temporary, or "
+                "low-value details"
+            ),
             params=[
                 {
                     "name": "text",
                     "type": "str",
-                    "description": "Text to append to memory.",
+                    "description": "Information to add to memory.",
                     "required": True,
                 },
             ],
-            enabled=True,
-            description="Enable: append text to memory for the current scope.",
+            enabled=False,
+            description=(
+                "Enable: add only highly important, durable information to memory for the current scope. "
+                "The model should use this tool sparingly, not after routine turns or for temporary details."
+            ),
         )
         plugin.add_cmd(
             "memory_update",
@@ -88,7 +113,7 @@ class Config(BaseConfig):
                     "required": True,
                 },
             ],
-            enabled=True,
+            enabled=False,
             description="Enable: replace the complete memory content for the current scope.",
         )
         plugin.add_cmd(

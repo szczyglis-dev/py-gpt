@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 19:45:00                  #
+# Updated Date: 2026.09.09 20:45:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -15,6 +15,28 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
+
+
+def call_memory_model(plugin, prompt: str, system_prompt: str, extra: dict) -> str:
+    """Run a non-streamed bridge call with tools disabled and return plain response text."""
+    model = plugin.get_update_model()
+    bridge_ctx = BridgeContext(
+        ctx=CtxItem(),
+        prompt=prompt,
+        system_prompt=system_prompt,
+        model=model,
+        max_tokens=8192,
+        temperature=0.0,
+        stream=False,
+        force=True,
+    )
+    event = KernelEvent(KernelEvent.FORCE_CALL, {
+        "context": bridge_ctx,
+        "extra": {**extra, "disable_tools": True},
+        "response": None,
+    })
+    plugin.window.dispatch(event)
+    return str(event.data.get("response") or "").strip()
 
 
 class WorkerSignals(BaseSignals):
@@ -49,7 +71,31 @@ class Worker(BaseWorker):
                         result = self.plugin.get_memory(project_id)
                     elif name == "memory_add":
                         value = str(self.get_param(item, "text", "") or "")
-                        result = self.plugin.add_memory(value, project_id)
+                        if not value.strip():
+                            result = self.plugin.get_memory(project_id)
+                        elif not self.plugin.should_refine_add():
+                            result = self.plugin.add_memory(value, project_id)
+                        else:
+                            with self.plugin.update_lock:
+                                current = self.plugin.get_memory(project_id)
+                                prompt = self.plugin.build_add_input(current, value)
+                                response = call_memory_model(
+                                    self.plugin,
+                                    prompt=prompt,
+                                    system_prompt=self.plugin.get_add_system_prompt(project_id),
+                                    extra={"memory_add": True},
+                                )
+                                response = self.plugin.clean_model_memory(response)
+                                if not response:
+                                    merged = (
+                                        value.strip()
+                                        if not current.strip()
+                                        else current.rstrip() + "\n" + value.strip()
+                                    )
+                                    result = self.plugin.limit_chars(merged, keep="last")
+                                else:
+                                    result = self.plugin.limit_chars(response, keep="first")
+                                self.plugin.store.set(result, project_id)
                     elif name == "memory_update":
                         value = str(self.get_param(item, "text", "") or "")
                         if not value.strip():
@@ -101,33 +147,19 @@ class UpdateWorker(BaseWorker):
                 return
             with self.plugin.update_lock:
                 current = self.plugin.get_memory(self.project_id)
-                model = self.plugin.get_update_model()
                 prompt = self.plugin.build_update_input(current, self.snapshot)
-                bridge_ctx = BridgeContext(
-                    ctx=CtxItem(),
+                response = call_memory_model(
+                    self.plugin,
                     prompt=prompt,
-                    system_prompt=self.plugin.UPDATE_SYSTEM_PROMPT.format(
-                        max_lines=self.plugin.get_max_lines()
-                    ),
-                    model=model,
-                    max_tokens=8192,
-                    temperature=0.0,
-                    stream=False,
-                    force=True,
+                    system_prompt=self.plugin.get_update_system_prompt(self.project_id),
+                    extra={"memory_update": True},
                 )
-                event = KernelEvent(KernelEvent.FORCE_CALL, {
-                    "context": bridge_ctx,
-                    "extra": {"memory_update": True, "disable_tools": True},
-                    "response": None,
-                })
-                self.window.dispatch(event)
-                response = str(event.data.get("response") or "").strip()
                 if not response:
                     return
                 response = self.plugin.clean_model_memory(response)
                 if not response:
                     return
-                response = self.plugin.limit_lines(response, keep="first")
+                response = self.plugin.limit_chars(response, keep="first")
                 self.plugin.store.set(response, self.project_id)
         except Exception as exc:
             try:
