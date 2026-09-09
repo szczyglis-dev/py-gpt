@@ -706,7 +706,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
     $ sudo snap connect pygpt:docker docker:docker-daemon
 
-**Code interpreter:** a real-time Python code interpreter is built-in. Click the ``<>`` icon to open the interpreter window. Code input/output is mirrored to this window when ``Connect to the Python code interpreter window`` is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set ``Max interpreter window entries`` to ``0`` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
+**Code interpreter:** PyGPT includes the ``Python/OS`` tool for real-time Python and IPython execution. Click the ``<>`` icon to open the Python/OS window. Code input/output is mirrored to this window when ``Connect to the Python/OS window`` is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set ``Max interpreter window entries`` to ``0`` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
 
 .. image:: images/v2_python.png
    :width: 600
@@ -721,9 +721,9 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
 **General**
 
-- ``Connect to the Python code interpreter window`` *attach_output*
+- ``Connect to the Python/OS window`` *attach_output*
 
-Automatically attach code input/output to the Python code interpreter window. *Default:* ``True``
+Automatically attach code input/output to the Python/OS window. *Default:* ``True``
 
 - ``Max interpreter window entries`` *output_max_entries*
 
@@ -735,15 +735,15 @@ If enabled, each code execution uses the same path as the interpreter's **Run in
 
 - ``Tool: get_python_output`` *cmd.get_python_output*
 
-Allows ``get_python_output`` command execution. If enabled, it allows retrieval of the output from the Python code interpreter window. *Default:* ``True``
+Allows ``get_python_output`` command execution. If enabled, it allows retrieval of the output from the Python/OS window. *Default:* ``True``
 
 - ``Tool: get_python_input`` *cmd.get_python_input*
 
-Allows ``get_python_input`` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python code interpreter window. *Default:* ``True``
+Allows ``get_python_input`` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python/OS window. *Default:* ``True``
 
 - ``Tool: clear_python_output`` *cmd.clear_python_output*
 
-Allows ``clear_python_output`` command execution. If enabled, it allows clear the output of the Python code interpreter window. *Default:* ``True``
+Allows ``clear_python_output`` command execution. If enabled, it allows clear the output of the Python/OS window. *Default:* ``True``
 
 
 **IPython**
@@ -2546,9 +2546,9 @@ The plugin provides access to the operating system and executes system commands.
 
 Automatically append current working directory to ``sys_exec`` command. *Default:* ``True``
 
-- ``Connect to the Python code interpreter window`` *attach_output*
+- ``Connect to the Python/OS window`` *attach_output*
 
-Mirror ``sys_exec`` command input and output to the Python code interpreter window. *Default:* ``True``
+Mirror ``sys_exec`` command input and output to the Python/OS window. *Default:* ``True``
 
 - ``Tool: sys_exec`` *cmd.sys_exec*
 
