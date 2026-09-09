@@ -6,42 +6,90 @@ from PySide6.QtCore import Qt
 from pygpt_net.ui.layout.toolbox.banner import Banner, BannerWidget
 
 
-def test_banner_setup_registers_widget_and_loaded_signal(qapp):
+def test_banner_setup_registers_loaded_signal_without_creating_widget(qapp):
     window = MagicMock()
-    window.core.banners.get_default_path.return_value = "/tmp/default.png"
     window.ui.nodes = {}
     builder = Banner(window)
+    layout = MagicMock()
+
+    result = builder.setup(layout)
+
+    assert result is None
+    assert builder.layout is layout
+    assert builder.widget is None
+    assert "toolbox.banner" not in window.ui.nodes
+    window.core.banners.loaded.connect.assert_called_once_with(builder.set_items)
+
+
+def test_banner_set_items_creates_widget_lazily_and_inserts_it(qapp):
+    window = MagicMock()
+    window.ui.nodes = {}
+    builder = Banner(window)
+    layout = MagicMock()
+    builder.setup(layout)
 
     with patch("pygpt_net.ui.layout.toolbox.banner.BannerWidget") as cls:
         widget = cls.return_value
-        result = builder.setup()
+        builder.set_items([{"path": "/tmp/banner.png"}])
 
-    assert result is widget
+    cls.assert_called_once_with(width=256, height=36, parent=window)
+    assert builder.widget is widget
     assert window.ui.nodes["toolbox.banner"] is widget
-    cls.assert_called_once_with(width=256, height=36, default_path="/tmp/default.png", parent=window)
-    window.core.banners.loaded.connect.assert_called_once_with(widget.set_items)
+    layout.insertWidget.assert_called_once_with(0, widget, 0, Qt.AlignTop | Qt.AlignRight)
+    widget.set_items.assert_called_once_with([{"path": "/tmp/banner.png"}])
 
 
-def test_set_items_empty_stops_timer_and_shows_default():
+def test_banner_empty_items_remove_existing_widget(qapp):
+    window = MagicMock()
+    widget = MagicMock()
+    window.ui.nodes = {"toolbox.banner": widget}
+    layout = MagicMock()
+    builder = Banner(window)
+    builder.layout = layout
+    builder.widget = widget
+
+    builder.set_items([])
+
+    widget.stop.assert_called_once_with()
+    layout.removeWidget.assert_called_once_with(widget)
+    widget.deleteLater.assert_called_once_with()
+    assert builder.widget is None
+    assert "toolbox.banner" not in window.ui.nodes
+
+
+def test_set_items_empty_stops_widget():
     widget = SimpleNamespace(
-        timer=MagicMock(), items=[1], current_index=9, _show_default=MagicMock(), _show_current=MagicMock()
+        timer=MagicMock(),
+        items=[1],
+        current_index=9,
+        stop=MagicMock(),
+        _show_current=MagicMock(),
     )
+
     BannerWidget.set_items(widget, None)
+
     assert widget.items == []
     assert widget.current_index == 0
     widget.timer.stop.assert_called_once()
-    widget._show_default.assert_called_once()
+    widget.stop.assert_called_once_with()
     widget._show_current.assert_not_called()
 
 
 def test_set_items_nonempty_resets_index_and_shows_current():
     widget = SimpleNamespace(
-        timer=MagicMock(), items=[], current_index=9, _show_default=MagicMock(), _show_current=MagicMock()
+        timer=MagicMock(),
+        items=[],
+        current_index=9,
+        stop=MagicMock(),
+        _show_current=MagicMock(),
     )
     items = [{"path": "a"}]
+
     BannerWidget.set_items(widget, items)
+
     assert widget.items == items
     assert widget.current_index == 0
+    widget.stop.assert_not_called()
     widget._show_current.assert_called_once()
 
 
@@ -70,27 +118,42 @@ def test_show_current_wraps_index_sets_metadata_and_minimum_duration():
 
 def test_show_current_invalid_duration_falls_back_to_thirty_seconds():
     widget = SimpleNamespace(
-        items=[{"duration": "bad"}], current_index=0, current_url="", timer=MagicMock(),
-        setToolTip=MagicMock(), setCursor=MagicMock(), unsetCursor=MagicMock(), _show_image=MagicMock(),
+        items=[{"duration": "bad"}],
+        current_index=0,
+        current_url="",
+        timer=MagicMock(),
+        setToolTip=MagicMock(),
+        setCursor=MagicMock(),
+        unsetCursor=MagicMock(),
+        _show_image=MagicMock(),
     )
     BannerWidget._show_current(widget)
     widget.timer.start.assert_called_once_with(30000)
 
 
-def test_next_rotates_and_show_default_resets_state():
+def test_next_rotates_and_stop_resets_state():
     widget = SimpleNamespace(items=[1, 2, 3], current_index=1, _show_current=MagicMock())
     BannerWidget._next(widget)
     assert widget.current_index == 2
     widget._show_current.assert_called_once()
 
-    default_widget = SimpleNamespace(
-        timer=MagicMock(), current_url="x", setToolTip=MagicMock(), unsetCursor=MagicMock(),
-        default_path="/tmp/default.png", _show_image=MagicMock(),
+    stopped_widget = SimpleNamespace(
+        timer=MagicMock(),
+        current_url="x",
+        items=[1],
+        setToolTip=MagicMock(),
+        unsetCursor=MagicMock(),
+        _stop_movie=MagicMock(),
+        clear=MagicMock(),
     )
-    with patch("pygpt_net.ui.layout.toolbox.banner.os.path.isfile", return_value=False):
-        BannerWidget._show_default(default_widget)
-    assert default_widget.current_url == ""
-    default_widget._show_image.assert_called_once_with(None)
+    BannerWidget.stop(stopped_widget)
+    assert stopped_widget.current_url == ""
+    assert stopped_widget.items == []
+    stopped_widget.timer.stop.assert_called_once_with()
+    stopped_widget.setToolTip.assert_called_once_with("")
+    stopped_widget.unsetCursor.assert_called_once_with()
+    stopped_widget._stop_movie.assert_called_once_with()
+    stopped_widget.clear.assert_called_once_with()
 
 
 def test_show_image_missing_path_only_stops_movie_and_clears():
