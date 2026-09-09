@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.09.09 15:45:00
 # ================================================== #
 
 import io
@@ -33,9 +33,9 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
 
     # Computer Use: translate Anthropic 'computer' tool_use stream into plugin calls
     try:
-        tool_calls, has_calls = core.api.anthropic.computer.handle_stream_chunk(ctx, chunk, state.tool_calls)
+        tool_calls, is_computer_event = core.api.anthropic.computer.handle_stream_chunk(ctx, chunk, state.tool_calls)
         state.tool_calls = tool_calls
-        if has_calls:
+        if is_computer_event:
             is_computer_call = True
             state.force_func_call = True
     except Exception:

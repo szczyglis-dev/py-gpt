@@ -623,6 +623,19 @@ class Patch:
                     data["ctx.records.groups.separators"] = False
                     updated = True
 
+                # css chat, <code> background color, changed msg-user background color
+                patch_css('style.light.css', True)
+                patch_css('style.dark.css', True)
+                patch_css('web-blocks.css', True)
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt.dark.css', True)
+                patch_css('web-chatgpt.darkest.css', True)
+                patch_css('web-chatgpt.light.css', True)
+                patch_css('web-chatgpt_wide.css', True)
+                patch_css('web-chatgpt_wide.dark.css', True)
+                patch_css('web-chatgpt_wide.darkest.css', True)
+                patch_css('web-chatgpt_wide.light.css', True)
+
         # update file
         migrated = False
         if updated:

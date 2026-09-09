@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 14:20:00                  #
+# Updated Date: 2026.09.09 15:45:00
 # ================================================== #
 
 import json
@@ -116,6 +116,65 @@ class Computer:
         """
         self.window = window
 
+    @staticmethod
+    def get_field(obj: Any, name: str, default: Any = None) -> Any:
+        """Read a field from SDK objects without depending on one SDK model version."""
+        if obj is None:
+            return default
+        if isinstance(obj, dict):
+            return obj.get(name, default)
+
+        marker = object()
+        try:
+            value = getattr(obj, name, marker)
+            if value is not marker:
+                return value
+        except Exception:
+            pass
+
+        # New API fields can arrive before the installed SDK has a first-class
+        # attribute for them. Pydantic keeps such values in its extra mapping in
+        # SDK versions configured to preserve unknown response fields.
+        for extra_name in ("model_extra", "__pydantic_extra__"):
+            try:
+                extra = getattr(obj, extra_name, None)
+                if isinstance(extra, dict) and name in extra:
+                    return extra[name]
+            except Exception:
+                pass
+
+        # Last-resort compatibility with typed SDK response models.
+        for method_name in ("model_dump", "to_dict"):
+            try:
+                method = getattr(obj, method_name, None)
+                if callable(method):
+                    data = method()
+                    if isinstance(data, dict) and name in data:
+                        return data[name]
+            except Exception:
+                pass
+        return default
+
+    @classmethod
+    def to_plain(cls, obj: Any) -> Any:
+        """Convert SDK/Pydantic containers to plain Python values."""
+        if obj is None:
+            return None
+        if isinstance(obj, dict):
+            return {k: cls.to_plain(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [cls.to_plain(v) for v in obj]
+        for method_name in ("model_dump", "to_dict"):
+            try:
+                method = getattr(obj, method_name, None)
+                if callable(method):
+                    data = method()
+                    if data is not obj:
+                        return cls.to_plain(data)
+            except Exception:
+                pass
+        return obj
+
     # --------------- Tool spec --------------- #
 
     def get_current_env(self) -> Dict[str, Any]:
@@ -164,6 +223,64 @@ class Computer:
 
     def supports_model(self, model=None) -> bool:
         return self.get_tool_type(model) is not None
+
+    def _get_ctx_model(self, ctx: Optional[CtxItem]):
+        """Resolve the model item used by a context, when possible."""
+        model = self.get_field(ctx, "model", None)
+        if model is not None and hasattr(model, "id"):
+            return model
+        if model is not None:
+            try:
+                return self.window.core.models.get(model)
+            except Exception:
+                pass
+        return None
+
+    def _is_toolset_active_for_ctx(self, ctx: Optional[CtxItem]) -> bool:
+        """
+        Return True when the current request can be using computer_toolset_20260801.
+
+        This is primarily a compatibility fallback for an older Anthropic SDK that
+        may deserialize a new toolset member but not expose ``toolset_name`` as a
+        normal attribute yet.
+        """
+        model = self._get_ctx_model(ctx)
+        if model is not None and self.get_tool_type(model) != "computer_toolset_20260801":
+            return False
+
+        mode = str(self.get_field(ctx, "mode", "") or "")
+        if not mode:
+            try:
+                mode = str(self.window.core.config.get("mode", "") or "")
+            except Exception:
+                mode = ""
+        if mode == MODE_COMPUTER:
+            return model is None or self.get_tool_type(model) == "computer_toolset_20260801"
+
+        try:
+            enabled = bool(self.window.core.config.get("remote_tools.anthropic.computer_use", False))
+        except Exception:
+            enabled = False
+        return enabled and (model is None or self.get_tool_type(model) == "computer_toolset_20260801")
+
+    def is_computer_tool_use(
+            self,
+            ctx: Optional[CtxItem],
+            name: str,
+            toolset_name: Optional[str] = None,
+    ) -> bool:
+        """Identify both legacy computer calls and stable computer-toolset members."""
+        name = str(name or "")
+        toolset_name = str(toolset_name or "")
+        if name in self.COMPUTER_TOOL_NAMES:
+            return True
+        if name not in self.TOOLSET_MEMBER_NAMES:
+            return False
+        if toolset_name == "computer":
+            return True
+        if toolset_name:
+            return False
+        return self._is_toolset_active_for_ctx(ctx)
 
     def get_tool(self, model=None) -> dict:
         tool_type = self.get_tool_type(model)
@@ -220,70 +337,93 @@ class Computer:
     # --------------- Streaming handling --------------- #
 
     def handle_stream_chunk(self, ctx: CtxItem, chunk, tool_calls: list) -> Tuple[List, bool]:
-        """Convert legacy Computer Use and 20260801 toolset stream blocks to local calls."""
-        has_calls = False
-        etype = str(getattr(chunk, "type", "") or "")
+        """
+        Convert legacy Computer Use and 20260801 toolset stream blocks to local calls.
+
+        The boolean return value means that this stream event belongs to Computer
+        Use, not merely that a completed call was emitted. This is important because
+        the generic Anthropic tool parser must not consume the same member block in
+        parallel while its JSON input is still being streamed.
+        """
+        handled = False
+        etype = str(self.get_field(chunk, "type", "") or "")
         cmem = self._ensure_ctx_memory(ctx)
 
         if etype == "content_block_start":
-            cb = getattr(chunk, "content_block", None)
-            if cb and getattr(cb, "type", "") == "tool_use":
-                name = str(getattr(cb, "name", "") or "")
-                toolset_name = str(getattr(cb, "toolset_name", "") or "")
-                is_legacy = name in self.COMPUTER_TOOL_NAMES
-                is_toolset = toolset_name == "computer" and name in self.TOOLSET_MEMBER_NAMES
-                if is_legacy or is_toolset:
-                    idx = str(getattr(chunk, "index", 0) or 0)
-                    tid = str(getattr(cb, "id", "") or self._gen_id(prefix="ac"))
+            cb = self.get_field(chunk, "content_block", None)
+            if cb and self.get_field(cb, "type", "") == "tool_use":
+                name = str(self.get_field(cb, "name", "") or "")
+                toolset_name = str(self.get_field(cb, "toolset_name", "") or "")
+                if self.is_computer_tool_use(ctx, name, toolset_name):
+                    handled = True
+                    is_toolset = name in self.TOOLSET_MEMBER_NAMES and name not in self.COMPUTER_TOOL_NAMES
+                    if is_toolset and not toolset_name:
+                        # Older SDK compatibility: the API's stable toolset always
+                        # identifies these blocks as toolset_name="computer".
+                        toolset_name = "computer"
+                    idx = str(self.get_field(chunk, "index", 0) or 0)
+                    tid = str(self.get_field(cb, "id", "") or self._gen_id(prefix="ac"))
                     cmem["index_to_id"][idx] = tid
                     cmem["buffers"].setdefault(tid, "")
-                    cmem["meta"][tid] = {"name": name, "toolset_name": toolset_name}
-                    cmem["active_ids"].append(tid)
+                    initial_input = self.to_plain(self.get_field(cb, "input", {}))
+                    cmem["meta"][tid] = {
+                        "name": name,
+                        "toolset_name": toolset_name,
+                        "initial_input": initial_input if isinstance(initial_input, (dict, list)) else {},
+                    }
+                    if tid not in cmem["active_ids"]:
+                        cmem["active_ids"].append(tid)
                     if is_toolset:
                         ctx.extra["computer_stop_on_error"] = True
 
         elif etype == "input_json_delta":
-            pj = getattr(chunk, "partial_json", "") or ""
+            pj = self.get_field(chunk, "partial_json", "") or ""
             if cmem["active_ids"]:
+                handled = True
                 tid = cmem["active_ids"][-1]
-                cmem["buffers"][tid] = cmem["buffers"].get(tid, "") + pj
+                cmem["buffers"][tid] = cmem["buffers"].get(tid, "") + str(pj)
 
         elif etype == "content_block_delta":
-            delta = getattr(chunk, "delta", None)
-            if delta and getattr(delta, "type", "") == "input_json_delta":
-                idx = str(getattr(chunk, "index", 0) or 0)
-                tid = cmem["index_to_id"].get(idx)
-                if tid:
-                    cmem["buffers"][tid] = cmem["buffers"].get(tid, "") + (getattr(delta, "partial_json", "") or "")
+            idx = str(self.get_field(chunk, "index", 0) or 0)
+            tid = cmem["index_to_id"].get(idx)
+            if tid:
+                handled = True
+                delta = self.get_field(chunk, "delta", None)
+                if delta and self.get_field(delta, "type", "") == "input_json_delta":
+                    pj = self.get_field(delta, "partial_json", "") or ""
+                    cmem["buffers"][tid] = cmem["buffers"].get(tid, "") + str(pj)
 
         elif etype == "content_block_stop":
-            idx = str(getattr(chunk, "index", 0) or 0)
+            idx = str(self.get_field(chunk, "index", 0) or 0)
             tid = cmem["index_to_id"].pop(idx, None)
-            if not tid and cmem["active_ids"]:
+            # Some older SDK stream wrappers omitted the block index on stop.
+            if not tid and self.get_field(chunk, "index", None) is None and cmem["active_ids"]:
                 tid = cmem["active_ids"].pop()
             elif tid and tid in cmem["active_ids"]:
                 cmem["active_ids"].remove(tid)
             if tid:
+                handled = True
                 mapped = self._finish_stream_tool_use(ctx, cmem, tid)
                 if mapped:
                     tool_calls.extend(mapped)
-                    has_calls = True
 
         elif etype == "message_stop":
+            if cmem["active_ids"]:
+                handled = True
             while cmem["active_ids"]:
                 tid = cmem["active_ids"].pop(0)
                 mapped = self._finish_stream_tool_use(ctx, cmem, tid)
                 if mapped:
                     tool_calls.extend(mapped)
-                    has_calls = True
 
-        return tool_calls, has_calls
+        return tool_calls, handled
 
     def _finish_stream_tool_use(self, ctx: CtxItem, cmem: dict, tid: str) -> List[dict]:
-        payload = self._safe_json_loads(cmem["buffers"].pop(tid, ""))
         meta = cmem.get("meta", {}).pop(tid, {})
-        if payload is None:
-            payload = {}
+        payload = self._safe_json_loads(cmem["buffers"].pop(tid, ""))
+        initial_input = meta.get("initial_input", {})
+        if payload is None or (payload == {} and isinstance(initial_input, dict) and initial_input):
+            payload = initial_input if isinstance(initial_input, (dict, list)) else {}
         name = str(meta.get("name", "computer") or "computer")
         toolset_name = str(meta.get("toolset_name", "") or "")
         record = {"id": tid, "name": name, "input": payload}
@@ -332,7 +472,7 @@ class Computer:
 
     # --------------- Non-stream helpers --------------- #
 
-    def rewrite_tool_calls(self, tool_calls: List[dict]) -> List[dict]:
+    def rewrite_tool_calls(self, tool_calls: List[dict], ctx: Optional[CtxItem] = None) -> List[dict]:
         """Rewrite Anthropic Computer Use blocks into one canonical local call per provider call."""
         out: List[dict] = []
         for i, tc in enumerate(tool_calls or []):
@@ -343,7 +483,11 @@ class Computer:
                 args = self._safe_json_loads(args_raw) if isinstance(args_raw, str) else args_raw
                 toolset_name = str(tc.get("toolset_name", "") or "")
 
-                if toolset_name == "computer" and name in self.TOOLSET_MEMBER_NAMES and isinstance(args, dict):
+                is_toolset_member = (
+                    name in self.TOOLSET_MEMBER_NAMES
+                    and self.is_computer_tool_use(ctx, name, toolset_name)
+                )
+                if is_toolset_member and isinstance(args, dict):
                     call = self._member_to_tool_call(
                         name, args, tc.get("id") or self._gen_id(), tc.get("call_id") or tc.get("id") or self._gen_id()
                     )
@@ -417,7 +561,10 @@ class Computer:
         if name == "cursor_position":
             return self._build_call(id_, call_id, "get_mouse_position", {})
         if name == "scroll":
-            amount = int(p.get("scroll_amount", 0) or 0)
+            try:
+                amount = max(0, int(p.get("scroll_amount", 0) or 0))
+            except Exception:
+                amount = 0
             direction = str(p.get("scroll_direction", p.get("direction", "down")) or "down").lower()
             dx = dy = 0
             if direction == "down": dy = amount
@@ -430,17 +577,29 @@ class Computer:
         if name == "type":
             return self._build_call(id_, call_id, "keyboard_type", {"text": str(p.get("text", "") or "")})
         if name == "key":
+            try:
+                repeat = max(1, min(100, int(p.get("repeat", 1) or 1)))
+            except Exception:
+                repeat = 1
             return self._build_call(id_, call_id, "keyboard_keys", {
                 "keys": self._parse_keys_list(p.get("text", "")),
-                "repeat": max(1, int(p.get("repeat", 1) or 1)),
+                "repeat": repeat,
             })
         if name == "hold_key":
+            try:
+                duration = max(0.0, min(300.0, float(p.get("duration", 0.1) or 0.1)))
+            except Exception:
+                duration = 0.1
             return self._build_call(id_, call_id, "hold_key", {
                 "keys": self._parse_keys_list(p.get("text", "")),
-                "duration": float(p.get("duration", 0.1) or 0.1),
+                "duration": duration,
             })
         if name == "wait":
-            return self._build_call(id_, call_id, "wait", {"seconds": float(p.get("duration", p.get("seconds", 1)) or 1)})
+            try:
+                duration = max(0.0, min(300.0, float(p.get("duration", p.get("seconds", 1)) or 1)))
+            except Exception:
+                duration = 1.0
+            return self._build_call(id_, call_id, "wait", {"seconds": duration})
         return None
 
     def _payload_to_tool_calls(self, id_: str, call_id: str, payload: Any) -> List[dict]:
@@ -466,9 +625,12 @@ class Computer:
                 # If Anthropic sends {"action": "left_click", "coordinate": [...]}
                 if "action" in obj and isinstance(obj["action"], str) and obj["action"]:
                     act = {"type": str(obj["action"]).strip().lower()}
-                    for k in ("x", "y", "button", "dx", "dy", "scroll_x", "scroll_y", "keys", "key",
-                              "text", "value", "path", "from", "to", "coordinate", "destination", "offset", "delta",
-                              "seconds", "sec", "count", "num_clicks", "unit"):
+                    for k in (
+                            "x", "y", "button", "dx", "dy", "scroll_x", "scroll_y", "keys", "key",
+                            "text", "value", "path", "from", "to", "coordinate", "start_coordinate",
+                            "end_coordinate", "destination", "offset", "delta", "scroll_direction",
+                            "scroll_amount", "seconds", "sec", "duration", "repeat", "count",
+                            "num_clicks", "unit", "region"):
                         if k in obj:
                             act[k] = obj[k]
                     return act
@@ -559,6 +721,13 @@ class Computer:
 
     def _map_single_action(self, action: dict, id_: str, call_id: str) -> Optional[dict]:
         atype = str(action.get("type", "") or action.get("action", "") or "").lower().strip()
+
+        # computer_20250124 / computer_20251124 put the action name in
+        # input.action. The stable toolset moves that same action name to the
+        # tool_use block's name while retaining the member parameter shapes, so
+        # share one mapper for every official Computer Use action.
+        if atype in self.TOOLSET_MEMBER_NAMES:
+            return self._member_to_tool_call(atype, action, id_, call_id)
 
         # Clicks
         if atype in {"click", "double_click", "dblclick", "dbl_click", "left_click", "right_click"}:
