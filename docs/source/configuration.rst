@@ -20,8 +20,6 @@ General
 
 * ``Clear input on send``: Clears the message editor immediately after a message is submitted, so the next message starts with an empty input field. Disable it if you want the sent text to remain available for editing or reuse. Default: True.
 
-* ``Application environment (os.environ)``: Defines environment variables that PyGPT adds to its process environment during startup. Use this for provider SDKs, local model servers, proxies, or integrations that read configuration from environment variables.
-
 * ``Show tray icon``: Starts PyGPT with a system-tray icon and exposes tray actions such as opening the notepad or asking with a screenshot. A restart is required after changing this option. Default: True.
 
 * ``Minimize to tray on exit``: Keeps PyGPT running in the system tray when the main window is closed instead of terminating the application. The tray icon must also be enabled. Default: False.
@@ -33,6 +31,8 @@ General
 * ``Use proxy``: Routes supported outbound API/SDK connections through the proxy configured below instead of connecting directly. Enable it when your network requires an HTTP/SOCKS proxy or when you deliberately want provider traffic to use one. Default: False.
 
 * ``Proxy address``: Specifies the proxy URL used by supported API clients when ``Use proxy`` is enabled. It may include the scheme, host, port, and optional credentials, for example ``http://proxy.example.com`` or ``socks5://user:pass@host:port``.
+
+* ``Application environment (os.environ)``: Defines environment variables that PyGPT adds to its process environment during startup. Use this for provider SDKs, local model servers, proxies, or integrations that read configuration from environment variables.
 
 * ``Memory Limit``: Sets the memory threshold used by the renderer memory-management logic. When the renderer exceeds the configured threshold, PyGPT attempts to release renderer resources; set ``0`` to disable this mechanism. Accepted formats include ``3.5GB``, ``2GB``, ``2048MB`` and raw byte values; the minimum enabled limit is 2 GB. Default: 2.5GB.
 
@@ -201,9 +201,9 @@ Files and attachments
 
 * ``Store images, captures, and uploads in the data directory``: Stores generated images, screenshots/captures, and uploaded files under the main workdir ``data`` tree instead of using their normal dedicated locations. Enable it when you want application-managed media consolidated in one data directory. Default: False.
 
-* ``Make attachments available in the whole project``: When enabled, attachments added to a chat in a project are available in all chats in that project. When disabled, attachments remain available only in the chat where they were added. Default: False.
-
 * ``Allow images as additional context``: Allows images attached to earlier context items to be reused as additional visual context in later model requests. Disable it when images should be considered only in the message where they were explicitly attached. Default: False.
+
+* ``Make attachments available in the whole project``: When enabled, attachments added to a chat in a project are available in all chats in that project. When disabled, attachments remain available only in the chat where they were added. Default: False.
 
 * ``Append attachment only once (mode: always)``: If enabled, the sent attachment will be appended once to the sending message, rather than appended every time to the input prompt as additional context. Force mode - affects all models. Default: False.
 
@@ -269,8 +269,6 @@ OpenAI
 
 * ``Web Search``: Makes OpenAI's provider-side Web Search tool available so supported models can retrieve current information from the web while answering. It is available on the Responses API path only. Default: True.
 
-* ``Computer use``: Allows supported OpenAI models to request screen, mouse, and keyboard interactions through PyGPT's Computer Use flow. Enable it only when you want the model to operate the configured computer environment. Default: False.
-
 * ``Image generation``: Exposes OpenAI's provider-side image-generation tool to compatible Responses API models, allowing image creation to be invoked as part of an ordinary tool-using conversation. Default: False.
 
 * ``Code Interpreter``: Exposes OpenAI's hosted Code Interpreter to compatible Responses API models so they can execute code in the provider environment and return computed results or generated files. Default: False.
@@ -283,12 +281,12 @@ OpenAI
 
 * ``File search vector store IDs``: Lists the OpenAI vector-store IDs that File Search may query. Enter multiple IDs separated by commas; PyGPT sends them with the provider-side File Search tool definition.
 
+* ``Computer use``: Allows supported OpenAI models to request screen, mouse, and keyboard interactions through PyGPT's Computer Use flow. Enable it only when you want the model to operate the configured computer environment. Default: False.
+
 Google
 ^^^^^^
 
 * ``Web Search``: Makes Google's provider-side web-search/grounding capability available to supported Gemini models, allowing them to incorporate current web information into a response. This is used through the supported native Google API path. Default: True.
-
-* ``Computer use``: Allows supported Gemini Computer Use models to request screen, mouse, and keyboard actions through PyGPT's Computer Use flow. It has no effect for Google models that do not expose Computer Use. Default: False.
 
 * ``Google Maps``: Makes Google Maps grounding available to supported Gemini models so they can use place and map information while answering. Availability depends on the selected model and Google API mode. Default: False.
 
@@ -300,12 +298,12 @@ Google
 
 * ``File search vector store IDs``: Lists the Google file-search/vector-store IDs that the remote File Search tool may query. Enter multiple IDs separated by commas.
 
+* ``Computer use``: Allows supported Gemini Computer Use models to request screen, mouse, and keyboard actions through PyGPT's Computer Use flow. It has no effect for Google models that do not expose Computer Use. Default: False.
+
 Anthropic
 ^^^^^^^^^
 
 * ``Web Search``: Makes Anthropic's provider-side Web Search tool available to supported Claude models so they can retrieve current web information during a response. Default: True.
-
-* ``Computer use``: Allows supported Claude Computer Use models to request screen, mouse, and keyboard interactions through PyGPT's Computer Use flow. It is ignored by models without Computer Use support. Default: False.
 
 * ``Web Fetch``: Makes Anthropic's provider-side Web Fetch tool available so supported Claude models can retrieve the contents of specific web pages during a response. Default: False.
 
@@ -316,6 +314,8 @@ Anthropic
 * ``Remote MCP configuration (tools)``: Defines the JSON ``tools`` payload sent with Anthropic MCP-enabled requests. Use it to declare the MCP toolsets/connectors the model is allowed to invoke.
 
 * ``Remote MCP configuration (mcp_servers)``: Defines the JSON ``mcp_servers`` payload sent to Anthropic, including the remote MCP server names, URLs, authentication, and other provider-supported connection parameters.
+
+* ``Computer use``: Allows supported Claude Computer Use models to request screen, mouse, and keyboard interactions through PyGPT's Computer Use flow. It is ignored by models without Computer Use support. Default: False.
 
 xAI
 ^^^
@@ -551,6 +551,13 @@ See :doc:`indexing` for the complete description of global context indexing, iso
 Agents and experts
 ~~~~~~~~~~~~~~~~~~
 
+General / v2
+^^^^^^^^^^^^
+
+* ``Automatically retrieve additional context from RAG``: Performs an initial retrieval from the configured index before an Agents v2 run and supplies the matching RAG context to the workflow. Disable it if the agent should begin without automatic retrieval and obtain context only through explicit tools. Default: True.
+
+* ``Show full tool-chain in Agents v2``: When enabled, the final Agents v2 response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
+
 Agents
 ^^^^^^
 
@@ -563,20 +570,6 @@ Agents
 * ``Append and compare the previous evaluation prompt in the next evaluation``: Carries the previous evaluator feedback/improvement instruction into the next evaluation cycle so the evaluator can compare progress against earlier guidance. This can improve continuity across multi-step refinement loops. Default: False.
 
 * ``Split response messages``: Stores separate assistant messages produced by the OpenAI Agents flow as separate conversation context items instead of merging them into one item. This affects how multi-message agent output is represented in history. Default: True.
-
-General / v2
-^^^^^^^^^^^^
-
-* ``Automatically retrieve additional context from RAG``: Performs an initial retrieval from the configured index before an Agents v2 run and supplies the matching RAG context to the workflow. Disable it if the agent should begin without automatic retrieval and obtain context only through explicit tools. Default: True.
-
-* ``Show full tool-chain in Agents v2``: When enabled, the final Agents v2 response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
-
-Legacy
-^^^^^^
-
-* ``Display full agent output in chat view``: Controls whether the complete output from legacy agent modes is rendered in the chat view. This setting is kept for older agent implementations and does not control the Agents v2 tool-chain display. Default: True.
-
-* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a legacy agent finishes or achieves its goal. This setting does not control Agents v2 workflow status or tool-chain rendering. Default: False.
 
 Autonomous
 ^^^^^^^^^^
@@ -601,6 +594,13 @@ Experts
 * ``Use the Responses API in Experts mode (master)``: Routes the OpenAI master model in Experts mode through the Responses API instead of Chat Completions. It affects only the master/orchestrating request path. Default: False.
 
 * ``Use the Responses API in Experts mode (slaves)``: Routes OpenAI expert/slave instances through the Responses API instead of Chat Completions. It does not change the API used by the master unless the separate master option is also enabled. Default: False.
+
+Legacy
+^^^^^^
+
+* ``Display full agent output in chat view``: Controls whether the complete output from legacy agent modes is rendered in the chat view. This setting is kept for older agent implementations and does not control the Agents v2 tool-chain display. Default: True.
+
+* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a legacy agent finishes or achieves its goal. This setting does not control Agents v2 workflow status or tool-chain rendering. Default: False.
 
 Accessibility
 ~~~~~~~~~~~~~
@@ -640,12 +640,26 @@ Computer use
 
 * ``Halt on potentially unsafe operation``: Non-sandbox only. When enabled, Computer Use pauses before an operation that the API provider flags as requiring user confirmation. PyGPT displays a warning in the chat and waits until the user types ``continue``. The paused mouse/keyboard action is executed only after that confirmation, and only then is the provider safety check acknowledged back to the API. When disabled, provider safety checks are acknowledged automatically as before. Sandbox execution is not affected. Default: True.
 
-Linux / Windows / macOS
-^^^^^^^^^^^^^^^^^^^^^^^
+Linux
+^^^^^
 
-* ``System command whitelist``: Per-OS comma- or semicolon-separated list of executable/command names allowed for non-sandbox plugin execution. Each OS tab is pre-populated with common file-listing, inspection, and text-processing commands (for example ``ls``, ``cat``, ``grep``, ``sed`` on Linux/macOS, and ``dir``, ``type``, ``findstr`` on Windows).
+* ``System command whitelist``: Defines the comma- or semicolon-separated executable/command names allowed for non-sandbox plugin execution on Linux when the whitelist is enabled. The default list contains common file-listing, inspection, and text-processing commands such as ``ls``, ``cat``, ``grep``, and ``sed``.
 
-* ``System command blacklist``: Per-OS comma- or semicolon-separated list of executable/command names blocked for non-sandbox plugin execution when the whitelist is disabled. The default blacklist is empty to preserve existing behavior.
+* ``System command blacklist``: Defines executable/command names blocked for non-sandbox plugin execution on Linux when the whitelist is disabled. Separate names with commas or semicolons. The default blacklist is empty to preserve existing behavior.
+
+Windows
+^^^^^^^
+
+* ``System command whitelist``: Defines the comma- or semicolon-separated executable/command names allowed for non-sandbox plugin execution on Windows when the whitelist is enabled. The default list contains common commands such as ``dir``, ``type``, and ``findstr``.
+
+* ``System command blacklist``: Defines executable/command names blocked for non-sandbox plugin execution on Windows when the whitelist is disabled. Separate names with commas or semicolons. The default blacklist is empty to preserve existing behavior.
+
+macOS
+^^^^^
+
+* ``System command whitelist``: Defines the comma- or semicolon-separated executable/command names allowed for non-sandbox plugin execution on macOS when the whitelist is enabled. The default list contains common file-listing, inspection, and text-processing commands such as ``ls``, ``cat``, ``grep``, and ``sed``.
+
+* ``System command blacklist``: Defines executable/command names blocked for non-sandbox plugin execution on macOS when the whitelist is disabled. Separate names with commas or semicolons. The default blacklist is empty to preserve existing behavior.
 
 If access is blocked, the plugin returns a ``Permission denied`` result that points to ``Settings -> Security``. The checks are shared by filesystem-capable plugins and host-side command execution, including Files I/O, Web Search file upload/download paths, System (OS), Custom Commands, Code Interpreter host execution, server transfers, and integrations that upload or save local files.
 
@@ -691,15 +705,15 @@ Debug
 
 * ``Log attachments usage to console``: Prints attachment-processing decisions and related activity to the console, helping diagnose upload, extraction, RAG, or native-attachment handling. Default: False.
 
-* ``Log LlamaIndex usage to console``: Prints LlamaIndex indexing, retrieval, and query-flow diagnostics to the console. Enable it when troubleshooting Chat with Files or vector-store behavior. Default: False.
-
-* ``Log Realtime sessions to console``: Prints lifecycle and provider diagnostics for Realtime/audio sessions to the console. This is useful for connection, streaming, and event troubleshooting. Default: False.
-
 * ``Log Agents usage to console``: Prints general agent execution diagnostics to the console, including activity from agent workflows not covered by the more specialized Agents v2 logging options. Default: False.
 
 * ``Log agents v2 workflow``: Logs a concise Agents v2 workflow trace, including orchestration events, tool names, statuses, waits, and response previews without full prompts or large payloads. Default: False.
 
 * ``Agents v2 verbose (log full flow to console)``: Logs the complete Agents v2 orchestration flow, including system prompts, tool calls, worker state, RAG context, inputs, and outputs. This may contain sensitive data. Default: False.
+
+* ``Log LlamaIndex usage to console``: Prints LlamaIndex indexing, retrieval, and query-flow diagnostics to the console. Enable it when troubleshooting Chat with Files or vector-store behavior. Default: False.
+
+* ``Log Realtime sessions to console``: Prints lifecycle and provider diagnostics for Realtime/audio sessions to the console. This is useful for connection, streaming, and event troubleshooting. Default: False.
 
 * ``Log legacy API usage to console``: Prints diagnostics for older/legacy API and assistant execution paths that are still supported for compatibility. Enable it when debugging those paths specifically. Default: False.
 
@@ -812,6 +826,8 @@ You can see the list of loaded fonts in ``Debug / Config``.
    pre {{
        font-family: 'MyFont';
    }}
+
+.. _configuration-data-loaders:
 
 Data Loaders
 ------------
