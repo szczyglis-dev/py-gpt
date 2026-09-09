@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 15:45:00
+# Updated Date: 2026.09.09 16:40:00
 # ================================================== #
 
 import io
 from typing import Optional
 
-from .utils import as_int
+from .utils import append_ctx_urls, as_int, extract_web_fetch_urls, extract_web_search_urls
 from pygpt_net.provider.api.reasoning import stream_reasoning_delta, stream_text_delta
 
 
@@ -153,6 +153,10 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
         _store_thinking_signature(getattr(chunk, "signature", None))
         return None
 
+    if etype == "citations_delta":
+        append_ctx_urls(ctx, extract_web_search_urls(getattr(chunk, "citation", None)))
+        return None
+
     # --- Standard event flow ---
     if etype == "message_start":
         try:
@@ -198,15 +202,9 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
 
         try:
             cb = getattr(chunk, "content_block", None)
-            if cb and getattr(cb, "type", "") == "web_search_tool_result":
-                results = getattr(cb, "content", None) or []
-                for r in results:
-                    url = r.get("url") if isinstance(r, dict) else None
-                    if url:
-                        if ctx.urls is None:
-                            ctx.urls = []
-                        if url not in ctx.urls:
-                            ctx.urls.append(url)
+            if cb:
+                append_ctx_urls(ctx, extract_web_search_urls(cb))
+                append_ctx_urls(ctx, extract_web_fetch_urls(cb))
         except Exception:
             pass
 
@@ -228,6 +226,8 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                 )
             elif getattr(delta, "type", "") == "signature_delta":
                 _store_thinking_signature(getattr(delta, "signature", None))
+            elif getattr(delta, "type", "") == "citations_delta":
+                append_ctx_urls(ctx, extract_web_search_urls(getattr(delta, "citation", None)))
             elif getattr(delta, "type", "") == "input_json_delta":
                 idx = str(getattr(chunk, "index", 0) or 0)
                 buf = state.fn_args_buffers.get(idx)

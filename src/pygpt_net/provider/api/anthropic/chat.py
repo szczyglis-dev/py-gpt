@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 15:45:00
+# Updated Date: 2026.09.09 16:40:00
 # ================================================== #
 
 import json
@@ -20,6 +20,7 @@ from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from .utils import append_ctx_urls, extract_web_fetch_urls, extract_web_search_urls
 
 import anthropic
 from anthropic.types import Message
@@ -367,63 +368,24 @@ class Chat:
 
     def _collect_web_search_urls(self, response: Message, ctx: CtxItem):
         """
-        Collect URLs from web_search_tool_result blocks and attach to ctx.urls.
+        Collect Anthropic Web Search source URLs and attach them to ctx.urls.
+
+        URLs may arrive in typed `web_search_result` blocks and/or in
+        `web_search_result_location` citations attached to text blocks.
 
         :param response: Message response from API
         :param ctx: CtxItem to update
         """
-        urls: List[str] = []
-        try:
-            for blk in getattr(response, "content", []) or []:
-                if getattr(blk, "type", "") == "web_search_tool_result":
-                    content = getattr(blk, "content", None) or []
-                    for item in content:
-                        if isinstance(item, dict) and item.get("type") == "web_search_result":
-                            u = (item.get("url") or "").strip()
-                            if u.startswith("http://") or u.startswith("https://"):
-                                urls.append(u)
-        except Exception:
-            pass
-
-        if urls:
-            if ctx.urls is None:
-                ctx.urls = []
-            for u in urls:
-                if u not in ctx.urls:
-                    ctx.urls.append(u)
+        append_ctx_urls(ctx, extract_web_search_urls(response))
 
     def _collect_web_fetch_urls(self, response: Message, ctx: CtxItem):
         """
-        Collect URLs from web_fetch_tool_result blocks and attach to ctx.urls.
+        Collect Anthropic Web Fetch result URLs and attach them to ctx.urls.
 
         :param response: Message response from API
         :param ctx: CtxItem to update
         """
-        urls: List[str] = []
-        try:
-            for blk in getattr(response, "content", []) or []:
-                if getattr(blk, "type", "") == "web_fetch_tool_result":
-                    content = getattr(blk, "content", {}) or {}
-                    if isinstance(content, dict):
-                        if content.get("type") == "web_fetch_result":
-                            u = (content.get("url") or "").strip()
-                            if u.startswith("http://") or u.startswith("https://"):
-                                urls.append(u)
-                        # citations may embed multiple URLs
-                        if content.get("type") == "web_fetch_result" and isinstance(content.get("citations"), list):
-                            for cit in content["citations"]:
-                                u = (cit.get("url") or "").strip()
-                                if u.startswith("http://") or u.startswith("https://"):
-                                    urls.append(u)
-        except Exception:
-            pass
-
-        if urls:
-            if ctx.urls is None:
-                ctx.urls = []
-            for u in urls:
-                if u not in ctx.urls:
-                    ctx.urls.append(u)
+        append_ctx_urls(ctx, extract_web_fetch_urls(response))
 
     def build_input(
             self,
