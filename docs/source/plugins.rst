@@ -4,45 +4,47 @@ Plugins
 Overview
 -------------------------
 
-**PyGPT** can be enhanced with plugins to add new features.
+**PyGPT** can be enhanced with plugins that add tools, integrations, automation, multimodal features, and additional context directly to conversations.
 
-The following plugins are currently available, and model can use them instantly:
+The following plugins are currently available:
 
-* ``API calls`` - plugin lets you connect the model to the external services using custom defined API calls.
-* ``Audio Input`` - provides speech recognition.
-* ``Audio Output`` - provides voice synthesis.
-* ``Autonomous Agent (inline)`` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
-* ``Bitbucket`` - Access Bitbucket API to manage repositories, issues, and pull requests.
-* ``Chat with files (LlamaIndex, inline)`` - plugin integrates LlamaIndex storage in any chat and provides additional knowledge into context (from indexed files).
-* ``Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means model can interface with any script, application, or code. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to model.
-* ``Context history (calendar, inline)`` - provides access to context history database.
-* ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
-* ``Custom Commands`` - allows you to create and execute custom commands on your system.
-* ``Experts (inline)`` - allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
-* ``Facebook`` - Manage user info, pages, posts, and photos on Facebook pages.
-* ``Files I/O`` - grants access to the local filesystem, enabling model to read and write files, as well as list and create directories.
-* ``GitHub`` - Access GitHub API to manage repositories, issues, and pull requests.
-* ``Google`` - Access Gmail, Drive, Docs, Maps, Calendar, Contacts, Colab, YouTube, Keep - for managing emails, files, events, notes, video info, and contacts.
-* ``Image Generation (inline)`` - integrates image generation with any chat and mode. Select an image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The plugin does not require the ``+ Tools`` option to be enabled.
-* ``Mailer`` - Provides the ability to send, receive and read emails.
-* ``MCP`` - Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
-* ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
-* ``OpenStreetMap`` -  Search, geocode, plan routes, and generate static maps using OpenStreetMap services (Nominatim, OSRM, staticmap).
-* ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
-* ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
-* ``Server (SSH/FTP)`` - Connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more.
-* ``Slack`` - Handle users, conversations, messages, and files on Slack.
-* ``System (OS)`` - provides access to the operating system and executes system commands.
-* ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
-* ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
-* ``Tuya (IoT)`` - Handle Tuya Smart Home devices via Tuya Cloud API.
-* ``TwelveLabs`` - Analyze and understand videos with TwelveLabs Pegasus, and create multimodal embeddings with Marengo.
-* ``Vision (inline)`` - adds image analysis to supported chat modes. When image content is detected, PyGPT temporarily routes that turn through Chat with the image-capable model configured in the plugin. The plugin model can use any supported provider.
-* ``Voice Control (inline)`` - provides voice control command execution within a conversation.
-* ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
-* ``Wikipedia`` - Search Wikipedia for information.
-* ``Wolfram Alpha`` - Compute and solve with Wolfram Alpha: short answers, full JSON pods, math (solve, derivatives, integrals), unit conversions, matrix operations, and plots.
-* ``X/Twitter`` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
+* ``API calls`` - Connects models to external services through user-defined API endpoints, request methods, parameters, and payloads.
+* ``Audio Input`` - Adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
+* ``Audio Output`` - Adds text-to-speech output using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
+* ``Autonomous Agent (inline)`` - Runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
+* ``Bitbucket`` - Connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
+* ``Chat with files (LlamaIndex, inline)`` - Adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
+* ``Code Interpreter`` - Lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
+* ``Context history (calendar, inline)`` - Gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
+* ``Crontab / Task scheduler`` - Lets models create and manage scheduled prompts and tasks using cron-based schedules.
+* ``Custom Commands`` - Exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
+* ``Experts (inline)`` - Makes enabled expert presets available from standard chat modes so the current model can delegate specialized tasks to them.
+* ``Facebook`` - Connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
+* ``Files I/O`` - Gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
+* ``GitHub`` - Connects to GitHub for repository, file, issue, pull request, code search, and account operations.
+* ``Google`` - Integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
+* ``Image Generation (inline)`` - Adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
+* ``Mailer`` - Provides email access through configured mail services, including sending and reading messages where supported.
+* ``MCP`` - Connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
+* ``Mouse and Keyboard`` - Lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
+* ``OpenStreetMap`` - Adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
+* ``Real Time`` - Appends the current date and/or time to system prompts so models can receive up-to-date local time context.
+* ``Serial port / USB`` - Gives models access to configured serial and USB devices for reading data and sending commands.
+* ``Server (SSH/FTP)`` - Connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
+* ``Slack`` - Connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
+* ``System (OS)`` - Provides access to the operating system and executes system commands through PyGPT's host or sandbox execution mechanisms.
+* ``System Prompt Extra`` - Automatically appends reusable custom instructions or additional context to the active system prompt.
+* ``Telegram`` - Connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
+* ``Tuya (IoT)`` - Connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
+* ``TwelveLabs`` - Adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
+* ``Vision (inline)`` - Adds image analysis to supported chat modes by routing image input through a separately configured vision-capable model.
+* ``Voice Control (inline)`` - Lets spoken commands trigger configured PyGPT actions directly while a conversation is active.
+* ``Web Search`` - Adds real-time web search, webpage retrieval, crawling, and external-content indexing using supported search providers and LlamaIndex loaders.
+* ``Wikipedia`` - Provides Wikipedia search, article lookup, summaries, geographic discovery, and random-page access.
+* ``Wolfram Alpha`` - Adds computational knowledge, symbolic and numeric mathematics, unit conversions, matrix operations, and generated plots through Wolfram Alpha.
+* ``X/Twitter`` - Connects to X for searching and reading posts, publishing content, managing interactions, bookmarks, and media.
+
+**Tip:** Inline plugins do not require the ``+ Tools`` option in the toolbox. Once enabled, they remain active throughout the conversation and can provide their functionality automatically when applicable.
 
 
 Creating Your Own Plugins
