@@ -33,7 +33,7 @@ latex_elements = {
 html_theme = "sphinx_rtd_theme"
 html_static_path = ['_static']
 html_theme_options = {
-    'navigation_depth': 3,
+    'navigation_depth': 4,
 }
 
 source_suffix = {
