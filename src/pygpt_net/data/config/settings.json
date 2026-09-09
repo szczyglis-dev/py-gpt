@@ -1217,7 +1217,7 @@
         "slider": true,
         "label": "settings.ctx.records.groups.separators",
         "description": "settings.ctx.records.groups.separators.desc",
-        "value": true,
+        "value": false,
         "min": 0,
         "max": 10000,
         "multiplier": 1,

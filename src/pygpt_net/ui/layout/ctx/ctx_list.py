@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 22:30:00                  #
+# Updated Date: 2026.09.09 14:30:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -38,6 +38,7 @@ class CtxList:
         """
         self.window = window
         self.search_input = SearchInput(window)
+        self._separators = False
         self._group_separators = False
         self._pinned_separators = False
         self._list_section_top_spacing = 12
@@ -102,6 +103,7 @@ class CtxList:
             # View might not expose expanded/collapsed; ignore if not supported
             pass
 
+        self._separators = self.window.core.config.get("ctx.records.separators")
         self._group_separators = self.window.core.config.get("ctx.records.groups.separators")
         self._pinned_separators = self.window.core.config.get("ctx.records.pinned.separators")
 
@@ -127,6 +129,7 @@ class CtxList:
         node = self.window.ui.nodes[id]
         node.backup_selection()
 
+        self._separators = self.window.core.config.get("ctx.records.separators")
         self._group_separators = self.window.core.config.get("ctx.records.groups.separators")
         self._pinned_separators = self.window.core.config.get("ctx.records.pinned.separators")
 
@@ -207,7 +210,7 @@ class CtxList:
                 item = self.build_item(mid, meta, is_group=False)
 
                 # Optional date sections (same logic as in update_items)
-                if self._group_separators and (not item.isPinned or self._pinned_separators):
+                if self._separators and (not item.isPinned or self._pinned_separators):
                     if last_dt_str is None or last_dt_str != item.dt:
                         section = self.build_date_section(item.dt, group=False)
                         if section:
@@ -242,7 +245,7 @@ class CtxList:
                 inline_first_date = (
                     i == 0
                     and self._recent_section_inline_date
-                    and self._group_separators
+                    and self._separators
                     and (not item.isPinned or self._pinned_separators)
                 )
                 if i == 0:
@@ -254,7 +257,7 @@ class CtxList:
                         action='new_context',
                         section_count=recent_total,
                     )
-                if self._group_separators and (not item.isPinned or self._pinned_separators):
+                if self._separators and (not item.isPinned or self._pinned_separators):
                     if not inline_first_date and (i == 0 or last_dt_str != item.dt):
                         section = self.build_date_section(item.dt, group=False)
                         if section:
@@ -289,7 +292,7 @@ class CtxList:
                         'ctx.list.section.pinned',
                         section_count=pinned_total,
                     )
-                if self._group_separators and self._pinned_separators:
+                if self._separators and self._pinned_separators:
                     if i == 0 or last_dt_str != item.dt:
                         section = self.build_date_section(item.dt, group=False)
                         if section:
@@ -567,7 +570,6 @@ class CtxList:
         :param is_group: is group
         :return: Item
         """
-        append_dt = True
         label = data.label
         is_important = data.important
         in_group = bool(data.group)
@@ -578,8 +580,6 @@ class CtxList:
             is_attachment = bool(data.additional_ctx)
         else:
             is_attachment = data.has_additional_ctx()
-        append_dt = False if (is_group and self._group_separators) or ((not is_group) and self._group_separators) else append_dt
-
         dt = self.convert_date(data.updated)
         date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")
         title = data.name
@@ -587,7 +587,7 @@ class CtxList:
             title = title[:80] + '...'
         clean_title = title.replace("\n", "")
 
-        name = f"{clean_title} ({dt})" if append_dt else clean_title
+        name = clean_title
         mode_str = f" ({trans('mode.' + data.last_mode)})" if data.last_mode is not None else ""
         tooltip_text = f"{date_time_str}: {data.name}{mode_str} #{id}"
 

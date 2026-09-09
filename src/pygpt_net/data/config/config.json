@@ -172,7 +172,7 @@
     7
   ],
   "ctx.records.folders.top": true,
-  "ctx.records.groups.separators": true,
+  "ctx.records.groups.separators": false,
   "ctx.records.limit": 1000,
   "ctx.records.pinned.separators": false,
   "ctx.records.separators": true,

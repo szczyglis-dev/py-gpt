@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 13:40:00
+# Updated Date: 2026.09.09 14:30:00
 # ================================================== #
 
 import copy
@@ -612,6 +612,16 @@ class Patch:
                     if key not in data:
                         data[key] = cfg_get_base(key)
                         updated = True
+
+            # < 2.8.13
+            if old < parse_version("2.8.13"):
+                print("Migrating config from < 2.8.13...")
+
+                # Date separators inside projects are disabled by default from
+                # 2.8.13. Apply the new default to existing profiles as well.
+                if data.get("ctx.records.groups.separators") is not False:
+                    data["ctx.records.groups.separators"] = False
+                    updated = True
 
         # update file
         migrated = False
