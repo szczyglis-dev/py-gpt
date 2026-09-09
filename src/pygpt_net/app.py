@@ -230,6 +230,7 @@ def run(**kwargs):
         from pygpt_net.plugin.openai_dalle import Plugin as ImageGenerationPlugin
         from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
         from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
+        from pygpt_net.plugin.memory import Plugin as MemoryPlugin
         from pygpt_net.plugin.agent import Plugin as AgentPlugin
         from pygpt_net.plugin.mailer import Plugin as MailerPlugin
         from pygpt_net.plugin.google import Plugin as GooglePlugin
@@ -438,6 +439,7 @@ def run(**kwargs):
         launcher.add_plugin(VoiceControlPlugin())
         launcher.add_plugin(AgentPlugin())
         launcher.add_plugin(RealTimePlugin())
+        launcher.add_plugin(MemoryPlugin())
         launcher.add_plugin(ExpertsPlugin())
         launcher.add_plugin(ExtraPromptPlugin())
         launcher.add_plugin(AudioInputPlugin())

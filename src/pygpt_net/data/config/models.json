@@ -2,7 +2,7 @@
     "__meta__": {
         "version": "2.8.13",
         "app.version": "2.8.13",
-        "updated_at": "2026-09-08T14:20:00"
+        "updated_at": "2026-09-09T19:22:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M": {
@@ -1651,6 +1651,234 @@
             "imported": false,
             "provider": "openai",
             "tool_calls": true
+        },
+        "gpt-5.3-codex-high": {
+            "id": "gpt-5.3-codex",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5.3-codex",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true,
+            "name": "gpt-5.3-codex (high)",
+            "extra": {
+                "reasoning_effort": "high"
+            }
+        },
+        "gpt-5.3-codex-low": {
+            "id": "gpt-5.3-codex",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5.3-codex",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true,
+            "name": "gpt-5.3-codex (low)",
+            "extra": {
+                "reasoning_effort": "low"
+            }
+        },
+        "gpt-5.3-codex-medium": {
+            "id": "gpt-5.3-codex",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5.3-codex",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true,
+            "name": "gpt-5.3-codex (medium)",
+            "extra": {
+                "reasoning_effort": "medium"
+            }
+        },
+        "gpt-5.3-codex-xhigh": {
+            "id": "gpt-5.3-codex",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5.3-codex",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true,
+            "name": "gpt-5.3-codex (xhigh)",
+            "extra": {
+                "reasoning_effort": "xhigh"
+            }
         },
         "gpt-5.6-luna-high": {
             "id": "gpt-5.6-luna",

@@ -402,6 +402,7 @@
     "google": false,
     "idx_llama_index": false,
     "mailer": false,
+    "memory": false,
     "openai_dalle": false,
     "openai_vision": false,
     "real_time": true,

@@ -28,6 +28,7 @@ from .Version20260121190000 import Version20260121190000  # 2.7.10
 from .Version20260122140000 import Version20260122140000  # 2.7.10
 from .Version20260904170000 import Version20260904170000  # 2.8.8
 from .Version20260907120000 import Version20260907120000  # 2.8.8+
+from .Version20260909193000 import Version20260909193000  # 2.8.13+ memory
 
 class Migrations:
     def __init__(self):
@@ -60,4 +61,5 @@ class Migrations:
             Version20260122140000(),  # 2.7.10
             Version20260904170000(),  # 2.8.8
             Version20260907120000(),  # 2.8.8+ context parts/tasks
+            Version20260909193000(),  # 2.8.13+ memory
         ]
