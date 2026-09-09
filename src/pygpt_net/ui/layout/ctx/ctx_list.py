@@ -22,9 +22,10 @@ from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, Sect
 from pygpt_net.utils import trans
 
 
-# Context-list presentation limits. Project contexts are still loaded from the
-# provider in full; these constants only cap how many rows are rendered until
-# the user explicitly expands the corresponding list.
+# Context-list presentation limits. Pinned/project contexts are still loaded
+# from the provider in full; these constants only cap how many rows are rendered
+# until the user explicitly expands the corresponding list.
+MAX_PINNED_DISPLAY = 6
 MAX_PROJECTS_DISPLAY = 10
 MAX_PROJECT_CONTEXTS_DISPLAY = 10
 
@@ -273,33 +274,73 @@ class CtxList:
         :param id: ID of the list
         :param data: Data to update
         """
-        i = 0
         last_dt_str = None
         model = self.window.ui.models[id]
-        pinned_total = sum(
-            1
-            for meta in data.values()
+        node = self.window.ui.nodes[id]
+
+        pinned_rows = [
+            (meta_id, meta)
+            for meta_id, meta in data.items()
             if (meta.group_id is None or meta.group_id == 0) and meta.important
+        ]
+        pinned_total = len(pinned_rows)
+        if pinned_total == 0:
+            return
+
+        max_pinned = max(0, int(MAX_PINNED_DISPLAY or 0))
+
+        # Keep the active pinned context visible even when it falls outside the
+        # collapsed presentation window. An explicit user collapse remains
+        # authoritative, matching project/project-context limit behavior.
+        try:
+            current_id = int(self.window.core.ctx.get_current())
+        except Exception:
+            current_id = None
+
+        pinned_ids = [entry[0] for entry in pinned_rows]
+        if (
+                max_pinned > 0
+                and not node.show_all_pinned
+                and not node.pinned_limit_collapsed_by_user
+                and current_id is not None
+                and current_id not in pinned_ids[:max_pinned]
+                and current_id in pinned_ids
+        ):
+            node.show_all_pinned = True
+
+        visible_rows = pinned_rows
+        if max_pinned > 0 and not node.show_all_pinned:
+            visible_rows = pinned_rows[:max_pinned]
+
+        self.append_list_section(
+            model,
+            'ctx.list.section.pinned',
+            section_count=pinned_total,
         )
 
-        for meta_id, meta in data.items():
-            gid = meta.group_id
-            if (gid is None or gid == 0) and meta.important:
-                item = self.build_item(meta_id, meta, is_group=False)
-                if i == 0:
-                    self.append_list_section(
-                        model,
-                        'ctx.list.section.pinned',
-                        section_count=pinned_total,
-                    )
-                if self._separators and self._pinned_separators:
-                    if i == 0 or last_dt_str != item.dt:
-                        section = self.build_date_section(item.dt, group=False)
-                        if section:
-                            model.appendRow(section)
-                    last_dt_str = item.dt
-                model.appendRow(item)
-                i += 1
+        for i, (meta_id, meta) in enumerate(visible_rows):
+            item = self.build_item(meta_id, meta, is_group=False)
+            if self._separators and self._pinned_separators:
+                if i == 0 or last_dt_str != item.dt:
+                    section = self.build_date_section(item.dt, group=False)
+                    if section:
+                        model.appendRow(section)
+                last_dt_str = item.dt
+            model.appendRow(item)
+
+        hidden_pinned = pinned_total - len(visible_rows)
+        if hidden_pinned > 0:
+            model.appendRow(ShowMoreItem(
+                trans('ctx.list.show_more').format(count=hidden_pinned),
+                scope=ShowMoreItem.PINNED,
+                remaining_count=hidden_pinned,
+            ))
+        elif max_pinned > 0 and pinned_total > max_pinned and node.show_all_pinned:
+            model.appendRow(ShowMoreItem(
+                trans('ctx.list.less'),
+                scope=ShowMoreItem.PINNED,
+                collapse=True,
+            ))
 
     def update_groups(self, id, data, expand: bool = True):
         """
