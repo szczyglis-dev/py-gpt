@@ -107,3 +107,8 @@ code {{
 .msg-box .name-header.name-bot {{
     color: #cfcfcf;
 }}
+
+code {{
+    background: #363737;
+    padding: 6px;
+}}
