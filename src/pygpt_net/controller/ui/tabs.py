@@ -174,8 +174,13 @@ class Tabs:
 
     def restore_after_ctx_reload(self):
         """Restore active tabs only after the current profile CtxMeta is ready."""
-        self.restore_data()
+        # Reset per-PID renderer state before loading the restored chats.
+        # Preparing after restore_data() clears the renderer caches that have
+        # just been populated for both split-screen columns; ctx.reload_after()
+        # then refreshes only the globally current chat, leaving the other
+        # visible WebView empty until it receives focus.
         self.window.dispatch(RenderEvent(RenderEvent.PREPARE))
+        self.restore_data()
         self.debug()
 
     def reload_after(self):

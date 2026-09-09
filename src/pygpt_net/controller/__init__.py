@@ -158,6 +158,12 @@ class Controller:
 
         print(trans("status.reloading.profile.begin"))
 
+        # Keep the mode loaded from the current profile as the source of truth
+        # for this reload. Restoring tabs/contexts below may temporarily apply
+        # a context mode and overwrite config['mode']. That must not leak into
+        # a freshly switched profile.
+        profile_mode = self.window.core.config.get("mode")
+
         try:
             self.ui.tabs.locked = True  # lock tabs
             self.window.core.reload()  # db, config, patch, etc.
@@ -198,6 +204,18 @@ class Controller:
             # post-reload
             self.ui.tabs.reload_after()
             self.ctx.reload_after()
+
+            # ctx/tab restoration can call ctx.reload_config(), which restores
+            # the mode stored in a context. On a profile switch this could leave
+            # the UI/config on the mode from the previously active state instead
+            # of the mode loaded from the target profile. Restore the profile
+            # value without calling mode.set(), so the current context is not
+            # modified as a side effect of the profile switch.
+            if profile_mode:
+                self.window.core.config.set("mode", profile_mode)
+                self.ui.init_toolbox()
+                self.ui.update()
+
             self.kernel.restart()
             self.theme.reload_all()  # do not reload theme if no change
 
