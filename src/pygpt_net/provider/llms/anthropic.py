@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 20:00:00                  #
+# Updated Date: 2026.09.09 18:35:00                  #
 # ================================================== #
 
 from typing import List, Dict, Optional
@@ -114,6 +114,56 @@ class AnthropicLLM(BaseLLM):
 
         return AnthropicWithProxy(**args, proxy=proxy)
 
+    @staticmethod
+    def _agents_v2_beta_headers(tools: List[dict]) -> List[str]:
+        """Return Anthropic beta headers required by provider-native tools.
+
+        Regular Chat already computes these before calling ``client.beta.messages``.
+        Agents v2 goes through LlamaIndex's normal ``messages.create`` path, so the
+        equivalent beta flags must be supplied as default client headers instead.
+        """
+        betas = []
+        for tool in tools or []:
+            if not isinstance(tool, dict):
+                continue
+            tool_type = str(tool.get("type") or "")
+            beta = None
+            if tool_type == "computer_20250124":
+                beta = "computer-use-2025-01-24"
+            elif tool_type == "computer_20251124":
+                beta = "computer-use-2025-11-24"
+            elif tool_type.startswith("web_fetch_"):
+                beta = "web-fetch-2025-09-10"
+            elif tool_type.startswith("code_execution_"):
+                beta = "code-execution-2025-08-25"
+            elif tool_type in {
+                "tool_search_tool_regex_20251119",
+                "tool_search_tool_bm25_20251119",
+            }:
+                beta = "advanced-tool-use-2025-11-20"
+            elif tool_type == "mcp_toolset":
+                beta = "mcp-client-2025-11-20"
+            if beta and beta not in betas:
+                betas.append(beta)
+        return betas
+
+    @staticmethod
+    def _merge_anthropic_beta_header(args: dict, betas: List[str]) -> None:
+        if not betas:
+            return
+        headers = args.get("default_headers") or {}
+        if not isinstance(headers, dict):
+            headers = {}
+        else:
+            headers = dict(headers)
+        current = str(headers.get("anthropic-beta") or "")
+        merged = [part.strip() for part in current.split(",") if part.strip()]
+        for beta in betas:
+            if beta not in merged:
+                merged.append(beta)
+        headers["anthropic-beta"] = ",".join(merged)
+        args["default_headers"] = headers
+
     def llama_agent(
             self,
             window,
@@ -121,12 +171,52 @@ class AnthropicLLM(BaseLLM):
             stream: bool = False,
             allow_remote_tools: bool = True
     ) -> LlamaBaseLLM:
-        return self.llama(
-            window=window,
-            model=model,
-            stream=stream,
-            remote_tools=allow_remote_tools,
+        """Return Anthropic configured for Agents v2.
+
+        Unlike plain LlamaIndex chat, the agent adapter owns Anthropic's
+        client-side Computer Use continuation and preserves the beta headers
+        required by legacy Computer Use tool versions.
+        """
+        from pygpt_net.provider.llms.anthropic_agent import AgentAnthropic
+
+        args = self.parse_args(model.llama_index, window)
+        proxy = window.core.config.get("api_proxy", None)
+        if not window.core.config.get("api_proxy.enabled", False):
+            proxy = None
+        if "model" not in args:
+            args["model"] = model.id
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = window.core.config.get("api_key_anthropic", "")
+
+        built_remote_tools = []
+        if allow_remote_tools:
+            try:
+                built_remote_tools = window.core.api.anthropic.remote_tools.build_remote_tools(model=model) or []
+            except Exception as e:
+                window.core.debug.log(e)
+                built_remote_tools = []
+
+        if built_remote_tools:
+            existing = args.get("tools") or []
+            if not isinstance(existing, list):
+                existing = []
+
+            def _key(tool: dict) -> str:
+                return f"{tool.get('type')}::{tool.get('name')}"
+
+            index = {_key(tool) for tool in existing if isinstance(tool, dict)}
+            for tool in built_remote_tools:
+                key = _key(tool) if isinstance(tool, dict) else None
+                if key and key not in index:
+                    existing.append(tool)
+                    index.add(key)
+            args["tools"] = existing
+
+        self._merge_anthropic_beta_header(
+            args,
+            self._agents_v2_beta_headers(args.get("tools") or []),
         )
+        return AgentAnthropic(**args, proxy=proxy)
 
     def get_embeddings_model(
             self,
