@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 17:40:00                  #
+# Updated Date: 2026.09.09 15:30:00                  #
 # ================================================== #
 
 import os
@@ -34,6 +34,7 @@ class Patch:
         is_agent_v2 = False
         is_agent_v2_presets = False
         is_agent_v2_cybersec = False
+        is_agent_v2_osint = False
 
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
@@ -116,6 +117,24 @@ class Patch:
                     print("Patched file: {}.".format(dst))
                     updated = True
                 is_agent_v2_cybersec = True  # prevent multiple copy attempts
+
+            # < 2.8.13
+            if old < parse_version("2.8.13") and not is_agent_v2_osint:
+                file = 'agent_v2_osint.json'
+                dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                if not os.path.exists(dst):
+                    print("Migrating OSINT v2 preset from < 2.8.13...")
+                    src = os.path.join(
+                        self.window.core.config.get_app_path(),
+                        'data',
+                        'config',
+                        'presets',
+                        file,
+                    )
+                    shutil.copyfile(src, dst)
+                    print("Patched file: {}.".format(dst))
+                    updated = True
+                is_agent_v2_osint = True  # prevent multiple copy attempts
 
             # update file
             if updated:
