@@ -2368,7 +2368,7 @@ PyGPT includes built-in loaders for common file types and external/web content. 
 
 For the complete list of built-in data loaders, supported parameters, defaults, and configuration details, see:
 
-https://pygpt.readthedocs.io/en/latest/configuration.html#data-loaders
+https://pygpt.readthedocs.io/en/latest/configuration.html#id12
 
 ## Vector stores
 
