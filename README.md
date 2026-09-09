@@ -1410,57 +1410,57 @@ Required **kwargs:
 
 The following plugins are currently available, and model can use them instantly:
 
-- `API calls` - plugin lets you connect the model to the external services using custom defined API calls.
+- `API calls` - Plugin lets you connect the model to the external services using custom defined API calls.
 
-- `Audio Input` - provides speech recognition.
+- `Audio Input` - Provides speech recognition.
 
-- `Audio Output` - provides voice synthesis.
+- `Audio Output` - Provides voice synthesis.
 
-- `Autonomous Agent (inline)` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
+- `Autonomous Agent (inline)` - Enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
 
 - `Bitbucket` - Access Bitbucket API to manage repositories, issues, and pull requests.
 
-- `Chat with Files (LlamaIndex, inline)` - plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database).
+- `Chat with Files (LlamaIndex, inline)` - Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database).
 
-- `Code Interpreter` - responsible for generating and executing Python code, functioning much like the Code Interpreter on ChatGPT, but locally. This means a model can interface with any script, application, or code. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to model.
+- `Code Interpreter` - Responsible for generating and executing Python code, functioning much like the Code Interpreter on ChatGPT, but locally. This means a model can interface with any script, application, or code. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to model.
 
-- `Context history (calendar, inline)` - provides access to context history database.
+- `Context history (calendar, inline)` - Provides access to context history database.
 
-- `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
+- `Crontab / Task scheduler` - Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
-- `Custom Commands` - allows you to create and execute custom commands on your system.
+- `Custom Commands` - Allows you to create and execute custom commands on your system.
 
-- `Experts (inline)` - allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
+- `Experts (inline)` - Allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
 
 - `Facebook` - Manage user info, pages, posts, and photos on Facebook pages.
 
-- `Files I/O` - provides access to the local filesystem, enabling a model to read and write files, as well as list and create directories.
+- `Files I/O` - Provides access to the local filesystem, enabling a model to read and write files, as well as list and create directories.
 
 - `GitHub` - Access GitHub API to manage repositories, issues, and pull requests.
 
 - `Google` - Access Gmail, Drive, Docs, Maps, Calendar, Contacts, Colab, YouTube, Keep - for managing emails, files, events, notes, video info, and contacts.
 
-- `Image Generation (inline)` - integrates image generation with any chat and mode. Select an image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The plugin does not require the `+ Tools` option to be enabled.
+- `Image Generation (inline)` - Integrates image generation with any chat and mode. Select an image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The plugin does not require the `+ Tools` option to be enabled.
 
 - `Mailer` - Provides the ability to send, receive and read emails.
 
 - `MCP` - Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
 
-- `Mouse and Keyboard` - provides the ability to control the mouse and keyboard by the model.
+- `Mouse and Keyboard` - Provides the ability to control the mouse and keyboard by the model.
 
-- `OpenStreetMap` -  Search, geocode, plan routes, and generate static maps using OpenStreetMap services (Nominatim, OSRM, staticmap).
+- `OpenStreetMap` - Search, geocode, plan routes, and generate static maps using OpenStreetMap services (Nominatim, OSRM, staticmap).
 
-- `Real Time` - automatically appends the current date and time to the system prompt, informing the model about current time.
+- `Real Time` - Automatically appends the current date and time to the system prompt, informing the model about current time.
 
-- `Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
+- `Serial port / USB` - Plugin provides commands for reading and sending data to USB ports.
 
 - `Server (SSH/FTP)` - Connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more.
 
 - `Slack` - Handle users, conversations, messages, and files on Slack.
 
-- `System Prompt Extra (append)` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+- `System Prompt Extra (append)` - Appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 
-- `System (OS)` - allows you to create and execute custom commands on your system.
+- `System (OS)` - The plugin provides access to the operating system and executes system commands.
 
 - `Telegram` - Send messages, photos, and documents; manage chats and contacts.
 
@@ -1468,18 +1468,17 @@ The following plugins are currently available, and model can use them instantly:
 
 - `TwelveLabs` - Analyze and understand videos with TwelveLabs Pegasus, and create multimodal embeddings with Marengo.
 
-- `Vision (inline)` - adds image analysis to supported chat modes. When image content is detected, PyGPT temporarily routes that turn through Chat with the image-capable model configured in the plugin. The plugin model can use any supported provider.
+- `Vision (inline)` - Adds image analysis to supported chat modes. When image content is detected, PyGPT temporarily routes that turn through Chat with the image-capable model configured in the plugin. The plugin model can use any supported provider.
 
-- `Voice Control (inline)` - provides voice control command execution within a conversation.
+- `Voice Control (inline)` - Provides voice control command execution within a conversation.
 
-- `Web Search` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
+- `Web Search` - Provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
 
 - `Wikipedia` - Search Wikipedia for information.
 
 - `Wolfram Alpha` - Compute and solve with Wolfram Alpha: short answers, full JSON pods, math (solve, derivatives, integrals), unit conversions, matrix operations, and plots.
 
 - `X/Twitter` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
-
 
 ## API calls
 
@@ -2369,6 +2368,7 @@ PyGPT includes built-in loaders for common file types and external/web content. 
 For the complete list of built-in data loaders, supported parameters, defaults, and configuration details, see:
 
 https://pygpt.readthedocs.io/en/latest/configuration.html#configuration-data-loaders
+
 
 ## Vector stores
 
