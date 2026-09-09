@@ -298,6 +298,10 @@ Google
 
 * ``File search vector store IDs``: Lists the Google file-search/vector-store IDs that the remote File Search tool may query. Enter multiple IDs separated by commas.
 
+* ``Remote MCP``: Enables Google Remote MCP through the Interactions API. In the current PyGPT implementation this remote tool is wired only into **Research** mode (Google Deep Research / Interactions API path); it is not currently used by normal Google Chat or other modes. Default: False.
+
+* ``Remote MCP configuration``: Supplies one MCP server definition or a JSON list of server definitions for Google Interactions API requests. Entries use ``type: "mcp_server"`` and must provide a server ``url``. Streamable HTTP MCP servers are supported; SSE endpoints are not supported by this Google path.
+
 * ``Computer use``: Allows supported Gemini Computer Use models to request screen, mouse, and keyboard actions through PyGPT's Computer Use flow. It has no effect for Google models that do not expose Computer Use. Default: False.
 
 Anthropic

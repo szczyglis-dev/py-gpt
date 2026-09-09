@@ -25,6 +25,7 @@ The following plugins are currently available:
 * ``Google`` - Integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
 * ``Image Generation (inline)`` - Adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
 * ``Mailer`` - Provides email access through configured mail services, including sending and reading messages where supported.
+* ``Memory (inline)`` - Maintains compact database-backed long-term memory with a global scope outside projects and an isolated memory scope for each project.
 * ``MCP`` - Connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
 * ``Mouse and Keyboard`` - Lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
 * ``OpenStreetMap`` - Adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
@@ -1759,6 +1760,45 @@ SMTP User, e.g. user@domain.com
 - ``SMTP Password`` *smtp_password*
 
 SMTP Password.
+
+Memory (inline)
+---------------
+
+The ``Memory (inline)`` plugin provides a compact long-term memory cache stored in the local SQLite database. It keeps one global memory outside projects and one separate memory row for each project. When the active conversation belongs to a project, the project-specific memory is used instead of the global memory.
+
+Because Memory is an inline plugin, it does not require the ``+ Tools`` option in the toolbox. Once enabled, its active commands can be exposed to the model regardless of the global Tools switch.
+
+After a completed conversation turn, the plugin can asynchronously update the active memory with the configured model. The updater treats memory as a canonical compact state rather than an append-only log: related facts are merged contextually, duplicates are consolidated, newer information can supersede obsolete entries, and routine or transient details are discarded. Outside projects, the update prompt focuses on durable information about the user. Inside a project, it keeps the project-oriented memory behavior.
+
+**Options**
+
+- ``Memory update model`` *model_update*
+
+Model used for automatic end-of-context memory updates and, when enabled, for refining manual ``memory_add`` calls.
+
+- ``Maximum memory characters`` *max_chars*
+
+Target maximum memory size in characters. The model is asked to stay within this limit. *Default:* ``15000``. Storage allows an additional ``300``-character safety margin before hard truncation, so the default hard safety limit is ``15300`` characters. No line-count limit is applied.
+
+- ``Refine memory before adding`` *refine_add*
+
+Applies only to manual ``memory_add`` calls. When enabled, the configured memory update model merges and rewrites the added information into the existing memory instead of blindly appending raw text. Automatic end-of-context memory updates are always refined by the model regardless of this setting. *Default:* ``True``.
+
+- ``Auto attach memory to every conversation`` *auto_attach*
+
+Automatically appends the active global or project memory to the system prompt in a ``<context_memory>...</context_memory>`` block. *Default:* ``False``.
+
+- ``Auto attach memory only in projects`` *auto_attach_project*
+
+Automatically appends memory to the system prompt when the current conversation belongs to a project. *Default:* ``True``.
+
+**Tools**
+
+- ``memory_get`` - Reads the complete memory for the current global/project scope. Enabled by default.
+- ``memory_add`` - Selectively adds highly important, durable information. When refinement is enabled, the model merges it contextually with existing memory instead of appending duplicate facts. Disabled by default.
+- ``memory_update`` - Replaces the complete memory content for the current scope. Disabled by default.
+- ``memory_clear`` - Clears the current memory. The model must first ask the user for explicit confirmation and may call the command only after confirmation. Enabled by default.
+
 
 MCP
 ---

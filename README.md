@@ -616,6 +616,8 @@ It requires a Perplexity API key, which can be generated at: https://perplexity.
 
 From version `2.5.27` also OpenAI deep-research models are available in this mode.
 
+**Google Remote MCP:** Google Remote MCP can be enabled in `Config -> Settings -> Remote Tools -> Google`. In the current PyGPT implementation it is available only in **Research** mode through Google's Interactions API / Deep Research path. Configure MCP servers in **Remote MCP configuration** as a JSON object or list. Google currently supports Streamable HTTP MCP servers on this path; SSE servers are not supported.
+
 ## Completion
 
 An older mode of operation that allows working in the standard text completion mode. However, it allows for a bit more flexibility with the text by enabling you to initiate the entire discussion in any way you like.
@@ -1107,7 +1109,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has a preconfigured list of models (as of 2026-09-08):
+PyGPT has a preconfigured list of models (as of 2026-09-09):
 
 ```markdown
 - `claude-fable-5` (Anthropic)
@@ -1164,6 +1166,10 @@ PyGPT has a preconfigured list of models (as of 2026-09-08):
 - `gpt-4-turbo` (OpenAI)
 - `gpt-4o` (OpenAI)
 - `gpt-4o-mini` (OpenAI)
+- `gpt-5.3-codex (high)` (OpenAI)
+- `gpt-5.3-codex (low)` (OpenAI)
+- `gpt-5.3-codex (medium)` (OpenAI)
+- `gpt-5.3-codex (xhigh)` (OpenAI)
 - `gpt-5.6-luna (high)` (OpenAI)
 - `gpt-5.6-luna (low)` (OpenAI)
 - `gpt-5.6-luna (medium)` (OpenAI)
@@ -1443,6 +1449,8 @@ The following plugins are currently available:
 - `Image Generation (inline)` - Adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
 
 - `Mailer` - Provides email access through configured mail services, including sending and reading messages where supported.
+
+- `Memory (inline)` - Maintains a compact database-backed long-term memory, using a global scope outside projects and an isolated memory scope for each project.
 
 - `MCP` - Connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
 
@@ -1776,6 +1784,27 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#image-generat
 Enables the sending, receiving, and reading of emails from the inbox. Currently, only SMTP is supported. More options coming soon.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
+
+## Memory (inline)
+
+The **Memory (inline)** plugin provides a compact long-term memory cache stored in the local database. It uses one global memory outside projects and a separate memory for each project; when a conversation belongs to a project, the project-specific memory is used instead of the global one. Because it is an inline plugin, it does not require the `+ Tools` option to be enabled.
+
+After a completed conversation turn, Memory can update the active memory asynchronously using the configured model. The updater rewrites the memory as a compact canonical state: it keeps important durable information, merges related facts instead of accumulating duplicates, reconciles newer information with older entries, and drops routine or transient details. Global memory focuses on durable information about the user, while project memory keeps information relevant to that project.
+
+**Options:**
+
+- **Memory update model** - model used for automatic memory updates and, when enabled, for refining manual `memory_add` calls.
+- **Maximum memory characters** - target memory size. Default: `15000` characters. A `300`-character safety margin is allowed before hard truncation.
+- **Refine memory before adding** - applies only to manual `memory_add` calls. When enabled (default), the configured model merges the new information into the existing memory instead of appending raw text. Automatic end-of-context updates are always refined regardless of this option.
+- **Auto attach memory to every conversation** - appends the active memory to the system prompt in `<context_memory>...</context_memory>`. Default: `False`.
+- **Auto attach memory only in projects** - automatically attaches memory when the current conversation belongs to a project. Default: `True`.
+
+**Tools:**
+
+- `memory_get` - reads the complete memory for the current scope. Enabled by default.
+- `memory_add` - selectively adds an important, durable fact and can merge it with existing memory. Disabled by default.
+- `memory_update` - replaces the complete memory content for the current scope. Disabled by default.
+- `memory_clear` - clears the current memory only after explicit user confirmation. Enabled by default.
 
 ## MCP (Model Context Protocol)
 
