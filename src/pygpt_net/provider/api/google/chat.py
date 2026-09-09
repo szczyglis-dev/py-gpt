@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 00:30:00                  #
+# Updated Date: 2026.09.09 16:40:00                  #
 # ================================================== #
 
 import base64
@@ -281,7 +281,13 @@ class Chat:
             if prev_interaction_id:
                 create_kwargs["previous_interaction_id"] = prev_interaction_id
 
-            # Do not pass custom tools here; Deep Research manages its own built-in tools.
+            # Google Remote MCP is exposed through the Interactions API. Keep
+            # app-defined function declarations out of this Deep Research path,
+            # but allow server-side MCP connectors configured for Google.
+            mcp_tools = self.window.core.api.google.remote_tools.build_interactions_mcp_tools(model)
+            if mcp_tools:
+                create_kwargs["tools"] = mcp_tools
+
             return client.interactions.create(**create_kwargs)
 
         if stream and mode != MODE_AUDIO:

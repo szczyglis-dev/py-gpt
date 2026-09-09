@@ -617,6 +617,15 @@ class Patch:
             if old < parse_version("2.8.13"):
                 print("Migrating config from < 2.8.13...")
 
+                # Google Remote MCP is available through the Interactions API.
+                for key in (
+                        "remote_tools.google.mcp",
+                        "remote_tools.google.mcp.args",
+                ):
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
+
                 # Date separators inside projects are disabled by default from
                 # 2.8.13. Apply the new default to existing profiles as well.
                 if data.get("ctx.records.groups.separators") is not False:

@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.8.12",
-    "app.version": "2.8.12",
+    "version": "2.8.13",
+    "app.version": "2.8.13",
     "updated_at": "2026-09-08T14:20:00"
   },
   "access.audio.event.speech": false,
@@ -455,6 +455,8 @@
   "remote_tools.google.file_search": false,
   "remote_tools.google.file_search.args": "",
   "remote_tools.google.maps": false,
+  "remote_tools.google.mcp": false,
+  "remote_tools.google.mcp.args": "[\n    {\n        \"type\": \"mcp_server\",\n        \"name\": \"deepwiki\",\n        \"url\": \"https://mcp.deepwiki.com/mcp\",\n        \"headers\": {},\n        \"allowed_tools\": [\"ask_question\"]\n    }\n]",
   "remote_tools.google.url_ctx": false,
   "remote_tools.google.web_search": true,
   "remote_tools.image": false,

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 14:20:00                  #
+# Updated Date: 2026.09.09 16:40:00                  #
 # ================================================== #
+
+import json
 
 from google.genai import types as gtypes
 
@@ -49,6 +51,82 @@ class RemoteTools:
             self.window.core.config.get("remote_tools.google.computer_use", False)
             and self.supports_computer_use(model)
         )
+
+
+    def build_interactions_mcp_tools(self, model: ModelItem = None) -> list:
+        """
+        Build Remote MCP server definitions for the Google Interactions API.
+
+        Google Remote MCP is an Interactions API feature and accepts MCP servers
+        as dictionaries with ``type=mcp_server``. Only Streamable HTTP servers
+        are supported by the API (SSE endpoints are not supported).
+
+        The config value may contain either one JSON object or a JSON array.
+        Invalid entries are ignored so an optional MCP configuration cannot break
+        the whole Google request.
+
+        :param model: ModelItem
+        :return: list of Interactions API MCP server definitions
+        """
+        cfg = self.window.core.config
+        if not cfg.get("remote_tools.google.mcp", False):
+            return []
+
+        # Google currently excludes Gemini 3 family models from Remote MCP in
+        # Interactions API. Agent IDs (e.g. Deep Research) are not filtered here.
+        model_id = str(getattr(model, "id", "") or "").lower()
+        if model_id.startswith("models/"):
+            model_id = model_id[7:]
+        if model_id.startswith("gemini-3"):
+            return []
+
+        raw = cfg.get("remote_tools.google.mcp.args", "")
+        if not raw:
+            return []
+
+        try:
+            parsed = raw if isinstance(raw, (dict, list)) else json.loads(str(raw))
+        except Exception as e:
+            self.window.core.debug.log(e)
+            return []
+
+        if isinstance(parsed, dict):
+            parsed = [parsed]
+        if not isinstance(parsed, list):
+            return []
+
+        tools = []
+        for item in parsed:
+            if not isinstance(item, dict):
+                continue
+            tool = dict(item)
+            tool_type = str(tool.get("type", "mcp_server") or "mcp_server")
+            if tool_type != "mcp_server":
+                continue
+            tool["type"] = "mcp_server"
+
+            # The API requires snake_case-like names and rejects '-' in names.
+            name = tool.get("name")
+            if isinstance(name, str) and "-" in name:
+                tool["name"] = name.replace("-", "_")
+
+            # A remote server without an endpoint is not useful to PyGPT.
+            url = tool.get("url")
+            if not isinstance(url, str) or not url.strip():
+                continue
+            tool["url"] = url.strip()
+
+            headers = tool.get("headers")
+            if headers is not None and not isinstance(headers, dict):
+                tool.pop("headers", None)
+
+            allowed_tools = tool.get("allowed_tools")
+            if allowed_tools is not None and not isinstance(allowed_tools, list):
+                tool.pop("allowed_tools", None)
+
+            tools.append(tool)
+
+        return tools
 
     def build_remote_tools(self, model: ModelItem = None) -> list:
         """

@@ -2314,6 +2314,37 @@
             "Google Docs": "https://ai.google.dev/gemini-api/docs/file-search"
         }
     },
+    "remote_tools.google.mcp": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.google.mcp",
+        "description": "settings.remote_tools.google.mcp.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "Google"
+    },
+    "remote_tools.google.mcp.args": {
+        "section": "remote_tools",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.remote_tools.google.mcp.args",
+        "description": "settings.remote_tools.google.mcp.args.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "Google",
+        "urls": {
+            "Google Docs": "https://ai.google.dev/gemini-api/docs/function-calling#remote_mcp"
+        }
+    },
     "remote_tools.anthropic.web_search": {
         "section": "remote_tools",
         "type": "bool",
