@@ -1,4 +1,5 @@
 body {{ 
+    --copy-btn-bg-hover: rgb(225 225 225 / 76%);
     color: #000;
     background-color: #fff;
 }}
