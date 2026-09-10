@@ -54,9 +54,21 @@ class Image:
 
         option_resolutions = self.window.core.image.get_resolution_option()
         conf_global['img_resolution'] = OptionCombo(self.window, 'global', 'img_resolution', option_resolutions)
+
+        option_aspect_ratio = self.window.core.image.get_xai_aspect_ratio_option()
+        conf_global['img.aspect_ratio'] = OptionCombo(
+            self.window, 'global', 'img.aspect_ratio', option_aspect_ratio
+        )
+        conf_global['img.aspect_ratio'].setToolTip(trans("settings.video.aspect_ratio"))
+        # The xAI-only field starts hidden; Mode.update() toggles it for xAI image models.
+        conf_global['img.aspect_ratio'].setVisible(False)
+        ui.nodes['image.aspect_ratio'] = conf_global['img.aspect_ratio']
+
         # Keep media options shrinkable inside the fixed-minimum toolbox.
         conf_global['img_resolution'].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         conf_global['img_resolution'].setMinimumWidth(0)
+        conf_global['img.aspect_ratio'].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        conf_global['img.aspect_ratio'].setMinimumWidth(0)
         conf_global['img_variants'].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         conf_global['img_variants'].setMinimumWidth(0)
 
@@ -66,6 +78,7 @@ class Image:
 
         cols = QHBoxLayout()
         cols.addWidget(conf_global['img_resolution'], 3)
+        cols.addWidget(conf_global['img.aspect_ratio'], 3)
         cols.addWidget(conf_global['img_variants'], 1)
         cols.setContentsMargins(2, 5, 5, 5)
 

@@ -80,6 +80,27 @@ _GPT_IMAGE_2_COMMON = (
 
 _XAI_IMAGE_RESOLUTIONS = ("1k", "2k")
 
+# xAI Imagine image aspect ratios are independent from the 1K/2K resolution tier.
+# Keep this separate from video ratios: this list mirrors the xAI image API.
+IMAGE_XAI_AVAILABLE_ASPECT_RATIOS = {
+    "auto": "auto",
+    "1:1": "1:1",
+    "16:9": "16:9",
+    "9:16": "9:16",
+    "4:3": "4:3",
+    "3:4": "3:4",
+    "3:2": "3:2",
+    "2:3": "2:3",
+    "2:1": "2:1",
+    "1:2": "1:2",
+    "19.5:9": "19.5:9",
+    "9:19.5": "9:19.5",
+    "20:9": "20:9",
+    "9:20": "9:20",
+    "21:9": "21:9",
+    "5:2": "5:2",
+}
+
 _NANO_BANANA_PRO_LEGACY = (
     "2048x2048", "4096x4096",
     "1664x2496", "2496x1664", "3328x4992", "4992x3328",

@@ -21,6 +21,7 @@ from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.types import IMAGE_XAI_AVAILABLE_ASPECT_RATIOS
 from pygpt_net.utils import trans
 
 DEFAULT_GROK_IMAGE_MODEL="grok-imagine-image-quality-latest"
@@ -77,6 +78,15 @@ class Image:
             resolution = str(self.window.core.config.get('img_resolution') or "").strip().lower()
         worker.resolution = resolution if resolution in {"1k", "2k"} else None
 
+        aspect_ratio = str(
+            extra.get("aspect_ratio")
+            or self.window.core.config.get('img.aspect_ratio', 'auto')
+            or "auto"
+        ).strip().lower()
+        worker.aspect_ratio = (
+            aspect_ratio if aspect_ratio in IMAGE_XAI_AVAILABLE_ASPECT_RATIOS else "auto"
+        )
+
         self.worker = worker
         self.worker.signals.finished.connect(self.window.core.image.handle_finished)
         self.worker.signals.finished_inline.connect(self.window.core.image.handle_finished_inline)
@@ -118,6 +128,7 @@ class ImageWorker(QRunnable):
         self.attachments: Dict[str, Any] = {}
         self.image_id: Optional[str] = None
         self.resolution: Optional[str] = None
+        self.aspect_ratio: str = "auto"
 
         # SDK image_format:
         # - "base64": returns raw image bytes in SDK response (preferred for local saving)
@@ -171,6 +182,8 @@ class ImageWorker(QRunnable):
                 gen_kwargs["image_url"] = reference_image_url
             if self.resolution in {"1k", "2k"}:
                 gen_kwargs["resolution"] = self.resolution
+            if self.aspect_ratio in IMAGE_XAI_AVAILABLE_ASPECT_RATIOS:
+                gen_kwargs["aspect_ratio"] = self.aspect_ratio
 
             images_bytes: List[bytes] = []
             if n == 1:

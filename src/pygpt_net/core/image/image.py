@@ -16,7 +16,10 @@ from time import strftime
 
 from PySide6.QtCore import Slot, QObject
 
-from pygpt_net.core.types import IMAGE_AVAILABLE_RESOLUTIONS
+from pygpt_net.core.types import (
+    IMAGE_AVAILABLE_RESOLUTIONS,
+    IMAGE_XAI_AVAILABLE_ASPECT_RATIOS,
+)
 from pygpt_net.core.types.image import get_future_image_resolutions
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -157,6 +160,23 @@ class Image(QObject):
             "label": "img_resolution",
             "value": "1024x1024",
             "keys": self.get_available_resolutions(),
+        }
+
+    def get_xai_aspect_ratio_option(self) -> dict:
+        """
+        Get xAI image aspect ratio option for UI.
+
+        xAI controls image shape independently from its 1K/2K resolution tier.
+        This option is only made visible by the UI for xAI image models.
+
+        :return: dict
+        """
+        return {
+            "type": "combo",
+            "search": False,
+            "label": "settings.video.aspect_ratio",
+            "value": "auto",
+            "keys": IMAGE_XAI_AVAILABLE_ASPECT_RATIOS,
         }
 
     def get_mode_option(self) -> dict:

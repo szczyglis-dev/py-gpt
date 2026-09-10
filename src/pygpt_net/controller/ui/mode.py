@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:40:00
+# Updated Date: 2026.09.10 19:25:00
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -187,6 +187,15 @@ class Mode:
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
 
         # media options visibility
+        # xAI image generation exposes aspect ratio separately from its 1K/2K
+        # resolution tier. Other image providers keep using explicit dimensions.
+        if 'image.aspect_ratio' in ui_nodes:
+            ui_nodes['image.aspect_ratio'].setVisible(
+                is_media
+                and ctrl.media.get_mode() == "image"
+                and ctrl.media.is_xai_image_model()
+            )
+
         if is_media:
             ui_nodes['media.raw'].setVisible(True)
             if ctrl.media.is_video_model() and ctrl.media.get_mode() == "video":
@@ -231,8 +240,10 @@ class Mode:
 
         if is_media:
             ui_nodes['input.stream'].setVisible(False)
+            ui_nodes['input.counter'].setVisible(False)
         else:
             ui_nodes['input.stream'].setVisible(True)
+            ui_nodes['input.counter'].setVisible(True)
 
         show = self.is_vision(mode)
         ui_menu['menu.video'].menuAction().setVisible(show)

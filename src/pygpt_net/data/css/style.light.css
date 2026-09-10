@@ -254,7 +254,10 @@ QComboBox::item:checked {{
 }}
 
 QScrollBar:vertical {{
-  width: 6px;
+  width: 7px;
+}}
+QScrollBar:horizontal {{
+  height: 7px;
 }}
 QCalendarWidget QToolButton,
 QCalendarWidget QToolButton:hover {{
