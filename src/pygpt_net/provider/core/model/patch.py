@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 13:40:00
+# Updated Date: 2026.09.09 19:22:00
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -547,6 +547,34 @@ class Patch:
                     if str(key).startswith(deprecated_openai_prefixes) \
                             or model_id.startswith(deprecated_openai_prefixes):
                         del data[key]
+                        updated = True
+
+            # <  2.8.13 <--- add latest GPT Codex model
+            if old < parse_version("2.8.13"):
+                print("Migrating models from < 2.8.13...")
+
+                # GPT-5.3-Codex is the current dedicated Codex API model.
+                # Add all supported reasoning-effort variants from the base catalog.
+                for key in (
+                        "gpt-5.3-codex-low",
+                        "gpt-5.3-codex-medium",
+                        "gpt-5.3-codex-high",
+                        "gpt-5.3-codex-xhigh",
+                ):
+                    base_model = from_base(key)
+                    if not base_model:
+                        continue
+                    base_effort = str(
+                        (getattr(base_model, "extra", None) or {}).get("reasoning_effort", "")
+                    )
+                    if not any(
+                            str(getattr(model, "id", "") or "") == base_model.id
+                            and str(
+                                (getattr(model, "extra", None) or {}).get("reasoning_effort", "")
+                            ) == base_effort
+                            for model in data.values()
+                    ):
+                        data[key] = base_model
                         updated = True
 
         # update file

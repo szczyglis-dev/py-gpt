@@ -31,6 +31,10 @@ class Body:
     NUM_TIPS = 13
     EXTRA_ITEMS_VISIBLE_LIMIT = 10
 
+    # User input auto-collapse threshold and collapsed max height (pixels).
+    # Set to 0 to disable automatic collapsing.
+    USER_MSG_COLLAPSE_HEIGHT_PX = 230
+
     # Live provider reasoning UI timing (milliseconds).
     # Delay starts on the first normal response token after a thinking block.
     # Set REASONING_FADE_OUT_DELAY_MS to 0 to start hiding immediately.
@@ -856,6 +860,7 @@ class Body:
         )
 
         syntax_style = cfg_get("render.code_syntax") or "default"
+        user_msg_collapse_height = max(0, int(self.USER_MSG_COLLAPSE_HEIGHT_PX))
         style_js = (
             f'window.CODE_SYNTAX_STYLE={_json_dumps(syntax_style)};'
             f'window.PROFILE_CODE_HL_N_LINE={int(cfg_get("render.code_syntax.stream_n_line", 25))};'
@@ -864,7 +869,8 @@ class Body:
             f'window.PROFILE_CODE_FINAL_HL_MAX_LINES={int(cfg_get("render.code_syntax.final_max_lines", 1500))};'
             f'window.PROFILE_CODE_FINAL_HL_MAX_CHARS={int(cfg_get("render.code_syntax.final_max_chars", 350000))};'
             f'window.DISABLE_SYNTAX_HIGHLIGHT={int(cfg_get("render.code_syntax.disabled", 0))};'
-            f'window.USER_MSG_COLLAPSE_HEIGHT_PX={int(cfg_get("render.msg.user.collapse.px", 1500))};'
+            f'window.USER_MSG_COLLAPSE_HEIGHT_PX={user_msg_collapse_height};'
+            f'document.documentElement.style.setProperty("--user-msg-collapse-max-h", "{user_msg_collapse_height}px");'
             f'window.EXTRA_ITEMS_VISIBLE_LIMIT={int(self.EXTRA_ITEMS_VISIBLE_LIMIT)};'
             f'window.REASONING_SHOW_REALTIME={_json_dumps(bool(cfg_get("ctx.reasoning.show_realtime", True)))};'
             f'window.REASONING_HIDE_AFTER_RESPONSE={_json_dumps(bool(cfg_get("ctx.reasoning.hide_after_response", True)))};'

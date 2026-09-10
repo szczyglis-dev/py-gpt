@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:25:00                  #
+# Updated Date: 2026.09.09 13:15:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
@@ -61,7 +61,7 @@ class ToolboxMain:
         # presets / assistants
         toolbox_mode = QWidget(self.window)
         layout = QVBoxLayout(toolbox_mode)
-        layout.addWidget(self.banner.setup(), alignment=Qt.AlignTop | Qt.AlignRight)  # banner
+        self.banner.setup(layout)  # banner is inserted only after a successful remote load
         layout.addWidget(self.mode.setup())  # modes
         layout.addWidget(self.model.setup())  # models
         layout.addWidget(tip)

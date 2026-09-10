@@ -407,20 +407,44 @@ class HtmlOutput(QWebEngineView):
         self.page().runJavaScript(
             f"scrollToBottom();")
 
-    def showEvent(self, event):
-        """Ensure restored interpreter output starts at the newest entry."""
-        super(HtmlOutput, self).showEvent(event)
-        if not self._scroll_on_first_show:
+    def _scroll_to_bottom_after_show(self):
+        """Re-apply bottom position after the web view/layout becomes visible."""
+        if not self.nodes and not self.plain:
             return
+        QTimer.singleShot(0, self.scroll_to_bottom)
+        QTimer.singleShot(100, self.scroll_to_bottom)
+
+    def showEvent(self, event):
+        """Keep interpreter output at the newest entry when it becomes visible."""
+        super(HtmlOutput, self).showEvent(event)
         if not self.nodes and not self.plain:
             return
 
-        # A tool tab can be restored while it is still hidden during startup.
-        # Scrolling at loadFinished time then has no reliable layout height in
-        # QWebEngineView. Repeat it once when the view actually becomes visible.
+        # A tab embedded in a collapsible column can keep its QWebEngineView
+        # alive while the parent column is hidden. QtWebEngine may reset the
+        # viewport to the top when that parent becomes visible again, so the
+        # tab must re-apply the bottom position on every show. Dialog output
+        # already gets rebuilt when opened, therefore retaining the previous
+        # one-shot behavior there avoids changing the standalone window flow.
+        if self.is_dialog and not self._scroll_on_first_show:
+            return
+
         self._scroll_on_first_show = False
-        QTimer.singleShot(0, self.scroll_to_bottom)
-        QTimer.singleShot(100, self.scroll_to_bottom)
+        self._scroll_to_bottom_after_show()
+
+    def resizeEvent(self, event):
+        """Restore bottom position when a zero-width/height tool column is expanded."""
+        old_size = event.oldSize()
+        new_size = event.size()
+        super(HtmlOutput, self).resizeEvent(event)
+
+        if self.is_dialog or (not self.nodes and not self.plain):
+            return
+
+        was_collapsed = old_size.width() <= 0 or old_size.height() <= 0
+        is_visible = new_size.width() > 0 and new_size.height() > 0
+        if was_collapsed and is_visible:
+            self._scroll_to_bottom_after_show()
 
     def insert_output(self, node: CodeBlock):
         """

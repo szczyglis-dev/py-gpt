@@ -73,7 +73,7 @@ code {{
     border-color: var(--copy-btn-border, rgba(0, 0, 0, .08));
 }}
 .msg-user {{
-    background-color: #f3f3f3;
+    background-color: #e1f0ff;
     color: #000;
 }}
 .name-bot::before {{
@@ -112,4 +112,8 @@ code {{
 }}
 .msg-box .name-header.name-bot {{
     color: #7a787c;
+}}
+code {{
+    background: #ebebeb;
+    padding: 6px;
 }}

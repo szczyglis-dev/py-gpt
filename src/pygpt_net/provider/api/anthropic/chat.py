@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 12:00:00                  #
+# Updated Date: 2026.09.09 16:40:00
 # ================================================== #
 
 import json
@@ -20,6 +20,7 @@ from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from .utils import append_ctx_urls, extract_web_fetch_urls, extract_web_search_urls
 
 import anthropic
 from anthropic.types import Message
@@ -184,26 +185,28 @@ class Chat:
             if signatures:
                 ctx.extra["reasoning"]["signatures"] = signatures
 
-        calls = self.extract_tool_calls(response)
+        calls = self.extract_tool_calls(response, ctx=ctx)
         if calls:
             # Keep the raw Anthropic computer tool_use block for the required
             # tool_result continuation, then map its action to PyGPT plugin calls.
             raw_computer_uses = []
             try:
-                for block in getattr(response, "content", None) or []:
-                    if getattr(block, "type", "") != "tool_use":
+                computer = self.window.core.api.anthropic.computer
+                for block in computer.get_field(response, "content", None) or []:
+                    if computer.get_field(block, "type", "") != "tool_use":
                         continue
-                    name = str(getattr(block, "name", "") or "")
-                    toolset_name = str(getattr(block, "toolset_name", "") or "")
-                    computer = self.window.core.api.anthropic.computer
-                    is_legacy = name in computer.COMPUTER_TOOL_NAMES
-                    is_toolset = toolset_name == "computer" and name in computer.TOOLSET_MEMBER_NAMES
-                    if not (is_legacy or is_toolset):
+                    name = str(computer.get_field(block, "name", "") or "")
+                    toolset_name = str(computer.get_field(block, "toolset_name", "") or "")
+                    if not computer.is_computer_tool_use(ctx, name, toolset_name):
                         continue
+                    is_toolset = name in computer.TOOLSET_MEMBER_NAMES and name not in computer.COMPUTER_TOOL_NAMES
+                    if is_toolset and not toolset_name:
+                        toolset_name = "computer"
+                    block_input = computer.to_plain(computer.get_field(block, "input", {}) or {})
                     record = {
-                        "id": str(getattr(block, "id", "") or ""),
+                        "id": str(computer.get_field(block, "id", "") or ""),
                         "name": name,
-                        "input": getattr(block, "input", {}) or {},
+                        "input": block_input if isinstance(block_input, (dict, list)) else {},
                     }
                     if toolset_name:
                         record["toolset_name"] = toolset_name
@@ -217,7 +220,7 @@ class Chat:
                 if not isinstance(ctx.extra, dict):
                     ctx.extra = {}
                 ctx.extra["anthropic_tool_uses"] = raw_computer_uses
-                ctx.tool_calls = self.window.core.api.anthropic.computer.rewrite_tool_calls(calls)
+                ctx.tool_calls = self.window.core.api.anthropic.computer.rewrite_tool_calls(calls, ctx=ctx)
             else:
                 ctx.tool_calls = calls
 
@@ -311,7 +314,7 @@ class Chat:
             pass
         return out
 
-    def extract_tool_calls(self, response: Message) -> List[dict]:
+    def extract_tool_calls(self, response: Message, ctx: Optional[CtxItem] = None) -> List[dict]:
         """
         Extract tool_use blocks as app tool calls.
 
@@ -337,17 +340,25 @@ class Chat:
             return obj
 
         try:
-            for blk in getattr(response, "content", []) or []:
-                if getattr(blk, "type", "") == "tool_use":
+            computer = self.window.core.api.anthropic.computer
+            for blk in computer.get_field(response, "content", []) or []:
+                if computer.get_field(blk, "type", "") == "tool_use":
+                    name = str(computer.get_field(blk, "name", "") or "")
+                    toolset_name = str(computer.get_field(blk, "toolset_name", "") or "")
+                    if (
+                            not toolset_name
+                            and name in computer.TOOLSET_MEMBER_NAMES
+                            and computer.is_computer_tool_use(ctx, name, toolset_name)
+                    ):
+                        toolset_name = "computer"
                     call = {
-                        "id": getattr(blk, "id", "") or "",
+                        "id": computer.get_field(blk, "id", "") or "",
                         "type": "function",
                         "function": {
-                            "name": getattr(blk, "name", "") or "",
-                            "arguments": to_plain(getattr(blk, "input", {}) or {}),
+                            "name": name,
+                            "arguments": to_plain(computer.get_field(blk, "input", {}) or {}),
                         }
                     }
-                    toolset_name = getattr(blk, "toolset_name", None)
                     if toolset_name:
                         call["toolset_name"] = str(toolset_name)
                     out.append(call)
@@ -357,63 +368,24 @@ class Chat:
 
     def _collect_web_search_urls(self, response: Message, ctx: CtxItem):
         """
-        Collect URLs from web_search_tool_result blocks and attach to ctx.urls.
+        Collect Anthropic Web Search source URLs and attach them to ctx.urls.
+
+        URLs may arrive in typed `web_search_result` blocks and/or in
+        `web_search_result_location` citations attached to text blocks.
 
         :param response: Message response from API
         :param ctx: CtxItem to update
         """
-        urls: List[str] = []
-        try:
-            for blk in getattr(response, "content", []) or []:
-                if getattr(blk, "type", "") == "web_search_tool_result":
-                    content = getattr(blk, "content", None) or []
-                    for item in content:
-                        if isinstance(item, dict) and item.get("type") == "web_search_result":
-                            u = (item.get("url") or "").strip()
-                            if u.startswith("http://") or u.startswith("https://"):
-                                urls.append(u)
-        except Exception:
-            pass
-
-        if urls:
-            if ctx.urls is None:
-                ctx.urls = []
-            for u in urls:
-                if u not in ctx.urls:
-                    ctx.urls.append(u)
+        append_ctx_urls(ctx, extract_web_search_urls(response))
 
     def _collect_web_fetch_urls(self, response: Message, ctx: CtxItem):
         """
-        Collect URLs from web_fetch_tool_result blocks and attach to ctx.urls.
+        Collect Anthropic Web Fetch result URLs and attach them to ctx.urls.
 
         :param response: Message response from API
         :param ctx: CtxItem to update
         """
-        urls: List[str] = []
-        try:
-            for blk in getattr(response, "content", []) or []:
-                if getattr(blk, "type", "") == "web_fetch_tool_result":
-                    content = getattr(blk, "content", {}) or {}
-                    if isinstance(content, dict):
-                        if content.get("type") == "web_fetch_result":
-                            u = (content.get("url") or "").strip()
-                            if u.startswith("http://") or u.startswith("https://"):
-                                urls.append(u)
-                        # citations may embed multiple URLs
-                        if content.get("type") == "web_fetch_result" and isinstance(content.get("citations"), list):
-                            for cit in content["citations"]:
-                                u = (cit.get("url") or "").strip()
-                                if u.startswith("http://") or u.startswith("https://"):
-                                    urls.append(u)
-        except Exception:
-            pass
-
-        if urls:
-            if ctx.urls is None:
-                ctx.urls = []
-            for u in urls:
-                if u not in ctx.urls:
-                    ctx.urls.append(u)
+        append_ctx_urls(ctx, extract_web_fetch_urls(response))
 
     def build_input(
             self,

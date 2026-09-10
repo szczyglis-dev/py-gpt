@@ -173,6 +173,12 @@ class Database:
             'last_item',
             'last_update',
         ]
+        columns["memory"] = [
+            'id',
+            'project_id',
+            'updated_at',
+            'content',
+        ]
         columns["notepad"] = [
             'id',
             'idx',
@@ -330,6 +336,16 @@ class Database:
                 'default_sort': 'last_update',
                 'default_order': 'DESC',
                 'primary_key': 'group_id',
+            },
+            'memory': {
+                'columns': columns["memory"],
+                'sort_by': columns["memory"],
+                'search_fields': ['id', 'project_id', 'content'],
+                'timestamp_columns': ['updated_at'],
+                'json_columns': [],
+                'default_sort': 'updated_at',
+                'default_order': 'DESC',
+                'primary_key': 'id',
             },
             'notepad': {
                 'columns': columns["notepad"],

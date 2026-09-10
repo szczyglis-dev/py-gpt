@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 14:30:00                  #
+# Updated Date: 2026.09.09 13:15:00                  #
 # ================================================== #
 
 import os
@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Any
 
 from PySide6.QtCore import QSize, Qt, QTimer, Slot
 from PySide6.QtGui import QMovie, QPixmap
-from PySide6.QtWidgets import QLabel, QWidget
+from PySide6.QtWidgets import QLabel
 
 
 class Banner:
@@ -26,27 +26,59 @@ class Banner:
 
     def __init__(self, window=None):
         self.window = window
+        self.layout = None
+        self.widget: Optional["BannerWidget"] = None
 
-    def setup(self) -> QWidget:
-        widget = BannerWidget(
-            width=self.WIDTH,
-            height=self.HEIGHT,
-            default_path=self.window.core.banners.get_default_path(),
-            parent=self.window,
-        )
-        self.window.ui.nodes["toolbox.banner"] = widget
-        self.window.core.banners.loaded.connect(widget.set_items)
-        return widget
+    def setup(self, layout):
+        """Attach banner loading to the toolbox without creating a widget yet."""
+        self.layout = layout
+        self.window.core.banners.loaded.connect(self.set_items)
+
+    @Slot(object)
+    def set_items(self, items: List[Dict[str, Any]]):
+        items = list(items or [])
+        if not items:
+            self._remove_widget()
+            return
+
+        if self.widget is None:
+            widget = BannerWidget(
+                width=self.WIDTH,
+                height=self.HEIGHT,
+                parent=self.window,
+            )
+            self.widget = widget
+            self.window.ui.nodes["toolbox.banner"] = widget
+            if self.layout is not None:
+                self.layout.insertWidget(
+                    0,
+                    widget,
+                    0,
+                    Qt.AlignTop | Qt.AlignRight,
+                )
+
+        self.widget.set_items(items)
+
+    def _remove_widget(self):
+        if self.widget is None:
+            self.window.ui.nodes.pop("toolbox.banner", None)
+            return
+
+        self.widget.stop()
+        if self.layout is not None:
+            self.layout.removeWidget(self.widget)
+        self.window.ui.nodes.pop("toolbox.banner", None)
+        self.widget.deleteLater()
+        self.widget = None
 
 
 class BannerWidget(QLabel):
     """Clickable banner label with timed rotation and animated GIF support."""
 
-    def __init__(self, width: int, height: int, default_path: str, parent=None):
+    def __init__(self, width: int, height: int, parent=None):
         super().__init__(parent)
         self.banner_width = width
         self.banner_height = height
-        self.default_path = default_path
         self.items: List[Dict[str, Any]] = []
         self.current_index = 0
         self.current_url = ""
@@ -61,10 +93,6 @@ class BannerWidget(QLabel):
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self._next)
 
-        # The default image is visible immediately while update/banner network
-        # checks run in the background.
-        self._show_default()
-
     @Slot(object)
     def set_items(self, items: List[Dict[str, Any]]):
         self.timer.stop()
@@ -72,13 +100,12 @@ class BannerWidget(QLabel):
         self.current_index = 0
 
         if not self.items:
-            self._show_default()
+            self.stop()
             return
         self._show_current()
 
     def _show_current(self):
         if not self.items:
-            self._show_default()
             return
 
         if self.current_index >= len(self.items):
@@ -106,19 +133,20 @@ class BannerWidget(QLabel):
         self.current_index = (self.current_index + 1) % len(self.items)
         self._show_current()
 
-    def _show_default(self):
+    def stop(self):
         self.timer.stop()
         self.current_url = ""
+        self.items = []
         self.setToolTip("")
         self.unsetCursor()
-        self._show_image(self.default_path if os.path.isfile(self.default_path) else None)
+        self._stop_movie()
+        self.clear()
 
     def _show_image(self, path: Optional[str]):
         self._stop_movie()
         self.clear()
 
         if not path or not os.path.isfile(path):
-            # The QLabel stylesheet supplies the required black fallback.
             return
 
         if path.lower().endswith(".gif"):

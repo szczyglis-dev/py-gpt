@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 14:30:00                  #
+# Updated Date: 2026.09.09 13:15:00                  #
 # ================================================== #
 
 import hashlib
@@ -35,14 +35,6 @@ class Banners(QObject):
         self._loading = False
         self._worker = None
 
-    def get_default_path(self) -> str:
-        """Return the bundled default banner path."""
-        return os.path.join(
-            self.window.core.config.get_app_path(),
-            "data",
-            "default.png",
-        )
-
     def run_load(self):
         """Start banner synchronization in the global thread pool."""
         if self._loading or self.window is None or self.window.is_closing:
@@ -50,14 +42,12 @@ class Banners(QObject):
 
         self._ensure_config()
         config = self.window.core.config
-        app_path = config.get_app_path()
         user_tmp_path = config.get_user_dir("tmp")
         api_url = str(config.get("app_banners_api_url", self.DEFAULT_API_URL) or "").strip()
 
         self._loading = True
         worker = BannersWorker(
             api_url=api_url,
-            app_path=app_path,
             user_tmp_path=user_tmp_path,
         )
         self._worker = worker
@@ -90,14 +80,6 @@ class Banners(QObject):
 
     @Slot(object)
     def _handle_loaded(self, result: Dict[str, Any]):
-        source = result.get("source", "bundled")
-        error = result.get("error")
-        if error:
-            pass
-            # print(f"Banners: remote load failed ({error}); using bundled fallback.")
-        else:
-            pass
-            # print(f"Banners: loaded from {source}.")
         self.loaded.emit(result.get("items", []))
 
     @Slot()
@@ -112,7 +94,7 @@ class BannersWorkerSignals(QObject):
 
 
 class BannersWorker(QRunnable):
-    """Network/file worker used by :class:`Banners`."""
+    """Remote banner worker used by :class:`Banners`."""
 
     USER_AGENT = (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) "
@@ -124,46 +106,29 @@ class BannersWorker(QRunnable):
 
     CACHE_MANIFEST = ".pygpt_banners_cache.json"
 
-    def __init__(self, api_url: str, app_path: str, user_tmp_path: str):
+    def __init__(self, api_url: str, user_tmp_path: str):
         super().__init__()
         self.api_url = api_url
-        self.app_path = app_path
         self.user_tmp_path = user_tmp_path
         self.signals = BannersWorkerSignals()
 
     @Slot()
     def run(self):
-        result = None
-        remote_error = None
+        items = []
+        error = None
         try:
-            if self.api_url:
-                try:
-                    items = self._load_remote()
-                    result = {
-                        "items": items,
-                        "source": "remote",
-                        "error": None,
-                    }
-                except Exception as e:
-                    remote_error = str(e)
-
-            if result is None:
-                items = self._load_local()
-                result = {
-                    "items": items,
-                    "source": "bundled",
-                    "error": remote_error,
-                }
-
-            self.signals.loaded.emit(result)
+            if not self.api_url:
+                raise ValueError("Banner API URL is empty")
+            items = self._load_remote()
         except Exception as e:
-            # Even a broken/missing bundled JSON must not break application startup.
-            self.signals.loaded.emit({
-                "items": [],
-                "source": "default",
-                "error": remote_error or str(e),
-            })
+            error = str(e)
+            self._clear_cached_banners()
         finally:
+            self.signals.loaded.emit({
+                "items": items,
+                "source": "remote",
+                "error": error,
+            })
             self.signals.finished.emit()
 
     def _load_remote(self) -> List[Dict[str, Any]]:
@@ -208,8 +173,7 @@ class BannersWorker(QRunnable):
             self._save_cache_manifest(cache_dir, created_files)
             return items
         except Exception:
-            # Do not leave a half-downloaded remote set behind when fallback is
-            # selected for this startup.
+            # Do not leave a half-downloaded remote set behind.
             self._remove_cache_files(cache_dir, created_files)
             self._save_cache_manifest(cache_dir, [])
             raise
@@ -254,30 +218,11 @@ class BannersWorker(QRunnable):
         except OSError:
             pass
 
-    def _load_local(self) -> List[Dict[str, Any]]:
-        config_path = os.path.join(self.app_path, "data", "banners.json")
-        if not os.path.isfile(config_path):
-            return []
-
-        with open(config_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        raw_items = self._extract_items(data)
-        banner_dir = os.path.join(self.app_path, "data", "banners")
-        items = []
-        for index, raw in enumerate(raw_items):
-            item = self._normalize_item(raw, index)
-            img = item.pop("img", "")
-            path = None
-            if img:
-                # Bundled assets are deliberately constrained to data/banners.
-                # This also avoids path traversal from an accidentally edited JSON.
-                candidate = os.path.join(banner_dir, os.path.basename(img))
-                if os.path.isfile(candidate):
-                    path = candidate
-            item["path"] = path
-            items.append(item)
-        return items
+    def _clear_cached_banners(self):
+        """Remove stale downloaded banners after a remote loading failure."""
+        cache_dir = self.user_tmp_path
+        if os.path.isdir(cache_dir):
+            self._clear_previous_cache(cache_dir)
 
     def _fetch_json(self, url: str) -> Dict[str, Any]:
         raw = self._fetch_bytes(url, self.JSON_MAX_BYTES, accept="application/json,text/plain,*/*")

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2026.09.09 14:20:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -683,7 +683,55 @@ class Render:
             else:
                 self.renderer = self.markdown_renderer
 
-        self.window.controller.ctx.refresh()
+        # Do not reload only the globally selected context here. In split view
+        # each column can have a different active chat and its own output PID.
+        # Rebuild the selected chat in every column with the newly selected
+        # renderer, without changing global context/focus.
+        self._refresh_active_chat_outputs()
+
+    def _refresh_active_chat_outputs(self) -> None:
+        """Rebuild the active chat output in every tab column."""
+        core = self.window.core
+        tabs_core = core.tabs
+        ctx_core = core.ctx
+        ctx_ctrl = self.window.controller.ctx
+        output = ctx_core.output
+
+        request_active = output.has_request()
+
+        for column_idx in range(tabs_core.NUM_COLS):
+            tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+            if tabs is None:
+                continue
+
+            tab = tabs_core.get_tab_by_index(tabs.currentIndex(), column_idx)
+            if tab is None or tab.type != Tab.TAB_CHAT or tab.data_id is None:
+                continue
+
+            meta = ctx_core.get_meta_by_id(tab.data_id)
+            if meta is None:
+                continue
+
+            # During an in-flight request its render pin is authoritative; do
+            # not replace it just to refresh another column. In the normal idle
+            # case pin temporarily to the concrete tab PID so this also works
+            # when the same context is open in both columns.
+            if request_active:
+                ctx_ctrl.refresh_output(meta)
+                continue
+
+            previous_pid = output.get_pinned_pid(meta)
+            pinned_pid = output.pin_render_pid(meta, pid=tab.pid, force=True)
+            if pinned_pid != tab.pid:
+                continue
+
+            try:
+                ctx_ctrl.refresh_output(meta)
+            finally:
+                if previous_pid is not None:
+                    output.render_pids[meta.id] = previous_pid
+                else:
+                    output.unpin_render_pid(meta=meta)
 
     def instance(self) -> BaseRenderer:
         """

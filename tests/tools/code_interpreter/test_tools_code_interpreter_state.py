@@ -93,7 +93,6 @@ def test_code_interpreter_setup_restores_config_and_initializes_once(tmp_path):
     tool.load_history = MagicMock()
     tool.load_output = MagicMock()
     tool.update = MagicMock()
-    tool.set_initial_size = MagicMock()
     values = {
         "interpreter.input": "print(1)",
         "interpreter.execute_all": True,
@@ -115,21 +114,7 @@ def test_code_interpreter_setup_restores_config_and_initializes_once(tmp_path):
     tool.signals.set_checkbox_ipython.emit.assert_called_once_with(False)
     # self.ipython is still the tool's in-memory value until widget callback updates it.
     tool.signals.toggle_all_visible.emit.assert_called_once_with(False)
-    tool.set_initial_size.assert_called_once_with()
-    tool.window.core.config.set.assert_called_once_with("interpreter.dialog.initialized", True)
-
-
-def test_code_interpreter_setup_does_not_reset_initialized_dialog_size(tmp_path):
-    tool, _, _, _ = _tool(tmp_path)
-    tool.migrate_legacy_files = MagicMock()
-    tool.load_history = MagicMock()
-    tool.load_output = MagicMock()
-    tool.update = MagicMock()
-    tool.set_initial_size = MagicMock()
-    tool.window.core.config.has.side_effect = lambda key: key == "interpreter.dialog.initialized"
-
-    tool.setup()
-    tool.set_initial_size.assert_not_called()
+    tool.window.core.config.set.assert_not_called()
 
 
 def test_code_interpreter_migrate_legacy_files_moves_or_deletes_stale_files(tmp_path):

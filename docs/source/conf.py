@@ -9,7 +9,7 @@
 project = 'PyGPT'
 copyright = '2026, pygpt.net'
 author = 'szczyglis-dev, Marcin Szczygliński'
-release = '2.8.12'
+release = '2.8.13'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -33,7 +33,7 @@ latex_elements = {
 html_theme = "sphinx_rtd_theme"
 html_static_path = ['_static']
 html_theme_options = {
-    'navigation_depth': 3,
+    'navigation_depth': 4,
 }
 
 source_suffix = {

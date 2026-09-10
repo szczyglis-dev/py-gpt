@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 13:40:00
+# Updated Date: 2026.09.09 14:30:00
 # ================================================== #
 
 import copy
@@ -612,6 +612,38 @@ class Patch:
                     if key not in data:
                         data[key] = cfg_get_base(key)
                         updated = True
+
+            # < 2.8.13
+            if old < parse_version("2.8.13"):
+                print("Migrating config from < 2.8.13...")
+
+                # Google Remote MCP is available through the Interactions API.
+                for key in (
+                        "remote_tools.google.mcp",
+                        "remote_tools.google.mcp.args",
+                ):
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
+
+                # Date separators inside projects are disabled by default from
+                # 2.8.13. Apply the new default to existing profiles as well.
+                if data.get("ctx.records.groups.separators") is not False:
+                    data["ctx.records.groups.separators"] = False
+                    updated = True
+
+                # css chat, <code> background color, changed msg-user background color
+                patch_css('style.light.css', True)
+                patch_css('style.dark.css', True)
+                patch_css('web-blocks.css', True)
+                patch_css('web-chatgpt.css', True)
+                patch_css('web-chatgpt.dark.css', True)
+                patch_css('web-chatgpt.darkest.css', True)
+                patch_css('web-chatgpt.light.css', True)
+                patch_css('web-chatgpt_wide.css', True)
+                patch_css('web-chatgpt_wide.dark.css', True)
+                patch_css('web-chatgpt_wide.darkest.css', True)
+                patch_css('web-chatgpt_wide.light.css', True)
 
         # update file
         migrated = False

@@ -41,10 +41,10 @@ Features
 * Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 * Handles and stores the full context of conversations (short and long-term memory).
 * Integrated calendar, day notes and search in contexts by selected date.
-* Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
+* Tools and commands execution (via plugins: access to the local filesystem, Python/OS, system commands execution, and more).
 * Custom commands creation and execution.
 * Crontab / Task scheduler included.
-* Built-in real-time Python Code Interpreter / IPython.
+* Built-in ``Python/OS`` tool with real-time Python / IPython execution.
 * Manages files and attachments with options to upload, download, and organize.
 * Context history with the capability to revert to previous contexts (long-term memory).
 * Allows you to easily manage prompts with handy editable presets.

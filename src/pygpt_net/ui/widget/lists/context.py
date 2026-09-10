@@ -34,13 +34,15 @@ class ContextList(BaseList):
         self.window = window
         self.id = id
         self.expanded_items = set()
-        # Runtime-only visual expansion state for capped project/project-context
-        # lists. The underlying grouped context data remains fully loaded.
+        # Runtime-only visual expansion state for capped pinned/project/context
+        # lists. The underlying context data remains fully loaded.
+        self.show_all_pinned = False
         self.show_all_projects = False
         self.show_all_project_contexts = set()
         # Track an explicit user collapse separately from automatic reveal of
-        # the currently active project/context. This makes the trailing "less"
+        # the currently active pinned/project context. This makes the trailing "less"
         # action authoritative even when the active row is beyond the cap.
+        self.pinned_limit_collapsed_by_user = False
         self.projects_limit_collapsed_by_user = False
         self.project_contexts_limit_collapsed_by_user = set()
         # Top-level context-list sections (Pinned / Projects / Recent) have
@@ -615,7 +617,7 @@ class ContextList(BaseList):
         return bool(isinstance(it, GroupItem))
 
     def _is_show_more_index(self, index: QtCore.QModelIndex) -> bool:
-        """Return True if index points to a visual project-list expander row."""
+        """Return True if index points to a visual capped-list expander row."""
         try:
             if not index.isValid():
                 return False
@@ -624,12 +626,19 @@ class ContextList(BaseList):
             return False
 
     def _handle_show_more_click(self, index: QtCore.QModelIndex) -> bool:
-        """Expand or collapse a capped project/project-context list."""
+        """Expand or collapse a capped pinned/project/project-context list."""
         if not self._is_show_more_index(index):
             return False
         try:
             item = self._model.itemFromIndex(index)
-            if item.scope == ShowMoreItem.PROJECTS:
+            if item.scope == ShowMoreItem.PINNED:
+                if item.collapse:
+                    self.show_all_pinned = False
+                    self.pinned_limit_collapsed_by_user = True
+                else:
+                    self.show_all_pinned = True
+                    self.pinned_limit_collapsed_by_user = False
+            elif item.scope == ShowMoreItem.PROJECTS:
                 if item.collapse:
                     self.show_all_projects = False
                     self.projects_limit_collapsed_by_user = True
@@ -1138,7 +1147,7 @@ class ContextList(BaseList):
             pos = self._event_pos_to_point(event)
             index = self.indexAt(pos)
 
-            # Visual project-list limit controls are handled manually because they use
+            # Visual capped-list controls are handled manually because they use
             # the same disabled/header styling as section labels.
             if self._handle_show_more_click(index):
                 event.accept()
@@ -2988,8 +2997,9 @@ class SectionItem(QStandardItem):
 
 
 class ShowMoreItem(SectionItem):
-    """Centered expand/collapse control for capped project lists."""
+    """Centered expand/collapse control for capped context-list sections."""
 
+    PINNED = 'pinned'
     PROJECTS = 'projects'
     PROJECT_CONTEXTS = 'project_contexts'
 

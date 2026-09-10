@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has a preconfigured list of models (as of 2026-09-08):
+PyGPT has a preconfigured list of models (as of 2026-09-09):
 
 - ``claude-fable-5`` (Anthropic)
 - ``claude-fable-5-1`` (Anthropic)
@@ -60,6 +60,10 @@ PyGPT has a preconfigured list of models (as of 2026-09-08):
 - ``gpt-4-turbo`` (OpenAI)
 - ``gpt-4o`` (OpenAI)
 - ``gpt-4o-mini`` (OpenAI)
+- ``gpt-5.3-codex (high)`` (OpenAI)
+- ``gpt-5.3-codex (low)`` (OpenAI)
+- ``gpt-5.3-codex (medium)`` (OpenAI)
+- ``gpt-5.3-codex (xhigh)`` (OpenAI)
 - ``gpt-5.6-luna (high)`` (OpenAI)
 - ``gpt-5.6-luna (low)`` (OpenAI)
 - ``gpt-5.6-luna (medium)`` (OpenAI)

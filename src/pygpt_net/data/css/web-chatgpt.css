@@ -793,3 +793,7 @@ think {{
     .agents-v2-status--active .agents-v2-status__text {{ animation: none; }}
     .agents-v2-status, .agents-v2-status--changing, .agents-v2-status--leave {{ transition: none; }}
 }}
+code {{
+    background: #363737;
+    padding: 6px;
+}}
