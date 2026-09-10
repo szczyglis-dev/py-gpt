@@ -1,5 +1,5 @@
-Indexing and project indexes
-============================
+Indexing and RAG
+================
 
 PyGPT uses LlamaIndex and a vector store to provide persistent RAG data for
 ``Chat with Files`` and related plugins. File indexing and conversation-context
