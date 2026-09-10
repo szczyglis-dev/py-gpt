@@ -58,7 +58,6 @@ class Patch:
             # < 2.8.10
             if old < parse_version("2.8.10"):
                 if 'agent_v2_pygpt.json' not in self.window.core.presets.items and not is_agent_v2:
-                    print("Migrating preset file from < 2.8.10...")
                     files = [
                         'agent_v2_pygpt.json',
                         'current.agent_v2.json',
@@ -74,7 +73,6 @@ class Patch:
 
             # < 2.8.11
             if old < parse_version("2.8.11") and not is_agent_v2_presets:
-                print("Migrating Agents v2 presets from < 2.8.11...")
                 files = [
                     'agent_v2_brainstorm.json',
                     'agent_v2_coder.json',
