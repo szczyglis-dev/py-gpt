@@ -124,6 +124,8 @@
         <file alias="shedule.svg">data/icons/shedule.svg</file>
         <file alias="sort.svg">data/icons/sort.svg</file>
         <file alias="split_screen.svg">data/icons/split_screen.svg</file>
+        <file alias="splitter_handle_horizontal_light.svg">data/icons/splitter_handle_horizontal_light.svg</file>
+        <file alias="splitter_handle_vertical_light.svg">data/icons/splitter_handle_vertical_light.svg</file>
         <file alias="stack.svg">data/icons/stack.svg</file>
         <file alias="stacks.svg">data/icons/stacks.svg</file>
         <file alias="star.svg">data/icons/star.svg</file>

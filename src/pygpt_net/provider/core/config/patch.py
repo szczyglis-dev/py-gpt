@@ -648,9 +648,7 @@ class Patch:
             # < 2.8.14
             if old < parse_version("2.8.14"):
                 print("Migrating config from < 2.8.14...")
-                # GPT Image 2.5 Flare is the new application/plugin default, but
-                # existing users keep their current image model selections. Mark
-                # the config as migrated so only metadata advances to 2.8.14.
+                patch_css('style.light.css', True)
                 updated = True
 
         # update file

@@ -72,11 +72,24 @@ QComboBox::focus {{
   color: #000000;
 }}
 
-QMainWindow::separator:horizontal,
-QSplitter::handle:vertical {{
+QMainWindow::separator:horizontal {{
   width: 100%;
   height: 1px;
   background-color: #d4d4d4;
+}}
+QSplitter::handle:horizontal {{
+  width: 6px;
+  background-color: transparent;
+  image: url(:/icons/splitter_handle_vertical_light.svg);
+}}
+QSplitter::handle:vertical {{
+  height: 6px;
+  background-color: transparent;
+  image: url(:/icons/splitter_handle_horizontal_light.svg);
+}}
+QSplitter::handle:horizontal:hover,
+QSplitter::handle:vertical:hover {{
+  background-color: rgba(0, 0, 0, 8);
 }}
 QTableView::item,
 QTreeView::item,
