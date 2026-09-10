@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 13:20:00
+# Updated Date: 2026.09.10 14:10:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -36,7 +36,15 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
+        signals = self.signals
         try:
+            # Runner and kernel objects are shared by plugin workers. Bind Qt
+            # signals in the worker thread so overlapping tool calls cannot
+            # replace another worker's signal source while it is restarting.
+            if self.plugin is not None and signals is not None:
+                self.plugin.runner.attach_signals(signals)
+                self.plugin.get_interpreter().attach_signals(signals)
+
             responses = []
             for item in self.cmds:
                 if self.is_stopped():
@@ -115,6 +123,15 @@ class Worker(BaseWorker):
         except Exception as e:
             self.error(e)
         finally:
+            if self.plugin is not None:
+                try:
+                    self.plugin.runner.detach_signals(signals)
+                except Exception:
+                    pass
+                try:
+                    self.plugin.get_interpreter().detach_signals(signals)
+                except Exception:
+                    pass
             self.cleanup()
 
     def cmd_ipython_execute_new(self, item: dict) -> dict:

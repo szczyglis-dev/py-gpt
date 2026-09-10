@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 13:10:00
+# Updated Date: 2026.09.10 14:10:00                  #
 # ================================================== #
 
 import base64
@@ -15,6 +15,7 @@ import os
 import json
 import re
 import time
+import threading
 import io
 import tarfile
 
@@ -29,6 +30,10 @@ class DockerKernel:
     BUSY_MSG = (
         "IPython kernel is already executing another request. "
         "Wait for the current execution to finish or interrupt it; do not restart the kernel repeatedly."
+    )
+    RESTARTING_MSG = (
+        "IPython kernel restart is already in progress. "
+        "Wait for it to finish and retry the execution once; do not request another restart."
     )
     RECOVERED_MSG = (
         "IPython kernel stopped responding during execution and was restarted automatically. "
@@ -69,6 +74,7 @@ del _pygpt_make_system_noninteractive
         self.container_name = "pygpt_ipython_kernel_container"
         self.image_name = "pygpt_ipython_kernel"
         self.initialized = False
+        self._signals_local = threading.local()
         self.key = "19749810-8febfa748186a01da2f7b28c"
         self.bind_address = "0.0.0.0"
         self.conn_address = "127.0.0.1"
@@ -80,6 +86,7 @@ del _pygpt_make_system_noninteractive
             "hb": 5559,
         }
         self.signals = None
+        self._restart_lock = threading.Lock()
         self.restarting = False
         self.executing = False
         self.last_restart_at = 0.0
@@ -558,6 +565,11 @@ del _pygpt_make_system_noninteractive
         :param auto_init: Automatically recover the kernel once if it is unavailable.
         :return: Output from the kernel.
         """
+        if self.restarting:
+            self.log("IPython kernel restart is already in progress; execution deferred.")
+            self.send_output(self.RESTARTING_MSG)
+            return self.RESTARTING_MSG
+
         if self.executing:
             self.log("IPython kernel is already executing another request.")
             return self.BUSY_MSG
@@ -669,20 +681,20 @@ del _pygpt_make_system_noninteractive
     def restart_kernel(self) -> bool:
         """Restart the kernel, suppressing duplicate restart bursts."""
         from jupyter_client import BlockingKernelClient
-        if self.restarting:
+        if not self._restart_lock.acquire(blocking=False):
             self.log("Kernel is already restarting; duplicate request ignored.")
             return False
 
-        if (
-                self.last_restart_at > 0
-                and time.monotonic() - self.last_restart_at < self.RESTART_COOLDOWN
-                and self.check_ready()):
-            self.log("IPython kernel was restarted recently; duplicate restart skipped.")
-            return True
-
         self.restarting = True
-        self.send_output("Restarting...")
         try:
+            if (
+                    self.last_restart_at > 0
+                    and time.monotonic() - self.last_restart_at < self.RESTART_COOLDOWN
+                    and self.check_ready()):
+                self.log("IPython kernel was restarted recently; duplicate restart skipped.")
+                return True
+
+            self.send_output("Restarting...")
             self.restart_container(self.get_container_name())
 
             if self.client is not None:
@@ -712,6 +724,7 @@ del _pygpt_make_system_noninteractive
             return False
         finally:
             self.restarting = False
+            self._restart_lock.release()
 
     def send_output(self, output: str):
         """
@@ -720,8 +733,13 @@ del _pygpt_make_system_noninteractive
         :param output: Output.
         :return: Output.
         """
-        if self.signals is not None:
-            self.signals.ipython_output.emit(output)
+        signals = self.signals
+        if signals is None:
+            return
+        try:
+            signals.ipython_output.emit(output)
+        except RuntimeError:
+            self.detach_signals(signals)
 
     def is_docker_installed(self) -> bool:
         """
@@ -846,13 +864,24 @@ del _pygpt_make_system_noninteractive
         )
         return ansi_escape.sub('', text)
 
-    def attach_signals(self, signals):
-        """
-        Attach signals
+    @property
+    def signals(self):
+        """Return signals attached to the current worker thread."""
+        return getattr(self._signals_local, "value", None)
 
-        :param signals: signals
-        """
+    @signals.setter
+    def signals(self, signals):
+        self._signals_local.value = signals
+
+    def attach_signals(self, signals):
+        """Attach signals to the current worker thread."""
         self.signals = signals
+
+    def detach_signals(self, signals=None):
+        """Detach signals from the current worker thread if they still match."""
+        current = self.signals
+        if signals is None or current is signals:
+            self.signals = None
 
     def log(self, msg):
         """

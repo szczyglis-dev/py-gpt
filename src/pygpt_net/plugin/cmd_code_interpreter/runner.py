@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 13:45:00                  #
+# Updated Date: 2026.09.10 14:10:00                  #
 # ================================================== #
 
 import os.path
 import re
 import subprocess
+import threading
 import docker
 
 from pygpt_net.item.ctx import CtxItem
@@ -25,15 +26,44 @@ class Runner:
         :param plugin: plugin
         """
         self.plugin = plugin
+        self._signals_local = threading.local()
         self.signals = None
 
-    def attach_signals(self, signals):
-        """
-        Attach signals
+    @property
+    def signals(self):
+        """Return signals attached to the current worker thread."""
+        return getattr(self._signals_local, "value", None)
 
-        :param signals: signals
-        """
+    @signals.setter
+    def signals(self, signals):
+        self._signals_local.value = signals
+
+    def attach_signals(self, signals):
+        """Attach signals to the current worker thread."""
         self.signals = signals
+
+    def detach_signals(self, signals=None):
+        """Detach signals from the current worker thread if they still match."""
+        current = self.signals
+        if signals is None or current is signals:
+            self.signals = None
+
+    def _emit_signal(self, name: str, *args) -> bool:
+        """Safely emit through the current worker's Qt signal object."""
+        signals = self.signals
+        if signals is None:
+            return False
+        try:
+            signal = getattr(signals, name, None)
+            if signal is None or not callable(getattr(signal, "emit", None)):
+                return False
+            signal.emit(*args)
+            return True
+        except RuntimeError:
+            # The worker may have completed and Qt may already have deleted its
+            # WorkerSignals QObject. Never let late logging/output fail a tool.
+            self.detach_signals(signals)
+            return False
 
     @staticmethod
     def _communicate_subprocess(command, **kwargs):
@@ -68,7 +98,7 @@ class Runner:
         type = "stdin"
         if self.signals is not None:
             self.send_interpreter_output_begin(type)
-            self.signals.output.emit(data, type)
+            self._emit_signal("output", data, type)
             self.send_interpreter_output_end(type)
 
     def send_interpreter_output(self, data: str, type: str):
@@ -78,8 +108,7 @@ class Runner:
         :param data: output text
         :param type: output type (stdout/stderr)
         """
-        if self.signals is not None:
-            self.signals.output.emit(data, type)
+        self._emit_signal("output", data, type)
 
     def send_interpreter_output_begin(self, type: str):
         """
@@ -87,8 +116,7 @@ class Runner:
 
         :param type: output type (stdout/stderr)
         """
-        if self.signals is not None:
-            self.signals.output_begin.emit(type)
+        self._emit_signal("output_begin", type)
 
     def send_interpreter_output_end(self, type: str):
         """
@@ -96,8 +124,7 @@ class Runner:
 
         :param type: output type (stdout/stderr)
         """
-        if self.signals is not None:
-            self.signals.output_end.emit(type)
+        self._emit_signal("output_end", type)
 
     def send_html_output(self, data: str):
         """
@@ -105,8 +132,7 @@ class Runner:
 
         :param data: HTML code
         """
-        if self.signals is not None:
-            self.signals.html_output.emit(data)
+        self._emit_signal("html_output", data)
 
     def handle_result(self, stdout, stderr):
         """
@@ -746,8 +772,7 @@ class Runner:
 
         :param err: exception or error message
         """
-        if self.signals is not None:
-            self.signals.error.emit(err)
+        self._emit_signal("error", err)
 
     def status(self, msg: str):
         """
@@ -755,8 +780,7 @@ class Runner:
 
         :param msg: status message
         """
-        if self.signals is not None:
-            self.signals.status.emit(msg)
+        self._emit_signal("status", msg)
 
     def debug(self, msg: any):
         """
@@ -764,8 +788,7 @@ class Runner:
 
         :param msg: message to log
         """
-        if self.signals is not None:
-            self.signals.debug.emit(msg)
+        self._emit_signal("debug", msg)
 
     def log(self, msg, sandbox: bool = False):
         """
@@ -779,5 +802,4 @@ class Runner:
             prefix += '[DOCKER]'
         full_msg = prefix + ' ' + str(msg)
 
-        if self.signals is not None:
-            self.signals.log.emit(full_msg)
+        self._emit_signal("log", full_msg)

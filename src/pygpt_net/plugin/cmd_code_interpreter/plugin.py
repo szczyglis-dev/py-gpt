@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 16:30:00                  #
+# Updated Date: 2026.09.10 14:10:00                  #
 # ================================================== #
 
 import os
@@ -347,8 +347,9 @@ class Plugin(BasePlugin):
             worker.signals.clear.connect(self.handle_interpreter_clear)
             worker.signals.html_output.connect(self.handle_html_output)
             worker.signals.ipython_output.connect(self.handle_ipython_output)
-            self.get_interpreter().attach_signals(worker.signals)
-            self.runner.attach_signals(worker.signals)
+            # Runner/kernel signals are bound inside Worker.run() on the actual
+            # worker thread. Keeping a single shared signal pointer here causes
+            # races between overlapping tool calls and kernel restarts.
 
             if (not self.is_async(ctx) and not force) or ctx.async_disabled:
                 worker.run()
