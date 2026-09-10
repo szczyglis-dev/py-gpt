@@ -84,8 +84,15 @@ class Settings:
             self.current_plugin = next(iter(plugins))
         cfg = self.window.controller.config
         for pid, plugin in plugins.items():
-            options = plugin.setup()
-            cfg.load_options(f'plugin.{pid}', options)
+            try:
+                options = plugin.setup()
+            except Exception as e:
+                self.window.core.debug.error(e)
+                options = plugin.options
+            try:
+                cfg.load_options(f'plugin.{pid}', options)
+            except Exception as e:
+                self.window.core.debug.error(e)
         self.window.controller.layout.restore_plugin_settings()
 
     def refresh_option(self, id: str, key: str):

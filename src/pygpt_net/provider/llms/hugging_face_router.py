@@ -137,24 +137,3 @@ class HuggingFaceRouterLLM(BaseLLM):
         trust_env = window.core.config.get("api_native_hf.trust_env", False)
 
         return HFEmbed(proxy=proxy, trust_env=trust_env, **args)
-
-    def get_models(
-            self,
-            window,
-    ) -> List[Dict]:
-        """
-        Return list of models for the provider
-
-        :param window: window instance
-        :return: list of models
-        """
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
-        return items

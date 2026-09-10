@@ -76,20 +76,21 @@ class Runner:
         :param stderr: stderr
         :return: result
         """
-        result = None
+        out = None
+        err = None
         if stdout:
-            result = stdout.decode("utf-8", errors="replace")
-            self.send_interpreter_output(result, "stdout")
-            self.log("STDOUT: {}".format(result))
+            out = stdout.decode("utf-8", errors="replace")
+            self.send_interpreter_output(out, "stdout")
+            self.log("STDOUT: {}".format(out))
         if stderr:
             err = stderr.decode("utf-8", errors="replace")
             self.send_interpreter_output(err, "stderr")
-            # Prefer stderr if non-empty
-            result = err if err else result
             self.log("STDERR: {}".format(err))
-        if result is None:
-            result = "No result (STDOUT/STDERR empty)"
-            self.log(result)
+        combined = "\n".join(part for part in (out, err) if part)
+        if combined:
+            return combined
+        result = "No result (STDOUT/STDERR empty)"
+        self.log(result)
         return result
 
     def handle_result_docker(self, response) -> str:

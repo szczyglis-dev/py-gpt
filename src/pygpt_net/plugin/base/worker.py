@@ -48,19 +48,39 @@ class BaseWorker(QRunnable):
             except RuntimeError:
                 pass
 
+    def _emit(self, name: str, *args) -> bool:
+        """Safely emit a signal if it still exists.
+
+        Guards against the race where ``cleanup()`` has already requested the
+        signals object be deleted (or a queued emission is in flight) while a
+        worker thread is still attempting to emit.
+        """
+        sig = self.signals
+        if sig is None:
+            return False
+        try:
+            signal = getattr(sig, name, None)
+            if signal is None or not callable(getattr(signal, "emit", None)):
+                return False
+            signal.emit(*args)
+            return True
+        except RuntimeError:
+            # C++ object already deleted under us
+            return False
+        except Exception:
+            return False
+
     def debug(self, msg: str):
         """
         Emit debug signal
 
         :param msg: debug message
         """
-        if self.signals is not None and hasattr(self.signals, "debug"):
-            self.signals.debug.emit(msg)
+        self._emit("debug", msg)
 
     def destroyed(self):
         """Emit destroyed signal"""
-        if self.signals is not None and hasattr(self.signals, "destroyed"):
-            self.signals.destroyed.emit()
+        self._emit("destroyed")
 
     def error(self, err: Any):
         """
@@ -68,8 +88,7 @@ class BaseWorker(QRunnable):
 
         :param err: error message
         """
-        if self.signals is not None and hasattr(self.signals, "error"):
-            self.signals.error.emit(err)
+        self._emit("error", err)
 
     def log(self, msg: str):
         """
@@ -79,8 +98,7 @@ class BaseWorker(QRunnable):
         """
         if self.is_threaded():
             return
-        if self.signals is not None and hasattr(self.signals, "log"):
-            self.signals.log.emit(msg)
+        self._emit("log", msg)
 
     @deprecated("From 2.1.29: BaseWorker.response() is deprecated, use BaseWorker.reply() instead")
     def response(
@@ -118,8 +136,7 @@ class BaseWorker(QRunnable):
                 self.plugin.handle_finished(response, self.ctx, extra_data)
                 return
 
-        if self.signals is not None and hasattr(self.signals, "finished"):
-            self.signals.finished.emit(response, self.ctx, extra_data)
+        self._emit("finished", response, self.ctx, extra_data)
 
     def reply_more(
             self,
@@ -134,19 +151,17 @@ class BaseWorker(QRunnable):
         """
         # See reply(): Agents v2 routes completion through Qt's queued signal
         # path so plugin result handling never runs directly on a worker thread.
-        if self.ctx.agent_call and self.plugin is not None:
+        if self.ctx is not None and self.ctx.agent_call and self.plugin is not None:
             extra = self.ctx.extra if isinstance(self.ctx.extra, dict) else {}
             if not extra.get("agents_v2_async_tool"):
                 self.plugin.handle_finished_more(responses, self.ctx, extra_data)
                 return
 
-        if self.signals is not None and hasattr(self.signals, "finished_more"):
-            self.signals.finished_more.emit(responses, self.ctx, extra_data)
+        self._emit("finished_more", responses, self.ctx, extra_data)
 
     def started(self):
         """Emit started signal"""
-        if self.signals is not None and hasattr(self.signals, "started"):
-            self.signals.started.emit()
+        self._emit("started")
 
     def status(self, msg: str):
         """
@@ -156,13 +171,11 @@ class BaseWorker(QRunnable):
         """
         if self.is_threaded():
             return
-        if self.signals is not None and hasattr(self.signals, "status"):
-            self.signals.status.emit(msg)
+        self._emit("status", msg)
 
     def stopped(self):
         """Emit stopped signal"""
-        if self.signals is not None and hasattr(self.signals, "stopped"):
-            self.signals.stopped.emit()
+        self._emit("stopped")
 
     def is_threaded(self) -> bool:
         """

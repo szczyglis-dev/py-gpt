@@ -149,30 +149,6 @@ class MistralAILLM(BaseLLM):
         """
         super(MistralAILLM, self).init_embeddings(window, env)
 
-        # === FIX FOR LOCAL EMBEDDINGS ===
-        # if there is no OpenAI api key then set fake key to prevent empty key Llama-index error
-        if ('OPENAI_API_KEY' not in os.environ
-                and (window.core.config.get('api_key') is None or window.core.config.get('api_key') == "")):
-            os.environ['OPENAI_API_KEY'] = "_"
-
-    def get_models(
-            self,
-            window,
-    ) -> List[Dict]:
-        """
-        Return list of models for the provider
-
-        :param window: window instance
-        :return: list of models
-        """
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                id = item.id
-                items.append({
-                    "id": id,
-                    "name": id,
-                })
-        return items
+        # Local embeddings must not write a fake OPENAI_API_KEY into the global
+        # environment, as that would leak into subsequent OpenAI API calls.
+        # The Mistral embedding provider does not require an OpenAI key.

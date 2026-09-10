@@ -519,22 +519,35 @@ class Worker(BaseWorker):
             # Check if src is URL
             if item["params"]['src'].startswith("http"):
                 src = item["params"]['src']
-                # Download file from URL
+                # Download file from URL with SSL verification enabled
                 try:
                     req = Request(
                         url=src,
                         headers={'User-Agent': 'Mozilla/5.0'},
                     )
                     context = ssl.create_default_context()
-                    context.check_hostname = False
-                    context.verify_mode = ssl.CERT_NONE
                     with urlopen(
                             req,
                             context=context,
-                            timeout=5) as response, \
+                            timeout=30) as response, \
                             open(dst, 'wb') as out_file:
-                        shutil.copyfileobj(response, out_file)
-                        size = os.path.getsize(dst)
+                        expected = response.headers.get('Content-Length')
+                        buf_size = 1024 * 1024  # 1 MiB buffer for throughput
+                        size = 0
+                        while True:
+                            block = response.read(buf_size)
+                            if not block:
+                                break
+                            out_file.write(block)
+                            size += len(block)
+                        if expected is not None:
+                            expected = int(expected)
+                            if expected != size:
+                                raise IOError(
+                                    "Download incomplete: got {} bytes, expected {}".format(
+                                        size, expected
+                                    )
+                                )
                 except Exception as e:
                     return self.make_response(item, f"Failed to download file: {e}")
             else:
