@@ -5,6 +5,7 @@ from PyInstaller.utils.hooks import (
     collect_data_files,
     collect_submodules,
     collect_dynamic_libs,
+    copy_metadata,
 )
 import PySide6
 
@@ -41,11 +42,45 @@ for pkg in ('onnxruntime', 'tokenizers', 'tiktoken'):
     except Exception:
         pass
 
+# ipykernel imports debugpy during kernel initialization. debugpy's vendored
+# pydevd runtime contains native extensions with names such as
+# ``*_cython*.so`` (not only ``lib*.so``), so collect them explicitly.
+try:
+    dyn_bins += collect_dynamic_libs(
+        'debugpy',
+        search_patterns=['*.so', '*.dylib', '*.dll', '*.pyd'],
+    )
+except Exception:
+    pass
+
 datas = []
 datas += collect_data_files('opentelemetry.sdk')
 datas += collect_data_files('opentelemetry')
 datas += collect_data_files('pinecone')
 datas += collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql'])
+# Local IPython kernel runtime for PyInstaller builds.  In particular,
+# ipykernel/resources is used by jupyter_client's native python3 kernelspec.
+# jupyter_client discovers the built-in local provisioner through package
+# entry-point metadata, so its dist-info must be present in the bundle.
+datas += copy_metadata('jupyter_client')
+for pkg in ('ipykernel', 'IPython', 'jupyter_client', 'jupyter_core'):
+    try:
+        datas += collect_data_files(pkg)
+    except Exception:
+        pass
+
+# debugpy._vendored uses os.listdir() and temporarily prepends the physical
+# ``debugpy/_vendored/pydevd`` directory to sys.path. The vendored Python
+# sources therefore must exist as real files in the frozen distribution;
+# keeping them only in PyInstaller's PYZ archive is not sufficient.
+try:
+    datas += collect_data_files(
+        'debugpy',
+        include_py_files=True,
+        excludes=['**/__pycache__/**', '**/*.pyc'],
+    )
+except Exception:
+    pass
 
 datas += [
     ('src/pygpt_net/data/config/presets/*', 'data/config/presets'),
@@ -126,6 +161,8 @@ hiddenimports = [
     'pydub',
     'tweepy',
     'ipykernel',
+    'ipykernel_launcher',
+    'ipykernel.kernelapp',
     'IPython.core.display',
     'IPython.core.interactiveshell',
     'jupyter_client',
@@ -136,6 +173,9 @@ for pkg in [
     'chromadb', 'chromadb.migrations', 'chromadb.telemetry',
     'chromadb.api', 'chromadb.db',
     'httpx', 'httpx_socks', 'nbconvert', 'aiosqlite',
+    # Kernel modules are partly imported lazily/dynamically at runtime.
+    'ipykernel', 'jupyter_client', 'IPython.core.magics', 'IPython.extensions',
+    'debugpy', 'zmq.backend',
 ]:
     hiddenimports += collect_submodules(pkg)
 

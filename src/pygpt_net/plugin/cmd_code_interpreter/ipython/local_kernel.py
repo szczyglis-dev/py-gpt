@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 14:10:00                  #
+# Updated Date: 2026.09.10 15:50:00                  #
 # ================================================== #
 
 import base64
@@ -52,7 +52,7 @@ def _pygpt_make_system_noninteractive():
         if os.name != "nt" and _exit_code > 128:
             _exit_code = -(_exit_code - 128)
         _ip.user_ns["_exit_code"] = _exit_code
-        if _ip.system_raise_on_error and _exit_code != 0:
+        if getattr(_ip, "system_raise_on_error", False) and _exit_code != 0:
             raise subprocess.CalledProcessError(_exit_code, cmd)
 
     return _system

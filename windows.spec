@@ -5,6 +5,7 @@ from PyInstaller.utils.hooks import (
     collect_data_files,
     collect_submodules,
     collect_dynamic_libs,
+    copy_metadata,
 )
 
 block_cipher = None
@@ -45,6 +46,8 @@ hiddenimports = [
     'pywin32_ctypes',
     'tweepy',
     'ipykernel',
+    'ipykernel_launcher',
+    'ipykernel.kernelapp',
     'IPython.core.display',
     'IPython.core.interactiveshell',
     'jupyter_client',
@@ -55,18 +58,56 @@ for pkg in [
     'chromadb', 'chromadb.migrations', 'chromadb.telemetry',
     'chromadb.api', 'chromadb.db',
     'httpx', 'httpx_socks', 'nbconvert',
-    'onnxruntime', 'win32com', 'aiosqlite'
+    'onnxruntime', 'win32com', 'aiosqlite',
+    # Kernel modules are partly imported lazily/dynamically at runtime.
+    'ipykernel', 'jupyter_client', 'IPython.core.magics', 'IPython.extensions',
+    'debugpy', 'zmq.backend',
 ]:
     try:
         hiddenimports += collect_submodules(pkg)
     except Exception:
         pass
 
+debugpy_bins = []
+try:
+    # debugpy's vendored pydevd runtime ships native extensions (.pyd/.dll
+    # on Windows; .so/.dylib for cross-platform completeness). Their names
+    # do not necessarily match collect_dynamic_libs()' default patterns.
+    debugpy_bins += collect_dynamic_libs(
+        'debugpy',
+        search_patterns=['*.pyd', '*.dll', '*.so', '*.dylib'],
+    )
+except Exception:
+    pass
+
 datas = []
 datas += collect_data_files('opentelemetry.sdk')
 datas += collect_data_files('opentelemetry')
 datas += collect_data_files('pinecone')
 datas += collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql'])
+# Local IPython kernel runtime for PyInstaller builds.  In particular,
+# ipykernel/resources is used by jupyter_client's native python3 kernelspec.
+# jupyter_client discovers the built-in local provisioner through package
+# entry-point metadata, so its dist-info must be present in the bundle.
+datas += copy_metadata('jupyter_client')
+for pkg in ('ipykernel', 'IPython', 'jupyter_client', 'jupyter_core'):
+    try:
+        datas += collect_data_files(pkg)
+    except Exception:
+        pass
+
+# debugpy._vendored uses os.listdir() and temporarily prepends the physical
+# ``debugpy/_vendored/pydevd`` directory to sys.path. The vendored Python
+# sources therefore must exist as real files in the frozen distribution;
+# keeping them only in PyInstaller's PYZ archive is not sufficient.
+try:
+    datas += collect_data_files(
+        'debugpy',
+        include_py_files=True,
+        excludes=['**/__pycache__/**', '**/*.pyc'],
+    )
+except Exception:
+    pass
 datas += [
     (r'src\pygpt_net\data\config\presets\*', r'data\config\presets'),
     (r'src\pygpt_net\data\config\config.json', r'data\config'),
@@ -117,7 +158,7 @@ datas += [
 a = Analysis(
     [r'src\pygpt_net\app.py'],
     pathex=[r'src', r'src\pygpt_net'],
-    binaries=[],
+    binaries=debugpy_bins,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],

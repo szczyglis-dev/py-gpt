@@ -6,13 +6,43 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 20:00:00                  #
+# Updated Date: 2026.09.10 15:50:00                  #
 # ================================================== #
 
 import os
 import builtins
 import io
 import platform
+import sys
+
+
+def _run_frozen_ipykernel() -> bool:
+    """
+    Dispatch a Jupyter kernel child process inside a PyInstaller bundle.
+
+    ``jupyter_client`` starts the native Python kernel using
+    ``sys.executable -m ipykernel_launcher -f <connection_file>``. In a
+    frozen application ``sys.executable`` points to the PyGPT executable,
+    not to a standalone Python interpreter, so handle that invocation before
+    importing the Qt application.
+    """
+    if not getattr(sys, "frozen", False):
+        return False
+    if len(sys.argv) < 3 or sys.argv[1:3] != ["-m", "ipykernel_launcher"]:
+        return False
+
+    # Match argv as seen by ipykernel_launcher when run by a real Python
+    # interpreter: program name followed by e.g. ``-f connection.json``.
+    del sys.argv[1:3]
+    from ipykernel import kernelapp
+
+    kernelapp.launch_new_instance()
+    return True
+
+
+if _run_frozen_ipykernel():
+    raise SystemExit(0)
+
 
 import pygpt_net.icons_rc
 
