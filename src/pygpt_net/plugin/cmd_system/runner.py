@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 13:10:00                  #
+# Updated Date: 2026.09.10 13:45:00                  #
 # ================================================== #
 
 import os.path
@@ -43,6 +43,30 @@ class Runner:
         :param signals: signals
         """
         self.signals = signals
+
+    @staticmethod
+    def _communicate_subprocess(command, **kwargs):
+        """
+        Run a subprocess with non-interactive stdin as the default.
+
+        Explicit stdin is always preserved. If ``input`` is supplied, use a
+        pipe exactly like subprocess.run(). Only executions without either
+        source get DEVNULL so commands cannot block waiting for user input.
+        """
+        input_data = kwargs.pop("input", None)
+        has_input = input_data is not None
+
+        if has_input:
+            if "stdin" in kwargs:
+                raise ValueError("stdin and input arguments may not both be used")
+            kwargs["stdin"] = subprocess.PIPE
+        elif "stdin" not in kwargs:
+            kwargs["stdin"] = subprocess.DEVNULL
+
+        process = subprocess.Popen(command, **kwargs)
+        if has_input:
+            return process.communicate(input=input_data)
+        return process.communicate()
 
     def send_interpreter_output_begin(self, type: str):
         """Begin an output block in the Python interpreter window."""
@@ -171,14 +195,12 @@ class Runner:
         self.log("Running command: {}".format(item["params"]['command']))
         self.send_interpreter_output_begin("stdout")
         try:
-            process = subprocess.Popen(
+            stdout, stderr = self._communicate_subprocess(
                 item["params"]['command'],
                 shell=True,
-                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            stdout, stderr = process.communicate()
         except Exception as e:
             self.error(e)
             stdout = None

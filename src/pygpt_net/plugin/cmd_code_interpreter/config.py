@@ -392,7 +392,9 @@ class Config(BaseConfig):
             "ipython_execute",
             instruction="execute Python code in IPython interpreter (in current kernel) and get output. "
                         "Execution is non-interactive: never use input(), getpass(), or code that waits for stdin; "
-                        "provide required values directly in code. "
+                        "provide required values directly in code. Shell commands invoked with ! are also "
+                        "non-interactive. Kernel failure is recovered automatically once; do not call "
+                        "ipython_kernel_restart repeatedly. "
                         "Tip: when generating plots or other image data always print path to generated image at "
                         "the end and provide local path (prefixed with file://, not sandbox:) to the user.",
             params=[
@@ -466,7 +468,8 @@ class Config(BaseConfig):
 
         plugin.add_cmd(
             "ipython_kernel_restart",
-            instruction="restart IPython kernel",
+            instruction="manually restart IPython kernel only after a real kernel failure when automatic recovery "
+                        "did not recover it. Never call this command repeatedly or in a retry loop",
             params=[],
             enabled=True,
             description="Allows to restart IPython kernel",

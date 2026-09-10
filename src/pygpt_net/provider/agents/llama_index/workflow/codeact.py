@@ -53,7 +53,7 @@ You will be given a task to perform. You should output:
 - Text to be shown directly to the user, if you want to ask for more information or provide the final answer.
 
 You are in a IPython environment, so in your code, you can reference any previously used variables or functions.
-To restart the IPython kernel, type the code: `<execute>/restart</execute>`. This will clear all variables and functions.
+Kernel failures are recovered automatically once. Use `<execute>/restart</execute>` only as a manual last-resort recovery after an explicit kernel failure, and never issue repeated restart commands for the same failure. A restart clears all variables and functions.
 If any missing python modules are required, install them using the command: `<execute>!pip install module_name</execute>`.
 When generating any images or plots, use the `matplotlib` library and return only the path to the saved image file instead of showing it.
 By default, store all files in the current working directory, which is `{workdir}`.

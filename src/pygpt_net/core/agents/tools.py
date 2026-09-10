@@ -620,7 +620,10 @@ class CodeExecutor:
 
         # if restart command was executed, return success message
         if code == "/restart":
-            return "IPython kernel restarted successfully."
+            return (
+                "IPython kernel restart request completed. Do not restart it again "
+                "unless a later execution reports a real kernel failure."
+            )
 
         response = event.ctx.bag  # tmp response
         output = ""

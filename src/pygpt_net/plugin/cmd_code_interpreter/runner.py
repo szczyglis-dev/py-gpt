@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 13:10:00                  #
+# Updated Date: 2026.09.10 13:45:00                  #
 # ================================================== #
 
 import os.path
@@ -34,6 +34,30 @@ class Runner:
         :param signals: signals
         """
         self.signals = signals
+
+    @staticmethod
+    def _communicate_subprocess(command, **kwargs):
+        """
+        Run a subprocess with non-interactive stdin as the default.
+
+        Explicit stdin is always preserved. If ``input`` is supplied, use a
+        pipe exactly like subprocess.run(). Only executions without either
+        source get DEVNULL so commands cannot block waiting for user input.
+        """
+        input_data = kwargs.pop("input", None)
+        has_input = input_data is not None
+
+        if has_input:
+            if "stdin" in kwargs:
+                raise ValueError("stdin and input arguments may not both be used")
+            kwargs["stdin"] = subprocess.PIPE
+        elif "stdin" not in kwargs:
+            kwargs["stdin"] = subprocess.DEVNULL
+
+        process = subprocess.Popen(command, **kwargs)
+        if has_input:
+            return process.communicate(input=input_data)
+        return process.communicate()
 
     def send_interpreter_input(self, data: str):
         """
@@ -232,14 +256,12 @@ class Runner:
         self.log("Running command: {}".format(cmd))
         try:
             self.send_interpreter_output_begin("stdout")
-            process = subprocess.Popen(
+            stdout, stderr = self._communicate_subprocess(
                 cmd,
                 shell=True,
-                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            stdout, stderr = process.communicate()
         except Exception as e:
             self.error(e)
             stdout = None
@@ -323,14 +345,12 @@ class Runner:
         self.log("Running command: {}".format(cmd))
         try:
             self.send_interpreter_output_begin("stdout")
-            process = subprocess.Popen(
+            stdout, stderr = self._communicate_subprocess(
                 cmd,
                 shell=True,
-                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            stdout, stderr = process.communicate()
         except Exception as e:
             self.error(e)
             stdout = None
@@ -395,14 +415,12 @@ class Runner:
         self.send_interpreter_input(command)  # show command in interpreter output
         try:
             self.send_interpreter_output_begin("stdout")
-            process = subprocess.Popen(
+            stdout, stderr = self._communicate_subprocess(
                 command,
                 shell=True,
-                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            stdout, stderr = process.communicate()
         except Exception as e:
             self.error(e)
             stdout = None
@@ -440,14 +458,12 @@ class Runner:
         self.send_interpreter_input(command)  # show command in interpreter output
         try:
             self.send_interpreter_output_begin("stdout")
-            process = subprocess.Popen(
+            stdout, stderr = self._communicate_subprocess(
                 command,
                 shell=True,
-                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            stdout, stderr = process.communicate()
         except Exception as e:
             self.error(e)
             stdout = None
@@ -542,8 +558,9 @@ class Runner:
         sandbox = self.is_sandbox_ipython()
         data = item["params"]['code']
 
-        # auto-init after error (enable only for manual call)
-        auto_init = False
+        # Model/tool executions should recover a genuinely dead kernel once on
+        # their own. The kernel backends suppress duplicate restart bursts.
+        auto_init = True
         if "auto_init" in item["params"]:
             auto_init = item["params"]['auto_init']
 
@@ -619,9 +636,16 @@ class Runner:
             self.error(e)
             response = False
         if response:
-            result = "Kernel restarted"
+            result = (
+                "Kernel is ready. The restart request completed or a duplicate "
+                "restart was skipped because the kernel had just been restarted. "
+                "Do not restart it again unless a later execution reports a real kernel failure."
+            )
         else:
-            result = "Kernel not restarted"
+            result = (
+                "Kernel restart failed or another restart is already in progress. "
+                "Do not retry restart in a loop."
+            )
         self.log(result, sandbox=sandbox)
         return {
             "request": request,
