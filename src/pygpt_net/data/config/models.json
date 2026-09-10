@@ -2,7 +2,7 @@
     "__meta__": {
         "version": "2.8.14",
         "app.version": "2.8.14",
-        "updated_at": "2026-09-10T11:36:00"
+        "updated_at": "2026-09-10T12:48:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M": {
@@ -15,7 +15,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -52,7 +53,8 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -96,7 +98,8 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -140,7 +143,8 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -184,7 +188,8 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -228,7 +233,8 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -272,7 +278,8 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -316,7 +323,8 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -479,7 +487,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -515,7 +524,8 @@
                 "expert",
                 "chat",
                 "agent_v2",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -561,7 +571,8 @@
                 "expert",
                 "chat",
                 "agent_v2",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -645,7 +656,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -767,7 +779,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -813,7 +826,8 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -1013,7 +1027,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -1059,7 +1074,8 @@
                 "agent_v2",
                 "vision",
                 "agent_openai",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -1105,7 +1121,8 @@
                 "agent_v2",
                 "vision",
                 "agent_openai",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -1150,7 +1167,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -1196,7 +1214,8 @@
                 "agent_v2",
                 "vision",
                 "agent_openai",
-                "computer"
+                "computer",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -1241,7 +1260,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -1286,7 +1306,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -1330,7 +1351,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -2820,7 +2842,8 @@
                 "chat",
                 "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -2857,7 +2880,8 @@
                 "chat",
                 "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -2903,7 +2927,8 @@
                 "chat",
                 "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -2940,7 +2965,8 @@
                 "chat",
                 "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3143,7 +3169,8 @@
                 "chat",
                 "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3189,7 +3216,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3234,7 +3262,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3281,7 +3310,8 @@
                 "agent_llama",
                 "expert",
                 "agent_openai",
-                "audio"
+                "audio",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3331,7 +3361,8 @@
                 "agent_llama",
                 "expert",
                 "agent_openai",
-                "audio"
+                "audio",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3381,7 +3412,8 @@
                 "agent_llama",
                 "expert",
                 "agent_openai",
-                "audio"
+                "audio",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3635,7 +3667,8 @@
                 "agent_openai",
                 "expert",
                 "chat",
-                "agent_v2"
+                "agent_v2",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3671,7 +3704,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3708,7 +3742,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3745,7 +3780,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -3820,7 +3856,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -4295,7 +4332,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -4332,7 +4370,8 @@
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -4370,7 +4409,8 @@
                 "chat",
                 "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -4416,7 +4456,8 @@
                 "chat",
                 "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -4462,7 +4503,8 @@
                 "chat",
                 "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [
@@ -4508,7 +4550,8 @@
                 "chat",
                 "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
             "llama_index": {
                 "args": [

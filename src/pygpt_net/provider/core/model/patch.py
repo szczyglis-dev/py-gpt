@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 11:36:00
+# Updated Date: 2026.09.10 12:48:00
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -17,7 +17,8 @@ from pygpt_net.core.types import (
     MODE_AGENT_V2,
     MODE_AGENT_OPENAI,
     MODE_COMPUTER,
-    MODE_EXPERT
+    MODE_EXPERT,
+    MODE_COMPLETION,
 )
 
 # old patches moved here
@@ -597,6 +598,35 @@ class Patch:
                     base_model.default = False
                     data[key] = base_model
                     updated = True
+
+                # OpenAI legacy completion is supported only by
+                # gpt-3.5-turbo-instruct. Remove stale completion capability
+                # from every other OpenAI model in existing user catalogs.
+                for model in data.values():
+                    if str(getattr(model, "provider", "") or "") != "openai":
+                        continue
+                    model_id = str(getattr(model, "id", "") or "")
+                    if model_id != "gpt-3.5-turbo-instruct" \
+                            and model.has_mode(MODE_COMPLETION):
+                        model.remove_mode(MODE_COMPLETION)
+                        updated = True
+
+                # Completion mode for non-OpenAI text models is handled through
+                # the provider's LlamaIndex completion interface.
+                for model in data.values():
+                    if str(getattr(model, "provider", "") or "") == "openai":
+                        continue
+                    if not getattr(model, "llama_index", None):
+                        continue
+                    if not model.has_mode(MODE_CHAT):
+                        continue
+                    if "text" not in (getattr(model, "input", None) or []):
+                        continue
+                    if "text" not in (getattr(model, "output", None) or []):
+                        continue
+                    if not model.has_mode(MODE_COMPLETION):
+                        model.add_mode(MODE_COMPLETION)
+                        updated = True
 
         # update file
         if updated:

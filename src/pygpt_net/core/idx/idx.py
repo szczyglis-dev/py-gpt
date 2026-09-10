@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 20:10:00                  #
+# Updated Date: 2026.09.10 12:48:00                  #
 # ================================================== #
 
 import datetime
@@ -25,6 +25,7 @@ from pygpt_net.utils import trans
 from .indexing import Indexing
 from .llm import Llm
 from .chat import Chat
+from .completion import Completion
 from .metadata import Metadata
 from .ui import UI
 from .project import Project
@@ -46,6 +47,7 @@ class Idx:
         self.llm = Llm(window)
         self.storage = Storage(window)
         self.chat = Chat(window, self.storage)
+        self.completion = Completion(window)
         self.metadata = Metadata(window)
         self.ui = UI(window)
 

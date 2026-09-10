@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.02.06 01:00:00                  #
+# Updated Date: 2026.09.10 12:48:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -23,6 +23,7 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_RESEARCH,
     MODE_COMPUTER,
+    MODE_COMPLETION,
 )
 from pygpt_net.core.events import KernelEvent, Event
 
@@ -124,6 +125,17 @@ class BridgeWorker(QRunnable):
                     return  # don't emit any signals (handled in agent runner, step by step)
                 else:
                     self.extra["error"] = str(core.agents.runner.get_error())
+
+            # LlamaIndex: plain-text completion for non-OpenAI providers.
+            # Keep OpenAI on its native legacy /v1/completions implementation.
+            elif self.mode == MODE_COMPLETION \
+                    and self.context.model is not None \
+                    and self.context.model.provider != "openai":
+                core.debug.info("[bridge] Using LlamaIndex completion provider.")
+                result = core.idx.completion.call(
+                    context=self.context,
+                    extra=self.extra,
+                )
 
             # API SDK: chat, completion, vision, image, assistants
             else:

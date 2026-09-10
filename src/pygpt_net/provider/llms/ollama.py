@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 20:55:00                  #
+# Updated Date: 2026.09.10 12:48:00                  #
 # ================================================== #
 
 import os
@@ -69,6 +69,47 @@ class OllamaLLM(BaseLLM):
         return ChatOllama(**args)
         """
         pass
+
+    def llama_completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
+        """Return native Ollama text completion through ``/api/generate``."""
+        from pygpt_net.provider.llms.ollama_completion import OllamaCompletion
+
+        args = self.parse_args(model.llama_index, window)
+        model_id = (model.get_ollama_model() or model.id or "").strip()
+        if not model_id:
+            raise ValueError("Ollama model name is required")
+
+        client_args = window.core.models.prepare_client_args(MODE_CHAT, model)
+        base_url = str(
+            client_args.get("base_url") or window.core.models.ollama.get_base_url()
+        ).rstrip("/")
+        if base_url.endswith("/v1"):
+            base_url = base_url[:-3].rstrip("/")
+
+        # LlamaIndex OpenAILike-only options are invalid for the native Ollama client.
+        args.pop("api_key", None)
+        args.pop("api_base", None)
+        args.pop("base_url", None)
+        args.pop("is_chat_model", None)
+        if "timeout" in args and "request_timeout" not in args:
+            args["request_timeout"] = args.pop("timeout")
+        args.setdefault("request_timeout", 300.0)
+        args["model"] = model_id
+        args["base_url"] = base_url
+        args["is_function_calling_model"] = False
+
+        ctx_size = window.core.models.get_num_ctx(model.id) if model.id else 0
+        if ctx_size <= 0:
+            ctx_size = window.core.config.get("max_total_tokens") or 0
+        if ctx_size > 0 and "context_window" not in args:
+            args["context_window"] = int(ctx_size)
+
+        return OllamaCompletion(**args)
 
     def llama(
             self,

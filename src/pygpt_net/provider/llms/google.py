@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.09.10 12:48:00
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -35,6 +35,20 @@ class GoogleLLM(BaseLLM):
         self.id = "google"
         self.name = "Google"
         self.type = [MODE_LLAMA_INDEX, "embeddings"]
+
+    def llama_completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
+        """Return LlamaIndex completion provider without server-side chat tools."""
+        return self.llama(
+            window=window,
+            model=model,
+            stream=stream,
+            remote_tools=False,
+        )
 
     def llama(
             self,

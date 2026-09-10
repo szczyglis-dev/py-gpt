@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2026.09.10 12:48:00                  #
 # ================================================== #
 
 import os
@@ -139,6 +139,27 @@ class BaseLLM:
         :return: provider instance
         """
         pass
+
+    def llama_completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
+        """
+        Return LlamaIndex LLM instance for plain-text completion.
+
+        Providers may override this when their regular LlamaIndex wrapper maps
+        ``complete()`` back to a chat endpoint. The default implementation uses
+        the same provider object as Chat with Files and the caller invokes its
+        ``complete`` / ``stream_complete`` methods directly.
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :return: LlamaIndex LLM provider instance
+        """
+        return self.llama(window=window, model=model, stream=stream)
 
     def llama(
             self,

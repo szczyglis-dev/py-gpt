@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 12:00:00                  #
+# Updated Date: 2026.09.10 12:48:00                  #
 # ================================================== #
 
 import os.path
@@ -19,7 +19,7 @@ from llama_index.llms.openai import OpenAI
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
-    MODEL_DEFAULT_MINI, MODE_CHAT,
+    MODEL_DEFAULT_MINI, MODE_CHAT, MODE_COMPLETION,
 )
 from pygpt_net.item.model import ModelItem
 
@@ -104,6 +104,38 @@ class Llm:
                 temperature=0.0,
                 model=self.default_model,
             )
+        return llm
+
+    def get_completion(
+            self,
+            model: Optional[ModelItem] = None,
+            stream: bool = False,
+    ) -> BaseLLM:
+        """Return a LlamaIndex provider configured for plain-text completion."""
+        if not self.initialized:
+            self.initialized = True
+
+        llm = None
+        if model is not None:
+            provider = model.get_provider()
+            llm_provider = self.window.core.llm.get(provider)
+            if llm_provider is not None:
+                llm_provider.init(
+                    window=self.window,
+                    model=model,
+                    mode=MODE_LLAMA_INDEX,
+                    sub_mode=MODE_COMPLETION,
+                )
+                llm = llm_provider.llama_completion(
+                    window=self.window,
+                    model=model,
+                    stream=stream,
+                )
+            elif self.window.core.llm.is_custom_provider(provider):
+                raise RuntimeError(f"Custom provider is not configured: {provider}")
+
+        if llm is None:
+            raise RuntimeError("LlamaIndex completion provider is not configured")
         return llm
 
     def get_agent(
