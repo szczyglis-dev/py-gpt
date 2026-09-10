@@ -174,14 +174,22 @@ def test_handle_calls_with_mentions(experts, dummy_window):
     # Only exp1 exists
     dummy_window.core.experts.exists.side_effect = lambda expert_id: expert_id == "exp1"
     result = experts.handle(ctx)
-    # Should dispatch one RenderEvent and one KernelEvent
+    # Expert calls now expose the same tool lifecycle in the renderer as native tool calls.
     dispatch_calls = dummy_window.dispatch.call_args_list
-    # First call for RenderEvent, then one for KernelEvent for exp1 only
-    assert len(dispatch_calls) == 2
-    # KernelEvent call contains context with reply having parent_id 'exp1'
-    kernel_event = dispatch_calls[1][0][0]
-    assert kernel_event.__class__.__name__ == "KernelEvent"
-    assert getattr(kernel_event, 'data', None) is None or isinstance(kernel_event, KernelEvent)
+    assert len(dispatch_calls) == 4
+    events = [call.args[0] for call in dispatch_calls]
+    assert [event.name for event in events] == [
+        RenderEvent.END,
+        RenderEvent.RELOAD,
+        RenderEvent.TOOL_BEGIN,
+        KernelEvent.AGENT_CALL,
+    ]
+    assert events[2].data["tool_names"] == ["expert_call", "expert_call"]
+    # Only the existing expert is dispatched to the kernel.
+    kernel_event = events[3]
+    assert isinstance(kernel_event, KernelEvent)
+    assert kernel_event.data["context"].reply_context.parent_id == "exp1"
+    assert kernel_event.data["context"].reply_context.input == "input1"
     assert ctx.sub_calls == 1
     assert result == 1
 

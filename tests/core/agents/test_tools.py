@@ -189,7 +189,10 @@ def test_plugin_tool_metadata_get_parameters_dict():
 def test_code_executor_restart(fake_window):
     executor = CodeExecutor(window=fake_window)
     output = executor.execute("/restart")
-    assert output == "IPython kernel restarted successfully."
+    assert output == (
+        "IPython kernel restart request completed. Do not restart it again unless a later "
+        "execution reports a real kernel failure."
+    )
 
 def test_code_executor_execute(fake_window):
     def fake_dispatch(event):

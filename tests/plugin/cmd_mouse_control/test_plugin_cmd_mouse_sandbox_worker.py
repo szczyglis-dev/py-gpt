@@ -56,7 +56,13 @@ def test_sandbox_worker_dispatch_maps_commands_without_real_playwright():
     worker.cmd_click = MagicMock(return_value={"ok": True})
     assert worker._dispatch({"cmd": "click", "params": {}}) == {"ok": True}
     worker.cmd_click.assert_called_once()
-    assert worker._dispatch({"cmd": "unknown", "params": {}}) is None
+    assert worker._dispatch({"cmd": "unknown", "params": {}}) == {
+        "request": {"cmd": "unknown"},
+        "result": {
+            "result": "error",
+            "error": "Computer Use action 'unknown' is not implemented by PyGPT.",
+        },
+    }
 
 
 def test_sandbox_worker_run_filters_unknown_commands_and_replies():
@@ -72,7 +78,16 @@ def test_sandbox_worker_run_filters_unknown_commands_and_replies():
     worker.reply_more = MagicMock()
     worker.run()
     worker._dispatch.assert_called_once_with({"cmd": "click", "params": {}})
-    worker.reply_more.assert_called_once_with([{"result": "ok"}])
+    worker.reply_more.assert_called_once_with([
+        {
+            "request": {"cmd": "unknown"},
+            "result": {
+                "result": "error",
+                "error": "Computer Use action 'unknown' is not implemented by PyGPT.",
+            },
+        },
+        {"result": "ok"},
+    ])
 
 
 def test_sandbox_worker_cleanup_does_not_touch_plugin_browser():

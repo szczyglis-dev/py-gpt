@@ -30,11 +30,11 @@ def test_attach_and_interpreter_signal_helpers(mock_window):
     signals.output_end.emit.assert_called_once_with("stdin")
 
 
-def test_handle_result_prefers_stderr_and_handles_empty(mock_window):
+def test_handle_result_combines_stdout_stderr_and_handles_empty(mock_window):
     runner, _ = make_runner(mock_window)
     runner.send_interpreter_output = MagicMock()
     runner.log = MagicMock()
-    assert runner.handle_result(b"out", b"err") == "err"
+    assert runner.handle_result(b"out", b"err") == "out\nerr"
     assert runner.handle_result(None, None) == "No result (STDOUT/STDERR empty)"
 
 

@@ -63,7 +63,7 @@ def test_worker_handle_cmd_replaces_fixed_time_and_parameters(mock_window):
     assert response["result"] == "done\n"
 
 
-def test_worker_handle_cmd_stderr_wins_and_empty_output_has_message(mock_window):
+def test_worker_handle_cmd_combines_stdout_stderr_and_handles_empty(mock_window):
     _, worker = _worker(mock_window)
     item = {"cmd": "demo", "params": {}}
     command = {"cmd": "demo", "params": ""}
@@ -72,7 +72,7 @@ def test_worker_handle_cmd_stderr_wins_and_empty_output_has_message(mock_window)
     process.communicate.return_value = (b"stdout", b"stderr")
     with patch("pygpt_net.plugin.cmd_custom.worker.subprocess.Popen", return_value=process), \
             patch.object(worker, "security_command"), patch.object(worker, "log"):
-        assert worker.handle_cmd(command, item)["result"] == "stderr"
+        assert worker.handle_cmd(command, item)["result"] == "stdout\nstderr"
 
     process.communicate.return_value = (b"", b"")
     with patch("pygpt_net.plugin.cmd_custom.worker.subprocess.Popen", return_value=process), \

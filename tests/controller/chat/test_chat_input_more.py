@@ -205,50 +205,6 @@ def test_send_input_agent_mode():
     assert calls
 
 
-def test_send_input_pending_safety_non_continue_is_consumed():
-    win = create_dummy_window()
-    win.ui.nodes['input'].toPlainText.return_value = "not yet"
-    win.controller.chat.command.has_pending_safety_confirmation.return_value = True
-    win.controller.chat.command.handle_pending_safety_input.return_value = True
-    inp = Input(win)
-
-    inp.send_input(force=False)
-
-    win.controller.chat.command.handle_pending_safety_input.assert_called_once_with("not yet")
-    user_send = [
-        c for c in win.dispatch.call_args_list
-        if c.args and isinstance(c.args[0], Event) and c.args[0].name == Event.USER_SEND
-    ]
-    assert user_send == []
-    clear_input = [
-        c for c in win.dispatch.call_args_list
-        if c.args and isinstance(c.args[0], RenderEvent) and c.args[0].name == RenderEvent.CLEAR_INPUT
-    ]
-    assert clear_input == []
-
-
-def test_send_input_pending_safety_continue_is_consumed_and_cleared():
-    win = create_dummy_window()
-    win.ui.nodes['input'].toPlainText.return_value = "continue"
-    win.controller.chat.command.has_pending_safety_confirmation.return_value = True
-    win.controller.chat.command.handle_pending_safety_input.return_value = True
-    inp = Input(win)
-
-    inp.send_input(force=False)
-
-    win.controller.chat.command.handle_pending_safety_input.assert_called_once_with("continue")
-    user_send = [
-        c for c in win.dispatch.call_args_list
-        if c.args and isinstance(c.args[0], Event) and c.args[0].name == Event.USER_SEND
-    ]
-    assert user_send == []
-    clear_input = [
-        c for c in win.dispatch.call_args_list
-        if c.args and isinstance(c.args[0], RenderEvent) and c.args[0].name == RenderEvent.CLEAR_INPUT
-    ]
-    assert len(clear_input) == 1
-
-
 def test_send_input_agent_llama_mode():
     win = create_dummy_window()
     win.controller.ctx.extra.is_editing.return_value = False

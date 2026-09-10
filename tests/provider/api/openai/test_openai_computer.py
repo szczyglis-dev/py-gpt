@@ -172,5 +172,7 @@ def test_handle_action_unknown():
     tool_calls, has_calls = comp.handle_action("id10", "call10", action, [])
     assert has_calls is True
     call = tool_calls[0]
-    assert call["function"]["name"] == "wait"
-    assert json.loads(call["function"]["arguments"]) == {"coordinate_space": "screen"}
+    assert call["function"]["name"] == "computer_unimplemented"
+    arguments = json.loads(call["function"]["arguments"])
+    assert isinstance(arguments, dict)
+    assert arguments.get("coordinate_space") == "screen"

@@ -220,7 +220,7 @@ def test_get_service_context_uses_global_embed_when_auto_embed_false(monkeypatch
 
     assert llm_obj == "LLM_OBJ"
     assert emb == "EMB_GLOBAL"
-    get_mock.assert_called_once_with(model=fake_model, stream=True)
+    get_mock.assert_called_once_with(model=fake_model, stream=True, computer_runtime=None)
     emb_mock.assert_called_once()
 
 
@@ -238,7 +238,7 @@ def test_get_service_context_uses_custom_embed_when_auto_embed_true(monkeypatch,
 
     assert llm_obj == "LLM_OBJ"
     assert emb == "EMB_CUSTOM"
-    get_mock.assert_called_once_with(model=fake_model, stream=False)
+    get_mock.assert_called_once_with(model=fake_model, stream=False, computer_runtime=None)
     cust_emb_mock.assert_called_once_with(model=fake_model)
 
 
