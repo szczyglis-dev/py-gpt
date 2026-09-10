@@ -3544,14 +3544,14 @@ llama-index-llms-azure-openai = ">=0.4.0,<0.6"
 
 [[package]]
 name = "llama-index-embeddings-google-genai"
-version = "0.5.1"
+version = "0.6.0"
 description = "llama-index embeddings google genai integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_embeddings_google_genai-0.5.1-py3-none-any.whl", hash = "sha256:e2332c462a5367101f1ed0dba6cadcfb06f329c8bf4385565ae3b3362e3d2c4b"},
-    {file = "llama_index_embeddings_google_genai-0.5.1.tar.gz", hash = "sha256:c40d09eb9b981949db59a361d3227453c22e98e9e18d35c72bd264967bddd944"},
+    {file = "llama_index_embeddings_google_genai-0.6.0-py3-none-any.whl", hash = "sha256:20f50c92b66ef1353e77d0dd9516f248ea9bd49520858582c21e8a8d37e68c24"},
+    {file = "llama_index_embeddings_google_genai-0.6.0.tar.gz", hash = "sha256:e1b74c3b82ab7ba68bb7ac698345a1f383657987d1c8bc1f4c93c11e4c7ee59c"},
 ]
 
 [package.dependencies]
@@ -3560,14 +3560,14 @@ llama-index-core = ">=0.13.0,<0.15"
 
 [[package]]
 name = "llama-index-embeddings-huggingface-api"
-version = "0.5.0"
+version = "0.6.0"
 description = "llama-index embeddings huggingface api integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_embeddings_huggingface_api-0.5.0-py3-none-any.whl", hash = "sha256:89ee8d7e02dd483d4084b4bff29c8285b6cb15f3000d1818642a7376852ef078"},
-    {file = "llama_index_embeddings_huggingface_api-0.5.0.tar.gz", hash = "sha256:74d15df6dfbcd6bdc6b154c527b0951a0ebd90a1ac0e47490d2711fb831bbc8a"},
+    {file = "llama_index_embeddings_huggingface_api-0.6.0-py3-none-any.whl", hash = "sha256:3a9abc5e5d76d99f5433ee8ef563604aac5cc69a154e43ba183270dfa5646e2e"},
+    {file = "llama_index_embeddings_huggingface_api-0.6.0.tar.gz", hash = "sha256:dbbf9ab28bbf79c268e0bb3770b200b8c3c0c5c12d60004a56223fd925013981"},
 ]
 
 [package.dependencies]
@@ -3577,14 +3577,14 @@ llama-index-utils-huggingface = ">=0.4.0,<0.5"
 
 [[package]]
 name = "llama-index-embeddings-mistralai"
-version = "0.5.1"
+version = "0.6.0"
 description = "llama-index embeddings mistralai integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_embeddings_mistralai-0.5.1-py3-none-any.whl", hash = "sha256:850e38dc182947a753c874300e5ebcfe6b7fd42eddcd5c46694650e9956e9772"},
-    {file = "llama_index_embeddings_mistralai-0.5.1.tar.gz", hash = "sha256:bc3e662f68a90de123e367654eadaedd57f4a109ef28021da273067e06f83355"},
+    {file = "llama_index_embeddings_mistralai-0.6.0-py3-none-any.whl", hash = "sha256:1bca85538bc5afd67a6dd413e9f61d15f452cb672c12fcc6838d7325ce960d86"},
+    {file = "llama_index_embeddings_mistralai-0.6.0.tar.gz", hash = "sha256:8528b12cb72c1c96b574543ce04bf1d7eb044a2df405a28db65ef81b4458abae"},
 ]
 
 [package.dependencies]
@@ -3593,20 +3593,20 @@ mistralai = ">=2.0.0"
 
 [[package]]
 name = "llama-index-embeddings-ollama"
-version = "0.9.0"
+version = "0.10.0"
 description = "llama-index embeddings ollama integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_embeddings_ollama-0.9.0-py3-none-any.whl", hash = "sha256:92e0ce481e60a9bcbddbe2c369d2f72c6fdd7158d03a34ab9b35d80869b673c3"},
-    {file = "llama_index_embeddings_ollama-0.9.0.tar.gz", hash = "sha256:19d2d2a0e3f0934480eae31243ac5f1ce171319578b9c0adad25cf1b6c35659e"},
+    {file = "llama_index_embeddings_ollama-0.10.0-py3-none-any.whl", hash = "sha256:164f35dc6b1966380533316567c58df7afaeaf598aa2c9a510c061c896d8ebbc"},
+    {file = "llama_index_embeddings_ollama-0.10.0.tar.gz", hash = "sha256:fc26cfe8d9d015f76b61558d4c9a1c854535ea0140dd87f169de760b40af3cea"},
 ]
 
 [package.dependencies]
 llama-index-core = ">=0.13.0,<0.15"
 ollama = ">=0.3.1"
-pytest-asyncio = ">=0.23.8"
+pytest-asyncio = "*"
 
 [[package]]
 name = "llama-index-embeddings-openai"
@@ -3626,14 +3626,14 @@ openai = ">=1.1.0"
 
 [[package]]
 name = "llama-index-embeddings-openai-like"
-version = "0.3.1"
+version = "0.4.0"
 description = "llama-index embeddings openai integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_embeddings_openai_like-0.3.1-py3-none-any.whl", hash = "sha256:167c7e462cde7d53ea907ceaffbbf10a750676c7c9f7bcc9bc9686a41921387a"},
-    {file = "llama_index_embeddings_openai_like-0.3.1.tar.gz", hash = "sha256:cef7af4bce284e8e6730532dbd0aa325e77398a5d5524edb2d2e3acb122fb5b6"},
+    {file = "llama_index_embeddings_openai_like-0.4.0-py3-none-any.whl", hash = "sha256:b847b4c58388e1faf197a037c63917082d40a05cb3b551641d61e8567fa66828"},
+    {file = "llama_index_embeddings_openai_like-0.4.0.tar.gz", hash = "sha256:ec151f73eacf17476eda96481eb95815de0ec7c559eb7fe745d3589cfa3846f2"},
 ]
 
 [package.dependencies]
@@ -3641,14 +3641,14 @@ llama-index-embeddings-openai = ">=0.6.0,<0.7"
 
 [[package]]
 name = "llama-index-embeddings-voyageai"
-version = "0.6.1"
+version = "0.7.0"
 description = "llama-index embeddings voyageai integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_embeddings_voyageai-0.6.1-py3-none-any.whl", hash = "sha256:a1f680bed08b05cba4f21c23d994f0a30afa27b633539b783caf04e9e1c07a0c"},
-    {file = "llama_index_embeddings_voyageai-0.6.1.tar.gz", hash = "sha256:4dc4e67b2e2deab42166a07a5ccf71c2124f48609e2912a9405e06fbd6df96ed"},
+    {file = "llama_index_embeddings_voyageai-0.7.0-py3-none-any.whl", hash = "sha256:0790823d36f43e702aa5d372652b86b80e0783a00e347fcc090e0f332436798c"},
+    {file = "llama_index_embeddings_voyageai-0.7.0.tar.gz", hash = "sha256:35cf98eff04e0f1aeea3fa945027ff86606938456e8d79c7bbdcb6cd582db0b5"},
 ]
 
 [package.dependencies]
@@ -3673,14 +3673,14 @@ pydantic = ">=2.11.5"
 
 [[package]]
 name = "llama-index-llms-anthropic"
-version = "0.11.10"
+version = "0.12.0"
 description = "llama-index llms anthropic integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_llms_anthropic-0.11.10-py3-none-any.whl", hash = "sha256:eb9bfd36847df8a222ed678a8c08babf67c240ae3169ce48572b931761ccab04"},
-    {file = "llama_index_llms_anthropic-0.11.10.tar.gz", hash = "sha256:6c20320564d9caccd4d998e1fbbfcfed3b55023fb6c3c0fbabba2aa123a9ba5b"},
+    {file = "llama_index_llms_anthropic-0.12.0-py3-none-any.whl", hash = "sha256:65234eb122de62361d3a204571f80b07ba979c3dece53646eccdf3f3cee4959f"},
+    {file = "llama_index_llms_anthropic-0.12.0.tar.gz", hash = "sha256:2811b6f27f884da12ec796697d509792fcd333be0b565db9141713c68a1343a3"},
 ]
 
 [package.dependencies]
@@ -3707,14 +3707,14 @@ llama-index-llms-openai = ">=0.7.0,<0.8"
 
 [[package]]
 name = "llama-index-llms-google-genai"
-version = "0.9.6"
+version = "0.11.1"
 description = "llama-index llms google genai integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_llms_google_genai-0.9.6-py3-none-any.whl", hash = "sha256:95365b8f15df3df9550fae11ad7d4653f8f9f964a7d5251a4978d1a2aa4b9285"},
-    {file = "llama_index_llms_google_genai-0.9.6.tar.gz", hash = "sha256:34b1ca3260bde505d07ca0812df7b4aee6c86fc6877fc212aac0bf2652947ab1"},
+    {file = "llama_index_llms_google_genai-0.11.1-py3-none-any.whl", hash = "sha256:728a140b4d44e8f1f126a76e6dbc8163c9fa08bc5782c3ceeb02ed32ab9b0940"},
+    {file = "llama_index_llms_google_genai-0.11.1.tar.gz", hash = "sha256:656516e7c9b2bb9fa822befb740c34e0f8509ba603d71e838a358f426b45f694"},
 ]
 
 [package.dependencies]
@@ -3724,14 +3724,14 @@ pillow = ">=10.2.0"
 
 [[package]]
 name = "llama-index-llms-huggingface-api"
-version = "0.7.0"
+version = "0.8.0"
 description = "llama-index llms huggingface api integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_llms_huggingface_api-0.7.0-py3-none-any.whl", hash = "sha256:c1797abe45699fe48b73ca0417ffec04d0055a9809f3e8c670983e8c874b243f"},
-    {file = "llama_index_llms_huggingface_api-0.7.0.tar.gz", hash = "sha256:deafb0bf50a5995c2c85e986f1e17c292208aceb8ad860607822636ce2b89d8f"},
+    {file = "llama_index_llms_huggingface_api-0.8.0-py3-none-any.whl", hash = "sha256:92cb03f58b94717f2ae5079d903fe00c4b3c1278cf049be303061bd79432271b"},
+    {file = "llama_index_llms_huggingface_api-0.8.0.tar.gz", hash = "sha256:3726caaf4fe3dd688b5f9fd64e504fdd9b3b76f3b15e5565385c6459068b259b"},
 ]
 
 [package.dependencies]
@@ -3740,14 +3740,14 @@ llama-index-core = ">=0.13.0,<0.15"
 
 [[package]]
 name = "llama-index-llms-mistralai"
-version = "0.10.2"
+version = "0.11.0"
 description = "llama-index llms mistral ai integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_llms_mistralai-0.10.2-py3-none-any.whl", hash = "sha256:122922a7e9d6f3c4cf4bdfcdfd816f2ab2b9a2af1581d3658ea00dcde716ec49"},
-    {file = "llama_index_llms_mistralai-0.10.2.tar.gz", hash = "sha256:6bcf466aab18d6aa04d7def38d670f8517d4aa0ff393aff27e65fe578007945a"},
+    {file = "llama_index_llms_mistralai-0.11.0-py3-none-any.whl", hash = "sha256:dda1f87c1f4bf69c4602a6e40f56441cfb3f7fe8444de78b0d0b0d3d7d4d4967"},
+    {file = "llama_index_llms_mistralai-0.11.0.tar.gz", hash = "sha256:4aab2a7649f2b2da139e3b61efad41011608671965da882d77888894f013d6ab"},
 ]
 
 [package.dependencies]
@@ -3756,14 +3756,14 @@ mistralai = ">=2.0.0"
 
 [[package]]
 name = "llama-index-llms-ollama"
-version = "0.10.1"
+version = "0.11.0"
 description = "llama-index llms ollama integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_llms_ollama-0.10.1-py3-none-any.whl", hash = "sha256:8badbebba5a8b7b36912aa1399319652e2110c36ce58485b9965a1b8238b4bdb"},
-    {file = "llama_index_llms_ollama-0.10.1.tar.gz", hash = "sha256:470ed836dee43bc0171dc05c68c2daa3618a7c38166b8044d7f8360cd8cd8fa6"},
+    {file = "llama_index_llms_ollama-0.11.0-py3-none-any.whl", hash = "sha256:835d552625082a79a4dc17e4a2c5e9bf70de26c7f679db7b3bf427dd593e5247"},
+    {file = "llama_index_llms_ollama-0.11.0.tar.gz", hash = "sha256:e6b8cac200a9ff67caea531fece0a6272a89e3506b2b9648ec709acffe4a7980"},
 ]
 
 [package.dependencies]
@@ -3788,14 +3788,14 @@ openai = ">=1.108.1,<3"
 
 [[package]]
 name = "llama-index-llms-openai-like"
-version = "0.7.2"
+version = "0.8.0"
 description = "llama-index llms openai like integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_llms_openai_like-0.7.2-py3-none-any.whl", hash = "sha256:1f45a7b1cec8fb3f5997684327ffe6c19f93e789c2fff35dc5522465850faf0b"},
-    {file = "llama_index_llms_openai_like-0.7.2.tar.gz", hash = "sha256:ed9ff73f975dce470f98ac61c982151ba78eedfa3fb9b03894bc1d1312b213ff"},
+    {file = "llama_index_llms_openai_like-0.8.0-py3-none-any.whl", hash = "sha256:c629179cd5984439111337be1dd705b045d0e5f6cb3b7ea44a4b68a6c596c53a"},
+    {file = "llama_index_llms_openai_like-0.8.0.tar.gz", hash = "sha256:459f115ca343c96252b9d123986056193a7d088f64f73c5336ce381e02c9d6d2"},
 ]
 
 [package.dependencies]
@@ -3803,23 +3803,7 @@ llama-index-core = ">=0.14.3,<0.15"
 llama-index-llms-openai = ">=0.7.0,<0.8"
 
 [package.extras]
-transformers = ["transformers (>=4.37.0,<5)"]
-
-[[package]]
-name = "llama-index-llms-perplexity"
-version = "0.5.1"
-description = "llama-index llms perplexity integration"
-optional = false
-python-versions = "<4.0,>=3.10"
-groups = ["main"]
-files = [
-    {file = "llama_index_llms_perplexity-0.5.1-py3-none-any.whl", hash = "sha256:2877258eb16003dcb6ca9217b5f833ee08f1f0ba4788da8bb20eeefa71df00b3"},
-    {file = "llama_index_llms_perplexity-0.5.1.tar.gz", hash = "sha256:009616ee36a4130b23212607e0d73ca1e6454b5bf210e27c528a2e12ec2ede2e"},
-]
-
-[package.dependencies]
-llama-index-core = ">=0.14.3,<0.15"
-llama-index-llms-openai = ">=0.7.0,<0.8"
+transformers = ["transformers (>=4.37.0,<6)"]
 
 [[package]]
 name = "llama-index-readers-chatgpt-plugin"
@@ -11038,4 +11022,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "9ed831ed51094269600cce30bb918f7b6271a9e2677bbd84f5d45cda75e305f9"
+content-hash = "0ad9ccc4f60743a5791ec6f00fd84073b4c5a34dd42a2c4d06934f5a74181b1b"
