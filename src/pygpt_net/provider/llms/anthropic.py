@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 18:35:00                  #
+# Updated Date: 2026.09.10 09:52:00                  #
 # ================================================== #
 
 from typing import List, Dict, Optional
@@ -112,15 +112,27 @@ class AnthropicLLM(BaseLLM):
                 # Defensive: if 'tools' was something unexpected, overwrite safely
                 args["tools"] = list(built_remote_tools)
 
+        # LlamaIndex calls Anthropic's regular ``messages.create`` endpoint.
+        # Legacy provider-native tools (notably Computer Use on Claude 4.x) still
+        # require their matching ``anthropic-beta`` feature header. Normal Chat
+        # computes this in the native Anthropic provider, so mirror it here too.
+        # Stable toolsets such as ``computer_toolset_20260801`` intentionally do
+        # not add a beta header.
+        self._merge_anthropic_beta_header(
+            args,
+            self._remote_tool_beta_headers(args.get("tools") or []),
+        )
+
         return AnthropicWithProxy(**args, proxy=proxy)
 
     @staticmethod
-    def _agents_v2_beta_headers(tools: List[dict]) -> List[str]:
+    def _remote_tool_beta_headers(tools: List[dict]) -> List[str]:
         """Return Anthropic beta headers required by provider-native tools.
 
-        Regular Chat already computes these before calling ``client.beta.messages``.
-        Agents v2 goes through LlamaIndex's normal ``messages.create`` path, so the
-        equivalent beta flags must be supplied as default client headers instead.
+        Native Chat computes the same feature flags before choosing the beta
+        Messages API. LlamaIndex uses the regular ``messages.create`` path, so
+        both Chat with files and Agents v2 must pass the equivalent flags through
+        the client's default headers.
         """
         betas = []
         for tool in tools or []:
@@ -214,7 +226,7 @@ class AnthropicLLM(BaseLLM):
 
         self._merge_anthropic_beta_header(
             args,
-            self._agents_v2_beta_headers(args.get("tools") or []),
+            self._remote_tool_beta_headers(args.get("tools") or []),
         )
         return AgentAnthropic(**args, proxy=proxy)
 
