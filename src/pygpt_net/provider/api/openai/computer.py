@@ -10,6 +10,7 @@
 # ================================================== #
 
 import json
+import math
 import time
 from typing import Dict, Any, List, Tuple
 
@@ -41,6 +42,17 @@ class Computer:
         if isinstance(obj, dict):
             return obj.get(key, default)
         return getattr(obj, key, default)
+
+    @staticmethod
+    def _safe_scroll_delta(value, limit: int = 100000) -> int:
+        """Normalize an untrusted provider scroll delta to a finite bounded integer."""
+        try:
+            number = float(value)
+            if not math.isfinite(number):
+                return 0
+            return max(-limit, min(limit, int(number)))
+        except (TypeError, ValueError, OverflowError):
+            return 0
 
     def get_current_env(self) -> Dict[str, Any]:
         """
@@ -223,8 +235,12 @@ class Computer:
         elif action_type == "drag":
             path = self._get(action, "path", []) or []
             if len(path) < 2:
-                print("Invalid drag action path")
-                return tool_calls, False
+                append("computer_unimplemented", {
+                    "provider": "openai",
+                    "action": "drag",
+                    "details": "Drag action requires at least two path points.",
+                })
+                return tool_calls, True
             append("mouse_drag", {
                 "path": [
                     {"x": self._get(point, "x"), "y": self._get(point, "y")}
@@ -233,9 +249,10 @@ class Computer:
                 "keys": keys,
             })
         else:
-            # Preserve the call/continuation rather than dropping an unknown action.
-            append("wait", {})
-            print(f"Unrecognized action type: {action_type}")
+            append("computer_unimplemented", {
+                "provider": "openai",
+                "action": str(action_type or "unknown"),
+            })
 
         return tool_calls, True
 
@@ -273,10 +290,14 @@ class Computer:
                 case "scroll":
                     has_calls = True
                     x, y = self._get(action, "x"), self._get(action, "y")
-                    scroll_x, scroll_y = self._get(action, "scroll_x", 0), self._get(action, "scroll_y", 0)
+                    scroll_x = self._safe_scroll_delta(self._get(action, "scroll_x", 0))
+                    scroll_y = self._safe_scroll_delta(self._get(action, "scroll_y", 0))
                     print(f"Action: scroll at ({x}, {y}) with offsets (scroll_x={scroll_x}, scroll_y={scroll_y})")
                     page.mouse.move(x, y)
-                    page.evaluate(f"window.scrollBy({scroll_x}, {scroll_y})")
+                    page.evaluate(
+                        "([scrollX, scrollY]) => window.scrollBy(scrollX, scrollY)",
+                        [scroll_x, scroll_y],
+                    )
 
                 case "keypress":
                     has_calls = True
@@ -309,7 +330,19 @@ class Computer:
 
                 # Handle other actions here
                 case _:
-                    print(f"Unrecognized action: {action}")
+                    tool_calls.append({
+                        "id": id,
+                        "call_id": call_id,
+                        "type": "computer_call",
+                        "function": {
+                            "name": "computer_unimplemented",
+                            "arguments": json.dumps({
+                                "provider": "openai",
+                                "action": str(action_type or "unknown"),
+                            }),
+                        },
+                    })
+                    return
 
         except Exception as e:
             print(f"Error handling action {action}: {e}")

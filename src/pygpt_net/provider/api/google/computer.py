@@ -157,7 +157,41 @@ class Computer:
             return [part.strip() for part in value.replace("+", " ").split() if part.strip()]
         return list(value or [])
 
-    def _map_function(self, name: str, args: dict) -> Tuple[Optional[str], dict]:
+    @staticmethod
+    def _safe_int(value, default: int = 0, minimum: int = -100000, maximum: int = 100000) -> int:
+        """Convert provider numeric input to a bounded integer."""
+        try:
+            number = int(float(value))
+        except (TypeError, ValueError, OverflowError):
+            number = int(default)
+        return max(minimum, min(maximum, number))
+
+    @staticmethod
+    def _looks_like_computer_function(name: str) -> bool:
+        """Identify future Computer Use members without swallowing unrelated custom tools.
+
+        Gemini exposes Computer Use as ordinary function_call parts, so an unknown
+        function name has no provider-side discriminator that says whether it came
+        from Computer Use or from a user-defined function. Keep custom tools on the
+        normal path, while treating obvious desktop/browser-action names as future
+        Computer Use members that PyGPT does not implement yet.
+        """
+        value = str(name or "").strip().lower()
+        if not value:
+            return False
+        prefixes = (
+            "mouse_", "keyboard_", "key_", "click_", "drag_", "scroll_",
+            "hover_", "type_text_", "press_key", "hotkey", "screenshot",
+            "take_screenshot", "swipe_", "touch_", "cursor_", "browser_",
+        )
+        return value.startswith(prefixes)
+
+    def _map_function(
+            self,
+            name: str,
+            args: dict,
+            assume_computer: bool = False,
+    ) -> Tuple[Optional[str], dict]:
         """Map a Gemini Computer Use function to PyGPT's canonical executor contract."""
         name = str(name or "")
         p = dict(args or {})
@@ -210,9 +244,9 @@ class Computer:
             return "mouse_drag", {**coord, "path": path}
         if name in {"scroll", "scroll_at", "scroll_document"}:
             direction = str(p.get("direction", "") or "").lower()
-            magnitude = int(p.get("magnitude_in_pixels", p.get("magnitude", 0)) or 0)
-            dx = int(p.get("scroll_x", p.get("dx", 0)) or 0)
-            dy = int(p.get("scroll_y", p.get("dy", 0)) or 0)
+            magnitude = self._safe_int(p.get("magnitude_in_pixels", p.get("magnitude", 0)), minimum=0)
+            dx = self._safe_int(p.get("scroll_x", p.get("dx", 0)))
+            dy = self._safe_int(p.get("scroll_y", p.get("dy", 0)))
             if direction and magnitude:
                 if direction == "down": dy = magnitude
                 elif direction == "up": dy = -magnitude
@@ -231,6 +265,13 @@ class Computer:
         if name == "type_text_at":
             # Keep this compound browser action for compatibility with Gemini 2.x schemas.
             return "type_text_at", {**coord, **p}
+        if (assume_computer
+                or p.get("safety_decision") is not None
+                or self._looks_like_computer_function(name)):
+            return "computer_unimplemented", {
+                "provider": "google",
+                "action": name or "unknown",
+            }
         return None, {}
 
     def handle_stream_chunk(self, ctx: CtxItem, chunk, tool_calls: list) -> Tuple[List, bool]:
@@ -252,7 +293,14 @@ class Computer:
             id_ = str(provider_call_id or self._next_id())
             call_id = id_
             try:
-                local_name, local_args = self._map_function(fname, fargs or {})
+                # This handler is called only when Computer Use is active, so an
+                # unknown provider function is a Computer Use compatibility error,
+                # not a custom function that should be silently dropped.
+                local_name, local_args = self._map_function(
+                    fname,
+                    fargs or {},
+                    assume_computer=True,
+                )
                 if local_name:
                     self._append_call(tool_calls, id_, call_id, local_name, local_args)
                     has_calls = True

@@ -117,6 +117,38 @@ def run_coroutine_sync(awaitable):
     raise value
 
 
+async def wait_for_computer_safety_confirmation(runtime, ctx) -> None:
+    """Pause one provider-native Computer Use round until the user confirms it.
+
+    The same helper is used by Chat with Files and Agents v2.  It deliberately
+    keeps the provider coroutine alive instead of aborting the continuation with
+    an exception, so the exact pending provider call can be acknowledged and
+    resumed after the user approves the Yes/No confirmation dialog.
+    """
+    if runtime is None or ctx is None:
+        return
+    security = runtime.window.core.security
+    if not security.should_halt_computer(ctx):
+        return
+
+    resumed = threading.Event()
+    runtime.window.controller.chat.command.pause_for_safety_confirmation(
+        ctx,
+        resume_callback=resumed.set,
+    )
+    while not resumed.is_set():
+        if runtime.is_stopped():
+            raise asyncio.CancelledError(
+                "Computer Use cancelled while waiting for safety confirmation"
+            )
+        await asyncio.sleep(0.05)
+
+    if runtime.is_stopped():
+        raise asyncio.CancelledError("Computer Use cancelled")
+    if not security.can_acknowledge_computer_safety(ctx):
+        raise asyncio.CancelledError("Computer Use safety confirmation was rejected by the user")
+
+
 @dataclass
 class AgentComputerExecution:
     """Result of one native Computer Use action batch executed by PyGPT."""

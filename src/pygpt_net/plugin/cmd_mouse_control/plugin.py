@@ -78,7 +78,12 @@ class Plugin(BasePlugin):
             "take_screenshot",
             "triple_click",
             "middle_click",
-            "right_click"
+            "right_click",
+            # Internal provider compatibility command. It is intentionally not
+            # declared in plugin config/tool syntax, so models cannot select it;
+            # provider adapters use it only to report a newly introduced action
+            # that this PyGPT build does not implement yet.
+            "computer_unimplemented",
         ]
         self.use_locale = True
         self.worker = None

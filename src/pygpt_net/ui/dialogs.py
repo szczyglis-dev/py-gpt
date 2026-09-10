@@ -119,7 +119,8 @@ class Dialogs:
             type: str,
             id: any,
             msg: str,
-            parent_object=None
+            parent_object=None,
+            modal: bool = False,
     ):
         """
         Show confirm dialog
@@ -128,12 +129,14 @@ class Dialogs:
         :param id: confirm object id
         :param msg: message to show
         :param parent_object: parent object
+        :param modal: True to block interaction with the parent window
         """
         confirm = self.window.ui.dialog.get('confirm')
         confirm.type = type
         confirm.id = id
         confirm.message.setText(msg)
         confirm.parent_object = parent_object
+        confirm.setModal(bool(modal))
         confirm.show()
 
     def alert(self, msg: any):

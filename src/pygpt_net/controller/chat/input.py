@@ -128,16 +128,6 @@ class Input:
             dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
             return
 
-        # A provider-flagged Computer Use operation is waiting for explicit user confirmation.
-        # While pending, only the literal "continue" command is consumed as approval; other
-        # input is kept in the editor and is not sent to the model.
-        if self.window.controller.chat.command.has_pending_safety_confirmation():
-            is_continue = str(text or "").strip().lower() == "continue"
-            if self.window.controller.chat.command.handle_pending_safety_input(text):
-                if is_continue:
-                    dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
-                return
-
         # A top-level request may already own a chat while attachments are still
         # being processed (generating can still be False in that phase). Never
         # let a second manual send steal/release that owner. STOP is handled above.

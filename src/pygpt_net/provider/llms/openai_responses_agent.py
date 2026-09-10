@@ -18,7 +18,11 @@ from llama_index.core.base.llms.types import ChatMessage, ChatResponse
 from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.llms.openai import OpenAIResponses
 
-from pygpt_net.provider.llms.agent_computer import run_coroutine_sync
+from pygpt_net.provider.llms.agent_computer import (
+    AgentComputerBridge,
+    run_coroutine_sync,
+    wait_for_computer_safety_confirmation,
+)
 
 
 class AgentOpenAIResponses(OpenAIResponses):
@@ -223,7 +227,7 @@ class AgentOpenAIResponses(OpenAIResponses):
         if runtime is not None and runtime.is_stopped():
             raise asyncio.CancelledError("Agents v2 Computer Use cancelled")
 
-    def _computer_safety(self, call: Any) -> list[dict]:
+    async def _computer_safety(self, call: Any) -> list[dict]:
         """Persist provider safety checks and return acknowledgements when allowed."""
         runtime = self._pygpt_runtime
         if runtime is None:
@@ -238,11 +242,7 @@ class AgentOpenAIResponses(OpenAIResponses):
         computer_api = runtime.window.core.api.openai.computer
         computer_api.store_pending_safety_checks(ctx, call)
         security = runtime.window.core.security
-        if security.should_halt_computer(ctx):
-            ctx.extra["computer_safety_waiting"] = True
-            raise RuntimeError(
-                "Computer Use paused by security policy. Confirm the pending operation in chat before continuing."
-            )
+        await wait_for_computer_safety_confirmation(runtime, ctx)
 
         if not security.can_acknowledge_computer_safety(ctx):
             return []
@@ -265,8 +265,6 @@ class AgentOpenAIResponses(OpenAIResponses):
         if runtime is None:
             raise RuntimeError("PyGPT Computer Use runtime is not bound to the OpenAI Responses adapter")
 
-        from pygpt_net.provider.api.openai.agents.computer import LocalComputer
-
         window = runtime.window
         computer_api = window.core.api.openai.computer
         call_id = str(self._get(call, "call_id", "") or "")
@@ -274,7 +272,7 @@ class AgentOpenAIResponses(OpenAIResponses):
         if not call_id:
             raise RuntimeError("OpenAI Computer Use returned a computer_call without call_id")
 
-        acknowledgements = self._computer_safety(call)
+        acknowledgements = await self._computer_safety(call)
         actions = computer_api.get_actions(call)
         runtime.emit_runtime_status("status.agent_v2.tool", tool="computer_use")
         runtime.verbose.log("COMPUTER USE CALL", {
@@ -283,74 +281,50 @@ class AgentOpenAIResponses(OpenAIResponses):
             "actions": self._safe_dump(actions),
         }, actor="orchestrator")
 
-        # Reuse the canonical action -> cmd_mouse_control mapping. This keeps
-        # Agents v2 aligned with normal Chat Computer Use, including keyboard
-        # shortcuts, modifier keys, coordinate space and newer action aliases.
-        # The whole batch + resulting screenshot is serialized with normal local
-        # plugin execution so concurrent workers cannot fight over one desktop.
-        async with runtime.local_tool_lock:
-            tool_calls = []
-            tool_calls, _ = computer_api.handle_actions(
-                id=response_item_id,
-                call_id=call_id,
-                actions=actions,
-                tool_calls=tool_calls,
-            )
-
-            computer = LocalComputer(window)
-            action_types = [
-                str(self._get(action, "type", "") or "").strip().lower()
-                for action in actions or []
-            ]
-            for tool_call in tool_calls:
-                self._check_stopped()
-                function = self._get(tool_call, "function", {}) or {}
-                name = str(self._get(function, "name", "") or "")
-                if not name or name == "get_screenshot":
-                    # A fresh screenshot is always captured once after the complete
-                    # ordered action batch, as required by the Computer Use loop.
-                    continue
-                raw_args = self._get(function, "arguments", "{}")
-                if isinstance(raw_args, str):
-                    try:
-                        params = json.loads(raw_args or "{}")
-                    except Exception:
-                        params = {}
-                elif isinstance(raw_args, dict):
-                    params = dict(raw_args)
-                else:
-                    params = {}
-
-                runtime.verbose.log("COMPUTER USE ACTION", {
-                    "call_id": call_id,
-                    "tool": name,
-                    "params": params,
-                }, actor="orchestrator")
-                computer.call_cmd({"cmd": name, "params": params})
-
-            # Native cmd_mouse_control normally waits before taking its delayed
-            # screenshot (Plugin.SLEEP_TIME, currently 1000 ms). The Agents v2
-            # Computer Use bridge executes actions synchronously, so without the
-            # same settle period the screenshot can capture the *previous* GUI
-            # state. The model then sees no progress and may repeat the action.
-            # Do not delay a pure screenshot request; an explicit wait action has
-            # already performed its own wait in the local executor.
-            needs_settle = any(
-                action_type not in {"", "screenshot", "wait"}
-                for action_type in action_types
-            )
-            if needs_settle:
+        # Reuse the shared executor used by Google/Anthropic so unsupported or
+        # denied commands produce a concrete worker result instead of being
+        # silently treated as successful.
+        tool_calls = []
+        tool_calls, _ = computer_api.handle_actions(
+            id=response_item_id,
+            call_id=call_id,
+            actions=actions,
+            tool_calls=tool_calls,
+        )
+        commands = []
+        for tool_call in tool_calls:
+            function = self._get(tool_call, "function", {}) or {}
+            name = str(self._get(function, "name", "") or "")
+            if not name:
+                continue
+            raw_args = self._get(function, "arguments", "{}")
+            if isinstance(raw_args, str):
                 try:
-                    plugin = window.core.plugins.get(LocalComputer.PLUGIN_ID)
-                    delay_ms = float(getattr(plugin, "SLEEP_TIME", 1000) or 0)
+                    params = json.loads(raw_args or "{}")
                 except Exception:
-                    delay_ms = 1000.0
-                delay_seconds = max(0.0, delay_ms / 1000.0)
-                if delay_seconds:
-                    await asyncio.sleep(delay_seconds)
+                    params = {}
+            elif isinstance(raw_args, dict):
+                params = dict(raw_args)
+            else:
+                params = {}
+            commands.append({"cmd": name, "params": params})
 
-            self._check_stopped()
-            screenshot_b64 = computer.screenshot()
+        execution = await AgentComputerBridge(runtime).execute(
+            commands,
+            tool_label="computer_use",
+            require_screenshot=True,
+        )
+        screenshot_b64 = execution.screenshot_b64
+
+        execution_errors = []
+        for response in execution.response if isinstance(execution.response, list) else [execution.response]:
+            if not isinstance(response, dict):
+                continue
+            result = response.get("result")
+            if isinstance(result, dict) and result.get("error"):
+                execution_errors.append(str(result.get("error")))
+            elif isinstance(result, str) and result.lower().startswith("error"):
+                execution_errors.append(result)
         output = {
             "type": "computer_call_output",
             "call_id": call_id,
@@ -362,6 +336,15 @@ class AgentOpenAIResponses(OpenAIResponses):
         }
         if acknowledgements:
             output["acknowledged_safety_checks"] = acknowledgements
+        if execution_errors:
+            # Internal marker only. _continue_computer_chain converts it to a
+            # normal input_text item; it is never sent as part of the strict
+            # computer_call_output schema.
+            output["_pygpt_error"] = "\n".join(dict.fromkeys(execution_errors))
+        try:
+            window.core.security.clear_computer_safety(self._runtime_ctx())
+        except Exception:
+            pass
         return output
 
     async def _continue_computer_chain(
@@ -394,6 +377,20 @@ class AgentOpenAIResponses(OpenAIResponses):
             for call in calls:
                 outputs.append(await self._execute_computer_call(call))
 
+            api_outputs = []
+            for item in outputs:
+                payload = dict(item)
+                error = str(payload.pop("_pygpt_error", "") or "").strip()
+                api_outputs.append(payload)
+                if error:
+                    api_outputs.append({
+                        "role": "user",
+                        "content": [{
+                            "type": "input_text",
+                            "text": f"[PyGPT Computer Use executor] Error: {error}",
+                        }],
+                    })
+
             self._check_stopped()
             model_kwargs = self._get_model_kwargs(**dict(kwargs or {}))
             model_kwargs["previous_response_id"] = previous_response_id
@@ -415,7 +412,7 @@ class AgentOpenAIResponses(OpenAIResponses):
                 }, actor="orchestrator")
 
             raw = await self._aclient.responses.create(
-                input=outputs,
+                input=api_outputs,
                 stream=False,
                 **model_kwargs,
             )

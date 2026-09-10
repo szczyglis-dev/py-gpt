@@ -81,6 +81,12 @@ class Worker(BaseWorker):
                     # allow only plugin-declared commands
                     allowed = getattr(self.plugin, "allowed_cmds", None)
                     if isinstance(allowed, (list, set, tuple)) and cmd not in allowed:
+                        responses.append(self.make_response(item, {
+                            "result": "error",
+                            "error": f"Computer Use action '{cmd}' is not implemented by PyGPT.",
+                        }))
+                        if stop_on_error:
+                            batch_failed = True
                         continue
 
                     permission_error = self._permission_error(cmd)
@@ -206,6 +212,27 @@ class Worker(BaseWorker):
                         else:
                             p["button"] = "right"
                         response = self.cmd_mouse_click({"cmd": "mouse_click", "params": p})
+                    elif cmd == "computer_unimplemented":
+                        provider = str(self.get_param(item, "provider", "provider") or "provider")
+                        action = str(self.get_param(item, "action", "unknown") or "unknown")
+                        details = str(self.get_param(item, "details", "") or "").strip()
+                        message = (
+                            f"Computer Use action '{action}' from {provider} is not implemented by PyGPT."
+                        )
+                        if details:
+                            message += f" {details}"
+                        response = self.make_response(item, {
+                            "result": "error",
+                            "error": message,
+                        })
+
+                    # Never silently consume a provider command that reached this
+                    # worker but has no implementation in the current build.
+                    if response is None:
+                        response = self.make_response(item, {
+                            "result": "error",
+                            "error": f"Computer Use action '{cmd}' is not implemented by PyGPT.",
+                        })
 
                     if response:
                         responses.append(response)

@@ -34,6 +34,14 @@ class Confirm:
         :param id: dialog object id
         :param parent_object: dialog parent object
         """
+        # Computer Use safety is an asynchronous pause/resume gate. Hide the
+        # shared dialog first (instead of close()) so its closeEvent cannot turn
+        # an accepted decision into a second, rejected decision.
+        if type == 'computer.safety':
+            self.window.ui.dialog['confirm'].hide()
+            self.window.controller.chat.command.confirm_pending_safety_confirmation(id)
+            return
+
         self.window.ui.dialog['confirm'].close()
 
         # app
@@ -307,6 +315,13 @@ class Confirm:
         """
         Confirm dialog dismiss
         """
+        # No, Escape and the window close button all reject a pending Computer
+        # Use safety operation. hide() avoids recursively re-entering closeEvent.
+        if type == 'computer.safety':
+            self.window.ui.dialog['confirm'].hide()
+            self.window.controller.chat.command.reject_pending_safety_confirmation(id)
+            return
+
         # Keep original logic...
         if type == 'editor.changed.clear':
             self.window.tools.get("editor").clear(id=id, force=True)

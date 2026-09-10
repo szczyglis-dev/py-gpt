@@ -274,10 +274,10 @@ class Computer:
         toolset_name = str(toolset_name or "")
         if name in self.COMPUTER_TOOL_NAMES:
             return True
-        if name not in self.TOOLSET_MEMBER_NAMES:
-            return False
         if toolset_name == "computer":
             return True
+        if name not in self.TOOLSET_MEMBER_NAMES:
+            return False
         if toolset_name:
             return False
         return self._is_toolset_active_for_ctx(ctx)
@@ -443,7 +443,7 @@ class Computer:
         except Exception:
             pass
 
-        if toolset_name == "computer" and name in self.TOOLSET_MEMBER_NAMES:
+        if toolset_name == "computer":
             call = self._member_to_tool_call(name, payload, tid, tid)
             return [call] if call else []
         return self._payload_to_tool_calls(tid, tid, payload)
@@ -484,8 +484,9 @@ class Computer:
                 toolset_name = str(tc.get("toolset_name", "") or "")
 
                 is_toolset_member = (
-                    name in self.TOOLSET_MEMBER_NAMES
-                    and self.is_computer_tool_use(ctx, name, toolset_name)
+                    toolset_name == "computer"
+                    or (name in self.TOOLSET_MEMBER_NAMES
+                        and self.is_computer_tool_use(ctx, name, toolset_name))
                 )
                 if is_toolset_member and isinstance(args, dict):
                     call = self._member_to_tool_call(
@@ -530,8 +531,12 @@ class Computer:
         if name == "screenshot":
             return self._build_call(id_, call_id, "get_screenshot", {}, suppress_screenshot=False)
         if name == "zoom":
-            # Disabled in tool config; defensive fallback if a server still emits it.
-            return self._build_call(id_, call_id, "get_screenshot", {}, suppress_screenshot=False)
+            # Disabled in tool config because PyGPT has no coordinate transform for
+            # zoomed images. Never pretend a plain screenshot implemented the call.
+            return self._build_call(id_, call_id, "computer_unimplemented", {
+                "provider": "anthropic",
+                "action": name,
+            })
         if name in {"left_click", "right_click", "middle_click", "double_click", "triple_click"}:
             button = "right" if name == "right_click" else "middle" if name == "middle_click" else "left"
             count = 2 if name == "double_click" else 3 if name == "triple_click" else 1
@@ -600,7 +605,10 @@ class Computer:
             except Exception:
                 duration = 1.0
             return self._build_call(id_, call_id, "wait", {"seconds": duration})
-        return None
+        return self._build_call(id_, call_id, "computer_unimplemented", {
+            "provider": "anthropic",
+            "action": name or "unknown",
+        })
 
     def _payload_to_tool_calls(self, id_: str, call_id: str, payload: Any) -> List[dict]:
         actions = self._extract_actions(payload)
@@ -824,8 +832,10 @@ class Computer:
             secs = int(action.get("seconds", action.get("sec", 2)))
             return self._build_call(id_, call_id, "wait", {"seconds": secs})
 
-        # Fallback: short wait to avoid breaking flow
-        return self._build_call(id_, call_id, "wait", {"seconds": 1})
+        return self._build_call(id_, call_id, "computer_unimplemented", {
+            "provider": "anthropic",
+            "action": atype or "unknown",
+        })
 
     # --------------- Build / normalize calls --------------- #
 
@@ -1020,6 +1030,7 @@ class Computer:
             "keypress": {"keys", "repeat"},
             "scroll": {"x", "y", "dx", "dy", "unit", "scroll_mode", "coordinate_space", "keys"},
             "drag": {"x", "y", "dx", "dy", "path", "coordinate_space", "keys"},
+            "computer_unimplemented": {"provider", "action", "details"},
         }
         res: Dict[str, Any] = {}
 

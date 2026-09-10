@@ -269,6 +269,16 @@ class Security:
         ctx.extra["computer_safety_confirmed"] = True
         ctx.extra["computer_safety_waiting"] = False
 
+    @staticmethod
+    def clear_computer_safety(ctx):
+        """Clear provider Computer Use safety state after one acknowledged round."""
+        if ctx is None or not isinstance(getattr(ctx, "extra", None), dict):
+            return
+        ctx.extra.pop("pending_safety_checks", None)
+        ctx.extra.pop("computer_safety_decisions", None)
+        ctx.extra.pop("computer_safety_confirmed", None)
+        ctx.extra.pop("computer_safety_waiting", None)
+
     def get_computer_safety_messages(self, ctx) -> List[str]:
         """Return provider-supplied safety explanations for display in the chat."""
         messages: List[str] = []

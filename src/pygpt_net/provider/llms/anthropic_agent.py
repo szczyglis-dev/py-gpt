@@ -175,6 +175,11 @@ class AgentAnthropic(Anthropic):
         computer = self._computer_api()
         name = str(name or "")
         toolset_name = str(toolset_name or "")
+        if toolset_name == "computer":
+            # Stable computer_toolset members are provider-owned. Treat future
+            # member names as Computer Use too, so PyGPT can return an explicit
+            # unsupported-action tool_result instead of leaking them to FunctionAgent.
+            return True
         if name in computer.COMPUTER_TOOL_NAMES:
             return True
         if self._configured_computer_type() == "computer_toolset_20260801":

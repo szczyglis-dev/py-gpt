@@ -24,7 +24,11 @@ from llama_index.llms.google_genai.utils import (
     prepare_chat_params,
 )
 
-from pygpt_net.provider.llms.agent_computer import AgentComputerBridge, run_coroutine_sync
+from pygpt_net.provider.llms.agent_computer import (
+    AgentComputerBridge,
+    run_coroutine_sync,
+    wait_for_computer_safety_confirmation,
+)
 from pygpt_net.provider.llms.google_capture import PyGPTGoogleGenAI
 
 
@@ -40,6 +44,7 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
     MAX_COMPUTER_TURNS: ClassVar[int] = 1000
 
     _pygpt_runtime: Any = PrivateAttr(default=None)
+    _pygpt_local_function_names: set[str] = PrivateAttr(default_factory=set)
 
     def bind_computer_runtime(self, runtime):
         self._pygpt_runtime = runtime
@@ -73,6 +78,24 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
     @staticmethod
     def _same_object(value: Any, candidates: list[Any]) -> bool:
         return any(value is candidate for candidate in candidates)
+
+    @classmethod
+    def _function_names(cls, tools: list[Any]) -> set[str]:
+        """Extract request-local Gemini function names for Computer Use disambiguation."""
+        names: set[str] = set()
+        for tool in tools or []:
+            declarations = (
+                cls._get(tool, "function_declarations", None)
+                or cls._get(tool, "functionDeclarations", None)
+                or []
+            )
+            if isinstance(declarations, dict):
+                declarations = [declarations]
+            for declaration in declarations or []:
+                name = str(cls._get(declaration, "name", "") or "").strip()
+                if name:
+                    names.add(name)
+        return names
 
     @staticmethod
     def _without_server_side_invocations(tool_config):
@@ -114,6 +137,7 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
         if not isinstance(all_tools, list):
             all_tools = [all_tools]
         local_tools = [tool for tool in all_tools if not self._same_object(tool, remote)]
+        self._pygpt_local_function_names = self._function_names(local_tools)
         prepared["tools"] = [*self._computer_tools(), *local_tools]
 
         # include_server_side_tool_invocations is for built-in server tools +
@@ -146,8 +170,18 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
         for name, args, call_id in computer._iter_function_calls(raw_response):
             local_name, local_args = computer._map_function(name, args or {})
             if not local_name:
-                custom_found = True
-                continue
+                # Gemini serializes Computer Use actions and app functions using
+                # the same function_call shape. Known request-local function names
+                # remain FunctionAgent calls; every other unknown function in an
+                # active Computer Use loop is returned to Gemini as unsupported.
+                if str(name or "") in self._pygpt_local_function_names:
+                    custom_found = True
+                    continue
+                local_name, local_args = computer._map_function(
+                    name,
+                    args or {},
+                    assume_computer=True,
+                )
             calls.append({
                 "id": str(call_id or ""),
                 "name": str(name or ""),
@@ -171,28 +205,24 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
             else:
                 out = dict(value)
             status = str(out.get("result", "") or "").lower()
-            out.setdefault("ok", status not in {"error", "failed", "failure"})
+            out.setdefault(
+                "ok",
+                status not in {"error", "failed", "failure"} and not status.startswith("error"),
+            )
             return out
         if value is None:
             return {"ok": True}
         text = str(value)
         return {"ok": not text.lower().startswith("error"), "result": text}
 
-    def _record_google_safety(self, calls: list[dict]) -> None:
+    async def _record_google_safety(self, calls: list[dict]) -> None:
         ctx = self._runtime_ctx()
         if ctx is None:
             return
         computer = self._computer_api()
         for call in calls:
             computer._record_safety_decision(ctx, call.get("name") or "", call.get("args") or {})
-        security = self._pygpt_runtime.window.core.security
-        if security.should_halt_computer(ctx):
-            if not isinstance(getattr(ctx, "extra", None), dict):
-                ctx.extra = {}
-            ctx.extra["computer_safety_waiting"] = True
-            raise RuntimeError(
-                "Computer Use paused by security policy. Confirm the pending operation in chat before continuing."
-            )
+        await wait_for_computer_safety_confirmation(self._pygpt_runtime, ctx)
 
     def _safety_acknowledgement(self) -> bool:
         ctx = self._runtime_ctx()
@@ -240,7 +270,7 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
             )
 
     async def _execute_computer_calls(self, calls: list[dict]):
-        self._record_google_safety(calls)
+        await self._record_google_safety(calls)
         commands = [
             {"cmd": call["local_name"], "params": dict(call.get("local_args") or {})}
             for call in calls
@@ -251,7 +281,7 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
             require_screenshot=True,
         )
         screenshot_part = self._screenshot_response_part(execution.screenshot_b64)
-        return [
+        parts = [
             self._function_response_part(
                 call,
                 self._response_for_index(execution.response, index),
@@ -259,6 +289,11 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
             )
             for index, call in enumerate(calls)
         ]
+        try:
+            self._pygpt_runtime.window.core.security.clear_computer_safety(self._runtime_ctx())
+        except Exception:
+            pass
+        return parts
 
     @staticmethod
     def _chat_from_gemini(raw_response: Any) -> ChatResponse:
@@ -298,6 +333,7 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
         # intentionally keeps tools=None so prepare_chat_params() uses the
         # merged [Computer Use + local functions] request-level list instead.
         if not kwargs.get("tools"):
+            self._pygpt_local_function_names = set()
             generation_config["tools"] = self._computer_tools()
 
         params = {**kwargs, "generation_config": generation_config}

@@ -397,6 +397,29 @@ class Responses:
                                                         msg["acknowledged_safety_checks"] = safety_checks
                                                 is_tool_output = True
                                                 messages = [msg]  # replace messages with tool output
+
+                                                # Responses' computer_call_output has a strict screenshot-only
+                                                # output schema. If PyGPT could not implement/execute the action,
+                                                # report that separately as ordinary input text instead of either
+                                                # dropping the error or adding a non-schema field to the tool output.
+                                                computer_errors = []
+                                                for tool_output in item.extra.get("tool_output") or []:
+                                                    if not isinstance(tool_output, dict):
+                                                        continue
+                                                    result = tool_output.get("result")
+                                                    if isinstance(result, dict) and result.get("error"):
+                                                        computer_errors.append(str(result.get("error")))
+                                                    elif isinstance(result, str) and result.lower().startswith("error"):
+                                                        computer_errors.append(result)
+                                                if computer_errors:
+                                                    error_text = "\n".join(dict.fromkeys(computer_errors))
+                                                    messages.append({
+                                                        "role": "user",
+                                                        "content": [{
+                                                            "type": "input_text",
+                                                            "text": f"[PyGPT Computer Use executor] Error: {error_text}",
+                                                        }],
+                                                    })
                                                 break
 
                     # --- previous message ID ---

@@ -74,6 +74,13 @@ class ConfirmDialog(QDialog):
         """
         return sys.platform.startswith('win')
 
+    def reject(self):
+        """Handle Escape as an explicit No for Computer Use safety prompts."""
+        if self.type == 'computer.safety':
+            self.window.controller.dialogs.confirm.dismiss(self.type, self.id)
+            return
+        super().reject()
+
     def closeEvent(self, event):
         """
         Close event handler

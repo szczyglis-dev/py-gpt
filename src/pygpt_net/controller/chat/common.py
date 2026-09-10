@@ -196,7 +196,7 @@ class Common:
         self.window.ui.nodes['input.stop_btn'].setVisible(True)
 
     def unlock_input(self):
-        """Unlock input"""
+        """Unlock input."""
         self.window.controller.chat.input.locked = False
         self.window.controller.chat.input.generating = False  # unlock
         self.window.ui.nodes['input.send_btn'].setEnabled(True)
@@ -282,6 +282,12 @@ class Common:
             "value": False,
         }))  # stop audio input
         controller.kernel.halt = True
+        # Wake provider-native Computer Use continuations waiting for user
+        # acknowledgement so they can observe the stopped kernel and exit.
+        try:
+            controller.chat.command.cancel_pending_safety_confirmation()
+        except Exception:
+            pass
         # STOP/ESC must remove transient tool/agent waiting rows immediately.
         # TOOL_END only hides the legacy loader and does not remove the status
         # containers introduced by the partial-item flow.

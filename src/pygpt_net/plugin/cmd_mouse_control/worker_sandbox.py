@@ -89,6 +89,12 @@ class Worker(BaseWorker):
                     # allow only plugin-declared commands
                     allowed = getattr(self.plugin, "allowed_cmds", None)
                     if isinstance(allowed, (list, set, tuple)) and cmd not in allowed:
+                        responses.append(self.make_response(item, {
+                            "result": "error",
+                            "error": f"Computer Use action '{cmd}' is not implemented by PyGPT.",
+                        }))
+                        if stop_on_error:
+                            batch_failed = True
                         continue
 
                     permission_error = self._permission_error(cmd)
@@ -214,9 +220,23 @@ class Worker(BaseWorker):
             handler = self.cmd_make_screenshot
         elif cmd in ("triple_click", "middle_click", "right_click"):
             handler = self.cmd_named_click
+        elif cmd == "computer_unimplemented":
+            provider = str(self.get_param(item, "provider", "provider") or "provider")
+            action = str(self.get_param(item, "action", "unknown") or "unknown")
+            details = str(self.get_param(item, "details", "") or "").strip()
+            message = f"Computer Use action '{action}' from {provider} is not implemented by PyGPT."
+            if details:
+                message += f" {details}"
+            return self.make_response(item, {
+                "result": "error",
+                "error": message,
+            })
 
         if not handler:
-            return None
+            return self.make_response(item, {
+                "result": "error",
+                "error": f"Computer Use action '{cmd}' is not implemented by PyGPT.",
+            })
 
         return handler(item)
 
