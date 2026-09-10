@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 14:20:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
 import json
@@ -118,6 +118,17 @@ def append_tools(
             system_prompt=getattr(context, "system_prompt", "") if context else "",
         )
         if computer_tool is not None:
+            # Prefer the shared PyGPT provider-native Computer Use bridge over
+            # Agents SDK ComputerTool. This keeps OpenAI Agents on the exact same
+            # continuation/runtime path as Chat with Files, legacy LlamaIndex
+            # agents and Agents v2. It also makes Computer Use a regular
+            # FunctionTool from the worker's point of view, so it survives nested
+            # worker/supervisor flows reliably. Keep native ComputerTool only as
+            # a fallback when no provider bridge can be constructed.
+            remote_tools = [
+                tool for tool in remote_tools
+                if not isinstance(tool, ComputerTool)
+            ]
             remote_tools.append(computer_tool)
 
         model_settings = {}

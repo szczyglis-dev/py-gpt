@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -235,17 +235,12 @@ def build_openai_agent_computer_tool(
     through that Chat-Completions-shaped transport. Expose one outer remote tool
     whose callback runs the existing LlamaIndex provider continuation adapter.
 
-    OpenAI GPT models are deliberately skipped: the legacy OpenAI agent provider
-    already uses the SDK's native ComputerTool/LocalComputer path for them.
+    The bridge is provider-agnostic, including OpenAI itself. Using the same
+    provider-native continuation adapter for OpenAI, Google and Anthropic avoids
+    a second ComputerTool execution path inside legacy OpenAI-agent workflows.
     """
     if window is None or context is None or model is None:
         return None
-    try:
-        if model.is_gpt():
-            return None
-    except Exception:
-        pass
-
     shared_runtime = runtime or ComputerRuntime(window, context)
     runtime_for_model = getattr(shared_runtime, "for_model", None)
     if callable(runtime_for_model):
