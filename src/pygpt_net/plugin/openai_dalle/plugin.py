@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:00:00                  #
+# Updated Date: 2026.09.10 11:36:00                  #
 # ================================================== #
 
 from pygpt_net.core.agents_v2.tool_bridge import mark_pending
@@ -228,7 +228,7 @@ class Plugin(BasePlugin):
 
                     # if internal call (ctx.internal = True), then re-send OK response
                     # if not internal call, then append image to chat only
-                    model_id = self.get_option_value("model") or "gpt-image-1"
+                    model_id = self.get_option_value("model") or "gpt-image-2.5-flare"
                     model = self.window.core.models.get(model_id)
                     if model is None:
                         model = ModelItem(model_id)

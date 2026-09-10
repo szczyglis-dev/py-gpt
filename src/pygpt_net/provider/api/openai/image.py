@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 13:00:00
+# Updated Date: 2026.09.10 11:36:00
 # ================================================== #
 
 import base64
@@ -83,7 +83,7 @@ class Image:
         worker.mode = sub_mode  # mode can be "generate" or "edit"
         worker.attachments = attachments  # attachments for edit mode
         worker.raw = self.window.core.config.get('img_raw')
-        worker.model = model.id  # model ID for generate image, e.g. "gpt-image-2"
+        worker.model = model.id  # model ID for generate image, e.g. "gpt-image-2.5-flare"
         worker.model_prompt = prompt_model  # model for generate prompt, not image!
         worker.input_prompt = prompt
         worker.system_prompt = self.window.core.prompt.get('img')
@@ -142,7 +142,7 @@ class ImageWorker(QRunnable):
         self.ctx: Optional[CtxItem] = None
         self.raw = False
         self.mode = Image.MODE_GENERATE  # default mode is generate
-        self.model = "gpt-image-2"
+        self.model = "gpt-image-2.5-flare"
         self.quality = "auto"
         self.resolution = "1024x1024"
         self.attachments: Dict[str, Any] = {}  # attachments for edit mode

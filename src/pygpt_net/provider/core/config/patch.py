@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 14:30:00
+# Updated Date: 2026.09.10 11:36:00
 # ================================================== #
 
 import copy
@@ -644,6 +644,14 @@ class Patch:
                 patch_css('web-chatgpt_wide.dark.css', True)
                 patch_css('web-chatgpt_wide.darkest.css', True)
                 patch_css('web-chatgpt_wide.light.css', True)
+
+            # < 2.8.14
+            if old < parse_version("2.8.14"):
+                print("Migrating config from < 2.8.14...")
+                # GPT Image 2.5 Flare is the new application/plugin default, but
+                # existing users keep their current image model selections. Mark
+                # the config as migrated so only metadata advances to 2.8.14.
+                updated = True
 
         # update file
         migrated = False

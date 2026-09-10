@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 13:00:00                  #
+# Updated Date: 2026.09.10 11:36:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -49,9 +49,9 @@ class Config(BaseConfig):
             use_params={
                 "mode": ["img"],
             },
-            value="gpt-image-1",
+            value="gpt-image-2.5-flare",
             label="Model",
-            description="Image generation model, default: gpt-image-1",
+            description="Image generation model, default: gpt-image-2.5-flare",
             tooltip="Model",
         )
         plugin.add_cmd(

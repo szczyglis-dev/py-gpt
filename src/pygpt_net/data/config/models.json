@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.8.13",
-        "app.version": "2.8.13",
-        "updated_at": "2026-09-09T19:22:00"
+        "version": "2.8.14",
+        "app.version": "2.8.14",
+        "updated_at": "2026-09-10T11:36:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M": {
@@ -2588,7 +2588,7 @@
             },
             "ctx": 0,
             "tokens": 0,
-            "default": true,
+            "default": false,
             "input": [
                 "text",
                 "image"
@@ -2664,6 +2664,110 @@
                     {
                         "name": "model",
                         "value": "gpt-image-2",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 0,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "image"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": false
+        },
+        "gpt-image-2.5-flare": {
+            "id": "gpt-image-2.5-flare",
+            "name": "gpt-image-2.5-flare",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-image-2.5-flare",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}",
+                        "type": "str"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}",
+                        "type": "str"
+                    }
+                ]
+            },
+            "ctx": 0,
+            "tokens": 0,
+            "default": true,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "image"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": false
+        },
+        "gpt-image-2.5-sunburst": {
+            "id": "gpt-image-2.5-sunburst",
+            "name": "gpt-image-2.5-sunburst",
+            "mode": [
+                "img"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-image-2.5-sunburst",
                         "type": "str"
                     }
                 ],

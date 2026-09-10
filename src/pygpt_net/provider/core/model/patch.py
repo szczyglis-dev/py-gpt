@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 19:22:00
+# Updated Date: 2026.09.10 11:36:00
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -576,6 +576,27 @@ class Patch:
                     ):
                         data[key] = base_model
                         updated = True
+
+            # <  2.8.14 <--- add GPT Image 2.5 models
+            if old < parse_version("2.8.14"):
+                print("Migrating models from < 2.8.14...")
+
+                # OpenAI exposes GPT Image 2.5 as Flare and Sunburst. Add both
+                # to existing model catalogs, but preserve each user's current
+                # image-mode/default choices. New installations get the defaults
+                # declared in the bundled models.json instead.
+                for key in (
+                        "gpt-image-2.5-flare",
+                        "gpt-image-2.5-sunburst",
+                ):
+                    if key in data:
+                        continue
+                    base_model = from_base(key)
+                    if not base_model:
+                        continue
+                    base_model.default = False
+                    data[key] = base_model
+                    updated = True
 
         # update file
         if updated:
