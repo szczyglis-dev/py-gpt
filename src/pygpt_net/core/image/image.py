@@ -17,6 +17,7 @@ from time import strftime
 from PySide6.QtCore import Slot, QObject
 
 from pygpt_net.core.types import IMAGE_AVAILABLE_RESOLUTIONS
+from pygpt_net.core.types.image import get_future_image_resolutions
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -200,10 +201,15 @@ class Image(QObject):
         """
         available = IMAGE_AVAILABLE_RESOLUTIONS
         model_keys = available.keys()
-        # find by model if specified
+        # Find by model if specified. Forward-looking family rules are evaluated
+        # before broad legacy prefixes so e.g. gpt-image-2.6 never falls back to
+        # the gpt-image-1 size set.
         if model:
             model = self._normalize_model_name(model)
-            for key in model_keys:
+            future = get_future_image_resolutions(model)
+            if future:
+                return future
+            for key in sorted(model_keys, key=len, reverse=True):
                 if model.startswith(key):
                     return available[key]
 

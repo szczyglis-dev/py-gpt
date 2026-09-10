@@ -21,6 +21,7 @@ from pygpt_net.core.types import MODE_IMAGE
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+from pygpt_net.core.types.image import model_version_at_least
 
 DEFAULT_GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image"
 
@@ -58,6 +59,7 @@ class Image:
         num = int(extra.get("num", 1))
         inline = bool(extra.get("inline", False))
         extra_prompt = extra.get("extra_prompt", "")
+        resolution = extra.get("resolution")  # optional per-call override
 
         # decide sub-mode based on attachments
         sub_mode = self.MODE_GENERATE
@@ -100,7 +102,9 @@ class Image:
                 except Exception:
                     continue
 
-        if self.window.core.config.has('img_resolution'):
+        if resolution:
+            worker.resolution = str(resolution).strip()
+        elif self.window.core.config.has('img_resolution'):
             worker.resolution = self.window.core.config.get('img_resolution') or "1024x1024"
 
         self.worker = worker
@@ -483,18 +487,26 @@ class ImageWorker(QRunnable):
         )
 
     def _gemini_supports_variable_image_size(self, model_id: str) -> bool:
-        """Return True only for Gemini image models that accept image_size."""
+        """Return True for current/future Gemini image families with image_size."""
         mid = (model_id or "").lower().split("/")[-1]
-        return (
-            mid.startswith("gemini-3.1-flash-image")
-            or mid.startswith("gemini-3-pro-image")
-            or mid.startswith("nano-banana-pro")
-            or mid.startswith("nb-pro")
-        )
+        if mid.startswith("nano-banana-pro") or mid.startswith("nb-pro"):
+            return True
+        if not mid.startswith("gemini-") or "image" not in mid:
+            return False
+        # Flash Lite is intentionally kept on its documented 1K-only path.
+        if "flash-lite-image" in mid:
+            return False
+        if "flash-image" in mid:
+            return model_version_at_least(mid, "gemini-", (3, 1))
+        if "pro-image" in mid:
+            return model_version_at_least(mid, "gemini-", (3, 0))
+        # Forward-only generic fallback for future Gemini image model names.
+        return model_version_at_least(mid, "gemini-", (3, 1))
 
     def _is_gemini_31_flash_image(self, model_id: str) -> bool:
+        """Treat Gemini 3.1+ Flash Image variants as the current Flash family."""
         mid = (model_id or "").lower().split("/")[-1]
-        return mid.startswith("gemini-3.1-flash-image")
+        return "flash-image" in mid and model_version_at_least(mid, "gemini-", (3, 1))
 
     def _is_nano_banana_pro_alias(self, model_id: str) -> bool:
         mid = (model_id or "").lower().split("/")[-1]

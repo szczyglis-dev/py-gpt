@@ -72,6 +72,10 @@ class Image:
         worker.extra_prompt = extra_prompt
         worker.attachments = context.attachments or {}
         worker.image_id = extra.get("image_id")
+        resolution = str(extra.get("resolution") or "").strip().lower()
+        if not resolution and self.window.core.config.has('img_resolution'):
+            resolution = str(self.window.core.config.get('img_resolution') or "").strip().lower()
+        worker.resolution = resolution if resolution in {"1k", "2k"} else None
 
         self.worker = worker
         self.worker.signals.finished.connect(self.window.core.image.handle_finished)
@@ -113,6 +117,7 @@ class ImageWorker(QRunnable):
         self.num = 1
         self.attachments: Dict[str, Any] = {}
         self.image_id: Optional[str] = None
+        self.resolution: Optional[str] = None
 
         # SDK image_format:
         # - "base64": returns raw image bytes in SDK response (preferred for local saving)
@@ -164,6 +169,8 @@ class ImageWorker(QRunnable):
             }
             if reference_image_url:
                 gen_kwargs["image_url"] = reference_image_url
+            if self.resolution in {"1k", "2k"}:
+                gen_kwargs["resolution"] = self.resolution
 
             images_bytes: List[bytes] = []
             if n == 1:

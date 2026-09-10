@@ -22,6 +22,7 @@ from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+from pygpt_net.core.types.image import model_version_at_least
 
 
 class Image:
@@ -165,8 +166,37 @@ class ImageWorker(QRunnable):
     def _max_num_for_model(self) -> int:
         return 1
 
+    def _is_gpt_image_2_or_newer(self, model_id: Optional[str] = None) -> bool:
+        mid = (model_id or self.model or "").lower().split("/")[-1]
+        return model_version_at_least(mid, "gpt-image-", (2, 0))
+
+    def _is_gpt_image_25_or_newer(self, model_id: Optional[str] = None) -> bool:
+        mid = (model_id or self.model or "").lower().split("/")[-1]
+        return model_version_at_least(mid, "gpt-image-", (2, 5))
+
+    def _valid_gpt_image_2_resolution(self, resolution: str) -> bool:
+        """Validate the WIDTHxHEIGHT contract used by GPT Image 2+."""
+        if resolution == "auto":
+            return True
+        try:
+            normalized = resolution.lower().replace("×", "x")
+            w_raw, h_raw = normalized.split("x", 1)
+            w, h = int(w_raw.strip()), int(h_raw.strip())
+        except Exception:
+            return False
+        if w <= 0 or h <= 0 or (w % 16) or (h % 16):
+            return False
+        if max(w, h) > 3840:
+            return False
+        if max(w, h) / min(w, h) > 3:
+            return False
+        pixels = w * h
+        return 655360 <= pixels <= 8294400
+
     def _normalize_resolution_for_model(self, resolution: Optional[str]) -> str:
-        res = (resolution or "").strip() or "1024x1024"
+        res = (resolution or "").strip().lower().replace("×", "x") or "1024x1024"
+        if self._is_gpt_image_2_or_newer():
+            return res if self._valid_gpt_image_2_resolution(res) else "auto"
         if self._is_gpt_image_model():
             allowed = {"1024x1024", "1536x1024", "1024x1536", "auto"}
             return res if res in allowed else "auto"
@@ -176,6 +206,8 @@ class ImageWorker(QRunnable):
         q = (quality or "").strip().lower()
         if self._is_gpt_image_model():
             allowed = {"auto", "high", "medium", "low"}
+            if self._is_gpt_image_25_or_newer():
+                allowed.update({"xhigh", "max"})
             return q if q in allowed else "auto"
         return None
 
