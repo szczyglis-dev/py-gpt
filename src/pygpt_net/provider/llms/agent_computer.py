@@ -6,19 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.09 19:22:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 from __future__ import annotations
 
 import asyncio
 import base64
+import json
 import os
 import queue
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Optional, Sequence
+
+from llama_index.core.base.llms.types import ChatMessage, MessageRole
 
 from pygpt_net.item.ctx import CtxItem
 
@@ -58,13 +61,14 @@ class _ComputerRuntimeVerbose:
             pass
 
 
-class LlamaIndexComputerRuntime:
-    """Small runtime adapter for provider-native Computer Use in Chat with Files.
+class ComputerRuntime:
+    """Small runtime adapter for provider-native Computer Use outside Agents v2.
 
     Provider adapters only need access to the PyGPT window/context, a serialized
     desktop lock, stop state and logging/status hooks. Keeping this contract tiny
-    lets Chat with Files reuse the exact same provider continuation adapters and
-    Computer Use executor as Agents v2 without importing the orchestration runtime.
+    lets Chat with Files and legacy agent workflows reuse the exact same provider
+    continuation adapters and Computer Use executor without importing the Agents v2
+    orchestration runtime.
     """
 
     def __init__(self, window, context):
@@ -74,6 +78,14 @@ class LlamaIndexComputerRuntime:
         self.local_tool_lock = _AsyncThreadLock()
         self.verbose = _ComputerRuntimeVerbose(window)
 
+    def for_model(self, model):
+        """Return a lightweight child runtime for another model, sharing the desktop lock."""
+        child = ComputerRuntime(self.window, self.context)
+        child.model = model
+        child.local_tool_lock = self.local_tool_lock
+        child.verbose = self.verbose
+        return child
+
     def is_stopped(self) -> bool:
         try:
             return bool(self.window.controller.kernel.stopped())
@@ -81,11 +93,235 @@ class LlamaIndexComputerRuntime:
             return False
 
     def emit_runtime_status(self, key: str, **kwargs) -> None:
-        # Agents v2 has a dedicated partial/status renderer. Chat with Files does
-        # not, so keep this hook transient and diagnostic instead of persisting an
-        # Agents-v2-specific status block in the normal chat context.
+        # Agents v2 has a dedicated partial/status renderer. Legacy/regular modes
+        # do not, so keep this hook transient and diagnostic instead of persisting
+        # an Agents-v2-specific status block in the normal chat context.
         self.verbose.log("STATUS", {"key": key, "args": kwargs})
 
+
+# Backward-compatible name used by older Chat with Files callers/plugins.
+LlamaIndexComputerRuntime = ComputerRuntime
+
+
+@dataclass
+class ProviderComputerTurn:
+    """Final result of a provider-native Computer Use turn."""
+
+    output: str = ""
+    response_id: Optional[str] = None
+
+
+def _response_id(response: Any) -> Optional[str]:
+    """Best-effort extraction of a provider response ID from a LlamaIndex reply."""
+    raw = getattr(response, "raw", None)
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        nested = raw.get("response")
+        payload = nested if nested is not None else raw
+        if isinstance(payload, dict):
+            value = payload.get("id")
+        else:
+            value = getattr(payload, "id", None)
+    else:
+        nested = getattr(raw, "response", None)
+        payload = nested if nested is not None else raw
+        value = getattr(payload, "id", None)
+    value = str(value or "").strip()
+    return value or None
+
+
+def _collect_llm_urls(context, llm) -> None:
+    """Bridge provider-native URL artifacts back to the current PyGPT context."""
+    ctx = getattr(context, "ctx", None)
+    pop_urls = getattr(llm, "pop_pygpt_urls", None)
+    if ctx is None or not callable(pop_urls):
+        return
+    try:
+        urls = pop_urls() or []
+    except Exception:
+        return
+    if not isinstance(getattr(ctx, "urls", None), list):
+        ctx.urls = []
+    seen = set(ctx.urls)
+    for url in urls:
+        value = str(url or "").strip()
+        if value and value not in seen:
+            ctx.urls.append(value)
+            seen.add(value)
+
+
+async def run_provider_computer_turn(
+        window,
+        context,
+        model,
+        prompt: str,
+        *,
+        history: Optional[Sequence[ChatMessage]] = None,
+        system_prompt: str = "",
+        runtime=None,
+        llm=None,
+) -> Optional[ProviderComputerTurn]:
+    """Run one direct provider-native Computer Use turn when it is configured.
+
+    The provider registry decides whether the selected model/provider has an active
+    Computer Use adapter. If not, ``None`` is returned without issuing an LLM call,
+    so callers can continue their normal workflow unchanged. This is intentionally
+    provider-agnostic: OpenAI, Google and Anthropic all reuse the same LlamaIndex
+    adapter contract and :class:`AgentComputerBridge` executor.
+    """
+    if window is None or context is None or model is None:
+        return None
+
+    if runtime is None:
+        runtime = ComputerRuntime(window, context)
+
+    if llm is None:
+        llm = window.core.idx.llm.get(
+            model=model,
+            stream=False,
+            computer_runtime=runtime,
+        )
+    binder = getattr(llm, "bind_computer_runtime", None)
+    if not callable(binder):
+        return None
+    binder(runtime)
+
+    messages = list(history or [])
+    system_text = str(system_prompt or "").strip()
+    if system_text:
+        has_system = any(
+            getattr(item, "role", None) == MessageRole.SYSTEM
+            for item in messages
+            if isinstance(item, ChatMessage)
+        )
+        if not has_system:
+            messages.insert(0, ChatMessage(role=MessageRole.SYSTEM, content=system_text))
+
+    messages.append(ChatMessage(
+        role=MessageRole.USER,
+        content=str(prompt or ""),
+    ))
+
+    response = await llm.achat(messages)
+    _collect_llm_urls(context, llm)
+
+    message = getattr(response, "message", None)
+    content = getattr(message, "content", None) if message is not None else None
+    if content is None:
+        content = str(response or "")
+    return ProviderComputerTurn(
+        output=str(content or ""),
+        response_id=_response_id(response),
+    )
+
+
+
+OPENAI_AGENT_COMPUTER_TOOL_NAME = "pygpt_computer_use"
+
+
+def build_openai_agent_computer_tool(
+        window,
+        context,
+        model,
+        *,
+        runtime=None,
+        system_prompt: str = "",
+):
+    """Build an OpenAI Agents SDK FunctionTool backed by provider-native CU.
+
+    Legacy OpenAI-agent workflows can run Google/Anthropic models through the
+    Agents SDK compatibility layer, but provider-native Computer Use cannot pass
+    through that Chat-Completions-shaped transport. Expose one outer remote tool
+    whose callback runs the existing LlamaIndex provider continuation adapter.
+
+    OpenAI GPT models are deliberately skipped: the legacy OpenAI agent provider
+    already uses the SDK's native ComputerTool/LocalComputer path for them.
+    """
+    if window is None or context is None or model is None:
+        return None
+    try:
+        if model.is_gpt():
+            return None
+    except Exception:
+        pass
+
+    shared_runtime = runtime or ComputerRuntime(window, context)
+    runtime_for_model = getattr(shared_runtime, "for_model", None)
+    if callable(runtime_for_model):
+        shared_runtime = runtime_for_model(model)
+
+    try:
+        llm = window.core.idx.llm.get(
+            model=model,
+            stream=False,
+            computer_runtime=shared_runtime,
+        )
+    except Exception as exc:
+        try:
+            window.core.debug.log(exc)
+        except Exception:
+            pass
+        return None
+
+    binder = getattr(llm, "bind_computer_runtime", None)
+    if not callable(binder):
+        return None
+    binder(shared_runtime)
+
+    try:
+        from agents import FunctionTool, RunContextWrapper
+    except Exception:
+        return None
+
+    async def invoke(run_ctx: RunContextWrapper[Any], args: str) -> str:
+        try:
+            payload = json.loads(args or "{}")
+        except Exception:
+            payload = {}
+        task = str(payload.get("task") or "").strip()
+        if not task:
+            return json.dumps({
+                "error": "Missing required Computer Use task.",
+                "tool": OPENAI_AGENT_COMPUTER_TOOL_NAME,
+            }, ensure_ascii=False)
+
+        result = await run_provider_computer_turn(
+            window=window,
+            context=context,
+            model=model,
+            prompt=task,
+            system_prompt=system_prompt or getattr(context, "system_prompt", ""),
+            runtime=shared_runtime,
+            llm=llm,
+        )
+        if result is None:
+            return json.dumps({
+                "error": "Computer Use is not enabled for this provider/model.",
+                "tool": OPENAI_AGENT_COMPUTER_TOOL_NAME,
+            }, ensure_ascii=False)
+        return result.output or "Computer Use task completed."
+
+    return FunctionTool(
+        name=OPENAI_AGENT_COMPUTER_TOOL_NAME,
+        description=(
+            "Use the user's computer through the provider-native Computer Use "
+            "runtime. Call this when the task requires viewing the screen or "
+            "interacting with the desktop. Pass a concise, self-contained task."
+        ),
+        params_json_schema={
+            "type": "object",
+            "properties": {
+                "task": {
+                    "type": "string",
+                    "description": "The self-contained desktop task to perform.",
+                },
+            },
+            "required": ["task"],
+            "additionalProperties": False,
+        },
+        on_invoke_tool=invoke,
+    )
 
 def run_coroutine_sync(awaitable):
     """Run one provider continuation coroutine from a synchronous LlamaIndex call.

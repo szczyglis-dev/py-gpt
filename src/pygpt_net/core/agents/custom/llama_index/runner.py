@@ -8,7 +8,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 06:00:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -113,6 +113,7 @@ class DynamicFlowWorkflowLI(Workflow):
         allow_remote_tools_default: bool,
         max_iterations: int,
         llm: Any,
+        computer_runtime: Any = None,
         tools: List[Any],
         stream: bool,
         base_prompt: Optional[str],
@@ -141,6 +142,7 @@ class DynamicFlowWorkflowLI(Workflow):
 
         # Base LLM/tools from app (per-node model override via resolve_llm)
         self.llm_base = llm
+        self.computer_runtime = computer_runtime
         self.tools_base = tools or []
         self.stream = bool(stream)  # kept for symmetry with OpenAI; LI agents don't stream tokens
         self.base_prompt = base_prompt or ""
@@ -431,7 +433,14 @@ class DynamicFlowWorkflowLI(Workflow):
                 f" role='{ellipsize(node_rt.role or '', self.dbg.preview_chars)}'"
             )
 
-        llm_node = resolve_llm(self.window, node_rt.model, self.llm_base, self.stream)
+        llm_node = resolve_llm(
+            self.window,
+            node_rt.model,
+            self.llm_base,
+            self.stream,
+            computer_runtime=self.computer_runtime,
+            allow_remote_tools=node_rt.allow_remote_tools,
+        )
         if self.dbg.log_llm:
             self.logger.debug(f"[llm] using={llm_node.__class__.__name__} id={getattr(llm_node,'model',None) or getattr(llm_node,'_model',None)}")
 

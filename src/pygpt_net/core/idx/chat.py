@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 18:00:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 import json
@@ -27,7 +27,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.provider.llms.agent_computer import LlamaIndexComputerRuntime
+from pygpt_net.provider.llms.agent_computer import ComputerRuntime
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
 
@@ -255,7 +255,7 @@ class Chat:
         # Provider-native Computer Use is a client-side continuation protocol.
         # Chat with Files is synchronous LlamaIndex code, so bind a tiny runtime
         # adapter that reuses the same provider adapters/executor as Agents v2.
-        computer_runtime = LlamaIndexComputerRuntime(self.window, context)
+        computer_runtime = ComputerRuntime(self.window, context)
 
         # retrieve additional context from index if tools enabled
         additional_ctx = None

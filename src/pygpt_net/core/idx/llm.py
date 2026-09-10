@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 12:48:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 import os.path
@@ -55,7 +55,7 @@ class Llm:
         :param model: Model item
         :param multimodal: Allow multi-modal flag (True to get multimodal provider if available)
         :param stream: Stream mode (True to enable streaming)
-        :param computer_runtime: Chat with Files Computer Use runtime adapter
+        :param computer_runtime: Shared provider-native Computer Use runtime adapter
         :return: Llama LLM instance
         """
         # TMP: deprecation warning fix
@@ -78,15 +78,19 @@ class Llm:
                     mode=MODE_LLAMA_INDEX,
                     sub_mode="",
                 )
-                # Chat with Files may need a provider-owned client-side
+                # Some LlamaIndex callers need a provider-owned client-side
                 # continuation loop for native Computer Use. Keep this opt-in so
-                # all other LlamaIndex callers retain the regular provider.
+                # all other callers retain the regular provider.
                 if computer_runtime is not None:
-                    llm = llm_provider.llama_chat_with_files(
+                    runtime = computer_runtime
+                    runtime_for_model = getattr(computer_runtime, "for_model", None)
+                    if callable(runtime_for_model):
+                        runtime = runtime_for_model(model)
+                    llm = llm_provider.llama_with_computer_runtime(
                         window=self.window,
                         model=model,
                         stream=stream,
-                        computer_runtime=computer_runtime,
+                        computer_runtime=runtime,
                     )
                 else:
                     llm = llm_provider.llama(
@@ -228,7 +232,7 @@ class Llm:
         :param model: Model item (for query)
         :param stream: Stream mode (True to enable streaming)
         :param auto_embed: Auto-detect embeddings provider based on model capabilities
-        :param computer_runtime: Chat with Files Computer Use runtime adapter
+        :param computer_runtime: Shared provider-native Computer Use runtime adapter
         :return: Service context instance
         """
         llm = self.get(model=model, stream=stream, computer_runtime=computer_runtime)

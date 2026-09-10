@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 14:00:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -82,6 +82,7 @@ class Agent(BaseAgent):
             allow_remote_tools_default=allow_remote_tools_default,
             max_iterations=max_iterations,
             llm=llm,
+            computer_runtime=kwargs.get("computer_runtime"),
             tools=tools,
             stream=stream,
             base_prompt=base_prompt,

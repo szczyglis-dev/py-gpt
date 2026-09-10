@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 12:48:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 import os
@@ -184,12 +184,33 @@ class BaseLLM:
             stream: bool = False,
             computer_runtime=None,
     ) -> LlamaBaseLLM:
-        """Return the regular LlamaIndex LLM for Chat with Files.
+        """Return a LlamaIndex LLM with the Chat with Files Computer Use bridge.
 
-        Providers with client-side native tools such as Computer Use may
-        override this hook and reuse their provider continuation adapter.
+        Kept as the provider override point for backward compatibility. New
+        callers should use :meth:`llama_with_computer_runtime`.
         """
         return self.llama(window=window, model=model, stream=stream)
+
+    def llama_with_computer_runtime(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            computer_runtime=None,
+    ) -> LlamaBaseLLM:
+        """Return a LlamaIndex LLM bound to the shared Computer Use runtime.
+
+        Existing provider implementations already expose their native Computer
+        Use continuation adapters through ``llama_chat_with_files``. Route the
+        generic hook through that implementation so Chat with Files and legacy
+        agents share one provider-specific code path.
+        """
+        return self.llama_chat_with_files(
+            window=window,
+            model=model,
+            stream=stream,
+            computer_runtime=computer_runtime,
+        )
 
     def llama_agent(
             self,

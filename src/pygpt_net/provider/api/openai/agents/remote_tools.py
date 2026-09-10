@@ -33,6 +33,8 @@ from pygpt_net.core.types import (
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
+from pygpt_net.provider.llms.agent_computer import build_openai_agent_computer_tool
+
 from .computer import LocalComputer
 
 
@@ -98,6 +100,25 @@ def append_tools(
             "is_expert_call": is_expert_call,
         }
         remote_tools = get_remote_tools(**tool_kwargs)
+
+        # Non-OpenAI models used by the OpenAI Agents SDK need a small outer
+        # FunctionTool bridge for provider-native client-side Computer Use. The
+        # bridge itself reuses the same Google/Anthropic continuation adapters
+        # as Chat with Files / Agents v2, and is treated as a remote tool so
+        # per-agent allow_remote_tools remains authoritative.
+        agent_tools = getattr(getattr(window, "core", None), "agents", None)
+        tools_core = getattr(agent_tools, "tools", None)
+        context = getattr(tools_core, "context", None)
+        computer_runtime = getattr(tools_core, "computer_runtime", None)
+        computer_tool = build_openai_agent_computer_tool(
+            window=window,
+            context=context,
+            model=model,
+            runtime=computer_runtime,
+            system_prompt=getattr(context, "system_prompt", "") if context else "",
+        )
+        if computer_tool is not None:
+            remote_tools.append(computer_tool)
 
         model_settings = {}
 

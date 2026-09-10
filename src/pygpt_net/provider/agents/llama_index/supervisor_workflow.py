@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -64,7 +64,11 @@ class SupervisorAgent(BaseAgent):
         model_worker = window.core.models.get(
             self.get_option(preset, "worker", "model")
         )
-        llm_worker = window.core.idx.llm.get(model_worker, stream=False)
+        llm_worker = window.core.idx.llm.get(
+            model_worker,
+            stream=False,
+            computer_runtime=kwargs.get("computer_runtime"),
+        )
         worker_memory_session_id = ""
         if context.ctx and context.ctx.meta:
             worker_memory_session_id = "llama_worker_session_" + str(context.ctx.meta.id)

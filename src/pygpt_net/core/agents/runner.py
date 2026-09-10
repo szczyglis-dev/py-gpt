@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 07:00:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 import asyncio
@@ -25,6 +25,7 @@ from pygpt_net.core.types import (
 )
 
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.provider.llms.agent_computer import ComputerRuntime
 
 from .runners.llama_assistant import LlamaAssistant
 from .runners.llama_plan import LlamaPlan
@@ -99,7 +100,12 @@ class Runner:
             is_stream = self.window.core.config.get("stream", False)
             is_cmd = self.window.core.command.is_cmd(inline=False)
             history = self.window.core.agents.memory.prepare(context)
-            llm = self.window.core.idx.llm.get(model, stream=False)
+            computer_runtime = ComputerRuntime(self.window, context)
+            llm = self.window.core.idx.llm.get(
+                model,
+                stream=False,
+                computer_runtime=computer_runtime,
+            )
             workdir = self.window.core.config.get_workdir_prefix()
 
             # vector store idx from preset
@@ -110,6 +116,7 @@ class Runner:
             # tools
             agent_tools = self.window.core.agents.tools
             agent_tools.set_context(context)
+            agent_tools.set_computer_runtime(computer_runtime)
             agent_tools.set_idx(vector_store_idx)
 
             tools = agent_tools.prepare(context, extra, force=True)
@@ -174,6 +181,7 @@ class Runner:
                 "workdir": workdir,
                 "preset": context.preset if context else None,
                 "schema": schema,
+                "computer_runtime": computer_runtime,
             }
             provider = self.window.core.agents.provider.get(agent_id, context.mode)
             # Preserve late/plugin system-prompt additions for providers that use
@@ -256,12 +264,18 @@ class Runner:
             is_expert_call = context.is_expert_call
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_cmd = self.window.core.command.is_cmd(inline=False)
-            llm = self.window.core.idx.llm.get(model, stream=False)
+            computer_runtime = ComputerRuntime(self.window, context)
+            llm = self.window.core.idx.llm.get(
+                model,
+                stream=False,
+                computer_runtime=computer_runtime,
+            )
             workdir = self.window.core.config.get_workdir_prefix()
 
             # tools
             agent_tools = self.window.core.agents.tools
             agent_tools.set_context(context)
+            agent_tools.set_computer_runtime(computer_runtime)
             agent_tools.set_idx(vector_store_idx)
 
             if "agent_tools" in extra:
@@ -297,6 +311,7 @@ class Runner:
                 "are_commands": is_cmd,
                 "workdir": workdir,
                 "preset": context.preset if context else None,
+                "computer_runtime": computer_runtime,
             }
             provider = self.window.core.agents.provider.get(agent_id)
             agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)

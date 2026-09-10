@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 09:00:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 import copy
@@ -192,6 +192,20 @@ class Command(QObject):
                 return True
         return False
 
+    def _is_realtime_computer_command(self, ctx: CtxItem, cmd_id: str) -> bool:
+        """Allow the shared realtime Computer Use bridge independently of Tools.
+
+        Realtime voice sessions advertise a narrow subset of cmd_mouse_control as
+        ordinary function calls because their live protocols do not expose the
+        provider-native Computer Use continuation contract.  Execution still goes
+        through the normal command/plugin dispatcher and plugin permission gates.
+        """
+        try:
+            from pygpt_net.core.realtime.shared.computer import is_context_command
+            return is_context_command(self.window, ctx, cmd_id)
+        except Exception:
+            return False
+
     def handle(self, ctx: CtxItem, internal: bool = False) -> Any:
         """
         Handle commands and expert mentions
@@ -222,7 +236,8 @@ class Command(QObject):
                 cmd_id = str(cmd["cmd"])
                 if (not self.window.core.command.is_enabled(cmd_id)
                         and not ctx.force_call
-                        and not self._is_internal_computer_command(ctx, cmd_id)):
+                        and not self._is_internal_computer_command(ctx, cmd_id)
+                        and not self._is_realtime_computer_command(ctx, cmd_id)):
                     self.log(f"[cmd] Command not allowed: {cmd_id}")
                     cmds.remove(cmd)  # remove command from execution list
 
@@ -267,7 +282,16 @@ class Command(QObject):
             reply.ctx = ctx
             reply.cmds = cmds
             reply.internal = internal
-            if self.window.core.config.get('cmd'):
+            realtime_computer_only = all(
+                self._is_realtime_computer_command(ctx, str(cmd.get("cmd") or ""))
+                for cmd in cmds
+            )
+            if realtime_computer_only:
+                # The remote Computer Use switch is independent of the local
+                # Tools/plugin switch. Force only this whitelisted bridge batch
+                # through CMD_EXECUTE so cmd_mouse_control can service it.
+                reply.type = ReplyContext.CMD_EXECUTE_FORCE
+            elif self.window.core.config.get('cmd'):
                 reply.type = ReplyContext.CMD_EXECUTE
             else:
                 reply.type = ReplyContext.CMD_EXECUTE_INLINE

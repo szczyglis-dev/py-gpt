@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 13:45:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 import asyncio
@@ -28,6 +28,7 @@ from pygpt_net.core.realtime.shared.tools import build_function_responses_payloa
 from pygpt_net.core.realtime.shared.text import coalesce_text
 from pygpt_net.core.realtime.shared.turn import TurnMode, apply_turn_mode_google
 from pygpt_net.core.realtime.shared.session import set_ctx_rt_handle
+from pygpt_net.core.realtime.shared.computer import image_bytes, normalize_image_paths
 
 
 class GoogleLiveClient:
@@ -1258,13 +1259,14 @@ class GoogleLiveClient:
         results,
         continue_turn: bool = True,
         wait_for_done: bool = True,
+        image_paths=None,
     ):
         """
         Send tool results back to the Live session (FunctionResponse list).
         """
         self._ensure_background_loop()
         return await self._run_on_owner(
-            self._send_tool_results_internal(results, continue_turn, wait_for_done)
+            self._send_tool_results_internal(results, continue_turn, wait_for_done, image_paths)
         )
 
     def send_tool_results_sync(
@@ -1273,13 +1275,14 @@ class GoogleLiveClient:
         continue_turn: bool = True,
         wait_for_done: bool = True,
         timeout: float = 20.0,
+        image_paths=None,
     ):
         """
         Synchronous wrapper for send_tool_results().
         """
         self._ensure_background_loop()
         return self._bg.run_sync(
-            self._send_tool_results_internal(results, continue_turn, wait_for_done),
+            self._send_tool_results_internal(results, continue_turn, wait_for_done, image_paths),
             timeout=timeout
         )
 
@@ -1288,6 +1291,7 @@ class GoogleLiveClient:
         results,
         continue_turn: bool,
         wait_for_done: bool,
+        image_paths=None,
     ):
         """
         Internal implementation of send_tool_results.
@@ -1313,6 +1317,15 @@ class GoogleLiveClient:
             self._send_lock = asyncio.Lock()
         async with self._send_lock:
             try:
+                # Blocking Live function calls keep model generation paused until
+                # FunctionResponse arrives. Queue the visual desktop state first,
+                # then send the response that resumes the turn, avoiding a race in
+                # which Gemini could continue before receiving the screenshot.
+                for path in normalize_image_paths(image_paths):
+                    data, mime = image_bytes(path)
+                    await self._session.send_realtime_input(
+                        video=gtypes.Blob(data=data, mime_type=mime)
+                    )
                 await self._session.send_tool_response(function_responses=fn_responses)
             except Exception as e:
                 raise RuntimeError(f"send_tool_response failed: {e}") from e

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 13:40:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 import asyncio
@@ -41,6 +41,7 @@ from pygpt_net.core.realtime.shared.tools import (
 )
 from pygpt_net.core.realtime.shared.turn import TurnMode
 from pygpt_net.core.realtime.shared.session import set_ctx_rt_handle, set_rt_session_expires_at
+from pygpt_net.core.realtime.shared.computer import image_data_uri, normalize_image_paths
 
 
 class OpenAIRealtimeClient:
@@ -970,13 +971,14 @@ class OpenAIRealtimeClient:
         results,
         continue_turn: bool = True,
         wait_for_done: bool = True,
+        image_paths=None,
     ):
         """
         Send tool results back to the Realtime session.
         """
         self._ensure_background_loop()
         return await self._run_on_owner(
-            self._send_tool_results_internal(results, continue_turn, wait_for_done)
+            self._send_tool_results_internal(results, continue_turn, wait_for_done, image_paths)
         )
 
     def send_tool_results_sync(
@@ -985,11 +987,12 @@ class OpenAIRealtimeClient:
         continue_turn: bool = True,
         wait_for_done: bool = True,
         timeout: float = 20.0,
+        image_paths=None,
     ):
         """Synchronous wrapper for send_tool_results()."""
         self._ensure_background_loop()
         return self._bg.run_sync(
-            self._send_tool_results_internal(results, continue_turn, wait_for_done),
+            self._send_tool_results_internal(results, continue_turn, wait_for_done, image_paths),
             timeout=timeout
         )
 
@@ -998,6 +1001,7 @@ class OpenAIRealtimeClient:
         results,
         continue_turn: bool,
         wait_for_done: bool,
+        image_paths=None,
     ):
         """
         Owner-loop implementation. Serializes sends under the WS writer lock.
@@ -1027,6 +1031,27 @@ class OpenAIRealtimeClient:
                 if it.get("previous_item_id"):
                     payload["previous_item_id"] = it["previous_item_id"]
                 await self.ws.send(json.dumps(payload))
+
+            # Realtime Computer Use is implemented as ordinary function calls.
+            # Feed the transport-only desktop screenshot back as a user image
+            # before asking the model to continue the tool turn.
+            for path in normalize_image_paths(image_paths):
+                try:
+                    await self.ws.send(json.dumps({
+                        "type": "conversation.item.create",
+                        "item": {
+                            "type": "message",
+                            "role": "user",
+                            "content": [{
+                                "type": "input_image",
+                                "image_url": image_data_uri(path),
+                                "detail": "high",
+                            }],
+                        },
+                    }))
+                except Exception as exc:
+                    if self.debug:
+                        print(f"[realtime computer] image send failed: {exc}")
 
             # Optionally ask the model to continue
             if continue_turn:

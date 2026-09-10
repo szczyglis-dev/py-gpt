@@ -45,6 +45,7 @@ class Tools:
         self.last_tool_output = None
         self.agent_idx = None  # agent index, used for query engine tool
         self.context = None  # BridgeContext instance, used for tool execution
+        self.computer_runtime = None  # shared provider-native Computer Use runtime
 
     def prepare(
             self,
@@ -551,6 +552,10 @@ class Tools:
         :param context: BridgeContext instance
         """
         self.context = context
+
+    def set_computer_runtime(self, runtime):
+        """Set shared provider-native Computer Use runtime for legacy agents."""
+        self.computer_runtime = runtime
 
     def log(self, msg: str):
         """
