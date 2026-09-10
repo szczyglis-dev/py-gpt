@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 14:15:00                  #
+# Updated Date: 2026.09.10 13:10:00                  #
 # ================================================== #
 
 import os.path
@@ -235,6 +235,7 @@ class Runner:
             process = subprocess.Popen(
                 cmd,
                 shell=True,
+                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
@@ -325,6 +326,7 @@ class Runner:
             process = subprocess.Popen(
                 cmd,
                 shell=True,
+                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
@@ -396,6 +398,7 @@ class Runner:
             process = subprocess.Popen(
                 command,
                 shell=True,
+                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
@@ -440,6 +443,7 @@ class Runner:
             process = subprocess.Popen(
                 command,
                 shell=True,
+                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )

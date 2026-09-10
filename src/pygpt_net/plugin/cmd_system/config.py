@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 14:15:00                  #
+# Updated Date: 2026.09.10 13:10:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -178,6 +178,8 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "sys_exec",
             instruction="execute ANY system command, script or app in user's environment. "
+                        "Execution is non-interactive: do not run commands that prompt or wait for stdin; pass all "
+                        "required answers/options in the command itself. "
                         "Do not use this command to install Python libraries, use IPython environment and IPython commands instead.",
             params=[
                 {

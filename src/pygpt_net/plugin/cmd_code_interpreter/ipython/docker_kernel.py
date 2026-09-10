@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 13:20:00
+# Updated Date: 2026.09.10 13:10:00
 # ================================================== #
 
 import base64
@@ -465,6 +465,7 @@ class DockerKernel:
 
             result = container.exec_run(
                 ["/bin/sh", "-c", command],
+                stdin=False,
                 stdout=True,
                 stderr=True,
                 workdir="/data",
@@ -521,7 +522,9 @@ class DockerKernel:
 
         self.log("Executing code: " + str(code)[:100] + "...")
 
-        msg_id = self.client.execute(code)
+        # Tool executions are non-interactive. Reject stdin requests (input/getpass)
+        # instead of leaving the kernel blocked waiting for a frontend reply.
+        msg_id = self.client.execute(code, allow_stdin=False)
         output = ""
         while True:
             try:

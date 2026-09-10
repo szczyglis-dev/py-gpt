@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 16:30:00                  #
+# Updated Date: 2026.09.10 13:10:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -391,6 +391,8 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "ipython_execute",
             instruction="execute Python code in IPython interpreter (in current kernel) and get output. "
+                        "Execution is non-interactive: never use input(), getpass(), or code that waits for stdin; "
+                        "provide required values directly in code. "
                         "Tip: when generating plots or other image data always print path to generated image at "
                         "the end and provide local path (prefixed with file://, not sandbox:) to the user.",
             params=[
@@ -411,7 +413,8 @@ class Config(BaseConfig):
                         "When the IPython Docker sandbox is enabled, execute the command inside the same "
                         "running IPython container. When the sandbox is disabled, execute it on the host. "
                         "Use this for operating-system commands and command-line tools; use ipython_execute "
-                        "for Python code.",
+                        "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
+                        "for stdin; pass all required answers/options in the command itself.",
             params=[
                 {
                     "name": "command",
@@ -623,7 +626,8 @@ class Config(BaseConfig):
                         "When the legacy Python Docker sandbox is enabled, execute the command inside the same "
                         "Python container. When the sandbox is disabled, execute it on the host. Use this for "
                         "operating-system commands and command-line tools; use code_execute/code_execute_file "
-                        "for Python code.",
+                        "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
+                        "for stdin; pass all required answers/options in the command itself.",
             params=[
                 {
                     "name": "command",
@@ -638,7 +642,8 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "code_execute",
-            instruction="save generated Python code and execute it",
+            instruction="save generated Python code and execute it. Execution is non-interactive: never use input(), "
+                        "getpass(), or code that waits for stdin; provide required values directly in code.",
             params=[
                 {
                     "name": "path",
@@ -660,7 +665,8 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "code_execute_file",
-            instruction="execute Python code from existing file",
+            instruction="execute Python code from existing file. Execution is non-interactive; files that wait for "
+                        "stdin will receive EOF instead of blocking the tool call.",
             params=[
                 {
                     "name": "path",
@@ -675,7 +681,8 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "code_execute_all",
-            instruction="run all Python code from my interpreter",
+            instruction="run all Python code from my interpreter. Execution is non-interactive: never use input(), "
+                        "getpass(), or code that waits for stdin; provide required values directly in code.",
             params=[
                 {
                     "name": "code",

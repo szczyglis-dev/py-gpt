@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2026.09.10 13:10:00                  #
 # ================================================== #
 
 import base64
@@ -153,7 +153,9 @@ class LocalKernel:
             self.send_output(self.NOT_READY_MSG)
             return self.NOT_READY_MSG
 
-        msg_id = self.client.execute(code)
+        # Tool executions are non-interactive. Reject stdin requests (input/getpass)
+        # instead of leaving the kernel blocked waiting for a frontend reply.
+        msg_id = self.client.execute(code, allow_stdin=False)
         output = ""
         while True:
             try:
