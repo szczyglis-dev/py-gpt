@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2026.09.10 19:12:00                  #
 # ================================================== #
 
 from typing import List, Optional
@@ -197,7 +197,11 @@ class ExpertWorker(QRunnable):
                 ctx.reply = False  # reset reply flag, we handle reply here
 
                 if not result:  # abort if bridge call failed
-                    self.signals.finished.emit()
+                    # Keep the master expert-as-tool turn from getting stuck in
+                    # its pending state when the agent-backed expert returns no
+                    # response at all. Route it through the same failure path as
+                    # the direct bridge variant below.
+                    self.signals.error.emit("No response from expert.")
                     return
             else:
                 # native func call
@@ -249,7 +253,11 @@ class ExpertWorker(QRunnable):
                 # input: please read the file xxx.txt
                 # output: <tool>cmd read</tool>
                 if not result and not ctx.tool_calls:  # abort if bridge call failed
-                    self.signals.finished.emit()
+                    # Do not silently finish an expert-as-tool round: the master
+                    # request is intentionally kept pending while the expert runs,
+                    # so a missing bridge response must resume it through the
+                    # normal expert error path instead of leaving "Please wait...".
+                    self.signals.error.emit("No response from expert.")
                     return
 
             # handle output

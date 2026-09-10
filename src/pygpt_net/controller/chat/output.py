@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:15:00                  #
+# Updated Date: 2026.09.10 19:05:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -242,18 +242,25 @@ class Output:
         if mode != MODE_ASSISTANT:
             ctx.clear_reply()  # reset results
             expert_calls = controller.agent.experts.handle(ctx)
-            if expert_calls == 0:
+            if expert_calls > 0:
+                # Expert-as-tool calls are an intermediate state exactly like a
+                # regular tool request. Do not finalize/reload this response here:
+                # doing so drops the transient "Using tool" row and marks the turn
+                # final before the ExpertWorker has even started. Execute the
+                # queued EXPERT_CALL now and keep the request open until the expert
+                # returns its result.
+                pending = True
+            else:
                 pending = bool(controller.chat.command.handle(ctx))
 
             ctx.from_previous()
             core.ctx.update_item(ctx)
 
         if pending:
-            # TOOL_CALL is intentionally queued in kernel.stack. In the legacy
-            # lifecycle stack.handle() ran from handle_end(), because a tool call
-            # ended the current CtxItem. Partial-item turns no longer call
-            # handle_end() here, so execute the queued reply context explicitly
-            # while keeping the durable CtxItem/renderer turn open.
+            # TOOL_CALL/EXPERT_CALL is intentionally queued in kernel.stack. The
+            # old lifecycle executed it from handle_end(), but intermediate tool
+            # states must remain open so their waiting status is not cleared by a
+            # finalizing reload. Execute the queued reply context explicitly.
             #
             # Safety-confirmed/internal force calls may already execute inline and
             # therefore leave the stack empty; handle() is a no-op in that case.

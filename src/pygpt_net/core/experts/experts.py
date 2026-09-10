@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2026.09.10 18:55:00                  #
 # ================================================== #
 
 import json
@@ -33,7 +33,7 @@ from pygpt_net.core.types import (
     TOOL_QUERY_ENGINE_PARAM_QUERY_DESCRIPTION,
 )
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.events import Event, KernelEvent
+from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
@@ -184,18 +184,41 @@ class Experts:
                 experts_list.append(f" - {k}: {experts[k].name} ({experts[k].description})")
         return prompt.replace("{presets}", "\n".join(experts_list))
 
-    def extract_calls(self, ctx: CtxItem) -> Dict[str, str]:
+    def extract_calls(
+            self,
+            ctx: CtxItem,
+            prepared: bool = False,
+    ) -> Dict[str, str]:
         """
-        Extract expert calls from context output
+        Extract expert calls from context output/prepared tool commands.
+
+        ``chat.output.handle_after()`` normalizes legacy ``<tool>{...}</tool>``
+        blocks before post-processing: it stores the parsed commands in
+        ``ctx.cmds_before`` and strips the protocol markup from visible output.
+        Expert dispatch happens afterwards, so the prepared commands must be used
+        there or the expert call disappears before it can be executed.
 
         :param ctx: context item
+        :param prepared: prefer commands already normalized by the chat output layer
         :return: dict with calls
         """
         core = self.window.core
         ids = self.get_experts().keys()
         if not ids:  # abort if no experts
             return {}
-        cmds = core.command.extract_cmds(ctx.output)
+
+        cmds = []
+        if prepared:
+            cmds = list(getattr(ctx, "cmds_before", None) or [])
+            if not cmds and getattr(ctx, "tool_calls", None):
+                try:
+                    cmds = core.command.tool_calls_to_cmds(ctx.tool_calls)
+                except Exception as e:
+                    core.debug.log(e)
+
+        if not cmds:
+            cmds = core.command.extract_cmds(ctx.output)
+
         if len(cmds) > 0:
             ctx.cmds = cmds  # append commands to ctx
         else:  # abort if no cmds
@@ -469,9 +492,23 @@ class Experts:
             dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
             return
 
+        # Complete the pending UI task as a failed expert result as well. Without
+        # this the master turn would keep a permanent "Using tool" placeholder.
+        failed_result = f"{trans('expert.wait.failed')}: {error}"
+        expert_id = self.last_expert_id
+        if expert_id and self.complete_call_task(str(expert_id), failed_result):
+            dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                "meta": getattr(self.master_ctx, "meta", None),
+                "ctx": self.master_ctx,
+            }))
+            dispatch(RenderEvent(RenderEvent.RELOAD, {
+                "meta": getattr(self.master_ctx, "meta", None),
+                "ctx": self.master_ctx,
+            }))
+
         # handle error from worker
         context = BridgeContext()
-        context.prompt = f"{trans('expert.wait.failed')}: {error}"
+        context.prompt = failed_result
         dispatch(KernelEvent(KernelEvent.INPUT_SYSTEM, {
             'context': context,
             'extra': {
@@ -487,6 +524,43 @@ class Experts:
         """Handle worker finished signal"""
         self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
 
+    def complete_call_task(self, expert_id: str, result: str) -> bool:
+        """Complete the UI task representing an expert-as-tool invocation."""
+        master_ctx = self.master_ctx
+        if master_ctx is None:
+            return False
+
+        part = master_ctx.get_active_part()
+        if part is None:
+            return False
+
+        for task in list(getattr(part, "tasks", None) or []):
+            extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
+            if str(extra.get("tool_name") or task.task_name or task.name or "") != TOOL_EXPERT_CALL_NAME:
+                continue
+            if extra.get("status") == "completed":
+                continue
+
+            params = task.tool_input if isinstance(task.tool_input, dict) else {}
+            task_expert_id = params.get("id")
+            if task_expert_id is not None and str(task_expert_id) != str(expert_id):
+                continue
+
+            response = {
+                "request": {
+                    "cmd": TOOL_EXPERT_CALL_NAME,
+                    "params": dict(params),
+                },
+                "result": str(result),
+            }
+            task.set_result(response, output=str(result))
+            task.mark_ui_ready(True)
+            self.window.core.ctx.update_part_task(task)
+            self.window.core.ctx.update_part(master_ctx, part, sync_item=True)
+            return True
+
+        return False
+
     @Slot(CtxItem, str)
     def handle_response(self, ctx: CtxItem, expert_id: str):
         """
@@ -500,6 +574,19 @@ class Experts:
         if self.stopped():
             dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
             return
+
+        # Promote the pending expert_call placeholder to the same durable Tool
+        # accordion used by ordinary/native calls. This task is UI-only; the
+        # historical Experts reply protocol remains unchanged.
+        if self.complete_call_task(expert_id, str(ctx.output)):
+            dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                "meta": getattr(self.master_ctx, "meta", None),
+                "ctx": self.master_ctx,
+            }))
+            dispatch(RenderEvent(RenderEvent.RELOAD, {
+                "meta": getattr(self.master_ctx, "meta", None),
+                "ctx": self.master_ctx,
+            }))
 
         # handle reply from worker
         context = BridgeContext()
