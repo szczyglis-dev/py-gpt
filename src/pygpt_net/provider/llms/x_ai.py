@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 20:00:00                  #
+# Updated Date: 2026.09.10 09:50:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -70,14 +70,34 @@ class xAILLM(BaseLLM):
             remote_tools: bool = True
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama
+        Return xAI LLM for the regular LlamaIndex / Chat with files path.
+
+        xAI deprecated Live Search ``search_parameters`` on Chat Completions.
+        When provider-native remote tools are enabled, use the
+        OpenAI-compatible Responses API and xAI Agent Tools instead.
 
         :param window: window instance
         :param model: model instance
         :param stream: stream mode
+        :param remote_tools: allow provider-native remote tools
         :return: LLM provider instance
         """
+        if remote_tools:
+            try:
+                remote_cfg = window.core.api.xai.remote.build_for_responses(model=model) or {}
+            except Exception as e:
+                window.core.debug.log(e)
+                remote_cfg = {}
+
+            if remote_cfg.get("tools"):
+                return self._llama_responses(
+                    window=window,
+                    model=model,
+                    remote_cfg=remote_cfg,
+                )
+
         from llama_index.llms.openai_like import OpenAILike
+
         args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
@@ -90,29 +110,53 @@ class xAILLM(BaseLLM):
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
         args = self.inject_llamaindex_http_clients(args, window.core.config)
-
-        # -----------------------------------------------------------
-        # xAI Live Search via search_parameters (Chat Completions)
-        # LlamaIndex OpenAILike supports 'additional_kwargs' passed to request body.
-        # -----------------------------------------------------------
-        xai_remote = {}
-        if remote_tools:
-            try:
-                xai_remote = window.core.api.xai.remote.build(model=model) or {}
-            except Exception as e:
-                window.core.debug.log(e)
-                xai_remote = {}
-
-        search_http = xai_remote.get("http")
-        if search_http:
-            add_kwargs = dict(args.get("additional_kwargs") or {})
-            extra_body = dict(add_kwargs.get("extra_body") or {})
-            # Do not overwrite if user already set search_parameters manually
-            extra_body.setdefault("search_parameters", search_http)
-            add_kwargs["extra_body"] = extra_body
-            args["additional_kwargs"] = add_kwargs
-
         return OpenAILike(**args)
+
+    def _llama_responses(
+            self,
+            window,
+            model: ModelItem,
+            remote_cfg: Dict,
+    ) -> LlamaBaseLLM:
+        """Build an xAI Responses/Agent Tools LlamaIndex adapter."""
+        from pygpt_net.provider.llms.x_ai_responses_agent import AgentXAIResponses
+
+        args = self.parse_args(model.llama_index, window)
+        args["model"] = args.get("model") or model.id
+        args["api_key"] = args.get("api_key") or window.core.config.get("api_key_xai", "")
+        args["api_base"] = args.get("api_base") or window.core.config.get(
+            "api_endpoint_xai",
+            "https://api.x.ai/v1",
+        )
+
+        # Grok 3 does not support the current server-side Agent Tools. Mirror
+        # normal xAI Chat and Agents v2 by switching to the configured fallback.
+        if str(args["model"] or "").lower().startswith("grok-3"):
+            args["model"] = window.core.config.get("xai_tools_fallback_model") or "grok-4.5-latest"
+
+        # OpenAILike/Chat Completions and OpenAIResponses use different names
+        # for the output-token limit and different capability-only arguments.
+        if "max_tokens" in args and "max_output_tokens" not in args:
+            args["max_output_tokens"] = args.pop("max_tokens")
+        args.pop("is_chat_model", None)
+        args.pop("is_function_calling_model", None)
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+
+        args["built_in_tools"] = list(remote_cfg.get("tools") or [])
+        include = list(remote_cfg.get("include") or [])
+        if include:
+            current = args.get("include")
+            if isinstance(current, list):
+                include = [*current, *include]
+            elif current:
+                include = [current, *include]
+            args["include"] = list(dict.fromkeys(include))
+
+        ctx_size = int(getattr(model, "ctx", 0) or 0)
+        if ctx_size > 0 and "context_window" not in args:
+            args["context_window"] = ctx_size
+
+        return AgentXAIResponses(**args)
 
     def llama_agent(
             self,
@@ -151,42 +195,11 @@ class xAILLM(BaseLLM):
                 remote_tools=False,
             )
 
-        from pygpt_net.provider.llms.x_ai_responses_agent import AgentXAIResponses
-
-        args = self.parse_args(model.llama_index, window)
-        args["model"] = args.get("model") or model.id
-        args["api_key"] = args.get("api_key") or window.core.config.get("api_key_xai", "")
-        args["api_base"] = args.get("api_base") or window.core.config.get(
-            "api_endpoint_xai",
-            "https://api.x.ai/v1",
+        return self._llama_responses(
+            window=window,
+            model=model,
+            remote_cfg=remote_cfg,
         )
-
-        # Mirror normal xAI Chat: older Grok 3 models do not support Agent
-        # Tools, so use the configured tools-capable fallback when necessary.
-        if str(args["model"] or "").lower().startswith("grok-3"):
-            args["model"] = window.core.config.get("xai_tools_fallback_model") or "grok-4.5-latest"
-
-        if "max_tokens" in args and "max_output_tokens" not in args:
-            args["max_output_tokens"] = args.pop("max_tokens")
-        args.pop("is_chat_model", None)
-        args.pop("is_function_calling_model", None)
-        args = self.inject_llamaindex_http_clients(args, window.core.config)
-
-        args["built_in_tools"] = built_tools
-        include = remote_cfg.get("include") or []
-        if include:
-            current = args.get("include")
-            if isinstance(current, list):
-                include = [*current, *include]
-            elif current:
-                include = [current, *include]
-            args["include"] = list(dict.fromkeys(include))
-
-        ctx_size = int(getattr(model, "ctx", 0) or 0)
-        if ctx_size > 0 and "context_window" not in args:
-            args["context_window"] = ctx_size
-
-        return AgentXAIResponses(**args)
 
     def llama_multimodal(
             self,
