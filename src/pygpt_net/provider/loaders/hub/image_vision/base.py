@@ -1,4 +1,3 @@
-import base64
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -128,7 +127,7 @@ class ImageVisionLLMReader(BaseReader):
 
     def load_api(self, file: Path, extra_info: Optional[Dict] = None) -> List[Document]:
         """
-        Describe image using OpenAI API.
+        Describe image using the selected image-capable model/provider.
 
         :param file: file path
         :param extra_info: additional metadata
@@ -137,7 +136,12 @@ class ImageVisionLLMReader(BaseReader):
         from llama_index.core.img_utils import img_2_b64
         from PIL import Image
 
-        # Encode image into base64 string and keep in document
+        from pygpt_net.core.bridge.context import BridgeContext
+        from pygpt_net.core.types import MODE_CHAT
+        from pygpt_net.item.attachment import AttachmentItem
+        from pygpt_net.item.ctx import CtxItem
+
+        # Encode image into base64 string and keep in document when requested.
         image_str: Optional[str] = None
         if self._keep_image:
             image = Image.open(file)
@@ -145,28 +149,48 @@ class ImageVisionLLMReader(BaseReader):
                 image = image.convert("RGB")
             image_str = img_2_b64(image)
 
-        client = self._window.core.api.openai.get_client()
-        encoded = self._encode_image(str(file))
-        content = [
-            {
-                "type": "text",
-                "text": self._api_prompt
-            },
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/jpeg;base64,{encoded}",
-                }
-            }
-        ]
-        messages = []
-        messages.append({"role": "user", "content": content})
-        response = client.chat.completions.create(
-            messages=messages,
-            model=self._api_model,
+        core = self._window.core
+        if not self._api_model or not core.models.has(self._api_model):
+            raise ValueError(f"Image model is not available: {self._api_model}")
+
+        model = core.models.get(self._api_model)
+        if not model.is_image_input():
+            raise ValueError(
+                f"Selected image model does not declare Image input support: {self._api_model}"
+            )
+
+        attachment = AttachmentItem()
+        attachment.path = str(file)
+        attachment.name = file.name
+
+        tmp_ctx = CtxItem(mode=MODE_CHAT)
+        context = BridgeContext(
+            ctx=tmp_ctx,
+            prompt=self._api_prompt,
+            attachments={"image": attachment},
+            history=[],
+            stream=False,
+            model=model,
+            mode=MODE_CHAT,
+            parent_mode=MODE_CHAT,
             max_tokens=self._api_tokens,
+            request=True,
         )
-        text = response.choices[0].message.content.strip()
+
+        # Follow the same native-provider routing policy as regular chat/vision
+        # requests instead of forcing every image model through OpenAI.
+        api = core.api.openai
+        if model.provider == "google" and core.config.get("api_native_google", False):
+            api = core.api.google
+        elif model.provider == "anthropic" and core.config.get("api_native_anthropic", False):
+            api = core.api.anthropic
+        elif model.provider == "x_ai" and core.config.get("api_native_xai", False):
+            api = core.api.xai
+
+        text = (api.quick_call(context=context, extra={}) or "").strip()
+        if not text:
+            raise ValueError(f"Image analysis returned an empty response: {self._api_model}")
+
         return [
             ImageDocument(
                 text=text,
@@ -175,16 +199,6 @@ class ImageVisionLLMReader(BaseReader):
                 metadata=extra_info or {},
             )
         ]
-
-    def _encode_image(self, image_path: str) -> str:
-        """
-        Encode image to base64
-
-        :param image_path: path to image
-        :return: base64 encoded image
-        """
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
 
     def load_data(
         self, file: Path, extra_info: Optional[Dict] = None

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 19:20:00                  #
+# Updated Date: 2026.09.10 09:55:00                  #
 # ================================================== #
 
 import mimetypes
@@ -249,9 +249,7 @@ class Native:
         """Return whether model metadata declares vision/image input support."""
         if model is None:
             return False
-        inputs = getattr(model, "input", None) or []
-        modes = getattr(model, "mode", None) or []
-        return "image" in inputs or "vision" in modes
+        return model.is_image_input()
 
     @staticmethod
     def _google_mime(path: str) -> str:

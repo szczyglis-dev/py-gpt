@@ -1117,16 +1117,8 @@ class Chat:
         return False
 
     def _is_vision_model(self, model: ModelItem) -> bool:
-        """
-        Heuristic check for vision-capable model IDs.
-        """
-        model_id = (model.id if model and model.id else "").strip()
-        if not model or not model_id:
-            return False
-        if model.is_image_input():
-            return True
-        mid = model_id.lower()
-        return ("vision" in mid) or ("-v" in mid and "grok" in mid)
+        """Return whether model metadata declares Image input support."""
+        return bool(model and model.is_image_input())
 
     def _make_tools_payload(self, tools: Optional[List[dict]]) -> List[dict]:
         """

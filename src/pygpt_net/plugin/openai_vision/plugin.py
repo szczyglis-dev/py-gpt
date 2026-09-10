@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 18:00:00                  #
+# Updated Date: 2026.09.10 09:55:00                  #
 # ================================================== #
 
 import os
@@ -109,20 +109,18 @@ class Plugin(BasePlugin):
                 key = self.get_option_value("model")
                 if self.window.core.models.has(key):
                     model = self.window.core.models.get(key)
-                    if model.is_image_input() and model.is_supported(MODE_CHAT):
+                    if model.is_image_input():
                         data['model'] = model
                         return
 
                 # Invalid/removed plugin model: keep an already image-capable
                 # current model, then try the historical default as a safe fallback.
                 current_model = data.get("model")
-                if (current_model is not None
-                        and current_model.is_image_input()
-                        and current_model.is_supported(MODE_CHAT)):
+                if current_model is not None and current_model.is_image_input():
                     return
                 if self.window.core.models.has("gpt-4o"):
                     fallback = self.window.core.models.get("gpt-4o")
-                    if fallback.is_image_input() and fallback.is_supported(MODE_CHAT):
+                    if fallback.is_image_input():
                         data['model'] = fallback
 
         elif name == Event.PRE_PROMPT:
