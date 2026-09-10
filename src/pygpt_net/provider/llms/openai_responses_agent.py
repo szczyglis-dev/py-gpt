@@ -18,6 +18,8 @@ from llama_index.core.base.llms.types import ChatMessage, ChatResponse
 from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.llms.openai import OpenAIResponses
 
+from pygpt_net.provider.llms.agent_computer import run_coroutine_sync
+
 
 class AgentOpenAIResponses(OpenAIResponses):
     """OpenAI Responses adapter used by Agents v2.
@@ -32,10 +34,14 @@ class AgentOpenAIResponses(OpenAIResponses):
     _pygpt_urls: list[str] = PrivateAttr(default_factory=list)
     _pygpt_runtime: Any = PrivateAttr(default=None)
 
-    def bind_agents_v2_runtime(self, runtime):
-        """Bind the isolated Agents v2 runtime used for local Computer Use execution."""
+    def bind_computer_runtime(self, runtime):
+        """Bind a PyGPT runtime that can execute provider-native Computer Use."""
         self._pygpt_runtime = runtime
         return self
+
+    def bind_agents_v2_runtime(self, runtime):
+        """Backward-compatible Agents v2 binder."""
+        return self.bind_computer_runtime(runtime)
 
     @staticmethod
     def _get(value: Any, key: str, default=None):
@@ -257,7 +263,7 @@ class AgentOpenAIResponses(OpenAIResponses):
         self._check_stopped()
         runtime = self._pygpt_runtime
         if runtime is None:
-            raise RuntimeError("Agents v2 runtime is not bound to the OpenAI Responses adapter")
+            raise RuntimeError("PyGPT Computer Use runtime is not bound to the OpenAI Responses adapter")
 
         from pygpt_net.provider.api.openai.agents.computer import LocalComputer
 
@@ -421,6 +427,43 @@ class AgentOpenAIResponses(OpenAIResponses):
         raise RuntimeError(
             f"Computer Use exceeded the safety limit of {self.MAX_COMPUTER_TURNS} continuation turns"
         )
+
+    def _chat(
+            self,
+            messages: Sequence[ChatMessage],
+            **kwargs: Any,
+    ) -> ChatResponse:
+        """Sync LlamaIndex entry point used by Chat with Files.
+
+        Reuse the authoritative async Computer Use continuation instead of
+        implementing a second provider loop.
+        """
+        if not self._computer_enabled():
+            return super()._chat(messages, **kwargs)
+        return run_coroutine_sync(self._achat(messages, **kwargs))
+
+    def _stream_chat(
+            self,
+            messages: Sequence[ChatMessage],
+            **kwargs: Any,
+    ):
+        if not self._computer_enabled():
+            return super()._stream_chat(messages, **kwargs)
+
+        # Computer actions require complete provider call objects before they can
+        # be executed. Run only the provider-internal loop non-streaming, then
+        # expose the final response through the normal synchronous stream API.
+        response = run_coroutine_sync(self._achat(messages, **kwargs))
+
+        def gen():
+            if not getattr(response, "delta", None):
+                try:
+                    response.delta = str(response.message.content or "")
+                except Exception:
+                    pass
+            yield response
+
+        return gen()
 
     async def _achat(
             self,

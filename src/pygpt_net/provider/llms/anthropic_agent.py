@@ -23,7 +23,7 @@ from llama_index.llms.anthropic.utils import (
     messages_to_anthropic_messages,
 )
 
-from pygpt_net.provider.llms.agent_computer import AgentComputerBridge
+from pygpt_net.provider.llms.agent_computer import AgentComputerBridge, run_coroutine_sync
 
 
 class AgentAnthropic(Anthropic):
@@ -57,9 +57,12 @@ class AgentAnthropic(Anthropic):
             async_http = httpx.AsyncClient(proxies=proxy)  # httpx <= 0.27
         self._aclient = self._aclient.with_options(http_client=async_http)
 
-    def bind_agents_v2_runtime(self, runtime):
+    def bind_computer_runtime(self, runtime):
         self._pygpt_runtime = runtime
         return self
+
+    def bind_agents_v2_runtime(self, runtime):
+        return self.bind_computer_runtime(runtime)
 
     @staticmethod
     def _metadata_aliases(model_name: str) -> list[str]:
@@ -150,7 +153,7 @@ class AgentAnthropic(Anthropic):
     def _computer_api(self):
         runtime = self._pygpt_runtime
         if runtime is None:
-            raise RuntimeError("Agents v2 runtime is not bound to the Anthropic adapter")
+            raise RuntimeError("PyGPT Computer Use runtime is not bound to the Anthropic adapter")
         return runtime.window.core.api.anthropic.computer
 
     def _prepare_chat_with_tools(self, *args, **kwargs):
@@ -447,6 +450,36 @@ class AgentAnthropic(Anthropic):
         raise RuntimeError(
             f"Anthropic Computer Use exceeded the safety limit of {self.MAX_COMPUTER_TURNS} continuation turns"
         )
+
+    def chat(
+            self,
+            messages: Sequence[ChatMessage],
+            **kwargs: Any,
+    ) -> ChatResponse:
+        """Sync Chat with Files entry point backed by the shared async loop."""
+        if not self._computer_enabled():
+            return super().chat(messages, **kwargs)
+        return run_coroutine_sync(self._achat_with_computer(messages, **kwargs))
+
+    def stream_chat(
+            self,
+            messages: Sequence[ChatMessage],
+            **kwargs: Any,
+    ):
+        if not self._computer_enabled():
+            return super().stream_chat(messages, **kwargs)
+
+        response = run_coroutine_sync(self._achat_with_computer(messages, **kwargs))
+
+        def gen():
+            if not getattr(response, "delta", None):
+                try:
+                    response.delta = str(response.message.content or "")
+                except Exception:
+                    pass
+            yield response
+
+        return gen()
 
     async def achat(
             self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.09 18:40:00                  #
+# Updated Date: 2026.09.10 11:50:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from llama_index.llms.google_genai.utils import (
     prepare_chat_params,
 )
 
-from pygpt_net.provider.llms.agent_computer import AgentComputerBridge
+from pygpt_net.provider.llms.agent_computer import AgentComputerBridge, run_coroutine_sync
 from pygpt_net.provider.llms.google_capture import PyGPTGoogleGenAI
 
 
@@ -41,9 +41,12 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
 
     _pygpt_runtime: Any = PrivateAttr(default=None)
 
-    def bind_agents_v2_runtime(self, runtime):
+    def bind_computer_runtime(self, runtime):
         self._pygpt_runtime = runtime
         return self
+
+    def bind_agents_v2_runtime(self, runtime):
+        return self.bind_computer_runtime(runtime)
 
     @staticmethod
     def _get(value: Any, key: str, default=None):
@@ -56,11 +59,16 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
         value = cls._get(tool, field, None)
         return value is not None
 
-    def _computer_enabled(self) -> bool:
-        return any(
-            self._tool_has_field(tool, "computer_use")
+    def _computer_tools(self) -> list[Any]:
+        """Return only the provider-native Google Computer Use tool definitions."""
+        return [
+            tool
             for tool in (self._pygpt_remote_tools or [])
-        )
+            if self._tool_has_field(tool, "computer_use")
+        ]
+
+    def _computer_enabled(self) -> bool:
+        return bool(self._computer_tools())
 
     @staticmethod
     def _same_object(value: Any, candidates: list[Any]) -> bool:
@@ -106,8 +114,7 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
         if not isinstance(all_tools, list):
             all_tools = [all_tools]
         local_tools = [tool for tool in all_tools if not self._same_object(tool, remote)]
-        computer_tools = [tool for tool in remote if self._tool_has_field(tool, "computer_use")]
-        prepared["tools"] = [*computer_tools, *local_tools]
+        prepared["tools"] = [*self._computer_tools(), *local_tools]
 
         # include_server_side_tool_invocations is for built-in server tools +
         # custom function circulation. Computer Use itself is client-side and
@@ -128,7 +135,7 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
     def _computer_api(self):
         runtime = self._pygpt_runtime
         if runtime is None:
-            raise RuntimeError("Agents v2 runtime is not bound to the Google adapter")
+            raise RuntimeError("PyGPT Computer Use runtime is not bound to the Google adapter")
         return runtime.window.core.api.google.computer
 
     def _computer_calls(self, raw_response: Any) -> tuple[list[dict], bool]:
@@ -278,6 +285,21 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
             **(self._generation_config or {}),
             **kwargs.pop("generation_config", {}),
         }
+
+        # Chat with Files normally calls plain ``chat()`` / ``stream_chat()``
+        # when the local Tools toggle is disabled. Unlike FunctionAgent, that
+        # path never enters ``_prepare_chat_with_tools()``, so merely storing
+        # Computer Use in ``_pygpt_remote_tools`` does not advertise it to
+        # Gemini. Attach the provider tool directly to the generation config
+        # for the plain-chat path.
+        #
+        # When request-level tools are present, they came through
+        # ``_prepare_chat_with_tools()`` above. In that case generation_config
+        # intentionally keeps tools=None so prepare_chat_params() uses the
+        # merged [Computer Use + local functions] request-level list instead.
+        if not kwargs.get("tools"):
+            generation_config["tools"] = self._computer_tools()
+
         params = {**kwargs, "generation_config": generation_config}
         next_msg, chat_kwargs, file_api_names = await prepare_chat_params(
             self.model,
@@ -332,6 +354,32 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
         finally:
             if self.file_mode in ("fileapi", "hybrid"):
                 await adelete_uploaded_files(file_api_names, self._client)
+
+    def _chat(
+            self,
+            messages: Sequence[ChatMessage],
+            **kwargs: Any,
+    ) -> ChatResponse:
+        """Sync Chat with Files entry point backed by the shared async loop."""
+        if not self._computer_enabled():
+            return super()._chat(messages, **kwargs)
+        return run_coroutine_sync(self._achat(messages, **kwargs))
+
+    def _stream_chat(self, messages: Sequence[ChatMessage], **kwargs: Any):
+        if not self._computer_enabled():
+            return super()._stream_chat(messages, **kwargs)
+
+        response = run_coroutine_sync(self._achat(messages, **kwargs))
+
+        def gen():
+            if not getattr(response, "delta", None):
+                try:
+                    response.delta = str(response.message.content or "")
+                except Exception:
+                    pass
+            yield response
+
+        return gen()
 
     async def _achat(
             self,

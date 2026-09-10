@@ -114,6 +114,35 @@ class OpenAILLM(BaseLLM):
         else:
             return LlamaOpenAI(**args)
 
+    def llama_chat_with_files(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            computer_runtime=None,
+    ) -> LlamaBaseLLM:
+        """Use the shared provider continuation adapter when Computer Use is active."""
+        tools = window.core.api.openai.remote_tools.append_to_tools(
+            mode=MODE_LLAMA_INDEX,
+            model=model,
+            stream=stream,
+            is_expert_call=False,
+            tools=[],
+            preset=None,
+        )
+        if any(isinstance(tool, dict) and tool.get("type") == "computer" for tool in tools):
+            llm = self.llama_agent(
+                window=window,
+                model=model,
+                stream=stream,
+                allow_remote_tools=True,
+            )
+            binder = getattr(llm, "bind_computer_runtime", None)
+            if callable(binder):
+                binder(computer_runtime)
+            return llm
+        return self.llama(window=window, model=model, stream=stream)
+
     def llama_agent(
             self,
             window,

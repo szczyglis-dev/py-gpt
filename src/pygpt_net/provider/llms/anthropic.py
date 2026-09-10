@@ -176,6 +176,40 @@ class AnthropicLLM(BaseLLM):
         headers["anthropic-beta"] = ",".join(merged)
         args["default_headers"] = headers
 
+    def llama_chat_with_files(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            computer_runtime=None,
+    ) -> LlamaBaseLLM:
+        """Use the shared provider continuation adapter when Computer Use is active."""
+        try:
+            remote_tools = window.core.api.anthropic.remote_tools.build_remote_tools(model=model) or []
+        except Exception as exc:
+            window.core.debug.log(exc)
+            remote_tools = []
+        computer_types = {
+            "computer_20250124",
+            "computer_20251124",
+            "computer_toolset_20260801",
+        }
+        if any(
+                isinstance(tool, dict) and str(tool.get("type") or "") in computer_types
+                for tool in remote_tools
+        ):
+            llm = self.llama_agent(
+                window=window,
+                model=model,
+                stream=stream,
+                allow_remote_tools=True,
+            )
+            binder = getattr(llm, "bind_computer_runtime", None)
+            if callable(binder):
+                binder(computer_runtime)
+            return llm
+        return self.llama(window=window, model=model, stream=stream)
+
     def llama_agent(
             self,
             window,

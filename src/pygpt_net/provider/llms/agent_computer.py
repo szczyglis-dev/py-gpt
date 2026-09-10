@@ -14,11 +14,107 @@ from __future__ import annotations
 import asyncio
 import base64
 import os
+import queue
+import threading
 import time
 from dataclasses import dataclass
 from typing import Any, Iterable, Optional
 
 from pygpt_net.item.ctx import CtxItem
+
+
+class _AsyncThreadLock:
+    """Event-loop independent async context manager around one threading lock.
+
+    Chat with Files invokes LlamaIndex synchronously from a bridge worker, while
+    the provider Computer Use adapters run their continuation loops as coroutines.
+    A regular ``asyncio.Lock`` would become tied to the first temporary event
+    loop. This lock can therefore be reused safely across multiple sync LLM calls.
+    """
+
+    def __init__(self):
+        self._lock = threading.RLock()
+
+    async def __aenter__(self):
+        self._lock.acquire()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        self._lock.release()
+        return False
+
+
+class _ComputerRuntimeVerbose:
+    """Minimal logger matching the Agents v2 runtime logger contract."""
+
+    def __init__(self, window):
+        self.window = window
+
+    def log(self, label: str, value: Any = None, actor: str = None) -> None:
+        try:
+            suffix = f" [{actor}]" if actor else ""
+            self.window.core.debug.info(f"[computer]{suffix} {label}: {value}")
+        except Exception:
+            pass
+
+
+class LlamaIndexComputerRuntime:
+    """Small runtime adapter for provider-native Computer Use in Chat with Files.
+
+    Provider adapters only need access to the PyGPT window/context, a serialized
+    desktop lock, stop state and logging/status hooks. Keeping this contract tiny
+    lets Chat with Files reuse the exact same provider continuation adapters and
+    Computer Use executor as Agents v2 without importing the orchestration runtime.
+    """
+
+    def __init__(self, window, context):
+        self.window = window
+        self.context = context
+        self.model = getattr(context, "model", None)
+        self.local_tool_lock = _AsyncThreadLock()
+        self.verbose = _ComputerRuntimeVerbose(window)
+
+    def is_stopped(self) -> bool:
+        try:
+            return bool(self.window.controller.kernel.stopped())
+        except Exception:
+            return False
+
+    def emit_runtime_status(self, key: str, **kwargs) -> None:
+        # Agents v2 has a dedicated partial/status renderer. Chat with Files does
+        # not, so keep this hook transient and diagnostic instead of persisting an
+        # Agents-v2-specific status block in the normal chat context.
+        self.verbose.log("STATUS", {"key": key, "args": kwargs})
+
+
+def run_coroutine_sync(awaitable):
+    """Run one provider continuation coroutine from a synchronous LlamaIndex call.
+
+    BridgeWorker normally has no asyncio loop, in which case ``asyncio.run`` is
+    sufficient. The helper-thread fallback also makes the adapter safe if a future
+    caller invokes the same synchronous LlamaIndex API while an event loop is
+    already running in that thread.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(awaitable)
+
+    result_queue = queue.Queue(maxsize=1)
+
+    def runner():
+        try:
+            result_queue.put((True, asyncio.run(awaitable)))
+        except BaseException as exc:
+            result_queue.put((False, exc))
+
+    thread = threading.Thread(target=runner, daemon=True)
+    thread.start()
+    thread.join()
+    ok, value = result_queue.get()
+    if ok:
+        return value
+    raise value
 
 
 @dataclass
@@ -33,7 +129,7 @@ class AgentComputerExecution:
 class AgentComputerBridge:
     """Execute provider-native Computer Use actions through cmd_mouse_control.
 
-    Agents v2 provider adapters need a small bridge because Computer Use is a
+    Provider adapters need a small bridge because Computer Use is a
     client-side provider tool: the model emits an action, PyGPT executes it,
     then the provider requires a screenshot/tool result in a continuation
     request.  FunctionAgent must never see those provider-native calls as normal
@@ -48,7 +144,7 @@ class AgentComputerBridge:
         runtime = self.runtime
         if runtime is not None and runtime.is_stopped():
             import asyncio
-            raise asyncio.CancelledError("Agents v2 Computer Use cancelled")
+            raise asyncio.CancelledError("Computer Use cancelled")
 
     @staticmethod
     def _normalize_cmds(cmds: Iterable[dict]) -> list[dict]:
@@ -352,7 +448,7 @@ class AgentComputerBridge:
     ) -> AgentComputerExecution:
         runtime = self.runtime
         if runtime is None:
-            raise RuntimeError("Agents v2 runtime is not bound to the Computer Use adapter")
+            raise RuntimeError("PyGPT Computer Use runtime is not bound to the adapter")
 
         self._check_stopped()
         commands = self._normalize_cmds(cmds)

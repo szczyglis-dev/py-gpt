@@ -27,6 +27,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.provider.llms.agent_computer import LlamaIndexComputerRuntime
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
 
@@ -251,6 +252,11 @@ class Chat:
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
 
+        # Provider-native Computer Use is a client-side continuation protocol.
+        # Chat with Files is synchronous LlamaIndex code, so bind a tiny runtime
+        # adapter that reuses the same provider adapters/executor as Agents v2.
+        computer_runtime = LlamaIndexComputerRuntime(self.window, context)
+
         # retrieve additional context from index if tools enabled
         additional_ctx = None
         if self.window.core.config.get("llama.idx.chat.auto_retrieve", False):
@@ -284,9 +290,18 @@ class Chat:
         # use index only if idx is not empty, otherwise use only LLM
         index = None
         if use_index:
-            index, llm = self.get_index(idx, model, stream=stream)
+            index, llm = self.get_index(
+                idx,
+                model,
+                stream=stream,
+                computer_runtime=computer_runtime,
+            )
         else:
-            llm = self.window.core.idx.llm.get(model, stream=stream)
+            llm = self.window.core.idx.llm.get(
+                model,
+                stream=stream,
+                computer_runtime=computer_runtime,
+            )
 
         # TODO: if multimodal support, try to get multimodal provider
         # if model.is_multimodal():
@@ -784,6 +799,7 @@ class Chat:
             idx: str,
             model: ModelItem,
             stream: bool = False,
+            computer_runtime=None,
     ):
         """
         Get index instance
@@ -791,22 +807,35 @@ class Chat:
         :param idx: idx name (id)
         :param model: model instance
         :param stream: stream mode
+        :param computer_runtime: optional Chat with Files Computer Use runtime
         """
         requested_idx = idx
         idx = self.window.core.idx.resolve_idx(idx)
         # check if index exists
         if idx is None:
-            llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=stream)
+            llm, embed_model = self.window.core.idx.llm.get_service_context(
+                model=model,
+                stream=stream,
+                computer_runtime=computer_runtime,
+            )
             return self.storage.index_from_empty(embed_model), llm
         if not self.storage.exists(idx):
             if idx is None:
                 # create empty in memory idx
-                llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=stream)
+                llm, embed_model = self.window.core.idx.llm.get_service_context(
+                    model=model,
+                    stream=stream,
+                    computer_runtime=computer_runtime,
+                )
                 index = self.storage.index_from_empty(embed_model)
                 return index, llm
             # raise Exception("Index not prepared")
 
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=stream)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(
+            model=model,
+            stream=stream,
+            computer_runtime=computer_runtime,
+        )
         index = self.storage.get(idx, llm, embed_model)  # get index
         if self.window.core.idx.project.is_virtual(requested_idx):
             group_id = self.window.core.idx.project.get_group_id_from_idx(idx)

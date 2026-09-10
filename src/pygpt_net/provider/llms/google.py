@@ -92,6 +92,28 @@ class GoogleLLM(BaseLLM):
 
         return PyGPTGoogleGenAI(**args, pygpt_remote_tools=built_tools)
 
+    def llama_chat_with_files(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            computer_runtime=None,
+    ) -> LlamaBaseLLM:
+        """Use the shared provider continuation adapter when Computer Use is active."""
+        remote = window.core.api.google.remote_tools
+        if remote.is_computer_use_enabled(model):
+            llm = self.llama_agent(
+                window=window,
+                model=model,
+                stream=stream,
+                allow_remote_tools=True,
+            )
+            binder = getattr(llm, "bind_computer_runtime", None)
+            if callable(binder):
+                binder(computer_runtime)
+            return llm
+        return self.llama(window=window, model=model, stream=stream)
+
     def llama_agent(
             self,
             window,

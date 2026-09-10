@@ -46,7 +46,8 @@ class Llm:
             self,
             model: Optional[ModelItem] = None,
             multimodal: bool = False,
-            stream: bool = False
+            stream: bool = False,
+            computer_runtime=None,
     ) -> Union[BaseLLM, MultiModalLLM]:
         """
         Get LLM provider
@@ -54,6 +55,7 @@ class Llm:
         :param model: Model item
         :param multimodal: Allow multi-modal flag (True to get multimodal provider if available)
         :param stream: Stream mode (True to enable streaming)
+        :param computer_runtime: Chat with Files Computer Use runtime adapter
         :return: Llama LLM instance
         """
         # TMP: deprecation warning fix
@@ -76,12 +78,22 @@ class Llm:
                     mode=MODE_LLAMA_INDEX,
                     sub_mode="",
                 )
-                # get llama LLM instance
-                llm = llm_provider.llama(
-                    window=self.window,
-                    model=model,
-                    stream=stream,
-                )
+                # Chat with Files may need a provider-owned client-side
+                # continuation loop for native Computer Use. Keep this opt-in so
+                # all other LlamaIndex callers retain the regular provider.
+                if computer_runtime is not None:
+                    llm = llm_provider.llama_chat_with_files(
+                        window=self.window,
+                        model=model,
+                        stream=stream,
+                        computer_runtime=computer_runtime,
+                    )
+                else:
+                    llm = llm_provider.llama(
+                        window=self.window,
+                        model=model,
+                        stream=stream,
+                    )
             elif self.window.core.llm.is_custom_provider(provider):
                 raise RuntimeError(f"Custom provider is not configured: {provider}")
 
@@ -176,6 +188,7 @@ class Llm:
             model: Optional[ModelItem] = None,
             stream: bool = False,
             auto_embed: bool = False,
+            computer_runtime=None,
     ):
         """
         Get service context + embeddings provider
@@ -183,9 +196,10 @@ class Llm:
         :param model: Model item (for query)
         :param stream: Stream mode (True to enable streaming)
         :param auto_embed: Auto-detect embeddings provider based on model capabilities
+        :param computer_runtime: Chat with Files Computer Use runtime adapter
         :return: Service context instance
         """
-        llm = self.get(model=model, stream=stream)
+        llm = self.get(model=model, stream=stream, computer_runtime=computer_runtime)
         if not auto_embed:
             embed_model = self.get_embeddings_provider()
         else:

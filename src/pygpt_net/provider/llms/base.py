@@ -156,6 +156,20 @@ class BaseLLM:
         """
         pass
 
+    def llama_chat_with_files(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            computer_runtime=None,
+    ) -> LlamaBaseLLM:
+        """Return the regular LlamaIndex LLM for Chat with Files.
+
+        Providers with client-side native tools such as Computer Use may
+        override this hook and reuse their provider continuation adapter.
+        """
+        return self.llama(window=window, model=model, stream=stream)
+
     def llama_agent(
             self,
             window,
