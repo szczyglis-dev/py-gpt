@@ -43,8 +43,8 @@ def test_media_setup_applies_persisted_options_and_registers_hooks_once():
     window.ui.config["global"]["img_raw"].setChecked.assert_called_once_with(True)
     window.ui.config["global"]["img.remix"].setChecked.assert_called_once_with(False)
     window.ui.config["global"]["video.remix"].setChecked.assert_called_once_with(True)
-    assert window.controller.config.apply_value.call_count == 6
-    assert window.ui.add_hook.call_count == 6
+    assert window.controller.config.apply_value.call_count == 7
+    assert window.ui.add_hook.call_count == 7
 
     media.initialized = True
     window.ui.add_hook.reset_mock()

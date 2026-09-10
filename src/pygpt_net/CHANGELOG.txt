@@ -1,3 +1,21 @@
+2.8.14 (2026-09-10)
+
+- Security, stability, and provider fixes - PR #208 by @atharvaHJoshi.
+- Fixed list selectors for vision models by removing checks for the deprecated vision mode.
+- Fixed the halt and acknowledgement flow in Computer Use.
+- Moved the native Perplexity LlamaIndex provider to the shared OpenAI-compatible wrapper.
+- Fixed legacy beta headers for Anthropic in Chat with Files mode.
+- Fixed support for remote tools and Computer Use in Chat with Files mode.
+- Fixed race conditions and restart loops in the IPython plugin.
+- Added splitter anchors to the CSS in the light theme.
+- Added a new model: `gpt-image-2.5`.
+- Added an **Insert date/time** option to the Notepad right-click menu.
+- Added support for Completion-only mode with models and providers other than OpenAI `gpt-3.5-instruct`.
+- Added support for local Jupyter/IPython in compiled builds.
+- Set IPython’s default stdin to `DEVNULL` when running code with interactive input to prevent freezes.
+- Added support for Computer Use in Realtime + Audio, Legacy Agents, and Autonomous modes.
+- Various UI and CSS fixes.
+
 2.8.13 (2026-09-09)
 
 - Fixed issue with empty parameters in the Anthropic API remote tool for computer use.

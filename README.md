@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.13** | build: **2026-09-09** | Python: **>=3.10, <3.14**
+Release: **2.8.14** | build: **2026-09-10** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2550,6 +2550,24 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.8.14 (2026-09-10)**
+
+- Security, stability, and provider fixes - PR [#208](https://github.com/szczyglis-dev/py-gpt/pull/208) by [@atharvaHJoshi](https://github.com/atharvaHJoshi).
+- Fixed list selectors for vision models by removing checks for the deprecated vision mode.
+- Fixed the halt and acknowledgement flow in Computer Use.
+- Moved the native Perplexity LlamaIndex provider to the shared OpenAI-compatible wrapper.
+- Fixed legacy beta headers for Anthropic in Chat with Files mode.
+- Fixed support for remote tools and Computer Use in Chat with Files mode.
+- Fixed race conditions and restart loops in the IPython plugin.
+- Added splitter anchors to the CSS in the light theme.
+- Added a new model: `gpt-image-2.5`.
+- Added an **Insert date/time** option to the Notepad right-click menu.
+- Added support for Completion-only mode with models and providers other than OpenAI `gpt-3.5-instruct`.
+- Added support for local Jupyter/IPython in compiled builds.
+- Set IPython’s default stdin to `DEVNULL` when running code with interactive input to prevent freezes.
+- Added support for Computer Use in Realtime + Audio, Legacy Agents, and Autonomous modes.
+- Various UI and CSS fixes.
+
 **2.8.13 (2026-09-09)**
 
 - Fixed issue with empty parameters in the Anthropic API remote tool for computer use.
@@ -2576,22 +2594,6 @@ may consume additional tokens that are not displayed in the main window.
 - Fixed sandbox image URLs.
 - Removed redundant tool input/output from message footers.
 - Removed old and deprecated models.
-
-**2.8.11 (2026-09-06)**
-
-- Added 4 predefined presets to Agents v2: Coder, Researcher, Scientist, and Brainstorm.
-- Added auto-scroll and a configurable maximum entries limit to the Code Interpreter window.
-- Added support for passing `sys_exec` inputs to the Code Interpreter window.
-- Added verbose mode to Agents v2.
-- Added tool execution results in the main context for Agents v2 (disabled by default, can be enabled in Settings -> Agents).
-
-**2.8.10 (2026-09-06)**
-
-- Added **Agents v2 (beta)**, a new advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically created specialist worker agents.
-- Added asynchronous worker lifecycle management in Agents v2, including create, update, run/reuse, status, wait, stop and remove operations, with concurrent execution for independent workers and runtime-local worker memory.
-- Added local plugin tools, provider-side remote tools, RAG index access, shared attachment context, supported native image input, artifact propagation, persistent Orchestrator memory and live workflow status rendering to Agents v2.
-- Added native function-calling support with a ReAct compatibility fallback for Agents v2 models where appropriate.
-- **Agents v2 is currently in beta; its behavior, workflow rules, preset options and provider compatibility may change in future releases.**
 
 # Credits and links
 
@@ -2620,6 +2622,7 @@ may consume additional tokens that are not displayed in the main window.
 # Special thanks
 
 GitHub's community:
+- [@atharvaHJoshi](https://github.com/atharvaHJoshi)
 
 - [@ba2512005](https://github.com/ba2512005)
 

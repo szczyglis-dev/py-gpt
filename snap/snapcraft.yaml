@@ -1,12 +1,11 @@
 name: pygpt
 base: core24  # Ubuntu 24.04
-version: '2.8.13'
-summary: Desktop AI Assistant - o1, gpt-4, gpt-4-vision, chat, assistant, vision.
+version: '2.8.14'
+summary: Desktop AI Assistant - chat, assistant, vision, agents, and more.
 
 description: |
   **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction
-  with OpenAI language models, including GPT-4, GPT-4 Vision, and GPT-3.5,
-  through the OpenAI API. The application also integrates with alternative LLMs.
+  with OpenAI, Google, Anthropic, xAI, Ollama models.
 
 grade: stable
 confinement: strict

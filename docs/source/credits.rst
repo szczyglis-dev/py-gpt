@@ -39,6 +39,7 @@ Special thanks
 --------------
 GitHub's community:
 
+* **atharvaHJoshi**
 * **ba2512005**
 * **BillionShields**
 * **gfsysa**

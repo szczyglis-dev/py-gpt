@@ -1691,16 +1691,49 @@
         "advanced": false,
         "keys": [
             {
-                "auto": "[gpt-image-1] auto"
+                "auto": "[gpt-image] auto"
             },
             {
-                "1024x1024": "[gpt-image-1] 1024x1024"
+                "1024x1024": "[gpt-image] 1024x1024"
             },
             {
-                "1536x1024": "[gpt-image-1] 1536x1024"
+                "1536x1024": "[gpt-image] 1536x1024"
             },
             {
-                "1024x1536": "[gpt-image-1] 1024x1536"
+                "1024x1536": "[gpt-image] 1024x1536"
+            },
+            {
+                "1536x864": "[gpt-image-2+] 1536x864"
+            },
+            {
+                "864x1536": "[gpt-image-2+] 864x1536"
+            },
+            {
+                "2048x2048": "[gpt-image-2+] 2048x2048"
+            },
+            {
+                "2048x1152": "[gpt-image-2+] 2048x1152"
+            },
+            {
+                "1152x2048": "[gpt-image-2+] 1152x2048"
+            },
+            {
+                "2560x1440": "[gpt-image-2+] 2560x1440"
+            },
+            {
+                "1440x2560": "[gpt-image-2+] 1440x2560"
+            },
+            {
+                "3840x2160": "[gpt-image-2+] 3840x2160"
+            },
+            {
+                "2160x3840": "[gpt-image-2+] 2160x3840"
+            },
+            {
+                "1k": "[xAI Imagine] 1K"
+            },
+            {
+                "2k": "[xAI Imagine] 2K"
             },
             {
                 "1024x1024": "[Imagen 3.0] 1024x1024"
@@ -1764,16 +1797,22 @@
         "advanced": false,
         "keys": [
             {
-                "auto": "[gpt-image-1] auto"
+                "auto": "[gpt-image] auto"
             },
             {
-                "high": "[gpt-image-1] high"
+                "high": "[gpt-image] high"
             },
             {
-                "medium": "[gpt-image-1] medium"
+                "medium": "[gpt-image] medium"
             },
             {
-                "low": "[gpt-image-1] low"
+                "low": "[gpt-image] low"
+            },
+            {
+                "xhigh": "[gpt-image-2.5+] xhigh"
+            },
+            {
+                "max": "[gpt-image-2.5+] max"
             }
         ],
         "tab": "image"
