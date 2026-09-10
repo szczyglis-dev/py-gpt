@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 00:00:00                  #
+# Updated Date: 2026.09.10 13:00:00                  #
 # ================================================== #
 from typing import Union
 
+from PySide6.QtCore import QDateTime, QLocale
 from PySide6.QtWidgets import QMenu
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QTextCursor
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
@@ -75,6 +76,62 @@ class ContextMenu:
             menu.addAction(action_zoom_out)
 
         return menu
+
+    def get_insert_datetime_menu(self, parent, target) -> QMenu:
+        """
+        Get insert date/time menu with values generated from the current local date/time.
+
+        :param parent: Parent menu
+        :param target: Target QTextEdit-compatible widget
+        :return: Menu
+        """
+        menu = QMenu(trans('text.context_menu.insert_datetime'), parent)
+        now = QDateTime.currentDateTime()
+        formats = ('time', 'date', 'datetime')
+
+        cursor = target.textCursor()
+        cursor_position = cursor.position()
+        cursor_anchor = cursor.anchor()
+
+        for format_id in formats:
+            action = QAction(self.format_datetime(format_id, now), menu)
+            action.triggered.connect(
+                lambda checked=False, format_id=format_id, position=cursor_position, anchor=cursor_anchor:
+                    self.insert_datetime(target, format_id, position, anchor)
+            )
+            menu.addAction(action)
+
+        return menu
+
+    def format_datetime(self, format_id: str, now: QDateTime = None) -> str:
+        """Format date/time using the application language for the weekday name."""
+        if now is None:
+            now = QDateTime.currentDateTime()
+
+        lang = self.window.core.config.get_lang() if self.window is not None else 'en'
+        locale = QLocale(lang)
+        weekday = locale.dayName(now.date().dayOfWeek())
+        if weekday:
+            weekday = weekday[:1].upper() + weekday[1:]
+
+        time_text = now.toString('HH:mm')
+        if format_id == 'time':
+            return time_text
+
+        date_text = now.toString('yyyy.MM.dd')
+        if format_id == 'date':
+            return f"{weekday}, {date_text}"
+        return f"{weekday}, {date_text} {time_text}"
+
+    def insert_datetime(self, target, format_id: str, position: int, anchor: int):
+        """Insert the current date/time at the cursor position captured when the menu was opened."""
+        cursor = QTextCursor(target.document())
+        cursor.setPosition(anchor)
+        cursor.setPosition(position, QTextCursor.KeepAnchor)
+        cursor.insertText(self.format_datetime(format_id))
+        target.setTextCursor(cursor)
+        target.ensureCursorVisible()
+        target.setFocus()
 
     def get_copy_to_menu(
             self,

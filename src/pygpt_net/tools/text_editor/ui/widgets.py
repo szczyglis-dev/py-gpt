@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 00:00:00                  #
+# Updated Date: 2026.09.10 13:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon, QKeySequence
@@ -66,6 +66,10 @@ class TextFileEditor(BaseCodeEditor):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText())
             )
             menu.addAction(action)
+
+        # Add insert date/time submenu
+        datetime_menu = self.window.ui.context_menu.get_insert_datetime_menu(menu, self)
+        menu.addMenu(datetime_menu)
 
         # Add zoom submenu
         zoom_menu = self.window.ui.context_menu.get_zoom_menu(self, "editor", self.value, self.on_zoom_changed)
