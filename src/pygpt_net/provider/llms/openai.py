@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 12:00:00                  #
+# Updated Date: 2026.09.10 15:18:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -73,6 +73,91 @@ class OpenAILLM(BaseLLM):
         return ChatOpenAI(**args)
         """
         pass
+
+    def llama_completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
+        """Return an OpenAI LlamaIndex adapter for PyGPT Completion mode.
+
+        LlamaIndex exposes ``complete`` / ``stream_complete`` for both legacy
+        completion models and chat models. ``OpenAILike`` is used deliberately
+        here so newly released OpenAI model IDs do not depend on LlamaIndex's
+        hard-coded OpenAI model registry.
+        """
+        from llama_index.llms.openai_like import OpenAILike
+
+        class OpenAICompletion(OpenAILike):
+            """Normalize Chat Completions kwargs for OpenAI reasoning models."""
+
+            @staticmethod
+            def _is_reasoning_model(model_id: str) -> bool:
+                model_id = str(model_id or "").lower()
+                return model_id.startswith(("o1", "o3", "o4", "gpt-5", "gpt-6"))
+
+            def _get_model_kwargs(self, **kwargs):
+                params = super()._get_model_kwargs(**kwargs)
+                if not self._is_reasoning_model(self.model):
+                    return params
+
+                # Reasoning models do not share the classic sampling surface.
+                # Keep Completion mode compatible with current Chat Completions
+                # models and avoid parameters rejected by newer GPT/o-series IDs.
+                for key in (
+                        "temperature",
+                        "top_p",
+                        "presence_penalty",
+                        "frequency_penalty",
+                        "stop",
+                ):
+                    params.pop(key, None)
+
+                if "max_tokens" in params:
+                    params.setdefault("max_completion_tokens", params["max_tokens"])
+                    params.pop("max_tokens", None)
+                return params
+
+        args = self.parse_args(model.llama_index, window)
+        model_id = str(args.get("model") or model.id or "").strip()
+        if model_id.startswith("text-davinci"):
+            # Preserve PyGPT's historical compatibility fallback.
+            model_id = "gpt-3.5-turbo-instruct"
+        if not model_id:
+            raise ValueError("Model name is required for OpenAI completion.")
+        args["model"] = model_id
+
+        # Use the same credentials/endpoints as the native OpenAI client,
+        # including per-model API overrides. OpenAILike expects api_base.
+        custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
+        custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
+        if not args.get("api_key"):
+            args["api_key"] = custom_api_key or window.core.config.get("api_key", "")
+        if not args.get("api_base"):
+            api_base = custom_api_endpoint or window.core.config.get("api_endpoint", "")
+            if api_base:
+                args["api_base"] = api_base
+
+        organization = str(window.core.config.get("organization_key", "") or "").strip()
+        if organization:
+            headers = dict(args.get("default_headers") or {})
+            headers.setdefault("OpenAI-Organization", organization)
+            args["default_headers"] = headers
+
+        if "context_window" not in args:
+            ctx_size = int(getattr(model, "ctx", 0) or 0)
+            if ctx_size > 0:
+                args["context_window"] = ctx_size
+
+        # A model configured for Chat in PyGPT uses /v1/chat/completions even
+        # though the UI mode is Completion. Legacy instruct-only models stay on
+        # /v1/completions. This also bypasses LlamaIndex model-name detection.
+        args.setdefault("is_chat_model", model.has_mode(MODE_CHAT))
+        args.setdefault("is_function_calling_model", False)
+
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        return OpenAICompletion(**args)
 
     def llama(
             self,

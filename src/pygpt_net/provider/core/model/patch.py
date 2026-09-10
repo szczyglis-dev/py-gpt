@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 12:48:00
+# Updated Date: 2026.09.10 15:18:00
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -578,7 +578,7 @@ class Patch:
                         data[key] = base_model
                         updated = True
 
-            # <  2.8.14 <--- add GPT Image 2.5 models
+            # <  2.8.14 <--- add GPT Image 2.5 models and LlamaIndex completion modes
             if old < parse_version("2.8.14"):
                 print("Migrating models from < 2.8.14...")
 
@@ -599,23 +599,11 @@ class Patch:
                     data[key] = base_model
                     updated = True
 
-                # OpenAI legacy completion is supported only by
-                # gpt-3.5-turbo-instruct. Remove stale completion capability
-                # from every other OpenAI model in existing user catalogs.
+                # Completion mode for text/chat models is handled through the
+                # provider's LlamaIndex completion interface. For OpenAI this
+                # maps chat models to Chat Completions and keeps instruct-only
+                # models on the legacy Completions endpoint.
                 for model in data.values():
-                    if str(getattr(model, "provider", "") or "") != "openai":
-                        continue
-                    model_id = str(getattr(model, "id", "") or "")
-                    if model_id != "gpt-3.5-turbo-instruct" \
-                            and model.has_mode(MODE_COMPLETION):
-                        model.remove_mode(MODE_COMPLETION)
-                        updated = True
-
-                # Completion mode for non-OpenAI text models is handled through
-                # the provider's LlamaIndex completion interface.
-                for model in data.values():
-                    if str(getattr(model, "provider", "") or "") == "openai":
-                        continue
                     if not getattr(model, "llama_index", None):
                         continue
                     if not model.has_mode(MODE_CHAT):

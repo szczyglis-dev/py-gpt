@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 12:48:00                  #
+# Updated Date: 2026.09.10 15:18:00                  #
 # ================================================== #
 
 from typing import Any, Dict, List, Optional
@@ -54,14 +54,20 @@ class Completion:
         if llm is None:
             raise Exception("Invalid LlamaIndex completion provider")
 
+        request_kwargs = self._get_request_kwargs(
+            context=context,
+            model=model,
+            user_name=ctx.input_name,
+        )
+
         if context.stream:
-            response = llm.stream_complete(prompt)
+            response = llm.stream_complete(prompt, **request_kwargs)
             ctx.stream = response
             ctx.input_tokens = self.input_tokens
             ctx.set_output("", ctx.output_name)
             return True
 
-        response = llm.complete(prompt)
+        response = llm.complete(prompt, **request_kwargs)
         if response is None:
             return False
 
@@ -75,6 +81,39 @@ class Completion:
         ctx.output_tokens = self.window.core.tokens.from_text(output, model.id)
         ctx.set_output(output, ctx.output_name)
         return True
+
+    def _get_request_kwargs(
+            self,
+            context: BridgeContext,
+            model: ModelItem,
+            user_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Build provider-specific generation kwargs for Completion mode."""
+        if model.provider != "openai":
+            return {}
+
+        kwargs = {
+            "temperature": self.window.core.config.get("temperature"),
+            "top_p": self.window.core.config.get("top_p"),
+            "frequency_penalty": self.window.core.config.get("frequency_penalty"),
+            "presence_penalty": self.window.core.config.get("presence_penalty"),
+        }
+
+        if user_name:
+            kwargs["stop"] = [f"{user_name}:"]
+
+        max_tokens = int(context.max_tokens or 0)
+        if max_tokens > 0:
+            if int(model.ctx or 0) > 0:
+                max_tokens = min(max_tokens, max(int(model.ctx) - self.input_tokens, 0))
+            if max_tokens > 0:
+                kwargs["max_tokens"] = max_tokens
+
+        extra = getattr(model, "extra", None) or {}
+        if extra.get("reasoning_effort"):
+            kwargs["reasoning_effort"] = extra["reasoning_effort"]
+
+        return kwargs
 
     def build(
             self,

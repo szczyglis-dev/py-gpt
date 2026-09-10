@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 12:48:00                  #
+# Updated Date: 2026.09.10 15:18:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -126,11 +126,11 @@ class BridgeWorker(QRunnable):
                 else:
                     self.extra["error"] = str(core.agents.runner.get_error())
 
-            # LlamaIndex: plain-text completion for non-OpenAI providers.
-            # Keep OpenAI on its native legacy /v1/completions implementation.
+            # LlamaIndex: plain-text completion for all configured providers.
+            # OpenAI chat models are adapted to Chat Completions by the provider,
+            # while legacy instruct models still use the Completions endpoint.
             elif self.mode == MODE_COMPLETION \
-                    and self.context.model is not None \
-                    and self.context.model.provider != "openai":
+                    and self.context.model is not None:
                 core.debug.info("[bridge] Using LlamaIndex completion provider.")
                 result = core.idx.completion.call(
                     context=self.context,
