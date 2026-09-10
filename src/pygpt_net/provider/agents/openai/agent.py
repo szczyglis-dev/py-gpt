@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 17:00:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple, Optional
@@ -26,8 +26,7 @@ from pygpt_net.core.types import (
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
-from pygpt_net.provider.api.openai.agents.remote_tools import is_computer_tool, append_tools
-from pygpt_net.provider.api.openai.agents.computer import Agent as ComputerAgent, LocalComputer
+from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 from pygpt_net.provider.api.openai.agents.response import StreamHandler
 from pygpt_net.provider.api.openai.agents.experts import get_experts
 
@@ -128,56 +127,35 @@ class Agent(BaseAgent):
             if previous_response_id:
                 kwargs["previous_response_id"] = previous_response_id
 
-        tool_kwargs = {
-            "window": window,
-            "model": model,
-            "preset": preset,
-            "is_expert_call": False,
-        }
-
         ctx.set_agent_name(agent.name)
-        # call computer agent if computer tool is enabled
-        if is_computer_tool(**tool_kwargs):
-            computer = LocalComputer(window)
-            agent = ComputerAgent(
-                computer=computer,
-                ctx=ctx,
-                stream=stream,
-                bridge=bridge,
-            )
-            items = messages
-            output_items, response_id = agent.run(
-                input=items,
-                debug=verbose,
-            )
-            if output_items[-1]["type"] == "message":
-                if verbose:
-                    print("Final response:", response_id, output_items[-1])
-                final_output = output_items[-1]["content"][0]["text"]
 
-        # call default agent
+        # Always let the OpenAI Agents SDK own its complete run loop. ComputerTool
+        # is a local-runtime tool handled by Runner just like FunctionTool/handoffs;
+        # switching to the historical hand-written Responses loop here bypassed the
+        # selected Agent/model/tools and prevented current GA Computer Use calls from
+        # being completed correctly. Non-OpenAI models still receive the shared
+        # pygpt_computer_use FunctionTool bridge from append_tools().
+        if not stream:
+            result = await Runner.run(
+                agent,
+                **kwargs
+            )
+            final_output, last_response_id = window.core.api.openai.responses.unpack_agent_response(result, ctx)
+            response_id = result.last_response_id
+            if verbose:
+                print("Final response:", result)
         else:
-            if not stream:
-                result = await Runner.run(
-                    agent,
-                    **kwargs
-                )
-                final_output, last_response_id = window.core.api.openai.responses.unpack_agent_response(result, ctx)
-                response_id = result.last_response_id
-                if verbose:
-                    print("Final response:", result)
-            else:
-                result = Runner.run_streamed(
-                    agent,
-                    **kwargs
-                )
-                handler = StreamHandler(window, bridge)
-                async for event in result.stream_events():
-                    if bridge.stopped():
-                        result.cancel()
-                        bridge.on_stop(ctx)
-                        break
-                    final_output, response_id = handler.handle(event, ctx)
+            result = Runner.run_streamed(
+                agent,
+                **kwargs
+            )
+            handler = StreamHandler(window, bridge)
+            async for event in result.stream_events():
+                if bridge.stopped():
+                    result.cancel()
+                    bridge.on_stop(ctx)
+                    break
+                final_output, response_id = handler.handle(event, ctx)
 
         return ctx, final_output, response_id
 

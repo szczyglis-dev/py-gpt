@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
 import os.path
@@ -146,10 +146,11 @@ class Llm:
             self,
             model: Optional[ModelItem] = None,
             stream: bool = False,
-            allow_remote_tools: bool = True
+            allow_remote_tools: bool = True,
+            computer_runtime=None,
     ) -> BaseLLM:
         """
-        Get a LlamaIndex LLM configured for Agents v2.
+        Get a LlamaIndex LLM configured for agent workflows.
 
         This path lets each provider attach its native/server-side remote tools
         directly to the LLM request while keeping the regular LlamaIndex path
@@ -158,6 +159,7 @@ class Llm:
         :param model: Model item
         :param stream: Stream mode
         :param allow_remote_tools: Allow provider-native remote tools
+        :param computer_runtime: Optional shared Computer Use runtime to bind
         :return: LlamaIndex LLM instance
         """
         if not self.initialized:
@@ -169,7 +171,7 @@ class Llm:
             llm_provider = self.window.core.llm.get(provider)
             if llm_provider is not None:
                 # LlamaIndex provider settings/env are still the source of the
-                # model credentials for Agents v2.
+                # model credentials for agent workflows.
                 llm_provider.init(
                     window=self.window,
                     model=model,
@@ -191,6 +193,21 @@ class Llm:
                 temperature=0.0,
                 model=self.default_model,
             )
+
+        # Provider agent adapters (OpenAI Responses, Google GenAI, Anthropic)
+        # own the provider-native Computer Use continuation loop. Bind the same
+        # tiny runtime contract used by Chat with Files/Agents v2, without making
+        # individual legacy agent runners know anything about provider protocols.
+        if computer_runtime is not None:
+            runtime = computer_runtime
+            runtime_for_model = getattr(computer_runtime, "for_model", None)
+            if callable(runtime_for_model) and model is not None:
+                runtime = runtime_for_model(model)
+            binder = getattr(llm, "bind_computer_runtime", None)
+            if not callable(binder):
+                binder = getattr(llm, "bind_agents_v2_runtime", None)
+            if callable(binder):
+                binder(runtime)
         return llm
 
     def get_embeddings_provider(self) -> BaseEmbedding:

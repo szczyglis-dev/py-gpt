@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -204,9 +204,10 @@ def resolve_llm(
     """Resolve a per-node LLM while preserving remote-tool permissions."""
     try:
         if node_model and hasattr(node_model, "name") and getattr(window.core, "idx", None):
-            return window.core.idx.llm.get(
+            return window.core.idx.llm.get_agent(
                 node_model,
                 stream=stream,
+                allow_remote_tools=allow_remote_tools,
                 computer_runtime=computer_runtime if allow_remote_tools else None,
             )
     except Exception:

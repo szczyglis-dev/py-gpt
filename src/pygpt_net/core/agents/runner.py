@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
 import asyncio
@@ -101,9 +101,13 @@ class Runner:
             is_cmd = self.window.core.command.is_cmd(inline=False)
             history = self.window.core.agents.memory.prepare(context)
             computer_runtime = ComputerRuntime(self.window, context)
-            llm = self.window.core.idx.llm.get(
+            # Legacy LlamaIndex agents are agent workflows, so use the same
+            # provider adapter path as Agents v2. This preserves provider-native
+            # remote tools and lets the adapter own Computer Use continuations.
+            llm = self.window.core.idx.llm.get_agent(
                 model,
                 stream=False,
+                allow_remote_tools=True,
                 computer_runtime=computer_runtime,
             )
             workdir = self.window.core.config.get_workdir_prefix()
@@ -265,9 +269,13 @@ class Runner:
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_cmd = self.window.core.command.is_cmd(inline=False)
             computer_runtime = ComputerRuntime(self.window, context)
-            llm = self.window.core.idx.llm.get(
+            # Legacy LlamaIndex agents are agent workflows, so use the same
+            # provider adapter path as Agents v2. This preserves provider-native
+            # remote tools and lets the adapter own Computer Use continuations.
+            llm = self.window.core.idx.llm.get_agent(
                 model,
                 stream=False,
+                allow_remote_tools=True,
                 computer_runtime=computer_runtime,
             )
             workdir = self.window.core.config.get_workdir_prefix()

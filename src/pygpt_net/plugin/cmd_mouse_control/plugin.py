@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 19:15:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 import time
 import os
@@ -332,13 +332,33 @@ class Plugin(BasePlugin):
                             value for value in values
                             if filesystem.make_local(str(value)) != img_path
                         ])
-            context = BridgeContext()
-            context.ctx = ctx
-            event = KernelEvent(KernelEvent.REPLY_ADD, {
-                'context': context,
-                'extra': {},
-            })
-            self.window.dispatch(event)
+        else:
+            # Do not leave a tool turn pending forever when the capture backend
+            # fails. The next provider call will surface the missing screenshot
+            # as a normal provider/executor error instead of hanging in the reply
+            # stack with no continuation.
+            try:
+                self.window.core.debug.error("Computer Use: transport screenshot capture failed")
+            except Exception:
+                pass
+
+        context = BridgeContext()
+        context.ctx = ctx
+        # This reply is emitted from a QTimer after the command/plugin dispatcher
+        # has already finished. In synchronous modes (notably the legacy
+        # Autonomous Agent) Reply.add() otherwise waits for the dispatcher's
+        # trailing flush that has already happened, leaving the provider Computer
+        # Use continuation permanently pending. Force a flush for this delayed
+        # reply. Async Chat modes already flush automatically, so this is harmless
+        # there and keeps one shared code path for every provider/mode.
+        event = KernelEvent(KernelEvent.REPLY_ADD, {
+            'context': context,
+            'extra': {
+                "flush": True,
+                "response_type": "multiple",
+            },
+        })
+        self.window.dispatch(event)
 
     @Slot()
     def on_playwright_start(self):
