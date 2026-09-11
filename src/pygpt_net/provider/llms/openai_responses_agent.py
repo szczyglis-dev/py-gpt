@@ -23,10 +23,11 @@ from pygpt_net.provider.llms.agent_computer import (
     run_coroutine_sync,
     wait_for_computer_safety_confirmation,
 )
+from pygpt_net.provider.llms.artifacts import append_unique_urls, extract_openai_urls
 
 
 class AgentOpenAIResponses(OpenAIResponses):
-    """OpenAI Responses adapter used by Agents v2.
+    """Shared PyGPT OpenAI Responses adapter for LlamaIndex workflows.
 
     Besides normal hosted-tool metadata handling, this adapter owns the local
     Computer Use continuation loop. LlamaIndex treats hosted tools as metadata,
@@ -114,42 +115,14 @@ class AgentOpenAIResponses(OpenAIResponses):
         return value
 
     def _append_urls(self, urls) -> None:
-        seen = set(self._pygpt_urls)
-        for url in urls or []:
-            if not isinstance(url, str):
-                continue
-            value = url.strip()
-            if not value or value in seen:
-                continue
-            self._pygpt_urls.append(value)
-            seen.add(value)
+        append_unique_urls(self._pygpt_urls, urls)
 
     def _capture_raw_urls(self, raw: Any) -> None:
         """Capture URLs from a Responses API event or final Response object."""
         if raw is None:
             return
         try:
-            # Lazy import avoids coupling provider registration/import order to
-            # the full OpenAI API package.
-            from pygpt_net.provider.api.openai.utils import (
-                extract_response_urls,
-                extract_url_from_annotation,
-                get_annotation_type,
-            )
-
-            response = getattr(raw, "response", None)
-            if response is not None:
-                self._append_urls(extract_response_urls(response))
-            else:
-                self._append_urls(extract_response_urls(raw))
-
-            # Streaming Responses exposes citation annotations before the final
-            # ResponseCompletedEvent. Keep them as an additional fallback.
-            annotation = getattr(raw, "annotation", None)
-            if annotation is not None and get_annotation_type(annotation) == "url_citation":
-                url = extract_url_from_annotation(annotation)
-                if url:
-                    self._append_urls([url])
+            self._append_urls(extract_openai_urls(raw))
         except Exception:
             # URL capture is metadata-only and must never break agent execution.
             pass
@@ -227,25 +200,19 @@ class AgentOpenAIResponses(OpenAIResponses):
                     call_id=key,
                 )
 
-    def _prepare_response(self, response: ChatResponse) -> ChatResponse:
+    def _capture_response_urls(self, response: ChatResponse) -> None:
+        """Capture provider URLs without changing the LlamaIndex response object."""
         raw = getattr(response, "raw", None)
         self._capture_raw_urls(raw)
-        self._capture_provider_tool_boundary(response)
-
         try:
-            from pygpt_net.provider.api.openai.utils import (
-                extract_url_from_annotation,
-                get_annotation_type,
-            )
-
-            for annotation in (response.additional_kwargs or {}).get("annotations", []) or []:
-                if get_annotation_type(annotation) != "url_citation":
-                    continue
-                url = extract_url_from_annotation(annotation)
-                if url:
-                    self._append_urls([url])
+            self._append_urls(extract_openai_urls(response))
         except Exception:
             pass
+
+    def _prepare_response(self, response: ChatResponse) -> ChatResponse:
+        raw = getattr(response, "raw", None)
+        self._capture_response_urls(response)
+        self._capture_provider_tool_boundary(response)
 
         # Crucial: AgentWorkflow will otherwise call raw.model_dump() itself and
         # trigger Pydantic serializer warnings for hosted web-search payloads.
@@ -515,11 +482,14 @@ class AgentOpenAIResponses(OpenAIResponses):
         """Sync LlamaIndex entry point used by Chat with Files.
 
         Reuse the authoritative async Computer Use continuation instead of
-        implementing a second provider loop.
+        implementing a second provider loop. All sync responses also pass through
+        the shared artifact collector; Agents v2 normally uses the async path.
         """
-        if not self._computer_enabled():
-            return super()._chat(messages, **kwargs)
-        return run_coroutine_sync(self._achat(messages, **kwargs))
+        if self._computer_enabled():
+            return run_coroutine_sync(self._achat(messages, **kwargs))
+        response = super()._chat(messages, **kwargs)
+        self._capture_response_urls(response)
+        return response
 
     def _stream_chat(
             self,
@@ -527,7 +497,14 @@ class AgentOpenAIResponses(OpenAIResponses):
             **kwargs: Any,
     ):
         if not self._computer_enabled():
-            return super()._stream_chat(messages, **kwargs)
+            stream = super()._stream_chat(messages, **kwargs)
+
+            def gen():
+                for response in stream:
+                    self._capture_response_urls(response)
+                    yield response
+
+            return gen()
 
         # Computer actions require complete provider call objects before they can
         # be executed. Run only the provider-internal loop non-streaming, then

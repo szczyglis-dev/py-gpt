@@ -17,6 +17,7 @@ from pygpt_net.provider.api.reasoning import (
     is_tagged_reasoning_model, strip_and_store_tagged_reasoning,
 )
 from pygpt_net.provider.api.llama_index.stream import message_has_tool_calls
+from pygpt_net.provider.llms.artifacts import drain_llm_urls
 
 class Response:
     def __init__(self, window=None):
@@ -27,37 +28,21 @@ class Response:
         """
         self.window = window
 
-    def _collect_llm_urls(self, ctx: CtxItem, llm) -> None:
+    def collect_llm_urls(self, ctx: CtxItem, llm) -> None:
         """Drain provider-native source URLs captured by a LlamaIndex LLM adapter."""
-        if ctx is None or llm is None:
-            return
-        pop_urls = getattr(llm, "pop_pygpt_urls", None)
-        if not callable(pop_urls):
-            return
-        try:
-            urls = pop_urls() or []
-        except Exception as exc:
-            self.window.core.debug.log(exc)
-            return
-        if not urls:
-            return
-        if not isinstance(ctx.urls, list):
-            ctx.urls = []
-        seen = set(ctx.urls)
-        for url in urls:
-            value = str(url or "").strip()
-            if not value or value in seen:
-                continue
-            ctx.urls.append(value)
-            seen.add(value)
+        drain_llm_urls(
+            ctx,
+            llm,
+            on_error=self.window.core.debug.log,
+        )
 
-    def _stream_with_llm_artifacts(self, ctx: CtxItem, llm, stream):
+    def stream_with_llm_artifacts(self, ctx: CtxItem, llm, stream):
         """Yield a sync LlamaIndex stream and collect provider artifacts at EOF."""
         try:
             for chunk in stream:
                 yield chunk
         finally:
-            self._collect_llm_urls(ctx, llm)
+            self.collect_llm_urls(ctx, llm)
 
     def _prepare_output(self, ctx: CtxItem, model: ModelItem, output: Any) -> str:
         """Normalize local <think> reasoning without affecting other providers."""
@@ -134,7 +119,7 @@ class Response:
         """
         output = self._prepare_output(ctx, model, response)
         ctx.set_output(output, "")
-        self._collect_llm_urls(ctx, llm)
+        self.collect_llm_urls(ctx, llm)
 
     def from_index(
             self,
@@ -152,7 +137,7 @@ class Response:
         """
         output = self._prepare_output(ctx, model, response.response)
         ctx.set_output(output, "")
-        self._collect_llm_urls(ctx, llm)
+        self.collect_llm_urls(ctx, llm)
 
     def from_llm(
             self,
@@ -180,7 +165,7 @@ class Response:
         )
         ctx.set_output(output, "")
         ctx.tool_calls = self.window.core.command.unpack_tool_calls_from_llama(tool_calls)
-        self._collect_llm_urls(ctx, llm)
+        self.collect_llm_urls(ctx, llm)
 
     def from_index_stream(
             self,
@@ -196,7 +181,7 @@ class Response:
         :param model: ModelItem
         :param response: Response data
         """
-        ctx.stream = self._stream_with_llm_artifacts(ctx, llm, response.response_gen)
+        ctx.stream = self.stream_with_llm_artifacts(ctx, llm, response.response_gen)
         ctx.set_output("", "")
 
     def from_llm_stream(
@@ -215,7 +200,7 @@ class Response:
         :param response: Response data
         """
         stream = self._stream_with_prev_message(response)  # chunk is in response.delta
-        ctx.stream = self._stream_with_llm_artifacts(ctx, llm, stream)
+        ctx.stream = self.stream_with_llm_artifacts(ctx, llm, stream)
         ctx.set_output("", "")
 
     def _stream_with_prev_message(self, response: Any):

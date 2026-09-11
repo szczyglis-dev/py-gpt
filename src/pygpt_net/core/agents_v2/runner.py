@@ -174,6 +174,15 @@ class Runner:
             if not runtime.is_stopped():
                 if not runtime.finished:
                     result = await handler
+                    # The final AgentOutput contains the raw provider response even
+                    # when a streamed workflow did not leave citation metadata in
+                    # the original adapter buffer. Capture it before resolving the
+                    # final prose.
+                    runtime.collect_llm_artifacts(
+                        getattr(main_agent, "llm", None) or llm,
+                        response=result,
+                        actor_id="orchestrator",
+                    )
                     fallback = runtime._result_text(result)
                     runtime.verbose_text(runtime.main_event("RESULT"), fallback)
 
@@ -233,8 +242,13 @@ class Runner:
                 stop_task.cancel()
                 await asyncio.gather(stop_task, return_exceptions=True)
             # Provider-native hosted tools bypass local plugin CtxItems. Drain
-            # their captured metadata before the runtime is cleaned up.
-            runtime.collect_llm_artifacts(llm)
+            # both the LLM owned by the workflow agent and the originally created
+            # adapter before runtime cleanup. Usually they are the same object; the
+            # second call is a no-op after the first drain.
+            agent_llm = getattr(main_agent, "llm", None)
+            runtime.collect_llm_artifacts(agent_llm or llm, actor_id="orchestrator")
+            if agent_llm is not None and agent_llm is not llm:
+                runtime.collect_llm_artifacts(llm, actor_id="orchestrator")
             await runtime.cleanup()
             runtime.export_tool_calls_to_main_ctx()
             emitter.clear_status()

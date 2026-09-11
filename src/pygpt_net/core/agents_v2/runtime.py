@@ -20,13 +20,14 @@ import uuid
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional
 
-from llama_index.core.agent.workflow import AgentStream, FunctionAgent, ReActAgent, ToolCall, ToolCallResult
+from llama_index.core.agent.workflow import AgentOutput, AgentStream, FunctionAgent, ReActAgent, ToolCall, ToolCallResult
 from llama_index.core.base.llms.types import ChatMessage, ImageBlock, MessageRole, TextBlock
 from llama_index.core.memory import Memory
 from llama_index.core.tools import FunctionTool
 
 from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.provider.llms.artifacts import drain_llm_urls
 from pygpt_net.utils import is_image, trans
 
 from .delegation import AgentDelegateBridge
@@ -159,6 +160,10 @@ class AgentsV2Runtime:
         # PyGPT plugin/provider API wrappers keep mutable state. Workers themselves run
         # concurrently, but shared side-effecting bridges are serialized per runtime.
         self.local_tool_lock = asyncio.Lock()
+        # Keep the exact provider adapter used by every actor. Besides final buffer
+        # draining this lets streamed AgentStream/AgentOutput raw metadata be merged
+        # into the same artifact path even if LlamaIndex serializes a response.
+        self._actor_llms: Dict[str, Any] = {}
 
         # Native image input in Agents v2 uses ImageBlock directly, outside the
         # normal LlamaIndex Context.append_images() path. Persist the same image
@@ -365,6 +370,11 @@ class AgentsV2Runtime:
 
     def verbose_event(self, event: Any, actor: str = "orchestrator"):
         actor = str(actor or "orchestrator")
+        # AgentStream/AgentOutput carry the raw provider response. Capture source
+        # metadata at this boundary instead of relying solely on a later LLM buffer
+        # drain; this is the authoritative path for the user-facing Primary Agent.
+        if isinstance(event, (AgentStream, AgentOutput)):
+            self.collect_llm_artifacts(response=event, actor_id=actor)
         if isinstance(event, ToolCall):
             # A local/function tool call is also a Primary Agent prose boundary.
             # Keep this runtime-side segmentation independent of DB/UI timing.
@@ -1012,6 +1022,8 @@ class AgentsV2Runtime:
         actor_binder = getattr(llm, "bind_agents_v2_actor", None)
         if callable(actor_binder):
             actor_binder(actor_id)
+        actor_id = str(actor_id or "orchestrator")
+        self._actor_llms[actor_id] = llm
         self.verbose.log("LLM CREATED", {
             "stream": stream,
             "actor_id": actor_id,
@@ -1321,41 +1333,57 @@ class AgentsV2Runtime:
             self.verbose.log(self.main_event("STATUS"), {"key": key, "status": text, "args": kwargs})
             self.emitter.status(text, source="orchestrator")
 
-    def collect_llm_artifacts(self, llm, worker: Optional[WorkerState] = None):
-        """Drain provider-native artifacts captured by an Agents v2 LLM adapter.
-
-        Hosted/provider-side tools do not run through the local PyGPT plugin
-        ``CtxItem``, so their metadata (notably OpenAI web-search source URLs)
-        must be bridged explicitly back into the user-visible context.
-        """
-        if llm is None:
-            return
-        pop_urls = getattr(llm, "pop_pygpt_urls", None)
-        if not callable(pop_urls):
-            return
+    def _provider_id(self) -> str:
         try:
-            urls = pop_urls() or []
-        except Exception as exc:
-            self.window.core.debug.log(exc)
-            return
-        if not urls:
-            return
+            getter = getattr(self.model, "get_provider", None)
+            if callable(getter):
+                return str(getter() or "")
+        except Exception:
+            pass
+        return str(getattr(self.model, "provider", "") or "")
+
+    def collect_llm_artifacts(
+            self,
+            llm=None,
+            worker: Optional[WorkerState] = None,
+            response: Any = None,
+            actor_id: Optional[str] = None,
+    ):
+        """Collect provider-native URLs from both adapter buffers and raw events.
+
+        Hosted/provider-side tools do not run through local PyGPT plugin CtxItems.
+        LlamaIndex does, however, expose provider metadata on AgentStream/AgentOutput
+        events. Capture that metadata immediately and also drain the provider adapter
+        buffer as a fallback/final safety net.
+        """
+        resolved_id = str(actor_id or getattr(worker, "id", "") or "orchestrator")
+        if worker is None and resolved_id != "orchestrator":
+            worker = self.workers.get(resolved_id)
 
         actor = worker if worker is not None else self.orchestrator_actor
-        self.verbose.log("REMOTE TOOL ARTIFACTS", {"urls": urls}, actor=getattr(actor, "id", "orchestrator"))
         source_ctx = getattr(actor, "tool_ctx", None)
         if source_ctx is None:
-            return
-        if not isinstance(source_ctx.urls, list):
-            source_ctx.urls = []
-        seen = set(source_ctx.urls)
-        for url in urls:
-            value = str(url or "").strip()
-            if not value or value in seen:
-                continue
-            source_ctx.urls.append(value)
-            seen.add(value)
+            return []
+        if llm is None:
+            llm = self._actor_llms.get(resolved_id)
+
+        urls = drain_llm_urls(
+            source_ctx,
+            llm,
+            response=response,
+            provider=self._provider_id(),
+            on_error=self.window.core.debug.log,
+        )
+        if not urls:
+            return []
+
+        self.verbose.log(
+            "REMOTE TOOL ARTIFACTS",
+            {"urls": urls},
+            actor=resolved_id,
+        )
         self.collect_artifacts(source_ctx, worker)
+        return urls
 
     def collect_artifacts(self, source_ctx: CtxItem, worker: Optional[WorkerState] = None):
         """Merge worker artifacts into the user-visible context and worker status payload."""
@@ -1687,6 +1715,12 @@ class AgentsV2Runtime:
                 if isinstance(event, AgentStream):
                     continue
             result = await handler
+            self.collect_llm_artifacts(
+                getattr(state.agent, "llm", None),
+                state,
+                response=result,
+                actor_id=state.id,
+            )
             state.last_result = self._result_text(result)
             self.verbose_text("WORKER OUTPUT", state.last_result, actor=state.id)
             state.status = WorkerStatus.COMPLETED

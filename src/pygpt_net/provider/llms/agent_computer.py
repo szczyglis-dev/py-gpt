@@ -24,6 +24,7 @@ from typing import Any, Iterable, Optional, Sequence
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.provider.llms.artifacts import drain_llm_urls
 
 
 class _AsyncThreadLock:
@@ -133,22 +134,7 @@ def _response_id(response: Any) -> Optional[str]:
 
 def _collect_llm_urls(context, llm) -> None:
     """Bridge provider-native URL artifacts back to the current PyGPT context."""
-    ctx = getattr(context, "ctx", None)
-    pop_urls = getattr(llm, "pop_pygpt_urls", None)
-    if ctx is None or not callable(pop_urls):
-        return
-    try:
-        urls = pop_urls() or []
-    except Exception:
-        return
-    if not isinstance(getattr(ctx, "urls", None), list):
-        ctx.urls = []
-    seen = set(ctx.urls)
-    for url in urls:
-        value = str(url or "").strip()
-        if value and value not in seen:
-            ctx.urls.append(value)
-            seen.add(value)
+    drain_llm_urls(getattr(context, "ctx", None), llm)
 
 
 async def run_provider_computer_turn(

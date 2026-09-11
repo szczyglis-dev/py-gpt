@@ -159,6 +159,54 @@ class OpenAILLM(BaseLLM):
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAICompletion(**args)
 
+    @staticmethod
+    def _append_responses_source_include(args: dict, tools: list) -> None:
+        """Request the complete hosted Web Search source list when available."""
+        web_types = {
+            "web_search",
+            "web_search_preview",
+            "web_search_2025_08_26",
+            "web_search_preview_2025_03_11",
+        }
+        if not any(
+                isinstance(tool, dict) and tool.get("type") in web_types
+                for tool in tools or []
+        ):
+            return
+        include_value = args.get("include")
+        if isinstance(include_value, list):
+            include = list(include_value)
+        elif include_value:
+            include = [include_value]
+        else:
+            include = []
+        source_field = "web_search_call.action.sources"
+        if source_field not in include:
+            include.append(source_field)
+        args["include"] = include
+
+    def _append_responses_remote_tools(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool,
+            mode: str,
+            args: dict,
+    ) -> list:
+        """Attach provider-native Responses tools and their artifact includes."""
+        tools = window.core.api.openai.remote_tools.append_to_tools(
+            mode=mode,
+            model=model,
+            stream=stream,
+            is_expert_call=False,
+            tools=[],
+            preset=None,
+        )
+        if tools:
+            args["built_in_tools"] = tools
+            self._append_responses_source_include(args, tools)
+        return tools
+
     def llama(
             self,
             window,
@@ -174,7 +222,7 @@ class OpenAILLM(BaseLLM):
         :return: LLM provider instance
         """
         from llama_index.llms.openai import OpenAI as LlamaOpenAI
-        from llama_index.llms.openai import OpenAIResponses as LlamaOpenAIResponses
+        from pygpt_net.provider.llms.openai_responses_agent import AgentOpenAIResponses
         args = self.parse_args(model.llama_index, window)
         if "api_key" not in args:
             args["api_key"] = window.core.config.get("api_key", "")
@@ -185,17 +233,17 @@ class OpenAILLM(BaseLLM):
         mode = window.core.config.get("mode")
         # dont' use Responses in agent modes
         if window.core.config.get('api_use_responses_llama', False) and mode == MODE_LLAMA_INDEX:
-            tools = []
-            tools = window.core.api.openai.remote_tools.append_to_tools(
-                mode=MODE_LLAMA_INDEX,
+            self._append_responses_remote_tools(
+                window=window,
                 model=model,
                 stream=stream,
-                is_expert_call=False,
-                tools=tools,
+                mode=MODE_LLAMA_INDEX,
+                args=args,
             )
-            if tools:
-                args["built_in_tools"] = tools
-            return LlamaOpenAIResponses(**args)
+            # Use the shared PyGPT Responses adapter here too. Besides Computer
+            # Use it buffers provider source/citation URLs so Chat with Files can
+            # persist them even when LlamaIndex chat/query engines hide raw metadata.
+            return AgentOpenAIResponses(**args)
         else:
             return LlamaOpenAI(**args)
 
@@ -253,41 +301,14 @@ class OpenAILLM(BaseLLM):
         args = self.inject_llamaindex_http_clients(args, window.core.config)
 
         if allow_remote_tools:
-            tools = window.core.api.openai.remote_tools.append_to_tools(
-                mode=MODE_AGENT_V2,
+            tools = self._append_responses_remote_tools(
+                window=window,
                 model=model,
                 stream=stream,
-                is_expert_call=False,
-                tools=[],
-                preset=None,
+                mode=MODE_AGENT_V2,
+                args=args,
             )
             if tools:
-                args["built_in_tools"] = tools
-
-                # Keep the same complete hosted-web-search sources payload that
-                # normal PyGPT Chat requests from the Responses API.
-                web_types = {
-                    "web_search",
-                    "web_search_preview",
-                    "web_search_2025_08_26",
-                    "web_search_preview_2025_03_11",
-                }
-                if any(
-                        isinstance(tool, dict) and tool.get("type") in web_types
-                        for tool in tools
-                ):
-                    include_value = args.get("include")
-                    if isinstance(include_value, list):
-                        include = list(include_value)
-                    elif include_value:
-                        include = [include_value]
-                    else:
-                        include = []
-                    source_field = "web_search_call.action.sources"
-                    if source_field not in include:
-                        include.append(source_field)
-                    args["include"] = include
-
                 return AgentOpenAIResponses(**args)
 
         return LlamaOpenAI(**args)

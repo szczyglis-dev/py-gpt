@@ -24,6 +24,7 @@ from llama_index.llms.anthropic.utils import (
 )
 
 from pygpt_net.provider.llms.agent_computer import AgentComputerBridge, run_coroutine_sync
+from pygpt_net.provider.llms.artifacts import append_unique_urls, extract_anthropic_urls
 
 
 class AgentAnthropic(Anthropic):
@@ -38,6 +39,7 @@ class AgentAnthropic(Anthropic):
     MAX_COMPUTER_TURNS: ClassVar[int] = 1000
 
     _pygpt_runtime: Any = PrivateAttr(default=None)
+    _pygpt_urls: list[str] = PrivateAttr(default_factory=list)
 
     def __init__(self, *args, proxy: str = None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,6 +62,20 @@ class AgentAnthropic(Anthropic):
     def bind_computer_runtime(self, runtime):
         self._pygpt_runtime = runtime
         return self
+
+    def _capture_pygpt_urls(self, response: Any) -> None:
+        try:
+            append_unique_urls(
+                self._pygpt_urls,
+                extract_anthropic_urls(response),
+            )
+        except Exception:
+            pass
+
+    def pop_pygpt_urls(self) -> list[str]:
+        urls = list(self._pygpt_urls)
+        self._pygpt_urls.clear()
+        return urls
 
     def bind_agents_v2_runtime(self, runtime):
         return self.bind_computer_runtime(runtime)
@@ -462,9 +478,12 @@ class AgentAnthropic(Anthropic):
             **kwargs: Any,
     ) -> ChatResponse:
         """Sync Chat with Files entry point backed by the shared async loop."""
-        if not self._computer_enabled():
-            return super().chat(messages, **kwargs)
-        return run_coroutine_sync(self._achat_with_computer(messages, **kwargs))
+        if self._computer_enabled():
+            response = run_coroutine_sync(self._achat_with_computer(messages, **kwargs))
+        else:
+            response = super().chat(messages, **kwargs)
+        self._capture_pygpt_urls(response)
+        return response
 
     def stream_chat(
             self,
@@ -472,11 +491,19 @@ class AgentAnthropic(Anthropic):
             **kwargs: Any,
     ):
         if not self._computer_enabled():
-            return super().stream_chat(messages, **kwargs)
+            stream = super().stream_chat(messages, **kwargs)
+
+            def gen():
+                for response in stream:
+                    self._capture_pygpt_urls(response)
+                    yield response
+
+            return gen()
 
         response = run_coroutine_sync(self._achat_with_computer(messages, **kwargs))
 
         def gen():
+            self._capture_pygpt_urls(response)
             if not getattr(response, "delta", None):
                 try:
                     response.delta = str(response.message.content or "")
@@ -491,9 +518,12 @@ class AgentAnthropic(Anthropic):
             messages: Sequence[ChatMessage],
             **kwargs: Any,
     ) -> ChatResponse:
-        if not self._computer_enabled():
-            return await super().achat(messages, **kwargs)
-        return await self._achat_with_computer(messages, **kwargs)
+        if self._computer_enabled():
+            response = await self._achat_with_computer(messages, **kwargs)
+        else:
+            response = await super().achat(messages, **kwargs)
+        self._capture_pygpt_urls(response)
+        return response
 
     async def astream_chat(
             self,
@@ -501,7 +531,14 @@ class AgentAnthropic(Anthropic):
             **kwargs: Any,
     ):
         if not self._computer_enabled():
-            return await super().astream_chat(messages, **kwargs)
+            stream = await super().astream_chat(messages, **kwargs)
+
+            async def gen():
+                async for response in stream:
+                    self._capture_pygpt_urls(response)
+                    yield response
+
+            return gen()
 
         # Computer Use needs completed tool_use blocks before local execution.
         # Agents v2 streams its authoritative final answer separately, so keep
@@ -509,6 +546,7 @@ class AgentAnthropic(Anthropic):
         response = await self._achat_with_computer(messages, **kwargs)
 
         async def gen():
+            self._capture_pygpt_urls(response)
             if not getattr(response, "delta", None):
                 try:
                     response.delta = str(response.message.content or "")

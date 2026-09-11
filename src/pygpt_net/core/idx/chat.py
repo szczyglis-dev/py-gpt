@@ -154,7 +154,11 @@ class Chat:
         if response:
             if stream:
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
-                ctx.stream = response.response_gen
+                ctx.stream = self.response.stream_with_llm_artifacts(
+                    ctx,
+                    llm,
+                    response.response_gen,
+                )
                 ctx.input_tokens = input_tokens
                 ctx.set_output("", "")
             else:
@@ -166,6 +170,7 @@ class Chat:
                     model.id,
                 )  # calc from response
                 ctx.set_output(str(response.response), "")
+                self.response.collect_llm_urls(ctx, llm)
             return True
         return False
 
@@ -591,6 +596,7 @@ class Chat:
             if response:
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 output = response.response
+                self.response.collect_llm_urls(ctx, llm)
 
         # clean tmp index
         self.log(f"Removing temporary in-memory index: {idx} ({tmp_id})...")
@@ -653,6 +659,7 @@ class Chat:
             if response:
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 output = response.response
+                self.response.collect_llm_urls(ctx, llm)
 
         # clean tmp index
         self.log(f"Removing temporary in-memory index: {idx} ({tmp_id})...")
