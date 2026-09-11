@@ -317,6 +317,7 @@ def run(**kwargs):
         from pygpt_net.provider.llms.litellm import LiteLLMProvider
         from pygpt_net.provider.llms.forge import ForgeLLM
         from pygpt_net.provider.llms.edenai import EdenAILLM
+        from pygpt_net.provider.llms.atlas_cloud import AtlasCloudLLM
 
         # vector store providers (llama-index)
         from pygpt_net.provider.vector_stores.chroma import ChromaProvider
@@ -526,6 +527,7 @@ def run(**kwargs):
         launcher.add_llm(OpenRouterLLM())
         launcher.add_llm(ForgeLLM())
         launcher.add_llm(EdenAILLM())
+        launcher.add_llm(AtlasCloudLLM())
         launcher.add_llm(LiteLLMProvider())
 
         # register LLMs

@@ -24,6 +24,7 @@ OPENAI_COMPATIBLE_PROVIDERS = [
     "open_router",
     "forge",
     "edenai",
+    "atlas_cloud",
 ]
 
 OPENAI_DISABLE_TOOLS = [
