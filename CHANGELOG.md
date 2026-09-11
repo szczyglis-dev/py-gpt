@@ -1,16 +1,21 @@
 # CHANGELOG
 
+## 2.8.16 (2026-09-12)
+
+- Experts are now full-featured agents, using the same agent runtime and capabilities as agents in Chat with Agents.
+- Experts are now available as tools across all supported modes, allowing them to be invoked directly from anywhere in the application.
+
 ## 2.8.15 (2026-09-11)
 
-* Renamed **Agents v2 (beta)** mode to **Chat with Agents**.
-* Added 3 separate submodes to **Chat with Agents**:
-  * **Chat** — allows natural conversation with the primary agent, with delegated agents used when needed.
-  * **Orchestrator** — the previous Agents v2 behavior, where the primary agent acts only as an orchestrator for other agents.
-  * **Swarm** — allows creating and running a dynamically defined group of specialized agents/workers in parallel in the background. Swarm mode can run continuously with a defined number of parallel agents.
-* Added the ability to configure a custom working directory per project. Right-click a project in the project list and select a custom workdir.
-* Added LLM provider fallbacks to **OpenAILike** when a model is not yet supported by the native LlamaIndex integrations for OpenAI, Google, Anthropic, or xAI.
-* Added keyed memory storage to the **Memory** plugin.
-* Fixed collection of used URLs and attachments in **Chat with Files**.
+- Renamed **Agents v2 (beta)** mode to **Chat with Agents**.
+- Added 3 separate submodes to **Chat with Agents**:
+  - **Chat** - allows natural conversation with the primary agent, with delegated agents used when needed.
+  - **Orchestrator** - the previous Agents v2 behavior, where the primary agent acts only as an orchestrator for other agents.
+  - **Swarm** - allows creating and running a dynamically defined group of specialized agents/workers in parallel in the background. Swarm mode can run continuously with a defined number of parallel agents.
+- Added the ability to configure a custom working directory per project. Right-click a project in the project list and select a custom workdir.
+- Added LLM provider fallbacks to **OpenAILike** when a model is not yet supported by the native LlamaIndex integrations for OpenAI, Google, Anthropic, or xAI.
+- Added keyed memory storage to the **Memory** plugin.
+- Fixed collection of used URLs and attachments in **Chat with Files**.
 
 ## 2.8.14 (2026-09-10)
 
