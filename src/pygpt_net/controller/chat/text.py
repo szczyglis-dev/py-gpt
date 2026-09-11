@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 23:08:00                  #
+# Updated Date: 2026.09.11 16:20:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -227,6 +227,14 @@ class Text:
             core.ctx.add(ctx)
             core.ctx.set_last_item(ctx)
             controller.ctx.update(reload=True, all=False)
+            if mode == MODE_AGENT_V2:
+                # STATE_BUSY is emitted before INPUT_ACCEPT creates/resolves the
+                # final owning context. Reassert the renderer-only busy state
+                # after the user row exists so the spinner is visible from the
+                # send until the first model/status/tool activity arrives.
+                dispatch(RenderEvent(RenderEvent.STATE_BUSY, {
+                    "meta": ctx.meta,
+                }))
         else:
             # Keep the durable parent as the active/last turn. ctx exists only
             # long enough to preserve the provider's tool-result protocol shape.

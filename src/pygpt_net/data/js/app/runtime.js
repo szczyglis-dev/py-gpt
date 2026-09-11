@@ -399,6 +399,14 @@ class Runtime {
 		label.className = 'agents-v2-status__text';
 		status.appendChild(label);
 		part.appendChild(status);
+		this._placeWorkflowStatus(host, status);
+		return status;
+	};
+
+	_placeWorkflowStatus = (host, status) => {
+		if (!host || !host.timeline || !status) return;
+		const part = status.closest ? status.closest('.msg-part-status') : null;
+		if (!part) return;
 
 		// A status that arrives before the very first text token must stay before
 		// the empty generic-stream placeholder, because that placeholder will later
@@ -433,13 +441,20 @@ class Runtime {
 		} else {
 			host.timeline.appendChild(part);
 		}
-		return status;
 	};
 
 	_setWorkflowStatus = (parentId, statusId, kind, labelText, active = true) => {
 		let status = this._findWorkflowStatus(statusId);
 		if (!status) status = this._createWorkflowStatus(parentId, statusId, kind);
 		if (!status) return null;
+		else {
+			// In single-status-per-part mode Python deliberately reuses the same
+			// status id as the current part advances from "before text" to "after
+			// text/tool". Move that one row to the newest chronological position
+			// instead of leaving the updated label at its original location.
+			const host = this._statusMessageHost(parentId, false);
+			if (host) this._placeWorkflowStatus(host, status);
+		}
 		status.dataset.statusKind = String(kind || 'agent');
 		if (statusId) status.dataset.workflowStatusId = String(statusId);
 		if (active) status.classList.add('agents-v2-status--active');

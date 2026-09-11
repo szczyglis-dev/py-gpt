@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:15:00                  #
+# Updated Date: 2026.09.11 16:20:00                  #
 # ================================================== #
 
 import json
@@ -37,6 +37,20 @@ from .parser import Parser
 from .pid import PidData
 
 from pygpt_net.core.events import RenderEvent
+
+
+# -----------------------------------------------------------------------------
+# Workflow status rendering policy
+# -----------------------------------------------------------------------------
+# When enabled, live tool/status events reuse one row for the currently active
+# CtxItemPart. A new part gets its own row, so the last status of every previous
+# part remains visible while only the current part is updated in-place.
+WORKFLOW_SINGLE_STATUS_PER_PART_LIVE = True
+
+# History/WebView rebuild policy for unfinished turns. When enabled, only the
+# newest tool/status row belonging to each part is replayed. Set to False to
+# restore the full chronological status history used before this option existed.
+WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY = True
 
 
 @dataclass(slots=True)
@@ -395,6 +409,14 @@ class Renderer(BaseRenderer):
 
             for pid in target_pids:
                 self._loading_visible[pid] = False
+                if state == RenderEvent.STATE_ERROR:
+                    # Error/interruption history may intentionally retain the
+                    # last workflow row. Stop its shimmer when the request is no
+                    # longer running, but do not remove the row itself.
+                    for key, records in self._workflow_statuses.items():
+                        if key and key[0] == pid:
+                            for record in records:
+                                record["active"] = False
                 node = self.get_output_node_by_pid(pid)
                 if node is not None:
                     try:
@@ -496,7 +518,11 @@ class Renderer(BaseRenderer):
                     str(getattr(parent_ctx, "id", "") or ""), ensure_ascii=False
                 )
                 header_json = json.dumps(header or "", ensure_ascii=False)
-                status_records = self._workflow_status_records(parent_ctx)
+                status_records = self._workflow_status_records(
+                    parent_ctx,
+                    compact=WORKFLOW_SINGLE_STATUS_PER_PART_LIVE,
+                    live_ids=WORKFLOW_SINGLE_STATUS_PER_PART_LIVE,
+                )
                 records_json = json.dumps(
                     status_records,
                     ensure_ascii=False,
@@ -912,16 +938,22 @@ class Renderer(BaseRenderer):
             self._hide_previous_agent_action_icons(meta, ctx)
         pctx.item = ctx
 
+        if text_chunk:
+            self._hide_loading_on_activity(meta, pid=pid)
+
         if begin:
             # JS beginStream(true) recreates the transient stream container.
             # Rebind it to the durable ctx id and replay UI-only workflow rows
             # immediately afterwards, otherwise a status shown before the first
             # token disappears or is later reattached below message controls.
-            self._loading_visible[pid] = False
             pctx.header = self.get_name_header(ctx, stream=True)
             parent_id = str(getattr(ctx, "id", "") or "")
             self._workflow_status_freeze(meta, ctx)
-            status_records = self._workflow_status_records(ctx)
+            status_records = self._workflow_status_records(
+                ctx,
+                compact=WORKFLOW_SINGLE_STATUS_PER_PART_LIVE,
+                live_ids=WORKFLOW_SINGLE_STATUS_PER_PART_LIVE,
+            )
             try:
                 parent_json = json.dumps(parent_id, ensure_ascii=False)
                 header_json = json.dumps(pctx.header or "", ensure_ascii=False)
@@ -966,7 +998,8 @@ class Renderer(BaseRenderer):
             self.append_chunk(meta, parent_ctx, text_chunk, begin)
             return
 
-        self._loading_visible[pid] = False
+        if text_chunk:
+            self._hide_loading_on_activity(meta, pid=pid)
         pctx = self.pids[pid]
         pctx.item = parent_ctx
         key = (pid, str(parent_id), str(part_key or "live"))
@@ -1202,6 +1235,51 @@ class Renderer(BaseRenderer):
             return None, pid, ctx
         return (pid, str(parent_id)), pid, ctx
 
+    def _hide_loading_on_activity(
+            self,
+            meta: Optional[CtxMeta],
+            pid: Optional[int] = None,
+    ) -> None:
+        """Hide the request spinner after the first real model/tool activity."""
+        if pid is None and meta is not None:
+            pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return
+        self._loading_visible[pid] = False
+        node = self.get_output_node_by_pid(pid)
+        if node is None:
+            return
+        try:
+            node.page().runJavaScript(
+                "if (typeof window.hideLoading !== 'undefined') hideLoading();"
+            )
+        except Exception:
+            pass
+
+    @staticmethod
+    def _workflow_status_part_key(record: dict) -> tuple:
+        """Return the logical part bucket used by single-status rendering."""
+        part_uuid = str(record.get("part_uuid") or record.get("after_part_uuid") or "")
+        if part_uuid:
+            return ("part", part_uuid)
+        # All statuses emitted before the first durable part belong to the one
+        # turn-head slot and should update that slot instead of accumulating.
+        return ("head", "")
+
+    @classmethod
+    def _compact_workflow_status_records(cls, records: list[dict]) -> list[dict]:
+        """Keep only the newest workflow status for every logical part."""
+        latest = {}
+        for record in records:
+            bucket = cls._workflow_status_part_key(record)
+            previous = latest.get(bucket)
+            if previous is None or int(record.get("seq", 0) or 0) >= int(previous.get("seq", 0) or 0):
+                latest[bucket] = record
+        return sorted(
+            (dict(record) for record in latest.values()),
+            key=lambda record: int(record.get("seq", 0) or 0),
+        )
+
     def _workflow_status_add(
             self,
             meta: CtxMeta,
@@ -1225,23 +1303,6 @@ class Renderer(BaseRenderer):
         records = self._workflow_statuses.setdefault(key, [])
         names = [str(name) for name in (tool_names or []) if str(name)]
         value = str(text or "")
-
-        # Repeated updates of the *currently active* row are idempotent. The
-        # same text/tool emitted again after a completed row is a new event and
-        # must get a new timeline slot.
-        if records:
-            last = records[-1]
-            if (last.get("active")
-                    and last.get("kind") == kind
-                    and str(last.get("text") or "") == value
-                    and list(last.get("tool_names") or []) == names):
-                return str(last.get("id") or "") or None
-
-        # Only the newest row shimmers. Historical rows remain visible.
-        for record in records:
-            if record.get("active"):
-                record["active"] = False
-
         part = ctx.get_active_part() if hasattr(ctx, "get_active_part") else None
         part_uuid = str(getattr(part, "uuid", "") or "") or None
         if part is None:
@@ -1251,10 +1312,40 @@ class Renderer(BaseRenderer):
                 or bool(getattr(part, "tasks", None))
             placement = "after" if has_payload else "before"
 
+        current_bucket = ("part", part_uuid) if part_uuid else ("head", "")
+
+        # Repeated updates of the currently active row are idempotent.
+        if records:
+            last = records[-1]
+            if (last.get("active")
+                    and last.get("kind") == kind
+                    and str(last.get("text") or "") == value
+                    and list(last.get("tool_names") or []) == names
+                    and self._workflow_status_part_key(last) == current_bucket):
+                self._hide_loading_on_activity(meta, pid=_pid)
+                if WORKFLOW_SINGLE_STATUS_PER_PART_LIVE:
+                    return str(last.get("live_id") or last.get("id") or "") or None
+                return str(last.get("id") or "") or None
+
+        # Only the newest row shimmers. Historical rows remain visible.
+        for record in records:
+            if record.get("active"):
+                record["active"] = False
+
         self._workflow_status_seq += 1
         status_id = f"wf-{key[0]}-{key[1]}-{self._workflow_status_seq}"
+        live_id = status_id
+        if WORKFLOW_SINGLE_STATUS_PER_PART_LIVE:
+            # Keep the complete event history in Python so the history/reload
+            # policy can still be toggled independently. Only the live DOM slot
+            # is reused per part via ``live_id``.
+            for record in reversed(records):
+                if self._workflow_status_part_key(record) == current_bucket:
+                    live_id = str(record.get("live_id") or record.get("id") or status_id)
+                    break
         records.append({
             "id": status_id,
+            "live_id": live_id,
             "kind": str(kind or "agent"),
             "text": value,
             "tool_names": names,
@@ -1265,7 +1356,8 @@ class Renderer(BaseRenderer):
             "active": True,
             "seq": self._workflow_status_seq,
         })
-        return status_id
+        self._hide_loading_on_activity(meta, pid=_pid)
+        return live_id if WORKFLOW_SINGLE_STATUS_PER_PART_LIVE else status_id
 
     def _workflow_status_freeze(
             self,
@@ -1281,12 +1373,23 @@ class Renderer(BaseRenderer):
             if kind is None or record.get("kind") == kind:
                 record["active"] = False
 
-    def _workflow_status_records(self, ctx: CtxItem) -> list[dict]:
+    def _workflow_status_records(
+            self,
+            ctx: CtxItem,
+            compact: bool = False,
+            live_ids: bool = False,
+    ) -> list[dict]:
         meta = getattr(ctx, "meta", None)
         key, _pid, _ctx = self._workflow_status_key(meta, ctx) if meta is not None else (None, None, ctx)
         if key is None:
             return []
-        return [dict(record) for record in self._workflow_statuses.get(key, [])]
+        records = [dict(record) for record in self._workflow_statuses.get(key, [])]
+        if compact:
+            records = self._compact_workflow_status_records(records)
+        if live_ids:
+            for record in records:
+                record["id"] = str(record.get("live_id") or record.get("id") or "")
+        return records
 
     def _workflow_status_drop_pid(self, pid: Optional[int]) -> None:
         if pid is None:
@@ -3166,11 +3269,14 @@ class Renderer(BaseRenderer):
             ctx: Optional[CtxItem],
             is_latest_ctx: bool,
     ) -> bool:
-        """Replay transient statuses only for the newest unfinished text turn."""
+        """Replay transient statuses only for the newest unfinished turn."""
         return bool(
             is_latest_ctx
-            and self._ctx_has_textual_output(ctx)
             and not self._ctx_has_final_answer(ctx)
+            and (
+                self._ctx_has_textual_output(ctx)
+                or bool(self._workflow_status_records(ctx))
+            )
         )
 
     def _show_tool_chain_for_ctx(self, ctx: CtxItem) -> bool:
@@ -3191,6 +3297,7 @@ class Renderer(BaseRenderer):
             include_tool_calls: bool = True,
             final_only_text: bool = False,
             final_output_text: Optional[str] = None,
+            compact_workflow_statuses: bool = False,
     ) -> list:
         """Build one chronological timeline for a durable assistant turn.
 
@@ -3203,7 +3310,10 @@ class Renderer(BaseRenderer):
         Footer/actions are intentionally rendered after the whole timeline.
         """
         workflow_statuses = sorted(
-            self._workflow_status_records(ctx) if include_workflow_statuses else [],
+            self._workflow_status_records(
+                ctx,
+                compact=compact_workflow_statuses,
+            ) if include_workflow_statuses else [],
             key=lambda record: int(record.get("seq", 0) or 0),
         )
 
@@ -3504,6 +3614,11 @@ class Renderer(BaseRenderer):
             include_tool_calls=show_tool_chain,
             final_only_text=completed_agents_v2_output is not None,
             final_output_text=completed_agents_v2_output,
+            compact_workflow_statuses=bool(
+                rebuild
+                and replay_statuses
+                and WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY
+            ),
         )
         part_tool_calls = [] if partial_timeline or not show_tool_chain else self.helpers.extract_extra_tool_calls(
             ctx.get_part_tool_calls(visible_only=True)
