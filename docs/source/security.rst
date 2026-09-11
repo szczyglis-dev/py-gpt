@@ -20,7 +20,7 @@ conversation's user-facing ``data`` workdir. Normally this is ``%workdir%/data``
 belongs to a project with a custom data workdir, that project directory becomes the allowed data root
 for the operation. PyGPT also allows its own internal base-profile ``%workdir%/tmp`` directory so
 application-managed temporary workflows can function without disabling filesystem protection. Examples
-include audio input, HTML Canvas, Code Interpreter/IPython and Transcript working files.
+include audio input, HTML Canvas, Code interpreter (v2)/IPython and Transcript working files.
 
 The project override affects only the logical ``data`` root. The ``tmp`` exception remains tied to the
 base profile and does not make arbitrary directories outside the effective data workdir available to
@@ -43,7 +43,7 @@ Sandbox behavior
 
 Configured sandbox execution is isolated separately and bypasses the host-side Security filters described
 above. For process-level isolation, use a supported sandbox such as the Docker mode provided by the
-Code Interpreter plugin.
+Code interpreter (v2) plugin.
 
 Computer Use confirmations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

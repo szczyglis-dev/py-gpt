@@ -82,7 +82,7 @@ For a visualization from OpenAI's page, see this picture:
 
 Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
 
-To index your files, copy or upload them into the active ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Embed into index``. The active data directory is normally ``<profile workdir>/data``; when the current conversation belongs to a project with a custom workdir, the project's directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with Files (LlamaIndex, inline)`` plugin.
+To index your files, copy or upload them into the active ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Embed into index``. The active data directory is normally ``<profile workdir>/data``; when the current conversation belongs to a project with a custom workdir, the project's directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with Files (RAG, inline)`` plugin.
 
 Built-in file loaders: 
 
@@ -195,7 +195,7 @@ Generating images and videos is akin to a chat conversation  -  a user's prompt 
 .. image:: images/v3_img.png
    :width: 800
 
-Image generation using image models is also available in every mode via plugin ``Image Generation (inline)``. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
+Image generation using image models is also available in every mode via plugin ``Image generation (inline)``. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
 
 If you want to generate images directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
@@ -266,7 +266,7 @@ Chat with Agents can use both local and provider-side capabilities:
 * Local and remote tools can be enabled or disabled independently in the Chat with Agents preset with ``Allow local tools`` and ``Allow remote tools``.
 * Models with native function calling use it when available. For compatible models without native function calling, the runtime can use a ReAct agent as a fallback.
 
-Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Code Interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
+Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Code interpreter (v2), system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
 
 Settings
 ^^^^^^^^
@@ -322,7 +322,7 @@ Includes built-in agents (Workflow):
 * FunctionAgent
 * ReAct
 * Structured Planner (sub-tasks)
-* CodeAct (connected to Code Interpreter plugin)
+* CodeAct (connected to Code interpreter (v2) plugin)
 * Supervisor + worker
 
 In the future, the list of built-in agents will be expanded.
@@ -549,7 +549,7 @@ This mode allows for autonomous computer control.
 
 In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. 
 
-PyGPT uses the selected provider's native ``Computer use`` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in ``Mouse and Keyboard`` integration.
+PyGPT uses the selected provider's native ``Computer use`` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in ``Mouse and keyboard`` integration.
 
 **Example of use:**
 
@@ -578,4 +578,4 @@ After that, set the path to directory with installed browsers in ``Mouse and Key
 Compiled binary and Snap versions have ``chromium`` preinstalled in the package.
 
 .. tip::
-   **DO NOT** enable the ``Mouse and Keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.
+   **DO NOT** enable the ``Mouse and keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.

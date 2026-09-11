@@ -8,42 +8,42 @@ Overview
 
 The following plugins are currently available:
 
-* ``API calls`` - Connects models to external services through user-defined API endpoints, request methods, parameters, and payloads.
-* ``Audio Input`` - Adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
-* ``Audio Output`` - Adds text-to-speech output using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
-* ``Autonomous Agent (inline)`` - Runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
-* ``Bitbucket`` - Connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
-* ``Chat with files (LlamaIndex, inline)`` - Adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
-* ``Code Interpreter`` - Lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
-* ``Context history (calendar, inline)`` - Gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
-* ``Crontab / Task scheduler`` - Lets models create and manage scheduled prompts and tasks using cron-based schedules.
-* ``Custom Commands`` - Exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
-* ``Experts (inline)`` - Makes enabled expert presets available from standard chat modes so the current model can delegate specialized tasks to them.
-* ``Facebook`` - Connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
-* ``Files I/O`` - Gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
-* ``GitHub`` - Connects to GitHub for repository, file, issue, pull request, code search, and account operations.
-* ``Google`` - Integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
-* ``Image Generation (inline)`` - Adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
-* ``Mailer`` - Provides email access through configured mail services, including sending and reading messages where supported.
-* ``Memory (inline)`` - Maintains compact database-backed long-term memory plus raw keyed memory, with a global scope outside projects and an isolated memory scope for each project.
-* ``MCP`` - Connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
-* ``Mouse and Keyboard`` - Lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
-* ``OpenStreetMap`` - Adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
-* ``Real Time`` - Appends the current date and/or time to system prompts so models can receive up-to-date local time context.
-* ``Serial port / USB`` - Gives models access to configured serial and USB devices for reading data and sending commands.
-* ``Server (SSH/FTP)`` - Connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
-* ``Slack`` - Connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
-* ``System (OS)`` - Provides access to the operating system and executes system commands through PyGPT's host or sandbox execution mechanisms.
-* ``System Prompt Extra`` - Automatically appends reusable custom instructions or additional context to the active system prompt.
-* ``Telegram`` - Connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
-* ``Tuya (IoT)`` - Connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
-* ``TwelveLabs`` - Adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
-* ``Vision (inline)`` - Adds image analysis to supported chat modes by routing image input through a separately configured vision-capable model.
-* ``Voice Control (inline)`` - Lets spoken commands trigger configured PyGPT actions directly while a conversation is active.
-* ``Web Search`` - Adds real-time web search, webpage retrieval, crawling, and external-content indexing using supported search providers and LlamaIndex loaders.
-* ``Wikipedia`` - Provides Wikipedia search, article lookup, summaries, geographic discovery, and random-page access.
-* ``Wolfram Alpha`` - Adds computational knowledge, symbolic and numeric mathematics, unit conversions, matrix operations, and generated plots through Wolfram Alpha.
-* ``X/Twitter`` - Connects to X for searching and reading posts, publishing content, managing interactions, bookmarks, and media.
+* ``API calls`` - connects models to external services through user-defined API endpoints, request methods, parameters, and payloads.
+* ``Audio input`` - adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
+* ``Audio output`` - adds text-to-speech output using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
+* ``Autonomous mode`` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
+* ``Bitbucket`` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
+* ``Chat with Files (RAG, inline)`` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
+* ``Code interpreter (v2)`` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
+* ``Context history (calendar, inline)`` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
+* ``Crontab / Task scheduler`` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
+* ``Custom commands`` - exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
+* ``Experts (inline)`` - makes enabled expert presets available from standard chat modes so the current model can delegate specialized tasks to them.
+* ``Facebook`` - connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
+* ``Files I/O`` - gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
+* ``GitHub`` - connects to GitHub for repository, file, issue, pull request, code search, and account operations.
+* ``Google`` - integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
+* ``Image generation (inline)`` - adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
+* ``Mailer`` - provides email access through configured mail services, including sending and reading messages where supported.
+* ``Memory (inline)`` - maintains compact database-backed long-term memory plus raw keyed memory, with a global scope outside projects and an isolated memory scope for each project.
+* ``MCP`` - connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
+* ``Mouse and keyboard`` - lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
+* ``OpenStreetMap`` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
+* ``Real time`` - appends the current date and/or time to system prompts so models can receive up-to-date local time context.
+* ``Serial port / USB`` - gives models access to configured serial and USB devices for reading data and sending commands.
+* ``Server (SSH/FTP)`` - connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
+* ``Slack`` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
+* ``System (OS)`` - provides access to the operating system and executes system commands through PyGPT's host or sandbox execution mechanisms.
+* ``Extra system prompt`` - automatically appends reusable custom instructions or additional context to the active system prompt.
+* ``Telegram`` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
+* ``Tuya (IoT)`` - connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
+* ``TwelveLabs`` - adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
+* ``Vision (inline)`` - adds image analysis to supported chat modes by routing image input through a separately configured vision-capable model.
+* ``Voice control (inline)`` - lets spoken commands trigger configured PyGPT actions directly while a conversation is active.
+* ``Web search`` - adds real-time web search, webpage retrieval, crawling, and external-content indexing using supported search providers and LlamaIndex loaders.
+* ``Wikipedia`` - provides Wikipedia search, article lookup, summaries, geographic discovery, and random-page access.
+* ``Wolfram Alpha`` - adds computational knowledge, symbolic and numeric mathematics, unit conversions, matrix operations, and generated plots through Wolfram Alpha.
+* ``X/Twitter`` - connects to X for searching and reading posts, publishing content, managing interactions, bookmarks, and media.
 
 **Tip:** Inline plugins do not require the ``+ Tools`` option in the toolbox. Once enabled, they remain active throughout the conversation and can provide their functionality automatically when applicable.
 
@@ -124,7 +124,7 @@ Connection timeout (seconds). *Default:* `5`
 User agent to use when making requests, default: ``Mozilla/5.0``. *Default:* `Mozilla/5.0`
 
 
-Audio Input
+Audio input
 ------------
 
 The plugin facilitates speech recognition. The default provider is OpenAI Whisper; local Whisper, Google, Google Cloud, Google GenAI, Microsoft Bing, and xAI Grok Voice providers are also available. It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new ``Speak`` option will appear at the bottom near the ``Send`` button  -  when this is enabled, the application will respond to the voice received from the microphone.
@@ -292,7 +292,7 @@ The duration parameter is the maximum number of seconds that it will dynamically
 
 Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
-Audio Output
+Audio output
 -------------------------
 
 The plugin lets you turn text into speech using OpenAI TTS or providers such as ``Microsoft Azure``, ``Google Cloud TTS``, ``Google GenAI TTS``, ``Eleven Labs``, and ``xAI TTS``. You can add more text-to-speech providers to it too. ``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
@@ -300,7 +300,7 @@ Provider-specific credentials are required where applicable: Azure and Eleven La
 
 Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
 
-To enable voice synthesis, activate the ``Audio Output`` plugin in the ``Plugins`` menu or turn on the ``Audio Output`` option in the ``Audio / Voice`` menu (both options in the menu achieve the same outcome).
+To enable voice synthesis, activate the ``Audio output`` plugin in the ``Plugins`` menu or turn on the ``Audio output`` option in the ``Audio / Voice`` menu (both options in the menu achieve the same outcome).
 
 **Options**
 
@@ -411,7 +411,7 @@ If speech synthesis is enabled, a voice will be additionally generated in the ba
 Both ``OpenAI TTS`` and ``OpenAI Whisper`` use the same single API key provided for the OpenAI API, with no additional keys required.
 
 
-Autonomous Agent (inline)
+Autonomous mode
 -------------------------
 
 
@@ -628,7 +628,7 @@ The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud AP
   Search repositories using Bitbucket Query Language (BBQL).
 
 
-Chat with files (LlamaIndex, inline)
+Chat with Files (RAG, inline)
 -------------------------------------
 
 Plugin integrates ``LlamaIndex`` storage in any chat and provides additional knowledge into context.
@@ -671,7 +671,7 @@ Model used for querying ``LlamaIndex``. *Default:* ``gpt-4o-mini``
 
 Vision model used by the Image (vision) data loader when API mode is active. *Default:* ``gpt-4o``
 
-Audio/video transcription is configured separately in the ``Audio Input`` plugin and uses the provider selected there.
+Audio/video transcription is configured separately in the ``Audio input`` plugin and uses the provider selected there.
 
 - ``Use project index if in use`` *use_project_index*
 
@@ -682,14 +682,14 @@ When enabled and the current conversation belongs to a project, the plugin queri
 Indexes to use outside an active project, or when project-index usage is disabled. If you want to use multiple indexes at once then separate them by comma. *Default:* `base`
 
 
-Code Interpreter
+Code interpreter (v2)
 -------------------------
 
 **Executing Code**
 
 From version ``2.4.13`` with built-in ``IPython``.
 
-The plugin operates similarly to the ``Code Interpreter`` in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Files I/O`` plugin, it facilitates running code from files saved in the active ``data`` directory. For conversations in a project with a custom workdir, that project directory becomes the runtime data root; otherwise the shared ``<profile workdir>/data`` directory is used. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in a Docker container.
+The plugin operates similarly to the ``Code Interpreter`` feature in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Files I/O`` plugin, it facilitates running code from files saved in the active ``data`` directory. For conversations in a project with a custom workdir, that project directory becomes the runtime data root; otherwise the shared ``<profile workdir>/data`` directory is used. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in a Docker container.
 
 **IPython:** Starting from version ``2.4.13``, it is highly recommended to adopt the new option: ``IPython``, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as ``!pip install <package_name>``, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
@@ -987,10 +987,10 @@ If enabled, then a new context will be created on every run of the job." *Defaul
 If enabled, then a tray notification will be shown on every run of the job. *Default:* `True`
 
 
-Custom Commands
+Custom commands
 ------------------------
 
-With the ``Custom Commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
+With the ``Custom commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
 To add a new custom command, click the **ADD** button and then:
 
@@ -1698,7 +1698,7 @@ The plugin integrates with various Google services, enabling features such as em
   * ``colab_duplicate`` - Duplicate notebook.
 
 
-Image Generation (inline)
+Image generation (inline)
 -------------------------
 
 The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The current model can call the plugin's ``image`` tool with a dedicated image prompt. The plugin does not require the ``+ Tools`` option to be enabled.
@@ -1953,7 +1953,7 @@ Security notes
 - Keep labels short and non-sensitive (labels are visible in tool names and logs).
 
 
-Mouse And Keyboard
+Mouse and keyboard
 -------------------
 
 Introduced in version: ``2.4.4`` (2024-11-09)
@@ -2055,7 +2055,7 @@ You can run this mode in Sandbox (using ``Playwright`` - https://playwright.dev/
    pip install playwright
    playwright install <chromium|firefox|webkit>
 
-After that, set the path to directory with installed browsers in ``Mouse and Keyboard`` plugin settings option: ``Sandbox (Playwright) / Browsers directory``.
+After that, set the path to directory with installed browsers in ``Mouse and keyboard`` plugin settings option: ``Sandbox (Playwright) / Browsers directory``.
 
 Compiled binary and Snap versions have ``chromium`` preinstalled in the package.
 
@@ -2208,7 +2208,7 @@ By default no images are downloaded; commands return URLs. The ``osm_tile`` comm
   - ``z`` (int), ``x`` (int), ``y`` (int), ``out`` (str, optional)
 
 
-Real Time
+Real time
 ----------
 
 This plugin automatically adds the current date and time to each system prompt you send. 
@@ -2579,7 +2579,7 @@ Delete a message from a channel or DM.
 Upload a file via external flow and share in Slack.
 
 
-System Prompt Extra (append)
+Extra system prompt
 -----------------------------
 
 The plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
@@ -3026,7 +3026,7 @@ Allows `capture` command execution. If enabled, model will be able to capture im
 Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `+ Tools` option must be enabled. *Default:* `False`
 
 
-Voice Control (inline)
+Voice control (inline)
 ----------------------
 
 The plugin provides voice control command execution within a conversation.
@@ -3038,12 +3038,12 @@ The plugin provides voice control command execution within a conversation.
 See the ``Accessibility`` section for more details.
 
 
-Web Search
+Web search
 -----------
 
 **PyGPT** lets you connect model to the internet and carry out web searches in real time as you make queries.
 
-To activate this feature, turn on the ``Web Search`` plugin found in the ``Plugins`` menu.
+To activate this feature, turn on the ``Web search`` plugin found in the ``Plugins`` menu.
 
 Web searches are provided by ``DuckDuckGo``, ``Google Custom Search Engine`` and ``Microsoft Bing`` APIs and can be extended with other search engine providers. 
 

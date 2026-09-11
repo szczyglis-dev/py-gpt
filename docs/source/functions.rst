@@ -13,7 +13,7 @@ In background, **PyGPT** uses an internal syntax to define commands and their pa
 
 	<tool>{"cmd": "send_email", "params": {"quote": "Why don't skeletons fight each other? They don't have the guts!"}}</tool>
 
-It is a JSON object wrapped between ``<tool>`` tags. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the ``Custom Commands`` plugin, or simply by creating your own plugin and adding it to the application.
+It is a JSON object wrapped between ``<tool>`` tags. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the ``Custom commands`` plugin, or simply by creating your own plugin and adding it to the application.
 
 .. tip::
 	The ``+ Tools`` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens and may slow down local models).
@@ -34,7 +34,7 @@ PyGPT offers compatibility of these functions with commands (tools) used in the 
 
 Local functions and tools from plugins are available in supported chat and agent modes when the ``+ Tools`` option is enabled.
 
-You can define an API-side function schema that maps to a local command from the ``Custom Commands`` plugin. For example:
+You can define an API-side function schema that maps to a local command from the ``Custom commands`` plugin. For example:
 
 **Name:** ``send_email``
 
@@ -58,7 +58,7 @@ You can define an API-side function schema that maps to a local command from the
 	}
 
 
-Then, in the ``Custom Commands`` plugin, create a new command with the same name and the same parameters:
+Then, in the ``Custom commands`` plugin, create a new command with the same name and the same parameters:
 
 **Command name:** ``send_email``
 

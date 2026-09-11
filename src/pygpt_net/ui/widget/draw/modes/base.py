@@ -43,7 +43,7 @@ DRAW_MODE_ORDER = (
 )
 
 DRAW_MODE_NAMES = {
-    DrawMode.FREE: "Free",
+    DrawMode.FREE: "Brush",
     DrawMode.ARROW: "Arrow",
     DrawMode.RECTANGLE: "Rectangle",
     DrawMode.CIRCLE: "Circle",

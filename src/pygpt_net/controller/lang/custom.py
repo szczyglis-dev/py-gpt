@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 20:31:00
+# Updated Date: 2026.09.11 19:50:00
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -80,6 +80,21 @@ class Custom:
 
 
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
+
+        # Chat with Agents runtime mode selector. QComboBox item texts are not
+        # covered by the generic node mapping, so retranslate them in-place
+        # while keeping their stable machine-readable itemData values.
+        combo = self.window.ui.nodes.get('agent.v2.mode')
+        if combo is not None:
+            mode_keys = {
+                'chat': 'agent.v2.mode.chat',
+                'orchestrator': 'agent.v2.mode.orchestrator',
+                'swarm': 'agent.v2.mode.swarm',
+            }
+            for i in range(combo.count()):
+                key = mode_keys.get(str(combo.itemData(i) or ''))
+                if key:
+                    combo.setItemText(i, trans(key))
 
         # painter drawing modes (combo + RMB submenu)
         try:

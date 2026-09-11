@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.13 13:00:00                  #
+# Updated Date: 2026.09.11 19:42:00                  #
 # ================================================== #
 
 import os
@@ -67,7 +67,7 @@ class About:
 
         try:
             from openai.version import VERSION as openai_version
-            lib_versions['OpenAI API'] = openai_version
+            lib_versions['OpenAI SDK'] = openai_version
         except ImportError:
             pass
 
@@ -79,19 +79,19 @@ class About:
 
         try:
             from anthropic import __version__ as anthropic_version
-            lib_versions['Anthropic API'] = anthropic_version
+            lib_versions['Anthropic SDK'] = anthropic_version
         except ImportError:
             pass
 
         try:
             from google.genai import __version__ as google_genai_version
-            lib_versions['Google API'] = google_genai_version
+            lib_versions['Google SDK'] = google_genai_version
         except ImportError:
             pass
 
         try:
             from xai_sdk import __version__ as xai_sdk_version
-            lib_versions['xAI API'] = xai_sdk_version
+            lib_versions['xAI SDK'] = xai_sdk_version
         except ImportError:
             pass
 

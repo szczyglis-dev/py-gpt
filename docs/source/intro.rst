@@ -34,7 +34,7 @@ Features
 * Internet access via ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
 * Speech synthesis via ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs`` and ``xAI`` Text-To-Speech services.
 * Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing`` and ``xAI Grok Voice``.
-* Plugins support with built-in plugins like ``Files I/O``, ``Code Interpreter``, ``Web Search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
+* Plugins support with built-in plugins like ``Files I/O``, ``Code interpreter (v2)``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
 * MCP support.
 * Camera capture for real-time image analysis in Chat and other supported modes.
 * Image analysis via vision models.
@@ -73,6 +73,6 @@ PyGPT uses your own API credentials to connect to supported AI providers such as
    This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
    resulting from the use of this application. It is provided "as is," without any form of warranty. 
    Users are reminded to be mindful of token usage - always verify the number of tokens utilized by the model on 
-   the API website and engage with the application responsibly. Activating plugins, such as Web Search, 
+   the API website and engage with the application responsibly. Activating plugins, such as Web search, 
    may consume additional tokens that are not displayed in the main window. 
    **Always monitor your actual token usage on the OpenAI, Google, Anthropic, etc. websites.**

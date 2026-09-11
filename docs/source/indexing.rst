@@ -117,7 +117,7 @@ The active project index can be used from multiple places:
 * In ``Chat with Files``, choose ``Current project`` from the index selector.
 * In the Files view, use ``RMB -> Embed into index -> Current project`` for a file or
   directory.
-* In the ``Chat with files (LlamaIndex, inline)`` plugin, enable
+* In the ``Chat with Files (RAG, inline)`` plugin, enable
   ``Use project index if in use`` to query the active project's isolated index
   automatically.
 * In the ``Files I/O`` plugin, enable ``Use project index if in use`` so

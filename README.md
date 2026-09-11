@@ -47,7 +47,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Internet access via `DuckDuckGo`, `Google` and `Microsoft Bing`.
 - Speech synthesis via `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI` Text-To-Speech services.
 - Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing` and `xAI Grok Voice`.
-- Plugins support with built-in plugins like `Files I/O`, `Code Interpreter`, `Web Search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
+- Plugins support with built-in plugins like `Files I/O`, `Code interpreter (v2)`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
 - MCP support.
 - Camera capture for real-time image analysis in Chat and other supported modes.
 - Image analysis via vision models.
@@ -494,7 +494,7 @@ For a visualization from OpenAI's page, see this picture:
 
 Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
 
-To index your files, copy or upload them into the active `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Embed into index`. Normally this is `<profile workdir>/data`; if the current conversation belongs to a project with a custom data workdir, the project directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with Files (LlamaIndex, inline)` plugin.
+To index your files, copy or upload them into the active `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Embed into index`. Normally this is `<profile workdir>/data`; if the current conversation belongs to a project with a custom data workdir, the project directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with Files (RAG, inline)` plugin.
 
 ![v2_idx1](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_idx1.png)
 
@@ -569,7 +569,7 @@ Project-aware indexing is also available outside automatic context indexing:
 
 - In **Chat with Files**, select **Current project** to query the active project's isolated index.
 - In the **Files** tab, `RMB -> Embed into index -> Current project` indexes the selected file or directory into the active project.
-- The **Chat with Files (LlamaIndex, inline)** and **Files I/O** plugins can automatically use the active project index when their **Use project index if in use** option is enabled (default: enabled).
+- The **Chat with Files (RAG, inline)** and **Files I/O** plugins can automatically use the active project index when their **Use project index if in use** option is enabled (default: enabled).
 - The project context menu provides **Update project index** and **Truncate project index** actions. Updating continues incrementally; truncating removes the project's index data and resets its indexing state.
 - Deleting a project also removes its project index. Duplicating a project rebuilds a corresponding isolated index only when the source project had one.
 
@@ -637,7 +637,7 @@ Generating images and videos is akin to a chat conversation  -  a user's prompt 
 
 ![v3_img](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img.png)
 
-Image generation using image models is also available in every mode via plugin `Image Generation (inline)`. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
+Image generation using image models is also available in every mode via plugin `Image generation (inline)`. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
 
 If you want to generate images directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
@@ -696,7 +696,7 @@ Chat with Agents can use both local and provider-side capabilities:
 - Local and remote tools can be enabled or disabled independently in the Chat with Agents preset with **Allow local tools** and **Allow remote tools**.
 - Models with native function calling use it when available; the runtime can fall back to a ReAct agent for compatible models without native function calling.
 
-Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Code Interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
+Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Code interpreter (v2), system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
 
 ### Settings
 
@@ -739,7 +739,7 @@ Includes built-in agents (Workflow):
 - FunctionAgent
 - ReAct
 - Structured Planner (sub-tasks)
-- CodeAct (connected to Code Interpreter plugin)
+- CodeAct (connected to Code interpreter (v2) plugin)
 - Supervisor + worker
 
 In the future, the list of built-in agents will be expanded.
@@ -941,7 +941,7 @@ Give me a list of active experts.
 
 This mode allows for autonomous computer control.
 
-In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. PyGPT uses the selected provider's native `Computer use` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in `Mouse and Keyboard` integration.
+In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. PyGPT uses the selected provider's native `Computer use` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in `Mouse and keyboard` integration.
 
 **Example of use:**
 
@@ -967,7 +967,7 @@ After that, set the path to directory with installed browsers in `Mouse and Keyb
 Compiled binary and Snap versions have `chromium` preinstalled in the package.
 
 
-**Tip:** DO NOT enable the `Mouse and Keyboard` plugin in Computer use mode—it is already connected to Computer use mode "in the background."
+**Tip:** DO NOT enable the `Mouse and keyboard` plugin in Computer use mode—it is already connected to Computer use mode "in the background."
 
 
 # Context and memory
@@ -992,7 +992,7 @@ Conversations can be organized into projects. By default, projects use the share
 
 A project workdir overrides **only the logical `data` directory** used by conversations in that project. It does not replace the profile/application workdir. Files such as `config.json`, `models.json`, `db.sqlite`, logs and other profile-level directories such as `tmp`, `cache`, `css`, `locale` and fonts continue to use the base profile workdir. Conversations outside projects, and projects with **Use shared workdir** enabled, use the normal `<profile workdir>/data` directory.
 
-The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Code Interpreter**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the data directory** is enabled; otherwise they remain in their normal base-profile locations.
+The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Code interpreter (v2)**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the data directory** is enabled; otherwise they remain in their normal base-profile locations.
 
 ## Clearing history
 
@@ -1097,7 +1097,7 @@ For example, if the RAG query model is `gpt-4o-mini`, then the default model for
 
 The active `data` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with LlamaIndex. The project override applies only to this logical data root; it does not move profile-level paths such as `tmp`, configuration files, the database or other application directories.
 
-The `Files I/O` and `Code Interpreter` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
+The `Files I/O` and `Code interpreter (v2)` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
 
 ![v2_file_output](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
@@ -1448,77 +1448,77 @@ Required **kwargs:
 
 The following plugins are currently available:
 
-- `API calls` - Connects models to external services through user-defined API endpoints, request methods, parameters, and payloads.
+- `API calls` - connects models to external services through user-defined API endpoints, request methods, parameters, and payloads.
 
-- `Audio Input` - Adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
+- `Audio input` - adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
 
-- `Audio Output` - Adds text-to-speech output using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
+- `Audio output` - adds text-to-speech output using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
 
-- `Autonomous Agent (inline)` - Runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
+- `Autonomous mode` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 
-- `Bitbucket` - Connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
+- `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
-- `Chat with Files (LlamaIndex, inline)` - Adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
+- `Chat with Files (RAG, inline)` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
 
-- `Code Interpreter` - Lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
+- `Code interpreter (v2)` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
 
-- `Context history (calendar, inline)` - Gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
+- `Context history (calendar, inline)` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
 
-- `Crontab / Task scheduler` - Lets models create and manage scheduled prompts and tasks using cron-based schedules.
+- `Crontab / Task scheduler` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
 
-- `Custom Commands` - Exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
+- `Custom commands` - exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
 
-- `Experts (inline)` - Makes enabled expert presets available from standard chat modes so the current model can delegate specialized tasks to them.
+- `Experts (inline)` - makes enabled expert presets available from standard chat modes so the current model can delegate specialized tasks to them.
 
-- `Facebook` - Connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
+- `Facebook` - connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
 
-- `Files I/O` - Gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
+- `Files I/O` - gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
 
-- `GitHub` - Connects to GitHub for repository, file, issue, pull request, code search, and account operations.
+- `GitHub` - connects to GitHub for repository, file, issue, pull request, code search, and account operations.
 
-- `Google` - Integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
+- `Google` - integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
 
-- `Image Generation (inline)` - Adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
+- `Image generation (inline)` - adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
 
-- `Mailer` - Provides email access through configured mail services, including sending and reading messages where supported.
+- `Mailer` - provides email access through configured mail services, including sending and reading messages where supported.
 
-- `Memory (inline)` - Maintains compact database-backed long-term memory plus raw keyed memory, using a global scope outside projects and an isolated memory scope for each project.
+- `Memory (inline)` - maintains compact database-backed long-term memory plus raw keyed memory, using a global scope outside projects and an isolated memory scope for each project.
 
-- `MCP` - Connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
+- `MCP` - connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
 
-- `Mouse and Keyboard` - Lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
+- `Mouse and keyboard` - lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
 
-- `OpenStreetMap` - Adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
+- `OpenStreetMap` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
 
-- `Real Time` - Appends the current date and/or time to system prompts so models can receive up-to-date local time context.
+- `Real time` - appends the current date and/or time to system prompts so models can receive up-to-date local time context.
 
-- `Serial port / USB` - Gives models access to configured serial and USB devices for reading data and sending commands.
+- `Serial port / USB` - gives models access to configured serial and USB devices for reading data and sending commands.
 
-- `Server (SSH/FTP)` - Connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
+- `Server (SSH/FTP)` - connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
 
-- `Slack` - Connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
+- `Slack` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
 
-- `System Prompt Extra (append)` - Automatically appends reusable custom instructions or additional context to the active system prompt.
+- `Extra system prompt` - automatically appends reusable custom instructions or additional context to the active system prompt.
 
-- `System (OS)` - Provides access to the operating system and executes system commands through PyGPT's host or sandbox execution mechanisms.
+- `System (OS)` - provides access to the operating system and executes system commands through PyGPT's host or sandbox execution mechanisms.
 
-- `Telegram` - Connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
+- `Telegram` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
 
-- `Tuya (IoT)` - Connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
+- `Tuya (IoT)` - connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
 
-- `TwelveLabs` - Adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
+- `TwelveLabs` - adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
 
-- `Vision (inline)` - Adds image analysis to supported chat modes by routing image input through a separately configured vision-capable model.
+- `Vision (inline)` - adds image analysis to supported chat modes by routing image input through a separately configured vision-capable model.
 
-- `Voice Control (inline)` - Lets spoken commands trigger configured PyGPT actions directly while a conversation is active.
+- `Voice control (inline)` - lets spoken commands trigger configured PyGPT actions directly while a conversation is active.
 
-- `Web Search` - Adds real-time web search, webpage retrieval, crawling, and external-content indexing using supported search providers and LlamaIndex loaders.
+- `Web search` - adds real-time web search, webpage retrieval, crawling, and external-content indexing using supported search providers and LlamaIndex loaders.
 
-- `Wikipedia` - Provides Wikipedia search, article lookup, summaries, geographic discovery, and random-page access.
+- `Wikipedia` - provides Wikipedia search, article lookup, summaries, geographic discovery, and random-page access.
 
-- `Wolfram Alpha` - Adds computational knowledge, symbolic and numeric mathematics, unit conversions, matrix operations, and generated plots through Wolfram Alpha.
+- `Wolfram Alpha` - adds computational knowledge, symbolic and numeric mathematics, unit conversions, matrix operations, and generated plots through Wolfram Alpha.
 
-- `X/Twitter` - Connects to X for searching and reading posts, publishing content, managing interactions, bookmarks, and media.
+- `X/Twitter` - connects to X for searching and reading posts, publishing content, managing interactions, bookmarks, and media.
 
 **Tip:** Inline plugins do not require the `+ Tools` option in the toolbox. Once enabled, they remain active throughout the conversation and can provide their functionality automatically when applicable.
 
@@ -1532,7 +1532,7 @@ In this plugin you can provide list of allowed API calls, their parameters and r
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#api-calls
 
-## Audio Input
+## Audio input
 
 The plugin facilitates speech recognition. OpenAI Whisper is the default provider; local Whisper, Google, Google Cloud, Google GenAI, Bing, and xAI Grok Voice providers are also available. It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new `Speak` option will appear at the bottom near the `Send` button  -  when this is enabled, the application will respond to the voice received from the microphone.
 
@@ -1540,14 +1540,14 @@ The plugin can be extended with other speech recognition providers.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-input
 
-## Audio Output
+## Audio output
 
 The plugin lets you turn text into speech using OpenAI TTS or providers such as `Microsoft Azure`, `Google Cloud TTS`, `Google GenAI TTS`, `Eleven Labs`, and `xAI TTS`. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
 Provider-specific credentials are required where applicable: Azure and Eleven Labs use plugin credentials, Google GenAI uses the Google API key from Settings, and xAI TTS uses the xAI API key from Settings. Configure voices, regions, and provider-specific options in the plugin settings.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
 
-## Autonomous Agent (inline)
+## Autonomous mode
 
 **WARNING: Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
@@ -1557,7 +1557,7 @@ in self-dialogue, answering his own questions and comments, in order to find the
 
 This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation.
 
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#autonomous-agent-inline
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#autonomous-mode
 
 ## Bitbucket
 
@@ -1584,21 +1584,21 @@ The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud AP
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#bitbucket
 
-## Chat with Files (LlamaIndex, inline)
+## Chat with Files (RAG, inline)
 
-Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context. The plugin also provides the `Image model` setting used by the Image (vision) data loader when API mode is active (default: `gpt-4o`). Audio/video transcription is not configured here; it uses the provider selected in the `Audio Input` plugin.
+Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context. The plugin also provides the `Image model` setting used by the Image (vision) data loader when API mode is active (default: `gpt-4o`). Audio/video transcription is not configured here; it uses the provider selected in the `Audio input` plugin.
 
 When **Use project index if in use** is enabled (default), the plugin automatically queries the isolated **Current project** index whenever the active conversation belongs to a project. Outside a project it uses the configured regular index or indexes.
 
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#chat-with-files-llamaindex-inline
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#chat-with-files-rag-inline
 
-## Code Interpreter
+## Code interpreter (v2)
 
 ### Executing Code
 
 From version `2.4.13` with built-in `IPython`.
 
-The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Files I/O` plugin, it facilitates running code from files saved in the active `data` directory. For conversations in a project with a custom workdir, the project directory becomes the runtime data root; otherwise the shared `<profile workdir>/data` directory is used. Docker execution exposes the same active host directory as `/data`.
+The plugin operates similarly to the `Code Interpreter` feature in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Files I/O` plugin, it facilitates running code from files saved in the active `data` directory. For conversations in a project with a custom workdir, the project directory becomes the runtime data root; otherwise the shared `<profile workdir>/data` directory is used. Docker execution exposes the same active host directory as `/data`.
 
 **IPython:** Starting from version `2.4.13`, it is highly recommended to adopt the new option: `IPython`, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as `!pip install <package_name>`, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
@@ -1627,7 +1627,7 @@ sudo snap connect pygpt:docker docker:docker-daemon
 
 **Tip:** always remember to enable the `+ Tools` option to allow execute commands from the plugins.
 
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#code-interpreter
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#code-interpreter-v2
 
 ## Context history (calendar, inline)
 
@@ -1658,9 +1658,9 @@ Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#crontab-task-scheduler
 
-## Custom Commands
+## Custom commands
 
-With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
+With the `Custom commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#custom-commands
 
@@ -1803,7 +1803,7 @@ The plugin integrates with various Google services, enabling features such as em
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#google-gmail-drive-calendar-contacts-yt-keep-docs-maps-colab
 
-## Image Generation (inline)
+## Image generation (inline)
 
 The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The model can then call the plugin's `image` tool with a dedicated image prompt. The plugin does not require the `+ Tools` option to be enabled.
 
@@ -1856,7 +1856,7 @@ With the `MCP` plugin, you can connect **PyGPT** to remote tools exposed by `Mod
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
 
-## Mouse And Keyboard
+## Mouse and keyboard
 
 Introduced in version: `2.4.4` (2024-11-09)
 
@@ -1889,7 +1889,7 @@ Images are saved under `data/openstreetmap/` in the user data directory.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#openstreetmap
 
-## Real Time
+## Real time
 
 This plugin automatically adds the current date and time to each system prompt you send. 
 You have the option to include just the date, just the time, or both.
@@ -1937,12 +1937,12 @@ The plugin provides access to the operating system and executes system commands.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#system-os
 
-## System Prompt Extra (append)
+## Extra system prompt
 
 The plugin appends additional system prompts (extra data) from a list to every current system prompt. 
 You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#system-prompt-extra-append
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#extra-system-prompt
 
 ## Telegram
 
@@ -1994,17 +1994,17 @@ The plugin model list is filtered by capabilities (`Chat` + image input), not by
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#vision-inline
 
-## Voice Control (inline)
+## Voice control (inline)
 
 The plugin provides voice control command execution within a conversation. The optional **Magic prefix for voice commands** defaults to `Execute voice command`.
 
 See the `Accessibility` section for more details.
 
-## Web Search
+## Web search
 
 **PyGPT** lets you connect model to the internet and carry out web searches in real time as you make queries.
 
-To activate this feature, turn on the `Web Search` plugin found in the `Plugins` menu.
+To activate this feature, turn on the `Web search` plugin found in the `Plugins` menu.
 
 Web searches can use `DuckDuckGo`, `Google Custom Search Engine`, or `Microsoft Bing` and can be extended with other search engine providers. DuckDuckGo does not require an API key. The default provider is Google Custom Search; the plugin opens at most 3 URLs at once by default, fetches thumbnail images, and currently has SSL verification disabled for crawling by default. 
 
@@ -2159,13 +2159,13 @@ Remote vector stores management.
 ## Python/OS
 
 
-This tool allows you to run Python code directly from within the app. It is integrated with the `Code Interpreter` plugin, ensuring that code generated by the model is automatically available from the interpreter. In the plugin settings, you can enable the execution of code in a Docker environment.
+This tool allows you to run Python code directly from within the app. It is integrated with the `Code interpreter (v2)` plugin, ensuring that code generated by the model is automatically available from the interpreter. In the plugin settings, you can enable the execution of code in a Docker environment.
 
 **INFO:** Executing Python code using IPython in compiled versions requires an enabled sandbox (Docker container). You can connect the Docker container via `Plugins -> Settings`.
 
 ## HTML/JS Canvas
 
-Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Code Interpreter` plugin.
+Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Code interpreter (v2)` plugin.
 
 ## Translator
 
@@ -2260,7 +2260,7 @@ In the `Config / Accessibility` menu, you can turn on accessibility features suc
 
 Voice control can be turned on in two ways: globally, through settings in `Config -> Accessibility`, and by using the `Voice control (inline)` plugin. Both options let you use the same voice commands, but they work a bit differently - the global option allows you to run commands outside of a conversation, anywhere, while the plugin option lets you execute commands directly during a conversation – allowing you to interact with the model and execute commands at the same time, within the conversation.
 
-In the plugin (inline) option, you can also turn on a special trigger word that will be needed for content to be recognized as a voice command. You can set this up by going to `Plugins -> Settings -> Voice Control (inline)`:
+In the plugin (inline) option, you can also turn on a special trigger word that will be needed for content to be recognized as a voice command. You can set this up by going to `Plugins -> Settings -> Voice control (inline)`:
 
 ```bash
 Magic prefix for voice commands
@@ -2441,7 +2441,7 @@ In the `Settings -> Indexes / LlamaIndex -> Data loaders` section you can define
 
 PyGPT includes built-in loaders for common file types and external/web content. In most cases, LlamaIndex loaders are used internally. You can also develop and register your own custom loader.
 
-**Tip:** To index external data or web content, you can use the `Web Search` plugin and ask the model to index a supported resource, such as a webpage or YouTube video. The appropriate data loader is selected automatically when possible.
+**Tip:** To index external data or web content, you can use the `Web search` plugin and ask the model to index a supported resource, such as a webpage or YouTube video. The appropriate data loader is selected automatically when possible.
 
 For the complete list of built-in data loaders, supported parameters, defaults, and configuration details, see:
 
@@ -2586,7 +2586,7 @@ https://pygpt.readthedocs.io/en/latest/extending.html
 This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
 resulting from the use of this application. It is provided "as is," without any form of warranty. 
 Users are reminded to be mindful of token usage - always verify the number of tokens utilized by the model on 
-the API website and engage with the application responsibly. Activating plugins, such as Web Search,
+the API website and engage with the application responsibly. Activating plugins, such as Web search,
 may consume additional tokens that are not displayed in the main window. 
 
 **Always monitor your actual token usage on the OpenAI, Google, Anthropic, xAI, etc. websites.**

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 07:00:00                  #
+# Updated Date: 2026.09.11 20:25:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any, Optional
@@ -367,7 +367,7 @@ class Plugins:
         for pid in pm.get_ids():
             if self.is_enabled(pid):
                 c += 1
-                enabled_names.append(pm.get(pid).name)
+                enabled_names.append(pm.get_name(pid))
 
         enabled_names.sort(key=str.casefold)
         tooltip = "\n".join(enabled_names)

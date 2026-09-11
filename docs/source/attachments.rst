@@ -101,7 +101,7 @@ Downloading files
 
 The active ``data`` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with the integrated ``LlamaIndex`` support. The project override applies only to this logical data root; it does not move profile-level paths such as ``tmp``, configuration files, the database or other application directories.
 
-The ``Files I/O`` and ``Code Interpreter`` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as ``/data``.
+The ``Files I/O`` and ``Code interpreter (v2)`` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as ``/data``.
 
 If ``Settings -> Files and attachments -> Store images, captures, and uploads in the data directory`` is enabled, ``img``, ``capture`` and ``upload`` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. The internal ``tmp`` directory always remains in the base profile workdir.
 

@@ -328,7 +328,7 @@ a newer related event. This is noted below.
 * ``AUDIO_INPUT_TOGGLE`` - enables or disables speech/audio input. ``data["value"]`` is the requested
   boolean state.
 
-* ``AUDIO_INPUT_TRANSCRIBE`` - asks the active Audio Input provider to transcribe an existing audio file.
+* ``AUDIO_INPUT_TRANSCRIBE`` - asks the active Audio input provider to transcribe an existing audio file.
   ``data["path"]`` contains the file path. ``event.ctx`` may be a temporary context when transcription is
   initiated from the Transcript tool.
 
@@ -336,12 +336,12 @@ a newer related event. This is noted below.
   identify the context whose playback is being stopped.
 
 * ``AUDIO_OUTPUT_TOGGLE`` - compatibility/reserved generic hook for changing audio-output state. Current
-  UI code normally enables/disables the Audio Output plugin through the plugin controller.
+  UI code normally enables/disables the Audio output plugin through the plugin controller.
 
 * ``AUDIO_PLAYBACK`` - requests playback of an already generated audio file. ``data["audio_file"]``
   contains the path and ``event.ctx`` identifies the related context when available.
 
-* ``AUDIO_READ_TEXT`` - asks the Audio Output provider to synthesize/read text. ``data["text"]`` contains
+* ``AUDIO_READ_TEXT`` - asks the Audio output provider to synthesize/read text. ``data["text"]`` contains
   the text and ``data["cache_file"]`` may contain a preferred cache path. ``event.ctx`` identifies the
   related context.
 
@@ -819,7 +819,7 @@ Adding a web search provider
 ----------------------------
 
 Web search providers are registered with ``web=[...]``. They provide a search-engine implementation used
-by the Web Search plugin.
+by the Web search plugin.
 
 A provider normally defines its own settings and implements ``search()``:
 

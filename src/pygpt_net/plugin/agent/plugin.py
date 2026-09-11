@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2026.09.11 20:25:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.plugin import BasePlugin
@@ -20,7 +20,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "agent"
-        self.name = "Autonomous Agent (inline)"
+        self.name = "Autonomous mode"
         self.description = "Enables inline autonomous mode (Agent) in current mode. " \
                            "WARNING: Please use with caution - this mode, when connected with other plugins, " \
                            "may produce unexpected results!"
