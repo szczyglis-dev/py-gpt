@@ -122,6 +122,7 @@ The following tables are available:
 * ``calendar_note`` - day notes stored by the built-in Calendar.
 * ``notepad`` - pages and contents of the built-in Notepad, including highlights and UI state.
 * ``memory`` - long-term data used by the ``Memory (inline)`` plugin; stores the global memory and separate per-project memories.
+* ``memory_keys`` - raw key/value long-term memory used by the ``Memory (inline)`` plugin; keys are isolated between global scope and individual projects.
 * ``idx_ctx`` - indexing metadata that maps stored conversations to documents in configured vector indexes.
 * ``idx_file`` - indexing metadata for local files embedded into vector indexes.
 * ``idx_external`` - indexing metadata/content records for external or web sources added to indexes.

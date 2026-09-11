@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 16:00:00                  #
+# Updated Date: 2026.09.11 15:15:00                  #
 # ================================================== #
 
 import os
@@ -180,6 +180,13 @@ class Database:
             'updated_at',
             'content',
         ]
+        columns["memory_keys"] = [
+            'id',
+            'project_id',
+            'key',
+            'updated_at',
+            'content',
+        ]
         columns["notepad"] = [
             'id',
             'idx',
@@ -342,6 +349,16 @@ class Database:
                 'columns': columns["memory"],
                 'sort_by': columns["memory"],
                 'search_fields': ['id', 'project_id', 'content'],
+                'timestamp_columns': ['updated_at'],
+                'json_columns': [],
+                'default_sort': 'updated_at',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'memory_keys': {
+                'columns': columns["memory_keys"],
+                'sort_by': columns["memory_keys"],
+                'search_fields': ['id', 'project_id', 'key', 'content'],
                 'timestamp_columns': ['updated_at'],
                 'json_columns': [],
                 'default_sort': 'updated_at',

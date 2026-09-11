@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has a preconfigured list of models (as of 2026-09-09):
+PyGPT has a preconfigured list of models (as of 2026-09-11):
 
 - ``claude-fable-5`` (Anthropic)
 - ``claude-fable-5-1`` (Anthropic)
@@ -79,6 +79,8 @@ PyGPT has a preconfigured list of models (as of 2026-09-09):
 - ``gpt-image-1`` (OpenAI)
 - ``gpt-image-1.5`` (OpenAI)
 - ``gpt-image-2`` (OpenAI)
+- ``gpt-image-2.5-flare`` (OpenAI)
+- ``gpt-image-2.5-sunburst`` (OpenAI)
 - ``gpt-realtime`` (OpenAI, real-time)
 - ``gpt-realtime-2.1`` (OpenAI, real-time)
 - ``gpt-realtime-2.1-mini`` (OpenAI, real-time)

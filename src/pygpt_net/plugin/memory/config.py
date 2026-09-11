@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 20:45:00                  #
+# Updated Date: 2026.09.11 15:15:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -56,6 +56,17 @@ class Config(BaseConfig):
                 "Refine manual memory_add calls with the configured model. Automatic context memory updates "
                 "are always refined."
             ),
+        )
+        plugin.add_option(
+            "key_search_content",
+            type="bool",
+            value=False,
+            label="Search memory key content",
+            description=(
+                "Also search stored key values/content in memory_key_search. Key names are always searched with "
+                "LIKE. Disabled by default to avoid scanning stored content."
+            ),
+            tooltip="Also search key content in memory_key_search. Disabled by default.",
         )
         plugin.add_option(
             "auto_attach",
@@ -136,3 +147,166 @@ class Config(BaseConfig):
                 "confirmation and call this tool only after confirmation."
             ),
         )
+        plugin.add_cmd(
+            "memory_key_get",
+            instruction=(
+                "read raw database-backed memory records by one key or a list of keys from the current global or "
+                "project scope for later reuse; provide key or keys"
+            ),
+            params=[
+                {
+                    "name": "key",
+                    "type": "str",
+                    "description": "Single memory key to read. Use either key or keys.",
+                    "required": False,
+                },
+                {
+                    "name": "keys",
+                    "type": "list",
+                    "description": "List of memory keys to read. Use either key or keys.",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            label="Read keyed memory",
+            description="Enable: read raw keyed memory records from the current global or project scope.",
+            tooltip="Read raw keyed memory records from the current global or project scope.",
+        )
+        plugin.add_cmd(
+            "memory_key_add",
+            instruction=(
+                "store a new raw value in the database under a key for later use in the current global or project "
+                "scope; use only for truly important data worth preserving and do not use for routine details"
+            ),
+            params=[
+                {
+                    "name": "key",
+                    "type": "str",
+                    "description": "New memory key.",
+                    "required": True,
+                },
+                {
+                    "name": "content",
+                    "type": "str",
+                    "description": "Raw content to store under the key without LLM processing.",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            label="Add keyed memory",
+            description=(
+                "Enable: store a new raw database value by key for later use. Use only for truly important data; "
+                "existing keys are not overwritten."
+            ),
+            tooltip="Store a new raw value by key. Use only for truly important data.",
+        )
+        plugin.add_cmd(
+            "memory_key_append",
+            instruction=(
+                "append raw content exactly as provided to an existing database-backed memory key in the current "
+                "global or project scope; use only for truly important data worth preserving"
+            ),
+            params=[
+                {
+                    "name": "key",
+                    "type": "str",
+                    "description": "Existing memory key.",
+                    "required": True,
+                },
+                {
+                    "name": "content",
+                    "type": "str",
+                    "description": "Raw content to append exactly as provided, without an automatic separator or LLM processing.",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            label="Append keyed memory",
+            description=(
+                "Enable: append raw content to an existing keyed memory value. Use only for truly important data."
+            ),
+            tooltip="Append raw content to an existing key without LLM processing.",
+        )
+        plugin.add_cmd(
+            "memory_key_update",
+            instruction=(
+                "replace the raw content of an existing database-backed memory key in the current global or project "
+                "scope for later use; use only for truly important data worth preserving"
+            ),
+            params=[
+                {
+                    "name": "key",
+                    "type": "str",
+                    "description": "Existing memory key to update.",
+                    "required": True,
+                },
+                {
+                    "name": "content",
+                    "type": "str",
+                    "description": "Complete raw replacement content, stored without LLM processing.",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            label="Update keyed memory",
+            description=(
+                "Enable: replace raw content for an existing database-backed memory key. Use only for truly important data."
+            ),
+            tooltip="Replace raw content for an existing key without LLM processing.",
+        )
+        plugin.add_cmd(
+            "memory_key_list",
+            instruction="list only the stored memory key names for the current global or project scope, without content",
+            params=[],
+            enabled=True,
+            label="List memory keys",
+            description="Enable: list memory key names for the current scope without returning their content.",
+            tooltip="List memory key names without content.",
+        )
+        plugin.add_cmd(
+            "memory_key_search",
+            instruction=(
+                "search database-backed memory keys in the current global or project scope using LIKE contains "
+                "matching on key names; optionally search content too when enabled in plugin settings"
+            ),
+            params=[
+                {
+                    "name": "query",
+                    "type": "str",
+                    "description": "Text to find using LIKE '%query%' in key names and, if enabled, stored content.",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            label="Search memory keys",
+            description=(
+                "Enable: search keyed memory with LIKE matching on key names. Content is searched only when the "
+                "Search memory key content option is enabled."
+            ),
+            tooltip="Search key names with LIKE and optionally search stored content.",
+        )
+        plugin.add_cmd(
+            "memory_key_remove",
+            instruction=(
+                "remove one database-backed memory key or a list of keys from the current global or project scope"
+            ),
+            params=[
+                {
+                    "name": "key",
+                    "type": "str",
+                    "description": "Single memory key to remove. Use either key or keys.",
+                    "required": False,
+                },
+                {
+                    "name": "keys",
+                    "type": "list",
+                    "description": "List of memory keys to remove. Use either key or keys.",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            label="Remove memory keys",
+            description="Enable: remove one or more memory keys from the current global or project scope.",
+            tooltip="Remove one or more stored memory keys from the current scope.",
+        )
+

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 20:45:00                  #
+# Updated Date: 2026.09.11 15:15:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -54,6 +54,33 @@ class Worker(BaseWorker):
         self.plugin = None
         self.cmds = None
         self.ctx = None
+
+    def get_memory_keys_param(self, item) -> list:
+        """Return one or more keys supplied through the key/keys tool parameters."""
+        values = []
+        key = self.get_param(item, "key", None)
+        keys = self.get_param(item, "keys", None)
+
+        if isinstance(key, (list, tuple, set)):
+            values.extend(key)
+        elif key is not None:
+            values.append(key)
+
+        if isinstance(keys, (list, tuple, set)):
+            values.extend(keys)
+        elif keys is not None:
+            values.append(keys)
+
+        normalized = []
+        seen = set()
+        for value in values:
+            value = str(value or "").strip()
+            if value and value not in seen:
+                normalized.append(value)
+                seen.add(value)
+        if not normalized:
+            raise ValueError("Provide a memory key using key or keys.")
+        return normalized
 
     @Slot()
     def run(self):
@@ -116,6 +143,29 @@ class Worker(BaseWorker):
                             self.plugin.clear_memory(project_id)
                             self.plugin.skip_next_auto_update(self.ctx, project_id)
                             result = "Memory cleared."
+                    elif name == "memory_key_get":
+                        keys = self.get_memory_keys_param(item)
+                        result = self.plugin.get_memory_keys(keys, project_id)
+                    elif name == "memory_key_add":
+                        key = str(self.get_param(item, "key", "") or "").strip()
+                        content = self.get_param(item, "content", "")
+                        result = self.plugin.add_memory_key(key, content, project_id)
+                    elif name == "memory_key_append":
+                        key = str(self.get_param(item, "key", "") or "").strip()
+                        content = self.get_param(item, "content", "")
+                        result = self.plugin.append_memory_key(key, content, project_id)
+                    elif name == "memory_key_update":
+                        key = str(self.get_param(item, "key", "") or "").strip()
+                        content = self.get_param(item, "content", "")
+                        result = self.plugin.update_memory_key(key, content, project_id)
+                    elif name == "memory_key_list":
+                        result = self.plugin.list_memory_keys(project_id)
+                    elif name == "memory_key_search":
+                        query = str(self.get_param(item, "query", "") or "")
+                        result = self.plugin.search_memory_keys(query, project_id)
+                    elif name == "memory_key_remove":
+                        keys = self.get_memory_keys_param(item)
+                        result = self.plugin.remove_memory_keys(keys, project_id)
                     else:
                         continue
                     responses.append(self.make_response(item, result))

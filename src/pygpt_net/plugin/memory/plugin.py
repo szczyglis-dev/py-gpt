@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 20:45:00                  #
+# Updated Date: 2026.09.11 15:15:00                  #
 # ================================================== #
 
 import threading
@@ -17,7 +17,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.base.plugin import BasePlugin
 
 from .config import Config
-from .store import Store
+from .store import KeyStore, Store
 
 
 class Plugin(BasePlugin):
@@ -109,9 +109,17 @@ Rules:
             "memory_add",
             "memory_update",
             "memory_clear",
+            "memory_key_get",
+            "memory_key_add",
+            "memory_key_append",
+            "memory_key_update",
+            "memory_key_list",
+            "memory_key_search",
+            "memory_key_remove",
         ]
         self.config = Config(self)
         self.store = Store()
+        self.key_store = KeyStore()
         self.update_lock = threading.Lock()
         self.skip_lock = threading.Lock()
         self.skip_auto_update = set()
@@ -120,6 +128,7 @@ Rules:
     def attach(self, window):
         super().attach(window)
         self.store.window = window
+        self.key_store.window = window
 
     def init_options(self):
         self.config.from_defaults(self)
@@ -241,6 +250,34 @@ Rules:
     def clear_memory(self, project_id: Optional[int] = None) -> bool:
         with self.update_lock:
             return self.store.clear(project_id)
+
+    def should_search_key_content(self) -> bool:
+        return bool(self.get_option_value("key_search_content"))
+
+    def get_memory_keys(self, keys, project_id: Optional[int] = None) -> list[dict]:
+        return self.key_store.get(keys, project_id)
+
+    def add_memory_key(self, key: str, content: str, project_id: Optional[int] = None) -> dict:
+        return self.key_store.add(key, content, project_id)
+
+    def append_memory_key(self, key: str, content: str, project_id: Optional[int] = None) -> dict:
+        return self.key_store.append(key, content, project_id)
+
+    def update_memory_key(self, key: str, content: str, project_id: Optional[int] = None) -> dict:
+        return self.key_store.update(key, content, project_id)
+
+    def list_memory_keys(self, project_id: Optional[int] = None) -> list[str]:
+        return self.key_store.list_keys(project_id)
+
+    def search_memory_keys(self, query: str, project_id: Optional[int] = None) -> list[dict]:
+        return self.key_store.search(
+            query,
+            project_id,
+            search_content=self.should_search_key_content(),
+        )
+
+    def remove_memory_keys(self, keys, project_id: Optional[int] = None) -> list[str]:
+        return self.key_store.remove(keys, project_id)
 
     def should_auto_attach(self, project_id: Optional[int]) -> bool:
         if self.get_option_value("auto_attach"):

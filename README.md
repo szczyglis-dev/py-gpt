@@ -1139,7 +1139,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has a preconfigured list of models (as of 2026-09-09):
+PyGPT has a preconfigured list of models (as of 2026-09-11):
 
 ```markdown
 - `claude-fable-5` (Anthropic)
@@ -1215,6 +1215,8 @@ PyGPT has a preconfigured list of models (as of 2026-09-09):
 - `gpt-image-1` (OpenAI)
 - `gpt-image-1.5` (OpenAI)
 - `gpt-image-2` (OpenAI)
+- `gpt-image-2.5-flare` (OpenAI)
+- `gpt-image-2.5-sunburst` (OpenAI)
 - `gpt-realtime` (OpenAI, real-time)
 - `gpt-realtime-2.1` (OpenAI, real-time)
 - `gpt-realtime-2.1-mini` (OpenAI, real-time)
@@ -1480,7 +1482,7 @@ The following plugins are currently available:
 
 - `Mailer` - Provides email access through configured mail services, including sending and reading messages where supported.
 
-- `Memory (inline)` - Maintains a compact database-backed long-term memory, using a global scope outside projects and an isolated memory scope for each project.
+- `Memory (inline)` - Maintains compact database-backed long-term memory plus raw keyed memory, using a global scope outside projects and an isolated memory scope for each project.
 
 - `MCP` - Connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
 
@@ -1817,7 +1819,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
 
 ## Memory (inline)
 
-The **Memory (inline)** plugin provides a compact long-term memory cache stored in the local database. It uses one global memory outside projects and a separate memory for each project; when a conversation belongs to a project, the project-specific memory is used instead of the global one. Because it is an inline plugin, it does not require the `+ Tools` option to be enabled.
+The **Memory (inline)** plugin provides a compact long-term memory cache stored in the local database. It uses one global memory outside projects and a separate memory for each project; when a conversation belongs to a project, the project-specific memory is used instead of the global one. It also provides a separate raw key/value store in the `memory_keys` table with the same global/project isolation. Because it is an inline plugin, it does not require the `+ Tools` option to be enabled.
 
 After a completed conversation turn, Memory can update the active memory asynchronously using the configured model. The updater rewrites the memory as a compact canonical state: it keeps important durable information, merges related facts instead of accumulating duplicates, reconciles newer information with older entries, and drops routine or transient details. Global memory focuses on durable information about the user, while project memory keeps information relevant to that project.
 
@@ -1828,6 +1830,9 @@ After a completed conversation turn, Memory can update the active memory asynchr
 - **Refine memory before adding** - applies only to manual `memory_add` calls. When enabled (default), the configured model merges the new information into the existing memory instead of appending raw text. Automatic end-of-context updates are always refined regardless of this option.
 - **Auto attach memory to every conversation** - appends the active memory to the system prompt in `<context_memory>...</context_memory>`. Default: `False`.
 - **Auto attach memory only in projects** - automatically attaches memory when the current conversation belongs to a project. Default: `True`.
+- **Search memory key content** - controls `memory_key_search`. Key names are always searched with `LIKE '%query%'`; content is searched too only when this option is enabled. Default: `False`.
+
+Keyed memory is stored raw and never summarized, merged, or rewritten by the memory-update LLM. Each key is unique inside its global/project scope. The auto-attach options apply only to the compact memory; keyed records are retrieved explicitly through the keyed-memory tools. Use keyed writes only for genuinely important information that should be preserved for later use, not routine or temporary details.
 
 **Tools:**
 
@@ -1835,6 +1840,15 @@ After a completed conversation turn, Memory can update the active memory asynchr
 - `memory_add` - selectively adds an important, durable fact and can merge it with existing memory. Disabled by default.
 - `memory_update` - replaces the complete memory content for the current scope. Disabled by default.
 - `memory_clear` - clears the current memory only after explicit user confirmation. Enabled by default.
+- `memory_key_get(key|keys)` - reads raw keyed-memory records by one key or a list of keys. Enabled by default.
+- `memory_key_add(key, content)` - creates a new raw keyed record without overwriting an existing key or using an LLM. Enabled by default.
+- `memory_key_append(key, content)` - appends raw content exactly as provided to an existing key, without an automatic separator or LLM processing. Enabled by default.
+- `memory_key_update(key, content)` - replaces the raw content of an existing key. Enabled by default.
+- `memory_key_list()` - returns only key names, without content. Enabled by default.
+- `memory_key_search(query)` - returns matching raw records; always uses `LIKE '%query%'` on keys and optionally on content when **Search memory key content** is enabled. Enabled by default.
+- `memory_key_remove(key|keys)` - removes one key or a list of keys from the current scope. Enabled by default.
+
+Inside projects, keyed tools use only the current project's records and never fall back to global keyed memory. Outside projects, they use only global keyed records.
 
 ## MCP (Model Context Protocol)
 

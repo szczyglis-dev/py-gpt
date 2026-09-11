@@ -25,7 +25,7 @@ The following plugins are currently available:
 * ``Google`` - Integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
 * ``Image Generation (inline)`` - Adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
 * ``Mailer`` - Provides email access through configured mail services, including sending and reading messages where supported.
-* ``Memory (inline)`` - Maintains compact database-backed long-term memory with a global scope outside projects and an isolated memory scope for each project.
+* ``Memory (inline)`` - Maintains compact database-backed long-term memory plus raw keyed memory, with a global scope outside projects and an isolated memory scope for each project.
 * ``MCP`` - Connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
 * ``Mouse and Keyboard`` - Lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
 * ``OpenStreetMap`` - Adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
@@ -1764,7 +1764,7 @@ SMTP Password.
 Memory (inline)
 ---------------
 
-The ``Memory (inline)`` plugin provides a compact long-term memory cache stored in the local SQLite database. It keeps one global memory outside projects and one separate memory row for each project. When the active conversation belongs to a project, the project-specific memory is used instead of the global memory.
+The ``Memory (inline)`` plugin provides a compact long-term memory cache stored in the local SQLite database. It keeps one global memory outside projects and one separate memory row for each project. When the active conversation belongs to a project, the project-specific memory is used instead of the global memory. It also provides a separate raw key/value store in the ``memory_keys`` table. Keyed memory follows the same scope rule: outside projects it uses only global keyed records, while a project uses only that project's keyed records.
 
 Because Memory is an inline plugin, it does not require the ``+ Tools`` option in the toolbox. Once enabled, its active commands can be exposed to the model regardless of the global Tools switch.
 
@@ -1792,12 +1792,29 @@ Automatically appends the active global or project memory to the system prompt i
 
 Automatically appends memory to the system prompt when the current conversation belongs to a project. *Default:* ``True``.
 
+- ``Search memory key content`` *key_search_content*
+
+Controls ``memory_key_search``. Key names are always searched with ``LIKE '%query%'``. When this option is enabled, stored key content is searched with the same ``LIKE`` expression as well. *Default:* ``False`` to avoid scanning stored content unless explicitly requested.
+
+**Keyed memory**
+
+Keyed memory is stored as raw database records and is never summarized, merged, or rewritten by the separate memory-update LLM. Each key is unique inside its global/project scope. The existing auto-attach options apply only to the compact memory; keyed records are retrieved explicitly through the keyed-memory tools. The write tools are intended only for genuinely important data that should be preserved for later use, not for routine logs or transient details.
+
 **Tools**
 
 - ``memory_get`` - Reads the complete memory for the current global/project scope. Enabled by default.
 - ``memory_add`` - Selectively adds highly important, durable information. When refinement is enabled, the model merges it contextually with existing memory instead of appending duplicate facts. Disabled by default.
 - ``memory_update`` - Replaces the complete memory content for the current scope. Disabled by default.
 - ``memory_clear`` - Clears the current memory. The model must first ask the user for explicit confirmation and may call the command only after confirmation. Enabled by default.
+- ``memory_key_get(key|keys)`` - Reads raw keyed-memory records by one key or a list of keys. Enabled by default.
+- ``memory_key_add(key, content)`` - Creates a new keyed record. It never overwrites an existing key and stores ``content`` exactly as provided, without LLM processing. Enabled by default.
+- ``memory_key_append(key, content)`` - Appends ``content`` exactly as provided to an existing keyed record; no separator is inserted automatically. Enabled by default.
+- ``memory_key_update(key, content)`` - Replaces the raw content of an existing keyed record. Enabled by default.
+- ``memory_key_list()`` - Returns only the key names for the current scope; it does not return content. Enabled by default.
+- ``memory_key_search(query)`` - Returns a list of matching keyed records. It always searches key names with ``LIKE '%query%'`` and also searches content only when ``Search memory key content`` is enabled. Enabled by default.
+- ``memory_key_remove(key|keys)`` - Removes one key or a list of keys from the current scope. Enabled by default.
+
+The ``key``/``keys`` operations never fall back from project memory to global memory. A conversation inside a project sees only that project's keyed records, while a conversation outside projects sees only global keyed records.
 
 
 MCP
