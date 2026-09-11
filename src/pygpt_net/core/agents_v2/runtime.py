@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 17:20:00                  #
+# Updated Date: 2026.09.11 18:35:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -92,6 +92,17 @@ class AgentsV2Runtime:
         "delegate_task", "report_status", "shared_context", "swarm_start", "swarm_status",
     }
     _STATUS_ONLY_TOOLS = {"report_status", "workflow_status", "swarm_status"}
+
+    @classmethod
+    def _show_tool_status(cls, tool_name: str) -> bool:
+        """Return True only for user-meaningful execution tools.
+
+        Worker lifecycle/delegation/workflow helpers are orchestration plumbing.
+        They may emit their own semantic statuses (for example worker start/wait),
+        but must never leak a synthetic ``Using tool: agent_*`` row to the UI.
+        """
+        name = str(tool_name or "").strip()
+        return bool(name and name not in cls._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX)
 
     def __init__(self, window, context, extra, signals, emitter):
         self.window = window
@@ -353,7 +364,7 @@ class AgentsV2Runtime:
 
         if actor != "orchestrator":
             worker = self.workers.get(actor)
-            if worker is not None:
+            if worker is not None and self._show_tool_status(tool):
                 self.emit_worker_status(
                     worker,
                     self.translated_status("status.agent_v2.tool", tool=tool),
@@ -368,7 +379,8 @@ class AgentsV2Runtime:
             # rotation. The next real AgentStream delta becomes a new sub-turn.
             self.emitter.mark_block_boundary()
             self._actor_needs_new_part["orchestrator"] = True
-        self.emit_runtime_status("status.agent_v2.tool", tool=tool)
+        if self._show_tool_status(tool):
+            self.emit_runtime_status("status.agent_v2.tool", tool=tool)
 
     def primary_stream_final_output(self) -> str:
         """Return only prose streamed after the most recent tool boundary."""
@@ -383,7 +395,7 @@ class AgentsV2Runtime:
             self.collect_llm_artifacts(response=event, actor_id=actor)
         if isinstance(event, ToolCall):
             tool_name = str(self._tool_event_value(event, "tool_name", "name", "tool") or "").strip()
-            if tool_name and tool_name not in self._STATUS_ONLY_TOOLS:
+            if self._show_tool_status(tool_name):
                 if actor == "orchestrator":
                     self.emit_runtime_status("status.agent_v2.tool", tool=tool_name)
                 else:
@@ -406,17 +418,16 @@ class AgentsV2Runtime:
             self.record_tool_result(event, actor=actor)
             if actor == "orchestrator":
                 self._actor_needs_new_part["orchestrator"] = True
-                # A provider/model pass after a tool result may spend noticeable
-                # time before yielding the next event. Do not label that gap as
-                # ``Planning task...`` because it is often simply TTFT for the
-                # final answer. Show the neutral request spinner instead. The
-                # renderer hides it on the next real text/tool/status activity.
-                if tool_name not in self._STATUS_ONLY_TOOLS:
+                # A provider/model pass after a normal execution tool may spend
+                # noticeable time before yielding the next event. Use only the
+                # neutral request spinner here. Internal orchestration tools keep
+                # the semantic worker/workflow status they emitted themselves.
+                if self._show_tool_status(tool_name):
                     self.emitter.show_loading()
-            else:
-                worker = self.workers.get(actor)
-                if worker is not None and tool_name not in self._STATUS_ONLY_TOOLS:
-                    self.emit_runtime_status("status.agent_v2.planning", worker=worker)
+            # Do not synthesize ``Planning task...`` after worker tool results.
+            # It falsely replaces the worker's actual progress on every tool
+            # roundtrip. The next status must come from report_status(), another
+            # real tool call, or the worker lifecycle (completed/failed/stopped).
             self.verbose.log("TOOL RESULT", event, actor=actor)
         elif isinstance(event, AgentStream):
             delta = getattr(event, "delta", None)
@@ -1346,7 +1357,11 @@ class AgentsV2Runtime:
             if len(self.status_events) > 256:
                 del self.status_events[:-256]
             display = worker.progress
-            if (self.is_swarm_mode or self.SHOW_AGENT_NAME_IN_STATUS) and worker.name:
+            if (
+                    self.is_orchestrator_mode
+                    or self.is_swarm_mode
+                    or self.SHOW_AGENT_NAME_IN_STATUS
+            ) and worker.name:
                 display = f"[{worker.name}] {display}"
             self.verbose.log("WORKER STATUS", {
                 "id": worker.id,
