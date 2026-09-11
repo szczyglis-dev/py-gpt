@@ -58,8 +58,6 @@ class Runner:
     async def _run(self, context, extra, signals, emitter: RuntimeEmitter):
         runtime = AgentsV2Runtime(self.window, context, extra, signals, emitter)
         emitter.begin()
-        runtime.emit_runtime_status("status.agent_v2.planning")
-
         current_input = str(getattr(context.ctx, "input", "") or context.prompt or "")
         runtime.verbose_text("USER INPUT", current_input)
         history = runtime.memory_store.load_history(
@@ -136,6 +134,7 @@ class Runner:
 
             stop_task = asyncio.create_task(watch_stop(), name="agents-v2:stop-watch")
 
+            post_tool_stream = False
             async for event in handler.stream_events():
                 runtime.verbose_event(event, actor="orchestrator")
                 if runtime.is_stopped():
@@ -159,16 +158,28 @@ class Runner:
                         pass
                     break
 
-                if isinstance(event, (ToolCall, ToolCallResult)):
-                    # A tool roundtrip ends one main-agent LLM pass. The next
-                    # user-visible prose belongs to a new partial in the same turn.
+                if isinstance(event, ToolCall):
+                    # A tool call closes the current model pass. Keep normal
+                    # provider-sized streaming for any prose before the call.
                     emitter.mark_block_boundary()
+                    post_tool_stream = False
+                    continue
+
+                if isinstance(event, ToolCallResult):
+                    # The response after a tool result starts a new model pass.
+                    # Some LlamaIndex/provider combinations expose that pass as
+                    # one large AgentStream.delta even when streaming is enabled.
+                    # Arm the emitter's incremental fallback for this segment so
+                    # it is painted progressively just like a materialized final.
+                    emitter.mark_block_boundary()
+                    post_tool_stream = True
                     continue
 
                 if isinstance(event, AgentStream) and getattr(event, "delta", None):
-                    emitter.append(
+                    await emitter.append_streamed(
                         event.delta,
                         part_uuid=runtime.actor_part_uuid("orchestrator"),
+                        ensure_incremental=post_tool_stream,
                     )
 
             if not runtime.is_stopped():
@@ -198,7 +209,7 @@ class Runner:
                             emitter.accept_streamed_final()
                         else:
                             final_part = runtime._prepare_final_part()
-                            emitter.start_final(
+                            await emitter.stream_final(
                                 runtime.final_answer,
                                 part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
                             )
@@ -216,7 +227,7 @@ class Runner:
                             emitter.accept_streamed_final()
                         else:
                             final_part = runtime._prepare_final_part()
-                            emitter.start_final(
+                            await emitter.stream_final(
                                 runtime.final_answer,
                                 part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
                             )

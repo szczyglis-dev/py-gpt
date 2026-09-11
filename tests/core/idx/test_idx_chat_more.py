@@ -71,6 +71,10 @@ class FakeResponseClass:
         self.from_llm_stream = Mock()
         self.from_index = Mock()
         self.from_llm = Mock()
+        self.collect_llm_urls = Mock(return_value=[])
+        self.stream_with_llm_artifacts = Mock(
+            side_effect=lambda ctx, llm, stream: stream
+        )
 
 def make_window(config_map=None):
     cfg = config_map or {}

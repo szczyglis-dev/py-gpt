@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 16:20:00                  #
+# Updated Date: 2026.09.11 16:35:00                  #
 # ================================================== #
 
 import json
@@ -42,15 +42,10 @@ from pygpt_net.core.events import RenderEvent
 # -----------------------------------------------------------------------------
 # Workflow status rendering policy
 # -----------------------------------------------------------------------------
-# When enabled, live tool/status events reuse one row for the currently active
-# CtxItemPart. A new part gets its own row, so the last status of every previous
-# part remains visible while only the current part is updated in-place.
-WORKFLOW_SINGLE_STATUS_PER_PART_LIVE = True
-
-# History/WebView rebuild policy for unfinished turns. When enabled, only the
-# newest tool/status row belonging to each part is replayed. Set to False to
-# restore the full chronological status history used before this option existed.
-WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY = True
+WORKFLOW_SINGLE_STATUS_PER_PART_LIVE_KEY = "agent.v2.single_status.live"
+WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY_KEY = "agent.v2.single_status.history"
+WORKFLOW_SINGLE_STATUS_PER_PART_LIVE_DEFAULT = True
+WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY_DEFAULT = True
 
 
 @dataclass(slots=True)
@@ -520,8 +515,8 @@ class Renderer(BaseRenderer):
                 header_json = json.dumps(header or "", ensure_ascii=False)
                 status_records = self._workflow_status_records(
                     parent_ctx,
-                    compact=WORKFLOW_SINGLE_STATUS_PER_PART_LIVE,
-                    live_ids=WORKFLOW_SINGLE_STATUS_PER_PART_LIVE,
+                    compact=self._workflow_single_status_live(),
+                    live_ids=self._workflow_single_status_live(),
                 )
                 records_json = json.dumps(
                     status_records,
@@ -951,8 +946,8 @@ class Renderer(BaseRenderer):
             self._workflow_status_freeze(meta, ctx)
             status_records = self._workflow_status_records(
                 ctx,
-                compact=WORKFLOW_SINGLE_STATUS_PER_PART_LIVE,
-                live_ids=WORKFLOW_SINGLE_STATUS_PER_PART_LIVE,
+                compact=self._workflow_single_status_live(),
+                live_ids=self._workflow_single_status_live(),
             )
             try:
                 parent_json = json.dumps(parent_id, ensure_ascii=False)
@@ -1256,6 +1251,20 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
+    def _workflow_single_status_live(self) -> bool:
+        """Return current live single-status policy from Settings."""
+        return bool(self.window.core.config.get(
+            WORKFLOW_SINGLE_STATUS_PER_PART_LIVE_KEY,
+            WORKFLOW_SINGLE_STATUS_PER_PART_LIVE_DEFAULT,
+        ))
+
+    def _workflow_single_status_history(self) -> bool:
+        """Return current unfinished-history single-status policy from Settings."""
+        return bool(self.window.core.config.get(
+            WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY_KEY,
+            WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY_DEFAULT,
+        ))
+
     @staticmethod
     def _workflow_status_part_key(record: dict) -> tuple:
         """Return the logical part bucket used by single-status rendering."""
@@ -1323,7 +1332,7 @@ class Renderer(BaseRenderer):
                     and list(last.get("tool_names") or []) == names
                     and self._workflow_status_part_key(last) == current_bucket):
                 self._hide_loading_on_activity(meta, pid=_pid)
-                if WORKFLOW_SINGLE_STATUS_PER_PART_LIVE:
+                if self._workflow_single_status_live():
                     return str(last.get("live_id") or last.get("id") or "") or None
                 return str(last.get("id") or "") or None
 
@@ -1335,7 +1344,7 @@ class Renderer(BaseRenderer):
         self._workflow_status_seq += 1
         status_id = f"wf-{key[0]}-{key[1]}-{self._workflow_status_seq}"
         live_id = status_id
-        if WORKFLOW_SINGLE_STATUS_PER_PART_LIVE:
+        if self._workflow_single_status_live():
             # Keep the complete event history in Python so the history/reload
             # policy can still be toggled independently. Only the live DOM slot
             # is reused per part via ``live_id``.
@@ -1357,7 +1366,7 @@ class Renderer(BaseRenderer):
             "seq": self._workflow_status_seq,
         })
         self._hide_loading_on_activity(meta, pid=_pid)
-        return live_id if WORKFLOW_SINGLE_STATUS_PER_PART_LIVE else status_id
+        return live_id if self._workflow_single_status_live() else status_id
 
     def _workflow_status_freeze(
             self,
@@ -3617,7 +3626,7 @@ class Renderer(BaseRenderer):
             compact_workflow_statuses=bool(
                 rebuild
                 and replay_statuses
-                and WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY
+                and self._workflow_single_status_history()
             ),
         )
         part_tool_calls = [] if partial_timeline or not show_tool_chain else self.helpers.extract_extra_tool_calls(

@@ -3121,6 +3121,34 @@
         "advanced": false,
         "tab": "general"
     },
+    "agent.v2.single_status.live": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.v2.single_status.live",
+        "description": "settings.agent.v2.single_status.live.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
+    },
+    "agent.v2.single_status.history": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.v2.single_status.history",
+        "description": "settings.agent.v2.single_status.history.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
+    },
     "agent.v2.max_iterations": {
         "section": "agent",
         "type": "int",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 11:00:00                  #
+# Updated Date: 2026.09.11 16:35:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -1219,14 +1219,22 @@ class AgentsV2Runtime:
             if item.get("status") in (WorkerStatus.RUNNING.value, WorkerStatus.STOPPING.value)
         ]
         shown = active[:6]
-        activity_text = "; ".join(
+        single_live_status = bool(self.window.core.config.get(
+            "agent.v2.single_status.live",
+            True,
+        ))
+        activity_separator = "\n" if single_live_status else "; "
+        activity_text = activity_separator.join(
             f"[{item['name']}] {self._short_status_text(item.get('activity'), 64)}"
             for item in shown
         )
         if len(active) > len(shown):
-            activity_text += ("; " if activity_text else "") + f"+{len(active) - len(shown)}"
+            activity_text += (activity_separator if activity_text else "") + f"+{len(active) - len(shown)}"
         if activity_text:
-            activity_text = " | " + activity_text
+            # In single-live-status mode the aggregate remains one replaceable
+            # status row, but each active worker is rendered on its own line.
+            # The legacy accumulating timeline keeps the old inline `` | `` form.
+            activity_text = ("\n" if single_live_status else " | ") + activity_text
         template = self.translated_status(
             "status.agent_v2.swarm.summary",
             declared=snapshot["declared"] or 0,

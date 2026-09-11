@@ -145,6 +145,44 @@ class RuntimeEmitter:
         else:
             self._schedule_stream_flush()
 
+    async def append_streamed(
+            self,
+            text: Optional[str],
+            part_uuid: Optional[str] = None,
+            ensure_incremental: bool = False,
+    ):
+        """Append a provider stream delta, with a fallback for materialized chunks.
+
+        Normal provider token deltas keep the low-overhead batching used by
+        append(). After a tool roundtrip some providers/LlamaIndex wrappers can
+        surface the next assistant pass as one large ``AgentStream.delta``. When
+        ``ensure_incremental`` is enabled, split only such multi-chunk deltas and
+        push them through the same Markdown-safe cadence used for fallback final
+        answers. Small/native deltas are left untouched.
+        """
+        if self._finished or not text:
+            return
+        value = str(text)
+        if not ensure_incremental or not self._final_stream_enabled:
+            self.append(value, part_uuid=part_uuid)
+            return
+
+        chunks = self._final_chunks(value)
+        if len(chunks) <= 1:
+            self.append(value, part_uuid=part_uuid)
+            return
+
+        for index, chunk in enumerate(chunks):
+            if self._finished:
+                break
+            self.append(chunk, part_uuid=part_uuid)
+            # A large provider delta is already fully materialized. Force each
+            # synthetic chunk over the Qt boundary or normal batching would merge
+            # it back into one visually instantaneous response.
+            self._flush_stream()
+            if index + 1 < len(chunks):
+                await asyncio.sleep(self._final_stream_delay)
+
     def _begin_final(self, text: Optional[str]) -> str:
         """Reset the live working draft and return normalized final text."""
         if self._finished:

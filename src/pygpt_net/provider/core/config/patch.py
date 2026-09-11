@@ -659,6 +659,8 @@ class Patch:
                     "agent.v2.max_iterations",
                     "agent.v2.swarm.max_iterations",
                     "agent.v2.worker.max_iterations",
+                    "agent.v2.single_status.live",
+                    "agent.v2.single_status.history",
                 ]
                 for key in to_add:
                     if key not in data:
