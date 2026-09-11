@@ -28,7 +28,14 @@ def get_dummy_window(config_data):
     dummy_config = DummyConfig(config_data)
     dummy_computer = SimpleNamespace(get_tool=lambda: {"type": "computer_tool"})
     core = SimpleNamespace(config=dummy_config, api=SimpleNamespace(openai=SimpleNamespace(computer=dummy_computer)))
-    controller = SimpleNamespace(chat=SimpleNamespace(remote_tools=SimpleNamespace(enabled=MagicMock(return_value=True))))
+    controller = SimpleNamespace(
+        chat=SimpleNamespace(
+            remote_tools=SimpleNamespace(
+                enabled=MagicMock(return_value=True),
+                supported=MagicMock(return_value=True),
+            )
+        )
+    )
     return SimpleNamespace(core=core, controller=controller)
 
 def set_disable(monkeypatch):

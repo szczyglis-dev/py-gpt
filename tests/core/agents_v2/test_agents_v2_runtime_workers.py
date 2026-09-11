@@ -134,7 +134,7 @@ def test_agents_v2_runtime_emit_worker_status_bounds_event_history_and_updates_e
     assert worker.progress == "processing"
     assert len(runtime.status_events) == 256
     assert runtime.status_events[-1]["agent_id"] == worker.id
-    runtime.emitter.status.assert_called_once_with("processing", source=worker.id)
+    runtime.emitter.status.assert_called_once_with("[Worker w01] processing", source=worker.id)
 
 
 def test_agents_v2_runtime_finish_workflow_rejects_running_or_unused_workers():

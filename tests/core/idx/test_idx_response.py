@@ -111,7 +111,12 @@ def test_from_llm_sets_output_and_unpacks_tool_calls_when_message_present():
     unpacked = [{"unpacked": True}]
     command_mock = Mock()
     command_mock.unpack_tool_calls_from_llama.return_value = unpacked
-    window = SimpleNamespace(core=SimpleNamespace(command=command_mock))
+    window = SimpleNamespace(
+        core=SimpleNamespace(
+            command=command_mock,
+            debug=SimpleNamespace(log=Mock()),
+        )
+    )
     r = Response(window=window)
     r.from_llm(ctx, model=Mock(), llm=llm, response=response)
     ctx.set_output.assert_called_once_with("content", "")
@@ -130,7 +135,12 @@ def test_from_llm_with_none_content_sets_empty_output_and_unpacks_tool_calls():
     unpacked = []
     command_mock = Mock()
     command_mock.unpack_tool_calls_from_llama.return_value = unpacked
-    window = SimpleNamespace(core=SimpleNamespace(command=command_mock))
+    window = SimpleNamespace(
+        core=SimpleNamespace(
+            command=command_mock,
+            debug=SimpleNamespace(log=Mock()),
+        )
+    )
     r = Response(window=window)
     r.from_llm(ctx, model=Mock(), llm=llm, response=response)
     ctx.set_output.assert_called_once_with("", "")

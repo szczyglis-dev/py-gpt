@@ -123,8 +123,10 @@ def test_prepare_path_respects_host_and_sandbox(mock_window):
     assert runner.prepare_path("/abs/a.txt") == "/abs/a.txt"
 
     runner.is_sandbox.return_value = True
+    mock_window.core.filesystem.from_sandbox_data_path = MagicMock(side_effect=lambda path, ctx=None: path)
     assert runner.prepare_path("a.txt", on_host=False) == "a.txt"
     assert runner.prepare_path("a.txt", on_host=True) == "/work/a.txt"
+    mock_window.core.filesystem.from_sandbox_data_path.assert_called_once_with("a.txt", ctx=None)
 
 
 def test_logging_helpers_emit_signals(mock_window):

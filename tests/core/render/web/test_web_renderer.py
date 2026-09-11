@@ -14,7 +14,7 @@ import re
 import time
 from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 import pytest
 
 from pygpt_net.core.render.web.pid import PidData
@@ -344,11 +344,14 @@ class TestRenderer:
         renderer._hide_previous_agent_action_icons.assert_called_once_with(meta, ctx)
         renderer._stream_reset.assert_called_once_with(1)
         renderer.update_names.assert_called_once_with(meta, ctx)
-        node.page().runJavaScript.assert_called_once_with(
-            "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
-            "if (typeof window.beginStream !== 'undefined') beginStream(true);"
-            "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", []);"
-        )
+        assert node.page().runJavaScript.call_args_list == [
+            call("if (typeof window.hideLoading !== 'undefined') hideLoading();"),
+            call(
+                "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
+                "if (typeof window.beginStream !== 'undefined') beginStream(true);"
+                "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", []);"
+            ),
+        ]
         renderer._stream_push.assert_called_once_with(1, "header", "chunk")
 
     def test_next_chunk(self, renderer, fake_window):
