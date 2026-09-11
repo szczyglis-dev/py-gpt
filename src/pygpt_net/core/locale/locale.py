@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.13 16:00:00                  #
+# Updated Date: 2026.09.11 19:50:00                  #
 # ================================================== #
 
 import os
@@ -99,26 +99,46 @@ class Locale:
             self,
             lang: str,
             domain: Optional[str] = None
-    ):
+    ) -> bool:
         """
-        Load translation data by language code
+        Load translation data by language code.
+
+        Files for a language are loaded transactionally: values are applied only
+        after all existing files (bundled + user override) have been parsed
+        successfully. This prevents partially loaded/broken locale data from
+        replacing the English fallback.
 
         :param lang: language code
         :param domain: translation domain
+        :return: True if locale files were loaded without errors
         """
         domain_id = domain or self.default_domain
         mapping = self.data.setdefault(domain_id, {})
+        pending = {}
+        current_path = None
 
         try:
-            base_path = self.get_base_path(domain_id, lang)
-            if os.path.isfile(base_path):
-                mapping.update(self.from_file(base_path))
-
-            user_path = self.get_user_path(domain_id, lang)
-            if os.path.isfile(user_path):
-                mapping.update(self.from_file(user_path))
+            paths = [
+                self.get_base_path(domain_id, lang),
+                self.get_user_path(domain_id, lang),
+            ]
+            for current_path in paths:
+                if os.path.isfile(current_path):
+                    pending.update(self.from_file(current_path))
         except Exception as e:
-            print(e)
+            if lang != self.fallback:
+                filename = (
+                    os.path.basename(current_path)
+                    if current_path
+                    else f'{domain_id}.{lang}.ini'
+                )
+                print(f"Locale file is broken: {filename} - {e}")
+            else:
+                print(e)
+            return False
+
+        mapping.update(pending)
+        return True
 
     def load(
             self,
@@ -134,9 +154,29 @@ class Locale:
         if not isinstance(lang, str) or not lang:
             lang = self.fallback
 
-        if lang != self.fallback:
+        domain_id = domain or self.default_domain
+
+        # Always rebuild the requested domain from scratch. Without clearing it,
+        # keys left by a previously selected language could survive a reload.
+        self.data[domain_id] = {}
+
+        if lang == self.fallback:
             self.load_by_lang(self.fallback, domain)
-        self.load_by_lang(lang, domain)
+            if domain_id == self.default_domain:
+                self.lang = self.fallback
+            return
+
+        # English is the complete baseline. The selected locale is only applied
+        # if every existing locale file parses successfully. On any error the
+        # English mapping remains untouched.
+        self.load_by_lang(self.fallback, domain)
+        if not self.load_by_lang(lang, domain):
+            if domain_id == self.default_domain:
+                self.lang = self.fallback
+            return
+
+        if domain_id == self.default_domain:
+            self.lang = lang
 
     def get(
             self,

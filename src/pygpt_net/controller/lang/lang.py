@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 18:00:00                  #
+# Updated Date: 2026.09.11 19:55:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QActionGroup
 
-from pygpt_net.utils import trans, trans_reload
+from pygpt_net.utils import get_locale_lang, trans, trans_reload
 
 from .custom import Custom
 from .mapping import Mapping
@@ -118,6 +118,15 @@ class Lang:
     def reload_config(self):
         """Reload language config"""
         trans_reload()
+        self._sync_fallback_lang()
+
+    def _sync_fallback_lang(self):
+        """Persist English when the selected main locale failed to load."""
+        active = get_locale_lang()
+        conf = self.window.core.config
+        if conf.get('lang') != active:
+            conf.set('lang', active)
+            conf.save()
 
     def toggle(self, id: str):
         """
@@ -132,6 +141,7 @@ class Lang:
         conf.set('lang', id)
         conf.save()
         trans('', True)
+        self._sync_fallback_lang()
 
         self.update()
         self.mapping.apply()
